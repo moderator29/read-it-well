@@ -39,7 +39,7 @@ export const ROOM_COPY: Record<RoomItem, { title: string; detail: string }> = {
   utilities: { title: "Utilities", detail: "Power, water, internet, AC" },
   appliances: { title: "Appliances", detail: "Fridge, cooker, washing machine, others" },
   safety: { title: "Safety", detail: "Smoke detectors, fire safety, locks, security" },
-  overall: { title: "Overall Condition", detail: "General notes and photos" },
+  overall: { title: "Overall condition", detail: "General notes and photos" },
 };
 
 export type InspectionReport = {

@@ -1,4 +1,5 @@
 import "server-only";
+import { reportReadError } from "@/lib/observability/read-error";
 import { COMPOUND_COLUMNS, readCompound, type Compound, type CompoundRow } from "@/lib/listings/compound";
 
 import { cache } from "react";
@@ -273,6 +274,7 @@ export async function getMessageFlags(
     const { data, error } = await select
       .order("created_at", { ascending: false })
       .range(page.from, page.to);
+    await reportReadError("read.admin.getMessageFlags", error);
     if (error) return UNAVAILABLE;
 
     const { rows: page1, full } = takePage(data ?? []);
@@ -392,6 +394,7 @@ async function readAcknowledgements(
       .from("risk_alerts")
       .select("id, acknowledged_by, acknowledged_at")
       .in("id", ids);
+    await reportReadError("read.admin.readAcknowledgements", error);
     if (error || !data) return null;
     const out = new Map<string, Acknowledgement>();
     for (const row of data) out.set(row.id, { at: row.acknowledged_at, by: row.acknowledged_by });
@@ -434,6 +437,7 @@ export async function getRiskAlerts(
     const { data, error } = await select
       .order("created_at", { ascending: false })
       .range(page.from, page.to);
+    await reportReadError("read.admin.getRiskAlerts", error);
     if (error) return UNAVAILABLE;
 
     const { rows, full } = takePage(data ?? []);
@@ -562,6 +566,7 @@ export async function getReports(
     const { data, error } = await select
       .order("created_at", { ascending: false })
       .range(page.from, page.to);
+    await reportReadError("read.admin.getReports", error);
     if (error) return UNAVAILABLE;
 
     const { rows, full } = takePage(data ?? []);
@@ -824,6 +829,7 @@ export async function getAgentApplications(
         .order("reviewed_at", { ascending: false, nullsFirst: false })
         .limit(10),
     ]);
+    await reportReadError("read.admin.getAgentApplications", waiting.error, decided.error);
     if (waiting.error || decided.error) return UNAVAILABLE;
 
     /* Described rather than signed: nothing here touches storage any more, so
@@ -931,6 +937,8 @@ export type ListingReviewView = {
   amenityCount: number;
   submittedAt: string | null;
   reviewedAt: string | null;
+  /** The FIRST time it went live (kept across a re-publish); null when it never has. Dates the status track's Live step. */
+  publishedAt?: string | null;
   reviewNotes: string | null;
   createdAt: string;
   checks: QualityCheck[];
@@ -939,7 +947,7 @@ export type ListingReviewView = {
 };
 
 const LISTING_COLUMNS =
-  "id, reference, title, status, property_type, listing_intent, rent_amount_minor, rent_period, rate_minor, rate_period, sale_price_minor, tenure, sale_status, caution_deposit_minor, service_charge_minor, service_charge_period, agency_fee_minor, legal_fee_minor, agreement_fee_minor, total_move_in_cost_minor, city, area, state_code, address, description, bedrooms, bathrooms, submitted_at, reviewed_at, review_notes, created_at, sale_agency_fee_minor, sale_legal_fee_minor, governors_consent_fee_minor, stamp_duty_minor, survey_registration_fee_minor, total_purchase_cost_minor, power_grid, power_backup, power_backup_hours, water_supply, prepaid_meter, size_sqm, toilets, parking_spaces, floor, total_floors, condition, year_built, furnished, agents!listings_agent_id_fkey( display_name ), listing_photos ( storage_path, position ), listing_videos ( storage_path, poster_path, duration_seconds, position ), listing_amenities ( amenity_id ), listing_access ( estate_name, gate_directions, security_phone, access_code )";
+  "id, reference, title, status, property_type, listing_intent, rent_amount_minor, rent_period, rate_minor, rate_period, sale_price_minor, tenure, sale_status, caution_deposit_minor, service_charge_minor, service_charge_period, agency_fee_minor, legal_fee_minor, agreement_fee_minor, total_move_in_cost_minor, city, area, state_code, address, description, bedrooms, bathrooms, submitted_at, reviewed_at, published_at, review_notes, created_at, sale_agency_fee_minor, sale_legal_fee_minor, governors_consent_fee_minor, stamp_duty_minor, survey_registration_fee_minor, total_purchase_cost_minor, power_grid, power_backup, power_backup_hours, water_supply, prepaid_meter, size_sqm, toilets, parking_spaces, floor, total_floors, condition, year_built, furnished, agents!listings_agent_id_fkey( display_name ), listing_photos ( storage_path, position ), listing_videos ( storage_path, poster_path, duration_seconds, position ), listing_amenities ( amenity_id ), listing_access ( estate_name, gate_directions, security_phone, access_code )";
 
 type ListingRow = {
   id: string;
@@ -971,6 +979,7 @@ type ListingRow = {
   bathrooms: number;
   submitted_at: string | null;
   reviewed_at: string | null;
+  published_at: string | null;
   review_notes: string | null;
   created_at: string;
   sale_agency_fee_minor: number | null;
@@ -1224,6 +1233,7 @@ function toListingView(
     amenityCount: row.listing_amenities.length,
     submittedAt: row.submitted_at,
     reviewedAt: row.reviewed_at,
+    publishedAt: row.published_at,
     reviewNotes: row.review_notes,
     createdAt: row.created_at,
     checks: qualityChecks(row),
@@ -1322,6 +1332,7 @@ export async function getListingSubmissions(
           .limit(10);
       })(),
     ]);
+    await reportReadError("read.admin.getListingSubmissions", waiting.error, decided.error);
     if (waiting.error || decided.error) return UNAVAILABLE;
 
     const waitingPage = takePage((waiting.data ?? []) as ListingRow[]);
@@ -1358,6 +1369,7 @@ async function readCompounds(admin: SupabaseClient<Database>, ids: string[]): Pr
   if (ids.length === 0) return out;
   try {
     const { data, error } = await admin.from("listings").select(`id, ${COMPOUND_COLUMNS}`).in("id", ids);
+    await reportReadError("read.admin.readCompounds", error);
     if (error || !data) return out;
     for (const row of data as unknown as (CompoundRow & { id: string })[]) {
       const compound = readCompound(row);
@@ -1435,6 +1447,7 @@ export async function getSupportTickets(
       .order("queue_at", { ascending: false })
       .order("created_at", { ascending: false })
       .range(page.from, page.to);
+    await reportReadError("read.admin.getSupportTickets", error);
     if (error) return UNAVAILABLE;
 
     const { rows, full } = takePage(data ?? []);
@@ -1477,6 +1490,7 @@ export async function getTicketThread(
       .eq("ticket_id", ticketId)
       .order("created_at", { ascending: true })
       .limit(100);
+    await reportReadError("read.admin.getTicketThread", error);
     if (error) return UNAVAILABLE;
 
     return {
@@ -1511,6 +1525,7 @@ export async function getFeatureFlags(): Promise<AdminRead<SwitchView[]>> {
       .from("feature_flags")
       .select("key, enabled, note, updated_at")
       .order("key", { ascending: true });
+    await reportReadError("read.admin.getFeatureFlags", error);
     if (error) return UNAVAILABLE;
 
     return {
@@ -1586,6 +1601,7 @@ export async function getInventoryDriftAlerts(): Promise<AdminRead<DriftAlerts>>
         .eq("status", "resolved")
         .or("entity_type.eq.inventory_drift,title.ilike.%inventory drift%"),
     ]);
+    await reportReadError("read.admin.getInventoryDriftAlerts", openRes.error, resolvedRes.error);
     if (openRes.error || resolvedRes.error) return UNAVAILABLE;
 
     const open: AlertView[] = (openRes.data ?? [])
@@ -1692,6 +1708,7 @@ export async function findAdminSubject(raw: string): Promise<AdminRead<SubjectLo
         .select("user_id")
         .eq("handle", value)
         .maybeSingle();
+      await reportReadError("read.admin.findAdminSubject", error);
       if (error) return UNAVAILABLE;
       userId = data?.user_id ?? null;
     } else {
@@ -1702,6 +1719,8 @@ export async function findAdminSubject(raw: string): Promise<AdminRead<SubjectLo
         if (error.code === "42883" || error.code === "PGRST202") {
           return { state: "ok", data: { state: "email-unavailable" } };
         }
+        /* The pending migration above is expected and said on screen; anything else is a fault. */
+        await reportReadError("read.admin.findAdminSubject", error);
         return UNAVAILABLE;
       }
       userId = typeof data === "string" && UUID_RE.test(data) ? data : null;
@@ -1713,6 +1732,7 @@ export async function findAdminSubject(raw: string): Promise<AdminRead<SubjectLo
       admin.from("profiles").select("id, display_name").eq("id", userId).maybeSingle(),
       admin.from("social_profiles").select("handle").eq("user_id", userId).maybeSingle(),
     ]);
+    await reportReadError("read.admin.findAdminSubject", profileRes.error);
     if (profileRes.error) return UNAVAILABLE;
     if (!profileRes.data) return { state: "ok", data: { state: "none", by } };
 

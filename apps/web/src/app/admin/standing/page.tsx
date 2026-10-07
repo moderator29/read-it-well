@@ -80,54 +80,64 @@ export default async function AdminStandingPage({
 
   return (
     <div className="nf-console">
-      <ui.QueueHeader
-        title={t.admin.nav.standing.label}
-        lede={LEDE}
-        count={read.grants.filter((g) => !g.revoked).length}
-      />
-
-      <QueueFilters
-        base="/admin/standing"
-        query={query}
-        common={common}
-        statuses={read.manualBadges.map((badge) => ({ value: badge.code, label: badge.name }))}
-        searchLabel="Find a holder"
-        searchPlaceholder="Name of the person who holds it"
-      />
+      {/* No count beside the title: the queue header's count reads "waiting",
+          and a badge somebody holds is not waiting on anybody. The record below
+          is the count. */}
+      <ui.QueueHeader title={t.admin.nav.standing.label} lede={LEDE} />
 
       {/*
-        THE ONE THING PAGING FORWARD CANNOT FIX, SAID WHERE IT HAPPENS.
-
-        A name search resolves people first and then reads their grants, so a
-        term matching more people than the profile read will return leaves rows
-        out that no Next link will ever reach. Silence here would hand an
-        operator a desk that looks complete. It is drawn in the pending colour
-        because nothing has failed: the answer is partial, not wrong.
+        THE GRANT FORM IS ALWAYS DRAWN. This used to short-circuit to the empty
+        state when the record held no row, and the form lives in the desk, so
+        the first badge could never be granted from the one desk whose empty
+        copy says to grant it here. The empty state is now the record's, and
+        the search narrows the record it sits above.
       */}
-      {read.holderSearchCapped && (
-        <p
-          role="status"
-          className="nf-body-sm mb-block rounded-[var(--nf-radius-lg)] border border-[color-mix(in_oklab,var(--nf-status-pending)_45%,transparent)] bg-[var(--nf-status-pending-surface)] p-row leading-relaxed text-[var(--nf-content-secondary)]"
-        >
-          That name matches more people than this search reads, so grants held by
-          some of them are not below. Paging forward will not reach them. Narrow
-          the name and search again.
-        </p>
-      )}
+      <StandingDesk
+        grants={read.grants}
+        manualBadges={read.manualBadges}
+        filters={
+          <>
+            <QueueFilters
+              base="/admin/standing"
+              query={query}
+              common={common}
+              statuses={read.manualBadges.map((badge) => ({ value: badge.code, label: badge.name }))}
+              searchLabel="Find a holder"
+              searchPlaceholder="Name of the person who holds it"
+            />
+            {/*
+              THE ONE THING PAGING FORWARD CANNOT FIX, SAID WHERE IT HAPPENS.
 
-      {read.grants.length === 0 ? (
-        <ui.QueueEmpty
-          title={narrowed ? noMatch.title : "No badge has been granted by hand"}
-          body={
-            narrowed
-              ? noMatch.body
-              : "Every badge on the platform so far was awarded by a trigger. The moment somebody grants one from this desk, it and the name against it appear here."
-          }
-          state={narrowed ? "no-match" : "never"}
-        />
-      ) : (
-        <StandingDesk grants={read.grants} manualBadges={read.manualBadges} />
-      )}
+              A name search resolves people first and then reads their grants, so a
+              term matching more people than the profile read will return leaves rows
+              out that no Next link will ever reach. Silence here would hand an
+              operator a desk that looks complete. It is drawn in the pending colour
+              because nothing has failed: the answer is partial, not wrong.
+            */}
+            {read.holderSearchCapped && (
+              <p
+                role="status"
+                className="nf-body-sm mb-block rounded-[var(--nf-radius-lg)] border border-[color-mix(in_oklab,var(--nf-status-pending)_45%,transparent)] bg-[var(--nf-status-pending-surface)] p-row leading-relaxed text-[var(--nf-content-secondary)]"
+              >
+                That name matches more people than this search reads, so grants held by
+                some of them are not below. Paging forward will not reach them. Narrow
+                the name and search again.
+              </p>
+            )}
+          </>
+        }
+        empty={
+          <ui.QueueEmpty
+            title={narrowed ? noMatch.title : "No badge has been granted by hand"}
+            body={
+              narrowed
+                ? noMatch.body
+                : "Every badge on the platform so far was awarded by a trigger. The moment somebody grants one with the form above, it and the name against it appear here."
+            }
+            state={narrowed ? "no-match" : "never"}
+          />
+        }
+      />
 
       <QueuePager
         base="/admin/standing"

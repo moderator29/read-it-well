@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getLocale } from "@/lib/locale";
 import { getDictionary } from "@vallo/i18n";
 import { getReviewView, type ReviewRead } from "@/lib/reviews/queries";
+import { withNext } from "@/lib/auth/next-link";
 import { ResultScreen } from "@/components/app/ResultSheet";
 import { PageHeader } from "@/components/app/PageHeader";
 import { PageScene } from "@/components/app/PageScene";
@@ -50,14 +51,23 @@ export default async function ReviewPage({
   }
 
   if (read.state === "signed-out") {
+    const words = getDictionary(locale).experienceSpeed.stayReview;
     return (
       <Shell>
+        {/* A sign-in prompt is not good news: the neutral sign-in state, not
+            the confirmed shield. The sentence promises a return here, so the
+            link carries it: sign-in reads only `next` (A9). */}
         <ResultScreen
-          state="confirmed"
-          mark="shield-check"
-          verdict="Sign in to review your stay"
-          consequence="Reviews are tied to the stay you took, so we need to know it was you. Sign in and you land straight back here."
-          actions={[{ label: "Sign in", href: "/sign-in", tone: "primary" }]}
+          state="sign-in"
+          verdict={words.signedOutTitle}
+          consequence={words.signedOutBody}
+          actions={[
+            {
+              label: words.signIn,
+              href: withNext("/sign-in", `/bookings/${encodeURIComponent(bookingId)}/review`),
+              tone: "primary",
+            },
+          ]}
         />
       </Shell>
     );

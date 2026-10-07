@@ -180,7 +180,10 @@ function AmountStatic({
      what `formatMoney` already does. Same rule, one place. */
   const tail = lower(splitAt === -1 || lastFraction === -1 ? "" : join(lastFraction + 1));
 
-  const muted = secondaryClassName ?? "text-[0.62em] font-semibold opacity-60";
+  /* The muted part is 0.62 of the figure, and never under 12px (north star
+     section 5: nothing below 12 anywhere). On a 16px row figure 0.62em was
+     9.9px kobo; on a hero figure the floor changes nothing. */
+  const muted = secondaryClassName ?? "text-[length:max(0.75rem,0.62em)] font-semibold opacity-60";
 
   /*
    * B15: WHAT A SCREEN READER HEARS. A compact figure ("₦2.8m") is read
@@ -242,7 +245,7 @@ export function Figure({
         ? <CountUp value={value} tag={intlTag[locale]} eager />
         : value.toLocaleString(intlTag[locale])
       : value;
-  const muted = secondaryClassName ?? "text-[0.62em] font-semibold opacity-60";
+  const muted = secondaryClassName ?? "text-[length:max(0.75rem,0.62em)] font-semibold opacity-60";
   return (
     <span className={["nf-numeric", className ?? ""].filter(Boolean).join(" ")}>
       {shown}

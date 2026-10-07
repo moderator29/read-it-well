@@ -1,0 +1,526 @@
+/*
+  charts: the chart system's material (B-26, 6 October 2026).
+
+  Imported by the components that draw a chart (PeriodBars, TrendLine,
+  CompareBars under components/ui/charts), the way map.css is imported by
+  the map, so a page with no chart pays nothing for it. The rules every
+  value here follows are written once, at the top of `chart-rules.ts`;
+  this file only carries them out.
+
+  Every colour is a role token. The `--nf-chart-*` roles (series, context,
+  axis, grid, track, hatch) are defined in `packages/design-tokens/src/
+  tokens.css` on every themed element, so each reference reads the role
+  directly with no fallback.
+
+  Motion is transform and opacity only, on the duration and ease tokens, and
+  every animation here has a quiet answer at the foot of the file.
+*/
+@layer components {
+  .nf-viz {
+    margin: 0;
+    min-width: 0;
+    color: var(--nf-content-secondary);
+  }
+
+  /* ------------------------------------------------------------ frame */
+  .nf-viz__frame {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--nf-space-2xs) var(--nf-space-xs);
+    align-items: start;
+  }
+  .nf-viz__y {
+    position: relative;
+    min-width: 1.5rem;
+  }
+  .nf-viz__y-size {
+    display: block;
+    height: 0;
+    overflow: hidden;
+    visibility: hidden;
+    font-size: var(--nf-text-overline);
+    font-style: normal;
+    white-space: nowrap;
+  }
+  .nf-viz__y > span {
+    position: absolute;
+    inset-inline-end: 0;
+    translate: 0 50%;
+    font-size: var(--nf-text-overline);
+    line-height: 1;
+    color: var(--nf-content-muted);
+    white-space: nowrap;
+  }
+  .nf-viz__plot {
+    position: relative;
+    border-bottom: 1px solid var(--nf-chart-axis);
+    /* A finger dragging across the plot reads it; a vertical drag still
+       scrolls the page. */
+    touch-action: pan-y;
+    outline: none;
+  }
+  .nf-viz__plot:focus-visible {
+    outline: 2px solid var(--nf-focus-ring);
+    outline-offset: 4px;
+    border-radius: var(--nf-radius-xs);
+  }
+  .nf-viz__plot > svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+  /* Solid hairlines, never dashed (chart rule 5). */
+  .nf-viz__grid {
+    position: absolute;
+    inset-inline: 0;
+    height: 0;
+    border-top: 1px solid var(--nf-chart-grid);
+    pointer-events: none;
+  }
+  .nf-viz-svg-grid {
+    stroke: var(--nf-chart-grid);
+    stroke-width: 1;
+  }
+  .nf-viz-svg-axis {
+    stroke: transparent;
+  }
+  /* The one dashed rule: a promise the product keeps, named at its end. */
+  .nf-viz__target {
+    position: absolute;
+    inset-inline: 0;
+    height: 0;
+    border-top: 1px dashed var(--nf-content-muted);
+    pointer-events: none;
+  }
+  .nf-viz__target-label {
+    position: absolute;
+    inset-inline-end: 0;
+    bottom: 0.25rem;
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-muted);
+    white-space: nowrap;
+  }
+
+  /* --------------------------------------------------------- the x axis */
+  .nf-viz__x {
+    display: flex;
+    gap: 2px;
+    /* Under the plot, in the plot's column, so it lines up whatever width
+       the y labels take. */
+    grid-column: 2;
+  }
+  .nf-viz__x > span {
+    flex: 1 1 0;
+    min-width: 0;
+    text-align: center;
+    font-size: var(--nf-text-overline);
+    line-height: 1.3;
+    color: var(--nf-content-muted);
+    white-space: nowrap;
+    overflow: visible;
+  }
+  .nf-viz__x--points {
+    position: relative;
+    display: block;
+    height: 1.25rem;
+  }
+  .nf-viz__x--points > span {
+    position: absolute;
+    top: 0;
+    translate: -50% 0;
+  }
+  .nf-viz__x--points > span[data-side="start"] {
+    translate: 0 0;
+  }
+  .nf-viz__x--points > span[data-side="end"] {
+    translate: -100% 0;
+  }
+
+  /* ------------------------------------------------------------ legend */
+  .nf-viz__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--nf-space-2xs) var(--nf-space-md);
+    margin: 0 0 var(--nf-space-sm);
+    padding: 0;
+    list-style: none;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+  }
+  .nf-viz__legend > li {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+  }
+  /* Legend keys mirror the mark: a rect for bars, a short stroke for lines. */
+  .nf-viz-key {
+    display: inline-block;
+    flex-shrink: 0;
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: var(--nf-radius-xs);
+  }
+  .nf-viz-key--line {
+    width: 1rem;
+    height: 0;
+    border-radius: 0;
+    border-top: 2px solid var(--nf-chart-series);
+  }
+  .nf-viz-key--context {
+    border-top: 2px dashed var(--nf-chart-context);
+  }
+  .nf-viz-key--hatch {
+    box-shadow: inset 0 0 0 1px var(--nf-chart-context);
+    background: repeating-linear-gradient(
+      135deg,
+      var(--nf-chart-context) 0 1px,
+      transparent 1px 4px
+    );
+  }
+
+  /* ---------------------------------------------------------- the bars */
+  .nf-viz-bars {
+    display: flex;
+    gap: 2px;
+  }
+  .nf-viz-col {
+    position: relative;
+    flex: 1 1 0;
+    min-width: 0;
+    height: 100%;
+  }
+  .nf-viz-col__slot {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+  }
+  /*
+    The bar is the full height of its slot, translated down until only its
+    value shows; the slot clips the rest. The 4px top corners stay true at
+    every height and the base stays square (chart rule 7, `PeriodBars`).
+    Never shorter than 2px when it is drawn at all.
+  */
+  .nf-viz-bar {
+    position: absolute;
+    bottom: 0;
+    inset-inline: 0;
+    margin-inline: auto;
+    width: min(1.5rem, calc(100% - 4px));
+    height: 100%;
+    border-radius: var(--nf-radius-xs) var(--nf-radius-xs) 0 0;
+    background: var(--nf-chart-series);
+    transform: translateY(calc(100% - max(2px, var(--nf-viz-v, 0) * 100%)));
+    transition:
+      transform var(--nf-duration-slow) var(--nf-ease-standard),
+      opacity var(--nf-duration-fast) var(--nf-ease-standard);
+    animation: nf-viz-grow var(--nf-duration-deliberate) var(--nf-ease-standard) backwards;
+    animation-delay: calc(var(--nf-viz-i, 0) * 30ms);
+  }
+  /* The keyframe has no `to`: it ends on the bar's own transform, and with
+     `backwards` fill nothing holds it afterwards, so a later change of value
+     is the transition above (the period morph) rather than a fight with a
+     finished animation. */
+  @keyframes nf-viz-grow {
+    from {
+      transform: translateY(100%);
+    }
+  }
+  /* Under the pointer the others recede: emphasis, not a colour per bar. */
+  .nf-viz-bars.is-active .nf-viz-col:not(.is-on) .nf-viz-bar {
+    opacity: 0.45;
+  }
+
+  /* The hatched slot: a period on the axis with nothing on record (chart
+     rule 4, reference 7083). Full height and uniform, so it can never be
+     read as a quantity; the hatch is a hairline at 135 degrees. */
+  .nf-viz-col.is-empty .nf-viz-col__slot::before {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    inset-inline: 0;
+    margin-inline: auto;
+    width: min(1.5rem, calc(100% - 4px));
+    height: 100%;
+    border-radius: var(--nf-radius-xs) var(--nf-radius-xs) 0 0;
+    box-shadow: inset 0 0 0 1px var(--nf-chart-grid);
+    background: repeating-linear-gradient(
+      135deg,
+      var(--nf-chart-hatch) 0 1px,
+      transparent 1px 6px
+    );
+  }
+  .nf-viz__empty {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    margin: 0;
+    padding: var(--nf-space-md);
+    text-align: center;
+    font-size: var(--nf-text-caption);
+    line-height: 1.45;
+    color: var(--nf-content-secondary);
+  }
+  .nf-viz__empty > * {
+    max-width: 34ch;
+  }
+  .nf-viz-bars.is-absent .nf-viz-col.is-empty .nf-viz-col__slot::before {
+    opacity: 0.55;
+  }
+
+  /* The direct label at rest, on the one bar the story is about. */
+  .nf-viz-tip {
+    position: absolute;
+    left: 50%;
+    margin-bottom: 0.375rem;
+    translate: -50% 0;
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    line-height: 1;
+    color: var(--nf-content-primary);
+    white-space: nowrap;
+    pointer-events: none;
+  }
+  .nf-viz-tip[data-side="start"] {
+    left: 0;
+    translate: 0 0;
+  }
+  .nf-viz-tip[data-side="end"] {
+    left: auto;
+    right: 0;
+    translate: 0 0;
+  }
+
+  /* --------------------------------------------------------- the line */
+  .nf-viz-draw {
+    transform-box: view-box;
+    transform-origin: 0 0;
+    animation: nf-viz-draw var(--nf-duration-deliberate) var(--nf-ease-standard) both;
+  }
+  @keyframes nf-viz-draw {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+  .nf-viz-gap {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      135deg,
+      var(--nf-chart-hatch) 0 1px,
+      transparent 1px 6px
+    );
+    opacity: 0.6;
+  }
+  /* Markers are HTML so they stay round on a stretched drawing: 8px, with a
+     2px ring in the card's own surface (chart rule 3). */
+  .nf-viz-dot {
+    position: absolute;
+    width: 0.5rem;
+    height: 0.5rem;
+    margin: -0.25rem 0 0 -0.25rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-chart-series);
+    box-shadow: 0 0 0 2px var(--nf-surface-primary);
+    pointer-events: none;
+  }
+  .nf-viz-dot--context {
+    background: var(--nf-surface-primary);
+    box-shadow:
+      inset 0 0 0 2px var(--nf-chart-context),
+      0 0 0 2px var(--nf-surface-primary);
+  }
+  .nf-viz-endlabel {
+    position: absolute;
+    translate: -50% calc(-100% - 0.625rem);
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    line-height: 1;
+    color: var(--nf-content-primary);
+    white-space: nowrap;
+    pointer-events: none;
+  }
+  .nf-viz-endlabel[data-side="end"] {
+    translate: -100% calc(-100% - 0.625rem);
+  }
+  .nf-viz-endlabel[data-side="start"] {
+    translate: 0 calc(-100% - 0.625rem);
+  }
+  .nf-viz-cross {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 0;
+    border-inline-start: 1px solid var(--nf-chart-axis);
+    pointer-events: none;
+  }
+
+  /* ------------------------------------------------------- the readout
+     Values lead, the period follows; the inverse pair, so it stands off the
+     card in both themes. */
+  .nf-viz-readout {
+    position: absolute;
+    top: 0;
+    z-index: 2;
+    display: grid;
+    gap: 0.125rem;
+    translate: -50% calc(-100% - 0.5rem);
+    padding: var(--nf-space-2xs) var(--nf-space-xs);
+    border-radius: var(--nf-radius-xs);
+    background: var(--nf-surface-inverse);
+    color: var(--nf-content-inverse);
+    white-space: nowrap;
+    pointer-events: none;
+    animation: nf-viz-fade var(--nf-duration-fast) var(--nf-ease-standard) both;
+  }
+  .nf-viz-readout[data-side="start"] {
+    translate: -0.75rem calc(-100% - 0.5rem);
+  }
+  .nf-viz-readout[data-side="end"] {
+    translate: calc(-100% + 0.75rem) calc(-100% - 0.5rem);
+  }
+  .nf-viz-readout__value {
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    line-height: 1.2;
+  }
+  .nf-viz-readout__row {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    font-size: var(--nf-text-overline);
+  }
+  .nf-viz-readout__when {
+    font-size: var(--nf-text-overline);
+    line-height: 1.2;
+    opacity: 0.72;
+  }
+  @keyframes nf-viz-fade {
+    from {
+      opacity: 0;
+    }
+  }
+
+  /* ----------------------------------------------------- compare bars */
+  .nf-viz-compare__list {
+    display: grid;
+    gap: var(--nf-space-md);
+    margin: 0;
+  }
+  .nf-viz-compare__row {
+    display: grid;
+    gap: var(--nf-space-2xs);
+  }
+  .nf-viz-compare__label {
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-viz-compare__pair {
+    display: grid;
+    gap: 0.25rem;
+    margin: 0;
+  }
+  .nf-viz-compare__line {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--nf-space-xs);
+  }
+  .nf-viz-compare__track {
+    position: relative;
+    height: 0.625rem;
+    overflow: hidden;
+  }
+  .nf-viz-hbar {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    width: 100%;
+    border-radius: 0 var(--nf-radius-xs) var(--nf-radius-xs) 0;
+    /* The same arrangement as the column bar, turned on its side: full
+       width, translated back until only its value shows, so the end radius
+       stays true. */
+    transform: translateX(calc(-100% + max(2px, var(--nf-viz-v, 0) * 100%)));
+    transition: transform var(--nf-duration-slow) var(--nf-ease-standard);
+    animation: nf-viz-grow-x var(--nf-duration-deliberate) var(--nf-ease-standard) backwards;
+    animation-delay: calc(var(--nf-viz-i, 0) * 30ms);
+  }
+  /* The previous period: grey and hatched, so it reads as the other one in
+     greyscale and to a reader who cannot see the difference in tone. */
+  .nf-viz-hbar--context {
+    box-shadow: inset 0 0 0 1px currentColor;
+    background: repeating-linear-gradient(135deg, currentColor 0 1px, transparent 1px 4px);
+  }
+  @keyframes nf-viz-grow-x {
+    from {
+      transform: translateX(-100%);
+    }
+  }
+  .nf-viz-compare__figure {
+    min-width: 4.5rem;
+    text-align: end;
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-viz-compare__figure--context {
+    font-weight: 400;
+    color: var(--nf-content-secondary);
+  }
+
+  /* ---------------------------------------------- a visible table twin */
+  .nf-viz-table {
+    width: 100%;
+    margin-top: var(--nf-space-sm);
+    border-collapse: collapse;
+    font-size: var(--nf-text-caption);
+  }
+  .nf-viz-table caption {
+    text-align: start;
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-viz-table :is(th, td) {
+    padding: var(--nf-space-2xs) 0;
+    border-bottom: 1px solid var(--nf-border-subtle);
+    text-align: start;
+  }
+  .nf-viz-table td {
+    text-align: end;
+  }
+
+  /* ------------------------------------------------- the quiet answers
+     Reduced motion, and the product's Calm and Off: the final state, at
+     once. The period morph and the dim go too, so nothing slides. */
+  @media (prefers-reduced-motion: reduce) {
+    .nf-viz-bar,
+    .nf-viz-hbar,
+    .nf-viz-draw,
+    .nf-viz-readout {
+      animation: none;
+      transition: none;
+    }
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) :is(.nf-viz-bar, .nf-viz-hbar, .nf-viz-draw, .nf-viz-readout) {
+    animation: none;
+    transition: none;
+  }
+  /* Forced colours: the marks keep their shapes in the system ink. */
+  @media (forced-colors: active) {
+    .nf-viz-bar,
+    .nf-viz-dot {
+      background: CanvasText;
+    }
+    .nf-viz-hbar:not(.nf-viz-hbar--context) {
+      background: CanvasText;
+    }
+  }
+}

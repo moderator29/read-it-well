@@ -4,6 +4,7 @@ import { EmptyState } from "@/components/app/Screen";
 import { AreaShareCard } from "@/components/share/AreaShareCard";
 import type { ShareLines } from "@/lib/price-check/share-card";
 import { doorSignInHref, type DoorCard, type DoorLines } from "@/lib/share/door";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 import { DoorRetry } from "./DoorRetry";
 
 /**
@@ -43,7 +44,9 @@ export function DoorListingView({
   copy: Copy;
 }) {
   return (
-    <article className="nf-panel nf-door__card" data-testid="door-card">
+    /* The screen's one Island (door.css says why): the listing is the
+       subject a stranger came for, so it alone gets the hero material. */
+    <article className="nf-island nf-door__card" data-testid="door-card">
       <p className="nf-door__eyebrow">{copy.eyebrow}</p>
       <div className="nf-door__lead">
         {photo && (
@@ -61,7 +64,7 @@ export function DoorListingView({
         </div>
       </div>
       {lines.headline ? (
-        <div>
+        <div className="nf-door__figure">
           <p className="nf-door__headline" data-testid="door-move-in">
             {lines.headline}
           </p>
@@ -74,7 +77,10 @@ export function DoorListingView({
       <ButtonLink href={doorSignInHref(card)} variant="primary" full data-testid="door-sign-in">
         {copy.signIn}
       </ButtonLink>
-      <p className="nf-door__note">{copy.areaOnly}</p>
+      <p className="nf-door__note">
+        <UiIcon name="shield-lock" size={16} />
+        <span>{copy.areaOnly}</span>
+      </p>
     </article>
   );
 }

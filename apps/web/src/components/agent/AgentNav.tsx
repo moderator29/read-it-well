@@ -84,7 +84,12 @@ export function AgentIdentityCard({
           </span>
           <Link
             href={door.href}
-            className="nf-tap mt-3xs inline-block text-[length:var(--nf-text-overline)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+            /* A block as wide as its words, on one line. As an inline-block
+               it measured a 32px box with "Apply / to list" broken over two
+               lines: the theme's old `--spacing-block` key made `inline-block`
+               also set inline-size (fixed in app/css/theme.css). The block
+               needs no display trick either way. */
+            className="nf-tap mt-3xs block w-fit whitespace-nowrap text-[length:var(--nf-text-overline)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
           >
             {door.cta}
           </Link>

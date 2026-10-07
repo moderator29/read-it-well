@@ -19,6 +19,7 @@ import {
   type SpringState,
 } from "./physics";
 import { IconPlate } from "@/components/ui/IconPlate";
+import { useSignInHref } from "@/lib/auth/use-sign-in-href";
 
 /**
  * THE PLUS, AND WHAT BLOOMS OUT OF IT.
@@ -122,6 +123,7 @@ export function CreateBloom({
   /** Open on mount: the preview harness, and `/around?compose=1` from the dock's Create sheet. */
   initialOpen?: boolean;
 }) {
+  const signInHref = useSignInHref();
   const router = useRouter();
   const [open, setOpen] = useState(initialOpen);
   /* The fan stays in the DOM while it folds back in, so the closing spring has
@@ -240,7 +242,7 @@ export function CreateBloom({
   const choose = (action: Action) => {
     setOpen(false);
     if (!signedIn) {
-      router.push("/sign-in");
+      router.push(signInHref);
       return;
     }
     if (action === "story") {

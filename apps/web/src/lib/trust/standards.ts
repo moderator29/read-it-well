@@ -1,3 +1,5 @@
+import { NO_RENTER_FEES_LINE } from "@/lib/money/copy";
+
 /**
  * The response times Vallo publishes, as data.
  *
@@ -118,8 +120,7 @@ export function dueBy(
  * The sentence that matters more than any other on the platform, in one place
  * so it cannot be reworded into something weaker by accident.
  */
-export const NO_FEES_LINE =
-  "Vallo charges no fees to look, to book or to list, and its commission is zero. The Vallo Guarantee contribution, 1 to 2 percent of a payment, comes out of the lister's share into a separate reserve.";
+export const NO_FEES_LINE = NO_RENTER_FEES_LINE;
 
 export const NEVER_ASK: { title: string; body: string }[] = [
   {

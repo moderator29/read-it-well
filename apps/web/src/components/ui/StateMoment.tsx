@@ -1,6 +1,9 @@
 import type { ReactNode } from "react";
 import { SystemMoment } from "@/app/offline/SystemMoment";
-import { stateRole, type StateKind } from "@/lib/design/voice";
+import { STATE_TONE, stateRole, type StateKind } from "@/lib/design/voice";
+import { ICON_PLATE_GLYPH, IconPlate } from "@/components/ui/IconPlate";
+import { KIND_GLYPH } from "@/components/ui/State";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /**
  * THE STATE KIT, FULL SCREEN (V-97): the same anatomy as `State`, drawn on the
@@ -59,6 +62,14 @@ export function StateMoment({
           A block wrapper changes nothing in the card's layout (the card is
           `display: block`, and each line keeps its own top margin). */}
       <div data-state-kind={kind} role={role}>
+        {/* THE SMALL MARK (W2, round 5; CRAFT-PRINCIPLES "failure is
+            designed"). A success screen leads with a small mark and so does
+            a failure: the kind's own glyph on its flat plate, the state's
+            colour with the title's words beside it, so colour is never the
+            only signal. The card still leads with the brand above it. */}
+        <IconPlate size="md" tone={STATE_TONE[kind]} className="nf-system__mark">
+          <UiIcon name={KIND_GLYPH[kind]} size={ICON_PLATE_GLYPH.md} />
+        </IconPlate>
         {overline && <p className="nf-system__overline">{overline}</p>}
         <h1 className="nf-system__title">{title}</h1>
         <p className="nf-system__body">{body}</p>

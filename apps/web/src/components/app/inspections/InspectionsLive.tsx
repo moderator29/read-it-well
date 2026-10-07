@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
-import { createClient } from "@/lib/supabase/client";
+import { loadBrowserClient } from "@/lib/supabase/load-client";
 import { isInspectionHref } from "./live";
 
 /**
@@ -28,20 +28,30 @@ export function InspectionsLive({ userId }: { userId: string | null }) {
 
   useEffect(() => {
     if (!userId || !isSupabaseConfigured()) return;
-    const supabase = createClient();
-    const channel = supabase
-      .channel(`inspections-${userId}`)
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${userId}` },
-        (payload) => {
-          const href = (payload.new as { href?: string | null }).href ?? null;
-          if (isInspectionHref(href)) router.refresh();
-        },
-      )
-      .subscribe();
+    /* The client arrives after first paint (`loadBrowserClient`), and a page
+       left before it does never opens a channel. */
+    let live = true;
+    let stop: (() => void) | null = null;
+    void loadBrowserClient().then((supabase) => {
+      if (!live || !supabase) return;
+      const channel = supabase
+        .channel(`inspections-${userId}`)
+        .on(
+          "postgres_changes",
+          { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${userId}` },
+          (payload) => {
+            const href = (payload.new as { href?: string | null }).href ?? null;
+            if (isInspectionHref(href)) router.refresh();
+          },
+        )
+        .subscribe();
+      stop = () => {
+        void supabase.removeChannel(channel);
+      };
+    });
     return () => {
-      void supabase.removeChannel(channel);
+      live = false;
+      stop?.();
     };
   }, [userId, router]);
 

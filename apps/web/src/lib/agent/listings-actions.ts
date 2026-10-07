@@ -43,6 +43,7 @@ import { getLocale } from "../locale";
 import { BROADCAST_MONEY_KEYS } from "./broadcast";
 import { readBroadcastMarks, writeBroadcastMarks } from "./broadcast-marks-queries";
 import { CLOSED_LISTING_MESSAGE, isClosedListingRefusal } from "../landlord/closed";
+import { RATE_AGREEMENT_NEEDED_MESSAGE, isRateAgreementRefusal } from "../pricing/rate-agreement";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import type { Database } from "../supabase/database.types";
 import { SCRUB_REFUSED_MESSAGE, scrubPublicPhoto } from "../images/scrub";
@@ -1302,7 +1303,8 @@ export async function setListingAccess(
 
 /* --------------------------------------------------------------- submit */
 
-export type SubmitOutcome = { id: string; status: ListingStatus };
+/** `submittedAt` is the stored `submitted_at`, which the wizard's chain prints. */
+export type SubmitOutcome = { id: string; status: ListingStatus; submittedAt: string | null };
 
 /**
  * Send a listing for review, but only if it clears the quality gate.
@@ -1393,16 +1395,20 @@ export async function submitListing(input: {
     .update({ status: "SUBMITTED", submitted_at: new Date().toISOString() })
     .eq("id", listingId)
     .eq("agent_id", gate.agentId)
-    .select("id, status")
+    .select("id, status, submitted_at")
     .single();
 
   if (isClosedListingRefusal(error)) return fail(CLOSED_LISTING_MESSAGE);
+  /* D51: the database refuses SUBMITTED until the lister has accepted the fee
+     on this price under the rate in force (listings_zz_b3_rate_agreement_gate). */
+  if (isRateAgreementRefusal(error)) return fail(RATE_AGREEMENT_NEEDED_MESSAGE);
   if (error || !updated) {
     return fail("We could not send this listing for review just now. Please try again.");
   }
 
   refreshAgentSurfaces();
-  return ok({ id: updated.id, status: updated.status });
+  /* The stored time, so the wizard's chain prints the day the server wrote. */
+  return ok({ id: updated.id, status: updated.status, submittedAt: updated.submitted_at });
 }
 
 /* -------------------------------------------------------- state changes */

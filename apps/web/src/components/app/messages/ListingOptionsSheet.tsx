@@ -57,9 +57,7 @@ export function ListingOptionsSheet({
         <p className="text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">
           Conversation with {agentName}
         </p>
-        <button type="button" aria-label="Close" onClick={onClose} className="nf-icon-btn h-9 w-9">
-          <UiIcon name="close" size={16} />
-        </button>
+        <Button variant="icon" leadingIcon="close" aria-label="Close" onClick={onClose} />
       </div>
 
       {/* ------------------------------------------------ listing mini view */}

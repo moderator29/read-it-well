@@ -1,4 +1,5 @@
 import "server-only";
+import { reportReadError } from "@/lib/observability/read-error";
 
 import { resolveSession } from "../actions/session";
 import { checkFromRow, type AvailabilityCheck } from "./check";
@@ -19,6 +20,7 @@ export async function readAvailabilityForConversation(conversationId: string): P
       .eq("conversation_id", conversationId)
       .order("asked_at", { ascending: false })
       .limit(1);
+    await reportReadError("read.availability.readAvailabilityForConversation", error);
     if (error || !Array.isArray(data)) return null;
     return checkFromRow(data[0] as Record<string, unknown> | undefined, session.user.id);
   } catch {
@@ -36,6 +38,7 @@ export async function readOpenQuestionsForLister(): Promise<Set<string>> {
       .eq("lister_id", session.user.id)
       .is("answer", null)
       .limit(200);
+    await reportReadError("read.availability.readOpenQuestionsForLister", error);
     if (error || !Array.isArray(data)) return new Set();
     return new Set((data as { conversation_id: string }[]).map((row) => row.conversation_id));
   } catch {

@@ -2,16 +2,21 @@ import type { Metadata } from "next";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import Link from "next/link";
+import { withNext } from "@/lib/auth/next-link";
 import { PageHeader } from "@/components/app/PageHeader";
 import { loadInterestsState } from "@/lib/interests/queries";
 import { InterestChoices } from "@/components/app/welcome/InterestChoices";
+import { forInterests } from "@/components/app/welcome/welcome-copy";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { IconPlate } from "@/components/ui/IconPlate";
 
-export const metadata: Metadata = {
-  title: "What you are here for",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  // The tab reads the reader's language, as the screen's own title does.
+  return {
+    title: getDictionary(await getLocale()).interests.screenTitle,
+    robots: { index: false, follow: false },
+  };
+}
 
 export const dynamic = "force-dynamic";
 
@@ -46,7 +51,7 @@ export default async function InterestsSettingsPage() {
               : t.interests.accountBodySignedOut}
           </p>
           {state.state === "signed-out" && (
-            <Link href="/sign-in" className="nf-btn nf-btn--primary mt-md w-full sm:w-auto">
+            <Link href={withNext("/sign-in", "/settings/interests")} className="nf-btn nf-btn--primary mt-md w-full sm:w-auto">
               {t.common.signIn}
             </Link>
           )}
@@ -63,7 +68,7 @@ export default async function InterestsSettingsPage() {
         fallback="/settings"
       />
       <div className="nf-panel nf-panel--card block p-lg sm:p-lg">
-        <InterestChoices initial={state.interests} mode="settings" t={t} />
+        <InterestChoices initial={state.interests} mode="settings" t={forInterests(t)} />
       </div>
     </div>
   );

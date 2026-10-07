@@ -16,7 +16,7 @@
  * colour is never the only signal: every chip says the time left in words.
  */
 
-import { HOLD_WINDOW_HOURS } from "../agent/bookings-schema";
+import { HOLD_WINDOW_HOURS } from "../agent/bookings-model";
 
 export type Urgency = "spare" | "soon" | "late" | "lapsed";
 

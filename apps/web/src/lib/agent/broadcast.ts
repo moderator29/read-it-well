@@ -1,4 +1,4 @@
-import { koboToNairaInput, MAX_PRICE_KOBO } from "./listings-schema";
+import { koboToNairaInput, MAX_PRICE_KOBO } from "./listings-model";
 import { findNeighbourhood as findPlace } from "../places/neighbourhoods";
 import { CUT_MARK_RE, stripContacts } from "./contacts";
 

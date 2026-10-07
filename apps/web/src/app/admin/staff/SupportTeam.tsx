@@ -41,7 +41,7 @@ export function SupportTeam({ members }: { members: SupportMember[] }) {
       ) : (
         <ul className="grid gap-xs">
           {people.map((m) => (
-            <li key={m.userId} className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-sm">
+            <li key={m.userId} className="nf-admin-plate p-sm">
               <div className="flex flex-wrap items-baseline gap-x-xs">
                 <p className="font-semibold">{m.name}</p>
                 <p className="nf-caption text-[var(--nf-content-secondary)]">{m.role}</p>
@@ -94,7 +94,9 @@ function AddToSupport() {
         });
       }}
     >
-      <label className="grid min-w-0 flex-1 gap-2xs">
+      {/* basis-64: the field keeps 16rem before the button wraps under it; at
+          390 the two shared a line and the field showed "The email on th". */}
+      <label className="grid min-w-0 flex-1 basis-64 gap-2xs">
         <span className="nf-label">Put somebody on support</span>
         <input
           className="nf-field w-full"

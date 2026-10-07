@@ -20,14 +20,11 @@ import L17 from "@/app/(app)/settings/phone/loading";
 import L18 from "@/app/(app)/settings/privacy/loading";
 import L19 from "@/app/(app)/settings/privacy/blocked/loading";
 import L20 from "@/app/(app)/settings/devices/alert/loading";
-import L21 from "@/app/(auth)/sign-in/loading";
 import L22 from "@/app/(auth)/sign-in/code/loading";
 import L23 from "@/app/(auth)/sign-in/phone/loading";
-import L24 from "@/app/(auth)/sign-up/loading";
 import L25 from "@/app/(auth)/sign-up/email/loading";
 import L26 from "@/app/(auth)/sign-up/verify/loading";
 import L27 from "@/app/(auth)/sign-up/finish/loading";
-import L28 from "@/app/(auth)/forgot-password/loading";
 import L29 from "@/app/(auth)/forgot-password/code/loading";
 import L30 from "@/app/(auth)/reset-password/loading";
 import L31 from "@/app/email/preferences/loading";
@@ -61,14 +58,11 @@ const SCREENS: Record<string, { C: ComponentType; frame: "host" | "app" | "auth"
   "settings-privacy": { C: L18, frame: "app" },
   "settings-blocked": { C: L19, frame: "app" },
   "settings-alert": { C: L20, frame: "app" },
-  "auth-sign-in": { C: L21, frame: "auth" },
   "auth-sign-in-code": { C: L22, frame: "auth" },
   "auth-sign-in-phone": { C: L23, frame: "auth" },
-  "auth-sign-up": { C: L24, frame: "auth" },
   "auth-sign-up-email": { C: L25, frame: "auth" },
   "auth-sign-up-verify": { C: L26, frame: "auth" },
   "auth-sign-up-finish": { C: L27, frame: "auth" },
-  "auth-forgot": { C: L28, frame: "auth" },
   "auth-forgot-code": { C: L29, frame: "auth" },
   "auth-reset": { C: L30, frame: "auth" },
   "email-preferences": { C: L31, frame: "host" },

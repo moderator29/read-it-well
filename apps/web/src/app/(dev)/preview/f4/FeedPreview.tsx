@@ -1,4 +1,5 @@
 import { getDictionary } from "@vallo/i18n";
+import { sheetWordsOf } from "@/components/social/sheet-words";
 import { Feed } from "@/components/social/feed/Feed";
 import { FeedTabs } from "@/components/social/feed/FeedMasthead";
 import { LocationChip } from "@/components/social/feed/LocationChip";
@@ -44,7 +45,7 @@ export function FeedPreview({ bloomOpen }: { bloomOpen: boolean }) {
       <StoryRing stories={FEED_STORIES} you={YOU} yourStoryLabel={t.social.yourStory} />
       <FeedTabs active="for-you" t={t} />
       <section>
-        <Feed initial={FEED_POSTS} locale="en" signedIn canCompose emptyMessage="" />
+        <Feed initial={FEED_POSTS} locale="en" sheet={sheetWordsOf(t)} signedIn canCompose emptyMessage="" />
       </section>
       <CreateBloom
         signedIn

@@ -9,6 +9,7 @@
  * Every field name below is the column name, so a reader can hold this file
  * beside the migration and see the same thing.
  */
+import type { HoursAnswer } from "./hours";
 
 export type BusinessKind =
   | "hotel"
@@ -323,13 +324,13 @@ export type RestaurantDetail = {
   profile: RestaurantProfileRow | null;
   windows: ServiceWindowRow[];
   open_now: boolean;
-  /** Plain words for the card: "Open until 23:00", "Opens at 18:00", "Closed today". */
-  hours_label: string;
+  /** What the clock says, as a fact; `hoursLabel` puts it in the reader's words ("Open until 23:00"). */
+  hours: HoursAnswer;
 };
 
 export type RestaurantCard = {
   business: Pick<BusinessRow, "id" | "name" | "slug" | "area" | "city" | "state_code" | "source" | "is_demo" | "latitude" | "longitude">;
   profile: RestaurantProfileRow | null;
   open_now: boolean;
-  hours_label: string;
+  hours: HoursAnswer;
 };

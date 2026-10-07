@@ -1,14 +1,6 @@
 import Image from "next/image";
-import Link from "next/link";
 import type { ReactNode } from "react";
-/*
- * The partial is imported here rather than from globals.css because the partial
- * is not in its ordered import list yet. When `css/system.css` is added to that
- * list, delete this line and nothing else changes: every rule in it is
- * inside `@layer components` and every class name is new, so it has no
- * position in the cascade to lose.
- */
-import "@/app/css/system.css";
+import { PlainSystemMoment, SystemFrame } from "./SystemFrame";
 
 /**
  * The brand moment.
@@ -39,6 +31,15 @@ import "@/app/css/system.css";
  * the lockup: the moment fills the content area between header and dock,
  * and the brand is the tile alone rather than a second wordmark under the
  * one in the chrome.
+ *
+ * THE ANATOMY IS `SystemFrame`, AND THE ROOT ERROR BOUNDARY USES THE PLAIN
+ * IMAGES (speed, 6 October 2026). `app/error.tsx` is a client component in
+ * the bundle of every route, so whatever it imports is first-load JavaScript
+ * everywhere; through this file that was `next/image`'s client runtime
+ * (about 15 KB raw) for a screen that only exists after a crash. The boundary
+ * draws `PlainSystemMoment` instead, the same anatomy with the plain images
+ * the offline variant already uses, and this file (with the optimiser) stays
+ * for the server-rendered moments, where it costs the browser nothing.
  */
 export function SystemMoment({
   home = "/",
@@ -60,46 +61,31 @@ export function SystemMoment({
   /** The quiet line beneath the podium. */
   aside?: ReactNode;
 }) {
-  const stageClass = inset ? "nf-system nf-system--inset" : "nf-system";
-  const Stage: "main" | "div" = inset ? "div" : "main";
-
+  if (offline) {
+    return (
+      <PlainSystemMoment home={home} homeLabel={homeLabel} inset={inset} aside={aside}>
+        {children}
+      </PlainSystemMoment>
+    );
+  }
   return (
-    /* A night stage in both themes, like the auth screen: the podium and the
-       aurora are night artwork (light mode reintroduced 25 September 2026). */
-    <Stage id={inset ? undefined : "main"} className={stageClass} data-theme="dark">
-      <div className="nf-system__plate" aria-hidden="true">
-        {offline ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src="/brand/photos/bg-blue-wave.jpg" alt="" decoding="async" />
-        ) : (
-          <Image src="/brand/photos/bg-blue-wave.jpg" alt="" fill sizes="100vw" priority />
-        )}
-      </div>
-      <div className="nf-aurora" aria-hidden="true" />
-
-      <div className="nf-system__stage">
-        <Link href={home} aria-label={homeLabel} className="nf-system__brand nf-tap">
-          {offline ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src="/pwa/icon-192.png"
-              alt=""
-              aria-hidden="true"
-              width={192}
-              height={192}
-              className="nf-system__icon"
-            />
-          ) : (
-            <Image
-              src="/brand/vallo-icon.png"
-              alt=""
-              width={104}
-              height={104}
-              priority
-              className={inset ? "nf-system__icon nf-system__icon--sm" : "nf-system__icon"}
-            />
-          )}
-          {!inset && !offline && (
+    <SystemFrame
+      home={home}
+      homeLabel={homeLabel}
+      inset={inset}
+      aside={aside}
+      plate={<Image src="/brand/photos/bg-blue-wave.jpg" alt="" fill sizes="100vw" priority />}
+      brand={
+        <>
+          <Image
+            src="/brand/vallo-icon.png"
+            alt=""
+            width={104}
+            height={104}
+            priority
+            className={inset ? "nf-system__icon nf-system__icon--sm" : "nf-system__icon"}
+          />
+          {!inset && (
             <Image
               src="/brand/vallo-wordmark.png"
               alt="Vallo"
@@ -109,24 +95,10 @@ export function SystemMoment({
               className="nf-system__wordmark"
             />
           )}
-          {offline && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src="/brand/vallo-wordmark.png"
-              alt="Vallo"
-              width={758}
-              height={167}
-              decoding="async"
-              className="nf-system__wordmark"
-            />
-          )}
-        </Link>
-
-        <div className="nf-panel nf-panel--glass nf-system__card">{children}</div>
-        <div className="nf-system__podium" aria-hidden="true" />
-
-        {aside ? <p className="nf-system__aside">{aside}</p> : null}
-      </div>
-    </Stage>
+        </>
+      }
+    >
+      {children}
+    </SystemFrame>
   );
 }

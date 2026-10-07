@@ -318,7 +318,7 @@ function RateEditor({
         {kobo > 0 ? `Stored as ${formatMoney(kobo, locale)} a night.` : "Enter what a night costs."}
       </p>
 
-      <div className="mt-[var(--nf-space-sm)] flex gap-[var(--nf-space-xs)]">
+      <div className="mt-[var(--nf-space-sm)] flex flex-wrap gap-[var(--nf-space-xs)]">
         <Button variant="secondary" size="lg" onClick={() => setAdding(false)} disabled={pending}>
           Cancel
         </Button>

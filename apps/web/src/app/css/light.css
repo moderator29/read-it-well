@@ -113,7 +113,7 @@
       color-mix(in oklab, var(--nf-glow-ink) 50%, var(--nf-content-on-brand)) 356deg,
       transparent 360deg
     );
-    animation: nf-logo-lap 7.5s linear infinite;
+    animation: nf-logo-lap 7.5s linear 2 both;
   }
   :root[data-theme="light"] .nf-logo > * {
     position: relative;
@@ -254,6 +254,24 @@
       inset 0 1px 0 color-mix(in oklab, var(--nf-content-on-brand) 20%, transparent),
       0 4px 12px -6px var(--nf-night-tile-bloom);
   }
+  /*
+   * THE PAPER GROUND FOR TIERED OBJECTS (north star 14.7, D15, D29). A matte
+   * symbol or a realistic place has its own contrast on white, so it does not
+   * get the navy tile the glass set needed: it sits on a radius-14 plate at
+   * about 4% brand with a soft blue contact shadow, so it never floats on bare
+   * paper. BrandIcon says which material it drew (`data-material`). Declared
+   * BEFORE the generic tile rule so the host-plate rules after it still win
+   * and no plate is drawn inside a plate; glass keeps the navy tile below.
+   */
+  :root[data-theme="light"] :is(.nf-brand-icon-ground, .nf-icon-tile):is([data-material="matte"], [data-material="real"]):not(:where([data-theme="dark"] *)) {
+    background: color-mix(in oklab, var(--nf-brand-primary) 4%, var(--nf-surface-primary));
+    border-radius: var(--nf-radius-md);
+    box-shadow: none;
+  }
+  :root[data-theme="light"] :is(.nf-brand-icon-ground, .nf-icon-tile):is([data-material="matte"], [data-material="real"]):not(:where([data-theme="dark"] *)) > img {
+    transform: none;
+    filter: drop-shadow(0 6px 5px color-mix(in oklab, var(--nf-brand-primary) 22%, transparent));
+  }
   :root[data-theme="light"] :is(.nf-brand-icon-ground, .nf-icon-tile):not(:where([data-theme="dark"] *)) {
     background: var(--nf-day-tile-fill);
     border-color: transparent;
@@ -317,10 +335,7 @@
     --nf-dock-fill-foot: color-mix(in oklab, color-mix(in oklab, var(--nf-brand-primary) 2%, var(--nf-surface-primary)) 90%, transparent);
     --nf-dock-sheen: var(--nf-surface-primary);
     --nf-dock-ring: var(--nf-surface-primary);
-    --nf-dock-drop:
-      0 1px 2px color-mix(in oklab, var(--nf-content-primary) 8%, transparent),
-      0 10px 28px -10px color-mix(in oklab, var(--nf-content-primary) 16%, transparent),
-      0 22px 44px -26px color-mix(in oklab, var(--nf-brand-primary) 45%, transparent);
+    --nf-dock-drop: var(--nf-elevation-floating);
     --nf-dock-ink-on: var(--nf-brand-primary);
     /* F-h (the founder, 30 September: "the entire platform on light mode
        should be blue ... the black icons should be blue"): the glyphs at

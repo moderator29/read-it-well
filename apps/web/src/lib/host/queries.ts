@@ -1,4 +1,5 @@
 import "server-only";
+import { reportReadError } from "@/lib/observability/read-error";
 import { withPublicPoint } from "../supabase/public-point";
 import { PrivateFieldsUnavailable, withBusinessPrivate } from "../supabase/private-fields";
 
@@ -364,6 +365,7 @@ export async function getMyBusinesses(): Promise<MyBusiness[]> {
       .eq("owner_id", session.user.id)
       .order("created_at", { ascending: false })
       .limit(50);
+    await reportReadError("read.host.getMyBusinesses", error);
     if (error) return [];
 
     const rows = await withBusinessPrivate(session.supabase, data ?? [], ["verification_tier", "review_notes"] as const);
@@ -422,6 +424,7 @@ export async function getPrimaryAccommodation(
       .order("created_at", { ascending: true })
       .limit(1)
       .maybeSingle();
+    await reportReadError("read.host.getPrimaryAccommodation", error);
     if (error || !data) return null;
     return { id: data.id, name: data.name, status: data.status };
   } catch {
@@ -468,6 +471,7 @@ export async function getMyRoomTypes(accommodationId: string): Promise<MyRoomTyp
       .eq("accommodation_id", accommodationId)
       .order("created_at", { ascending: true })
       .limit(50);
+    await reportReadError("read.host.getMyRoomTypes", error);
     if (error || !data) return [];
     /* An empty `in` list is not a query anybody wants sent: PostgREST renders
        it as `in.()`, which is a syntax error rather than "no rows". A property
@@ -556,6 +560,7 @@ export async function getMyBusinessLadder(businessId: string): Promise<MyBusines
       .eq("id", businessId)
       .eq("owner_id", session.user.id)
       .maybeSingle();
+    await reportReadError("read.host.getMyBusinessLadder", error);
     if (error || !publicRow) return null;
     const [business] = await withBusinessPrivate(session.supabase, [publicRow], ["verification_tier"] as const);
     if (!business) return null;

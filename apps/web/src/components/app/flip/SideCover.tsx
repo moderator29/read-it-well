@@ -2,6 +2,7 @@ import type { ShellDictionary } from "@/lib/i18n/shell-dictionary";
 import type { Side } from "@/lib/side.constants";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { Logo } from "@/design-system/brand/Logo";
+import "@/app/css/side-flip.css";
 
 /**
  * The side cover: the back face of the flip.

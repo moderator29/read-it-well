@@ -4,7 +4,6 @@ import { Amount } from "@/components/ui/Amount";
 import { formatMoneyDate } from "@/lib/money/dates";
 import { freeToCancelUntil, termsFromPolicyRules } from "@/lib/trust/cancellation";
 import { ReportSheet } from "@/components/app/ReportSheet";
-import { ExampleNotice } from "@/components/app/listing/ExampleNotice";
 import { ButtonLink } from "@/components/ui/Button";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { DetailGlyph } from "@/components/app/listing/DetailGlyph";
@@ -34,10 +33,10 @@ import {
   type StayDetail,
 } from "./detail-model";
 import { panelClass } from "@/components/ui/Panel";
+import "@/app/css/catalogue.css";
 
 type StaysCopy = Dictionary["stayDetail"];
 
-const STAR_LABEL: Record<number, string> = { 1: "1 star", 2: "2 star", 3: "3 star", 4: "4 star", 5: "5 star" };
 
 /* The property type as a plated line glyph (29 September 2026), the detail
    page's one row treatment, rather than a glass object at 48px. */
@@ -49,13 +48,6 @@ const BUSINESS_GLYPH: Record<string, UiIconName> = {
   shortlet_operator: "key",
 };
 
-const BUSINESS_LABEL: Record<string, string> = {
-  hotel: "Hotel",
-  serviced_apartments: "Serviced apartment",
-  guest_house: "Guest house",
-  resort: "Resort",
-  shortlet_operator: "Shortlet",
-};
 
 /**
  * The glyph for an amenity the read names in words ("Air conditioning",
@@ -133,7 +125,9 @@ export function StayDetailView({
   const where = [detail.area, detail.city].filter(Boolean).join(", ");
   const catalogue = t.catalogue.stays;
   const businessKind = detail.businessKind ?? "hotel";
+  const kindLabel = (t.experienceDetail.stay.kinds as Record<string, string>)[businessKind];
   const detailCopy = t.catalogue.detail;
+  const sx = t.experienceDetail;
 
   /*
    * THE SPEC STRIP, from what this record actually states.
@@ -170,7 +164,7 @@ export function StayDetailView({
     specCandidates.push({
       key: "class",
       icon: "sparkle",
-      label: STAR_LABEL[detail.starRating] ?? `${detail.starRating} star`,
+      label: t.experienceDetail.stay.stars.replace("{count}", formatNumber(detail.starRating, locale)),
     });
   }
   if (detail.checkInFrom) {
@@ -289,11 +283,8 @@ export function StayDetailView({
             and overlaps the photograph, as every lead card here does. */}
         <div className={panelClass({ variant: "card", className: "nf-detail-lead relative z-10 -mt-xl block sm:-mt-2xl" })}>
           <h1 className="nf-h2 [text-wrap:balance]">{detail.name}</h1>
-          {/* UX-09 / UI-P2-01: said here, one tap deeper than the shelf card,
-              where the booking would have happened. */}
-          {detail.isExample && (
-            <ExampleNotice variant="page" className="mt-row" statement={t.examples.statement} />
-          )}
+          {/* D24: no example label here; the stay simply offers no booking
+              (below) and draws no trust it did not earn (page.tsx). */}
           {where && (
             <p className={`mt-inline-tight flex items-center gap-inline-tight ${TYPE.body}`}>
               <UiIcon name="location" size={ICON.inline} className="shrink-0 text-[var(--nf-brand-secondary)]" />
@@ -310,11 +301,25 @@ export function StayDetailView({
                   <Amount
                     minorUnits={from}
                     locale={locale}
-                    secondaryClassName="text-[0.6em] font-semibold opacity-70"
+                    secondaryClassName="text-[length:max(0.6em,0.75rem)] font-semibold opacity-70"
                   />
                 </span>
               }
               unit={catalogue.perNight}
+              /* THE NIGHTLY RATE LEADS AND THE TOTAL FOR THE DATES SITS
+                 BENEATH IT (north star 10 C): the same total Book now opens,
+                 never the cheapest rate on the property, so the figure and
+                 the button cannot disagree. Absent until dates are picked,
+                 and absent when nothing can be booked for them: the total
+                 then falls back to the property's own, which no button
+                 opens, so it is not said under the nightly rate. */
+              sub={
+                bookable !== null && bookNowTotal !== null && nights !== null && nights > 0 && !detail.isExample
+                  ? sx.stay.forDates
+                      .replace("{total}", formatMoney(bookNowTotal, locale))
+                      .replace("{nights}", countOf(nights, "nights", locale))
+                  : null
+              }
               /* Drawn only where real review rows stand behind it. */
               rating={
                 detail.rating && detail.rating.count > 0
@@ -347,7 +352,7 @@ export function StayDetailView({
               detail.hostName
                 ? {
                     name: detail.hostName,
-                    role: BUSINESS_LABEL[businessKind] ?? "Host",
+                    role: kindLabel ?? t.experienceDetail.stay.host,
                     verified: detail.hostVerified === true,
                     verifiedLabel: detailCopy.verifiedHost,
                     /* An accommodation id is not a listing id, so the old
@@ -367,16 +372,16 @@ export function StayDetailView({
 
         {/* --------------------------------------- dates and the party */}
         {detail.isExample ? (
-          /* An example has nothing to book, so there is no Book now to press
-             and be refused at checkout. The same consequence line the
-             property page draws. */
+          /* A stay that takes no bookings has no Book now to press and be
+             refused at checkout. The same consequence line the property page
+             draws, with no label on it (D24). */
           <div className="mt-block" data-testid="stay-not-bookable">
             <div className={panelClass({ variant: "card", className: "block p-card" })}>
               <p className={TYPE.rowMeta}>
-                {t.examples.stayNotBookable}
+                {sx.closed.stayBody}
               </p>
               <ButtonLink href="/stays" variant="primary" className="mt-block w-full">
-                {t.examples.browseStays}
+                {sx.closed.stayAction}
               </ButtonLink>
             </div>
           </div>
@@ -386,10 +391,17 @@ export function StayDetailView({
             title={detailCopy.checkAvailability}
             fields={fields}
             action={action}
+            /* A total only where a room can be booked for these dates: with
+               dates picked and nothing bookable, `bookNowTotal` is the
+               property's own cheapest figure, which no room offers, so the
+               note says nothing rather than quote it. Without dates it asks
+               for them. */
             note={
-              bookNowTotal !== null && nights !== null
-                ? `${copy.totalFor.replace("{count}", formatNumber(nights, locale))}: ${formatMoney(bookNowTotal, locale)}`
-                : copy.pickDatesForTotal
+              nights === null
+                ? copy.pickDatesForTotal
+                : bookable !== null && bookNowTotal !== null
+                  ? `${copy.totalFor.replace("{count}", formatNumber(nights, locale))}: ${formatMoney(bookNowTotal, locale)}`
+                  : undefined
             }
           />
           <StayDatesForm
@@ -435,7 +447,7 @@ export function StayDetailView({
             />
             <span className="min-w-0">
               <span className={`block ${TYPE.label}`}>{catalogue.propertyType}</span>
-              <span className={`block ${TYPE.rowTitle}`}>{BUSINESS_LABEL[businessKind] ?? "Hotel"}</span>
+              <span className={`block ${TYPE.rowTitle}`}>{kindLabel ?? t.experienceDetail.stay.kinds.hotel}</span>
               <span className={`mt-3xs block ${TYPE.rowMeta}`}>
                 {detail.roomTypes.length > 0
                   ? countOf(detail.roomTypes.length, "roomTypes", locale)
@@ -481,7 +493,7 @@ export function StayDetailView({
           <Section id="rooms" title={copy.roomsTitle} description={copy.roomsDescription} className="scroll-mt-28">
             {detail.isExample ? (
               <p className={TYPE.rowMeta} data-testid="rooms-example">
-                {t.examples.roomsExample}
+                {sx.closed.rooms}
               </p>
             ) : detail.roomTypes.length > 0 ? (
               <RoomTypes

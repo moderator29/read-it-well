@@ -50,7 +50,7 @@ export default async function ListingPreview() {
           <Stack>
             <Section className="nf-rise nf-glass nf-glass--card nf-detail-lead scroll-mt-16" id="overview">
               <h1 className="nf-h2 [overflow-wrap:anywhere]">{listing.title}</h1>
-              <a href="#location" className={`mt-inline-tight inline-flex max-w-full items-center gap-inline ${TYPE.body}`}>
+              <a href="#location" className={`nf-tap mt-inline-tight inline-flex max-w-full items-center gap-inline ${TYPE.body}`}>
                 <UiIcon name="location" size={ICON.inline} className="shrink-0 text-[var(--nf-brand-secondary)]" />
                 <span className="min-w-0">{where}</span>
                 <UiIcon name="arrow-right" size={16} className="shrink-0 text-[var(--nf-brand-secondary)]" />

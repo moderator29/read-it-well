@@ -74,9 +74,9 @@ jobs:
       # secret: it is the public website.
       CAPACITOR_SERVER_URL: https://www.vallospaces.com
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -86,7 +86,7 @@ jobs:
         run: npm ci
 
       # Capacitor 8's android library compiles with Java 21.
-      - uses: actions/setup-java@v5
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: 21
@@ -106,7 +106,7 @@ jobs:
       # page rather than only in a truncated log.
       - name: Keep the Gradle reports when the build fails
         if: ${{ failure() }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: android-gradle-reports-${{ github.sha }}
           path: |
@@ -139,7 +139,7 @@ jobs:
 
       - name: Keep the APK
         if: ${{ success() }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: vallo-android-debug-${{ github.sha }}
           path: apps/web/android/app/build/outputs/apk/debug/app-debug.apk
@@ -162,7 +162,7 @@ jobs:
     timeout-minutes: 30
     continue-on-error: true
     steps:
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v8
         with:
           name: vallo-android-debug-${{ github.sha }}
           path: apk
@@ -207,7 +207,7 @@ jobs:
 
       - name: Keep the screenshots
         if: ${{ always() }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: android-emulator-smoke-${{ github.sha }}
           path: shots

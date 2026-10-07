@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState, useSyncExternalStore, type KeyboardEvent } from "react";
-import type { Dictionary } from "@vallo/i18n/core";
+import type { MotionCopy } from "./settings-copy";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { BrandAssemble } from "@/components/motion/BrandAssemble";
+import { STARTUP_SCRIPT } from "@/components/startup/startup-script";
 import {
   DEFAULT_MOTION,
   MOTION_EVENT,
@@ -44,7 +45,7 @@ const LEVEL_ICON: Record<MotionLevel, UiIconName> = {
  * again. Everything applies at once and is kept on this device; see
  * lib/motion/motion-pref.ts for what each level does.
  */
-export function MotionSettings({ t }: { t: Dictionary }) {
+export function MotionSettings({ t }: { t: MotionCopy }) {
   const copy = t.settings.appearance;
   const pref = parseMotion(useSyncExternalStore(subscribe, snapshot, serverSnapshot));
   const [take, setTake] = useState(0);
@@ -88,24 +89,46 @@ export function MotionSettings({ t }: { t: Dictionary }) {
     refs.current[next]?.focus();
   };
 
-  /* The splash is CSS keyed on the root flag: taking the flag away for a
-     frame and putting it back restarts every animation in it. */
+  /* THE OPENING, AGAIN (F1). The sequence is CSS keyed on the root's
+     `data-splash="on"`: raising it starts every beat afresh, the door on the
+     stylesheet's own clock. But the script that moves the door for a tap
+     or a key, and that releases the flag when the door is done
+     (`STARTUP_SCRIPT`), ran once at page load and has finished, and the
+     page still carries the last run's `data-startup="open"`. So the replay
+     does what a first load does: clear the startup flag, raise the splash
+     flag, and run the script again.
+
+     The script is inline, and the page's Content Security Policy runs an
+     inline script only if it carries the request's nonce. React never hands
+     the nonce to a client component (it renders it on the server and blanks
+     it on the client), but the browser keeps it on the DOM element's `nonce`
+     property for same-origin script to read, so the new script borrows it
+     from one of the page's own nonce-carrying scripts. With none on the page
+     there is no nonce policy to satisfy and the script runs plainly. The
+     script then releases the flag itself (door end, tap, key or its own
+     ceiling), so nothing here needs a timer. */
   const replay = () => {
     const root = document.documentElement;
-    root.dataset.splash = "done";
-    window.requestAnimationFrame(() => {
-      root.dataset.splash = "on";
-      window.setTimeout(() => {
-        root.dataset.splash = "done";
-      }, 1900);
-    });
+    delete root.dataset.startup;
+    root.dataset.splash = "on";
+    const script = document.createElement("script");
+    const nonce = document.querySelector<HTMLScriptElement>("script[nonce]")?.nonce;
+    if (nonce) script.nonce = nonce;
+    script.textContent = STARTUP_SCRIPT;
+    document.body.appendChild(script);
+    script.remove();
   };
 
   return (
     <SettingsGroup label={copy.motion} note={copy.motionNote}>
       <div className="nf-motion-set">
-        <div className="nf-motion-preview" data-level={pref.level} aria-label={copy.motionPreview} role="img">
-          <BrandAssemble key={`${pref.level}-${take}`} size={44} />
+        {/* The picture is the image; the replay button sits beside it, not
+            inside it (axe nested-interactive: an img role may hold nothing
+            focusable). */}
+        <div className="nf-motion-preview" data-level={pref.level}>
+          <span role="img" aria-label={copy.motionPreview} className="inline-flex">
+            <BrandAssemble key={`${pref.level}-${take}`} size={44} />
+          </span>
           <button
             type="button"
             className="nf-motion-preview__again nf-tap"

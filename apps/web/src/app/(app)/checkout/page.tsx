@@ -16,7 +16,8 @@ import { formatMoneyDate } from "@/lib/money/dates";
 import { cancelStanding, termsFromPolicyRules } from "@/lib/trust/cancellation";
 import { ROOM_BOOKINGS_FLAG, flagIsOn } from "@/lib/flags/read";
 import { resolveSession } from "@/lib/actions/session";
-import { authHref, returnHref } from "@/components/auth/auth-intent";
+import { returnHref } from "@/components/auth/auth-intent";
+import { withNext } from "@/lib/auth/next-link";
 import { ButtonLink } from "@/components/ui/Button";
 import { RoomRequestForm } from "./RoomRequestForm";
 
@@ -120,7 +121,8 @@ export default async function RoomCheckoutPage({
               <dd className={`text-right ${TYPE.rowTitle}`}>{copy.guests.replace("{count}", String(guests))}</dd>
             </div>
             <div className="flex items-start justify-between gap-md">
-              <dt className={TYPE.rowMeta}>{copy.perNight}</dt>
+              {/* The catalogue's row label ("Per night"); stayDetail.perNight is the suffix after a price ("a night"). */}
+              <dt className={TYPE.rowMeta}>{t.catalogue.card.perNight}</dt>
               <dd className={`text-right ${TYPE.rowTitle}`}>
                 <Amount minorUnits={plan.rate_minor} locale={locale} />
               </dd>
@@ -163,7 +165,7 @@ export default async function RoomCheckoutPage({
         ) : (
           <div className="mt-row">
             <ButtonLink
-              href={authHref(returnHref("/checkout", new URLSearchParams(query as Record<string, string>).toString(), "list"), "sign-in")}
+              href={withNext("/sign-in", returnHref("/checkout", new URLSearchParams(query as Record<string, string>).toString(), "list"))}
               variant="primary"
               size="lg"
             >
@@ -190,7 +192,8 @@ export default async function RoomCheckoutPage({
       )}
 
       <p className={`flex items-start gap-inline ${TYPE.caption}`}>
-        <UiIcon name="verified" size={ICON.inline} className="mt-3xs shrink-0 text-[var(--nf-brand-secondary)]" />
+        {/* Advice, so a neutral glyph: the shield means an earned check (A9). */}
+        <UiIcon name="info" size={ICON.inline} className="mt-3xs shrink-0" />
         <span>{t.checkout.onlyYourBooking}</span>
       </p>
     </div>

@@ -17,6 +17,8 @@ import { ICON } from "@/components/app/Screen";
 import { Button } from "@/components/ui/Button";
 import { Switch } from "@/components/ui/Switch";
 import type { StayFilterSheetProps } from "./StayFilterSheet";
+import { useSelectPop } from "@/lib/motion/select-pop";
+import "@/app/css/catalogue.css";
 
 /**
  * The stays filter sheet's BODY. Its trigger is `StayFilterSheet`, which loads
@@ -224,6 +226,8 @@ export function StayFilterSheetPanel({
   onClose: () => void;
 }) {
   const router = useRouter();
+  /* A chosen tile gives the small push the chip spec asks for (`select-pop.ts`). */
+  useSelectPop();
   const copy = t.catalogue;
   const [draft, setDraft] = useState<Draft>(() => draftFrom(query));
 
@@ -287,17 +291,17 @@ export function StayFilterSheetPanel({
       sideOnWide
       testId="stay-filters"
       footer={
-        <div className="grid grid-cols-[1fr_1.4fr] gap-xs border-t border-[var(--nf-panel-hair)] pt-sm">
-          <Button variant="secondary" data-testid="stay-filters-reset" onClick={reset} full size="lg">
+        <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] gap-xs border-t border-[var(--nf-panel-hair)] pt-sm">
+          <Button variant="secondary" data-testid="stay-filters-reset" onClick={reset} full size="lg" className="whitespace-normal">
             {copy.filters.reset}
           </Button>
-          <Button variant="primary" data-testid="stay-filters-apply" onClick={apply} full size="lg">
+          <Button variant="primary" data-testid="stay-filters-apply" onClick={apply} full size="lg" className="whitespace-normal">
             {copy.filters.apply.replace(" ({count})", "")}
           </Button>
         </div>
       }
     >
-          <div className="mx-auto max-w-2xl">
+          <div className="mx-auto max-w-2xl" data-select-pop="">
             {/* ------------------------------------------- dates and party */}
             <Group id="stay-dates" title={copy.stays.checkIn} clearLabel={copy.filters.clear}
               onClear={draft.checkIn || draft.checkOut ? () => setDraft((c) => ({ ...c, checkIn: "", checkOut: "" })) : undefined}>

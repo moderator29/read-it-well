@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import type { Dictionary } from "@vallo/i18n/core";
+import type { AuthCopy } from "./auth-copy";
 import type { EmailStatus } from "@/lib/auth/form-state";
 import { Field } from "./fields";
 
@@ -35,7 +35,7 @@ export function EmailTakenNotice({
   check,
   initialEmail = "",
 }: {
-  t: Dictionary;
+  t: AuthCopy;
   error?: string | undefined;
   check: (email: string) => Promise<EmailStatus>;
   /** The address typed on the chooser, so it is not typed twice. */
@@ -80,7 +80,7 @@ export function EmailTakenNotice({
         <p
           role="status"
           data-testid="email-taken"
-          className="mt-2 rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-brand-primary)_35%,transparent)] bg-[color-mix(in_oklab,var(--nf-brand-primary)_10%,transparent)] px-md py-sm text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]"
+          className="nf-auth__notice"
         >
           {status === "google" ? (
             <>

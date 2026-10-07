@@ -9,12 +9,17 @@ import {
   purchaseTotal,
   PERIOD_NOUN,
   PERIOD_SUFFIX,
-  PERIOD_SUFFIX_SHORT,
-  PERIOD_SUFFIX_SLASH,
   RENT_PERIOD_VALUES,
   RATE_PERIOD_VALUES,
 } from "./pricing";
-import { submitRequirements, type SubmitSubject } from "../agent/listings-schema";
+import { submitRequirements, type SubmitSubject } from "../agent/listings-model";
+import { getDictionary, type Locale } from "@vallo/i18n";
+
+/* The member surfaces' words for the three maps, from the reader's dictionary. */
+const en = getDictionary("en");
+const PERIOD_LONG = en.agentListings.pricing.period;
+const PERIOD_SUFFIX_SHORT = en.experienceLabels.periodShort;
+const PERIOD_SUFFIX_SLASH = en.experienceLabels.periodSlash;
 
 /**
  * The money resolution, tested because it is the one decision every price on
@@ -229,6 +234,26 @@ describe("the period suffixes", () => {
     // slash map deliberately has no "sale" key at all rather than an empty one
     // that would render as a bare "/".
     expect("sale" in PERIOD_SUFFIX_SLASH).toBe(false);
+  });
+
+  it("says the staff desk's English and the member dictionary's English word for word", () => {
+    /* The admin desk keeps `PERIOD_SUFFIX`; members read the dictionary. One
+       set of words in two places, pinned so they cannot drift. */
+    expect(PERIOD_LONG).toEqual(PERIOD_SUFFIX);
+    expect(PERIOD_SUFFIX_SHORT).toEqual({ month: "/mo", quarter: "/qtr", year: "/yr", night: "/night", guest: "/head" });
+    // A sale has no period, so neither short map carries one: the card prints no suffix after an asking price.
+    expect("sale" in PERIOD_SUFFIX_SHORT).toBe(false);
+  });
+
+  it("gives every locale every period in all three maps, English where a translator has not been yet", () => {
+    for (const locale of ["en", "ha", "ig", "yo"] as Locale[]) {
+      const t = getDictionary(locale);
+      for (const period of everyPeriod) {
+        expect(t.agentListings.pricing.period[period], `${locale} period.${period}`).toBeTruthy();
+        expect(t.experienceLabels.periodShort[period], `${locale} periodShort.${period}`).toBeTruthy();
+        expect(t.experienceLabels.periodSlash[period], `${locale} periodSlash.${period}`).toBeTruthy();
+      }
+    }
   });
 
   it("spells the slash suffixes the way the booking panels print them", () => {

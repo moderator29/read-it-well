@@ -8,8 +8,8 @@
  *
  *   page titles      arrive out of depth, the splash's letter technique
  *                    applied to a whole heading
- *   empty states     the picture, the sentence and the action rise in turn,
- *                    and the picture keeps a slow float while you read
+ *   empty states     the picture settles, then the sentence and the action
+ *                    fade in beneath it (Session 3: no longer floats for ever)
  *   settings groups  each group rises a beat after the one above it
  *   notifications    and inbox rows slide in, thirty milliseconds apart
  *   the bell         swings once when something is waiting
@@ -66,24 +66,50 @@
 
   /* ------------------------------------------------------ empty states */
 
+  /*
+   * THE EMPTY STATE SETTLES, ONCE (MOTION_SYSTEM "Empty state": "the clay
+   * object settles in `drift` 520ms, then the copy fades"; Session 3, R2).
+   *
+   * The picture arrives first, on the spring curve, and the words fade in
+   * beneath it only after it has mostly landed, 60ms apart, so the eye is told
+   * what is missing before it is told why. Transform and opacity only: the
+   * depth entrance's blur is gone from this one. And it STOPS. The picture used
+   * to keep a six second float going for as long as the reader stayed, an
+   * infinite loop on every empty list in the product, and the inventory
+   * allows exactly two things to run for ever (the aurora and the assistant
+   * thinking). Reduced motion, Calm and Off stop it at the foot of this file
+   * and in motion-pref.css.
+   */
   [data-state-kind="empty"] > * {
-    animation: nf-in-rise var(--nf-duration-entrance) var(--nf-ease-entrance) both;
+    animation: nf-in-fade var(--nf-duration-base) var(--nf-ease-standard) both;
+    animation-delay: calc(var(--nf-duration-entrance) * 0.6);
   }
   [data-state-kind="empty"] > :nth-child(1) {
-    animation:
-      nf-in-depth var(--nf-duration-deliberate) var(--nf-ease-entrance) both,
-      nf-in-float 6s var(--nf-ease-standard) var(--nf-duration-deliberate) infinite;
+    animation: nf-in-settle var(--nf-duration-entrance) var(--nf-ease-spring) both;
+    animation-delay: 0ms;
   }
-  [data-state-kind="empty"] > :nth-child(2) { animation-delay: 90ms; }
-  [data-state-kind="empty"] > :nth-child(3) { animation-delay: 150ms; }
-  [data-state-kind="empty"] > :nth-child(n + 4) { animation-delay: 210ms; }
-  @keyframes nf-in-float {
-    0%,
-    100% {
+  [data-state-kind="empty"] > :nth-child(3) {
+    animation-delay: calc(var(--nf-duration-entrance) * 0.6 + 60ms);
+  }
+  [data-state-kind="empty"] > :nth-child(n + 4) {
+    animation-delay: calc(var(--nf-duration-entrance) * 0.6 + 120ms);
+  }
+  @keyframes nf-in-settle {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 10px, 0) scale(0.96);
+    }
+    to {
+      opacity: 1;
       transform: none;
     }
-    50% {
-      transform: translateY(-5px);
+  }
+  @keyframes nf-in-fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
     }
   }
 
@@ -165,10 +191,7 @@
       animation: none;
     }
   }
-  /* Data saving: keep the entrances, drop the endless float and the blur. */
-  :root[data-save-data="on"] [data-state-kind="empty"] > :nth-child(1) {
-    animation: nf-in-rise var(--nf-duration-entrance) var(--nf-ease-entrance) both;
-  }
+  /* Data saving: keep the entrances, drop the blur. (The empty state has none.) */
   :root[data-save-data="on"] .nf-page-title {
     animation-name: nf-in-rise;
   }

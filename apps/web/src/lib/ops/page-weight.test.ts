@@ -13,10 +13,13 @@ describe("cold page weight", () => {
   it("preloads only the two faces the first screen paints", () => {
     const layout = readFileSync("src/app/layout.tsx", "utf8");
     const block = layout.slice(layout.indexOf("const PRELOADED_FONTS"), layout.indexOf("};", layout.indexOf("const PRELOADED_FONTS")));
-    expect(block).toContain('default: ["inter-latin", "poppins-700-latin"]');
-    expect(block).not.toMatch(/latin-ext|poppins-600/);
-    for (const name of ["inter-latin", "poppins-700-latin", "inter-vietnamese"]) {
-      expect(() => readFileSync(`public/fonts/${name}.woff2`)).not.toThrow();
+    /* Poppins 600 is the heading face the first screen paints since the three
+       weights pass (C6, R3-18 round 2); the files are under /fonts/v2/. */
+    expect(block).toContain('default: ["inter-latin", "poppins-600-latin"]');
+    expect(block).not.toMatch(/latin-ext|poppins-700/);
+    expect(layout).toContain("href={`/fonts/v2/${name}.woff2`}");
+    for (const name of ["inter-latin", "poppins-600-latin", "inter-vietnamese"]) {
+      expect(() => readFileSync(`public/fonts/v2/${name}.woff2`)).not.toThrow();
     }
   });
 

@@ -16,13 +16,16 @@
  * for how fast a person answers.
  */
 import {
-  GUARANTEE_SCOPE,
-  GUARANTEE_SENTENCE,
+  DIRECT_RAIL_STANDING,
+  LEGACY_GUARANTEE_CLAIM,
   NO_CUSTODY_SENTENCE,
   NO_INSPECTION_FEE,
+  NO_PAYMENT_BALANCE,
   OFF_PLATFORM_SENTENCE,
   PAYMENT_GATE_SENTENCE,
   REFUND_ROUTE,
+  REWARDS_BALANCE_SEPARATE,
+  WHO_PAYS_SENTENCE,
 } from "../money/copy";
 
 export type FaqEntry = {
@@ -73,18 +76,21 @@ export const SUPPORT_FAQ: FaqEntry[] = [
     id: "charges",
     keywords: [CHARGE_WORD, "charge", "commission", "cost to use", "hidden", "how much does vallo"],
     answer:
-      `Vallo charges nothing to use. Searching, booking, inspecting and messaging agents cost you nothing extra; the price you see on a listing is the price you pay. ${NO_INSPECTION_FEE} Between 1 and 2 percent of each payment goes to the Vallo Guarantee reserve out of the owner's or agent's share, never added on top.`,
+      `Vallo charges nothing to use. Searching, booking, inspecting and messaging agents cost you nothing extra; the price you see on a listing is the price you pay. ${NO_INSPECTION_FEE} ${WHO_PAYS_SENTENCE}`,
   },
   {
     id: "wallet",
     keywords: ["wallet", "balance", "top up", "topup", "fund", "withdraw", "escrow", "hold my money"],
     answer:
-      `Vallo has no wallet and keeps no balance. ${NO_CUSTODY_SENTENCE} There is nothing to top up and nothing to withdraw. Refunds go back to the card or account you paid with.`,
+      /* The id stays `wallet`, the word members type. The answer says the
+         narrower true thing (A9): no balance holds a payment, and the Rewards
+         Balance is separate. "Nothing to withdraw" was untrue beside it. */
+      `${NO_PAYMENT_BALANCE} ${NO_CUSTODY_SENTENCE} ${REWARDS_BALANCE_SEPARATE} Refunds go back to the card or account you paid with.`,
   },
   {
     id: "guarantee",
     keywords: ["guarantee", "claim", "reserve"],
-    answer: `${GUARANTEE_SENTENCE} ${GUARANTEE_SCOPE} File a claim from the agreement, with photos, inside the window.`,
+    answer: `The Vallo Guarantee has been retired, and no contribution is taken from a new payment. ${DIRECT_RAIL_STANDING} If you paid while it was running: ${LEGACY_GUARANTEE_CLAIM} File it from the agreement, with photos.`,
   },
   {
     id: "verified-badge",
@@ -198,7 +204,7 @@ export const SUPPORT_FAQ: FaqEntry[] = [
     id: "greeting",
     keywords: ["hello", "hi", "hey", "good morning", "good afternoon", "good evening", "how far"],
     answer:
-      "Hello. I can help with bookings, payments, agreements, the Vallo Guarantee, listing a property, verification, cancellations and more. What would you like to know?",
+      "Hello. I can help with bookings, payments, agreements, listing a property, verification, cancellations and more. What would you like to know?",
   },
 ];
 

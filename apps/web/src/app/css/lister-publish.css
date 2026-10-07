@@ -1,0 +1,259 @@
+/*
+ * A LISTER PUBLISHES (round 5, the sixth moment). Loaded by the listing
+ * wizard only, so no other route pays for it.
+ *
+ *   a step          browsing pace: the title arrives 12px from the side the
+ *                   lister is travelling (fast, 160ms) and the step's body
+ *                   follows 60ms behind it, so a step change is at rest by
+ *                   220ms. Nothing moves on the first paint, because nothing
+ *                   has changed yet.
+ *   the step bar    a reached segment fills from the left (base, 240ms); the
+ *                   one left behind on Back empties, slower (slow, 380ms):
+ *                   entrances decisive, exits unhurried. A resumed draft
+ *                   paints its bar already filled, because a transition has
+ *                   no "before" on a first paint. No sheen and no bloom.
+ *   a refusal       the field shakes 4px once (whip, 160ms) and says why.
+ *   sent            the card the lister built is the same element; the page is
+ *                   put on it and it settles 16px into place (never fading:
+ *                   it was already there), its status crossfades, the step's
+ *                   controls go, and the chain under it rises in three rows
+ *                   60ms apart. Settled: no pop, no ring, nothing is live.
+ *
+ * This replaces, for the wizard, Track M's journey in flow-m.css (a 520ms
+ * blurred push, a 620ms spring pop with two 6s floats, a two-pass sheen, a
+ * ring that went out twice from a screen that only said "in review"). Those
+ * rules are matched here at one more class of specificity rather than edited
+ * there, and the deletion is a patch for the lead (scratchpad/M6).
+ *
+ * Transform and opacity only, tokens for every duration and curve. Reduced
+ * motion and Calm: the same story as a 160ms crossfade with no travel; Off:
+ * motion-pref.css lands everything in its final state.
+ */
+@layer theme, base, components, utilities;
+
+@layer components {
+  @keyframes nf-lw-arrive {
+    from {
+      opacity: 0;
+      transform: translate3d(calc(var(--nf-lw-dir) * 12px), 0, 0);
+    }
+  }
+  @keyframes nf-lw-settle {
+    from {
+      opacity: 0;
+      transform: scale(0.92);
+    }
+  }
+  @keyframes nf-lw-rise {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 12px, 0);
+    }
+  }
+  /* The card persists, so it never fades: it only settles into place. */
+  @keyframes nf-lw-land {
+    from {
+      transform: translate3d(0, 16px, 0);
+    }
+  }
+  @keyframes nf-lw-fade {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes nf-lw-shake {
+    25% {
+      transform: translate3d(-4px, 0, 0);
+    }
+    75% {
+      transform: translate3d(4px, 0, 0);
+    }
+  }
+
+  .nf-lw-wizard {
+    --nf-lw-dir: 1;
+  }
+  .nf-lw-wizard[data-dir="back"] {
+    --nf-lw-dir: -1;
+  }
+
+  /* Still on the first paint, and Track M's arrivals off. */
+  .nf-lw-wizard :is(.nf-lw-head__title, .nf-lw-head__sub, .nf-lw-head__object, .nf-lw-body > *),
+  .nf-lw-wizard .nf-lw-rail__seg[data-done] {
+    animation: none;
+  }
+  .nf-lw-wizard .nf-lw-rail__seg::after {
+    content: none;
+  }
+
+  /* ------------------------------------------------------------- a step */
+  .nf-lw-wizard[data-moved] :is(.nf-lw-head__title, .nf-lw-head__sub) {
+    animation: nf-lw-arrive var(--nf-duration-fast) var(--nf-ease-entrance) both;
+  }
+  .nf-lw-wizard[data-moved] .nf-lw-head__object {
+    animation: nf-lw-settle var(--nf-duration-fast) var(--nf-ease-entrance) 60ms both;
+  }
+  .nf-lw-wizard[data-moved] .nf-lw-body > * {
+    animation: nf-lw-arrive var(--nf-duration-fast) var(--nf-ease-entrance) 60ms both;
+  }
+
+  /* ------------------------------------------------------- the step bar */
+  .nf-lw-wizard .nf-lw-rail__seg {
+    position: relative;
+    overflow: hidden;
+  }
+  /* The lit run is drawn by the fill alone, so it can travel. The halo every
+     done segment used to wear was glow on a non-primary (one primary per view). */
+  .nf-lw-wizard .nf-lw-rail__seg[data-done] {
+    background: var(--nf-glass-well-fill);
+    box-shadow: inset 0 0 0 var(--nf-border-width) var(--nf-panel-hair);
+  }
+  .nf-lw-wizard .nf-lw-rail__seg::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--nf-selected-fill);
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform var(--nf-duration-slow) var(--nf-ease-standard);
+  }
+  .nf-lw-wizard .nf-lw-rail__seg[data-done]::before {
+    transform: none;
+    transition: transform var(--nf-duration-base) var(--nf-ease-entrance);
+  }
+  /* The step you are on still ends in the warm spark, on the fill it rides. */
+  .nf-lw-wizard .nf-lw-rail__seg[data-at]::before {
+    box-shadow: var(--nf-selected-shadow-inline), inset -0.5rem 0 0 var(--nf-spark);
+  }
+
+  /* ------------------------------------------------- typing and refusals */
+  /* A focused field lands above the sticky step bar, not under it, so the
+     keyboard opening moves the page once, to the right place. */
+  .nf-lw-wizard :is(input, textarea, select) {
+    scroll-margin-block: var(--nf-space-xl) calc(6.5rem + env(safe-area-inset-bottom));
+  }
+  .nf-lw-wizard [data-refused] {
+    animation: nf-lw-shake var(--nf-duration-fast) var(--nf-ease-whip);
+  }
+
+  /* ------------------------------------------- the card, then the chain */
+  .nf-lw-publish__label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-space-sm);
+  }
+  .nf-lw-publish__card {
+    scroll-margin-top: var(--nf-space-lg);
+  }
+  /* Accepted, in this sitting: the page is put on the card before it paints,
+     and the card settles (slow, 380ms, no overshoot: nothing is live). The word
+     on it crossfades to the server's (base, 240ms), and the chain rises under
+     it 60ms apart, starting as the word turns. */
+  .nf-lw-publish[data-sent="now"] .nf-lw-publish__card {
+    animation: nf-lw-land var(--nf-duration-slow) var(--nf-ease-entrance) both;
+  }
+  .nf-lw-publish[data-sent="now"] .nf-lw-publish__status {
+    animation: nf-lw-fade var(--nf-duration-base) var(--nf-ease-standard) both;
+  }
+  .nf-lw-publish[data-sent="now"] .nf-lw-chain__row {
+    animation: nf-lw-rise var(--nf-duration-slow) var(--nf-ease-entrance) 60ms both;
+  }
+  .nf-lw-publish[data-sent="now"] .nf-lw-chain__row:nth-child(2) {
+    animation-delay: 120ms;
+  }
+  .nf-lw-publish[data-sent="now"] .nf-lw-chain__row:nth-child(3) {
+    animation-delay: 180ms;
+  }
+
+  /* One path, three nodes: done is filled, now is ringed in the brand, not
+     yet is a hollow ring. A word beside each, so never colour alone. */
+  .nf-lw-chain__list {
+    margin-top: var(--nf-space-sm);
+    display: grid;
+  }
+  .nf-lw-chain__row {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1.5rem minmax(0, 1fr);
+    gap: var(--nf-space-sm);
+    padding-bottom: var(--nf-space-md);
+  }
+  .nf-lw-chain__row:not(:last-child)::before {
+    content: "";
+    position: absolute;
+    left: calc(0.75rem - var(--nf-border-width) / 2);
+    top: 1.75rem;
+    bottom: 0.25rem;
+    width: var(--nf-border-width);
+    background: var(--nf-border-subtle);
+  }
+  .nf-lw-chain__row[data-state="done"]:not(:last-child)::before {
+    background: var(--nf-state-success);
+  }
+  .nf-lw-chain__node {
+    display: grid;
+    place-items: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: var(--nf-radius-circle);
+    box-shadow: inset 0 0 0 var(--nf-border-width) var(--nf-border-strong);
+  }
+  .nf-lw-chain__row[data-state="done"] .nf-lw-chain__node {
+    background: var(--nf-state-success-surface);
+    color: var(--nf-state-success);
+    box-shadow: none;
+  }
+  .nf-lw-chain__row[data-state="now"] .nf-lw-chain__node {
+    box-shadow: inset 0 0 0 2px var(--nf-brand-primary);
+  }
+  .nf-lw-chain__text {
+    display: grid;
+    gap: var(--nf-space-3xs);
+    padding-top: 0.125rem;
+    min-width: 0;
+  }
+  .nf-lw-chain__name {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-lw-chain__row[data-state="next"] .nf-lw-chain__name {
+    color: var(--nf-content-secondary);
+  }
+  .nf-lw-chain__sub {
+    font-size: var(--nf-text-caption);
+    line-height: 1.5;
+    color: var(--nf-content-muted);
+  }
+
+  /* --------------------------------------------------- the quiet answer */
+  @media (prefers-reduced-motion: reduce) {
+    .nf-lw-wizard[data-moved] :is(.nf-lw-head__title, .nf-lw-head__sub, .nf-lw-head__object, .nf-lw-body > *) {
+      animation: nf-lw-fade 160ms var(--nf-ease-standard) both;
+      /* The floor in animation.css would make this fade instant; this opts in. */
+      --nf-reduced-duration: 160ms;
+    }
+    .nf-lw-wizard [data-refused] {
+      animation: none;
+    }
+    .nf-lw-publish[data-sent="now"] .nf-lw-publish__card {
+      animation: none;
+    }
+    .nf-lw-publish[data-sent="now"] :is(.nf-lw-publish__status, .nf-lw-chain__row) {
+      animation: nf-lw-fade 160ms var(--nf-ease-standard) both;
+      /* The floor in animation.css would make this fade instant; this opts in. */
+      --nf-reduced-duration: 160ms;
+    }
+  }
+  :root[data-motion="calm"] :is(
+      .nf-lw-wizard[data-moved] :is(.nf-lw-head__title, .nf-lw-head__sub, .nf-lw-head__object, .nf-lw-body > *),
+      .nf-lw-publish[data-sent="now"] .nf-lw-chain__row
+    ) {
+    animation-name: nf-lw-fade;
+  }
+  :root[data-motion="calm"] .nf-lw-publish[data-sent="now"] .nf-lw-publish__card {
+    animation: none;
+  }
+}

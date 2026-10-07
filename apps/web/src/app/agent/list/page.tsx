@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { flagIsOn, NEIGHBOURS_FLAG } from "@/lib/flags/read";
+import { flagIsOn, LISTER_FEE_GATE_BLOCKING_FLAG, NEIGHBOURS_FLAG } from "@/lib/flags/read";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { AgentShell } from "@/components/agent/AgentShell";
@@ -12,7 +12,7 @@ import {
   readStates,
   type DraftRead,
 } from "@/lib/agent/listings-queries";
-import { AMENITY_CHOICES, STATE_CODES } from "@/lib/agent/listings-schema";
+import { AMENITY_CHOICES, STATE_CODES } from "@/lib/agent/listings-model";
 import { readBroadcastMarks } from "@/lib/agent/broadcast-marks-queries";
 import {
   DRAFT_READ_FAILED_SENTENCE,
@@ -92,6 +92,8 @@ export default async function Page({
           floodCopy={t.shape.neighbours}
           remainderCopy={t.afterTheGate.remainder}
           moneyMapCopy={t.afterTheGate.moneyMap}
+          pathCopy={t.experienceFeatures.wizard}
+          listerCopy={t.experienceLister}
           locale={locale}
           userId={null}
           states={STATE_CODES.map((code) => ({ code, name: code }))}
@@ -115,9 +117,17 @@ export default async function Page({
 
   /* A live or reviewing listing is not opened as a form that refuses every
      save, and an id that names nothing does not open a blank form whose
-     first save files a new listing. */
+     first save files a new listing. ONE EXCEPTION (round 5): a listing with
+     the review team opens as the wizard's own "sent" chain, under its card,
+     settled. Sending revalidates this route while the lister is still on it,
+     so this is also what keeps the screen they just sent from being swapped
+     for a lock screen under their thumb. */
   const opening = wizardOpening(id, draft);
-  if (opening.kind !== "edit" || draft === "read-failed") {
+  const inReview =
+    opening.kind === "locked" && draft && draft !== "read-failed" && (draft.status === "SUBMITTED" || draft.status === "UNDER_REVIEW")
+      ? { status: draft.status, submittedAt: draft.submittedAt ?? null }
+      : null;
+  if (!inReview && (opening.kind !== "edit" || draft === "read-failed")) {
     const failed = opening.kind === "failed";
     const retry = id ? `/agent/list?id=${encodeURIComponent(id)}` : "/agent/list";
     return (
@@ -145,7 +155,8 @@ export default async function Page({
 
   /* V-09: which figures from a pasted message are still unchecked, as the
      server holds them for this draft. */
-  const unconfirmed = draft?.id ? await readBroadcastMarks(context.supabase, draft.id) : [];
+  const shown = draft === "read-failed" ? null : draft;
+  const unconfirmed = shown?.id ? await readBroadcastMarks(context.supabase, shown.id) : [];
 
   return (
     <AgentShell
@@ -165,13 +176,18 @@ export default async function Page({
         unitCopy={t.shape.unit}
         floodCopy={t.shape.neighbours}
         floodOpen={await flagIsOn(NEIGHBOURS_FLAG)}
+        /* D60: only the blocking is flagged, fail closed; the fee screen is drawn either way. */
+        feeGateBlocking={await flagIsOn(LISTER_FEE_GATE_BLOCKING_FLAG)}
         remainderCopy={t.afterTheGate.remainder}
         moneyMapCopy={t.afterTheGate.moneyMap}
+        pathCopy={t.experienceFeatures.wizard}
+        listerCopy={t.experienceLister}
+        sentFrom={inReview}
         locale={locale}
         userId={context.user.id}
         states={states.length > 0 ? states : STATE_CODES.map((code) => ({ code, name: code }))}
         amenities={amenities}
-        initial={draft}
+        initial={shown}
         canPersist
         broadcastCopy={t.frontDoor.broadcast}
         guideCopy={t.frontDoor.guide}

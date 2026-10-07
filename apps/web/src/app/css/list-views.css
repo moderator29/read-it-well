@@ -11,6 +11,15 @@
  * properties, not `transform`, because the card's entrance (`nf-card-in`)
  * holds `transform` with a fill and would otherwise swallow both.
  */
+/*
+ * Loaded by the components that draw its classes, not by globals.css (the
+ * CSS-diet move of 6 October). This line states the layer order the document
+ * already has from Tailwind, so the order holds whichever chunk the browser
+ * receives first; without it a chunk that arrived before globals would put
+ * `components` ahead of `base` and `theme`.
+ */
+@layer theme, base, components, utilities;
+
 @layer components {
   /* ------------------------------------------------------ view toggle */
 
@@ -169,22 +178,107 @@
      into `transform: scale3d(.98, .98, 1)`, which the entrance animation's
      held `transform` then overrode, and the card never pressed. A value it
      cannot resolve at build time is a value it cannot fold. */
-  .nf-pcard:active {
+  /* 0.985 since Session 3 (north star motion 11, MOTION_SYSTEM "Card
+     press"): the large-surface press scale from the token, so the card and
+     every other large tappable surface sink by the same amount. */
+  /* `[data-pressed]` (round 5, lib/motion/press-start.ts): the card sinks
+     the moment the thumb lands, not when the browser decides the touch was
+     a tap. `:active` stays for the mouse and the keyboard. A thumb that
+     stays down hands over to the hold (details.css, `holding`, 0.97 on the
+     slow curve), so the long press still deepens into its menu. */
+  .nf-pcard:active,
+  .nf-pcard[data-pressed]:not([data-long-press]) {
     transform: none;
-    scale: var(--nf-pcard-press, 0.98);
+    scale: var(--nf-pcard-press, var(--nf-press-scale-lg));
+  }
+
+  /*
+   * THE LIST STAGGER, TO THE INVENTORY (motion 10, MOTION_SYSTEM "List
+   * stagger"): the first six cards only, 40ms apart, a 12px lift and fade.
+   * The shared `nf-card-in` is four steps of 50ms at 14px, which is right for
+   * the panels it serves elsewhere; a results grid is the list the inventory
+   * names, so the card takes the list's own rhythm here rather than editing
+   * the shared entrance under everybody else. The seventh card arrives with
+   * the sixth. `--card-i` is written by the card, already capped at five.
+   */
+  .nf-pcard.nf-card-in {
+    animation-name: nf-list-in;
+    animation-delay: calc(var(--nf-splash-hold, 0s) + min(var(--card-i, 0), 5) * 40ms);
+  }
+  @keyframes nf-list-in {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 12px, 0);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /*
+   * CARD ENTRY ON SCROLL (MOTION_SYSTEM "Card entry on scroll"; Session 3, R2;
+   * `lib/motion/scroll-entry.ts`). A card that was below the fold when it
+   * mounted is held (`pending`: faded, floated 50 to 90px by its seeded
+   * `--nf-entry-float`, and without the list stagger it would have played
+   * unseen) and released by the observer (`in`) as it scrolls into view: 520ms
+   * on `land`, `--nf-entry-delay` staggering a row 60ms a card. Opacity and
+   * transform only. The observer already declines under reduced motion, Calm,
+   * Off and data saving; the rules below repeat it for a root attribute that
+   * changes after the page loaded, and for print, so no card is ever left
+   * hidden.
+   */
+  .nf-pcard[data-entry="pending"] {
+    animation: none;
+    opacity: 0;
+    transform: translate3d(0, var(--nf-entry-float, 60px), 0);
+  }
+  /* A keyboard user who reaches a held card sees it at once. */
+  .nf-pcard[data-entry="pending"]:focus-within {
+    opacity: 1;
+    transform: none;
+  }
+  .nf-pcard[data-entry="in"] {
+    animation: nf-scroll-in var(--nf-duration-entrance) var(--nf-ease-entrance) both;
+    animation-delay: var(--nf-entry-delay, 0ms);
+  }
+  @keyframes nf-scroll-in {
+    from {
+      opacity: 0;
+      transform: translate3d(0, var(--nf-entry-float, 60px), 0);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @media (prefers-reduced-motion: reduce), print {
+    .nf-pcard[data-entry] {
+      animation: none;
+      opacity: 1;
+      transform: none;
+    }
+  }
+  :root:is([data-motion="calm"], [data-motion="off"], [data-save-data="on"]) .nf-pcard[data-entry] {
+    animation: none;
+    opacity: 1;
+    transform: none;
   }
 
   /* The heart's spring: only on the tap that saves (ListingCard.tsx). */
+  /* 1, 1.2, 1 on `land` at 240ms (MOTION_SYSTEM "Favourite toggle"; it was
+     1.22 over 380ms on the spring, plan item 28). Browsing is quick, so the
+     pop is sharp and done; the haptic is `SaveControl`'s, fired when the save
+     settles, so the hand feels what the eye sees. */
   .nf-heart-pop[aria-pressed="true"] svg {
-    animation: nf-heart-pop var(--nf-duration-slow) var(--nf-ease-spring) both;
+    animation: nf-heart-pop var(--nf-duration-base) var(--nf-ease-entrance) both;
   }
-  /* 1, 1.22, 1 over 380ms on the spring (plan item 28). */
   @keyframes nf-heart-pop {
     0% {
       transform: scale(1);
     }
     45% {
-      transform: scale(1.22);
+      transform: scale(1.2);
     }
     100% {
       transform: scale(1);
@@ -350,7 +444,8 @@
       transition: none;
     }
     .nf-pcard:hover,
-    .nf-pcard:active {
+    .nf-pcard:active,
+    .nf-pcard[data-pressed] {
       translate: none;
       scale: none;
     }
@@ -390,9 +485,9 @@
     gap: 0.375rem;
     min-height: 2.75rem;
     padding-inline: 0.5rem;
-    border-radius: var(--nf-radius-control-sm, 10px);
+    border-radius: var(--nf-radius-control-sm);
     font-size: var(--nf-text-caption);
-    font-weight: 500;
+    font-weight: 600;
     color: var(--nf-content-muted);
   }
   .nf-saved-remove:disabled {
@@ -453,5 +548,37 @@
     .nf-saved-undo {
       animation: none;
     }
+  }
+}
+
+/*
+ * THE HEAD-TO-HEAD (north star 15.3; `app/(app)/saved/SavedCompare.tsx`,
+ * Session 3, W2). Two of the reader's own saved spaces: a small line glyph
+ * leads each row's label so the eye finds the row before it reads it, and the
+ * leading value of a money row is weighted (600 against the other's 500) as
+ * well as marked "Lower" by word, so the weight is never the only signal.
+ * Scoped under `.nf-compare` so it reads over the table's base rules
+ * (member-loop.css) without touching them.
+ */
+@layer components {
+  .nf-compare .nf-compare__label {
+    font-weight: 600;
+  }
+  .nf-compare__glyph {
+    display: inline-grid;
+    place-items: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    margin-inline-end: var(--nf-space-2xs);
+    vertical-align: -0.375rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-brand-tint-1);
+    color: var(--nf-content-link);
+  }
+  .nf-compare .nf-compare__cell[data-kind="money"] {
+    font-weight: 400;
+  }
+  .nf-compare .nf-compare__cell[data-kind="money"][data-lowest] {
+    font-weight: 600;
   }
 }

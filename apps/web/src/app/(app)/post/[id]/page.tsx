@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import { getDictionary } from "@vallo/i18n";
+import { getLocale } from "@/lib/locale";
+import { sheetWordsOf } from "@/components/social/sheet-words";
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/app/PageHeader";
 import { resolveSession } from "@/lib/actions/session";
@@ -17,13 +20,14 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const thread = await getThread(id);
-  if (!thread) return { title: "Post" };
+  const [thread, locale] = await Promise.all([getThread(id), getLocale()]);
+  const words = getDictionary(locale).experienceSocial.post;
+  if (!thread) return { title: words.title };
   const who =
     thread.root.author?.displayLabel ??
     (thread.root.author?.handle ? `@${thread.root.author.handle}` : "Vallo");
-  const title = `${who} on Around`;
-  const description = thread.root.body?.slice(0, 160) ?? `A post on Around, on Vallo.`;
+  const title = words.metaTitle.replace("{who}", who);
+  const description = thread.root.body?.slice(0, 160) ?? words.metaDescription;
   const url = `${siteUrl().replace(/\/+$/, "")}/post/${id}`;
   /*
    * THE SHARE CARD (R3 finding F-10), AND WHY IT CARRIES NO POST PHOTOGRAPH.
@@ -75,7 +79,9 @@ export default async function PostPage({
    * and can be linked: "reply to this" is a shareable thing to hand somebody.
    */
   const wantsReply = (await searchParams).reply === "1";
-  if (!(await isSocialEnabled())) return <SocialPaused title="Post" />;
+  const t = getDictionary(await getLocale());
+  const words = t.experienceSocial.post;
+  if (!(await isSocialEnabled())) return <SocialPaused title={words.title} />;
   const [thread, session] = await Promise.all([getThread(id), resolveSession()]);
   if (!thread) notFound();
 
@@ -84,11 +90,16 @@ export default async function PostPage({
   return (
     <div className="mx-auto w-full max-w-2xl pb-4xl pt-md">
       <PageHeader
-        title="Thread"
-        subtitle={thread.root.areaName ? `Around ${thread.root.areaName}` : undefined}
+        title={words.thread}
+        subtitle={thread.root.areaName ? words.aroundPlace.replace("{place}", thread.root.areaName) : undefined}
         fallback={thread.root.areaSlug ? `/around/${thread.root.areaSlug}` : "/around"}
       />
-      <ThreadView thread={thread} signedIn={signedIn} openReply={wantsReply} />
+      <ThreadView
+        thread={thread}
+        signedIn={signedIn}
+        openReply={wantsReply}
+        sheet={sheetWordsOf(t)}
+      />
       <AroundFab />
     </div>
   );

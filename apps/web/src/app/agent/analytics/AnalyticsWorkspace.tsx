@@ -15,7 +15,7 @@ import type {
   SettledPoint,
 } from "@/lib/agent/analytics-queries";
 import { CALENDAR_WINDOW_NIGHTS } from "@/lib/agent/analytics-queries";
-import { HOLD_WINDOW_HOURS } from "@/lib/agent/bookings-schema";
+import { HOLD_WINDOW_HOURS } from "@/lib/agent/bookings-model";
 import type { ListingStatus } from "@/lib/agent/listings-queries";
 import { Amount, Figure } from "@/components/ui/Amount";
 import { Progress } from "@/components/ui/Progress";
@@ -23,6 +23,8 @@ import { ButtonLink } from "@/components/ui/Button";
 import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/Table";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { Icon3D } from "@/components/ui/Icon3D";
+import { PeriodBars } from "@/components/ui/charts/PeriodBars";
+import { absentMonths, lagosMonth, monthPoint, moneyTicks } from "@/components/agent/charts/month-points";
 
 /**
  * The agent's analytics console.
@@ -128,7 +130,7 @@ function Unknown({ label }: { label: string }) {
 function Unavailable({ children }: { children: string }) {
   return (
     <p
-      className="rounded-[var(--nf-container-radius)] p-md text-[length:var(--nf-text-caption)] font-medium leading-relaxed"
+      className="rounded-[var(--nf-container-radius)] p-md text-[length:var(--nf-text-caption)] font-semibold leading-relaxed"
       style={{ background: "var(--nf-state-warning-surface)", color: "var(--nf-state-warning)" }}
       role="status"
     >
@@ -169,29 +171,25 @@ function monthLabel(point: SettledPoint, locale: Locale, style: "short" | "long"
 }
 
 /**
- * Settled money by month, as bars.
+ * Settled money by month, as bars, on the chart system (B-26).
  *
- * BARS RATHER THAN THE AREA SPARKLINE THAT ALREADY EXISTS. A monthly settled
- * total is a discrete bucket, not a continuous signal. An area or line chart
- * draws a value for every instant between two months, so a host reading it
- * halfway along the segment between June and August sees a figure that was
- * never true of any day, and the smoothing flatters a jagged history into a
- * trend. Bars can only claim what actually happened, which is the whole
- * requirement here. The sparkline also divides by `data.length - 1`, so a host
- * with a single settled month would have been handed an infinity.
+ * BARS RATHER THAN A LINE. A monthly settled total is a discrete bucket, not
+ * a continuous signal. A line draws a value for every instant between two
+ * months, so a host reading it halfway between June and August sees a figure
+ * that was never true of any day, and the smoothing flatters a jagged history
+ * into a trend. Bars can only claim what actually happened (chart rule 1).
  *
- * NO CHARTING LIBRARY. This is a flex row and a percentage height. The platform
- * has never carried a chart dependency and one bar chart is not the reason to
- * start (Master Rule 52).
+ * The rules this panel used to carry by hand now live in `PeriodBars`: a
+ * month that settled nothing is no bar (the ledger is complete, so zero is a
+ * fact), a genuinely tiny month is never drawn as nothing (the 2px floor),
+ * the best month is labelled at its tip, and every month reaches the table
+ * twin with its amount. The peak sentence stays under it, because it is the
+ * scale in words and a reader without the picture gets it too.
  *
- * THE TWO PIXEL FLOOR ON A NON-ZERO BAR. A month that settled a genuinely tiny
- * amount beside a record month resolves to a fraction of a percent and draws as
- * nothing, which a reader correctly interprets as "no money that month" and
- * which is false. The floor is stated in pixels rather than as a minimum
- * percentage on purpose: a percentage floor would scale with the plot and start
- * inflating the value it is meant to keep visible, while two pixels is a
- * visibility device that cannot be misread as a quantity. A month that really
- * did settle nothing gets no bar at all, which is the true picture.
+ * NOTHING SETTLED YET (reference 7083): the six months ending now are drawn
+ * as hatched slots with the existing empty sentence over them, so a young
+ * account sees the frame its history will fill rather than a bare line of
+ * text. The slots are periods, never amounts.
  */
 function SettledTrend({
   t,
@@ -202,53 +200,46 @@ function SettledTrend({
   points: SettledPoint[];
   locale: Locale;
 }) {
+  if (points.length === 0) {
+    return (
+      <PeriodBars
+        points={absentMonths(lagosMonth(new Date()), 6, locale)}
+        yTicks={[]}
+        label={t.trend.title}
+        periodHead={t.trend.title}
+        valueHead={t.headline.settled}
+        empty={t.trend.empty}
+      />
+    );
+  }
+
   const peak = points.reduce((most, point) => Math.max(most, point.agentShareMinor), 0);
-  if (points.length === 0 || peak <= 0) {
+  if (peak <= 0) {
     return <p className="text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)]">{t.trend.empty}</p>;
   }
 
   const best = points.reduce((top, point) =>
     point.agentShareMinor > top.agentShareMinor ? point : top,
   );
+  const viz = points.map((point) =>
+    monthPoint({ key: point.key, year: point.year, month: point.month, minor: point.agentShareMinor }, locale),
+  );
+  const peakLine = `${t.trend.peak}: ${monthLabel(best, locale, "long")}, ${formatMoney(best.agentShareMinor, locale)}`;
 
   return (
     <div>
-      <ol className="flex h-36 gap-2xs border-b border-[var(--nf-border-subtle)] sm:h-44 sm:gap-xs">
-        {points.map((point) => (
-          <li key={point.key} className="flex min-w-0 flex-1 items-end">
-            {/* The only accessible rendering of the value. A bar has no text,
-                so each one carries its own month and amount for a reader who
-                is not looking at the picture. */}
-            <span className="sr-only">
-              {monthLabel(point, locale, "long")}: {formatMoney(point.agentShareMinor, locale)}
-            </span>
-            <span
-              aria-hidden="true"
-              className="block w-full rounded-t-[var(--nf-radius-xs)]"
-              style={{
-                height: `${(point.agentShareMinor / peak) * 100}%`,
-                minHeight: point.agentShareMinor > 0 ? 2 : 0,
-                background: "var(--nf-gradient-agent)",
-              }}
-            />
-          </li>
-        ))}
-      </ol>
+      <PeriodBars
+        points={viz}
+        yTicks={moneyTicks(viz, locale)}
+        label={t.trend.title}
+        summary={peakLine}
+        periodHead={t.trend.title}
+        valueHead={t.headline.settled}
+        emphasis="peak"
+      />
 
-      <p aria-hidden="true" className="mt-xs flex gap-2xs sm:gap-xs">
-        {points.map((point) => (
-          <span
-            key={point.key}
-            className="min-w-0 flex-1 truncate text-center text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]"
-          >
-            {monthLabel(point, locale, "short")}
-          </span>
-        ))}
-      </p>
-
-      {/* The scale, stated. Bars with no axis are a shape rather than a
-          measurement, and this is the cheapest honest axis: name the tallest
-          one and every other bar can be read against it. */}
+      {/* The scale, stated: name the tallest bar and every other one can be
+          read against it, with or without the picture. */}
       <p className="mt-sm text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
         {t.trend.peak}: <span className="font-semibold">{monthLabel(best, locale, "long")}</span>
         {", "}
@@ -557,7 +548,7 @@ function ListingsPanel({
           <TBody>
             {rows.map((row) => (
               <TR key={row.listingId}>
-                <TD className="font-medium text-[var(--nf-content-primary)]">
+                <TD className="font-semibold text-[var(--nf-content-primary)]">
                   {row.title}
                   <span className="block text-[length:var(--nf-text-overline)] font-normal text-[var(--nf-content-muted)]">
                     {statusLabels[row.status]}
@@ -599,6 +590,8 @@ export function AnalyticsWorkspace({
   locale,
   funnels = null,
   viewsLine,
+  absent = [],
+  hero = null,
 }: {
   t: AnalyticsCopy;
   hours: HoursCopy;
@@ -609,6 +602,19 @@ export function AnalyticsWorkspace({
   funnels?: React.ReactNode;
   /** V-73: replaces the "views are not counted" line once they are. */
   viewsLine?: string;
+  /**
+   * J3 (Space Analytics): the register's metrics no table counts (unique
+   * viewers, engaged views, shares, contact reveals), named in the same panel
+   * as the other absences so there is one place that says what is not here.
+   */
+  absent?: string[];
+  /**
+   * J3: the Space Analytics card (period, headline figure, one chart, every
+   * figure as a row to its own page), drawn first: the overview's answer to
+   * "how am I doing" before the lifetime tiles. Never drawn over the
+   * whole-screen empty state, which says the truer thing to a new lister.
+   */
+  hero?: React.ReactNode;
 }) {
   const { earnings, requests, listings, calendar, reviews } = analytics;
 
@@ -650,6 +656,8 @@ export function AnalyticsWorkspace({
 
   return (
     <div className="space-y-lg">
+      {hero}
+
       <div className="nf-figure-tiles">
         <Tile
           icon="wallet"
@@ -773,7 +781,7 @@ export function AnalyticsWorkspace({
       <section className="nf-panel nf-panel--card block p-md sm:p-panel">
         <h2 className="nf-h3">{t.notCounted.title}</h2>
         <ul className="mt-sm space-y-sm">
-          {[viewsLine ?? t.notCounted.views, t.notCounted.saves, t.notCounted.occupancy].map((line) => (
+          {[viewsLine ?? t.notCounted.views, t.notCounted.saves, t.notCounted.occupancy, ...absent].map((line) => (
             <li
               key={line}
               className="max-w-[76ch] text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]"

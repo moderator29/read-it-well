@@ -2,7 +2,7 @@
 
 import type { ShellDictionary } from "@/lib/i18n/shell-dictionary";
 import { Button } from "@/components/ui/Button";
-import { useMemo } from "react";
+import { useEffect, useMemo, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { ThemeRow } from "@/components/site/ThemeControl";
 import { Logo } from "@/design-system/brand/Logo";
@@ -15,6 +15,7 @@ import { NavTree } from "./NavTree";
 import { SideSwitch } from "./SideSwitch";
 import { COMPANY_LEGAL_NAME } from "@/lib/legal/company";
 import type { Side } from "@/lib/side.constants";
+import "@/app/css/side-flip.css";
 
 /**
  * The consumer navigation, for both sides.
@@ -44,6 +45,52 @@ import type { Side } from "@/lib/side.constants";
  * with sub-navigation underneath it, it has to be.
  */
 
+/*
+ * THE COLLAPSED RAIL (Session 3; north star 6.2: "desktop gains a collapsed
+ * 72px icon-only mode with tooltips, remembered per member").
+ *
+ * REMEMBERED PER DEVICE, NOT PER ACCOUNT, and that is a stated compromise:
+ * per member would need a profile field Session 2 owns, and a rail width is
+ * a convenience of one screen rather than a fact about a person (a member
+ * who collapses it on a 13-inch laptop may want it open on a 27-inch
+ * monitor). So it is one `localStorage` key, every read and write in
+ * try/catch, and a private window or blocked storage simply gets the open
+ * rail. The cost: it is applied after hydration, so a member who keeps it
+ * collapsed sees the open rail for the first frame of a cold load.
+ *
+ * Read through `useSyncExternalStore`, so the toggle, a second tab and the
+ * page all agree without an effect writing state.
+ */
+const RAIL_KEY = "nf-rail-collapsed";
+const RAIL_EVENT = "nf:rail";
+
+function readCollapsed(): boolean {
+  try {
+    return window.localStorage.getItem(RAIL_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function subscribeCollapsed(onChange: () => void) {
+  window.addEventListener(RAIL_EVENT, onChange);
+  window.addEventListener("storage", onChange);
+  return () => {
+    window.removeEventListener(RAIL_EVENT, onChange);
+    window.removeEventListener("storage", onChange);
+  };
+}
+
+function writeCollapsed(next: boolean) {
+  try {
+    if (next) window.localStorage.setItem(RAIL_KEY, "1");
+    else window.localStorage.removeItem(RAIL_KEY);
+  } catch {
+    /* Storage refused: the choice lasts for this page only. */
+  }
+  window.dispatchEvent(new Event(RAIL_EVENT));
+}
+
 export function AppRail({
   t,
   side = "property",
@@ -61,6 +108,7 @@ export function AppRail({
   variant = "rail",
   onNavigate,
   onClose,
+  socialOn = true,
 }: {
   t: ShellDictionary;
   side?: Side;
@@ -85,20 +133,44 @@ export function AppRail({
   variant?: "rail" | "drawer";
   onNavigate?: () => void;
   onClose?: () => void;
+  /** The `social` switch: off, the Around row leaves the navigation. */
+  socialOn?: boolean;
 }) {
   /* B1: the Messages row carries the live unread-conversations count, from
      the same store (and the same one channel) as the dock's More button. */
   const unreadConversations = useUnreadConversations(signedIn, active) ?? 0;
-  const sections = useMemo(
-    () =>
-      buildNav({ t, side, unreadNotifications, unreadConversations, isAgent, isAdmin, isHost, signedIn }),
-    [t, side, unreadNotifications, unreadConversations, isAgent, isAdmin, isHost, signedIn],
-  );
+  const sections = useMemo(() => {
+    const built = buildNav({ t, side, unreadNotifications, unreadConversations, isAgent, isAdmin, isHost, signedIn });
+    /* North star 10 E: with the `social` switch off, Around is not offered
+       as a place to go. Dropped here rather than in the model so the model
+       stays one statement of the navigation and the switch one filter. */
+    if (socialOn) return built;
+    return built.map((section) => ({ ...section, items: section.items.filter((item) => !item.href.startsWith("/around")) }));
+  }, [t, side, unreadNotifications, unreadConversations, isAgent, isAdmin, isHost, signedIn, socialOn]);
   const drawer = variant === "drawer";
+  const stored = useSyncExternalStore(subscribeCollapsed, readCollapsed, () => false);
+  const collapsed = !drawer && stored;
+  /* The root carries it too, as the hook the member shell's own width reads
+     (`.nf-app-shell` in nav-island.css), and it is taken off again when the
+     rail unmounts. It used to stay behind: collapse the member rail, move
+     client-side into the agent, host or admin console (which draw their own
+     sidebars on `--nf-rail-width`, and no member rail), and those sidebars
+     were crushed to 72px until a reload. The width itself is now scoped to
+     the member shell, so a console's sidebar never reads it at all. */
+  useEffect(() => {
+    if (drawer) return;
+    const root = document.documentElement;
+    if (collapsed) root.dataset.rail = "collapsed";
+    else delete root.dataset.rail;
+    return () => {
+      delete root.dataset.rail;
+    };
+  }, [collapsed, drawer]);
 
   return (
     <aside
       className={drawer ? "nf-nav nf-nav--drawer" : "nf-nav nf-nav--rail"}
+      data-collapsed={collapsed || undefined}
       aria-label={t.nav.primaryLabel}
     >
       {/*
@@ -114,6 +186,18 @@ export function AppRail({
         )}
         {onClose && (
           <Button variant="icon" round leadingIcon="close" onClick={onClose} aria-label={t.a11y.closeMenu} className="ms-auto" />
+        )}
+        {!drawer && (
+          <Button
+            variant="icon"
+            round
+            leadingIcon="panel-left"
+            onClick={() => writeCollapsed(!collapsed)}
+            aria-label={collapsed ? t.a11y.expand : t.a11y.collapse}
+            aria-expanded={!collapsed}
+            title={collapsed ? t.a11y.expand : t.a11y.collapse}
+            className="nf-nav__collapse ms-auto"
+          />
         )}
       </div>
 
@@ -188,6 +272,7 @@ export function AppRail({
         label={t.a11y.railNav}
         onNavigate={onNavigate}
         whole={drawer}
+        collapsed={collapsed}
       />
 
       {/*

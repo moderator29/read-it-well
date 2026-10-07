@@ -1,4 +1,5 @@
 import type { ComponentPropsWithoutRef, CSSProperties, ElementType, ReactNode } from "react";
+import "@/app/css/site.css";
 
 /**
  * THE EDGE LAP: a thin light that runs round a container's rim, the logo

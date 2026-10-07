@@ -16,7 +16,9 @@
  *
  * 2. public/brand/onboarding/step-N-{light,dark}.webp: the Get started art at
  *    1080 x 1440. The founder sent dark versions only; the light file is the
- *    same picture until a light version arrives (see step-photos.ts).
+ *    same picture until a light version arrives. Nothing in the app reads
+ *    these files since the welcome tour became full pages (`step-photos.ts`,
+ *    their only reader, was deleted), so they are kept only as the source art.
  *
  * Rerun it whenever a source changes; the outputs are committed.
  */

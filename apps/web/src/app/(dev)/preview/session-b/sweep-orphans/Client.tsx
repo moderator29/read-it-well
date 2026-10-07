@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { BookingView } from "@/lib/bookings/queries";
 import { CancelBookingSheet } from "@/components/app/bookings/CancelBookingSheet";
-import { KycFlow } from "@/components/verification/KycFlow";
+import { KycFlow, type KycCopy } from "@/components/verification/KycFlow";
 import { DistrictChips, type DistrictChip } from "@/components/social/feed/DistrictHeader";
 
 /*
@@ -15,9 +15,10 @@ export function CancelSheetFixture({ booking }: { booking: BookingView }) {
   return <CancelBookingSheet booking={booking} onClose={() => {}} />;
 }
 
-export function KycFlowFixture() {
+export function KycFlowFixture({ copy }: { copy: KycCopy }) {
   return (
     <KycFlow
+      copy={copy}
       submit={async () => ({ ok: false, message: "This harness does not send anything." })}
     />
   );

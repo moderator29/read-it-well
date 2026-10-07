@@ -8,6 +8,15 @@
   register the content pages inherit from the landing: a photo plate behind
   the page head, the same glass, the same glow, the same rhythm.
 */
+/*
+ * Loaded by the components that draw its classes, not by globals.css (the
+ * CSS-diet move of 6 October). This line states the layer order the document
+ * already has from Tailwind, so the order holds whichever chunk the browser
+ * receives first; without it a chunk that arrived before globals would put
+ * `components` ahead of `base` and `theme`.
+ */
+@layer theme, base, components, utilities;
+
 @layer components {
   /*
    * The phone bar carries exactly three things, as the render does: the
@@ -362,6 +371,14 @@
     line-height: 1.55;
     color: var(--nf-landing-fg-2);
   }
+  /* On a phone in Light the lede stands on the head's blue wash, where the
+     secondary ink measured 3.7:1. The primary ink clears 4.5. From 64rem it is
+     on the photograph's scrim and keeps its on-ink white. */
+  @media (max-width: 63.999rem) {
+    :root[data-theme="light"] .nf-site-head:not(:where([data-theme="dark"] *)) .nf-site-head-lede {
+      color: var(--nf-content-primary);
+    }
+  }
 
   /*
    * The social row under the newsletter field: X and Telegram, as small lit
@@ -504,7 +521,9 @@
       var(--nf-edge-lap-ink-2) 357deg,
       transparent 360deg
     );
-    animation: nf-logo-lap var(--nf-edge-lap-speed) linear infinite;
+    /* Two laps, then it rests at the end angle (the dock's lap does the same):
+       nothing loops forever but the aurora and the assistant's thinking. */
+    animation: nf-logo-lap var(--nf-edge-lap-speed) linear 2 both;
   }
   /* THE BLUE-TO-ORANGE LAP (the warm spark, spec section 18): on the landing
      capsule, the hero's eyebrow capsule and the one band that opens each
@@ -552,7 +571,7 @@
     min-height: 3.75rem;
     padding: 0.5rem;
     padding-inline-end: 0.5rem;
-    border-radius: 1.875rem;
+    border-radius: var(--nf-radius-pill);
     border: var(--nf-border-width) solid var(--nf-card-border);
     background: color-mix(in oklab, var(--nf-surface-elevated) 90%, transparent);
     -webkit-backdrop-filter: blur(18px) saturate(1.4);
@@ -574,7 +593,7 @@
     gap: 0.625rem;
     min-height: 2.75rem;
     padding-inline-end: var(--nf-space-xs);
-    border-radius: 1.375rem;
+    border-radius: var(--nf-radius-pill);
     color: var(--nf-content-primary);
   }
   .nf-cap__brand:focus-visible {
@@ -674,6 +693,31 @@
     .nf-cap,
     .nf-cap__menu {
       transition: none;
+    }
+  }
+}
+
+/*
+ * THE SUPPLY DOORS' ONE ISLAND (Session 3, stage 9, W1b): the payout card on
+ * /for-agents, /for-hosts and /for-landlords. It was a `.nf-pd-card`; as the
+ * page's single Island it takes the navy glass at night and the elevated
+ * white on Paper (glass.css), and so supplies its own layout and padding,
+ * which the card used to give it. One Island per screen: nothing else on
+ * these pages is one.
+ */
+@layer components {
+  .nf-island.nf-supply__payout {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    gap: var(--nf-space-sm);
+    min-width: 0;
+    padding: var(--nf-space-md);
+  }
+  @media (min-width: 64rem) {
+    .nf-island.nf-supply__payout {
+      padding: var(--nf-space-lg);
+      gap: var(--nf-space-md);
     }
   }
 }

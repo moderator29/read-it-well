@@ -72,7 +72,7 @@ export function LandlordQuestion({
               <dt className="text-[length:var(--nf-text-body-sm)] font-semibold">
                 {rent.totalStated ? copy.rows.total : copy.rows.totalSum}
               </dt>
-              <dd className="text-[length:var(--nf-text-body)] font-extrabold tabular-nums">
+              <dd className="text-[length:var(--nf-text-body)] font-bold tabular-nums">
                 {formatMoney(rent.totalMinor, locale, rent.currency)}
               </dd>
             </div>

@@ -10,6 +10,8 @@ import { COMPANY_LEGAL_NAME, COMPANY_RC_NUMBER } from "@/lib/legal/company";
 
 import { EVERY_MESSAGE, coveredBuilders } from "./fixtures";
 import * as theme from "./theme";
+import { sortEmailImages } from "./images";
+import { EMAIL_GLYPH_SIZE, EMAIL_OBJECT_SIZE } from "./icons";
 
 /**
  * The email shell, checked as email rather than as code.
@@ -62,6 +64,9 @@ const EVERY_HTML: { name: string; html: string }[] = [
   ...EVERY_MESSAGE.map(({ name, message }) => ({ name: `message:${name}`, html: message.html })),
   ...authHtml.map(({ name, html }) => ({ name: `auth:${name}`, html })),
 ];
+
+/** The catalogue alone: what `render.ts` and the welcome draw (W9's light layer). */
+const CATALOGUE_HTML = EVERY_MESSAGE.map(({ name, message }) => ({ name: `message:${name}`, html: message.html }));
 
 /** Written as escapes so this file does not contain what it forbids. */
 const EM_DASH = "—";
@@ -130,42 +135,62 @@ describe("every rendered email survives a real mail client", () => {
     expect(theme.MAX_WIDTH).toBeLessThanOrEqual(600);
   });
 
-  it.each(EVERY_HTML)("$name declares itself dark and re-asserts the dark palette", ({ html }) => {
-    // `dark` tells Apple Mail and iOS the message is already dark, so they
-    // render it as written rather than inverting it. The class rules hold the
-    // same palette for clients that restyle by scheme. Gmail strips both,
-    // which the inline layer answers.
-    expect(html).toContain('name="color-scheme" content="dark"');
-    expect(html).toContain('name="supported-color-schemes" content="dark"');
-    expect(html).toContain("color-scheme: dark;");
+  /*
+   * D23 (6 October 2026) SUPERSEDES THE DARK-EVERYWHERE INLINE LAYER OF 29
+   * SEPTEMBER, and these two tests were rewritten for it deliberately (W9):
+   * "In light mode every email is a white background. No grey wash, no dark
+   * card on light." The catalogue now declares both schemes, paints white in
+   * the layer every client honours, and carries the product's dark scheme
+   * for a reader whose mail is dark. The five auth templates are still the
+   * old dark design until `scripts/build-auth-emails.mjs` is moved onto the
+   * new palette (request R-24), so they keep the old assertions, by name,
+   * rather than either being skipped or being failed for another owner's file.
+   */
+  it.each(CATALOGUE_HTML)("$name declares light and dark and re-asserts both palettes", ({ html }) => {
+    expect(html).toContain('name="color-scheme" content="light dark"');
+    expect(html).toContain('name="supported-color-schemes" content="light dark"');
+    expect(html).toContain("color-scheme: light dark;");
     expect(html).toContain("@media (prefers-color-scheme: dark)");
-    expect(html).toContain(`.rm-card   { background-color: ${theme.DARK.card} !important;`);
-    expect(html).not.toMatch(/content="light/);
+    expect(html).toContain("@media (prefers-color-scheme: light)");
+    // The dark scheme turns the shell to night and holds the sheet at paper.
+    expect(html).toContain(`.rm-card { background-color: ${theme.DARK.card} !important; }`);
+    expect(html).toContain(`.rm-sheet { background-color: ${theme.LIGHT.card} !important; }`);
   });
 
-  it.each(EVERY_HTML)("$name is dark, like the product, in the layer every client honours", ({ html }) => {
+  it.each(CATALOGUE_HTML)("$name is white in light mode, in the layer every client honours", ({ html }) => {
     /*
-     * The inline styles are the layer no client strips, and they carry the
-     * design: the navy brand band, the navy ground and the deep navy card, as
-     * inline styles AND as bgcolor attributes, which is the form Outlook's
-     * Word engine has honoured since 2007.
+     * The inline styles are the layer no client strips (Gmail strips the
+     * style block), so they carry the light design: a white ground and a
+     * white card with one hairline edge, as inline styles AND as bgcolor
+     * attributes. No ground in the body is dark: the only filled colour
+     * that is not white is the inset panel and the button's blue.
      */
     const afterStyle = html.slice(html.indexOf("</style>"));
-    expect(afterStyle).toContain(`bgcolor="${theme.HEADER}"`);
-    expect(afterStyle).toContain(
-      `background-color:${theme.HEADER};background-image:linear-gradient(${theme.HEADER},${theme.HEADER})`,
-    );
-    expect(afterStyle).toContain(`bgcolor="${theme.DARK.ground}"`);
-    expect(afterStyle).toContain(`background-color:${theme.DARK.ground}`);
-    expect(afterStyle).toContain(`bgcolor="${theme.DARK.card}"`);
-    expect(afterStyle).toContain(`background-color:${theme.DARK.card}`);
+    expect(afterStyle).toContain(`bgcolor="${theme.LIGHT.ground}"`);
+    expect(afterStyle).toContain(`background-color:${theme.LIGHT.card};border:1px solid ${theme.LIGHT.edge};border-radius:20px;`);
+    const grounds = [...afterStyle.matchAll(/bgcolor="(#[0-9a-fA-F]{6})"/g)].map((m) => m[1]!.toUpperCase());
+    const allowed = new Set([theme.LIGHT.ground, theme.LIGHT.card, theme.LIGHT.panel, theme.BRAND].map((hex) => hex.toUpperCase()));
+    expect(grounds.filter((hex) => !allowed.has(hex))).toEqual([]);
     // Every heading and body colour is inline beside the ground it sits on.
-    expect(afterStyle).toContain(`color:${theme.DARK.text}`);
-    expect(afterStyle).toContain(`color:${theme.DARK.body}`);
+    expect(afterStyle).toContain(`color:${theme.LIGHT.text}`);
+    expect(afterStyle).toContain(`color:${theme.LIGHT.body}`);
+    // The wordmark's slogan, quiet beneath it, as live text (D1, 16.5).
+    expect(afterStyle).toContain(theme.SLOGAN);
     // The support and legal links are in every footer.
     expect(afterStyle).toMatch(/\/support"/);
     expect(afterStyle).toMatch(/\/legal\/privacy"/);
     expect(afterStyle).toMatch(/\/legal\/terms"/);
+  });
+
+  it.each(authHtml)("auth:$name still declares itself dark (until R-24 moves its generator)", ({ html }) => {
+    expect(html).toContain('name="color-scheme" content="dark"');
+    expect(html).toContain('name="supported-color-schemes" content="dark"');
+    expect(html).toContain("@media (prefers-color-scheme: dark)");
+    expect(html).toContain(`.rm-card   { background-color: ${theme.DARK.card} !important;`);
+    const afterStyle = html.slice(html.indexOf("</style>"));
+    expect(afterStyle).toContain(`bgcolor="${theme.HEADER}"`);
+    expect(afterStyle).toContain(`bgcolor="${theme.DARK.card}"`);
+    expect(afterStyle).toMatch(/\/support"/);
   });
 
   it.each(EVERY_HTML)("$name sets a deliberate inbox line", ({ html }) => {
@@ -182,41 +207,60 @@ describe("every rendered email survives a real mail client", () => {
 /* --------------------------------------------------------- images blocked */
 
 describe("every rendered email reads completely with images blocked", () => {
-  it.each(EVERY_HTML)("$name carries the lockup, at most one sized 3D mark, and nothing else in a picture", ({ html }) => {
-    const images = html.match(/<img\b[^>]*>/g) ?? [];
-    expect(images.length).toBeGreaterThanOrEqual(1);
-    expect(images.length).toBeLessThanOrEqual(2);
-    const [lockup, mark] = images;
+  it.each(CATALOGUE_HTML)("$name carries the lockup, at most one sized object, its row glyphs, and nothing else in a picture", ({ html }) => {
+    const images = sortEmailImages(html);
     /*
-     * The 3D mark (`icons.ts`) is decoration under a headline that names the
-     * message, so its alt is empty: with images off it is a quiet gap.
+     * The Tier B object (`icons.ts`) names the message's family, so its alt
+     * is that word: with images off a reader sees "Payment" or "Account" in
+     * quiet type where it would be (north star 16.5, every image with alt).
+     * The row glyphs sit beside a label that says the same thing, so they
+     * are decorative and their alt is empty. Nothing else is a picture.
      */
-    if (mark) {
-      expect(mark).toContain('alt=""');
-      expect(mark).toContain("/brand/3d/email/");
+    expect(images.object.length).toBeLessThanOrEqual(1);
+    for (const object of images.object) {
+      expect(object).toMatch(/alt="[A-Z][a-z]+"/);
+      expect(object).toContain(`width="${EMAIL_OBJECT_SIZE}"`);
+      expect(object).toContain(`height="${EMAIL_OBJECT_SIZE}"`);
     }
+    for (const glyph of images.glyphs) {
+      expect(glyph).toContain('alt=""');
+      expect(glyph).toContain(`width="${EMAIL_GLYPH_SIZE}"`);
+      expect(glyph).toContain(`height="${EMAIL_GLYPH_SIZE}"`);
+    }
+    expect(images.other).toEqual([]);
 
     /*
      * Explicit width and height so a blocked image reserves exactly its own box
      * rather than collapsing the lockup or, worse, expanding to a client's
      * default placeholder size and shoving the wordmark off the line.
      */
-    for (const image of images) {
+    for (const image of html.match(/<img\b[^>]*>/g) ?? []) {
       expect(image).toMatch(/\bwidth="\d+"/);
       expect(image).toMatch(/\bheight="\d+"/);
     }
 
     /*
      * The lockup IS the brand name, so its alt is the brand name and nothing
-     * more: with images off a reader sees "Vallo" once, in its place. Any
-     * other alt text is the signal that somebody has put copy inside a
-     * picture, which is unreadable in the half of inboxes that block images
-     * and unreadable to a screen reader always.
+     * more: with images off a reader sees "Vallo" once, in its place.
      */
+    const lockup = String(images.lockup);
     expect(lockup).toContain(theme.LOCKUP_PATH);
     expect(lockup).toContain(`alt="${theme.WORDMARK_ALT}"`);
     expect(lockup).toContain(`width="${theme.LOCKUP_WIDTH}"`);
     expect(lockup).toContain(`height="${theme.LOCKUP_HEIGHT}"`);
+  });
+
+  it.each(authHtml)("auth:$name carries the lockup and at most one sized 3D mark", ({ html }) => {
+    const images = html.match(/<img\b[^>]*>/g) ?? [];
+    expect(images.length).toBeGreaterThanOrEqual(1);
+    expect(images.length).toBeLessThanOrEqual(2);
+    const [lockup, mark] = images;
+    if (mark) {
+      expect(mark).toContain('alt=""');
+      expect(mark).toContain("/brand/3d/email/");
+    }
+    expect(lockup).toContain(theme.LOCKUP_PATH);
+    expect(lockup).toContain(`alt="${theme.WORDMARK_ALT}"`);
   });
 
   it.each(EVERY_HTML)("$name still shows the brand and the action as text", ({ name, html }) => {
@@ -442,6 +486,46 @@ describe("one palette, and the auth generator has not drifted from it", () => {
     });
   });
 
+  /*
+   * THE PAPER PALETTE IS THE DOCUMENT TOKENS, RESOLVED (W9, D23). The light
+   * inline layer is baked hex for the same reason the dark one is, so it gets
+   * the same guard: each value is the live `--nf-doc-*` token, and the two
+   * inks that are alphas of the document ink are that alpha over white.
+   */
+  describe("the paper palette still equals the live document tokens", () => {
+    const tokens = readFileSync(join(REPO, "packages", "design-tokens", "src", "tokens.css"), "utf8");
+    const literal = (name: string) =>
+      String(tokens.match(new RegExp(`^\\s*${name}:\\s*(#[0-9A-Fa-f]{6})\\s*;`, "m"))?.[1]).toUpperCase();
+    const overWhite = (name: string) => {
+      const m = tokens.match(new RegExp(`^\\s*${name}:\\s*rgb\\((\\d+) (\\d+) (\\d+) / ([\\d.]+)\\)\\s*;`, "m"));
+      expect(m, `${name} is not an rgb alpha in tokens.css`).toBeTruthy();
+      const [r, g, b, a] = [Number(m![1]), Number(m![2]), Number(m![3]), Number(m![4])];
+      return "#" + [r, g, b].map((c) => Math.round(255 * (1 - a) + c * a).toString(16).padStart(2, "0")).join("").toUpperCase();
+    };
+    it.each([
+      ["LIGHT.ground", theme.LIGHT.ground, "--nf-doc-bg"],
+      ["LIGHT.card", theme.LIGHT.card, "--nf-doc-bg"],
+      ["LIGHT.panel", theme.LIGHT.panel, "--nf-doc-bg-inset"],
+      ["LIGHT.text", theme.LIGHT.text, "--nf-doc-ink"],
+      ["LINK", theme.LINK, "--nf-doc-accent"],
+      ["PAPER_STATE.success", theme.PAPER_STATE.success, "--nf-doc-success"],
+      ["PAPER_STATE.attention", theme.PAPER_STATE.attention, "--nf-doc-attention"],
+      ["PAPER_STATE.error", theme.PAPER_STATE.error, "--nf-doc-error"],
+    ])("%s is %s, which is %s", (_name, baked, token) => {
+      expect(baked.toUpperCase()).toBe(literal(token));
+    });
+    it.each([
+      ["LIGHT.body", theme.LIGHT.body, "--nf-doc-ink-muted"],
+      ["LIGHT.muted", theme.LIGHT.muted, "--nf-doc-ink-faint"],
+    ])("%s is %s, which is %s over white", (_name, baked, token) => {
+      expect(baked.toUpperCase()).toBe(overWhite(token));
+    });
+    it("carries the slogan the locale files carry", () => {
+      const en = readFileSync(join(REPO, "packages", "i18n", "src", "locales", "en.ts"), "utf8");
+      expect(en).toContain(`slogan: "${theme.SLOGAN}"`);
+    });
+  });
+
   it("carries the slogan and the legal line the theme carries, in both generators", () => {
     /*
      * Rule 14: the brand is Vallo, and the company name appears only on legal
@@ -600,8 +684,8 @@ describe("the verification code is the hero of its own email", () => {
     // Ground, card, panel: the code sits on the inset panel, in the heading
     // colour, and carries the classes the dark scheme repaints it by.
     const cell = codeCell(String(codeEmail?.message.html));
-    expect(cell).toContain(`background:${theme.DARK.panel}`);
-    expect(cell).toContain(`color:${theme.DARK.text}`);
+    expect(cell).toContain(`background-color:${theme.LIGHT.panel}`);
+    expect(cell).toContain(`color:${theme.LIGHT.text}`);
     expect(cell).toMatch(/class="[^"]*rm-panel[^"]*rm-title/);
   });
 

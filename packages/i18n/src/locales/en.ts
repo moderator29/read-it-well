@@ -30,6 +30,25 @@ import { complianceRiskEn } from "./compliance-risk.en";
 import { complianceBeneficialOwnershipEn } from "./compliance-17.en";
 /* The passcode lock (docs/PASSCODE.md), in its own module like the rest. */
 import { passcodeEn } from "./passcode.en";
+import { experienceLandingEn } from "./experience-landing.en";
+import { experienceDiscoverEn } from "./experience-discover.en";
+import { experienceDetailEn } from "./experience-detail.en";
+import { experienceSocialEn } from "./experience-social.en";
+import { experienceInboxEn } from "./experience-inbox.en";
+import { experienceAccountEn } from "./experience-account.en";
+import { experienceFeaturesEn } from "./experience-features.en";
+import { experienceRewardsEn } from "./experience-rewards.en";
+import { experienceAdminEn } from "./experience-admin.en";
+import { experienceMoneyEn } from "./experience-money.en";
+import { experienceUiEn } from "./experience-ui.en";
+import { experienceEntryEn } from "./experience-entry.en";
+import { experienceShellEn } from "./experience-shell.en";
+import { experienceSpeedEn } from "./experience-speed.en";
+import { experienceListerEn } from "./experience-lister.en";
+import { experienceSettingsEn } from "./experience-settings.en";
+import { experienceHostEn } from "./experience-host.en";
+import { experienceSiteEn } from "./experience-site.en";
+import { experienceLabelsEn } from "./experience-labels.en";
 /* The workspace desks and the confirm panel (UI/UX plan items 14, 20, 22). */
 import { deskEn } from "./desk.en";
 /* The public pages' titles and descriptions, per language (A10). */
@@ -127,16 +146,15 @@ export const en = {
     cardUnavailableStayNote:
       "Your dates stay held and nothing has been charged. Try the card again from here, or pay by bank transfer.",
     cardUnavailableRentNote: "Nothing has been charged. Try the card again from here, or pay by bank transfer.",
-    addMoney: "Add money",
     onPlatformStay:
-      "Money moves inside Vallo, so the stay and the payment stay attached to each other. Keep every conversation and every payment on the platform.",
+      "Paying here keeps the stay and the payment attached to each other. Keep every conversation and every payment on Vallo.",
     onPlatformRent:
-      "Money moves inside Vallo, so the tenancy and the payment stay attached to each other. Keep every conversation and every payment on the platform.",
+      "Paying here keeps the tenancy and the payment attached to each other. Keep every conversation and every payment on Vallo.",
     rentTotalStated: "Move-in total, as stated by the lister",
     rentTotalFromParts: "Move-in total, from the parts the lister stated",
     rentPeriod: { month: "monthly", quarter: "quarterly", year: "yearly" },
     rentTerms:
-      "Rent is {period}, moving in from {moveIn}. Vallo charges nothing on this payment; a card processor may show its own charge on the payment page.",
+      "Rent is {period}, moving in from {moveIn}.",
     rentStepOpen:
       "This payment step stays open for 48 hours from when you opened it. If it closes unpaid, open it again from here.",
     holdRunOut: "Hold has run out",
@@ -338,15 +356,16 @@ export const en = {
    * a chance to break it.
    */
   welcomeCards: {
-    /* The intro a stranger meets first (the Slate pass, 29 September): the
-       name, one line, a small moving scene and the two doors. Not
-       skippable and with no tour door (the founder, 29 September). */
+    /* Get Started, the intro a stranger meets first. Monotone since 6
+       October (D13): the mark, the slogan as the one display line, the
+       product explanation as the quiet line (both read from `landing`, D1),
+       and these two doors. Not skippable and with no tour door (the founder,
+       29 September). The old one-line tagline and the scene's label went with
+       the scene. `chip` is still the label on the tour's receipt scene. */
     intro: {
-      tagline: "Homes to rent, buy and stay in, from agents a person has checked.",
       chip: "Your move-in total, printed",
       getStarted: "Get started",
       signIn: "Sign in",
-      sceneLabel: "A house and its keys, with the move-in total printed on a receipt",
     },
     label: "What Vallo is",
     skip: "Skip",
@@ -838,38 +857,24 @@ export const en = {
       },
       hero: {
         /*
-         * THE HEADLINE IS THE FOUNDER'S, WORD FOR WORD, AND IT IS COUPLED TO
-         * THE SEARCH CONTROL. DO NOT EDIT EITHER ONE ALONE.
+         * THE HEADLINE IS NOT HERE ANY MORE, AND THAT IS THE BRAND HIERARCHY
+         * (founder directive D1, 5 October 2026).
          *
-         * `title1` names the same three actions as the segments of the landing
-         * search control, and that is not a coincidence to be tidied away:
-         * the headline teaches the control and the control proves the
-         * headline. The headline reads them rent,
-         * buy, stay and the control draws them buy, rent, stay, which is the
-         * founder's own wording of each kept as he approved it: the rule is
-         * the same three words, never the same sequence. The segments are
-         * declared in `components/site/landing/segments.ts`. IF ONE CHANGES,
-         * THE OTHER CHANGES IN THE SAME COMMIT, and
-         * `components/site/landing/headline-coupling.test.ts` fails the build
-         * if they ever drift apart.
+         * `title1`, `title2` and `subtitle` held "Rent, buy or stay. / Without
+         * the runaround." and a one-line sub. D1 sets the landing hero to the
+         * brand's own two layers instead: the SLOGAN as the line
+         * (`landing.slogan`) and the PRODUCT EXPLANATION as the subtitle
+         * (`landing.explanation`). Both live once, directly under `landing`,
+         * so the hero, the auth lockup, Get Started and anything else that
+         * says what Vallo is read the same strings rather than copies of them.
+         * The POSITIONING line is deliberately not on this page's first
+         * screen: D1 says it is never the primary consumer line.
          *
-         * The line it replaced was "Real Estate / reimagined.", which is the
-         * old positioning: it told a first time visitor nothing about what
-         * Vallo helps them do. The position now is one sentence. VALLO DOES
-         * NOT REMOVE THE AGENT. VALLO REMOVES THE RUNAROUND.
-         *
-         * NIGERIA, NOT AFRICA, and the word changes when the fact changes.
-         *
-         * THE SUB-LINE IS ONE LINE (the clean pass, 29 September). It used to
-         * run four, naming the lister and dealing with the owner "where there
-         * is one"; the hero now says where you can look and the one thing
-         * Vallo shows you first, and the owner clause, which is conditional
-         * on owner listings existing, is left to the pages that can show one.
+         * The search control's Buy, Rent and Stay segments still sit under the
+         * headline; `components/site/landing/headline-coupling.test.ts` now
+         * holds the part of the old coupling that survives (the hero promises
+         * nothing the control cannot do) and says why the rest went.
          */
-        title1: "Rent, buy or stay.",
-        title2: "Without the runaround.",
-        subtitle:
-          "Homes, land and stays across Nigeria, with the real cost up front.",
         explore: "Explore properties",
         /* THE DOOR WHILE THE CATALOGUE IS CLOSED TO STRANGERS (UIUX item
            12). `/search` answers a signed-out visitor with a sign-in wall
@@ -1033,25 +1038,43 @@ export const en = {
       },
     },
     /*
-     * The slogan, deliberately not translated, one form in every locale the
-     * way Nike never translates Just Do It.
+     * THE BRAND HIERARCHY, FOUR STRINGS WITH FOUR JOBS (founder directive D1,
+     * 5 October 2026; it supersedes "Real Estate reimagined!" and the Master
+     * Prompt's "FIND YOUR SPACE. WITHOUT THE RUNAROUND."). They are four keys
+     * and not one because each has a different place to be and a different
+     * place it must NOT be, and a single string cannot be in two of those at
+     * once:
      *
-     * IT IS NOW READ BY EXACTLY ONE SURFACE: the lockup on the auth screens.
-     * It used to be read by three. The metadata moved to the approved position
-     * on 22 September, and the landing's phone mock moved to a key of its own,
-     * because that mock was a picture OF THE APP on the marketing front page
-     * and the last place the retired positioning still showed to a visitor.
-     * The mock and its key were deleted on 29 September with the phones.
+     *   slogan        The line beside the wordmark: the app's first screen,
+     *                 the landing hero, receipts, emails, store listings.
+     *                 "Space" rather than "find your space" because the
+     *                 platform is no longer only a search: it is finding,
+     *                 checking, paying, moving in and managing, all without
+     *                 the runaround.
+     *   positioning   The category, for investors, partners and press. NEVER
+     *                 the primary consumer line (D1: it reads corporate as a
+     *                 first impression), so no first screen prints it.
+     *   explanation   The answer to "what is Vallo": the landing subtitle,
+     *                 Get Started's quiet line, the store description.
+     *   shortForm     The four-beat rhythm, for bands, footers and step
+     *                 headings.
      *
-     * WHETHER THE AUTH LOCKUP KEEPS IT IS THE FOUNDER'S CALL AND IT IS IN THE
-     * LEDGER. "Real Estate reimagined!" is the OLD positioning line, and this
-     * comment used to say so in those words. The new one is "Rent, buy or
-     * stay. Without the runaround." A slogan beside a wordmark is a brand
-     * decision rather than a copy fix, so it is not changed here as a copy
-     * edit; splitting the key is what lets it change in one line when he
-     * rules, without dragging the auth screen along by accident.
+     * THE SLOGAN IS ENGLISH IN EVERY LOCALE, the way the wordmark is and the
+     * way Nike never translates Just Do It. Yoruba, Hausa and Igbo do not
+     * declare it: `withFallback` serves this string, which is the mechanism
+     * doing exactly what the rule asks, and it keeps an English sentence out
+     * of those files where the completeness gate would rightly count it.
+     *
+     * THE OTHER THREE FALL BACK TO ENGLISH FOR NOW, and that is the package's
+     * convention rather than an oversight: nobody on this build writes
+     * Yoruba, Hausa or Igbo, and an invented translation of a founder
+     * approved brand line is worse than none (see the note on
+     * `landing.face.hero` in each locale file). A native speaker writes them.
      */
-    slogan: "Real Estate reimagined!",
+    slogan: "Space, without the runaround.",
+    positioning: "The operating system for physical spaces.",
+    explanation: "Discover, verify, transact, and manage spaces in one place.",
+    shortForm: "Discover. Verify. Transact. Manage.",
     /*
      * The property card's own words. Small on purpose: a card is read at a
      * glance and every one of these is one or two words on a 390px grid cell.
@@ -1066,44 +1089,17 @@ export const en = {
     },
     hero: {
       /*
-       * SUPERSEDED ON 22 SEPTEMBER, AND ONLY `searchLabel` IS STILL READ.
+       * SUPERSEDED ON 22 SEPTEMBER, AND ONLY `searchLabel` IS STILL READ, by
+       * the signed-in home screen (`components/app/home/HomeScreen.tsx`).
        *
-       * This block is the landing page BEFORE the rebuild to the founder's
-       * governing images; the live landing reads `landing.face` above. The
-       * one key anything still reads is `searchLabel`, which the signed-in
-       * home screen uses (`components/app/home/HomeScreen.tsx`). Every other
-       * key here, including the "Real Estate, / reimagined." headline and the
-       * "Nigeria's real estate marketplace" overline, is dead copy carrying
-       * the OLD POSITIONING and is left rather than deleted only because the
-       * three other locales mirror this shape and a namespace removal is a
-       * change to all four at once, not a copy edit. IF YOU
-       * ARE ABOUT TO COPY A LINE OUT OF HERE, DO NOT. The position is
-       * "Rent, buy or stay. Without the runaround." and it lives in
-       * `landing.face.hero` above.
-       *
-       * The historical reasoning is kept below because it explains why the
-       * overline, the h1 and the subtitle were split across three jobs.
-       *
-       * THE SLOGAN IS THE HEADLINE, AND THAT IS THE FOUNDER'S DIRECT CALL.
-       *
-       * The first rebuild made the h1 the offer ("Rent, buy or sell. The
-       * move-in total, printed.") on the argument that a slogan as a headline
-       * says nothing. The founder read it and asked for the brand line
-       * instead, steered toward "real estate marketplace". So the three jobs
-       * are dealt differently now, and nothing is lost: the OVERLINE names
-       * what this is (Nigeria's real estate marketplace), the H1 is the brand
-       * making its one claim, and the SUBTITLE carries the offer and the
-       * proof. The move-in argument still gets a whole band of its own two
-       * scrolls down.
-       *
-       * The h1 stays in English in every locale, like the wordmark; the
-       * overline and subtitle translate.
+       * This block was the landing page before the rebuild to the founder's
+       * governing images. It also carried the retired positioning ("Real
+       * Estate, / reimagined." under "Nigeria's real estate marketplace"),
+       * which D1 retires everywhere it could render, so those keys came out of
+       * all four locales on 6 October rather than waiting for somebody to copy
+       * a line out of here. The brand's words are directly under `landing`
+       * (`slogan`, `positioning`, `explanation`, `shortForm`).
        */
-      overline: "Nigeria's real estate marketplace",
-      title1: "Real Estate,",
-      title2: "reimagined.",
-      subtitle:
-        "Somewhere for a night, somewhere for the year, a house to buy, a shop to trade from, or the land itself. Nine markets, agents checked by real people, and payments Vallo never holds.",
       searchPlaceholder: "Where do you want to go?",
       searchLabel: "Start exploring",
       popularLabel: "Popular right now",
@@ -1258,18 +1254,16 @@ export const en = {
       secondary: "Become an agent",
     },
     footer: {
-      /* The slogan, not a summary. One form in every locale, per the note on
-         `landing.slogan`. */
       /*
        * A DESCRIPTION, NOT THE SLOGAN AGAIN.
        *
-       * This key held "Real Estate reimagined!" and so does `landing.slogan`,
-       * which the footer prints beside the copyright about 200px below it. The
-       * same eight words twice on every page of the site, once as though it
-       * were a summary of the company and once as the signature it actually
-       * is. The signature stays where a signature belongs. This slot says what
-       * Vallo is, which is the thing somebody scrolling to the bottom of a
-       * page is usually still trying to work out.
+       * This key once held the retired slogan, the same words `landing.slogan`
+       * held, so the foot of every page said the brand line as though it were
+       * a summary of the company. This slot says what Vallo is, which is the
+       * thing somebody scrolling to the bottom of a page is usually still
+       * trying to work out. Moving it onto the D1 hierarchy (the explanation
+       * and the short form) is part of the landing's later pass, not the hero
+       * change of 6 October.
        */
       tagline: "Rent, buy or stay across Nigeria, without the runaround. Homes, land, hotels and shortlets, in one account.",
       rights: "All rights reserved.",
@@ -1699,7 +1693,7 @@ export const en = {
       privacySub: "Password, sign-in and devices",
       appearanceSub: "Text size, motion, data",
       languageSub: "App language",
-      help: "Help & Support",
+      help: "Help and support",
       helpSub: "FAQs, contact us",
       payments: "Payment methods",
       paymentsSub: "Manage your cards and bank accounts.",
@@ -1981,9 +1975,11 @@ export const en = {
         bookingsSub: "Requests, confirmations and changes to your stays.",
         messages: "Messages",
         messagesSub: "New replies from hosts and agents you are talking to.",
-        wallet: "Payments and receipts",
-        walletSub:
-          "Emails when you pay, when a refund is on its way, your receipts, and decisions on your agreements and Guarantee claims. Anything about your money's safety still appears in the app.",
+        /* The Payments channel. Stored as `wallet` in profiles.settings until
+           Session 2 renames the key (D48 step 2); the words never say wallet. */
+        payments: "Payments",
+        paymentsSub:
+          "Emails when you pay, when a refund is on its way, your receipts, and decisions on your agreements. Anything about your money's safety still appears in the app.",
         marketing: "Ideas and offers",
         marketingSub: "Occasional highlights from around Nigeria. Off by default.",
         /* B13: the push for a price drop on a place you saved. */
@@ -1995,8 +1991,10 @@ export const en = {
         bookingsSub: "New requests, cancellations and payments on your listings.",
         messages: "Messages",
         messagesSub: "New enquiries from guests about your listings.",
-        wallet: "Payments and payouts",
-        walletSub:
+        /* The Payments channel. Stored as `wallet` in profiles.settings until
+           Session 2 renames the key (D48 step 2); the words never say wallet. */
+        payments: "Payments",
+        paymentsSub:
           "Emails when a renter or guest pays you, and when your share settles to your bank. Anything about your money's safety still appears in the app.",
         marketing: "Ideas and offers",
         marketingSub: "Hosting tips and what is moving in your area. Off by default.",
@@ -3068,7 +3066,7 @@ export const en = {
     emptyAction: "See your bookings",
     howTitle: "How your share is worked out",
     howBody:
-      "A settled payment is split two ways: your share and what the payment processor takes. Vallo takes nothing from it. The two always add up to what the guest paid, which is why every line here reconciles.",
+      "A settled payment is split into your share, Vallo's platform fee and the payment processor's own fee. They always add up to what the guest paid, which is why every line here reconciles.",
   },
 
   /**
@@ -3181,20 +3179,6 @@ export const en = {
    * Kano works the same queues as an operator in Lagos.
    */
 
-  /*
-   * The wallet's own vocabulary.
-   *
-   * These were two hard-coded English maps in `components/app/wallet/kinds.ts`,
-   * read by the ledger, the recent activity strip and the receipt. Money is the
-   * one place on this platform where a reader should never have to work out
-   * what a word means, and three of the four languages were being handed
-   * English.
-   *
-   * The three escrow labels say what the platform actually does and never use
-   * the word escrow, because the terms of service say in bold that we do not
-   * hold money in escrow, and a ledger row contradicting the contract is the
-   * fault F2-001 was about.
-   */
   /**
    * THE APPLICANT'S OWN VERIFICATION SCREEN, WHICH WAS THE LAST ONE ENTIRELY IN
    * ENGLISH.
@@ -4064,141 +4048,14 @@ export const en = {
         lastClean: "Last clean run",
         noneRecorded: "None recorded",
       },
-      evidence: {
-        facts: {
-          viewing_attended: "The inspection happened",
-          viewing_missed: "The inspection did not happen",
-          keys_received: "The keys were handed over",
-          keys_not_received: "The keys were not handed over",
-          agreement_signed: "An agreement was signed",
-          agreement_not_signed: "No agreement was signed",
-          service_delivered: "The work was done",
-          service_not_delivered: "The work was not done",
-          property_matched_listing: "The property matched the listing",
-          property_differed_from_listing: "The property was not what the listing said",
-          contacted_on: "Got in touch with the other side",
-          no_reply_since: "No reply from the other side since",
-          amount_agreed: "The amount agreed",
-        },
-        aFact: "A fact",
-        factOn: "{fact} on {date}",
-        factAmount: "{fact}: {amount}",
-        sizeBytes: "{size} bytes",
-        sizeKb: "{size} KB",
-        sizeMb: "{size} MB",
-        kindFile: "File",
-        kindPdf: "PDF",
-        kindImage: "Image",
-        payer: "Payer · {name}",
-        payee: "Payee · {name}",
-        neither: "Neither party · {name}",
-        noDisplayName: "no display name",
-        label: "Evidence filed on this dispute",
-        title: "Evidence filed",
-        titleCount: "Evidence filed ({count})",
-        unreadTitle: "The evidence could not be read",
-        unreadBody:
-          "What each side has filed on this dispute. The read did not answer just now, which is not the same as nothing being filed. Reload before ruling.",
-        noneTitle: "Nothing has been filed on this dispute",
-        noneFills:
-          "Every receipt, photograph, message screenshot and dated fact either side files, with who filed it and when.",
-        noneCreates:
-          "Each side files from their own held payment page. Items appear here as they are filed and cannot be edited or removed.",
-        aFile: "A file",
-        openFile: "Open file",
-        cannotOpen: "Could not be opened just now",
-      },
-      stuckTitle: "Stuck, and somebody is waiting",
-      stuckHint: "{count} pending over half an hour",
-      stuckBody:
-        "These debits have been PENDING for over half an hour. The money has left a spendable balance and has not arrived anywhere. The stale hold sweeper releases withdrawal holds on a schedule; anything here that is not a withdrawal has not got a sweeper and needs a person.",
-      settledLabel: "Settled this week",
       vsSevenDaysBefore: "vs the 7 days before",
-      settledNote: "Completed wallet entries, last 7 days",
-      failedLabel: "Failed charges",
-      failedNote: {
-        one: "{count} failed card or top-up charge this week",
-        other: "{count} failed card or top-up charges this week",
-      },
-      failedNoteUnread: "Card and top-up charges that failed this week",
       incomplete:
         "The ledger is larger than this desk reads in one pass, so the figures above are at least these amounts rather than totals.",
-      summaryTitle: "Transaction summary",
-      last30Days: "Last 30 days",
       moneyIn: "Money in",
-      moneyOut: "Money out",
-      net: "Net",
-      ledgerUnreadTitle: "The ledger could not be read",
-      summaryUnreadBody:
-        "Money in, money out and the difference over the last 30 days, across every wallet. The read did not answer just now; nothing about the money itself is implied. Reload in a moment.",
-      searchLabel: "Find a person, a wallet or a payment",
-      searchPlaceholder: "Name, wallet id or reference",
-      ledgerTitle: "Ledger",
-      ledgerUnreadBody:
-        "Every wallet entry, newest first, with the platform float after each one. The read did not answer just now; reload in a moment.",
-      matchingFilter: "Matching this filter",
-      newestForty: "Newest first, up to forty",
-      settled: "Settled",
-      settledHintNarrowed: "Across the wallets matching this filter",
-      settledHint: "Across the wallets listed below, newest first",
-      heldPending: "Held pending",
-      heldPendingHint: "Debits that have left a spendable balance and not settled",
-      held: "{amount} held",
-      disputesTitle: "Disputed holds waiting on a ruling",
-      disputesBody:
-        "Somebody objected and the money is held until a person rules. Release pays the payee; refund returns it to the payer. Both people are sent your ruling word for word, and the transition is in the audit log. The full desk is at",
-      disputeLine: "{payer} paid, {payee} waits",
-      thePayer: "the payer",
-      thePayee: "the payee",
-      rentState: {
-        awaiting: "Awaiting payment",
-        paid: "Paid",
-        no_show: "Did not move in",
-        check: "Needs a look",
-      },
-      rentPeriod: { month: "Monthly", quarter: "Quarterly", year: "Yearly" },
-      rentTitle: "Tenancy charges",
-      rentUnreadTitle: "Tenancy charges could not be read",
-      rentUnreadBody:
-        "Every move-in charge by where it stands, and the newest ones. The read did not answer just now; nothing about the charges themselves is implied. Reload in a moment.",
-      rentHint: { one: "{count} charge", other: "{count} charges" },
-      rentHintPartial: {
-        one: "{count} charge, more than one pass reads",
-        other: "{count} charges, more than one pass reads",
-      },
-      rentByState: "Tenancy charges by state",
-      rentEnded: "Cancelled or did not move in",
-      rentCaption: "The newest tenancy charges",
-      opened: "Opened",
-      tenancy: "Tenancy",
-      moveIn: "Move-in",
       total: "Total",
       state: "State",
-      rentNoneTitle: "No tenancy charge yet",
-      rentNoneFills:
-        "Every move-in charge by where it stands, what is paid and what is awaited, and the newest charges.",
-      rentNoneCreates:
-        "A charge opens when a tenant starts paying the move-in costs on an inspection the lister accepted.",
-      flowTitle: "Money in vs money out",
-      flowUnreadBody:
-        "Settled money coming into wallets against settled money leaving them, month by month for a year. The read did not answer just now; reload in a moment.",
-      flowNoneTitle: "No money has settled yet",
-      flowOneMonth: "One month of settled money so far ({month})",
-      flowFills: "Settled money into wallets against settled money out, month by month for a year.",
-      flowCreates:
-        "Every top-up, booking payment, payout and refund that completes adds to it. A line needs a second month, so none is drawn.",
-      flowLabel: "Settled money in and out of wallets by month",
-      ledgerFoot: "The balance column is the platform float, so it is shown only for the unfiltered ledger.",
-      date: "Date",
-      description: "Description",
       type: "Type",
       amount: "Amount",
-      balance: "Balance",
-      ledgerNoneTitle: "No money has moved yet",
-      ledgerNoneFills: "Every wallet entry, newest first, with the platform float after each one.",
-      ledgerNoneCreates: "A top-up, a booking payment, a payout or a refund writes the first entry.",
-      credit: "Credit",
-      debit: "Debit",
       entries: "entries",
       refundState: {
         submitted: "Sent back to the card",
@@ -4324,40 +4181,16 @@ export const en = {
     },
 
     payments: {
-      lede: "Money coming in, and anything stuck, short or waiting on the provider.",
+      lede: "Money coming in through the provider, and any payment it has not settled.",
       healthTitle: "Health",
-      healthHint: "Money that is stuck, short, or waiting on the provider",
-      shortfall: "Ledger shortfall",
-      addsUp: "Every wallet adds up",
-      belowZero: { one: "1 wallet is below zero", other: "{count} wallets are below zero" },
-      frozen: "Frozen by stuck holds",
-      nothingHeld: "Nothing is held past its window",
-      olderThan: {
-        one: "1 withdrawal older than {minutes} minutes",
-        other: "{count} withdrawals older than {minutes} minutes",
-      },
+      healthHint: "Payments the provider has not settled",
       waitingProvider: "Waiting on the provider",
       nothingUnsettled: "Nothing unsettled in thirty days",
       pendingOrFailed: { one: "1 payment pending or failed", other: "{count} payments pending or failed" },
       clearTitle: "The money is where it should be",
-      clearFills:
-        "No wallet is overdrawn, no withdrawal is held past its window, and the provider has settled everything it was sent in the last thirty days.",
-      clearCreates: "An overdrawn wallet, a stuck hold or an unsettled payment appears here the moment one exists.",
-      overdrawnTitle: "Overdrawn wallets",
-      overdrawnHint:
-        "A wallet whose settled entries sum below zero. This is not a delay, it is an arithmetic failure in the ledger, and it has no button here on purpose: an adjusting entry typed into a web form would bury the evidence an engineer needs to find the cause.",
-      owner: "Owner",
-      wallet: "Wallet",
-      balance: "Balance",
-      nameNotOnFile: "Name not on file",
-      stuckTitle: "Stuck withdrawal holds",
-      stuckHint:
-        "A withdrawal still marked pending after {minutes} minutes. The money is neither in the owner's spendable balance nor in their bank account.",
-      stuckNoneTitle: "No withdrawal is stuck",
-      stuckNoneFills: "Every pending hold is inside its window, which means it is on its way rather than frozen.",
-      stuckNoneCreates: "A withdrawal still pending after the window appears here with the control to release it.",
+      clearFills: "The provider has settled every payment it was sent in the last thirty days.",
+      clearCreates: "A payment the provider has not settled appears here the moment one exists.",
       reference: "Reference",
-      heldSince: "Held since",
       amount: "Amount",
       waitingHint:
         "Payments the provider has not settled, from the last thirty days. Re-asking the provider is the reconcile job's decision to take, not this screen's.",
@@ -4368,17 +4201,17 @@ export const en = {
       unknownProvider: "Unknown provider",
       outcome: { succeeded: "Succeeded", initialised: "Started", abandoned: "Abandoned" },
       kpiStarted: "Started",
-      kpiStartedNote: "Checkouts and top-ups begun this week",
+      kpiStartedNote: "Checkouts begun this week",
       kpiSucceededNote: "Paid and settled this week",
       kpiFailedNote: "Refused or reversed this week",
       kpiAbandonedNote: "Started and not finished within a day",
       perDayTitle: "Money in per day",
       unreadTitle: "Payments could not be read",
-      unreadCharts: "Every checkout and top-up the platform has started. The read did not answer just now; reload in a moment.",
+      unreadCharts: "Every checkout the platform has started. The read did not answer just now; reload in a moment.",
       perDayHint: "Succeeded, last 30 days",
       perDayNone: "No payment succeeded in thirty days",
       perDayOne: "One day of payments so far",
-      perDayFills: "The value of checkouts and top-ups that succeeded each day over the last thirty days.",
+      perDayFills: "The value of checkouts that succeeded each day over the last thirty days.",
       perDayCreates: "Every payment the provider settles adds to its day. A line needs two days, so none is drawn.",
       openMoneyDesk: "Open the money desk",
       perDayLabel: "Succeeded payments per day, last thirty days",
@@ -4386,33 +4219,28 @@ export const en = {
       byChannelTitle: "By channel",
       byChannelHint: "Attempts, last 30 days",
       noAttemptTitle: "No payment attempt in thirty days",
-      byChannelFills: "Checkouts and top-ups by the channel they were paid through: card, bank transfer, USSD and the rest.",
-      byChannelCreates: "The channel is recorded when the provider confirms a top-up.",
+      byChannelFills: "Checkouts by the channel they were paid through: card, bank transfer, USSD and the rest.",
+      byChannelCreates: "Each checkout started is counted here, under its channel where the provider recorded one.",
       channelIn: "{channel}: {amount} in",
       nothingOnChannel: "Nothing succeeded on any channel in thirty days.",
       endedTitle: "Where payments ended",
       attempts30: { one: "{count} attempt, last 30 days", other: "{count} attempts, last 30 days" },
       endedLabel: "Payment attempts by outcome, last thirty days",
-      endedFills: "Where every checkout and top-up ended: succeeded, still in progress, abandoned, failed or refunded.",
-      startsOne: "A guest paying for a stay or a person funding their wallet starts one.",
+      endedFills: "Where every checkout ended: succeeded, still in progress, abandoned, failed or refunded.",
+      startsOne: "A guest paying for a stay starts one.",
       everyTitle: "Every payment",
       attempts: { one: "{count} attempt", other: "{count} attempts" },
       narrowOutcome: "Narrow the payments",
-      narrowKind: "Narrow by kind",
       allOutcomes: "All outcomes",
-      allKinds: "Checkouts and top-ups",
-      checkouts: "Booking checkouts",
-      topups: "Wallet top-ups",
-      unreadTable: "Every checkout and top-up with its reference, channel and outcome. The read did not answer just now.",
+      unreadTable: "Every checkout with its reference, channel and outcome. The read did not answer just now.",
       kind: "Kind",
       channel: "Channel",
       outcomeColumn: "Outcome",
       noMatchFills: "No payment attempt has that outcome or kind.",
       showEvery: "Show every payment",
       noneTitle: "No payment has been started yet",
-      noneFills: "Every booking checkout and wallet top-up, with its reference, channel and where it ended.",
+      noneFills: "Every booking checkout, with its reference, channel and where it ended.",
       checkout: "Booking checkout",
-      topup: "Wallet top-up",
       paymentsNoun: "payments",
       lookup: {
         title: "Saved cards and bank accounts",
@@ -4872,16 +4700,6 @@ export const en = {
   },
 
   /**
-   * /wallet/send: a whole page for sending to another Vallo wallet.
-   * Added 18 September 2026.
-   */
-
-  /**
-   * /wallet/receive: your handle, your address, a request to share.
-   * Added 18 September 2026.
-   */
-
-  /**
    * /settings/payments: "Payment methods". Cards you pay with, accounts you
    * are paid into. Added 18 September 2026.
    */
@@ -4915,17 +4733,15 @@ export const en = {
     removeCardBody: "It is forgotten here and cannot be charged by Vallo again. Your bank is not involved.",
     removeCardConfirm: "Yes, remove it",
     banksLabel: "Bank accounts",
-    banksNote: "Where a Vallo Guarantee payout is sent if a claim is approved. We confirm the name with the bank before saving anything.",
-    banksNoteBeforePayouts:
-      "Withdrawal to a bank is not available yet. An account saved here is where withdrawals will go once bank payouts open. We confirm the name with the bank before saving anything.",
+    banksNote: "Where your share of a payment settles, and where an approved claim is paid. We confirm the name with the bank before saving anything.",
     accountsEmptyTitle: "No bank account yet",
-    accountsEmptyBody: "Add the account your share of a payment, or an approved Guarantee claim, should reach. The first one becomes your default.",
+    accountsEmptyBody: "Add the account your share of a payment should reach. The first one becomes your default.",
     addAccount: "Add a bank account",
     defaultPayouts: "Default for payouts",
     accountSheetTitle: "This account",
     makeDefaultAccount: "Use for payouts",
     removeAccount: "Remove this account",
-    removeAccountBody: "Payments and Guarantee payouts can no longer go here. Nothing already sent is affected.",
+    removeAccountBody: "Payments can no longer settle here. Nothing already sent is affected.",
     removeAccountConfirm: "Yes, remove it",
     addSheetTitle: "Add a bank account",
     pickBank: "Bank",
@@ -5969,6 +5785,32 @@ export const en = {
   complianceBeneficialOwnership: complianceBeneficialOwnershipEn,
 
   passcode: passcodeEn,
+
+  /* Session 3, the experience upgrade: one module per owner (docs/sessions/SESSION-3-RESPONSE.md). */
+  experienceLanding: experienceLandingEn,
+  experienceDiscover: experienceDiscoverEn,
+  experienceDetail: experienceDetailEn,
+  experienceSocial: experienceSocialEn,
+  experienceInbox: experienceInboxEn,
+  experienceAccount: experienceAccountEn,
+  experienceFeatures: experienceFeaturesEn,
+  /* C3, Round 3: the Rewards Balance and the referral dashboard (D51). */
+  experienceRewards: experienceRewardsEn,
+  experienceAdmin: experienceAdminEn,
+  experienceMoney: experienceMoneyEn,
+  experienceUi: experienceUiEn,
+  experienceEntry: experienceEntryEn,
+  experienceShell: experienceShellEn,
+  experienceSpeed: experienceSpeedEn,
+  experienceLister: experienceListerEn,
+  /* C5, Round 3: the settings area nav, notification matrix, Accessibility and Language and currency. */
+  experienceSettings: experienceSettingsEn,
+  /* C5, the route sweep: the host pages' remaining words (English only; see the module for why not hostWorkspace). */
+  experienceHost: experienceHostEn,
+  /* C6, the route sweep: the public site's and the auth doors' new words (English only). */
+  experienceSite: experienceSiteEn,
+  /* C9, after the route sweep: the listing label maps lib/listings once spelled in English (English only). */
+  experienceLabels: experienceLabelsEn,
 
   desk: deskEn,
 

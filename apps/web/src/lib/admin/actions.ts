@@ -42,6 +42,7 @@ import type { Database } from "../supabase/database.types";
    values in exactly one place and this is a caller of it, not a second copy. */
 import { personRoleFrom } from "../supply/roles";
 import { CLOSED_LISTING_MESSAGE, isClosedListingRefusal } from "../landlord/closed";
+import { isRateAgreementRefusal } from "../pricing/rate-agreement";
 import { withDone } from "../ui/success-moments";
 import { MANDATE_NEEDED_MESSAGE, isMandateRefusal } from "../compliance/beneficial-ownership";
 import {
@@ -738,6 +739,12 @@ export async function reviewListing(input: {
   if (isClosedListingRefusal(updateError)) return fail(CLOSED_LISTING_MESSAGE);
   /* SCUML item 15: a high-risk lister's listing waits for a cleared EDD review. */
   if (isEddGateRefusal(updateError)) return fail(eddGateMessage("admin"));
+  /* D51: no publish without the lister's recorded acceptance of the fee on this price. */
+  if (isRateAgreementRefusal(updateError)) {
+    return fail(
+      "The lister has not accepted the current fee on this listing's price, so it cannot go live yet. Ask them to review and accept it.",
+    );
+  }
   /* SCUML item 17: the publish gate refuses an agent or firm listing without an approved mandate. */
   if (isMandateRefusal(updateError)) return fail(MANDATE_NEEDED_MESSAGE);
   if (updateError) return fail(claimRefusal(updateError) ?? SERVICE_DOWN);

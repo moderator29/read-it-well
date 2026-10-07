@@ -12,6 +12,8 @@ import {
   type AdminIdentity,
 } from "./AdminNav";
 import { ConsoleClock } from "./ConsoleClock";
+import { ConsolePalette, type PaletteCopy } from "./ConsolePalette";
+import "./admin-material.css";
 
 /**
  * The console chrome, drawn from what the layout hands it and nothing else,
@@ -28,6 +30,7 @@ export function AdminFrame({
   bellLabel,
   shell,
   back,
+  experience,
   children,
 }: {
   identity: AdminIdentity;
@@ -46,6 +49,17 @@ export function AdminFrame({
    * It leads the top bar, where the render's rhythm puts the first control.
    */
   back?: ReactNode;
+  /**
+   * Session 3's console copy (`experienceAdmin`): the palette's words and the
+   * one line each desk carries. Optional so a frame drawn without it (a test,
+   * an older harness) still renders the rail and the bar exactly as before,
+   * only without the palette.
+   */
+  experience?: {
+    palette: PaletteCopy;
+    deskLedes: Readonly<Record<string, string | undefined>>;
+    waitingTotal: string;
+  };
   children: ReactNode;
 }) {
   const badges = counts;
@@ -83,10 +97,19 @@ export function AdminFrame({
             navLabel={navLabel}
             identity={identity}
             brand={brand}
+            ledes={experience?.deskLedes}
+            waitingText={experience?.waitingTotal}
           />
           {back && <span className="nf-admin-bar__back">{back}</span>}
           <span className="nf-admin-bar__brand">{brand}</span>
-          <ConsoleSearch label={searchLabel} placeholder={shell?.bar.search ?? "Search anything..."} />
+          <ConsoleSearch
+            label={searchLabel}
+            placeholder={shell?.bar.search ?? "Search anything..."}
+            hint={experience?.palette.shortcut}
+          />
+          {experience && (
+            <ConsolePalette copy={experience.palette} ledes={experience.deskLedes} counts={badges} shell={shell} />
+          )}
           <span className="nf-admin-bar__spacer" />
           <ConsoleClock />
           <Link

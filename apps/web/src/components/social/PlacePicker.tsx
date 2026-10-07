@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/Button";
 import { useCallback, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -10,7 +11,7 @@ import {
   type LgaNode,
   type OpenPlace,
   type PlaceTree,
-} from "@/lib/social/places-schema";
+} from "@/lib/social/places-model";
 import { countOf } from "@vallo/i18n/core";
 import { useClientLocale } from "@/lib/i18n/use-client-locale";
 
@@ -190,7 +191,7 @@ export function PlacePicker({
         setError(result.error);
         return;
       }
-      router.push(`/around/${result.data.slug}`);
+      router.replace(`/around/${result.data.slug}`);
     });
   };
 
@@ -214,15 +215,16 @@ export function PlacePicker({
 
       {selectedState ? (
         <div className="nf-enter__crumb">
-          <button
-            type="button"
+          <Button
+            variant="secondary"
+            size="sm"
+            leadingIcon="arrow-left"
             onClick={() => chooseState(null)}
-            className="nf-chip nf-enter__back"
+            className="nf-enter__back"
             data-testid="place-picker-back"
           >
-            <UiIcon name="arrow-left" size={15} />
             {PLACE_COPY.backToStates}
-          </button>
+          </Button>
           <span className="nf-enter__state" data-testid="place-picker-state">
             {selectedState.name}
           </span>

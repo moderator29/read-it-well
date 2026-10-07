@@ -133,7 +133,7 @@ export function MemberSections({
           <Rows>
             {extras.documents.map((d) => (
               <Row key={d.id}>
-                <span className="font-medium">{KYC_DOCUMENT_KIND_WORDS[d.kind] ?? d.kind}</span>
+                <span className="font-semibold">{KYC_DOCUMENT_KIND_WORDS[d.kind] ?? d.kind}</span>
                 {d.subtype && (
                   <span className="text-[var(--nf-content-secondary)]">{KYC_DOCUMENT_SUBTYPE_WORDS[d.subtype] ?? d.subtype}</span>
                 )}
@@ -258,7 +258,7 @@ export function MemberSections({
 
       <Section title="Reports" id="reports" failed={f.has("reports")}>
         <p className="mt-row nf-body-sm">
-          They filed {countOf(extras.reportsFiled, "reports", locale)}.{extras.reportsAgainst.length === 0 ? "None about them or their lister account." : `${extras.reportsAgainst.length} about them or their lister account${extras.reportsAgainst.length >= 20 ? " (newest 20)" : ""}:`}
+          They filed {countOf(extras.reportsFiled, "reports", locale)}.{" "}{extras.reportsAgainst.length === 0 ? "None about them or their lister account." : `${extras.reportsAgainst.length} about them or their lister account${extras.reportsAgainst.length >= 20 ? " (newest 20)" : ""}:`}
         </p>
         {extras.reportsAgainst.length > 0 && (
           <Rows>
@@ -283,7 +283,7 @@ export function MemberSections({
           <Rows>
             {extras.devices.map((d, i) => (
               <Row key={i}>
-                <span className="font-medium">{d.words ?? "A device"}</span>
+                <span className="font-semibold">{d.words ?? "A device"}</span>
                 <span className="nf-caption text-[var(--nf-content-muted)]">
                   first seen {ui.when(d.firstSeenAt)} · last seen {ui.when(d.lastSeenAt)}
                 </span>

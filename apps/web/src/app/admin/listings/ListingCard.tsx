@@ -11,7 +11,7 @@ import {
   POWER_BACKUP_CHOICES,
   POWER_GRID_CHOICES,
   WATER_SUPPLY_CHOICES,
-} from "@/lib/agent/listings-schema";
+} from "@/lib/agent/listings-model";
 
 /**
  * The console says what the wizard said.

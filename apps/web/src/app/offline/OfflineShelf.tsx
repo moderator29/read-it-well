@@ -13,16 +13,11 @@ import { ShelfView } from "@/components/app/offline/ShelfView";
  * a saved listing, so this is where the phone's copy of the shortlist is
  * drawn. Nothing is drawn when the phone holds none, which is most people:
  * for them the page's job is the reconnect message.
+ *
+ * No example label is passed (D24: no visible demo labels on a listing), so
+ * the shelf draws a saved listing the way the catalogue does.
  */
-export function OfflineShelf({
-  copy,
-  exampleLabel,
-  locale,
-}: {
-  copy: Dictionary["platform"]["shelf"];
-  exampleLabel: string;
-  locale: Locale;
-}) {
+export function OfflineShelf({ copy, locale }: { copy: Dictionary["platform"]["shelf"]; locale: Locale }) {
   const [state, setState] = useState<{ items: ShelfItem[]; now: number }>({ items: [], now: 0 });
   useEffect(() => {
     let cancelled = false;
@@ -33,5 +28,5 @@ export function OfflineShelf({
       cancelled = true;
     };
   }, []);
-  return <ShelfView items={state.items} copy={copy} exampleLabel={exampleLabel} locale={locale} now={state.now} />;
+  return <ShelfView items={state.items} copy={copy} locale={locale} now={state.now} />;
 }

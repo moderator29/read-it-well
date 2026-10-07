@@ -2,17 +2,19 @@ import { dateTimeLabel } from "@/lib/format/when";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { STAFF_SCOPE_LABEL } from "@/lib/admin/guard";
+import { actionLabel } from "@/lib/admin/audit-filter";
 import { readOversight } from "@/lib/admin/oversight";
-import { PageHead, Panel } from "../_components/panels";
+import { PageHead, Panel, ReadOnlyNote } from "../_components/panels";
+import { getLocale } from "@/lib/locale";
 
 export const metadata: Metadata = { title: "Team oversight", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
 /* The one way the console says when (lib/format/when.ts). */
-const when = (iso: string | null) => (iso ? dateTimeLabel(iso) : "none");
+const when = (iso: string | null) => (iso ? dateTimeLabel(iso) : "None");
 
 function age(iso: string | null, now: number): string {
-  if (!iso) return "nothing waiting";
+  if (!iso) return "Nothing waiting";
   const hours = Math.max(0, Math.floor((now - Date.parse(iso)) / 3_600_000));
   return hours < 48 ? `${hours} h` : `${Math.floor(hours / 24)} days`;
 }
@@ -24,6 +26,7 @@ function age(iso: string | null, now: number): string {
 export default async function OversightPage() {
   const read = await readOversight();
   const now = requestTime();
+  const locale = await getLocale();
   if (read.state === "forbidden") {
     return (
       <div className="nf-console">
@@ -44,13 +47,15 @@ export default async function OversightPage() {
         title="Team oversight"
         lede="Every queue's backlog and its oldest item, and each staff member's work over the last 30 days, read from the records themselves."
       />
+      <ReadOnlyNote locale={locale} />
       <Panel title="Backlog by queue">
         <p className="nf-caption">
           <Link className="text-[var(--nf-content-link)] underline" href="/admin/oversight/export?kind=backlog">
             Download CSV
           </Link>
         </p>
-        <table className="mt-xs w-full text-left nf-body">
+        {/* The console's table, self-naming rows below 768 (the two tables ran 26px past a phone). */}
+        <table className="mt-xs nf-admin-dt nf-admin-dt--stack">
           <thead>
             <tr>
               <th scope="col">Queue</th>
@@ -67,9 +72,9 @@ export default async function OversightPage() {
                     {row.queue}
                   </Link>
                 </td>
-                <td>{STAFF_SCOPE_LABEL[row.scope]}</td>
-                <td className="nf-numeric">{row.waiting}</td>
-                <td>{age(row.oldestAt, now)}</td>
+                <td data-label="Desk">{STAFF_SCOPE_LABEL[row.scope]}</td>
+                <td className="nf-numeric" data-label="Waiting">{row.waiting}</td>
+                <td data-label="Oldest waiting">{age(row.oldestAt, now)}</td>
               </tr>
             ))}
           </tbody>
@@ -84,7 +89,7 @@ export default async function OversightPage() {
         {read.throughput.length === 0 ? (
           <p className="nf-body text-[var(--nf-content-secondary)]">No staff decisions in the last 30 days.</p>
         ) : (
-          <table className="mt-xs w-full text-left nf-body">
+          <table className="mt-xs nf-admin-dt nf-admin-dt--stack">
             <thead>
               <tr>
                 <th scope="col">Staff member</th>
@@ -98,14 +103,14 @@ export default async function OversightPage() {
                 const top = Object.entries(row.byAction)
                   .sort((a, b) => b[1] - a[1])
                   .slice(0, 3)
-                  .map(([action, n]) => `${action} (${n})`)
+                  .map(([action, n]) => `${actionLabel(action)} (${n})`)
                   .join(", ");
                 return (
                   <tr key={row.actorId}>
                     <td>{row.name}</td>
-                    <td className="nf-numeric">{row.total}</td>
-                    <td>{top}</td>
-                    <td>{when(row.lastAt)}</td>
+                    <td className="nf-numeric" data-label="Actions">{row.total}</td>
+                    <td data-label="Most often">{top}</td>
+                    <td data-label="Last action">{when(row.lastAt)}</td>
                   </tr>
                 );
               })}

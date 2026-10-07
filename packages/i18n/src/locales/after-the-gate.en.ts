@@ -331,6 +331,10 @@ export const afterTheGateEn = {
     print: "Print or save as PDF",
     tenancy: "The tenancy",
     parties: "{tenant}, tenant. {lister}, lister.",
+    /** When the record names no lister: never "the lister, lister." (Round 3 sweep, C3). */
+    partiesNoLister: "{tenant}, tenant. The lister is not named on the record.",
+    /** The total's label while the tenancy is not paid in full: "Paid in total" would be untrue. */
+    totalUnpaid: "Move-in total, not paid in full",
     period: "{from} to {to}, in {area}.",
     money: "The move-in total",
     receipts: "Payments",

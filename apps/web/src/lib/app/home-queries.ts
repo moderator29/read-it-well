@@ -9,7 +9,7 @@ import { memo } from "../cache/memo";
 import { isSupabaseConfigured } from "../supabase/env";
 import { createClient } from "../supabase/server";
 import { MEDIA_BUCKET } from "../social/posts-media";
-import { knownInterests } from "../interests/schema";
+import { knownInterests } from "../interests/model";
 import { parseSettings } from "../profile/schema";
 
 /**
@@ -143,12 +143,7 @@ export function daypartFor(hour: number): Daypart {
   return "night";
 }
 
-export const DAYPART_GREETING: Record<Daypart, string> = {
-  morning: "Good morning,",
-  afternoon: "Good afternoon,",
-  evening: "Good evening,",
-  night: "Good evening,",
-};
+/* The greeting for each daypart is the reader's: `t.experienceDiscover.home.greeting[daypart]`. */
 
 const AREA_LIMIT = 8;
 const TRENDING_LIMIT = 6;

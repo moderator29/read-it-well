@@ -13,6 +13,7 @@ import { ButtonLink } from "@/components/ui/Button";
 import { readMyEarnings } from "@/lib/money/history";
 import { parseBefore } from "@/lib/money/history-model";
 import { EarningsHistory } from "@/components/app/money-history/EarningsHistory";
+import { PayoutList } from "@/components/money/PayoutList";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { IconPlate } from "@/components/ui/IconPlate";
 
@@ -60,11 +61,11 @@ export default async function Page({
   if (context.state === "unconfigured") {
     return (
       <AgentShell t={t} locale={locale} active="/agent/earnings" profile={null}>
-        <div className="mx-auto max-w-md py-10 text-center">
+        <div className="mx-auto max-w-md py-section text-center">
           <IconPlate size="lg">
             <UiIcon name="bank" size={24} />
           </IconPlate>
-          <h1 className="nf-h2 mt-5">{t.agentEarnings.title}</h1>
+          <h1 className="nf-h2 mt-md">{t.agentEarnings.title}</h1>
           <p className="mx-auto mt-sm max-w-[42ch] text-[var(--nf-content-secondary)]">
             {t.agentEarnings.unconfigured}
           </p>
@@ -112,13 +113,33 @@ export default async function Page({
           <h2 id="nf-earnings-history" className="nf-h3 mb-heading">
             Payments and reversals
           </h2>
-          <EarningsHistory
-            read={history}
-            before={before}
-            basePath="/agent/earnings"
-            locale={locale}
-            next={{ href: "/agent/bookings", label: "See your bookings" }}
-          />
+          {/* D51 rule 4: each payment carries the same three figures the
+              lister saw before publishing (what was paid, the platform fee,
+              what they received), read from the record. The empty and
+              unreadable states stay the history's own. */}
+          {history.state === "ok" && history.entries.length > 0 ? (
+            <>
+              <PayoutList entries={history.entries} locale={locale} />
+              {history.nextBefore ? (
+                <ButtonLink
+                  href={`/agent/earnings?before=${encodeURIComponent(history.nextBefore)}#history`}
+                  variant="secondary"
+                  size="md"
+                  className="mt-row"
+                >
+                  Show earlier
+                </ButtonLink>
+              ) : null}
+            </>
+          ) : (
+            <EarningsHistory
+              read={history}
+              before={before}
+              basePath="/agent/earnings"
+              locale={locale}
+              next={{ href: "/agent/bookings", label: "See your bookings" }}
+            />
+          )}
         </section>
       )}
 

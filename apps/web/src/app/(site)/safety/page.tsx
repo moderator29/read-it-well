@@ -6,7 +6,22 @@ import { ButtonLink } from "@/components/ui/Button";
 import { CancellationTimeline } from "@/lib/trust/CancellationTimeline";
 import { NEVER_ASK, NO_FEES_LINE, RESPONSE_COMMITMENTS } from "@/lib/trust/standards";
 import { REPORT_CATEGORY_COPY, REPORT_CATEGORY_ORDER } from "@/lib/reports/schema";
-import { GUARANTEE_SENTENCE, NO_CUSTODY_SENTENCE, NO_INSPECTION_FEE, OFF_PLATFORM_SENTENCE, REFUND_ROUTE } from "@/lib/money/copy";
+/* Every money sentence on this page is lib/money/copy.ts's (C6, the route sweep). */
+import {
+  NO_CUSTODY_SENTENCE,
+  NO_INSPECTION_FEE,
+  OFF_PLATFORM_SENTENCE,
+  RAIL_COPY,
+  REFUND_NO_BALANCE,
+  REFUND_ROUTE,
+  SAFETY_NO_ACCOUNT_NUMBER,
+  SAFETY_OUTSIDE_NOT_RECOVERABLE,
+  SAFETY_PAY_THROUGH_VALLO,
+  SAFETY_PAYMENT_RECORD,
+  SAFETY_PRICE_IS_WHOLE,
+  SAFETY_TABLE_NOT_A_PAYMENT,
+} from "@/lib/money/copy";
+import { LIVE_RAIL } from "@/lib/money/rails";
 import { DEFAULT_LOCALE, getDictionary } from "@vallo/i18n";
 import { e164 } from "@/lib/notify/whatsapp";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -37,27 +52,31 @@ export async function generateMetadata(): Promise<Metadata> {
 const PAYING_STEPS: { title: string; body: string }[] = [
   {
     title: "You never pay a person directly, you pay through Vallo",
-    body: `${NO_CUSTODY_SENTENCE} Every payment on Vallo goes through the checkout screen with a licensed Nigerian payment processor, using a card or a bank transfer raised by the processor. That is true on both sides: a hotel room for Friday and a flat for the year are paid the same way, and there is no step on either where somebody sends you an account number.`,
+    body: `${NO_CUSTODY_SENTENCE} ${SAFETY_PAY_THROUGH_VALLO}`,
   },
   {
     title: "The price you agree is the price you pay",
-    body: `${NO_FEES_LINE} The total you see before you commit is the lister's own number for that market, whole: the move-in total on a yearly tenancy, the nights and any cleaning charge on a shortlet, the asking price on a sale or a lease. Where an agent charges a fee of their own it is theirs, it belongs on the listing and not at the door, and it is named as theirs. Nothing of ours is added at the end. If your bank or card network takes something of their own, that is theirs and it is named as theirs too.`,
+    /* The rule card above prints NO_FEES_LINE word for word, so this step no
+       longer opens with it a second time (C6, the route sweep). */
+    body: SAFETY_PRICE_IS_WHOLE,
   },
   {
     title: "There is a record, permanently",
-    body: "Every payment writes a reference against your booking that you can open from Bookings and from Agreements. If anything goes wrong, that reference is what a person on our side works from. A transfer you made to somebody's personal account has no such record and cannot be traced by us.",
+    body: SAFETY_PAYMENT_RECORD,
   },
   {
     title: "A refund goes back the way it came",
-    body: `${REFUND_ROUTE} Vallo keeps no balance for you, so there is nothing to withdraw and nothing sitting with us.`,
+    /* "Vallo keeps no balance for you, so there is nothing to withdraw" was
+       untrue beside the Rewards Balance (D51); the refund's own sentence is. */
+    body: `${REFUND_ROUTE} ${REFUND_NO_BALANCE}`,
   },
   {
-    title: "The Vallo Guarantee",
-    body: GUARANTEE_SENTENCE,
+    title: "What stands behind a payment",
+    body: RAIL_COPY[LIVE_RAIL].standing,
   },
   {
     title: "A table costs nothing to hold",
-    body: "A restaurant reservation is a request, not a payment. You ask for a date, a time and a party size, the restaurant answers, and you pay the restaurant when you eat. Nobody on Vallo has any reason to take money from you for a table, and anybody asking for one is not doing platform business.",
+    body: SAFETY_TABLE_NOT_A_PAYMENT,
   },
 ];
 
@@ -72,7 +91,7 @@ const INSPECTION_STEPS: { title: string; body: string }[] = [
   },
   {
     title: "Submit the inspection report",
-    body: "The inspection report is eight items with photographs: the outside, the inside, the kitchen, the bathrooms, the utilities, the appliances, safety and an overall verdict. You submit it from the inspection itself. It is the record of what the place was like, and it is what any Guarantee claim is compared with.",
+    body: "The inspection report is eight items with photographs: the outside, the inside, the kitchen, the bathrooms, the utilities, the appliances, safety and an overall verdict. You submit it from the inspection itself. It is the record of what the place was like, and it is what any later question about the place is compared with.",
   },
   {
     title: "Both of you confirm the agreement, and Vallo approves it",
@@ -103,14 +122,11 @@ export default function SafetyCentrePage() {
         {/* ------------------------------------------------- the one rule */}
         <section className="nf-panel nf-panel--card block mt-section p-card" aria-labelledby="one-rule">
           <span className="nf-overline">The rule that matters most</span>
-          <h2 id="one-rule" className="nf-h2 mt-inline text-[1.375rem]">
+          <h2 id="one-rule" className="nf-h2 mt-inline text-[length:var(--nf-text-h3)]">
             {NO_FEES_LINE}
           </h2>
-          <p className="mt-row text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
-            We take nothing from your booking and nothing from an agent&apos;s
-            earnings. So there is no honest reason for anyone to send you an
-            account number, and if somebody does, they are not doing platform
-            business. Report them and stop replying.
+          <p className="mt-row text-[length:var(--nf-text-row)] leading-relaxed text-[var(--nf-content-secondary)]">
+            {SAFETY_NO_ACCOUNT_NUMBER}
           </p>
           {whatsapp && (
             <p className="nf-body-sm mt-row font-semibold text-[var(--nf-content-primary)]" data-testid="safety-whatsapp">
@@ -129,20 +145,20 @@ export default function SafetyCentrePage() {
 
         {/* -------------------------------------- what we never ask you for */}
         <section className="mt-section" aria-labelledby="never-ask">
-          <h2 id="never-ask" className="nf-h2 text-[1.375rem]">
+          <h2 id="never-ask" className="nf-h2 text-[length:var(--nf-text-h3)]">
             What Vallo will never ask you for
           </h2>
-          <p className="mt-inline text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mt-inline text-[length:var(--nf-text-row)] leading-relaxed text-[var(--nf-content-secondary)]">
             Four things. If a message, a call or an email asks you for any of
             them, it is not us, whatever it looks like.
           </p>
           <ul className="mt-group space-y-row">
             {NEVER_ASK.map((item) => (
               <li key={item.title} className="nf-panel nf-panel--card block p-card-sm">
-                <h3 className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
+                <h3 className="text-[length:var(--nf-text-row)] font-semibold text-[var(--nf-content-primary)]">
                   {item.title}
                 </h3>
-                <p className="mt-inline text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+                <p className="mt-inline text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                   {item.body}
                 </p>
               </li>
@@ -152,7 +168,7 @@ export default function SafetyCentrePage() {
 
         {/* -------------------------------------------- how payments work */}
         <section className="mt-section" aria-labelledby="how-payments">
-          <h2 id="how-payments" className="nf-h2 text-[1.375rem]">
+          <h2 id="how-payments" className="nf-h2 text-[length:var(--nf-text-h3)]">
             How paying on Vallo works
           </h2>
           <ol className="mt-group space-y-row">
@@ -161,10 +177,10 @@ export default function SafetyCentrePage() {
                 <span className="nf-overline">
                   Step <span className="nf-numeric">{index + 1}</span>
                 </span>
-                <h3 className="mt-inline-tight text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
+                <h3 className="mt-inline-tight text-[length:var(--nf-text-row)] font-semibold text-[var(--nf-content-primary)]">
                   {step.title}
                 </h3>
-                <p className="mt-inline text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+                <p className="mt-inline text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                   {step.body}
                 </p>
               </li>
@@ -174,10 +190,10 @@ export default function SafetyCentrePage() {
 
         {/* ----------------------------------------- how inspections work */}
         <section className="mt-section" aria-labelledby="how-inspections">
-          <h2 id="how-inspections" className="nf-h2 text-[1.375rem]">
+          <h2 id="how-inspections" className="nf-h2 text-[length:var(--nf-text-h3)]">
             How inspections work
           </h2>
-          <p className="mt-inline text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mt-inline text-[length:var(--nf-text-row)] leading-relaxed text-[var(--nf-content-secondary)]">
             Renting a place you have never seen is how most people lose money in
             this market. The order below is the whole defence on the Property
             side, and it costs nothing.
@@ -188,10 +204,10 @@ export default function SafetyCentrePage() {
                 <span className="nf-overline">
                   Step <span className="nf-numeric">{index + 1}</span>
                 </span>
-                <h3 className="mt-inline-tight text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
+                <h3 className="mt-inline-tight text-[length:var(--nf-text-row)] font-semibold text-[var(--nf-content-primary)]">
                   {step.title}
                 </h3>
-                <p className="mt-inline text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+                <p className="mt-inline text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                   {step.body}
                 </p>
               </li>
@@ -201,13 +217,13 @@ export default function SafetyCentrePage() {
 
         {/* ----------------------------------------------- cancellations */}
         <section className="mt-section" aria-labelledby="cancelling">
-          <h2 id="cancelling" className="nf-h2 text-[1.375rem]">
+          <h2 id="cancelling" className="nf-h2 text-[length:var(--nf-text-h3)]">
             If your plans change
           </h2>
           <div className="mt-group">
             <CancellationTimeline headingLevel="h3" />
           </div>
-          <p className="mt-row text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+          <p className="mt-row text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
             The same schedule is shown on every listing and on your booking,
             against your own dates and your own total.{" "}
             <Link
@@ -222,10 +238,10 @@ export default function SafetyCentrePage() {
 
         {/* --------------------------------------------- how to report */}
         <section className="mt-section" aria-labelledby="how-to-report">
-          <h2 id="how-to-report" className="nf-h2 text-[1.375rem]">
+          <h2 id="how-to-report" className="nf-h2 text-[length:var(--nf-text-h3)]">
             How to report something
           </h2>
-          <p className="mt-inline text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
+          <p className="mt-inline text-[length:var(--nf-text-row)] leading-relaxed text-[var(--nf-content-secondary)]">
             Every listing carries a report control, and the contact form reaches
             the same queue. You do not need proof and you will not be charged
             for being wrong. These are the reasons you can choose from, and they
@@ -234,10 +250,10 @@ export default function SafetyCentrePage() {
           <ul className="mt-group space-y-inline">
             {REPORT_CATEGORY_ORDER.map((category) => (
               <li key={category} className="nf-panel nf-panel--card block p-card-sm">
-                <h3 className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
+                <h3 className="text-[length:var(--nf-text-row)] font-semibold text-[var(--nf-content-primary)]">
                   {REPORT_CATEGORY_COPY[category].label}
                 </h3>
-                <p className="mt-inline-tight text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+                <p className="mt-inline-tight text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                   {REPORT_CATEGORY_COPY[category].hint}
                 </p>
               </li>
@@ -246,7 +262,7 @@ export default function SafetyCentrePage() {
 
           <div className="nf-panel nf-panel--card block mt-heading p-card">
             <span className="nf-overline">What happens next</span>
-            <p className="mt-inline text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
+            <p className="mt-inline text-[length:var(--nf-text-row)] leading-relaxed text-[var(--nf-content-secondary)]">
               A report about being asked to pay outside Vallo, or about anything
               unsafe, is answered{" "}
               <span className="font-semibold text-[var(--nf-content-primary)]">
@@ -272,15 +288,15 @@ export default function SafetyCentrePage() {
 
         {/* --------------------------------- if you already paid outside */}
         <section className="mt-section" aria-labelledby="already-paid">
-          <h2 id="already-paid" className="nf-h2 text-[1.375rem]">
+          <h2 id="already-paid" className="nf-h2 text-[length:var(--nf-text-h3)]">
             If you have already paid someone outside Vallo
           </h2>
           <ol className="mt-group space-y-row">
             <li className="nf-panel nf-panel--card block p-card-sm">
-              <h3 className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
+              <h3 className="text-[length:var(--nf-text-row)] font-semibold text-[var(--nf-content-primary)]">
                 Tell your bank today, not tomorrow
               </h3>
-              <p className="mt-inline text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+              <p className="mt-inline text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                 A Nigerian bank can sometimes place a lien on a receiving account
                 if you report a fraudulent transfer quickly. Call your bank first,
                 before anything else, and ask them to raise a dispute on the
@@ -288,22 +304,19 @@ export default function SafetyCentrePage() {
               </p>
             </li>
             <li className="nf-panel nf-panel--card block p-card-sm">
-              <h3 className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
+              <h3 className="text-[length:var(--nf-text-row)] font-semibold text-[var(--nf-content-primary)]">
                 Then report it here
               </h3>
-              <p className="mt-inline text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+              <p className="mt-inline text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                 Send us the listing link, the account details you were given and
-                the messages. We cannot recover money that never came through the
-                platform, and we will not pretend otherwise, but we can remove the
-                account, hold the listing, and stop the same person from doing it
-                to the next person.
+                the messages. {SAFETY_OUTSIDE_NOT_RECOVERABLE}
               </p>
             </li>
             <li className="nf-panel nf-panel--card block p-card-sm">
-              <h3 className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
+              <h3 className="text-[length:var(--nf-text-row)] font-semibold text-[var(--nf-content-primary)]">
                 Keep everything
               </h3>
-              <p className="mt-inline text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+              <p className="mt-inline text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
                 Screenshots, the account number, the phone number, the transfer
                 receipt. Do not delete the conversation. If the police or your
                 bank ask, that is the file.
@@ -318,7 +331,7 @@ export default function SafetyCentrePage() {
             <IconPlate size="md" className="shrink-0">
               <UiIcon name="headset" size={20} />
             </IconPlate>
-            <p className="text-[0.9375rem] leading-snug text-[var(--nf-content-secondary)]">
+            <p className="text-[length:var(--nf-text-row)] leading-snug text-[var(--nf-content-secondary)]">
               Not sure whether something is a scam? Ask us before you pay, not
               after.
             </p>

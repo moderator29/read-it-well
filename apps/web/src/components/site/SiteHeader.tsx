@@ -6,7 +6,8 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { EdgeLap } from "./EdgeLap";
 import { MobileMenu } from "./MobileMenu";
 import { NavScrollState } from "./NavScrollState";
-import { SiteNavLinks } from "./SiteNavLinks";
+import { SiteNavLinks, type MegaGroup } from "./SiteNavLinks";
+import "@/app/css/site.css";
 
 /**
  * Marketing header, to the governing landing image.
@@ -37,21 +38,14 @@ export function SiteHeader({
     { href: "/stays", label: nav.stays },
     { href: "/assistant", label: nav.ai },
   ];
-  const more = [
-    /* A7: "Check an agent" is a front-door feature, one tap from any page. */
-    { href: "/check", label: t.publicDoors.nav.checkAgent },
-    { href: "/about", label: nav.about },
-    { href: "/help", label: nav.help },
-    { href: "/docs", label: nav.docs },
-    { href: "/contact", label: nav.contact },
-    { href: "/careers", label: nav.careers },
-    { href: "/guides", label: t.publicDoors.nav.guides },
-    { href: "/for-agents", label: t.publicDoors.nav.forAgents },
-  ];
+  const mega = publicMenu(t);
+  /* The flat list the phone's panel and the old popover read: every door of
+     the public menu, in its order. */
+  const more = mega.flatMap((group) => group.items.map(({ href, label }) => ({ href, label })));
   const id = "nf-site-nav";
 
   if (variant === "landing") {
-    return <LandingCapsule t={t} id={id} links={links} more={more} />;
+    return <LandingCapsule t={t} id={id} links={links} more={more} mega={mega} />;
   }
 
   return (
@@ -83,6 +77,7 @@ export function SiteHeader({
             <SiteNavLinks
               links={links}
               more={more}
+              mega={mega}
               moreLabel={nav.more}
               /* No language control here: language is changed in Settings
                  and nowhere else (founder, 29 September 2026). */
@@ -144,11 +139,13 @@ function LandingCapsule({
   id,
   links,
   more,
+  mega,
 }: {
   t: Dictionary;
   id: string;
   links: { href: string; label: string }[];
   more: { href: string; label: string }[];
+  mega: MegaGroup[];
 }) {
   const nav = t.landing.face.nav;
   return (
@@ -165,7 +162,7 @@ function LandingCapsule({
             </span>
           </Link>
           <nav aria-label={t.nav.primaryLabel} className="nf-cap__nav">
-            <SiteNavLinks links={links} more={more} moreLabel={nav.more} />
+            <SiteNavLinks links={links} more={more} mega={mega} moreLabel={nav.more} />
           </nav>
           <div className="nf-cap__actions">
             <Link href="/sign-in" prefetch className="nf-cap__signin">
@@ -189,4 +186,52 @@ function LandingCapsule({
       </div>
     </header>
   );
+}
+
+/**
+ * THE PUBLIC MENU (reference 7086; north star 10 J, "mega menu on 7086"):
+ * every public door that is not in the rail, grouped by what a stranger came
+ * to do. Before you pay: the two checks, the calculator, the guides and
+ * safety (A7 put "Check an agent" one tap from any page, and it leads). List
+ * on Vallo: the three supply doors. Vallo: the company's own pages. Each door
+ * carries one line on what is behind it (`experienceLanding.menu`), and a
+ * line glyph from the one icon set. The labels are the doors' own names.
+ */
+export function publicMenu(t: Dictionary): MegaGroup[] {
+  const nav = t.landing.face.nav;
+  const doors = t.publicDoors.nav;
+  const m = t.experienceLanding.menu;
+  return [
+    {
+      id: "check",
+      label: m.groups.check,
+      items: [
+        { href: "/check", label: doors.checkAgent, description: m.checkAgent, icon: "id-card" },
+        { href: "/r", label: doors.checkReceipt, description: m.checkReceipt, icon: "receipt" },
+        { href: "/move-in-cost", label: doors.moveInCost, description: m.moveInCost, icon: "banknote" },
+        { href: "/guides", label: doors.guides, description: m.guides, icon: "file-text" },
+        { href: "/safety", label: t.landing.face.footer.safety, description: m.safety, icon: "shield-check" },
+      ],
+    },
+    {
+      id: "list",
+      label: m.groups.list,
+      items: [
+        { href: "/for-agents", label: doors.forAgents, description: m.forAgents, icon: "briefcase" },
+        { href: "/for-hosts", label: doors.forHosts, description: m.forHosts, icon: "building-hotel" },
+        { href: "/for-landlords", label: doors.forLandlords, description: m.forLandlords, icon: "house" },
+      ],
+    },
+    {
+      id: "company",
+      label: m.groups.company,
+      items: [
+        { href: "/about", label: nav.about, description: m.about, icon: "info" },
+        { href: "/help", label: nav.help, description: m.help, icon: "headset" },
+        { href: "/docs", label: nav.docs, description: m.docs, icon: "document" },
+        { href: "/contact", label: nav.contact, description: m.contact, icon: "mail" },
+        { href: "/careers", label: nav.careers, description: m.careers, icon: "users" },
+      ],
+    },
+  ];
 }

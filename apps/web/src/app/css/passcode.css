@@ -1,121 +1,100 @@
 /*
   passcode: the "Welcome back" lock, setup and confirm, and the settings
-  screen's controls. docs/PASSCODE.md is the design.
+  screen's controls. docs/PASSCODE.md is the design; MOTION_SYSTEM.md
+  section 6 is the motion.
 
-  THE 3D PASSCODE (the founder, 30 September 2026: "make it this 3d, clean
-  like this", reference 56, taken as mood and not a spec). One centred
-  column on a deep navy page: a calm blue dome across the top carrying
-  Vallo's own mark and wordmark, the member's face in a white ring with a
-  blue glow sitting on the dome's edge, one bold headline, one soft blue
-  line, six ring dots, a 3 by 4 keypad of glass spheres and the way out at
-  the foot.
+  REBUILT 6 OCTOBER 2026 (directive D32). The dome, the ring and the glass
+  spheres are gone: the founder's assessment was that the screen was bad, and
+  it is the screen a returning member sees more than any other. What it is
+  now, in the spec's order: a quiet monotone ground that matches Get Started
+  (`app/welcome/get-started.css`), so the two read as one family; a small
+  vector mark at the top, where Get Started's sits; a short line naming who
+  is signing in; and the DOTS AS THE SUBJECT, large and generously spaced,
+  with the keypad quieter than them by a visible margin.
 
-  ALWAYS DARK. PasscodeFrame marks the frame `data-theme="dark"`, a night
-  island, so every token below resolves to the night palette in either
-  theme. There are no light-theme rules here on purpose.
+  THE LOCK IS ALWAYS DARK. PasscodeFrame marks the overlay `data-theme="dark"`,
+  a night island, so every token below resolves to the night palette in either
+  theme. The settings screen's INLINE frame is the one exception (W11,
+  6 October 2026): it is a card on the member's own ground and follows their
+  theme, so "THE INLINE FRAME IN LIGHT" below answers it.
 
-  CHEAP 3D. The spheres, the dome and the ring are CSS gradients and
-  box-shadows only: no blur filters, no images, no backdrop filters, so a
-  low-end Android paints twelve keys without a stall. The only moving parts
-  are transform and opacity.
+  ONE HUE, ONE EDGE EACH. The ground is the night with one soft wash of the
+  brand blue behind the mark. A key is a plate of the same blue with one
+  hairline; a dot is a ring of the quiet blue that fills solid. Nothing
+  glows, nothing is red: a wrong code is told by motion and by the line
+  beneath, never by a colour flash.
 
-  THE SEMANTIC TOKENS are the `--nf-passcode-*` roles on `.nf-passcode`
-  (the page, the dome, the ring, the sphere, the dots), each built from the
-  design tokens, so the parts below name a role and never a colour.
+  MOTION, the section 6 table:
 
-  MOTION. A key compresses (scale .94) and its highlight brightens as it is
-  pressed, with a haptic from Keypad.tsx; a wrong code shakes the dots
-  sideways. Under reduced motion, and the app's Calm and Off settings, the
-  keys only brighten and the dots do not move.
+    a digit lands     the dot pops 1.0 1.15 1.0, `land` 160ms
+    a key is pressed  sinks 1px and gives a little, `press` 120ms, its bloom
+                      brightening underneath
+    a wrong code      the row shakes 6px once, `whip` 160ms, still full,
+                      then the fill leaves, `leave` 240ms (Keypad.tsx holds
+                      the row full for the 400ms this takes)
+    the right code    the last dot is full; 80ms later the contents leave,
+                      `leave` 240ms, and the mark stays (`[data-door="open"]`)
+    the biometric     the offer rises 12px, `land` 240ms
 
-  FIT. Sizes follow the viewport's height as well as its width, so the
-  whole keypad fits a 360 by 640 phone without scrolling with keys of 64px
-  or more, and grows to 76px keys on a taller phone. Wider than a phone it
-  stays one centred column.
+  Reduced motion, Calm and Off: no travel. The dots fill without the pop,
+  a wrong code does not shake (the line beneath carries it), the door is a
+  cut, and the keys only brighten.
+
+  FIT. Sizes follow the viewport's height as well as its width, so the whole
+  keypad fits a 360 by 640 phone without scrolling with keys of 64px or more.
+  Wider than a phone it stays one centred column.
 */
+/*
+ * Loaded by the member layouts (the signed-in app, the agent and host
+ * workspaces, admin and the preview harness), not by globals.css: C6's member
+ * CSS move, 6 October. No signed-out route draws these classes, so signed-out
+ * pages no longer download them. Comments below that still say "global" or "globals.css"
+ * describe where the sheet used to load. This line states the layer order the
+ * document already has from Tailwind, so the order holds whichever chunk the
+ * browser receives first.
+ */
+@layer theme, base, components, utilities;
+
 @layer components {
   .nf-passcode {
-    /* ---------------------------------------------------- the page */
-    --nf-passcode-page:
-      radial-gradient(90% 55% at 50% 38%, color-mix(in oklab, var(--nf-brand-primary) 16%, transparent), transparent 72%),
-      linear-gradient(180deg, color-mix(in oklab, var(--nf-brand-primary) 10%, var(--nf-surface-artwork)), var(--nf-surface-artwork) 60%);
-    --nf-passcode-ink: var(--nf-content-on-brand);
-    --nf-passcode-soft: color-mix(in oklab, var(--nf-brand-quiet) 72%, var(--nf-content-on-brand));
-    --nf-passcode-link: color-mix(in oklab, var(--nf-brand-quiet) 88%, var(--nf-content-on-brand));
+    --nf-passcode-ink: var(--nf-content-primary);
+    --nf-passcode-soft: var(--nf-content-secondary);
+    --nf-passcode-link: color-mix(in oklab, var(--nf-brand-quiet) 70%, var(--nf-content-primary));
+    --nf-passcode-wash: color-mix(in oklab, var(--nf-brand-primary) 20%, transparent);
 
-    /* ---------------------------------------------------- the dome */
-    --nf-passcode-dome:
-      radial-gradient(70% 70% at 50% 108%, color-mix(in oklab, var(--nf-brand-quiet) 55%, var(--nf-brand-primary)) 0%, transparent 70%),
-      linear-gradient(180deg, color-mix(in oklab, var(--nf-brand-primary) 38%, var(--nf-surface-artwork)) 0%, color-mix(in oklab, var(--nf-brand-primary) 82%, var(--nf-surface-artwork)) 100%);
-    --nf-passcode-dome-edge:
-      inset 0 -1.5px 0 color-mix(in oklab, var(--nf-content-on-brand) 42%, transparent),
-      0 1px 0 color-mix(in oklab, var(--nf-brand-quiet) 55%, transparent),
-      0 12px 36px -10px color-mix(in oklab, var(--nf-brand-primary) 55%, transparent);
+    /* The keys: a plate of the brand blue, one hairline, a bloom on press. */
+    --nf-passcode-key-fill: color-mix(in oklab, var(--nf-brand-primary) 11%, transparent);
+    --nf-passcode-key-edge: color-mix(in oklab, var(--nf-brand-quiet) 20%, transparent);
+    --nf-passcode-key-bloom: radial-gradient(closest-side, color-mix(in oklab, var(--nf-brand-primary) 38%, transparent), transparent);
+    --nf-passcode-key-ink: var(--nf-content-primary);
 
-    /* ---------------------------------------------------- the ring */
-    --nf-passcode-ring-fill:
-      radial-gradient(90% 90% at 35% 25%, var(--nf-content-on-brand) 0%, color-mix(in oklab, var(--nf-brand-quiet) 14%, var(--nf-content-on-brand)) 100%);
-    --nf-passcode-ring-edge: color-mix(in oklab, var(--nf-content-on-brand) 92%, var(--nf-brand-quiet));
-    --nf-passcode-ring-glow:
-      0 0 0 3px color-mix(in oklab, var(--nf-brand-primary) 70%, var(--nf-brand-quiet)),
-      0 0 22px 2px color-mix(in oklab, var(--nf-brand-primary) 42%, transparent),
-      0 12px 24px -10px color-mix(in oklab, var(--nf-surface-artwork) 90%, transparent);
-    --nf-passcode-ring-ink: color-mix(in oklab, var(--nf-brand-primary) 70%, var(--nf-surface-artwork));
+    /* The dots: the subject. */
+    --nf-passcode-dot: 1.125rem;
+    --nf-passcode-dot-edge: color-mix(in oklab, var(--nf-brand-quiet) 70%, transparent);
+    --nf-passcode-dot-on: var(--nf-brand-quiet);
 
-    /* -------------------------------------------------- the sphere */
-    /* Deep blue glass lit from the upper left: a body that deepens toward
-       its lower edge, a light caught in the glass at the bottom, and a rim. */
-    --nf-passcode-sphere:
-      radial-gradient(75% 38% at 50% 100%, color-mix(in oklab, var(--nf-brand-quiet) 38%, transparent) 0%, transparent 100%),
-      radial-gradient(120% 120% at 38% 22%, color-mix(in oklab, var(--nf-brand-primary) 70%, var(--nf-surface-artwork)) 0%, color-mix(in oklab, var(--nf-brand-primary) 42%, var(--nf-surface-artwork)) 58%, color-mix(in oklab, var(--nf-brand-primary) 22%, var(--nf-surface-artwork)) 100%);
-    --nf-passcode-sphere-rim: color-mix(in oklab, var(--nf-brand-quiet) 42%, transparent);
-    --nf-passcode-sphere-depth:
-      inset 0 1px 0 color-mix(in oklab, var(--nf-content-on-brand) 24%, transparent),
-      inset 0 -6px 12px -6px color-mix(in oklab, var(--nf-brand-quiet) 38%, transparent),
-      0 12px 18px -10px color-mix(in oklab, var(--nf-surface-artwork) 95%, transparent),
-      0 3px 14px -6px color-mix(in oklab, var(--nf-brand-primary) 32%, transparent);
-    /* The highlight: a soft specular cap, brighter while pressed. */
-    --nf-passcode-sphere-light: radial-gradient(58% 40% at 42% 20%, color-mix(in oklab, var(--nf-content-on-brand) 30%, transparent) 0%, transparent 100%);
-    --nf-passcode-sphere-light-rest: 0.75;
-    --nf-passcode-sphere-light-press: 1;
-    --nf-passcode-sphere-ink: var(--nf-content-on-brand);
-
-    /* ---------------------------------------------------- the dots */
-    --nf-passcode-dot-edge: color-mix(in oklab, var(--nf-brand-quiet) 80%, var(--nf-brand-primary));
-    --nf-passcode-dot-on:
-      radial-gradient(circle at 35% 30%, color-mix(in oklab, var(--nf-content-on-brand) 55%, transparent), transparent 55%),
-      var(--nf-brand-primary);
-    --nf-passcode-dot-glow: 0 0 10px 0 color-mix(in oklab, var(--nf-brand-primary) 55%, transparent);
-
-    /* -------------------------------------------------------- sizes */
-    --nf-passcode-top: clamp(6.25rem, 17vh, 9.5rem);
-    --nf-passcode-ring: clamp(4.5rem, 12vh, 6rem);
+    /* Where the mark sits: Get Started's settled lockup (`app/welcome/lockup.ts`). */
+    --nf-passcode-mark-top: calc(env(safe-area-inset-top, 0px) + clamp(3rem, 11dvh, 6.5rem));
+    --nf-passcode-mark: 2.75rem;
     --nf-passcode-key: clamp(4rem, min(19vw, 10vh), 4.75rem);
     --nf-passcode-row-gap: clamp(0.5rem, 1.6vh, 1rem);
     --nf-passcode-gutter: var(--nf-space-md);
 
+    position: relative;
+    isolation: isolate;
     color: var(--nf-passcode-ink);
-    background: var(--nf-passcode-page);
+    background: var(--nf-surface-artwork);
   }
   @supports (height: 1dvh) {
     .nf-passcode {
-      --nf-passcode-top: clamp(6.25rem, 17dvh, 9.5rem);
-      --nf-passcode-ring: clamp(4.5rem, 12dvh, 6rem);
       --nf-passcode-key: clamp(4rem, min(19vw, 10dvh), 4.75rem);
       --nf-passcode-row-gap: clamp(0.5rem, 1.6dvh, 1rem);
     }
   }
-
-  /* A tall phone (and a desktop window): a taller dome and a larger ring,
-     so the head of the screen carries the space rather than a gap above
-     the keypad. */
-  @media (min-height: 760px) {
+  /* A short phone: the mark comes up so the keypad keeps its room. */
+  @media (max-height: 700px) {
     .nf-passcode {
-      --nf-passcode-top: 11rem;
-      --nf-passcode-ring: 6.5rem;
-    }
-    .nf-passcode .nf-passcode__dots {
-      margin-top: var(--nf-space-xl);
+      --nf-passcode-mark-top: calc(env(safe-area-inset-top, 0px) + var(--nf-space-lg));
     }
   }
 
@@ -140,100 +119,82 @@
   .nf-passcode--overlay::backdrop {
     background: var(--nf-surface-artwork);
   }
+  /*
+   * A LOCKED COLD START. The lock waits for the startup's door before it
+   * becomes modal (PasscodeFrame), and until then it is a fixed layer inside
+   * `#main`. The page's own entrance under the startup (threshold.css,
+   * `:root[data-splash="on"] #main`) gives `#main` a transform, which would
+   * make `#main` the lock's containing block and leave the rail and the tab
+   * bar uncovered as the door parts. With a lock on the page there is no
+   * page to bring forward: the lock is what is beneath the door, and the
+   * startup's mark settles on the lock's own.
+   */
+  :root[data-splash="on"] #main:has(.nf-passcode--overlay) {
+    animation: none;
+  }
   .nf-passcode--inline {
     display: flex;
     flex-direction: column;
     border-radius: var(--nf-radius-xl);
     overflow: clip;
     padding-bottom: var(--nf-space-lg);
+    --nf-passcode-mark-top: var(--nf-space-lg);
   }
 
-  /* ------------------------------------------------------------ the top */
-  .nf-passcode__top {
-    position: relative;
-    flex: none;
-    height: calc(var(--nf-passcode-top) + env(safe-area-inset-top, 0px));
+  /*
+   * THE INLINE FRAME IN LIGHT (the settings card). The roles above are the
+   * night's; here they take the Paper answer: a white Card with the blue-tinted
+   * shadow and no hairline (one edge, north star 4), keys that are a faint
+   * wash of the brand with a visible edge, dots and mark in the brand blue
+   * (the quiet blue is too pale on white), the link in the brand blue. Nothing
+   * else moves: the same dots, the same keys, the same motion.
+   */
+  :root[data-theme="light"] .nf-passcode--inline {
+    --nf-passcode-wash: color-mix(in oklab, var(--nf-brand-primary) 9%, transparent);
+    --nf-passcode-link: var(--nf-brand-primary);
+    --nf-passcode-key-fill: color-mix(in oklab, var(--nf-brand-primary) 7%, var(--nf-surface-elevated));
+    --nf-passcode-key-edge: color-mix(in oklab, var(--nf-brand-primary) 24%, transparent);
+    --nf-passcode-key-bloom: radial-gradient(closest-side, color-mix(in oklab, var(--nf-brand-primary) 20%, transparent), transparent);
+    --nf-passcode-dot-edge: color-mix(in oklab, var(--nf-brand-primary) 75%, transparent);
+    --nf-passcode-dot-on: var(--nf-brand-primary);
+    background: var(--nf-surface-elevated);
+    box-shadow: var(--nf-elevation-raised);
   }
-  /* The dome: a half ellipse hanging from the top, wider than a phone so
-     only its middle shows there, and a centred bowl on a wide screen. Its
-     shadow is the luminous edge. */
-  .nf-passcode__dome {
+  :root[data-theme="light"] .nf-passcode--inline .nf-passcode__mark {
+    color: var(--nf-brand-primary);
+  }
+
+  /* ----------------------------------------------------------- the ground */
+  /* The one gradient: a soft wash of the brand blue behind the mark. */
+  .nf-passcode__wash {
     position: absolute;
-    top: 0;
-    left: 50%;
-    width: min(125%, 60rem);
-    height: 100%;
-    transform: translateX(-50%);
-    border-radius: 0 0 50% 50% / 0 0 100% 100%;
-    background: var(--nf-passcode-dome);
-    box-shadow: var(--nf-passcode-dome-edge);
+    inset: 0 0 auto;
+    z-index: -1;
+    height: 70%;
     pointer-events: none;
+    background: radial-gradient(
+      60% 55% at 50% calc(var(--nf-passcode-mark-top) + var(--nf-passcode-mark) / 2),
+      var(--nf-passcode-wash),
+      transparent 72%
+    );
   }
-  /* Vallo's own lockup: the mark and the wordmark, both the brand assets. */
-  .nf-passcode__brand {
-    position: absolute;
-    top: calc(env(safe-area-inset-top, 0px) + clamp(0.875rem, 3.2vh, 1.75rem));
-    left: 50%;
+
+  /* -------------------------------------------------------------- the top */
+  .nf-passcode__top {
+    flex: none;
     display: flex;
-    align-items: center;
-    gap: var(--nf-space-xs);
-    transform: translateX(-50%);
+    justify-content: center;
+    padding-top: var(--nf-passcode-mark-top);
   }
-  .nf-passcode__brand .nf-logo-art {
-    width: 1.875rem;
+  .nf-passcode__mark {
+    width: var(--nf-passcode-mark);
     height: auto;
-  }
-  .nf-passcode__word {
-    width: 5.25rem;
-    height: auto;
+    color: var(--nf-brand-quiet);
   }
 
-  /* ----------------------------------------------------------- the ring */
-  .nf-passcode__ring {
-    position: absolute;
-    z-index: 2;
-    left: 50%;
-    bottom: 0;
-    display: grid;
-    place-items: center;
-    width: var(--nf-passcode-ring);
-    height: var(--nf-passcode-ring);
-    overflow: hidden;
-    border-radius: var(--nf-radius-circle);
-    border: 3px solid var(--nf-passcode-ring-edge);
-    background: var(--nf-passcode-ring-fill);
-    box-shadow: var(--nf-passcode-ring-glow);
-    transform: translate(-50%, 50%);
-    animation: nf-passcode-ring-in var(--nf-duration-deliberate) var(--nf-ease-spring) 120ms both;
-  }
-  .nf-passcode__face {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  .nf-passcode__object {
-    width: 74%;
-    height: 74%;
-    object-fit: contain;
-  }
-  .nf-passcode__initial {
-    font-family: var(--nf-font-display);
-    font-size: calc(var(--nf-passcode-ring) * 0.4);
-    font-weight: 700;
-    line-height: 1;
-    color: var(--nf-passcode-ring-ink);
-  }
-  @keyframes nf-passcode-ring-in {
-    from {
-      opacity: 0;
-      transform: translate(-50%, 50%) scale(0.82);
-    }
-  }
-
-  /* ----------------------------------------------------------- the body */
+  /* ------------------------------------------------------------- the body */
   .nf-passcode__body {
     position: relative;
-    z-index: 1;
     display: flex;
     flex: 1 0 auto;
     flex-direction: column;
@@ -241,14 +202,14 @@
     width: 100%;
     max-width: 24rem;
     margin-inline: auto;
-    padding-top: calc(var(--nf-passcode-ring) / 2 + clamp(0.5rem, 2vh, 1.25rem));
+    padding-top: clamp(1rem, 3.5dvh, 2rem);
     padding-inline: max(var(--nf-passcode-gutter), env(safe-area-inset-left, 0px));
     text-align: center;
   }
   .nf-passcode__title {
     font-family: var(--nf-font-display);
     font-size: var(--nf-text-h3);
-    font-weight: 700;
+    font-weight: 600;
     line-height: 1.2;
     letter-spacing: -0.01em;
     color: var(--nf-passcode-ink);
@@ -263,46 +224,63 @@
     max-width: 20rem;
     margin-top: var(--nf-space-2xs);
     font-size: var(--nf-text-body-sm);
-    font-weight: 500;
+    font-weight: 400;
     line-height: 1.4;
     color: var(--nf-passcode-soft);
   }
 
-  /* ------------------------------------------------------------ the dots */
+  /* ------------------------------------------------------------- the dots */
   .nf-passcode__dots {
     display: flex;
     justify-content: center;
-    gap: var(--nf-space-md);
-    margin-top: clamp(0.875rem, 2.6vh, 1.5rem);
-    min-height: 0.875rem;
+    gap: clamp(1.25rem, 6vw, 1.75rem);
+    margin-top: clamp(1.5rem, 4.5dvh, 2.75rem);
+    min-height: var(--nf-passcode-dot);
   }
+  .nf-passcode__dots[data-count="6"] {
+    gap: clamp(1rem, 4.5vw, 1.375rem);
+  }
+  /*
+   * A dot is a ring with its fill on a layer of its own (`::after`, a solid
+   * disc of the quiet blue that covers the ring), so filling and clearing
+   * are opacity alone and the pop is a transform: nothing here animates a
+   * colour (MOTION_SYSTEM.md section 1, principle 6).
+   */
   .nf-passcode__dot {
-    width: 0.875rem;
-    height: 0.875rem;
+    position: relative;
+    width: var(--nf-passcode-dot);
+    height: var(--nf-passcode-dot);
     border-radius: var(--nf-radius-circle);
     border: 2px solid var(--nf-passcode-dot-edge);
-    transition:
-      background-color var(--nf-duration-fast) var(--nf-ease-standard),
-      transform var(--nf-duration-fast) var(--nf-ease-spring);
   }
-  .nf-passcode__dot--on {
-    border-color: var(--nf-passcode-dot-edge);
+  .nf-passcode__dot::after {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
     background: var(--nf-passcode-dot-on);
-    box-shadow: var(--nf-passcode-dot-glow);
-    transform: scale(1.1);
+    opacity: 0;
+    transition: opacity var(--nf-duration-fast) var(--nf-ease-standard);
   }
-  .nf-passcode__dots--shake {
-    animation: nf-passcode-shake var(--nf-duration-slow) var(--nf-ease-standard) both;
+  /* A digit lands: the fill and the pop, 1.0 1.15 1.0 on `land`. */
+  .nf-passcode__dot--on {
+    animation: nf-passcode-pop var(--nf-duration-fast) var(--nf-ease-entrance);
   }
-  .nf-passcode__dots--shake .nf-passcode__dot--on,
-  .nf-passcode__dots--shake .nf-passcode__dot {
-    border-color: var(--nf-state-error);
+  .nf-passcode__dot--on::after {
+    opacity: 1;
+  }
+  /* A wrong code: the row shakes once, full, then the fill leaves. */
+  .nf-passcode__dots--wrong {
+    animation: nf-passcode-shake var(--nf-duration-fast) var(--nf-ease-whip);
+  }
+  .nf-passcode__dot--leaving::after {
+    animation: nf-passcode-clear var(--nf-duration-base) var(--nf-ease-exit) var(--nf-duration-fast) both;
   }
 
   .nf-passcode__message {
     min-height: 2.7em;
     max-width: 21rem;
-    margin-top: var(--nf-space-xs);
+    margin-top: var(--nf-space-sm);
     font-size: 0.8125rem;
     line-height: 1.35;
     color: var(--nf-passcode-soft);
@@ -314,7 +292,18 @@
     color: var(--nf-passcode-ink);
   }
 
-  /* ---------------------------------------------------------- the keypad */
+  /* ----------------------------------------------------- the biometric */
+  .nf-passcode__offer {
+    display: grid;
+    justify-items: center;
+    gap: var(--nf-space-2xs);
+    width: 100%;
+    max-width: 22rem;
+    margin-block: auto;
+    animation: nf-passcode-offer var(--nf-duration-base) var(--nf-ease-entrance) both;
+  }
+
+  /* ----------------------------------------------------------- the keypad */
   .nf-passcode__keypad {
     display: grid;
     grid-template-columns: repeat(3, var(--nf-passcode-key));
@@ -337,10 +326,9 @@
     display: grid;
     place-items: center;
     border-radius: var(--nf-radius-circle);
-    border: 1px solid var(--nf-passcode-sphere-rim);
-    background: var(--nf-passcode-sphere);
-    box-shadow: var(--nf-passcode-sphere-depth);
-    color: var(--nf-passcode-sphere-ink);
+    border: 1px solid var(--nf-passcode-key-edge);
+    background: var(--nf-passcode-key-fill);
+    color: var(--nf-passcode-key-ink);
     font-family: var(--nf-font-display);
     font-size: calc(var(--nf-passcode-key) * 0.4);
     font-weight: 600;
@@ -350,41 +338,41 @@
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
     user-select: none;
-    transition: transform var(--nf-duration-press) var(--nf-ease-press);
+    transition:
+      translate var(--nf-duration-press) var(--nf-ease-press),
+      scale var(--nf-duration-press) var(--nf-ease-press);
   }
-  /* The highlight caught in the glass, on its own layer so a press can
-     brighten it with opacity alone. */
+  /* The bloom under the key, on its own layer so a press brightens it with
+     opacity alone. */
   .nf-passcode__key::before {
     content: "";
     position: absolute;
-    inset: 0;
+    inset: -12%;
     z-index: -1;
     border-radius: inherit;
-    background: var(--nf-passcode-sphere-light);
-    opacity: var(--nf-passcode-sphere-light-rest);
+    background: var(--nf-passcode-key-bloom);
+    opacity: 0;
     transition: opacity var(--nf-duration-press) var(--nf-ease-press);
     pointer-events: none;
   }
-  /* Delete: a glass pill beside the 0. */
+  /* Delete: the quiet key, no plate. */
   .nf-passcode__key--quiet {
-    justify-self: center;
-    align-self: center;
-    width: calc(var(--nf-passcode-key) * 0.92);
-    height: calc(var(--nf-passcode-key) * 0.62);
-    border-radius: var(--nf-radius-pill);
+    border-color: transparent;
+    background: transparent;
   }
   .nf-passcode__key--quiet svg {
     width: calc(var(--nf-passcode-key) * 0.34);
     height: auto;
   }
   .nf-passcode__key:active:not(:disabled) {
-    transform: scale(0.94);
+    translate: 0 1px;
+    scale: 0.96;
   }
   .nf-passcode__key:active:not(:disabled)::before {
-    opacity: var(--nf-passcode-sphere-light-press);
+    opacity: 1;
   }
   .nf-passcode__key:focus-visible {
-    outline: var(--nf-focus-ring-width) solid var(--nf-passcode-ring-edge);
+    outline: var(--nf-focus-ring-width) solid var(--nf-brand-quiet);
     outline-offset: 3px;
   }
   .nf-passcode__key:disabled {
@@ -396,7 +384,7 @@
     place-items: center;
   }
 
-  /* ------------------------------------------------------------ the foot */
+  /* ------------------------------------------------------------- the foot */
   .nf-passcode__foot {
     display: flex;
     flex-direction: column;
@@ -417,7 +405,7 @@
     text-decoration-thickness: 1px;
   }
   .nf-passcode__link--quiet {
-    font-weight: 500;
+    font-weight: 400;
     color: var(--nf-passcode-soft);
     text-decoration: none;
   }
@@ -440,47 +428,71 @@
     }
   }
 
+  /* ------------------------------------------------------------- the door */
+  /* The right code: the contents leave on `leave` and the mark stays, the
+     way the startup's lockup holds its last frame, until the page replaces
+     the lock and comes forward through the `open` arrival (threshold.css). */
+  .nf-passcode[data-door="open"] :is(.nf-passcode__body > *, .nf-passcode__wash) {
+    animation: nf-passcode-leave var(--nf-duration-base) var(--nf-ease-exit) both;
+  }
+
+  @keyframes nf-passcode-pop {
+    50% {
+      transform: scale(1.15);
+    }
+  }
   @keyframes nf-passcode-shake {
     0%,
     100% {
       transform: none;
     }
-    15%,
-    55% {
-      transform: translateX(-10px);
+    25% {
+      transform: translateX(-6px);
     }
-    35%,
-    75% {
-      transform: translateX(10px);
+    65% {
+      transform: translateX(6px);
     }
-    90% {
-      transform: translateX(-4px);
+  }
+  @keyframes nf-passcode-clear {
+    to {
+      opacity: 0;
+    }
+  }
+  @keyframes nf-passcode-offer {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+  }
+  @keyframes nf-passcode-leave {
+    to {
+      opacity: 0;
+      transform: translateY(-8px);
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .nf-passcode__dots--shake,
-    .nf-passcode__ring {
+    .nf-passcode__dot--on,
+    .nf-passcode__dots--wrong,
+    .nf-passcode__offer,
+    .nf-passcode[data-door="open"] :is(.nf-passcode__body > *, .nf-passcode__wash) {
       animation: none;
     }
     .nf-passcode__key,
-    .nf-passcode__dot {
+    .nf-passcode__dot::after {
       transition: none;
     }
-    .nf-passcode__key:active:not(:disabled),
-    .nf-passcode__dot--on {
-      transform: none;
+    .nf-passcode__key:active:not(:disabled) {
+      translate: none;
+      scale: none;
     }
   }
-  :root:is([data-motion="calm"], [data-motion="off"]) :is(.nf-passcode__dots--shake, .nf-passcode__ring) {
+  :root:is([data-motion="calm"], [data-motion="off"]) :is(.nf-passcode__dot--on, .nf-passcode__dots--wrong, .nf-passcode__offer) {
     animation: none;
   }
-  :root:is([data-motion="calm"], [data-motion="off"]) :is(.nf-passcode__key:active:not(:disabled), .nf-passcode__dot--on) {
-    transform: none;
-  }
-  /* The ring's resting place, with its entrance off. */
-  :root:is([data-motion="calm"], [data-motion="off"]) .nf-passcode__ring {
-    transform: translate(-50%, 50%);
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-passcode__key:active:not(:disabled) {
+    translate: none;
+    scale: none;
   }
 
   /* ------------------------------------------------ the settings screen */

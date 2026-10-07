@@ -6,6 +6,19 @@
  * the photograph follows a dismissing finger, and what the ground does while it
  * does. Everything that moves is `transform` or `opacity`.
  */
+/*
+ * Loaded by the member layouts (the signed-in app, the agent and host
+ * workspaces, admin and the preview harness), not by globals.css: C6's member
+ * CSS move, 6 October. No signed-out route draws these classes, so signed-out
+ * pages no longer download them. What a signed-out route does draw, and
+ * what must keep its old place in the cascade, stays global in
+ * `photo-viewer.shared.css`. Comments below that still say "global" or "globals.css"
+ * describe where the sheet used to load. This line states the layer order the
+ * document already has from Tailwind, so the order holds whichever chunk the
+ * browser receives first.
+ */
+@layer theme, base, components, utilities;
+
 @layer components {
   .nf-photo-viewer {
     /* The ground is its own layer so it can fade with the drag while the
@@ -54,24 +67,6 @@
    * (`ListingGallery`, stays and restaurants). Fixed, so appearing moves
    * nothing; only opacity and a 4px slide animate.
    */
-  .nf-floating-back {
-    position: fixed;
-    z-index: 30;
-    top: calc(env(safe-area-inset-top, 0px) + var(--nf-space-xs));
-    left: max(var(--nf-space-sm), env(safe-area-inset-left, 0px));
-    color: var(--nf-content-primary);
-    /* Over body copy rather than over a photograph, so the glass is nearly
-       opaque: text underneath must not read through the arrow. */
-    background: color-mix(in oklab, var(--nf-surface-elevated) 90%, transparent);
-    -webkit-backdrop-filter: blur(var(--nf-glass-blur-soft));
-    backdrop-filter: blur(var(--nf-glass-blur-soft));
-    opacity: 0;
-    transform: translateY(-4px);
-    pointer-events: none;
-    transition:
-      opacity var(--nf-duration-fast) var(--nf-ease-standard),
-      transform var(--nf-duration-fast) var(--nf-ease-standard);
-  }
   .nf-floating-back[data-shown] {
     opacity: 1;
     transform: none;

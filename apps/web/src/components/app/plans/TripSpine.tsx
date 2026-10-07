@@ -3,7 +3,9 @@ import Image from "next/image";
 import { getDictionary, plural, type Locale } from "@vallo/i18n";
 import { Disclosure } from "@/components/app/Disclosure";
 import { ICON, TYPE } from "@/components/app/Screen";
-import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
+import { StatusPill } from "@/components/ui/StatusPill";
+import { StatusChip } from "@/components/ui/StatusChip";
+import { bookingChip } from "@/components/app/bookings/booking-chip";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { iconPlateClass } from "@/components/ui/IconPlate";
 import type { BookingView } from "@/lib/bookings/queries";
@@ -260,7 +262,10 @@ function SpineRow({
         <span className="min-w-0 flex-1 leading-tight">
           <span className="flex flex-wrap items-center gap-inline-tight">
             {today && <StatusPill tone="brand">{todayLabel}</StatusPill>}
-            <StatusPill tone={toneForStatus(item.status)}>{statusWord}</StatusPill>
+            {/* The same mapping the booking page uses: a cancelled or no-show trip is
+                neutral (a window closed, nothing failed), never the red that
+                means it went wrong. A table shares the booking enum. */}
+            <StatusChip state={bookingChip(item.status)}>{statusWord}</StatusChip>
           </span>
           <span className={`mt-2xs block ${TYPE.rowTitle}`}>{item.title}</span>
           <span className={`mt-3xs block ${TYPE.rowMeta}`}>

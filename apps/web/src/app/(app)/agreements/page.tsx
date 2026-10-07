@@ -1,15 +1,18 @@
 import { Unreachable } from "@/components/app/Unreachable";
 import type { Metadata } from "next";
-import Link from "next/link";
-import { formatMoney } from "@vallo/i18n/core";
+import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { readMyAgreements } from "@/lib/agreements/queries";
 import { PageHeader } from "@/components/app/PageHeader";
 import { EmptyState, Section, TYPE } from "@/components/app/Screen";
 import { NO_CUSTODY_SENTENCE, PAYMENT_GATE_SENTENCE } from "@/lib/money/copy";
-import { AGREEMENT_STATUS_LABEL } from "@/components/app/agreements/status";
+import { RegisterRow } from "@/components/app/agreements/RegisterRow";
+import { readKeptVersions } from "@/components/app/agreements/record-read";
+import { gateFirstRun } from "@/components/app/feature-onboarding/first-run-store";
 
-export const metadata: Metadata = { title: "Agreements" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: getDictionary(await getLocale()).nav.agreements };
+}
 export const dynamic = "force-dynamic";
 
 /**
@@ -17,38 +20,46 @@ export const dynamic = "force-dynamic";
  * record of exactly what both sides committed to, drawn up from the renter's
  * inspection report or the host's acceptance, confirmed by both, and approved
  * by Vallo before payment opens.
+ *
+ * M2: A REGISTER OF DOCUMENTS. Each row is drawn as the document it is, with
+ * the version its terms stand at and how many earlier versions are kept (B9's
+ * snapshots, read in one query for the whole list). The order, the copy
+ * above the list and every route are as they were.
  */
-export default async function AgreementsPage() {
+export default async function AgreementsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  /* The agreements first run (north star 14.1, W7's system): once per
+     member, before any read, teaching what has to happen before payment
+     opens. The route sits behind the sign-in wall (proxy), so whoever reaches
+     this line is signed in. */
+  await gateFirstRun("agreements", "/agreements", await searchParams);
   const locale = await getLocale();
   const rows = await readMyAgreements();
+  const kept = rows && rows.length > 0 ? await readKeptVersions(rows.map((row) => row.id)) : null;
+  const t = getDictionary(locale);
+  const copy = t.experienceMoney.agreements;
   return (
     <main className="nf-page nf-md">
-      <PageHeader variant="large" title="Agreements" />
+      <PageHeader variant="large" title={t.nav.agreements} />
       <p className={`${TYPE.body} mt-inline`}>{PAYMENT_GATE_SENTENCE}</p>
       <p className={`${TYPE.rowMeta} mt-inline mb-block`}>{NO_CUSTODY_SENTENCE}</p>
-      <Section title="Your agreements">
+      <Section title={copy.listTitle}>
         {rows === null ? (
           <Unreachable noun="agreements" icon="contract-sign" />
         ) : rows.length === 0 ? (
           <EmptyState
             icon="contract-sign"
-            title="No agreements yet"
-            body="An agreement is drawn up after an inspection report is submitted, or when a host accepts your stay."
+            title={copy.emptyTitle}
+            body={copy.emptyBody}
           />
         ) : (
-          <ul className="grid gap-row" data-testid="agreements-list">
+          <ul className="nf-agr-register" data-testid="agreements-list">
             {rows.map((row) => (
               <li key={row.id}>
-                <Link href={`/agreements/${row.id}`} className="nf-card block p-card" data-status={row.status}>
-                  <p className="font-semibold">{row.listingTitle}</p>
-                  <p className={TYPE.rowMeta}>
-                    {row.kind === "rent" ? "Rental" : "Stay"} · {formatMoney(row.amountMinor, locale)} ·{" "}
-                    {AGREEMENT_STATUS_LABEL[row.status] ?? row.status}
-                    {row.role === null
-                      ? ""
-                      : ` · you are the ${row.role === "renter" ? (row.kind === "rent" ? "renter" : "guest") : "owner or agent"}`}
-                  </p>
-                </Link>
+                <RegisterRow row={row} kept={kept ? (kept.get(row.id) ?? null) : null} locale={locale} copy={copy} />
               </li>
             ))}
           </ul>

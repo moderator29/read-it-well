@@ -561,11 +561,20 @@ const TABLE = `
   mount(<ReserveTable listingId="l-1" success={getDictionary("en").success} />);
 `;
 
+/* Today's seatings can all have passed (the form never offers a past time,
+   read on Lagos's clock), which disables the request in the evening; these
+   tests ask for tomorrow, which always has times, so they never depend on
+   the hour they run at. */
+async function requestTomorrow(page: Page) {
+  await page.getByRole("button", { name: "Tomorrow" }).click();
+  await page.getByRole("button", { name: "Request a table" }).click();
+}
+
 run("table requested", () => {
   it("opens as a request sent, never as booked", async () => {
     const { page, close } = await mountInBrowser({ entry: TABLE, actions: { reserveTable: `async () => ({ ok: true, data: { reservationId: "r1", status: "PENDING" } })` } });
     try {
-      await page.getByRole("button", { name: "Request a table" }).click();
+      await requestTomorrow(page);
       await sheetOpens(page, "Table request sent");
     } finally {
       await close();
@@ -575,7 +584,7 @@ run("table requested", () => {
   it("does not open when the restaurant cannot take it", async () => {
     const { page, close } = await mountInBrowser({ entry: TABLE, actions: { reserveTable: `async () => ({ ok: false, error: "The restaurant is closed that day." })` } });
     try {
-      await page.getByRole("button", { name: "Request a table" }).click();
+      await requestTomorrow(page);
       await page.getByText("The restaurant is closed that day.").waitFor();
       await noSheet(page);
     } finally {

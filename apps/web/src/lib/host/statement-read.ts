@@ -1,4 +1,5 @@
 import "server-only";
+import { reportReadError } from "@/lib/observability/read-error";
 
 import { resolveSession } from "../actions/session";
 import { parseHistoryRows, type HistoryEntry } from "../money/history-model";
@@ -25,6 +26,7 @@ export async function readEarningsBetween(fromIso: string, beforeIso: string): P
   let before: string | null = beforeIso;
   for (let page = 0; page < MAX_PAGES; page += 1) {
     const { data, error } = await session.supabase.rpc("my_earnings_history" as never, { p_limit: PAGE, p_before: before } as never);
+    await reportReadError("read.statement.readEarningsBetween", error);
     if (error) return { state: "error" };
     const rows = parseHistoryRows(data);
     if (!rows) return { state: "error" };
@@ -47,6 +49,7 @@ export async function readRecentEarnings(): Promise<MonthRead> {
   if (session.state === "signed-out") return { state: "signed-out" };
   if (session.state !== "signed-in") return { state: "error" };
   const { data, error } = await session.supabase.rpc("my_earnings_history" as never, { p_limit: PAGE, p_before: null } as never);
+  await reportReadError("read.statement.readRecentEarnings", error);
   if (error) return { state: "error" };
   const rows = parseHistoryRows(data);
   if (!rows) return { state: "error" };

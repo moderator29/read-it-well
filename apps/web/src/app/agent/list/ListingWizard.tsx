@@ -1,13 +1,22 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { formatDate, formatMoney, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { ShotList } from "@/components/agent/ShotList";
 import { fill } from "../_copy";
-import { createClient } from "@/lib/supabase/client";
+import { loadBrowserClient } from "@/lib/supabase/load-client";
 import { canCapturePhoto, capturePhoto } from "@/lib/native/device";
 import { Switch } from "@/components/ui/Switch";
+import { ListerFeeGate } from "@/components/money/ListerFeeGate";
+import {
+  acceptanceMatches,
+  feeGateHoldsSend,
+  listerFeeFigures,
+  type ListerFeeAcceptance,
+  type ListerFeePolicy,
+} from "@/lib/money/lister-fee";
+import { fetchListerFeePolicy, recordListerFeeAcceptance } from "@/lib/money/lister-fee-actions";
 import {
   addPhoto,
   removePhoto,
@@ -17,7 +26,7 @@ import {
   setListingAccess,
   submitListing,
 } from "@/lib/agent/listings-actions";
-import type { OwnAnswers, WizardDraft } from "@/lib/agent/listings-queries";
+import type { ListingStatus, OwnAnswers, WizardDraft } from "@/lib/agent/listings-queries";
 import { BROADCAST_MONEY_KEYS, type BroadcastKey, type BroadcastParse } from "@/lib/agent/broadcast";
 import { BroadcastPaste } from "./BroadcastPaste";
 import { PriceGuidePanel, usePriceGuide } from "./PriceGuide";
@@ -65,7 +74,7 @@ import {
   type RentPeriod,
   type SaleStatus,
   type WaterSupply,
-} from "@/lib/agent/listings-schema";
+} from "@/lib/agent/listings-model";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { BackControl } from "@/components/ui/BackControl";
 import type { BrandIconName } from "@/design-system/icons/BrandIcon";
@@ -76,7 +85,7 @@ import { VideoWalkthrough, type WalkthroughVideo } from "@/components/agent/Vide
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Quantity } from "@/components/ui/Quantity";
 import { ListingSentForReview } from "./ListingSentForReview";
-import { SuccessSheet } from "@/components/ui/SuccessSheet";
+import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
 import { successCopy, type SuccessWords } from "@/lib/ui/success-moments";
 import { TextField, TextArea } from "@/components/ui/Field";
 import { CompoundQuestions } from "@/components/agent/CompoundQuestions";
@@ -88,6 +97,9 @@ import { FloodQuestion } from "@/components/agent/FloodQuestion";
 import type { Flooding } from "@/lib/around/pulse";
 import { EMPTY_UNIT_FORM, takesShape, unitPayload, type UnitForm } from "@/lib/listings/unit-shape";
 import { listingDraftKey } from "@/lib/agent/listing-draft-storage";
+import { ProgressPath } from "@/components/supply/ProgressPath";
+import { useDeviceStorage } from "@/components/supply/use-device-storage";
+import { Unfold } from "@/components/ui/Unfold";
 import { looksLikeStreetAddress, STREET_IN_TITLE_WARNING } from "@/lib/listings/public-title";
 import { tenantPreference } from "@/lib/safety/tenant-preference";
 import {
@@ -104,6 +116,9 @@ import { Icon3D } from "@/components/ui/Icon3D";
 import type { Icon3DName } from "@/components/ui/icon-3d";
 import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
 import { DetailGlyph } from "@/components/app/listing/DetailGlyph";
+import { feedback } from "@/lib/ui/feedback";
+import "@/app/css/catalogue.css";
+import "@/app/css/lister-publish.css";
 
 /**
  * The List Apartment wizard: eight steps, canon reference 03.
@@ -409,7 +424,7 @@ function Field({
       </span>
       {children}
       {error ? (
-        <span className="nf-body-sm mt-inline-tight block font-medium text-[var(--nf-state-error)]">
+        <span className="nf-body-sm mt-inline-tight block font-semibold text-[var(--nf-state-error)]">
           {error}
         </span>
       ) : hint ? (
@@ -542,6 +557,19 @@ const AMENITY_GLYPH: Record<string, UiIconName> = {
   breakfast: "utensils",
   workspace: "document",
 };
+
+/**
+ * The one refusal shake (lister-publish.css, `[data-refused]`), replayed on
+ * every refusal. The attribute is the DOM's, not React's, so taking it off and
+ * putting it back across a reflow restarts the animation without remounting
+ * the field the lister is typing in.
+ */
+function refuse(el: HTMLElement | null) {
+  if (!el) return;
+  el.removeAttribute("data-refused");
+  void el.offsetWidth;
+  el.setAttribute("data-refused", "");
+}
 
 /** The step header: title, one sentence, and the object where there is one. */
 function StepHead({
@@ -871,16 +899,17 @@ function FromMessageMark({
   return (
     <span className="ml-inline-tight inline-flex flex-wrap items-center gap-2xs align-middle" data-testid="from-message">
       <span className="nf-badge nf-badge--info">{tag}</span>
-      <button
-        type="button"
-        className="nf-btn nf-btn--ghost nf-btn--sm min-h-11"
+      <Button
+        variant="quiet"
+        size="sm"
+        className="min-h-11"
         onClick={(event) => {
           event.preventDefault();
           onConfirm();
         }}
       >
         {confirm}
-      </button>
+      </Button>
     </span>
   );
 }
@@ -906,6 +935,8 @@ export function ListingWizard({
   unitCopy,
   floodCopy,
   floodOpen = false,
+  feeGateBlocking = false,
+  initialFeePolicy,
   remainderCopy,
   moneyMapCopy,
   locale,
@@ -920,8 +951,26 @@ export function ListingWizard({
   initialUnconfirmed = [],
   shotsCopy,
   demandCopy,
+  pathCopy,
+  listerCopy,
+  sentFrom = null,
 }: {
-  /** The page's `t.success`, for "Your listing is in review". Absent, no sheet. */
+  /** Round 5: the publish moment's few words. Absent in older harnesses, which draw the card unlabelled. */
+  listerCopy?: Dictionary["experienceLister"];
+  /**
+   * A listing the page found already with the review team (`?id=` of one in
+   * SUBMITTED or UNDER_REVIEW): the wizard opens as the chain it became when
+   * it was sent, settled, rather than a lock screen. It is also what keeps the
+   * screen in place when sending revalidates this route (the page re-renders
+   * with the listing now in review, and this is the same component there).
+   */
+  sentFrom?: { status: ListingStatus; submittedAt: string | null } | null;
+  /**
+   * The progress path's words (reference 7110). Absent in the harnesses that
+   * photograph the governing screens, which then draw exactly what they did.
+   */
+  pathCopy?: Dictionary["experienceFeatures"]["wizard"];
+  /** The page's `t.success`, for "Your listing is in review" over the chain. */
   success?: SuccessWords;
   /** V-70: the shot list's words. Without them the shot list is not drawn. */
   shotsCopy?: Dictionary["afterTheGate"]["shots"];
@@ -963,6 +1012,18 @@ export function ListingWizard({
   floodCopy: Dictionary["shape"]["neighbours"];
   /** V-41 is behind a fail-closed flag; the question shows only when it is on. */
   floodOpen?: boolean;
+  /**
+   * D60: whether Send for review waits for a recorded fee acceptance
+   * (`lister_fee_gate_blocking`, read fail closed). The fee screen is drawn on
+   * the last step either way; off, which is the default, nothing waits.
+   */
+  feeGateBlocking?: boolean;
+  /**
+   * The fee rates as already read, for the harnesses that draw the last step
+   * without a server (the `startAt` pattern). The product passes nothing and
+   * the step reads them when it opens.
+   */
+  initialFeePolicy?: ListerFeePolicy | null;
   /** V-13: the sentence that refuses an unexplained remainder in the total. */
   remainderCopy?: Dictionary["afterTheGate"]["remainder"];
   /** V-46: the captions that say who each move-in line is paid to. */
@@ -984,9 +1045,18 @@ export function ListingWizard({
   startAt?: number;
 }) {
   const router = useRouter();
+  /* Whether the draft really lands on this device, so the path's autosave
+     line only says what is true. */
+  const deviceKeeps = useDeviceStorage() && listingDraftKey(userId) !== null;
   const [step, setStep] = useState(() =>
-    Math.min(Math.max(Math.trunc(startAt), 0), STEP_KEYS.length - 1),
+    sentFrom ? STEP_KEYS.length - 1 : Math.min(Math.max(Math.trunc(startAt), 0), STEP_KEYS.length - 1),
   );
+  /* Round 5: which way the lister is travelling, and whether anything has
+     moved yet. Both change in the same render as the step, so the step being
+     left never animates, and the first paint is still (lister-publish.css). */
+  const [travel, setTravel] = useState<{ dir: "forward" | "back"; moved: boolean }>({ dir: "forward", moved: false });
+  const railRef = useRef<HTMLDivElement | null>(null);
+  const cardRef = useRef<HTMLDivElement | null>(null);
   const [values, setValues] = useState<Values>(initial ? valuesFrom(initial) : EMPTY);
   /* The answer groups whose saved values could not be read (review 13). */
   const unread = useMemo(() => initial?.unread ?? [], [initial]);
@@ -1066,10 +1136,22 @@ export function ListingWizard({
       live = false;
     };
   }, []);
-  const [submitted, setSubmitted] = useState(false);
-  /* The success sheet over the "sent for review" screen, opened by the
-     action's own ok and closed by the person; the screen stays under it. */
-  const [celebrate, setCelebrate] = useState(false);
+  /*
+   * SENT: what the server said when it accepted the listing, and whether that
+   * happened in this sitting (`now`, which is what earns the arrival motion and
+   * the one medium haptic). Only ever set from the action's own ok or from the
+   * page's read of the stored row, so the chain never runs ahead of the truth.
+   */
+  const [sent, setSent] = useState<{ status: ListingStatus; at: string | null; now: boolean } | null>(() =>
+    sentFrom ? { status: sentFrom.status, at: sentFrom.submittedAt, now: false } : null,
+  );
+  /* D51, D60, D61: THE FEE SCREEN. The rates in force for this listing are
+     read when the submit step opens, and the screen is drawn above Send for
+     review. `undefined` is "not read yet"; null is "could not be read", which
+     the screen says in words. The acceptance is held here only while the
+     blocking flag is on: with it off there is no accept to hold. */
+  const [feePolicy, setFeePolicy] = useState<ListerFeePolicy | null | undefined>(initialFeePolicy);
+  const [feeAcceptance, setFeeAcceptance] = useState<ListerFeeAcceptance | null>(null);
   const [pending, startTransition] = useTransition();
   /** Whether the last `persist` reached the server and was accepted. */
   const lastSaveOk = useRef(true);
@@ -1115,6 +1197,23 @@ export function ListingWizard({
   /* The headline figure, resolved exactly the way the catalogue resolves it, so
      the preview card on step 7 shows the number a renter will see. */
   const priceMinor = forSale ? saleMinor : tenancy ? rentMinor : rateMinor;
+  const feeKind = forSale ? "sale" : tenancy ? "rent" : "stay";
+  /* Void the moment the price, the rate or the terms move: an acceptance is of figures. */
+  const feeAccepted = acceptanceMatches(feeAcceptance, listerFeeFigures(priceMinor, feePolicy ?? null), feePolicy ?? null);
+  const feeHolds = feeGateHoldsSend(feeGateBlocking, feeAccepted);
+  useEffect(() => {
+    /* Sent, the fee screen is gone and its rates are not read. */
+    if (step !== 7 || !listingId || sent) return;
+    let live = true;
+    void fetchListerFeePolicy(listingId)
+      .catch(() => null)
+      .then((policy) => {
+        if (live) setFeePolicy(policy);
+      });
+    return () => {
+      live = false;
+    };
+  }, [step, listingId, sent]);
 
   /* V-74: what similar homes in the area are asking, on the pricing step only. */
   const guideSubject = useMemo<GuideSubject>(
@@ -1390,7 +1489,8 @@ export function ListingWizard({
   }, [initial, userId]);
 
   useEffect(() => {
-    if (!restored.current) return;
+    /* A listing with the review team is not a draft to keep on the device. */
+    if (!restored.current || sent) return;
     const draftKey = listingDraftKey(userId);
     if (!draftKey) return;
     try {
@@ -1401,7 +1501,7 @@ export function ListingWizard({
     } catch {
       /* storage unavailable, the platform copy still holds */
     }
-  }, [listingId, values, chosenAmenities, userId]);
+  }, [listingId, values, chosenAmenities, userId, sent]);
 
   function set<K extends keyof Values>(key: K, value: Values[K]) {
     setValues((prev) => ({ ...prev, [key]: value }));
@@ -1627,10 +1727,14 @@ export function ListingWizard({
       titleGateOpen.current = true;
       setFieldErrors((prev) => ({ ...prev, title: gateText("title", titleIssue.message) }));
       /* On a phone the title sits far above Next, so the refusal was
-         happening off screen. Bring the field and its sentence into view. */
+         happening off screen. The refusal is immediate (CRAFT_DOCTRINE 5):
+         focusing the field brings it into view in one move, above the sticky
+         bar (its scroll margin), where a smooth scroll to the centre used to
+         race the keyboard opening. The field shakes once and says why. */
       const field = document.getElementById("listing-title-field");
-      field?.scrollIntoView({ behavior: "smooth", block: "center" });
-      field?.querySelector("input")?.focus({ preventScroll: true });
+      refuse(field);
+      field?.querySelector("input")?.focus();
+      feedback("error");
       startTransition(async () => {
         await persist();
       });
@@ -1644,13 +1748,32 @@ export function ListingWizard({
          on a step no longer shown, and every later autosave failed on the
          same field. Stay, and show why. Going back is always allowed. */
       if (!lastSaveOk.current && target > step) {
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        /* The refusal is at the top: shown at once, never scrolled to slowly. */
+        window.scrollTo({ top: 0, behavior: "instant" });
+        feedback("error");
         return;
       }
+      setTravel({ dir: target < step ? "back" : "forward", moved: true });
       setStep(target);
-      window.scrollTo({ top: 0, behavior: "smooth" });
     });
   }
+
+  /* The new step is put in view BEFORE it paints, and only when the rail has
+     gone above the fold: a smooth scroll here used to run under the step's own
+     arrival, two motions for one change. */
+  useLayoutEffect(() => {
+    if (!travel.moved) return;
+    const rail = railRef.current;
+    if (rail && rail.getBoundingClientRect().top < 0) window.scrollTo({ top: 0, behavior: "instant" });
+  }, [step, travel.moved]);
+
+  /* Sent: the checklist, the fee screen and the button are gone from under
+     the lister's thumb, so the page is put on the card, before it paints, and
+     the card lands there (lister-publish.css). One move, to the subject. */
+  const sentNow = sent?.now === true;
+  useLayoutEffect(() => {
+    if (sentNow) cardRef.current?.scrollIntoView({ block: "start", behavior: "instant" });
+  }, [sentNow]);
 
   /* --------------------------------------------------------------- photos */
 
@@ -1774,7 +1897,14 @@ export function ListingWizard({
         return;
       }
 
-      const supabase = createClient();
+      /* The browser client loads now, when photos are chosen, not with the
+         wizard (lib/supabase/load-client.ts). A chunk that cannot be fetched
+         is the upload failure the wizard already says for a photo. */
+      const supabase = await loadBrowserClient();
+      if (!supabase) {
+        setPhotoNotice(copy.photos.uploadFailed);
+        return;
+      }
       let slot = photos.length;
       /*
        * ONE LINE PER REFUSED FILE. A single notice was overwritten by every
@@ -1977,11 +2107,24 @@ export function ListingWizard({
         setNotice(canPersist ? copy.submit.needsTitle : copy.submit.needsKeys);
         return;
       }
+      /* D60: ONLY WITH THE BLOCKING FLAG ON is the acceptance recorded first,
+         and a listing whose acceptance was not recorded is not sent (D51).
+         With it off nothing is recorded and nothing waits. */
+      if (feeGateBlocking) {
+        if (!feeAcceptance || !feeAccepted) return;
+        const recorded = await recordListerFeeAcceptance({ listingId: id, ...feeAcceptance }).catch(() => null);
+        if (!recorded || !recorded.ok) {
+          setNotice(recorded && !recorded.ok ? recorded.error : copy.wizard.saveUnreached);
+          if (recorded && !recorded.ok) setFeeAcceptance(null);
+          return;
+        }
+      }
       let result: Awaited<ReturnType<typeof submitListing>>;
       try {
         result = await submitListing({ listingId: id });
       } catch {
         setNotice(copy.wizard.saveUnreached);
+        feedback("error");
         return;
       }
       if (!result.ok) {
@@ -1993,12 +2136,19 @@ export function ListingWizard({
         const reasons = Object.entries(result.fieldErrors ?? {}).map(([field, message]) => gateText(field, message));
         setNotice([result.error, ...new Set(reasons)].join(" "));
         setFieldErrors(result.fieldErrors ?? {});
+        feedback("error");
         return;
       }
       setNotice(null);
       setFieldErrors({});
-      setSubmitted(true);
-      setCelebrate(true);
+      /* ACCEPTED, and only now: the card the lister built stays where it is,
+         its status turns to the server's word, the step's controls give way to
+         the chain, and the hand feels one medium beat because a commit was
+         accepted. Nothing pops and nothing is heavy: the listing is not live,
+         and the payoff waits for the day it is (lister-live). */
+      setSent({ status: result.data.status, at: result.data.submittedAt ?? null, now: true });
+      setTravel((prev) => ({ ...prev, moved: true }));
+      feedback("confirm");
       try {
         const draftKey = listingDraftKey(userId);
         if (draftKey) localStorage.removeItem(draftKey);
@@ -2011,31 +2161,125 @@ export function ListingWizard({
 
   /* ----------------------------------------------------------- the render */
 
-  if (submitted) {
-    const words = success ? successCopy(success, "listingSubmitted") : null;
-    return (
-      <>
-        <ListingSentForReview copy={copy} reference={reference} />
-        {success && words ? (
-        <SuccessSheet
-          open={celebrate}
-          onOpenChange={setCelebrate}
-          variant={words.variant}
-          object={words.object}
-          title={words.title}
-          body={words.body}
-          primary={{ label: success.continue }}
-        />
-        ) : null}
-      </>
-    );
-  }
-
   const price = priceMinor > 0 ? formatMoney(priceMinor, locale) : null;
   const stateName = states.find((s) => s.code === values.stateCode)?.name ?? "";
+  const sentWords = success ? successCopy(success, "listingSubmitted") : null;
+  /*
+   * THE CARD AS A MEMBER WILL SEE IT, built from the lister's own work: the
+   * cover photo, the title, the place, the price. Step 7 shows it too, and
+   * once the listing is sent it is the same element that stays on screen
+   * while everything around it changes (round 5): the lister watches THIS
+   * card go to review, not a confirmation page that replaced it.
+   */
+  const memberCard = (
+    <article className="nf-panel nf-panel--card block overflow-hidden" data-testid="member-card">
+      <div className="relative aspect-[4/3] w-full overflow-hidden bg-[var(--nf-surface-raised)]">
+        {photos[0] ? (
+          /* The guest view's cover: one wide 4:3 plate, so it earns a
+             larger candidate than the grid above it. */
+          <RemoteImage
+            src={photos[0].url}
+            alt=""
+            width={960}
+            height={720}
+            sizes="(max-width: 48rem) 100vw, 30rem"
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <div className="grid h-full w-full place-items-center text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+            {copy.guestView.addPhotos}
+          </div>
+        )}
+        <div
+          /* The platform scrim, not a hand-rolled black gradient. One
+             definition, used by the listing card and the gallery too, so
+             a preview of a card matches the card it previews. */
+          className="absolute inset-x-0 bottom-0 h-20"
+          style={{ backgroundImage: "var(--nf-scrim-media)" }}
+          aria-hidden="true"
+        />
+        {/* One badge, and which one it is says which market this is. The
+            instant-book badge is gone with the column behind it. */}
+        {forSale ? (
+          <span className="nf-badge nf-badge--warning absolute left-3 top-3">
+            For sale
+          </span>
+        ) : rental ? (
+          <span className="nf-badge nf-badge--brand absolute left-3 top-3">
+            {copy.guestView.rentBadge}
+          </span>
+        ) : null}
+        {/*
+          ON MEDIA, WHICH IS ITS OWN TOKEN FAMILY.
+
+          This line sits on the listing's own photograph, so it is not
+          a dark-theme colour and it is not a light-theme colour: it is
+          ink on somebody's picture, in both themes, and
+          `--nf-content-on-media` is the token that says so. The
+          `text-white/90` and `text-white/70` it replaces happened to
+          look right and could never follow a theme, which is exactly
+          the distinction the on-media family exists to hold.
+        */}
+        <p className="nf-body-sm absolute bottom-3 left-3 right-3 flex items-center gap-inline-tight font-semibold text-[var(--nf-content-on-media)]">
+          <UiIcon
+            name="location"
+            size={12}
+            className="shrink-0 text-[var(--nf-content-on-media-muted)]"
+          />
+          <span className="truncate">
+            {[values.area, values.city, stateName].filter(Boolean).join(", ") ||
+              copy.guestView.locationPlaceholder}
+          </span>
+        </p>
+      </div>
+      <div className="p-card">
+        <h3 className="text-[length:var(--nf-text-body-sm)] font-semibold leading-snug">
+          {values.title || copy.guestView.titlePlaceholder}
+        </h3>
+        <p className="nf-body-sm mt-inline-tight text-[var(--nf-content-muted)]">
+          {/* The dictionary sentence names a guest count this model no
+              longer has, so the preview states the two facts it does
+              hold rather than printing a number nothing stores. */}
+          {[
+            `${values.bedrooms} bed`,
+            `${values.bathrooms} bath`,
+            values.toilets ? `${values.toilets} toilet` : null,
+            values.sizeSqm ? `${values.sizeSqm} sqm` : null,
+          ]
+            .filter(Boolean)
+            .join(" · ")}
+        </p>
+        <p className="mt-inline flex items-baseline gap-inline-tight">
+          <span className="nf-numeric text-[length:var(--nf-text-body-lg)] font-bold">
+            {price ?? copy.guestView.priceToSet}
+          </span>
+          <span className="text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+            {pricePeriod}
+          </span>
+        </p>
+        {chosenAmenities.length > 0 && (
+          <p className="nf-body-sm mt-inline text-[var(--nf-content-secondary)]">
+            {chosenAmenities
+              .map(
+                (code) =>
+                  amenityNames[code] ??
+                  amenities.find((a) => a.code === code)?.label ??
+                  code,
+              )
+              .slice(0, 4)
+              .join(" · ")}
+          </p>
+        )}
+      </div>
+    </article>
+  );
 
   return (
-    <div className="mx-auto max-w-2xl pb-[calc(6.5rem+env(safe-area-inset-bottom))]">
+    <div
+      className="nf-lw-wizard mx-auto max-w-2xl pb-[calc(6.5rem+env(safe-area-inset-bottom))]"
+      data-dir={travel.dir}
+      data-moved={travel.moved ? "" : undefined}
+    >
       {/*
         THE RAIL, DRAWN AS THE THREE GOVERNING IMAGES DRAW IT.
 
@@ -2052,10 +2296,10 @@ export function ListingWizard({
         44pt buttons laid OVER a 10px bar, rather than 10px tap targets on the
         control that undoes a wrong turn.
       */}
-      <div className="nf-lw-rail py-lg">
+      <div className="nf-lw-rail py-lg" ref={railRef}>
         <BackControl
           onBack={() => go(step - 1)}
-          disabled={step === 0 || pending}
+          disabled={step === 0 || pending || Boolean(sent)}
           label={copy.wizard.back}
           className="nf-lw-back"
         />
@@ -2089,7 +2333,7 @@ export function ListingWizard({
                 <button
                   type="button"
                   onClick={() => index <= step && go(index)}
-                  disabled={index > step || pending}
+                  disabled={index > step || pending || Boolean(sent)}
                   aria-current={index === step ? "step" : undefined}
                   aria-label={fill(copy.wizard.stepAria, { number: index + 1, name })}
                   className="block h-full w-full"
@@ -2100,18 +2344,62 @@ export function ListingWizard({
         </div>
       </div>
 
+      {/* THE PROGRESS PATH (reference 7110): every step on one path, done ones
+          a tap away, with the autosave said only as far as it is true. Folded
+          under the rail so the step itself stays the subject; the rail and
+          the steps are unchanged (D28). */}
+      {pathCopy && !sent ? (
+        <Unfold
+          className="mb-group"
+          headingLevel={2}
+          items={[
+            {
+              id: "path",
+              icon: "clipboard-list",
+              title: pathCopy.allSteps,
+              hint: [
+                fill(pathCopy.stepOf, { n: step + 1, total: STEP_KEYS.length }),
+                deviceKeeps && canPersist
+                  ? pathCopy.savedBoth
+                  : deviceKeeps
+                    ? pathCopy.savedDevice
+                    : canPersist
+                      ? pathCopy.savedAccount
+                      : null,
+              ]
+                .filter(Boolean)
+                .join(" "),
+              content: (
+                <ProgressPath
+                  steps={stepNames.map((name, index) => ({ id: STEP_KEYS[index] ?? name, label: name }))}
+                  at={step}
+                  onJump={(index) => go(index)}
+                  disabled={pending}
+                  copy={{ done: pathCopy.done, current: pathCopy.current, upcoming: pathCopy.upcoming }}
+                />
+              ),
+            },
+          ]}
+        />
+      ) : null}
+
       {/* The title and its one sentence, with the step's object on the right.
           The "3 of 8" counter is gone from the picture and kept in the rail's
           accessible name, which is where the renders put that information:
           the row of rectangles says it to a sighted reader already. */}
       <StepHead
         /* Keyed by the step (Track M), so the title and its object arrive
-           fresh on every step instead of changing in place. */
-        key={stepKey || step}
-        title={(stepKey && copy.drawn.titles[stepKey]) || (stepNames[step] ?? "")}
-        sub={stepKey && copy.drawn.subtitles[stepKey]}
-        object={stepKey && STEP_OBJECT[stepKey]}
-        art={stepKey && STEP_ART[stepKey]}
+           fresh on every step instead of changing in place; and keyed again
+           once sent, so the verdict arrives the same way. */
+        key={sent ? "sent" : stepKey || step}
+        title={
+          sent
+            ? (sentWords?.title ?? copy.submitted.title)
+            : (stepKey && copy.drawn.titles[stepKey]) || (stepNames[step] ?? "")
+        }
+        sub={sent ? (sentWords?.body ?? copy.submitted.body) : stepKey && copy.drawn.subtitles[stepKey]}
+        object={sent ? undefined : stepKey && STEP_OBJECT[stepKey]}
+        art={sent ? undefined : stepKey && STEP_ART[stepKey]}
       />
 
       {!canPersist && (
@@ -2120,7 +2408,9 @@ export function ListingWizard({
         </div>
       )}
 
-      {notice && (
+      {/* On the last step a refusal is said beside Send for review, where the
+          lister's thumb is, rather than at the top of a long step. */}
+      {notice && step !== STEP_KEYS.length - 1 && (
         <div className="mt-group">
           <Note glyph="flag" role="status">
             {notice}
@@ -2354,7 +2644,7 @@ export function ListingWizard({
                     placeholder="150"
                   />
                   {fieldErrors.sizeSqm && (
-                    <span className="nf-body-sm mt-inline-tight block font-medium text-[var(--nf-state-error)]">
+                    <span className="nf-body-sm mt-inline-tight block font-semibold text-[var(--nf-state-error)]">
                       {fieldErrors.sizeSqm}
                     </span>
                   )}
@@ -2406,7 +2696,7 @@ export function ListingWizard({
                     />
                   </div>
                   {(fieldErrors.floor || fieldErrors.totalFloors) && (
-                    <span className="nf-body-sm mt-inline-tight block font-medium text-[var(--nf-state-error)]">
+                    <span className="nf-body-sm mt-inline-tight block font-semibold text-[var(--nf-state-error)]">
                       {fieldErrors.floor ?? fieldErrors.totalFloors}
                     </span>
                   )}
@@ -2672,7 +2962,7 @@ export function ListingWizard({
           <div>
             <Note>{copy.amenities.intro}</Note>
             {fieldErrors.amenities && (
-              <p className="nf-body-sm mt-row font-medium text-[var(--nf-state-error)]">
+              <p className="nf-body-sm mt-row font-semibold text-[var(--nf-state-error)]">
                 {fieldErrors.amenities}
               </p>
             )}
@@ -2795,7 +3085,7 @@ export function ListingWizard({
                   onChange={(v) => set("powerBackupHours", String(v))}
                 />
                 {fieldErrors.powerBackupHours ? (
-                  <span className="nf-body-sm mt-inline-tight block font-medium text-[var(--nf-state-error)]">
+                  <span className="nf-body-sm mt-inline-tight block font-semibold text-[var(--nf-state-error)]">
                     {fieldErrors.powerBackupHours}
                   </span>
                 ) : (
@@ -3153,7 +3443,7 @@ export function ListingWizard({
                       "A buyer will ask before anything else. Answering here saves both of you a journey."}
                   </p>
                   {fieldErrors.tenure && (
-                    <p className="nf-body-sm mt-inline-tight font-medium text-[var(--nf-state-error)]">
+                    <p className="nf-body-sm mt-inline-tight font-semibold text-[var(--nf-state-error)]">
                       {fieldErrors.tenure}
                     </p>
                   )}
@@ -3526,106 +3816,7 @@ export function ListingWizard({
                 <DraftMatches listingId={listingId} copy={demandCopy} />
               </div>
             )}
-            <article className="nf-panel nf-panel--card block mt-group overflow-hidden">
-              <div className="relative aspect-[4/3] w-full overflow-hidden bg-[var(--nf-surface-raised)]">
-                {photos[0] ? (
-                  /* The guest view's cover: one wide 4:3 plate, so it earns a
-                     larger candidate than the grid above it. */
-                  <RemoteImage
-                    src={photos[0].url}
-                    alt=""
-                    width={960}
-                    height={720}
-                    sizes="(max-width: 48rem) 100vw, 30rem"
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="grid h-full w-full place-items-center text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
-                    {copy.guestView.addPhotos}
-                  </div>
-                )}
-                <div
-                  /* The platform scrim, not a hand-rolled black gradient. One
-                     definition, used by the listing card and the gallery too, so
-                     a preview of a card matches the card it previews. */
-                  className="absolute inset-x-0 bottom-0 h-20"
-                  style={{ backgroundImage: "var(--nf-scrim-media)" }}
-                  aria-hidden="true"
-                />
-                {/* One badge, and which one it is says which market this is. The
-                    instant-book badge is gone with the column behind it. */}
-                {forSale ? (
-                  <span className="nf-badge nf-badge--warning absolute left-3 top-3">
-                    For sale
-                  </span>
-                ) : rental ? (
-                  <span className="nf-badge nf-badge--brand absolute left-3 top-3">
-                    {copy.guestView.rentBadge}
-                  </span>
-                ) : null}
-                {/*
-                  ON MEDIA, WHICH IS ITS OWN TOKEN FAMILY.
-
-                  This line sits on the listing's own photograph, so it is not
-                  a dark-theme colour and it is not a light-theme colour: it is
-                  ink on somebody's picture, in both themes, and
-                  `--nf-content-on-media` is the token that says so. The
-                  `text-white/90` and `text-white/70` it replaces happened to
-                  look right and could never follow a theme, which is exactly
-                  the distinction the on-media family exists to hold.
-                */}
-                <p className="nf-body-sm absolute bottom-3 left-3 right-3 flex items-center gap-inline-tight font-medium text-[var(--nf-content-on-media)]">
-                  <UiIcon
-                    name="location"
-                    size={12}
-                    className="shrink-0 text-[var(--nf-content-on-media-muted)]"
-                  />
-                  <span className="truncate">
-                    {[values.area, values.city, stateName].filter(Boolean).join(", ") ||
-                      copy.guestView.locationPlaceholder}
-                  </span>
-                </p>
-              </div>
-              <div className="p-card">
-                <h3 className="text-[length:var(--nf-text-body-sm)] font-semibold leading-snug">
-                  {values.title || copy.guestView.titlePlaceholder}
-                </h3>
-                <p className="nf-body-sm mt-inline-tight text-[var(--nf-content-muted)]">
-                  {/* The dictionary sentence names a guest count this model no
-                      longer has, so the preview states the two facts it does
-                      hold rather than printing a number nothing stores. */}
-                  {[
-                    `${values.bedrooms} bed`,
-                    `${values.bathrooms} bath`,
-                    values.toilets ? `${values.toilets} toilet` : null,
-                    values.sizeSqm ? `${values.sizeSqm} sqm` : null,
-                  ]
-                    .filter(Boolean)
-                    .join(" · ")}
-                </p>
-                <p className="mt-inline flex items-baseline gap-inline-tight">
-                  <span className="nf-numeric text-[length:var(--nf-text-body-lg)] font-bold">
-                    {price ?? copy.guestView.priceToSet}
-                  </span>
-                  <span className="text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
-                    {pricePeriod}
-                  </span>
-                </p>
-                {chosenAmenities.length > 0 && (
-                  <p className="nf-body-sm mt-inline text-[var(--nf-content-secondary)]">
-                    {chosenAmenities
-                      .map(
-                        (code) =>
-                          amenityNames[code] ??
-                          amenities.find((a) => a.code === code)?.label ??
-                          code,
-                      )
-                      .slice(0, 4)
-                      .join(" · ")}
-                  </p>
-                )}
-              </div>
-            </article>
+            <div className="mt-group">{memberCard}</div>
             <p className="nf-body-sm mt-group whitespace-pre-line leading-relaxed text-[var(--nf-content-secondary)]">
               {values.description || copy.guestView.descriptionPlaceholder}
             </p>
@@ -3742,110 +3933,162 @@ export function ListingWizard({
 
         {/* -------------------------------------------------------- 7 submit */}
         {step === 7 && (
-          <div>
-            <h2 className="nf-h3">{copy.submit.title}</h2>
-            <p className="nf-body-sm mt-inline leading-relaxed text-[var(--nf-content-secondary)]">
-              {copy.submit.body}
-            </p>
+          <div className="nf-lw-publish" data-sent={sent ? (sent.now ? "now" : "settled") : undefined}>
+            {/* The card heads the last step, so what is being sent is in view
+                as it is sent; its status is the workspace's word for where it
+                stands, the server's once it has answered. Keyed so the word
+                crossfades as it turns. */}
+            <div className="nf-lw-publish__label">
+              <p className="nf-label">{listerCopy?.publish.cardLabel ?? copy.guestView.intro}</p>
+              <span key={sent?.status ?? "DRAFT"} className="nf-lw-publish__status" data-testid="member-card-status">
+                <StatusPill tone={toneForStatus(sent?.status ?? "DRAFT")}>
+                  {copy.workspace.status[sent?.status ?? "DRAFT"]}
+                </StatusPill>
+              </span>
+            </div>
+            <div className="nf-lw-publish__card mt-row" ref={cardRef}>
+              {memberCard}
+            </div>
+            {sent ? (
+              <ListingSentForReview
+                copy={copy}
+                reference={reference}
+                lister={listerCopy}
+                status={sent.status}
+                submittedAt={sent.at}
+                locale={locale}
+              />
+            ) : (
+              <div className="nf-lw-publish__send mt-heading">
+                <h2 className="nf-h3">{copy.submit.title}</h2>
+                <p className="nf-body-sm mt-inline leading-relaxed text-[var(--nf-content-secondary)]">
+                  {copy.submit.body}
+                </p>
 
-            <ul className="mt-group space-y-row">
-              {/*
-                EVERY UNMET REQUIREMENT HAS A ROW. The rows used to be keyed by
-                one field each, and the "price" row by a field the gate never
-                reports: an unset rent, rate, sale price, tenure or period, or
-                a missing unit shape or bedroom count, disabled Send for review
-                while every row showed green. A row now owns every gate field
-                it stands for, and anything the gate reports that no row owns
-                gets a row of its own, so the button is never disabled with
-                nothing on screen saying why.
-              */}
-              {withUncovered([
-                { field: "title", label: copy.submit.checklist.title },
-                {
-                  field: "description",
-                  label: fill(copy.submit.checklist.description, { min: MIN_DESCRIPTION_WORDS }),
-                },
-                {
-                  field: "photos",
-                  label: fill(copy.submit.checklist.photos, { min: MIN_PHOTOS }),
-                },
-                { field: "stateCode", label: copy.submit.checklist.stateCode },
-                { field: "city", label: copy.submit.checklist.city },
-                { field: "area", label: copy.submit.checklist.area },
-                { field: "amenities", label: copy.submit.checklist.amenities },
-                {
-                  field: "price",
-                  covers: ["rent", "rentPeriod", "rate", "ratePeriod", "salePrice", "tenure"],
-                  label: rental
-                    ? copy.submit.checklist.priceYear
-                    : copy.submit.checklist.priceNight,
-                },
-                {
-                  field: "bathrooms",
-                  covers: ["bathrooms", "bedrooms", "unitShape"],
-                  label: copy.submit.checklist.rooms,
-                },
-                ...(remainderCopy && unmet.some((u) => u.field === "totalMoveIn")
-                  ? [{ field: "totalMoveIn", label: remainderCopy.gateShort }]
-                  : []),
-              ]).map((item) => {
-                const problem = unmet.find((u) => (item.covers ?? [item.field]).includes(u.field));
-                return (
-                  <li key={item.field} className="flex items-start gap-row">
-                    <span
-                      className="mt-inline-tight grid h-5 w-5 shrink-0 place-items-center rounded-full"
-                      style={{
-                        background: problem
-                          ? "var(--nf-state-warning-surface)"
-                          : "var(--nf-state-success-surface)",
-                        color: problem ? "var(--nf-state-warning)" : "var(--nf-state-success)",
-                      }}
-                    >
-                      <UiIcon name="verified" size={12} />
-                    </span>
-                    <span className="min-w-0 leading-snug">
-                      <span className="block text-[length:var(--nf-text-body-sm)] font-medium">{item.label}</span>
-                      {problem && (
-                        <span className="block text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
-                          {gateText(problem.field, problem.message)}
+                <ul className="mt-group space-y-row">
+                  {/*
+                    EVERY UNMET REQUIREMENT HAS A ROW. The rows used to be keyed by
+                    one field each, and the "price" row by a field the gate never
+                    reports: an unset rent, rate, sale price, tenure or period, or
+                    a missing unit shape or bedroom count, disabled Send for review
+                    while every row showed green. A row now owns every gate field
+                    it stands for, and anything the gate reports that no row owns
+                    gets a row of its own, so the button is never disabled with
+                    nothing on screen saying why.
+                  */}
+                  {withUncovered([
+                    { field: "title", label: copy.submit.checklist.title },
+                    {
+                      field: "description",
+                      label: fill(copy.submit.checklist.description, { min: MIN_DESCRIPTION_WORDS }),
+                    },
+                    {
+                      field: "photos",
+                      label: fill(copy.submit.checklist.photos, { min: MIN_PHOTOS }),
+                    },
+                    { field: "stateCode", label: copy.submit.checklist.stateCode },
+                    { field: "city", label: copy.submit.checklist.city },
+                    { field: "area", label: copy.submit.checklist.area },
+                    { field: "amenities", label: copy.submit.checklist.amenities },
+                    {
+                      field: "price",
+                      covers: ["rent", "rentPeriod", "rate", "ratePeriod", "salePrice", "tenure"],
+                      label: rental
+                        ? copy.submit.checklist.priceYear
+                        : copy.submit.checklist.priceNight,
+                    },
+                    {
+                      field: "bathrooms",
+                      covers: ["bathrooms", "bedrooms", "unitShape"],
+                      label: copy.submit.checklist.rooms,
+                    },
+                    ...(remainderCopy && unmet.some((u) => u.field === "totalMoveIn")
+                      ? [{ field: "totalMoveIn", label: remainderCopy.gateShort }]
+                      : []),
+                  ]).map((item) => {
+                    const problem = unmet.find((u) => (item.covers ?? [item.field]).includes(u.field));
+                    return (
+                      <li key={item.field} className="flex items-start gap-row">
+                        <span
+                          className="mt-inline-tight grid h-5 w-5 shrink-0 place-items-center rounded-full"
+                          style={{
+                            background: problem
+                              ? "var(--nf-state-warning-surface)"
+                              : "var(--nf-state-success-surface)",
+                            color: problem ? "var(--nf-state-warning)" : "var(--nf-state-success)",
+                          }}
+                        >
+                          <UiIcon name="verified" size={12} />
                         </span>
-                      )}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-
-            {broadcastCopy && marksUnread && (
-              <p className="nf-body-sm mt-heading text-[var(--nf-content-secondary)]" role="status" data-testid="broadcast-unread">
-                {broadcastCopy.marksUnreachable}
-              </p>
-            )}
-            {broadcastCopy && unconfirmedMoney.length > 0 && (
-              <div className="mt-heading" role="status" data-testid="broadcast-confirm">
-                <p className="nf-body-sm font-semibold text-[var(--nf-content-primary)]">
-                  {broadcastCopy.confirmTitle}
-                </p>
-                <p className="nf-body-sm mt-inline-tight text-[var(--nf-content-secondary)]">
-                  {fill(broadcastCopy.confirmBody, {
-                    fields: unconfirmedMoney.map((key) => broadcastCopy.fields[key]).join(", "),
+                        <span className="min-w-0 leading-snug">
+                          <span className="block text-[length:var(--nf-text-body-sm)] font-semibold">{item.label}</span>
+                          {problem && (
+                            <span className="block text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+                              {gateText(problem.field, problem.message)}
+                            </span>
+                          )}
+                        </span>
+                      </li>
+                    );
                   })}
+                </ul>
+
+                {broadcastCopy && marksUnread && (
+                  <p className="nf-body-sm mt-heading text-[var(--nf-content-secondary)]" role="status" data-testid="broadcast-unread">
+                    {broadcastCopy.marksUnreachable}
+                  </p>
+                )}
+                {broadcastCopy && unconfirmedMoney.length > 0 && (
+                  <div className="mt-heading" role="status" data-testid="broadcast-confirm">
+                    <p className="nf-body-sm font-semibold text-[var(--nf-content-primary)]">
+                      {broadcastCopy.confirmTitle}
+                    </p>
+                    <p className="nf-body-sm mt-inline-tight text-[var(--nf-content-secondary)]">
+                      {fill(broadcastCopy.confirmBody, {
+                        fields: unconfirmedMoney.map((key) => broadcastCopy.fields[key]).join(", "),
+                      })}
+                    </p>
+                  </div>
+                )}
+                {/* Drawn once the read has answered (or when there is no saved
+                    listing to read for), so "cannot show" never flashes first. */}
+                {(feePolicy !== undefined || !listingId) && (
+                  <div className="mt-heading">
+                    <ListerFeeGate
+                      kind={feeKind}
+                      priceMinor={priceMinor > 0 ? priceMinor : null}
+                      policy={feePolicy ?? null}
+                      locale={locale}
+                      blocking={feeGateBlocking}
+                      accepted={feeAcceptance}
+                      onAcceptedChange={setFeeAcceptance}
+                    />
+                  </div>
+                )}
+                {notice && (
+                  <div className="mt-heading" data-testid="send-refused">
+                    <Note glyph="flag" role="status">
+                      {notice}
+                    </Note>
+                  </div>
+                )}
+                <Button
+                  variant="primary"
+                  full
+                  className="mt-heading"
+                  onClick={send}
+                  disabled={unmet.length > 0 || unconfirmedMoney.length > 0 || marksUnread || feeHolds}
+                  data-testid="listing-send"
+                  loading={pending}
+                >
+                  {copy.submit.action}
+                </Button>
+                <p className="nf-body-sm mt-row text-center text-[var(--nf-content-muted)]">
+                  {copy.submit.note}
                 </p>
+
               </div>
             )}
-            <Button
-              variant="primary"
-              full
-              className="mt-heading"
-              onClick={send}
-              disabled={unmet.length > 0 || unconfirmedMoney.length > 0 || marksUnread}
-              loading={pending}
-            >
-              {copy.submit.action}
-            </Button>
-            <p className="nf-body-sm mt-row text-center text-[var(--nf-content-muted)]">
-              {copy.submit.note}
-            </p>
           </div>
         )}
       </div>
@@ -3859,6 +4102,21 @@ export function ListingWizard({
       {/* Sticky step footer: the way forward never moves. */}
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--nf-border-subtle)] bg-[var(--nf-surface-primary)] px-gutter pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-row lg:left-[var(--nf-rail-width)]">
         <div className="mx-auto flex max-w-2xl items-center gap-md">
+          {sent ? (
+            /* Sent: the bar stays where it was and offers the two ways on.
+               "List another" is the one control on the platform that means a
+               blank wizard, so it says so (`?new=1`); bare /agent/list would
+               resume an open draft. */
+            <>
+              <ButtonLink href="/agent/list?new=1" variant="secondary" className="flex-1">
+                {copy.submitted.another}
+              </ButtonLink>
+              <ButtonLink href="/agent/listings" variant="primary" className="flex-1">
+                {copy.submitted.goToListings}
+              </ButtonLink>
+            </>
+          ) : (
+          <>
           <Button
             variant="secondary"
             className="flex-1"
@@ -3880,6 +4138,8 @@ export function ListingWizard({
             <ButtonLink href="/agent/listings" variant="secondary" className="flex-1">
               {copy.wizard.myListings}
             </ButtonLink>
+          )}
+          </>
           )}
         </div>
       </div>

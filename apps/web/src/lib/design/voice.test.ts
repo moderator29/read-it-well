@@ -108,7 +108,16 @@ describe("the State kit and the old families", () => {
       stateCopyProblems({ kind: "offline", title: copy.offlineTitle, body: copy.offlineBody, actions: ["Try again", "Back to home"] }),
     ).toEqual([]);
     expect(src("app/(app)/error.tsx")).toContain("<StateMoment");
-    expect(src("app/offline/page.tsx")).toContain("<StateMoment");
+    /* The offline page is the one full-screen state that is NOT drawn through
+       `StateMoment` any more (W11, 6 October 2026, north star 10 L): it is the
+       navy ground, one Island and one action, the same card the packaged shell
+       draws, so it has its own screen (`OfflineScreen`) and its own words
+       (`experienceEntry.offline*`), still in the kit's voice. */
+    expect(src("app/offline/page.tsx")).toContain("<OfflineScreen");
+    const offlineCopy = getDictionary("en").experienceEntry;
+    expect(
+      stateCopyProblems({ kind: "offline", title: offlineCopy.offlineTitle, body: offlineCopy.offlineBody, actions: [offlineCopy.offlineRetry] }),
+    ).toEqual([]);
     expect(bannedPhrasesIn(src("app/(app)/error.tsx"))).toEqual([]);
   });
 

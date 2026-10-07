@@ -2,6 +2,7 @@
 
 import { useActionState, useId, useState, useMemo } from "react";
 import Link from "next/link";
+import { withNext } from "@/lib/auth/next-link";
 import { plural, type Locale } from "@vallo/i18n/core";
 import { useClientCopy } from "@/lib/i18n/client-copy";
 import { reserve, type ReserveReceipt } from "@/lib/bookings/actions";
@@ -118,17 +119,19 @@ function Stepper({
           </span>
         </button>
         <span className="nf-numeric w-5 text-center nf-body font-semibold">{value}</span>
-        <button
-          type="button"
+        <Button
+          variant="glass"
+          size="sm"
+          iconOnly
           aria-label={`More ${label.toLowerCase()}`}
           disabled={value >= max}
           onClick={() => onChange(Math.min(max, value + 1))}
-          className="nf-btn nf-btn--glass nf-btn--sm nf-btn--icon h-9 w-9 rounded-[var(--nf-radius-sm)] disabled:opacity-40"
+          className="h-9 w-9 rounded-[var(--nf-radius-sm)] disabled:opacity-40"
         >
           <span aria-hidden="true" className="text-[length:var(--nf-text-body)] leading-none">
             +
           </span>
-        </button>
+        </Button>
       </span>
       <input type="hidden" name={name} value={value} />
     </div>
@@ -248,6 +251,7 @@ export function ReservePanel({
             if (!open) setSuccessClosed(true);
           }}
           variant={words.variant}
+          haptic={words.haptic}
           object={words.object}
           title={words.title}
           body={words.body}
@@ -353,7 +357,7 @@ export function ReservePanel({
             */
             suffix="/ night"
             className="text-[1.5rem] font-bold leading-none tracking-tight text-[var(--nf-content-primary)]"
-            secondaryClassName="text-[0.54em] font-semibold opacity-60"
+            secondaryClassName="text-[length:max(0.54em,0.75rem)] font-semibold opacity-60"
           />
         </p>
 
@@ -650,7 +654,7 @@ export function ReservePanel({
                 currency={currency}
                 suffix="total"
                 className="nf-lede font-bold text-[var(--nf-content-primary)]"
-                secondaryClassName="nf-body-sm font-medium text-[var(--nf-content-muted)]"
+                secondaryClassName="nf-body-sm font-normal text-[var(--nf-content-muted)]"
               />
               {/* The 44px floor DRAWN, not faked (the system's tertiary). This
                   was a 17px-tall link with a `before:-inset-2` overlay that
@@ -720,7 +724,7 @@ export function ReservePanel({
             {state.error}
             {state.error.startsWith("Sign in") && (
               <Link
-                href="/sign-in"
+                href={withNext("/sign-in", `/listing/${encodeURIComponent(listingId)}`)}
                 className="mt-row inline-flex min-h-11 items-center font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
               >
                 Sign in
@@ -743,7 +747,9 @@ export function ReservePanel({
           piece of consumer protection. Caption is the floor, and this line is
           the reason somebody does not wire money to a stranger. */}
       <p className="mt-block flex items-start gap-inline nf-caption leading-relaxed text-[var(--nf-content-muted)]">
-        <UiIcon name="verified" size={ICON.inline} className="mt-3xs shrink-0 text-[var(--nf-state-success)]" />
+        {/* Advice, so a neutral glyph in the line's own ink: the green shield
+            means an earned check, and this line is not one (A9). */}
+        <UiIcon name="info" size={ICON.inline} className="mt-3xs shrink-0" />
         Pay only after you have inspected the property
       </p>
     </div>

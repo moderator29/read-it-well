@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { sheetWordsOf } from "@/components/social/sheet-words";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { resolveSession } from "@/lib/actions/session";
@@ -11,7 +12,7 @@ import {
 } from "@/lib/social/posts-queries";
 import { listStories } from "@/lib/social/stories-queries";
 import { stampAuthorTiers } from "@/lib/social/author-badges";
-import { POST_COPY } from "@/lib/social/posts-schema";
+import { POST_COPY } from "@/lib/social/posts-model";
 import { AROUND_UNCONFIGURED } from "./copy";
 import { loadMoreAround } from "./feed-actions";
 import type { FeedMode } from "@/lib/social/posts-actions";
@@ -205,7 +206,13 @@ export default async function AroundPage({
       {/* No rings without keys: an empty row would claim nobody has a story,
           and nothing was read. */}
       {unconfigured ? null : (
-        <StoryRing stories={stories} you={you} yourStoryLabel={t.social.yourStory} />
+        <StoryRing
+          stories={stories}
+          you={you}
+          yourStoryLabel={t.social.yourStory}
+          seenWord={t.experienceSocial.feed.storySeen}
+          viewerId={profile?.userId ?? null}
+        />
       )}
 
       <FeedTabs active={tab} t={t} />
@@ -218,6 +225,7 @@ export default async function AroundPage({
              here, so the client supplies a cursor and nothing else. */
           loadMore={loadMoreAround.bind(null, feedMode)}
           locale={locale}
+          sheet={sheetWordsOf(t)}
           signedIn={signedIn}
           canCompose
           areaId={activeArea}
@@ -226,8 +234,8 @@ export default async function AroundPage({
           {...(unconfigured
             ? { emptyTitle: AROUND_UNCONFIGURED.feedTitle, emptyIcon: "home-search" as const }
             : {
-                emptyTitle: selected ? `Nothing in ${selected.name} yet` : "Nothing here yet",
-                emptyAction: { href: "/around/settings", label: "Find places to join" },
+                emptyTitle: selected ? t.experienceSocial.around.emptyIn.replace("{name}", selected.name) : t.experienceSocial.around.empty,
+                emptyAction: { href: "/around/settings", label: t.experienceSocial.around.findPlaces },
               })}
         />
       </section>

@@ -10,9 +10,9 @@ import {
   MAX_VIDEOS,
   VIDEO_MIME_TYPES,
   rejectUpload,
-} from "@/lib/agent/listings-schema";
+} from "@/lib/agent/listings-model";
 import { resumableUpload, type UploadProgress } from "@/lib/agent/resumable-upload";
-import { createClient } from "@/lib/supabase/client";
+import { loadBrowserClient } from "@/lib/supabase/load-client";
 import { SUPABASE_URL } from "@/lib/supabase/env";
 import { Icon3D } from "@/components/ui/Icon3D";
 
@@ -107,7 +107,15 @@ export function VideoWalkthrough({
       return;
     }
 
-    const supabase = createClient();
+    /* The browser client loads now, when a video is chosen, not with the
+       page (lib/supabase/load-client.ts). A chunk that cannot be fetched is
+       an upload that could not start, said in the resumable upload's own
+       words for that. */
+    const supabase = await loadBrowserClient();
+    if (!supabase) {
+      setNotice("The upload could not be started. Try again in a moment.");
+      return;
+    }
     const { data: session } = await supabase.auth.getSession();
     const token = session.session?.access_token;
     if (!token) {
@@ -254,9 +262,12 @@ export function VideoWalkthrough({
             aria-valuemax={100}
             aria-label="Walkthrough upload"
           >
+            {/* The fill is the track's full width and slides in from the
+                left on transform, so the track's rounded clip draws the same
+                bar a growing width drew, without a layout per frame. */}
             <div
-              className="h-full rounded-full bg-[var(--nf-brand-primary)] transition-[width] duration-300"
-              style={{ width: `${percent}%` }}
+              className="h-full rounded-full bg-[var(--nf-brand-primary)] transition-transform duration-[var(--nf-duration-slow)] ease-[var(--nf-ease-entrance)] motion-reduce:transition-none"
+              style={{ transform: `translateX(${percent - 100}%)` }}
             />
           </div>
           <Button
@@ -278,7 +289,7 @@ export function VideoWalkthrough({
       )}
 
       {notice && (
-        <p role="alert" className="nf-body-sm mt-inline font-medium text-[var(--nf-state-error)]">
+        <p role="alert" className="nf-body-sm mt-inline font-semibold text-[var(--nf-state-error)]">
           {notice}
         </p>
       )}

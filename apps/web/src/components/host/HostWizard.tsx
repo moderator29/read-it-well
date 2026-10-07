@@ -5,13 +5,15 @@ import { useCallback, useEffect, useMemo, useState, useTransition } from "react"
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useBack } from "@/lib/nav/use-back";
-import { countOf, getDictionary, type Locale } from "@vallo/i18n";
-import { useClientLocale } from "@/lib/i18n/use-client-locale";
+import { countOf, type Locale } from "@vallo/i18n/core";
+import { useScopedCopy } from "@/lib/i18n/copy-scope";
 import { useMoneyStepUp } from "@/components/app/money/MoneyStepUp";
 import type { BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
 import { SuccessSheet } from "@/components/ui/SuccessSheet";
+import { Unfold } from "@/components/ui/Unfold";
+import { ProgressPath } from "@/components/supply/ProgressPath";
 import { successCopy } from "@/lib/ui/success-moments";
 import { SelectField, TextArea, TextField } from "@/components/ui/Field";
 import { TYPE } from "@/components/app/Screen";
@@ -261,8 +263,11 @@ export function HostWizard({
     setWasSubmitted(submitted);
     if (submitted) setCelebrate(true);
   }
-  /* This wizard already carries the dictionary for its locale. */
-  const successWords = getDictionary(useClientLocale()).success;
+  /* The page's CopyScope carries these (W13): no client dictionary read. */
+  const successWords = useScopedCopy("success");
+  /* The progress path's words: the same ones the agent's listing wizard uses
+     (`experienceFeatures.wizard`). */
+  const pathWords = useScopedCopy("featuresWizard");
 
   const set = useCallback(<K extends keyof HostDraft>(key: K, value: HostDraft[K]) => {
     setDraft((current) => {
@@ -445,6 +450,45 @@ export function HostWizard({
         label={progressLabel(at, steps.length)}
         onBack={back}
       />
+
+      {/* THE PROGRESS PATH (reference 7110), the same one the agent's listing
+          wizard carries: every step on one path, done ones a tap away, folded
+          under the head so the step stays the subject. It shows the steps this
+          host will be asked for (`steps`, the same list the segments count) in
+          their own words, and says the autosave only as far as it is true: the
+          device keeps the typed fields from the start, the account from the
+          business step on. The steps and the rail are unchanged (D28). */}
+      {steps.length > 1 ? (
+        <Unfold
+          className="mt-md"
+          headingLevel={2}
+          items={[
+            {
+              id: "path",
+              icon: "clipboard-list",
+              title: pathWords.allSteps,
+              hint: [
+                pathWords.stepOf.replace("{n}", String(at + 1)).replace("{total}", String(steps.length)),
+                draft.businessId ? pathWords.savedHost : pathWords.savedDevice,
+                /* Two sentences, the first with no full stop of its own ("Step 1 of 11"):
+                   a plain space ran them together as "Step 1 of 11 Saved on this device". */
+              ].join(" · "),
+              content: (
+                <ProgressPath
+                  steps={steps.map((s) => ({ id: s.id, label: s.title }))}
+                  at={at}
+                  onJump={(index) => {
+                    setNotice(null);
+                    setAt(index);
+                  }}
+                  disabled={pending}
+                  copy={{ done: pathWords.done, current: pathWords.current, upcoming: pathWords.upcoming }}
+                />
+              ),
+            },
+          ]}
+        />
+      ) : null}
 
       <div className="mt-lg flex flex-col gap-md" key={step.id}>
         <StepBody
@@ -631,6 +675,9 @@ function HostTypeStep({ draft, set }: StepProps) {
           <p className="nf-host-group__title">What is it, exactly?</p>
           <div className="mt-sm flex flex-wrap gap-xs" role="group" aria-label={hw.wizard.businessKindLabel}>
             {chosen.kinds.map((kind) => (
+              /* The raw chip, on purpose: `Chip`'s selected state is the lit CTA
+                 gradient with a bloom, and a filter row is not where a screen's
+                 one glow goes. `nf-chip--active` is the calm brand tint. */
               <button
                 key={kind}
                 type="button"
@@ -849,15 +896,15 @@ function PayoutStep({ draft, pending, run, setNotice, set }: StepProps) {
   };
 
   /* V-81: a new account to be paid into asks for the phone lock, when there is one. */
-  const viewerLocale = useClientLocale();
-  const lock = useMoneyStepUp(viewerLocale);
+  const lockWords = useScopedCopy("moneyLock");
+  const lock = useMoneyStepUp();
   const save = () =>
     run(
       async () => {
         const result = await lock.guard({ kind: "bank_add", target: `${bank}:${number.replace(/\D/g, "")}` }, (stepUp) =>
           addBankAccount({ bankCode: bank, accountNumber: number, stepUp }),
         );
-        return result ?? { ok: false as const, error: getDictionary(viewerLocale).platform.moneyLock.notConfirmed };
+        return result ?? { ok: false as const, error: lockWords.notConfirmed };
       },
       () => {
         set("hasBankAccount", true);

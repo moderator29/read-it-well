@@ -26,7 +26,8 @@
  * The check runs under vitest, so `prebuild` needs the web app's
  * devDependencies installed (a production-only install cannot build).
  *
- * Scope: the app's copy, the four locale catalogues, the auth email templates
+ * Scope: the app's copy, the four locale catalogues and the English modules
+ * they are assembled from (packages/i18n/src/locales/*.en.ts), the auth email templates
  * in supabase/templates, the native shell's offline page and the iOS and
  * Android native strings.
  *
@@ -50,7 +51,17 @@ export type BackedClaim = {
    * Such an entry is exempt from the "must still match something" check.
    */
   pendingRemoval?: string;
+  /**
+   * The one file (repository-relative, forward slashes) the entry is accepted
+   * in. A scoped entry backs its sentence there and nowhere else, so a new
+   * sentence with the same words in any other file is still a claim to back.
+   * `unbackedClaim` called without a file applies no scoped entry.
+   */
+  onlyIn?: string;
 };
+
+/** Where the money sentences live (D50: every protected-rail sentence is here). */
+export const MONEY_COPY_FILE = "apps/web/src/lib/money/copy.ts";
 
 const AGENT_KYC =
   "agent_verification_checks rungs decided by an admin on the KYC desk, published as agent_badges.verified; a listing is verified only when !is_demo and its agent holds the badge (lib/listings/supabase-repository.ts)";
@@ -94,7 +105,7 @@ export const BACKED_CLAIMS: readonly BackedClaim[] = [
   { phrase: /\bwhether a purchase is safe\b/i, mechanism: "advice (title decides), not a claim" },
   { phrase: /\bwhat a stay is protected by instead\b/i, mechanism: "a heading over the cancellation policy text on /safety" },
 
-  { phrase: /\bwhether the lister is verified\b|\bcalling everyone verified\b|^,\s*verified$/i, mechanism: `${AGENT_KYC}; a business's ", verified" is businesses.verified, which only staff can set (the DB-01 guard)` },
+  { phrase: /\bwhether the lister is verified\b|\bcalling everyone verified\b|^,\s*verified$|^tier \{tier\} of 4, verified$/i, mechanism: `${AGENT_KYC}; a business's ", verified" is businesses.verified, which only staff can set (the DB-01 guard)` },
   { phrase: /\bchecked (?:badge|lister)\b|^verified:\s*$|^checked$|^a person checked\.?$|\bchecked against the uploaded document\b/i, mechanism: AGENT_KYC },
   { phrase: /\bprepare that (?:photo|picture) safely\b/i, mechanism: "the client-side re-encode before upload (strips metadata); a process, not a claim" },
   { phrase: /\btalking to an agent safely\b/i, mechanism: "advice heading in the docs, not a claim" },
@@ -107,6 +118,22 @@ export const BACKED_CLAIMS: readonly BackedClaim[] = [
     mechanism:
       "public.guarantee_reserve_entries (append-only ledger funded by the split at settle_booking_charge) and public.admin_decide_guarantee_claim, which caps each claim by the amount paid and the reserve balance under an advisory lock; scope and window in public.money_policy",
   },
+  /* The protected rail (D50): "protected" names a payment a licensed
+     partner holds in escrow until the payer confirms. Every such sentence
+     lives in lib/money/copy.ts (RAIL_COPY.protected, PROTECTED_*, the money
+     centre's Protected figure) and is drawn only where railIsLive("protected")
+     is true (lib/money/rails.ts), which is false until ADR-0003 is accepted and
+     the merchant account is live; the dev previews that draw it are fixtures.
+     A9: the entry read `\bprotected payments?\b` unanchored, which backed
+     "protected payment" in any sentence on any surface while the rail is not
+     live. It now backs the three copy.ts sentences, whole, in copy.ts only. */
+  {
+    phrase:
+      /^Your payment is protected through Vallo's transaction infrastructure\.$|^Protected$|^Held in protected payments until each one's release condition is met\. Not yours to withdraw yet\.$/,
+    onlyIn: MONEY_COPY_FILE,
+    mechanism:
+      "the protected rail: funds held by the licensed provider's escrow until release (docs/payments/VALLO_FINANCIAL_LAYER.md), surfaces gated by PROTECTED_RAIL_LIVE in apps/web/src/lib/money/rails.ts (false until ADR-0003 is accepted and the merchant account is live)",
+  },
   { phrase: /^; Secure$/, mechanism: "the Secure attribute of the theme cookie (lib/theme/theme-client.ts), an HTTP cookie flag, not copy" },
 
   /* "Instant" (29 September): the word promises speed, so it is a claim word
@@ -116,14 +143,128 @@ export const BACKED_CLAIMS: readonly BackedClaim[] = [
      queue in front of it. Anything else "instant" (notifications, payouts,
      approvals) has to name its mechanism here first. */
   {
-    phrase: /^instant(?: book)?(?: available| only| against a request)?\.?$|\binstant book only\b/i,
+    phrase: /^instant(?: book)?(?: available| only| against a request)?\.?$|\binstant book only\b|^instant book is available on this listing, so your dates confirm as soon as you reserve\.$/i,
     mechanism: "listings.instant_book (supabase/migrations/20260728152229_listings_core.sql), set by the lister; with it on a guest pays without waiting for the lister to accept",
   },
   { phrase: /\bI answer instantly\b/i, mechanism: "the support assistant answers from its local notes (lib/support/faq.ts) in the same request; anything beyond them goes to the human team, who reply by email" },
 
+  /* The English locale modules (6 October). These sentences live in
+     packages/i18n/src/locales/*.en.ts, which the sweep did not read until
+     now: en.ts spreads the modules in, so their copy was never a literal in
+     any file the check opened. Each entry below was read against its
+     mechanism before it was added; anything that could not be backed is in
+     KNOWN_UNBACKED_PENDING_REWORD instead, never here. */
+
+  /* V-87 dated credentials (trust-visible.en.ts proof strip, its explainer and
+     the staff desk's form). Only a member of staff writes one, a check older
+     than a year is not shown, and a CAC directorship row is accepted only
+     from the identity aggregator, so no CAC sentence renders today. */
+  {
+    phrase: /\bchecked on the (?:LASRERA|ESVARBON) register\b|\bchecked with the CAC\b|\bchecked this registration against the public register\b|\bcredential checked on the public register\b/i,
+    mechanism:
+      "public.credentials written only through public.record_credential (staff, guarded, audited), read through public.listing_credentials with the date; checks older than a year are not returned (supabase/migrations/20260928224407_v87_lasrera_esvarbon_and_cac_as_dated_credentials.sql)",
+  },
+  /* trust-doors.en.ts, the public "Is this a Vallo agent?" door. */
+  {
+    phrase: /\bidentity checked by vallo on \{date\}/i,
+    mechanism:
+      "private.identity_checked_at: the latest reviewed_at of an APPROVED identity row in agent_documents; app/(site)/check/CheckForm.tsx prints the sentence only when that date exists",
+  },
+  /* experience-account.en.ts, the renter passport's identity fact. */
+  {
+    phrase: /\bvirtual NIN was checked with NIMC\b/i,
+    mechanism:
+      "public.record_vnin_check (lib/identity/actions.ts, lib/identity/vnin-check.ts) stamps nimc_matched_at; the passport fact exists only when nimcMatchedAt is set (app/(app)/settings/passport/passport-facts.ts factViews)",
+  },
+  /* experience-account.en.ts, headings on the passport evidence page and the
+     verification path. Each sits over a record, never instead of one. */
+  {
+    phrase: /^how it was checked$|^what was checked$|^what will be checked$/i,
+    mechanism:
+      "headings: the evidence page renders only facts Vallo recorded (passport-facts.ts factViews); 'What was checked' heads only a rung whose state is passed and 'What will be checked' one still ahead (components/verification/VerificationPath.tsx)",
+  },
+  /* front-door.en.ts briefs (V-95). */
+  {
+    phrase: /\bverified listers (?:who have homes|with homes|only)\b/i,
+    mechanism:
+      "private.is_verified_lister (approved, verification_tier >= 1, not an example row) gates briefs_for_me and the answer function, which raises 42501 'verified listers only' (supabase/migrations/20260924110055_v95_the_brief_answered_only_with_a_listing.sql)",
+  },
+  /* landlord.en.ts, an owner inviting agents to pitch (V-42). */
+  {
+    phrase: /\bverified agents (?:who already list in|to pitch)\b|\bonly verified agents see these\b/i,
+    mechanism:
+      "private.my_verified_agent (verified or verification_tier > 0, trading, not an example row) gates the invitations an agent can read and the pitch function (supabase/migrations/20260924104919_an_owner_sees_their_units_and_agents_pitch_on_their_record.sql)",
+  },
+  /* trust-visible.en.ts, the card over an account number in a thread (V-04). */
+  {
+    phrase: /\bbelongs to the verified lister\b/i,
+    mechanism:
+      "lib/messages/account-check.ts: the card says 'belongs' only on outcome match, the provider-resolved holder name against the names Vallo verified for that lister; with no verified name on record it prints nothing (no_verified_name)",
+  },
+  /* host-workspace.en.ts, the start of a host application. */
+  {
+    phrase: /\bthe badge only ever means a human was checked\b/i,
+    mechanism: `catalogue_entries.verified for an accommodation is first party, not is_demo, and its owning agent carries the verified badge (lib/stays/types.ts, the M9 triggers): ${AGENT_KYC}`,
+  },
+  /* experience-admin.en.ts, the business desk's line in the staff palette. */
+  {
+    phrase: /\bwhat each has been checked for\b/i,
+    mechanism: "the host ladder's rungs (identity, registration, payout, on site), each decided by a reviewer on the admin business desk (lib/admin/business-ladder.ts, private.business_tier)",
+  },
+  /* compliance*.en.ts: staff desks, where "checked" is the reviewer's own
+     work or the event that queued a screening. */
+  {
+    phrase: /\bwhat you checked (?:and what it showed|\(date of birth)|^identity checked$/i,
+    mechanism:
+      "staff copy on the compliance desks: the reviewer's own note of what they checked, and the sanctions screening trigger 'identity' that a write to agent_verification_checks queues (supabase/migrations/20260929010407_scuml_8_sanctions_screening_on_live_tables.sql)",
+  },
+  /* Process descriptions, not a claim about a listing or a person. */
+  {
+    phrase: /\bwhile a change to your account is checked\b|^checked just now, against \{origin\}$/i,
+    mechanism:
+      "a process: an account hold placed while staff review a change (lib/security/account-hold.ts, not-me-copy.ts), and the store readiness checks run on request against the live platform (app/admin/operations/StorePanel.tsx)",
+  },
+  /* Everyday senses: the member's own action, never Vallo's verdict. */
+  {
+    phrase: /\byou have checked a lot of numbers\b|\bwhere you checked\b|\bsays you checked in\b/i,
+    mechanism: "the member's own action: lookups on the agent door (a rate limit), the area the member priced (price-check), and the safety share's I'm done tap (check in)",
+  },
+  {
+    phrase: /\bthe person you told knows you are safe\b/i,
+    mechanism:
+      "the member's own signal: the safety share records only that they tapped I'm done and when (trust-doors safetyShare.pageDone); Vallo asserts nothing about anybody's safety",
+  },
+
   /* Sentences deleted on the release branch by another change. */
   { phrase: /^secure and fast$/i, mechanism: "none", pendingRemoval: "STORE-06, fix/a4 b36e00e2 (already integrated)" },
 ];
+
+/**
+ * KNOWN UNBACKED CLAIMS, WAITING ON THEIR OWNER TO REWORD (temporary).
+ *
+ * A sentence here is NOT backed: nothing in the codebase makes it true. It is
+ * listed, rather than left failing, only because it sits in a locale module
+ * whose owner is not the person who found it, and the gate has to stay green
+ * while the owner rewords it. The sweep accepts an entry only in the one file
+ * it names and only for the sentence it matches; `claims.test.ts` fails the
+ * moment an entry stops matching (the owner reworded: delete the entry), and
+ * the list is meant to reach empty. Never add a sentence here to dodge a claim
+ * in copy you own: reword it, or back it in BACKED_CLAIMS with its mechanism.
+ */
+export type PendingReword = {
+  /** Matches the unbacked sentence, and only it. */
+  phrase: RegExp;
+  /** The module, relative to the repository root. */
+  file: string;
+  /** Who rewords it. */
+  owner: string;
+  /** Why it is unbacked. */
+  reason: string;
+  /** A wording that says only what is true. */
+  proposed: string;
+};
+
+export const KNOWN_UNBACKED_PENDING_REWORD: readonly PendingReword[] = [];
 
 /**
  * "Checked" said of a PERSON'S identity BY A PERSON: a sentence that has
@@ -149,9 +290,10 @@ const NEGATED =
  * The first claim word in `text` that nothing backs, or null.
  * `${...}` expressions inside a template are code, not copy, and are ignored.
  */
-export function unbackedClaim(text: string): string | null {
+export function unbackedClaim(text: string, file?: string): string | null {
   let copy = text.replace(/\$\{[^{}]*\}/g, " ");
   for (const claim of BACKED_CLAIMS) {
+    if (claim.onlyIn !== undefined && claim.onlyIn !== file) continue;
     copy = copy.replace(new RegExp(claim.phrase.source, claim.phrase.flags.includes("g") ? claim.phrase.flags : `${claim.phrase.flags}g`), " ");
   }
   copy = copy
@@ -164,6 +306,7 @@ export function unbackedClaim(text: string): string | null {
 }
 
 /** Whether an allowlist entry still matches the given copy (for stale checks). */
-export function claimMatches(claim: BackedClaim, text: string): boolean {
+export function claimMatches(claim: BackedClaim, text: string, file?: string): boolean {
+  if (claim.onlyIn !== undefined && claim.onlyIn !== file) return false;
   return claim.phrase.test(text.replace(/\$\{[^{}]*\}/g, " "));
 }

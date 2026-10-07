@@ -25,21 +25,8 @@ const SPOKEN = new Set(["title", "body", "label", "placeholder", "aria-label", "
 
 const STILL_ENGLISH: Record<string, number> = {
   /* Open in other work on 30 September (C1 to C4 and the host desk). */
-  "app/host/bookings/page.tsx": 7,
-  "app/host/calendar/page.tsx": 6,
-  "app/host/decide/page.tsx": 2,
-  "app/host/earnings/page.tsx": 3,
-  "app/host/earnings/statement/page.tsx": 2,
-  "app/host/reservations/ReservationsBoard.tsx": 6,
-  "app/host/reviews/page.tsx": 2,
-  "components/host/DecideView.tsx": 11,
-  "components/host/StatementView.tsx": 6,
-  "components/host/calendar/CalendarSync.tsx": 4,
-  "components/host/calendar/RateCalendar.tsx": 9,
-  "components/host/calendar/RatePlanSheet.tsx": 3,
-  "components/host/calendar/SelectionPanel.tsx": 6,
-  "components/host/reviews/HostReviewCard.tsx": 3,
-  "components/host/reviews/HostReviewsView.tsx": 6,
+  /* The one left is the example feed URL placeholder, which is not language. */
+  "components/host/calendar/CalendarSync.tsx": 1,
 };
 
 function walk(dir: string, out: string[] = []): string[] {

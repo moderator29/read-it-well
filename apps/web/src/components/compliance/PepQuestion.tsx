@@ -3,6 +3,8 @@
 import { useActionState, useState } from "react";
 import type { Dictionary, Locale } from "@vallo/i18n/core";
 import { formatDate } from "@vallo/i18n/core";
+import { Button } from "@/components/ui/Button";
+import { Radio } from "@/components/ui/Check";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { answerPepQuestion } from "@/lib/compliance/pep-actions";
 
@@ -45,16 +47,18 @@ export function PepQuestion({
           {saved ? " " : null}
           {when ? copy.answered.replace("{date}", formatDate(when, locale)) : null}
         </p>
-        <button
-          type="button"
-          onClick={() => {
-            setOpen(true);
-            setAnswer("");
-          }}
-          className="nf-btn nf-btn--glass mt-group min-h-[44px]"
-        >
-          {copy.again}
-        </button>
+        <div className="mt-group">
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => {
+              setOpen(true);
+              setAnswer("");
+            }}
+          >
+            {copy.again}
+          </Button>
+        </div>
       </section>
     );
   }
@@ -72,17 +76,9 @@ export function PepQuestion({
         <legend className="nf-label mb-inline">{copy.legend}</legend>
         <div className="flex flex-wrap gap-xs">
           {(["no", "yes"] as const).map((value) => (
-            <label key={value} className="nf-btn nf-btn--glass min-h-[44px] cursor-pointer">
-              <input
-                type="radio"
-                name="isPep"
-                value={value}
-                checked={answer === value}
-                onChange={() => setAnswer(value)}
-                className="mr-xs"
-              />
+            <Radio key={value} name="isPep" value={value} checked={answer === value} onChange={() => setAnswer(value)}>
               {value === "yes" ? copy.yes : copy.no}
-            </label>
+            </Radio>
           ))}
         </div>
         {err?.fieldErrors?.isPep ? <p className="nf-caption mt-2xs text-[var(--nf-state-warning)]">{err.fieldErrors.isPep}</p> : null}
@@ -94,10 +90,9 @@ export function PepQuestion({
             <legend className="nf-label mb-inline">{copy.who}</legend>
             <div className="flex flex-wrap gap-xs">
               {(["self", "family", "associate"] as const).map((value) => (
-                <label key={value} className="nf-btn nf-btn--glass min-h-[44px] cursor-pointer">
-                  <input type="radio" name="relation" value={value} className="mr-xs" />
+                <Radio key={value} name="relation" value={value}>
                   {copy[value]}
-                </label>
+                </Radio>
               ))}
             </div>
             {err?.fieldErrors?.relation ? (
@@ -121,9 +116,11 @@ export function PepQuestion({
         </div>
       ) : null}
 
-      <button type="submit" disabled={pending || answer === ""} className="nf-btn nf-btn--primary mt-group min-h-[44px] w-full disabled:opacity-60">
-        {pending ? copy.saving : copy.save}
-      </button>
+      <div className="mt-group">
+        <Button type="submit" variant="primary" full loading={pending} disabled={answer === ""}>
+          {pending ? copy.saving : copy.save}
+        </Button>
+      </div>
       {err && !err.fieldErrors ? (
         <p role="alert" className="nf-caption mt-sm text-[var(--nf-state-warning)]">
           {err.error}

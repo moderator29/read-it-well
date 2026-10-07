@@ -6,6 +6,7 @@ import { REPORT_TARGET_NOUN, type ReportTarget } from "@/lib/reports/categories"
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { useLazySheet } from "@/lib/ui/lazy-sheet";
 import { IconPlate } from "@/components/ui/IconPlate";
+import { PendingRing } from "@/components/ui/PendingRing";
 
 /* The body and its prefetch name the same module, so the bundler makes one
    chunk and the second `import()` is answered from the module cache. */
@@ -118,7 +119,7 @@ export function ReportSheet({
             </span>
           </span>
           {pending ? (
-            <span className="nf-spinner shrink-0 text-[var(--nf-content-muted)]" aria-hidden="true" data-testid="report-pending" />
+            <PendingRing size={16} className="text-[var(--nf-content-muted)]" data-testid="report-pending" />
           ) : (
             <UiIcon name="chevron-right" size={16} className="shrink-0 text-[var(--nf-content-muted)]" />
           )}
@@ -136,7 +137,7 @@ export function ReportSheet({
           className="nf-tap inline-flex items-center gap-2xs text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-muted)] underline underline-offset-4 transition-colors hover:text-[var(--nf-content-secondary)]"
         >
           {pending ? (
-            <span className="nf-spinner shrink-0" aria-hidden="true" data-testid="report-pending" />
+            <PendingRing size={16} data-testid="report-pending" />
           ) : (
             <UiIcon name="bell" size={16} className="shrink-0" />
           )}

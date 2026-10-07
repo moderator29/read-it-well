@@ -169,7 +169,13 @@ export const publicDoorsEn = {
     passkey: "Sign in with a passkey",
     badEmail: "Enter a valid email address.",
     badCode: "Enter the 6 digits from the email.",
-    wrongCode: "That code is not right or has expired. Send a new one and try again.",
+    /* The server answers for the whole code and cannot say which digit is
+       wrong, or whether it was mistyped or replaced by a newer one; the one
+       action that covers both is the newest code, and the field has the last
+       try selected for it (`CodeInput`). */
+    wrongCode: "That code did not work. Type the code from your newest email; your last try is selected, so typing replaces it.",
+    /* The CHECK's own limit (ten tries in ten minutes), not the send's. */
+    verifyLimited: "Too many tries at the code. Wait ten minutes, then type it again.",
     noAccount: "If an account uses this address, a code is on its way.",
     limited: "Too many codes were asked for. Wait a minute and try again.",
     failed: "We could not send a code just now. This is on our side. Please try again.",
@@ -189,7 +195,8 @@ export const publicDoorsEn = {
     resend: "Send a new code",
     badPhone: "Enter a Nigerian mobile number, like 0803 123 4567.",
     badCode: "Enter the 6 digits you were sent.",
-    wrongCode: "That code is not right or has expired. Send a new one and try again.",
+    wrongCode: "That code did not work. Type the code from your newest message; your last try is selected, so typing replaces it.",
+    verifyLimited: "Too many tries at the code. Wait ten minutes, then type it again.",
     off: "Phone sign-in is not available yet. Use your email instead.",
     failed: "We could not send a code just now. Please try again, or use your email.",
   },

@@ -67,7 +67,7 @@ export default async function PreviewAdminDesks() {
           </ui.Section>
 
           <ui.Section title="Stops" hint="Agents stopped from trading, and the ones still trading.">
-            <StopsDesk stopped={ADMIN_STOPPED} trading={ADMIN_TRADING} />
+            <StopsDesk stopped={ADMIN_STOPPED} trading={ADMIN_TRADING} recallCopy={t.trustVisible.desk} />
           </ui.Section>
 
           <ui.Section title="The example shelf" hint="Seeded listings and the day they come off.">

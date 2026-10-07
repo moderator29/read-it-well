@@ -27,6 +27,19 @@
      bar in the three-panel renders. The numbers in the comments are the
      measured CSS values; the ledger (section 6) has the table. */
 
+  /*
+   * The console reserves the scrollbar's lane. A classic (non-overlay)
+   * scrollbar appears and disappears with the page's height, and a sheet's
+   * scroll lock removes it, so the whole desk shifted sideways by the
+   * scrollbar's width every time one opened. `stable` holds the lane open.
+   * Scoped to the console on purpose: it has no effect with overlay scrollbars
+   * (phones), and the public pages' full-bleed heroes are not asked to give up
+   * a strip.
+   */
+  :root:has(.nf-admin) {
+    scrollbar-gutter: stable;
+  }
+
   .nf-admin {
     /* THE GLOW IDENTITY (docs/design/GLOW_IDENTITY.md, section 9), built
        from existing tokens because this sheet takes no raw colour: the lit
@@ -156,7 +169,7 @@
     border-radius: var(--nf-radius-control);
     border: var(--nf-border-width) solid transparent;
     font-size: 0.9375rem;
-    font-weight: 500;
+    font-weight: 400;
     color: var(--nf-content-primary);
     transition:
       background var(--nf-duration-fast) var(--nf-ease-standard),
@@ -204,15 +217,11 @@
     padding-inline: var(--nf-space-2xs);
     /* 6px on a 22px badge: 0.27 of the short side, a rectangle. */
     border-radius: var(--nf-radius-xs);
-    background: var(--nf-status-pending);
-    color: var(--nf-surface-canvas);
+    /* Fill and ink are admin-material.css's alone (the cyan count), so no
+       load order between the two sheets can pair a fill with the wrong ink. */
     font-size: var(--nf-text-overline);
     font-weight: 700;
     font-variant-numeric: tabular-nums;
-  }
-  .nf-admin-nav__row--on .nf-admin-nav__count {
-    background: var(--nf-content-on-brand);
-    color: var(--nf-brand-primary);
   }
   .nf-admin-nav__more {
     margin-top: var(--nf-space-sm);
@@ -961,13 +970,13 @@
     background: transparent;
     box-shadow: none;
     color: var(--nf-content-muted);
-    font-weight: 500;
+    font-weight: 600;
   }
   .nf-admin-tab--on,
   .nf-admin-chip--on,
   .nf-admin-chip--all.nf-admin-chip--on {
     color: var(--nf-content-primary);
-    border-color: var(--nf-card-border);
+    border-color: var(--nf-tier-card-edge);
     background: var(--nf-surface-elevated);
     box-shadow: var(--nf-card-shadow);
     font-weight: 600;
@@ -1089,6 +1098,17 @@
     .nf-admin-row > summary:hover {
       background: var(--nf-glass-fill-thin);
     }
+  }
+  /* A row is one slice of the table's card, and a shrinking slice tears the
+     hairlines above and below it, so the press LIGHTS it (the settings rows
+     do the same, press-motion.css) rather than sinking it: the universal
+     floor's scale is overridden here. */
+  .nf-admin-row > summary:active {
+    scale: none;
+    /* The floor also rounds a pressed control; a slice of the table's card
+       stays square, or the hairlines above and below it tear (A8 N10). */
+    border-radius: 0;
+    background: var(--nf-glass-fill-thin);
   }
   .nf-admin-row__id {
     display: block;
@@ -1413,7 +1433,7 @@
     padding-inline: var(--nf-space-2xs);
     border-radius: var(--nf-radius-sm);
     font-size: var(--nf-text-caption);
-    font-weight: 500;
+    font-weight: 600;
     color: var(--nf-content-primary);
   }
   .nf-admin-panel__link:hover {
@@ -1449,7 +1469,8 @@
     border-radius: var(--nf-radius-xs);
     border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-admin-badge-hue) 65%, var(--nf-surface-canvas));
     background: color-mix(in oklab, var(--nf-admin-badge-hue) 40%, var(--nf-surface-canvas));
-    box-shadow: 0 0 6px -1px color-mix(in oklab, var(--nf-admin-badge-hue) 35%, transparent);
+    /* One edge: the ring. The 6px glow under it was a second edge on every
+       status badge in the console (north star 4, the hairline rule; C1 sweep). */
     color: var(--nf-admin-badge-ink, color-mix(in oklab, var(--nf-admin-badge-hue) 70%, white));
     font-size: var(--nf-text-overline);
     font-weight: 600;
@@ -1475,6 +1496,12 @@
     color: var(--nf-content-on-brand);
     background: color-mix(in oklab, var(--nf-state-error) 58%, var(--nf-surface-canvas));
     border-color: var(--nf-state-error);
+  }
+  /* On paper the 58% mix with the light canvas is a pale rose under white
+     words: 2.67 to 1 (axe colour-contrast on the operations desk, C1 sweep).
+     Paper's error ink is already the deep rose, so it fills at full strength. */
+  :root[data-theme="light"] .nf-admin-badge--solid.nf-admin-badge--error {
+    background: var(--nf-state-error);
   }
 
   /* The strip: four figures in one lit pane, 88px tall (measured 88), split
@@ -1562,6 +1589,9 @@
     position: relative;
     display: grid;
     min-width: 0;
+    /* The figure sizes to its own card (below), so a long naira figure in a
+       quarter-width tile stays inside it. */
+    container-type: inline-size;
     min-height: 9.25rem;
     grid-template-columns: auto minmax(0, 1fr);
     align-items: start;
@@ -1602,7 +1632,7 @@
   }
   .nf-admin-kpi__label {
     font-size: var(--nf-text-body-sm);
-    font-weight: 500;
+    font-weight: 600;
     color: var(--nf-content-primary);
   }
   .nf-admin-kpi__label--card {
@@ -1612,7 +1642,12 @@
   }
   .nf-admin-kpi__value {
     font-family: var(--nf-font-display);
-    font-size: clamp(1.625rem, 1.2rem + 0.9vw, 2.125rem);
+    /* Capped by the tile's width as well as the window's: at 1440 four tiles
+       are about 260px and "N18,450,000" at the viewport size ran past its
+       tile (auditFit, the overview, C1 sweep). 9.5cqi keeps eleven figures
+       inside the column beside the glyph; a phone tile is wide enough that
+       the clamp still decides. */
+    font-size: min(clamp(1.625rem, 1.2rem + 0.9vw, 2.125rem), 9.5cqi);
     font-weight: 700;
     line-height: 1.1;
     letter-spacing: var(--nf-tracking-tight);
@@ -1674,7 +1709,7 @@
     border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
     background: var(--nf-btn-glass-fill);
     font-size: var(--nf-text-body-sm);
-    font-weight: 500;
+    font-weight: 600;
     color: var(--nf-content-primary);
     box-shadow: var(--nf-btn-glass-shadow);
   }
@@ -1710,9 +1745,16 @@
 
   /* The data table: a real table, a quiet header row, brand-tinted
      hairlines, 13.5px cells, 44px rows (measured 31 at the panel's scale). */
+  /* A table that scrolls sideways inside its panel is a focusable region, so
+     a keyboard can scroll it (axe scrollable-region-focusable, C1 sweep), and
+     it shows where focus is. */
   .nf-admin-dt-wrap {
     overflow-x: auto;
     scrollbar-width: thin;
+  }
+  .nf-admin-dt-wrap:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
   }
   .nf-admin-dt {
     width: 100%;
@@ -1726,7 +1768,7 @@
     background: color-mix(in oklab, var(--nf-brand-primary) 8%, transparent);
     text-align: left;
     font-size: var(--nf-text-caption);
-    font-weight: 500;
+    font-weight: 600;
     color: var(--nf-content-secondary);
     white-space: nowrap;
   }
@@ -1747,12 +1789,69 @@
   .nf-admin-dt tr:last-child th {
     border-bottom: 0;
   }
+
+  /*
+    ON A PHONE A STACKING TABLE BECOMES SELF-NAMING ROWS (north star 8: "do
+    not simply shrink desktop tables onto a phone"). The jobs table squeezed
+    five columns into 358px, broke every cell a word a line and put the status
+    past the edge (C1 sweep, 390). Below 768 each row is a block: the row's
+    name first, then one line per cell with its column's name from data-label,
+    the way the money desk's tables already do.
+  */
+  @media (max-width: 767px) {
+    .nf-admin-dt--stack thead {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+    .nf-admin-dt--stack,
+    .nf-admin-dt--stack tbody,
+    .nf-admin-dt--stack tr,
+    .nf-admin-dt--stack th,
+    .nf-admin-dt--stack td {
+      display: block;
+    }
+    .nf-admin-dt--stack tr {
+      padding: var(--nf-space-xs) 0;
+      border-bottom: var(--nf-border-width) solid var(--nf-panel-hair);
+    }
+    .nf-admin-dt--stack tr:last-child {
+      border-bottom: 0;
+    }
+    .nf-admin-dt--stack th,
+    .nf-admin-dt--stack td {
+      border-bottom: 0;
+      padding-block: var(--nf-space-3xs);
+    }
+    .nf-admin-dt--stack td[data-label] {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: var(--nf-space-sm);
+      min-height: 0;
+      text-align: right;
+    }
+    /* A cell with nothing in it (a step with no step before) takes no row of its own. */
+    .nf-admin-dt--stack td:empty {
+      display: none;
+    }
+    .nf-admin-dt--stack td[data-label]::before {
+      content: attr(data-label);
+      flex-shrink: 0;
+      text-align: left;
+      font-size: var(--nf-text-caption);
+      color: var(--nf-content-secondary);
+    }
+  }
   .nf-admin-dt__num {
     text-align: right;
   }
   .nf-admin-dt__name {
     color: var(--nf-brand-secondary);
-    font-weight: 500;
+    font-weight: 600;
   }
   .nf-admin-dt__muted {
     color: var(--nf-content-secondary);
@@ -1866,7 +1965,7 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     font-size: var(--nf-text-caption);
-    font-weight: 500;
+    font-weight: 600;
     color: var(--nf-content-primary);
   }
   .nf-admin-alerts__sub {
@@ -2085,7 +2184,7 @@
     border-radius: var(--nf-radius-sm);
     border: var(--nf-border-width) solid var(--nf-panel-edge);
     background: color-mix(in oklab, var(--nf-brand-primary) 16%, var(--nf-surface-canvas));
-    box-shadow: var(--nf-rim-lit), 0 8px 24px -8px color-mix(in oklab, var(--nf-surface-canvas) 80%, transparent);
+    box-shadow: var(--nf-rim-lit), var(--nf-elevation-floating);
     pointer-events: none;
     transform: translateY(-100%);
   }
@@ -2188,7 +2287,7 @@
   .nf-chart__bar {
     width: min(0.75rem, 26%);
     min-height: 1px;
-    border-radius: 3px 3px 0 0;
+    border-radius: var(--nf-radius-xs) var(--nf-radius-xs) 0 0;
   }
   .nf-chart__bar--s0 {
     background: linear-gradient(180deg, var(--nf-brand-secondary), var(--nf-brand-primary));
@@ -2244,11 +2343,18 @@
   .nf-admin-dist__row--area {
     grid-template-columns: minmax(0, 1fr) minmax(4rem, 1.4fr) 4rem;
   }
+  /* A long name keeps its words on lines of their own width and its state, city or share moves under it,
+     instead of one word a line beside a share that touched the meter (analytics refusals at 390). */
+  .nf-admin-dist__row--area .nf-admin-dist__name {
+    flex-wrap: wrap;
+    row-gap: 0;
+    padding-block: var(--nf-space-2xs);
+  }
   .nf-chart__swatch {
     display: inline-block;
     width: 0.75rem;
     height: 0.75rem;
-    border-radius: 3px;
+    border-radius: var(--nf-radius-xs);
   }
 
   /* The glow identity's per-side edges, applied over every container's
@@ -2535,7 +2641,7 @@
     width: 4px;
     height: 4px;
     margin-top: -2px;
-    border-radius: 9999px;
+    border-radius: var(--nf-radius-pill);
     background: var(--nf-brand-primary);
   }
   .nf-admin-nav__row--on .nf-admin-nav__count {
@@ -2544,8 +2650,9 @@
   /* At night the brand blue as text is 4.3:1 on the canvas (under AA at
      14px): the current label takes the link ink, the dot keeps the brand, as
      in the desk sidebar and the member rail (integration QA, 30 September). */
-  :root:not([data-theme="light"]) :is(.nf-admin-nav__row--on, .nf-admin-nav__row--on:hover),
-  :root:not([data-theme="light"]) .nf-admin-nav__count {
+  /* The count is not here: admin-material.css paints it cyan with its own ink,
+     and the link ink on that fill fails contrast (PR #85 desks a11y). */
+  :root:not([data-theme="light"]) :is(.nf-admin-nav__row--on, .nf-admin-nav__row--on:hover) {
     color: var(--nf-content-link);
   }
   /* The console's badges take the platform's badge anatomy (spec 6): the
@@ -2569,8 +2676,6 @@
   .nf-admin-nav__count,
   .nf-admin-nav__row--on .nf-admin-nav__count {
     border-radius: var(--nf-radius-badge);
-    background: var(--nf-brand-tint-2);
-    color: var(--nf-brand-primary);
     font-weight: 600;
   }
 }

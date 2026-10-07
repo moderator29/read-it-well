@@ -1,5 +1,6 @@
 import type { Listing } from "@/lib/listings/types";
 import { cardPrice, cardUtility } from "@/components/app/listing-card-model";
+import type { PeriodSlashWords as PeriodUnitWords } from "@/lib/listings/pricing";
 
 /**
  * THE SHORTLIST, KEPT ON THE PHONE. V-77.
@@ -77,7 +78,8 @@ export type ShelfChange = {
   since: string;
 };
 
-export function shelfFromListing(listing: Listing, now: number): ShelfItem {
+/** `short` is the reader's "/yr" and "/night" (`t.experienceLabels.periodShort`), kept with the copy as it was read. */
+export function shelfFromListing(listing: Listing, now: number, short: PeriodUnitWords): ShelfItem {
   const price = cardPrice(listing);
   const stamp = new Date(now).toISOString();
   const minor = price.lead === "none" ? null : price.minor;
@@ -91,7 +93,7 @@ export function shelfFromListing(listing: Listing, now: number): ShelfItem {
     minor,
     approximate: price.lead === "moveIn" ? price.approximate : false,
     rentMinor,
-    suffix: price.lead === "moveIn" ? price.rentSuffix : price.lead === "headline" ? price.suffix : "",
+    suffix: price.lead === "moveIn" ? short[price.rentPeriod] : price.lead === "headline" && price.period !== "sale" ? short[price.period] : "",
     bedrooms: listing.bedrooms,
     bathrooms: listing.bathrooms,
     power: cardUtility(listing),

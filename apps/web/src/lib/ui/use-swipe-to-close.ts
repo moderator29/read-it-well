@@ -66,7 +66,7 @@ export function useSwipeToClose(onClose: () => void) {
     }
     const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     if (!reduce) {
-      panel.style.transition = "translate 180ms cubic-bezier(0.2, 0.8, 0.2, 1)";
+      panel.style.transition = "translate var(--nf-duration-fast) var(--nf-ease-entrance)";
       panel.addEventListener(
         "transitionend",
         () => {

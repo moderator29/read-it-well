@@ -6,25 +6,33 @@ import { describe, expect, it } from "vitest";
 
 import { EVERY_MESSAGE } from "./fixtures";
 import {
-  EMAIL_ICON_NAMES,
-  EMAIL_ICON_PLAN,
-  EMAIL_ICON_READY,
-  EMAIL_ICON_SIZE,
-  emailIconFor,
-  emailIconPath,
+  EMAIL_GLYPHS,
+  EMAIL_GLYPH_SIZE,
+  EMAIL_OBJECTS,
+  EMAIL_OBJECT_SIZE,
+  EMAIL_PLAN,
+  FAMILY,
+  emailGlyphPath,
+  emailObjectFor,
+  emailObjectPath,
+  emailRegisterOf,
+  type EmailGlyph,
   type EmailKind,
 } from "./icons";
+import { sortEmailImages } from "./images";
 import { heroMarkHtml, siteUrl } from "./render";
-import { LOCKUP_PATH } from "./theme";
 
 /**
- * The 3D mark every email carries above its headline (`icons.ts`).
+ * The Tier B object every email carries above its headline, and the line
+ * glyphs in its rows (`icons.ts`; rewritten by W9 on 6 October 2026, when
+ * the glossy first-rollout marks gave way to the founder's Tier B set).
  *
- * What is checked: every file the emails reference exists as a PNG of the
- * size promised; a message never names an object that is not on disk; a new
- * PNG from the 3D rollout lights its messages up (this fails until it is
- * listed); and every rendered message carries at most one mark, sized, with
- * an empty alt, from the site origin, above its headline.
+ * What is checked: every object an email can carry is a PNG pair of the
+ * promised size, made from a Tier B source that exists; every glyph is a PNG
+ * at 3x; every message names an object and a family; the money and document
+ * families are paper; every rendered message carries at most one object,
+ * sized, with its family word as alt, from the site origin, above its
+ * headline; and its row glyphs are decorative.
  */
 
 const HERE = fileURLToPath(new URL(".", import.meta.url));
@@ -38,86 +46,86 @@ function pngSize(file: string): { width: number; height: number } {
   return { width: buf.readUInt32BE(16), height: buf.readUInt32BE(20) };
 }
 
-describe("the email icon files", () => {
-  it.each([...EMAIL_ICON_READY])("%s is a 128 px PNG with a 256 px twin", (name) => {
-    const one = onDisk(emailIconPath(name));
+describe("the email object files", () => {
+  it.each([...EMAIL_OBJECTS])("%s is a 128px PNG with a 256px twin, from a Tier B source", (name) => {
+    const one = onDisk(emailObjectPath(name));
     const two = one.replace(/\.png$/, "@2x.png");
     expect(existsSync(one)).toBe(true);
     expect(existsSync(two)).toBe(true);
-    expect(pngSize(one)).toEqual({ width: EMAIL_ICON_SIZE * 2, height: EMAIL_ICON_SIZE * 2 });
-    expect(pngSize(two)).toEqual({ width: EMAIL_ICON_SIZE * 4, height: EMAIL_ICON_SIZE * 4 });
+    expect(pngSize(one)).toEqual({ width: EMAIL_OBJECT_SIZE * 2, height: EMAIL_OBJECT_SIZE * 2 });
+    expect(pngSize(two)).toEqual({ width: EMAIL_OBJECT_SIZE * 4, height: EMAIL_OBJECT_SIZE * 4 });
+    /* Provenance: the PNG is a copy of a founder-approved symbol, never a new drawing. */
+    expect(existsSync(onDisk(`/brand/tier-b/${name}@2x.webp`))).toBe(true);
   });
 
-  it("lights up every object the 3D rollout has delivered", () => {
-    /*
-     * A PNG on disk that is not in EMAIL_ICON_READY is an object no email
-     * shows yet. Adding the name to EMAIL_ICON_READY in icons.ts is the fix.
-     */
-    const delivered = EMAIL_ICON_NAMES.filter(
-      (name) => !EMAIL_ICON_READY.has(name) && existsSync(onDisk(emailIconPath(name))),
-    );
-    expect(delivered).toEqual([]);
+  it.each(Object.keys(EMAIL_GLYPHS) as EmailGlyph[])("glyph %s is a PNG at three times its drawn size", (glyph) => {
+    const file = onDisk(emailGlyphPath(glyph));
+    expect(existsSync(file)).toBe(true);
+    expect(pngSize(file)).toEqual({ width: EMAIL_GLYPH_SIZE * 3, height: EMAIL_GLYPH_SIZE * 3 });
   });
 });
 
 describe("the plan", () => {
-  const kinds = Object.keys(EMAIL_ICON_PLAN) as EmailKind[];
+  const kinds = Object.keys(EMAIL_PLAN) as EmailKind[];
 
-  it.each(kinds)("%s never points at a file that is not there", (kind) => {
-    const plan = EMAIL_ICON_PLAN[kind];
-    if (plan.now !== null) expect(EMAIL_ICON_READY.has(plan.now)).toBe(true);
-    const drawn = emailIconFor(kind);
-    if (drawn !== null) {
-      expect(EMAIL_ICON_READY.has(drawn)).toBe(true);
-      expect(existsSync(onDisk(emailIconPath(drawn)))).toBe(true);
-    }
+  it.each(kinds)("%s carries an object that is on disk, and a family", (kind) => {
+    const object = emailObjectFor(kind);
+    expect(object).not.toBeNull();
+    expect(EMAIL_OBJECTS).toContain(object);
+    expect(FAMILY[EMAIL_PLAN[kind].family]).toBeTruthy();
   });
 
-  it("prefers the object a message wants the moment it is ready", () => {
-    expect(emailIconFor("newEnquiry")).toBe("local-talks");
-    expect(emailIconFor("reservationConfirmed")).toBe("restaurant");
-    const waiting = kinds.filter((k) => !EMAIL_ICON_READY.has(EMAIL_ICON_PLAN[k].want));
-    for (const kind of waiting) expect(emailIconFor(kind)).toBe(EMAIL_ICON_PLAN[kind].now);
+  it("draws money and documents as paper, and notification mail as the shell", () => {
+    expect(emailRegisterOf("paymentReceipt")).toBe("paper");
+    expect(emailRegisterOf("bookingRefunded")).toBe("paper");
+    expect(emailRegisterOf("agreementApproved")).toBe("paper");
+    expect(emailRegisterOf("cryptoPayment")).toBe("paper");
+    expect(emailRegisterOf("newEnquiry")).toBe("shell");
+    expect(emailRegisterOf("verificationCode")).toBe("shell");
   });
 
   it("draws nothing for a message it does not know", () => {
-    expect(emailIconFor("nope" as EmailKind)).toBeNull();
+    expect(emailObjectFor("nope" as EmailKind)).toBeNull();
     expect(heroMarkHtml("nope" as EmailKind)).toBe("");
   });
 });
 
 describe("every rendered message", () => {
-  it.each(EVERY_MESSAGE)("$name carries the lockup and at most one decorative 3D mark", ({ message }) => {
-    const images = message.html.match(/<img\b[^>]*>/g) ?? [];
-    expect(images[0]).toContain(LOCKUP_PATH);
-    const marks = images.slice(1);
-    expect(marks.length).toBeLessThanOrEqual(1);
-    for (const mark of marks) {
-      // From the site origin, as a PNG that exists.
-      const src = /\bsrc="([^"]+)"/.exec(mark)?.[1] ?? "";
-      expect(src.startsWith(`${siteUrl()}/brand/3d/email/`)).toBe(true);
+  it.each(EVERY_MESSAGE)("$name carries the lockup and at most one Tier B object, named by its family", ({ message }) => {
+    const images = sortEmailImages(message.html);
+    expect(images.lockup).not.toBeNull();
+    expect(images.object.length).toBeLessThanOrEqual(1);
+    for (const object of images.object) {
+      const src = /\bsrc="([^"]+)"/.exec(object)?.[1] ?? "";
+      expect(src.startsWith(`${siteUrl()}/brand/email/objects/`)).toBe(true);
       expect(src.endsWith(".png")).toBe(true);
       expect(existsSync(onDisk(src.slice(siteUrl().length)))).toBe(true);
-      // Sized, so a blocked image keeps its box; decorative, so no words.
-      expect(mark).toContain(`width="${EMAIL_ICON_SIZE}"`);
-      expect(mark).toContain(`height="${EMAIL_ICON_SIZE}"`);
-      expect(mark).toContain('alt=""');
-      expect(mark).toContain('border="0"');
-      expect(mark).toContain("display:block");
+      // Sized, so a blocked image keeps its box; its alt is the family word.
+      expect(object).toContain(`width="${EMAIL_OBJECT_SIZE}"`);
+      expect(object).toContain(`height="${EMAIL_OBJECT_SIZE}"`);
+      const alt = /\balt="([^"]*)"/.exec(object)?.[1];
+      expect(Object.values(FAMILY).map((f) => f.alt)).toContain(alt);
+      expect(object).toContain('border="0"');
+      expect(object).toContain("display:block");
       // Above the headline, never after it.
       const h1 = message.html.indexOf("<h1");
       expect(h1).toBeGreaterThan(-1);
-      expect(message.html.indexOf(mark)).toBeLessThan(h1);
+      expect(message.html.indexOf(object)).toBeLessThan(h1);
+    }
+    for (const glyph of images.glyphs) {
+      expect(glyph).toContain('alt=""');
+      const src = /\bsrc="([^"]+)"/.exec(glyph)?.[1] ?? "";
+      expect(existsSync(onDisk(src.slice(siteUrl().length)))).toBe(true);
     }
   });
 
-  it("gives most messages a mark today", () => {
-    const withMark = EVERY_MESSAGE.filter(({ message }) => (message.html.match(/<img\b/g) ?? []).length === 2);
-    expect(withMark.length).toBeGreaterThan(EVERY_MESSAGE.length / 2);
+  it("gives every message an object today", () => {
+    const withObject = EVERY_MESSAGE.filter(({ message }) => sortEmailImages(message.html).object.length === 1);
+    expect(withObject.length).toBe(EVERY_MESSAGE.length);
   });
 
   it.each(EVERY_MESSAGE)("$name keeps its inbox line first", ({ message }) => {
-    // The preheader stays the first thing in the body: the mark sits in the
+    // The preheader stays the first thing in the body: the object sits in the
     // card, after it, so the lock-screen line is unchanged.
     const body = message.html.slice(message.html.indexOf("<body"));
     expect(body.indexOf('<span style="display:none')).toBeLessThan(body.indexOf("<img"));
@@ -135,7 +143,7 @@ describe("the Supabase auth templates", () => {
     const mark = marks[0]!;
     const path = /src="\{\{ \.SiteURL \}\}([^"]+)"/.exec(mark)?.[1] ?? "";
     expect(existsSync(onDisk(path))).toBe(true);
-    expect(mark).toContain(`width="${EMAIL_ICON_SIZE}"`);
+    expect(mark).toContain(`width="${EMAIL_OBJECT_SIZE}"`);
     expect(mark).toContain('alt=""');
   });
 });

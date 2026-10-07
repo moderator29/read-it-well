@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { PageHeader } from "@/components/app/PageHeader";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { DocumentSheet } from "@/components/app/money/DocumentSheet";
 import { SUPPORT_HREF, SUPPORT_LABEL } from "@/lib/support-email";
 import "@/app/css/system.css";
 
@@ -16,13 +17,15 @@ import "@/app/css/system.css";
  * back flow already, so a person reading the refund rules from a checkout
  * screen lands back on that checkout screen.
  *
- * THE ANATOMY. The header with its back control, the last-updated line, a
- * glass table of contents (every section a 44px row with its number in the
- * brand ink, anchored to the section), then the sections as measured prose
- * on the canvas with hairlines between them and a quiet way back to the
- * contents under each. The prose is not boxed: a card around twelve
- * sections of terms reads as a form to be filled in, and this is a text to
- * be read.
+ * THE ANATOMY. The header with its back control stays the product's own,
+ * on the member's theme. Everything that is the document is on PAPER, the
+ * shared `DocumentSheet` the public `/terms`, `/privacy` and `/disclaimer`
+ * already use (R3-03): one release, one material for one legal text, and the
+ * sheet prints on its own. On the paper: the last-updated line, the contents
+ * as a numbered index (every section a 44px row, anchored to the section),
+ * then the sections as measured prose with hairlines between them and a
+ * quiet way back to the contents under each. The way out (the sibling
+ * document and support) is product chrome again, under the sheet.
  *
  * The content itself lives in `lib/legal/`, imported by both routes, because
  * a legal text that says two different things in two places is not a legal
@@ -50,51 +53,47 @@ export function LegalDocument({
     <div className="mx-auto w-full max-w-3xl pb-3xl pt-md">
       <PageHeader title={title} subtitle={intro} fallback="/settings" />
 
-      <p className="nf-legal__meta">
-        <span>Last updated</span>
-        <time>{updated}</time>
-      </p>
-
-      <nav id="legal-contents" aria-labelledby="legal-contents-title" className="nf-panel nf-legal__toc">
-        <p id="legal-contents-title" className="nf-overline nf-legal__toc-title">
-          Contents
+      <DocumentSheet kind="document" printable aria-label={title} className="nf-legal mt-lg">
+        <p className="nf-legal__meta">
+          <span>Last updated</span>
+          <time>{updated}</time>
         </p>
-        <ol>
-          {sections.map((section, index) => (
-            <li key={section.title}>
-              <a href={`#${anchor(section.title)}`}>
-                <span className="nf-legal__num" aria-hidden="true">
-                  {index + 1}
-                </span>
-                <span>{section.title}</span>
-              </a>
-            </li>
-          ))}
-        </ol>
-      </nav>
 
-      <div className="nf-legal__body">
-        {sections.map((section, index) => (
-          <section
-            key={section.title}
-            id={anchor(section.title)}
-            aria-labelledby={`${anchor(section.title)}-title`}
-            className="nf-legal__section"
-          >
-            <h2 id={`${anchor(section.title)}-title`} className="nf-h3 nf-legal__heading">
-              <span className="nf-legal__num" aria-hidden="true">
-                {index + 1}
-              </span>
-              <span>{section.title}</span>
-            </h2>
-            <div className="nf-legal__prose">{section.body}</div>
-            <a href="#legal-contents" className="nf-legal__top nf-tap">
-              <UiIcon name="arrow-up" size={16} />
-              Contents
-            </a>
-          </section>
-        ))}
-      </div>
+        <nav id="legal-contents" aria-labelledby="legal-contents-title" className="nf-legal__toc">
+          <p id="legal-contents-title" className="nf-overline nf-legal__toc-title">
+            Contents
+          </p>
+          <ol>
+            {sections.map((section, index) => (
+              <li key={section.title}>
+                <a href={`#${anchor(section.title)}`}>
+                  <NumberedTitle title={section.title} index={index} />
+                </a>
+              </li>
+            ))}
+          </ol>
+        </nav>
+
+        <div className="nf-legal__body">
+          {sections.map((section, index) => (
+            <section
+              key={section.title}
+              id={anchor(section.title)}
+              aria-labelledby={`${anchor(section.title)}-title`}
+              className="nf-legal__section"
+            >
+              <h2 id={`${anchor(section.title)}-title`} className="nf-h3 nf-legal__heading">
+                <NumberedTitle title={section.title} index={index} />
+              </h2>
+              <div className="nf-legal__prose">{section.body}</div>
+              <a href="#legal-contents" className="nf-legal__top nf-tap">
+                <UiIcon name="arrow-up" size={16} />
+                Contents
+              </a>
+            </section>
+          ))}
+        </div>
+      </DocumentSheet>
 
       {/* Both links stay inside the product. Sending somebody to /terms from
           here would undo the entire reason this page exists. */}
@@ -104,6 +103,32 @@ export function LegalDocument({
         with any question.
       </p>
     </div>
+  );
+}
+
+/**
+ * A section's number and title, the number printed ONCE (C6, the route
+ * sweep). The legal texts number their own titles ("1. About these terms"),
+ * and this frame printed its index number beside them, so every row and
+ * heading read "1  1. About these terms". The title's own number is now the
+ * one set in the brand ink, and the words follow; a title with no number of
+ * its own takes its place in the list. The legal text is untouched: a screen
+ * reader still hears "1. About these terms" whole (the visible number is
+ * hidden from it, the text's own "1. " is visually hidden), and the anchors
+ * are still built from the full title, so no link to a section breaks.
+ */
+function NumberedTitle({ title, index }: { title: string; index: number }) {
+  const own = /^(\d+)\.\s+(.*)$/s.exec(title);
+  return (
+    <>
+      <span className="nf-legal__num" aria-hidden="true">
+        {own ? own[1] : index + 1}
+      </span>
+      <span>
+        {own ? <span className="sr-only">{`${own[1]}. `}</span> : null}
+        {own ? own[2] : title}
+      </span>
+    </>
   );
 }
 

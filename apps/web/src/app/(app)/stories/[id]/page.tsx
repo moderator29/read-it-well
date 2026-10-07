@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { resolveSession } from "@/lib/actions/session";
+import { getDictionary } from "@vallo/i18n";
+import { getLocale } from "@/lib/locale";
+import { reportWordsOf } from "@/components/social/sheet-words";
 import {
   getStory,
   getStoryComments,
@@ -65,7 +68,9 @@ export default async function StoryPage({
       comments={comments}
       more={more}
       signedIn={session.state === "signed-in"}
+      viewerId={session.state === "signed-in" ? session.user.id : null}
       viewerFollows={author?.state === "found" ? author.viewerFollows : false}
+      reportWords={reportWordsOf(getDictionary(await getLocale()))}
     />
   );
 }

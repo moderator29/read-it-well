@@ -9,13 +9,11 @@ import { exactCount, readEvery } from "./money";
 
 /**
  * THE PAYMENTS DESK'S READ: every payment attempt the platform has started,
- * select only, through the admin's RLS client (`transactions_admin_select`,
- * `wallet_entries_select_admin`).
+ * select only, through the admin's RLS client (`transactions_admin_select`).
  *
- * TWO KINDS OF ATTEMPT, because the platform takes money two ways:
- *   - a booking checkout, one `transactions` row per charge, and
- *   - a wallet top-up, one `wallet_entries` row of kind `deposit`, whose
- *     `metadata.channel` is the Paystack channel it was paid through.
+ * ONE KIND OF ATTEMPT: a booking checkout, one `transactions` row per charge.
+ * The second kind this read used to carry, a top-up into a Vallo balance, went
+ * with custody (docs/MONEY_ARCHITECTURE.md, D48): there is no balance to fund.
  *
  * FIVE OUTCOMES, named for an operator and derived from each row's own status:
  *   succeeded   SUCCESSFUL or COMPLETED
@@ -26,8 +24,7 @@ import { exactCount, readEvery } from "./money";
  *               person never finished; the reconcile job settles any that did.
  *
  * The existing health reads (`getPaymentHealth`, `getSavedMethods`) and the
- * two actions (`expireStaleWithdrawalHolds`, the saved method removals) are
- * called unchanged by the page.
+ * saved method removals are called unchanged by the page.
  */
 
 type Client = SupabaseClient<Database>;
@@ -39,7 +36,7 @@ export const ABANDON_AFTER_HOURS = 24;
 export type PaymentOutcome = "initialised" | "succeeded" | "failed" | "abandoned" | "refunded";
 export const PAYMENT_OUTCOMES: readonly PaymentOutcome[] = ["succeeded", "initialised", "abandoned", "failed", "refunded"];
 
-export type PaymentKind = "checkout" | "topup";
+export type PaymentKind = "checkout";
 
 export type PaymentAttempt = {
   id: string;
@@ -67,7 +64,7 @@ export type PaymentsDesk = {
   complete: boolean;
 };
 
-export type PaymentsFilter = { outcome?: string; kind?: string; page: number; pageSize: number };
+export type PaymentsFilter = { outcome?: string; page: number; pageSize: number };
 
 export function outcomeOf(status: string, createdAt: string, now: number): PaymentOutcome {
   switch (status) {
@@ -89,8 +86,7 @@ export function outcomeOf(status: string, createdAt: string, now: number): Payme
 
 /** The channel as the desk groups it. A checkout's channel is not recorded on its row. */
 export function channelLabel(a: Pick<PaymentAttempt, "kind" | "channel">): string {
-  if (a.channel) return a.channel;
-  return a.kind === "checkout" ? "checkout, unrecorded" : "top-up, unrecorded";
+  return a.channel ?? "checkout, unrecorded";
 }
 
 function tally(list: readonly PaymentAttempt[]): Record<PaymentOutcome | "started", number> {
@@ -133,9 +129,8 @@ export function buildPayments(attempts: readonly PaymentAttempt[], filter: Payme
   }
 
   const outcome = PAYMENT_OUTCOMES.find((o) => o === filter.outcome);
-  const kind = filter.kind === "checkout" || filter.kind === "topup" ? filter.kind : undefined;
   const narrowed = attempts
-    .filter((a) => (!outcome || a.outcome === outcome) && (!kind || a.kind === kind))
+    .filter((a) => !outcome || a.outcome === outcome)
     .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
   const pages = Math.max(1, Math.ceil(narrowed.length / filter.pageSize));
   const page = Math.min(Math.max(1, filter.page), pages);

@@ -34,7 +34,10 @@
     align-items: center;
     justify-content: center;
     gap: var(--nf-gap-inline);
-    font-weight: 650;
+    /* 600, and it was 650: the type scale has three weights (400, 500, 600;
+       north star section 5) and 650 was a fourth that the button system
+       below already overrode at equal weight. */
+    font-weight: 600;
     font-size: var(--nf-text-body);
     letter-spacing: -0.005em;
     /*
@@ -81,6 +84,36 @@
       background-color var(--nf-duration-base) var(--nf-ease-standard),
       border-color var(--nf-duration-base) var(--nf-ease-standard),
       color var(--nf-duration-base) var(--nf-ease-standard);
+  }
+
+  /*
+   * AN INLINE BUTTON NEVER OUTGROWS ITS ROW (T1's locale-fit finding 3).
+   * `white-space: nowrap` with no `max-width` meant the longest real label
+   * ("Sign in to run your own Price Check") drew a 378px button in a 358px row
+   * at 390px, and the page scrolled sideways. An inline button now stops at
+   * its container's width and lets the label wrap, centred; the minimum height
+   * is the size's own variable, so two lines grow the button and one line is
+   * exactly what it was. A label that fits is untouched. Full-width buttons
+   * already fill the row, and icon-only ones carry no words, so neither takes
+   * this.
+   *
+   * Two weights (auditor A8). The cap and the shrink factor sit in a
+   * `:where()`, at zero specificity, so any component's own cap
+   * (`.nf-passcode__cta`'s 22rem) still wins, and a button beside a shrinking
+   * sibling keeps its label's width, as `nowrap` used to. (A near-zero factor
+   * does not work: the subpixel it gives up is enough to wrap the label.) A row
+   * of buttons and nothing else therefore needs `flex-wrap` of its own, as a
+   * button group does. The wrap itself has to beat
+   * `.nf-btn`'s own `nowrap` above, so it carries `.nf-btn`'s single class and
+   * wins by order; a component or utility that wants one line still wins.
+   */
+  :where(.nf-btn:not(.nf-btn--full, .nf-btn--icon)) {
+    flex-shrink: 0;
+    max-width: 100%;
+  }
+  .nf-btn:where(:not(.nf-btn--full, .nf-btn--icon)) {
+    white-space: normal;
+    text-align: center;
   }
 
   /*
@@ -131,12 +164,17 @@
    * full-width buttons and the firm one to the square icon buttons, and the
    * distance the edge actually travels stays roughly constant.
    */
+  /* AND IT SINKS (Session 3, north star 5A): one pixel down under the
+     finger as well as the scale, `--nf-press-sink`, so a text button reads as
+     pushed into the surface. The circle keeps the scale alone: a 44px disc
+     that drops a pixel reads as slipping, not as pressed. Both collapse
+     under reduced motion in tokens.css. */
   .nf-btn:active:not(:disabled):not([aria-disabled="true"]) {
-    transform: scale(var(--nf-press-scale));
+    transform: translateY(var(--nf-press-sink)) scale(var(--nf-press-scale));
   }
   .nf-btn--lg:active:not(:disabled):not([aria-disabled="true"]),
   .nf-btn--full:active:not(:disabled):not([aria-disabled="true"]) {
-    transform: scale(var(--nf-press-scale-lg));
+    transform: translateY(var(--nf-press-sink)) scale(var(--nf-press-scale-lg));
   }
   .nf-btn--icon:active:not(:disabled):not([aria-disabled="true"]) {
     transform: scale(var(--nf-press-scale-sm));
@@ -353,12 +391,11 @@
     content: none;
   }
   @media (hover: hover) {
+    /* Deep enough for the white label on any hover-capable device, not only a
+       fine pointer (the section rule below): a lighter hover than rest fell to
+       about 3.8:1 at night (W12). */
     .nf-btn--danger:hover:not(:disabled) {
-      background: linear-gradient(
-        180deg,
-        color-mix(in oklab, var(--nf-state-error) 100%, white) 0%,
-        color-mix(in oklab, var(--nf-state-error) 88%, black) 100%
-      );
+      background: color-mix(in oklab, var(--nf-state-error) 80%, black);
     }
   }
 
@@ -421,6 +458,13 @@
       background: var(--nf-glass-fill-strong);
       border-color: var(--nf-brand-edge);
     }
+    /* The destructive edge out-ranks the brand edge on any hover-capable
+       device, and the hover fill stays neutral (see the note below). */
+    .nf-btn--glass.nf-btn--edge-danger:hover:not(:disabled) {
+      color: var(--nf-act-outline-ink);
+      background: color-mix(in oklab, var(--nf-state-error) 14%, var(--nf-act-surface));
+      border-color: var(--nf-state-error);
+    }
   }
 
   .nf-btn--ghost {
@@ -470,11 +514,10 @@
        not a flat raised navy. */
     background: var(--nf-selected-fill);
     box-shadow: var(--nf-selected-shadow-inline);
-    /* Both properties travel together, or the capsule stretches before it
-       moves and reads as a rubber band rather than an object. */
-    transition:
-      transform var(--nf-duration-base) var(--nf-ease-spring),
-      width var(--nf-duration-base) var(--nf-ease-spring);
+    /* No transition: `Segmented` springs the thumb with one transform
+       animation of its own (a FLIP, `drift` 240ms), so the width is never
+       animated and a stylesheet transition here would fight it. */
+    transform-origin: left center;
     pointer-events: none;
     z-index: 0;
   }
@@ -702,9 +745,12 @@
    * centred in a 44 to 56px box, so they never meet. Positive is the simpler
    * answer and it does not depend on the isolation staying put.
    *
-   * THE LOOP IS LEGAL under "nothing loops for its own sake": it reports
-   * something that is genuinely still happening and it stops when the answer
-   * arrives, which is the same licence the skeleton shimmer holds.
+   * THE LINE IS BOUNDED NOW (6 October). It used to loop under "nothing loops
+   * for its own sake", reasoning that it reported something genuinely still
+   * happening. The platform's rule is stricter: nothing loops forever except
+   * the aurora and the assistant's thinking state, because a loop says
+   * "working" whether or not anything is. It sweeps across ONCE, `deliberate`
+   * long, and holds at full width. A long wait stays still, which is honest.
    * ===================================================================== */
   /* The 2px sweep keeps its round ends: it is a progress indicator, not a
      control, and it carries no letters. The founder's shape law exempts this
@@ -720,27 +766,33 @@
     pointer-events: none;
     z-index: 1;
     transform-origin: left center;
-    /*
-     * `alternate`, so the segment sweeps out and back rather than jumping to the
-     * left edge every cycle. A restart is a discontinuity, and a discontinuity on
-     * a progress indicator reads as the request having failed and begun again.
-     */
-    animation: nf-btn-loading var(--nf-duration-deliberate) var(--nf-ease-standard)
-      infinite alternate;
+    /* One pass, then it holds: `both` keeps the final, full-width, state. */
+    animation: nf-btn-loading var(--nf-duration-deliberate) var(--nf-ease-standard) both;
   }
-  /*
-   * 65%, and the number is derived rather than eyeballed. Transforms apply right
-   * to left, so the segment is scaled to 35% of the button's width about its
-   * left edge and then translated by a percentage OF THAT SAME UNSCALED WIDTH.
-   * To finish flush with the right edge it has to travel 100% - 35% = 65%.
-   */
+  /* The segment grows from a third of the width to all of it, once. */
   @keyframes nf-btn-loading {
     from {
-      transform: translateX(0) scaleX(0.35);
+      transform: scaleX(0.35);
     }
     to {
-      transform: translateX(65%) scaleX(0.35);
+      transform: scaleX(1);
     }
+  }
+  /*
+   * The leading ring of a loading button: the morph's arc, drawn once to three
+   * quarters and held. It takes the icon slot, inherits currentColor, and the
+   * box never moves. (The same `nf-btn-arc-draw` keyframe as the morph.)
+   */
+  .nf-btn__ring {
+    display: inline-flex;
+    flex-shrink: 0;
+  }
+  .nf-btn__ring svg {
+    display: block;
+    overflow: visible;
+  }
+  .nf-btn[data-loading="true"] .nf-btn__ring .nf-btn__arc {
+    animation: nf-btn-arc-draw var(--nf-duration-deliberate) var(--nf-ease-standard) both;
   }
   /*
    * Reduced motion, and the state is still STATED. The line stops travelling and
@@ -767,6 +819,186 @@
       animation: none;
       transform: none;
       opacity: 0.38;
+    }
+  }
+
+  /*
+   * =====================================================================
+   * THE ACTION MORPH (Session 3, 6 October 2026; north star motion 7,
+   * MOTION_SYSTEM.md "Primary action morph"; reference 7061).
+   *
+   * Opt-in: `<Button morph loading>` / `<Button morph done>`. A button that
+   * does not ask keeps its leading slot (a held ring while loading, a check
+   * when done), so no existing call site changes meaning. The four states:
+   *
+   *   idle     the button.
+   *   press    sinks 1px with its bloom pulled in (the rules above and the
+   *            primary's own pressed shadow below), `press` 120ms.
+   *   loading  the label leaves on `whip` and the rectangle closes to a
+   *            circle the height of the button, 160ms; an arc draws once on
+   *            `glide` 620ms to three quarters of the ring and HOLDS. It is
+   *            drawn once and never spins: if the wait runs long the ring
+   *            stays still, which is honest, where a spinner says "working"
+   *            whether or not anything is.
+   *   done     the arc closes and the tick draws, `land` 240ms, then the
+   *            payoff pop, 1.0 to 1.04 to 1.0 over 180ms. The pop is reserved
+   *            for confirm, verify, unlock, release and earn, so a caller
+   *            only passes `done` with `morph` on one of those.
+   *   settle   back to the rectangle, `land` 240ms, the label returning.
+   *
+   * THE BOX NEVER CHANGES SIZE. The shape is a `clip-path` inset closing on
+   * the centre of the button, so nothing around it reflows, a full-width
+   * sticky bar keeps its height, and the circle is cut from the button's own
+   * material rather than being a second object faking it. It is the one
+   * property here that is not transform or opacity, on one element for
+   * 160ms, and it is the only way to change a shape without changing a box.
+   * Under reduced motion every duration below is a token that collapses to
+   * 1ms, so each state is simply arrived at.
+   * ===================================================================== */
+  .nf-btn--morph {
+    --nf-btn-circle: inset(0 calc(50% - var(--nf-btn-h) / 2) round calc(var(--nf-btn-h) / 2));
+    --nf-btn-rect: inset(0 round var(--nf-act-radius-md));
+  }
+  .nf-btn__face {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: inherit;
+    min-width: 0;
+  }
+  .nf-btn__morph {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .nf-btn__morph svg {
+    width: calc(var(--nf-btn-h) * 0.5);
+    height: calc(var(--nf-btn-h) * 0.5);
+    overflow: visible;
+  }
+  .nf-btn__arc,
+  .nf-btn__tick {
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+  }
+  .nf-btn__arc {
+    stroke-width: 2;
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+  }
+  .nf-btn__tick {
+    stroke-width: 2.25;
+  }
+  /* The loading line is the non-morphing button's indicator; the ring is
+     this one's. */
+  .nf-btn--morph[data-loading="true"]::after {
+    content: none;
+  }
+
+  /* ---- loading: collapse, then draw the arc once and hold --------------- */
+  .nf-btn--morph:is([data-morph="loading"], [data-morph="done"]) {
+    clip-path: var(--nf-btn-circle);
+    animation: nf-btn-collapse var(--nf-duration-fast) var(--nf-ease-whip) both;
+  }
+  @keyframes nf-btn-collapse {
+    from {
+      clip-path: var(--nf-btn-rect);
+    }
+    to {
+      clip-path: var(--nf-btn-circle);
+    }
+  }
+  .nf-btn--morph:is([data-morph="loading"], [data-morph="done"]) .nf-btn__face {
+    animation: nf-btn-face-out var(--nf-duration-instant) var(--nf-ease-whip) both;
+  }
+  @keyframes nf-btn-face-out {
+    to {
+      opacity: 0;
+    }
+  }
+  .nf-btn--morph:is([data-morph="loading"], [data-morph="done"]) .nf-btn__morph {
+    animation: nf-btn-ring-in var(--nf-duration-fast) var(--nf-ease-standard) var(--nf-duration-instant) both;
+  }
+  @keyframes nf-btn-ring-in {
+    to {
+      opacity: 1;
+    }
+  }
+  .nf-btn--morph[data-morph="loading"] .nf-btn__arc {
+    animation: nf-btn-arc-draw var(--nf-duration-deliberate) var(--nf-ease-standard) var(--nf-duration-fast) both;
+  }
+  @keyframes nf-btn-arc-draw {
+    to {
+      stroke-dashoffset: 0.25;
+    }
+  }
+
+  /* ---- done: the ring closes, the tick lands, one pop ------------------ */
+  .nf-btn--morph[data-morph="done"] {
+    animation:
+      nf-btn-collapse var(--nf-duration-fast) var(--nf-ease-whip) both,
+      nf-btn-pop 180ms var(--nf-ease-standard) var(--nf-duration-base) both;
+  }
+  .nf-btn--morph[data-morph="done"] .nf-btn__arc {
+    stroke-dashoffset: 0;
+    animation: nf-btn-arc-close var(--nf-duration-base) var(--nf-ease-entrance) both;
+  }
+  @keyframes nf-btn-arc-close {
+    from {
+      stroke-dashoffset: 0.25;
+    }
+  }
+  .nf-btn--morph[data-morph="done"] .nf-btn__tick {
+    stroke-dashoffset: 0;
+    animation: nf-btn-tick-draw var(--nf-duration-base) var(--nf-ease-entrance) both;
+  }
+  @keyframes nf-btn-tick-draw {
+    from {
+      stroke-dashoffset: 1;
+    }
+  }
+  @keyframes nf-btn-pop {
+    50% {
+      transform: scale(1.04);
+    }
+  }
+
+  /* ---- settle: back to the rectangle ------------------------------------ */
+  .nf-btn--morph[data-morph="settle"] {
+    animation: nf-btn-expand var(--nf-duration-base) var(--nf-ease-entrance) both;
+  }
+  @keyframes nf-btn-expand {
+    from {
+      clip-path: var(--nf-btn-circle);
+    }
+    to {
+      clip-path: var(--nf-btn-rect);
+    }
+  }
+  .nf-btn--morph[data-morph="settle"] .nf-btn__face {
+    animation: nf-btn-face-in var(--nf-duration-base) var(--nf-ease-standard) var(--nf-duration-instant) both;
+  }
+  @keyframes nf-btn-face-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-btn--morph[data-morph] .nf-btn__arc,
+    .nf-btn[data-loading="true"] .nf-btn__ring .nf-btn__arc,
+    .nf-btn--morph[data-morph] .nf-btn__tick {
+      animation-duration: 1ms;
+      animation-delay: 0ms;
+    }
+    .nf-btn--morph[data-morph="done"] {
+      animation: nf-btn-collapse 1ms linear both;
     }
   }
 
@@ -951,23 +1183,69 @@
   }
 
   /* ---- danger: the destructive pair ----------------------------------- */
+  /*
+   * THE DESTRUCTIVE FILL IS DEEP ENOUGH FOR ITS WHITE LABEL (W12). The error
+   * token at night is the bright rose, and white on it measured 3.84:1, under
+   * the 4.5:1 a 16px label needs. The fill is the error colour with its
+   * lightness held at or below a ceiling (`oklch(from ... min(l, ...))`), so
+   * the bright night rose deepens and the light theme's already-deep red is
+   * left exactly as it was; `@supports` below applies that where relative
+   * colours exist, and these `color-mix`-with-black fills are the same idea,
+   * theme-blind and slightly deeper, for a browser that lacks them. Rest,
+   * hover and press each get their own ceiling, so none of the three falls
+   * under 4.5:1 (`Button.danger.dom.test.tsx` measures all three on the paint,
+   * in both themes).
+   */
   .nf-btn--danger {
     color: var(--nf-act-on);
-    background: var(--nf-state-error);
+    background: color-mix(in oklab, var(--nf-state-error) 74%, black);
     border: var(--nf-border-width) solid transparent;
     box-shadow: var(--nf-act-rim);
   }
   .nf-btn--danger:active:not(:disabled, [aria-disabled="true"]) {
-    background: color-mix(in oklab, var(--nf-state-error) 78%, var(--nf-act-press-edge));
+    background: color-mix(in oklab, var(--nf-state-error) 62%, black);
   }
+  /* The label is the error colour drawn toward the theme's own ink, so it keeps
+     4.5:1 on the rose wash its hover and press deepen (paper measured 4.0:1 on
+     hover and 3.7:1 on press with the bare error colour; the control contrast
+     suite). The wash and the edge are unchanged. */
   .nf-btn--danger-quiet {
-    color: var(--nf-state-error);
+    color: color-mix(in oklab, var(--nf-state-error) 78%, var(--nf-content-primary));
     background: var(--nf-state-error-surface);
     border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-state-error) 34%, transparent);
     box-shadow: none;
   }
   .nf-btn--danger-quiet:active:not(:disabled, [aria-disabled="true"]) {
     background: color-mix(in oklab, var(--nf-state-error) 22%, transparent);
+  }
+
+  /*
+   * THE DESTRUCTIVE EDGE ON A SECONDARY (auditor A7 N4, Session 3).
+   * `<Button variant="secondary" className="nf-btn--edge-danger">`: a glass
+   * button that keeps its own ink, which clears 4.5:1 on its fill, and says
+   * "this one ends something" with a hairline in the full error colour instead
+   * of a rose word (the error colour as text on glass measured about 3.9:1 at
+   * night). The edge is `--nf-state-error` at full strength because it is a
+   * non-text boundary and has to clear 3:1 against the fill: 4.5:1 at night
+   * and 5.9:1 in light, where a 60% mix measured 2.2:1 and fell to 1.0:1 on
+   * press.
+   *
+   * THE FILL STAYS NEUTRAL WHEN POINTED AT OR PRESSED. The secondary's hover
+   * and press fills are the solid brand blue at night, which would put a rose
+   * edge on blue (about 1.5:1) and turn the label white. Here both states keep
+   * the resting surface with a faint rose wash, and the ink stays the
+   * secondary's own. The hover rule is in the `(hover: hover)` block beside
+   * `.nf-btn--glass:hover` (buttons.css, above), not behind a fine pointer,
+   * because that rule paints the brand edge on any hover-capable device and
+   * this one has to out-rank it there too (0,4,0 against its 0,3,0); the
+   * press rule below beats the secondary's `:active` the same way.
+   */
+  .nf-btn--glass.nf-btn--edge-danger {
+    border-color: var(--nf-state-error);
+  }
+  .nf-btn--glass.nf-btn--edge-danger:active:not(:disabled, [aria-disabled="true"]) {
+    color: var(--nf-act-outline-ink);
+    background: color-mix(in oklab, var(--nf-state-error) 14%, var(--nf-act-surface));
   }
 
   /* ---- disabled: one calm grey for every kind ------------------------- */
@@ -1023,10 +1301,23 @@
       color: var(--nf-act-outline-hover-ink);
     }
     .nf-btn--danger:hover:not(:disabled, [aria-disabled="true"], :active) {
-      background: color-mix(in oklab, var(--nf-state-error) 90%, var(--nf-act-press-edge));
+      background: color-mix(in oklab, var(--nf-state-error) 80%, black);
     }
     .nf-btn--danger-quiet:hover:not(:disabled, [aria-disabled="true"], :active) {
       background: color-mix(in oklab, var(--nf-state-error) 16%, transparent);
+    }
+  }
+  @supports (color: oklch(from red min(l, 0.5) c h)) {
+    .nf-btn--danger {
+      background: oklch(from var(--nf-state-error) min(l, 0.54) c h);
+    }
+    .nf-btn--danger:active:not(:disabled, [aria-disabled="true"]) {
+      background: oklch(from var(--nf-state-error) min(l, 0.46) c h);
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .nf-btn--danger:hover:not(:disabled, [aria-disabled="true"], :active) {
+        background: oklch(from var(--nf-state-error) min(l, 0.5) c h);
+      }
     }
   }
   @media (prefers-reduced-motion: reduce) {
@@ -1123,19 +1414,23 @@
    * are the button system's, 12px outside and 10px on the thumb.
    */
   .nf-segmented:not(.nf-segmented--pill) {
-    border-radius: var(--nf-act-radius-md);
     background: var(--nf-act-well);
     border: var(--nf-border-width) solid var(--nf-act-well-edge);
     box-shadow: var(--nf-act-surface-shadow);
   }
+  /* THE PILL (Session 3; D2 and north star 5A: "Segmented: pill track,
+     pill thumb, 999", the one control besides chips and circles that is a
+     capsule, because a pill says "selectable"). `--nf-radius-segment` names
+     that permission in tokens.css. */
+  .nf-segmented:not(.nf-segmented--pill),
+  .nf-segmented .nf-segmented__capsule {
+    border-radius: var(--nf-radius-segment);
+  }
   .nf-segmented .nf-segmented__capsule {
     height: calc(100% - 8px);
-    border-radius: var(--nf-act-radius-sm);
     background: var(--nf-act-fill);
     box-shadow: var(--nf-act-shadow);
-    transition:
-      transform var(--nf-duration-base) var(--nf-ease-standard),
-      width var(--nf-duration-base) var(--nf-ease-standard);
+    transition: none;
   }
   .nf-segmented :is([data-on="true"], [aria-current="true"], [aria-selected="true"], [aria-checked="true"]) {
     color: var(--nf-act-on);

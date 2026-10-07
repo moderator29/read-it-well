@@ -31,6 +31,20 @@ describe("button system tokens", () => {
     expect(night).toMatch(/--nf-act-blue:\s*#0066FF;/);
   });
 
+  /* A8, fifth audit: the old literal ramp (#1A75FF over #0066FF over #005CEB, its top 4.30:1 under white) kept
+     painting selected segments, the pill and the switch's on layer after the primary had moved on. The rest and
+     hover ramps every selected control reads are written from the brand blue, in both themes, with no literal
+     colour that could drift from it; `action-fill.dom.test.tsx` measures the paint. */
+  it("writes the action ramp from --nf-act-blue, never from literal stops", () => {
+    for (const [theme, block] of [["night", night], ["paper", paper]] as const) {
+      for (const token of ["--nf-act-fill", "--nf-act-fill-hover"]) {
+        const value = block.match(new RegExp(`${token}:\\s*([^;]+);`))?.[1] ?? "";
+        expect(value, `${theme} ${token}`).toMatch(/var\(--nf-act-blue\)/);
+        expect(value, `${theme} ${token} names a literal colour`).not.toMatch(/#[0-9a-f]{3,8}\b|rgb\(/i);
+      }
+    }
+  });
+
   it("every --nf-act token a stylesheet reads exists", () => {
     const defined = names(tokens);
     for (const css of [buttons, controls, chips]) {

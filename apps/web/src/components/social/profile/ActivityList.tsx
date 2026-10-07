@@ -1,5 +1,6 @@
 "use client";
 
+import type { SheetWords } from "@/components/social/sheet-words";
 import { Feed } from "@/components/social/feed/Feed";
 import type { ActivityEntry } from "@/lib/social/posts-queries";
 import { EmptyPanel } from "./EmptyPanel";
@@ -26,11 +27,14 @@ export function ActivityList({
   handle,
   isOwner,
   signedIn,
+  sheet,
 }: {
   entries: ActivityEntry[];
   handle: string;
   isOwner: boolean;
   signedIn: boolean;
+  /** The post action sheet's two lines, from the server. */
+  sheet: SheetWords;
 }) {
   if (entries.length === 0) {
     return (
@@ -66,6 +70,7 @@ export function ActivityList({
               the next one when the list re-renders. */}
           <Feed
             initial={[entry.post]}
+            sheet={sheet}
             signedIn={signedIn}
             emptyMessage="That post is no longer there."
           />

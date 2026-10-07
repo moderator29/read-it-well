@@ -32,7 +32,6 @@ import {
   type ListingRole,
 } from "@/lib/supply/roles";
 import {
-  KIND_NOUN,
   KIND_ORDER,
   SORTS,
   sortBasisOf,
@@ -54,6 +53,8 @@ import type { FilterDrawerProps } from "./FilterDrawer";
 import { Button } from "@/components/ui/Button";
 import { Switch } from "@/components/ui/Switch";
 import { isDataSaver } from "@/lib/ui/data-saver";
+import { useSelectPop } from "@/lib/motion/select-pop";
+import "@/app/css/catalogue.css";
 
 /**
  * The filter sheet's BODY, to the right-hand panel of 3EB3E2A9. Its trigger is
@@ -390,6 +391,7 @@ export function FilterDrawerPanel({
   feesBasis,
   anchors = [],
   commuteCopy,
+  kindCopy,
   noFloodLabel,
   open,
   onClose,
@@ -400,6 +402,8 @@ export function FilterDrawerPanel({
   onClose: () => void;
 }) {
   const router = useRouter();
+  /* A chosen tile gives the small push the chip spec asks for (`select-pop.ts`). */
+  useSelectPop();
   const [draft, setDraft] = useState<Draft>(() => draftFrom(query));
 
   const [lastQuery, setLastQuery] = useState(query);
@@ -556,7 +560,7 @@ export function FilterDrawerPanel({
   const cashMarket = rentMeansTenancy(draft);
   const scale = useMemo(() => priceScale(draft.intent), [draft.intent]);
 
-  const noun = draft.kind ? KIND_NOUN[draft.kind] : { one: "place", many: "places" };
+  const noun = draft.kind ? kindCopy.kinds[draft.kind] : kindCopy.anyKind;
 
   /* The basis of the ordering the reader is currently choosing, for the line
      under the control. Null on the orderings that are not about money. */
@@ -654,11 +658,12 @@ export function FilterDrawerPanel({
       sideOnWide
       testId="filters-drawer"
       footer={
-        <div className="grid grid-cols-[1fr_1.4fr] gap-xs border-t border-[var(--nf-panel-hair)] pt-sm">
-          <Button variant="secondary" data-testid="filters-clear" onClick={clearAll} full size="lg">
+        /* minmax(0, ...) lets each column shrink below its label, and the buttons wrap a long word (Hausa "Babu wanda ya dace tukuna") instead of spilling out of the footer. */
+        <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] gap-xs border-t border-[var(--nf-panel-hair)] pt-sm">
+          <Button variant="secondary" data-testid="filters-clear" onClick={clearAll} full size="lg" className="whitespace-normal">
             {copy.reset}
           </Button>
-          <Button variant="primary" data-testid="filters-apply" onClick={apply} full size="lg">
+          <Button variant="primary" data-testid="filters-apply" onClick={apply} full size="lg" className="whitespace-normal">
             {matchCount === 0
               ? copy.applyNone
               : copy.apply.replace("{count}", formatNumber(matchCount, locale))}
@@ -670,7 +675,7 @@ export function FilterDrawerPanel({
         </div>
       }
     >
-          <div className="mx-auto max-w-2xl">
+          <div className="mx-auto max-w-2xl" data-select-pop="">
             {/* ------------------------------------------- property type */}
             {kindOptions.length > 0 && (
               <Group
@@ -687,7 +692,7 @@ export function FilterDrawerPanel({
                   onToggle={pickKind}
                   options={[
                     { value: "all" as const, label: copy.all, icon: KIND_ICON.all },
-                    ...kindOptions.map((kind) => ({ value: kind, label: kindLabel(kind), icon: KIND_ICON[kind], art: KIND_ART[kind] })),
+                    ...kindOptions.map((kind) => ({ value: kind, label: kindLabel(kind, kindCopy.kinds), icon: KIND_ICON[kind], art: KIND_ART[kind] })),
                   ]}
                 />
               </Group>

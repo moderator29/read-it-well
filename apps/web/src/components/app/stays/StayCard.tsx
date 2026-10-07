@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useRef } from "react";
 import Link from "next/link";
 import { formatRating, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
@@ -8,8 +9,11 @@ import { Amount } from "@/components/ui/Amount";
 import { MediaFrame } from "@/components/app/MediaFrame";
 import { panelClass } from "@/components/ui/Panel";
 import { SaveButton, useSaveControl } from "@/components/app/SaveControl";
+import { useScrollEntry } from "@/lib/motion/scroll-entry";
 import { amenityLabel } from "@/components/app/filters/amenities";
 import type { StayCardData } from "./stay-card-model";
+import "@/app/css/catalogue.css";
+import "@/app/css/list-views.css";
 
 /**
  * The stay card of FD3DFE84: one across, the photograph with Verified and
@@ -62,9 +66,13 @@ export function StayCard({
   const showSave = stay.place ? canSavePlaces : true;
   const chips = stay.amenities.slice(0, 4);
   const style = index !== undefined ? ({ "--card-i": Math.min(index, 5) } as React.CSSProperties) : undefined;
+  const cardRef = useRef<HTMLElement | null>(null);
+  /* Below the fold on arrival: floats in once as it scrolls into view. */
+  useScrollEntry(cardRef, index);
 
   return (
     <article
+      ref={cardRef}
       className={panelClass({
         variant: "card",
         className: `nf-pcard nf-pcard--wide ${index !== undefined ? "nf-card-in" : ""}`,
@@ -109,16 +117,13 @@ export function StayCard({
               {stay.hours.label}
             </span>
           )}
-          {stay.verified && (
+          {/* D24: no example mark on the card, and nothing it did not earn.
+              `isDemo` is read to WITHHOLD the Verified mark and the rating
+              below, never to label the stay. */}
+          {stay.verified && !stay.isDemo && (
             <span className="nf-badge nf-badge--verified nf-pcard__mark nf-pcard__mark--verified">
               <UiIcon name="verified" size={12} />
               {t.common.verified}
-            </span>
-          )}
-          {stay.isDemo && (
-            <span className="nf-badge nf-badge--example nf-pcard__mark nf-pcard__mark--example">
-              <UiIcon name="info" size={12} />
-              {t.catalogue.card.example}
             </span>
           )}
           {!stay.photo && <span className="nf-pcard__nophoto">{t.catalogue.card.noPhotos}</span>}
@@ -136,7 +141,7 @@ export function StayCard({
                   <span>{stay.where}</span>
                 </p>
               )}
-              {stay.rating && (
+              {stay.rating && !stay.isDemo && (
                 <p className="nf-stay-card__rating mt-2xs nf-numeric">
                   <UiIcon name="star" size={16} filled />
                   {formatRating(stay.rating.average, locale)}
@@ -153,7 +158,7 @@ export function StayCard({
                   locale={locale}
                   currency={stay.currency}
                   glance
-                  secondaryClassName="text-[0.6em] font-semibold opacity-70"
+                  secondaryClassName="text-[length:max(0.6em,0.75rem)] font-semibold opacity-70"
                 />
                 <span className="nf-stay-card__per">{copy.perNight}</span>
               </p>

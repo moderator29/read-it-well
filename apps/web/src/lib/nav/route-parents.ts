@@ -242,6 +242,9 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
      to Home through history before this is ever read. */
   "/search": "/home-or-landing",
   "/listing/[id]": "/search",
+  /* D25 inner page: the "why trust this space" record of one listing. It
+     answers one question about the listing, so its way up is the listing. */
+  "/listing/[id]/trust": "/listing/[id]",
   "/saved": "/home",
   "/saved/searches": "/saved",
   /* V-35: the gate code for one inspection, where a named delegate lands.
@@ -251,7 +254,19 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/rent/review/[paymentId]": "/bookings",
   "/record/[code]": "/search",
   "/settings/passport": "/settings",
+  /* W6, D25: one fact's evidence is an inner page of the passport. */
+  "/settings/passport/[fact]": "/settings/passport",
   "/settings/invite": "/settings",
+  /* W6, D25: the referral hub's inner pages. */
+  "/settings/invite/how-it-works": "/settings/invite",
+  "/settings/invite/referrals": "/settings/invite",
+  "/settings/invite/referrals/[id]": "/settings/invite/referrals",
+  /* D51, Round 3 C3: the Rewards Balance and its inner pages. Not linked from
+     member navigation until the rewards read is live (R-C3-1). */
+  "/rewards": "/settings",
+  "/rewards/referrals": "/rewards",
+  "/rewards/history": "/rewards",
+  "/rewards/withdraw": "/rewards",
   "/rent/pay/[inspectionId]": "/bookings",
   "/rent/share/[id]": "/agreements",
   "/tenancy/[id]": "/bookings",
@@ -302,6 +317,11 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
      lives. */
   "/agreements": "/home",
   "/payments": "/home",
+  /* R3-05 (C2): the receipt vault and the member's refunds hang off the
+     payer's money screen; payouts are the lister's own, off home. */
+  "/receipts": "/payments",
+  "/refunds": "/payments",
+  "/payouts": "/home",
   "/agreements/[id]": "/agreements",
 
   /* -------------------------------------------------------------- social */
@@ -323,6 +343,9 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   /* ------------------------------------------------------------- account */
   "/assistant": "/home",
   "/notifications": "/home",
+  /* D22: every notification's designed full view, reached by a route so back
+     behaves and a push lands. Its way up is the list it belongs to. */
+  "/notifications/[id]": "/notifications",
   "/profile": "/home",
   "/profile/application": "/profile",
   "/profile/setup": "/profile",
@@ -334,6 +357,9 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/settings": "/home",
   "/settings/account": "/settings",
   "/settings/appearance": "/settings",
+  /* R3-15, R3-16 (C2). */
+  "/settings/accessibility": "/settings",
+  "/settings/region": "/settings",
   "/settings/devices": "/settings",
   /* V-19: the new sign-in alert a push lands on; back is the devices screen. */
   "/settings/devices/alert": "/settings/devices",
@@ -350,6 +376,10 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/settings/privacy": "/settings",
   /* DB2: the people you blocked, one level inside Privacy & Security. */
   "/settings/privacy/blocked": "/settings/privacy",
+  /* W6, D25: the groups that were crammed into Privacy are pages of their own. */
+  "/settings/privacy/money-lock": "/settings/privacy",
+  "/settings/privacy/ai": "/settings/privacy",
+  "/settings/privacy/data": "/settings/privacy",
   "/settings/phone": "/settings",
   "/settings/passcode": "/settings",
   "/legal/privacy": "/settings",
@@ -376,9 +406,12 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/admin/bookings/reservations": "/admin/bookings",
   "/admin/businesses": "/admin",
   "/admin/agreements": "/admin",
-  "/admin/examples": "/admin",
-  "/admin/staff": "/admin",
-  "/admin/handbook": "/admin",
+  /* C1 sweep: the five desks the rail files under Settings (nav.ts,
+     ADMIN_SETTINGS) go back to Settings, the door they are opened from,
+     not past it to the overview. */
+  "/admin/examples": "/admin/settings",
+  "/admin/staff": "/admin/settings",
+  "/admin/handbook": "/admin/settings",
   "/admin/handbook/position": "/admin/handbook",
   "/admin/fees": "/admin",
   "/admin/account-recovery": "/admin",
@@ -399,7 +432,7 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
    * `/admin`, like every other desk, and not the other way round.
    */
   "/admin/queue": "/admin",
-  "/admin/reference": "/admin",
+  "/admin/reference": "/admin/settings",
   "/admin/settings": "/admin",
   "/admin/social": "/admin",
   "/admin/standing": "/admin",
@@ -407,21 +440,26 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/admin/people/[id]": "/admin/people",
   "/admin/supply": "/admin",
   "/admin/support": "/admin",
-  "/admin/switches": "/admin",
+  "/admin/switches": "/admin/settings",
 
   /* ---------------------------------------------------- the agent console */
   "/agent/dashboard": "/home",
   "/agent/analytics": "/agent/dashboard",
+  "/agent/analytics/[metric]": "/agent/analytics",
+  "/agent/analytics/listings/[listingId]": "/agent/analytics",
   "/agent/bookings": "/agent/dashboard",
   "/agent/earnings": "/agent/dashboard",
   "/host/earnings": "/host",
   "/agent/inspections": "/agent/dashboard",
   "/agent/listings": "/agent/dashboard",
   "/agent/listings/[listingId]/calendar": "/agent/listings",
+  "/agent/listings/[listingId]/health": "/agent/listings",
   /* V-08: the TO LET board, under the listing's workspace like its calendar. */
   "/agent/listings/[listingId]/board": "/agent/listings",
   /* V-71: the Status kit, under the listing's workspace like its board. */
   "/agent/listings/[listingId]/status": "/agent/listings",
+  /* D60: a listing's promotion results. Not linked until Session 2's reads exist. */
+  "/agent/listings/[listingId]/promotion": "/agent/listings",
   "/agent/list": "/agent/listings",
   "/agent/messages": "/agent/dashboard",
   /* The workspace's own frame round the consumer thread and bell pages, so
@@ -437,7 +475,13 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/agent/assistant": "/agent/dashboard",
 
   /* ----------------------------------------------------- the host console */
-  "/host": "/home",
+  /* The host workspace is a STAYS address (`lib/side.constants.ts` paints
+     it in the Stays shell), so its way up is the Stays home. It named
+     `/home`, the Property home, and a host who opened the workspace cold
+     and pressed back had the whole shell turn over to Property under them
+     (Session 3 navigation audit, 6 October 2026). The agent workspace is
+     Property's and keeps `/home`. */
+  "/host": "/stays",
   "/host/apply": "/host",
   "/host/photos": "/host",
   "/host/reservations": "/host",
@@ -454,6 +498,33 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/host/assistant": "/host",
   "/host/settings": "/host",
   "/host/notifications": "/host",
+
+  /* ------------------------------------------- a feature's first run (D11)
+   *
+   * `/first-run/[feature]` stands IN FRONT of a feature rather than inside
+   * it (north star 14.1: a route, never a modal, so back behaves and a deep
+   * link reaches it). So each one's way up is the feature's own way up, not
+   * the feature: back from a first run the member did not want returns to
+   * where the feature sits, never into the feature they declined to start.
+   * Ten literals rather than one pattern, because the parent differs per
+   * feature (`LITERAL_EXPANSIONS` below). Its exits replace the page
+   * (`FirstRunPanels`), and `resolve.ts` lists it as a flow, so it is never
+   * returned to through history once seen.
+   */
+  "/first-run/host": "/stays",
+  "/first-run/agent": "/home",
+  "/first-run/verification": "/agent/dashboard",
+  "/first-run/agreements": "/home",
+  "/first-run/invite": "/settings",
+  "/first-run/passport": "/settings",
+  "/first-run/analytics": "/agent/dashboard",
+  /* R3-12's two: a tenancy file sits under `/bookings`, the owner's
+     buildings under the agent dashboard. */
+  "/first-run/tenancy": "/bookings",
+  "/first-run/portfolio": "/agent/dashboard",
+  /* D60: promotion's first run stands in front of the promotion results
+     page, which sits under the lister's listings. */
+  "/first-run/promotion": "/agent/listings",
 
   /* ------------------------------------------------- the design harnesses
    *
@@ -516,6 +587,20 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
  * parent fails.
  */
 export const LITERAL_EXPANSIONS: Readonly<Record<string, readonly string[]>> = {
+  /* `components/app/feature-onboarding/first-runs.ts` MOUNTED_FIRST_RUNS:
+     the page 404s on any other key. */
+  "/first-run/[feature]": [
+    "/first-run/host",
+    "/first-run/agent",
+    "/first-run/verification",
+    "/first-run/agreements",
+    "/first-run/invite",
+    "/first-run/passport",
+    "/first-run/analytics",
+    "/first-run/tenancy",
+    "/first-run/portfolio",
+    "/first-run/promotion",
+  ],
   "/messages/share/[kind]/[id]": [
     "/messages/share/into/[id]",
     "/messages/share/listing/[id]",
@@ -555,6 +640,19 @@ export const NON_NAVIGABLE: Readonly<Record<string, string>> = {
   "/api/client-error": "the browser's error beacon.",
   "/api/passcode/touch": "POST only, the passcode unlock's heartbeat (docs/PASSCODE.md).",
   "/api/vitals": "the browser's field speed beacon (V-80).",
+  "/gallery/ported": "a development harness for the ported component library (Session 3, D34), behind the preview flag like /gallery; not product, so it has no place in the hierarchy.",
+  "/gallery/features": "a development harness for W7's components and first runs (Session 3), behind the preview flag like /gallery/ported; not product.",
+  "/gallery/containers": "a development harness for the container tiers (B-33), behind the preview flag like /gallery; not product.",
+  "/gallery/figures": "a development harness for Figure, Amount, CountUp and Odometer (B-33), behind the preview flag like /gallery; not product.",
+  "/gallery/segmented": "a development harness for Segmented and SegmentedPanel (B-33), behind the preview flag like /gallery; not product.",
+  "/gallery/buttons": "a development harness for button roles and the action morph (B-33), behind the preview flag like /gallery; not product.",
+  "/gallery/toast": "a development harness for the one toast (B-33), behind the preview flag like /gallery; not product.",
+  "/gallery/status-chip": "a development harness for the status chip in every state (B-33), behind the preview flag like /gallery; not product.",
+  "/gallery/skeleton": "a development harness for skeletons and SkeletonSwap (B-33), behind the preview flag like /gallery; not product.",
+  "/gallery/document-sheet": "a development harness for the document sheet, kinds document and receipt (B-33), behind the preview flag like /gallery; not product.",
+  "/gallery/charts": "a development harness for the chart system (B-33), behind the preview flag like /gallery; not product.",
+  "/gallery/today-hero": "a development harness for the workspace today hero (B-33), behind the preview flag like /gallery; not product.",
+  "/gallery/brand-icons": "a development harness for the tiered brand objects on night and on paper (B-33), behind the preview flag like /gallery; not product.",
   "/api/cron/account-purge": "scheduled job, bearer token.",
   "/api/cron/canary": "scheduled job, bearer token.",
   "/api/cron/calendar-sync": "scheduled job, bearer token (C2, behind CALENDAR_SYNC_ENABLED).",

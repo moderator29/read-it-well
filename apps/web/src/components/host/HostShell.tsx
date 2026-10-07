@@ -7,6 +7,7 @@ import { HostNav } from "./HostNav";
 import { HostDeskSidebar } from "./HostDeskSidebar";
 import { HostDrawer, HostTitle } from "./HostDrawer";
 import { hostNavLabels } from "./host-nav-model";
+import { ProSwitch } from "@/components/app/pro/ProSwitch";
 
 /**
  * The Host surfaces' shell, for hotels, shortlets, guest houses, serviced
@@ -90,6 +91,9 @@ export async function HostShell({
         back={chromeBack ? fallback : false}
         menu={nav ? <HostDrawer labels={labels} /> : undefined}
         title={<HostTitle labels={labels} />}
+        /* The Pro switch (D12): present only for a member the server says
+           holds a plan, and absent, not locked, for everybody else. */
+        end={<ProSwitch scope="host" />}
         bell={{
           href: "/host/notifications",
           label: t.nav.notifications,

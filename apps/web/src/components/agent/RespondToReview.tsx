@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import type { Dictionary } from "@vallo/i18n/core";
+import type { RespondCopy } from "./agent-copy";
 import { Button } from "@/components/ui/Button";
 import { TextArea } from "@/components/ui/Field";
 import { TYPE } from "@/components/app/Screen";
 import { UploadCard, newBatchId, type UploadState } from "@/components/supply/UploadCard";
 import { respondToReview } from "@/lib/agent/application-respond";
-import { RESPONSE_MAX_CHARS } from "@/lib/agent/application-respond-schema";
+import { RESPONSE_MAX_CHARS } from "@/lib/agent/application-respond-model";
 
 /**
  * SUP-05: the way forward from "Needs more information".
@@ -16,7 +16,7 @@ import { RESPONSE_MAX_CHARS } from "@/lib/agent/application-respond-schema";
  * optional, but not all three empty), sent back to the reviewer in one step. The reviewer's note is shown above this on the status page, so the
  * question and the answer sit together.
  */
-export function RespondToReview({ t }: { t: Dictionary }) {
+export function RespondToReview({ t }: { t: RespondCopy }) {
   const copy = t.agent.status.respond;
   const [batchId] = useState(newBatchId);
   const [answer, setAnswer] = useState("");
@@ -87,7 +87,7 @@ export function RespondToReview({ t }: { t: Dictionary }) {
       />
 
       {error ? (
-        <p role="alert" className="text-[length:var(--nf-text-caption)] font-medium text-[var(--nf-state-error)]">
+        <p role="alert" className="text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-state-error)]">
           {error}
         </p>
       ) : null}

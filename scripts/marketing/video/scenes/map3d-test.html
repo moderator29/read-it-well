@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Map 3D test</title>
+    <!--
+      The live Nigeria model (map3d.js) at one time, with its HTML labels, the way the film
+      will lay it out. Serve with `node scripts/marketing/video/engine/server.mjs 4180`, then:
+
+        /video/scenes/map3d-test.html?film=mobile&t=2.2
+        ?film=desktop   ?aa=msaa (4x MSAA instead of the 1.5x buffer)   ?ss=1.25 (buffer scale)
+        ?box=1 (the framing boxes, the city dots and the pin's reported circle)
+        ?bg=0 (no background: see the transparent canvas)   ?labels=0   ?debug=glow
+
+      window.__set(t) renders another time and places the labels; window.__map is the map
+      (render, labels, pin, point, timing, framing, profile).
+    -->
+    <link rel="stylesheet" href="/video/engine/tokens.css" />
+    <style>
+      html, body { margin: 0; padding: 0; background: #000; overflow: hidden; }
+      #stage { position: relative; overflow: hidden; background: transparent; }
+      /* a stand-in for the film's own background: the night navy of the art, lit behind the model */
+      #bg {
+        position: absolute; inset: 0;
+        background:
+          radial-gradient(ellipse 70% 42% at 50% 44%, rgb(0 105 254 / 0.3), rgb(0 105 254 / 0) 70%),
+          linear-gradient(180deg, #000d36 0%, #02063f 46%, #010118 100%);
+      }
+      #map { position: absolute; left: 0; top: 0; }
+      .label {
+        position: absolute; left: 0; top: 0;
+        font-family: var(--text); font-weight: 600; color: #fff; white-space: nowrap;
+        background: var(--glass-dark); border: 1.5px solid var(--glass-edge);
+        border-radius: 999px; box-shadow: 0 10px 30px -10px rgb(0 0 20 / 0.7);
+        transform-origin: 0 0; will-change: transform, opacity;
+      }
+      .label.lagos { background: rgb(255 255 255 / 0.94); color: #0b1230; border-color: rgb(255 255 255 / 0.9); }
+      .guide { position: absolute; border: 2px dashed rgb(255 90 90 / 0.8); pointer-events: none; }
+      .guide.frame { border-color: rgb(255 210 80 / 0.7); }
+      .pinmark { position: absolute; border: 2px solid rgb(80 255 160 / 0.9); border-radius: 50%; pointer-events: none; }
+      .dotmark { position: absolute; width: 8px; height: 8px; margin: -4px 0 0 -4px; background: #ff3; border-radius: 50%; }
+    </style>
+  </head>
+  <body>
+    <div id="stage"><div id="bg"></div><canvas id="map"></canvas><div id="labels"></div></div>
+    <script type="module">
+      import { createLiveMap } from "./map3d.js";
+
+      const q = new URLSearchParams(location.search);
+      const film = q.get("film") === "desktop" ? "desktop" : "mobile";
+      const [W, H] = film === "desktop" ? [1920, 1080] : [1080, 1920];
+      const stage = document.getElementById("stage");
+      stage.style.width = `${W}px`;
+      stage.style.height = `${H}px`;
+      if (q.get("bg") === "0") document.getElementById("bg").remove();
+      const showLabels = q.get("labels") !== "0";
+      const guides = q.get("box") === "1";
+
+      try {
+        const map = await createLiveMap({
+          canvas: document.getElementById("map"),
+          width: W,
+          height: H,
+          dpr: +(q.get("dpr") || 1),
+          film,
+          aa: q.get("aa") || "ss",
+          supersample: q.get("ss") ? +q.get("ss") : undefined,
+          debug: q.get("debug") || undefined,
+        });
+
+        /* the labels: HTML, placed every frame from map.labels(t) */
+        const layer = document.getElementById("labels");
+        const font = film === "mobile" ? 34 : 24;
+        const nodes = {};
+        for (const l of map.labels(0)) {
+          const el = document.createElement("div");
+          el.className = `label${l.city === "Lagos" ? " lagos" : ""}`;
+          el.textContent = l.city;
+          el.style.fontSize = `${font}px`;
+          el.style.padding = `${font * 0.28}px ${font * 0.62}px`;
+          layer.appendChild(el);
+          nodes[l.city] = el;
+        }
+        await document.fonts.ready;
+
+        let pinEl = null;
+        const dotEls = {};
+        if (guides) {
+          const f = map.framing;
+          const add = (b, cls) => {
+            const d = document.createElement("div");
+            d.className = `guide ${cls}`;
+            Object.assign(d.style, { left: `${b[0]}px`, top: `${b[1]}px`, width: `${b[2] - b[0]}px`, height: `${b[3] - b[1]}px` });
+            stage.appendChild(d);
+          };
+          add(film === "mobile" ? [60, 380, 1020, 1300] : [460, 120, 1460, 900], "box");
+          add(f.frame, "frame");
+          pinEl = document.createElement("div");
+          pinEl.className = "pinmark";
+          stage.appendChild(pinEl);
+          for (const l of map.labels(0)) {
+            dotEls[l.city] = document.createElement("div");
+            dotEls[l.city].className = "dotmark";
+            stage.appendChild(dotEls[l.city]);
+          }
+        }
+
+        function set(t) {
+          map.render(t);
+          const labels = map.labels(t);
+          for (const l of labels) {
+            const el = nodes[l.city];
+            el.style.visibility = showLabels && l.opacity > 0.001 ? "visible" : "hidden";
+            el.style.opacity = String(l.opacity);
+            el.style.transform = `translate(${l.x}px, ${l.y}px) translate(${-l.ax * 100}%, ${-l.ay * 100}%) scale(${l.scale})`;
+            el.style.transformOrigin = `${l.ax * 100}% ${l.ay * 100}%`;
+            if (dotEls[l.city]) Object.assign(dotEls[l.city].style, { left: `${l.dot.x}px`, top: `${l.dot.y}px` });
+          }
+          const p = map.pin(t);
+          if (pinEl) {
+            Object.assign(pinEl.style, { left: `${p.x - p.size / 2}px`, top: `${p.y - p.size / 2}px`, width: `${p.size}px`, height: `${p.size}px`, opacity: String(p.opacity) });
+          }
+          return { labels, pin: p };
+        }
+        window.__map = map;
+        window.__set = set;
+        set(+(q.get("t") || 0));
+        window.__ready = true;
+      } catch (error) {
+        window.__error = `${error?.message ?? error}\n${error?.stack ?? ""}`;
+        console.error(window.__error);
+      }
+    </script>
+  </body>
+</html>

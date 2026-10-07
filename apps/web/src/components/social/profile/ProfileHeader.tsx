@@ -1,8 +1,11 @@
 import { initial } from "@/lib/text/initial";
 import Image from "next/image";
 import Link from "next/link";
-import { formatNumber, formatRating, intlTag, type Dictionary, type Locale } from "@vallo/i18n/core";
-import { CountUp } from "@/components/motion/CountUp";
+import { formatNumber, formatRating, type Dictionary, type Locale } from "@vallo/i18n/core";
+import { Figure } from "@/components/ui/Amount";
+import { BadgeRow, type BadgeRowCopy } from "../badges/BadgeRow";
+import { BadgeEarnedHost } from "../badges/BadgeEarnedHost";
+import type { ProfileBadge } from "../badges/badge-model";
 import { TierBadge } from "@/components/trust/TierBadge";
 import { ShareCardFrame } from "@/components/share/ShareCardFrame";
 import { BADGE_TIER_LABEL } from "@/lib/trust/badge-tier";
@@ -13,7 +16,7 @@ import { BackChevron } from "./BackChevron";
 import { ButtonLink } from "@/components/ui/Button";
 import type { ModeratorOf, SocialProfileView } from "@/lib/social/profiles-queries";
 import type { AgentTrust, Occupation, ProfilePlace, Standing } from "@/lib/social/profile-extras";
-import { BIO_HELD_DETAIL, BIO_HELD_TITLE, linkLabel } from "@/lib/social/profiles-schema";
+import { BIO_HELD_DETAIL, BIO_HELD_TITLE, linkLabel } from "@/lib/social/profiles-model";
 import { ExternalLinkSheet } from "@/components/ui/ExternalLinkSheet";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import "./social-profile.css";
@@ -87,6 +90,9 @@ export function ProfileHeader({
   follow,
   menu,
   share,
+  badges = null,
+  badgeCopy,
+  shareUrl,
 }: {
   profile: SocialProfileView;
   isOwner: boolean;
@@ -110,6 +116,15 @@ export function ProfileHeader({
   menu?: React.ReactNode;
   /** Share, floating on the banner. */
   share?: React.ReactNode;
+  /**
+   * This person's badges from `user_badges`, or null when the read failed.
+   * Null falls back to the admin-granted chips (`standing`) so a failed read
+   * never costs a badge somebody was given. An empty array draws nothing.
+   */
+  badges?: readonly ProfileBadge[] | null;
+  badgeCopy?: BadgeRowCopy;
+  /** The person's public address, for the Share on the earned moment. */
+  shareUrl?: string;
 }) {
   const copy = t.socialProfile;
   const visible = t.trustVisible.profile;
@@ -162,7 +177,7 @@ export function ProfileHeader({
       </div>
 
       {/* --------------------------------- the person, beside the picture */}
-      <div className="nf-profile-identity">
+      <div className="nf-profile-identity nf-island">
         <div className="nf-profile-avatar">
           <span className="nf-profile-avatar__disc">
             {profile.avatarUrl ? (
@@ -197,6 +212,7 @@ export function ProfileHeader({
             {mod ? (
               <span
                 className="nf-social-role"
+                role="img"
                 aria-label={copy.moderatorOf.replace("{place}", mod.name)}
                 data-testid="profile-role-badge"
               >
@@ -255,17 +271,27 @@ export function ProfileHeader({
           <div className="nf-social-counts" data-testid="profile-counts">
             <Link href={`/u/${profile.handle}/followers`} className="nf-social-count">
               <span className="nf-social-count__value nf-numeric">
-                <CountUp value={profile.followerCount} tag={intlTag[locale]} eager />
+                <Figure value={profile.followerCount} locale={locale} count />
               </span>
               <span className="nf-social-count__label">{copy.followers}</span>
             </Link>
             <span className="nf-social-count__rule" aria-hidden="true" />
             <Link href={`/u/${profile.handle}/following`} className="nf-social-count">
               <span className="nf-social-count__value nf-numeric">
-                <CountUp value={profile.followingCount} tag={intlTag[locale]} eager />
+                <Figure value={profile.followingCount} locale={locale} count />
               </span>
               <span className="nf-social-count__label">{copy.following}</span>
             </Link>
+            <span className="nf-social-count__rule" aria-hidden="true" />
+            {/* Posts is a number, not a door: the Posts tab below is that
+                list, so this is a span and keeps no 44px hit area it could
+                not honour. Real counts only: the three are the database's. */}
+            <span className="nf-social-count nf-social-count--static">
+              <span className="nf-social-count__value nf-numeric">
+                <Figure value={profile.postCount} locale={locale} count />
+              </span>
+              <span className="nf-social-count__label">{copy.posts}</span>
+            </span>
           </div>
         </div>
       </div>
@@ -283,7 +309,7 @@ export function ProfileHeader({
       </div>
 
       {/* -------------------------------------------------- what they are */}
-      {(occupation || standing.length > 0 || profile.pidginOk) && (
+      {(occupation || (badges === null && standing.length > 0) || profile.pidginOk) && (
         <div className="nf-social-chips nf-profile-chips">
           {occupation ? (
             <span className="nf-social-chip">
@@ -291,7 +317,7 @@ export function ProfileHeader({
               {occupation.name}
             </span>
           ) : null}
-          {standing.map((badge) => (
+          {(badges === null ? standing : []).map((badge) => (
             <span key={badge.code} className="nf-social-chip nf-social-chip--brand">
               <UiIcon name={lineGlyphFor(objectFor(badge.objectName))} size={16} />
               {badge.name}
@@ -305,6 +331,14 @@ export function ProfileHeader({
           ) : null}
         </div>
       )}
+
+      {/* ----------------------------------------- what they have earned */}
+      {badges && badges.length > 0 && badgeCopy ? (
+        <>
+          <BadgeRow badges={badges} isOwner={isOwner} copy={badgeCopy} shareUrl={shareUrl} />
+          {isOwner ? <BadgeEarnedHost viewerId={profile.userId} badges={badges} copy={badgeCopy} shareUrl={shareUrl} /> : null}
+        </>
+      ) : null}
 
       {/* --------------------------------------------------------- the bio */}
       {isOwner && profile.bioStatus === "HELD" && (

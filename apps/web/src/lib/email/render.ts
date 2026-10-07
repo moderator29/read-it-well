@@ -8,19 +8,38 @@ import {
   FONT_MONO,
   FONT_SANS,
   GRADIENT_CAP,
-  HEADER,
   LEGAL_LINE,
+  LIGHT,
+  LINK,
   LOCKUP_HEIGHT,
   LOCKUP_PATH,
   LOCKUP_WIDTH,
   MAX_WIDTH,
   PAD_X,
+  PAPER_STATE,
+  SCHEME_DARK_GROUND,
+  SCHEME_DARK_INK,
+  SCHEME_LIGHT_GROUND,
+  SCHEME_LIGHT_INK,
   SIGN_OFF,
-  SKY,
+  SLOGAN,
   WORDMARK_ALT,
 } from "./theme";
 import { BRAND_ORIGIN } from "@/lib/brand-domain";
-import { EMAIL_ICON_SIZE, emailIconFor, emailIconPath, type EmailKind } from "./icons";
+import type { ReceiptModel } from "@/components/app/money/receipt-model";
+import {
+  EMAIL_GLYPH_SIZE,
+  EMAIL_OBJECT_SIZE,
+  FAMILY,
+  emailFamilyOf,
+  emailGlyphPath,
+  emailObjectFor,
+  emailObjectPath,
+  emailRegisterOf,
+  type EmailGlyph,
+  type EmailKind,
+  type EmailRegister,
+} from "./icons";
 
 /**
  * The Vallo transactional email shell.
@@ -41,28 +60,36 @@ import { EMAIL_ICON_SIZE, emailIconFor, emailIconPath, type EmailKind } from "./
  * emails carry a verification code and a wallet receipt, landing in spam is
  * not a cosmetic failure.
  *
- * DARK, LIKE THE PRODUCT (29 September 2026, founder ruling).
+ * WHITE IN LIGHT MODE, THE PRODUCT'S NIGHT IN DARK (D23, 6 October 2026,
+ * superseding the dark-everywhere ruling of 29 September for the inline
+ * layer). Every message is a white ground and one white card with a hairline
+ * edge: the lockup and the slogan, the family's Tier B object, the subject as
+ * a display line, the consequence, the figure where there is money, the
+ * detail as key-value rows with line glyphs, one primary button with its
+ * address as a plain link beneath it, then the footer on the ground. Table
+ * layout, every colour inline on the element it paints and repeated as a
+ * `bgcolor` attribute for Outlook's Word engine.
  *
- * Every message is the product's own dark mode: a navy ground, one deep navy
- * card with a hairline edge, the lockup on its navy band under a luminous
- * brand-blue rule, then one headline, short body copy, at most one primary
- * button and the secondary facts in an inset panel, then a footer on the
- * ground with the support and legal links. Table layout, every colour inline
- * on the element it paints and repeated as a `bgcolor` attribute for
- * Outlook's Word engine.
+ * TWO REGISTERS (icons.ts `FAMILY`, theme.ts). Money and document mail is
+ * PAPER: in a dark-mode client the ground goes navy and the card stays the
+ * white document sheet (D28.1). Notification and lifecycle mail is the SHELL:
+ * in a dark-mode client the card turns to the product's night. Both are white
+ * in the inline layer, so a client that strips the style block, which is
+ * Gmail, shows the light design every time.
  *
- * READABLE WHATEVER THE READER'S CLIENT DOES WITH DARK MODE. The inline layer
- * is dark and complete, and the document declares `color-scheme: dark` so
- * Apple Mail and iOS Mail render it as written instead of inverting it.
- * Clients that run their own pass anyway (Gmail's iOS app can invert a whole
- * message) are handled by the palette itself: every ink keeps AA against its
- * ground both as written and inverted. `theme.ts` carries the palette and the
- * measurements, and `email-dark-paint.test.ts` holds every message to it.
+ * READABLE WHATEVER THE READER'S CLIENT DOES WITH DARK MODE. The document
+ * declares `color-scheme: light dark`, so Apple Mail and iOS Mail apply the
+ * designed dark scheme instead of inverting. Clients that run their own pass
+ * anyway (Gmail's iOS app can invert a whole message) are handled by the
+ * palette itself: every ink keeps AA against its ground both as written and
+ * inverted. `theme.ts` carries the palette and the measurements, and
+ * `email-dark-paint.test.ts` holds every message to it.
  *
  * NO WORDS IN IMAGES BEYOND THE BRAND'S OWN. The shell carries the lockup,
  * whose alt is the brand name, so with images off the reader sees "Vallo"
- * once, in its place, and at most one decorative 3D object above the headline
- * (`icons.ts`), whose alt is empty because the headline already names it.
+ * once, in its place; at most one Tier B object above the headline
+ * (`icons.ts`), whose alt is its family word; and 16px line glyphs in the
+ * rows, decorative beside their labels, alt empty.
  * Every other word is live text. Copy baked into
  * a picture is unreadable with images off, which is the default in a large
  * share of inboxes, and unreadable to a screen reader always.
@@ -127,7 +154,7 @@ export function appUrl(path: string): string {
 export function paintExplicit(html: string): string {
   const stack: { tag: string; bg: string | null; cls: string | null }[] = [];
   const HEX = /#[0-9a-fA-F]{6}\b/;
-  const GROUND_CLASS = /\brm-(base|card|panel|head)\b/;
+  const GROUND_CLASS = /\brm-(base|card|panel|head|sheet-panel|sheet)\b/;
   return html.replace(/<(\/?)(body|table|tr|td)\b([^>]*)>/gi, (whole, close: string, rawTag: string, attrs: string) => {
     const tag = rawTag.toLowerCase();
     if (close) {
@@ -366,7 +393,15 @@ export type ReceiptRow = {
   value: string;
   /** Emphasise this row: the total line of a receipt, or a new balance. */
   strong?: boolean;
+  /** A line glyph beside the label (icons.ts, `EMAIL_GLYPHS`). Decorative. */
+  icon?: EmailGlyph;
 };
+
+/** A state, said three ways (the app's StatusChip): a word, a shape and a colour. */
+export type EmailStatus = "success" | "pending" | "failed" | "neutral";
+
+/** One step of a multi-step process; `done` is a fact, never a guess. */
+export type TimelineStep = { label: string; detail?: string; done: boolean };
 
 /**
  * One piece of a message.
@@ -375,6 +410,12 @@ export type ReceiptRow = {
  * HTML and plain text, and a block that cannot is a block that does not
  * belong in an email: there is no "column", no "card grid" and no "image with
  * copy on it", because none of those survives the trip.
+ *
+ * THE COMPONENTS (north star 16.5, W9): the figure block, the key-value table
+ * with line glyphs, the itemised breakdown with a total rule, the status
+ * chip, the timeline, the space card, the person row, the receipt block, the
+ * code block and the quiet callout. Each is drawn in the message's register
+ * (paper or shell) and in plain text, from the one description.
  */
 export type Block =
   | { kind: "heading"; text: string }
@@ -386,19 +427,36 @@ export type Block =
       label: string;
       href: string;
       /**
-       * Print the destination underneath, selectable, as well as linking it.
-       *
-       * For the messages whose button IS the message: a password reset has no
-       * other way in, so a stripped or mangled anchor is a dead end rather
-       * than an inconvenience. Corporate mail gateways rewrite links, some
-       * clients refuse a link in a message they score as suspicious, and a
-       * reader forwarding to a desktop loses the tap entirely.
+       * Print the destination underneath with a sentence saying what it is,
+       * for the messages whose button IS the message (a password reset has no
+       * other way in). Every button already carries its address as a plain
+       * link beneath it; this adds the sentence and the full address.
        */
       showUrl?: boolean;
     }
   /** A short value to be read out or typed in: a code, a reference. */
   | { kind: "code"; value: string }
-  | { kind: "note"; text: string };
+  | { kind: "note"; text: string }
+  /** The money, large and tabular, with its quiet label above it. */
+  | { kind: "figure"; label: string; value: string; caption?: string }
+  /** Itemised lines adding up to a total under a solid rule. */
+  | { kind: "itemised"; lines: readonly ReceiptRow[]; total: ReceiptRow }
+  | { kind: "status"; status: EmailStatus; label: string }
+  | { kind: "timeline"; steps: readonly TimelineStep[] }
+  | {
+      kind: "space";
+      title: string;
+      place?: string | null;
+      /** An absolute https URL of a real photograph of the space, or nothing. */
+      photo?: string | null;
+      figureLabel?: string | null;
+      figure?: string | null;
+    }
+  | { kind: "person"; name: string; role: string }
+  /** The receipt, drawn from the one receipt model the app draws on screen. */
+  | { kind: "receipt"; receipt: ReceiptModel }
+  /** A warning said quietly: a panel with a brand rule, never red. */
+  | { kind: "callout"; text: string };
 
 /** Convenience constructors, so a message reads as prose rather than as JSON. */
 export const heading = (text: string): Block => ({ kind: "heading", text });
@@ -409,6 +467,15 @@ export const button = (label: string, href: string, showUrl?: boolean): Block =>
   showUrl ? { kind: "button", label, href, showUrl } : { kind: "button", label, href };
 export const code = (value: string): Block => ({ kind: "code", value });
 export const note = (text: string): Block => ({ kind: "note", text });
+export const figure = (label: string, value: string, caption?: string): Block =>
+  caption ? { kind: "figure", label, value, caption } : { kind: "figure", label, value };
+export const itemised = (lines: readonly ReceiptRow[], total: ReceiptRow): Block => ({ kind: "itemised", lines, total });
+export const status = (state: EmailStatus, label: string): Block => ({ kind: "status", status: state, label });
+export const timeline = (steps: readonly TimelineStep[]): Block => ({ kind: "timeline", steps });
+export const space = (card: Omit<Extract<Block, { kind: "space" }>, "kind">): Block => ({ kind: "space", ...card });
+export const person = (name: string, role: string): Block => ({ kind: "person", name, role });
+export const receiptBlock = (receipt: ReceiptModel): Block => ({ kind: "receipt", receipt });
+export const callout = (text: string): Block => ({ kind: "callout", text });
 
 /**
  * Drop the blocks that turned out to have nothing in them.
@@ -426,64 +493,339 @@ function usable(blocks: readonly (Block | null | undefined | false)[]): Block[] 
     if (!block) continue;
     if (block.kind === "rows" && block.rows.length === 0) continue;
     if (block.kind === "bullets" && block.items.length === 0) continue;
+    if (block.kind === "timeline" && block.steps.length === 0) continue;
+    if (block.kind === "itemised" && block.lines.length === 0) continue;
     out.push(block);
   }
   return out;
 }
 
+/* ------------------------------------------------------------ the registers */
+
+/**
+ * THE CLASSES A REGISTER PAINTS WITH (theme.ts, SCHEME_*).
+ *
+ * Both registers write the same LIGHT values inline, so every email is white
+ * in light mode in every client. What differs is the class each surface and
+ * ink carries, which decides what a dark-mode client does with it: the shell
+ * classes flip to the product's night, the sheet classes stay paper.
+ */
+export type Ink = {
+  card: string;
+  panel: string;
+  title: string;
+  body: string;
+  muted: string;
+  link: string;
+};
+
+export const SHELL_INK: Ink = {
+  card: "rm-card",
+  panel: "rm-panel",
+  title: "rm-title",
+  body: "rm-body",
+  muted: "rm-muted",
+  link: "rm-link",
+};
+
+export const PAPER_INK: Ink = {
+  card: "rm-sheet",
+  panel: "rm-sheet-panel",
+  title: "rm-ink",
+  body: "rm-ink-body",
+  muted: "rm-ink-muted",
+  link: "rm-ink-link",
+};
+
+export function inkFor(register: EmailRegister): Ink {
+  return register === "paper" ? PAPER_INK : SHELL_INK;
+}
+
 /* -------------------------------------------------------------- html parts */
 
-function htmlBlock(block: Block): string {
+const TEXT = `font-family:${FONT_SANS};`;
+/** Tabular figures where a client honours it; every client still gets the digits. */
+const TABULAR = "font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1;";
+
+/** A 16px line glyph, decorative beside its label: alt empty, box reserved. */
+function glyphHtml(glyph: EmailGlyph): string {
+  const size = EMAIL_GLYPH_SIZE;
+  return `<img src="${siteUrl()}${emailGlyphPath(glyph)}" width="${size}" height="${size}" alt="" border="0" style="display:block;width:${size}px;height:${size}px;border:0;outline:none;text-decoration:none;" />`;
+}
+
+/**
+ * THE KEY-VALUE TABLE (16.5): label left in quiet ink, value right, a
+ * hairline between rows, and a line glyph before the label when the row
+ * names one. The glyph column only exists when a row in the block has one,
+ * so a table of plain facts is not indented for nothing.
+ */
+function rowsHtml(list: readonly ReceiptRow[], ink: Ink, options: { first?: boolean } = {}): string {
+  const glyphs = list.some((row) => row.icon);
+  return list
+    .map((row, index) => {
+      const top = index === 0 && options.first !== false ? "0" : `1px solid ${LIGHT.edge}`;
+      const weight = row.strong ? "700" : "500";
+      const valueClass = row.strong ? ink.title : ink.body;
+      const valueColour = row.strong ? LIGHT.text : LIGHT.body;
+      const glyphCell = glyphs
+        ? `<td width="28" valign="top" style="width:28px;padding:15px 0 0;border-top:${top};vertical-align:top;font-size:0;line-height:0;">${row.icon ? glyphHtml(row.icon) : "&nbsp;"}</td>`
+        : "";
+      return `<tr>
+                          ${glyphCell}<td width="40%" class="${ink.muted}" style="width:40%;padding:13px 12px 13px 0;border-top:${top};${TEXT}font-size:13px;line-height:1.5;vertical-align:top;color:${LIGHT.muted};">${escapeHtml(row.label)}</td>
+                          <td align="right" class="${valueClass}" style="padding:13px 0;border-top:${top};${TEXT}${TABULAR}font-size:15px;line-height:1.5;font-weight:${weight};vertical-align:top;color:${valueColour};">${escapeHtml(row.value)}</td>
+                        </tr>`;
+    })
+    .join("\n                        ");
+}
+
+function rowsTable(list: readonly ReceiptRow[], ink: Ink, margin = "0 0 26px"): string {
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;margin:${margin};">
+                    ${rowsHtml(list, ink)}
+                  </table>`;
+}
+
+/** The figure: a quiet label, then the money large and tabular (16.5). */
+function figureHtml(label: string, value: string, ink: Ink, caption?: string, margin = "0 0 24px"): string {
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;margin:${margin};">
+                    <tr><td class="${ink.muted}" style="padding:0 0 6px;${TEXT}font-size:13px;line-height:18px;font-weight:500;color:${LIGHT.muted};">${escapeHtml(label)}</td></tr>
+                    <tr><td class="${ink.title}" style="padding:0;${TEXT}${TABULAR}font-size:38px;line-height:44px;font-weight:700;letter-spacing:-0.025em;color:${LIGHT.text};">${escapeHtml(value)}</td></tr>${
+                      caption
+                        ? `
+                    <tr><td class="${ink.muted}" style="padding:6px 0 0;${TEXT}font-size:13px;line-height:18px;color:${LIGHT.muted};">${escapeHtml(caption)}</td></tr>`
+                        : ""
+                    }
+                  </table>`;
+}
+
+/** The total under a solid 2px rule: the line the column adds up to. */
+function totalRowHtml(total: ReceiptRow, ink: Ink): string {
+  return `<tr>
+                      <td class="${ink.title}" style="padding:14px 12px 0 0;border-top:2px solid ${LIGHT.text};${TEXT}font-size:16px;line-height:1.4;font-weight:700;color:${LIGHT.text};">${escapeHtml(total.label)}</td>
+                      <td align="right" class="${ink.title}" style="padding:14px 0 0;border-top:2px solid ${LIGHT.text};${TEXT}${TABULAR}font-size:16px;line-height:1.4;font-weight:700;color:${LIGHT.text};">${escapeHtml(total.value)}</td>
+                    </tr>`;
+}
+
+/**
+ * A state, said three ways: the word, a shape and a colour (the app's
+ * StatusChip). Done is a filled circle, waiting a hollow one, failed a filled
+ * square, neutral a bar. The word is in the ink of the text around it, so it
+ * reads in every scheme; the shape and its colour carry the state beside it.
+ */
+function statusMark(state: EmailStatus): string {
+  const colour = state === "success" ? PAPER_STATE.success : state === "failed" ? PAPER_STATE.error : state === "pending" ? PAPER_STATE.attention : LIGHT.muted;
+  const shape =
+    state === "success"
+      ? `width:8px;height:8px;border-radius:4px;background-color:${colour};`
+      : state === "pending"
+        ? `width:6px;height:6px;border-radius:4px;border:2px solid ${colour};`
+        : state === "failed"
+          ? `width:8px;height:8px;border-radius:1px;background-color:${colour};`
+          : `width:10px;height:3px;border-radius:2px;background-color:${colour};`;
+  return `<span style="display:inline-block;vertical-align:middle;${shape}">&nbsp;</span>`;
+}
+
+function statusHtml(state: EmailStatus, label: string, ink: Ink): string {
+  return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 20px;">
+                    <tr>
+                      <td class="${ink.title}" style="padding:6px 14px;border:1px solid ${LIGHT.edge};border-radius:999px;${TEXT}font-size:13px;line-height:18px;font-weight:600;color:${LIGHT.text};mso-line-height-rule:exactly;">${statusMark(state)}&nbsp;&nbsp;${escapeHtml(label)}</td>
+                    </tr>
+                  </table>`;
+}
+
+/** A multi-step process as a column of marks: filled when done, hollow when not. */
+function timelineHtml(steps: readonly TimelineStep[], ink: Ink): string {
+  const cells = steps
+    .map((step, index) => {
+      const last = index === steps.length - 1;
+      const mark = step.done
+        ? `<span style="display:inline-block;width:12px;height:12px;border-radius:7px;background-color:${LINK};border:1px solid ${LINK};">&nbsp;</span>`
+        : `<span style="display:inline-block;width:10px;height:10px;border-radius:7px;border:2px solid ${LIGHT.muted};">&nbsp;</span>`;
+      return `<tr>
+                      <td width="24" valign="top" style="width:24px;padding:3px 0 ${last ? "0" : "16px"};vertical-align:top;font-size:0;line-height:0;">${mark}</td>
+                      <td valign="top" style="padding:0 0 ${last ? "0" : "16px"};vertical-align:top;">
+                        <p class="${step.done ? ink.title : ink.body}" style="margin:0;${TEXT}font-size:15px;line-height:1.45;font-weight:${step.done ? "600" : "500"};color:${step.done ? LIGHT.text : LIGHT.body};">${escapeHtml(step.label)}</p>${
+                          step.detail
+                            ? `
+                        <p class="${ink.muted}" style="margin:2px 0 0;${TEXT}font-size:13px;line-height:1.5;color:${LIGHT.muted};">${escapeHtml(step.detail)}</p>`
+                            : ""
+                        }
+                      </td>
+                    </tr>`;
+    })
+    .join("\n                    ");
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;margin:0 0 26px;">
+                    ${cells}
+                  </table>`;
+}
+
+/** Initials for the person row's disc: two letters at most, never a guess at a face. */
+export function initialsOf(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  const letters = (parts[0]?.[0] ?? "") + (parts.length > 1 ? (parts.at(-1)?.[0] ?? "") : "");
+  return letters.toUpperCase() || "V";
+}
+
+function personHtml(name: string, role: string, ink: Ink): string {
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;margin:0 0 22px;">
+                    <tr>
+                      <td width="52" valign="middle" style="width:52px;vertical-align:middle;">
+                        <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+                          <td align="center" class="${ink.panel} ${ink.link}" width="40" height="40" style="width:40px;height:40px;background-color:${LIGHT.panel};border-radius:20px;${TEXT}font-size:15px;line-height:40px;font-weight:700;text-align:center;color:${LINK};mso-line-height-rule:exactly;">${escapeHtml(initialsOf(name))}</td>
+                        </tr></table>
+                      </td>
+                      <td valign="middle" style="vertical-align:middle;">
+                        <p class="${ink.title}" style="margin:0;${TEXT}font-size:15px;line-height:1.4;font-weight:600;color:${LIGHT.text};">${escapeHtml(name)}</p>
+                        <p class="${ink.muted}" style="margin:2px 0 0;${TEXT}font-size:13px;line-height:1.4;color:${LIGHT.muted};">${escapeHtml(role)}</p>
+                      </td>
+                    </tr>
+                  </table>`;
+}
+
+/**
+ * THE SPACE CARD: a real photograph when there is one, the space's name and
+ * place, and its move-in total. With images off the photograph's alt is the
+ * space's name, set in quiet ink in a box of the photograph's size, so the
+ * card still reads. No photograph, no image: a card never stands in a
+ * picture of somewhere else.
+ */
+function spaceHtml(block: Extract<Block, { kind: "space" }>, ink: Ink): string {
+  const photo =
+    block.photo && /^https:\/\//.test(block.photo)
+      ? `<td width="112" valign="top" style="width:112px;padding:0 16px 0 0;vertical-align:top;"><img data-space-photo="" src="${escapeHtml(block.photo)}" width="96" height="96" alt="${escapeHtml(block.title)}" border="0" style="display:block;width:96px;height:96px;border:0;border-radius:12px;object-fit:cover;${TEXT}font-size:12px;line-height:16px;color:${LIGHT.muted};" /></td>`
+      : "";
+  const money =
+    block.figure && block.figureLabel
+      ? `
+                          <p class="${ink.muted}" style="margin:12px 0 2px;${TEXT}font-size:12px;line-height:16px;color:${LIGHT.muted};">${escapeHtml(block.figureLabel)}</p>
+                          <p class="${ink.title}" style="margin:0;${TEXT}${TABULAR}font-size:20px;line-height:26px;font-weight:700;letter-spacing:-0.01em;color:${LIGHT.text};">${escapeHtml(block.figure)}</p>`
+      : "";
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;margin:0 0 24px;">
+                    <tr>
+                      <td style="border:1px solid ${LIGHT.edge};border-radius:16px;padding:16px;">
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;"><tr>
+                          ${photo}<td valign="top" style="vertical-align:top;">
+                          <p class="${ink.title}" style="margin:0;${TEXT}font-size:16px;line-height:1.35;font-weight:600;color:${LIGHT.text};">${escapeHtml(block.title)}</p>${
+                            block.place
+                              ? `
+                          <p class="${ink.muted}" style="margin:4px 0 0;${TEXT}font-size:13px;line-height:1.4;color:${LIGHT.muted};">${escapeHtml(block.place)}</p>`
+                              : ""
+                          }${money}
+                          </td>
+                        </tr></table>
+                      </td>
+                    </tr>
+                  </table>`;
+}
+
+/**
+ * THE RECEIPT BLOCK: the one receipt model (components/app/money/
+ * receipt-model.ts) in the same order the document sheet draws it on screen,
+ * so the inbox and the app show one receipt. The kind and the title, the
+ * place, the figure, a dashed tear line, the facts and the itemised lines,
+ * the total under its rule, then each confirmation the record holds with its
+ * mark, the reference when there is one, and the rail sentence.
+ */
+function receiptHtml(receipt: ReceiptModel, ink: Ink): string {
+  const head = `<p class="${ink.muted}" style="margin:0 0 4px;${TEXT}font-size:12px;line-height:16px;font-weight:600;letter-spacing:0.02em;color:${LIGHT.muted};">${escapeHtml(receipt.kind)}</p>
+                  <p class="${ink.title}" style="margin:0;${TEXT}font-size:18px;line-height:1.35;font-weight:600;color:${LIGHT.text};">${escapeHtml(receipt.title)}</p>${
+                    receipt.place
+                      ? `
+                  <p class="${ink.muted}" style="margin:4px 0 0;${TEXT}font-size:13px;line-height:1.4;color:${LIGHT.muted};">${escapeHtml(receipt.place)}</p>`
+                      : ""
+                  }`;
+  const lines = [...receipt.facts, ...receipt.lines];
+  const confirmRows = receipt.confirmations
+    .map(
+      (row) => `<tr>
+                      <td class="${ink.muted}" style="padding:11px 12px 11px 0;border-top:1px solid ${LIGHT.edge};${TEXT}font-size:13px;line-height:1.5;color:${LIGHT.muted};">${escapeHtml(row.label)}</td>
+                      <td align="right" class="${ink.link}" style="padding:11px 0;border-top:1px solid ${LIGHT.edge};${TEXT}font-size:14px;line-height:1.5;font-weight:600;color:${LINK};">${statusMark("success")}&nbsp;&nbsp;${escapeHtml(row.state)}</td>
+                    </tr>`,
+    )
+    .join("\n                    ");
+  const reference = receipt.reference
+    ? `<tr>
+                      <td class="${ink.muted}" style="padding:11px 12px 11px 0;border-top:1px solid ${LIGHT.edge};${TEXT}font-size:13px;line-height:1.5;color:${LIGHT.muted};">${escapeHtml(receipt.reference.label)}</td>
+                      <td align="right" class="${ink.title}" style="padding:11px 0;border-top:1px solid ${LIGHT.edge};font-family:${FONT_MONO};font-size:13px;line-height:1.5;letter-spacing:0.02em;word-break:break-all;color:${LIGHT.text};">${escapeHtml(receipt.reference.value)}</td>
+                    </tr>`
+    : "";
+  const confirmations =
+    confirmRows || reference
+      ? `
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;margin:18px 0 0;">
+                    ${confirmRows}${reference ? "\n                    " + reference : ""}
+                  </table>`
+      : "";
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;margin:0 0 26px;">
+                    <tr>
+                      <td style="border:1px solid ${LIGHT.edge};border-radius:16px;padding:22px 22px 20px;">
+                  ${head}
+                  ${figureHtml(receipt.figureLabel, receipt.figure, ink, undefined, "18px 0 0")}
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;margin:18px 0 0;border-top:1px dashed ${LIGHT.edge};">
+                    ${rowsHtml(lines, ink)}
+                    ${totalRowHtml(receipt.total, ink)}
+                  </table>${confirmations}
+                  <p class="${ink.muted}" style="margin:18px 0 0;${TEXT}font-size:12px;line-height:1.55;color:${LIGHT.muted};">${escapeHtml(receipt.note)}</p>
+                      </td>
+                    </tr>
+                  </table>`;
+}
+
+function htmlBlock(block: Block, ink: Ink): string {
   switch (block.kind) {
     case "heading":
       // font-family is repeated on the h1 because several clients reset heading
       // fonts to a serif default and inheritance from body does not save it.
-      return `<h1 class="rm-title" style="margin:0 0 16px;font-family:${FONT_SANS};font-size:27px;line-height:1.22;font-weight:700;letter-spacing:-0.022em;color:${DARK.text};">${escapeHtml(block.text)}</h1>`;
+      // The subject as a display line (16.5): 28px, 700, tight.
+      return `<h1 class="${ink.title}" style="margin:0 0 14px;${TEXT}font-size:28px;line-height:1.2;font-weight:700;letter-spacing:-0.022em;color:${LIGHT.text};">${escapeHtml(block.text)}</h1>`;
 
     case "paragraph":
-      return `<p class="rm-body" style="margin:0 0 20px;font-family:${FONT_SANS};font-size:16px;line-height:1.65;color:${DARK.body};">${escapeHtml(block.text)}</p>`;
+      return `<p class="${ink.body}" style="margin:0 0 20px;${TEXT}font-size:16px;line-height:1.65;color:${LIGHT.body};">${escapeHtml(block.text)}</p>`;
 
     case "bullets": {
       const items = block.items
         .map(
           (item) =>
-            `<li class="rm-body" style="margin:0 0 10px;padding-left:2px;color:${DARK.body};">${escapeHtml(item)}</li>`,
+            `<li class="${ink.body}" style="margin:0 0 10px;padding-left:2px;color:${LIGHT.body};">${escapeHtml(item)}</li>`,
         )
         .join("\n                    ");
-      return `<ul class="rm-body" style="margin:0 0 22px;padding:0 0 0 22px;font-family:${FONT_SANS};font-size:16px;line-height:1.65;color:${DARK.body};">
+      return `<ul class="${ink.body}" style="margin:0 0 22px;padding:0 0 0 22px;${TEXT}font-size:16px;line-height:1.65;color:${LIGHT.body};">
                     ${items}
                   </ul>`;
     }
 
-    case "rows": {
-      // The panel's padding lives on a cell, not on the table: Outlook drops
-      // padding declared on a table element, which would push the rows flush
-      // against the border.
-      const cells = block.rows
-        .map((row, index) => {
-          const top = index === 0 ? "0" : `1px solid ${DARK.edge}`;
-          const valueColour = row.strong ? DARK.text : DARK.body;
-          const valueWeight = row.strong ? "700" : "500";
-          const valueClass = row.strong ? "rm-title" : "rm-body";
-          // The label column is held at 40% so a long value wraps inside its
-          // own cell instead of squeezing the label to one word per line.
-          return `<tr>
-                          <td width="40%" class="rm-muted rm-rule" style="width:40%;padding:13px 12px 13px 0;border-top:${top};font-family:${FONT_SANS};font-size:13px;line-height:1.5;vertical-align:top;color:${DARK.muted};">${escapeHtml(row.label)}</td>
-                          <td align="right" class="${valueClass} rm-rule" style="padding:13px 0;border-top:${top};font-family:${FONT_SANS};font-size:15px;line-height:1.5;font-weight:${valueWeight};vertical-align:top;color:${valueColour};">${escapeHtml(row.value)}</td>
-                        </tr>`;
-        })
-        .join("\n                        ");
+    case "rows":
+      return rowsTable(block.rows, ink);
 
+    case "figure":
+      return figureHtml(block.label, block.value, ink, block.caption);
+
+    case "itemised":
       return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;margin:0 0 26px;">
+                    ${rowsHtml(block.lines, ink)}
+                    ${totalRowHtml(block.total, ink)}
+                  </table>`;
+
+    case "status":
+      return statusHtml(block.status, block.label, ink);
+
+    case "timeline":
+      return timelineHtml(block.steps, ink);
+
+    case "space":
+      return spaceHtml(block, ink);
+
+    case "person":
+      return personHtml(block.name, block.role, ink);
+
+    case "receipt":
+      return receiptHtml(block.receipt, ink);
+
+    case "callout":
+      return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;margin:0 0 24px;">
                     <tr>
-                      <td class="rm-panel" style="background:${DARK.panel};border:1px solid ${DARK.edge};border-radius:16px;padding:6px 22px;">
-                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;">
-                          ${cells}
-                        </table>
-                      </td>
+                      <td class="${ink.panel} ${ink.body}" style="background-color:${LIGHT.panel};border-left:3px solid ${LINK};border-radius:4px 12px 12px 4px;padding:14px 16px;${TEXT}font-size:14px;line-height:1.6;color:${LIGHT.body};">${escapeHtml(block.text)}</td>
                     </tr>
                   </table>`;
-    }
 
     case "button":
       /*
@@ -499,28 +841,34 @@ function htmlBlock(block: Block): string {
        * opened. mso-padding-alt repeats the geometry for Word, which ignores
        * padding on an inline-block.
        *
-       * IT IS A ROUNDED RECTANGLE AND NEVER A CAPSULE. 14px of radius on a
-       * 52px tall button is a ratio of 0.27 against the short side, well under
-       * the 0.5 that makes a capsule however it was spelled, and 14px is
-       * --nf-radius-control. Classic Outlook drops the radius and draws a
-       * rectangle, which is a squarer version of the same shape rather than a
-       * broken one, so the shape law holds in every client.
+       * IT IS A ROUNDED RECTANGLE AND NEVER A CAPSULE (D2). 14px of radius on
+       * a 52px tall button is a ratio of 0.27 against the short side, well
+       * under the 0.5 that makes a capsule however it was spelled, and 14px
+       * is --nf-radius-control. Classic Outlook drops the radius and draws a
+       * rectangle, which is a squarer version of the same shape.
+       *
+       * AND A PLAIN LINK BENEATH IT, ALWAYS (16.5): the address as text in
+       * the link blue, for the clients and gateways that strip a styled
+       * anchor, so no button is ever the only way through.
        *
        * The colour is written #FFFFFF rather than through the palette because
        * it is the text ON the brand blue in both schemes, not a themed value.
        */
-      return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:12px 0 24px;">
+      return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:12px 0 10px;">
                     <tr>
                       <td align="center" style="border-radius:14px;background-color:${BRAND};background-image:${BUTTON_GRADIENT};box-shadow:${BUTTON_GLOW};mso-padding-alt:16px 34px;">
-                        <a href="${escapeHtml(block.href)}" target="_blank" style="display:inline-block;padding:16px 34px;font-family:${FONT_SANS};font-size:16px;line-height:20px;font-weight:600;letter-spacing:-0.01em;color:#FFFFFF;text-decoration:none;border-radius:14px;">${escapeHtml(block.label)}</a>
+                        <a href="${escapeHtml(block.href)}" target="_blank" style="display:inline-block;padding:16px 34px;${TEXT}font-size:16px;line-height:20px;font-weight:600;letter-spacing:-0.01em;color:#FFFFFF;text-decoration:none;border-radius:14px;">${escapeHtml(block.label)}</a>
                       </td>
                     </tr>
                   </table>${
                     block.showUrl
                       ? `
-                  <p class="rm-muted" style="margin:0 0 6px;font-family:${FONT_SANS};font-size:13px;line-height:1.6;color:${DARK.muted};">If the button does not work, copy this address into your browser:</p>
-                  <p class="rm-link" style="margin:0 0 20px;font-family:${FONT_MONO};font-size:13px;line-height:1.6;word-break:break-all;color:${SKY};">${escapeHtml(block.href)}</p>`
-                      : ""
+                  <p class="${ink.muted}" style="margin:0 0 6px;${TEXT}font-size:13px;line-height:1.6;color:${LIGHT.muted};">If the button does not work, copy this address into your browser:</p>
+                  <p class="${ink.link}" style="margin:0 0 20px;font-family:${FONT_MONO};font-size:13px;line-height:1.6;word-break:break-all;color:${LINK};">${escapeHtml(block.href)}</p>`
+                      : /* The whole address, scheme included, as the copy-this line above
+                           prints it: a bare "vallo.ng/messages/<id>" reads as copy and
+                           puts a record's id in the visible text (outbox-delivery). */ `
+                  <p class="${ink.link}" style="margin:0 0 24px;${TEXT}font-size:13px;line-height:1.6;word-break:break-all;color:${LINK};"><a class="${ink.link}" href="${escapeHtml(block.href)}" target="_blank" style="color:${LINK};text-decoration:underline;">${escapeHtml(block.href)}</a></p>`
                   }`;
 
     case "code":
@@ -530,12 +878,12 @@ function htmlBlock(block: Block): string {
       // notices without being able to say why.
       return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;margin:0 0 26px;">
                     <tr>
-                      <td align="center" class="rm-panel rm-title" style="background:${DARK.panel};border:1px solid ${DARK.edge};border-radius:16px;padding:20px 16px;font-family:${FONT_MONO};font-size:26px;line-height:32px;font-weight:700;letter-spacing:0.2em;text-indent:0.2em;color:${DARK.text};">${escapeHtml(block.value)}</td>
+                      <td align="center" class="${ink.panel} ${ink.title}" style="background-color:${LIGHT.panel};border-radius:16px;padding:20px 16px;font-family:${FONT_MONO};font-size:26px;line-height:32px;font-weight:700;letter-spacing:0.2em;text-indent:0.2em;color:${LIGHT.text};">${escapeHtml(block.value)}</td>
                     </tr>
                   </table>`;
 
     case "note":
-      return `<p class="rm-muted" style="margin:22px 0 0;font-family:${FONT_SANS};font-size:13px;line-height:1.6;color:${DARK.muted};">${escapeHtml(block.text)}</p>`;
+      return `<p class="${ink.muted}" style="margin:22px 0 0;${TEXT}font-size:13px;line-height:1.6;color:${LIGHT.muted};">${escapeHtml(block.text)}</p>`;
   }
 }
 
@@ -558,6 +906,8 @@ function wrap(text: string, width = 72): string {
   return lines.join("\n");
 }
 
+const rowLines = (list: readonly ReceiptRow[]) => list.map((row) => `${row.label}: ${row.value}`).join("\n");
+
 function textBlock(block: Block): string {
   switch (block.kind) {
     case "heading":
@@ -575,7 +925,50 @@ function textBlock(block: Block): string {
       // "Label: value", one per line. Not column-aligned: alignment padding
       // depends on a monospaced font, and a proportional one turns it into
       // ragged nonsense.
-      return block.rows.map((row) => `${row.label}: ${row.value}`).join("\n");
+      return rowLines(block.rows);
+
+    case "figure":
+      return `${block.label}: ${block.value}${block.caption ? `\n${wrap(block.caption)}` : ""}`;
+
+    case "itemised":
+      return `${rowLines(block.lines)}\n${"-".repeat(24)}\n${block.total.label}: ${block.total.value}`;
+
+    case "status":
+      return `Status: ${block.label}`;
+
+    case "timeline":
+      return block.steps.map((step) => `[${step.done ? "x" : " "}] ${step.label}${step.detail ? ` (${step.detail})` : ""}`).join("\n");
+
+    case "space":
+      return [block.title, block.place, block.figure && block.figureLabel ? `${block.figureLabel}: ${block.figure}` : null]
+        .filter(Boolean)
+        .join("\n");
+
+    case "person":
+      return `${block.name}, ${block.role}`;
+
+    case "receipt": {
+      const r = block.receipt;
+      return [
+        r.kind,
+        r.title,
+        ...(r.place ? [r.place] : []),
+        "",
+        `${r.figureLabel}: ${r.figure}`,
+        "",
+        rowLines([...r.facts, ...r.lines]),
+        "-".repeat(24),
+        `${r.total.label}: ${r.total.value}`,
+        ...(r.confirmations.length > 0 || r.reference ? [""] : []),
+        ...r.confirmations.map((row) => `${row.label}: ${row.state}`),
+        ...(r.reference ? [`${r.reference.label}: ${r.reference.value}`] : []),
+        "",
+        wrap(r.note),
+      ].join("\n");
+    }
+
+    case "callout":
+      return wrap(block.text);
 
     case "button":
       return `${block.label}:\n${block.href}`;
@@ -592,9 +985,9 @@ function textBlock(block: Block): string {
 
 export type ComposeOptions = {
   /**
-   * Which message this is, which picks the 3D object drawn above the
-   * headline (`icons.ts`). Required, so no new message ships without one
-   * being chosen; a message whose object is not ready yet draws nothing.
+   * Which message this is, which picks the Tier B object in the header, its
+   * family word, and the register it is drawn in (`icons.ts`). Required, so
+   * no new message ships without one being chosen.
    */
   icon: EmailKind;
   /** The inbox preview line. Never rendered in the body. Required. */
@@ -631,49 +1024,51 @@ export type Composed = {
 /**
  * THE STYLE BLOCK, SHARED BY EVERY DOCUMENT (the catalogue and the welcome).
  *
- * Nothing the message depends on lives here. The inline layer is the dark
- * palette and it is complete on its own; this block only holds it in place
- * for the clients that would otherwise adjust it:
+ * Nothing the message depends on lives here. The inline layer is the light
+ * palette and it is complete on its own (Gmail strips this block); this only
+ * tells the clients that honour it what the dark scheme is:
  *
- *   1. `color-scheme: dark` tells Apple Mail and iOS Mail the message is
- *      already dark, so they render it as written rather than inverting it.
- *   2. The same palette is re-asserted by class, unconditionally and under
- *      both `prefers-color-scheme` queries, so a client that restyles by
- *      scheme lands on the designed dark either way. Every surface that paints
- *      a ground carries `rm-base`, `rm-card` or `rm-panel`, including the cells
- *      that only inherit one (`paintExplicit` copies the class down with the
- *      colour).
+ *   1. `color-scheme: light dark` tells Apple Mail and iOS Mail the message
+ *      knows both schemes, so they apply the rules below instead of
+ *      inverting it themselves.
+ *   2. Under `prefers-color-scheme: dark` every class is repainted from
+ *      `SCHEME_DARK_*` (theme.ts): the shell classes to the product's night,
+ *      the sheet classes held at paper, so a receipt stays a document on the
+ *      dark desk (D28.1). The hairlines inside a shell card turn to the
+ *      night's own edge with it, so a white rule never cuts a navy card.
+ *      Under `light` the inline palette is re-asserted.
  *   3. OUTLOOK.COM runs its own dark pass and marks each element it repainted
  *      with `data-ogsb` (ground) or `data-ogsc` (ink). The rules keyed on them
- *      put the designed palette back, so its guess never replaces the design.
+ *      put the designed dark back, so its guess never replaces the design.
  *   4. A phone gets tighter card padding.
  *
  * WHAT IT DOES NOT REACH. Gmail strips media queries and, in its iOS app, may
  * invert the whole message. That is answered by the inline palette, whose
  * every ink keeps AA against its ground inverted as well as written.
  */
+function paletteRules(grounds: Readonly<Record<string, string>>, inks: Readonly<Record<string, string>>, indent = "        "): string {
+  const g = Object.entries(grounds).map(([cls, hex]) => `${indent}.${cls} { background-color: ${hex} !important; }`);
+  const i = Object.entries(inks).map(([cls, hex]) => `${indent}.${cls} { color: ${hex} !important; }`);
+  return "\n" + [...g, ...i].join("\n");
+}
+
 export function schemeStyle(extra = ""): string {
-  const palette = `
-        .rm-base   { background-color: ${DARK.ground} !important; }
-        .rm-card   { background-color: ${DARK.card} !important; }
-        .rm-panel  { background-color: ${DARK.panel} !important; }
-        .rm-title  { color: ${DARK.text} !important; }
-        .rm-body   { color: ${DARK.body} !important; }
-        .rm-muted  { color: ${DARK.muted} !important; }
-        .rm-link   { color: ${SKY} !important; }`;
+  const ogsb = Object.entries(SCHEME_DARK_GROUND)
+    .map(([cls, hex]) => `      .${cls}[data-ogsb] { background-color: ${hex} !important; }`)
+    .join("\n");
+  const ogsc = Object.entries(SCHEME_DARK_INK)
+    .map(([cls, hex]) => `      [data-ogsc] .${cls}, .${cls}[data-ogsc] { color: ${hex} !important; }`)
+    .join("\n");
   return `
-      :root { color-scheme: dark; supported-color-schemes: dark; }
-      @media (prefers-color-scheme: dark) {${palette}
+      :root { color-scheme: light dark; supported-color-schemes: light dark; }
+      @media (prefers-color-scheme: light) {${paletteRules(SCHEME_LIGHT_GROUND, SCHEME_LIGHT_INK)}
       }
-      @media (prefers-color-scheme: light) {${palette}
+      @media (prefers-color-scheme: dark) {${paletteRules(SCHEME_DARK_GROUND, SCHEME_DARK_INK)}
+        .rm-card, .rm-card td, .rm-card table { border-color: ${DARK.edge} !important; }
       }
-      .rm-base[data-ogsb]  { background-color: ${DARK.ground} !important; }
-      .rm-card[data-ogsb]  { background-color: ${DARK.card} !important; }
-      .rm-panel[data-ogsb] { background-color: ${DARK.panel} !important; }
-      [data-ogsc] .rm-title, .rm-title[data-ogsc] { color: ${DARK.text} !important; }
-      [data-ogsc] .rm-body, .rm-body[data-ogsc]   { color: ${DARK.body} !important; }
-      [data-ogsc] .rm-muted, .rm-muted[data-ogsc] { color: ${DARK.muted} !important; }
-      [data-ogsc] .rm-link, .rm-link[data-ogsc]   { color: ${SKY} !important; }
+${ogsb}
+${ogsc}
+      .rm-card[data-ogsb], .rm-card[data-ogsb] td { border-color: ${DARK.edge} !important; }
       @media only screen and (max-width: 480px) {
         .rm-pad    { padding-left: 22px !important; padding-right: 22px !important; }
         .rm-outer  { padding-left: 8px !important; padding-right: 8px !important; }
@@ -685,8 +1080,8 @@ export function documentHead(title: string, extraStyle = "", headExtra = ""): st
   return `<head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="color-scheme" content="dark" />
-    <meta name="supported-color-schemes" content="dark" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="supported-color-schemes" content="light dark" />
     <title>${escapeHtml(title)}</title>${headExtra}
     <style>${schemeStyle(extraStyle)}
     </style>
@@ -710,45 +1105,53 @@ export function preheaderHtml(text: string): string {
 }
 
 /**
- * The brand band: the lockup on deep navy at the top of the card, under the
- * lit rim, over the luminous brand-blue rule.
+ * THE HEADER: the wordmark with the slogan quiet beneath it (16.5, D1), then
+ * the brand rule.
  *
- * Navy three ways: a `bgcolor` (Outlook's Word engine), an inline colour, and
- * a flat gradient of the same navy as a background image, which several
- * clients leave alone when they force a scheme. And the lockup is one picture
- * carrying its own navy tile (`LOCKUP_PATH` in theme.ts), hosted on the site
- * origin, so it stays the brand on navy whatever happens to the band.
+ * The lockup is one picture carrying its own navy tile (`LOCKUP_PATH`,
+ * theme.ts). That is not a dark card on light: it is the rule the north star
+ * keeps for any glass mark that survives (14.7), a dark ground of its own so
+ * the mark never sits on white, and mail clients do not invert pictures, so
+ * it is the same badge in a light client, a dark one and an inverting one.
+ * Its alt is the brand name, set in the ink of the header, so with images
+ * off the reader sees "Vallo" once, in its place.
+ *
+ * The slogan is live text, never baked into the image, so it reads with
+ * images off and in every scheme.
  */
-export function brandBandRow(): string {
+export function brandBandRow(ink: Ink = SHELL_INK): string {
   return `<tr>
-              <td class="rm-base rm-pad" bgcolor="${HEADER}" style="background-color:${HEADER};background-image:linear-gradient(${HEADER},${HEADER});border-top:1px solid ${DARK.rim};border-radius:19px 19px 0 0;padding:24px ${PAD_X}px 22px;">
-                <img src="${siteUrl()}${LOCKUP_PATH}" width="${LOCKUP_WIDTH}" height="${LOCKUP_HEIGHT}" alt="${WORDMARK_ALT}" style="display:block;width:${LOCKUP_WIDTH}px;height:${LOCKUP_HEIGHT}px;border:0;outline:none;text-decoration:none;font-family:${FONT_SANS};font-size:22px;line-height:${LOCKUP_HEIGHT}px;font-weight:700;letter-spacing:-0.025em;color:#FFFFFF;" />
+              <td class="${ink.card} rm-pad" style="padding:28px ${PAD_X}px 0;">
+                <img src="${siteUrl()}${LOCKUP_PATH}" width="${LOCKUP_WIDTH}" height="${LOCKUP_HEIGHT}" alt="${WORDMARK_ALT}" style="display:block;width:${LOCKUP_WIDTH}px;height:${LOCKUP_HEIGHT}px;border:0;outline:none;text-decoration:none;${TEXT}font-size:22px;line-height:${LOCKUP_HEIGHT}px;font-weight:700;letter-spacing:-0.025em;color:${LIGHT.text};" />
+                <p class="${ink.muted}" style="margin:10px 0 0;${TEXT}font-size:13px;line-height:18px;letter-spacing:0.01em;color:${LIGHT.muted};">${escapeHtml(SLOGAN)}</p>
               </td>
             </tr>
-            <tr><td style="height:2px;line-height:2px;font-size:0;background-color:${BRAND};background-image:${GRADIENT_CAP};mso-line-height-rule:exactly;">&nbsp;</td></tr>`;
+            <tr>
+              <td class="${ink.card} rm-pad" style="padding:22px ${PAD_X}px 0;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;"><tr><td style="height:2px;line-height:2px;font-size:0;background-color:${BRAND};background-image:${GRADIENT_CAP};border-radius:2px;mso-line-height-rule:exactly;">&nbsp;</td></tr></table>
+              </td>
+            </tr>`;
 }
 
 /**
- * THE 3D MARK: one of the founder's objects above the headline, like the app
- * icon beside a notification. Empty string when the message has none yet.
- *
- * Drawn at 64 px from a 128 px PNG (webp is not drawn by every client), with
- * width and height set so a blocked image reserves its box rather than
- * reflowing the card, and alt empty because the headline under it says what
- * the message is: with images off it is a quiet gap, never a broken label.
- * The object is a cutout with an alpha channel, so it sits on the navy card
- * as drawn and on the light ground a client inverts to, with nothing around
- * it to invert. The cell's zero font size and line height stop Outlook and
- * Gmail adding a text line under the image.
+ * THE OBJECT: the message family's Tier B object above the headline, like
+ * an app icon beside a notification (icons.ts). Drawn at 64px from a 128px
+ * PNG (webp is not drawn by every client), with width and height set so a
+ * blocked image reserves its box, and alt set to the family word in quiet
+ * ink so a blocked image still names the family. The object is a cutout with
+ * an alpha channel and a matte finish, legible on white and on the night a
+ * dark-mode client paints. The cell's zero line height stops Outlook and
+ * Gmail adding a text line under it.
  */
-export function heroMarkHtml(kind: EmailKind): string {
-  const name = emailIconFor(kind);
-  if (name === null) return "";
-  const size = EMAIL_ICON_SIZE;
+export function heroMarkHtml(kind: EmailKind, ink: Ink = SHELL_INK): string {
+  const name = emailObjectFor(kind);
+  const family = emailFamilyOf(kind);
+  if (name === null || family === null) return "";
+  const size = EMAIL_OBJECT_SIZE;
   return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 18px;">
                     <tr>
-                      <td style="font-size:0;line-height:0;mso-line-height-rule:exactly;">
-                        <img src="${siteUrl()}${emailIconPath(name)}" width="${size}" height="${size}" alt="" border="0" style="display:block;width:${size}px;height:${size}px;border:0;outline:none;text-decoration:none;" />
+                      <td class="${ink.muted}" style="font-size:0;line-height:0;mso-line-height-rule:exactly;color:${LIGHT.muted};">
+                        <img src="${siteUrl()}${emailObjectPath(name)}" width="${size}" height="${size}" alt="${FAMILY[family].alt}" border="0" style="display:block;width:${size}px;height:${size}px;border:0;outline:none;text-decoration:none;${TEXT}font-size:12px;line-height:16px;color:${LIGHT.muted};" />
                       </td>
                     </tr>
                   </table>`;
@@ -769,13 +1172,15 @@ export function footerLinksText(): string {
 /**
  * The footer: why this arrived, the one switch if there is one, the support
  * and legal links, the sign-off and the legal line. It sits on the ground
- * outside the card, so it reads as small print by position as well as size.
+ * outside the card, so it reads as small print by position as well as size,
+ * and it takes the shell classes in both registers because the ground is
+ * the shell's: a dark-mode client turns it to night under any card.
  */
 export function footerRows(lines: readonly string[], link?: { label: string; href: string }): string {
   const p = (inner: string, margin = "0 0 8px") =>
-    `<p class="rm-muted" style="margin:${margin};font-family:${FONT_SANS};font-size:13px;line-height:20px;color:${DARK.muted};">${inner}</p>`;
+    `<p class="rm-muted" style="margin:${margin};${TEXT}font-size:13px;line-height:20px;color:${LIGHT.muted};">${inner}</p>`;
   const a = (label: string, href: string) =>
-    `<a class="rm-link" href="${escapeHtml(href)}" target="_blank" style="color:${SKY};text-decoration:underline;">${escapeHtml(label)}</a>`;
+    `<a class="rm-link" href="${escapeHtml(href)}" target="_blank" style="color:${LINK};text-decoration:underline;">${escapeHtml(label)}</a>`;
   const reason = lines.map((line) => p(escapeHtml(line))).join("\n                ");
   const switchLine = link ? `\n                ${p(a(link.label, link.href))}` : "";
   const links = FOOTER_LINKS.map((l) => a(l.label, appUrl(l.path))).join("&nbsp;&nbsp;&middot;&nbsp;&nbsp;");
@@ -783,20 +1188,21 @@ export function footerRows(lines: readonly string[], link?: { label: string; hre
               <td class="rm-pad" style="padding:26px ${PAD_X}px 0;">
                 ${reason}${switchLine}
                 ${p(links, "14px 0 14px")}
-                <p class="rm-title" style="margin:0;font-family:${FONT_SANS};font-size:13px;line-height:20px;font-weight:700;letter-spacing:0.02em;color:${DARK.text};">${SIGN_OFF}</p>
-                <p class="rm-muted" style="margin:4px 0 0;font-family:${FONT_SANS};font-size:12px;line-height:18px;color:${DARK.muted};">${LEGAL_LINE}</p>
+                <p class="rm-title" style="margin:0;${TEXT}font-size:13px;line-height:20px;font-weight:700;letter-spacing:0.02em;color:${LIGHT.text};">${SIGN_OFF}</p>
+                <p class="rm-muted" style="margin:4px 0 0;${TEXT}font-size:12px;line-height:18px;color:${LIGHT.muted};">${LEGAL_LINE}</p>
               </td>
             </tr>`;
 }
 
 /**
- * The whole document around a card's contents: ground, band, card, footer.
- * `cardClass` lets a document add its own phone rules to the card cell.
+ * The whole document around a card's contents: ground, card (header inside),
+ * footer. `cardClass` lets a document add its own phone rules to the card
+ * cell; `register` picks the classes that decide what a dark-mode client
+ * does with the card (paper stays paper; the shell turns to night).
  *
- * The card is one cell with a hairline edge and a 20px radius wrapping the
- * band, the rule and the content, so the three read as one lit object on the
- * ground. Classic Outlook drops the radius and draws a square card, which is
- * the same design with corners.
+ * White ground, white card, one hairline edge (16.5: "no grey wash, no dark
+ * card on light"). Classic Outlook drops the radius and draws a square card,
+ * which is the same design with corners.
  */
 export function documentHtml(options: {
   title: string;
@@ -807,24 +1213,26 @@ export function documentHtml(options: {
   headExtra?: string;
   htmlAttrs?: string;
   cardClass?: string;
+  register?: EmailRegister;
 }): string {
+  const ink = inkFor(options.register ?? "shell");
   return `<!doctype html>
-<html lang="en"${options.htmlAttrs ?? ""} style="color-scheme:dark;background-color:${DARK.ground};">
+<html lang="en"${options.htmlAttrs ?? ""} style="color-scheme:light dark;background-color:${LIGHT.ground};">
   ${documentHead(options.title, options.extraStyle, options.headExtra)}
-  <body class="rm-base" bgcolor="${DARK.ground}" style="margin:0;padding:0;width:100%;background-color:${DARK.ground};color:${DARK.body};font-family:${FONT_SANS};-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%;">
+  <body class="rm-base" bgcolor="${LIGHT.ground}" style="margin:0;padding:0;width:100%;background-color:${LIGHT.ground};color:${LIGHT.body};${TEXT}-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%;">
     ${preheaderHtml(options.preheader)}
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="rm-base" bgcolor="${DARK.ground}" style="width:100%;background-color:${DARK.ground};">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="rm-base" bgcolor="${LIGHT.ground}" style="width:100%;background-color:${LIGHT.ground};">
       <tr>
         <td align="center" class="rm-outer" style="padding:28px 12px 44px;">
           <!-- Outlook's Word engine ignores max-width, so it gets a fixed table. -->
           <!--[if mso]><table role="presentation" width="${MAX_WIDTH}" cellpadding="0" cellspacing="0" align="center"><tr><td><![endif]-->
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:${MAX_WIDTH}px;width:100%;">
             <tr>
-              <td class="rm-card" bgcolor="${DARK.card}" style="background-color:${DARK.card};border:1px solid ${DARK.edge};border-radius:20px;">
+              <td class="${ink.card}" bgcolor="${LIGHT.card}" style="background-color:${LIGHT.card};border:1px solid ${LIGHT.edge};border-radius:20px;">
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;">
-                  ${brandBandRow()}
+                  ${brandBandRow(ink)}
                   <tr>
-                    <td class="rm-card rm-pad${options.cardClass ? " " + options.cardClass : ""}" bgcolor="${DARK.card}" style="background-color:${DARK.card};border-radius:0 0 19px 19px;padding:34px ${PAD_X}px 36px;">
+                    <td class="${ink.card} rm-pad${options.cardClass ? " " + options.cardClass : ""}" bgcolor="${LIGHT.card}" style="background-color:${LIGHT.card};border-radius:0 0 19px 19px;padding:30px ${PAD_X}px 36px;">
                       ${options.card}
                     </td>
                   </tr>
@@ -852,15 +1260,18 @@ export function documentHtml(options: {
 export function compose(options: ComposeOptions): Composed {
   const blocks = usable(options.blocks);
   const footerLines = options.footerLines ?? [];
+  const register = emailRegisterOf(options.icon);
+  const ink = inkFor(register);
 
-  const mark = heroMarkHtml(options.icon);
-  const body = (mark ? mark + "\n                " : "") + blocks.map(htmlBlock).join("\n                ");
+  const mark = heroMarkHtml(options.icon, ink);
+  const body = (mark ? mark + "\n                " : "") + blocks.map((block) => htmlBlock(block, ink)).join("\n                ");
 
   const html = documentHtml({
     title: "Vallo",
     preheader: options.preheader,
     card: body,
     footer: footerRows(footerLines, options.footerLink),
+    register,
   });
 
   /*
@@ -874,6 +1285,7 @@ export function compose(options: ComposeOptions): Composed {
   const text =
     [
       "Vallo",
+      SLOGAN,
       "",
       blocks.map(textBlock).join("\n\n"),
       "",

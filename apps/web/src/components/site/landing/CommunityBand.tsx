@@ -50,12 +50,16 @@ export function CommunityBand({
             <ul className="nf-landing-figures">
               {figures.map((f) => (
                 <li key={f.key} className="nf-landing-figure">
+                  {/* The label above its figure (C6, the route sweep; north
+                      star 12, point 8), as the move-in band and every figure
+                      tile on the public site set it: the count used to sit
+                      over its label, the one place on the landing that did. */}
+                  <span>{f.label}</span>
                   {/* The platform's own figure, counted up once on arrival
                       (CountUp.tsx). The server prints the final number. */}
                   <strong>
                     <CountUp value={f.value} tag={intlTag[locale]} />
                   </strong>
-                  <span>{f.label}</span>
                 </li>
               ))}
             </ul>

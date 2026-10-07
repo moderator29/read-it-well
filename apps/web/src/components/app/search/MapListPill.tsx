@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import "@/app/css/catalogue.css";
+import "@/app/css/list-views.css";
 
 /**
  * The floating Map / List switch on a phone (Track M), the pattern every

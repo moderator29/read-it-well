@@ -1,0 +1,189 @@
+/*
+ * M2: THE CAUTION REGISTER AS A DOCUMENTED EXCHANGE, on the document sheet
+ * (components/app/tenancy/CautionRegister.tsx; the sheet itself is
+ * document.css). Imported by the component, so it loads with the tenancy
+ * file and nowhere else.
+ *
+ * A thread is one deduction or one return: its heading line, then its
+ * entries down a quiet thread, each with a mark in StatusChip's shape
+ * grammar drawn in the paper's own inks (document.css re-answers the content
+ * and state tokens inside `.nf-doc`):
+ *
+ *   done       filled circle, the document's accent ink
+ *   waiting    hollow circle, muted ink
+ *   disputed   diamond, the paper's attention ink (never red)
+ *   stopped    filled square, the paper's error ink
+ *
+ * So a greyscale print still reads every state by its shape and its words.
+ * Tokens only; three weights (400, 500, 600). Nothing here moves: a record
+ * of who said what is read, not performed. The sheet's own unroll
+ * (document.css) is the one entrance.
+ *
+ * The layer order is declared first (the wave-2 new-sheet rule).
+ */
+@layer theme, base, components, utilities;
+
+@layer components {
+  .nf-caution__covered {
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.5;
+    color: var(--nf-content-secondary);
+  }
+
+  .nf-exchange {
+    display: grid;
+    list-style: none;
+    margin: var(--nf-space-xs) 0 0;
+    padding: 0;
+  }
+
+  .nf-exchange__thread {
+    display: grid;
+    gap: var(--nf-space-xs);
+    padding-block: var(--nf-space-md);
+    border-top: 1px solid var(--nf-divider);
+  }
+
+  .nf-exchange__thread:last-child {
+    padding-bottom: 0;
+  }
+
+  .nf-exchange__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--nf-space-3xs) var(--nf-space-md);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+
+  .nf-exchange__n {
+    font-size: var(--nf-text-overline);
+    font-weight: 400;
+    color: var(--nf-content-muted);
+  }
+
+  /* What the landlord or agent wrote, quoted as theirs. */
+  .nf-exchange__quote {
+    padding-left: var(--nf-space-sm);
+    border-left: 2px solid var(--nf-divider);
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.5;
+    color: var(--nf-content-secondary);
+    overflow-wrap: anywhere;
+    white-space: pre-line;
+  }
+
+  .nf-exchange__photo {
+    width: 6rem;
+    height: 6rem;
+    border-radius: var(--nf-radius-sm);
+    object-fit: cover;
+  }
+
+  .nf-exchange__entries {
+    display: grid;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .nf-exchange__entry {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1rem minmax(0, 1fr);
+    column-gap: var(--nf-space-sm);
+    padding-bottom: var(--nf-space-sm);
+  }
+
+  .nf-exchange__entry:last-child {
+    padding-bottom: 0;
+  }
+
+  /* The thread between two entries, in the paper's hairline. */
+  .nf-exchange__entry:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    left: calc(0.5rem - 1px);
+    top: 1.25rem;
+    bottom: 0.125rem;
+    width: 2px;
+    background: var(--nf-divider);
+  }
+
+  .nf-exchange__mark {
+    justify-self: center;
+    margin-top: 0.3125rem;
+    width: 0.625rem;
+    height: 0.625rem;
+    border-radius: var(--nf-radius-circle);
+    border: 2px solid currentColor;
+  }
+
+  .nf-exchange__entry[data-mark="done"] .nf-exchange__mark {
+    color: var(--nf-content-link);
+    background: currentColor;
+  }
+
+  .nf-exchange__entry[data-mark="waiting"] .nf-exchange__mark {
+    color: var(--nf-content-muted);
+  }
+
+  .nf-exchange__entry[data-mark="disputed"] .nf-exchange__mark {
+    color: var(--nf-state-warning);
+    background: currentColor;
+    border-radius: 0;
+    transform: rotate(45deg) scale(0.86);
+  }
+
+  .nf-exchange__entry[data-mark="stopped"] .nf-exchange__mark {
+    color: var(--nf-state-error);
+    background: currentColor;
+    border-radius: 0;
+  }
+
+  .nf-exchange__body {
+    display: grid;
+    gap: var(--nf-space-3xs);
+    min-width: 0;
+  }
+
+  .nf-exchange__what {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    line-height: 1.45;
+    color: var(--nf-content-primary);
+    overflow-wrap: anywhere;
+  }
+
+  .nf-exchange__entry[data-mark="waiting"] .nf-exchange__what {
+    font-weight: 400;
+    color: var(--nf-content-secondary);
+  }
+
+  .nf-exchange__who,
+  .nf-exchange__meta {
+    font-size: var(--nf-text-caption);
+    line-height: 1.45;
+    color: var(--nf-content-muted);
+  }
+
+  /* The reader's own answers, under the sheet in the member's theme: each
+     names the entry it answers before its controls. */
+  .nf-exchange-answer {
+    display: grid;
+    gap: var(--nf-space-2xs);
+  }
+
+  .nf-exchange-answer + .nf-exchange-answer {
+    padding-top: var(--nf-space-sm);
+    border-top: 1px solid var(--nf-border-subtle);
+  }
+
+  .nf-exchange-answer__label {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+}

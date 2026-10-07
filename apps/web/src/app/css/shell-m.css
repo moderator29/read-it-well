@@ -72,7 +72,7 @@
     align-items: center;
     gap: 0.375rem;
     font-size: 1.25rem;
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: -0.01em;
     white-space: normal;
   }
@@ -119,7 +119,7 @@
   .nf-nav--drawer .nf-nav__row {
     position: relative;
     font-size: var(--nf-text-body);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--nf-content-primary);
   }
   /* The glyph slot is a 24px line glyph from the stroked set (29 September
@@ -131,7 +131,9 @@
   }
   .nf-nav--drawer .nf-nav__row--on {
     color: var(--nf-content-primary);
-    font-weight: 650;
+    /* 600, the scale's top weight in the navigation (it was 650, a weight
+       the type scale does not have; nav-island.css restated 600 over it). */
+    font-weight: 600;
     background: color-mix(in oklab, var(--nf-content-primary) 7%, transparent);
     box-shadow: none;
   }
@@ -234,7 +236,7 @@
     border-radius: var(--nf-radius-control);
     color: var(--nf-content-primary);
     font-size: var(--nf-text-body);
-    font-weight: 500;
+    font-weight: 600;
     text-align: start;
     transition: background-color var(--nf-duration-fast) var(--nf-ease-standard);
   }
@@ -424,8 +426,7 @@
     backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
     box-shadow:
       inset 0 1px 0 var(--nf-glass-rim-thin),
-      0 24px 60px -20px var(--nf-shade-3),
-      var(--nf-elev-4);
+      var(--nf-elevation-dialog);
     transform-origin: calc(100% - 1.75rem) 100%;
     animation: nf-m-tray var(--nf-duration-slow) var(--nf-ease-spring) both;
   }
@@ -677,7 +678,7 @@
     height: 4px;
     margin-top: -2px;
     border: 0;
-    border-radius: 9999px;
+    border-radius: var(--nf-radius-pill);
     transform: none;
     opacity: 1;
     background: var(--nf-brand-primary);
@@ -725,7 +726,7 @@
   .nf-dockmore__tray {
     --nf-dock-fill-top: color-mix(in oklab, var(--nf-container-ink) 18%, var(--nf-surface-canvas));
     --nf-dock-fill-foot: color-mix(in oklab, var(--nf-container-ink) 6%, var(--nf-surface-canvas));
-    --nf-dock-drop: 0 16px 34px -14px var(--nf-shade-3);
+    --nf-dock-drop: var(--nf-elevation-floating);
     border: 1px solid color-mix(in oklab, var(--nf-content-primary) 12%, transparent);
     border-block-start-color: color-mix(in oklab, var(--nf-content-primary) 24%, transparent);
     background: linear-gradient(180deg, var(--nf-dock-fill-top) 0%, var(--nf-dock-fill-foot) 100%);
@@ -862,14 +863,15 @@
       var(--nf-content-on-brand) 356deg,
       transparent 360deg
     );
-    animation: nf-logo-lap 5s linear infinite;
-  }
-  .nf-dock-plus > svg {
-    position: relative;
-    z-index: 2;
-    width: 1.625rem;
-    height: 1.625rem;
-    stroke-width: 2.6;
+    /*
+     * TWO LAPS ON ARRIVAL, THEN AT REST (Session 3, W10). Nothing loops
+     * forever but the aurora and the assistant thinking (MOTION_SYSTEM.md
+     * principle 10), and this rim ran its lap for as long as the dock was on
+     * screen. The light now says "this is where you make something" twice as
+     * the dock arrives and then rests where a lap ends, its two arcs still
+     * lit, so the disc keeps its rim and loses only the movement.
+     */
+    animation: nf-logo-lap 5s linear 2 both;
   }
   .nf-tab__link--create:active .nf-dock-plus {
     transform: scale(0.9);
@@ -877,9 +879,6 @@
       inset 0 1px 0 color-mix(in oklab, var(--nf-content-on-brand) 30%, transparent),
       0 0 0 3px color-mix(in oklab, var(--nf-brand-primary) 22%, transparent),
       0 2px 8px -4px var(--nf-glow-3);
-  }
-  .nf-tab__link--create[aria-expanded="true"] .nf-dock-plus {
-    transform: rotate(45deg);
   }
   .nf-tab__link--create:focus-visible {
     outline: none;
@@ -1005,7 +1004,7 @@
  *  - ONE HEIGHT FAMILY. The capsule is 56px now (its tabs no longer carry a
  *    word under the glyph) and the round More button matches it.
  *  - FITS 320 TO 430. Below 380 the More button steps to 48px and the pill's
- *    word to 11px; where the capsule is too narrow for any word (320) the
+ *    word stays at 12px, the floor; where the capsule is too narrow for any word (320) the
  *    pill keeps its glyph and tint, and the name stays in `aria-label`.
  *  - The premium material: three-layer depth, frosted white in daylight
  *    (light.css), the glowing "+" with its running rim, the unread count.
@@ -1026,19 +1025,19 @@
       radial-gradient(120% 90% at 50% -30%, var(--nf-dock-sheen), transparent 60%),
       linear-gradient(180deg, var(--nf-dock-fill-top) 0%, var(--nf-dock-fill-foot) 100%);
   }
+  /* The dock is an Island: its drop is the Island's rung (ONE LIGHT). */
   .nf-tabbar,
   .nf-dock-island {
-    --nf-dock-drop:
-      0 1px 2px color-mix(in oklab, var(--nf-shade-3) 60%, transparent),
-      0 14px 34px -14px var(--nf-shade-3),
-      0 28px 56px -30px var(--nf-shade-3);
+    --nf-dock-drop: var(--nf-elevation-floating);
   }
 
   /* The slots: equal shares at rest; the chosen one takes a larger share. */
   .nf-tabbar .nf-tab {
     flex: 1 1 0;
     min-width: 2.75rem;
-    transition: flex-grow var(--nf-duration-slow) var(--nf-ease-spring);
+    /* On the pill's own rung (`drift` 240ms), so the slot, its word and its
+       pill move as one. */
+    transition: flex-grow var(--nf-duration-base) var(--nf-ease-spring);
   }
   .nf-tabbar .nf-tab--switch {
     flex: 0 0 3.25rem;
@@ -1075,15 +1074,52 @@
     opacity: 0;
     transform: translateX(-4px);
     white-space: nowrap;
-    font-size: var(--nf-text-caption);
+    /* The chosen slot's word at 12px, 600 (north star 6.1); it was the 13px
+       caption, which nav-island.css answered over the top. */
+    font-size: var(--nf-text-overline);
     font-weight: 600;
     line-height: 1.2;
     letter-spacing: 0;
+    /* THE WORD MOVES ON TRANSFORM AND OPACITY ONLY (round 5, W1). It used
+       to grow its `max-width` and `margin` over the base rung, which laid
+       the capsule out again on every frame of every tab tap. Now its box
+       takes its size AT ONCE when chosen and keeps it until the fade out has
+       ended when left (the two `0s` flips, held for the base rung), and what
+       moves is drawn: the word fades and slides 4px (`glide` 160ms, after a
+       60ms overlap, on the chosen rule), and the body it shares with the
+       glyph slides on `drift` 240ms from where the glyph stood (below).
+       `white-space` is discrete: the chosen word may wrap only once it has
+       arrived (A8 NIT 8), so it stays nowrap while it moves. */
     transition:
-      max-width var(--nf-duration-slow) var(--nf-ease-spring),
-      margin var(--nf-duration-slow) var(--nf-ease-spring),
-      opacity var(--nf-duration-base) var(--nf-ease-standard),
-      transform var(--nf-duration-slow) var(--nf-ease-spring);
+      opacity var(--nf-duration-fast) var(--nf-ease-standard),
+      transform var(--nf-duration-base) var(--nf-ease-spring),
+      max-width 0s linear var(--nf-duration-base),
+      margin 0s linear var(--nf-duration-base),
+      white-space 0s linear;
+    transition-behavior: normal, normal, normal, normal, allow-discrete;
+  }
+  /*
+   * THE GLYPH AND ITS WORD, AS ONE BODY. The body is the glyph's width at
+   * rest and glyph plus word when chosen, centred in the slot either way, so
+   * choosing a tab moves the glyph left by half the word. That move is a
+   * translate: `calc(50% - 12px)` is half the body less half the 24px glyph,
+   * which is zero when the word is folded (the glyph centred, as at rest)
+   * and exactly the distance back to the centre when the word has just
+   * taken its room. So a tapped tab's glyph starts where it stood and glides
+   * to its place beside the word, and a left tab's glyph glides back to the
+   * centre while its word is still there and fading, and nothing re-lays out
+   * per frame. The slot's own share of the row is the one layout transition
+   * left in the dock, contained and reasoned in nav-island.css.
+   */
+  .nf-tabbar .nf-tab__body {
+    display: inline-flex;
+    align-items: center;
+    translate: calc(50% - 12px) 0;
+    transition: translate var(--nf-duration-base) var(--nf-ease-spring);
+  }
+  .nf-dockrow:not([data-dock-pending]) .nf-tabbar .nf-tab__link[aria-current="page"] .nf-tab__body,
+  .nf-tabbar .nf-tab__link[data-on] .nf-tab__body {
+    translate: none;
   }
   /* The pill: drawn by the link's own layer, so it scales in rather than
      pushing anything, and no control carries a capsule radius of its own. */
@@ -1098,7 +1134,7 @@
     transform: scale(0.7, 0.86);
     transition:
       opacity var(--nf-duration-base) var(--nf-ease-standard),
-      transform var(--nf-duration-slow) var(--nf-ease-spring);
+      transform var(--nf-duration-base) var(--nf-ease-spring);
   }
   /* No dot any more: the pill and the word carry the state. */
   .nf-tabbar :is(.nf-tab__link[aria-current="page"], .nf-tab__link[data-on])::after {
@@ -1121,7 +1157,19 @@
     margin-inline-start: 0.375rem;
     opacity: 1;
     transform: none;
-    transition-delay: 0s, 0s, 60ms, 0s;
+    transition-delay: 60ms, 0s, 0s, 0s, var(--nf-duration-base);
+    /* THE CHOSEN SLOT'S WORD WRAPS TO TWO LINES RATHER THAN BEING CUT. The slot does not
+       grow (D28: the dock keeps its slots) and the word is the dictionary's, so a long one
+       (Hausa "Bayanan martaba", 101px against this 70px label) takes a second line at the same
+       12px step: two lines are 29px inside the 44px link, and a one-word label is unchanged.
+       Resting tabs keep their nowrap and stay hidden. Found by
+       components/locale-fit/cards.dom.test.tsx.
+       IT WRAPS ONLY ONCE SETTLED (A8 NIT 8). `white-space` is discrete and is the fifth
+       transition of the label, delayed by the base rung, so the label stays nowrap while it
+       moves and is allowed to wrap when it has arrived.
+       Leaving flips it back to nowrap at once, so it never wraps on the way out either. */
+    white-space: normal;
+    text-wrap: balance;
   }
   /* While a tapped tab loads, the old one steps back at once. */
   .nf-dockrow[data-dock-pending] .nf-tabbar .nf-tab__link[aria-current="page"]:not([data-on]) {
@@ -1176,12 +1224,15 @@
     height: 1.25rem;
     padding: 0 0.25rem;
     border-radius: var(--nf-radius-xs);
-    /* The warm spark (spec section 18), the orange dot of the founder's 3D
-       bell: the numeral is --nf-spark-on, 6.5:1 at night and 4.9:1 on paper. */
-    background: var(--nf-spark);
-    color: var(--nf-spark-on);
-    font-size: 0.6875rem;
-    font-weight: 750;
+    /* Cyan, never red or the warm spark, and never below 12px (north star
+       6.1 and 5): a count is attention, not an error. It was the orange spark
+       at 11px and 750, which nav-island.css answered over the top; the
+       answer is the source now. The ink on the count is 11.9:1 at night and
+       4.6:1 on paper. */
+    background: var(--nf-count-fill);
+    color: var(--nf-count-ink);
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
     line-height: 1;
     font-variant-numeric: tabular-nums;
     box-shadow: 0 0 0 2px var(--nf-dock-ring, var(--nf-surface-canvas));
@@ -1220,6 +1271,7 @@
     }
     .nf-tabbar .nf-tab,
     .nf-tabbar .nf-tab__label,
+    .nf-tabbar .nf-tab__body,
     .nf-tabbar .nf-tab__link::before {
       transition: none;
     }
@@ -1227,7 +1279,7 @@
   :root:is([data-motion="calm"], [data-motion="off"]) .nf-dockmore__unread {
     animation: none;
   }
-  :root:is([data-motion="calm"], [data-motion="off"]) :is(.nf-tabbar .nf-tab, .nf-tabbar .nf-tab__label, .nf-tabbar .nf-tab__link::before) {
+  :root:is([data-motion="calm"], [data-motion="off"]) :is(.nf-tabbar .nf-tab, .nf-tabbar .nf-tab__label, .nf-tabbar .nf-tab__body, .nf-tabbar .nf-tab__link::before) {
     transition: none;
   }
 }

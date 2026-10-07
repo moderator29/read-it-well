@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ROOM_COPY, ROOM_ITEMS, type RoomItem } from "@/lib/inspections/report";
 import { formatMoneyDate } from "@/lib/money/dates";
-import { createClient } from "@/lib/supabase/client";
+import { loadBrowserClient } from "@/lib/supabase/load-client";
 import type { TenancyReportView } from "@/lib/tenancy/queries";
 import { addTenancyReportPhoto, countersignTenancyReport, saveTenancyReport } from "@/lib/tenancy/actions";
 
@@ -97,7 +97,15 @@ export function TenancyReportCard({
     }
     const extension = (file.name.split(".").pop() ?? "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
     const path = `${tenancyId}/${report.id}/${crypto.randomUUID()}.${extension}`;
-    const uploaded = await createClient().storage.from("tenancy-evidence").upload(path, file, { contentType: file.type });
+    /* The browser client loads now, when a photo is chosen, not with the
+       page (lib/supabase/load-client.ts); a chunk that cannot be fetched is
+       the upload failure this card already says. */
+    const supabase = await loadBrowserClient();
+    if (!supabase) {
+      setError(copy.failed);
+      return;
+    }
+    const uploaded = await supabase.storage.from("tenancy-evidence").upload(path, file, { contentType: file.type });
     if (uploaded.error) {
       setError(copy.failed);
       return;

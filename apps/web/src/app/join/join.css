@@ -1,0 +1,123 @@
+/*
+ * THE INVITE DOOR (A5), Session 3 (W13).
+ *
+ * The column, title and lede are the shared door page's (public-doors.css,
+ * owned with the public site). This sheet adds only what makes the invite
+ * door its own: the mark above, then ONE Island holding the gift, the line
+ * that says who sent it and the two doors, on one quiet ground wash. The
+ * same material the share door uses (`app/s/door.css`), because a stranger
+ * who arrives by a link should meet one front step, whichever link it was.
+ *
+ * The layer order is declared first (the wave-2 new-sheet rule), so this
+ * sheet can never reach the page ahead of globals.css and flip Tailwind's
+ * order.
+ */
+@layer theme, base, components, utilities;
+
+@layer components {
+  .nf-join {
+    position: relative;
+    isolation: isolate;
+    overflow-x: clip;
+  }
+
+  /* The view's one glow: a painted wash behind the gift, not a blur. */
+  .nf-join::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    z-index: -1;
+    height: min(32rem, 80dvh);
+    background: radial-gradient(60% 55% at 50% 8%, var(--nf-brand-tint-2), transparent 72%);
+    pointer-events: none;
+  }
+
+  .nf-join__island {
+    justify-self: stretch;
+    display: grid;
+    justify-items: start;
+    gap: var(--nf-space-md);
+    padding: var(--nf-space-lg) var(--nf-space-md) var(--nf-space-md);
+  }
+
+  @media (min-width: 30rem) {
+    .nf-join__island {
+      padding: var(--nf-space-xl) var(--nf-space-lg) var(--nf-space-lg);
+    }
+  }
+
+  .nf-join__island > :is(p, h1, .nf-door-page__actions) {
+    justify-self: stretch;
+  }
+
+  /*
+   * THE ARRIVAL. The gift is the subject, so it settles first (`drift`, the
+   * empty-state object's motion: scale from 0.9 with a small overshoot), and
+   * the words and doors follow 60ms apart. Transform and opacity only, once,
+   * and nothing waits on it. Calm and reduced motion: a 160ms fade. Off: as
+   * it is.
+   */
+  @media (prefers-reduced-motion: no-preference) {
+    :root:not([data-motion="calm"]):not([data-motion="off"]) .nf-join__island {
+      animation: nf-join-rise var(--nf-duration-entrance) var(--nf-ease-entrance) both;
+    }
+    :root:not([data-motion="calm"]):not([data-motion="off"]) .nf-join__gift {
+      animation: nf-join-settle var(--nf-duration-entrance) var(--nf-ease-spring) 60ms both;
+    }
+    :root:not([data-motion="calm"]):not([data-motion="off"]) .nf-join__island > :not(.nf-join__gift) {
+      animation: nf-join-child var(--nf-duration-entrance) var(--nf-ease-entrance) both;
+      animation-delay: calc(140ms + var(--nf-join-i, 4) * 60ms);
+    }
+    :root:not([data-motion="calm"]):not([data-motion="off"]) .nf-join__island > :nth-child(2) {
+      --nf-join-i: 0;
+    }
+    :root:not([data-motion="calm"]):not([data-motion="off"]) .nf-join__island > :nth-child(3) {
+      --nf-join-i: 1;
+    }
+    :root:not([data-motion="calm"]):not([data-motion="off"]) .nf-join__island > :nth-child(4) {
+      --nf-join-i: 2;
+    }
+    :root:not([data-motion="calm"]):not([data-motion="off"]) .nf-join__island > :nth-child(5) {
+      --nf-join-i: 3;
+    }
+  }
+
+  :root[data-motion="calm"] .nf-join__island {
+    animation: nf-join-fade 160ms var(--nf-ease-standard) both;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root:not([data-motion="off"]) .nf-join__island {
+      animation: nf-join-fade 160ms var(--nf-ease-standard) both;
+      /* The floor in animation.css would make this fade instant; this opts in. */
+      --nf-reduced-duration: 160ms;
+    }
+  }
+
+  @keyframes nf-join-rise {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 16px, 0);
+    }
+  }
+
+  @keyframes nf-join-settle {
+    from {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+  }
+
+  @keyframes nf-join-child {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 8px, 0);
+    }
+  }
+
+  @keyframes nf-join-fade {
+    from {
+      opacity: 0;
+    }
+  }
+}

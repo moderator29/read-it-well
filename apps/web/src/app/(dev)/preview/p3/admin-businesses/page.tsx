@@ -63,7 +63,7 @@ export default async function PreviewAdminBusinesses() {
             <span className="nf-icon-btn h-9 w-9 sm:h-10 sm:w-10" aria-hidden="true">
               <UiIcon name="arrow-left" size={20} />
             </span>
-            <Link href="/" className="lg:hidden" aria-label={t.a11y.logoHome}>
+            <Link href="/" className="nf-tap lg:hidden" aria-label={t.a11y.logoHome}>
               <Logo size={30} wordSize={16} />
             </Link>
             <ConsoleSearch

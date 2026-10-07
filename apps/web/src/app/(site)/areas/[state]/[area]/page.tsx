@@ -13,6 +13,7 @@ import { structuredDataJson } from "@/lib/listings/syndication";
 import { areaDatasetJsonLd, publicAskingRows, resolveAreaPage, rowAsShare } from "@/lib/areas/pages";
 import { areaPricePages } from "@/lib/areas/queries";
 import { siteUrl } from "@/lib/site";
+import { MotionReveal } from "@/components/motion/Reveal";
 
 /**
  * `/areas/[state]/[area]`: A PUBLIC AREA PRICE PAGE (V-82).
@@ -138,23 +139,28 @@ export default async function AreaPricePage({ params }: Params) {
               <p className="mt-inline nf-body-sm text-[var(--nf-content-secondary)]">{copy.tooFewBody}</p>
             </div>
           ) : (
-            <ul className="mt-group space-y-row" data-testid="area-ranges">
+            /* THE RANGES ARE THE PAGE'S FIGURES (north star D4 and 10 B, Session
+               3): each on a figure-tier card, the range in the display face at
+               figure size, the basis under it; the cards rise 60ms apart on the shared
+               reveal (MotionReveal), once, below the fold only. The figures are the
+               published asking rows exactly as `shareLines` words them. */
+            <div className="mt-group" data-testid="area-ranges">
+            <MotionReveal as="ul" stagger className="nf-area-ranges">
               {rows.map((row) => {
                 const lines = shareLines(rowAsShare(found, row), cardCopy, locale, found.stateName);
                 return (
                   <li
                     key={`${row.propertyType}-${row.bedrooms}`}
-                    className="nf-panel nf-panel--card block p-card-sm"
+                    className="nf-panel nf-panel--card nf-panel--figure nf-area-range"
                   >
                     <p className="nf-body font-semibold text-[var(--nf-content-primary)]">{lines.headline}</p>
-                    <p className="mt-inline nf-numeric text-[length:var(--nf-text-h4)] font-semibold text-[var(--nf-content-primary)]">
-                      {lines.range}
-                    </p>
-                    <p className="mt-inline nf-caption text-[var(--nf-content-muted)]">{lines.basis}</p>
+                    <p className="nf-area-range__figure nf-numeric">{lines.range}</p>
+                    <p className="nf-caption text-[var(--nf-content-muted)]">{lines.basis}</p>
                   </li>
                 );
               })}
-            </ul>
+            </MotionReveal>
+            </div>
           )}
 
           {rows !== null && rows.length > 0 && (

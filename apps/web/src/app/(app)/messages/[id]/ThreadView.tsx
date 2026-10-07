@@ -2,7 +2,8 @@
 
 import { initial } from "@/lib/text/initial";
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
+import { adoptBubble, arrivalClass, bubbleKey, mergeEcho } from "./thread-arrival";
 import type { Dictionary, Locale } from "@vallo/i18n/core";
 import { ThreadContextBanner, type ThreadRole } from "@/components/app/threads/ThreadContextBanner";
 import { reservationLine } from "@/components/app/threads/ReservationFace";
@@ -52,6 +53,12 @@ import { feedback } from "@/lib/ui/feedback";
 import type { AccountCheckView } from "@/lib/messages/account-check";
 import type { ChargeOffer } from "@/lib/messages/charge-offer";
 import { PushPrompt } from "@/components/app/push/PushPrompt";
+import { DayDivider, UNREAD_DIVIDER_ID, UnreadDivider } from "@/components/app/messages/ThreadDividers";
+import { QuotedReply, type QuotedMessage } from "@/components/app/messages/QuotedReply";
+import { AttachmentRow } from "@/components/app/messages/AttachmentRow";
+import { VoiceNote, type VoiceNoteData } from "@/components/app/messages/VoiceNote";
+import { dayHeading, dayStarts } from "@/components/app/threads/day";
+import { useInboxPart } from "@/components/app/threads/use-inbox-copy";
 
 /**
  * The conversation thread, one component for both data sources.
@@ -77,6 +84,8 @@ import { PushPrompt } from "@/components/app/push/PushPrompt";
 
 export type ThreadBubble = {
   id: string;
+  /** The id a sent bubble was born with; survives adoption of the real id (`thread-arrival.ts`). */
+  clientKey?: string;
   mine: boolean;
   body: string;
   timeLabel: string;
@@ -92,6 +101,19 @@ export type ThreadBubble = {
   card?: ChatCardData;
   /** The row's timestamp, when known. Read by the account card's "checking" window. */
   createdAt?: string;
+  /**
+   * The message this one answers, by id (request W5-1: `messages.reply_to_id`).
+   * Drawn as the quoted block above the bubble. Absent on every row today, so
+   * nothing is quoted until the column exists.
+   */
+  replyToId?: string | null;
+  /**
+   * A voice note (request W5-3: `message_attachments` kind, duration and
+   * peaks). Drawn as a waveform with its length. Absent on every row today.
+   */
+  audio?: VoiceNoteData;
+  /** A file that is not a photo, as a bordered row with a type glyph (W5-3). */
+  file?: { url: string; name?: string | null; mime?: string | null; bytes?: number | null };
 };
 
 export type ThreadViewProps = {
@@ -195,6 +217,21 @@ export type ThreadViewProps = {
   passportLabel?: string;
   /** V-69: the "Show me" panel for a listing thread, when it is open. */
   showMe?: React.ReactNode;
+  /**
+   * What this reader had not read when the thread loaded: how many, and the id
+   * of the first. Taken from the server BEFORE `markThreadRead` runs, because
+   * once it has run the thread has no unread left to point at. Absent or zero
+   * draws no unread divider.
+   */
+  unread?: { count: number; firstId: string } | null;
+  /** The server's clock, so "Today" and "Yesterday" agree with the markup. */
+  nowMs?: number;
+  /**
+   * The thread's inbox-family words (`experienceInbox.thread`) from the server
+   * page. Passed, never read from a client dictionary: that read put the whole
+   * `@vallo/i18n` index (398KB gzipped) in this route's first load.
+   */
+  inboxThreadCopy?: Dictionary["experienceInbox"]["thread"];
 };
 
 const INSPECTIONS_KEY = "nf_inspections";
@@ -327,8 +364,24 @@ export function ThreadView({
   passportShare = null,
   passportLabel,
   showMe = null,
+  unread = null,
+  nowMs,
+  inboxThreadCopy,
 }: ThreadViewProps) {
   const [items, setItems] = useState<ThreadBubble[]>(messages);
+  /* The messages the thread opened with. Only a message that arrives AFTER
+     this (sent or received while the thread is open) plays the arrival
+     motion; the history the thread opened with is simply there, so opening a
+     long conversation is not forty bubbles sliding in at once. It is never
+     added to: a bubble's class must not change under it (the realtime echo of
+     my own send is merged by `mergeEcho`, not by marking its id as seen). */
+  const [openedWith] = useState<ReadonlySet<string>>(() => new Set(messages.map((m) => m.id)));
+  const threadWords = useInboxPart("thread", inboxThreadCopy);
+  /* The unread divider is fixed at arrival: reading the thread marks it read
+     and the page may re-render with nothing unread, but the divider stays
+     where the reader came in until they leave. */
+  const [unreadAnchor] = useState(unread);
+  const [jumpedId, setJumpedId] = useState<string | null>(null);
   /*
    * THE ACCEPT CEREMONY (pitch 13). When an inspection is accepted in the
    * banner below, the header tints once through the existing
@@ -379,11 +432,43 @@ export function ThreadView({
     if (openAttach) fileRef.current?.click();
   }, [openAttach]);
 
-  /* Keep the newest bubble in view as the thread grows. */
+  /* Where the thread opens, then where it follows. Arriving with unread
+     messages, it opens at the unread divider, the way a conversation app
+     does, so the reader starts at the first thing they have not read; with
+     nothing unread, or after that first arrival, it keeps the newest bubble
+     in view as the thread grows. */
+  const arrived = useRef(false);
   useEffect(() => {
     const el = scrollerRef.current;
-    if (el) el.scrollTo({ top: el.scrollHeight });
-  }, [items]);
+    if (!el) return;
+    if (!arrived.current) {
+      arrived.current = true;
+      const divider = unreadAnchor ? el.querySelector<HTMLElement>(`#${UNREAD_DIVIDER_ID}`) : null;
+      if (divider) {
+        const top = divider.getBoundingClientRect().top - el.getBoundingClientRect().top + el.scrollTop;
+        el.scrollTo({ top: Math.max(0, top - 16) });
+        return;
+      }
+    }
+    el.scrollTo({ top: el.scrollHeight });
+  }, [items, unreadAnchor]);
+
+  /* A quoted reply, tapped: bring the message it quotes into view and hold a
+     ring on it for a moment so the eye finds it. Smooth only when motion is
+     allowed. */
+  const jumpTimer = useRef<number | null>(null);
+  useEffect(() => () => {
+    if (jumpTimer.current !== null) window.clearTimeout(jumpTimer.current);
+  }, []);
+  const jumpTo = useCallback((id: string) => {
+    const el = scrollerRef.current?.querySelector<HTMLElement>(`[data-msg-id="${CSS.escape(id)}"]`);
+    if (!el) return;
+    const quiet = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    el.scrollIntoView({ block: "center", behavior: quiet ? "auto" : "smooth" });
+    setJumpedId(id);
+    if (jumpTimer.current !== null) window.clearTimeout(jumpTimer.current);
+    jumpTimer.current = window.setTimeout(() => setJumpedId(null), 1600);
+  }, []);
 
   /* Object URLs live as long as the thread is mounted, then get released. */
   useEffect(() => {
@@ -405,20 +490,21 @@ export function ThreadView({
      is on screen. A share arriving live draws as its words and its path
      until the next server render expands it, which is honest and opens. */
   useThreadRealtime(live ? conversationId : null, (row: LiveMessageRow) => {
-    setItems((prev) => {
-      if (prev.some((m) => m.id === row.id)) return prev;
-      return [
-        ...prev,
-        {
-          id: row.id,
-          mine: row.sender_id === meId,
-          body: row.body,
-          timeLabel: lagosTimeLabel(row.created_at),
-          imageUrl: null,
-          createdAt: row.created_at,
-        },
-      ];
-    });
+    /* One merge for every order (`mergeEcho`, thread-arrival.ts): the send
+       result landed first, so the bubble is already here and stays as it is;
+       my own send echoing first, so the row takes the optimistic bubble's
+       place and key (same element, the arrival keeps playing); a message from
+       my other device or the other side, which arrives like any new one. */
+    setItems((prev) =>
+      mergeEcho(prev, {
+        id: row.id,
+        mine: row.sender_id === meId,
+        body: row.body,
+        timeLabel: lagosTimeLabel(row.created_at),
+        imageUrl: null,
+        createdAt: row.created_at,
+      }),
+    );
     if (row.sender_id !== meId) void markThreadRead({ conversationId });
   });
 
@@ -440,20 +526,16 @@ export function ThreadView({
 
   const adoptResult = useCallback((tempId: string, realId: string, timeLabel?: string) => {
     retryPayloads.current.delete(tempId);
-    setItems((prev) => {
-      // Realtime may have delivered the real row already; drop the temp then.
-      if (prev.some((m) => m.id === realId)) return prev.filter((m) => m.id !== tempId);
-      return prev.map((m) =>
-        m.id === tempId
-          ? { ...m, id: realId, state: undefined, timeLabel: timeLabel ?? m.timeLabel }
-          : m,
-      );
-    });
+    /* Realtime may have delivered the real row already; the temp is dropped
+       then. Otherwise the temp takes the real id and KEEPS ITS KEY, so the
+       bubble is the same element and its arrival does not play again. */
+    setItems((prev) => adoptBubble(prev, tempId, realId, timeLabel));
   }, []);
 
   const markFailed = useCallback((tempId: string) => {
-    /* B14: a message that failed and was kept is felt as a warning. */
-    feedback("warning");
+    /* B14: a message that failed and was kept is a genuine failure, felt
+       as the one error pattern (CRAFT_DOCTRINE 6). */
+    feedback("error");
     setItems((prev) => prev.map((m) => (m.id === tempId ? { ...m, state: "failed" } : m)));
   }, []);
 
@@ -486,8 +568,10 @@ export function ThreadView({
       if (!tempId) return;
       waitingKeys.current.delete(detail.key);
       const sent = detail.data as { id: string; createdAt: string };
-      /* B14: delivered from the outbox, felt as a confirm (on delivery, not on the tap). */
-      feedback("confirm");
+      /* Delivered from the outbox, which happens whenever the network comes
+         back, often with the phone in a pocket or on another screen: a
+         passive state, so it is seen (the bubble takes its time) and never
+         felt (CRAFT_DOCTRINE 6). */
       adoptResult(tempId, sent.id, lagosTimeLabel(sent.createdAt));
     };
     window.addEventListener(OUTBOX_SENT_EVENT, onSent);
@@ -548,6 +632,7 @@ export function ThreadView({
           body: "",
           timeLabel: nowLabel(),
           imageUrl: picked.url,
+          createdAt: new Date().toISOString(),
         });
       }
       if (body) {
@@ -557,6 +642,7 @@ export function ThreadView({
           body,
           timeLabel: nowLabel(),
           imageUrl: null,
+          createdAt: new Date().toISOString(),
         });
       }
       setItems((prev) => [...prev, ...appended]);
@@ -575,6 +661,7 @@ export function ThreadView({
           timeLabel: nowLabel(),
           imageUrl: picked.url,
           state: "sending",
+          createdAt: new Date().toISOString(),
         },
       ]);
       void runImageSend(tempId, picked.file, picked.url);
@@ -584,7 +671,15 @@ export function ThreadView({
       retryPayloads.current.set(tempId, { kind: "text", body });
       setItems((prev) => [
         ...prev,
-        { id: tempId, mine: true, body, timeLabel: nowLabel(), imageUrl: null, state: "sending" },
+        {
+          id: tempId,
+          mine: true,
+          body,
+          timeLabel: nowLabel(),
+          imageUrl: null,
+          state: "sending",
+          createdAt: new Date().toISOString(),
+        },
       ]);
       void runTextSend(tempId, body);
     }
@@ -702,6 +797,21 @@ export function ThreadView({
    * shared into it still gets the banner, which is the only reason it exists.
    */
   const bookingCardInThread = items.some((m) => m.card?.kind === "booking");
+  /* The day dividers: where the Lagos day changes between one bundle and the
+     next, on the instants the rows carry. */
+  const dayBreaks = dayStarts(bundles.map(({ lead }) => lead));
+  /* The message a reply quotes, resolved from the thread itself. Null means
+     it is not in the loaded thread, and the block says so rather than guess. */
+  const quotedOf = (id: string): QuotedMessage | null => {
+    const found = items.find((x) => x.id === id);
+    if (!found) return null;
+    return {
+      id: found.id,
+      name: found.mine ? null : counterpartName,
+      text: found.body,
+      kind: found.audio ? "voice" : found.file ? "file" : found.imageUrl ? "photo" : "text",
+    };
+  };
 
   return (
     <div className="nf-thread mx-auto w-full max-w-3xl px-gutter">
@@ -796,19 +906,18 @@ export function ThreadView({
           {/* One glass control on the right, the way the render keeps its
               right edge quiet. The property itself opens from the options
               sheet and from the context card, so nothing is lost here. */}
-          <button
+          <Button
             ref={sheetTriggerRef}
-            type="button"
+            variant="icon"
             aria-label="Conversation options"
             aria-haspopup="dialog"
             aria-expanded={sheetOpen}
             onClick={() => setSheetOpen(true)}
-            className="nf-icon-btn"
           >
             {/* Upright, as GOVERNING-chat-booking-card.png draws the header's
                 options control: the shared three nodes turned a quarter. */}
             <UiIcon name="more" size={ICON.inline} className="rotate-90" />
-          </button>
+          </Button>
         </div>
       </header>
 
@@ -970,9 +1079,17 @@ export function ThreadView({
               ? run.map((p) => ({ p, ask: offPlatformAsk(p.body) })).find((x) => x.ask)
               : undefined;
           return (
+            <Fragment key={bubbleKey(m)}>
+            {dayBreaks.has(index) && m.createdAt && (
+              <DayDivider label={dayHeading(m.createdAt, locale, threadWords.day, nowMs)} />
+            )}
+            {unreadAnchor && unreadAnchor.count > 0 && run.some((r) => r.id === unreadAnchor.firstId) && (
+              <UnreadDivider count={unreadAnchor.count} copy={threadWords.unreadDivider} locale={locale} />
+            )}
             <div
-              key={m.id}
-              className={`nf-msg ${m.mine ? "nf-msg--mine nf-msg-in--mine" : "nf-msg-in--theirs"}${
+              data-msg-id={m.id}
+              {...(jumpedId === m.id ? { "data-jumped": "" } : {})}
+              className={`nf-msg ${m.mine ? "nf-msg--mine" : ""}${arrivalClass(openedWith, m)}${
                 wide ? " nf-msg--card" : ""
               }${continues ? " nf-msg--cont" : ""}`}
             >
@@ -1011,6 +1128,10 @@ export function ThreadView({
                   />
                 )}
 
+                {m.replyToId ? (
+                  <QuotedReply quoted={quotedOf(m.replyToId)} copy={threadWords.quoted} onJump={jumpTo} />
+                ) : null}
+
                 {m.card ? (
                   <ChatCard card={m.card} />
                 ) : (
@@ -1047,6 +1168,16 @@ export function ThreadView({
                         />
                       )
                     )}
+                    {m.audio ? <VoiceNote note={m.audio} mine={m.mine} copy={threadWords.voice} /> : null}
+                    {m.file ? (
+                      <AttachmentRow
+                        url={m.file.url}
+                        name={m.file.name}
+                        mime={m.file.mime}
+                        bytes={m.file.bytes}
+                        copy={threadWords.attachment}
+                      />
+                    ) : null}
                     {share ? (
                       /* A share whose card did not resolve for this reader:
                          the words and a link that opens the thing. */
@@ -1103,6 +1234,7 @@ export function ThreadView({
                 )}
               </div>
             </div>
+            </Fragment>
           );
         })}
 
@@ -1140,14 +1272,13 @@ export function ThreadView({
           <p className="min-w-0 flex-1 nf-body-sm leading-relaxed text-[var(--nf-content-secondary)]">
             {SAFETY_EDUCATION_COPY}
           </p>
-          <button
-            type="button"
+          <Button
+            variant="icon"
+            leadingIcon="close"
             aria-label="Dismiss safety note"
             onClick={() => setEducationOpen(false)}
-            className="nf-icon-btn shrink-0"
-          >
-            <UiIcon name="close" size={ICON.inline} />
-          </button>
+            className="shrink-0"
+          />
         </div>
       )}
 
@@ -1210,14 +1341,12 @@ export function ThreadView({
           tabIndex={-1}
           onChange={(e) => pickImage(e.target.files?.[0])}
         />
-        <button
-          type="button"
+        <Button
+          variant="icon"
+          leadingIcon="picture"
           aria-label="Attach a photo"
           onClick={() => fileRef.current?.click()}
-          className="nf-icon-btn"
-        >
-          <UiIcon name="picture" size={ICON.inline} />
-        </button>
+        />
         <label htmlFor="thread-input" className="sr-only">
           Message {counterpartName}
         </label>

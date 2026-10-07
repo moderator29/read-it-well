@@ -50,26 +50,6 @@
     padding-block-start: var(--nf-space-0);
   }
 
-  .nf-stack > * + * {
-    margin-block-start: var(--nf-stack-gap, var(--nf-gap-group));
-  }
-
-  .nf-stack--block {
-    --nf-stack-gap: var(--nf-gap-block);
-  }
-  .nf-stack--heading {
-    --nf-stack-gap: var(--nf-gap-heading);
-  }
-  .nf-stack--group {
-    --nf-stack-gap: var(--nf-gap-group);
-  }
-  .nf-stack--row {
-    --nf-stack-gap: var(--nf-gap-row);
-  }
-  .nf-stack--tight {
-    --nf-stack-gap: var(--nf-gap-inline);
-  }
-
   /* ------------------------------------------------------------- utilities */
 
   /*
@@ -306,20 +286,24 @@
    * inside it, which is the difference between a list that feels considered
    * and one that makes you aim.
    */
+  /* A tappable row is the Plate tier (north star 4): radius 14, no shadow,
+     and hover and press tint only, read from the plate's tokens so every row
+     on the platform tints the same way (Session 3, W10). It was the 10px
+     corner and the generic interactive tints. */
   .nf-row--tap {
     cursor: pointer;
-    border-radius: var(--nf-radius-sm);
+    border-radius: var(--nf-tier-plate-radius);
     transition: background-color var(--nf-duration-fast) var(--nf-ease-standard);
   }
 
   @media (hover: hover) {
     .nf-row--tap:hover {
-      background-color: var(--nf-interactive-hover);
+      background-color: var(--nf-tier-plate-hover);
     }
   }
 
   .nf-row--tap:active {
-    background-color: var(--nf-interactive-active);
+    background-color: var(--nf-tier-plate-press);
   }
 
   /* No reduced-motion block here on purpose: every --nf-duration-* token
@@ -402,238 +386,6 @@
     font-size: var(--nf-text-body-sm);
     font-weight: 600;
     color: var(--nf-content-muted);
-  }
-
-  /*
-   * ----------------------------------------------------------------- CELLS
-   *
-   * The other half of "one surface per group": a group whose parts sit BESIDE
-   * each other rather than under each other.
-   *
-   * `.nf-rows` covers a settings list, where every part is a line. It does not
-   * cover three steps or four promises, which are peers of equal weight that
-   * want to be read across. Drawn as three or four separate cards, those are
-   * three or four borders, three or four shadows and three or four corner
-   * blooms for one idea with parts, which is the exact thing the row list was
-   * built to stop. Drawn as one surface with a hairline between the cells, the
-   * eye reads the group first and the parts second, which is the order they
-   * are meant to be read in.
-   *
-   * The rule turns with the layout. Stacked on a phone it is horizontal; once
-   * the cells sit side by side it is vertical. Both are inset from the
-   * surface's own edges by --nf-cell-inset, for the same reason a row divider
-   * is: a hairline that runs into the container's corner radius puts two lines
-   * a few pixels apart and the surface stops reading as one object.
-   *
-   * The rules are pseudo-elements rather than borders because a border changes
-   * the cell's box and would knock the columns out of alignment by a pixel at
-   * exactly the widths where it matters.
-   */
-  .nf-cells {
-    --nf-cell-inset: var(--nf-space-lg);
-    display: grid;
-  }
-
-  .nf-cells > * {
-    position: relative;
-  }
-
-  .nf-cells > *::before,
-  .nf-cells > *::after {
-    content: "";
-    position: absolute;
-    display: none;
-    background: var(--nf-divider);
-    pointer-events: none;
-  }
-
-  /* ::before is the rule ABOVE a cell. ::after is the rule BEFORE it inline. */
-  .nf-cells > *::before {
-    inset-inline: var(--nf-cell-inset);
-    inset-block-start: 0;
-    height: 1px;
-  }
-
-  .nf-cells > *::after {
-    inset-block: var(--nf-cell-inset);
-    inset-inline-start: 0;
-    width: 1px;
-  }
-
-  /*
-   * Three peers, ACROSS AT EVERY WIDTH.
-   *
-   * This stacked into a column below 768px, which turned "how it works, in
-   * three steps" into three full-width panels a phone has to scroll through.
-   * The one thing that band exists to communicate is that there are three and
-   * they are short, and you cannot see that if you can only see one.
-   *
-   * The copy in the trio is written to a 110px column rather than squeezed
-   * into one; a caller with a paragraph per cell wants a different component.
-   */
-  .nf-cells--trio {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    --nf-cell-inset: var(--nf-space-sm);
-  }
-  .nf-cells--trio > * + *::after {
-    display: block;
-  }
-  @media (min-width: 768px) {
-    .nf-cells--trio {
-      --nf-cell-inset: var(--nf-space-lg);
-    }
-  }
-
-  /*
-   * Two peers, read ACROSS at every width.
-   *
-   * The trio and the quad both stack on a phone, because three or four blocks
-   * of prose side by side on 390px is four columns of two words. A pair is
-   * different in kind: two figures that exist to be read against each other -
-   * money in against money out, a before against an after - stop being a
-   * comparison the moment one sits under the other. So this one never stacks,
-   * and it is sized for two short facts rather than two paragraphs.
-   *
-   * The inset is the tight rung rather than the 24px the others take, and that
-   * is the whole reason this needs its own modifier rather than reusing
-   * `--quad`. The vertical rule is inset from the top and bottom of the cell,
-   * and a pair of facts is two lines tall: 24px off each end of a ~50px rule
-   * leaves a couple of pixels of line, which reads as a rendering fault rather
-   * than as a divider.
-   */
-  .nf-cells--pair {
-    --nf-cell-inset: var(--nf-space-2xs);
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .nf-cells--pair > * + *::after {
-    display: block;
-  }
-
-  /* Four peers: two up on a phone, four across from lg. */
-  .nf-cells--quad {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .nf-cells--quad > :nth-child(n + 3)::before {
-    display: block;
-  }
-  .nf-cells--quad > :nth-child(2n)::after {
-    display: block;
-  }
-  @media (min-width: 1024px) {
-    .nf-cells--quad {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
-    .nf-cells--quad > :nth-child(n + 3)::before {
-      display: none;
-    }
-    .nf-cells--quad > :nth-child(n + 2)::after {
-      display: block;
-    }
-  }
-
-  /*
-   * ------------------------------------------------------------ THE OPTION
-   *
-   * A choice in a grid of choices: a property type, a listing intent, a
-   * tenure. One of a set, exactly one selected, and it lives INSIDE the
-   * surface the form is already drawn on.
-   *
-   * IT EXISTS BECAUSE THESE WERE `.nf-card`, INSIDE AN `.nf-card`.
-   *
-   * The listing wizard draws each step on one glass surface and then filled
-   * that surface with eight more glass surfaces to pick a property type, and
-   * two more under it to pick an intent. That is the one rule the surface
-   * language has no exceptions to - a raised surface may not contain another
-   * raised surface - and the effect is precisely the "jam-packed" reading:
-   * eleven blurred, rimmed, corner-lit rectangles nested one inside the other
-   * on the screen where somebody is trying to concentrate on typing an
-   * address.
-   *
-   * A card is a discrete OBJECT you could pick up and move somewhere else. An
-   * option is not an object; it is one answer to a question that is already
-   * inside a container. So it takes the INSET treatment: a hairline, the inset
-   * fill, and no shadow, no blur and no rim.
-   *
-   * THE SELECTED STATE IS A STATE, NOT A STYLE PROP. It was two inline `style`
-   * objects, typed out twice in the same file, each setting `borderColor` and
-   * a `boxShadow` ring in the agent accent. Two copies of one decision drift by
-   * definition. It is `[aria-pressed="true"]` here, so the ARIA the control
-   * already had to carry is the same thing that paints it, and a third grid of
-   * options cannot invent a third selected look.
-   */
-  .nf-option {
-    display: block;
-    width: 100%;
-    text-align: start;
-    border-radius: var(--nf-radius-control);
-    border: 1px solid var(--nf-border-subtle);
-    background: var(--nf-surface-inset);
-    padding: var(--nf-pad-card-sm);
-    cursor: pointer;
-    transition:
-      border-color var(--nf-duration-fast) var(--nf-ease-standard),
-      background-color var(--nf-duration-fast) var(--nf-ease-standard);
-  }
-
-  @media (hover: hover) {
-    .nf-option:hover {
-      border-color: var(--nf-border-strong);
-    }
-  }
-
-  /*
-   * THE WIZARD'S SELECTED OPTION IS A LIT OUTLINE, NOT A FILLED OBJECT, and
-   * that is a deliberate reading of the register rather than an omission.
-   *
-   * `GOVERNING-10` screen four draws a selected tile as a LIT OUTLINE with a
-   * glowing icon, where a filled brand rectangle is what a selected CHIP is.
-   * The distinction is real: a chip is a small word you switch on, and a
-   * filled one still reads as a word. An option card is a large surface with
-   * a title and a description inside it, and filling it with brand blue means
-   * white body text on a saturated ground at card size, which is a different
-   * object, not a lit version of this one.
-   *
-   * So the wash stays, the edge goes to full strength, and the light is the
-   * same measured bloom every other selected surface now carries, one rung
-   * down. THAT IS THE TREATMENT AT LOWER INTENSITY: a lit outline is this
-   * light with no fill under it.
-   *
-   * The observation about screen four is C2's reading of that render. I did
-   * NOT independently re-measure the facility tile: my own search of the image
-   * could not isolate it from the surrounding CTAs with any confidence, and
-   * saying so is better than implying a measurement I do not have.
-   */
-  .nf-option[aria-pressed="true"] {
-    border-color: var(--nf-mode-agent);
-    background: color-mix(in oklab, var(--nf-mode-agent) 12%, transparent);
-    box-shadow: var(--nf-bloom-lit-soft);
-  }  /*
-   * AND IT IS STILL 4.39:1, WHICH IS UNDER THE FLOOR, AND I CANNOT CLOSE IT
-   * FROM A STYLESHEET. Recorded here rather than left as a silent near-miss.
-   *
-   * 12 per cent measured 3.97:1 and 5 per cent measures 4.39:1. Fading the
-   * wash further would make the selected state invisible to buy a tenth of a
-   * ratio point, so the ink is the right side of the trade: the option a
-   * person has CHOSEN should be the most readable row in the list, not the
-   * least, and this description inherits the muted grey that UNSELECTED rows
-   * use.
-   *
-   * THE INK IS NOT REACHABLE FROM HERE. The span carries
-   * `text-[var(--nf-content-muted)]`, a Tailwind arbitrary utility, which
-   * lands in a later layer than this file and wins over any selector I can
-   * write short of `!important`, which the rules forbid. I wrote the rule,
-   * measured, found the ink unmoved at rgb(103,110,118), and deleted it:
-   * dead CSS that looks like a fix is worse than no CSS at all.
-   *
-   * THE FIX IS ONE WORD IN `app/agent/list/ListingWizard.tsx`: drop
-   * `text-[var(--nf-content-muted)]` from the description span on a selected
-   * option, or swap it for the primary ink. That file belongs to another
-   * scope, so it is named here rather than reached into.
-   */
-
-  .nf-option:focus-visible {
-    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
-    outline-offset: var(--nf-focus-ring-offset);
   }
 
   /*

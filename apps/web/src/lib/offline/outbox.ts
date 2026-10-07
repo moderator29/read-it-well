@@ -208,9 +208,26 @@ export function rememberedOutboxUser(): string | null {
   }
 }
 
+/**
+ * Whether this page carries a Supabase auth cookie at all (`sb-<ref>-auth-token`,
+ * or its chunks `.0`, `.1`). They are readable by script (`cookie-policy.ts`,
+ * SEC-07), which is what makes this a free question.
+ */
+export function hasAuthCookie(cookie: string): boolean {
+  return /(?:^|;\s*)sb-[^=;]+-auth-token(?:\.\d+)?=/.test(cookie);
+}
+
 /** The session's answer: a user id, null for a clean "nobody", undefined for "could not tell". */
 /** One read of the session: the user id, and whether the read itself failed. */
 async function readSession(): Promise<{ id: string | null; failed: boolean }> {
+  /*
+   * NO AUTH COOKIE, NO CLIENT (R3-18). With no session cookie on the page,
+   * `getSession()` answers a clean "nobody" (no session, no error), so that
+   * answer is given here without fetching supabase-js, about 65KB gzipped.
+   * Every auth screen asks this on arrival (`ForgetOnSignOut`), and almost
+   * everybody on an auth screen is signed out.
+   */
+  if (!hasAuthCookie(document.cookie)) return { id: null, failed: false };
   try {
     const { createClient } = await import("../supabase/client");
     const { data, error } = await createClient().auth.getSession();

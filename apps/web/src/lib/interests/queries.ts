@@ -1,8 +1,9 @@
 import "server-only";
+import { reportReadError } from "@/lib/observability/read-error";
 
 import { resolveSession } from "../actions/session";
 import { parseSettings } from "../profile/schema";
-import { knownInterests, type PropertyType } from "./schema";
+import { knownInterests, type PropertyType } from "./model";
 
 /**
  * Server reads for stated intent.
@@ -50,6 +51,7 @@ export async function loadInterestsState(): Promise<InterestsState> {
    * question in front of somebody. `asked: true` is the conservative answer:
    * it says nothing about their intent and it does not interrupt them.
    */
+  await reportReadError("read.interests.loadInterestsState", error);
   if (error || !row) return { state: "signed-in", interests: [], asked: true, welcomeSeen: true };
 
   return {
@@ -114,6 +116,7 @@ export async function readIntentTuning(): Promise<IntentTuning> {
      * empty and the sheet opens reading "not ranked ahead" until a write proves
      * otherwise.
      */
+    await reportReadError("read.interests.readIntentTuning", error);
     if (error || !data) return { signedIn: true, interests: [] };
     return { signedIn: true, interests: knownInterests(data.interests) };
   } catch {

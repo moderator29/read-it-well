@@ -56,9 +56,30 @@
 :root[data-save-data="on"] .nf-story-art,
 :root[data-save-data="on"] .nf-breathe,
 :root[data-save-data="on"] .nf-float,
-:root[data-save-data="on"] .nf-float-slow,
-:root[data-save-data="on"] .nf-card--live {
+:root[data-save-data="on"] .nf-card--live,
+:root[data-save-data="on"] .nf-skeleton::after,
+:root[data-save-data="on"] .nf-social-skeleton::after,
+:root[data-save-data="on"] .nf-vcols__strip {
   animation: none;
+}
+
+/*
+ * The held states of the bounded loading marks: the verifying bar still and
+ * full (as under reduced motion), the flip cover's objects at rest, the live
+ * presence signals (the typing dots, the code caret) still. Principle 10.
+ */
+:root[data-save-data="on"] .nf-verify-sweep {
+  animation: none;
+  width: 100%;
+}
+:root[data-save-data="on"] .nf-flip-cover__miniature[data-shimmer] > li,
+:root[data-save-data="on"] .nf-flip-cover[data-settled] .nf-flip-cover__miniature[data-shimmer] > li,
+:root[data-save-data="on"] .nf-code__cell[data-next]::after {
+  animation: none;
+}
+:root[data-save-data="on"] .nf-typing-dot {
+  animation: none;
+  opacity: 0.8;
 }
 
 :root[data-save-data="on"] .nf-card--interactive img.object-cover,

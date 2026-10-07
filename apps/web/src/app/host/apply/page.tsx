@@ -10,10 +10,9 @@ import { ButtonLink } from "@/components/ui/Button";
 import { HostShell } from "@/components/host/HostShell";
 import { HostWizard, type PolicyOption } from "@/components/host/HostWizard";
 
-export const metadata: Metadata = {
-  title: "Become a host",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: getDictionary(await getLocale()).hostWorkspace.home.startTitle, robots: { index: false, follow: false } };
+}
 
 export const dynamic = "force-dynamic";
 
@@ -57,7 +56,7 @@ export default async function HostApplyPage({
           body={t.hostWorkspace.apply.signedOutBody}
           action={
             <ButtonLink href={authHref(next, "sign-in")} variant="primary" size="lg">
-              Sign in
+              {t.common.signIn}
             </ButtonLink>
           }
         />
@@ -94,7 +93,7 @@ export default async function HostApplyPage({
           body={t.hostWorkspace.apply.failedBody}
           action={
             <ButtonLink href={door ? `/host/apply?door=${door.id}` : "/host/apply"} variant="primary" size="lg">
-              Try again
+              {t.experienceHost.tryAgain}
             </ButtonLink>
           }
         />

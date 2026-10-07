@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
+import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { HostShell } from "@/components/host/HostShell";
 import { WorkspaceAssistant } from "@/components/workspace/WorkspaceAssistant";
 
-export const metadata: Metadata = {
-  title: "Assistant",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: getDictionary(await getLocale()).hostNav.assistant, robots: { index: false, follow: false } };
+}
 
 export const dynamic = "force-dynamic";
 

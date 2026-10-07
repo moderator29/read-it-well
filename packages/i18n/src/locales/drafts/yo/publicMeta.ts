@@ -5,7 +5,10 @@ import type { Translation } from "../../fallback";
    plain, and with no claim the English does not make. */
 export const publicMetaYo = {
   site: {
-    title: "Vallo. Yá, rà tàbí dé sí, láìsí wàhálà.",
+    /* `title` is not declared: since D1 (6 October) it is "Vallo." and the
+       slogan, which stays English in every locale like the wordmark, so the
+       English falls through. The draft that stood here translated the
+       retired "rent, buy or stay" line. */
     description:
       "Ilé, ilẹ̀, hótẹ́ẹ̀lì àti shortlet káàkiri Nàìjíríà. Wo ohun tí o máa san gan-an kí o tó pe ẹnikẹ́ni, mọ ẹni tí ó wà lẹ́yìn gbogbo àkọsílẹ̀, kí o sì pa àkọsílẹ̀ mọ́. Vallo Stays ní hótẹ́ẹ̀lì, fúláàtì, ilé àlejò, ibi ìsinmi àti tábìlì ilé oúnjẹ lórí àkọọ́lẹ̀ kan náà àti àpótí ìránṣẹ́ kan náà.",
     shareDescription:

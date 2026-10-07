@@ -23,6 +23,7 @@ import type {
 import { hrefForListing } from "@/lib/listings/href";
 import type { ListingKind } from "@/lib/listings/types";
 import { BackControl } from "@/components/ui/BackControl";
+import { Button } from "@/components/ui/Button";
 import { SaveButton, useSaveControl } from "@/components/app/SaveControl";
 import {
   AssistantSidebar,
@@ -44,6 +45,12 @@ import { AiConsentSheet } from "@/components/app/ai/AiConsentSheet";
 import { AI_CONSENT_REQUIRED_CODE } from "@/lib/ai/consent";
 import { WORKSPACE_FRAMES, type AssistantWorkspace } from "@/lib/assistant/workspace";
 import { Icon3D } from "@/components/ui/Icon3D";
+import { AIResponse, type AIResponseStatus } from "@/components/ui/AIResponse";
+import { LiveIsland } from "@/components/ui/LiveIsland";
+import "./assistant-answer.css";
+import "@/app/css/home.css";
+import "@/app/css/catalogue.css";
+import "@/app/css/list-views.css";
 
 /**
  * Vallo AI, to its governing image (`docs/design/references/BF49B814`).
@@ -222,6 +229,12 @@ export function AssistantChat({
   const [consent, setConsent] = useState<"yes" | "ask" | "declined">(aiConsented ? "yes" : "ask");
   const [consentSheet, setConsentSheet] = useState(false);
   const [pending, setPending] = useState<string | null>(null);
+  /* Which answer was just copied (its label says so for a moment), and
+     whether the reader has scrolled away from the newest part of the thread,
+     which is when a streaming answer gets its island. */
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [awayFromEnd, setAwayFromEnd] = useState(false);
+  const answerWords = t.answer;
 
   // A question can arrive from anywhere on the platform via ?q=, e.g. the home
   // banner's quick-ask bar. It seeds the composer after mount, never auto-sends.
@@ -459,6 +472,9 @@ export function AssistantChat({
         );
       } catch {
         if (controller.signal.aborted) {
+          /* Stopped, or superseded by a new question: what arrived stays and
+             says it was stopped; an answer with nothing in it goes away. */
+          patchMessage(threadId, assistantId, (m) => (m.text.trim() ? { ...m, stopped: true } : m));
           dropMessageIfEmpty(threadId, assistantId);
           return;
         }
@@ -597,29 +613,49 @@ export function AssistantChat({
      `/assistant`, beside the name pair inside a workspace. */
   const barActions = (
     <div className="nf-ai__bar-actions">
-      <button
-        type="button"
+      <Button
+        variant="icon"
+        leadingIcon="history"
         aria-label="Conversation history"
         aria-expanded={historyOpen}
         onClick={openHistory}
-        className="nf-icon-btn h-11 w-11 lg:hidden"
-      >
-        <UiIcon name="history" size={20} />
-      </button>
-      <button
-        type="button"
+        className="lg:hidden"
+      />
+      <Button
+        variant="icon"
+        leadingIcon="settings-gear"
         aria-label="Assistant settings"
         aria-haspopup="dialog"
         onClick={() => setSettingsOpen(true)}
-        className="nf-icon-btn h-11 w-11"
-      >
-        <UiIcon name="settings-gear" size={20} />
-      </button>
+      />
     </div>
   );
 
   return (
-    <div className="nf-ai px-md pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-lg lg:px-xl">
+    <div className="nf-assistant px-md pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-lg lg:px-xl">
+      {/* An answer that is still streaming while the reader has scrolled up
+          through the thread: a status island that says so and takes them
+          back to it. It exists only while that is true (a real stream, a
+          real scroll position), carries no progress it does not have, and
+          sits below the header, never over the dock. */}
+      {streamingHere && awayFromEnd ? (
+        <LiveIsland
+          label={answerWords.answerLabel}
+          title={answerWords.islandTitle}
+          detail={answerWords.islandDetail}
+          icon="bot"
+          action={{
+            label: answerWords.islandOpen,
+            onClick: () => {
+              const el = scrollerRef.current;
+              if (el) el.scrollTo({ top: el.scrollHeight });
+            },
+          }}
+          expandLabel={answerWords.expand}
+          collapseLabel={answerWords.collapse}
+          data-testid="assistant-island"
+        />
+      ) : null}
       {/* --------------------------------------------------------- header */}
       {/* On `/assistant` the route is immersive, so this bar is the whole
           chrome: back, the lockup, history on a phone, settings; then the
@@ -669,8 +705,15 @@ export function AssistantChat({
           <div
             ref={scrollerRef}
             className="nf-ai__thread"
-            aria-live="polite"
+            /* A named region, so the label is read (axe aria-prohibited-attr:
+               a plain div may not carry aria-label). Not a live log: the
+               answer streams, and a log would read every token aloud. */
+            role="region"
             aria-label="Conversation"
+            onScroll={(e) => {
+              const el = e.currentTarget;
+              setAwayFromEnd(el.scrollHeight - el.scrollTop - el.clientHeight > 160);
+            }}
           >
             {empty && (
               <div className="flex flex-1 flex-col items-center justify-center gap-md py-section-tight text-center">
@@ -713,7 +756,7 @@ export function AssistantChat({
                         <span className="nf-ai__stamp nf-numeric">
                           {stamp}
                           {answered && (
-                            <span className="nf-ai__ticks" aria-label="Answered">
+                            <span className="nf-ai__ticks" role="img" aria-label="Answered">
                               <UiIcon name="verified" size={12} />
                             </span>
                           )}
@@ -740,36 +783,74 @@ export function AssistantChat({
                   </div>
                 );
               }
-              // An assistant bubble appears once it has something to show.
+              // An assistant answer appears once it has something to show.
               if (!m.text.trim() && (m.listings?.length ?? 0) === 0) return null;
               const thisStreaming = streamingHere && m.id === lastMessage?.id;
+              /* The answer card's state is a fact about the turn, never a
+                 guess: streaming while the stream is open, error when the
+                 turn failed, stopped when it was cut, done otherwise. */
+              const status: AIResponseStatus = m.error
+                ? "error"
+                : thisStreaming
+                  ? "streaming"
+                  : m.stopped
+                    ? "stopped"
+                    : "done";
               return (
                 <div key={m.id} className="nf-rise flex flex-col gap-xs">
                   {m.text.trim() && (
                     <div className="nf-ai__turn">
-                      <span
-                        className={`nf-ai__avatar ${thisStreaming ? "nf-bot-thinking" : ""}`}
-                        aria-hidden="true"
+                      <AIResponse
+                        className="nf-ai-answer"
+                        status={status}
+                        label={answerWords.answerLabel}
+                        thinkingLabel={answerWords.thinking}
+                        statusLabels={{
+                          done: answerWords.statusDone,
+                          stopped: answerWords.statusStopped,
+                          error: answerWords.statusError,
+                        }}
+                        stopLabel={answerWords.stop}
+                        onStop={() => abortRef.current?.abort()}
+                        {...(m.error ? { errorMessage: m.text } : {})}
+                        actions={[
+                          {
+                            id: "copy",
+                            label: copiedId === m.id ? answerWords.copied : answerWords.copy,
+                            icon: copiedId === m.id ? "check" : "clipboard-list",
+                            onSelect: () => {
+                              void navigator.clipboard
+                                ?.writeText(m.text)
+                                .then(() => {
+                                  setCopiedId(m.id);
+                                  window.setTimeout(() => setCopiedId((id) => (id === m.id ? null : id)), 1600);
+                                })
+                                .catch(() => undefined);
+                            },
+                          },
+                        ]}
+                        data-testid="assistant-answer"
                       >
-                        <UiIcon name="bot" size={20} />
-                      </span>
-                      <div className="nf-ai__bubble nf-ai__bubble--theirs">
-                        {m.text}
-                        {stamp && <span className="nf-ai__stamp nf-numeric">{stamp}</span>}
-                        {m.error && activeId && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (activeId) retry(activeId, m.id);
-                            }}
-                            className="nf-btn nf-btn--glass nf-btn--sm mt-sm"
-                          >
-                            <UiIcon name="arrow-right" size={16} />
-                            <span className="nf-btn__label">Retry</span>
-                          </button>
-                        )}
-                      </div>
+                        {m.error ? null : m.text}
+                        {status === "stopped" ? (
+                          <span className="nf-ai-answer__stopped">{answerWords.stoppedNote}</span>
+                        ) : null}
+                        {stamp ? <span className="nf-ai__stamp nf-numeric">{stamp}</span> : null}
+                      </AIResponse>
                     </div>
+                  )}
+                  {m.error && activeId && m.text.trim() && (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      leadingIcon="arrow-right"
+                      onClick={() => {
+                        if (activeId) retry(activeId, m.id);
+                      }}
+                      className="self-start"
+                    >
+                      Retry
+                    </Button>
                   )}
                   {m.listings && m.listings.length > 0 && (
                     <ul className="nf-ai__results" aria-label="Matching listings">
@@ -789,11 +870,25 @@ export function AssistantChat({
             })}
 
             {showThinking && (
-              <div className="nf-rise nf-ai__turn" aria-label="Vallo AI is thinking">
-                <span className="nf-ai__thinking">
-                  <span className="nf-ai__ring" aria-hidden="true" />
-                  {copy.thinking}
-                </span>
+              /* THE ONE PERMITTED LOOP: the answer card's thinking state, three
+                 shaped lines breathing beside an orb that breathes with them
+                 (opacity and scale only). It stands while the model works and
+                 is replaced by the first words; a spinner is never drawn. */
+              <div className="nf-rise nf-ai__turn">
+                <AIResponse
+                  className="nf-ai-answer"
+                  status="thinking"
+                  label={answerWords.answerLabel}
+                  thinkingLabel={answerWords.thinking}
+                  statusLabels={{
+                    done: answerWords.statusDone,
+                    stopped: answerWords.statusStopped,
+                    error: answerWords.statusError,
+                  }}
+                  stopLabel={answerWords.stop}
+                  onStop={() => abortRef.current?.abort()}
+                  data-testid="assistant-thinking"
+                />
               </div>
             )}
           </div>
@@ -871,14 +966,16 @@ export function AssistantChat({
                 className="nf-ai__input"
               />
             </div>
-            <button
+            <Button
               type="submit"
+              variant="primary"
+              size="lg"
+              iconOnly
+              leadingIcon="arrow-up"
               aria-label="Send message"
               disabled={!draft.trim()}
-              className="nf-btn nf-btn--primary nf-btn--icon nf-ai__send"
-            >
-              <UiIcon name="arrow-up" size={24} />
-            </button>
+              className="nf-ai__send"
+            />
           </form>
         </section>
       </div>
@@ -901,7 +998,7 @@ export function AssistantChat({
             type="button"
             aria-label="Close conversation history"
             onClick={closeHistory}
-            className={`absolute inset-0 bg-[var(--nf-overlay-backdrop)] transition-opacity duration-200 ${
+            className={`absolute inset-0 bg-[var(--nf-overlay-backdrop)] transition-opacity duration-[var(--nf-duration-base)] ease-[var(--nf-ease-standard)] ${
               historyShown ? "opacity-100" : "opacity-0"
             }`}
           />
@@ -910,20 +1007,13 @@ export function AssistantChat({
             role="dialog"
             aria-modal="true"
             aria-label="Conversation history"
-            className={`nf-panel nf-panel--card nf-panel--glass absolute inset-y-0 left-0 flex w-80 max-w-[85vw] flex-col rounded-l-none p-0 pb-[env(safe-area-inset-bottom,0px)] transition-transform duration-200 ease-out ${
+            className={`nf-panel nf-panel--card nf-panel--glass absolute inset-y-0 left-0 flex w-80 max-w-[85vw] flex-col rounded-l-none p-0 pb-[env(safe-area-inset-bottom,0px)] transition-transform duration-[var(--nf-duration-base)] ease-[var(--nf-ease-entrance)] ${
               historyShown ? "translate-x-0" : "-translate-x-full"
             }`}
           >
             <div className="flex items-center justify-between border-b border-[var(--nf-panel-hair)] pb-xs pl-md pr-xs pt-[calc(var(--nf-space-xs)+env(safe-area-inset-top,0px))]">
               <p className="text-[length:var(--nf-text-body-sm)] font-semibold">Conversations</p>
-              <button
-                type="button"
-                aria-label="Close conversation history"
-                onClick={closeHistory}
-                className="nf-icon-btn h-9 w-9"
-              >
-                <UiIcon name="close" size={16} />
-              </button>
+              <Button variant="icon" leadingIcon="close" aria-label="Close conversation history" onClick={closeHistory} />
             </div>
             <div className="min-h-0 flex-1">{sidebar()}</div>
           </div>

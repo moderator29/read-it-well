@@ -5,7 +5,9 @@ import { recordMoneyAudit, type MoneyActor } from "@/lib/money/audit";
 import { recordAlert } from "@/lib/alerts";
 import { settleBookingCharge } from "@/lib/bookings/settlement";
 import { failureReason, logMoney } from "./observability";
-import { PaystackError, isPaystackConfigured, listSuccessfulCharges, type ChargeSummary } from "./paystack";
+import { PaystackError, isPaystackConfigured, type ChargeSummary } from "./paystack";
+import { requireCapability } from "./provider";
+import { paystackSeam } from "./providers";
 import { isBookingReference, isFundReference } from "./references";
 import { refundChargeToCard } from "./refund";
 import { REFUND_ALREADY_CLAIMED } from "./refund-outcomes";
@@ -132,7 +134,9 @@ export async function runMoneyReconciliation(
 
   let charges: ChargeSummary[];
   try {
-    charges = await listSuccessfulCharges({
+    const paystack = paystackSeam();
+    requireCapability(paystack, "list_successful_charges");
+    charges = await paystack.listSuccessfulCharges({
       from: empty.from,
       to: empty.to,
       ...(options?.maxPages === undefined ? {} : { maxPages: options.maxPages }),

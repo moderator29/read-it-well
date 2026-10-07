@@ -15,6 +15,7 @@ import {
 import { usePathname, useRouter } from "next/navigation";
 import { SIDE_HOME, writeSideCookie, type Side } from "@/lib/side.constants";
 import { SideCover } from "./SideCover";
+import "@/app/css/side-flip.css";
 
 /**
  * The flip: the product's signature interaction.

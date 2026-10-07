@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
+import { gateFirstRun } from "@/components/app/feature-onboarding/first-run-store";
 import { AgentShell } from "@/components/agent/AgentShell";
 import {
   agentProfileFrom,
@@ -19,6 +20,7 @@ import { ButtonLink } from "@/components/ui/Button";
 import { SUPPLY_DOOR_HREF } from "@/components/agent/agent-doors";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { IconPlate } from "@/components/ui/IconPlate";
+import { withNext } from "@/lib/auth/next-link";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
@@ -53,13 +55,21 @@ function requestTime(): number {
   return Date.now();
 }
 
-export default async function AgentDashboardPage() {
+export default async function AgentDashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const locale = await getLocale();
   const t = getDictionary(locale);
   const a = t.agent.dashboard;
 
   const context = await getAgentContext();
   if (context.state === "agent") {
+    /* The workspace's first run (north star 14.1, D11): once, for an agent,
+       before anything is read. Fails towards drawing the workspace. */
+    await gateFirstRun("agent", "/agent/dashboard", await searchParams);
+
     /* Two independent reads, so they cost one round trip rather than two.
        On the connections this product is built for that is the difference
        between a dashboard and a wait. */
@@ -120,7 +130,7 @@ export default async function AgentDashboardPage() {
           cta: t.common.back,
         }
       : context.state === "signed-out"
-        ? { title: a.signedOutTitle, body: a.signedOutBody, href: "/sign-in", cta: t.common.signIn }
+        ? { title: a.signedOutTitle, body: a.signedOutBody, href: withNext("/sign-in", "/agent/dashboard"), cta: t.common.signIn }
         : {
             title: a.notAgentTitle,
             body: a.notAgentBody,

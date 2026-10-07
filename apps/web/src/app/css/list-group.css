@@ -7,9 +7,11 @@
  * ONE CARD HOLDS THE WHOLE GROUP. Rows sit inside it with inset hairlines
  * that start at the text column, never full width and never after the last
  * row. This replaces a card per row and a neon rim per group. The card is
- * the same object in both themes: `--nf-surface-primary` on
- * `--nf-card-border` with `--nf-card-shadow` (no shadow at night), so no
- * rule here names a theme.
+ * the same object in both themes: `--nf-surface-primary` with the Card
+ * tier's one edge (`--nf-tier-card-edge`, the hairline at night and nothing
+ * on Paper, where `--nf-card-shadow` is the edge), so no rule here names a
+ * theme. The rows inside it are Plates: their hover and press read
+ * `--nf-tier-plate-*`.
  *
  * A partial of globals.css, after chips.css. Tokens only.
  */
@@ -31,7 +33,7 @@
   /* The quiet action beside a section label ("See all 8", "Manage"). */
   .nf-list-section__action {
     font-size: var(--nf-text-body-sm);
-    font-weight: 500;
+    font-weight: 600;
     color: var(--nf-content-link);
   }
 
@@ -44,7 +46,10 @@
     list-style: none;
     overflow: clip;
     border-radius: var(--nf-radius-card);
-    border: var(--nf-border-width) solid var(--nf-card-border);
+    /* One edge (north star 4): the hairline at night, and on Paper only the
+       blue-tinted card shadow, because the tier's edge token is transparent
+       there. It drew both, a hairline beside the new shadow. */
+    border: var(--nf-border-width) solid var(--nf-tier-card-edge);
     background: var(--nf-surface-primary);
     box-shadow: var(--nf-card-shadow);
   }
@@ -116,7 +121,7 @@
   .nf-list-row__title {
     font-size: var(--nf-text-row);
     line-height: var(--nf-leading-row);
-    font-weight: 500;
+    font-weight: 600;
     color: var(--nf-content-primary);
     overflow-wrap: anywhere;
   }
@@ -155,10 +160,12 @@
   /* The press: the same answer lane A gives a settings row
      (`app/css/press-motion.css`, `.nf-srow`): the slice lights and its plate
      sinks; the row itself never scales, or it tears the hairlines. */
+  /* The row is the Plate tier (north star 4: hover and press tint only), so
+     its press and hover read the plate's tokens rather than restating them. */
   a.nf-list-row:active,
   button.nf-list-row:not(:disabled):active,
   label.nf-list-row:active {
-    background: var(--nf-glass-fill-thin);
+    background: var(--nf-tier-plate-press);
   }
   a.nf-list-row:active .nf-list-row__lead,
   button.nf-list-row:not(:disabled):active .nf-list-row__lead {
@@ -180,7 +187,7 @@
     a.nf-list-row:hover,
     button.nf-list-row:not(:disabled):hover,
     label.nf-list-row:hover {
-      background: var(--nf-surface-secondary);
+      background: var(--nf-tier-plate-hover);
       transition-duration: 120ms;
     }
     .nf-list-group--bare :is(a, button, label).nf-list-row:hover {
@@ -212,7 +219,7 @@
     cursor: pointer;
     color: var(--nf-content-primary);
     font-size: var(--nf-text-row);
-    font-weight: 500;
+    font-weight: 600;
   }
   .nf-disclosure > summary::-webkit-details-marker {
     display: none;
@@ -257,7 +264,7 @@
   }
   @media (hover: hover) and (pointer: fine) {
     .nf-disclosure > summary:hover {
-      background: var(--nf-surface-secondary);
+      background: var(--nf-tier-plate-hover);
     }
   }
 }

@@ -14,6 +14,7 @@ import { RequestInspection } from "@/components/app/inspections/RequestInspectio
 import { ButtonLink } from "@/components/ui/Button";
 import { AuthGate } from "@/components/auth/AuthGate";
 import { EmptyState } from "@/components/app/Screen";
+import "@/app/css/catalogue.css";
 
 export const metadata: Metadata = {
   title: "Move-in cost",
@@ -117,7 +118,7 @@ export default async function MoveInPage({ params }: { params: Promise<{ listing
               full
               size="lg"
             >
-              Get told when real homes arrive
+              {t.experienceMoney.ledger.similar}
             </ButtonLink>
           ) : payHref ? (
             <AuthGate action="pay">
@@ -135,7 +136,7 @@ export default async function MoveInPage({ params }: { params: Promise<{ listing
       />
 
       <p className="nf-caption mt-block text-center text-[var(--nf-content-muted)]">
-        <Link href={`/listing/${listing.id}`} className="nf-link-quiet text-[var(--nf-content-link)]">
+        <Link href={`/listing/${listing.id}`} className="nf-link-quiet nf-tap text-[var(--nf-content-link)]">
           {t.common.back}
         </Link>
         {" · "}

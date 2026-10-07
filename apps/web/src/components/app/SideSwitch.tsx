@@ -7,6 +7,7 @@ import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { panelClass } from "@/components/ui/Panel";
 import { useSideFlip } from "./flip/SideFlip";
+import "@/app/css/side-flip.css";
 
 /**
  * The coin: the control that turns the app over.

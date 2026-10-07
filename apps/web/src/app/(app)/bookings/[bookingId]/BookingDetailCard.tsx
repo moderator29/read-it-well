@@ -3,7 +3,8 @@ import Link from "next/link";
 import { getDictionary, plural, type Locale } from "@vallo/i18n";
 import type { BookingView } from "@/lib/bookings/queries";
 import { ButtonLink } from "@/components/ui/Button";
-import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
+import { StatusChip } from "@/components/ui/StatusChip";
+import { bookingChip } from "@/components/app/bookings/booking-chip";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ICON, TYPE } from "@/components/app/Screen";
 import { CancelBookingControl } from "@/components/app/bookings/CancelBookingSheet";
@@ -36,9 +37,9 @@ export function BookingDetailCard({ booking, locale }: { booking: BookingView; l
         </Link>
 
         <div className="min-w-0 flex-1 leading-tight">
-          <StatusPill tone={toneForStatus(booking.status)}>
-            {statusWords[booking.status]}
-          </StatusPill>
+          {/* Word, shape and colour together (reference 7071), never colour
+              alone; a cancelled stay is neutral, not the rose of a failure. */}
+          <StatusChip state={bookingChip(booking.status)}>{statusWords[booking.status]}</StatusChip>
           <h1 className={`mt-xs ${TYPE.rowTitle}`}>{booking.title}</h1>
           {where && (
             <p className={`mt-2xs flex items-start gap-xs ${TYPE.rowMeta}`}>
@@ -48,7 +49,7 @@ export function BookingDetailCard({ booking, locale }: { booking: BookingView; l
           )}
           <p className={`mt-sm flex items-center gap-xs ${TYPE.body}`}>
             <UiIcon name="calendar-booking" size={ICON.inline} className="shrink-0" />
-            <span className="font-medium">{booking.dateRange}</span>
+            <span className="font-semibold">{booking.dateRange}</span>
           </p>
           <p className={`mt-2xs flex items-center gap-xs ${TYPE.body}`}>
             <UiIcon name="user" size={ICON.inline} className="shrink-0" />
@@ -97,7 +98,7 @@ export function BookingDetailCard({ booking, locale }: { booking: BookingView; l
           {booking.reviewed && (
             <Link
               href={`/bookings/${booking.id}/review`}
-              className="flex items-center gap-2xs text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
+              className="nf-tap flex items-center gap-2xs text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
             >
               <UiIcon name="star" size={16} className="text-[var(--nf-rating)]" />
               {copy.yourReview}
@@ -106,7 +107,7 @@ export function BookingDetailCard({ booking, locale }: { booking: BookingView; l
           {booking.cancellable && <CancelBookingControl booking={booking} label={copy.cancel} />}
           <Link
             href={booking.stayHref}
-            className="flex items-center gap-2xs text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+            className="nf-tap flex items-center gap-2xs text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
           >
             {copy.viewDetails}
             <UiIcon name="arrow-right" size={16} />

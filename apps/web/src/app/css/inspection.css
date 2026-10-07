@@ -221,7 +221,7 @@
   }
   .nf-ix-card__price small {
     font-size: var(--nf-text-overline);
-    font-weight: 500;
+    font-weight: 400;
   }
   .nf-ix-card__chev {
     flex-shrink: 0;
@@ -334,7 +334,7 @@
     margin-block: -0.9375rem;
     font-size: var(--nf-text-overline);
     line-height: 1.3;
-    font-weight: 500;
+    font-weight: 600;
     color: var(--nf-content-link);
     overflow-wrap: normal;
   }
@@ -435,7 +435,7 @@
     gap: var(--nf-space-2xs);
     flex-shrink: 0;
     font-size: var(--nf-text-overline);
-    font-weight: 500;
+    font-weight: 600;
     color: var(--nf-brand-secondary);
     font-variant-numeric: tabular-nums;
     text-align: right;
@@ -533,10 +533,16 @@
     cursor: pointer;
     box-shadow: 0 0 6px color-mix(in oklab, var(--nf-lit) 45%, transparent);
   }
+  /* Centred and sized, not inset: an inset is measured from the PADDING box,
+     inside the 1.5px ring, so -0.8125rem reached 41px, not 44 (W12). */
   .nf-ix-room__check::before {
     content: "";
     position: absolute;
-    inset: -0.8125rem;
+    left: 50%;
+    top: 50%;
+    width: 2.75rem;
+    height: 2.75rem;
+    transform: translate(-50%, -50%);
   }
   .nf-ix-room__check:disabled {
     cursor: not-allowed;
@@ -784,7 +790,7 @@
   margin: var(--nf-space-row, 0.75rem) 0;
   padding: var(--nf-space-row, 0.75rem) var(--nf-space-card, 1rem);
   border: 1px solid var(--nf-border-subtle);
-  border-radius: var(--nf-radius-card, 0.875rem);
+  border-radius: var(--nf-radius-card);
   background: var(--nf-surface-raised);
   color: var(--nf-content-secondary);
   font-size: var(--nf-text-caption);

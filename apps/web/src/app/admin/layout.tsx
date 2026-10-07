@@ -1,3 +1,13 @@
+/* C6's member CSS move (6 October): the member-only sheets that left
+   `globals.css`, the ones this tree draws, in their old globals order. They
+   are the first imports so they keep their old place in the cascade: after
+   every global partial, before any sheet this tree's components import. */
+import "@/app/social.css";
+import "@/app/social-feed.css";
+import "@/app/css/passcode.css";
+import "@/app/css/money-history.css";
+import "@/app/css/detail-m.css";
+import "@/app/css/member-loop.css";
 import type { Metadata } from "next";
 import { DeskKeys } from "@/components/app/desk/DeskKeys";
 import { CONSOLE_JUMPS, CONSOLE_JUMP_WORDS } from "@/components/app/desk/desk-keys";
@@ -107,6 +117,11 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       bellLabel={t.uiCommon.console.notifications}
       shell={t.admin.shell}
       back={<BackButton fallback="/admin" surface="round" />}
+      experience={{
+        palette: t.experienceAdmin.palette,
+        deskLedes: t.experienceAdmin.deskLedes,
+        waitingTotal: t.experienceAdmin.shell.waitingTotal,
+      }}
     >
       <EntryGate entered={entered} userId={access.user.id} opening={t.admin.shell.entry.opening}>
         {/* The passcode lock (docs/PASSCODE.md), for staff as for everyone. */}

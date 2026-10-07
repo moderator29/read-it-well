@@ -3,13 +3,15 @@
 import { isIdentifier } from "@/lib/admin/lookup-classify";
 import { PersonTier } from "./PersonTier";
 import type { PersonTier as PersonTierValue } from "@/lib/admin/reads/shapes";
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { Dictionary } from "@vallo/i18n/core";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { useOverlay } from "@/lib/ui/use-overlay";
 import { NavIcon } from "./AdminGlyph";
+import { searchBase } from "./palette";
+import "./admin-material.css";
 import {
   ADMIN_NAV,
   ADMIN_PRIMARY,
@@ -39,12 +41,15 @@ function Row({
   shell,
   active,
   child = false,
+  lede,
 }: {
   item: AdminDestination;
   counts: Record<string, number>;
   shell?: ShellCopy;
   active: boolean;
   child?: boolean;
+  /** The desk's one line, drawn under its name in the phone menu (reference 7086). */
+  lede?: string;
 }) {
   const count = countFor(item, counts);
   const label = labelFor(item, shell);
@@ -56,7 +61,10 @@ function Row({
       className={`nf-admin-nav__row${child ? " nf-admin-nav__row--child" : ""}${active ? " nf-admin-nav__row--on" : ""}`}
     >
       <NavIcon icon={item.icon} size={child ? 16 : 20} />
-      <span className="min-w-0 flex-1 [overflow-wrap:anywhere]">{label}</span>
+      <span className="min-w-0 flex-1 [overflow-wrap:anywhere]">
+        {label}
+        {lede ? <span className="nf-admin-drawer__lede">{lede}</span> : null}
+      </span>
       {count > 0 && (
         <span
           className="nf-admin-nav__count"
@@ -75,11 +83,14 @@ export function AdminRail({
   counts,
   navLabel,
   shell,
+  ledes,
 }: {
   counts: Record<string, number>;
   labels?: NavCopy;
   navLabel: string;
   shell?: ShellCopy;
+  /** Desk key to its one line. Passed by the phone drawer only. */
+  ledes?: Readonly<Record<string, string | undefined>>;
 }) {
   const pathname = usePathname() ?? "/admin";
   return (
@@ -90,7 +101,7 @@ export function AdminRail({
           const onParent = isActiveHref(pathname, item.href);
           return (
             <li key={item.key}>
-              <Row item={item} counts={counts} shell={shell} active={sectionOpen} />
+              <Row item={item} counts={counts} shell={shell} active={sectionOpen} lede={ledes?.[item.key]} />
               {sectionOpen && item.children && item.children.length > 0 && (
                 <ul className="nf-admin-nav__children" aria-label={labelFor(item, shell)}>
                   {item.children.map((child) => (
@@ -101,6 +112,7 @@ export function AdminRail({
                         shell={shell}
                         active={!onParent && isActiveHref(pathname, child.href)}
                         child
+                        lede={ledes?.[child.key]}
                       />
                     </li>
                   ))}
@@ -110,7 +122,7 @@ export function AdminRail({
           );
         })}
       </ul>
-      <AllDesks counts={counts} shell={shell} pathname={pathname} />
+      <AllDesks counts={counts} shell={shell} pathname={pathname} ledes={ledes} />
     </nav>
   );
 }
@@ -123,10 +135,12 @@ function AllDesks({
   counts,
   shell,
   pathname,
+  ledes,
 }: {
   counts: Record<string, number>;
   shell?: ShellCopy;
   pathname: string;
+  ledes?: Readonly<Record<string, string | undefined>>;
 }) {
   const allWaiting = (n: number) =>
     (shell?.nav.allDesksWaiting ?? "{count} waiting across the desks below").replace("{count}", String(n));
@@ -156,6 +170,7 @@ function AllDesks({
               shell={shell}
               active={isActiveHref(pathname, item.href)}
               child
+              lede={ledes?.[item.key]}
             />
           </li>
         ))}
@@ -220,32 +235,27 @@ export function AdminRailFoot({
 }
 
 /**
- * The console search. Enter searches the desk under the cursor through that
- * desk's own `?q=`; on a page with no desk of its own (the overview, the
- * charts) it searches the unified queue. Command-K or Control-K focuses it.
+ * The console search field. Enter searches the desk under the cursor through
+ * that desk's own `?q=`; on a page with no desk of its own (the overview, the
+ * charts) it searches the unified queue. Control K or Command K no longer
+ * focuses this field: it opens the command palette (`ConsolePalette`), which
+ * does everything this does and finds desks too. The hint says so. With
+ * scripts off this stays an ordinary search form.
  */
-export function ConsoleSearch({ label, placeholder }: { label: string; placeholder: string }) {
+export function ConsoleSearch({
+  label,
+  placeholder,
+  hint,
+}: {
+  label: string;
+  placeholder: string;
+  /** The key hint at the field's end ("Ctrl K"), a keyboard device only. */
+  hint?: string;
+}) {
   const pathname = usePathname() ?? "/admin";
   const router = useRouter();
   const input = useRef<HTMLInputElement | null>(null);
-
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
-        event.preventDefault();
-        input.current?.focus();
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
-
-  const segments = pathname.split("/").filter(Boolean);
-  const NO_SEARCH = new Set(["operations", "analytics", "settings"]);
-  const base =
-    segments.length >= 2 && !NO_SEARCH.has(segments[1] ?? "")
-      ? `/${segments[0]}/${segments[1]}`
-      : "/admin/queue";
+  const base = searchBase(pathname);
 
   return (
     <form
@@ -267,6 +277,11 @@ export function ConsoleSearch({ label, placeholder }: { label: string; placehold
         {label}
       </label>
       <input id="admin-console-search" ref={input} type="search" placeholder={placeholder} />
+      {hint ? (
+        <span className="nf-admin-bar__hint" aria-hidden="true">
+          {hint}
+        </span>
+      ) : null}
     </form>
   );
 }
@@ -282,6 +297,8 @@ export function AdminTabs({
   identity,
   brand,
   shell,
+  ledes,
+  waitingText,
 }: {
   counts: Record<string, number>;
   labels?: NavCopy;
@@ -289,6 +306,10 @@ export function AdminTabs({
   identity?: AdminIdentity;
   brand?: ReactNode;
   shell?: ShellCopy;
+  /** Desk key to its one line, drawn under each desk in the menu. */
+  ledes?: Readonly<Record<string, string | undefined>>;
+  /** "{count} waiting", for the line above the desks. */
+  waitingText?: string;
 }) {
   const closeLabel = shell?.nav.closeMenu ?? "Close the console menu";
   const pathname = usePathname() ?? "/admin";
@@ -361,7 +382,10 @@ export function AdminTabs({
                 if ((event.target as HTMLElement).closest("a")) setOpen(false);
               }}
             >
-              <AdminRail counts={counts} shell={shell} navLabel={navLabel} />
+              {waiting > 0 && waitingText ? (
+                <p className="nf-admin-drawer__total nf-numeric">{waitingText.replace("{count}", String(waiting))}</p>
+              ) : null}
+              <AdminRail counts={counts} shell={shell} navLabel={navLabel} ledes={ledes} />
             </div>
             {identity && (
               <div

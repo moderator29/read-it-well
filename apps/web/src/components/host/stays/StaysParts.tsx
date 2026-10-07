@@ -9,6 +9,7 @@ import { IconPlate } from "@/components/ui/IconPlate";
 import { Icon3D } from "@/components/ui/Icon3D";
 import type { Icon3DName } from "@/components/ui/icon-3d";
 import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
+import "@/app/css/catalogue.css";
 
 /**
  * THE PARTS THE SIX DRAWN STAYS PANELS ARE ASSEMBLED FROM.

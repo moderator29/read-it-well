@@ -2,6 +2,7 @@ import { Skeleton, SkeletonCard } from "@/components/ui/Skeleton";
 import { LoadingShell } from "@/components/app/ScreenSkeleton";
 import { panelClass } from "@/components/ui/Panel";
 import { iconPlateClass } from "@/components/ui/IconPlate";
+import "@/app/css/home.css";
 
 /**
  * The wait, on home.

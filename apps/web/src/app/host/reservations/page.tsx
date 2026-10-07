@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { countOf, getDictionary, type Dictionary } from "@vallo/i18n";
+import { countOf, getDictionary, type Dictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { resolveSession } from "@/lib/actions/session";
 import { authHref, returnHref } from "@/components/auth/auth-intent";
@@ -9,10 +9,9 @@ import { HostShell } from "@/components/host/HostShell";
 import { HostReservationsBoard } from "./ReservationsBoard";
 import { readHostTableBoard, type HostTableBoard } from "./board";
 
-export const metadata: Metadata = {
-  title: "Tables",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: getDictionary(await getLocale()).experienceHost.screens.tables, robots: { index: false, follow: false } };
+}
 
 export const dynamic = "force-dynamic";
 
@@ -46,7 +45,7 @@ export default async function HostReservationsPage() {
           body={t.hostWorkspace.reservations.signedOutBody}
           action={
             <ButtonLink href={authHref(next, "sign-in")} variant="primary" size="lg">
-              Sign in
+              {t.common.signIn}
             </ButtonLink>
           }
         />
@@ -60,6 +59,8 @@ export default async function HostReservationsPage() {
     <HostShell logoLabel={t.a11y.logoHome} fallback="/host">
       <HostTablesBody
         copy={t.hostWorkspace}
+        words={t.experienceHost}
+        locale={locale}
         board={read.state === "ok" ? read.board : null}
         unavailable={read.state === "unavailable"}
       />
@@ -76,12 +77,18 @@ export function HostTablesBody({
   board,
   unavailable = false,
   copy = getDictionary("en").hostWorkspace,
+  words = getDictionary("en").experienceHost,
+  locale = "en",
 }: {
   board: HostTableBoard | null;
   /** True when the read itself failed. A dropped read is not an empty venue. */
   unavailable?: boolean;
   /** The host workspace words in the reader's language; English in the previews. */
   copy?: Dictionary["hostWorkspace"];
+  /** The page's own words in the reader's language; English in the previews. */
+  words?: Dictionary["experienceHost"];
+  /** The reader's language, for the count; English in the previews. */
+  locale?: Locale;
 }) {
   if (unavailable || board === null) {
     return (
@@ -91,7 +98,7 @@ export function HostTablesBody({
         body={copy.reservations.failedBody}
         action={
           <ButtonLink href="/host/reservations" variant="primary" size="lg">
-            Try again
+            {words.tryAgain}
           </ButtonLink>
         }
       />
@@ -102,11 +109,11 @@ export function HostTablesBody({
     <>
       <div className="nf-agent-head">
         <div>
-          <h1 className="nf-agent-head__title">Tables</h1>
+          <h1 className="nf-agent-head__title">{words.screens.tables}</h1>
           <p className={`mt-row ${TYPE.bodyLg}`}>
             {board.requests.length === 0
-              ? "Nothing is waiting on you."
-              : countOf(board.requests.length, "requestsWaiting")}
+              ? words.tablesNothingWaiting
+              : countOf(board.requests.length, "requestsWaiting", locale)}
           </p>
         </div>
       </div>
@@ -125,7 +132,7 @@ export function HostTablesBody({
           body={copy.reservations.emptyBody}
           action={
             <ButtonLink href="/host" variant="secondary" size="lg">
-              Your venue
+              {words.tablesYourVenue}
             </ButtonLink>
           }
         />

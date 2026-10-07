@@ -34,7 +34,10 @@
   .nf-vcols__strip {
     display: grid;
     gap: var(--nf-vcol-gap);
-    animation: nf-vcol-up 48s linear infinite;
+    /* Two long turns, then it rests (principle 10). The strip is its own
+       cells twice, so the end of a turn is the start: it rests where it began
+       to the eye, and `forwards` keeps it there. */
+    animation: nf-vcol-up 48s linear 2 forwards;
     animation-play-state: paused;
   }
   .nf-vcols__col[data-col="1"] .nf-vcols__strip {

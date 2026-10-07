@@ -214,11 +214,11 @@ export default async function PlansPage({
                 <Section title={copy.tenanciesTitle}>
                   {/* B10: when the rent is due again, for the tenant. */}
                   <RentCountdowns tenancies={rent} locale={locale} />
-                  <div className="flex flex-col gap-md">
+                  <ul className="flex flex-col gap-md">
                     {rent.map((tenancy) => (
                       <TenancyCard key={tenancy.id} tenancy={tenancy} locale={locale} />
                     ))}
-                  </div>
+                  </ul>
                 </Section>
               )}
               <InspectionsBoard

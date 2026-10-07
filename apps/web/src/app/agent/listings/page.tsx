@@ -150,10 +150,18 @@ export default async function Page({
         boardLabel={boardOn ? t.frontDoor.board.action : undefined}
         duplicateCopy={t.frontDoor.duplicate}
         statusLabel={t.frontDoor.status.action}
+        healthLabel={t.experienceFeatures.health.open}
         closed={closed}
         closeCopy={t.landlord.close}
         ownerAsks={ownerAsks}
         ownerCopy={t.landlord.owner}
+        /* Round 5: the payoff the day a listing is live, from the rows above. */
+        liveCopy={{
+          title: t.success.moments.listingLive.title,
+          body: t.success.moments.listingLive.body,
+          open: t.experienceLister.live.open,
+        }}
+        liveArrivalId={arrival === "listingLive" ? namedId : undefined}
       />
     </AgentShell>
   );

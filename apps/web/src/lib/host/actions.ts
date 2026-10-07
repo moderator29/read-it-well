@@ -64,20 +64,17 @@ import {
 } from "./schema";
 import { bedsArray, placeTypeUnavailable } from "./stays-setup";
 import { countOf } from "@vallo/i18n/core";
+import { fill, hostRefusals } from "./refusals";
 
 type BusinessKind = Database["public"]["Enums"]["business_kind"];
 
-const SERVICE_DOWN_MESSAGE =
-  "We could not save that just now. Nothing you typed was lost, so try again in a moment.";
-
-const NO_DRAFT_MESSAGE =
-  "There is no application open on your account yet. Start one and we will keep it as you go.";
-
-const NOT_EDITABLE_MESSAGE =
-  "This application is with our team, so it cannot be changed right now. We will write to you when it has been read.";
-
-const NOT_YOURS_MESSAGE =
-  "That is not on your account. Open your properties to see the ones that are.";
+/* What the host is told when an action refuses, in the host's language
+   (`experienceHost.refusals.application`), read per call. */
+type Words = Awaited<ReturnType<typeof hostRefusals>>["application"];
+const words = async (): Promise<Words> => (await hostRefusals()).application;
+/* What a field says beside the box when its value is the wrong shape
+   (`experienceHost.refusals.schema`), in the same request's language. */
+const schemaWords = async () => (await hostRefusals()).schema;
 
 /** The statuses in which a host may still edit their own application. */
 const EDITABLE: readonly Database["public"]["Enums"]["listing_status"][] = [
@@ -156,7 +153,7 @@ export async function saveHostDraft(input: unknown): Promise<ActionResult<HostDr
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
   if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
 
-  const parsed = validate(hostDraftSchema, input);
+  const parsed = validate(hostDraftSchema(await schemaWords()), input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   const data = parsed.data;
 
@@ -168,7 +165,7 @@ export async function saveHostDraft(input: unknown): Promise<ActionResult<HostDr
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
-  if (readError) return fail(SERVICE_DOWN_MESSAGE);
+  if (readError) return fail((await words()).serviceDown);
   /* Consents are private to the owner, read through the definer. A draft
      whose consents cannot be read is not saved, so they are never
      overwritten with blanks. */
@@ -178,10 +175,10 @@ export async function saveHostDraft(input: unknown): Promise<ActionResult<HostDr
       const [merged] = await withBusinessPrivate(session.supabase, [existingPublic], ["consents"] as const);
       existing = merged ?? null;
     } catch {
-      return fail(SERVICE_DOWN_MESSAGE);
+      return fail((await words()).serviceDown);
     }
   }
-  if (existing && !EDITABLE.includes(existing.status)) return fail(NOT_EDITABLE_MESSAGE);
+  if (existing && !EDITABLE.includes(existing.status)) return fail((await words()).notEditable);
 
   /* A restaurant host runs a restaurant, and a restaurant business is what the
      reservation trigger and the admin chip both key on, so the branch answer
@@ -238,7 +235,7 @@ export async function saveHostDraft(input: unknown): Promise<ActionResult<HostDr
       .from("businesses")
       .update(fields)
       .eq("id", existing.id);
-    if (error) return fail(saveRefusal(error.message, error.code));
+    if (error) return fail(saveRefusal(await words(), error.message, error.code));
     refreshHostSurfaces();
     return ok({ businessId: existing.id, status: existing.status });
   }
@@ -247,10 +244,12 @@ export async function saveHostDraft(input: unknown): Promise<ActionResult<HostDr
   // two's answers; without them there is nothing honest to create yet.
   const name = (data.name ?? "").trim();
   if (name.length < 2) {
-    return fail("Give your business a name to start.", { name: "Give your business a name." });
+    const w = await words();
+    return fail(w.nameFirst, { name: w.nameField });
   }
   if (!kind) {
-    return fail("Say what kind of business this is.", { kind: "Pick what this business is." });
+    const w = await words();
+    return fail(w.kindFirst, { kind: w.kindField });
   }
 
   const { data: created, error } = await session.supabase
@@ -266,7 +265,7 @@ export async function saveHostDraft(input: unknown): Promise<ActionResult<HostDr
     })
     .select("id, status")
     .single();
-  if (error || !created) return fail(saveRefusal(error?.message ?? "", error?.code));
+  if (error || !created) return fail(saveRefusal(await words(), error?.message ?? "", error?.code));
 
   refreshHostSurfaces();
   return ok({ businessId: created.id, status: created.status });
@@ -279,19 +278,13 @@ export async function saveHostDraft(input: unknown): Promise<ActionResult<HostDr
  * honest failure: the constraint's name belongs in a log, not in front of
  * somebody filling in a form.
  */
-function saveRefusal(raw: string, code?: string): string {
-  if (code === "23505") {
-    return "A business with that web address already exists. Change the name slightly and save again.";
-  }
-  if (raw.includes("businesses_phone_check")) {
-    return "That phone number is not one we can ring. Enter it as 0803 123 4567.";
-  }
-  if (raw.includes("businesses_email_check")) return "That email address is not one we can write to.";
-  if (raw.includes("cac_number")) {
-    return "That is not an RC or BN number. It is the one on your CAC certificate, like RC 1234567.";
-  }
-  if (raw.includes("row-level security")) return NOT_YOURS_MESSAGE;
-  return SERVICE_DOWN_MESSAGE;
+function saveRefusal(w: Words, raw: string, code?: string): string {
+  if (code === "23505") return w.slugTaken;
+  if (raw.includes("businesses_phone_check")) return w.phoneBad;
+  if (raw.includes("businesses_email_check")) return w.emailBad;
+  if (raw.includes("cac_number")) return w.cacBad;
+  if (raw.includes("row-level security")) return w.notYours;
+  return w.serviceDown;
 }
 
 /* ----------------------------------------------------------- the documents */
@@ -312,13 +305,11 @@ export async function uploadHostDocumentPath(input: unknown): Promise<ActionResu
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
   if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
 
-  const parsed = validate(hostDocumentSchema, input);
+  const parsed = validate(hostDocumentSchema(await schemaWords()), input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
   if (!documentPathBelongsTo(session.user.id, parsed.data.storagePath)) {
-    return fail(
-      "That upload did not come from your own account, so we did not file it. Please choose the file again.",
-    );
+    return fail((await words()).uploadNotYoursFile);
   }
 
   const { data, error } = await session.supabase
@@ -332,8 +323,8 @@ export async function uploadHostDocumentPath(input: unknown): Promise<ActionResu
     .select("id")
     .single();
   if (error || !data) {
-    if (error?.code === "42501") return fail(NOT_YOURS_MESSAGE);
-    return fail("That document did not attach. Choose the file again.");
+    if (error?.code === "42501") return fail((await words()).notYours);
+    return fail((await words()).documentNotAttached);
   }
 
   refreshHostSurfaces();
@@ -356,13 +347,13 @@ export async function submitHostApplication(): Promise<ActionResult<{ businessId
   if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
 
   const read = await readMyHostDraft();
-  if (read.state === "unavailable") return fail(SERVICE_DOWN_MESSAGE);
+  if (read.state === "unavailable") return fail((await words()).serviceDown);
   const draft = read.draft;
-  if (!draft.businessId) return fail(NO_DRAFT_MESSAGE);
+  if (!draft.businessId) return fail((await words()).noDraft);
   if (draft.status === "SUBMITTED") {
-    return fail("This application is already with our team. We will write to you when it is read.");
+    return fail((await words()).alreadyWithTeam);
   }
-  if (draft.status !== null && !EDITABLE.includes(draft.status)) return fail(NOT_EDITABLE_MESSAGE);
+  if (draft.status !== null && !EDITABLE.includes(draft.status)) return fail((await words()).notEditable);
 
   const missing = missingFrom(draft);
   if (missing.length > 0) {
@@ -381,11 +372,11 @@ export async function submitHostApplication(): Promise<ActionResult<{ businessId
     .eq("id", draft.businessId)
     .eq("owner_id", session.user.id)
     .in("status", [...EDITABLE]);
-  if (error) return fail(SERVICE_DOWN_MESSAGE);
+  if (error) return fail((await words()).serviceDown);
   // Nothing moved: somebody submitted it in another tab, or a reviewer picked
   // it up between the read above and this write.
   if (count === 0) {
-    return fail("This application has already been sent. Refresh to see where it is.");
+    return fail((await words()).alreadySent);
   }
 
   refreshHostSurfaces();
@@ -413,9 +404,9 @@ async function editableBusiness(): Promise<
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
-  if (error) return { ok: false, result: fail(SERVICE_DOWN_MESSAGE) };
-  if (!data) return { ok: false, result: fail(NO_DRAFT_MESSAGE) };
-  if (!EDITABLE.includes(data.status)) return { ok: false, result: fail(NOT_EDITABLE_MESSAGE) };
+  if (error) return { ok: false, result: fail((await words()).serviceDown) };
+  if (!data) return { ok: false, result: fail((await words()).noDraft) };
+  if (!EDITABLE.includes(data.status)) return { ok: false, result: fail((await words()).notEditable) };
   return { ok: true, businessId: data.id, userId: session.user.id };
 }
 
@@ -433,7 +424,7 @@ export async function addAccommodationDraft(
   const guarded = await editableBusiness();
   if (!guarded.ok) return guarded.result;
 
-  const parsed = validate(accommodationDraftSchema, input);
+  const parsed = validate(accommodationDraftSchema(await schemaWords()), input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   const data = parsed.data;
   const session = await resolveSession();
@@ -466,7 +457,7 @@ export async function addAccommodationDraft(
       .from("accommodations")
       .update(fields)
       .eq("id", existing.id);
-    if (error) return fail(SERVICE_DOWN_MESSAGE);
+    if (error) return fail((await words()).serviceDown);
     refreshHostSurfaces();
     return ok({ accommodationId: existing.id });
   }
@@ -483,10 +474,10 @@ export async function addAccommodationDraft(
     .single();
   if (error || !created) {
     if (error?.code === "23505") {
-      return fail("A property with that web address already exists. Change the name slightly.");
+      return fail((await words()).propertySlugTaken);
     }
-    if (error?.code === "42501") return fail(NOT_YOURS_MESSAGE);
-    return fail(SERVICE_DOWN_MESSAGE);
+    if (error?.code === "42501") return fail((await words()).notYours);
+    return fail((await words()).serviceDown);
   }
 
   refreshHostSurfaces();
@@ -500,7 +491,7 @@ export async function addRoomTypeDraft(
   const guarded = await editableBusiness();
   if (!guarded.ok) return guarded.result;
 
-  const parsed = validate(roomTypeDraftSchema, input);
+  const parsed = validate(roomTypeDraftSchema(await schemaWords()), input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   const data = parsed.data;
   const session = await resolveSession();
@@ -523,12 +514,11 @@ export async function addRoomTypeDraft(
     .single();
   if (error || !created) {
     if (error?.code === "23505") {
-      return fail("You already have a room type with that name.", {
-        name: "Give this one a different name.",
-      });
+      const w = await words();
+      return fail(w.roomTypeNameTaken, { name: w.differentName });
     }
-    if (error?.code === "42501") return fail(NOT_YOURS_MESSAGE);
-    return fail(SERVICE_DOWN_MESSAGE);
+    if (error?.code === "42501") return fail((await words()).notYours);
+    return fail((await words()).serviceDown);
   }
 
   refreshHostSurfaces();
@@ -548,7 +538,7 @@ export async function addRatePlanDraft(
   const guarded = await editableBusiness();
   if (!guarded.ok) return guarded.result;
 
-  const parsed = validate(ratePlanDraftSchema, input);
+  const parsed = validate(ratePlanDraftSchema(await schemaWords()), input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   const data = parsed.data;
   const session = await resolveSession();
@@ -569,17 +559,15 @@ export async function addRatePlanDraft(
     .single();
   if (error || !created) {
     if (error?.code === "23505") {
-      return fail("That room type already has a rate with that name.", {
-        name: "Give this one a different name.",
-      });
+      const w = await words();
+      return fail(w.ratePlanNameTaken, { name: w.differentName });
     }
     if (error?.code === "23503") {
-      return fail("Pick a cancellation policy from the list.", {
-        cancellationPolicyId: "Pick a cancellation policy.",
-      });
+      const w = await words();
+      return fail(w.policyFromList, { cancellationPolicyId: w.policyField });
     }
-    if (error?.code === "42501") return fail(NOT_YOURS_MESSAGE);
-    return fail(SERVICE_DOWN_MESSAGE);
+    if (error?.code === "42501") return fail((await words()).notYours);
+    return fail((await words()).serviceDown);
   }
 
   refreshHostSurfaces();
@@ -593,7 +581,7 @@ export async function addServiceWindowDraft(
   const guarded = await editableBusiness();
   if (!guarded.ok) return guarded.result;
 
-  const parsed = validate(serviceWindowDraftSchema, input);
+  const parsed = validate(serviceWindowDraftSchema(await schemaWords()), input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   const data = parsed.data;
   const session = await resolveSession();
@@ -613,10 +601,10 @@ export async function addServiceWindowDraft(
     .single();
   if (error || !created) {
     if (error?.code === "23505") {
-      return fail("You already have a service starting at that time on that day.");
+      return fail((await words()).serviceClash);
     }
-    if (error?.code === "42501") return fail(NOT_YOURS_MESSAGE);
-    return fail(SERVICE_DOWN_MESSAGE);
+    if (error?.code === "42501") return fail((await words()).notYours);
+    return fail((await words()).serviceDown);
   }
 
   refreshHostSurfaces();
@@ -631,7 +619,7 @@ export async function setRestaurantProfileDraft(input: unknown): Promise<ActionR
   const guarded = await editableBusiness();
   if (!guarded.ok) return guarded.result;
 
-  const parsed = validate(restaurantProfileDraftSchema, input);
+  const parsed = validate(restaurantProfileDraftSchema(await schemaWords()), input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   const data = parsed.data;
   const session = await resolveSession();
@@ -651,8 +639,8 @@ export async function setRestaurantProfileDraft(input: unknown): Promise<ActionR
     { onConflict: "business_id" },
   );
   if (error) {
-    if (error.code === "42501") return fail(NOT_YOURS_MESSAGE);
-    return fail(SERVICE_DOWN_MESSAGE);
+    if (error.code === "42501") return fail((await words()).notYours);
+    return fail((await words()).serviceDown);
   }
 
   refreshHostSurfaces();
@@ -687,8 +675,8 @@ async function ownedBusiness(
     .eq("id", businessId)
     .eq("owner_id", session.user.id)
     .maybeSingle();
-  if (error) return { ok: false, result: fail(SERVICE_DOWN_MESSAGE) };
-  if (!data) return { ok: false, result: fail(NOT_YOURS_MESSAGE) };
+  if (error) return { ok: false, result: fail((await words()).serviceDown) };
+  if (!data) return { ok: false, result: fail((await words()).notYours) };
   return { ok: true, userId: session.user.id };
 }
 
@@ -708,16 +696,14 @@ async function ownedBusiness(
  * this person.
  */
 export async function addBusinessPhoto(input: unknown): Promise<ActionResult<{ id: string }>> {
-  const parsed = validate(businessPhotoSchema, input);
+  const parsed = validate(businessPhotoSchema(await schemaWords()), input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
   const guarded = await ownedBusiness(parsed.data.businessId);
   if (!guarded.ok) return guarded.result;
 
   if (!documentPathBelongsTo(guarded.userId, parsed.data.storagePath)) {
-    return fail(
-      "That upload did not come from your own account, so we did not file it. Please choose the photograph again.",
-    );
+    return fail((await words()).uploadNotYoursPhoto);
   }
 
   const session = await resolveSession();
@@ -728,12 +714,12 @@ export async function addBusinessPhoto(input: unknown): Promise<ActionResult<{ i
     .select("position")
     .eq("business_id", parsed.data.businessId)
     .order("position", { ascending: true });
-  if (readError) return fail(SERVICE_DOWN_MESSAGE);
+  if (readError) return fail((await words()).serviceDown);
 
   const position = nextPhotoPosition((taken ?? []).map((row) => row.position));
   if (position === null) {
     return fail(
-      `A venue carries up to ${MAX_BUSINESS_PHOTOS} photographs. Take one down and add this in its place.`,
+      fill((await words()).venuePhotosFull, { max: MAX_BUSINESS_PHOTOS }),
     );
   }
 
@@ -752,11 +738,11 @@ export async function addBusinessPhoto(input: unknown): Promise<ActionResult<{ i
     .select("id")
     .single();
   if (error || !data) {
-    if (error?.code === "42501") return fail(NOT_YOURS_MESSAGE);
+    if (error?.code === "42501") return fail((await words()).notYours);
     if (error?.code === "23505") {
-      return fail("That photograph landed at the same moment as another. Try it again.");
+      return fail((await words()).photoRace);
     }
-    return fail("That photograph did not attach. Choose the file again.");
+    return fail((await words()).photoNotAttached);
   }
 
   refreshVenueSurfaces();
@@ -776,7 +762,7 @@ export async function addBusinessPhoto(input: unknown): Promise<ActionResult<{ i
  * moves.
  */
 export async function removeBusinessPhoto(input: unknown): Promise<ActionResult<null>> {
-  const parsed = validate(businessPhotoIdSchema, input);
+  const parsed = validate(businessPhotoIdSchema(await schemaWords()), input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
   const session = await resolveSession();
@@ -790,8 +776,8 @@ export async function removeBusinessPhoto(input: unknown): Promise<ActionResult<
     .from("business_photos")
     .delete({ count: "exact" })
     .eq("id", parsed.data.photoId);
-  if (error) return fail(SERVICE_DOWN_MESSAGE);
-  if (count === 0) return fail(NOT_YOURS_MESSAGE);
+  if (error) return fail((await words()).serviceDown);
+  if (count === 0) return fail((await words()).notYours);
 
   refreshVenueSurfaces();
   return ok(null);
@@ -829,8 +815,8 @@ async function ownedAccommodation(
     .eq("id", accommodationId)
     .eq("businesses.owner_id", session.user.id)
     .maybeSingle();
-  if (error) return { ok: false, result: fail(SERVICE_DOWN_MESSAGE) };
-  if (!data) return { ok: false, result: fail(NOT_YOURS_MESSAGE) };
+  if (error) return { ok: false, result: fail((await words()).serviceDown) };
+  if (!data) return { ok: false, result: fail((await words()).notYours) };
   return { ok: true, userId: session.user.id };
 }
 
@@ -854,16 +840,14 @@ async function ownedAccommodation(
 export async function addAccommodationPhoto(
   input: unknown,
 ): Promise<ActionResult<{ id: string }>> {
-  const parsed = validate(accommodationPhotoSchema, input);
+  const parsed = validate(accommodationPhotoSchema(await schemaWords()), input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
   const guarded = await ownedAccommodation(parsed.data.accommodationId);
   if (!guarded.ok) return guarded.result;
 
   if (!documentPathBelongsTo(guarded.userId, parsed.data.storagePath)) {
-    return fail(
-      "That upload did not come from your own account, so we did not file it. Please choose the photograph again.",
-    );
+    return fail((await words()).uploadNotYoursPhoto);
   }
 
   const session = await resolveSession();
@@ -874,12 +858,12 @@ export async function addAccommodationPhoto(
     .select("position")
     .eq("accommodation_id", parsed.data.accommodationId)
     .order("position", { ascending: true });
-  if (readError) return fail(SERVICE_DOWN_MESSAGE);
+  if (readError) return fail((await words()).serviceDown);
 
   const position = nextPhotoPosition((taken ?? []).map((row) => row.position));
   if (position === null) {
     return fail(
-      `A property carries up to ${MAX_BUSINESS_PHOTOS} photographs. Take one down and add this in its place.`,
+      fill((await words()).propertyPhotosFull, { max: MAX_BUSINESS_PHOTOS }),
     );
   }
 
@@ -897,11 +881,11 @@ export async function addAccommodationPhoto(
     .select("id")
     .single();
   if (error || !data) {
-    if (error?.code === "42501") return fail(NOT_YOURS_MESSAGE);
+    if (error?.code === "42501") return fail((await words()).notYours);
     if (error?.code === "23505") {
-      return fail("That photograph landed at the same moment as another. Try it again.");
+      return fail((await words()).photoRace);
     }
-    return fail("That photograph did not attach. Choose the file again.");
+    return fail((await words()).photoNotAttached);
   }
 
   refreshPropertySurfaces();
@@ -917,7 +901,7 @@ export async function addAccommodationPhoto(
  * up with a broken image. What a guest sees is decided by the rows.
  */
 export async function removeAccommodationPhoto(input: unknown): Promise<ActionResult<null>> {
-  const parsed = validate(accommodationPhotoIdSchema, input);
+  const parsed = validate(accommodationPhotoIdSchema(await schemaWords()), input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
   const session = await resolveSession();
@@ -931,8 +915,8 @@ export async function removeAccommodationPhoto(input: unknown): Promise<ActionRe
     .from("accommodation_photos")
     .delete({ count: "exact" })
     .eq("id", parsed.data.photoId);
-  if (error) return fail(SERVICE_DOWN_MESSAGE);
-  if (count === 0) return fail(NOT_YOURS_MESSAGE);
+  if (error) return fail((await words()).serviceDown);
+  if (count === 0) return fail((await words()).notYours);
 
   refreshPropertySurfaces();
   return ok(null);
@@ -965,8 +949,8 @@ async function ownedRoomType(
     .eq("id", roomTypeId)
     .eq("accommodations.businesses.owner_id", session.user.id)
     .maybeSingle();
-  if (error) return { ok: false, result: fail(SERVICE_DOWN_MESSAGE) };
-  if (!data) return { ok: false, result: fail(NOT_YOURS_MESSAGE) };
+  if (error) return { ok: false, result: fail((await words()).serviceDown) };
+  if (!data) return { ok: false, result: fail((await words()).notYours) };
   return { ok: true, unitsTotal: data.units_total, name: data.name };
 }
 
@@ -993,7 +977,7 @@ async function ownedRoomType(
  * the wrong number, not at a bug.
  */
 export async function setRoomNights(input: unknown): Promise<ActionResult<{ nights: number }>> {
-  const parsed = validate(roomNightsSchema, input);
+  const parsed = validate(roomNightsSchema(await schemaWords()), input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   const { roomTypeId, from, to, unitsOpen } = parsed.data;
 
@@ -1001,18 +985,16 @@ export async function setRoomNights(input: unknown): Promise<ActionResult<{ nigh
   if (!guarded.ok) return guarded.result;
 
   if (unitsOpen > guarded.unitsTotal) {
-    return fail(
-      `You told us there are ${guarded.unitsTotal} of these, so ${unitsOpen} cannot be on sale. Change the room type first if you have more.`,
-      { unitsOpen: `At most ${guarded.unitsTotal}.` },
-    );
+    const w = await words();
+    return fail(fill(w.roomsOverTotal, { total: guarded.unitsTotal, open: unitsOpen }), {
+      unitsOpen: fill(w.atMost, { total: guarded.unitsTotal }),
+    });
   }
 
   const dates = nightsBetween(from, to);
-  if (dates.length === 0) return fail("The last night cannot come before the first. Pick a last night on or after the first.");
+  if (dates.length === 0) return fail((await words()).lastBeforeFirst);
   if (dates.length > MAX_NIGHTS_IN_ONE_ACT) {
-    return fail(
-      `That is ${dates.length} nights. Set up to ${MAX_NIGHTS_IN_ONE_ACT} at a time so nothing is lost part way.`,
-    );
+    return fail(fill((await words()).tooManyNights, { count: dates.length, max: MAX_NIGHTS_IN_ONE_ACT }));
   }
 
   const session = await resolveSession();
@@ -1023,7 +1005,7 @@ export async function setRoomNights(input: unknown): Promise<ActionResult<{ nigh
     { onConflict: "room_type_id,date" },
   );
   if (error) {
-    if (error.code === "42501") return fail(NOT_YOURS_MESSAGE);
+    if (error.code === "42501") return fail((await words()).notYours);
     if (error.code === "23514") {
       /* TWO TRIGGERS RAISE THIS CODE AND THEY MEAN DIFFERENT THINGS, so the
          one sentence a host reads is chosen by which of them spoke.
@@ -1034,16 +1016,12 @@ export async function setRoomNights(input: unknown): Promise<ActionResult<{ nigh
          has booked that night and the host is looking at the wrong number
          rather than at a fault. */
       if (/cannot be offered/i.test(error.message ?? "")) {
-        return fail(
-          "That is more rooms than this type has. Change how many of this room there are first, then set the nights.",
-          { unitsOpen: "More than the room type holds." },
-        );
+        const w = await words();
+        return fail(w.moreRoomsThanType, { unitsOpen: w.moreThanTypeHolds });
       }
-      return fail(
-        "One of those nights already has more rooms booked than you are leaving open. Open at least as many as are sold, or pick a different run of nights.",
-      );
+      return fail((await words()).bookedOverOpen);
     }
-    return fail(SERVICE_DOWN_MESSAGE);
+    return fail((await words()).serviceDown);
   }
 
   refreshRoomSurfaces();
@@ -1077,7 +1055,7 @@ export async function setRoomNights(input: unknown): Promise<ActionResult<{ nigh
 export async function setAccommodationFacilities(
   input: unknown,
 ): Promise<ActionResult<{ codes: string[] }>> {
-  const parsed = validate(accommodationFacilitiesSchema, input);
+  const parsed = validate(accommodationFacilitiesSchema(await schemaWords()), input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   const { accommodationId } = parsed.data;
   const codes = orderFacilities(parsed.data.codes);
@@ -1092,15 +1070,15 @@ export async function setAccommodationFacilities(
     .from("amenities")
     .select("id, code")
     .in("code", codes.length > 0 ? codes : ["__none__"]);
-  if (readError) return fail(SERVICE_DOWN_MESSAGE);
+  if (readError) return fail((await words()).serviceDown);
 
   const { error: clearError } = await session.supabase
     .from("accommodation_amenities")
     .delete()
     .eq("accommodation_id", accommodationId);
   if (clearError) {
-    if (clearError.code === "42501") return fail(NOT_YOURS_MESSAGE);
-    return fail(SERVICE_DOWN_MESSAGE);
+    if (clearError.code === "42501") return fail((await words()).notYours);
+    return fail((await words()).serviceDown);
   }
 
   const wanted = rows ?? [];
@@ -1114,8 +1092,8 @@ export async function setAccommodationFacilities(
         })),
       );
     if (insertError) {
-      if (insertError.code === "42501") return fail(NOT_YOURS_MESSAGE);
-      return fail(SERVICE_DOWN_MESSAGE);
+      if (insertError.code === "42501") return fail((await words()).notYours);
+      return fail((await words()).serviceDown);
     }
   }
 
@@ -1153,7 +1131,7 @@ export async function setShortletPlaceDraft(
   const guarded = await editableBusiness();
   if (!guarded.ok) return guarded.result;
 
-  const parsed = validate(shortletPlaceDraftSchema, input);
+  const parsed = validate(shortletPlaceDraftSchema(await schemaWords()), input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   const data = parsed.data;
   const session = await resolveSession();
@@ -1231,12 +1209,10 @@ export async function setShortletPlaceDraft(
 
   if (written.error || !written.data) {
     if (placeTypeUnavailable(written.error?.code)) {
-      return fail(
-        "This database does not know that kind of place yet. The migration that adds it, 20260922190000_imgc_a_shortlet_is_not_a_hotel_room, has not been applied.",
-      );
+      return fail((await words()).placeTypeMissing);
     }
-    if (written.error?.code === "42501") return fail(NOT_YOURS_MESSAGE);
-    return fail(SERVICE_DOWN_MESSAGE);
+    if (written.error?.code === "42501") return fail((await words()).notYours);
+    return fail((await words()).serviceDown);
   }
 
   refreshHostSurfaces();
@@ -1264,7 +1240,7 @@ export async function setOpeningHoursDraft(
   const guarded = await editableBusiness();
   if (!guarded.ok) return guarded.result;
 
-  const parsed = validate(openingHoursDraftSchema, input);
+  const parsed = validate(openingHoursDraftSchema(await schemaWords()), input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   const data = parsed.data;
   const session = await resolveSession();
@@ -1275,8 +1251,8 @@ export async function setOpeningHoursDraft(
     .delete()
     .eq("business_id", guarded.businessId);
   if (clearError) {
-    if (clearError.code === "42501") return fail(NOT_YOURS_MESSAGE);
-    return fail(SERVICE_DOWN_MESSAGE);
+    if (clearError.code === "42501") return fail((await words()).notYours);
+    return fail((await words()).serviceDown);
   }
 
   if (data.days.length > 0) {
@@ -1300,8 +1276,8 @@ export async function setOpeningHoursDraft(
       })),
     );
     if (error) {
-      if (error.code === "42501") return fail(NOT_YOURS_MESSAGE);
-      return fail(SERVICE_DOWN_MESSAGE);
+      if (error.code === "42501") return fail((await words()).notYours);
+      return fail((await words()).serviceDown);
     }
   }
 

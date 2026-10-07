@@ -41,6 +41,10 @@ export function HistoryHero({
 }) {
   const { whole, kobo } = formatKoboExact(totalMinor, locale);
   const long = whole.length + kobo.length > 12;
+  /* The figure's width in ems: the kobo at six tenths of the size
+     (`.nf-history-kobo--hero`). Measured in Chromium at 0.83 to 0.86 em per
+     character (₦450,000.00 is 319px at 39px), so 0.88 leaves a hairline. */
+  const ems = (whole.length + 0.6 * kobo.length) * 0.88;
   return (
     /* The headline money figure sits on the hero band (the founder's widened
        Q2): the navy block in light, a raised night surface at night, white
@@ -49,7 +53,7 @@ export function HistoryHero({
        caption above it, the note a quiet line under it, and the naira count
        up once (never under reduced motion, Calm or Off). */
     <HeroBand as="section" aria-labelledby={id} data-testid="history-total" className="nf-history-hero--centred">
-      <HeroFigure id={id} caption={label} sub={note} size={long ? "md" : "lg"}>
+      <HeroFigure id={id} caption={label} sub={note} size={long ? "md" : "lg"} ems={ems}>
         {totalMinor >= 0 ? (
           <CountedText text={whole} value={Math.floor(totalMinor / 100)} tag={intlTag[locale] ?? "en-NG"} />
         ) : (

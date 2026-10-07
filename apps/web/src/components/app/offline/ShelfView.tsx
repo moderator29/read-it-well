@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { formatDate, formatMoney, plural, type Dictionary, type Locale } from "@vallo/i18n/core";
 import type { ShelfItem } from "@/lib/offline/shelf";
-import { UiIcon } from "@/design-system/icons/UiIcon";
+import { Button } from "@/components/ui/Button";
 
 /**
  * THE SHORTLIST, DRAWN FROM THE PHONE. V-77.
@@ -17,6 +17,14 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
  * area, rooms, power. The `/saved` empty state has long promised "ready to
  * compare side by side"; this is the first place it is kept, and it works
  * with no signal.
+ *
+ * SESSION 3 (W13). The move-in total leads each copy as its figure (the
+ * whole cost first, the rent beneath), the two actions are the one Button
+ * primitive, and the Example mark is gone: D24 took the visible example
+ * labelling off the listing card, and a copy of the card on the phone
+ * follows the card. What D24 keeps is the part that matters, and the shelf
+ * never had it to lose: no copy here carries a Verified mark at all, so an
+ * example can never look checked offline either.
  */
 
 type Copy = Dictionary["platform"]["shelf"];
@@ -57,14 +65,11 @@ export function priceLines(item: ShelfItem, locale: Locale, copy: Copy): { lead:
 export function ShelfView({
   items,
   copy,
-  exampleLabel,
   locale,
   now,
 }: {
   items: ShelfItem[];
   copy: Copy;
-  /** The catalogue card's own Example word, so the two marks read the same. */
-  exampleLabel: string;
   locale: Locale;
   /** Read by the caller outside render. */
   now: number;
@@ -93,12 +98,6 @@ export function ShelfView({
                 {chosen.map((item) => (
                   <th key={item.id} scope="col" className="nf-caption px-2xs align-top font-semibold text-content">
                     {shelfName(item, copy, locale)}
-                    {item.isDemo && (
-                      <span className="nf-badge nf-badge--example mt-3xs flex w-fit items-center gap-3xs">
-                        <UiIcon name="info" size={12} />
-                        {exampleLabel}
-                      </span>
-                    )}
                   </th>
                 ))}
               </tr>
@@ -145,9 +144,9 @@ export function ShelfView({
               </tr>
             </tbody>
           </table>
-          <button type="button" className="nf-btn nf-btn--glass nf-btn--sm mt-group w-full" onClick={() => setComparing(false)}>
+          <Button variant="secondary" size="sm" full className="mt-group" onClick={() => setComparing(false)}>
             {copy.compareClose}
-          </button>
+          </Button>
         </div>
       )}
 
@@ -167,16 +166,9 @@ export function ShelfView({
                 />
                 <span className="min-w-0">
                   <span className="nf-body block font-semibold text-content">{shelfName(item, copy, locale)}</span>
-                  {/* The same Example mark the card carries: an example on the
-                      phone is still an example. */}
-                  {item.isDemo && (
-                    <span className="nf-badge nf-badge--example mt-3xs inline-flex items-center gap-3xs">
-                      <UiIcon name="info" size={12} />
-                      {exampleLabel}
-                    </span>
-                  )}
                   {item.place && <span className="nf-caption block text-muted">{item.place}</span>}
-                  <span className="nf-body-sm mt-row block tabular-nums text-content">{lines.lead}</span>
+                  {/* The figure leads the copy: the whole cost first. */}
+                  <span className="nf-body mt-row block font-semibold tabular-nums text-content">{lines.lead}</span>
                   {lines.rent && <span className="nf-caption block tabular-nums text-content-2">{lines.rent}</span>}
                   <span className="nf-caption block text-content-2">
                     {plural(item.bedrooms, copy.beds, locale)}, {plural(item.bathrooms, copy.baths, locale)}
@@ -191,9 +183,9 @@ export function ShelfView({
       </ul>
 
       {picked.length > 1 && !comparing && (
-        <button type="button" className="nf-btn nf-btn--primary nf-btn--md w-full" onClick={() => setComparing(true)} data-testid="shelf-compare-open">
+        <Button variant="primary" full onClick={() => setComparing(true)} data-testid="shelf-compare-open">
           {copy.compare}
-        </button>
+        </Button>
       )}
     </section>
   );

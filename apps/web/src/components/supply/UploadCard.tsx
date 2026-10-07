@@ -1,11 +1,11 @@
 "use client";
 
 import { useId, useRef, useState } from "react";
-import type { Dictionary } from "@vallo/i18n/core";
+import type { UploadCopy } from "./supply-copy";
 import type { BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { TYPE } from "@/components/app/Screen";
-import { createClient } from "@/lib/supabase/client";
+import { loadBrowserClient } from "@/lib/supabase/load-client";
 import { IconPlate } from "@/components/ui/IconPlate";
 import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
 
@@ -66,7 +66,7 @@ export function UploadCard({
   accept = "image/png,image/jpeg,application/pdf",
   error,
 }: {
-  t: Dictionary;
+  t: UploadCopy;
   object: BrandIconName;
   title: string;
   body: string;
@@ -95,7 +95,11 @@ export function UploadCard({
 
     setBusy(true);
     try {
-      const supabase = createClient();
+      const supabase = await loadBrowserClient();
+      if (!supabase) {
+        setFailure(copy.fileFailed);
+        return;
+      }
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -176,7 +180,7 @@ export function UploadCard({
       </p>
 
       {failure || error ? (
-        <p role="alert" className="nf-arrive mt-xs text-[length:var(--nf-text-caption)] font-medium text-[var(--nf-state-error)]">
+        <p role="alert" className="nf-arrive mt-xs text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-state-error)]">
           {failure ?? error}
         </p>
       ) : null}

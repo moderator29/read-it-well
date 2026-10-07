@@ -688,21 +688,12 @@ const POINTER = /cursor\s*:\s*pointer/;
  * it without writing which kind they are adding.
  *
  * PERMANENT: the check is wrong about these, and the reason is about
- * semantics rather than taste.
- *
- *   `.nf-tag-pill--neutral` is the neutral member of a status family whose
- *   other members carry status colour. Blue on it would read as a state, and
- *   "no state" is the state it exists to express.
+ * semantics rather than taste. (`.nf-tag-pill--neutral` and `.nf-option`
+ * were listed here until R3-18 deleted both rules: neither had a consumer.)
  *
  *   `.nf-switch`, in both files that draw one, is a TRACK in its off
  *   position. Grey off and brand on is the entire semantics of a switch; a
  *   blue track would say the switch is on before anybody touched it.
- *
- *   `.nf-option` belongs to the agent workspace and selects with
- *   `--nf-mode-agent`. Its own comment argues it is an inset ANSWER inside a
- *   container rather than an object, and the mode's whole point is that it is
- *   not the brand. A brand-blue resting edge would put brand chrome inside a
- *   surface deliberately built not to wear it.
  *
  * DEBT: real instances of the fault in a file this sweep did not own. They
  * are listed so the gate stays green for their owner today and so the rule is
@@ -714,7 +705,6 @@ const POINTER = /cursor\s*:\s*pointer/;
  *   outline, so all three are the same fault, not exceptions.
  */
 const DULL_ALLOWED = new Set([
-  "src/app/css/chips.css  .nf-tag-pill--neutral",
   "src/app/css/controls.css  .nf-switch",
   "src/app/settings-rows.css  .nf-switch",
   /*
@@ -741,7 +731,6 @@ const DULL_ALLOWED = new Set([
    * Deleting it means a future revert to a border token fires here again, which
    * is the whole point of the list.
    */
-  "src/app/css/utilities.css  .nf-option",
   "src/app/css/catalogue.css  .nf-shelf-sort > summary",
   "src/app/css/catalogue.css  .nf-stay-card__chip",
   "src/app/css/catalogue.css  .nf-tenancy-chip",
@@ -908,7 +897,7 @@ for (const dir of ROOTS) {
  *   their owners deleting the rules.
  */
 const PILL_RADIUS =
-  /border(?:-[a-z]+)*-radius\s*:[^;]*(?:var\(\s*--nf-radius-(?:pill|control-pill|button)\s*\)|\b9{3,4}px\b)/;
+  /border(?:-[a-z]+)*-radius\s*:[^;]*(?:var\(\s*--nf-radius-(?:pill|control-pill|button|segment)\s*\)|\b9{3,4}px\b)/;
 
 /*
  * THE BUTTON IS THE ONE CONTROL ALLOWED A CAPSULE (founder references 44 and
@@ -950,6 +939,17 @@ function isButtonRule(selector) {
  * when the control is squared off, and never add one to make a build pass.
  */
 const PILL_ALLOWED = new Set([
+  /*
+   * PERMANENT, by founder directive D2 of 5 October 2026, which supersedes the
+   * 19 September ruling for this one role: "the pill is reserved for chips,
+   * filters, SEGMENTED CONTROLS and circular icon controls, so that seeing a
+   * pill tells a person the thing is selectable" (north star 5A, the
+   * segmented role: pill track, pill thumb). The segmented control's radius is
+   * its own token, `--nf-radius-segment`, which PILL_RADIUS now recognises, so
+   * this permission is enforced and visible rather than passing unseen. Every
+   * other control keeps the rectangle.
+   */
+  "src/app/css/chips.css  .nf-segmented--pill",
   /*
    * PERMANENT. The dock island is 56px square, holds one glyph and carries no
    * word, so it is the ruling's second exception: a bare icon button, the same

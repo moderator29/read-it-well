@@ -46,7 +46,7 @@ export function MemberKeys() {
       if (event.defaultPrevented || event.repeat) return;
       const target = event.target as HTMLElement | null;
       /* A dialog already open owns its keys, apart from the cheat sheet's own. */
-      if (!help && document.querySelector('[role="dialog"][aria-modal="true"]')) return;
+      if (!help && document.querySelector('[aria-modal="true"]:not([data-closing])')) return;
       const action = decideKey({
         key: event.key,
         ctrl: event.ctrlKey,

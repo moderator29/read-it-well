@@ -8,6 +8,7 @@ import { formatNumber } from "@vallo/i18n";
 import type { UiIconName } from "@/design-system/icons/UiIcon";
 import type { SpecPair } from "@/components/app/listing/DetailAnatomy";
 import { getRestaurantDetail } from "@/lib/stays/queries";
+import { hoursLabel } from "@/lib/stays/hours";
 import { listBusinessPhotos } from "@/lib/stays/business-photos";
 import { listSavedPlaces } from "@/lib/saved/places-actions";
 import { isSaved, savedKeySet } from "@/lib/saved/places";
@@ -71,17 +72,17 @@ export async function generateMetadata({
   /* The business-grade venue answers here too, or every M7 restaurant would
      carry the fallback title in the tab and in a shared link. */
   const venue = restaurant ?? (await getRestaurantDetail(id));
+  const dictionary = getDictionary(await getLocale());
   if (!venue) {
-    return { title: getDictionary(await getLocale()).restaurantPage.fallbackTitle };
+    return { title: dictionary.restaurantPage.fallbackTitle };
   }
   const name = "business" in venue ? venue.business.name : venue.title;
   const area = "business" in venue ? venue.business.area : venue.area;
   const city = "business" in venue ? venue.business.city : venue.city;
   const where = [area, city].filter(Boolean).join(", ");
   const title = where ? `${name}, ${where}` : name;
-  const description = where
-    ? `${name}, ${where}. Ask for a table on Vallo.`
-    : `${name}. Ask for a table on Vallo.`;
+  const share = dictionary.experienceDetail.restaurant;
+  const description = (where ? share.shareWhere : share.shareName).replace("{name}", name).replace("{where}", where);
   const url = `${siteUrl().replace(/\/+$/, "")}/restaurant/${id}`;
   /* A listing-backed restaurant carries photographs; an M7 business row does
      not expose one here, and a card with no image is better than a card
@@ -186,10 +187,12 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
         area: listingFace.area,
         city: listingFace.city,
         photos: listingFace.photos ?? [],
-        verified: listingFace.verified,
+        /* D24: an example row is never drawn as a checked one. The read
+           already clamps both; this is the presentation's own lock. */
+        verified: listingFace.verified && listingFace.isDemo !== true,
         priceMinor: listingFace.priceMinor,
         currency: listingFace.currency,
-        rating: listingFace.reviewCount > 0 && listingFace.rating > 0
+        rating: listingFace.isDemo !== true && listingFace.reviewCount > 0 && listingFace.rating > 0
           ? { average: listingFace.rating, count: listingFace.reviewCount }
           : null,
       }
@@ -220,7 +223,7 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
   /* The hours, when the venue has published them through lib/stays
      (service windows on the business-grade schema). A listing with none
      keeps the honest line below rather than a guessed badge. */
-  const hours = detail ? { openNow: detail.open_now, label: detail.hours_label } : null;
+  const hours = detail ? { openNow: detail.open_now, label: hoursLabel(detail.hours, t.experienceDetail.hours) } : null;
 
   /* A business venue's shortlist is `saved_places` under the restaurant kind,
      keyed on the business id exactly as `catalogue_entries` files it; a
@@ -268,12 +271,20 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
   /* The one paragraph this page can write without inventing anything: the
      venue's own words where the business wrote some, and otherwise a sentence
      assembled from fields that exist. */
+  const about = t.experienceDetail.restaurant;
   const aboutParagraphs = [
     detail?.business.description ??
-      [venue.title, where ? `is in ${where}` : null, firstCuisine ? `and serves ${firstCuisine}` : null]
-        .filter(Boolean)
-        .join(" ")
-        .concat("."),
+      (where && firstCuisine
+        ? about.aboutWhereServes
+        : where
+          ? about.aboutWhere
+          : firstCuisine
+            ? about.aboutServes
+            : about.aboutName
+      )
+        .replace("{name}", venue.title)
+        .replace("{where}", where)
+        .replace("{cuisine}", firstCuisine ?? ""),
   ];
 
   const signedIn = viewerSession.state === "signed-in";

@@ -59,34 +59,54 @@
   .nf-range__input::-webkit-slider-thumb {
     -webkit-appearance: none;
     pointer-events: auto;
-    height: 1.5rem;
-    width: 1.5rem;
+    /* A 44px THUMB TARGET, A 24px THUMB DRAWN. The native input is only as tall as its thumb, and
+       the thumb is the only part that takes the pointer, so the control was a 24px target. The
+       thumb box is now 44px with a 10px transparent border (clipped out of the background), and
+       the old 3px surface ring is an inset shadow on the 24px disc, so nothing visible changes
+       and the track stays centred. Found by components/locale-fit/members-b.dom.test.tsx. */
+    box-sizing: border-box;
+    height: 2.75rem;
+    width: 2.75rem;
     border-radius: var(--nf-radius-circle);
-    border: 3px solid var(--nf-surface-primary);
+    border: 0.625rem solid transparent;
     background: var(--nf-brand-primary);
-    box-shadow: 0 0 10px var(--nf-glow-3);
+    background-clip: padding-box;
+    box-shadow: inset 0 0 0 3px var(--nf-surface-primary);
+    filter: drop-shadow(0 0 10px var(--nf-glow-3));
     cursor: grab;
   }
   .nf-range__input::-moz-range-thumb {
     pointer-events: auto;
-    height: 1.5rem;
-    width: 1.5rem;
+    /* A 44px THUMB TARGET, A 24px THUMB DRAWN. The native input is only as tall as its thumb, and
+       the thumb is the only part that takes the pointer, so the control was a 24px target. The
+       thumb box is now 44px with a 10px transparent border (clipped out of the background), and
+       the old 3px surface ring is an inset shadow on the 24px disc, so nothing visible changes
+       and the track stays centred. Found by components/locale-fit/members-b.dom.test.tsx. */
+    box-sizing: border-box;
+    height: 2.75rem;
+    width: 2.75rem;
     border-radius: var(--nf-radius-circle);
-    border: 3px solid var(--nf-surface-primary);
+    border: 0.625rem solid transparent;
     background: var(--nf-brand-primary);
-    box-shadow: 0 0 10px var(--nf-glow-3);
+    background-clip: padding-box;
+    box-shadow: inset 0 0 0 3px var(--nf-surface-primary);
+    filter: drop-shadow(0 0 10px var(--nf-glow-3));
     cursor: grab;
   }
   /* The thumb is filled with --nf-brand-primary, so a ring in the same colour
      was a blue ring on a blue disc: focus on the price slider was invisible in
-     both themes. The ring takes the focus token like everything else. */
+     both themes. The ring takes the focus token like everything else. It sits
+     3px off the drawn 24px disc, not the 44px target box around it: the offset
+     reaches back in through the 10px transparent border (auditor A8). The
+     thumbs set box-sizing themselves, because preflight does not reach a
+     pseudo-element thumb and the geometry must not depend on an engine's UA. */
   .nf-range__input:focus-visible::-webkit-slider-thumb {
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
-    outline-offset: 3px;
+    outline-offset: calc(3px - 0.625rem);
   }
   .nf-range__input:focus-visible::-moz-range-thumb {
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
-    outline-offset: 3px;
+    outline-offset: calc(3px - 0.625rem);
   }
 
   /*
@@ -170,86 +190,6 @@
     }
   }
 
-  /*
-   * Auth provider row. Full width, pill mark on the left, label left aligned.
-   * Matches the supplied sign in reference.
-   */
-  .nf-auth-row {
-    position: relative;
-    isolation: isolate;
-    display: flex;
-    width: 100%;
-    align-items: center;
-    gap: var(--nf-gap-row);
-    padding: var(--nf-space-md);
-    border-radius: var(--nf-radius-xl);
-    color: var(--nf-content-primary);
-    font-size: var(--nf-text-body);
-    font-weight: 600;
-    cursor: pointer;
-    border: 1px solid transparent;
-    background: var(--nf-wash-1);
-    border: var(--nf-border-width-strong) solid var(--nf-wash-5);
-    -webkit-backdrop-filter: blur(var(--nf-glass-blur-soft)) saturate(150%);
-    backdrop-filter: blur(var(--nf-glass-blur-soft)) saturate(150%);
-    box-shadow:
-      inset 0 1px 0 var(--nf-wash-6),
-      inset 0 -2px 8px var(--nf-shade-1),
-      /* `--nf-glow-4`, not a 70% mix of the brand: same alpha, and the GLOW
-         INK, which is electric-400 at night rather than the deeper
-         electric-500 that `--nf-brand-primary` resolves to. The ladder picked
-         the brighter blue for blooms on purpose. See F2-036. */
-      0 10px 28px -12px var(--nf-glow-4);
-    transition:
-      box-shadow var(--nf-duration-fast) var(--nf-ease-standard),
-      transform var(--nf-duration-fast) var(--nf-ease-standard);
-  }
-  .nf-auth-row::after {
-    content: "";
-    position: absolute;
-    inset: 1px 1px 52% 1px;
-    border-radius: inherit;
-    background: linear-gradient(180deg, var(--nf-wash-5), transparent);
-    pointer-events: none;
-    z-index: -1;
-  }
-  @media (hover: hover) {
-    .nf-auth-row:hover:not(:disabled) {
-      box-shadow:
-        inset 0 1px 0 var(--nf-wash-7),
-        inset 0 -2px 8px var(--nf-shade-1),
-        /* `--nf-glow-4` is the top of the ladder at 70%, and this was 88, the ONE
-           bloom in the product written ABOVE the scale rather than between two
-           of its rungs. 18 points is a real drop and it is the intended one: 88
-           per cent of the brand under a hovered row is close to painting the
-           brand solid behind it. See F2-036. */
-        0 16px 38px -12px var(--nf-glow-4);
-    }
-  }
-  /* A 1px drop is not a press, it is a nudge nobody notices on a touch screen.
-     A wide row takes the gentle scale, in step with a full-width button. */
-  .nf-auth-row:active:not(:disabled) {
-    transform: scale(var(--nf-press-scale-lg));
-  }
-  .nf-auth-row:disabled {
-    opacity: 0.42;
-    cursor: not-allowed;
-  }
-
-  .nf-auth-row__mark {
-    display: grid;
-    place-items: center;
-    width: 1.75rem;
-    height: 1.75rem;
-    flex-shrink: 0;
-    border-radius: var(--nf-radius-sm);
-    background: var(--nf-glass-fill);
-  }
-  .nf-auth-row__mark--email {
-    background: var(--nf-gradient-brand);
-    color: var(--nf-content-on-brand);
-  }
-
   /* ------------------------------------------------------------ form fields */
 
   .nf-field {
@@ -306,6 +246,39 @@
   }
   .nf-field[aria-invalid="true"] {
     border-color: var(--nf-state-error);
+  }
+  /*
+   * THE FORM ERROR, FOR EVERY FORM (MOTION_SYSTEM "Form error", north star
+   * motion 24): the refused field shakes 4px once on `whip` 160ms, and its
+   * message (`Field`'s `nf-arrive` line) fades in beneath. Never a dialog. It
+   * played on the sign-in screens only (auth.css, `useRefusalShake`); the
+   * shared Field, which every other form uses, changed colour and nothing
+   * else. The animation is keyed by `data-refused`, which `lib/ui/refusal.ts`
+   * sets only when a field that is already on screen BECOMES invalid, and
+   * clears when the shake ends (so a second refusal plays again). It does NOT
+   * play for a field that mounts invalid (a form returned with its errors, a
+   * sheet reopening with one set). The auth screens keep their own (they
+   * alternate a/b so a repeat refusal shakes again), and Calm, Off and reduced
+   * motion draw none (the message is the answer).
+   */
+  .nf-field[data-refused]:not(.nf-auth .nf-field) {
+    animation: nf-field-refuse var(--nf-duration-fast) var(--nf-ease-whip) both;
+  }
+  @keyframes nf-field-refuse {
+    30% {
+      transform: translate3d(-4px, 0, 0);
+    }
+    70% {
+      transform: translate3d(4px, 0, 0);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-field[data-refused]:not(.nf-auth .nf-field) {
+      animation: none;
+    }
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-field[data-refused] {
+    animation: none;
   }
 
   .nf-label {
@@ -450,66 +423,96 @@
    * rather than as a generic grey placeholder, and it is small enough that the
    * slab underneath stays neutral.
    *
-   * The loop is legal here under the rule that nothing loops for its own sake:
-   * a shimmer is reporting something that is genuinely still happening, and it
-   * stops when the content arrives. 2.2s rather than 1.8 so it reads as a slow
-   * sweep rather than a scan.
+   * THE SWEEP IS DRAWN AT 90 DEGREES, NOT AT THE LIGHT ANGLE (A8, fourth
+   * audit). A slanted gradient on a TALL slab covers the box even where the
+   * band is "off" it, so the slab froze with a sheen across it. A band that
+   * crosses left to right is a vertical stripe whatever the slab's height, so
+   * the rest position below is clean at any size. (This replaces the
+   * `--nf-light-angle` this comment used to argue for.)
+   *
+   * IT IS NOT A LOOP. MOTION_SYSTEM principle 10 names two things that may
+   * loop forever, the aurora and the assistant's thinking state, and a
+   * skeleton is neither, so the sweep crosses four times (1.4s a pass) and the
+   * slab settles to a still tint.
+   *
+   * THE BAND IS A LAYER THAT MOVES, NOT A BACKGROUND THAT IS REPAINTED (W2,
+   * round 5; CRAFT-PRINCIPLES 2.1). The sweep animated `background-position`,
+   * a paint property, so every skeleton on a loading screen was repainted
+   * every frame for 5.6 seconds, on the cheapest GPUs this product meets, at
+   * the moment the network is already the bottleneck. The slab now paints
+   * once (its still tint, the bottom layer of the old gradient) and the band
+   * is its `::after`, a box the slab's width that only `transform` moves, so
+   * the compositor carries it and nothing repaints. The geometry is the old
+   * one: the band is 61.6% of the slab wide (the old 36% to 64% of a 220%
+   * tile), it starts one slab-width to the left and ends one slab-width to the
+   * right, both outside the box, and so is the rest position, which is also
+   * the base value: a slab with no animation (data saver, Calm after one
+   * pass, Off, reduced motion through the global floor) is the same still
+   * tint. `forwards` holds that end state. `overflow: hidden` clips the band
+   * to the slab's own corners; `pointer-events: none` keeps it off the hit
+   * test. The band's two inks are properties of the slab, so the glass slab
+   * and the document's paper slab change colour without a second rule for
+   * the band.
    */
   @keyframes nf-shimmer {
     from {
-      background-position: -200% 0;
+      transform: translateX(-100%);
     }
     to {
-      background-position: 200% 0;
+      transform: translateX(100%);
     }
   }
   .nf-skeleton {
+    --nf-skeleton-glint: var(--nf-glow-1);
+    --nf-skeleton-peak: var(--nf-wash-4);
+    position: relative;
+    overflow: hidden;
     border-radius: var(--nf-radius-md);
-    background:
-      linear-gradient(
-        var(--nf-light-angle),
-        var(--nf-wash-1) 36%,
-        var(--nf-glow-1) 48%,
-        var(--nf-wash-4) 52%,
-        var(--nf-wash-1) 64%
-      )
-      var(--nf-surface-inset);
-    background-size: 220% 100%;
-    animation: nf-shimmer 2.2s linear infinite;
+    background: linear-gradient(var(--nf-wash-1), var(--nf-wash-1)) var(--nf-surface-inset);
+  }
+  .nf-skeleton::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      90deg,
+      transparent 19.2%,
+      var(--nf-skeleton-glint) 45.6%,
+      var(--nf-skeleton-peak) 54.4%,
+      transparent 80.8%
+    );
+    transform: translateX(100%);
+    animation: nf-shimmer 1.4s linear 4 forwards;
   }
 
-  /* Horizontal snap rows: category pills, card carousels on phones. */
-  .nf-snap-x {
-    display: flex;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior-x: contain;
-    /*
-     * THE FIRST CARD WAS CLIPPED BY ITS OWN GUTTER AT REST.
-     *
-     * Every rail using this is laid out `-mx-gutter px-gutter`, so it bleeds to
-     * the screen edge and then pads its contents back in. The children are
-     * `scroll-snap-align: start`, and a snap start aligns to the scrollport's
-     * edge rather than to its padding box, so on load the browser snapped the
-     * gutter away: measured `scrollLeft` of 20 on the landing carousel with
-     * nothing having touched it. The first card lost its left rounded corner
-     * and sat flush to the screen edge while the heading above it was indented.
-     *
-     * `scroll-padding-inline-start` moves the snap line in to meet the padding.
-     * It reads `--nf-pad-shell`, the same token `px-gutter` resolves to through
-     * `--spacing-gutter` in theme.css, so the padding and the snap line cannot
-     * drift apart.
-     */
-    scroll-padding-inline-start: var(--nf-pad-shell);
+  /*
+   * A LINE OF TEXT THAT HAS NOT ARRIVED (W2, round 5; the money waits,
+   * `MoneyWait.tsx`). `.nf-skeleton-line` is one line box of the element it
+   * stands in (`1lh`), holding a no-break space for the baseline; the bar
+   * inside it is the height of the type (0.7em, centred), not of the line,
+   * so a paragraph of them reads as text about to land rather than as a
+   * stack of blocks. `--text` draws the slab in the ink of the text it
+   * stands in for, at a tenth: grey on paper, a lit line on the night hero
+   * band, quieter still where the words will be muted. The inset trough was
+   * a black hole on the glass cards at night.
+   */
+  .nf-skeleton-line {
+    position: relative;
+    height: 1lh;
+    color: inherit;
   }
-  .nf-snap-x::-webkit-scrollbar {
-    display: none;
+  .nf-skeleton-line > .nf-skeleton {
+    position: absolute;
+    inset-inline: 0;
+    top: calc(50% - var(--nf-skeleton-bar, 0.7em) / 2);
+    height: var(--nf-skeleton-bar, 0.7em);
+    border-radius: var(--nf-radius-xs);
   }
-  .nf-snap-x > * {
-    scroll-snap-align: start;
-    flex-shrink: 0;
+  .nf-skeleton--text {
+    --nf-skeleton-glint: color-mix(in oklab, currentColor 10%, transparent);
+    --nf-skeleton-peak: color-mix(in oklab, currentColor 16%, transparent);
+    background: color-mix(in oklab, currentColor 10%, transparent);
   }
 }
 
@@ -939,8 +942,11 @@
       border-color var(--nf-duration-base) var(--nf-ease-standard),
       box-shadow var(--nf-duration-base) var(--nf-ease-standard);
   }
+  /* No `background` here: the "on" fill is the `::before` layer's (the toggle
+     section below), because a background gradient cannot interpolate and a
+     `background` set on the element itself would make the switch snap to the
+     fill as it turns on instead of fading it in. One source of truth. */
   .nf-switch[aria-checked="true"] {
-    background: var(--nf-btn-lit-fill);
     border-color: var(--nf-btn-lit-edges);
     box-shadow: var(--nf-btn-lit-shadow);
   }
@@ -988,16 +994,10 @@
    * its own dark canvas. Same keyframe, same reduced-motion stop.
    */
   .nf-skeleton--glass {
-    background:
-      linear-gradient(
-        var(--nf-light-angle),
-        var(--nf-glass-fill-thin) 36%,
-        var(--nf-glow-2) 48%,
-        var(--nf-glass-fill-strong) 52%,
-        var(--nf-glass-fill-thin) 64%
-      )
-      var(--nf-glass-fill-thin);
-    background-size: 220% 100%;
+    --nf-skeleton-glint: var(--nf-glow-2);
+    --nf-skeleton-peak: var(--nf-glass-fill-strong);
+    /* Two layers of the thin fill, as the old tile's resting band was. */
+    background: linear-gradient(var(--nf-glass-fill-thin), var(--nf-glass-fill-thin)) var(--nf-glass-fill-thin);
     box-shadow: inset 0 0 0 1px var(--nf-glass-border);
   }}
 
@@ -1196,7 +1196,7 @@
   .nf-feestep__value[data-undeclared] {
     font-family: inherit;
     font-size: var(--nf-text-body-sm);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--nf-content-muted);
   }
 
@@ -1335,7 +1335,7 @@
   .nf-regfield .nf-label {
     margin-bottom: var(--nf-space-2xs);
     font-size: var(--nf-text-caption);
-    font-weight: 500;
+    font-weight: 600;
     color: var(--nf-content-secondary);
   }
 
@@ -1628,7 +1628,10 @@
     gap: var(--nf-space-xs);
     min-width: 0;
     padding: var(--nf-space-md);
-    border: var(--nf-border-width) solid var(--nf-card-border);
+    /* One edge (north star 4): the hairline at night, and on Paper only the
+       blue-tinted card shadow, because the tier's edge token is transparent
+       there. It drew both, a hairline beside the new shadow. */
+    border: var(--nf-border-width) solid var(--nf-tier-card-edge);
     border-radius: var(--nf-radius-card);
     background: var(--nf-surface-primary);
     box-shadow: var(--nf-card-shadow);
@@ -1671,7 +1674,10 @@
     gap: var(--nf-space-xs);
     min-width: 0;
     padding: var(--nf-space-md);
-    border: var(--nf-border-width) solid var(--nf-card-border);
+    /* One edge (north star 4): the hairline at night, and on Paper only the
+       blue-tinted card shadow, because the tier's edge token is transparent
+       there. It drew both, a hairline beside the new shadow. */
+    border: var(--nf-border-width) solid var(--nf-tier-card-edge);
     border-radius: var(--nf-radius-card);
     background: var(--nf-surface-primary);
     box-shadow: var(--nf-card-shadow);
@@ -1719,7 +1725,7 @@
     gap: var(--nf-space-xs);
     font-size: 2rem;
     line-height: 1.1;
-    font-weight: 500;
+    font-weight: 600;
     letter-spacing: var(--nf-tracking-figure);
     font-variant-numeric: tabular-nums;
   }
@@ -1776,7 +1782,7 @@
     display: block;
     min-width: 6px;
     height: 100%;
-    border-radius: 3px;
+    border-radius: var(--nf-radius-xs);
     transform-origin: left center;
   }
   .nf-statusbar__legend {
@@ -1853,7 +1859,7 @@
   .nf-gauge__total {
     font-size: var(--nf-text-figure);
     line-height: 1;
-    font-weight: 500;
+    font-weight: 600;
     letter-spacing: var(--nf-tracking-figure);
     color: var(--nf-content-primary);
   }
@@ -1892,7 +1898,7 @@
   }
   .nf-gauge__name {
     font-size: var(--nf-text-caption);
-    font-weight: 500;
+    font-weight: 600;
     color: var(--nf-content-primary);
   }
   .nf-gauge__sub {
@@ -1961,6 +1967,16 @@
     white-space: nowrap;
     z-index: 2;
   }
+  /* The outer quarters open inwards (TimeSeries.tsx): a centred tip on the last day ran past the window. */
+  .nf-ts__col--start .nf-ts__tip {
+    left: 0;
+    translate: 0 -110%;
+  }
+  .nf-ts__col--end .nf-ts__tip {
+    left: auto;
+    right: 0;
+    translate: 0 -110%;
+  }
   @media (hover: hover) and (pointer: fine) {
     .nf-ts__col:hover {
       background: var(--nf-brand-tint-1);
@@ -1983,18 +1999,16 @@
     border-block-end: var(--nf-border-width) dashed var(--nf-content-muted);
   }
 
-  /* A live figure change crossfades, never recounts (CountUp). */
-  .nf-count-swap {
-    animation: nf-fade-in var(--nf-duration-fast) var(--nf-ease-standard) both;
-  }
+  /* `.nf-count-swap` STOOD HERE: a live figure change used to crossfade.
+     It rolls the changed digits now (`Odometer`, `.nf-odo` in
+     motion-kit.css), so the class had no markup left to style. */
 
   /* The quiet answers: the final state, at once. */
   @media (prefers-reduced-motion: reduce) {
     .nf-statusbar--grow .nf-statusbar__seg,
     .nf-statusbar--grow .nf-statusbar__legend,
     .nf-gauge--light .nf-gauge__tick,
-    .nf-ts__line,
-    .nf-count-swap {
+    .nf-ts__line {
       animation: none;
     }
   }
@@ -2002,8 +2016,7 @@
       .nf-statusbar--grow .nf-statusbar__seg,
       .nf-statusbar--grow .nf-statusbar__legend,
       .nf-gauge--light .nf-gauge__tick,
-      .nf-ts__line,
-      .nf-count-swap
+      .nf-ts__line
     ) {
     animation: none;
   }
@@ -2070,10 +2083,38 @@
     background: var(--nf-act-track-off);
     border: var(--nf-border-width) solid var(--nf-act-track-off-edge);
     box-shadow: none;
-    transition: none;
+    /* The track's edge and rim crossfade on `glide` while the knob springs on
+       `drift` (Switch.tsx), so the two read as one event. The "on" FILL is a
+       gradient, and a `background` gradient cannot interpolate (it would still
+       snap), so it lives on the `::before` layer below and only that layer's
+       OPACITY transitions. The tokens are 1ms under reduced motion, and Off
+       zeroes every transition (motion-pref.css). */
+    transition:
+      border-color var(--nf-duration-base) var(--nf-ease-standard),
+      box-shadow var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  /* Under the knob (the thumb is the later child), over the off track. */
+  .nf-switch {
+    position: relative;
+  }
+  .nf-switch::before {
+    content: "";
+    position: absolute;
+    /* The border box, so the fill reaches the (transparent) edge when on. */
+    inset: calc(-1 * var(--nf-border-width));
+    border-radius: inherit;
+    background: var(--nf-act-fill);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  .nf-switch[aria-checked="true"]::before {
+    opacity: 1;
+  }
+  .nf-switch:disabled::before {
+    opacity: 0;
   }
   .nf-switch[aria-checked="true"] {
-    background: var(--nf-act-fill);
     border-color: transparent;
     box-shadow: var(--nf-act-rim);
   }
@@ -2184,7 +2225,7 @@
     vertical-align: middle;
   }
   :where(input[type="checkbox"]:not([role="switch"])) {
-    border-radius: 0.375rem;
+    border-radius: var(--nf-radius-xs);
   }
   :where(input[type="radio"]) {
     border-radius: var(--nf-radius-circle);

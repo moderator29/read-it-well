@@ -1,0 +1,195 @@
+/*
+  money-layer: the member's money surfaces of D50 and D51 (components/money).
+
+  The lister's fee gate, the money centre's two figures, the withdrawal maths,
+  the transaction timeline, the reference system and the receipt vault. One
+  sheet, imported by the components that use it, so it costs nothing on a
+  route that draws none of them.
+
+  Two rules carry most of the weight here:
+
+  - THE SUBJECT IS THE SUBJECT. On every block the one figure that answers the
+    question ("You receive", "You'll receive", Available) is the largest and
+    the only one in full ink; every other figure is secondary ink.
+  - AVAILABLE AND PROTECTED NEVER LOOK ALIKE. A misread costs somebody money,
+    so they differ in three ways at once: the edge (solid against dashed), the
+    tint (success surface against info surface) and a word under the figure.
+    Never colour alone.
+
+  Tokens only, inside `@layer components`.
+*/
+@layer components {
+  /* ------------------------------------------------------- the fee gate */
+  .nf-feegate__rows {
+    display: grid;
+    gap: var(--nf-space-xs);
+    margin-top: var(--nf-space-sm);
+  }
+  .nf-feegate__row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--nf-space-md);
+    color: var(--nf-content-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+  .nf-feegate__row dd {
+    text-align: end;
+  }
+  .nf-feegate__row--total {
+    margin-top: var(--nf-space-xs);
+    padding-top: var(--nf-space-sm);
+    border-top: var(--nf-border-width) solid var(--nf-panel-hair);
+    color: var(--nf-content-primary);
+    font-weight: 700;
+  }
+  .nf-feegate__row--total dd {
+    font-size: var(--nf-text-h3);
+  }
+  /* The two parts of the platform fee, set in under it (D61). */
+  .nf-feegate__row--part {
+    padding-inline-start: var(--nf-space-md);
+    font-size: var(--nf-text-body-sm);
+  }
+  /* When a part applies: "when a buyer pays into escrow". */
+  .nf-feegate__when {
+    display: block;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  /* The worst case is the headline; the top of the range sits small beside it. */
+  .nf-feegate__upper {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 400;
+    color: var(--nf-content-secondary);
+  }
+  .nf-feegate[data-state="accepted"] {
+    border-color: var(--nf-state-success);
+  }
+
+  /* ------------------------------------------- the money centre's figures */
+  .nf-pots {
+    display: grid;
+    gap: var(--nf-space-sm);
+  }
+  @media (min-width: 40rem) {
+    .nf-pots {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  .nf-pot {
+    border-radius: var(--nf-radius-card);
+    padding: var(--nf-space-md);
+    border: var(--nf-border-width-strong) solid transparent;
+  }
+  .nf-pot__figure {
+    margin-top: var(--nf-space-xs);
+    font-size: var(--nf-text-h1);
+    font-weight: 700;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-content-primary);
+  }
+  .nf-pot__word {
+    margin-top: var(--nf-space-xs);
+    color: var(--nf-content-secondary);
+  }
+  /* Available: a solid edge on the success surface. Money the member can move. */
+  .nf-pot--available {
+    background: var(--nf-state-success-surface);
+    border-color: var(--nf-state-success);
+    border-style: solid;
+  }
+  /* Protected: a dashed edge on the info surface, and a quieter figure. Money
+     the member cannot move until the release condition is met. */
+  .nf-pot--protected {
+    background: var(--nf-state-info-surface);
+    border-color: var(--nf-state-info);
+    border-style: dashed;
+  }
+  .nf-pot--protected .nf-pot__figure {
+    color: var(--nf-content-secondary);
+  }
+
+  /* -------------------------------------------------- withdrawal maths */
+  .nf-maths {
+    display: grid;
+    gap: var(--nf-space-xs);
+    font-variant-numeric: tabular-nums;
+  }
+  .nf-maths__row {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--nf-space-md);
+    color: var(--nf-content-secondary);
+  }
+  .nf-maths__row--total {
+    padding-top: var(--nf-space-sm);
+    border-top: var(--nf-border-width) solid var(--nf-panel-hair);
+    color: var(--nf-content-primary);
+    font-weight: 700;
+  }
+  .nf-maths__row--waiting dd {
+    color: var(--nf-content-muted);
+  }
+
+  /* ------------------------------------------------------ the timeline */
+  .nf-timeline {
+    display: grid;
+    gap: var(--nf-space-md);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .nf-timeline__step {
+    position: relative;
+    padding-inline-start: var(--nf-space-lg);
+  }
+  .nf-timeline__step::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: 0;
+    top: 0.45em;
+    width: 0.625rem;
+    height: 0.625rem;
+    border-radius: var(--nf-radius-circle);
+    border: var(--nf-border-width-strong) solid var(--nf-content-muted);
+  }
+  .nf-timeline__step[data-done="true"]::before {
+    background: var(--nf-content-primary);
+    border-color: var(--nf-content-primary);
+  }
+  .nf-timeline__step[data-tone="attention"]::before {
+    border-color: var(--nf-state-warning);
+  }
+  .nf-timeline__step:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    inset-inline-start: calc(0.3125rem - 1px);
+    top: 1.2em;
+    bottom: calc(-1 * var(--nf-space-md));
+    width: 2px;
+    background: var(--nf-panel-hair);
+  }
+
+  /* ----------------------------------------------- the reference system */
+  .nf-refs {
+    display: grid;
+    gap: var(--nf-space-xs);
+  }
+  .nf-ref {
+    display: grid;
+    grid-template-columns: minmax(0, 10rem) minmax(0, 1fr);
+    gap: var(--nf-space-sm);
+    align-items: baseline;
+  }
+  .nf-ref dt {
+    color: var(--nf-content-muted);
+  }
+  .nf-ref dd {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    font-family: var(--nf-font-mono, ui-monospace, monospace);
+    color: var(--nf-content-primary);
+  }
+}

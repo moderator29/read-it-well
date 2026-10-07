@@ -1,63 +1,67 @@
+import type { TieredObjectName } from "@/design-system/icons/object-assets";
+
 /**
- * THE OBJECT IN THE RING (the founder, 30 September: sign in, sign up, the
- * code steps, welcome back and the passcode "3D, smart and beautiful", in
- * the language of the passcode sample). Each door puts one of his 3D clay
- * objects in the glowing glass ring across the blue bowl
- * (`AuthCurveBlock`'s `focal`); which one is decided here, by the path, so
- * the auth layout (drawn once) and the passcode screens agree.
+ * THE OBJECT ACROSS THE EDGE OF THE ISLAND (the founder, 30 September: each
+ * door puts one of his objects across the curve; W11, 6 October: the same
+ * object, now one of the two-tier set of D29 instead of the glass 3D pack, so
+ * it survives a light ground and matches every other object on the platform).
  *
- *   the email code, check your inbox, forgot password   envelope
- *   phone sign-in                                       phone-code
- *   the passcode (set, reset; welcome back without a photo)  passcode-lock
- *   a new password                                      shield
- *   sign up                                             rent (house and key)
- *   finishing the account                               id-check
- *   success (the code accepted)                         verified
- *   sign in with a password                             the Vallo mark
+ * Which object a door shows is decided here, by the path, so the auth layout
+ * (drawn once) and the success moment agree, with a test to hold it:
  *
- * A NEW OBJECT SHOWS ONLY ONCE ITS FILE EXISTS. The files are sliced into
- * `public/brand/3d/<name>@2x.webp` by `scripts/brand-3d.mjs`; until a name
- * is `true` in `FOCAL_READY` its screen shows the Vallo mark, so a half-
- * delivered set never draws a broken image. `focal-art.test.ts` fails if a
- * name is switched on while its file is missing.
+ *   sign in with a password             key-cushion     a key on its cushion: back in
+ *   sign up                             scene-house-keys  a home and its keys (Tier A, hero scale)
+ *   the email code, check your inbox,
+ *   forgot password                     envelope
+ *   phone sign in                       chat-pair       a message with a code in it
+ *   a new password                      padlock
+ *   finishing the account               passport-book   who you are, on Vallo
+ *   the code accepted                   shield-tick     verified (`ArrivalMoment`)
+ *
+ * Tier B objects are symbols, so they are simple and matte; the one Tier A
+ * scene is the only thing on these screens that shows a real place, and it
+ * does so on the sign-up door, where the person is being offered one.
  */
-export const FOCAL_READY = {
-  envelope: true,
-  "phone-code": true,
-  "passcode-lock": true,
-  shield: true,
-  verified: true,
-  "id-check": true,
-  rent: true,
-} as const satisfies Record<string, boolean>;
+export type FocalName = Extract<
+  TieredObjectName,
+  "key-cushion" | "scene-house-keys" | "envelope" | "chat-pair" | "padlock" | "passport-book" | "shield-tick"
+>;
 
-export type FocalName = keyof typeof FOCAL_READY;
-export type FocalArt = { kind: "mark" } | { kind: "object"; name: FocalName; src: string };
+export type FocalArt = { name: FocalName; /** The edge, in CSS px, the object is drawn at. */ size: number };
 
-export function focalSrc(name: FocalName): string {
-  return `/brand/3d/${name}@2x.webp`;
+/** The size an object is drawn at: scenes are wide compositions and need more room than a symbol. */
+const SIZES: Readonly<Record<FocalName, number>> = {
+  "key-cushion": 88,
+  "scene-house-keys": 120,
+  envelope: 88,
+  "chat-pair": 88,
+  padlock: 88,
+  "passport-book": 88,
+  "shield-tick": 160,
+};
+
+export function focalObject(name: FocalName): FocalArt {
+  return { name, size: SIZES[name] };
 }
 
-/** The object for a name, or the Vallo mark while its file is not in. */
-export function focalObject(
-  name: FocalName,
-  ready: Readonly<Record<FocalName, boolean>> = FOCAL_READY,
-): FocalArt {
-  return ready[name] ? { kind: "object", name, src: focalSrc(name) } : { kind: "mark" };
+function within(path: string, prefix: string): boolean {
+  return path === prefix || path.startsWith(`${prefix}/`) || path.startsWith(`${prefix}?`);
 }
 
 /** Which object a door shows, by its path. */
-export function focalForPath(
-  path: string,
-  ready: Readonly<Record<FocalName, boolean>> = FOCAL_READY,
-): FocalArt {
-  const is = (prefix: string) => path === prefix || path.startsWith(`${prefix}/`) || path.startsWith(`${prefix}?`);
-  if (is("/sign-in/phone")) return focalObject("phone-code", ready);
-  if (is("/sign-in/email") || is("/sign-in/code") || is("/sign-up/verify") || is("/sign-up/email") || is("/forgot-password")) {
-    return focalObject("envelope", ready);
+export function focalForPath(path: string): FocalArt {
+  if (within(path, "/sign-in/phone")) return focalObject("chat-pair");
+  if (
+    within(path, "/sign-in/email") ||
+    within(path, "/sign-in/code") ||
+    within(path, "/sign-up/verify") ||
+    within(path, "/sign-up/email") ||
+    within(path, "/forgot-password")
+  ) {
+    return focalObject("envelope");
   }
-  if (is("/reset-password")) return focalObject("shield", ready);
-  if (is("/sign-up/finish")) return focalObject("id-check", ready);
-  if (is("/sign-up")) return focalObject("rent", ready);
-  return { kind: "mark" };
+  if (within(path, "/reset-password")) return focalObject("padlock");
+  if (within(path, "/sign-up/finish")) return focalObject("passport-book");
+  if (within(path, "/sign-up")) return focalObject("scene-house-keys");
+  return focalObject("key-cushion");
 }

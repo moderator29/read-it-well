@@ -116,7 +116,6 @@
           .nf-home__loc,
           .nf-app-header__btn,
           .nf-side-switch,
-          .nf-bento__card,
           .nf-post--pressable,
           .nf-auth-row,
           .nf-belong__row,
@@ -129,7 +128,6 @@
           .nf-composer__send,
           .nf-detail-tabs__back,
           .nf-cap__menu,
-          .nf-stack__arrow,
           .nf-landing-cat,
           .nf-landing-pill-go,
           .nf-slate-social,
@@ -149,7 +147,7 @@
     }
     &:active:not(:has(img, picture, video)) {
       background-color: var(--nf-brand-tint-1);
-      border-radius: var(--nf-radius-sm, 0.5rem);
+      border-radius: var(--nf-radius-sm);
     }
   }
 
@@ -220,7 +218,7 @@
       bottom: -1px;
       width: calc((100% - (var(--nf-ink-n) - 1) * var(--nf-ink-gap)) / var(--nf-ink-n));
       height: 2px;
-      border-radius: 2px;
+      border-radius: var(--nf-radius-xs);
       background: var(--nf-content-primary);
       pointer-events: none;
       transform: translateX(calc(var(--nf-ink-i) * (100% + var(--nf-ink-gap)) * var(--nf-ink-dir)))

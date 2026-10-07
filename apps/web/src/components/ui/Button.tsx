@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Children, forwardRef } from "react";
+import { Children, forwardRef, useEffect, useRef, useState } from "react";
 import type { ComponentPropsWithoutRef, ReactNode, Ref } from "react";
 import { joinTextParts } from "./button-label";
 import { UiIcon, type UiIconSize, type UiIconName } from "@/design-system/icons/UiIcon";
@@ -143,8 +143,13 @@ type CommonProps = {
   /** Fills its container. Pinned-footer CTAs are always full. */
   full?: boolean;
   /**
-   * Shows a spinner in the leading slot and dims the label. The label stays put,
-   * so the button never changes width mid-press.
+   * The button is waiting on an answer. The leading slot draws a ring ONCE and
+   * holds it still, and a 2px line along the bottom edge sweeps across once and
+   * holds full width; nothing spins or loops, however long the wait, because
+   * a spinner says "working" whether or not anything is (the platform bans
+   * them). The label stays put, so the button never changes width mid-press,
+   * and `aria-busy` says the state to a screen reader. A caller that wants the
+   * wait to be a deliberate moment passes `morph` (below).
    */
   loading?: boolean;
   /**
@@ -154,6 +159,20 @@ type CommonProps = {
    * button never changes width. A small win gets this, never a modal.
    */
   done?: boolean;
+  /**
+   * THE ACTION MORPH (Session 3; north star motion 7, reference 7061). Opt
+   * in, and `loading` and `done` change meaning: loading closes the button to
+   * a circle and draws an arc ONCE, which then holds still however long the
+   * wait (never a spinner); done closes the ring, draws a tick and gives the
+   * payoff pop; letting go of both settles it back to the rectangle. The box
+   * never changes size (buttons.css, "THE ACTION MORPH").
+   *
+   * The pop is reserved for confirm, verify, unlock, release and earn
+   * (MOTION_SYSTEM.md principle 5), so pass `morph` on the one action a
+   * screen exists for when it is one of those, and pass `done` only when the
+   * server has said so. Text buttons only; ignored on `variant="icon"`.
+   */
+  morph?: boolean;
   leadingIcon?: UiIconName;
   trailingIcon?: UiIconName;
   /**
@@ -206,8 +225,9 @@ function buttonClass({
   glow,
   shape = "control",
   round,
+  morph,
   className,
-}: Pick<CommonProps, "variant" | "size" | "full" | "iconOnly" | "glow" | "shape" | "round" | "className">) {
+}: Pick<CommonProps, "variant" | "size" | "full" | "iconOnly" | "glow" | "shape" | "round" | "morph" | "className">) {
   /* The icon button is always the 44px rung, whatever size was asked. */
   const sized = variant === "icon" ? "sm" : size;
   return [
@@ -219,6 +239,7 @@ function buttonClass({
     iconOnly ? "nf-btn--icon" : "",
     glow ? "nf-btn--lit" : "",
     shape === "pill" ? "nf-btn--pill" : "",
+    morph ? "nf-btn--morph" : "",
     className ?? "",
   ]
     .filter(Boolean)
@@ -253,6 +274,45 @@ function DoneCheck({ size }: { size: number }) {
   );
 }
 
+/** How long the morph takes to settle back to the rectangle (`base`). */
+export const MORPH_SETTLE_MS = 240;
+
+export type MorphState = "loading" | "done" | "settle" | undefined;
+
+/**
+ * The morph's state from the caller's two booleans, with the one thing the
+ * booleans cannot say: that the button WAS a circle a moment ago and is on
+ * its way back. `settle` is held for `MORPH_SETTLE_MS` after loading or done
+ * is let go, so the rectangle reopens on a curve instead of snapping.
+ */
+export function useMorphState(enabled: boolean, loading: boolean, done: boolean): MorphState {
+  const target: MorphState = !enabled ? undefined : done ? "done" : loading ? "loading" : undefined;
+  const [settling, setSettling] = useState(false);
+  const was = useRef<MorphState>(target);
+  useEffect(() => {
+    const previous = was.current;
+    was.current = target;
+    if (target !== undefined || previous === undefined || previous === "settle") return;
+    setSettling(true);
+    const timer = window.setTimeout(() => setSettling(false), MORPH_SETTLE_MS);
+    return () => window.clearTimeout(timer);
+  }, [target]);
+  if (target !== undefined) return target;
+  return settling ? "settle" : undefined;
+}
+
+/** The ring and the tick the morph draws in the circle. Decorative. */
+function MorphMark() {
+  return (
+    <span className="nf-btn__morph" aria-hidden="true">
+      <svg viewBox="0 0 24 24">
+        <circle className="nf-btn__arc" cx="12" cy="12" r="10" pathLength={1} />
+        <path className="nf-btn__tick" d="M7.5 12.5l3 3 6-6.5" pathLength={1} />
+      </svg>
+    </span>
+  );
+}
+
 function Content({
   loading,
   done,
@@ -260,10 +320,27 @@ function Content({
   trailingIcon,
   arrow,
   size,
+  morph,
   children,
 }: Pick<CommonProps, "loading" | "done" | "leadingIcon" | "trailingIcon" | "arrow" | "children"> & {
   size: ButtonSize;
+  morph?: boolean;
 }) {
+  if (morph) {
+    /* The face keeps the button's ordinary content and fades as the shape
+       closes; the leading slot never shows the spinner or the check, because
+       the circle carries both. */
+    return (
+      <>
+        <span className="nf-btn__face">
+          <Content leadingIcon={leadingIcon} trailingIcon={trailingIcon} arrow={arrow} size={size}>
+            {children}
+          </Content>
+        </span>
+        <MorphMark />
+      </>
+    );
+  }
   const icon = ICON_SIZE[size];
   /*
    * Children are rendered as separate flex siblings, not wrapped in one span.
@@ -285,7 +362,13 @@ function Content({
   return (
     <>
       {loading ? (
-        <span className="nf-spinner" aria-hidden="true" />
+        /* The morph's own ring, small, in the leading slot: drawn once to
+           three quarters and held (buttons.css, "loading, bounded"). */
+        <span className="nf-btn__ring" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width={icon} height={icon}>
+            <circle className="nf-btn__arc" cx="12" cy="12" r="10" pathLength={1} />
+          </svg>
+        </span>
       ) : done ? (
         <DoneCheck size={icon} />
       ) : leadingIcon ? (
@@ -328,6 +411,7 @@ export const Button = forwardRef(function Button(
     round,
     iconOnly,
     haptic,
+    morph: morphProp,
     className,
     children,
     disabled,
@@ -337,6 +421,8 @@ export const Button = forwardRef(function Button(
   ref: Ref<HTMLButtonElement>,
 ) {
   const wantsHaptic = haptic === true;
+  const morph = morphProp === true && variant !== "icon" && !iconOnly;
+  const morphState = useMorphState(morph, loading, done === true);
   return (
     /*
      * `rest` is spread FIRST so nothing a call site passes can clobber the
@@ -348,10 +434,17 @@ export const Button = forwardRef(function Button(
       {...rest}
       ref={ref}
       type={rest.type ?? "button"}
-      className={buttonClass({ variant, size, full, iconOnly, glow, shape, round, className })}
-      disabled={disabled || loading}
+      className={buttonClass({ variant, size, full, iconOnly, glow, shape, round, morph, className })}
+      /* A morphing button that is done is still inert until it settles: a
+         second tap on a tick would submit twice. */
+      disabled={disabled || loading || (morph && morphState === "done")}
       data-loading={loading || undefined}
-      aria-busy={loading || undefined}
+      data-morph={morphState}
+      /* The caller's own busy state survives: `rest` is spread first, so
+         writing only `loading` here erased an `aria-busy` the caller passed
+         for work of its own (audit A7: "This was not me" and the feed's
+         "Load more" went silent to a screen reader while pending). */
+      aria-busy={loading || rest["aria-busy"] || undefined}
       onPointerDown={(event) => {
         if (!disabled && !loading) pulse(wantsHaptic);
         onPointerDown?.(event);
@@ -364,6 +457,7 @@ export const Button = forwardRef(function Button(
         trailingIcon={trailingIcon}
         arrow={arrow}
         size={variant === "icon" ? "md" : size}
+        morph={morph}
       >
         {children}
       </Content>
@@ -394,6 +488,8 @@ export const ButtonLink = forwardRef(function ButtonLink(
     round,
     iconOnly,
     haptic,
+    /* A link navigates; it has nothing to wait for, so it never morphs. */
+    morph: _morph,
     className,
     children,
     onPointerDown,

@@ -178,14 +178,30 @@
   }
   .nf-rcal__price {
     font-size: 0.75rem;
-    font-weight: 500;
+    font-weight: 400;
     line-height: 1.2;
     color: var(--nf-content-secondary);
   }
   .nf-rcal__meta {
-    font-size: 0.625rem;
+    /* 12px, the floor: nothing in the product draws under it (W12; it was 10px). */
+    font-size: 0.75rem;
     line-height: 1.2;
     color: var(--nf-content-muted);
+  }
+  /* A PHONE'S NIGHT IS 41px WIDE INSIDE, and the state word is the one part of
+     the cell that must be read, not guessed from a tint: "Closed" drew as
+     "Clos…" at 390. Below 480px the cell gives the word 2px more on each side,
+     and a two-word state ("Off sale", "1 held") may take a second line rather
+     than lose its end. One word never breaks inside itself. */
+  @media (max-width: 479.98px) {
+    .nf-rcal__cell {
+      padding-inline: 3px;
+    }
+    .nf-rcal__cell > .nf-rcal__meta {
+      white-space: normal;
+      text-overflow: clip;
+      overflow-wrap: normal;
+    }
   }
   .nf-rcal__cell[data-tone="override"] .nf-rcal__price {
     font-weight: 700;
@@ -281,7 +297,7 @@
     width: 12px;
     height: 12px;
     border: var(--nf-border-width) solid var(--nf-border-strong);
-    border-radius: 3px;
+    border-radius: var(--nf-radius-xs);
     background: var(--nf-surface-primary);
   }
   .nf-rcal__key[data-tone="override"] {
@@ -328,35 +344,6 @@
   .nf-rcal__sync-phone {
     display: block;
   }
-  .nf-rcal__bar {
-    position: fixed;
-    z-index: 40;
-    left: var(--nf-space-md);
-    right: var(--nf-space-md);
-    bottom: calc(var(--nf-space-sm) + env(safe-area-inset-bottom));
-    display: flex;
-    align-items: center;
-    gap: var(--nf-space-xs);
-    padding: var(--nf-space-xs) var(--nf-space-xs) var(--nf-space-xs) var(--nf-space-md);
-    border: var(--nf-border-width) solid var(--nf-card-border);
-    border-radius: var(--nf-radius-card);
-    background: var(--nf-surface-elevated);
-    box-shadow: var(--nf-card-shadow-hover);
-    animation: nf-rcal-bar-in var(--nf-duration-base) var(--nf-ease-entrance) both;
-  }
-  .nf-rcal__bar > .min-w-0 {
-    flex: 1;
-  }
-  .nf-rcal__bar-count {
-    font-size: var(--nf-text-row);
-    font-weight: 600;
-    color: var(--nf-content-primary);
-  }
-  .nf-rcal__bar-sub {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
 
   @media (min-width: 768px) {
     .nf-rcal__cell {
@@ -392,7 +379,7 @@
       overflow-y: auto;
     }
     .nf-rcal__sync-phone,
-    .nf-rcal__bar {
+    .nf-batch.nf-rcal-tray {
       display: none;
     }
   }
@@ -403,7 +390,7 @@
     display: grid;
     gap: var(--nf-space-md);
     padding: var(--nf-space-md);
-    border: var(--nf-border-width) solid var(--nf-card-border);
+    border: var(--nf-border-width) solid var(--nf-tier-card-edge);
     border-radius: var(--nf-radius-card);
     background: var(--nf-surface-primary);
     box-shadow: var(--nf-card-shadow);
@@ -554,7 +541,7 @@
   }
   .nf-rcal-sync__import-name {
     font-size: var(--nf-text-row);
-    font-weight: 500;
+    font-weight: 600;
     color: var(--nf-content-primary);
   }
   .nf-rcal-sync__add {
@@ -580,7 +567,7 @@
     display: grid;
     gap: var(--nf-space-sm);
     padding: var(--nf-space-md);
-    border: var(--nf-border-width) solid var(--nf-card-border);
+    border: var(--nf-border-width) solid var(--nf-tier-card-edge);
     border-radius: var(--nf-radius-card);
     background: var(--nf-surface-primary);
     box-shadow: var(--nf-card-shadow);
@@ -699,7 +686,7 @@
     display: grid;
     gap: var(--nf-space-sm);
     padding: var(--nf-space-md);
-    border: var(--nf-border-width) solid var(--nf-card-border);
+    border: var(--nf-border-width) solid var(--nf-tier-card-edge);
     border-radius: var(--nf-radius-card);
     background: var(--nf-surface-primary);
     box-shadow: var(--nf-card-shadow);
@@ -821,13 +808,19 @@
     padding: 0;
     list-style: none;
   }
+  /* The line cards and the wide table sit INSIDE the paper sheet, so they take
+     the sheet's paper rather than the theme's surface: on night
+     `--nf-surface-primary` is navy while `.nf-doc` re-answers the inks for
+     paper, and every line drew dark ink on a dark card (axe, 52 contrast
+     failures at 390). Their edge is the sheet's hairline (`--nf-divider`,
+     re-answered by `.nf-doc`). */
   .nf-stmt-line {
     display: grid;
     gap: var(--nf-space-2xs);
     padding: var(--nf-space-md);
-    border: var(--nf-border-width) solid var(--nf-card-border);
+    border: var(--nf-border-width) solid var(--nf-divider);
     border-radius: var(--nf-radius-card);
-    background: var(--nf-surface-primary);
+    background: transparent;
   }
   .nf-stmt-line__split {
     display: grid;
@@ -850,12 +843,18 @@
     display: none;
   }
   @media (min-width: 768px) {
+    /* `width: 0; min-width: 100%`: the table scrolls inside its own box and
+       never lends its six columns' width to the sheet. Without it the sheet,
+       the month bar and the actions all grew to 765px and ran 21px past a
+       768px window. */
     .nf-stmt-wide {
       display: block;
+      width: 0;
+      min-width: 100%;
       overflow-x: auto;
-      border: var(--nf-border-width) solid var(--nf-card-border);
+      border: var(--nf-border-width) solid var(--nf-divider);
       border-radius: var(--nf-radius-card);
-      background: var(--nf-surface-primary);
+      background: transparent;
     }
     .nf-stmt-narrow {
       display: none;
@@ -933,6 +932,7 @@
     }
     .nf-stmt-wide {
       display: block;
+      width: auto;
       overflow: visible;
       border: 0;
     }
@@ -945,29 +945,11 @@
   }
 }
 
-@keyframes nf-rcal-bar-in {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .nf-rcal__bar {
-    animation: none;
-  }
   .nf-rcal__cell::after,
   .nf-clock__fill {
     transition: none;
   }
-}
-:root[data-motion="calm"] .nf-rcal__bar,
-:root[data-motion="off"] .nf-rcal__bar {
-  animation: none;
 }
 :root[data-motion="off"] .nf-rcal__cell::after,
 :root[data-motion="off"] .nf-clock__fill {

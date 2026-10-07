@@ -111,7 +111,7 @@ function restaurantChecks(row: BusinessQueueRow): { blocking: Check[]; thin: Che
         pass: windows > 0,
         detail:
           windows > 0
-            ? `${countOf(windows, "serviceWindows")} on record. Every one of them seats guests, because the column refuses a zero.`
+            ? `${countOf(windows, "serviceWindows")} on record, and every one of them seats at least one guest.`
             : "None. Every request for a table would be refused with 'that restaurant does not seat guests at that time', and the owner would watch a page that looks fine take no bookings.",
       },
       {
@@ -134,7 +134,7 @@ function restaurantChecks(row: BusinessQueueRow): { blocking: Check[]; thin: Che
         pass: row.kind === "restaurant",
         detail:
           row.kind === "restaurant"
-            ? "A restaurant on the first-party queue. The table trigger accepts this venue's spine."
+            ? "A restaurant on the first-party queue, so a table request can reach it."
             : "This row is not a restaurant, so it goes live from its property rather than from here.",
       },
     ],
@@ -153,7 +153,7 @@ function restaurantChecks(row: BusinessQueueRow): { blocking: Check[]; thin: Che
         detail:
           cuisines > 0
             ? `${countOf(cuisines, "cuisines")}. The first shows on the fact strip, the rest become tags.`
-            : "None. The venue's fact strip renders empty, which reads as a record nobody finished.",
+            : "None. The fact strip on the venue's page stays empty, which reads as a record nobody finished.",
       },
       {
         label: "Photographs of the venue",
@@ -447,7 +447,7 @@ export function BusinessCard({ row, ui }: { row: BusinessQueueRow; ui: AdminUi }
                 media={doc.media}
                 label="Open the file"
                 title={DOCUMENT_WORDS[doc.kind] ?? doc.kind}
-                className="nf-caption ml-auto font-semibold underline"
+                className="nf-tap nf-caption ml-auto font-semibold underline"
               />
             </div>
           ))
@@ -462,8 +462,8 @@ export function BusinessCard({ row, ui }: { row: BusinessQueueRow; ui: AdminUi }
           <p className="nf-caption">
             One rung, one decision, one row. The level is the rungs passed with no gap below them
             and is computed by the database, never typed. The identity rung is the only thing in
-            the product that means a human was checked, and a restaurant on this spine still shows
-            no mark of any kind on its own page, so nothing here should be described to a host as
+            the product that means a human was checked, and a restaurant still shows no mark of any
+            kind on its own page, so nothing here should be described to a host as
             a badge.
           </p>
           {RUNGS.map(({ rung, label, meaning }) => {

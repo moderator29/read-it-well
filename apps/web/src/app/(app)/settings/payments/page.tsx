@@ -6,6 +6,24 @@ import { EmptyState, TYPE } from "@/components/app/Screen";
 import { EmptyActions } from "@/components/app/EmptyActions";
 import { PaymentMethodsBlock } from "@/components/app/payments/PaymentMethodsBlock";
 import { resolveSession } from "@/lib/actions/session";
+import { withNext } from "@/lib/auth/next-link";
+import { ListGroup, ListRow } from "@/components/ui/ListGroup";
+import { IconPlate, ICON_PLATE_GLYPH } from "@/components/ui/IconPlate";
+import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import {
+  PARTNERS_SHORT,
+  PAYOUT_ANSWER,
+  SETTINGS_PAY_DOOR,
+  SETTINGS_PAY_PAID_TITLE,
+  SETTINGS_PAY_RECORDS,
+} from "@/lib/money/copy";
+
+/* R3-04: the records beside the methods, each its own screen. */
+const RECORDS: { href: string; icon: UiIconName; key: keyof typeof SETTINGS_PAY_DOOR }[] = [
+  { href: "/receipts", icon: "receipt", key: "receipts" },
+  { href: "/refunds", icon: "hand-coins", key: "refunds" },
+  { href: "/payouts", icon: "bank", key: "payouts" },
+];
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -35,7 +53,7 @@ export default async function PaymentsPage() {
           icon="card-lock"
           title={copy.signInTitle}
           body={copy.signInBody}
-          action={<EmptyActions primary={{ label: "Sign in", href: "/sign-in" }} />}
+          action={<EmptyActions primary={{ label: t.common.signIn, href: withNext("/sign-in", "/settings/payments") }} />}
         />
       </div>
     );
@@ -46,6 +64,35 @@ export default async function PaymentsPage() {
       <PageHeader layout="stacked" title={copy.title} subtitle={copy.lede} fallback="/settings" />
       <PaymentMethodsBlock />
       <p className={`mt-row px-2xs ${TYPE.caption}`}>{copy.cardsNote}</p>
+
+      {/* How a lister is paid, said once here where the bank account is
+          added, from the one sentence every surface reads (D50). */}
+      <section className="nf-panel nf-panel--card mt-block" aria-labelledby="nf-paid-how" data-testid="settings-paid-how">
+        <h2 id="nf-paid-how" className="nf-body font-semibold text-[var(--nf-content-primary)]">
+          {SETTINGS_PAY_PAID_TITLE}
+        </h2>
+        <p className={`mt-inline ${TYPE.body}`}>{PAYOUT_ANSWER}</p>
+      </section>
+
+      <div className="mt-block">
+        <ListGroup label={SETTINGS_PAY_RECORDS} labelAs="h2">
+          {RECORDS.map((door) => (
+            <ListRow
+              key={door.href}
+              href={door.href}
+              chevron
+              leading={
+                <IconPlate size="sm">
+                  <UiIcon name={door.icon} size={ICON_PLATE_GLYPH.sm} />
+                </IconPlate>
+              }
+              title={SETTINGS_PAY_DOOR[door.key].title}
+              sub={SETTINGS_PAY_DOOR[door.key].sub}
+            />
+          ))}
+        </ListGroup>
+      </div>
+      <p className={`mt-row px-2xs ${TYPE.caption}`}>{PARTNERS_SHORT}</p>
     </div>
   );
 }

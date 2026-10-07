@@ -1,18 +1,21 @@
-import { z } from "zod";
-
 /**
- * SUP-05: what an applicant sends back when the reviewer asked for more.
+ * application-respond-schema: the zod schemas the SERVER validates with.
  *
- * An answer in words, documents, or both; never neither, because "sent back"
- * with nothing new in it only puts the same application at the back of the
- * queue. Document paths are checked against the caller's own uid folder by
- * the action (storage RLS enforces the same on the upload itself).
+ * Everything a client component may import (the constants, labels, limits,
+ * copy and pure helpers) lives in `./application-respond-model` and is re-exported here, so a server
+ * module still imports from this file as before. A client component imports
+ * the model, never this file, because this file builds zod schemas at import
+ * time and zod's classic API is 64 KB gzipped in every client chunk that
+ * reaches it (W13, chunk 2008felnqkn1d).
  */
-export const RESPONSE_MAX_CHARS = 2000;
-export const RESPONSE_MAX_DOCUMENTS = 3;
 
-/** The kinds an applicant may file against their own application. */
-export const RESPONSE_DOCUMENT_KINDS = ["identity", "address", "business", "selfie", "association"] as const;
+import { z } from "zod";
+import {
+  RESPONSE_DOCUMENT_KINDS,
+  RESPONSE_MAX_CHARS,
+  RESPONSE_MAX_DOCUMENTS,
+} from "./application-respond-model";
+export * from "./application-respond-model";
 
 export const reviewResponseSchema = z
   .object({
@@ -37,9 +40,3 @@ export const reviewResponseSchema = z
   });
 
 export type ReviewResponse = z.infer<typeof reviewResponseSchema>;
-
-/** Every document path must sit in the caller's own folder. */
-export function pathsBelongTo(userId: string, documents: ReviewResponse["documents"]): boolean {
-  const prefix = `${userId}/`;
-  return documents.every((doc) => doc.path.startsWith(prefix) && !doc.path.includes(".."));
-}

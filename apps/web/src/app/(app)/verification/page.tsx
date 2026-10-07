@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getAgentContext } from "@/lib/agent/listings-queries";
@@ -6,7 +7,9 @@ import { getOwnLadder } from "@/lib/agent/verification-queries";
 import { PageHeader } from "@/components/app/PageHeader";
 import { PageScene } from "@/components/app/PageScene";
 import { KycFlow } from "@/components/verification/KycFlow";
-import { SuccessFromFlag } from "@/components/ui/SuccessFromFlag";
+import { VerificationPath } from "@/components/verification/VerificationPath";
+import { buildPath } from "@/components/verification/verification-path";
+import { VPASS_COOKIE, vpassSeen } from "@/components/verification/payoff-seen";
 import { approvedRecently } from "@/lib/ui/recent-approval";
 import { VninPanel } from "@/components/verification/VninPanel";
 import { PepQuestionPanel } from "@/components/compliance/PepQuestionPanel";
@@ -105,6 +108,37 @@ export default async function VerificationPage({
       />
     ) : null;
   const [ladder, documents] = await Promise.all([getOwnLadder(context), ownDocumentState()]);
+  /* THE PATH (W6, reference 7110): four rungs, each naming what is actually
+     checked, built only from the reviewers' own decisions and the documents'
+     own review state. See `components/verification/verification-path.ts`. */
+  const t = getDictionary(locale);
+  const v = t.experienceAccount.verification;
+  /* `getOwnLadder` answers "unavailable" both for somebody who is not an agent
+     (no ladder exists, which is true and draws the path from their documents)
+     and for an agent whose read failed (a ladder exists and could not be read).
+     Told apart here by the context: for an agent the read failed, and drawing
+     "0 of 4 steps passed" would tell an approved agent they had passed nothing.
+     So on a failed read no path is drawn, only a quiet line saying so (auditor
+     A2, 6 October 2026). */
+  const ladderReadFailed = context.state === "agent" && ladder.state === "unavailable";
+  const path = ladderReadFailed ? (
+    <p
+      role="status"
+      className="text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]"
+      data-testid="verification-path-unreadable"
+    >
+      {t.experienceAccount.verification.unreadable}
+    </p>
+  ) : (
+    <VerificationPath
+      rungs={buildPath({
+        ladder: ladder.state === "ok" ? { rungs: ladder.ladder.rungs } : null,
+        documents,
+      })}
+      copy={t.experienceAccount.verification}
+      locale={locale}
+    />
+  );
   /* SCUML item 20: the PEP question, for listers only (the panel draws
      nothing for anybody without an agents row). */
   const pep = <PepQuestionPanel askedAt="verification" />;
@@ -137,7 +171,7 @@ export default async function VerificationPage({
         state: "suspended",
         reason:
           failed?.note ??
-          "Our team stopped this account. The reason was not recorded here, so they will have to tell you what it was.",
+          v.suspendedNoReason,
       };
     } else if (failed) {
       status = {
@@ -147,8 +181,8 @@ export default async function VerificationPage({
            inventing a reason nobody wrote. */
         reason:
           failed.note ??
-          "The reviewer did not record a reason. Send the documents again and our team will look at them within one working day.",
-        fix: "Replace the document that was refused and send it again. Everything you have already had approved stays approved.",
+          v.rejectedNoReason,
+        fix: v.rejectedFix,
       };
     } else if (agentStatus === "MORE_INFO_REQUIRED") {
       /*
@@ -175,11 +209,21 @@ export default async function VerificationPage({
         state: "more_info",
         request:
           asking?.note ??
-          "A reviewer has asked for something more before they can finish checking this account. What they asked for was not recorded here, so our team will have to tell you.",
-        fix: "Send the document again through the steps below. Anything already approved stays approved.",
+          v.moreInfoNoNote,
+        fix: v.moreInfoFix,
       };
     } else if (ladder.ladder.tier > 0) {
-      status = { state: "approved" };
+      /* THE PAYOFF IS THE SERVER'S CALL (round 5). The plate becomes verified
+         in place only when a rung really passed recently enough to be news
+         AND this device's cookie does not already name this level
+         (`payoff-seen.ts`), so the motion can start on the first painted
+         frame and still never replay on a reload. Every other approved
+         visit draws the plate still. */
+      const tier = ladder.ladder.tier;
+      const news =
+        approvedRecently(Object.values(ladder.ladder.rungs), requestNow()) &&
+        !vpassSeen((await cookies()).get(VPASS_COOKIE)?.value, tier);
+      status = news ? { state: "approved", payoff: { tier } } : { state: "approved" };
     } else if (
       /* The application states that mean "a person is looking at this".
          Spelled from `agent_application_status` rather than guessed: DRAFT is
@@ -206,8 +250,8 @@ export default async function VerificationPage({
       state: "rejected",
       reason:
         documents.reason ??
-        "The reviewer did not record a reason. Send the documents again and our team will look at them within one working day.",
-      fix: "Replace the document that was refused and send it again. Everything you have already had approved stays approved.",
+        v.rejectedNoReason,
+      fix: v.rejectedFix,
     };
   } else if (status === null && documents.state === "pending") {
     status = { state: "pending" };
@@ -248,7 +292,7 @@ export default async function VerificationPage({
               the entry was removed: a back control whose fallback is its own
               address presses into itself. `/profile` is the declared parent and
               is what this now repeats. */}
-          <PageHeader title="Verification" fallback="/profile" />
+          <PageHeader title={t.agent.nav.verification} fallback="/profile" />
         </div>
         {/* The reviewer's words travel INTO the flow. Somebody re-photographing
             a document should not have to remember, from the screen before, which
@@ -256,14 +300,14 @@ export default async function VerificationPage({
         {whatWasSaid && (
           <p className="nf-panel nf-panel--card mb-block block p-card text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
             <span className="block font-semibold text-[var(--nf-content-primary)]">
-              What the reviewer said
+              {v.reviewerSaidHeading}
             </span>
             <span className="mt-inline-tight block">{whatWasSaid}</span>
           </p>
         )}
         {pep}
         {vnin}
-        <KycFlow submit={submitVerification} success={getDictionary(locale).success} />
+        <KycFlow submit={submitVerification} success={getDictionary(locale).success} copy={t.experienceAccount.kyc} />
       </div>
     );
   }
@@ -274,25 +318,18 @@ export default async function VerificationPage({
         <>
           <div className="relative">
             <PageScene art="shield-check" />
-            <PageHeader title="Verification" />
+            <PageHeader title={t.agent.nav.verification} />
           </div>
           <KycStatus status={status} locale={locale} />
+          <div className="mt-block">{path}</div>
           {pep}
-          {/* The approval is decided in the staff console and announced by
-              the database, where no flag can ride on the link, so it opens
-              from the status itself, once per device and once per level: a
-              later rung is a new moment (docs/SUCCESS_MOMENTS.md). */}
-          {status.state === "approved" &&
-          ladder.state === "ok" &&
-          approvedRecently(Object.values(ladder.ladder.rungs), requestNow()) ? (
-            <SuccessFromFlag
-              copy={getDictionary(locale).success}
-              show
-              moment="verificationApproved"
-              seenKey={`verification-approved:tier-${ladder.ladder.tier}`}
-              haptic={false}
-            />
-          ) : null}
+          {/* NO SHEET OVER THE PLATE (round 5). The approval used to open a
+              "Documents approved" sheet here as well, and the plate's payoff
+              waited behind it: two celebrations of one decision, the first a
+              screen laid over the record it was about. The plate itself now
+              becomes verified in place, once per device per level, and marks
+              the other door's key (`verification-approved:tier-N`) so
+              /agent/verification does not celebrate it again. */}
         </>
       ) : (
         <>
@@ -304,10 +341,11 @@ export default async function VerificationPage({
               all. The header is the same one the other two branches draw, and
               the scene is not repeated here because there is no status object
               for it to sit behind. */}
-          <PageHeader title="Verification" fallback="/profile" />
+          <PageHeader title={t.agent.nav.verification} fallback="/profile" />
+          <div className="mb-block">{path}</div>
           {pep}
           {vnin}
-          <KycFlow submit={submitVerification} success={getDictionary(locale).success} />
+          <KycFlow submit={submitVerification} success={getDictionary(locale).success} copy={t.experienceAccount.kyc} />
         </>
       )}
     </div>

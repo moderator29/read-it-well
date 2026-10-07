@@ -2,6 +2,7 @@ import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { panelClass } from "@/components/ui/Panel";
 import { amenityLabel } from "@/components/app/filters/amenities";
 import { ICON } from "@/components/app/Screen";
+import "@/app/css/catalogue.css";
 
 /**
  * The amenity tiles of 9E8B56ED: glass squares with a glyph and a word.

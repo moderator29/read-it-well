@@ -45,6 +45,24 @@ A consumer screen behind a workspace screen *is* returned to. A help page opened
 from the agent drawer goes back to the agent dashboard. "List a property" opened
 from the Create sheet goes back to where the sheet was opened.
 
+### The home is the home of your side
+
+Added 6 October 2026 (Session 3 navigation audit). Vallo has two homes,
+`/home` for Property and `/stays` for Stays. Every screen the two sides share
+(Messages, Notifications, Plans, Saved, Agreements, Payments, Settings,
+Profile, the feed, the assistant, support, the console) declares `/home`, and
+a Stays member who opened one cold (a push, a shared link) and pressed back
+was sent to the Property home, which turned the whole shell over under them.
+
+So when Back lands on a home (`/home`, or `/home-or-landing`, which answers
+`/home` for a member), `sideHome` in `resolve.ts` answers the home of the side
+the screen is painted on: the side the address owns when it owns one
+(`sideOfPath` in `lib/side.constants.ts`), otherwise the side the shell is
+showing (`data-side` on the document, read in `use-back.ts`). A
+Property-owned screen (`/search`, `/agent/*`) never returns to `/stays`; a
+Stays-owned one never to `/home`. The host workspace is a Stays address and
+now declares `/stays` itself. Android's hardware button takes the same answer.
+
 ### Mechanics
 
 - **Up replaces, it does not push.** When the parent is used, it
@@ -194,7 +212,8 @@ Each of these was a real destination under the old code. Each has a test in
 ## The table
 
 The **came-from rule applies to every row**: when the screen behind is safe, Back
-returns to it. This table lists where Back goes otherwise, that is when the
+returns to it, and a `/home` below means the home of the reader's side (see
+"The home is the home of your side"). This table lists where Back goes otherwise, that is when the
 route is opened cold or the screen behind is refused. It is generated from
 `route-parents.ts`. Preview harness routes are left out.
 
@@ -211,6 +230,7 @@ route is opened cold or the screen behind is refused. It is generated from
 | --- | --- | --- |
 | `/search` | `/home-or-landing` |  |
 | `/listing/[id]` | `/search` |  |
+| `/listing/[id]/trust` | `/listing/[id]` |  |
 | `/saved` | `/home` |  |
 | `/saved/searches` | `/saved` |  |
 | `/inspections/gate/[id]` | `/bookings` |  |
@@ -279,7 +299,8 @@ route is opened cold or the screen behind is refused. It is generated from
 | --- | --- | --- |
 | `/settings/passport` | `/settings` |  |
 | `/assistant` | `/home` |  |
-| `/notifications` | `/home` |  |
+| `/notifications` | `/home` (`/stays` on the Stays side) |  |
+| `/notifications/[id]` | `/notifications` |  |
 | `/profile` | `/home` |  |
 | `/profile/application` | `/profile` |  |
 | `/profile/setup` | `/profile` |  |
@@ -304,6 +325,14 @@ route is opened cold or the screen behind is refused. It is generated from
 | `/settings/place` | `/settings` |  |
 | `/settings/privacy` | `/settings` |  |
 | `/settings/privacy/blocked` | `/settings/privacy` |  |
+| `/settings/privacy/ai` | `/settings/privacy` |  |
+| `/settings/privacy/data` | `/settings/privacy` |  |
+| `/settings/privacy/money-lock` | `/settings/privacy` |  |
+| `/settings/passport/[fact]` | `/settings/passport` |  |
+| `/settings/invite` | `/settings` |  |
+| `/settings/invite/how-it-works` | `/settings/invite` |  |
+| `/settings/invite/referrals` | `/settings/invite` |  |
+| `/settings/invite/referrals/[id]` | `/settings/invite/referrals` |  |
 | `/settings/phone` | `/settings` | yes, a flow (form or payment) |
 | `/settings/passcode` | `/settings` | yes, a flow (form or payment) |
 | `/legal/privacy` | `/settings` |  |
@@ -342,7 +371,7 @@ route is opened cold or the screen behind is refused. It is generated from
 | --- | --- | --- |
 | `/host/arrival` | `/host` |  |
 | `/host/earnings` | `/host` |  |
-| `/host` | `/home` |  |
+| `/host` | `/stays` (it was `/home`, which flipped the shell to Property) |  |
 | `/host/apply` | `/host` | yes, a flow (form or payment) |
 | `/host/photos` | `/host` |  |
 | `/host/reservations` | `/host` |  |
@@ -353,6 +382,22 @@ route is opened cold or the screen behind is refused. It is generated from
 | `/host/assistant` | `/host` |  |
 | `/host/settings` | `/host` |  |
 | `/host/notifications` | `/host` |  |
+
+### A feature's first run
+
+`/first-run/[feature]` stands in front of a feature, so each one goes back to
+where the feature sits, never into the feature it introduces. A first run is a
+flow: its exits replace it, and it is never returned to through history.
+
+| Route | Back, opened cold or after an unsafe screen | Never returned to as history |
+| --- | --- | --- |
+| `/first-run/host` | `/stays` | yes, a flow |
+| `/first-run/agent` | `/home` | yes, a flow |
+| `/first-run/verification` | `/agent/dashboard` | yes, a flow |
+| `/first-run/agreements` | `/home` | yes, a flow |
+| `/first-run/invite` | `/settings` | yes, a flow |
+| `/first-run/passport` | `/settings` | yes, a flow |
+| `/first-run/analytics` | `/agent/dashboard` | yes, a flow |
 
 ### The admin console
 

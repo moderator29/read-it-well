@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { nextUnclaimed, SHORTCUTS, shortcutFor, stepTicket, type SupportLane } from "@/lib/admin/support-workspace";
+import { Button } from "@/components/ui/Button";
 
 /**
  * THE DESK'S KEYS. j and k walk the queue on screen, n jumps to the next
@@ -124,9 +125,9 @@ export function SupportKeys({
         >
           <div className="flex items-center justify-between gap-xs">
             <p className="nf-admin-panel__title">Keyboard shortcuts</p>
-            <button type="button" className="nf-admin-seg__item" onClick={() => setHelp(false)}>
+            <Button type="button" variant="quiet" size="sm" onClick={() => setHelp(false)}>
               Close
-            </button>
+            </Button>
           </div>
           <dl className="mt-xs grid grid-cols-[auto_1fr] items-center gap-x-md gap-y-2xs">
             {SHORTCUTS.map((s) => (

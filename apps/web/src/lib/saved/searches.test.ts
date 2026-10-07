@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { getDictionary } from "@vallo/i18n";
 
 import {
   SAVED_SEARCH_LABEL_MAX,
@@ -7,7 +8,10 @@ import {
   readStoredSearch,
   storedSearchJson,
   summariseSearch,
+  searchChipCopyOf,
 } from "./searches";
+
+const CHIP_COPY = searchChipCopyOf(getDictionary("en").shape);
 
 /**
  * A SAVED SEARCH IS A STORED ADDRESS, and everything that can go wrong with
@@ -142,6 +146,8 @@ describe("summariseSearch", () => {
         power: "backup",
         water: "borehole",
       }).params,
+      "en",
+      CHIP_COPY,
     );
     expect(chips).toContain("Yaba");
     expect(chips).toContain("Rentals");
@@ -154,6 +160,18 @@ describe("summariseSearch", () => {
   });
 
   it("has nothing to say about an empty search", () => {
-    expect(summariseSearch({})).toEqual([]);
+    expect(summariseSearch({}, "en", CHIP_COPY)).toEqual([]);
+  });
+
+  it("takes the dictionary's own words for the cash budget, the upfront cap and the shapes", () => {
+    const shape = getDictionary("en").shape;
+    const chips = summariseSearch(
+      canonicalSearch({ type: "rental", max: "2000000", upfront: "12", bq: "1" }).params,
+      "en",
+      CHIP_COPY,
+    );
+    expect(chips).toContain(shape.unit.filterBq);
+    expect(chips).toContain(shape.cash.savedUpfrontYear);
+    expect(chips.some((chip) => chip.includes("2"))).toBe(true);
   });
 });

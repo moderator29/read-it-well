@@ -7,6 +7,17 @@
  * Tokens only. Transform and opacity only for motion, and every motion has a
  * reduced-motion and a Calm/Off answer at the foot. A partial of globals.css.
  */
+/*
+ * Loaded by the member layouts (the signed-in app, the agent and host
+ * workspaces, admin and the preview harness), not by globals.css: C6's member
+ * CSS move, 6 October. No signed-out route draws these classes, so signed-out
+ * pages no longer download them. Comments below that still say "global" or "globals.css"
+ * describe where the sheet used to load. This line states the layer order the
+ * document already has from Tailwind, so the order holds whichever chunk the
+ * browser receives first.
+ */
+@layer theme, base, components, utilities;
+
 @layer components {
   /* ---------------------------------------------- B2: recent searches */
 
@@ -144,7 +155,7 @@
   }
   .nf-lookback__note {
     font-size: var(--nf-text-overline);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--nf-content-muted);
   }
 
@@ -152,12 +163,12 @@
 
   .nf-handoff__price {
     font-size: var(--nf-text-h3);
-    font-weight: 750;
+    font-weight: 700;
     color: var(--nf-content-primary);
   }
   .nf-handoff__note {
     font-size: var(--nf-text-body-sm);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--nf-content-muted);
   }
 
@@ -242,7 +253,7 @@
     overscroll-behavior-x: contain;
     scroll-snap-type: x mandatory;
     scroll-padding-inline-start: var(--nf-compare-label);
-    border: 1px solid var(--nf-card-border);
+    border: 1px solid var(--nf-tier-card-edge);
     border-radius: var(--nf-radius-lg);
     background: var(--nf-surface-primary);
     box-shadow: var(--nf-card-shadow);
@@ -306,7 +317,7 @@
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
     font-size: var(--nf-text-caption);
-    font-weight: 650;
+    font-weight: 600;
     line-height: 1.3;
     color: var(--nf-content-primary);
   }
@@ -336,7 +347,7 @@
     color: var(--nf-content-primary);
   }
   .nf-compare__cell[data-kind="money"] {
-    font-weight: 650;
+    font-weight: 600;
   }
   .nf-compare__none {
     font-weight: 400;

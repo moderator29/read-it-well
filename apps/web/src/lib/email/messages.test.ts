@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { sortEmailImages } from "./images";
+import { FAMILY } from "./icons";
 import { EVERY_MESSAGE } from "./fixtures";
 import {
   bookingRefunded,
@@ -141,24 +143,29 @@ describe("every message in the catalogue", () => {
     expect(emoji.test(message.text)).toBe(false);
   });
 
-  it.each(EVERY_MESSAGE)("$name declares itself dark and carries its dark scheme", ({ message }) => {
-    expect(message.html).toContain('name="color-scheme" content="dark"');
+  /* D23 (6 October 2026) replaced the dark-everywhere inline layer: every
+     message is white in light mode and carries the dark scheme for a reader
+     whose mail is dark, so it declares both (W9). */
+  it.each(EVERY_MESSAGE)("$name declares light and dark and carries its dark scheme", ({ message }) => {
+    expect(message.html).toContain('name="color-scheme" content="light dark"');
     expect(message.html).toContain("@media (prefers-color-scheme: dark)");
   });
 
   it.each(EVERY_MESSAGE)("$name carries the lockup and puts no other words inside an image", ({ message }) => {
     /*
-     * The one image in the shell is the lockup on its navy tile, whose alt is
-     * the brand name and nothing more. Any image carrying copy would need alt
-     * text of its own, so an img with any other alt is the signal that
+     * The lockup on its navy tile, whose alt is the brand name and nothing
+     * more; at most one Tier B object, whose alt is its family word; and the
+     * row glyphs, which are decorative and say nothing (icons.ts). Any other
+     * picture, or any of these with other alt text, is the signal that
      * somebody has put words in a picture.
      */
-    const images = message.html.match(/<img\b[^>]*>/g) ?? [];
-    expect(images[0]).toContain(LOCKUP_PATH);
-    expect(images[0]).toContain(`alt="${WORDMARK_ALT}"`);
-    // Beyond the lockup, only the decorative 3D mark, with no words (icons.test.ts).
-    for (const image of images.slice(1)) expect(image).toContain('alt=""');
-    expect(images.length).toBeLessThanOrEqual(2);
+    const images = sortEmailImages(message.html);
+    expect(images.lockup).toContain(LOCKUP_PATH);
+    expect(images.lockup).toContain(`alt="${WORDMARK_ALT}"`);
+    expect(images.object.length).toBeLessThanOrEqual(1);
+    for (const image of images.object) expect(image).toMatch(new RegExp(`alt="(${FAMILY_ALTS.join("|")})"`));
+    for (const image of images.glyphs) expect(image).toContain('alt=""');
+    expect(images.other).toEqual([]);
   });
 
   it.each(EVERY_MESSAGE)("$name closes with the sign-off and the legal line, in both renderings", ({ message }) => {
@@ -168,6 +175,8 @@ describe("every message in the catalogue", () => {
     }
   });
 });
+
+const FAMILY_ALTS = Object.values(FAMILY).map((f) => f.alt);
 
 describe("the greeting can never render Hello comma", () => {
   const nameless = [undefined, null, "", "   ", "\t\n"];

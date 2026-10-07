@@ -1,4 +1,5 @@
 import "server-only";
+import { reportReadError } from "@/lib/observability/read-error";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { readCountedReviews } from "./weight";
@@ -91,6 +92,7 @@ export async function getListingReviews(
         .order("created_at", { ascending: false })
         .limit(limit),
     );
+    await reportReadError("read.reviews.getListingReviews", error);
     if (error || !data) return [];
 
     // The hosts' answers, in one keyed read. review_responses_select mirrors
@@ -143,6 +145,7 @@ export async function getReviewView(bookingId: string, locale: Locale): Promise<
       .eq("id", bookingId)
       .maybeSingle();
 
+    await reportReadError("read.reviews.getReviewView", error);
     if (error) return { state: "unavailable" };
     if (!booking) return { state: "missing" };
 
@@ -222,6 +225,7 @@ export async function getReviewView(bookingId: string, locale: Locale): Promise<
       .eq("booking_id", booking.id)
       .limit(1)
       .maybeSingle();
+    await reportReadError("read.reviews.getReviewView", rentError);
     if (rentError) return { state: "unavailable" };
 
     const reason = reviewIneligibility(
@@ -270,6 +274,7 @@ export async function getPlatformReviews(
         .order("created_at", { ascending: false })
         .limit(limit),
     );
+    await reportReadError("read.reviews.getPlatformReviews", error);
     if (error || !data) return [];
     return data.map((row) => ({
       id: row.id,

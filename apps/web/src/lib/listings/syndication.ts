@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { publicListingTitle } from "./public-title";
+import { SITE_CARD } from "@/lib/site/site-card";
 
 import type { Listing } from "./types";
 import type { ListingSearchFilter } from "./types";
@@ -251,11 +252,15 @@ export function listingMetadata(listing: Listing | null, origin: string): Metada
         title: "An example listing on Vallo",
         description: EXAMPLE_STATEMENT,
         url: listingUrl(listing, origin),
+        /* The site's card, never a photograph of a place that does not
+           exist; without it the unfurl was blank (`site-card.ts`). */
+        images: [SITE_CARD],
       },
       twitter: {
         card: "summary",
         title: "An example listing on Vallo",
         description: EXAMPLE_STATEMENT,
+        images: [SITE_CARD],
       },
     };
   }
@@ -277,13 +282,14 @@ export function listingMetadata(listing: Listing | null, origin: string): Metada
       title: publicListingTitle(listing),
       description,
       url,
-      ...(listing.photos.length > 0 ? { images: listing.photos.slice(0, 1) } : {}),
+      /* No photograph: the site's card rather than a blank unfurl. */
+      images: listing.photos.length > 0 ? listing.photos.slice(0, 1) : [SITE_CARD],
     },
     twitter: {
       card: listing.photos.length > 0 ? "summary_large_image" : "summary",
       title: publicListingTitle(listing),
       description,
-      ...(listing.photos.length > 0 ? { images: listing.photos.slice(0, 1) } : {}),
+      images: listing.photos.length > 0 ? listing.photos.slice(0, 1) : [SITE_CARD],
     },
   };
 }

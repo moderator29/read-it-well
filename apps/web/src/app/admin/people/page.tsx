@@ -4,6 +4,7 @@ import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { searchPeople } from "@/lib/admin/member-queries";
 import { adminUi } from "../_components/ui";
+import { Button, ButtonLink } from "@/components/ui/Button";
 
 export const dynamic = "force-dynamic";
 
@@ -54,13 +55,13 @@ export default async function PeoplePage({
             spellCheck={false}
             className="nf-field min-h-11 min-w-0 flex-1 basis-60"
           />
-          <button type="submit" className="nf-btn nf-btn--primary nf-btn--md min-h-11">
+          <Button type="submit" variant="primary">
             Search
-          </button>
+          </Button>
           {q && (
-            <Link href="/admin/people" className="nf-btn nf-btn--ghost nf-btn--md inline-flex min-h-11 items-center">
+            <ButtonLink href="/admin/people" variant="quiet">
               Clear
-            </Link>
+            </ButtonLink>
           )}
         </div>
       </form>
@@ -90,6 +91,11 @@ export default async function PeoplePage({
             {read.data.emailUnavailable && (
               <p className="mt-row nf-body-sm text-[var(--nf-content-secondary)]">
                 Looking up an email address is not switched on in this database. Search by name or handle instead.
+              </p>
+            )}
+            {!q && read.data.hits.length === 0 && (
+              <p className="mt-row nf-body-sm text-[var(--nf-content-muted)]">
+                Nobody has signed up yet. Each new member appears here, newest first, the moment their account exists.
               </p>
             )}
             {read.data.term && read.data.hits.length === 0 && !read.data.emailUnavailable && (

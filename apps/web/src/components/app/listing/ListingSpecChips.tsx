@@ -2,6 +2,7 @@ import { countOf, formatNumber, type Dictionary, type Locale } from "@vallo/i18n
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import type { Listing } from "@/lib/listings/types";
 import { ICON } from "@/components/app/Screen";
+import "@/app/css/catalogue.css";
 
 /**
  * The spec chips under the price (7B5335E0): beds, baths, floor area,

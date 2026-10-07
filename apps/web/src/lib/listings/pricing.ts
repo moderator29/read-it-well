@@ -137,8 +137,16 @@ export function headlinePeriod(headline: Headline): PricePeriod | "sale" {
   return headline.kind === "sale" ? "sale" : headline.period;
 }
 
-/** The words that follow a figure. "per year", "per night", "asking price". */
-export const PERIOD_SUFFIX: Record<PricePeriod | "sale", string> = {
+/**
+ * The words that follow a figure. "per year", "per night", "asking price".
+ *
+ * ENGLISH, AND ONLY FOR STAFF. The admin desk (`app/admin/listings`,
+ * `lib/admin/queries.ts`) reads this map; every member surface reads the same
+ * words in the reader's language from `t.agentListings.pricing.period`
+ * (typed `PeriodWords` below). `pricing.test.ts` pins the two together, so
+ * the English cannot drift apart.
+ */
+export const PERIOD_SUFFIX: PeriodWords = {
   month: "per month",
   quarter: "per quarter",
   year: "per year",
@@ -147,36 +155,29 @@ export const PERIOD_SUFFIX: Record<PricePeriod | "sale", string> = {
   sale: "asking price",
 };
 
-/** The same, shortened for a map pin or a chip where the row is one line. */
-export const PERIOD_SUFFIX_SHORT: Record<PricePeriod | "sale", string> = {
-  month: "/mo",
-  quarter: "/qtr",
-  year: "/yr",
-  night: "/night",
-  guest: "/head",
-  sale: "",
-};
+/**
+ * The words after a figure, one per period plus "sale", from the reader's
+ * dictionary: `t.agentListings.pricing.period` (long, "per year"),
+ * `t.experienceLabels.periodShort` (a card or a map pin, "/yr", typed
+ * `PeriodSlashWords` because, like the slash set, it has no "sale").
+ */
+export type PeriodWords = Record<PricePeriod | "sale", string>;
 
 /**
- * The same again in the booking panels' own style, with the slash.
+ * The booking panels' own style, with the slash: "₦450,000 / night", from
+ * `t.experienceLabels.periodSlash`.
  *
- * A third map rather than a clever join, because the panels' visual is
- * "₦450,000 / night" and neither of the two above produces it: `PERIOD_SUFFIX`
- * has no slash and `PERIOD_SUFFIX_SHORT` abbreviates the word. Both panels were
- * hardcoding their string instead, which is how `RentalPanel` came to print
- * "/ year" over a listing the row said was priced monthly.
+ * A third set rather than a clever join, because neither of the two above
+ * produces it: the long words have no slash and the short ones abbreviate.
+ * Both panels were hardcoding their string instead, which is how
+ * `RentalPanel` came to print "/ year" over a listing the row said was priced
+ * monthly.
  *
- * "sale" is absent on purpose. An asking price divided by nothing is not a rate
- * and there is no unit to put after the slash; a sale never reaches a panel
- * that uses this.
+ * "sale" is absent on purpose. An asking price divided by nothing is not a
+ * rate and there is no unit to put after the slash; a sale never reaches a
+ * panel that uses this.
  */
-export const PERIOD_SUFFIX_SLASH: Record<PricePeriod, string> = {
-  month: "/ month",
-  quarter: "/ quarter",
-  year: "/ year",
-  night: "/ night",
-  guest: "/ head",
-};
+export type PeriodSlashWords = Record<PricePeriod, string>;
 
 /**
  * One period, as the noun you would count. "2 years", "3 months".
@@ -211,18 +212,9 @@ export const SALE_STATUS_LABEL: Record<SaleStatus, string> = {
   sold: "Sold",
 };
 
-export const FURNISHING_LABEL: Record<Furnishing, string> = {
-  unfurnished: "Unfurnished",
-  semi_furnished: "Semi furnished",
-  fully_furnished: "Fully furnished",
-};
-
-export const CONDITION_LABEL: Record<BuildCondition, string> = {
-  newly_built: "Newly built",
-  renovated: "Renovated",
-  old: "Older build",
-  off_plan: "Off plan",
-};
+/** `listings.furnished` and `listings.build_condition` as words: `t.experienceLabels.furnishing` and `.condition`. */
+export type FurnishingWords = Record<Furnishing, string>;
+export type ConditionWords = Record<BuildCondition, string>;
 
 /**
  * The parts of what it costs to move in, in the order a tenant meets them.

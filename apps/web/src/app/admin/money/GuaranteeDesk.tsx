@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { formatMoney, type Locale } from "@vallo/i18n/core";
 import { decideClaim, markClaimPaid } from "@/lib/admin/agreements-actions";
 import type { ClaimRow } from "@/lib/admin/reads/agreements";
+import { DragToConfirm } from "@/components/ui/DragToConfirm";
+import type { RulingWords } from "../_components/rulings";
 
 /**
  * GUARANTEE CLAIMS, DECIDED BY A PERSON.
@@ -28,18 +30,20 @@ const ITEM_LABEL: Record<string, string> = {
   overall: "Overall condition",
 };
 
-function ClaimItem({ claim, locale }: { claim: ClaimRow; locale: Locale }) {
-  const [pending, start] = useTransition();
+function ClaimItem({ claim, locale, words }: { claim: ClaimRow; locale: Locale; words: RulingWords }) {
   const [amount, setAmount] = useState(String(claim.requestedMinor / 100));
   const [reason, setReason] = useState("");
   const [reference, setReference] = useState("");
   const [message, setMessage] = useState<string | null>(null);
 
-  const run = (fn: () => Promise<{ ok: boolean; error?: string }>, done: string) =>
-    start(async () => {
-      const result = await fn();
-      setMessage(result.ok ? done : (result.error ?? "That did not go through."));
-    });
+  /* A ruling is a slide, and a slide is only confirmed once the server has
+     said so: this returns what the server said, so the track never claims a
+     decision that was refused. */
+  const run = async (fn: () => Promise<{ ok: boolean; error?: string }>, done: string): Promise<boolean> => {
+    const result = await fn();
+    setMessage(result.ok ? done : (result.error ?? "That did not go through."));
+    return result.ok;
+  };
 
   return (
     <li className="nf-admin-queue-row" data-testid="claim-row" data-status={claim.status}>
@@ -78,30 +82,35 @@ function ClaimItem({ claim, locale }: { claim: ClaimRow; locale: Locale }) {
               Reason (required to reject)
               <input className="nf-field mt-3xs" value={reason} maxLength={1000} onChange={(e) => setReason(e.target.value)} />
             </label>
-            <div className="flex gap-inline">
-              <button
-                type="button"
-                className="nf-btn nf-btn--primary"
-                disabled={pending}
-                onClick={() =>
+            {/* Approving commits the reserve to pay the claimant, so it is a money
+                slide that never resets; rejecting is a ruling and a slide too. */}
+            <div className="grid gap-inline">
+              <DragToConfirm
+                money
+                armedLabel={words.armed}
+                label={words.slideApprove}
+                confirmingLabel={words.confirming}
+                confirmedLabel={words.confirmed}
+                errorLabel={words.error}
+                onConfirm={() =>
                   run(
                     () => decideClaim({ claimId: claim.id, decision: "approve", amountNaira: amount, reason }),
                     "Approved. The claimant was told; pay it from the reserve account and mark it paid.",
                   )
                 }
-              >
-                Approve
-              </button>
-              <button
-                type="button"
-                className="nf-btn nf-btn--glass"
-                disabled={pending || reason.trim().length < 10}
-                onClick={() =>
+                data-testid="claim-approve"
+              />
+              <DragToConfirm
+                label={words.slideReject}
+                confirmingLabel={words.confirming}
+                confirmedLabel={words.confirmed}
+                errorLabel={words.error}
+                disabled={reason.trim().length < 10}
+                onConfirm={() =>
                   run(() => decideClaim({ claimId: claim.id, decision: "reject", reason }), "Rejected. The claimant was told why.")
                 }
-              >
-                Reject
-              </button>
+                data-testid="claim-reject"
+              />
             </div>
           </div>
         ) : claim.status === "approved" ? (
@@ -110,14 +119,17 @@ function ClaimItem({ claim, locale }: { claim: ClaimRow; locale: Locale }) {
               Bank transfer reference
               <input className="nf-field mt-3xs" value={reference} onChange={(e) => setReference(e.target.value)} />
             </label>
-            <button
-              type="button"
-              className="nf-btn nf-btn--primary"
-              disabled={pending || reference.trim().length < 4}
-              onClick={() => run(() => markClaimPaid({ claimId: claim.id, reference }), "Marked paid. The claimant was told.")}
-            >
-              Mark paid
-            </button>
+            <DragToConfirm
+              money
+              armedLabel={words.armed}
+              label={words.slidePaid}
+              confirmingLabel={words.confirming}
+              confirmedLabel={words.confirmed}
+              errorLabel={words.error}
+              disabled={reference.trim().length < 4}
+              onConfirm={() => run(() => markClaimPaid({ claimId: claim.id, reference }), "Marked paid. The claimant was told.")}
+              data-testid="claim-paid"
+            />
           </div>
         ) : null}
       </div>
@@ -125,14 +137,14 @@ function ClaimItem({ claim, locale }: { claim: ClaimRow; locale: Locale }) {
   );
 }
 
-export function GuaranteeClaims({ claims, locale }: { claims: ClaimRow[]; locale: Locale }) {
+export function GuaranteeClaims({ claims, locale, words }: { claims: ClaimRow[]; locale: Locale; words: RulingWords }) {
   if (claims.length === 0) {
     return <p className="nf-body text-[var(--nf-content-secondary)]">No claims have been made on the Guarantee.</p>;
   }
   return (
     <ul className="nf-admin-queue" data-testid="guarantee-claims">
       {claims.map((claim) => (
-        <ClaimItem key={claim.id} claim={claim} locale={locale} />
+        <ClaimItem key={claim.id} claim={claim} locale={locale} words={words} />
       ))}
     </ul>
   );

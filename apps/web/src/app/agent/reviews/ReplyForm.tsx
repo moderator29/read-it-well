@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { removeReviewReply, replyToReview, type ReplyReceipt } from "@/lib/agent/reviews-actions";
-import { REPLY_MAX } from "@/lib/agent/reviews-schema";
+import { REPLY_MAX } from "@/lib/agent/reviews-model";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";

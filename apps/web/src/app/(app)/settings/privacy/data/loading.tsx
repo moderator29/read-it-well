@@ -1,0 +1,13 @@
+import { Skeleton } from "@/components/ui/Skeleton";
+import { LoadingShell, PageHeaderSkeleton } from "@/components/app/ScreenSkeleton";
+
+/** The wait, on a privacy page: the header, the explanation plate, then the group's rows. */
+export default function LoadingPrivacyData() {
+  return (
+    <LoadingShell label="Loading your data" className="mx-auto w-full max-w-2xl">
+      <PageHeaderSkeleton />
+      <Skeleton height="4.5rem" radius="lg" className="mb-md" />
+      <Skeleton height="9rem" radius="lg" />
+    </LoadingShell>
+  );
+}

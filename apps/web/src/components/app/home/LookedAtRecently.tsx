@@ -33,7 +33,7 @@ import {
 export function LookedAtRecently({
   copy,
 }: {
-  copy: { title: string; clear: string; clearLabel: string; example: string; verified: string };
+  copy: { title: string; clear: string; clearLabel: string; verified: string };
 }) {
   const entries = useSyncExternalStore(subscribeRecent, recentListingsSnapshot, recentListingsServerSnapshot);
   if (entries.length === 0) return null;
@@ -58,7 +58,7 @@ export function LookedAtRecently({
   );
 }
 
-function LookbackCard({ entry, copy }: { entry: RecentListing; copy: { example: string; verified: string } }) {
+function LookbackCard({ entry, copy }: { entry: RecentListing; copy: { verified: string } }) {
   return (
     <Link
       href={`/listing/${entry.id}`}
@@ -82,9 +82,9 @@ function LookbackCard({ entry, copy }: { entry: RecentListing; copy: { example: 
         {entry.photo ? (
           <RemoteImage src={entry.photo} alt="" width={152} height={114} sizes="152px" loading="lazy" />
         ) : null}
-        {entry.mark === "example" ? (
-          <span className="nf-badge nf-badge--example">{copy.example}</span>
-        ) : entry.mark === "verified" ? (
+        {/* D24: no example mark; the glance's "example" mark draws nothing,
+            and Verified is only ever set on a row that is not an example. */}
+        {entry.mark === "verified" ? (
           <span className="nf-badge nf-badge--verified">{copy.verified}</span>
         ) : null}
       </span>

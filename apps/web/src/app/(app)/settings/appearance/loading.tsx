@@ -11,6 +11,8 @@ export default function LoadingAppearanceSettings() {
   return (
     <LoadingShell label="Loading appearance" className="mx-auto w-full max-w-2xl">
       <PageHeaderSkeleton subtitle />
+      {/* The explanation plate every settings page opens on (W6, D25). */}
+      <Skeleton height="4.5rem" radius="lg" className="mb-md" />
       <div aria-hidden="true" className="nf-sgroup mb-block">
         <div className="nf-sgroup__label">
           <Skeleton width="5rem" height="0.75rem" radius="sm" />

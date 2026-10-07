@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { getDictionary } from "@vallo/i18n";
 
 /**
  * F-08: the password step says one neutral thing, and never whether an
@@ -12,9 +13,12 @@ const src = (path: string) => readFileSync(join(__dirname, "../..", path), "utf8
 
 describe("the sign-in password step", () => {
   it("answers a wrong password with one neutral sentence that offers the reset", () => {
-    expect(src("lib/auth/actions.ts")).toContain(
-      '"That email and password do not match. Check both, or reset your password."',
+    /* The sentence is the dictionary's (U1); the action answers with it for
+       Supabase's "invalid login credentials", whatever the address. */
+    expect(getDictionary("en").experienceEntry.refusals.credentials).toBe(
+      "That email and password do not match. Check both, or reset your password.",
     );
+    expect(src("lib/auth/actions.ts")).toMatch(/invalid login credentials"\)\) \{[\s\S]{0,200}return w\.credentials;/);
   });
 
   it("does not draw the no-account notice", () => {

@@ -1,13 +1,14 @@
 "use client";
 
+import type { AppearanceCopy, DataCardCopy, LanguageCopy, NotificationsCardCopy, PrivacyCardCopy, SearchCardCopy, SecurityCardCopy } from "./settings-copy";
 import { useState, useTransition, type ReactNode } from "react";
 import { setLite } from "@/lib/ui/lite";
 import { useRouter } from "next/navigation";
-import { LOCALES, localeMeta, type Dictionary, type Locale } from "@vallo/i18n/core";
+import { LOCALES, localeMeta, type Locale } from "@vallo/i18n/core";
 import { LOCALE_COOKIE } from "@/lib/locale.constants";
 import { updateSettings } from "@/lib/profile/actions";
 import { NIGERIAN_STATES } from "@/lib/data/nigeria";
-import { RowButton, RowSelect, RowSwitch, RowValue, SettingsGroup } from "./rows";
+import { RowButton, RowLink, RowSelect, RowSwitch, RowValue, SettingsGroup } from "./rows";
 import { useClientMount } from "@/lib/ui/client-mount";
 import {
   useApplyDeviceSettings,
@@ -62,7 +63,7 @@ import {
  * Text size scales the root font size, which every rem measure in the app
  * follows. Both settings apply instantly and persist on this device.
  */
-export function AppearanceCard({ t, children }: { t: Dictionary; children?: ReactNode }) {
+export function AppearanceCard({ t, children }: { t: AppearanceCopy; children?: ReactNode }) {
   const { settings, set } = useNfSettings();
   const copy = t.settings.appearance;
 
@@ -167,7 +168,7 @@ export function LanguageRow({
   sub,
   glyph,
 }: {
-  t: Dictionary;
+  t: LanguageCopy;
   current: Locale;
   /** The settings home names the row "Language" with "App language" under
       it, as the render draws it; the appearance screen keeps the one line. */
@@ -218,7 +219,7 @@ export function LanguageRow({
 
 type NotifyKey = "notifyPush" | "notifyEmail" | "notifySms" | "notifyWhatsapp";
 
-export function NotificationsCard({ t }: { t: Dictionary }) {
+export function NotificationsCard({ t }: { t: NotificationsCardCopy }) {
   const { settings, set } = useNfSettings();
   const copy = t.settings.notifications;
 
@@ -244,7 +245,7 @@ export function NotificationsCard({ t }: { t: Dictionary }) {
 
 /* ---------------------------------------------------------------- privacy */
 
-export function PrivacyCard({ t }: { t: Dictionary }) {
+export function PrivacyCard({ t }: { t: PrivacyCardCopy }) {
   const { settings, set } = useNfSettings();
   const copy = t.settings.privacy;
 
@@ -270,7 +271,7 @@ export function PrivacyCard({ t }: { t: Dictionary }) {
 
 /* ----------------------------------------------------------------- search */
 
-export function SearchCard({ t }: { t: Dictionary }) {
+export function SearchCard({ t }: { t: SearchCardCopy }) {
   const { settings, set } = useNfSettings();
   const copy = t.settings.search;
 
@@ -288,7 +289,9 @@ export function SearchCard({ t }: { t: Dictionary }) {
         ]}
         onChange={(next) => set("defaultCity", next)}
       />
-      <RowValue icon="wallet" label={copy.currency} value="₦ NGN" />
+      {/* R3-16: the currency is explained on its own screen rather than
+          stated here as a read-only code. */}
+      <RowLink href="/settings/region" icon="banknote" label={copy.currency} value="₦" />
       <RowSelect
         icon="map"
         label={copy.mapDistances}
@@ -312,7 +315,7 @@ export function SearchCard({ t }: { t: Dictionary }) {
  * only session; both are gone. Ending sessions is real and lives on
  * /settings/devices, reached through the `DevicesRow` passed in as children.
  */
-export function SecurityCard({ t, children }: { t: Dictionary; children?: ReactNode }) {
+export function SecurityCard({ t, children }: { t: SecurityCardCopy; children?: ReactNode }) {
   const copy = t.settings.security;
   /*
    * DERIVED DURING RENDER, BEHIND THE CLIENT LATCH.
@@ -355,7 +358,7 @@ export function SecurityCard({ t, children }: { t: Dictionary; children?: ReactN
  * bookings and documents are held server-side). It is gone until the real
  * export exists (OPS-12).
  */
-export function DataCard({ t }: { t: Dictionary }) {
+export function DataCard({ t }: { t: DataCardCopy }) {
   const copy = t.settings.data;
   const [confirmClear, setConfirmClear] = useState(false);
 

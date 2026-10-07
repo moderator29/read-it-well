@@ -399,6 +399,19 @@
     display: grid;
     gap: 1.5rem;
   }
+  /* The figure hero on the band (reference 7033, Session 3): "Needs you
+     today" large and counting, then the one next action as a single row,
+     then the count cards. Air above the cards so the figure reads first. */
+  .nf-today-hero {
+    display: grid;
+    gap: var(--nf-space-md);
+    margin-bottom: var(--nf-space-lg);
+  }
+  .nf-today-hero__next {
+    width: 100%;
+    max-width: 34rem;
+    justify-self: center;
+  }
   .nf-desk-kpis {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -439,7 +452,7 @@
   }
   .nf-desk-card {
     padding: 1rem;
-    border: var(--nf-border-width) solid var(--nf-card-border);
+    border: var(--nf-border-width) solid var(--nf-tier-card-edge);
     border-radius: var(--nf-radius-card);
     background: var(--nf-surface-primary);
     box-shadow: var(--nf-card-shadow);
@@ -481,7 +494,7 @@
     background: transparent;
     appearance: none;
     font-size: var(--nf-text-body-sm);
-    font-weight: 500;
+    font-weight: 400;
     color: inherit;
     cursor: pointer;
   }

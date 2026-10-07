@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { findMentions } from "@/lib/social/mentions-schema";
-import { BOT_HANDLE } from "@/lib/social/bot-schema";
+import { BOT_HANDLE } from "@/lib/social/bot-model";
 
 /**
  * The words in a post, with the handles in them turned into people.

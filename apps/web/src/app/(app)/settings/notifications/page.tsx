@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { forNotificationsCard } from "@/components/app/account/settings-copy";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
@@ -7,7 +8,9 @@ import { loadSettingsState } from "@/lib/profile/queries";
 import { PushDevices, type PushDeviceView } from "@/components/app/push/PushDevices";
 import { PushSetting } from "@/components/app/push/PushSetting";
 import { deviceName, loadPushDevices, whenPhrase } from "@/lib/push/devices";
-import { AccountNotificationsCard } from "../AccountToggles";
+import { NotificationMatrix } from "./NotificationMatrix";
+import { SettingsLede } from "@/components/app/account/SettingsLede";
+import { SettingsInnerNav } from "@/components/app/account/SettingsInnerNav";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: getDictionary(await getLocale()).settings.notifications.label };
@@ -58,6 +61,7 @@ export default async function NotificationsSettingsPage() {
   const t = getDictionary(locale);
   const account = await loadSettingsState();
   const push = await loadPushDevices();
+  const copy = t.experienceAccount.settings;
 
   const rows: PushDeviceView[] =
     push.state === "signed-in"
@@ -77,17 +81,31 @@ export default async function NotificationsSettingsPage() {
         subtitle={t.settings.hub.notificationsSub}
         fallback="/settings"
       />
+      <SettingsLede label={copy.lede.what} what={copy.lede.notifications.what} who={copy.lede.notifications.who} />
+      {push.state === "signed-in" && (
+        <SettingsInnerNav
+          label={copy.nav.label}
+          toggleLabel={copy.nav.toggle}
+          currentLabel={t.settings.notifications.label}
+          sections={[
+            { id: "settings-notifications", label: copy.notificationsNav.navChannels, icon: "bell" },
+            { id: "settings-push", label: copy.notificationsNav.navPhone, icon: "phone" },
+          ]}
+        />
+      )}
       <section id="settings-notifications" className="scroll-mt-28">
         {account.state === "signed-in" ? (
-          <AccountNotificationsCard t={t} initial={account.settings.notifications} />
+          /* R3-14: event by channel, and quiet hours, each cell a preference
+             delivery reads (NotificationMatrix's header says which). */
+          <NotificationMatrix initial={account.settings.notifications} copy={t.experienceSettings.notifications} />
         ) : (
-          <NotificationsCard t={t} />
+          <NotificationsCard t={forNotificationsCard(t)} />
         )}
       </section>
 
       {push.state === "signed-in" && (
         <section id="settings-push" className="mt-block scroll-mt-28 space-y-block">
-          <h2 className="nf-title-sm text-content">On your phone</h2>
+          <h2 className="nf-title-sm text-content">{copy.notificationsNav.navPhone}</h2>
           {/* The same live rows the list below draws, by `device_ref`. The
               control reads on only when THIS device's ref is among them: see
               `components/app/push/device-state.ts`. */}

@@ -1,0 +1,50 @@
+/*
+ * Layout for the ported-components board only. Not shipped to a product page:
+ * it is imported by PortedBoard.tsx, which sits behind the preview gate.
+ */
+@layer components {
+  /*
+   * A frame for the two components that are `position: fixed` in the product
+   * (LiveIsland, BatchTray). A transform makes the frame their containing
+   * block, so each is drawn inside its own box instead of on top of the board.
+   */
+  .nf-gal-frame {
+    position: relative;
+    overflow: hidden;
+    transform: translateZ(0);
+    min-block-size: 22rem;
+    border-radius: var(--nf-radius-card);
+    border: var(--nf-border-width) solid var(--nf-border-subtle);
+    background: var(--nf-surface-secondary);
+  }
+  .nf-gal-frame .nf-live,
+  .nf-gal-frame .nf-batch {
+    position: absolute;
+  }
+  .nf-gal-frame .nf-live {
+    inset-block-start: var(--nf-space-md);
+  }
+  .nf-gal-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--nf-space-sm);
+  }
+  .nf-gal-item {
+    justify-content: space-between;
+    padding: var(--nf-space-sm);
+    border-radius: var(--nf-radius-md);
+    border: var(--nf-border-width) solid var(--nf-border-subtle);
+    background: var(--nf-surface-elevated);
+  }
+  .nf-gal-note {
+    margin: 0;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-gal-range {
+    inline-size: min(100%, 16rem);
+    min-block-size: 2.75rem;
+    accent-color: var(--nf-brand-primary);
+  }
+}

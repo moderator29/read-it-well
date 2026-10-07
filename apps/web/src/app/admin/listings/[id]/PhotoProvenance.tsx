@@ -66,7 +66,9 @@ export function PhotoProvenance({ provenance, total }: { provenance: Provenance;
       {coverage.poolWaiting > 0 && (
         <div className="mt-xs grid gap-2xs">
           <p className="nf-rv-msg">{DESK.photosWaiting.replace("{count}", String(coverage.poolWaiting))}</p>
-          <PhotoBackfillButton />
+          <PhotoBackfillButton
+            copy={{ backfill: DESK.photosBackfill, backfilling: DESK.photosBackfilling, backfilled: DESK.photosBackfilled }}
+          />
         </div>
       )}
     </Panel>

@@ -37,6 +37,19 @@
  * no longer impose a background or a radius. That is a change with an eye on it
  * rather than a search and replace, and it belongs to whoever owns this file.
  */
+/*
+ * Loaded by the member layouts (the signed-in app, the agent and host
+ * workspaces, admin and the preview harness), not by globals.css: C6's member
+ * CSS move, 6 October. No signed-out route draws these classes, so signed-out
+ * pages no longer download them. What a signed-out route does draw, and
+ * what must keep its old place in the cascade, stays global in
+ * `social-feed.shared.css`. Comments below that still say "global" or "globals.css"
+ * describe where the sheet used to load. This line states the layer order the
+ * document already has from Tailwind, so the order holds whichever chunk the
+ * browser receives first.
+ */
+@layer theme, base, components, utilities;
+
 @layer components {
   /* ------------------------------------------------------------------
    * Geometry. One place, so a card, a menu and a composer cannot drift.
@@ -48,12 +61,6 @@
    * everywhere; cards stand 18 image px apart (10.5) and the words sit 20 in
    * from the card's edge (11.7), the avatar ring a little further out.
    */
-  :root {
-    --nf-feed-radius: var(--nf-container-radius);
-    --nf-feed-gap: 10px;
-    --nf-feed-pad: 12px;
-    --nf-feed-avatar: 38px;
-  }
 
   /* ------------------------------------------------------------------
    * The post card.
@@ -63,13 +70,6 @@
    * they made the feed read as an information-design exercise rather than
    * as somewhere people talk.
    * ------------------------------------------------------------------ */
-  .nf-post {
-    padding: var(--nf-feed-pad);
-    position: relative;
-    transition:
-      transform var(--nf-duration-fast) var(--nf-ease-standard),
-      box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
-  }
 
   /*
    * **Every rule here that names a property `.nf-card` also sets must carry
@@ -114,38 +114,6 @@
    * drawn rounder than the platform's `--nf-radius-xl` in the render, which
    * `--nf-feed-radius` carries, and a radius is not part of the edge recipe.
    */
-  .nf-panel.nf-post {
-    /* The shared card sets flex; a post is a block of lines. Padding and
-       corner as measured: the words 20 image px in (11.7 CSS), the avatar
-       ring 12 image px under the top edge (7 CSS), the corner 15 image px
-       (8.8 CSS) drawn with the platform's 10px container corner. */
-    display: block;
-    /* 12px to the words less the card's own 1px edge (overlay pass 1). */
-    padding: 7px 10.7px 0;
-    border-radius: var(--nf-container-radius);
-    /*
-     * THE FEED IMAGE'S CARD IS DARKER THAN THE SHARED CARD AND ITS EDGE
-     * BRIGHTER, so this tunes the shared material to the image with the
-     * shared tokens as the base (the coordinator's instruction on Phase 1).
-     * Sampled: #00133d through the body, #021951 near the foot; edges top
-     * #0f459e, right #123779, foot #144395 (the brightest), left #0c2b6d.
-     */
-    background:
-      radial-gradient(55% 14px at 50% 0, color-mix(in oklab, var(--nf-lit-cyan) 12%, transparent), transparent),
-      linear-gradient(
-        180deg,
-        color-mix(in oklab, var(--nf-lit) 30%, var(--nf-surface-canvas)) 0,
-        color-mix(in oklab, var(--nf-lit) 18%, var(--nf-surface-canvas)) 14px,
-        color-mix(in oklab, var(--nf-lit) 15%, var(--nf-surface-canvas)) 50%,
-        color-mix(in oklab, var(--nf-lit) 22%, var(--nf-surface-canvas)) calc(100% - 10px),
-        color-mix(in oklab, var(--nf-lit) 28%, var(--nf-surface-canvas)) 100%
-      );
-    border-color:
-      color-mix(in oklab, color-mix(in oklab, var(--nf-lit) 80%, var(--nf-state-info)) 82%, var(--nf-surface-canvas))
-      color-mix(in oklab, var(--nf-lit) 76%, var(--nf-surface-canvas))
-      color-mix(in oklab, color-mix(in oklab, var(--nf-lit) 80%, var(--nf-state-info)) 88%, var(--nf-surface-canvas))
-      color-mix(in oklab, var(--nf-lit) 62%, var(--nf-surface-canvas));
-  }
 
   /*
    * THE WORDS ARE WHITE, WITH BLUE UNDER THEM.
@@ -428,7 +396,7 @@
     /* 13 image px under the last line of words; the corner is 12 (7 CSS). */
     margin-block-start: 8px;
     overflow: hidden;
-    border-radius: 7px;
+    border-radius: var(--nf-radius-xs);
     /* The plate is lit at its edge like every other container on the feed,
        so a photograph sits in the card rather than being pasted onto it. */
     border: 1px solid var(--nf-brand-edge-soft);
@@ -690,41 +658,9 @@
     border-color: var(--nf-state-error);
   }
 
-  /*
-   * A count that leads somewhere.
-   *
-   * `.nf-social-stat` lives in social.css and is another writer's; this only
-   * adds the affordance for the two that are now links, and it adds it as a
-   * 44px hit area with no visual weight of its own, so the row still reads as
-   * three plain numbers rather than as a row of buttons.
-   */
-  .nf-social-stat--link {
-    position: relative;
-    border-radius: var(--nf-radius-sm);
-  }
-  .nf-social-stat--link::before {
-    content: "";
-    position: absolute;
-    inset: -11px -6px;
-  }
-  .nf-social-stat--link:hover .nf-social-stat__label,
-  .nf-social-stat--link:focus-visible .nf-social-stat__label {
-    color: var(--nf-content-primary);
-  }
-  .nf-social-stat--link:hover .nf-social-stat__value,
-  .nf-social-stat--link:focus-visible .nf-social-stat__value {
-    color: var(--nf-brand-secondary);
-  }
-
   /* ------------------------------------------------------------------
    * A person, in a list of people.
    * ------------------------------------------------------------------ */
-  .nf-social-person {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 14px;
-  }
 
   .nf-social-person__face {
     display: grid;
@@ -734,7 +670,7 @@
     flex-shrink: 0;
     border-radius: var(--nf-radius-circle);
     overflow: hidden;
-    background: var(--nf-gradient-brand);
+    background: var(--nf-gradient-brand-ink);
     color: var(--nf-content-on-brand);
     font-size: 1.1rem;
     font-weight: 700;
@@ -750,16 +686,6 @@
   /* ------------------------------------------------------------------
    * The profile's own overflow control, and the line it leaves behind.
    * ------------------------------------------------------------------ */
-  .nf-social-more {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    inline-size: 44px;
-    block-size: 44px;
-    /* Its material is the shared glass door in the profile's markup now
-       (SW-S1): this keeps the box and the ink only. */
-    color: var(--nf-content-secondary);
-  }
   .nf-social-more:hover,
   .nf-social-more:focus-visible {
     color: var(--nf-content-primary);
@@ -842,24 +768,6 @@
       inset-inline-end: 2rem;
     }
   }
-
-  .nf-social-round {
-    display: inline-grid;
-    place-items: center;
-    inline-size: 44px;
-    block-size: 44px;
-    border-radius: var(--nf-radius-control);
-    color: var(--nf-content-on-media);
-    background: var(--nf-surface-control-on-media);
-    border: 1px solid var(--nf-border-on-media);
-    backdrop-filter: blur(10px) saturate(150%);
-    -webkit-backdrop-filter: blur(10px) saturate(150%);
-    transition: background var(--nf-duration-fast) var(--nf-ease-standard);
-  }
-  .nf-social-round:hover,
-  .nf-social-round:focus-visible {
-    background: var(--nf-surface-control-on-media-strong);
-  }
   /*
    * The same glass, with the word on it.
    *
@@ -869,18 +777,6 @@
    * flow turns to a column of two so the chevron and the word sit on one line
    * rather than stacking in the grid's single cell.
    */
-  .nf-social-round--pill {
-    grid-auto-flow: column;
-    align-items: center;
-    gap: 8px;
-    inline-size: auto;
-    min-inline-size: 44px;
-    block-size: 44px;
-    padding-inline: 0.85rem 1.05rem;
-    font-size: var(--nf-text-caption);
-    font-weight: 600;
-    letter-spacing: -0.005em;
-  }
 
   /*
    * The avatar, and the ring.
@@ -919,7 +815,7 @@
     block-size: 100%;
     border-radius: var(--nf-radius-circle);
     overflow: hidden;
-    background: var(--nf-gradient-brand);
+    background: var(--nf-gradient-brand-ink);
     color: var(--nf-content-on-brand);
     font-size: 2.1rem;
     font-weight: 700;
@@ -945,15 +841,6 @@
   }
   .nf-social-avatar__dot--agent {
     background: var(--nf-brand-primary);
-  }
-  /* ------------------------------------------------------- the name row */
-
-  .nf-social-namerow {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
-    margin-block-start: 0.875rem;
   }
 
   /*
@@ -1123,10 +1010,6 @@
     font-size: var(--nf-text-caption);
     color: var(--nf-content-muted);
   }
-  .nf-social-count:hover .nf-social-count__value,
-  .nf-social-count:focus-visible .nf-social-count__value {
-    color: var(--nf-brand-secondary);
-  }
   .nf-social-count__rule {
     inline-size: 1px;
     block-size: 1.1rem;
@@ -1187,56 +1070,6 @@
     inset: -12px -8px;
   }
 
-  /* ------------------------------------------------- the agent trust band */
-
-  /*
-   * Agents only, and the three numbers are computed by the database from real
-   * bookings and real message timings. A person who is not an agent never sees
-   * this band at all; it is not rendered empty and it is not rendered with
-   * zeroes, because a trust score of zero and no trust score are very
-   * different claims.
-   */
-  .nf-social-trust {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 2px;
-    margin-block-start: 1.25rem;
-    padding: 1rem 0.5rem;
-    /* The box is the shared card in the profile's markup (SW-S1). */
-  }
-  .nf-social-trust__cell {
-    text-align: center;
-    padding-inline: 0.25rem;
-  }
-  .nf-social-trust__cell dt {
-    font-size: var(--nf-text-overline);
-    font-weight: 700;
-    letter-spacing: var(--nf-tracking-label);
-    text-transform: uppercase;
-    color: var(--nf-content-muted);
-    /* The label is the meaning of the number under it, so it wraps rather than
-       truncating. Two short lines beat one clipped one. */
-    line-height: 1.3;
-    /*
-     * Two lines of room whether the label needs them or not.
-     *
-     * "Completed deals" wraps at 390px and the other two do not, so the three
-     * numbers under them sat at three different heights and the band read as
-     * broken rather than as a row. Reserving the second line here costs one
-     * line of white space on the short labels and buys a baseline the three
-     * figures actually share. Subgrid would do it more elegantly and is not
-     * worth a rendering-engine dependency for one band.
-     */
-    min-block-size: 2.6em;
-  }
-  .nf-social-trust__cell dd {
-    margin-block-start: 0.35rem;
-    font-size: 1.25rem;
-    font-weight: 600;
-    letter-spacing: -0.02em;
-    color: var(--nf-content-primary);
-  }
-
   /* ----------------------------------------------------- bio and meta */
 
   .nf-social-bio {
@@ -1261,80 +1094,11 @@
     gap: 6px;
   }
 
-  /* ------------------------------------------------------------------
-   * The profile's tab row: a track, and the live one filled.
-   *
-   * The underline stroke stays on `.nf-social-tab` itself, because the story
-   * rail and the account screen both wear that class in their own containers
-   * and neither is a segmented control. Everything below is scoped to
-   * `.nf-social-tabs`, which only the profile uses, so the two treatments live
-   * side by side without one silently restyling the other.
-   *
-   * Why filled rather than underlined here: four words in a row with a two
-   * pixel stroke under one of them is the smallest possible statement of where
-   * you are, and on a 390px screen in Lagos daylight it is very nearly no
-   * statement at all. The filled pill is the same geometry the rest of the
-   * platform uses for a chosen thing, so it costs no new vocabulary.
-   * ------------------------------------------------------------------ */
-  .nf-social-tabs {
-    display: flex;
-    gap: 4px;
-    margin-block-start: 1.5rem;
-    padding: 4px;
-    border-radius: var(--nf-radius-control);
-    border: 1px solid var(--nf-border-subtle);
-    background: var(--nf-surface-inset);
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-  .nf-social-tabs::-webkit-scrollbar {
-    display: none;
-  }
-
-  .nf-social-tabs .nf-social-tab {
-    padding: 0.5rem 0.4rem;
-    border-radius: var(--nf-radius-control);
-    font-size: var(--nf-text-caption);
-    white-space: nowrap;
-  }
-  /*
-   * 44px of hit area without a 44px pill.
-   *
-   * The floor is measured on the element OR on a pseudo element that expands
-   * it, and it can only be a pseudo element: a child span is not read by the
-   * sweep, which is why `Switch` does it this way too. Four 44px-tall pills
-   * inside a 390px row would also be a bar taller than the avatar above it.
-   */
-  .nf-social-tabs .nf-social-tab::before {
-    content: "";
-    position: absolute;
-    inset: -6px 0;
-  }
-  /* The stroke belongs to the other two users of this class. Here the fill IS
-     the statement, and both together would be one statement too many. */
-  .nf-social-tabs .nf-social-tab[aria-selected="true"]::after {
-    content: none;
-  }
-  .nf-social-tabs .nf-social-tab[aria-selected="true"] {
-    background: var(--nf-brand-primary);
-    color: var(--nf-content-on-brand);
-  }
-
   .nf-social-tab__count {
     margin-inline-start: 6px;
     font-size: var(--nf-text-overline);
     font-weight: 700;
     color: var(--nf-content-muted);
-  }
-  .nf-social-tab[aria-selected="true"] .nf-social-tab__count {
-    color: var(--nf-brand-secondary);
-  }
-  /* On the filled pill the count sits ON the brand, so it takes the ink that
-     was designed to be legible there rather than the brand ink it wears when
-     the tab is a bare word on the canvas. */
-  .nf-social-tabs .nf-social-tab[aria-selected="true"] .nf-social-tab__count {
-    color: var(--nf-content-on-brand);
-    opacity: 0.75;
   }
 
   /* ------------------------------------------------------------------
@@ -1351,7 +1115,7 @@
     position: relative;
     aspect-ratio: 1 / 1;
     overflow: hidden;
-    border-radius: 4px;
+    border-radius: var(--nf-radius-xs);
     background: var(--nf-surface-inset);
   }
   .nf-media-grid__tile img {
@@ -1376,13 +1140,14 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: 1.25rem;
-    /* Cancels the shell's padding so the picture reaches both edges. */
-    margin-inline: -1.25rem;
+    /* Cancels the shell's padding so the picture reaches both edges: exactly
+       the gutter token, which steps 16, 24 and 32. It cancelled 20 and then 32,
+       so a phone scrolled sideways by 4px and a tablet by 8 (Round 3 sweep). */
+    margin-inline: calc(var(--nf-pad-shell) * -1);
     margin-block-start: calc(-2rem - var(--nf-social-bar));
   }
   @media (min-width: 768px) {
     .nf-story {
-      margin-inline: -2rem;
       margin-block-start: calc(-2.5rem - var(--nf-social-bar));
     }
   }
@@ -1397,6 +1162,10 @@
   .nf-story__stage {
     position: relative;
     isolation: isolate;
+    /* The ground under the picture, ink in both themes like the wash. Until
+       the photograph arrives (or if it never does on a slow network) the
+       white words floated over paper: axe measured 1.08:1 in light. */
+    background-color: var(--nf-overlay-media-deep);
     min-block-size: 100dvh;
     display: flex;
     flex-direction: column;
@@ -1467,7 +1236,7 @@
     flex-shrink: 0;
     border-radius: var(--nf-radius-circle);
     overflow: hidden;
-    background: var(--nf-gradient-brand);
+    background: var(--nf-gradient-brand-ink);
     color: var(--nf-content-on-media);
     font-weight: 700;
     box-shadow: 0 0 0 2px var(--nf-border-on-media);
@@ -1685,9 +1454,9 @@
     block-size: 28px;
     border-radius: var(--nf-radius-circle);
     overflow: hidden;
-    background: var(--nf-gradient-brand);
+    background: var(--nf-gradient-brand-ink);
     color: var(--nf-content-on-media);
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     font-weight: 700;
     box-shadow: 0 0 0 2px var(--nf-surface-on-media);
   }
@@ -1712,7 +1481,7 @@
     border-radius: var(--nf-radius-xs);
     background: var(--nf-wash-on-media-2);
     color: var(--nf-content-on-media);
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     font-weight: 700;
   }
   .nf-story__pilelabel {
@@ -1976,7 +1745,7 @@
     flex-shrink: 0;
     border-radius: var(--nf-radius-circle);
     overflow: hidden;
-    background: var(--nf-gradient-brand);
+    background: var(--nf-gradient-brand-ink);
     color: var(--nf-content-on-brand);
     font-size: 0.8rem;
     font-weight: 700;
@@ -2007,7 +1776,7 @@
       color-mix(in oklab, var(--nf-brand-primary) 34%, transparent);
     border-block-end: 1.5px solid
       color-mix(in oklab, var(--nf-brand-primary) 34%, transparent);
-    border-end-start-radius: 12px;
+    border-end-start-radius: var(--nf-radius-sm);
     pointer-events: none;
   }
 
@@ -2106,103 +1875,11 @@
     align-items: flex-end;
     gap: 8px;
   }
-  .nf-comments__field {
-    flex: 1 1 auto;
-    min-block-size: 44px;
-    max-block-size: 8rem;
-    resize: none;
-    border-radius: var(--nf-radius-control);
-    padding-block: 11px;
-  }
-  .nf-comments__send {
-    display: grid;
-    place-items: center;
-    inline-size: 44px;
-    block-size: 44px;
-    flex-shrink: 0;
-    border-radius: var(--nf-radius-control);
-    background: var(--nf-brand-primary);
-    color: var(--nf-content-on-brand);
-  }
-  .nf-comments__send:disabled {
-    opacity: 0.45;
-  }
   .nf-comments__count {
     display: block;
     margin-block-start: 6px;
     text-align: end;
     font-size: var(--nf-text-caption);
-    color: var(--nf-content-muted);
-  }
-
-  /* ------------------------------------------------------------------
-   * The rows of the action sheet behind a card's `…`.
-   *
-   * The surface itself is the platform's `Sheet` (overlays.css), which owns
-   * the grip, the drag, the safe area and the scrolling body. Each row carries
-   * a title AND the sentence that says what it does, because five of those do
-   * not fit in a popover on a 390px screen.
-   * ------------------------------------------------------------------ */
-  .nf-actions__list {
-    display: flex;
-    flex-direction: column;
-    margin-inline: -8px;
-  }
-  .nf-actions__row {
-    display: flex;
-    align-items: center;
-    gap: 13px;
-    inline-size: 100%;
-    min-block-size: 60px;
-    padding: 10px 12px;
-    border-radius: var(--nf-radius-lg);
-    text-align: start;
-  }
-  .nf-actions__row:hover,
-  .nf-actions__row:focus-visible {
-    background: var(--nf-surface-inset);
-  }
-  /* The glyph's plate: the shared icon plate (`--nf-plate-*`), the console's
-     lit square, at its middle step. */
-  .nf-actions__icon {
-    display: grid;
-    place-items: center;
-    inline-size: var(--nf-plate-size-md);
-    block-size: var(--nf-plate-size-md);
-    flex-shrink: 0;
-    border-radius: var(--nf-plate-radius);
-    border: var(--nf-border-width) solid var(--nf-plate-edge);
-    border-color: var(--nf-plate-edges);
-    background: var(--nf-plate-fill);
-    box-shadow: var(--nf-plate-shadow);
-    color: var(--nf-content-primary);
-  }
-  .nf-actions__icon > svg {
-    filter: var(--nf-plate-glyph-glow);
-  }
-  .nf-actions__row--danger .nf-actions__icon,
-  .nf-actions__row--danger .nf-actions__title {
-    color: var(--nf-state-error);
-  }
-  .nf-actions__row--danger .nf-actions__icon {
-    border-color: color-mix(in oklab, var(--nf-state-error) 40%, transparent);
-  }
-  /* The shared plate's cyan glyph glow blurs a rose glyph; a warning is read
-     crisp (audit pass 5). */
-  .nf-actions__row--danger .nf-actions__icon > svg {
-    filter: none;
-  }
-  .nf-actions__title {
-    display: block;
-    font-size: var(--nf-text-body);
-    font-weight: 700;
-    color: var(--nf-content-primary);
-  }
-  .nf-actions__note {
-    display: block;
-    margin-block-start: 2px;
-    font-size: var(--nf-text-caption);
-    line-height: 1.35;
     color: var(--nf-content-muted);
   }
 
@@ -2254,9 +1931,12 @@
     overflow-x: auto;
     scrollbar-width: none;
     /* The row bleeds to both edges so the last chip is not cut by a gutter,
-       and clips one axis rather than becoming a scroll container in both. */
-    margin-inline: -1.25rem;
-    padding-inline: 1.25rem;
+       and clips one axis rather than becoming a scroll container in both.
+       The bleed is exactly the shell's gutter token, which steps 16, 24 and
+       32: it was 20, so a phone's row ran 4px past both screen edges (Round 3
+       sweep, measured -4 to 394 at 390). */
+    margin-inline: calc(var(--nf-pad-shell) * -1);
+    padding-inline: var(--nf-pad-shell);
     /*
      * Room for the selected chip's inline glow. `overflow-x: auto` makes this
      * a scroll container on both axes, so without a little block padding the
@@ -2279,14 +1959,6 @@
    */
   .nf-district__chip {
     flex-shrink: 0;
-  }
-  .nf-district__chip .nf-numeric {
-    font-size: var(--nf-text-overline);
-    color: var(--nf-content-muted);
-  }
-  .nf-district__chip.nf-chip--active .nf-numeric {
-    color: var(--nf-content-on-brand);
-    opacity: 0.8;
   }
 
   /* One place, in the picker. */
@@ -2325,12 +1997,6 @@
    * stretched: the column stops growing at a comfortable measure and the
    * card gains padding instead of width.
    * ------------------------------------------------------------------ */
-  @media (min-width: 768px) {
-    :root {
-      --nf-feed-pad: 16px;
-      --nf-feed-avatar: 42px;
-    }
-  }
 }
 
 @layer components {
@@ -2376,13 +2042,6 @@
     padding-inline: 18px;
     font-size: 0.8125rem;
   }
-
-  .nf-people__row {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 14px;
-  }
   .nf-people__who {
     display: flex;
     /* Top, not centre. A row with a name, a handle, two facts and a bio is four
@@ -2401,7 +2060,7 @@
     flex-shrink: 0;
     border-radius: var(--nf-radius-circle);
     overflow: hidden;
-    background: var(--nf-gradient-brand);
+    background: var(--nf-gradient-brand-ink);
     color: var(--nf-content-on-brand);
     font-weight: 600;
   }
@@ -2584,30 +2243,13 @@
     text-align: start;
   }
 
-  .nf-enter__chip[data-open="true"] {
-    border-color: var(--nf-border-brand);
-    color: var(--nf-brand-secondary);
-  }
-
-  .nf-enter__chip:disabled {
-    opacity: 0.5;
-  }
-
-  .nf-enter__chip[aria-busy="true"] {
-    opacity: 1;
-    color: var(--nf-content-on-brand);
-    background: var(--nf-selected-fill);
-    border-color: var(--nf-selected-edges);
-    box-shadow: var(--nf-selected-shadow-inline);
-  }
-
   .nf-enter__chip-name {
     min-inline-size: 0;
   }
 
   .nf-enter__chip-state,
   .nf-enter__chip-count {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     font-weight: 600;
     color: var(--nf-content-muted);
   }
@@ -2687,21 +2329,6 @@
    * the container blue sunk toward the canvas, named once. The cyan rims
    * are the shared `--nf-lit-cyan`.
    */
-  :root {
-    --nf-feed-glass-deep: color-mix(in oklab, var(--nf-container-ink) 62%, var(--nf-surface-canvas));
-    /*
-     * The image's lit blue is a few degrees deeper than the brand's (#1557fa,
-     * #012dd4 against #0069FE); no layer-2 token carries it (FEED-5), so it
-     * is the brand blue turned 7 degrees and a touch darker, derived rather
-     * than written, with the brand itself where relative colour is missing.
-     */
-    --nf-feed-indigo: var(--nf-brand-primary);
-  }
-  @supports (color: oklch(from red l c h)) {
-    :root {
-      --nf-feed-indigo: oklch(from var(--nf-brand-primary) calc(l - 0.07) c calc(h + 7));
-    }
-  }
   .nf-feed-page {
     inline-size: 100%;
     max-inline-size: 48rem;
@@ -2743,7 +2370,7 @@
        right (14.6), less the air inside their 20 and 24 px boxes. */
     padding-inline: 7.5px 8.7px;
     /* Drawn 14 image px (8.2 CSS): 0.25 of the height, a rectangle. */
-    border-radius: 8px;
+    border-radius: var(--nf-radius-xs);
     border: 1px solid var(--nf-brand-edge);
     /* #011748 in the image: lit blue sunk into the canvas. */
     background: color-mix(in oklab, var(--nf-lit) 16%, var(--nf-surface-canvas));
@@ -2759,7 +2386,12 @@
   .nf-feed-chip::after {
     content: "";
     position: absolute;
-    inset: -5.3px 0;
+    /* 44 tall, centred. It was `inset: -5.3px 0`, which assumed the 33.4px
+       border box, but the box this measures from is the padding box inside
+       the 1px edge, so the target came to 42 (Round 3 sweep). Half of 44
+       either side of the middle holds whatever the edge is. */
+    inset-block: calc(50% - 22px);
+    inset-inline: 0;
   }
   .nf-feed-chip:hover,
   .nf-feed-chip[aria-expanded="true"] {
@@ -2899,7 +2531,7 @@
   .nf-story-ring__monogram {
     display: grid;
     place-items: center;
-    background: var(--nf-gradient-brand);
+    background: var(--nf-gradient-brand-ink);
     color: var(--nf-content-on-brand);
     font-size: 1.125rem;
     font-weight: 700;
@@ -2949,7 +2581,7 @@
     /* 18 image px down to the first card (10.5). */
     margin-block-end: 10px;
     /* Drawn 13 to 14 image px (8 CSS) on 35: 0.23, a rectangle. */
-    border-radius: 8px;
+    border-radius: var(--nf-radius-xs);
     border: 1px solid var(--nf-panel-edge);
     border-color: var(--nf-panel-edges);
     background: color-mix(in oklab, var(--nf-feed-glass-deep) 22%, var(--nf-glass-fill-thin));
@@ -2969,10 +2601,10 @@
     /* Flush to the track: its 1px edge sits under the lit half's own. */
     margin: -1px;
     border: 1px solid transparent;
-    border-radius: 8px;
+    border-radius: var(--nf-radius-xs);
     /* Cap 13 image px: 10.5px drawn. */
     font-size: var(--nf-text-body-sm);
-    font-weight: 500;
+    font-weight: 600;
     color: var(--nf-content-primary);
     transition:
       color var(--nf-duration-fast) var(--nf-ease-standard),
@@ -3055,7 +2687,7 @@
   .nf-post__monogram {
     display: grid;
     place-items: center;
-    background: var(--nf-gradient-brand);
+    background: var(--nf-gradient-brand-ink);
     color: var(--nf-content-on-brand);
     font-size: var(--nf-text-body);
     font-weight: 700;
@@ -3085,6 +2717,16 @@
     /* "Tunde Adebayo" runs 132 image px; Inter is wider than the image's. */
     letter-spacing: -0.045em;
     color: var(--nf-content-primary);
+  }
+  /* THE AUTHOR'S NAME IS A 44PX TARGET AND STILL DRAWS ONE LINE (W12: 18px
+     tall). The link keeps `overflow: hidden` for its ellipsis, which would clip
+     a pseudo-element hit area, so the 13px above and below are PADDING with
+     the same amount of negative margin: the box is 44 tall, the line's height
+     in the layout is what it was, and the ellipsis still clips inside the
+     padding. The overlap onto the handle line below is hit area only. */
+  a.nf-post__name {
+    padding-block: 13px;
+    margin-block: -13px;
   }
   .nf-post__tick {
     display: inline-grid;
@@ -3212,9 +2854,6 @@
     .nf-feed-seg__link {
       min-block-size: 44px;
       font-size: 0.875rem;
-    }
-    .nf-panel.nf-post {
-      padding: 12px 16px 0;
     }
     .nf-post__name {
       font-size: 0.9375rem;
@@ -3500,7 +3139,7 @@
     color: var(--nf-content-on-brand);
     /* "Post": cap 12.8 image px, 10.3px drawn. */
     font-size: var(--nf-text-caption);
-    font-weight: 500;
+    font-weight: 600;
     letter-spacing: 0.005em;
     /* The shared selected edges: cyan-lit, near-white along the top,
        1.5px as the image's rims read. */

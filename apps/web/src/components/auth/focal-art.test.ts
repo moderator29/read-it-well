@@ -1,38 +1,68 @@
+import { describe, expect, it } from "vitest";
+import { isTieredObject } from "@/design-system/icons/object-assets";
+import { focalForPath, focalObject, type FocalName } from "./focal-art";
+import { GROUNDS, groundForPath } from "./ground";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
-import { FOCAL_READY, focalForPath, focalObject, focalSrc, type FocalName } from "./focal-art";
 
 const PUBLIC = join(__dirname, "../../../public");
-const ALL_ON = Object.fromEntries(Object.keys(FOCAL_READY).map((k) => [k, true])) as Record<FocalName, boolean>;
-const ALL_OFF = Object.fromEntries(Object.keys(FOCAL_READY).map((k) => [k, false])) as Record<FocalName, boolean>;
 
-describe("the object in the ring", () => {
-  it.each(Object.keys(FOCAL_READY) as FocalName[])("%s is only switched on when its file exists", (name) => {
-    if (!FOCAL_READY[name]) return;
-    expect(existsSync(join(PUBLIC, focalSrc(name))), focalSrc(name)).toBe(true);
+describe("the object across the island", () => {
+  it("is always an accepted two-tier object", () => {
+    const names: FocalName[] = [
+      "key-cushion",
+      "scene-house-keys",
+      "envelope",
+      "chat-pair",
+      "padlock",
+      "passport-book",
+      "shield-tick",
+    ];
+    for (const name of names) {
+      expect(isTieredObject(name), name).toBe(true);
+      expect(focalObject(name).size).toBeGreaterThanOrEqual(88);
+    }
   });
 
   it("picks one object per door", () => {
-    const name = (path: string) => {
-      const art = focalForPath(path, ALL_ON);
-      return art.kind === "object" ? art.name : "mark";
-    };
-    expect(name("/sign-in")).toBe("mark");
+    const name = (path: string) => focalForPath(path).name;
+    expect(name("/sign-in")).toBe("key-cushion");
     expect(name("/sign-in/email")).toBe("envelope");
     expect(name("/sign-in/code")).toBe("envelope");
-    expect(name("/sign-in/phone")).toBe("phone-code");
-    expect(name("/sign-up")).toBe("rent");
+    expect(name("/sign-in/phone")).toBe("chat-pair");
+    expect(name("/sign-up")).toBe("scene-house-keys");
     expect(name("/sign-up/email")).toBe("envelope");
     expect(name("/sign-up/verify")).toBe("envelope");
-    expect(name("/sign-up/finish")).toBe("id-check");
+    expect(name("/sign-up/finish")).toBe("passport-book");
     expect(name("/forgot-password")).toBe("envelope");
     expect(name("/forgot-password/code")).toBe("envelope");
-    expect(name("/reset-password")).toBe("shield");
+    expect(name("/reset-password")).toBe("padlock");
+  });
+});
+
+describe("the ground under an auth screen", () => {
+  it("every ground is a file that exists", () => {
+    for (const ground of Object.values(GROUNDS)) {
+      expect(existsSync(join(PUBLIC, ground.src)), ground.src).toBe(true);
+    }
   });
 
-  it("falls back to the Vallo mark while a file is not in", () => {
-    expect(focalForPath("/sign-in/phone", ALL_OFF)).toEqual({ kind: "mark" });
-    expect(focalObject("passcode-lock", ALL_OFF)).toEqual({ kind: "mark" });
+  it("gives each door the ground it was chosen for", () => {
+    const name = (path: string) => groundForPath(path).name;
+    expect(name("/sign-in")).toBe("tower");
+    expect(name("/sign-in/email")).toBe("tower");
+    expect(name("/sign-up")).toBe("villa");
+    expect(name("/sign-up/email")).toBe("villa");
+    expect(name("/sign-up/finish")).toBe("villa");
+    expect(name("/sign-up/verify")).toBe("water");
+    expect(name("/sign-in/code")).toBe("water");
+    expect(name("/sign-in/phone")).toBe("water");
+    expect(name("/forgot-password")).toBe("wave");
+    expect(name("/forgot-password/code")).toBe("water");
+    expect(name("/reset-password")).toBe("wave");
+  });
+
+  it("a recovery never stands on a photograph of somebody's house", () => {
+    expect(GROUNDS.wave.src).toContain("bg-blue-wave");
   });
 });

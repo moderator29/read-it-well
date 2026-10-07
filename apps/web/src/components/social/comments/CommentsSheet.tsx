@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ReportSheet } from "@/components/social/ReportSheet";
+import type { ReportWords } from "@/components/social/sheet-words";
 import { Sheet } from "@/components/ui/Sheet";
 import { Button } from "@/components/ui/Button";
 import { blockUser, muteTarget } from "@/lib/social/posts-actions";
@@ -13,7 +14,7 @@ import {
   POST_MAX,
   POST_REPORT_REASONS,
   type ReportReason,
-} from "@/lib/social/posts-schema";
+} from "@/lib/social/posts-model";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { PostBody } from "@/components/social/feed/PostBody";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -21,6 +22,7 @@ import { RemoteImage } from "@/components/ui/RemoteImage";
 import { pruneDeleted } from "@/lib/social/deleted-posts";
 import { countOf } from "@vallo/i18n/core";
 import { useClientLocale } from "@/lib/i18n/use-client-locale";
+import { useSignInHref } from "@/lib/auth/use-sign-in-href";
 
 /**
  * Comments, as a sheet.
@@ -72,6 +74,7 @@ export function CommentsSheet({
   onLike,
   onDelete,
   onReport,
+  reportWords,
 }: {
   comments: CommentRow[];
   signedIn: boolean;
@@ -96,7 +99,10 @@ export function CommentsSheet({
     reason: ReportReason;
     detail: string;
   }) => Promise<ActionResult<unknown>>;
+  /** The report sheet's reasons and words, from the server (`reportWordsOf`). */
+  reportWords: ReportWords;
 }) {
+  const signInHref = useSignInHref();
   const locale = useClientLocale();
   const router = useRouter();
   const [rows, setRows] = useState(comments);
@@ -162,7 +168,7 @@ export function CommentsSheet({
 
   const requireSignIn = () => {
     if (signedIn) return false;
-    router.push("/sign-in");
+    router.push(signInHref);
     return true;
   };
 
@@ -294,14 +300,16 @@ export function CommentsSheet({
               aria-label="Write a comment"
               onChange={(event) => setBody(event.target.value)}
             />
-            <button
+            <Button
               type="submit"
-              className="nf-comments__send"
+              variant="primary"
+              size="sm"
+              iconOnly
+              leadingIcon="share"
+              className="shrink-0"
               disabled={pending || body.trim().length === 0}
               aria-label="Send"
-            >
-              <UiIcon name="share" size={19} />
-            </button>
+            />
           </div>
           {left < 240 ? (
             <span className="nf-comments__count nf-numeric">{left}</span>
@@ -434,7 +442,7 @@ export function CommentsSheet({
                                   className="nf-post__menu-item nf-post__menu-item--danger"
                                   onClick={() => onMenu(comment, "report")}
                                 >
-                                  Report this comment
+                                  {reportWords.reportComment}
                                 </button>
                                 <button
                                   type="button"
@@ -500,9 +508,10 @@ export function CommentsSheet({
 
       {reporting ? (
         <ReportSheet
-          title="Report this comment"
-          subject={`Written by ${reporting.authorLabel}`}
+          title={reportWords.reportComment}
+          subject={reportWords.commentSubject.replace("{who}", () => reporting.authorLabel)}
           reasons={POST_REPORT_REASONS}
+          words={reportWords}
           submit={({ reason, detail }) =>
             onReport({ commentId: reporting.id, reason, detail })
           }

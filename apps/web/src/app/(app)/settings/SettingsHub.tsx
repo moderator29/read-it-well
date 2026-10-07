@@ -1,11 +1,13 @@
 "use client";
 
+import type { HubCopy } from "@/components/app/account/settings-copy";
 import { clearListingDrafts } from "@/lib/agent/listing-draft-storage";
 import { initial } from "@/lib/text/initial";
 import { useState, useTransition } from "react";
 import Link from "next/link";
+import { withNext } from "@/lib/auth/next-link";
 import { useRouter } from "next/navigation";
-import { plural, type Dictionary, type Locale } from "@vallo/i18n/core";
+import { plural, type Locale } from "@vallo/i18n/core";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { SettingsGlyph, type SettingsGlyphName } from "@/components/app/account/SettingsGlyph";
 import { ICON } from "@/components/app/Screen";
@@ -23,7 +25,7 @@ import { clearAllInflight } from "@/lib/offline/inflight";
 import { signOut } from "@/lib/profile/actions";
 import { clearLocalDevice, readLocalDevice } from "@/components/app/push/device-state";
 import { playThreshold } from "@/lib/motion/threshold";
-import type { ResolvedProfileSettings } from "@/lib/profile/schema";
+import type { ResolvedProfileSettings } from "@/lib/profile/model";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 
 /**
@@ -49,7 +51,7 @@ import { RemoteImage } from "@/components/ui/RemoteImage";
  */
 
 export type SettingsHubProps = {
-  t: Dictionary;
+  t: HubCopy;
   locale: Locale;
   signedIn: boolean;
   person: { name: string; email: string; avatarUrl: string; verified: boolean } | null;
@@ -78,13 +80,13 @@ function ProfileRow({
   t,
   person,
 }: {
-  t: Dictionary;
+  t: HubCopy;
   person: SettingsHubProps["person"];
 }) {
   const hub = t.settings.hub;
   if (!person) {
     return (
-      <Link href="/sign-in" className="nf-panel nf-panel--card nf-hub-profile" data-testid="settings-profile-row">
+      <Link href={withNext("/sign-in", "/settings")} className="nf-panel nf-panel--card nf-hub-profile" data-testid="settings-profile-row">
         <span className="nf-hub-profile__avatar" aria-hidden="true">
           <UiIcon name="user" size={24} />
         </span>
@@ -325,7 +327,7 @@ export function SettingsHub({
 }
 
 /** Log Out, the last row on the screen. Real `signOut`, with its own error line. */
-export function LogOutRow({ t, signedIn }: { t: Dictionary; signedIn: boolean }) {
+export function LogOutRow({ t, signedIn }: { t: HubCopy; signedIn: boolean }) {
   const router = useRouter();
   const hub = t.settings.hub;
   const [signingOut, startSignOut] = useTransition();

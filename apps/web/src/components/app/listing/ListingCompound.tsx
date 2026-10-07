@@ -2,6 +2,7 @@ import type { Dictionary } from "@vallo/i18n/core";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { ICON } from "@/components/app/Screen";
 import { compoundFacts, type Compound, type CompoundFact } from "@/lib/listings/compound";
+import "@/app/css/catalogue.css";
 
 /**
  * The compound, on the listing page (V-28): the lister's answers to the five

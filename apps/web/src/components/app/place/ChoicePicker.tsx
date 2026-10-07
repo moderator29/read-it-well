@@ -7,7 +7,7 @@ import { Sheet } from "@/components/ui/Sheet";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { TextField } from "@/components/ui/Field";
 import { matchesSearch } from "@/lib/places/reference";
-import type { Dictionary } from "@vallo/i18n/core";
+import type { PickersCopy } from "@/components/app/welcome/welcome-copy";
 
 /**
  * One choice out of a very long list, without a very long list.
@@ -82,7 +82,7 @@ export function ChoicePicker({
    * literal, and this control is on the sign-up form, which is the first screen
    * somebody who chose Hausa ever sees.
    */
-  t: Dictionary;
+  t: PickersCopy;
   /** The form field name the choice is posted under. */
   name: string;
   label: string;
@@ -221,7 +221,7 @@ export function ChoicePicker({
         <p
           id={errorId}
           role="alert"
-          className="mt-2xs text-[length:var(--nf-text-overline)] font-medium text-[var(--nf-state-error)]"
+          className="mt-2xs text-[length:var(--nf-text-overline)] font-semibold text-[var(--nf-state-error)]"
         >
           {error}
         </p>

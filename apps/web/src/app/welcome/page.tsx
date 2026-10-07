@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { getDictionary } from "@vallo/i18n";
+import { forWelcome } from "@/components/auth/auth-copy";
+import { forFirstRun } from "@/components/app/welcome/welcome-copy";
 import { getLocale } from "@/lib/locale";
 import { FirstRun } from "@/components/app/welcome/FirstRun";
 import { WelcomeStage } from "@/components/app/welcome/WelcomeStage";
@@ -12,17 +14,18 @@ import {
   firstRunNext,
   isSignUpForm,
 } from "@/components/app/welcome/first-run-seen";
-import { isPropertyType } from "@/lib/interests/schema";
+import { isPropertyType } from "@/lib/interests/model";
 import { loadInterestsState } from "@/lib/interests/queries";
 import { planFirstRun } from "./plan";
 import { resolveSession } from "@/lib/actions/session";
 import { listStates } from "@/lib/places/queries";
 import { WelcomeIntro } from "./WelcomeIntro";
 
-export const metadata: Metadata = {
-  title: "Two worlds. One platform.",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  // The tab reads the reader's language, as the opener's headline does.
+  const w = getDictionary(await getLocale()).welcomeCards.twoWorlds;
+  return { title: `${w.titleA} ${w.titleB}`, robots: { index: false, follow: false } };
+}
 
 /**
  * Get started: the first thing a person sees.
@@ -39,9 +42,12 @@ export const metadata: Metadata = {
  * REACHABLE SIGNED OUT. `planFirstRun` in `./plan.ts` (a pure function with
  * its own test) chooses between skipping and which ending to show.
  *
- * A COLD START OPENS ON THE INTRO (`WelcomeIntro`, 29 September): the name,
- * one line, a small scene of the glass objects and the two doors, Get
- * started and Sign in. The four slides are the tour behind it (`?tour=1`).
+ * A COLD START OPENS ON THE INTRO (`WelcomeIntro`): since 6 October the
+ * monotone Get Started (D13), the mark where the startup's lockup settles,
+ * the slogan, the product explanation and the two doors, Get started and
+ * Sign in. Get started carries `next=/welcome`, so a new account lands on the
+ * question beat below rather than relying on `/home` to send it back here
+ * (`doors.ts`). The four slides are the tour behind it (`?tour=1`), unchanged.
  *
  * AN ARRIVAL WITH A DESTINATION SKIPS THE SLIDES (V-18). A stranger who was
  * stopped on the way to a search, a listing or a stay opens on the account
@@ -76,20 +82,20 @@ export default async function WelcomePage({
   /* Seen once, then out of the way (the founder, 29 September). */
   if (plan.kind === "skip") redirect(plan.to);
 
-  /* THE INTRO (the Slate pass, 29 September): a stranger on a cold start
-     meets one screen, the name, a moving scene and the two doors, with the
+  /* THE INTRO (monotone since 6 October, D13): a stranger on a cold start
+     meets one screen, the mark, the slogan and the two doors, with the
      four slides one tap away as the tour (`?tour=1`). An arrival with a
      destination still opens on the slides' account choice, headed with what
      they asked for (V-18). */
   if (plan.kind === "guest" && !plan.arrival && !plan.choice && !tour) {
-    return <WelcomeIntro t={t} next={plan.next} />;
+    return <WelcomeIntro t={forWelcome(t)} next={plan.next} />;
   }
 
   if (plan.kind === "guest") {
     return (
       <WelcomeStage>
         <FirstRun
-          t={t}
+          t={forFirstRun(t)}
           interests={[]}
           showCards
           asked
@@ -111,7 +117,7 @@ export default async function WelcomePage({
   return (
     <WelcomeStage>
       <FirstRun
-        t={t}
+        t={forFirstRun(t)}
         interests={plan.intent.interests}
         /* A17: a device that has already been shown the steps (the intro or
            the tour, before the account existed) goes straight to the

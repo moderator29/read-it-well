@@ -18,8 +18,18 @@ import type { Dictionary } from "@vallo/i18n/core";
  */
 const cache = new WeakMap<Dictionary, Map<string, Dictionary>>();
 
-export function sliceDictionary(t: Dictionary, keys: readonly (keyof Dictionary)[]): Dictionary {
-  const id = keys.join(",");
+/**
+ * A namespace narrowed to some of its own keys: `{ shape: ["card", "cash"] }`
+ * hands the component `t.shape.card` and `t.shape.cash` and nothing else of
+ * `shape`. Only safe where nothing in the component's graph reads the
+ * namespace as a whole, which `slice-coverage.test.ts` checks key by key.
+ */
+export type Narrow = Readonly<Partial<Record<keyof Dictionary, readonly string[]>>>;
+
+export function sliceDictionary(t: Dictionary, keys: readonly (keyof Dictionary)[], narrow: Narrow = {}): Dictionary {
+  const id = `${keys.join(",")}|${Object.entries(narrow)
+    .map(([ns, sub]) => `${ns}:${(sub ?? []).join("+")}`)
+    .join(",")}`;
   let byKeys = cache.get(t);
   if (!byKeys) {
     byKeys = new Map();
@@ -27,7 +37,13 @@ export function sliceDictionary(t: Dictionary, keys: readonly (keyof Dictionary)
   }
   let slice = byKeys.get(id);
   if (!slice) {
-    slice = Object.fromEntries(keys.map((key) => [key, t[key]])) as unknown as Dictionary;
+    slice = Object.fromEntries(
+      keys.map((key) => {
+        const only = narrow[key];
+        const whole = t[key] as unknown as Record<string, unknown>;
+        return [key, only ? Object.fromEntries(only.map((name) => [name, whole[name]])) : whole];
+      }),
+    ) as unknown as Dictionary;
     byKeys.set(id, slice);
   }
   return slice;
@@ -42,7 +58,7 @@ export const SLICES = {
      few kilobytes, one too few is a crash in somebody's hand. Trimming those
      false readings took the settings screen's slice from 137 KB to 47 KB and
      the listing card's from 104 KB to 55 KB. */
-  listingCard: ["catalogue", "common", "directHome", "interests", "moveIn", "shape", "trustVisible", "units"],
+  listingCard: ["catalogue", "common", "directHome", "experienceLabels", "interests", "moveIn", "shape", "trustVisible", "units"],
   stayCard: ["catalogue", "common", "stays"],
   stayFilterSheet: ["catalogue", "shape", "stayDetail", "stays"],
   priceCheck: ["home", "priceCheck"],
@@ -50,8 +66,26 @@ export const SLICES = {
   settingsHub: ["common", "directHome", "memberKit", "passcode", "paymentsPage", "platform", "publicDoors", "settings", "socialProfile", "units"],
 } as const satisfies Record<string, readonly (keyof Dictionary)[]>;
 
+/*
+ * THE SECOND LEVEL (Session 3, R2). `shape` is 5.5 KB gzipped and
+ * `trustVisible` 7.3 KB, and a card reads six keys of the first and one of the
+ * second, so carrying them whole put 9 KB of other screens' words in every
+ * page of cards (search, home, saved, the shelf). The coverage test walks the
+ * same import graph and fails if anything reaches a key not listed here, or
+ * starts reading either namespace as a whole.
+ */
+export const NARROW = {
+  listingCard: {
+    /* The rent line's "/yr" (C9). */
+    experienceLabels: ["periodShort"],
+    shape: ["card", "cash", "compound", "listed", "service", "unit"],
+    trustVisible: ["proof"],
+  },
+  proofStrip: { trustVisible: ["proof"] },
+} as const satisfies Record<string, Narrow>;
+
 export function forListingCard(t: Dictionary): Dictionary {
-  return sliceDictionary(t, SLICES.listingCard);
+  return sliceDictionary(t, SLICES.listingCard, NARROW.listingCard);
 }
 export function forStayCard(t: Dictionary): Dictionary {
   return sliceDictionary(t, SLICES.stayCard);
@@ -63,7 +97,7 @@ export function forPriceCheck(t: Dictionary): Dictionary {
   return sliceDictionary(t, SLICES.priceCheck);
 }
 export function forProofStrip(t: Dictionary): Dictionary {
-  return sliceDictionary(t, SLICES.proofStrip);
+  return sliceDictionary(t, SLICES.proofStrip, NARROW.proofStrip);
 }
 export function forSettingsHub(t: Dictionary): Dictionary {
   return sliceDictionary(t, SLICES.settingsHub);

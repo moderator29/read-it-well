@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ICON } from "@/components/app/Screen";
+import "@/app/css/home.css";
 
 /**
  * The featured band, to `GOVERNING-01` screen one and `GOVERNING-09` screen
@@ -33,6 +34,7 @@ export function FeaturedBand({
   empty,
   count,
   testId,
+  note,
 }: {
   title: string;
   seeAllHref: string;
@@ -43,6 +45,8 @@ export function FeaturedBand({
   /** How many cards `children` holds, so the band can tell empty from full. */
   count: number;
   testId: string;
+  /** One quiet line under the title saying why the order is what it is, only when it is (Session 3, W2). */
+  note?: string;
 }) {
   return (
     <section className="mt-section-tight">
@@ -58,6 +62,11 @@ export function FeaturedBand({
           </Link>
         )}
       </div>
+      {note && count > 0 ? (
+        <p className="nf-caption mt-inline-tight text-[var(--nf-content-muted)]" data-testid="featured-note">
+          {note}
+        </p>
+      ) : null}
       {count === 0 ? (
         empty
       ) : (

@@ -21,6 +21,11 @@ import { chargeSavedCardFor } from "./saved-card-action";
 import { listPaymentMethods } from "@/lib/payments/methods-actions";
 import type { PaymentMethod } from "@/lib/payments/methods";
 import { cryptoOfferForViewer } from "@/lib/crypto/offer";
+import { TransactionCheckout } from "@/components/money/TransactionCheckout";
+import { CHECKOUT_CONDITION_APPROVED, CHECKOUT_CONDITION_CANCEL } from "@/lib/money/copy";
+import { LIVE_RAIL } from "@/lib/money/rails";
+import type { MoneyReference } from "@/lib/money/references";
+import { withNext } from "@/lib/auth/next-link";
 
 export const metadata: Metadata = { title: "Checkout" };
 
@@ -88,11 +93,12 @@ export default async function CheckoutPage({
     return (
       <Shell>
         <ResultScreen
-          state="confirmed"
-          mark="shield-check"
+          state="sign-in"
           verdict={c.signInToPayStay}
           consequence={c.signInKeptStay}
-          actions={[{ label: c.signIn, href: "/sign-in", tone: "primary" }]}
+          /* The sentence above promises a return here, so the link carries it:
+             sign-in reads only `next` (Round 3 sweep, C3). */
+          actions={[{ label: c.signIn, href: withNext("/sign-in", `/checkout/${encodeURIComponent(bookingId)}`), tone: "primary" }]}
         />
       </Shell>
     );
@@ -282,6 +288,31 @@ export default async function CheckoutPage({
             for, and content that only exists once an IntersectionObserver has
             fired is content that sometimes does not exist.
           */}
+          {/* D50: what this payment is, before the action that makes it. The
+              rail is the one live payments open on (lib/money/rails.ts), so a
+              direct payment is never described as held. */}
+          <div className="mt-block">
+            <TransactionCheckout
+              rail={LIVE_RAIL}
+              space={{ title: view.title, location: view.location, href: view.stayHref }}
+              agreement={view.agreement ? { id: view.agreement.id, status: view.agreement.status } : null}
+              payeeName={view.payeeName ?? null}
+              amountMinor={view.totalMinor}
+              currency={view.currency}
+              locale={locale}
+              conditions={[
+                ...(view.agreement?.status === "approved" ? [CHECKOUT_CONDITION_APPROVED] : []),
+                ...(chargeKind === "stay" ? [CHECKOUT_CONDITION_CANCEL] : []),
+              ]}
+              references={[
+                ...(view.agreement
+                  ? [{ kind: "agreement", value: view.agreement.id, href: `/agreements/${view.agreement.id}` } satisfies MoneyReference]
+                  : []),
+                { kind: "space", value: view.listingId ?? view.accommodationId ?? "", href: view.stayHref } satisfies MoneyReference,
+              ]}
+            />
+          </div>
+
           <div className="mt-block">
             <PayPanel view={view} savedCards={savedCards} chargeSavedCard={chargeSavedCard} plansAction={staysAction} crypto={cryptoOffer} />
           </div>

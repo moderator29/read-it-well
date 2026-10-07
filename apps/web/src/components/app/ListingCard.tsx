@@ -7,15 +7,18 @@ import type { Listing } from "@/lib/listings/types";
 import { hrefForListing, marketFactsOf } from "@/lib/listings/href";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { Amount } from "@/components/ui/Amount";
+import { CountUpMoney } from "@/components/motion/CountUp";
 import { IntentTune } from "@/components/app/IntentTune";
 import { MediaFrame } from "@/components/app/MediaFrame";
 import { isPropertyType, type PropertyType } from "@/lib/interests/property-types";
 import { isDataSaver } from "@/lib/ui/data-saver";
 import { motionQuiet } from "@/lib/motion/gate";
 import { startPhotoMorph } from "@/lib/motion/photo-morph";
+import { pressFrom } from "@/lib/motion/press-start";
 import { drawnSrcIn, handOff } from "@/lib/listings/handoff";
 import { cardGlance } from "@/lib/listings/card-glance";
 import { SaveButton, useSaveControl } from "@/components/app/SaveControl";
+import { useScrollEntry } from "@/lib/motion/scroll-entry";
 import { cardFacts, cardMarket, cardMessageHref, cardPrice, cardUtility } from "./listing-card-model";
 import { ButtonLink } from "@/components/ui/Button";
 import { isModestExample } from "@/lib/listings/example-imagery";
@@ -29,6 +32,8 @@ import { ProofStrip } from "@/components/app/listing/ProofStrip";
 import { CardPhotos } from "@/components/app/search/CardPhotos";
 import { proofFactsOf, proofLines } from "@/lib/trust/proof-strip";
 import { CardMenu, useCardMenu } from "@/components/app/listing/CardMenu";
+import "@/app/css/catalogue.css";
+import "@/app/css/list-views.css";
 
 /**
  * The property card, to the results image (3EB3E2A9).
@@ -65,6 +70,29 @@ const FACT_ICON: Record<string, UiIconName> = {
   kind: "house",
   instant: "bolt",
 };
+
+/*
+ * THE PRICE COUNTS UP WITH ITS PAGE, NOT WHENEVER A CARD HAPPENS TO MOUNT.
+ *
+ * `CountUpMoney eager` counts from nought on first view. That is right for the
+ * cards a navigation brings in together, and wrong for a card that joins a
+ * list somebody is already reading (the next page of results, a filter
+ * swapping the rows): the price on screen would drop to nought and climb
+ * again under a thumb that has read it. So a card counts only when no card is
+ * alive yet (a navigation has just replaced the list) or when it mounts
+ * within the arrival window of the first one (the rest of the same batch);
+ * otherwise it shows its figure as it is. Read in render, written in an
+ * effect: every card of one commit renders before any of them is counted, so
+ * the whole batch agrees. Markup never depends on it, only the count does.
+ */
+const ARRIVAL_WINDOW_MS = 400;
+let cardsAlive = 0;
+let arrivalStartedAt = 0;
+
+function arrivesWithItsPage(): boolean {
+  if (typeof performance === "undefined") return false;
+  return cardsAlive === 0 || performance.now() - arrivalStartedAt < ARRIVAL_WINDOW_MS;
+}
 
 export function ListingCard({
   listing,
@@ -135,6 +163,14 @@ export function ListingCard({
   eager?: boolean;
 }) {
   const photo = listing.photos[0];
+  const [countsOnArrival] = useState(arrivesWithItsPage);
+  useEffect(() => {
+    if (cardsAlive === 0) arrivalStartedAt = performance.now();
+    cardsAlive += 1;
+    return () => {
+      cardsAlive -= 1;
+    };
+  }, []);
   /* Track M: several photographs swipe (CardPhotos.tsx); the arrows drawn
      outside the link scroll the same track on a pointer. */
   const photoTrack = useRef<HTMLDivElement | null>(null);
@@ -182,6 +218,8 @@ export function ListingCard({
    * A card scrolled past is never fetched.
    */
   const cardRef = useRef<HTMLElement | null>(null);
+  /* Below the fold on arrival: floats in once as it scrolls into view. */
+  useScrollEntry(cardRef, index);
   useEffect(() => {
     const el = cardRef.current;
     if (!el || typeof IntersectionObserver === "undefined") return;
@@ -238,13 +276,28 @@ export function ListingCard({
        shell (lib/listings/handoff.ts), which paints them at once. */
     handOff(cardGlance(listing, locale, copy), drawnSrcIn(media, listing.photos[0]));
     if (!media || motionQuiet()) return;
-    media.style.viewTransitionName = `listing-photo-${listing.id}`;
-    startPhotoMorph(listing.id);
-    /* If this card is still on screen after the navigation (it was
-       refused, or it opened in place), it gives the name back. */
-    window.setTimeout(() => {
-      media.style.viewTransitionName = "";
-    }, 1500);
+    /* Measured and named here; the hero aims the flight when it commits,
+       and the module gives the name back when the transition is over (or
+       at a ceiling, if the navigation was refused). */
+    startPhotoMorph(listing.id, media);
+  };
+
+  /*
+   * THE PRESS STARTS WHEN THE THUMB LANDS (round 5). `:active` alone waited
+   * on the browser: Chrome on Android shows it only once it is sure the touch
+   * is a tap (on a quick tap, at the lift, with the click), and Safari not at
+   * all without a touch listener. So the card sank as the next page was
+   * already on its way, or never. Now the finger coming down writes
+   * `data-pressed` on the card directly (no React render on the hot path) and
+   * the card sinks on the press token at once; lifting, a scroll taking the
+   * touch (`pointercancel`) or leaving releases it. Never blocks the tap: the
+   * listeners are passive and nothing is prevented.
+   */
+  const pressCard = (event: React.PointerEvent<HTMLAnchorElement>) => {
+    warm();
+    if (!event.isPrimary || event.button !== 0) return;
+    const card = cardRef.current;
+    if (card) pressFrom(card);
   };
 
   // "Lagos, Lagos" reads as a bug, so a place stated twice collapses.
@@ -430,7 +483,7 @@ export function ListingCard({
         href={href}
         prefetch={warmed ? true : undefined}
         onClick={handleClick}
-        onPointerDown={warm}
+        onPointerDown={pressCard}
         onPointerEnter={warm}
         onFocus={warm}
         className="nf-pcard__link"
@@ -438,6 +491,7 @@ export function ListingCard({
         <div
           ref={mediaRef}
           className="nf-pcard__media nf-vt-morph"
+          data-morph-id={listing.id}
           data-theme="dark"
         >
           <div className="nf-pcard__photo">
@@ -460,21 +514,20 @@ export function ListingCard({
             )}
           </div>
 
-          {/* Verified and Example can never both be true: a check constraint,
-              a trigger and the mapper each enforce it. */}
-          {listing.verified && (
+          {/*
+            D24 (the founder, 6 October): THE EXAMPLE MARK IS OFF THE CARD, AND
+            NOTHING UNEARNED IS ON IT. An example listing stays in the catalogue
+            and may look like a real listing; it may never look like a CHECKED
+            one. So `isDemo` is still read here, to withhold trust rather than
+            to label: the Verified mark draws only on a row a person checked
+            that is not an example. A check constraint, a trigger and the mapper
+            already refuse both at once; this is the card refusing it too, so a
+            mapper regression can never print a tick on an invented flat.
+          */}
+          {listing.verified && !listing.isDemo && (
             <span className="nf-badge nf-badge--verified nf-pcard__mark nf-pcard__mark--verified">
               <UiIcon name="verified" size={12} />
               {t.common.verified}
-            </span>
-          )}
-          {/* The example disclosure: the register's outline mark, carrying
-              the shared `nf-badge--example` class so the source guard in
-              `example-notice.test.ts` can see every card renderer says it. */}
-          {listing.isDemo && (
-            <span className="nf-badge nf-badge--example nf-pcard__mark nf-pcard__mark--example">
-              <UiIcon name="info" size={12} />
-              {copy.example}
             </span>
           )}
           {!photo && <span className="nf-pcard__nophoto">{copy.noPhotos}</span>}
@@ -543,7 +596,7 @@ export function ListingCard({
                 locale={locale}
                 currency={listing.currency}
                 glance
-                secondaryClassName={fractionClass(price.minor, "text-[0.6em] font-semibold opacity-70")}
+                secondaryClassName={fractionClass(price.minor, "text-[length:max(0.6em,0.75rem)] font-semibold opacity-70")}
               />
               {suffix && <span className="nf-pcard__price-suffix">{suffix}</span>}
             </p>
@@ -557,13 +610,30 @@ export function ListingCard({
                 {price.approximate && (
                   <span className="nf-pcard__price-suffix mr-2xs ml-0">from</span>
                 )}
-                <Amount
+                {/*
+                  THE MOVE-IN TOTAL COUNTS UP ONCE, WHEN THE CARD FIRST ENTERS
+                  (MOTION_SYSTEM section 5, "Cards"). The server prints the
+                  final figure, so it is right with scripts off and for a
+                  screen reader, which hears only the final figure. It never
+                  counts again on a re-render, and it is a stated price on a
+                  listing rather than a balance, so it implies no money moved.
+                  Reduced motion, Calm and Off print it still.
+                */}
+                <CountUpMoney
                   minorUnits={price.minor}
                   locale={locale}
                   currency={listing.currency}
                   glance
-                  secondaryClassName={fractionClass(price.minor, "text-[0.6em] font-semibold opacity-70")}
-                />
+                  eager={countsOnArrival}
+                >
+                  <Amount
+                    minorUnits={price.minor}
+                    locale={locale}
+                    currency={listing.currency}
+                    glance
+                    secondaryClassName={fractionClass(price.minor, "text-[length:max(0.6em,0.75rem)] font-semibold opacity-70")}
+                  />
+                </CountUpMoney>
                 <span className="nf-pcard__price-suffix">{copy.moveIn}</span>
               </p>
               <p className="nf-pcard__sub">
@@ -573,7 +643,7 @@ export function ListingCard({
                   locale={locale}
                   currency={listing.currency}
                   glance
-                  suffix={price.rentSuffix}
+                  suffix={t.experienceLabels.periodShort[price.rentPeriod]}
                   className="whitespace-nowrap font-semibold text-[var(--nf-content-secondary)]"
                   /* The kobo and the "/yr" on this line at the line's own
                      overline size, not a step under it: `0.85em` of the 12px

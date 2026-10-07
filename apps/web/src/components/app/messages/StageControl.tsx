@@ -112,7 +112,7 @@ export function StageControl({
               </div>
             </fieldset>
           )}
-          <div className="flex gap-sm">
+          <div className="flex flex-wrap gap-sm">
             <Button variant="primary" loading={pending} disabled={next === "lost" && reason === null} onClick={save}>
               {copy.save}
             </Button>
@@ -124,7 +124,7 @@ export function StageControl({
       )}
 
       {error && (
-        <p className="mt-inline nf-body-sm font-medium text-[var(--nf-state-error)]" role="alert">
+        <p className="mt-inline nf-body-sm font-semibold text-[var(--nf-state-error)]" role="alert">
           {error}
         </p>
       )}

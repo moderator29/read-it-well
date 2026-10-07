@@ -117,15 +117,15 @@ export function CategoryGrid({
       </div>
 
       {/* THE CITIES (UIUX item 9): the map's chips, folded into this room
-          under their own label. The drawing shows beside them from 64rem
-          only; on a phone the chips are the whole answer. */}
+          under their own label, with the drawn map beside them (under them
+          on a phone since Session 3's pass): the page's map moment. */}
       <div className="nf-cities">
         <div className="nf-cities__list">
           <p className="nf-section-label">{m.cities}</p>
           <ul className="nf-map-room__list">
             {CITIES.map((city) => (
               <li key={city}>
-                <Link href={door(`/search?q=${encodeURIComponent(city)}`)} prefetch={false} className="nf-map-room__chip">
+                <Link href={door(`/search?q=${encodeURIComponent(city)}`)} prefetch={false} className="nf-map-room__chip" data-city={city}>
                   <UiIcon name="location" size={16} aria-hidden />
                   {city}
                 </Link>

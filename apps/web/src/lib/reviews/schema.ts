@@ -1,3 +1,14 @@
+/**
+ * schema: the zod schemas the SERVER validates with.
+ *
+ * Everything a client component may import (the constants, labels, limits,
+ * copy and pure helpers) lives in `./model` and is re-exported here, so a server
+ * module still imports from this file as before. A client component imports
+ * the model, never this file, because this file builds zod schemas at import
+ * time and zod's classic API is 64 KB gzipped in every client chunk that
+ * reaches it (W13, chunk 2008felnqkn1d).
+ */
+
 import { z } from "zod";
 
 /**
@@ -9,24 +20,12 @@ import { z } from "zod";
  * from a server-only module typechecks cleanly and fails the build, which is
  * exactly the trap this split exists to avoid.
  */
-
-export const RATING_MIN = 1;
-export const RATING_MAX = 5;
-
-/** The longest review body we accept. Long enough for a real account of a stay. */
-export const BODY_MAX = 1200;
-
-/**
- * What each star actually means, so the rating is a judgement rather than a
- * number the guest has to invent a meaning for.
- */
-export const RATING_LABELS: Record<number, string> = {
-  1: "Poor",
-  2: "Disappointing",
-  3: "Fine",
-  4: "Good",
-  5: "Excellent",
-};
+import {
+  BODY_MAX,
+  RATING_MAX,
+  RATING_MIN,
+} from "./model";
+export * from "./model";
 
 export const reviewInputSchema = z.object({
   bookingId: z.string().min(1, "This stay could not be identified."),

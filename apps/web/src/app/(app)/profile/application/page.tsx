@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { forRespond } from "@/components/agent/agent-copy";
 import { getDictionary, formatDate } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { readMyApplication } from "@/lib/agent/application-status";
@@ -11,6 +12,7 @@ import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
 import { RespondToReview } from "@/components/agent/RespondToReview";
 import { StatusTrack, type TrackStep } from "@/components/app/status/StatusTrack";
 import { applicationTrack } from "@/components/app/status/tracks";
+import { withNext } from "@/lib/auth/next-link";
 
 export const metadata: Metadata = {
   title: "Your application",
@@ -61,7 +63,7 @@ export default async function ProfileApplicationPage() {
         icon: "user-check" as const,
         title: s.signedOutTitle,
         body: s.signedOutBody,
-        cta: { href: "/sign-in", label: s.signIn },
+        cta: { href: withNext("/sign-in", "/profile/application"), label: s.signIn },
       },
       none: {
         icon: "doc-shield" as const,
@@ -127,7 +129,7 @@ export default async function ProfileApplicationPage() {
   const trackSteps: TrackStep[] = track.map((step) => ({
     key: step.key,
     label: trackLabels[step.key],
-    when: step.at ? formatDate(new Date(step.at), locale) : null,
+    when: step.at ? formatDate(new Date(step.at), locale, { day: "numeric", month: "short", year: "numeric", timeZone: "Africa/Lagos" }) : null,
     note:
       step.key === "review" && step.state === "current"
         ? application.status === "MORE_INFO_REQUIRED"
@@ -183,7 +185,7 @@ export default async function ProfileApplicationPage() {
 
         {/* SUP-05: the reviewer asked for something, so the answer is here,
             under their note, rather than in an email that pointed nowhere. */}
-        {application.status === "MORE_INFO_REQUIRED" && <RespondToReview t={t} />}
+        {application.status === "MORE_INFO_REQUIRED" && <RespondToReview t={forRespond(t)} />}
 
         {approved && (
           <div className="flex justify-center">

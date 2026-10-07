@@ -96,7 +96,7 @@
    * Replaces the inline `style` the editor set a brand ring with, and the
    * `--nf-border-subtle` grey edge at rest.
    */
-  .nf-choice {
+  .nf-pchoice {
     display: flex;
     align-items: flex-start;
     gap: var(--nf-space-sm);
@@ -110,16 +110,16 @@
       border-color var(--nf-duration-fast) var(--nf-ease-standard),
       box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
   }
-  .nf-choice:has(input:checked) {
+  .nf-pchoice:has(input:checked) {
     border-color: var(--nf-selected-edges);
     box-shadow: var(--nf-selected-shadow-inline);
   }
-  .nf-choice:has(input:focus-visible) {
+  .nf-pchoice:has(input:focus-visible) {
     outline: 2px solid var(--nf-focus-ring);
     outline-offset: 2px;
   }
   @media (prefers-reduced-motion: reduce) {
-    .nf-choice {
+    .nf-pchoice {
       transition: none;
     }
   }
@@ -128,5 +128,43 @@
      (bright cyan is the platform's pending colour). */
   .nf-panel.nf-panel--held {
     border-color: color-mix(in oklab, var(--nf-status-pending) 60%, transparent);
+  }
+
+  /*
+   * THE PROFILE HERO IS AN ISLAND (north star 10 E, tier 3), the same block
+   * `/profile` wears: navy glass over a 16px blur, its one edge the light on
+   * the border box, radius 28, lapping the cover's foot so the photograph
+   * reads as a picture and the person as one hero. The face, the name, the
+   * handle, the bio and the counts sit inside it; before they sat straight on
+   * the page with the face alone overlapping the cover.
+   *
+   * Only the geometry is here. The material is `.nf-island` (glass.css), and
+   * the banner behind it is the blur's reason to exist.
+   */
+  .nf-profile-identity.nf-island {
+    align-items: center;
+    margin-block-start: -2.5rem;
+    padding: var(--nf-space-md);
+    column-gap: var(--nf-space-md);
+  }
+  .nf-profile-identity.nf-island .nf-profile-text {
+    padding-block-start: 0;
+  }
+  @media (min-width: 640px) {
+    .nf-profile-identity.nf-island {
+      margin-inline: var(--nf-space-md);
+      padding: 1.25rem var(--nf-space-lg);
+    }
+  }
+
+  /* The counts are Figures: tabular, a size up from their label, and three of
+     them share the column beside the face, so the gap is the small step. */
+  .nf-profile-text .nf-social-counts {
+    gap: var(--nf-space-sm);
+  }
+  .nf-profile-text .nf-social-count__value {
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    letter-spacing: -0.01em;
   }
 }

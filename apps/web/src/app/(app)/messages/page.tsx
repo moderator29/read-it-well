@@ -8,9 +8,14 @@ import { getSide } from "@/lib/side";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { PageHeader } from "@/components/app/PageHeader";
 import { PageScene } from "@/components/app/PageScene";
+import { getDictionary } from "@vallo/i18n";
+import { getLocale } from "@/lib/locale";
+import { withNext } from "@/lib/auth/next-link";
 import { Inbox, InboxEmpty, type InboxRow } from "./Inbox";
 
-export const metadata: Metadata = { title: "Inbox" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: getDictionary(await getLocale()).experienceInbox.inbox.title };
+}
 
 /**
  * The Inbox: every conversation the reader is part of.
@@ -39,7 +44,8 @@ export const metadata: Metadata = { title: "Inbox" };
  */
 
 export default async function InboxPage() {
-  const session = await resolveSession();
+  const [session, locale] = await Promise.all([resolveSession(), getLocale()]);
+  const words = getDictionary(locale).experienceInbox.inbox;
 
   if (session.state === "signed-in") {
     /* The switch, the threads and the side are asked for together; the
@@ -54,11 +60,10 @@ export default async function InboxPage() {
         <div className="mx-auto max-w-2xl">
           <div className="relative">
             <PageScene art="bot-chat" />
-            <PageHeader variant="large" title="Inbox" />
+            <PageHeader variant="large" title={words.title} />
           </div>
           <p className="nf-panel nf-panel--card nf-body p-card sm:p-cell text-center text-[var(--nf-content-muted)]">
-            Messaging is paused for maintenance. Your conversations are stored on
-            your account, not on this device. Try again in a few minutes.
+            {words.paused}
           </p>
         </div>
       );
@@ -90,7 +95,14 @@ export default async function InboxPage() {
 
     return (
       <PullToRefresh className="mx-auto max-w-(--container-2xl) lg:max-w-(--container-4xl)">
-        <Inbox rows={rows} meId={session.user.id} canMarkRead initialSide={side} archiveOpen={views.archiveOpen} />
+        <Inbox
+          rows={rows}
+          meId={session.user.id}
+          canMarkRead
+          initialSide={side}
+          archiveOpen={views.archiveOpen}
+          inboxCopy={words}
+        />
       </PullToRefresh>
     );
   }
@@ -100,13 +112,13 @@ export default async function InboxPage() {
     <div className="mx-auto max-w-2xl">
       <div className="relative">
         <PageScene art="bot-chat" />
-        <PageHeader variant="large" title="Inbox" />
+        <PageHeader variant="large" title={words.title} />
       </div>
       <InboxEmpty
-        title="Sign in to see your messages"
-        body="Conversations live with your account, so they follow you between devices and nobody else can read them. Message an agent from any listing to start one."
-        action={{ href: "/sign-in", label: "Sign in" }}
-        secondary={{ href: "/search", label: "Explore places" }}
+        title={words.signedOutTitle}
+        body={words.signedOutBody}
+        action={{ href: withNext("/sign-in", "/messages"), label: words.signIn }}
+        secondary={{ href: "/search", label: words.explore }}
       />
     </div>
   );

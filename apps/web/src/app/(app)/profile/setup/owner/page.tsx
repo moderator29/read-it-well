@@ -4,6 +4,7 @@ import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { listStates } from "@/lib/places/queries";
 import { OwnerRegisterForm } from "@/components/supply/OwnerRegisterForm";
+import { forOwner } from "@/components/supply/supply-copy";
 
 export const metadata: Metadata = {
   title: "Register as an owner",
@@ -48,5 +49,5 @@ export default async function OwnerRegistrationPage() {
      its title row. It steps back through the form, and from the first screen
      it leaves to this route's declared parent, `/profile/setup`
      (`RegisterShell`). */
-  return <OwnerRegisterForm t={t} states={states} />;
+  return <OwnerRegisterForm t={forOwner(t)} states={states} />;
 }

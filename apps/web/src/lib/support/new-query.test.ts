@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { getDictionary } from "@vallo/i18n";
 import { SUPPORT_TOPICS } from "../trust/support-topics";
 import {
   DESCRIPTION_MAX,
@@ -23,6 +24,15 @@ describe("the new query's topics", () => {
     const codes = TOPIC_CHOICES.map((t) => t.code);
     expect([...codes].sort()).toEqual([...SUPPORT_TOPICS].sort());
     expect(new Set(codes).size).toBe(codes.length);
+  });
+
+  it("has a title and a hint in the dictionary for every topic it offers", () => {
+    const words = getDictionary("en").experienceInbox.support.form.topicChoices;
+    for (const choice of TOPIC_CHOICES) {
+      expect(words[choice.code].title.length).toBeGreaterThan(0);
+      expect(words[choice.code].hint.length).toBeGreaterThan(0);
+    }
+    expect(words.safety).toEqual({ title: "Safety", hint: "Asked to pay outside Vallo, or something felt unsafe" });
   });
 
   it("covers the nine topics the product asks for", () => {

@@ -1,4 +1,6 @@
 import { Feed } from "@/components/social/feed/Feed";
+import { getDictionary } from "@vallo/i18n";
+import { sheetWordsOf } from "@/components/social/sheet-words";
 import type { PostView } from "@/components/social/feed/PostCard";
 import { FEED_POSTS } from "../fixtures";
 
@@ -34,7 +36,7 @@ export default function FeedMediaPreview() {
   return (
     <main className="min-h-dvh bg-[var(--nf-surface-canvas)]">
       <div className="nf-shell mx-auto w-full max-w-3xl pt-sm">
-        <Feed initial={posts} locale="en" signedIn emptyMessage="" />
+        <Feed initial={posts} locale="en" sheet={sheetWordsOf(getDictionary("en"))} signedIn emptyMessage="" />
       </div>
     </main>
   );

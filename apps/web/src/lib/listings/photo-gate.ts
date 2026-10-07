@@ -26,7 +26,7 @@
  * this file only decides which one applies.
  */
 
-import { MIN_PHOTO_WIDTH } from "@/lib/agent/listings-schema";
+import { MIN_PHOTO_WIDTH } from "@/lib/agent/listings-model";
 
 /** The long-edge minimum, in pixels. */
 export const MIN_PHOTO_LONG_EDGE = MIN_PHOTO_WIDTH;

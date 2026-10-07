@@ -1,10 +1,12 @@
 import Link from "next/link";
-import { formatDate } from "@vallo/i18n/core";
+import { formatDate, intlTag } from "@vallo/i18n/core";
 import { readBeneficialOwnershipDesk } from "@/lib/compliance/beneficial-ownership-queries";
 import { readActingForParams } from "@/lib/compliance/beneficial-ownership";
 import { ActingFor, ActingForLookup } from "../../_components/ActingFor";
 import { fill } from "../../_components/copy";
 import { requestNow } from "@/lib/landlord/facts";
+import { CountUp } from "@/components/motion/CountUp";
+import { panelClass } from "@/components/ui/Panel";
 import type { ComplianceLane, ComplianceLaneProps } from "./lane";
 
 /**
@@ -49,9 +51,12 @@ async function BeneficialOwnership({ t, locale, params }: ComplianceLaneProps) {
                 ["waiting", desk.counts.mandatesWaiting],
               ] as const
             ).map(([key, value]) => (
-              <div key={key} className="nf-panel nf-panel--card p-sm">
-                <dt className="nf-caption text-[var(--nf-content-secondary)]">{copy.counts[key]}</dt>
-                <dd className="nf-h3 nf-numeric">{value}</dd>
+              <div key={key} className={panelClass({ variant: "card", className: "nf-panel--figure nf-admin-figure nf-admin-figure--count" })}>
+                <dt className="nf-admin-figure__label">{copy.counts[key]}</dt>
+                {/* An exact count from the desk's own read, counting up once. */}
+                <dd className="nf-admin-figure__value">
+                  {value > 0 ? <CountUp value={value} tag={intlTag[locale]} eager /> : <span className="nf-numeric">0</span>}
+                </dd>
               </div>
             ))}
           </dl>
@@ -79,7 +84,7 @@ async function BeneficialOwnership({ t, locale, params }: ComplianceLaneProps) {
                 {desk.needs.map((row) => (
                   <li
                     key={row.id}
-                    className="flex flex-wrap items-baseline justify-between gap-x-md rounded-[var(--nf-container-radius)] border border-[var(--nf-border-subtle)] px-sm py-xs nf-body-sm"
+                    className="nf-admin-case flex flex-wrap items-baseline justify-between gap-x-md px-sm py-xs nf-body-sm"
                   >
                     <span className="min-w-0">
                       <Link className="text-[var(--nf-content-link)]" href={`/admin/listings/${row.id}`}>

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { withNext } from "@/lib/auth/next-link";
 import Link from "next/link";
 import { getDictionary, plural, type Dictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
@@ -29,10 +30,10 @@ export const dynamic = "force-dynamic";
 /**
  * Where you are signed in. SEC-5.
  *
- * The account holds a wallet, so this is not a settings nicety. A phone left in
- * a taxi is either recoverable by its owner in thirty seconds or it becomes a
- * support ticket, and a support ticket is a stranger deciding whether to
- * believe you.
+ * The account can start payments and change payout details, so this is not a
+ * settings nicety. A phone left in a taxi is either recoverable by its owner
+ * in thirty seconds or it becomes a support ticket, and a support ticket is a
+ * stranger deciding whether to believe you.
  *
  * ## What is on this screen, and what is deliberately not
  *
@@ -73,7 +74,7 @@ export default async function DevicesPage() {
               : copy.accountBodySignedOut}
           </p>
           {state.state === "signed-out" && (
-            <Link href="/sign-in" className="nf-btn nf-btn--primary mt-block w-full sm:w-auto">
+            <Link href={withNext("/sign-in", "/settings/devices")} className="nf-btn nf-btn--primary mt-block w-full sm:w-auto">
               {t.common.signIn}
             </Link>
           )}

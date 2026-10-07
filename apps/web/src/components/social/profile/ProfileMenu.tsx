@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ReportSheet } from "@/components/social/ReportSheet";
+import type { ReportWords } from "@/components/social/sheet-words";
 import { useOverlay } from "@/lib/ui/use-overlay";
 import { Sheet } from "@/components/ui/Sheet";
 import {
@@ -13,12 +14,13 @@ import {
   unblockUser,
   unmuteTarget,
 } from "@/lib/social/posts-actions";
-import { POST_COPY, PROFILE_REPORT_REASONS } from "@/lib/social/posts-schema";
+import { POST_COPY, PROFILE_REPORT_REASONS } from "@/lib/social/posts-model";
 import { displayHost } from "@/lib/brand-domain";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Toast, useToast } from "@/components/ui/Toast";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import "./social-profile.css";
+import { useSignInHref } from "@/lib/auth/use-sign-in-href";
 
 /**
  * The `…` on a person's page. The sibling of the one on every card.
@@ -53,6 +55,7 @@ export function ProfileMenu({
   signedIn,
   initialMuted = false,
   onCover = false,
+  reportWords,
 }: {
   handle: string;
   userId: string;
@@ -62,7 +65,10 @@ export function ProfileMenu({
   initialMuted?: boolean;
   /** Floating on a cover photograph rather than sitting on the canvas. */
   onCover?: boolean;
+  /** The report sheet's reasons and words, from the server (`reportWordsOf`). */
+  reportWords: ReportWords;
 }) {
+  const signInHref = useSignInHref();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [muted, setMuted] = useState(initialMuted);
@@ -147,7 +153,7 @@ export function ProfileMenu({
 
   const requireSignIn = () => {
     if (signedIn) return false;
-    router.push("/sign-in");
+    router.push(signInHref);
     return true;
   };
 
@@ -314,7 +320,7 @@ export function ProfileMenu({
                       setReporting(true);
                     }}
                   >
-                    Report {who}
+                    {reportWords.reportWho.replace("{who}", () => who)}
                   </button>
                   <button
                     type="button"
@@ -386,9 +392,10 @@ export function ProfileMenu({
 
       {reporting ? (
         <ReportSheet
-          title={`Report ${who}`}
-          subject={`The account at @${handle}, not one thing they wrote. To report a single post, use the menu on that post.`}
+          title={reportWords.reportWho.replace("{who}", () => who)}
+          subject={reportWords.accountSubject.replace("{handle}", () => handle)}
           reasons={PROFILE_REPORT_REASONS}
+          words={reportWords}
           submit={({ reason, detail }) => reportProfile({ userId, reason, detail })}
           onClose={() => setReporting(false)}
         />

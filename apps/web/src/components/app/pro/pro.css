@@ -1,0 +1,132 @@
+@layer theme, base, components, utilities;
+
+/*
+ * PRO: the switch and the unlock moment (north star 14.2, MOTION_SYSTEM 5).
+ * Imported by ProToggle.tsx and ProUnlock.tsx, so a member without a plan
+ * (today, everybody) never downloads a byte of it.
+ *
+ * THE SWITCH sits in the workspace header, which is always the night palette
+ * (`WorkspaceHeader` carries `data-theme="dark"`), so it reads the ordinary
+ * tokens and is correct there by construction. A 999px pill (D2: a pill says
+ * "this flips"), 44px tall, the word Pro and a small track. Off is a quiet
+ * outline; on fills the track in brand and moves the thumb on `drift` 240ms.
+ * No gold, no crown, no glow: it is a setting, not a prize.
+ *
+ * THE UNLOCK: the surface rises from 8px below while a veil in the canvas
+ * colour dissolves off it, `land` 380ms; then the inner layer pops 1.0 to
+ * 1.04 to 1.0 over 180ms, the one payoff pop. Two layers so the lift and the
+ * pop are two transforms that never fight. Reduced motion: no lift, no pop.
+ */
+@layer components {
+  .nf-pro-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    min-block-size: 2.75rem;
+    padding-inline: var(--nf-space-sm) var(--nf-space-xs);
+    border: var(--nf-border-width) solid var(--nf-border-default);
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-wash-1);
+    color: var(--nf-content-primary);
+    font: inherit;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  .nf-pro-switch:focus-visible {
+    outline: 2px solid var(--nf-brand-primary);
+    outline-offset: 2px;
+  }
+  .nf-pro-switch:active {
+    transform: translateY(var(--nf-press-sink, 1px));
+  }
+  .nf-pro-switch__track {
+    position: relative;
+    display: block;
+    inline-size: 2.25rem;
+    block-size: 1.375rem;
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-wash-4);
+    transition: background-color var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  .nf-pro-switch__thumb {
+    position: absolute;
+    inset-block-start: 0.1875rem;
+    inset-inline-start: 0.1875rem;
+    inline-size: 1rem;
+    block-size: 1rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-content-primary);
+    transition: transform var(--nf-duration-base) var(--nf-ease-spring);
+  }
+  .nf-pro-switch[data-on] .nf-pro-switch__track {
+    background: var(--nf-brand-primary);
+  }
+  .nf-pro-switch[data-on] .nf-pro-switch__thumb {
+    background: var(--nf-content-on-brand);
+    transform: translateX(0.875rem);
+  }
+  :dir(rtl) .nf-pro-switch[data-on] .nf-pro-switch__thumb {
+    transform: translateX(-0.875rem);
+  }
+
+  .nf-pro-unlock {
+    position: relative;
+  }
+  .nf-pro-unlock[data-play] {
+    animation: nf-pro-lift var(--nf-duration-slow) var(--nf-ease-entrance) both;
+  }
+  .nf-pro-unlock[data-play]::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--nf-surface-canvas);
+    pointer-events: none;
+    animation: nf-pro-veil var(--nf-duration-slow) var(--nf-ease-entrance) both;
+  }
+  .nf-pro-unlock[data-play] .nf-pro-unlock__pop {
+    animation: nf-pro-pop 180ms var(--nf-ease-spring) var(--nf-duration-slow) both;
+  }
+  @keyframes nf-pro-lift {
+    from {
+      transform: translateY(0.5rem);
+    }
+    to {
+      transform: none;
+    }
+  }
+  @keyframes nf-pro-veil {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+  @keyframes nf-pro-pop {
+    0%,
+    100% {
+      transform: none;
+    }
+    50% {
+      transform: scale(1.04);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-pro-unlock[data-play],
+    .nf-pro-unlock[data-play]::after,
+    .nf-pro-unlock[data-play] .nf-pro-unlock__pop {
+      animation: none;
+    }
+    .nf-pro-unlock[data-play]::after {
+      opacity: 0;
+    }
+    .nf-pro-switch__thumb,
+    .nf-pro-switch__track {
+      transition: none;
+    }
+  }
+}
