@@ -39,9 +39,12 @@ export const metadata: Metadata = {
  * REACHABLE SIGNED OUT. `planFirstRun` in `./plan.ts` (a pure function with
  * its own test) chooses between skipping and which ending to show.
  *
- * A COLD START OPENS ON THE INTRO (`WelcomeIntro`, 29 September): the name,
- * one line, a small scene of the glass objects and the two doors, Get
- * started and Sign in. The four slides are the tour behind it (`?tour=1`).
+ * A COLD START OPENS ON THE FOUR CARDS (`WelcomeIntro`, the founder's
+ * reference 3, 7 October 2026): find your space, know what you are getting,
+ * Vallo never holds your money, live, stay, dine and work; the last card's
+ * arrow opens into Get started, and "I already have an account" is on every
+ * card. Only the card words are sent (`t.getStarted`), not the dictionary.
+ * The older slides stay the tour behind it (`?tour=1`).
  *
  * AN ARRIVAL WITH A DESTINATION SKIPS THE SLIDES (V-18). A stranger who was
  * stopped on the way to a search, a listing or a stay opens on the account
@@ -82,7 +85,7 @@ export default async function WelcomePage({
      destination still opens on the slides' account choice, headed with what
      they asked for (V-18). */
   if (plan.kind === "guest" && !plan.arrival && !plan.choice && !tour) {
-    return <WelcomeIntro t={t} next={plan.next} />;
+    return <WelcomeIntro copy={t.getStarted} next={plan.next} />;
   }
 
   if (plan.kind === "guest") {

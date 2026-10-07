@@ -61,6 +61,8 @@ import { mailEn } from "./mail.en";
 import { detailsEn } from "./details.en";
 /* Get started in motion: the chips and controls of the four scenes. */
 import { onboardingMotionEn } from "./onboarding-motion.en";
+/* Get Started as four cards (reference 3, 7 October). */
+import { getStartedEn } from "./get-started.en";
 
 /**
  * The counted nouns, in every form English uses.
@@ -5827,6 +5829,8 @@ export const en = {
   mail: mailEn,
 
   onboardingMotion: onboardingMotionEn,
+
+  getStarted: getStartedEn,
 
   /*
    * THE SUCCESS SHEET (components/ui/SuccessSheet.tsx, docs/SUCCESS_MOMENTS.md).
