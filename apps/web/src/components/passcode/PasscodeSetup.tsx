@@ -14,6 +14,9 @@ import {
 import { fill, herePath, markTabUnlocked } from "@/lib/passcode/tab";
 import { feedback } from "@/lib/ui/feedback";
 import { showSuccess } from "@/lib/ui/success-moments";
+import { platformLockAvailable } from "@/lib/security/webauthn-client";
+import { Button, ButtonLink } from "@/components/ui/Button";
+import { BIO_ENROL_HREF, markBioOfferSeen, readBioOfferSeen, shouldOfferBiometric } from "./biometric-offer";
 import { Keypad, PasscodeDots } from "./Keypad";
 import { PasscodeFrame } from "./PasscodeFrame";
 import type { PasscodeCopy } from "./PasscodeLock";
@@ -43,6 +46,7 @@ export function PasscodeSetup({
   currentLength = DEFAULT_PASSCODE_LENGTH,
   initialLength = DEFAULT_PASSCODE_LENGTH,
   onDone,
+  offerBiometric = false,
 }: {
   copy: PasscodeCopy;
   locale: Locale;
@@ -54,6 +58,13 @@ export function PasscodeSetup({
   currentLength?: PasscodeLength;
   initialLength?: PasscodeLength;
   onDone?: (event: "set" | "change" | "reset") => void;
+  /**
+   * The member holds no platform key yet, so a NEW passcode may be followed,
+   * once per device and only where the device can ask its own lock, by the
+   * offer to unlock with Face ID or fingerprint next time (`biometric-offer.ts`).
+   * The offer links to the enrolment; it unlocks nothing.
+   */
+  offerBiometric?: boolean;
 }) {
   const titleId = useId();
   const router = useRouter();
@@ -68,6 +79,8 @@ export function PasscodeSetup({
   const [busy, setBusy] = useState(false);
   const [leaving, startLeaving] = useTransition();
   const sending = useRef(false);
+  /* The passcode is saved and the one-time Face ID offer is on screen. */
+  const [offering, setOffering] = useState(false);
 
   /* The typed digits, mirrored in a ref so two keys pressed inside one
      render are both kept. */
@@ -107,7 +120,16 @@ export function PasscodeSetup({
           setFirst("");
           setCurrent("");
           if (onDone) onDone(result.event);
-          else router.refresh();
+          else if (
+            overlay &&
+            offerBiometric &&
+            result.event === "set" &&
+            shouldOfferBiometric({ enrolled: false, supported: await platformLockAvailable(), seen: readBioOfferSeen() })
+          ) {
+            /* Saved and unlocked already; the offer only waits for a choice. */
+            markBioOfferSeen();
+            setOffering(true);
+          } else router.refresh();
           return;
         }
         switch (result.reason) {
@@ -158,7 +180,7 @@ export function PasscodeSetup({
         setBusy(false);
       }
     },
-    [askCurrent, copy, current, first, length, locale, onDone, put, refuse, router],
+    [askCurrent, copy, current, first, length, locale, offerBiometric, onDone, overlay, put, refuse, router],
   );
 
   /* The last digit moves the flow on, from the key press itself. */
@@ -228,6 +250,46 @@ export function PasscodeSetup({
         ? fill(copy.stepConfirm, { count: length })
         : fill(copy.stepChoose, { count: length });
   const hint = step === "enter" ? (mode === "reset" ? copy.resetBody : copy.setupBody) : "";
+
+  if (offering) {
+    return (
+      <PasscodeFrame
+        overlay={overlay}
+        wordmark={copy.wordmark}
+        titleId={titleId}
+        title={copy.bioOfferTitle}
+        subtitle={copy.bioOfferBody}
+        name={name}
+        avatarUrl={avatarUrl}
+        focal="lock"
+        door="biometric"
+        testId="passcode-bio-offer"
+      >
+        <div className="nf-passcode__offer">
+          <ButtonLink
+            href={BIO_ENROL_HREF}
+            variant="primary"
+            size="lg"
+            full
+            className="nf-passcode__bio"
+            data-testid="passcode-bio-offer-set-up"
+          >
+            {copy.bioOfferSetUp}
+          </ButtonLink>
+          <Button
+            variant="secondary"
+            size="lg"
+            full
+            className="nf-passcode__second"
+            onClick={() => router.refresh()}
+            data-testid="passcode-bio-offer-later"
+          >
+            {copy.bioOfferLater}
+          </Button>
+        </div>
+      </PasscodeFrame>
+    );
+  }
 
   return (
     <PasscodeFrame
