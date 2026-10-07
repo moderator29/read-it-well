@@ -110,6 +110,13 @@ collapse to one card per row under 768px and 720px. False positive, nothing chan
 
 ## 6. Blocked on him
 
+- **Apply order for every pending money migration (reviewed, none applied):**
+  `d73a_stays_instant_pay`, `b6_member_money_rail`, `d73b_provider_arrangements`,
+  `d75a_restaurant_deposits`, `d75b_stay_trip_details`, each with its probe in
+  `supabase/tests/probes-pending/`. Live commission is 2 percent (from
+  `money_policy_versions` 2026-10-06.1). The lister bears Payluk's escrow fee (wired).
+  D75b changes one live function (`private.can_see_listing_access`, gate code only after
+  payment) and one live policy (`reviews_insert_own`, a review needs a paid booking).
 - **D73 switches and migrations.** Apply order: `pending/d73a_stays_instant_pay.sql`
   (stands alone; then turn on `stays_instant_pay` on `/admin/switches`), and, with a
   Payluk key, `pending/b6_member_money_rail.sql` then `pending/d73b_provider_arrangements.sql`.
