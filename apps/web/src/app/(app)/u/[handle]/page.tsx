@@ -22,7 +22,6 @@ import {
   MEMBER_TABS,
   type TabKey,
 } from "@/lib/social/profile-tabs-schema";
-import { AroundFab } from "@/components/social/AroundFab";
 import { loadPublicProfile, normaliseHandle } from "@/lib/social/profiles-queries";
 import { siteUrl } from "@/lib/site";
 import { withNext } from "@/lib/auth/next-link";
@@ -178,9 +177,9 @@ export default async function SocialProfilePage({
       ]);
 
     return (
-      /* Room under the tabs' last line for the floating compose button, as
-         the other Around pages keep (`pb-4xl`): a short page's empty state
-         sat under it with no way to scroll it clear (Round 3 sweep). */
+      /* Room under the tabs' last line for the dock (`pb-4xl`): a short
+         page's empty state sat under it with no way to scroll it clear
+         (Round 3 sweep). */
       <div className="mx-auto max-w-2xl pb-4xl">
         <ProfileHeader
           profile={view.profile}
@@ -254,7 +253,8 @@ export default async function SocialProfilePage({
           data={{ posts, replies, media, activity, properties, stories, reviews }}
         />
 
-        <AroundFab />
+        {/* No create fan here (founder, 7 October): the composer belongs on
+            the feed, which has its own plus; a person's profile is theirs. */}
       </div>
     );
   }

@@ -21,10 +21,14 @@
    * 362px on a 390 screen, and it is kept inside the viewport on anything
    * narrower. Supersedes `.nf-social-more__menu` in `social-feed.css`.
    */
+  /* Anchored to the trigger's END edge so it opens back across the screen
+     (D79: it opened from the trigger's start edge and ran off the right side
+     of a phone, cutting "Report" and "Block" in half). */
   .nf-post__menu.nf-social-more__menu {
-    inset-inline-start: 0;
-    inset-inline-end: auto;
-    max-inline-size: calc(100vw - 2.5rem);
+    inset-inline-start: auto;
+    inset-inline-end: 0;
+    min-inline-size: 13rem;
+    max-inline-size: calc(100vw - 2rem);
     border-radius: var(--nf-container-radius);
     border-color: var(--nf-panel-edges);
     background: var(--nf-panel-fill-card);
@@ -74,21 +78,11 @@
     letter-spacing: 0.06em;
   }
 
-  /* The tab bar: the panel's track and the shared SELECTED state (the
-     console's chosen row: lit fill, bright edges, the inline glow) on the
-     live tab. Supersedes the track and the flat brand tab of `.nf-glass-seg`
-     for the profile only; the landing's segment is another group's. */
-  .nf-glass-seg.nf-glass-seg--profile {
-    border-color: var(--nf-panel-edges);
-    background: var(--nf-panel-fill-card);
-    box-shadow: var(--nf-panel-rim);
-  }
-  .nf-glass-seg--profile .nf-glass-seg__tab[aria-selected="true"] {
-    background: var(--nf-selected-fill);
-    border: var(--nf-border-width) solid transparent;
-    border-color: var(--nf-selected-edges);
-    box-shadow: var(--nf-selected-shadow-inline);
-  }
+  /* The profile's tabs are the platform's underline tabs (`.nf-glass-seg`
+     in social.css, the same ink as `/profile`'s own tabs): muted labels, the
+     chosen one in full ink with the travelling line under it. The lit block
+     that filled the chosen tab here is gone (D79, founder: "a big blue
+     block"). */
 
   /*
    * A choice card in the profile editor (who may message you, pidgin): the
@@ -166,5 +160,45 @@
     font-size: var(--nf-text-body);
     font-weight: 600;
     letter-spacing: -0.01em;
+  }
+
+  /* ------------------------------------------------------------------
+   * D79, THE COVER'S CORNERS (founder, 7 October): Back and Share with no
+   * plate around them, smaller, and higher on the cover. Each stays a 44px
+   * target; what goes is the glass disc and the word. A soft shadow under the
+   * glyph keeps it legible on a bright cover and on a dark one.
+   * ------------------------------------------------------------------ */
+  .nf-identity .nf-social-float {
+    top: calc(var(--nf-social-bar) + 2px);
+    gap: 0;
+  }
+  .nf-identity .nf-social-float--start {
+    inset-inline-start: 6px;
+  }
+  .nf-identity .nf-social-float--end {
+    inset-inline-end: 6px;
+  }
+  .nf-identity .nf-social-float .nf-social-round {
+    inline-size: 44px;
+    block-size: 44px;
+    padding: 0;
+    border-color: transparent;
+    background: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: none;
+    color: var(--nf-content-on-media);
+    filter: drop-shadow(0 1px 4px var(--nf-overlay-media));
+  }
+  .nf-identity .nf-social-float .nf-social-round::after {
+    content: none;
+  }
+  @media (min-width: 768px) {
+    .nf-identity .nf-social-float--start {
+      inset-inline-start: 1rem;
+    }
+    .nf-identity .nf-social-float--end {
+      inset-inline-end: 1rem;
+    }
   }
 }

@@ -169,7 +169,9 @@ export function ProfileHeader({
         labels: { followers: copy.followers, following: copy.following, posts: copy.posts },
       }}
       locale={locale}
-      topStart={<BackChevron fallback="/around" label={copy.back} labelled />}
+      /* Back is a glyph on the cover, no plate and no word (D79); its name is
+         still read out. */
+      topStart={<BackChevron fallback="/around" label={copy.back} />}
       topEnd={share}
       actions={
         /* MINE: the edit control. THEIRS: follow, then message when there is

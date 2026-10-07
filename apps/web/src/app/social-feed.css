@@ -4406,10 +4406,21 @@
     column-gap: 12px;
   }
   .nf-post__face {
+    position: relative;
     display: block;
     flex: none;
     border-radius: var(--nf-radius-circle);
     -webkit-tap-highlight-color: transparent;
+  }
+  /* The face is drawn at 40; its target is 44, centred on it. */
+  .nf-post__face::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 44px;
+    height: 44px;
+    translate: -50% -50%;
   }
   .nf-post__face:focus-visible {
     outline: 2px solid var(--nf-brand-secondary);
@@ -4445,8 +4456,8 @@
      visual size, pulled back by the padding it adds. */
   .nf-post__when {
     align-self: center;
-    padding: 12px 2px;
-    margin-block: -12px;
+    padding: 14px 2px;
+    margin-block: -14px;
     color: var(--nf-content-muted);
     font-size: var(--nf-text-caption);
     font-variant-numeric: tabular-nums;
