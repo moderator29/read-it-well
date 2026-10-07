@@ -77,6 +77,28 @@ connector here: they write and roll back, and that outlasts its 60-second limit.
 
 Next: group 2 (`room_bookings`, `stays_instant_pay`, `restaurant_deposits`) after the main deploy carries their code; `stays_instant_pay` also waits for the d73a sweep. The old `wallet` key is a retired custody switch the database refuses to turn on; the balance runs on the b6 rail's own switch.
 
+## 0e. On main (7 October, evening)
+
+Main `95e9ab6ea` carries the whole session: the QA fixes, the payments round (funding
+screen, risk settings, lister fee write, Payluk adapter ready on its key), the fixer's
+round (the four styling tests, page files exporting only what Next allows, Send's code
+step, Add money no longer cancelling a deposit that may be paid, story composer errors,
+swipe stack, unread count without a session). Unit suite 845 files, 10,018 passed;
+typecheck clean; lint 0 errors.
+
+Applied after the deploy that writes the rail: b2 (20261007154008), d68d (20261007154216),
+d77 (20261007154344). Live after d77: direct threshold 500,000 naira, sale never direct,
+first-deal signal scoped, `payments_payluk_on` seeded off.
+
+Still open:
+- The d73a sweep (section 0b): run in the Supabase SQL editor before `stays_instant_pay`.
+- A deposit left waiting for payment never expires: nothing reads it back from the
+  provider or ends it, so an unpaid one stays pending in the activity list. Needs a
+  read-back or expiry job (money is never at risk; it is a stale row).
+- A missing-key React warning on signed-in pages (`OuterLayoutRouter`, and SavedBoard
+  from SavedPage) not yet reproduced; needs one signed-in dev run.
+- The Payluk escrow flow is tested only against fixtures from Payluk's documentation.
+
 ## 1. Built, with evidence
 
 | Item | Commit | Evidence |
