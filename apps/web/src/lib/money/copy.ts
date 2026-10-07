@@ -147,7 +147,7 @@ export const LISTING_STAY_PAY_AFTER =
 
 /** What has to happen before payment is available. */
 export const PAYMENT_GATE_SENTENCE =
-  "Payment opens only after the inspection report is submitted, both of you confirm the agreement, and Vallo approves it.";
+  "Payment opens as soon as the inspection report is submitted and both of you confirm the agreement. A protected payment opens straight away; a direct payment waits for a person at Vallo only when something about the deal needs a second look.";
 
 /* The agreement page's money lines (/agreements/[id]), moved out of the page
    (Round 3 sweep, C3). The words are the page's own, unchanged. */
@@ -157,12 +157,12 @@ export function agreementPayLabel(amount: string): string {
 }
 /** Both parties confirmed and Vallo is reviewing. */
 export const AGREEMENT_IN_REVIEW =
-  "Both of you confirmed. A person at Vallo is reviewing the agreement. You will get an email and a notification the moment it is decided. Payment opens only after approval.";
+  "Both of you confirmed. Because this payment goes straight to the lister, a person at Vallo is checking the deal first. You will get an email and a notification the moment it is decided.";
 /** The section an approved agreement opens. */
 export const AGREEMENT_PAYMENT_OPEN_TITLE = "Payment is open";
 /** The lister's line once the agreement is approved. */
 export function agreementOwnerApproved(kind: "rent" | "stay"): string {
-  return `Vallo approved the agreement. The ${kind === "rent" ? "renter" : "guest"} can pay now, and your share settles straight to your bank account from the same payment.`;
+  return `The agreement is approved. The ${kind === "rent" ? "renter" : "guest"} can pay now, and your share settles straight to your bank account from the same payment.`;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -932,3 +932,45 @@ export const PROMOTION_FULL_DAYS =
 /** Statement 7 and the refund route. */
 export const PROMOTION_REFUNDED =
   "It stops appearing as the refund is recorded, and the refund goes back to the card or bank account you paid with, through our payment processor.";
+
+/* -------------------------------------------------------------------------- */
+/* STEP 8, FUNDED (D68d, B.3.5): the protected payment, held by the provider   */
+/* -------------------------------------------------------------------------- */
+
+/** The licensed provider that holds a protected payment, as members read it. */
+export const HELD_PROVIDER_NAME = "Payluk";
+
+/** The renter's headline once the money is held. */
+export const HELD_TITLE_RENTER = "Your money is held, not paid";
+/** The lister's headline once the money is held. */
+export const HELD_TITLE_LISTER = "The renter's payment is held for you";
+
+/** Who holds it, in one line, for both sides. Vallo never holds it. */
+export const HELD_BY_LINE =
+  "Held by Payluk, a licensed payment provider, until the move-in is confirmed. Vallo never holds it.";
+
+/** What releases it, in the order it happens. */
+export const HELD_RELEASE_STEPS: readonly { title: string; body: string }[] = [
+  { title: "You move in", body: "Inspect the home on the move-in date and collect the keys." },
+  { title: "You confirm", body: "Only you can release it, with a deliberate swipe. Nobody else can confirm for you." },
+  { title: "The lister is paid", body: "Payluk pays the lister. Payluk's fee comes out of the lister's share, not yours." },
+];
+
+/** The lister's view of the same steps. */
+export const HELD_RELEASE_STEPS_LISTER: readonly { title: string; body: string }[] = [
+  { title: "The renter moves in", body: "Hand over the keys on the move-in date." },
+  { title: "The renter confirms", body: "Their confirmation releases the payment to you." },
+  { title: "You are paid", body: "Payluk pays you, less its fee for holding it." },
+];
+
+/** If something is wrong, before release. */
+export const HELD_IF_WRONG =
+  "Something not as agreed? Do not confirm. Raise it from this page and the money stays held while it is looked at.";
+
+/** Vallo has paused the release while it looks at the deal. */
+export const HELD_PAUSED =
+  "Vallo is looking at this deal. The money stays held by Payluk until it is done; nothing moves meanwhile.";
+
+/** The swipe that releases it. */
+export const RELEASE_SWIPE_LABEL = "Swipe to release to the lister";
+export const RELEASE_ARMED_LABEL = "Press again to release";

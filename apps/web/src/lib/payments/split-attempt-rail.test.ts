@@ -26,7 +26,7 @@ const booking = { id: "b1", total_minor: 10_000, currency: "NGN" };
 
 function admin() {
   const inserted: Record<string, unknown>[] = [];
-  const rpc = vi.fn(async () => ({
+  const rpc = vi.fn(async (fn?: string) => fn === "agreement_payable_for" ? { data: { status: "payable", rail: "direct" }, error: null } : ({
     data: {
       status: "ok", agreement_id: "ag1", amount_minor: 10_000, payee_user_id: "u1",
       payee_subaccount_code: "ACCT_lister", lister_share_minor: 9_800 - state.guarantee, guarantee_minor: state.guarantee, commission_minor: 200,
@@ -93,5 +93,24 @@ describe("every split payment resolves its rail before it opens", () => {
     expect(await quoteSplit(admin() as never, booking)).toEqual({ refused: true, message: RAIL_REFUSAL.unresolved });
     state.answer = { state: "unavailable" };
     expect(await quoteSplit(admin() as never, booking)).toEqual({ refused: true, message: RAIL_REFUSAL.unavailable });
+  });
+});
+
+describe("D68d: the rail and the risk signals decide before the gate does", () => {
+  beforeEach(() => {
+    state.answer = { state: "resolved", rail: "direct", milestones: false, policyId: "pol-hotel" };
+  });
+  it("a deal the resolver sends for review is refused in a sentence, before any row is written", async () => {
+    const db = admin();
+    db.rpc.mockImplementation((async (fn?: string) =>
+      fn === "agreement_payable_for"
+        ? { data: { status: "review_required", rail: "direct" }, error: null }
+        : {
+            data: { status: "ok", agreement_id: "ag1", amount_minor: 10_000, payee_user_id: "u1", payee_subaccount_code: "ACCT_lister", lister_share_minor: 9_800, guarantee_minor: 0, commission_minor: 200 },
+            error: null,
+          }) as never);
+    const quote = await quoteSplit(db as never, booking);
+    expect(quote).toEqual({ refused: true, message: PAYMENT_NOT_AVAILABLE.review_required });
+    expect(db.inserted).toHaveLength(0);
   });
 });

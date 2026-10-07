@@ -1,5 +1,6 @@
 import "server-only";
 import { subjectHref, subjectKey, subjectTitles, type AgreementSubject } from "@/lib/agreements/subject";
+import { parseWatchList, type WatchRow } from "../watch-list";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
@@ -113,6 +114,21 @@ export async function readAgreementQueue(db: SupabaseClient<Database>): Promise<
     };
   } catch {
     return { state: "unavailable" };
+  }
+}
+
+/**
+ * D68d: the watch list, riskiest first, read as the reviewer (the function
+ * checks the `agreements` scope itself). Null when it cannot be read, which
+ * includes before migration d68d is applied.
+ */
+export async function readWatchList(userClient: SupabaseClient<Database>): Promise<WatchRow[] | null> {
+  try {
+    const { data, error } = await userClient.rpc("admin_agreement_watch_list" as never, { p_limit: 100 } as never);
+    if (error) return null;
+    return parseWatchList(data);
+  } catch {
+    return null;
   }
 }
 
