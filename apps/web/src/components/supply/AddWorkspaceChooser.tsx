@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { ProgressPath } from "./ProgressPath";
+import { NEED_TILES } from "./path-tiles";
 import { useRouter } from "next/navigation";
 import type { ChooserCopy } from "./supply-copy";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -287,16 +289,21 @@ export function AddWorkspaceChooser({ t, side }: { t: ChooserCopy; side: Side })
         ))
       ) : (
         <>
-          <ul className="mt-heading grid gap-group">
-            {overviewRows.map((row) => (
-              <li key={row.label} className="nf-door nf-door--calm">
-                <IconPlate size="md" className="nf-door__mark">
-                  <UiIcon name={lineGlyphFor(row.object)} size={20} />
-                </IconPlate>
-                <span className={`min-w-0 flex-1 ${TYPE.body}`}>{row.label}</span>
-              </li>
-            ))}
-          </ul>
+          {/* THE PATH AHEAD (reference 2, the learning path): every line this
+              door will ask for, as a card with its 3D tile and its number,
+              joined by the connector. Nothing is done yet, so every step is
+              upcoming and none is a button. */}
+          <div className="mt-heading">
+            <ProgressPath
+              steps={overviewRows.map((row) => ({
+                id: row.label,
+                label: row.label,
+                tile: NEED_TILES[row.object],
+              }))}
+              at={-1}
+              copy={{ done: "", current: "", upcoming: "" }}
+            />
+          </div>
 
           {/*
             THE CALM EXPLANATORY PANEL with its small round glyph, which

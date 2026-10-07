@@ -98,6 +98,7 @@ import type { Flooding } from "@/lib/around/pulse";
 import { EMPTY_UNIT_FORM, takesShape, unitPayload, type UnitForm } from "@/lib/listings/unit-shape";
 import { listingDraftKey } from "@/lib/agent/listing-draft-storage";
 import { ProgressPath } from "@/components/supply/ProgressPath";
+import { LISTING_STEP_TILES } from "@/components/supply/path-tiles";
 import { useDeviceStorage } from "@/components/supply/use-device-storage";
 import { Unfold } from "@/components/ui/Unfold";
 import { looksLikeStreetAddress, STREET_IN_TITLE_WARNING } from "@/lib/listings/public-title";
@@ -2371,11 +2372,15 @@ export function ListingWizard({
                 .join(" "),
               content: (
                 <ProgressPath
-                  steps={stepNames.map((name, index) => ({ id: STEP_KEYS[index] ?? name, label: name }))}
+                  steps={stepNames.map((name, index) => {
+                    const key = STEP_KEYS[index] ?? name;
+                    return { id: key, label: name, tile: LISTING_STEP_TILES[key] };
+                  })}
                   at={step}
                   onJump={(index) => go(index)}
                   disabled={pending}
                   copy={{ done: pathCopy.done, current: pathCopy.current, upcoming: pathCopy.upcoming }}
+                  locale={locale}
                 />
               ),
             },
