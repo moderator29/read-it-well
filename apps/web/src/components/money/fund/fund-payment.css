@@ -76,6 +76,8 @@
     position: relative;
     overflow: hidden;
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    min-width: 0;
     gap: var(--nf-space-sm);
     padding: var(--nf-space-lg);
     border-radius: var(--nf-radius-lg);
@@ -103,11 +105,13 @@
   .nf-fund__figure {
     display: flex;
     align-items: baseline;
-    flex-wrap: wrap;
-    gap: 0.35em;
+    flex-wrap: nowrap;
+    gap: 0.2em;
     font-family: var(--nf-font-display);
     font-variant-numeric: tabular-nums;
-    font-size: var(--nf-text-figure-xl);
+    /* Huge, and never wider than the card: a seven-figure rent fits a 320px phone. */
+    font-size: min(var(--nf-text-figure-xl), 13vw);
+    white-space: nowrap;
     font-weight: 600;
     line-height: 1;
     letter-spacing: -0.02em;

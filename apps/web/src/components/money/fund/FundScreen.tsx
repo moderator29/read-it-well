@@ -4,6 +4,8 @@ import { formatMoney, type Locale } from "@vallo/i18n/core";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { FUND_BY_LINE, FUND_FROM_BALANCE, FUND_NO_FEE_LINE, FUND_TITLE } from "@/lib/money/copy";
 import type { FundFacts, FundModel } from "@/lib/money/fund-model";
+/* The reflecting capsule (`.nf-capsule`, D74) lives with the premium moments. */
+import "@/app/css/premium-moments.css";
 import "./fund-payment.css";
 
 /**
