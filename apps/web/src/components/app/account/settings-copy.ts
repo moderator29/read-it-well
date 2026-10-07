@@ -38,7 +38,11 @@ export type HubCopy = SettingsOf<"hub" | "appearance" | "notifications" | "langu
   passcode: Pick<Dictionary["passcode"], "settingsRow" | "settingsRowSub">;
   paymentsPage: Pick<Dictionary["paymentsPage"], "settingsRow" | "settingsRowSub">;
   /** The Accessibility row: the page's own title and line. */
-  experienceSettings: { accessibility: Pick<Dictionary["experienceSettings"]["accessibility"], "title" | "sub"> };
+  experienceSettings: {
+    accessibility: Pick<Dictionary["experienceSettings"]["accessibility"], "title" | "sub">;
+    /** D78: every settings page is a row on the hub; these are their names. */
+    destinations: Pick<Dictionary["experienceSettings"]["area"]["destinations"], "devices" | "place" | "interests" | "region">;
+  };
 };
 
 export function forHub(t: Dictionary): HubCopy {
@@ -51,6 +55,12 @@ export function forHub(t: Dictionary): HubCopy {
     paymentsPage: { settingsRow: t.paymentsPage.settingsRow, settingsRowSub: t.paymentsPage.settingsRowSub },
     experienceSettings: {
       accessibility: { title: t.experienceSettings.accessibility.title, sub: t.experienceSettings.accessibility.sub },
+      destinations: {
+        devices: t.experienceSettings.area.destinations.devices,
+        place: t.experienceSettings.area.destinations.place,
+        interests: t.experienceSettings.area.destinations.interests,
+        region: t.experienceSettings.area.destinations.region,
+      },
     },
   };
 }

@@ -27,7 +27,6 @@ import { clearLocalDevice, readLocalDevice } from "@/components/app/push/device-
 import { playThreshold } from "@/lib/motion/threshold";
 import type { ResolvedProfileSettings } from "@/lib/profile/model";
 import { RemoteImage } from "@/components/ui/RemoteImage";
-import { PAYOUTS_ROW_SUB, PAYOUTS_TITLE } from "@/lib/money/copy";
 
 /**
  * THE SETTINGS HOME, per `7F96BE6C`.
@@ -173,7 +172,6 @@ export function SettingsHub({
   deviceCount,
   phoneRow = null,
   passportRow = null,
-  rewardsRow = null,
 }: SettingsHubProps) {
   const hub = t.settings.hub;
   /* The appearance group and its theme row went with light mode on 23
@@ -271,26 +269,18 @@ export function SettingsHub({
           sub={hub.languageSub}
           glyph={<HubGlyph name="globe" />}
         />
-        {/* A5: the member's own invite link. */}
         <RowLink
-          href="/settings/invite"
-          glyph={<HubGlyph name="users" />}
-          label={t.publicDoors.invite.rowTitle}
-          sub={t.publicDoors.invite.rowSub}
-          testId="hub-invite"
+          href="/settings/place"
+          glyph={<HubGlyph name="location" />}
+          label={t.experienceSettings.destinations.place}
+          testId="hub-place"
         />
-        {/* The Rewards page, beside the invite it belongs to. Its line comes
-            from the rewards read, so it says "not running yet" while that is
-            true and never shows a balance it does not have. */}
-        {rewardsRow && (
-          <RowLink
-            href="/rewards"
-            glyph={<HubGlyph name="hand-coins" />}
-            label={rewardsRow.label}
-            sub={rewardsRow.sub}
-            testId="hub-rewards"
-          />
-        )}
+        <RowLink
+          href="/settings/interests"
+          glyph={<HubGlyph name="heart" />}
+          label={t.experienceSettings.destinations.interests}
+          testId="hub-interests"
+        />
       </SettingsGroup>
 
       <SettingsGroup label="Privacy and security">
@@ -316,6 +306,14 @@ export function SettingsHub({
             testId="hub-passcode"
           />
         )}
+        {signedIn && (
+          <RowLink
+            href="/settings/devices"
+            glyph={<HubGlyph name="key" />}
+            label={t.experienceSettings.destinations.devices}
+            testId="hub-devices"
+          />
+        )}
       </SettingsGroup>
 
       {signedIn && (
@@ -326,24 +324,6 @@ export function SettingsHub({
             label={t.paymentsPage.settingsRow}
             sub="Cards you pay with, and the bank accounts you are paid into"
             testId="hub-payments"
-          />
-          {/* The record of what was paid and refunded. Read-only: there is
-              nothing held, so nothing here to top up or take out. */}
-          <RowLink
-            href="/payments"
-            glyph={<HubGlyph name="history" />}
-            label="Payment history"
-            sub="What you paid through Vallo, and every refund"
-            testId="hub-payment-history"
-          />
-          {/* A lister's payouts, payment by payment. It had a page and no row
-              (7 October 2026). Both words are Session 2's money sentences. */}
-          <RowLink
-            href="/payouts"
-            glyph={<HubGlyph name="bank" />}
-            label={PAYOUTS_TITLE}
-            sub={PAYOUTS_ROW_SUB}
-            testId="hub-payouts"
           />
         </SettingsGroup>
       )}

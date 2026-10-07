@@ -156,6 +156,23 @@
   .nf-nav--drawer .nf-nav__legal::after {
     display: none;
   }
+  /* D78: the documents line under the registered name. Small, quiet, blue
+     links in one wrapping row, each a full touch target. */
+  .nf-nav__docs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 var(--nf-space-sm);
+    padding-inline-start: var(--nf-space-md);
+    padding-block-end: var(--nf-space-sm);
+  }
+  .nf-nav__docs a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-brand-secondary);
+    text-decoration: none;
+  }
   /* The drawer's head held only the close control, which the founder took
      out ("remove the X in the top right"); the scrim beside the panel, a
      swipe and Escape still close it. An empty head takes no room. */

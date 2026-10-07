@@ -3406,3 +3406,14 @@ This supersedes the platinum direction in `docs/design/PREMIUM-STANDARD.md` wher
 - **No four-point sparkle icon anywhere.** For you, Pro and the assistant each get a real icon that means the thing.
 - **The feed must work and look clean**: avatar and name open the profile, every action does its own thing, actions are bare icons (no pill wrappers), the feed has its own + to post, story avatars sit in clean even rings, the story viewer is calm and full-bleed.
 - **The platform's docs sit beside "VALLO SPACES LTD"** at the foot of the side nav.
+
+### D78, navigation (same evening; the lead owns navigation from here)
+
+- **Settings has no pull-out menu.** Every settings page is a row on the Settings page and goes back to it; nothing else lists them.
+- **Space Passport is a side-nav feature**, beside Agreements.
+- **Money in the side nav is three rows: Wallet, Rewards, Referral.** Payments, Receipts, Payouts and Refunds live on the Wallet screen.
+- **"Invite friends" is Referral**, and the Leaderboard opens from the Referral page, not the side nav.
+- **No logo or wordmark in the app's top bar.**
+- **The bell shows only on Home, Search and Feed** (each side's own), nowhere else.
+- **The platform's documents (Terms, Privacy, Safety, Help) sit under VALLO SPACES LTD** at the foot of the side nav.
+- **A member's public profile has no composer +** (that belongs on the Feed), quiet Back and Share without containers, a smaller Follow button, a ••• menu that opens fully on screen, and clean, sharp tabs.
