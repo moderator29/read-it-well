@@ -16,6 +16,15 @@ declare
   ref    text := 'rm-yc-' || gen_random_uuid()::text;
   tg name; rate bigint; bk uuid; ag uuid; cp uuid; r jsonb; n int; st text; conf int; leg text;
 begin
+  -- 7 October 2026 (D68d, D77): an agreement approved by the system (no
+  -- decided_by) is payable only while no risk signal fires for it. This probe
+  -- is about the payment, not the review, so its fixture deals are ordinary
+  -- deals that raise no signal: the signals are switched off in
+  -- agreement_risk_settings for this transaction only.
+  update public.agreement_risk_settings
+     set check_first_deal = false, check_amount = false, check_recent_change = false,
+         check_payout_name = false, check_fraud_radar = false
+   where id = 1;
   -- The example stay made real inside the transaction only (new-a1-03 lifts a
   -- gate the same way); everything rolls back.
   for tg in select tgname from pg_trigger where tgrelid = 'public.listings'::regclass and tgfoid = 'private.listing_supply_proof_gate'::regproc loop
