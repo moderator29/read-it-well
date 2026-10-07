@@ -1839,23 +1839,10 @@
   .nf-comment__reply:focus-visible {
     color: var(--nf-brand-secondary);
   }
+  /* The heart is the feed's capsule (`ActionPill`, D72); this only seats it
+     at the end of the comment's foot. */
   .nf-comment__heart {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
     margin-inline-start: auto;
-    font-size: var(--nf-text-caption);
-    font-weight: 700;
-    color: var(--nf-content-muted);
-  }
-  .nf-comment__heart::before {
-    content: "";
-    position: absolute;
-    inset: -12px -8px;
-  }
-  .nf-comment__heart[aria-pressed="true"] {
-    color: var(--nf-brand-secondary);
   }
 
   /* ------------------------------------------------------ the composer */
@@ -3215,4 +3202,1198 @@
    * every disabled primary keeps its lit bar at reduced strength, so the local
    * rule that stood here (a flat gradient at 0.45 opacity) is deleted.
    */
+}
+
+/* ======================================================================
+ * THE PREMIUM PASS (D72, 7 October 2026). The founder: "our feed make it
+ * clean, small icons for likes, comment, retweet... next gen one, the
+ * containers, the looks too". PREMIUM-STANDARD.md reference 2 for the row,
+ * `GOVERNING-feed-plus-bloom.png` for the card. Last in this sheet on
+ * purpose: every rule here is a decision that supersedes a measurement
+ * above it, and reading order is cascade order.
+ * ====================================================================== */
+@layer components {
+  /* ------------------------------------------------------------------
+   * The card's hierarchy. What a post is FOR is its words or its picture,
+   * so the body is the largest type on the card and the author line is
+   * small and quiet above it: name at the body-sm step, handle and time at
+   * caption. Four sizes at most on a card (the bar, rule 3).
+   * ------------------------------------------------------------------ */
+  :root {
+    --nf-feed-pad: 14px;
+    --nf-feed-gap: 12px;
+  }
+  /*
+   * THE CARD, CALMER (D74, the Plasma set: "near-black fields, the content is
+   * lit, the field is quiet"). The same shared card and the same lit edge,
+   * refined rather than replaced: the navy wash in the fill comes down to a
+   * near-black with a breath of blue at the top, and the four lit edges come
+   * down a step, so the photograph and the words are the brightest things on
+   * the card instead of its frame. No metal on a feed card: platinum is one
+   * object per screen, and a feed is a list. Padding is the breathing room
+   * the bar asks for: 14 round the words, 12 under the action row.
+   */
+  .nf-panel.nf-post {
+    padding: 12px var(--nf-feed-pad) 12px;
+    background:
+      radial-gradient(60% 18px at 50% 0, color-mix(in oklab, var(--nf-lit) 10%, transparent), transparent),
+      linear-gradient(
+        180deg,
+        color-mix(in oklab, var(--nf-lit) 12%, var(--nf-surface-canvas)) 0,
+        color-mix(in oklab, var(--nf-lit) 6%, var(--nf-surface-canvas)) 40%,
+        color-mix(in oklab, var(--nf-lit) 8%, var(--nf-surface-canvas)) 100%
+      );
+    border-color:
+      color-mix(in oklab, var(--nf-lit) 52%, var(--nf-surface-canvas))
+      color-mix(in oklab, var(--nf-lit) 34%, var(--nf-surface-canvas))
+      color-mix(in oklab, var(--nf-lit) 40%, var(--nf-surface-canvas))
+      color-mix(in oklab, var(--nf-lit) 30%, var(--nf-surface-canvas));
+  }
+  .nf-post__body {
+    margin-block-start: 8px;
+    font-size: var(--nf-text-body);
+    line-height: 1.5;
+    letter-spacing: -0.006em;
+  }
+  .nf-post__name {
+    font-size: var(--nf-text-body-sm);
+    letter-spacing: -0.01em;
+  }
+  .nf-post__handle,
+  .nf-post__when {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+
+  /* ------------------------------------------------------------------
+   * THE ACTION ROW: separate soft capsules (reference 2).
+   *
+   * Each control is its own soft charcoal capsule: a faint fill and a
+   * hairline drawn from the ink colour, so the same rule is charcoal on the
+   * dark field and a pale grey on the light one. Glyph 16, count at the
+   * caption step in tabular figures, 32 tall, 6 apart. The share disc sits
+   * alone at the far end. The 44px target is the `::before` below, as
+   * `.nf-post__act` always did it.
+   * ------------------------------------------------------------------ */
+  .nf-post__actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-block: 12px 0;
+    margin-inline: 0;
+    padding-top: 0;
+    border-top: 0;
+  }
+  .nf-act-pill {
+    position: relative;
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    block-size: 32px;
+    min-inline-size: 32px;
+    padding-inline: 10px 12px;
+    border-radius: var(--nf-radius-segment);
+    border: 1px solid color-mix(in oklab, var(--nf-content-primary) 9%, transparent);
+    background: color-mix(in oklab, var(--nf-content-primary) 5%, transparent);
+    color: var(--nf-content-secondary);
+    font-size: var(--nf-text-caption);
+    font-weight: 500;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    transition:
+      background-color var(--nf-duration-fast) var(--nf-ease-standard),
+      border-color var(--nf-duration-fast) var(--nf-ease-standard),
+      color var(--nf-duration-fast) var(--nf-ease-standard),
+      transform var(--nf-duration-press) var(--nf-ease-press);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .nf-act-pill--round {
+    inline-size: 32px;
+    padding-inline: 0;
+  }
+  .nf-act-pill--share {
+    margin-inline-start: auto;
+  }
+  .nf-act-pill::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    translate: -50% -50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+  }
+  .nf-act-pill__count {
+    min-inline-size: 1ch;
+    color: inherit;
+  }
+  .nf-act-pill:hover {
+    color: var(--nf-content-primary);
+    background: color-mix(in oklab, var(--nf-content-primary) 9%, transparent);
+  }
+  .nf-act-pill:focus-visible {
+    outline: 2px solid var(--nf-brand-secondary);
+    outline-offset: 2px;
+  }
+  /* The felt press: the capsule sinks to 0.94 on `press`, so the finger
+     feels the control take the tap before anything else happens. */
+  .nf-act-pill:active {
+    transform: scale(0.94);
+  }
+  /* Marked. Brand blue, never rose: rose means error here, and a liked post
+     is not an error. The capsule takes a faint brand wash and edge, so the
+     state reads from the shape and not from colour alone. */
+  .nf-act-pill[aria-pressed="true"] {
+    color: var(--nf-brand-secondary);
+    border-color: color-mix(in oklab, var(--nf-brand-secondary) 38%, transparent);
+    background: color-mix(in oklab, var(--nf-brand-secondary) 14%, transparent);
+  }
+  /* 320 to 359: four capsules and a disc in 270px. The capsules close up
+     rather than the row wrapping or the disc leaving the card; every target
+     is still 44 square through `::before`. */
+  @media (max-width: 359px) {
+    .nf-post__actions {
+      gap: 4px;
+    }
+    .nf-act-pill {
+      gap: 4px;
+      padding-inline: 8px 9px;
+    }
+    .nf-act-pill--round {
+      padding-inline: 0;
+    }
+  }
+
+  /* ------------------------------------------------------------------
+   * The thread: each reply steps in one level per depth and hangs off a
+   * thin rail down its left edge, bridging the gap above it so the rails
+   * of consecutive replies read as one line (reference 2's connector). A
+   * top-level depth of 0 draws no rail (its width is the depth in px,
+   * capped at one).
+   * ------------------------------------------------------------------ */
+  .nf-thread__reply {
+    position: relative;
+    padding-inline-start: calc(var(--nf-thread-depth, 0) * 16px);
+  }
+  .nf-thread__reply::before {
+    content: "";
+    position: absolute;
+    inset-block: calc(var(--nf-feed-gap) * -1) 0;
+    inset-inline-start: calc(var(--nf-thread-depth, 0) * 16px - 9px);
+    inline-size: min(1px, calc(var(--nf-thread-depth, 0) * 1px));
+    background: linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--nf-brand-secondary) 34%, transparent),
+      color-mix(in oklab, var(--nf-brand-secondary) 12%, transparent)
+    );
+    pointer-events: none;
+  }
+
+  /* ------------------------------------------------------------------
+   * THE FULL-PAGE COMPOSER (the feed set): Cancel and the Post capsule at
+   * the top, what is being answered or who will see it, a large borderless
+   * field, and a tool row with the character ring. Used for a new post and
+   * for every reply and comment.
+   * ------------------------------------------------------------------ */
+  .nf-compose-page {
+    display: flex;
+    flex-direction: column;
+    min-block-size: calc(100dvh - 7rem);
+  }
+  .nf-compose-page__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-block: 0 12px;
+  }
+  .nf-compose-page__cancel {
+    min-block-size: 44px;
+    padding-inline: 2px 10px;
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-body);
+  }
+  .nf-compose-page__field {
+    flex: 1 1 auto;
+    inline-size: 100%;
+    min-block-size: 10rem;
+    padding: 8px 0;
+    border: 0;
+    background: transparent;
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-body-lg);
+    line-height: 1.5;
+    resize: none;
+    outline: none;
+  }
+  .nf-compose-page__field::placeholder {
+    color: var(--nf-content-muted);
+  }
+  /* The page is the field: no box, no ring round it (the caret is the
+     focus). The platform's field ring is for a field among others. */
+  .nf-compose-page .nf-compose-page__field:focus,
+  .nf-compose-page .nf-compose-page__field:focus-visible {
+    outline: none;
+    border: 0;
+    box-shadow: none;
+  }
+  /* The platform ring is unlayered (base.css) and outranks any layered
+     rule, so the field turns it off through the ring's own token, set on
+     the element; the blinking caret in an otherwise empty page is the
+     focus. */
+  .nf-compose-page__field {
+    --nf-focus-ring-width: 0px;
+  }
+  .nf-compose-page__tools {
+    position: sticky;
+    inset-block-end: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-block-start: 12px;
+    padding-block: 8px calc(8px + env(safe-area-inset-bottom, 0px));
+    border-block-start: 1px solid color-mix(in oklab, var(--nf-content-primary) 9%, transparent);
+    background: transparent;
+  }
+  .nf-compose-page__tool {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-block-size: 44px;
+    min-inline-size: 44px;
+    justify-content: center;
+    padding-inline: 10px;
+    border-radius: var(--nf-radius-control);
+    color: var(--nf-brand-secondary);
+    font-size: var(--nf-text-caption);
+    font-weight: 500;
+  }
+  .nf-compose-page__tool:disabled {
+    opacity: 0.45;
+  }
+  .nf-compose-page__tool[aria-pressed="true"] {
+    background: color-mix(in oklab, var(--nf-brand-secondary) 14%, transparent);
+  }
+  .nf-compose-ring {
+    position: relative;
+    display: grid;
+    place-items: center;
+    inline-size: 44px;
+    block-size: 44px;
+    margin-inline-start: auto;
+  }
+  .nf-compose-ring svg {
+    rotate: -90deg;
+  }
+  .nf-compose-ring__track,
+  .nf-compose-ring__fill {
+    fill: none;
+    stroke-width: 2;
+  }
+  .nf-compose-ring__track {
+    stroke: color-mix(in oklab, var(--nf-content-primary) 14%, transparent);
+  }
+  .nf-compose-ring__fill {
+    stroke: var(--nf-brand-secondary);
+    stroke-linecap: round;
+    transition: stroke-dashoffset var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-compose-ring[data-state="over"] .nf-compose-ring__fill {
+    stroke: var(--nf-state-error);
+  }
+  .nf-compose-ring__count {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: var(--nf-content-secondary);
+    font-size: var(--nf-text-overline);
+  }
+  .nf-compose-ring[data-state="over"] .nf-compose-ring__count {
+    color: var(--nf-state-error);
+  }
+
+  /* Who will see a new post: one quiet capsule under the bar that opens
+     the place picker. */
+  .nf-compose-audience {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    gap: 6px;
+    min-block-size: 32px;
+    margin-block-end: 4px;
+    padding-inline: 12px;
+    border-radius: var(--nf-radius-segment);
+    border: 1px solid color-mix(in oklab, var(--nf-brand-secondary) 40%, transparent);
+    color: var(--nf-brand-secondary);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+  }
+  .nf-compose-audience::before {
+    content: "";
+    position: absolute;
+    inset: -6px 0;
+  }
+
+  /* What is being answered, joined to the field by a thread line. */
+  .nf-reply-context {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr);
+    column-gap: 12px;
+    padding-block-end: 4px;
+  }
+  .nf-reply-context__rail {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .nf-reply-context__face {
+    display: grid;
+    place-items: center;
+    inline-size: 36px;
+    block-size: 36px;
+    overflow: hidden;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-gradient-brand-ink);
+    color: var(--nf-content-on-brand);
+    font-weight: 700;
+  }
+  .nf-reply-context__face img {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+  .nf-reply-context__line {
+    flex: 1 1 auto;
+    inline-size: 2px;
+    min-block-size: 24px;
+    margin-block: 6px 0;
+    border-radius: var(--nf-radius-xs);
+    background: color-mix(in oklab, var(--nf-content-primary) 16%, transparent);
+  }
+  .nf-reply-context__who {
+    display: flex;
+    gap: 6px;
+    align-items: baseline;
+    min-inline-size: 0;
+    font-size: var(--nf-text-body-sm);
+  }
+  .nf-reply-context__name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--nf-content-primary);
+    font-weight: 600;
+  }
+  .nf-reply-context__handle {
+    color: var(--nf-content-muted);
+    font-size: var(--nf-text-caption);
+  }
+  .nf-reply-context__body {
+    display: -webkit-box;
+    margin-block-start: 2px;
+    overflow: hidden;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    color: var(--nf-content-secondary);
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.5;
+  }
+  .nf-reply-context__to {
+    margin-block: 12px 4px;
+    color: var(--nf-content-muted);
+    font-size: var(--nf-text-caption);
+  }
+  .nf-reply-context__to strong {
+    color: var(--nf-brand-secondary);
+    font-weight: 600;
+  }
+
+  /* The thread's pinned "Post your reply" bar, which opens the page. */
+  .nf-reply-bar {
+    position: sticky;
+    inset-block-end: calc(12px + env(safe-area-inset-bottom, 0px));
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    inline-size: 100%;
+    min-block-size: 48px;
+    padding-inline: 16px;
+    border-radius: var(--nf-radius-segment);
+    border: 1px solid var(--nf-smoked-glass-edge);
+    background: var(--nf-smoked-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    color: var(--nf-content-muted);
+    font-size: var(--nf-text-body-sm);
+    text-align: start;
+    box-shadow: 0 16px 40px -20px var(--nf-overlay-media-deep);
+  }
+
+  /* ------------------------------------------------------------------
+   * WORTH FOLLOWING: the feed's block and the social search's rows. The
+   * feed's own calm material, a small title and one note, rows of face,
+   * name, kind and place, and a compact Follow capsule. Vallo's, not X's.
+   * ------------------------------------------------------------------ */
+  .nf-follow {
+    padding: 14px var(--nf-feed-pad) 6px;
+    border-radius: var(--nf-container-radius);
+    border: 1px solid color-mix(in oklab, var(--nf-lit) 30%, var(--nf-surface-canvas));
+    background: color-mix(in oklab, var(--nf-lit) 6%, var(--nf-surface-canvas));
+  }
+  .nf-follow__title {
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .nf-follow__note {
+    margin-block-start: 2px;
+    color: var(--nf-content-muted);
+    font-size: var(--nf-text-caption);
+  }
+  .nf-follow__list {
+    display: flex;
+    flex-direction: column;
+    margin-block-start: 8px;
+  }
+  .nf-follow-row {
+    position: relative;
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    min-block-size: 64px;
+  }
+  .nf-follow-row + .nf-follow-row {
+    border-block-start: 1px solid color-mix(in oklab, var(--nf-content-primary) 7%, transparent);
+  }
+  .nf-follow-row__open {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+  .nf-follow-row__face {
+    display: grid;
+    place-items: center;
+    inline-size: 44px;
+    block-size: 44px;
+    overflow: hidden;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-gradient-brand-ink);
+    color: var(--nf-content-on-brand);
+    font-weight: 700;
+  }
+  .nf-follow-row__face img {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+  .nf-follow-row__text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-inline-size: 0;
+  }
+  .nf-follow-row__name {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-inline-size: 0;
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+  }
+  .nf-follow-row__meta {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--nf-content-muted);
+    font-size: var(--nf-text-caption);
+  }
+  .nf-follow-row__act {
+    position: relative;
+    z-index: 2;
+  }
+  /* Follow is a quiet capsule here, not a lit primary: three lit buttons in
+     one block would be three primaries on a screen whose primary is reading
+     (D74 restraint). The shared button keeps its states; only the dress and
+     the height change, and the row's 64px gives the thumb its room. */
+  .nf-follow-row__act .nf-btn {
+    min-block-size: 36px;
+    block-size: 36px;
+    padding-inline: 16px;
+    border-radius: var(--nf-radius-segment);
+    border: 1px solid color-mix(in oklab, var(--nf-brand-secondary) 45%, transparent);
+    background: color-mix(in oklab, var(--nf-brand-secondary) 12%, transparent);
+    box-shadow: none;
+    color: var(--nf-brand-secondary);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+  }
+  .nf-follow__more {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-block-size: 44px;
+    color: var(--nf-brand-secondary);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+  }
+
+  /* The feed's way into the social search, beside the place. */
+  .nf-feed-find {
+    display: grid;
+    flex: none;
+    place-items: center;
+    inline-size: 44px;
+    block-size: 44px;
+    border-radius: var(--nf-radius-circle);
+    border: 1px solid color-mix(in oklab, var(--nf-lit) 40%, var(--nf-surface-canvas));
+    background: color-mix(in oklab, var(--nf-lit) 8%, var(--nf-surface-canvas));
+    color: var(--nf-content-primary);
+  }
+
+  /* The social search page. */
+  .nf-people-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-block-start: 16px;
+    padding-inline: 14px;
+    min-block-size: 48px;
+    border-radius: var(--nf-radius-control);
+    border: 1px solid color-mix(in oklab, var(--nf-content-primary) 12%, transparent);
+    background: color-mix(in oklab, var(--nf-content-primary) 4%, transparent);
+    color: var(--nf-content-muted);
+  }
+  .nf-people-search__field {
+    flex: 1 1 auto;
+    min-inline-size: 0;
+    block-size: 46px;
+    border: 0;
+    background: transparent;
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-body);
+    outline: none;
+  }
+  .nf-people-scope {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    margin-block-start: 12px;
+    padding: 4px;
+    border-radius: var(--nf-radius-segment);
+    background: color-mix(in oklab, var(--nf-content-primary) 5%, transparent);
+  }
+  .nf-people-scope__half {
+    display: grid;
+    place-items: center;
+    min-block-size: 40px;
+    border-radius: var(--nf-radius-segment);
+    color: var(--nf-content-secondary);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+  }
+  .nf-people-scope__half[aria-current="page"] {
+    background: var(--nf-selected-fill);
+    color: var(--nf-content-on-brand);
+  }
+  .nf-people-kinds {
+    display: flex;
+    gap: 6px;
+    margin-block: 12px 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .nf-people-kind {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    min-block-size: 36px;
+    padding-inline: 14px;
+    border-radius: var(--nf-radius-segment);
+    border: 1px solid color-mix(in oklab, var(--nf-content-primary) 10%, transparent);
+    color: var(--nf-content-secondary);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+  }
+  .nf-people-kind[aria-current="page"] {
+    border-color: color-mix(in oklab, var(--nf-brand-secondary) 50%, transparent);
+    background: color-mix(in oklab, var(--nf-brand-secondary) 14%, transparent);
+    color: var(--nf-brand-secondary);
+  }
+  .nf-people-note {
+    margin-block: 8px;
+    color: var(--nf-content-muted);
+    font-size: var(--nf-text-caption);
+  }
+  .nf-people-list {
+    margin-block-start: 8px;
+  }
+
+  /* The card you just published, in flight over the cards it is landing
+     above (`FreshArrival`). */
+  .nf-fresh-card {
+    position: relative;
+    z-index: 3;
+  }
+
+  /* The delete sheet: one line on what stays, then the slide. */
+  .nf-delete-sheet__body {
+    margin-block-end: 20px;
+    color: var(--nf-content-secondary);
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.5;
+  }
+
+  /* ------------------------------------------------------------------
+   * ONE PLUS PER SCREEN.
+   *
+   * On a phone `/around` drew two: the dock's "+" in the centre slot and
+   * the feed's own bloom floating over the cards at the right, covering the
+   * share disc of whichever card passed under it. Two controls that both
+   * say "make something", one tap apart, fail the one-product test (a person
+   * cannot predict which does what).
+   *
+   * `GOVERNING-feed-plus-bloom.png` draws ONE plus, the bloom, over a dock
+   * with no centre slot. The dock has since gained its "+" on the founder's
+   * in-line ruling of 22 September, and A.6 (7 October) is him asking for
+   * that "+" to be there and plain. So the governing image's rule (one
+   * plus) is kept and its instance is updated: wherever the dock's "+" is on
+   * screen, the bloom gives way to it. Its three actions keep a home:
+   * Post through the dock's Post, which now opens the composer directly
+   * (`CreateBloom` `initialCompose`); Story through "Your story" in the rail,
+   * the plus the governing image draws on the first ring; Review from the
+   * finished stay in Bookings. Wherever there is no dock (a wide screen, a
+   * thread, a place), the bloom is the one plus, exactly as ruled. An open
+   * fan is never hidden mid-gesture.
+   * ------------------------------------------------------------------ */
+  /* The dock is `lg:hidden` (1024 and up it is in the tree but not drawn),
+     so the rule stops at the same edge. */
+  @media (max-width: 1023.98px) {
+    :root:has(.nf-tab--switch) .nf-bloom:not([data-open]) {
+      display: none;
+    }
+  }
+
+  /* The story rail's names: "Your story" is the one name every reader has,
+     and it was cut to "Your sto..." at 58px. The item takes 64, the name
+     its full width and a hair of tracking back. */
+  .nf-story-ring__item {
+    inline-size: 64px;
+  }
+  .nf-story-ring__name {
+    letter-spacing: -0.01em;
+  }
+  /* The rings, calmer (D74: the content is lit, the field is quiet): the
+     segmented rim stays the signal, the three-layer halo becomes one soft
+     breath, and a gap of canvas sets each face off its ring. */
+  .nf-story-ring__disc {
+    inline-size: 54px;
+    block-size: 54px;
+    padding: 3px;
+    box-shadow: 0 0 14px -6px color-mix(in oklab, var(--nf-brand-primary) 70%, transparent);
+  }
+
+  /* ------------------------------------------------------------------
+   * The pictures arrive blurred and settle sharp (`PostPicture`). The
+   * element's background is the low-res copy, or the inset ground when
+   * there is none; the blur is on the element so the placeholder is the
+   * thing blurred. The filter is a transition, not a keyframe: it plays
+   * once, when the picture has decoded.
+   * ------------------------------------------------------------------ */
+  .nf-pic {
+    background-color: var(--nf-surface-inset);
+    background-size: cover;
+    background-position: center;
+    filter: blur(14px);
+    transition: filter var(--nf-duration-slow) var(--nf-ease-standard);
+  }
+  .nf-pic[data-loaded] {
+    filter: none;
+  }
+  .nf-post__media {
+    border-radius: var(--nf-radius-plate);
+    margin-block-start: 12px;
+  }
+
+  /* ------------------------------------------------------------------
+   * More than one picture: the sideways rail (`MediaRail`). The frame loses
+   * its own edge and corner (each picture carries one), and the track bleeds
+   * to the card's edge so the next picture really peeks.
+   * ------------------------------------------------------------------ */
+  .nf-post__media--rail {
+    display: block;
+    margin-inline: calc(var(--nf-feed-pad) * -1);
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    cursor: auto;
+  }
+  .nf-post__rail {
+    position: relative;
+  }
+  .nf-post__rail-track {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--nf-feed-pad);
+    padding-inline: var(--nf-feed-pad);
+    scrollbar-width: none;
+    cursor: pointer;
+  }
+  .nf-post__rail-track::-webkit-scrollbar {
+    display: none;
+  }
+  .nf-post__rail-track:focus-visible {
+    outline: 2px solid var(--nf-brand-secondary);
+    outline-offset: 2px;
+  }
+  .nf-post__media--rail .nf-post__rail-track img {
+    flex: 0 0 80%;
+    inline-size: 80%;
+    block-size: auto;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    scroll-snap-align: start;
+    border-radius: var(--nf-radius-plate);
+    border: 1px solid var(--nf-smoked-glass-edge);
+  }
+  @media (min-width: 640px) {
+    .nf-post__media--rail .nf-post__rail-track img {
+      flex-basis: 60%;
+      inline-size: 60%;
+    }
+  }
+  /* The counter: smoked glass over the picture, the Plasma rule for
+     anything that floats over media. */
+  .nf-post__rail-count {
+    position: absolute;
+    inset-block-start: 10px;
+    inset-inline-start: calc(var(--nf-feed-pad) + 10px);
+    padding: 4px 10px;
+    border-radius: var(--nf-radius-segment);
+    border: 1px solid var(--nf-smoked-glass-edge);
+    background: var(--nf-smoked-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    color: var(--nf-content-on-media);
+    font-size: var(--nf-text-caption);
+    font-weight: 500;
+    pointer-events: none;
+  }
+
+  /* The post's own page: time and views above the action row. */
+  .nf-post__meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-block-start: 12px;
+    color: var(--nf-content-muted);
+    font-size: var(--nf-text-caption);
+  }
+  .nf-post__meta-views {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* ------------------------------------------------------------------
+   * The place: a quiet line with its pin. The smallest thing on the card.
+   * ------------------------------------------------------------------ */
+  .nf-post__place {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    inline-size: fit-content;
+    max-inline-size: 100%;
+    /* 44 tall for the thumb; the negative margins give the extra back to
+       the rhythm, so it reads as a 20px line. */
+    min-block-size: 44px;
+    margin-block: -6px -12px;
+    color: var(--nf-content-muted);
+    font-size: var(--nf-text-caption);
+    font-weight: 500;
+  }
+  .nf-post__place:hover,
+  .nf-post__place:focus-visible {
+    color: var(--nf-brand-secondary);
+  }
+
+  /* ------------------------------------------------------------------
+   * The listing attached to a post: one compact row inside a quiet inset.
+   * ------------------------------------------------------------------ */
+  /* Thumbnail, then three lines (title, place, figure) so the title keeps
+     the whole width instead of losing it to a column of price, then the
+     chevron. */
+  .nf-post__attach {
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr) 16px;
+    grid-template-rows: auto auto;
+    align-items: center;
+    column-gap: 12px;
+    row-gap: 2px;
+    margin-block-start: 12px;
+    padding: 8px 10px 8px 8px;
+    border-radius: var(--nf-radius-plate);
+    border: 1px solid color-mix(in oklab, var(--nf-content-primary) 9%, transparent);
+    background: color-mix(in oklab, var(--nf-content-primary) 4%, transparent);
+    transition:
+      background-color var(--nf-duration-fast) var(--nf-ease-standard),
+      transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  .nf-post__attach:hover {
+    background: color-mix(in oklab, var(--nf-content-primary) 7%, transparent);
+  }
+  .nf-post__attach:active {
+    transform: scale(0.99);
+  }
+  .nf-post__attach-thumb {
+    grid-row: 1 / span 2;
+    display: grid;
+    place-items: center;
+    inline-size: 56px;
+    block-size: 56px;
+    overflow: hidden;
+    border-radius: var(--nf-radius-xs);
+    background: var(--nf-surface-inset);
+    color: var(--nf-content-muted);
+  }
+  .nf-post__attach-thumb img {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+  .nf-post__attach-text {
+    align-self: end;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-inline-size: 0;
+  }
+  .nf-post__attach-title,
+  .nf-post__attach-place {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .nf-post__attach-title {
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+  }
+  .nf-post__attach-place {
+    color: var(--nf-content-muted);
+    font-size: var(--nf-text-caption);
+  }
+  .nf-post__attach-verified {
+    color: var(--nf-brand-secondary);
+  }
+  .nf-post__attach-price {
+    grid-column: 2;
+    grid-row: 2;
+    align-self: start;
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .nf-post__attach-period {
+    color: var(--nf-content-muted);
+    font-size: var(--nf-text-caption);
+    font-weight: 500;
+    letter-spacing: 0;
+  }
+  .nf-post__attach-chevron {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+    color: var(--nf-content-muted);
+  }
+  /* ------------------------------------------------------------------
+   * A story's row: the same capsules, set on the photograph. Over a
+   * picture a 5% ink fill is invisible, so these are SMOKED GLASS, the
+   * Plasma set's material for anything that floats over media (D74,
+   * `GOVERNING-plasma-rewards-platinum.jpg`'s breakout card).
+   * ------------------------------------------------------------------ */
+  .nf-story__actions--pills {
+    align-items: center;
+    gap: 8px;
+  }
+  .nf-story__actions--pills .nf-act-pill {
+    block-size: 36px;
+    min-inline-size: 36px;
+    padding-inline: 12px 14px;
+    border-color: var(--nf-smoked-glass-edge);
+    background: var(--nf-smoked-glass-fill);
+    color: var(--nf-content-on-media);
+    -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    backdrop-filter: blur(var(--nf-smoked-glass-blur));
+  }
+  .nf-story__actions--pills .nf-act-pill--round {
+    inline-size: 36px;
+    padding-inline: 0;
+  }
+  .nf-story__actions--pills .nf-act-pill[aria-pressed="true"] {
+    color: var(--nf-content-on-media);
+    border-color: color-mix(in oklab, var(--nf-brand-secondary) 70%, transparent);
+    background: color-mix(in oklab, var(--nf-brand-primary) 55%, var(--nf-surface-on-media));
+  }
+
+  /* ------------------------------------------------------------------
+   * THE STORY VIEWER, CINEMATIC AND CALM (D74; the founder: "so ugly and not
+   * neat not clean"). The photograph is the page; everything else is smoked
+   * glass or plain white type on a deeper near-black wash, and there is one
+   * of each thing: one headline, one line, one place pill, one bar.
+   * ------------------------------------------------------------------ */
+  .nf-story--seq .nf-story__wash {
+    background:
+      linear-gradient(180deg, var(--nf-overlay-media-strong) 0%, transparent 22%),
+      linear-gradient(0deg, var(--nf-overlay-media-deep) 0%, var(--nf-overlay-media-deep) 18%, var(--nf-overlay-media) 42%, transparent 70%);
+  }
+  .nf-story--seq .nf-story__foot {
+    gap: 12px;
+  }
+  /* The words on smoked glass: the Plasma breakout card's material. */
+  .nf-story--seq .nf-story__card {
+    padding: 18px 18px 16px;
+    border-radius: var(--nf-radius-card);
+    border: 1px solid var(--nf-smoked-glass-edge);
+    background: var(--nf-smoked-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur)) saturate(140%);
+    backdrop-filter: blur(var(--nf-smoked-glass-blur)) saturate(140%);
+    box-shadow: 0 24px 60px -30px var(--nf-overlay-media-deep);
+  }
+  .nf-story--seq .nf-story__headline {
+    margin-block-start: 0;
+    font-size: 1.75rem;
+    line-height: 1.1;
+    letter-spacing: -0.035em;
+  }
+  .nf-story--seq .nf-story__standfirst {
+    margin-block-start: 8px;
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.5;
+  }
+  /* The place: a small smoked pill, the one attachment a story carries. */
+  .nf-story--seq .nf-story__place {
+    gap: 5px;
+    margin-block-start: 12px;
+    padding: 5px 10px 5px 8px;
+    border-radius: var(--nf-radius-segment);
+    border: 1px solid var(--nf-smoked-glass-edge);
+    background: color-mix(in oklab, var(--nf-content-on-media) 8%, transparent);
+    color: var(--nf-content-on-media);
+    font-weight: 500;
+  }
+  /* The top controls over the photograph: smoked discs, not brand glass. */
+  .nf-story--seq .nf-story__top .nf-social-round {
+    border-color: var(--nf-smoked-glass-edge);
+    background: var(--nf-smoked-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    box-shadow: none;
+  }
+  /* ------------------------------------------------------------------
+   * Writing a story: the story itself, at the viewer's proportions.
+   * ------------------------------------------------------------------ */
+  .nf-story-compose {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    aspect-ratio: 4 / 5;
+    min-block-size: 420px;
+    max-block-size: 72dvh;
+    overflow: hidden;
+    border-radius: var(--nf-radius-card);
+    border: 1px solid var(--nf-smoked-glass-edge);
+    background: var(--nf-overlay-media-deep);
+  }
+  .nf-story-compose__img {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+  .nf-story-compose__wash {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: linear-gradient(0deg, var(--nf-overlay-media-deep) 0%, var(--nf-overlay-media) 38%, transparent 66%);
+  }
+  /* Empty: the whole frame is the way to choose a picture. */
+  .nf-story-compose__pick {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    display: grid;
+    place-items: start center;
+    padding-block-start: 22%;
+    color: var(--nf-content-on-media);
+  }
+  .nf-story-compose__prompt {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    max-inline-size: 18rem;
+    text-align: center;
+  }
+  .nf-story-compose__plate {
+    display: grid;
+    place-items: center;
+    inline-size: 56px;
+    block-size: 56px;
+    border-radius: var(--nf-radius-circle);
+    border: 1px solid var(--nf-smoked-glass-edge);
+    background: var(--nf-smoked-glass-fill);
+  }
+  .nf-story-compose__label {
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+  }
+  .nf-story-compose__note {
+    font-size: var(--nf-text-caption);
+    line-height: 1.5;
+    color: var(--nf-content-on-media-secondary);
+  }
+  /* Filled: a small smoked disc in the corner swaps the picture. */
+  .nf-story-compose__swap {
+    position: absolute;
+    inset-block-start: 12px;
+    inset-inline-end: 12px;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    inline-size: 44px;
+    block-size: 44px;
+    border-radius: var(--nf-radius-circle);
+    border: 1px solid var(--nf-smoked-glass-edge);
+    background: var(--nf-smoked-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    color: var(--nf-content-on-media);
+  }
+  .nf-story-compose__card {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 12px;
+    padding: 14px 16px;
+    border-radius: var(--nf-radius-card);
+    border: 1px solid var(--nf-smoked-glass-edge);
+    background: var(--nf-smoked-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur)) saturate(140%);
+    backdrop-filter: blur(var(--nf-smoked-glass-blur)) saturate(140%);
+  }
+  .nf-story-compose__headline,
+  .nf-story-compose__standfirst {
+    inline-size: 100%;
+    resize: none;
+    border: 0;
+    background: transparent;
+    color: var(--nf-content-on-media);
+    outline: none;
+  }
+  .nf-story-compose__headline {
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+  }
+  .nf-story-compose__standfirst {
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.5;
+    color: var(--nf-content-on-media-secondary);
+  }
+  .nf-story-compose__headline::placeholder,
+  .nf-story-compose__standfirst::placeholder,
+  .nf-story-compose__place input::placeholder {
+    color: color-mix(in oklab, var(--nf-content-on-media) 45%, transparent);
+  }
+  .nf-story-compose__headline:focus-visible,
+  .nf-story-compose__standfirst:focus-visible {
+    box-shadow: 0 2px 0 0 var(--nf-brand-secondary);
+  }
+  .nf-story-compose__place {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    align-self: flex-start;
+    max-inline-size: 100%;
+    min-block-size: 44px;
+    margin-block: 4px -6px;
+    color: var(--nf-content-on-media);
+  }
+  .nf-story-compose__place input {
+    min-inline-size: 0;
+    inline-size: 16rem;
+    max-inline-size: 100%;
+    padding: 6px 12px;
+    border-radius: var(--nf-radius-segment);
+    border: 1px solid var(--nf-smoked-glass-edge);
+    background: color-mix(in oklab, var(--nf-content-on-media) 8%, transparent);
+    color: var(--nf-content-on-media);
+    font-size: var(--nf-text-caption);
+    outline: none;
+  }
+  .nf-story-compose__place input:focus-visible {
+    border-color: var(--nf-brand-secondary);
+  }
+
+  /* One bar: the reply capsule takes the room, the three capsules sit at
+     the end. */
+  .nf-story__bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .nf-story__reply {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    gap: 8px;
+    min-inline-size: 0;
+    block-size: 44px;
+    padding-inline: 16px;
+    border-radius: var(--nf-radius-segment);
+    border: 1px solid var(--nf-smoked-glass-edge);
+    background: var(--nf-smoked-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    color: var(--nf-content-on-media-secondary);
+    font-size: var(--nf-text-body-sm);
+    text-align: start;
+    transition: transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  .nf-story__reply:active {
+    transform: scale(0.98);
+  }
+  .nf-story__bar .nf-story__actions--pills {
+    flex: none;
+    gap: 6px;
+  }
+  .nf-story__bar .nf-act-pill {
+    block-size: 44px;
+    min-inline-size: 44px;
+  }
+  .nf-story__bar .nf-act-pill--round {
+    inline-size: 44px;
+  }
 }

@@ -211,70 +211,72 @@ export function StoryComposer({
         if (canPublish) publish();
       }}
     >
-      {/* ------------------------------------------------------ the picture */}
-      <button
-        type="button"
-        onClick={() => fileInput.current?.click()}
-        className={`nf-story-pick${preview ? " nf-story-pick--filled" : ""}`}
-      >
+      {/*
+        WHAT YOU WRITE IS WHAT POSTS (D74; the founder: posting a story was
+        "so ugly and not neat not clean"). The composer is the story itself, at
+        the viewer's own proportions: the picture full bleed in a tall frame,
+        the near-black wash over its foot, and the headline, the line under it
+        and the place typed straight onto the smoked glass card the viewer
+        draws. Three labelled fields became one object you are making.
+        Cropping is not offered: the viewer covers the frame from the centre
+        and there is nowhere to store a crop, so a crop control would be a
+        promise the post cannot keep.
+      */}
+      <div className={`nf-story-compose${preview ? " is-filled" : ""}`}>
         {preview ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={preview} alt="The picture you chose" />
-        ) : (
-          <span className="nf-story-pick__prompt">
-            <IconPlate size="lg">
-              <UiIcon name="camera" size={24} />
-            </IconPlate>
-            <span className="nf-story-pick__label">{STORY_COPY.imagePrompt}</span>
-            <span className="nf-story-pick__note">{STORY_COPY.imageNote}</span>
-          </span>
-        )}
-      </button>
-      {preview ? (
-        <Button variant="quiet" size="sm" onClick={() => fileInput.current?.click()} className="-mt-sm self-start">
-          Choose a different picture
-        </Button>
-      ) : null}
-
-      {/* ----------------------------------------------------- the headline */}
-      <label className="block">
-        <span className="nf-overline">Headline</span>
-        <textarea
-          className="nf-field mt-xs w-full resize-none text-[length:var(--nf-text-h4)] font-bold leading-tight tracking-[-0.02em]"
-          rows={2}
-          value={headline}
-          maxLength={STORY_HEADLINE_MAX}
-          placeholder={STORY_COPY.headlinePlaceholder}
-          onChange={(event) => setHeadline(event.target.value)}
-        />
-      </label>
-
-      <label className="block">
-        <span className="nf-overline">The opening paragraph</span>
-        <textarea
-          className="nf-field mt-xs min-h-[110px] w-full resize-y text-[length:var(--nf-text-body)] leading-relaxed"
-          value={standfirst}
-          maxLength={STORY_STANDFIRST_MAX}
-          placeholder={STORY_COPY.standfirstPlaceholder}
-          onChange={(event) => setStandfirst(event.target.value)}
-        />
-      </label>
-
-      <label className="block">
-        <span className="nf-overline">Where it happened</span>
-        <div className="relative mt-xs">
-          <span className="pointer-events-none absolute inset-y-0 start-3 grid place-items-center text-[var(--nf-content-muted)]">
-            <UiIcon name="location" size={16} />
-          </span>
-          <input
-            className="nf-field w-full ps-2xl"
-            value={place}
-            maxLength={STORY_PLACE_MAX}
-            placeholder={STORY_COPY.placePlaceholder}
-            onChange={(event) => setPlace(event.target.value)}
+          <img src={preview} alt="The picture you chose" className="nf-story-compose__img" />
+        ) : null}
+        <button
+          type="button"
+          onClick={() => fileInput.current?.click()}
+          className={preview ? "nf-story-compose__swap" : "nf-story-compose__pick"}
+          aria-label={preview ? "Choose a different picture" : undefined}
+        >
+          {preview ? (
+            <UiIcon name="camera" size={20} />
+          ) : (
+            <span className="nf-story-compose__prompt">
+              <span className="nf-story-compose__plate">
+                <UiIcon name="camera" size={24} />
+              </span>
+              <span className="nf-story-compose__label">{STORY_COPY.imagePrompt}</span>
+              <span className="nf-story-compose__note">{STORY_COPY.imageNote}</span>
+            </span>
+          )}
+        </button>
+        <div className="nf-story-compose__wash" aria-hidden="true" />
+        <div className="nf-story-compose__card">
+          <textarea
+            className="nf-story-compose__headline"
+            rows={2}
+            value={headline}
+            maxLength={STORY_HEADLINE_MAX}
+            placeholder={STORY_COPY.headlinePlaceholder}
+            aria-label="Headline"
+            onChange={(event) => setHeadline(event.target.value)}
           />
+          <textarea
+            className="nf-story-compose__standfirst"
+            rows={2}
+            value={standfirst}
+            maxLength={STORY_STANDFIRST_MAX}
+            placeholder={STORY_COPY.standfirstPlaceholder}
+            aria-label="The opening paragraph"
+            onChange={(event) => setStandfirst(event.target.value)}
+          />
+          <label className="nf-story-compose__place">
+            <UiIcon name="location" size={12} />
+            <input
+              value={place}
+              maxLength={STORY_PLACE_MAX}
+              placeholder={STORY_COPY.placePlaceholder}
+              aria-label="Where it happened"
+              onChange={(event) => setPlace(event.target.value)}
+            />
+          </label>
         </div>
-      </label>
+      </div>
 
       {areas.length > 1 ? (
         <label className="block">

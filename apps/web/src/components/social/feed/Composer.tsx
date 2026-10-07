@@ -1,7 +1,12 @@
 "use client";
 
 import { Button } from "@/components/ui/Button";
-import { useRef, useState, useTransition, type RefObject } from "react";
+import { useLayoutEffect, useRef, useState, useTransition, type RefObject } from "react";
+import { animate, stagger } from "framer-motion";
+import { motionQuiet } from "@/lib/motion/gate";
+import { EASE_LAND } from "@/components/ui/ported-motion";
+import { notePublished } from "./publish-flight";
+import { toast } from "@/lib/ui/toast";
 import { useRouter } from "next/navigation";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Segmented } from "@/components/ui/Segmented";
@@ -71,6 +76,33 @@ type Picture = {
   width: number | null;
   height: number | null;
 };
+/*
+ * THE COMPOSER OPENING (D72 motion), with framer-motion's `animate()` on the
+ * elements (D39: no `motion` components, no feature bundle). The panel rises
+ * 16px on `land` a beat after its sheet, and its parts (`data-compose-part`:
+ * the kind, the words, the send) follow 60ms apart, the stagger ceiling. The
+ * first frame is written before paint, so nothing flashes in place first.
+ */
+function playOpening(form: HTMLFormElement): () => void {
+  const parts = Array.from(form.querySelectorAll<HTMLElement>("[data-compose-part]"));
+  form.style.opacity = "0";
+  for (const part of parts) part.style.opacity = "0";
+  const panel = animate(form, { opacity: [0, 1], y: [16, 0] }, { duration: 0.42, ease: EASE_LAND, delay: 0.08 });
+  const rest = animate(
+    parts,
+    { opacity: [0, 1], y: [10, 0] },
+    { duration: 0.36, ease: EASE_LAND, delay: stagger(0.06, { startDelay: 0.14 }) },
+  );
+  return () => {
+    panel.stop();
+    rest.stop();
+    for (const el of [form, ...parts]) {
+      el.style.opacity = "";
+      el.style.transform = "";
+    }
+  };
+}
+
 export function Composer({
   areaId,
   parentId,
@@ -82,7 +114,23 @@ export function Composer({
   fieldRef,
   draft,
   onDraftChange,
+  page = false,
+  context,
+  audience,
 }: {
+  /**
+   * THE FULL PAGE (the founder's feed set: "if users want to comment it
+   * should open full page... not some small box... full page for all
+   * things, even posts"). Cancel at the left and the Post capsule at the
+   * right of a top bar, then what is being answered (`context`) or who will
+   * see it (`audience`), a large borderless field, and a tool row with a
+   * character ring. Without it, the panel the thread and the old sheet used.
+   */
+  page?: boolean;
+  /** Above the field on a page: the post being replied to, with its line. */
+  context?: React.ReactNode;
+  /** Above the field on a new post's page: the audience control. */
+  audience?: React.ReactNode;
   areaId?: string;
   parentId?: string;
   signedIn: boolean;
@@ -116,6 +164,16 @@ export function Composer({
      on screen and it sends the same pictures to that same post. */
   const [strandedPost, setStrandedPost] = useState<string | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  /* Decided on mount: an opening plays once, not on every keystroke, and
+     only when the composer opens as the thing a person asked for
+     (`autoFocus`); reduced motion, Calm and Off get it already there. */
+  const [opening] = useState(autoFocus);
+  useLayoutEffect(() => {
+    const form = formRef.current;
+    if (!opening || !form || motionQuiet()) return;
+    return playOpening(form);
+  }, [opening]);
 
   const isReply = Boolean(parentId);
   const left = POST_MAX - body.length;
@@ -367,6 +425,20 @@ export function Composer({
       const summoned = mentionsBot(body);
       const postId = result.data.postId;
 
+      /* A new post (not a reply) flies from here into the top of the feed
+         when it lands there (`FreshArrival`). */
+      if (!parentId) notePublished(postId, formRef.current?.getBoundingClientRect() ?? null);
+      /* THE SUCCESS MOMENT, AT THE SIZE OF THE THING (ONE-PRODUCT-DECISIONS,
+         recommendation 2; SuccessSheet's own rule: small news keeps a quiet
+         toast). The payoff is the card itself landing at the top of the feed;
+         this is the one plain sentence of what happened, said once. */
+      toast.success(
+        parentId
+          ? "Replied."
+          : areaId && areaName
+            ? `Posted in ${areaName}.`
+            : "Posted. Everyone on Vallo can see it.",
+      );
       setBody("");
       onDone?.();
       router.refresh();
@@ -378,14 +450,42 @@ export function Composer({
   };
 
   return (
+    /*
+     * THE COMPOSER OPENING (D72 motion). When it opens as the thing a person
+     * asked for (`autoFocus`: the plus, the dock's Post, a reply), the panel
+     * rises after its sheet and its three parts follow it in reading order,
+     * 60ms apart on `land`: the kind, the words, the send. Everywhere else
+     * (the thread's standing reply box) and for reduced motion, Calm and Off,
+     * it is simply there.
+     */
     <form
-      className="nf-panel nf-panel--card nf-post"
+      ref={formRef}
+      className={page ? "nf-compose-page" : "nf-panel nf-panel--card nf-post nf-composer-panel"}
       onSubmit={(event) => {
         event.preventDefault();
         if (canSend) send();
       }}
     >
-      {!isReply ? (
+      {page ? (
+        <div className="nf-compose-page__bar" data-compose-part="">
+          {onDone ? (
+            <button type="button" className="nf-compose-page__cancel" onClick={onDone} disabled={pending}>
+              Cancel
+            </button>
+          ) : (
+            <span />
+          )}
+          {/* Disabled until there is something to send; it keeps its fill
+              at rest (`nf-composer__send`, R1 A26). */}
+          <Button type="submit" variant="primary" size="sm" className="nf-composer__send nf-compose-page__send" disabled={!canSend}>
+            {pending ? "Sending" : isReply ? "Reply" : "Post"}
+          </Button>
+        </div>
+      ) : null}
+      {page ? context : null}
+      {page && !isReply ? audience : null}
+
+      {!isReply && !page ? (
         /*
          * THIS WAS THE TWELFTH WAY TO DRAW A SEGMENTED CONTROL AND IT WORE NO
          * CLASS FROM ANY OF THE ELEVEN.
@@ -403,26 +503,35 @@ export function Composer({
          * `md` rung, and the selected fill coming from the stylesheet instead
          * of from a ternary in this file.
          */
-        <Segmented<ComposableKind>
-          className="mb-sm"
-          semantics="radio"
-          label="What are you posting?"
-          options={COMPOSABLE_KINDS.map((option) => ({
-            value: option,
-            label: KIND_LABEL[option],
-          }))}
-          value={kind}
-          onChange={setKind}
-        />
+        <div data-compose-part="">
+          <Segmented<ComposableKind>
+            className="mb-sm"
+            semantics="radio"
+            label="What are you posting?"
+            options={COMPOSABLE_KINDS.map((option) => ({
+              value: option,
+              label: KIND_LABEL[option],
+            }))}
+            value={kind}
+            onChange={setKind}
+          />
+        </div>
       ) : null}
 
       <textarea
+        data-compose-part=""
         ref={fieldRef}
-        className="nf-field min-h-[92px] w-full resize-y text-[length:var(--nf-text-body)] leading-[1.5]"
+        /* A reply is a line or two, so its box starts at two lines and
+           grows as it is written; a post starts at four. */
+        className={
+          page
+            ? "nf-compose-page__field"
+            : `nf-field ${isReply ? "min-h-[64px]" : "min-h-[92px]"} w-full resize-y text-[length:var(--nf-text-body)] leading-[1.5]`
+        }
         value={body}
         maxLength={POST_MAX}
         autoFocus={autoFocus}
-        placeholder={isReply ? "Write your reply" : KIND_PLACEHOLDER[kind]}
+        placeholder={isReply ? (page ? "Post your reply" : "Write your reply") : KIND_PLACEHOLDER[kind]}
         onChange={(event) => setBody(event.target.value)}
         aria-label={isReply ? "Your reply" : KIND_LABEL[kind]}
       />
@@ -455,7 +564,7 @@ export function Composer({
       {/* Where it lands. Nobody should have to guess whether the thing they
           just wrote went to one street or to the whole country, and the answer
           changes with a prop rather than with anything on screen. */}
-      {!isReply ? (
+      {!isReply && !page ? (
         <p
           className="mt-xs flex items-center gap-2xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-secondary)]"
           data-testid="composer-destination"
@@ -465,7 +574,7 @@ export function Composer({
         </p>
       ) : null}
 
-      {!isReply && pictures.length === 0 ? (
+      {!isReply && !page && pictures.length === 0 ? (
         <p className="mt-xs text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
           {KIND_HINT[kind]}
         </p>
@@ -516,7 +625,47 @@ export function Composer({
         </div>
       ) : null}
 
-      <div className="mt-sm flex flex-wrap items-center justify-end gap-sm">
+      {page ? (
+        /*
+         * THE TOOL ROW: only tools that post end to end (the founder: "think
+         * of more tools we don't have that work for us"; the brief: "do not
+         * show a tool that cannot post"). Photos (up to four, re-encoded on
+         * the phone), and for a new post "Ask locals", which is the ASK kind
+         * the feed already files and answers as a question. A listing, a
+         * poll, a price check and a review have no field on a post today,
+         * so they are not drawn. The ring fills as the limit approaches and
+         * turns red past it; the number appears only in the last 40.
+         */
+        <div className="nf-compose-page__tools" data-compose-part="">
+          <button
+            type="button"
+            className="nf-compose-page__tool"
+            onClick={() => fileInput.current?.click()}
+            disabled={pending || Boolean(strandedPost) || pictures.length >= POST_MEDIA_MAX}
+            aria-label={POST_COPY.picturePrompt}
+          >
+            <UiIcon name="picture" size={20} />
+            {pictures.length > 0 ? (
+              <span className="nf-numeric">
+                {pictures.length}/{POST_MEDIA_MAX}
+              </span>
+            ) : null}
+          </button>
+          {!isReply ? (
+            <button
+              type="button"
+              className="nf-compose-page__tool"
+              aria-pressed={kind === "ASK"}
+              onClick={() => setKind(kind === "ASK" ? "GIST" : "ASK")}
+            >
+              <UiIcon name="chat-bubble" size={20} />
+              <span>Ask locals</span>
+            </button>
+          ) : null}
+          <CharacterRing left={left} max={POST_MAX} />
+        </div>
+      ) : (
+      <div data-compose-part="" className="mt-sm flex flex-wrap items-center justify-end gap-sm">
         <button
           type="button"
           className="nf-post__act me-auto"
@@ -558,6 +707,7 @@ export function Composer({
           {pending ? "Sending" : isReply ? "Reply" : "Post"}
         </Button>
       </div>
+      )}
 
       <input
         ref={fileInput}
@@ -572,5 +722,38 @@ export function Composer({
         }}
       />
     </form>
+  );
+}
+
+/**
+ * How much room is left, as a ring that fills while you write: quiet for
+ * most of the post, brand blue near the end with the number inside it for
+ * the last 40, red and counting below zero. A screen reader hears the number
+ * only when it matters, through the same threshold.
+ */
+function CharacterRing({ left, max }: { left: number; max: number }) {
+  const used = Math.min(1, Math.max(0, (max - left) / max));
+  const r = 9;
+  const length = 2 * Math.PI * r;
+  const state = left < 0 ? "over" : left <= 40 ? "near" : "calm";
+  return (
+    <span className="nf-compose-ring" data-state={state}>
+      <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="12" r={r} className="nf-compose-ring__track" />
+        <circle
+          cx="12"
+          cy="12"
+          r={r}
+          className="nf-compose-ring__fill"
+          strokeDasharray={length}
+          strokeDashoffset={length * (1 - used)}
+        />
+      </svg>
+      {state !== "calm" ? (
+        <span className="nf-compose-ring__count nf-numeric" role="status">
+          {left}
+        </span>
+      ) : null}
+    </span>
   );
 }

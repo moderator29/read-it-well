@@ -28,7 +28,10 @@ describe("feed text follows Text size", () => {
   });
 
   it("puts the post body, handle, time, counts and ring names on the type scale", () => {
-    expect(rule(".nf-post__body")).toContain("font-size: var(--nf-text-body-sm)");
+    /* The body is the largest type on the card since the premium pass (D72):
+       what a post is for is the biggest thing on it. */
+    expect(rule(".nf-post__body")).toContain("font-size: var(--nf-text-body)");
+    expect(rule(".nf-act-pill")).toContain("font-size: var(--nf-text-caption)");
     expect(rule(".nf-post__handle")).toContain("font-size: var(--nf-text-caption)");
     expect(rule(".nf-post__when")).toContain("font-size: var(--nf-text-caption)");
     expect(rule(".nf-post__act")).toContain("font-size: var(--nf-text-caption)");

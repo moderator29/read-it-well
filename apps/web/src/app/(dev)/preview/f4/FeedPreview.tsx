@@ -5,7 +5,8 @@ import { FeedTabs } from "@/components/social/feed/FeedMasthead";
 import { LocationChip } from "@/components/social/feed/LocationChip";
 import { StoryRing } from "@/components/social/feed/StoryRing";
 import { CreateBloom } from "@/components/social/bloom/CreateBloom";
-import { FEED_PLACES, FEED_POSTS, FEED_STORIES, YOU } from "./fixtures";
+import { FEED_PLACES, FEED_POSTS, FEED_STORIES, FOLLOW_SAMPLE, YOU } from "./fixtures";
+import { WhoToFollow } from "@/components/social/follow/WhoToFollow";
 import { SettleFocus } from "./SettleFocus";
 
 /**
@@ -45,7 +46,15 @@ export function FeedPreview({ bloomOpen }: { bloomOpen: boolean }) {
       <StoryRing stories={FEED_STORIES} you={YOU} yourStoryLabel={t.social.yourStory} />
       <FeedTabs active="for-you" t={t} />
       <section>
-        <Feed initial={FEED_POSTS} locale="en" sheet={sheetWordsOf(t)} signedIn canCompose emptyMessage="" />
+        <Feed
+          initial={FEED_POSTS}
+          locale="en"
+          sheet={sheetWordsOf(t)}
+          signedIn
+          canCompose
+          emptyMessage=""
+          aside={<WhoToFollow people={FOLLOW_SAMPLE} city="Lagos" signedIn more />}
+        />
       </section>
       <CreateBloom
         signedIn

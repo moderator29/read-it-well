@@ -1,0 +1,78 @@
+"use client";
+
+import { useState } from "react";
+import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+
+/**
+ * ONE SOFT CAPSULE, the feed's action row as the founder's reference draws it
+ * (PREMIUM-STANDARD.md reference 2, D72): a thin outline glyph at 16px, a
+ * tabular count beside it, on a soft charcoal capsule of its own. The same
+ * control serves the post card, the thread, a comment and a story, so the
+ * like you press in one place is the like you press everywhere.
+ *
+ * `round` is the share disc at the end of the row: a glyph and no count.
+ *
+ * THE PAYOFF. `payoff` marks a toggle whose turning ON is a moment (the
+ * like): the capsule pops 1.0, 1.04, 1.0 over 180ms (A.5) and the glyph
+ * fills. It plays only on the tap that turns it on, never for a mark that was
+ * already on when the card loaded, and never under reduced motion, Calm or
+ * Off (`feed-m.css` holds the settled frame).
+ */
+export function ActionPill({
+  icon,
+  label,
+  count,
+  pressed,
+  payoff = false,
+  round = false,
+  tone,
+  className,
+  onClick,
+  "data-testid": testId,
+}: {
+  icon: UiIconName;
+  /** What a screen reader hears. Says the state and the verb. */
+  label: string;
+  /** Already formatted for the reader's locale. Absent draws no number. */
+  count?: string;
+  /** Present for a toggle (like, repost, save); absent for an action. */
+  pressed?: boolean;
+  payoff?: boolean;
+  round?: boolean;
+  /** `like` and `repost` keep their own lit colour when pressed. */
+  tone?: "like" | "repost" | "save" | "reply" | "share";
+  className?: string;
+  onClick: () => void;
+  "data-testid"?: string;
+}) {
+  const [popped, setPopped] = useState(false);
+  const filled = Boolean(pressed) && (icon === "heart" || icon === "bookmark");
+  return (
+    <button
+      type="button"
+      className={[
+        "nf-act-pill",
+        round ? "nf-act-pill--round" : "",
+        tone ? `nf-act-pill--${tone}` : "",
+        className ?? "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+      aria-pressed={pressed}
+      aria-label={label}
+      data-pop={payoff && popped && pressed ? "" : undefined}
+      data-testid={testId}
+      onClick={() => {
+        if (payoff && !pressed) setPopped(true);
+        onClick();
+      }}
+    >
+      <UiIcon name={icon} size={16} filled={filled} className="nf-act-pill__glyph" />
+      {count !== undefined && !round ? (
+        <span className="nf-act-pill__count nf-numeric" aria-hidden="true">
+          {count}
+        </span>
+      ) : null}
+    </button>
+  );
+}

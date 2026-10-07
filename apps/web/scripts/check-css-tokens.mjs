@@ -973,6 +973,15 @@ const PILL_ALLOWED = new Set([
    */
   "src/app/css/chrome.css  .nf-dock-island",
   /*
+   * PERMANENT, by founder directive D72 of 7 October 2026 and his feed
+   * reference (PREMIUM-STANDARD.md reference 2): "under the post, the action
+   * row is four separate dark capsules (reply with count, repost, like with
+   * count, bookmark) and a round share button, each a soft charcoal pill
+   * with a thin outline icon and a tabular count. That is the feed's action
+   * row." A glyph and a number, never a word, on the segment role's token.
+   */
+  "src/app/social-feed.css  .nf-act-pill",
+  /*
    * PERMANENT, and it is the SAME OBJECT as the one `PILL_ALLOWED_TSX` already
    * excuses below: `components/ui/Switch.tsx` is a switch track drawn as a
    * capsule, and this is the settings hub's copy of it, reached through its

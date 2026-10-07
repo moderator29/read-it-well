@@ -5,13 +5,14 @@ import { DEFAULT_LOCALE, formatNumber, type Locale } from "@vallo/i18n/core";
 import { useClientCopy } from "@/lib/i18n/client-copy";
 import { useRef, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { motionQuiet } from "@/lib/motion/gate";
 import { isPhotoMorphFor, startPhotoMorph } from "@/lib/motion/photo-morph";
 import { AuthGate } from "@/components/auth/AuthGate";
 import { PostBody } from "./PostBody";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { LineGlyph } from "./LineGlyph";
+import { ActionPill } from "./ActionPill";
+import { PostPicture } from "./PostPicture";
+import { MediaRail } from "./MediaRail";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import { TierBadge } from "@/components/trust/TierBadge";
 import { panelClass } from "@/components/ui/Panel";
@@ -170,23 +171,26 @@ function Avatar({ author }: { author: PostAuthor | null }) {
 }
 
 /**
- * The metric row.
+ * THE ACTION ROW, AS HIS REFERENCE DRAWS IT (PREMIUM-STANDARD.md reference 2,
+ * D72: "small clean icons for likes, comment, retweet").
  *
- * Like, comment, share, then the view count, then a bookmark pushed to the far
- * right. That order is the board's and it is also the order of intent: the two
- * you do to the writer, the one you do to somebody else, the fact about the
- * post, and the one you do for yourself.
+ * Reply, repost, like and save, each a soft capsule of its own with a thin
+ * 16px outline glyph and a tabular count, then share alone as a round disc at
+ * the far end. The kebab stays in the head, where `GOVERNING-feed-plus-bloom`
+ * puts it. The order is his reference's: the two you do to the writer's
+ * words, the one that is a verdict, the one you keep for yourself, and the
+ * one you send to somebody else.
  *
- * Views are a plain number and they are not a button. A count of how many
- * people saw something is a fact about it, not something anybody can do to it,
- * and rendering it as a control would promise an action that does not exist.
+ * Save came back to the row. It had been moved into the kebab's sheet to keep
+ * the row short; four capsules and a disc fit at 320px because only the counts
+ * grow, and saving is the mark people look for under a post. Saves are
+ * private, so the save disc carries no count.
  *
- * Repost IS here now. The note that used to sit in its place said the row was
- * full at 390px and sent people to the action sheet for it - and the sheet had
- * no repost row either, so a real RLS-bound write sat unreachable behind an
- * `onRepost` prop nothing ever passed. Five controls and a number do fit,
- * because the counts are the only thing that grows and they are the thing a
- * reader most wants beside the control.
+ * Views stay off the row: a count of how many saw something is a fact about
+ * it, not something anybody can do to it.
+ *
+ * The haptic for a like is the handler's (`Feed`), where the optimistic write
+ * is; the pop is `ActionPill`'s and plays only on the tap that turns it on.
  */
 function ActionRow({
   post,
@@ -194,6 +198,7 @@ function ActionRow({
   onLike,
   onReply,
   onRepost,
+  onSave,
   onShare,
 }: {
   post: PostView;
@@ -201,90 +206,83 @@ function ActionRow({
   onLike: () => void;
   onReply: () => void;
   onRepost: () => void;
+  onSave?: () => void;
   onShare: () => void;
 }) {
-  /*
-   * WHICH CONTROL WAS JUST TAPPED ON, for the pop in `feed-m.css`.
-   *
-   * `data-pop` is set only on the tap that turns a mark ON and only while the
-   * mark is on, so a post somebody liked last week does not throw its heart
-   * as the feed loads. The haptic for a like is the handler's (`Feed`), where
-   * the optimistic write is.
-   */
-  const [popped, setPopped] = useState<"like" | "repost" | null>(null);
+  const likes = compact(post.likeCount, locale);
+  const reposts = compact(post.repostCount, locale);
   return (
     <div className="nf-post__actions">
       {/*
         THE WRITE ACTIONS GATE, THE READ ONES DO NOT.
 
-        Like, reply and repost all write a row against an account, so a guest
-        tapping one is sent to sign up carrying the feed URL and the verb and
-        comes back to this post. Share writes nothing and is left alone: a
-        guest may share a post they are allowed to read.
-
-        The controls stay at full strength rather than being hidden or dimmed.
-        A feed with its actions greyed out reads as broken; a feed whose
-        actions invite you to join reads as a product.
-
-        Heart, repost, reply, then share on its own at the far end: the order
-        the governing image draws. Save lives in the kebab's sheet, and the
-        view count is a fact the sheet's surface does not need to carry.
+        Reply, repost, like and save all write a row against an account, so a
+        guest tapping one is sent to sign up carrying the feed URL and the verb
+        and comes back to this post. Share writes nothing and is left alone: a
+        guest may share a post they are allowed to read. The controls stay at
+        full strength rather than dimmed: a feed with its actions greyed out
+        reads as broken; one whose actions invite you to join reads as a
+        product.
       */}
-      <AuthGate action="react">
-        <button
-          type="button"
-          className="nf-post__act nf-post__act--like"
-          aria-pressed={post.liked}
-          data-pop={popped === "like" && post.liked ? "" : undefined}
-          onClick={() => {
-            if (!post.liked) setPopped("like");
-            onLike();
-          }}
-        >
-          <UiIcon name="heart" size={20} filled={post.liked} />
-          <span className="nf-numeric">{compact(post.likeCount, locale)}</span>
-          <span className="sr-only">{post.liked ? "liked, undo" : "likes, like this"}</span>
-        </button>
-      </AuthGate>
-
-      <AuthGate action="react">
-        <button
-          type="button"
-          className="nf-post__act nf-post__act--repost"
-          aria-pressed={post.reposted}
-          data-active={post.reposted ? "" : undefined}
-          data-pop={popped === "repost" && post.reposted ? "" : undefined}
-          onClick={() => {
-            if (!post.reposted) setPopped("repost");
-            onRepost();
-          }}
-        >
-          <LineGlyph name="repost" size={20} />
-          <span className="nf-numeric">{compact(post.repostCount, locale)}</span>
-          <span className="sr-only">
-            {post.reposted ? "reposted, undo" : "reposts, repost this"}
-          </span>
-        </button>
-      </AuthGate>
-
       <AuthGate action="post">
-        <button type="button" className="nf-post__act nf-post__act--reply" onClick={onReply}>
-          <UiIcon name="chat-bubble" size={16} />
-          <span className="nf-numeric" aria-hidden="true">{compact(post.replyCount, locale)}</span>
-          <span className="sr-only">
-            {countOf(post.replyCount, "replies", locale)}, reply to this
-          </span>
-        </button>
+        <ActionPill
+          icon="chat-bubble"
+          tone="reply"
+          className="nf-post__act--reply"
+          count={compact(post.replyCount, locale)}
+          label={`${countOf(post.replyCount, "replies", locale)}, reply to this`}
+          onClick={onReply}
+        />
       </AuthGate>
 
-      <button
-        type="button"
-        className="nf-post__act nf-post__act--share ms-auto"
+      <AuthGate action="react">
+        <ActionPill
+          icon="repost"
+          tone="repost"
+          className="nf-post__act--repost"
+          pressed={post.reposted}
+          payoff
+          count={reposts}
+          label={post.reposted ? `Reposted, ${reposts}. Undo` : `Reposts ${reposts}, repost this`}
+          onClick={onRepost}
+        />
+      </AuthGate>
+
+      <AuthGate action="react">
+        <ActionPill
+          icon="heart"
+          tone="like"
+          className="nf-post__act--like"
+          pressed={post.liked}
+          payoff
+          count={likes}
+          label={post.liked ? `Liked, ${likes}. Undo` : `Likes ${likes}, like this`}
+          onClick={onLike}
+        />
+      </AuthGate>
+
+      {onSave ? (
+        <AuthGate action="react">
+          <ActionPill
+            icon="bookmark"
+            tone="save"
+            round
+            className="nf-post__act--save"
+            pressed={post.saved}
+            label={post.saved ? "Saved. Remove from saved" : "Save this post"}
+            onClick={onSave}
+          />
+        </AuthGate>
+      ) : null}
+
+      <ActionPill
+        icon="share"
+        tone="share"
+        round
+        className="nf-post__act--share"
+        label="Share this post"
         onClick={onShare}
-        aria-label="Share this post"
-      >
-        <UiIcon name="share" size={20} />
-      </button>
+      />
     </div>
   );
 }
@@ -296,8 +294,10 @@ export function PostCard({
   onReply,
   onRepost,
   onShare,
+  onSave,
   onMenu,
   editor,
+  detail = false,
 }: {
   post: PostView;
   /* Optional so a caller that has not been threaded yet still compiles and
@@ -308,14 +308,16 @@ export function PostCard({
   onReply: () => void;
   onRepost: () => void;
   onShare: () => void;
-  /** Accepted for the callers that wire it; saving lives in the kebab's sheet
-      now, which is where the row's bookmark went. */
+  /** The save disc in the action row. A surface that cannot save (a preview,
+      a record) leaves it out and the row draws no disc. */
   onSave?: () => void;
   /** Opens the action sheet. The sheet itself belongs to the surface, so one
       sheet exists per screen rather than one per card. */
   onMenu: () => void;
   /** Rendered in place of the body while this post is being changed. */
   editor?: React.ReactNode;
+  /** The post's own page: adds the time and view line above the actions. */
+  detail?: boolean;
 }) {
   /* Read before the early return below: a hook runs on every render. */
   const aroundLine = useClientCopy().uiCommon.around;
@@ -367,7 +369,6 @@ export function PostCard({
 
   const isSystem = post.authorKind === "SYSTEM";
   const isBot = post.authorKind === "BOT";
-  const hasPlate = Boolean(post.listing?.photoUrl);
 
   /* The shared card (`Panel`, variant card): the console's lit glass, the
      one container anatomy on the platform. The feed's own rules only tune
@@ -502,11 +503,21 @@ export function PostCard({
         * image optimiser would cache somebody's private photograph behind a
         * URL that outlives the signature.
         *
-        * One is a wide plate, two are a pair, three are a tall one beside two,
-        * four are a square. Every layout is a fixed shape, so the card does not
-        * jump when the pictures arrive.
+        * One is a wide plate; two to four are a sideways rail of tall cards
+        * (`MediaRail`). Every shape is fixed before a byte arrives, so the
+        * card does not jump when the pictures do.
         */}
-      {post.media.length > 0 ? (
+      {post.media.length > 1 ? (
+        /* Two to four pictures: the sideways rail (`MediaRail`), here and on
+           the post's own page. The photo-open transition names the rail. */
+        <div
+          ref={mediaRef}
+          className="nf-post__media nf-post__media--rail"
+          style={arriving ? { viewTransitionName: `post-photo-${post.id}` } : undefined}
+        >
+          <MediaRail media={post.media.slice(0, 4)} onOpen={openFromPicture} />
+        </div>
+      ) : post.media.length === 1 ? (
         <div
           ref={mediaRef}
           onClick={openFromPicture}
@@ -515,7 +526,7 @@ export function PostCard({
           style={arriving ? { viewTransitionName: `post-photo-${post.id}` } : undefined}
         >
           {post.media.slice(0, 4).map((picture, index) => (
-            <RemoteImage
+            <PostPicture
               key={picture.url}
               src={picture.url}
               alt={
@@ -532,30 +543,19 @@ export function PostCard({
                   ? "(max-width: 640px) 100vw, 640px"
                   : "(max-width: 640px) 50vw, 320px"
               }
-              loading="lazy"
             />
           ))}
         </div>
       ) : null}
 
       {post.areaName && post.areaSlug && !isSystem ? (
-        <Link
-          href={`/around/${post.areaSlug}`}
-          /*
-           * THE SHAPE LAW, AND THIS ONE PASSED EVERY GREP FOR A YEAR.
-           *
-           * It was `h-6` on `--nf-radius-control`: 14px of radius on a 24px
-           * box, a ratio of 0.583, which the browser draws as a capsule with a
-           * 4px straight edge down each side. The token name is the correct
-           * one and `check-css-tokens.mjs` rule 10 passed it, which is exactly
-           * why DESIGN_DIRECTION.md:80 makes the test the RATIO and not the
-           * name. 10 on 28 is 0.357, which matches `.nf-landing-float-badge`,
-           * the same object on the landing page, which already reasoned its
-           * way to this pair.
-           */
-          className="mt-sm inline-flex h-7 items-center rounded-[var(--nf-radius-sm)] border border-[var(--nf-border-subtle)] px-sm text-[length:var(--nf-text-overline)] font-semibold text-[var(--nf-content-muted)]"
-        >
-          {aroundLine.replace("{area}", post.areaName)}
+        /* THE PLACE, as a quiet line with its pin rather than a bordered
+           chip: it says where the post was written and takes you there, and
+           it is the smallest thing on the card. The 44px target is the
+           row's own height. */
+        <Link href={`/around/${post.areaSlug}`} className="nf-post__place">
+          <UiIcon name="location" size={12} />
+          <span className="truncate">{aroundLine.replace("{area}", post.areaName)}</span>
         </Link>
       ) : null}
 
@@ -578,19 +578,7 @@ export function PostCard({
         </p>
       ) : null}
 
-      {post.listing && hasPlate ? (
-        <div className="nf-post__media nf-post__media--1" onClick={openFromPicture} onAuxClick={openFromPicture}>
-          <Image
-            src={post.listing.photoUrl as string}
-            alt={post.listing.title}
-            width={800}
-            height={600}
-            sizes="(max-width: 768px) 100vw, 640px"
-          />
-        </div>
-      ) : null}
-
-      {post.listing ? <ListingBlock listing={post.listing} /> : null}
+      {post.listing ? <ListingAttachment listing={post.listing} /> : null}
 
       {/*
         The row is on every card, a platform post included.
@@ -603,12 +591,27 @@ export function PostCard({
         A platform post is still a post: it can be saved, replied to, and it
         has a view count somebody may want to see.
       */}
+      {detail ? (
+        /* On the post's own page: when it was written and how many have
+           seen it, the facts the feed card leaves out. A glyph and a figure,
+           no noun to inflect. */
+        <p className="nf-post__meta">
+          <span>{post.createdLabel}</span>
+          <span aria-hidden="true">&middot;</span>
+          <span className="nf-post__meta-views">
+            <UiIcon name="views" size={12} />
+            <span className="nf-numeric">{compact(post.viewCount, locale)}</span>
+            <span className="sr-only">seen</span>
+          </span>
+        </p>
+      ) : null}
       <ActionRow
         post={post}
         locale={locale}
         onLike={onLike}
         onReply={onReply}
         onRepost={onRepost}
+        onSave={onSave}
         onShare={onShare}
       />
     </>
@@ -683,48 +686,37 @@ export function PostCard({
  * card needs that query widened first; it is filed as a finding rather than
  * worked around by copying the catalogue card's anatomy into this file.
  *
- * So this deliberately stays a PLATE and not a card: one line of title, one
- * of place, the figure and the way in. It carries the register's lit edge so
- * it belongs to the card it sits in, and it borrows none of the catalogue
- * card's composition, which is what forking it would mean.
+ * SO IT IS A COMPACT ATTACHMENT, ONE TAP, NO SECOND PRIMARY. The plate used to
+ * be a wide photograph, a title, a place, a large figure and a lit "See the
+ * place" button: a second primary on a card whose primary is the post, and
+ * the clutter A.5 names. It is now one row inside a quiet inset: a square
+ * thumbnail (reserved, blur-up), the title and the place, the figure set
+ * tabular on the right, and a chevron. The whole row is the link, so the way
+ * in is the attachment itself, as on every product people already know.
  */
-function ListingFacts({ listing }: { listing: PostListing }) {
+function ListingAttachment({ listing }: { listing: PostListing }) {
   return (
-    <div className="mt-sm border-t border-[var(--nf-brand-edge-soft)] pt-sm">
-      <p className="text-[length:var(--nf-text-body-sm)] font-bold tracking-[-0.015em] text-[var(--nf-content-primary)]">
-        {listing.title}
-      </p>
-      <p className="mt-3xs flex items-center gap-2xs text-[length:var(--nf-text-overline)] text-[var(--nf-brand-secondary)]">
-        {listing.area}, {listing.city}
-        {listing.verified ? (
-          <span className="font-semibold text-[var(--nf-brand-secondary)]">&middot; Verified</span>
-        ) : null}
-      </p>
-      <div className="mt-sm flex flex-wrap items-center justify-between gap-sm">
-        <p className="nf-numeric text-[length:var(--nf-text-body-lg)] font-bold tracking-[-0.03em] text-[var(--nf-content-primary)]">
-          {listing.priceLabel}{" "}
-          <span className="text-[length:var(--nf-text-overline)] font-semibold tracking-normal text-[var(--nf-brand-secondary)]">
-            {listing.periodLabel}
-          </span>
-        </p>
-        <Link
-          href={`/listing/${listing.id}`}
-          className="nf-btn nf-btn--primary inline-flex h-9 items-center px-md text-[length:var(--nf-text-caption)]"
-        >
-          See the place
-        </Link>
-      </div>
-    </div>
-  );
-}
-
-function ListingBlock({ listing }: { listing: PostListing }) {
-  return (
-    <div className="nf-post__plate mt-sm overflow-hidden">
-      <div className="p-sm">
-        <ListingFacts listing={listing} />
-      </div>
-    </div>
+    <Link href={`/listing/${listing.id}`} className="nf-post__attach">
+      <span className="nf-post__attach-thumb" aria-hidden="true">
+        {listing.photoUrl ? (
+          <PostPicture src={listing.photoUrl} alt="" width={160} height={160} sizes="64px" />
+        ) : (
+          <UiIcon name="home" size={20} />
+        )}
+      </span>
+      <span className="nf-post__attach-text">
+        <span className="nf-post__attach-title">{listing.title}</span>
+        <span className="nf-post__attach-place">
+          {listing.area}, {listing.city}
+          {listing.verified ? <span className="nf-post__attach-verified"> &middot; Verified</span> : null}
+        </span>
+      </span>
+      <span className="nf-post__attach-price nf-numeric">
+        {listing.priceLabel}
+        <span className="nf-post__attach-period">{listing.periodLabel}</span>
+      </span>
+      <UiIcon name="chevron-right" size={16} className="nf-post__attach-chevron" />
+    </Link>
   );
 }
 

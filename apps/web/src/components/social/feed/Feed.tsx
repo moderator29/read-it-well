@@ -7,6 +7,7 @@ import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { PostCard, type PostView } from "./PostCard";
 import { ReportSheet } from "../ReportSheet";
+import { DELETE_WORDS, DeleteSheet } from "../DeleteSheet";
 import { ActionSheet, actionsForPost } from "../ActionSheet";
 import {
   DistrictChips,
@@ -24,6 +25,7 @@ import { PostEditor } from "./PostEditor";
 import { LEAD_SETTLE_MS, leadIndexes, leadPropsFor } from "./lead";
 import { feedback } from "@/lib/ui/feedback";
 import { ViewportPost } from "./ViewportPost";
+import { FreshArrival } from "./FreshArrival";
 import {
   blockUser,
   muteTarget,
@@ -80,7 +82,14 @@ export function Feed({
   district,
   pageCursor = null,
   loadMore,
+  aside,
 }: {
+  /**
+   * Something the surface sets between posts, once: the feed's "worth
+   * following" block, after the third post (or after the last, on a shorter
+   * feed), so the first thing read is always somebody's post.
+   */
+  aside?: React.ReactNode;
   initial: PostView[];
   /**
    * The cursor after the first page, or null when the timeline ended there.
@@ -169,6 +178,8 @@ export function Feed({
   /* One sheet per screen, holding the post it was opened for. One per card
      would be one modal per row in the document. */
   const [sheetFor, setSheetFor] = useState<PostView | null>(null);
+  /* The post the delete slide is open for. */
+  const [deleting, setDeleting] = useState<PostView | null>(null);
   const [chip, setChip] = useState<DistrictChip>("all");
   /* The lead stagger belongs to the posts the feed mounted with, once. See
      `lead.ts`: keyed by id so a hidden card cannot pull the seventh in, and
@@ -394,22 +405,29 @@ export function Feed({
       setEditing(post.id);
       return;
     }
+    /* Taking a post down is confirmed by the slide (`DeleteSheet`), never by
+       the browser's `confirm()` (ONE-PRODUCT-DECISIONS, destructive confirm). */
+    if (action === "delete") {
+      setDeleting(post);
+      return;
+    }
+    /* Save is optimistic now that it is a disc in the row: the mark shows on
+       the tap and goes back the moment the server disagrees, like a like. */
+    if (action === "save") {
+      const saved = !post.saved;
+      if (saved) feedback("select");
+      patch(post.id, { saved });
+      startTransition(async () => {
+        const result = await toggleMark({ postId: post.id, mark: "SAVE" });
+        if (!result.ok) {
+          patch(post.id, { saved: post.saved });
+          setNotice(result.error);
+        }
+      });
+      return;
+    }
 
     startTransition(async () => {
-      if (action === "save") {
-        const result = await toggleMark({ postId: post.id, mark: "SAVE" });
-        if (!result.ok) return setNotice(result.error);
-        patch(post.id, { saved: !post.saved });
-        return;
-      }
-      if (action === "delete") {
-        if (!window.confirm(POST_COPY.deleteConfirm)) return;
-        const result = await removePost({ postId: post.id });
-        if (!result.ok) return setNotice(result.error);
-        setPosts((all) => all.filter((p) => p.id !== post.id));
-        router.refresh();
-        return;
-      }
       // Both of these act on a PERSON, so they need the author's user id and
       // not the post's. Passing the post id would have blocked a uuid that is
       // nobody, silently succeeded, and shown "Blocked" for an action that did
@@ -562,7 +580,7 @@ export function Feed({
         />
       ) : null}
 
-      {(chip === "stories" || chip === "reviews" ? [] : shown).map((post) => {
+      {(chip === "stories" || chip === "reviews" ? [] : shown).map((post, index, list) => {
         const lead = leadPropsFor(leadIds, post.id, leadSettled);
         return (
         <div
@@ -570,6 +588,7 @@ export function Feed({
           className={["flex flex-col gap-[var(--nf-feed-gap)]", lead.className ?? ""].filter(Boolean).join(" ")}
           style={lead.style}
         >
+          <FreshArrival postId={post.id}>
           <ViewportPost postId={post.id}>
             <PostCard
               post={post}
@@ -596,6 +615,7 @@ export function Feed({
               }
             />
           </ViewportPost>
+          </FreshArrival>
 
           {/*
             THE CARD NO LONGER UNFOLDS A COMPOSER, AND IT USED TO.
@@ -617,6 +637,7 @@ export function Feed({
             position". Scroll position is worth less than knowing what you are
             replying to.
           */}
+          {aside && index === Math.min(2, list.length - 1) ? aside : null}
         </div>
         );
       })}
@@ -670,6 +691,25 @@ export function Feed({
           dismissLabel={sheet.dismissLabel}
         />
       ) : null}
+
+      <DeleteSheet
+        open={deleting !== null}
+        title={DELETE_WORDS.post.title}
+        body={DELETE_WORDS.post.body}
+        onClose={() => setDeleting(null)}
+        onConfirm={async () => {
+          const target = deleting;
+          if (!target) return false;
+          const result = await removePost({ postId: target.id });
+          if (!result.ok) {
+            setNotice(result.error);
+            return false;
+          }
+          setPosts((all) => all.filter((p) => p.id !== target.id));
+          router.refresh();
+          return true;
+        }}
+      />
 
       {reporting ? (
         <ReportSheet

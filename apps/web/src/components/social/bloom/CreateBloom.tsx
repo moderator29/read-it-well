@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useOverlay } from "@/lib/ui/use-overlay";
@@ -113,6 +112,7 @@ export function CreateBloom({
   currentAreaId,
   reviewable,
   initialOpen = false,
+  initialCompose = false,
 }: {
   signedIn: boolean;
   areas: BloomArea[];
@@ -120,8 +120,17 @@ export function CreateBloom({
   currentAreaId?: string;
   /** Stays this person may review right now. Empty when there are none. */
   reviewable: ReviewableStay[];
-  /** Open on mount: the preview harness, and `/around?compose=1` from the dock's Create sheet. */
+  /** Open the fan on mount: the preview harness photographs it this way. */
   initialOpen?: boolean;
+  /**
+   * Open the COMPOSER on arrival, not the fan: `/around?compose=1`, which is
+   * where the dock's Create sheet sends "Post". It used to open the fan,
+   * which made "Post" a two-tap trip through a second plus; on a phone the
+   * fan's plus now gives way to the dock's (social-feed.css, "One plus per
+   * screen"), so the dock's Post lands in the composer directly. Signed out,
+   * nothing opens: the composer would only refuse.
+   */
+  initialCompose?: boolean;
 }) {
   const signInHref = useSignInHref();
   const router = useRouter();
@@ -129,7 +138,15 @@ export function CreateBloom({
   /* The fan stays in the DOM while it folds back in, so the closing spring has
      something to move. `mounted` outlives `open` by one settle. */
   const [mounted, setMounted] = useState(initialOpen);
-  const [composing, setComposing] = useState(false);
+  const [composing, setComposing] = useState(initialCompose && signedIn);
+  /* A soft navigation to `?compose=1` on the page that is already open keeps
+     this component mounted, so the prop turning on is answered here (React's
+     adjust-state-on-prop-change recipe, not an effect). */
+  const [lastCompose, setLastCompose] = useState(initialCompose);
+  if (initialCompose !== lastCompose) {
+    setLastCompose(initialCompose);
+    if (initialCompose && signedIn) setComposing(true);
+  }
   const [reviewing, setReviewing] = useState(false);
   const [picking, setPicking] = useState(false);
   const [areaId, setAreaId] = useState<string | undefined>(currentAreaId);
@@ -159,7 +176,14 @@ export function CreateBloom({
   const closeComposer = useCallback(() => {
     setComposing(false);
     fabRef.current?.focus();
-  }, []);
+    /* Take `compose=1` back off the address, so Back does not reopen the
+       composer and the dock's Post can open it again from here. */
+    const url = new URL(window.location.href);
+    if (url.searchParams.has("compose")) {
+      url.searchParams.delete("compose");
+      router.replace(`${url.pathname}${url.search}`, { scroll: false });
+    }
+  }, [router]);
   const closeReview = useCallback(() => {
     setReviewing(false);
     fabRef.current?.focus();
@@ -364,19 +388,20 @@ export function CreateBloom({
           if (!next) closeComposer();
         }}
         title="Post"
-        closeLabel="Close"
+        hideTitle
         initialFocus={fieldRef}
         fullPage
       >
-            <p className="mb-md text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
-              {picking
-                ? "Choose where this belongs"
-                : chosen
-                  ? `Around ${chosen.name}, ${chosen.city}`
-                  : "Everyone on Vallo"}
-            </p>
-
             {picking ? (
+              <>
+              <div className="nf-compose-page__bar">
+                <button type="button" className="nf-compose-page__cancel" onClick={() => setPicking(false)}>
+                  Back
+                </button>
+              </div>
+              <p className="mb-md text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
+                Who should see it?
+              </p>
               <ul className="flex flex-col gap-xs">
                 {/* Everybody, first and always present: the destination that
                     needs no membership, so it is the one a person can always
@@ -419,13 +444,28 @@ export function CreateBloom({
                   </li>
                 ) : null}
               </ul>
+              </>
             ) : (
               <>
-                <Button variant="quiet" size="sm" onClick={() => setPicking(true)} className="mb-sm self-start">
-                  {chosen ? "Post somewhere else" : "Post in a place instead"}
-                </Button>
-
+                {/* THE FULL-PAGE COMPOSER (the feed set): Cancel and Post at
+                    the top, the audience control under them, a large field,
+                    the tool row. The audience is the place picker this sheet
+                    always had, now one tap on the line that says who will
+                    see the post. */}
                 <Composer
+                  page
+                  audience={
+                    <button
+                      type="button"
+                      className="nf-compose-audience"
+                      onClick={() => setPicking(true)}
+                      data-testid="composer-destination"
+                    >
+                      <UiIcon name={chosen ? "location" : "compass"} size={14} />
+                      {chosen ? `Around ${chosen.name}` : "Everyone on Vallo"}
+                      <UiIcon name="chevron-down" size={12} />
+                    </button>
+                  }
                   areaId={chosen?.id}
                   areaName={chosen?.name}
                   signedIn={signedIn}
@@ -434,7 +474,7 @@ export function CreateBloom({
                   onDraftChange={setDraft}
                   autoFocus
                   onDone={() => {
-                    setComposing(false);
+                    closeComposer();
                     router.refresh();
                   }}
                 />
