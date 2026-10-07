@@ -139,22 +139,55 @@ as asked, and resist improving on the instruction.
   `/receipts`, `/refunds` all exist and none is in `nav-model.ts`. His rule: "most
   features should be in side nav the new ones the pro and etc too all the referral
   too". This is item one in the order of work.
-- **The startup screen. He has raised this four times and it is still broken.** On
-  7 October he confirmed it on a current build: "it's not fixed at all I don't want to
-  see it I don't want my logo to be there once I open the app I want to see an
-  animations for about 1.5 secs lovely animations like how other serious industry
-  standard platform is". A fix landed on 3 October and the symptom survived it,
-  because the problem is the design and not the timer: the brand is painted onto a
-  **native splash image** whose duration is whatever the slowest thing on the critical
-  path turns out to be, so it can never be reliably fast. Section A.2 of the handoff
-  has the architectural fix. In short: the native launch image becomes a plain
-  `#010118` field identical to the app background so its duration stops mattering;
-  the splash is dismissed on first paint rather than on window `load`, off the dynamic
-  import chain; and the brand moment moves **into** the app, motion from the first
-  frame, 1,500ms ceiling, interruptible, interactive underneath, handing off into the
-  first screen rather than fading out in front of it. Close it with three measured
-  numbers on a physical mid range Android and a screen recording. He has been told
-  this was fixed once already.
+- **The startup screen. Raised four times, still broken, and the concept is now
+  different.** On 7 October he confirmed it on a current build, and then settled what
+  should replace it:
+
+  > it's not fixed at all I don't want to see it I don't want my logo to be there once
+  > I open the app I want to see an animations for about 1.5 secs lovely animations
+  > like how other serious industry standard platform is
+
+  > I want that my logo image to not show anytime I open the app to change to something
+  > animations vibes stuffs like it's when click website link you get something
+  > beautiful
+
+  **The rule is absolute: the logo never appears by itself on app open.** Not as an
+  image, not as an animation, not for 1,500ms, not for 200ms. Read his reference
+  carefully, because it is precise: when you click a link to a beautifully built
+  website you do not get a logo card. There is no bumper and no interstitial. You get
+  the page, its structure resolving and type settling, in motion from the first frame
+  and usable almost immediately. The craft is in how the content arrives. That is what
+  he wants on app open.
+
+  So this is three pieces of work, and section A.2 of the handoff has all of it in
+  detail. **One**, the native launch image becomes a plain `#010118` field identical to
+  the app background, with no mark on it, so its duration stops mattering; today the
+  brand is painted onto that image and its duration is whatever the slowest thing on
+  the critical path turns out to be, which on a Lagos connection with a cold cache is
+  eight seconds of a static PNG. **Two**, dismiss on first paint rather than on window
+  `load`, and off the two deep dynamic import chain in `boot.ts`; a fix landed on
+  3 October, `<NativeRuntime />` is present at `layout.tsx` line 501, and the symptom
+  survived it, so instrument the bridge on the device and find what is actually
+  failing rather than guessing. **Three**, retire the logo moment entirely:
+  `BrandAssemble` draws a lockup assembling itself and its own comment names the
+  reference it was built to, the apartments.com app opening. Skilled work, wrong idea
+  now. Take it off the startup path and replace it with the app's own first screen,
+  choreographed: real structure in the first frame, content arriving in sequence with a
+  stagger of at most 60ms, brand presence incidental and in motion at header size among
+  other arriving things, interactive almost immediately, a tap skips to settled, about
+  400ms on a returning open, and one continuous move into Get Started or the passcode
+  greeting rather than a cut.
+
+  The machinery for the choreography already exists and is good: `--nf-splash-hold`
+  coordinates first paint animation across every route. Point it at a content-led
+  opening instead of a logo hold.
+
+  Close it with four measured numbers on a physical mid range Android, the third of
+  which is **milliseconds of anything that is not the product, target zero**, plus
+  still frames at 300ms, 700ms and 1,200ms and one screen recording. If any still frame
+  shows a logo and nothing else, it has failed. His test, in one sentence: would this
+  feel like opening a beautifully built website, or like watching an app's logo?
+
 - **The plus button.** Two complaints. It is not there (find out what is hiding it on
   his device). And the sheet it opens is overdesigned: "the plus botton should not
   have those designs stuffs when click it should just have the normal 3 options".

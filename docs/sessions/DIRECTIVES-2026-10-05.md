@@ -3074,6 +3074,65 @@ him.
 
 ---
 
+## D68c. The logo never shows on app open. The opening is the product arriving.
+
+**7 October 2026. Founder ruling. This supersedes the apartments.com opening
+reference and retires `BrandAssemble` from the startup path.**
+
+> I want that my logo image to not show anytime I open the app to change to something
+> animations vibes stuffs like it's when click website link you get something beautiful
+
+This is a change of concept, not of duration, and it reverses an earlier direction of
+his own. `BrandAssemble` exists because of a founder reference recorded in its own
+comment: "the apartments.com app opening: the mark turns in depth with motion blur and
+settles, and the wordmark arrives a letter at a time". That was built faithfully and it
+is skilled work. It is now the wrong idea.
+
+**The rule, absolute:** the logo never appears by itself on app open. Not as an image,
+not as an animation, not for 1,500ms, not for 200ms.
+
+**The reference, read precisely:** when you click a link to a beautifully built
+website, there is no logo card, no bumper, no interstitial. You get the page, its
+structure resolving and type settling, in motion from the first frame and usable almost
+immediately. The craft is in how the content arrives.
+
+**So the opening becomes the app's own first screen, choreographed:**
+
+- The first frame is already the product. Real structure, header, dock, the shape of
+  the content. Never a brand card.
+- Motion is the content arriving in sequence, stagger at most 60ms, background layers
+  at 0.6 of foreground, entrances on `land` and exits on `leave`.
+- Brand presence is incidental and in motion: the mark may ride in as part of the
+  header arriving, at header size, among other arriving things. Never the subject,
+  never alone, never centred on an empty field.
+- Interactive almost immediately. A tap anywhere skips to the settled state.
+- About 1,500ms of choreography at most, and roughly 400ms on a returning open,
+  because a beautiful website does not replay its entrance every visit either.
+- One continuous move into Get Started for a new member, or into the passcode greeting
+  then home for a returning one. Not a cut.
+- Reduced motion, Calm, Off and save-data each get one settled frame.
+
+**What to keep:** `--nf-splash-hold` and the first paint choreography it coordinates
+across `animation.css`, `detail-m.css`, `inner-m.css`, `landing-rooms.css` and
+`threshold.css`. That machinery is good and it is most of the answer; it just needs to
+be pointed at a content-led opening instead of a logo hold. `BrandAssemble` may keep a
+home somewhere a brand moment genuinely belongs, such as an About page or a share card.
+It comes off `layout.tsx` and off the `.nf-splash__brand` rules in `threshold.css`.
+
+**And the native launch image loses the brand too**, per D68a: a plain `#010118` field
+identical to the app background, so the transition out of it is invisible and its
+duration stops mattering. The nine iOS images in `Splash.imageset/` and the Android
+`drawable*/splash.png` set are generated, so extend `scripts/build-native-icons.mjs`
+rather than hand editing them.
+
+**Closed by measurement, not assertion.** Four numbers on a physical mid range Android
+over a throttled connection, the third being **milliseconds of anything that is not the
+product, target zero**; still frames at 300ms, 700ms and 1,200ms, none of which may
+show a logo and nothing else; and one screen recording. The one sentence test: would
+this feel like opening a beautifully built website, or like watching an app's logo?
+
+---
+
 ## D69. ADR 0003: a licensed provider holds the money, Vallo records it.
 
 **7 October 2026. An architectural decision taken by Session 1, because the work

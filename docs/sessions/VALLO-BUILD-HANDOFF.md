@@ -448,7 +448,7 @@ Watch `apps/web/scripts/check-weight.mjs` and `check-landing-height.mjs`. The
 landing page budget is tight on purpose; it may keep CSS motion while the
 application shell gets the libraries. Measure rather than guess.
 
-## A.2 The first screen: no logo sitting there, 1.5 seconds of motion, and it ships
+## A.2 The first screen: the logo never shows, the product arrives instead
 
 **This is not fixed. The founder confirmed it on 7 October 2026, on a current
 build.** An earlier note in this handoff said to check whether he was on a build from
@@ -463,6 +463,12 @@ His words, and they are specific about the outcome he wants:
 
 > Your logo showing in your app when open it for about 8 secs before you see anything
 > isn't that stupid
+
+And the next day, on what should replace it, which settles the concept and not just
+the duration:
+
+> I want that my logo image to not show anytime I open the app to change to something
+> animations vibes stuffs like it's when click website link you get something beautiful
 
 He is right, and he is right for a reason worth stating, because it changes the
 design rather than just the timing.
@@ -519,52 +525,86 @@ is not completing on his device at all. `<NativeRuntime />` **is** in the root l
 (`layout.tsx` line 501), so the 3 October fix is present and something else is still
 failing. Find out what, on the device, with the bridge instrumented. Do not guess.
 
-**3. The brand moment moves into the app, and becomes the animation he asked for.**
-`apps/web/src/components/startup/StartupSequence.tsx`, `startup.css` and
-`startup-script.ts` already exist, and `--nf-startup-door` (1,150ms) with
-`--nf-splash-hold` already coordinates the first paint animation on every route so
-content rises in sequence. That coordination is genuinely good work. Keep it. Build
-on it.
+**3. There is no logo moment at all. The opening becomes the product arriving.**
 
-The rules for it:
+This is a change of concept, not a change of timing, and it supersedes the earlier
+direction. The founder said, on 7 October:
 
-- **Motion from the first frame.** Nothing static, ever, not for 200ms. If the first
-  thing on screen is a still logo, it has already failed.
-- **1,500ms absolute ceiling**, and under it is better. Measure on a mid range
-  Android on a Lagos 4G profile, not in a simulator.
-- **The app is interactive underneath before it finishes.** A brand animation that
-  blocks input is a loading screen wearing makeup.
-- **Interruptible.** A tap skips to the end. Someone opening the app for the ninth
-  time today does not want the film again.
-- **It hands off into the first screen, it does not fade out in front of it.** The
-  mark's shapes become part of the Get Started composition, or part of the home
-  structure for a signed in member. One continuous camera move, not a splash then a
-  page. What makes a film cut feel expensive is that the two shots share something;
-  make them share something.
-- **It respects the settings.** `data-motion` `calm` and `off`, `data-save-data`,
-  `prefers-reduced-motion`. Under any of those the brand moment is a single frame and
-  the app appears. `--nf-splash-hold: 0ms` already exists for this.
-- **It is different for a returning member.** First launch earns a full brand moment.
-  The ninth launch today earns about 400ms. Store it per session; the existing
-  `nf_entered` session key in `layout.tsx` is already doing this kind of work.
+> I want that my logo image to not show anytime I open the app to change to something
+> animations vibes stuffs like it's when click website link you get something beautiful
 
-The materials are real and good: `apps/web/public/brand/vallo-mark.svg` and
-`vallo-wordmark.svg` are proper vectors shipped in `0304c710c`, `BrandAssemble` is
-already in the layout, and the splash composition has leaves and a glow to build
-from.
+Read that reference carefully, because it is precise. **When you click a link to a
+beautifully built website, you do not get a logo card.** There is no bumper, no brand
+interstitial, no mark alone on a field waiting for you. You get the page: its
+structure resolving, type settling, images arriving, the whole thing in motion from
+the first frame and usable almost immediately. The craft is in how the content
+arrives. That is what he wants on app open.
+
+So the rule is absolute:
+
+> **The logo never appears by itself on app open. Not as an image, not as an
+> animation, not for 1,500ms, not for 200ms.**
+
+What exists today is the opposite concept and has to be retired. `BrandAssemble`
+(`apps/web/src/components/.../BrandAssemble.tsx`) draws a logo lockup assembling
+itself: the mark turning in depth with motion blur, the wordmark arriving a letter at
+a time. Its own comment records the reference it was built to, "the apartments.com app
+opening". It is skilled work and it is the wrong idea now. **Remove it from the
+startup path** (`layout.tsx` line 508 and the `.nf-splash__brand` rules in
+`threshold.css`). Keep the component if it earns a place somewhere a brand moment
+belongs, such as an About page or a share card, but it is off the opening.
+
+### What replaces it
+
+The app's own first screen, choreographed. Nothing in front of it.
+
+- **The first frame is already the product.** Real structure: the header, the dock,
+  the shape of the content. Skeletons or the real thing, never a brand card.
+- **Motion is the content arriving**, in sequence, not a bumper playing. Surfaces,
+  cards and type rise with a stagger of at most 60ms, background layers at 0.6 times
+  foreground speed, entrances on `land` and exits on `leave`. This machinery already
+  exists and is good: `--nf-splash-hold` coordinates the first paint animation across
+  every route (`animation.css`, `detail-m.css`, `inner-m.css`, `landing-rooms.css`,
+  `threshold.css`), so content already rises in order once the opening clears. **Keep
+  that and point it at a shorter, content-led opening instead of a logo hold.**
+- **Brand presence is incidental and in motion.** The mark may ride in as part of the
+  header arriving, at header size, among other things that are also arriving. It is
+  never the subject, never alone, and never centred on an empty field.
+- **Interactive from almost the first moment.** If a thumb lands on something during
+  the opening, it works. The choreography continues underneath or gets cut short by
+  the tap. A tap anywhere skips to the settled state.
+- **About 1,500ms of choreography at most**, and the app is usable well before that
+  finishes. Shorter on a returning open: the ninth launch of the day gets roughly
+  400ms, because the beautiful website does not replay its entrance every visit
+  either. The `nf_entered` session key in `layout.tsx` already does this kind of
+  bookkeeping.
+- **One continuous move into the first screen.** For a new member that is Get Started
+  (A.3), and the opening's shapes become part of its composition. For a returning
+  member it resolves into the passcode greeting (A.4) and then into home. Not a cut,
+  not a fade from something else. The same surface, continuing.
+- **Reduced motion, Calm, Off and save-data each get a single settled frame** and the
+  app appears. `--nf-splash-hold: 0ms` already exists for this.
+
+The test to apply, and it is his: **would this feel like opening a beautifully built
+website, or like watching an app's logo?** If a still frame taken at any point in the
+first 1,500ms shows a logo and nothing else, it has failed.
 
 ### How you know it worked
 
-Three numbers in your report, measured on a physical mid range Android over a
-throttled connection, before and after:
+Four things in your report, measured on a physical mid range Android over a throttled
+connection, before and after:
 
-1. Milliseconds until anything moves on screen. Target: under 400ms.
-2. Milliseconds until the app's own content is visible. Target: under 1,200ms.
-3. Milliseconds of brand before the first screen. Target: under 1,500ms, and zero
-   milliseconds of it static.
+1. **Milliseconds until anything moves on screen.** Target under 400ms.
+2. **Milliseconds until the app's own content is visible.** Target under 1,200ms.
+3. **Milliseconds of anything that is not the product.** Target **zero**. Not "under
+   1,500". Zero. The 1,500ms budget is for the product arriving, not for a brand
+   moment in front of it.
+4. **A still frame taken at 300ms, 700ms and 1,200ms.** If any of the three shows a
+   logo and nothing else, it has failed.
 
-And one screen recording, because he judges with his eyes. He has been told this was
-fixed once already; a number and a recording are what close it.
+Plus one screen recording, because he judges with his eyes and he has been told this
+was fixed once already. A number closes the performance half. The recording closes the
+concept half.
 
 ## A.3 Get Started
 
