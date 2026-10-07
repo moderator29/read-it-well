@@ -342,6 +342,13 @@
     top: var(--nf-space-xs);
     z-index: 1;
   }
+  /* The 36px disc keeps its drawing; an invisible ring takes the target to
+     44, the floor (found by the 7 October sweep), as the card heart does. */
+  .nf-ai__result-save::after {
+    content: "";
+    position: absolute;
+    inset: -0.25rem;
+  }
   .nf-ai__result-body {
     display: flex;
     flex: 1;
@@ -1383,8 +1390,9 @@
   .nf-fstack .nf-fstack__circle {
     display: grid;
     place-items: center;
-    width: 2.5rem;
-    height: 2.5rem;
+    /* 44, the touch floor (it was 40; found by the 7 October sweep). */
+    width: 2.75rem;
+    height: 2.75rem;
     border: var(--nf-border-width) solid var(--nf-smoked-glass-edge);
     border-radius: var(--nf-radius-circle);
     background: var(--nf-smoked-glass-fill);
