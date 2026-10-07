@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -66,6 +66,17 @@ export function StoryComposer({
   const [error, setError] = useState<string | null>(null);
   const [held, setHeld] = useState(false);
   const [pending, startTransition] = useTransition();
+  /* The object already in the bucket for the picture on screen, so a retry
+     after a failed publish writes the row against it instead of uploading
+     another copy nobody will ever read. */
+  const uploaded = useRef<{ blob: Blob; path: string } | null>(null);
+  /* A preview URL holds its picture in memory until it is revoked: the old
+     one goes when a new picture replaces it, the last one when the composer
+     closes. */
+  useEffect(() => {
+    if (!preview) return;
+    return () => URL.revokeObjectURL(preview);
+  }, [preview]);
 
   if (!signedIn || !userId) {
     return (
@@ -164,42 +175,56 @@ export function StoryComposer({
     setError(null);
 
     startTransition(async () => {
-      const supabase = await loadBrowserClient();
-      if (!supabase) {
-        setError(STORY_FAILURE.upload);
-        return;
-      }
-      /* The post id is not known yet, so the object goes under a fresh uuid in
-         the person's own folder. The bucket's insert policy only checks the
-         first path segment; the read policy resolves the post id out of the
-         second, which the server action fills in when it writes the media row. */
-      const path = `${userId}/${crypto.randomUUID()}.jpg`;
-      const upload = await supabase.storage
-        .from("social-media")
-        .upload(path, blob, { contentType: "image/jpeg", cacheControl: "3600", upsert: false });
-      if (upload.error) {
-        setError(STORY_FAILURE.upload);
-        return;
-      }
+      /* A throw (a dropped connection, a server action that did not answer)
+         is said here in the composer, never handed to the error boundary with
+         the person's writing still in it. */
+      let stage: "upload" | "publish" = "upload";
+      try {
+        let path = uploaded.current?.blob === blob ? uploaded.current.path : null;
+        if (!path) {
+          const supabase = await loadBrowserClient();
+          if (!supabase) {
+            setError(STORY_FAILURE.upload);
+            return;
+          }
+          /* The post id is not known yet, so the object goes under a fresh uuid in
+             the person's own folder. The bucket's insert policy only checks the
+             first path segment; the read policy resolves the post id out of the
+             second, which the server action fills in when it writes the media row. */
+          const fresh = `${userId}/${crypto.randomUUID()}.jpg`;
+          const upload = await supabase.storage
+            .from("social-media")
+            .upload(fresh, blob, { contentType: "image/jpeg", cacheControl: "3600", upsert: false });
+          if (upload.error) {
+            setError(STORY_FAILURE.upload);
+            return;
+          }
+          uploaded.current = { blob, path: fresh };
+          path = fresh;
+        }
 
-      const result = await publishStory({
-        areaId,
-        headline: headline.trim(),
-        standfirst: standfirst.trim(),
-        placeLabel: place.trim(),
-        imagePath: path,
-        ...(size ? { width: size.width, height: size.height } : {}),
-      });
+        stage = "publish";
+        const result = await publishStory({
+          areaId,
+          headline: headline.trim(),
+          standfirst: standfirst.trim(),
+          placeLabel: place.trim(),
+          imagePath: path,
+          ...(size ? { width: size.width, height: size.height } : {}),
+        });
 
-      if (!result.ok) {
-        setError(result.error);
-        return;
+        if (!result.ok) {
+          setError(result.error);
+          return;
+        }
+        if (result.data.held) {
+          setHeld(true);
+          return;
+        }
+        router.replace(`/stories/${result.data.storyId}`);
+      } catch {
+        setError(stage === "upload" ? STORY_FAILURE.upload : STORY_FAILURE.down);
       }
-      if (result.data.held) {
-        setHeld(true);
-        return;
-      }
-      router.replace(`/stories/${result.data.storyId}`);
     });
   };
 
