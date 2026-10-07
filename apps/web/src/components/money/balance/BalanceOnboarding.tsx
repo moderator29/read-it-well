@@ -11,6 +11,7 @@ import { openBalanceAccount } from "@/lib/money/member-wallet-actions";
 import { GAP_LABEL, HELD_BY, HELD_BY_HREF, HELD_BY_LINK, ONBOARDING_COPY, OPEN_ACTION } from "@/lib/money/balance-copy";
 import type { OnboardingState, ProfileGap } from "@/lib/money/funds";
 import { FinancePlate } from "./balance-ui";
+import { reach } from "./reach";
 
 /**
  * FINANCIAL ONBOARDING (founder section 9): "Do not make financial
@@ -39,7 +40,7 @@ export function BalanceOnboarding({ state, gaps }: { state: OnboardingState; gap
   const open = async () => {
     setBusy(true);
     setError(null);
-    const r = await openBalanceAccount();
+    const r = await reach(() => openBalanceAccount());
     setBusy(false);
     if (!r.ok) {
       setError(r.error);
