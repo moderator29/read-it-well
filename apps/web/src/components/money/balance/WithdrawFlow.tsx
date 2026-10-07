@@ -5,7 +5,7 @@ import type { Locale } from "@vallo/i18n/core";
 import { Sheet } from "@/components/ui/Sheet";
 import { Button } from "@/components/ui/Button";
 import { DragToConfirm } from "@/components/ui/DragToConfirm";
-import { NairaField } from "@/components/ui/NairaField";
+import { AmountPad, shareChips } from "../AmountPad";
 import { SelectField, TextField } from "@/components/ui/Field";
 import { Money } from "@/components/ui/Money";
 import {
@@ -20,6 +20,8 @@ import type { MovementView } from "@/lib/money/member-wallet";
 import { REFUSAL } from "@/lib/money/balance-copy";
 import { lastFour } from "@/lib/money/funds";
 import { Breakdown, WaitingRoom, useWatchedMovement } from "./balance-ui";
+import { movementReceipt } from "../movement-receipt";
+import { ReceiptActions } from "../ReceiptActions";
 
 /**
  * WITHDRAW (Part B phase 8, the founder's fourteen steps; phase 9's check):
@@ -194,14 +196,24 @@ export function WithdrawFlow({
 
         {step === "amount" ? (
           <>
-            <p className="nf-body-sm text-[var(--nf-content-secondary)]">
-              To {accountName}, {bankName} •••• {lastFour(accountNumber)}.
-            </p>
-            <NairaField
-              label="Amount"
+            <AmountPad
               value={amount}
               onValueChange={setAmount}
-              hint="The smallest withdrawal is ₦1,000. The processing fee is shown before you confirm."
+              label="Amount to withdraw"
+              question="How much to withdraw?"
+              context={
+                <>
+                  To {accountName}, {bankName} •••• {lastFour(accountNumber)}
+                </>
+              }
+              chips={shareChips(availableMinor)}
+              hint={
+                <>
+                  Available <Money minor={availableMinor} locale={locale} mode="full" />. The smallest withdrawal is ₦1,000. The processing fee is shown before you
+                  confirm.
+                </>
+              }
+              testId="withdraw-pad"
             />
             <div className="grid grid-cols-2 gap-sm">
               <Button variant="secondary" onClick={() => setStep("account")}>
@@ -284,6 +296,9 @@ export function Watching({
   return (
     <>
       <WaitingRoom movement={current} locale={locale} kind={kind} />
+      {/* A completed movement has a receipt like every other transaction:
+          saved as a PDF or an image, or shared (recommendation 2). */}
+      {current.status === "completed" ? <ReceiptActions receipt={movementReceipt(current, locale)} print={false} testId="balance-receipt" /> : null}
       <Button variant="secondary" size="lg" onClick={onDone}>
         {current.status === "completed" ? "Done" : "Close, keep checking"}
       </Button>

@@ -68,6 +68,11 @@ export default async function ReceiptsPage({
               query={query}
               basePath="/receipts"
               locale={locale}
+              counts={
+                read.nextBefore || before
+                  ? undefined
+                  : { all: vaultEntries(read.entries, "all", query).length, payment: vaultEntries(read.entries, "payment", query).length, refund: vaultEntries(read.entries, "refund", query).length }
+              }
             />
           )}
           {read.nextBefore ? (

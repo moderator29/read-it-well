@@ -5,27 +5,49 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { ListGroup, ListRow } from "@/components/ui/ListGroup";
-import { IconPlate } from "@/components/ui/IconPlate";
+import { IconPlate, ICON_PLATE_GLYPH } from "@/components/ui/IconPlate";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { openBalanceAccount } from "@/lib/money/member-wallet-actions";
 import { GAP_LABEL, HELD_BY, HELD_BY_HREF, HELD_BY_LINK, ONBOARDING_COPY, OPEN_ACTION } from "@/lib/money/balance-copy";
 import type { OnboardingState, ProfileGap } from "@/lib/money/funds";
-import { FinancePlate } from "./balance-ui";
+import { StepPath, type PathState } from "../StepPath";
 
 /**
  * FINANCIAL ONBOARDING (founder section 9): "Do not make financial
  * onboarding feel like an ugly fintech form. It should feel like Vallo."
  *
- * So there is no form here at all. The member is told why, what the partner
- * does, what Vallo does and what is shared; anything missing is a row that
- * goes to the profile, where those details already live; and opening is one
- * button. Each of the seven states has its own words.
+ * So there is no form here at all, and the shape is the path (PREMIUM-
+ * STANDARD reference 2, named there for financial onboarding): three steps,
+ * each a 3D tile, two lines and a round status, joined by a line that fills
+ * as they complete. Anything missing is a row inside the first step that goes
+ * to the profile, where those details already live; opening is one button
+ * inside the second. Each of the seven states has its own words.
  */
 const WHO_DOES_WHAT: { icon: "shield-lock" | "user-check" | "eye-off"; title: string; sub: string }[] = [
   { icon: "shield-lock", title: "Our escrow partner holds the money", sub: "In an account in your name. Vallo never holds it." },
   { icon: "user-check", title: "Vallo keeps the record", sub: "Every movement, with where it is and when the partner confirmed it." },
   { icon: "eye-off", title: "Only what is needed is shared", sub: "Your name, email and phone. Nothing else, and no card or bank details." },
 ];
+
+/** Where each state stands on the three steps: your details, opening, adding money. */
+function pathFor(state: OnboardingState, missing: number): [PathState, PathState, PathState] {
+  if (missing > 0) return ["current", "upcoming", "upcoming"];
+  switch (state) {
+    case "ACTIVE":
+      return ["done", "done", "current"];
+    case "PENDING":
+      return ["done", "waiting", "upcoming"];
+    case "FAILED":
+    case "RESTRICTED":
+    case "SUSPENDED":
+      return ["done", "problem", "upcoming"];
+    case "VERIFICATION_REQUIRED":
+    case "NOT_STARTED":
+    default:
+      return ["done", "current", "upcoming"];
+  }
+}
 
 export function BalanceOnboarding({ state, gaps }: { state: OnboardingState; gaps: ProfileGap[] }) {
   const router = useRouter();
@@ -35,6 +57,7 @@ export function BalanceOnboarding({ state, gaps }: { state: OnboardingState; gap
   const [busy, setBusy] = useState(false);
   const copy = ONBOARDING_COPY[current];
   const canOpen = missing.length === 0 && (current === "NOT_STARTED" || current === "FAILED" || current === "PENDING" || current === "VERIFICATION_REQUIRED");
+  const [details, opening, adding] = pathFor(current, missing.length);
 
   const open = async () => {
     setBusy(true);
@@ -51,29 +74,79 @@ export function BalanceOnboarding({ state, gaps }: { state: OnboardingState; gap
   };
 
   return (
-    <div className="mt-inline space-y-block" data-testid="balance-onboarding" data-state={current}>
-      <div className="grid justify-items-start gap-sm">
-        <FinancePlate glyph="secure" />
-        <h2 className="nf-h2 text-[var(--nf-content-primary)]">{copy.title}</h2>
-        <p className="nf-body text-[var(--nf-content-secondary)]">{copy.body}</p>
+    <div className="nf-onboard mt-inline space-y-block" data-testid="balance-onboarding" data-state={current}>
+      <div className="nf-mhead">
+        <span className="nf-mhead__art">
+          <BrandIcon name="wallet-secure" size={88} priority />
+        </span>
+        <h2 className="nf-mhead__title">{copy.title}</h2>
+        <p className="nf-mhead__body">{copy.body}</p>
       </div>
 
-      {missing.length > 0 ? (
-        <ListGroup label="Add to your profile">
-          {missing.map((g) => (
-            <ListRow
-              key={g}
-              leading={
-                <IconPlate size="sm" tone="warning">
-                  <UiIcon name="pencil" />
-                </IconPlate>
-              }
-              title={GAP_LABEL[g]}
-              href={g === "phone" ? "/settings/phone" : "/settings/account"}
-              chevron
-            />
-          ))}
-        </ListGroup>
+      <StepPath
+        label="Opening your balance"
+        testId="balance-onboarding-path"
+        steps={[
+          {
+            key: "details",
+            art: "id-card-check",
+            title: "Your details",
+            sub: missing.length > 0 ? "Add these to your profile first." : "Your name, email and a Nigerian mobile are on your profile.",
+            state: details,
+            children:
+              missing.length > 0 ? (
+                <ListGroup label="Add to your profile">
+                  {missing.map((g) => (
+                    <ListRow
+                      key={g}
+                      leading={
+                        <IconPlate size="sm" tone="warning">
+                          <UiIcon name="pencil" size={ICON_PLATE_GLYPH.sm} />
+                        </IconPlate>
+                      }
+                      title={GAP_LABEL[g]}
+                      href={g === "phone" ? "/settings/phone" : "/settings/account"}
+                      chevron
+                    />
+                  ))}
+                </ListGroup>
+              ) : undefined,
+          },
+          {
+            key: "open",
+            art: "wallet-secure",
+            title: "Open with our escrow partner",
+            sub:
+              current === "PENDING"
+                ? "Asked. Waiting for their answer; this updates on its own."
+                : current === "RESTRICTED" || current === "SUSPENDED"
+                  ? "On hold with our partner. Support can find out why."
+                  : "We ask them to open it in your name. Nothing is charged.",
+            state: opening,
+            children: canOpen ? (
+              <Button variant="primary" size="lg" full loading={busy} onClick={open} data-testid="balance-open">
+                {current === "FAILED" ? "Try again" : current === "PENDING" ? "Check again" : OPEN_ACTION}
+              </Button>
+            ) : current === "RESTRICTED" || current === "SUSPENDED" ? (
+              <ButtonLink href="/support" variant="secondary" size="lg" full>
+                Contact support
+              </ButtonLink>
+            ) : undefined,
+          },
+          {
+            key: "add",
+            art: "wallet-plus",
+            title: "Add money",
+            sub: "From your own bank or card, once your balance is open.",
+            state: adding,
+          },
+        ]}
+      />
+
+      {error ? (
+        <p role="alert" className="nf-body-sm text-[var(--nf-state-error)]">
+          {error}
+        </p>
       ) : null}
 
       <ListGroup label="Who does what">
@@ -82,7 +155,7 @@ export function BalanceOnboarding({ state, gaps }: { state: OnboardingState; gap
             key={row.title}
             leading={
               <IconPlate size="sm">
-                <UiIcon name={row.icon} />
+                <UiIcon name={row.icon} size={ICON_PLATE_GLYPH.sm} />
               </IconPlate>
             }
             title={row.title}
@@ -90,22 +163,6 @@ export function BalanceOnboarding({ state, gaps }: { state: OnboardingState; gap
           />
         ))}
       </ListGroup>
-
-      {canOpen ? (
-        <Button variant="primary" size="lg" loading={busy} onClick={open} data-testid="balance-open">
-          {current === "FAILED" ? "Try again" : current === "PENDING" ? "Check again" : OPEN_ACTION}
-        </Button>
-      ) : current === "RESTRICTED" || current === "SUSPENDED" ? (
-        <ButtonLink href="/support" variant="secondary" size="lg">
-          Contact support
-        </ButtonLink>
-      ) : null}
-
-      {error ? (
-        <p role="alert" className="nf-body-sm text-[var(--nf-state-error)]">
-          {error}
-        </p>
-      ) : null}
 
       <p className="nf-caption text-[var(--nf-content-muted)]">
         {HELD_BY}{" "}

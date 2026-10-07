@@ -5,7 +5,7 @@ import type { Locale } from "@vallo/i18n/core";
 import { Sheet } from "@/components/ui/Sheet";
 import { Button } from "@/components/ui/Button";
 import { DragToConfirm } from "@/components/ui/DragToConfirm";
-import { NairaField } from "@/components/ui/NairaField";
+import { AmountPad, shareChips } from "../AmountPad";
 import { TextField } from "@/components/ui/Field";
 import { Money } from "@/components/ui/Money";
 import { cancelBalanceMovement, confirmBalanceMovement, findBalanceRecipient, prepareSend, type Quote } from "@/lib/money/member-wallet-actions";
@@ -145,10 +145,19 @@ export function SendFlow({
 
         {step === "amount" ? (
           <>
-            <p className="nf-body-sm text-[var(--nf-content-secondary)]">
-              To {name}. Available <Money minor={availableMinor} locale={locale} mode="full" />.
-            </p>
-            <NairaField label="Amount" value={amount} onValueChange={setAmount} hint="The smallest amount is ₦100." />
+            <AmountPad
+              value={amount}
+              onValueChange={setAmount}
+              label={`Amount to send to ${name ?? "this member"}`}
+              question={`How much to send to ${(name ?? "them").split(" ")[0]}?`}
+              chips={shareChips(availableMinor)}
+              hint={
+                <>
+                  Available <Money minor={availableMinor} locale={locale} mode="full" />. The smallest amount is ₦100.
+                </>
+              }
+              testId="send-pad"
+            />
             <TextField label="What is it for?" value={note} maxLength={100} showCount optionalText="Optional" onChange={(e) => setNote(e.target.value)} />
             <div className="grid grid-cols-2 gap-sm">
               <Button variant="secondary" onClick={() => setStep("who")}>

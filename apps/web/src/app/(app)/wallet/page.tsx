@@ -1,15 +1,12 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { getLocale } from "@/lib/locale";
 import { readMyBalance } from "@/lib/money/member-wallet";
-import { BALANCE_LEDE, BALANCE_TITLE, HELD_BY, HELD_BY_HREF, HELD_BY_LINK, NOT_LIVE_BODY, NOT_LIVE_TITLE } from "@/lib/money/balance-copy";
+import { BALANCE_LEDE, BALANCE_TITLE } from "@/lib/money/balance-copy";
 import { PageHeader } from "@/components/app/PageHeader";
-import { EmptyState, TYPE } from "@/components/app/Screen";
+import { EmptyState } from "@/components/app/Screen";
 import { ButtonLink } from "@/components/ui/Button";
-import { State } from "@/components/ui/State";
 import { withNext } from "@/lib/auth/next-link";
-import { BalanceScreen } from "@/components/money/balance/BalanceScreen";
-import { BalanceOnboarding } from "@/components/money/balance/BalanceOnboarding";
+import { BalanceView } from "@/components/money/balance/BalanceView";
 
 export const metadata: Metadata = { title: "Balance", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -22,8 +19,10 @@ export const dynamic = "force-dynamic";
  *
  * Five honest states and no sixth: signed out; the rail not open (no figure
  * at all, because any figure would be invented); opening the balance; the
- * read failed; and the balance itself. Design references: 6AF37222 (balance,
- * actions, activity) and 95840448 (send, one question at a time).
+ * read failed; and the balance itself. The four signed-in states are
+ * `BalanceView`, which the preview harness draws too (`/preview/p5/wallet`).
+ * Design references: 6AF37222 (balance, actions, activity), 95840448 (send,
+ * one question at a time), IMG_7027 (amount entry), PREMIUM-STANDARD 4, 7, 9.
  */
 export default async function BalancePage() {
   const locale = await getLocale();
@@ -43,36 +42,8 @@ export default async function BalancePage() {
             </ButtonLink>
           }
         />
-      ) : read.state === "not-live" ? (
-        <div className="mt-inline space-y-block" data-testid="balance-not-live" data-reason={read.reason}>
-          <p className={TYPE.body}>{BALANCE_LEDE}</p>
-          <State
-            kind="empty"
-            title={NOT_LIVE_TITLE}
-            body={NOT_LIVE_BODY}
-            primary={{ href: "/payments", label: "See your payments" }}
-            secondary={{ href: "/receipts", label: "Your receipts" }}
-          />
-          <p className="nf-caption text-[var(--nf-content-muted)]">
-            {HELD_BY}{" "}
-            <Link href={HELD_BY_HREF} className="underline">
-              {HELD_BY_LINK}
-            </Link>
-          </p>
-        </div>
-      ) : read.state === "onboarding" ? (
-        <BalanceOnboarding state={read.onboarding} gaps={read.gaps} />
-      ) : read.state === "error" ? (
-        <div className="mt-block">
-          <State
-            kind="error"
-            title="Your balance could not be read"
-            body="Nothing has moved. We show no figure rather than a wrong one. Try again in a moment."
-            primary={{ href: "/wallet", label: "Try again" }}
-          />
-        </div>
       ) : (
-        <BalanceScreen figures={read.figures} movements={read.movements} live={read.live} locale={locale} now={Date.parse(read.readAt)} />
+        <BalanceView read={read} locale={locale} />
       )}
     </main>
   );

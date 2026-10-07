@@ -951,6 +951,20 @@ const PILL_ALLOWED = new Set([
    */
   "src/app/css/chips.css  .nf-segmented--pill",
   /*
+   * PERMANENT, by the founder's Plasma ruling D74 of 7 October 2026
+   * (`docs/design/references/2026-10-07/GOVERNING-plasma-rewards-platinum.jpg`,
+   * `-tiers-cards.jpg`, `-withdraw-anytime.jpg`): the one primary action on an
+   * explainer or a payoff is "the capsule with a reflection", a full-width
+   * capsule with a mirrored glow on the floor beneath it, one per screen
+   * (PREMIUM-STANDARD.md, "The governing level"). Every other control keeps
+   * the rectangle.
+   */
+  "src/app/css/premium-moments.css  .nf-capsule",
+  /* PERMANENT, the same D74 ruling: the invite's share moment is one white
+     capsule with a round green button at its end
+     (`docs/design/references/2026-10-07/invite-ready-pill.jpg`). */
+  "src/app/css/money-layer.css  .nf-ready__pill",
+  /*
    * PERMANENT. The dock island is 56px square, holds one glyph and carries no
    * word, so it is the ruling's second exception: a bare icon button, the same
    * species as the landing nav's search glyph. Its own rule in `chrome.css`
