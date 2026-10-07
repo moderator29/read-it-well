@@ -76,6 +76,43 @@ are described here precisely enough to build from. Read them as rulings on feel.
    curve, a segmented range switch. In dark mode the card is the raised surface and
    the selected segment is the brand-lit capsule.
 
+### Four more he sent minutes later
+
+6. **The returning greeting ("Hello, Mide").** A full-bleed warm photograph fills the
+   top half. A white sheet rises over it with a large rounded top. In it: a scalloped
+   badge avatar with the initial, "Hello, Mide" in a strong title, the email under it
+   in caption, a "Switch account" link, then a filled primary capsule "Use Face ID"
+   with the face glyph and, under it, a tinted secondary capsule "Login with MPIN".
+   **Take:** this is the passcode / returning-member screen. A greeting, the person's
+   own name and avatar, biometric as the primary action, passcode as the second, and
+   a photograph (one of Vallo's lit architecture scenes) rather than an empty field.
+   In dark mode the sheet is the raised surface.
+
+7. **Payment confirmed (again, closer).** Confirms reference 4: green check dot,
+   title, one line, a "You paid" card with the figure, method and transaction id,
+   then a label and value card, then a solid black "Download receipt" capsule and a
+   quiet "Back to home". This is the receipt and the payment success screen.
+
+8. **The bill breakdown.** A header strip of three figures with tiny uppercase labels
+   (PREVIOUS, CURRENT, USED; the third in an accent colour). Then one card of line
+   items: a label with a muted sub-line explaining the arithmetic ("Slab 2, 125 x
+   6.32"), the amount right aligned and tabular; a late fee in red; a "Total payable"
+   row in a heavier weight. Under it three equal square action tiles (PDF, Share,
+   Dispute) with a small outline icon over a tiny label. Then a black capsule "Pay
+   6,420.00" with an arrow. **Take:** this is **True Cost** and every money breakdown
+   (rent, agency, legal, caution, service charge), the agreement's money section and
+   the checkout summary. Dispute sits beside PDF and Share as an equal, calm action.
+
+9. **Withdraw anytime (a feature explainer).** A pale field with a phone frame
+   cropped at the top; a frosted card breaks out of the phone towards the viewer: a
+   source pill ("Earn, $10,000.01" with a tiny green bar glyph), a very large amount,
+   "Arrives, < 5 sec" in muted text, and three soft chips (10%, 50%, Max). Under it a
+   title, two lines of body, three dots, and a full-width black "Got it" capsule with a
+   soft shadow. Close button top right in a frosted circle. **Take:** the shape of
+   every **feature explainer** in Vallo (first time on Wallet, Rewards, Pro, Space
+   Passport): the real UI fragment as the illustration, breaking out of a device
+   frame, and the quick-amount chips (25%, 50%, Max) on Withdraw and Send.
+
 And from the repository, `docs/design/references/2026-10-05/IMG_7027.png`: an amount
 entry screen with a huge figure, a coloured sign, a muted question under it ("Who's it
 for?"), chip shortcuts, a calm numeric keypad of soft rounded keys, and **swipe to
