@@ -856,7 +856,7 @@
 }
 
 .nf-lb-share__rank small {
-  font-size: 0.45em;
+  font-size: max(0.45em, 0.75rem); /* never under 12px */
   color: var(--nf-platinum-ink-soft);
 }
 

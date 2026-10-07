@@ -134,17 +134,6 @@ export const BACKED_CLAIMS: readonly BackedClaim[] = [
     mechanism:
       "the protected rail: funds held by the licensed provider's escrow until release (docs/payments/VALLO_FINANCIAL_LAYER.md), surfaces gated by PROTECTED_RAIL_LIVE in apps/web/src/lib/money/rails.ts (false until ADR-0003 is accepted and the merchant account is live)",
   },
-  /* The member balance (money rail). "Protected" there is the provider's own
-     escrowBalance as reported, shown with when it was confirmed, never a
-     figure Vallo computes; "Being checked" is the under_review status, a
-     person reading a movement whose amount or customer disagreed. Scoped to
-     the one copy file, so the same words elsewhere are still a claim. */
-  {
-    phrase: /^Protected$|^Money you can use on Vallo, money protected in a deal, and anything still on its way\.$|^Being checked$/,
-    onlyIn: "apps/web/src/lib/money/balance-copy.ts",
-    mechanism:
-      "Payluk's reported escrowBalance (parseBalance in lib/payments/providers/payluk-client.ts, drawn with its confirmation time) and the funds_movements under_review status set by lib/money/balance-events.ts on an amount or customer mismatch",
-  },
   { phrase: /^; Secure$/, mechanism: "the Secure attribute of the theme cookie (lib/theme/theme-client.ts), an HTTP cookie flag, not copy" },
 
   /* "Instant" (29 September): the word promises speed, so it is a claim word
