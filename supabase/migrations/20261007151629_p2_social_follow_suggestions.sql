@@ -1,4 +1,4 @@
--- P2 SOCIAL FOLLOW SUGGESTIONS (pending; not applied).
+-- P2 SOCIAL FOLLOW SUGGESTIONS (applied 7 October 2026).
 --
 -- The founder, 7 October: a block in the feed suggesting accounts to follow,
 -- "mostly top agents, landlords, hotels and restaurants in the member's
