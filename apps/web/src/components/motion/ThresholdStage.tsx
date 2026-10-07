@@ -106,7 +106,9 @@ export function ThresholdStage({ welcome }: { welcome: string }) {
      * is still "on" well after hydration, the door is opened here and the
      * flag released once the leaves have had their time to part.
      */
-    if (splash?.classList.contains("nf-startup")) {
+    /* The opening (D68c) has no overlay: it is marked by `data-opening`,
+       which its before-paint gate writes beside the flag. */
+    if (root.dataset.opening || splash?.classList.contains("nf-startup")) {
       let release = 0;
       const backstop = window.setTimeout(() => {
         if (root.dataset.splash !== "on") return;

@@ -1,103 +1,114 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import {
+  NATIVE_WAIT_MS,
+  OPENING_BRIEF_MS,
+  OPENING_FULL_MS,
+  STARTUP_GATE_SCRIPT,
+  STARTUP_NATIVE_SCRIPT,
+  STARTUP_RELEASE_MS,
+  STARTUP_SCRIPT,
+} from "./startup-script";
 
 /**
- * THE STARTUP SEQUENCE'S STYLESHEET, HELD TO ITS CONTRACT (D31; MOTION_SYSTEM
- * principle 10: nothing loops). October 2026: the real brand art rises, one
- * light sweeps the glass, and the door fades and lifts the whole overlay.
- * Transform and opacity only, on the design tokens' curves, with the door on
- * the one number the script moves, and no hold for a page still streaming.
+ * THE LOGO NEVER APPEARS BY ITSELF ON APP OPEN (D68c, 7 October 2026).
+ *
+ * These read the files on the startup path (the root layout, the opening's
+ * stylesheet, the threshold sheet's startup rules and the three inline
+ * scripts) and fail if a brand lockup is put back on it: the retired
+ * `StartupSequence` overlay, `BrandAssemble`, the logo components, the
+ * `/brand/startup` art, or any overlay class. They also hold the opening to
+ * its budget and its motion rules. The behaviour, frame by frame in a real
+ * browser, is `StartupOpening.dom.test.tsx`.
  */
-const css = readFileSync(join(__dirname, "startup.css"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-const tsx = readFileSync(join(__dirname, "StartupSequence.tsx"), "utf8");
 
-/** Every `@keyframes` block, by name, with its body. */
-function keyframes(): Map<string, string> {
-  const found = new Map<string, string>();
-  for (const m of css.matchAll(/@keyframes\s+([\w-]+)\s*\{/g)) {
-    let depth = 1;
-    let i = m.index! + m[0].length;
-    const start = i;
-    while (depth > 0 && i < css.length) {
-      if (css[i] === "{") depth++;
-      else if (css[i] === "}") depth--;
-      i++;
-    }
-    found.set(m[1]!, css.slice(start, i - 1));
-  }
-  return found;
-}
+const WEB = join(__dirname, "..", "..", "..");
+const strip = (s: string) => s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\{\/\*[\s\S]*?\*\/\}/g, "");
+const css = strip(readFileSync(join(__dirname, "startup.css"), "utf8"));
+const layout = strip(readFileSync(join(WEB, "src", "app", "layout.tsx"), "utf8"));
+const threshold = strip(readFileSync(join(WEB, "src", "app", "css", "threshold.css"), "utf8"));
+const scripts = [STARTUP_NATIVE_SCRIPT, STARTUP_GATE_SCRIPT, STARTUP_SCRIPT].join("\n");
 
-describe("startup.css", () => {
-  it("has no infinite animation", () => {
-    expect(css).not.toMatch(/\binfinite\b/);
+const BRAND_ON_THE_PATH = [
+  /StartupSequence/,
+  /BrandAssemble/,
+  /\bLogo(Mark)?\b/,
+  /VectorMark/,
+  /brand\/startup/,
+  /nf-startup__/,
+  /nf-splash__brand/,
+  /STARTUP_(MARK|WORDMARK)/,
+];
+
+describe("the startup path carries no brand lockup", () => {
+  it("the root layout renders no logo, lockup or overlay on open", () => {
+    for (const pattern of BRAND_ON_THE_PATH) expect(layout, String(pattern)).not.toMatch(pattern);
   });
 
-  it("no longer holds the lockup for a page still streaming", () => {
-    expect(css).not.toMatch(/nf-startup-hold/);
+  it("the opening's stylesheet draws no mark and no overlay", () => {
+    for (const pattern of BRAND_ON_THE_PATH) expect(css, String(pattern)).not.toMatch(pattern);
+    expect(css).not.toMatch(/\.nf-splash\b/);
+    expect(css).not.toMatch(/position:\s*fixed/);
   });
 
-  it("schedules the door on the one number the script moves, 1350ms (500ms quietly)", () => {
-    expect(css).toMatch(/:root\[data-splash="on"\]\s*\{\s*--nf-startup-door:\s*1350ms;/);
-    expect(css).toMatch(/--nf-startup-door:\s*500ms;/);
-    for (const name of ["nf-startup-door", "nf-startup-fade"]) {
-      /* Every use in an animation list: the name, then its duration. */
-      const uses = [...css.matchAll(new RegExp(`(?<![\\w-])${name}\\s+\\d+ms[^;,]*`, "g"))].map((m) => m[0]);
-      expect(uses.length, name).toBeGreaterThan(0);
-      for (const use of uses) expect(use, name).toContain("var(--nf-startup-door)");
-    }
+  it("the threshold sheet has no splash brand rules left", () => {
+    expect(threshold).not.toMatch(/nf-splash__brand/);
+    expect(threshold).not.toMatch(/:root\[data-splash="on"\]\s*#main\s*\{[^}]*nf-threshold-forward/);
   });
 
-  it("moves with transform and opacity only (the door and the fade also stop catching pointers)", () => {
-    const frames = keyframes();
-    for (const name of ["nf-startup-bloom", "nf-startup-rise", "nf-startup-follow", "nf-startup-sweep", "nf-startup-door", "nf-startup-fade"]) {
-      expect(frames.has(name), name).toBe(true);
-    }
-    for (const [name, body] of frames) {
-      const props = [...body.matchAll(/([\w-]+)\s*:/g)].map((m) => m[1]);
-      for (const prop of props) expect(["transform", "opacity", "visibility", "pointer-events"], `${name}: ${prop}`).toContain(prop);
-    }
-    expect(frames.get("nf-startup-rise")).toMatch(/translateY\(24px\)\s*scale\(0\.86\)/);
-    expect(frames.get("nf-startup-follow")).toMatch(/translateY\(12px\)/);
-    expect(frames.get("nf-startup-sweep")).toMatch(/translateX\(-120%\)[\s\S]*translateX\(120%\)/);
-    expect(frames.get("nf-startup-door")).toMatch(/scale\(1\.04\)/);
+  it("the inline scripts never create or reveal anything: they only set flags and hide the native splash", () => {
+    expect(scripts).not.toMatch(/createElement|innerHTML|appendChild|<img/);
+    expect(scripts).not.toMatch(/\.nf-startup|\.nf-splash/);
   });
 
-  it("uses the design tokens' curves, never a literal cubic-bezier", () => {
-    expect(css).not.toMatch(/cubic-bezier/);
-    expect(css).toMatch(/nf-startup-rise 700ms var\(--nf-ease-entrance\) 60ms both/);
-    expect(css).toMatch(/nf-startup-follow 500ms var\(--nf-ease-entrance\) 180ms both/);
-    expect(css).toMatch(/nf-startup-sweep 900ms var\(--nf-ease-standard\) 560ms both/);
-    expect(css).toMatch(/nf-startup-door 400ms var\(--nf-ease-exit\) var\(--nf-startup-door\) forwards/);
-  });
-
-  it("masks the sweep to the real mark's own shape", () => {
-    expect(css).toMatch(/-webkit-mask-image:\s*url\("\/brand\/startup\/vallo-mark\.webp"\)/);
-    expect(css).toMatch(/(?<!-)mask-image:\s*url\("\/brand\/startup\/vallo-mark\.webp"\)/);
-    expect(css).toMatch(/(?<!-)mask-size:\s*contain/);
-  });
-
-  it("holds every animation at its first frame during the native wait", () => {
-    expect(css).toMatch(/:root\[data-startup-native="wait"\] \*,[\s\S]*?animation-play-state:\s*paused !important/);
-  });
-
-  it("under reduced motion stills the bloom, the rise and the sweep, and fades by a real 200ms", () => {
-    const quiet = css.slice(css.indexOf("@media (prefers-reduced-motion: reduce)"));
-    expect(quiet).toMatch(/\.nf-startup__glow, \.nf-startup__mark, \.nf-startup__word\) \{\s*animation: none !important;/);
-    expect(quiet).toMatch(/\.nf-startup__shine \{\s*display: none;/);
-    expect(quiet).toMatch(/--nf-reduced-duration: 200ms;/);
-    expect(quiet).toMatch(/nf-startup-fade 200ms var\(--nf-ease-standard\) var\(--nf-startup-door\) forwards/);
+  it("the retired overlay component is gone", () => {
+    expect(existsSync(join(__dirname, "StartupSequence.tsx"))).toBe(false);
   });
 });
 
-describe("StartupSequence's art", () => {
-  it("draws the real brand images, not the vector redraw", () => {
-    expect(tsx).not.toMatch(/vector-mark/);
-    expect(tsx).not.toMatch(/<svg/);
-    for (const file of ["vallo-mark.webp", "vallo-wordmark.webp"]) {
-      expect(tsx).toContain(`/brand/startup/${file}`);
-      expect(existsSync(join(__dirname, "..", "..", "..", "public", "brand", "startup", file)), file).toBe(true);
+describe("the opening's budget and motion", () => {
+  it("is about 1,500ms on a first open and about 400ms on a returning one", () => {
+    expect(OPENING_FULL_MS).toBeLessThanOrEqual(1500);
+    expect(OPENING_BRIEF_MS).toBeLessThanOrEqual(400);
+    expect(STARTUP_RELEASE_MS).toBeLessThanOrEqual(300);
+    expect(NATIVE_WAIT_MS).toBeLessThanOrEqual(600);
+  });
+
+  it("holds the page's entrances for 160ms on a full opening, none on a brief one, not a logo's 1,450ms", () => {
+    expect(css).toMatch(/:root\[data-splash="on"\]\s*\{\s*--nf-startup-door:\s*60ms;/);
+    expect(css).toMatch(/\[data-opening="brief"\]\s*\{\s*--nf-startup-door:\s*-100ms;/);
+    expect(threshold).toMatch(/--nf-splash-hold:\s*calc\(var\(--nf-startup-door,\s*60ms\)\s*\+\s*100ms\)/);
+  });
+
+  it("has no infinite animation, and every curve is a token", () => {
+    expect(css).not.toMatch(/\binfinite\b/);
+    expect(css).not.toMatch(/cubic-bezier/);
+    for (const m of css.matchAll(/animation:\s*[\w-]+\s+\d+ms\s+([^\s;]+)/g)) expect(m[1]).toMatch(/^var\(--nf-ease-/);
+  });
+
+  it("moves the chrome with translate and opacity, and the ground with opacity only", () => {
+    const keyframes = [...css.matchAll(/@keyframes\s+([\w-]+)\s*\{([\s\S]*?\})\s*\}/g)];
+    expect(keyframes.length).toBeGreaterThan(0);
+    for (const [, name, body] of keyframes) {
+      const props = [...body!.matchAll(/([\w-]+)\s*:/g)].map((m) => m[1]);
+      for (const p of props) expect(["opacity", "translate"], `${name}: ${p}`).toContain(p);
+      if (name === "nf-open-ground") expect(props).toEqual(["opacity"]);
     }
+  });
+
+  it("starts the header and the dock visible (frame one is the product), never from nothing", () => {
+    for (const m of css.matchAll(/@keyframes\s+[\w-]+\s*\{\s*from\s*\{([^}]*)\}/g)) {
+      const opacity = /opacity:\s*([\d.]+)/.exec(m[1]!);
+      expect(Number(opacity?.[1] ?? 1)).toBeGreaterThanOrEqual(0.4);
+    }
+  });
+
+  it("staggers depth words at most 60ms apart", () => {
+    for (const m of threshold.matchAll(/var\(--nf-i,\s*0\)\s*\*\s*(\d+)ms/g)) expect(Number(m[1])).toBeLessThanOrEqual(60);
+  });
+
+  it("holds every animation at its first frame during the native wait", () => {
+    expect(css).toMatch(/:root\[data-startup-native="wait"\][\s\S]*animation-play-state:\s*paused\s*!important/);
   });
 });
