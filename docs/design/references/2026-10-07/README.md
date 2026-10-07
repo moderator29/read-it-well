@@ -129,3 +129,19 @@ under spotlights, the top three as rounded-square portraits over 1, 2, 3 plinths
 month subtitle, a City / World toggle pill on the podium, then ranks 4+ as rows with a
 hexagon rank badge, avatar, name, tier word and a figure with a small unit, and a
 floating "You, 453" pill showing your own rank).
+
+## The wallet set (described; sent in chat)
+
+His words: "I would love my wallet to copy many things from it, especially the bottom nav
+for transactions... wallet is a feature in our app, not main, so the bottom nav should
+have two icons: withdrawal and transfer... look at that transfer success... that
+feedback container... I'm loving that green".
+
+| What it is | Take | Governs |
+| --- | --- | --- |
+| A sales dashboard app on a warm pale field: "Welcome, <name>" with an avatar and three small glyph circles; "Total balance $360,000" with an eye toggle; exchange-rate tiles (flag, code, figure, up arrow); "Transactions" with segment glyphs; rows with an avatar, name, time, signed amount in red or green with an arrow, and a small rail word (Globe, Bank, wallet); a summary card with a **semi-circular gauge** (Sales $1,266, Expense and Profit chips under it, a "Today" range dropdown); four square glyph tiles with labels; a bar chart with one highlighted bar and a value tooltip, "6 Months" range; a floating dock with a dark centre plus | The wallet home: a greeting, the balance with a hide toggle, a gauge or chart for the period, transaction rows with signed amounts and a rail word | Wallet, payments, the agent and host dashboards |
+| A transfer success: white field with soft green rays, a scalloped green badge with a check and sparkles, a small green "Successful!" pill, "You sent $1,000.00 to <full name>", "This transaction takes less than 10mins", then **a feedback card**: a deep green gradient with glittering 3D stars sliding in, "Rate your experience" pill, "Are you enjoying your experience so far?", "Give us a rating >"; then Close (soft grey) and Done (black) side by side | The sent and withdrawn success moments and a feedback card that asks for a rating at a happy moment (a real rating flow, shown at most once per period) | Wallet success, booking success |
+
+**Ruling:** the wallet's own bottom bar carries **two actions only: Withdraw and Transfer**
+(Add money stays on the balance card), because the wallet is a feature inside Vallo,
+not a main section. The app's main dock stays as ruled.

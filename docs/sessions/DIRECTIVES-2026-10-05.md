@@ -3314,3 +3314,23 @@ sees what they receive.
 the direct rail (instant booking, card), because their price is fixed like a hotel's.
 `VALLO_PRICING.md` section 2 listed shortlets on the escrow rail; that line predates
 D73 and is superseded for fixed-price shortlets. He can overturn this.
+
+---
+
+## D76. Leaderboards, who to follow, one agents directory for both sides, and the wallet's two-action bar (7 October 2026)
+
+- **Two public leaderboards, City and Global:** (1) **referrals**, by qualified
+  referrals; (2) **top performers on the platform**, by completed deals through Vallo,
+  across agents, landlords, realtors and firms, with **hotels and restaurants** ranked in
+  their own boards by completed bookings and reservations. A 3D podium for the top three,
+  ranks 4 and on as rows, a floating "You" pill, a month or period subtitle.
+  **Decided for him:** boards rank by counts of completed deals and bookings, never by a
+  member's naira earnings shown publicly; a member or business can opt out; only
+  verified workspaces and real activity appear; nothing is invented to fill a board.
+- **Who to follow** in the feed suggests top agents, landlords, hotels and restaurants
+  near the member; a **social search** finds them by City or Global.
+- **The agents directory covers both sides:** on the Property side it lists agents,
+  landlords and firms; on the Stays side, hosts, hotels and shortlet operators. One
+  page, flipped by the side switch, the same way the rest of the shell flips.
+- **The wallet's own bottom bar has two actions, Withdraw and Transfer.** The wallet is
+  a feature, not a main section; the main dock is unchanged.
