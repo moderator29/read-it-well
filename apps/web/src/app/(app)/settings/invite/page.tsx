@@ -121,7 +121,7 @@ export default async function InviteSettingsPage({
   if (paused) {
     return (
       <div className="mx-auto max-w-2xl">
-        <PageHeader title={door.rowTitle} subtitle={door.rowSub} fallback="/settings" />
+        <PageHeader title={t.experienceShell.navInvite} subtitle={door.rowSub} fallback="/home" />
         <SettingsLede label={lede.what} what={lede.invite.what} who={lede.invite.who} />
         <div className="space-y-block">
           <RewardsPauseNotice
@@ -141,6 +141,13 @@ export default async function InviteSettingsPage({
             />
             {referralsRow}
             {rewardsDoor}
+            {/* D78: the Leaderboard opens from Referral, not from the side nav. */}
+            <RowLink
+              href="/leaderboard"
+              icon="trending-up"
+              label={t.experienceShell.navLeaderboard}
+              testId="invite-leaderboard-row"
+            />
           </SettingsGroup>
         </div>
       </div>
@@ -153,7 +160,7 @@ export default async function InviteSettingsPage({
 
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeader title={door.rowTitle} subtitle={door.rowSub} fallback="/settings" />
+      <PageHeader title={t.experienceShell.navInvite} subtitle={door.rowSub} fallback="/home" />
       <SettingsLede label={lede.what} what={lede.invite.what} who={lede.invite.who} />
 
       {code && url ? (
@@ -193,6 +200,12 @@ export default async function InviteSettingsPage({
             />
             {referralsRow}
             {rewardsDoor}
+            <RowLink
+              href="/leaderboard"
+              icon="trending-up"
+              label={t.experienceShell.navLeaderboard}
+              testId="invite-leaderboard-row"
+            />
           </SettingsGroup>
         </div>
       ) : (

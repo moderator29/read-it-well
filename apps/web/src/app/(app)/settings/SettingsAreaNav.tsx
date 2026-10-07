@@ -1,23 +1,14 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { usePathname } from "next/navigation";
-import { InnerNav, type InnerNavItem } from "@/components/ui/InnerNav";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { UiIconName } from "@/design-system/icons/UiIcon";
-import { SETTINGS_DESTINATIONS, activeDestination, type SettingsAreaCopy } from "@/lib/settings/area";
+import type { SettingsAreaCopy } from "@/lib/settings/area";
 
 /**
- * ONE GLASS INNER NAVIGATION ON EVERY SETTINGS ROUTE (R3-08).
- *
- * Mounted once by the settings layout, so all of the settings routes carry it
- * and none can forget to. Its items are the settings destinations, the current
- * one marked `aria-current`. A page with sections of its own (account,
- * privacy, notifications) registers them through `useSettingsSections`, and
- * they lead the list as anchors, so a screen never shows two pull menus.
- *
- * Its words are `experienceSettings.area`, handed down by the settings layout
- * (a server component that already holds the reader's dictionary), so the
- * menu reads the reader's language and the bundle carries no dictionary.
+ * THE SETTINGS AREA'S CONTEXT. Until D78 this also drew a pull menu listing
+ * every settings page on every settings route; that menu is gone (see the
+ * component below). What remains is the context a page's own section menu
+ * registers with, so a screen never draws two menus.
  */
 type Section = { id: string; label: string; icon?: UiIconName };
 
@@ -36,29 +27,15 @@ export function useSettingsSections(sections: readonly Section[]): boolean {
   return register !== null;
 }
 
-export function SettingsAreaNav({ copy, children }: { copy: SettingsAreaCopy; children: ReactNode }) {
-  const pathname = usePathname() ?? "/settings";
-  const [sections, setSections] = useState<readonly Section[] | null>(null);
-  const active = activeDestination(pathname);
-  const items = useMemo<InnerNavItem[]>(
-    () => [
-      ...(sections ?? []).map((s) => ({ id: `section-${s.id}`, label: `${copy.onThisPage}: ${s.label}`, href: `#${s.id}`, ...(s.icon ? { icon: s.icon } : {}) })),
-      ...SETTINGS_DESTINATIONS.map((d) => ({ id: d.id, label: copy.destinations[d.id], icon: d.icon, href: d.href })),
-    ],
-    [sections, copy],
-  );
-  return (
-    <SectionsContext.Provider value={setSections}>
-      <div className="nf-settings-nav mx-auto flex max-w-2xl justify-end px-gutter pt-inline" data-testid="settings-area-nav">
-        <InnerNav
-          label={copy.label}
-          toggleLabel={copy.toggle}
-          items={items}
-          activeId={active?.id}
-          currentLabel={active ? copy.destinations[active.id] : copy.label}
-        />
-      </div>
-      {children}
-    </SectionsContext.Provider>
-  );
+export function SettingsAreaNav({ children }: { copy?: SettingsAreaCopy; children: ReactNode }) {
+  /*
+   * NO PULL MENU (D78, 7 October 2026, evening). The founder: the list of
+   * every settings page that slid out on each settings route is removed;
+   * everything lives on the Settings page itself, as its own rows, and a
+   * settings page goes back to it. The provider stays so a page's own
+   * section menu (`SettingsInnerNav`) still knows it is inside the area and
+   * does not draw a second one.
+   */
+  const [, setSections] = useState<readonly Section[] | null>(null);
+  return <SectionsContext.Provider value={setSections}>{children}</SectionsContext.Provider>;
 }

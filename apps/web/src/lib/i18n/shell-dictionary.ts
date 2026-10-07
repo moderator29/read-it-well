@@ -26,7 +26,8 @@ export type ShellDictionary = Pick<Dictionary, "a11y" | "common" | "nav" | "side
   /** The navigation's own new lines (the Payments and Invite rows). */
   experienceShell: Pick<
     Dictionary["experienceShell"],
-    "navPayments" | "navInvite" | "navMoneyLabel" | "navBalance" | "navReceipts" | "navPayouts" | "navRefunds" | "navLeaderboard"
+    "navPayments" | "navInvite" | "navMoneyLabel" | "navBalance" | "navReceipts" | "navPayouts" | "navRefunds" | "navLeaderboard" | "navPassport"
+    | "navDocsLabel" | "navDocsTerms" | "navDocsPrivacy" | "navDocsSafety" | "navDocsHelp"
   >;
   /** The Rewards row's label is the Rewards page's own title, so the two cannot drift. */
   experienceRewards: Pick<Dictionary["experienceRewards"], "title">;
@@ -63,6 +64,12 @@ export function shellDictionary(t: Dictionary): ShellDictionary {
     experienceShell: {
       navPayments: t.experienceShell.navPayments,
       navInvite: t.experienceShell.navInvite,
+      navPassport: t.experienceShell.navPassport,
+      navDocsLabel: t.experienceShell.navDocsLabel,
+      navDocsTerms: t.experienceShell.navDocsTerms,
+      navDocsPrivacy: t.experienceShell.navDocsPrivacy,
+      navDocsSafety: t.experienceShell.navDocsSafety,
+      navDocsHelp: t.experienceShell.navDocsHelp,
       navMoneyLabel: t.experienceShell.navMoneyLabel,
       navBalance: t.experienceShell.navBalance,
       navReceipts: t.experienceShell.navReceipts,

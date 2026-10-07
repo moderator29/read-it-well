@@ -202,6 +202,8 @@ export function buildNav({
         },
         { href: "/saved", label: t.nav.saved, icon: "heart" },
         { href: "/agreements", label: t.nav.agreements, icon: "document" },
+        /* D78: the Space Passport is a feature, with its own row. */
+        { href: "/settings/passport", label: t.experienceShell.navPassport, icon: "id-card" },
         /* No crypto row: V-83 took the deferred crypto market out of the
            shipped tree (parked on `claude/parked-crypto-deferred`). */
         /*
@@ -255,27 +257,24 @@ export function buildNav({
      * invite link and what Vallo owes for it are money, and the earlier note
      * that placed them on the account (same day) is superseded by this one.
      */
+    /*
+     * MONEY, THREE ROWS (D78, 7 October 2026, evening).
+     *
+     * The founder: "the payment, receipts, payout etc should be removed from
+     * there and put in the wallet ... that gives space for the side nav;
+     * normally all of it is supposed to be inside the wallet." Payments,
+     * Receipts, Payouts and Refunds are rows on the Wallet screen now. The
+     * invite row is "Referral", and the Leaderboard opens from the Referral
+     * page, not from here.
+     */
     sections.push({
       heading: t.experienceShell.navMoneyLabel,
       items: [
-        /* The balance the escrow partner holds for this person (Part B
-           phase 6, ADR 0003): first, because it is the one row that is an
-           account, and the account is the partner's, read live. Its page
-           says plainly when the rail is not open rather than hiding. */
         { href: "/wallet", label: t.experienceShell.navBalance, icon: "wallet" },
-        /* What this person paid and what came back: a record, never an
-           account. Read from the shell's slice like every neighbour. */
-        { href: "/payments", label: t.experienceShell.navPayments, icon: "history" },
-        { href: "/receipts", label: t.experienceShell.navReceipts, icon: "receipt" },
-        { href: "/payouts", label: t.experienceShell.navPayouts, icon: "bank" },
-        { href: "/refunds", label: t.experienceShell.navRefunds, icon: "coins" },
         /* "Rewards" is the Rewards page's own title. Whether a reward is
            running is said by the page itself, from the rewards read
            (`lib/referral/rewards-read.ts`); the row never shows a figure. */
         { href: "/rewards", label: t.experienceRewards.title, icon: "hand-coins" },
-        /* D76: the leaderboards rank counts (referrals, deals, stays), never
-           money, so the row sits beside Rewards and shows no figure. */
-        { href: "/leaderboard", label: t.experienceShell.navLeaderboard, icon: "trending-up" },
         { href: "/settings/invite", label: t.experienceShell.navInvite, icon: "users" },
       ],
     });
