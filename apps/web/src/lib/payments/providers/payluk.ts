@@ -41,12 +41,15 @@ import { verifyPaylukSignature } from "./payluk-webhook";
  */
 
 /**
- * Phases 11 and 12 (standard and milestone escrow) are written (D73 Part B,
- * lib/money/provider-arrangements.ts) and held off: flip this only after the
- * seams marked UNVERIFIED there are checked on Payluk staging. The switch
- * `rentals_protected_pay` must also be on. `escrowRailLive` reads this.
+ * Phases 11 and 12 (standard and milestone escrow) are built (D73 Part B,
+ * lib/money/provider-arrangements.ts) and tested end to end against fixtures
+ * written from Payluk's documented contract (payluk-fixtures.ts, D77). They
+ * have NOT met Payluk itself: the seams marked UNVERIFIED are checked on
+ * staging the day the sk_test_ key arrives. From D77 the escrow rail is ready
+ * on the key and `payments_payluk_on` alone; this constant stays as the code's
+ * own stop, should a staging check fail.
  */
-export const PAYLUK_ESCROW_FLOWS_BUILT = false as const;
+export const PAYLUK_ESCROW_FLOWS_BUILT = true as const;
 
 const gate = new PaylukRateGate();
 const fetchImpl: PaylukFetch = (url, init) => fetch(url, { ...init, cache: "no-store" });

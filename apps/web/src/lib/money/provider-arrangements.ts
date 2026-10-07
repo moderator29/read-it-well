@@ -14,8 +14,8 @@
  *   webhook   escrow.* -> Vallo's state, through provider_arrangement_observe
  *
  * Rules held here:
- *  - Off unless PAYLUK_ESCROW_FLOWS_BUILT and the `rentals_protected_pay`
- *    switch are both on (the database checks the switch again).
+ *  - Off unless a Payluk key is set and `payments_payluk_on` is on (D77; the
+ *    database checks the switch again).
  *  - A reference is never invented and a call is never retried blindly: an
  *    unanswered create is UNKNOWN and is found again by `resolveArrangement`
  *    (read-back by reference), never created twice.
@@ -26,6 +26,7 @@
  */
 
 import { PAYLUK_ESCROW_FLOWS_BUILT } from "../payments/providers/payluk";
+import { paylukMerchantConfig } from "../payouts/payluk-merchant";
 import type { PaylukContext } from "../payments/providers/payluk-client";
 import {
   buyerOwesMinor,
@@ -43,7 +44,12 @@ import type { RailFailure } from "../payments/provider";
 import { deliveryWindowDays, valloStateFor, type ArrangementStatus } from "./arrangement-states";
 import type { Db } from "./member-wallet";
 
-export const RENTALS_PROTECTED_PAY_FLAG = "rentals_protected_pay";
+/**
+ * D77, one switch: the escrow rail is ready when the Payluk key is set and
+ * `payments_payluk_on` is on (the database's `rentals_protected_pay_on()`
+ * reads the same flag). `rentals_protected_pay` is superseded and read by nothing.
+ */
+export const PROTECTED_PAY_FLAG = "payments_payluk_on";
 
 /**
  * Payluk's 2 percent escrow fee is borne by the lister (`whoPays: seller`,
@@ -79,10 +85,16 @@ type ObserveVerdict = "changed" | "same" | "refused" | "amount_mismatch" | "id_m
 
 const ROW = "id, agreement_id, kind, reference, provider_arrangement_id, provider_payment_token, amount_minor, buyer_user_id, seller_user_id, buyer_customer_id, seller_customer_id, status";
 
-/** Both locks: the code reviewed as built, and the founder's switch. */
-export async function arrangementsLive(db: Db): Promise<boolean> {
+/**
+ * Ready on the key and the switch alone: a Payluk key in the environment
+ * (PAYLUK_TEST_SECRET_KEY on staging, PAYLUK_SECRET_KEY in production) and
+ * `payments_payluk_on`. PAYMENTS_KILL_PAYLUK=1 is the outage stop, as for every
+ * Payluk call. A failed flag read is off.
+ */
+export async function arrangementsLive(db: Db, env: Readonly<Record<string, string | undefined>> = process.env): Promise<boolean> {
   if (!PAYLUK_ESCROW_FLOWS_BUILT) return false;
-  const { data, error } = await db.from("feature_flags").select("enabled").eq("key", RENTALS_PROTECTED_PAY_FLAG).maybeSingle();
+  if (!paylukMerchantConfig(env) || env.PAYMENTS_KILL_PAYLUK === "1") return false;
+  const { data, error } = await db.from("feature_flags").select("enabled").eq("key", PROTECTED_PAY_FLAG).maybeSingle();
   return !error && (data as { enabled?: boolean } | null)?.enabled === true;
 }
 
