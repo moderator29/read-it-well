@@ -15,6 +15,9 @@ import { RENTAL, SHELF } from "../fixtures";
 import { FeaturedBand } from "@/components/app/home/FeaturedBand";
 import { ListingCard } from "@/components/app/ListingCard";
 import { forListingCard } from "@/lib/i18n/slice";
+import { ListingMapPanel } from "@/components/app/listing/ListingMapPanel";
+import { areaPoint } from "@/components/app/search/mapGeo";
+import { airportFor, straightKm } from "@/lib/maps/landmarks";
 
 /**
  * /listing/[id] on a tenancy, composed from the same components the route
@@ -31,6 +34,8 @@ export default async function ListingPreview() {
   const listing = RENTAL;
   const where = `${listing.area}, ${listing.city}, Lagos State`;
   const messageHref = `/messages/new?listing=${listing.id}`;
+  const mapPoint = areaPoint(listing.city, listing.area);
+  const airport = airportFor(listing.city);
 
   return (
     <PhotoViewerProvider title={listing.title} photos={listing.photos} hue={listing.hue} kind={listing.kind}>
@@ -123,7 +128,7 @@ export default async function ListingPreview() {
               tabs={[
                 { id: "overview", label: t.catalogue.detail.overview },
                 { id: "amenities", label: t.catalogue.detail.amenities },
-                { id: "location", label: t.catalogue.detail.location },
+                { id: "location", label: t.experienceDetail.map.tab },
                 { id: "reviews", label: t.catalogue.detail.reviews },
               ]}
             />
@@ -144,13 +149,17 @@ export default async function ListingPreview() {
               <ListingAmenityTiles amenities={listing.amenities} />
             </Section>
 
-            <Section id="location" title={t.catalogue.detail.location} divided className="scroll-mt-16">
-              <div className="nf-glass nf-glass--card nf-detail-lead">
-                <p className={`flex items-start gap-inline ${TYPE.body}`}>
-                  <UiIcon name="location" size={ICON.inline} className="mt-3xs shrink-0 text-[var(--nf-brand-secondary)]" />
-                  <span className="min-w-0">{where}</span>
-                </p>
-              </div>
+            {/* The Map tab, as the route draws it (ListingMapPanel). */}
+            <Section id="location" title={t.experienceDetail.map.title} divided className="scroll-mt-16">
+              <ListingMapPanel
+                where={where}
+                area={listing.area}
+                point={mapPoint}
+                airport={mapPoint && airport ? { name: airport.name, km: straightKm(mapPoint, airport.at) } : null}
+                hasWalkthrough={(listing.videos?.length ?? 0) > 0}
+                photoCount={listing.photos.length}
+                copy={t.experienceDetail.map}
+              />
             </Section>
 
             <Section title={t.catalogue.detail.agent} divided>
