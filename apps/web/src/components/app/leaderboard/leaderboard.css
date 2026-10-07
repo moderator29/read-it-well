@@ -1,0 +1,1004 @@
+/*
+ * THE LEADERBOARD (D76), after the founder's reference: a deep field with
+ * spotlight beams from the top, a 3D podium (2, 1, 3) with large numerals on
+ * the plinth faces, the top three as rounded-square portraits above them, a
+ * City / Global pill on the podium, then ranks 4 and on in a dark sheet as
+ * rows (hexagon rank, avatar, name, tier word, a big figure with a small
+ * unit), and a floating "You, #rank" pill. Plasma level (D74): a quiet
+ * near-black field, the content lit; gold only for first, platinum for second
+ * and third; the one white capsule with its floor reflection on the payoff.
+ *
+ * Motion lives in LeaderboardScreen (framer-motion, transform and opacity
+ * only). The CSS here draws the settled frame, which is exactly what reduced
+ * motion, Calm, Off and save-data see.
+ */
+
+.nf-lb {
+  --lb-gutter: var(--nf-space-md);
+  --lb-plinth-1: 8.5rem;
+  --lb-plinth-2: 6.5rem;
+  --lb-plinth-3: 5.25rem;
+  --lb-portrait: 4.5rem;
+  --lb-portrait-1: 5.5rem;
+  position: relative;
+  max-width: 40rem;
+  margin-inline: auto;
+  padding-bottom: calc(var(--nf-space-4xl) + env(safe-area-inset-bottom));
+  color: var(--nf-content-primary);
+}
+
+/* ------------------------------------------------------------- the header */
+
+.nf-lb__top {
+  display: grid;
+  grid-template-columns: 2.75rem 1fr 2.75rem;
+  align-items: center;
+  gap: var(--nf-space-sm);
+  padding: var(--nf-space-sm) var(--lb-gutter) 0;
+  position: relative;
+  z-index: 2;
+}
+
+.nf-lb__title {
+  text-align: center;
+  min-width: 0;
+}
+
+.nf-lb__title h1 {
+  font-family: var(--nf-font-display);
+  font-size: var(--nf-text-h2);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  margin: 0;
+}
+
+.nf-lb__title p {
+  margin: 0.125rem 0 0;
+  font-size: var(--nf-text-caption);
+  color: var(--nf-content-secondary);
+}
+
+.nf-lb__circle {
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+  border-radius: var(--nf-radius-circle);
+  display: inline-grid;
+  place-items: center;
+  background: var(--nf-smoked-glass-fill);
+  border: 1px solid var(--nf-smoked-glass-edge);
+  color: var(--nf-content-primary);
+  backdrop-filter: blur(var(--nf-smoked-glass-blur));
+  -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
+}
+
+.nf-lb__switches {
+  display: grid;
+  gap: var(--nf-space-sm);
+  padding: var(--nf-space-md) var(--lb-gutter) 0;
+  position: relative;
+  z-index: 2;
+}
+
+/* -------------------------------------------------------------- the stage */
+
+.nf-lb__stage {
+  position: relative;
+  margin-top: calc(-1 * var(--nf-space-4xl));
+  padding: calc(var(--nf-space-4xl) + var(--nf-space-xl)) var(--lb-gutter) 0;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* The field, on its own layer so a wide screen can fade its sides. */
+.nf-lb__stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background:
+    radial-gradient(120% 70% at 50% 100%, color-mix(in srgb, var(--nf-brand-primary) 22%, transparent), transparent 70%),
+    linear-gradient(180deg, var(--nf-surface-canvas) 0%, color-mix(in srgb, var(--nf-brand-primary) 10%, var(--nf-surface-canvas)) 100%);
+}
+
+/* On a wide screen the stage fades at its sides instead of ending in a box. */
+@media (min-width: 48rem) {
+  .nf-lb__stage::before {
+    mask-image: linear-gradient(90deg, transparent, var(--nf-surface-canvas) 14%, var(--nf-surface-canvas) 86%, transparent);
+    -webkit-mask-image: linear-gradient(90deg, transparent, var(--nf-surface-canvas) 14%, var(--nf-surface-canvas) 86%, transparent);
+  }
+}
+
+/* Three beams from the top. They sweep once into place and hold still. */
+.nf-lb__beams {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.nf-lb__beam-wrap {
+  position: absolute;
+  top: -10%;
+  left: 50%;
+  inline-size: 46%;
+  block-size: 120%;
+  translate: -50% 0;
+  transform-origin: 50% 0;
+}
+.nf-lb__beam-wrap[data-beam="l"] {
+  rotate: 24deg;
+  --lb-sweep: 16deg;
+}
+.nf-lb__beam-wrap[data-beam="c"] {
+  --lb-sweep: 0deg;
+}
+.nf-lb__beam-wrap[data-beam="r"] {
+  rotate: -24deg;
+  --lb-sweep: -16deg;
+}
+
+.nf-lb__beam {
+  inline-size: 100%;
+  block-size: 100%;
+  transform-origin: 50% 0;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--nf-content-primary) 20%, transparent) 0%,
+    color-mix(in srgb, var(--nf-content-primary) 6%, transparent) 45%,
+    transparent 80%
+  );
+  clip-path: polygon(44% 0, 56% 0, 100% 100%, 0 100%);
+  filter: blur(14px);
+  opacity: 0.85;
+}
+
+/* --------------------------------------------------------------- podium */
+
+.nf-lb__podium {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr 1fr;
+  align-items: end;
+  gap: var(--nf-space-xs);
+  position: relative;
+}
+
+.nf-lb__place {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+}
+
+.nf-lb__who {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding-bottom: var(--nf-space-sm);
+  min-width: 0;
+  max-width: 100%;
+  text-align: center;
+  color: inherit;
+  text-decoration: none;
+}
+
+.nf-lb__portrait {
+  position: relative;
+  inline-size: var(--lb-portrait);
+  block-size: var(--lb-portrait);
+  border-radius: var(--nf-radius-card);
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: var(--nf-night-glass-raised-fill);
+  border: 1px solid var(--nf-night-glass-raised-edge);
+  box-shadow: var(--nf-night-glass-raised-shadow);
+  font-family: var(--nf-font-display);
+  font-size: var(--nf-text-h3);
+  font-weight: 600;
+  color: var(--nf-content-primary);
+}
+
+.nf-lb__portrait img {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}
+
+.nf-lb__place[data-place="1"] .nf-lb__portrait {
+  inline-size: var(--lb-portrait-1);
+  block-size: var(--lb-portrait-1);
+  border-color: var(--nf-gold-edge);
+  box-shadow:
+    0 0 0 1px var(--nf-gold-edge),
+    0 18px 50px -12px color-mix(in srgb, var(--nf-gold-mid) 55%, transparent);
+}
+
+/* The glow behind first. */
+.nf-lb__glow {
+  position: absolute;
+  inset: -40%;
+  z-index: -1;
+  border-radius: var(--nf-radius-circle);
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--nf-gold-mid) 45%, transparent), transparent);
+  pointer-events: none;
+}
+
+.nf-lb__crown {
+  position: absolute;
+  top: -0.875rem;
+  left: 50%;
+  translate: -50% 0;
+  color: var(--nf-gold-mid);
+}
+
+.nf-lb__name {
+  max-width: 100%;
+  font-size: var(--nf-text-body-sm);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nf-lb__figure {
+  font-family: var(--nf-font-sans);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--nf-text-body);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.nf-lb__unit {
+  margin-inline-start: 0.25rem;
+  font-size: var(--nf-text-caption);
+  font-weight: 400;
+  color: var(--nf-content-secondary);
+}
+
+/* The plinth: a front face with the numeral and a lit top face. */
+.nf-lb__plinth {
+  position: relative;
+  inline-size: 100%;
+  block-size: var(--lb-plinth-2);
+  border-radius: var(--nf-radius-control) var(--nf-radius-control) 0 0;
+  display: grid;
+  place-items: start center;
+  padding-top: var(--nf-space-sm);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--nf-content-primary) 14%, var(--nf-surface-raised)) 0%,
+    var(--nf-surface-raised) 55%,
+    var(--nf-surface-canvas) 100%
+  );
+  border: 1px solid var(--nf-border-subtle);
+  border-bottom: 0;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--nf-content-primary) 22%, transparent);
+}
+
+.nf-lb__plinth::before {
+  content: "";
+  position: absolute;
+  left: 4%;
+  right: 4%;
+  top: -0.6rem;
+  block-size: 0.6rem;
+  background: color-mix(in srgb, var(--nf-content-primary) 18%, var(--nf-surface-raised));
+  clip-path: polygon(6% 0, 94% 0, 100% 100%, 0 100%);
+}
+
+.nf-lb__place[data-place="1"] .nf-lb__plinth {
+  block-size: var(--lb-plinth-1);
+}
+.nf-lb__place[data-place="3"] .nf-lb__plinth {
+  block-size: var(--lb-plinth-3);
+}
+
+.nf-lb__numeral {
+  font-family: var(--nf-font-display);
+  font-size: 3.25rem;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  background: var(--nf-platinum-fill);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.nf-lb__place[data-place="1"] .nf-lb__numeral {
+  font-size: 4rem;
+  background: var(--nf-gold-fill);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+/* An empty place: the plinth stands, ghosted, waiting. */
+.nf-lb__place[data-empty] .nf-lb__portrait {
+  background: transparent;
+  border-style: dashed;
+  border-color: var(--nf-border-default);
+  box-shadow: none;
+  color: var(--nf-content-subtle);
+}
+.nf-lb__place[data-empty] .nf-lb__numeral {
+  opacity: 0.45;
+}
+
+/* Confetti, first only, once. */
+.nf-lb__confetti {
+  position: absolute;
+  inset: 0 0 auto 0;
+  block-size: 100%;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.nf-lb__bit {
+  position: absolute;
+  top: 0;
+  inline-size: 0.375rem;
+  block-size: 0.625rem;
+  border-radius: 1px;
+  background: var(--nf-gold-mid);
+}
+.nf-lb__bit[data-tone="1"] {
+  background: var(--nf-platinum-hi);
+}
+.nf-lb__bit[data-tone="2"] {
+  background: var(--nf-brand-accent);
+}
+
+/* ------------------------------------------------------- the scope toggle */
+
+.nf-lb__scope {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  justify-content: center;
+  margin-top: calc(-1 * var(--nf-space-xl));
+  padding-bottom: var(--nf-space-md);
+}
+
+.nf-lb__toggle {
+  display: inline-grid;
+  grid-template-columns: 1fr 1fr;
+  position: relative;
+  padding: 0.25rem;
+  border-radius: var(--nf-radius-island);
+  background: var(--nf-smoked-glass-fill);
+  border: 1px solid var(--nf-smoked-glass-edge);
+  backdrop-filter: blur(var(--nf-smoked-glass-blur));
+  -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
+  box-shadow: 0 12px 30px -12px var(--nf-scrim-drawer);
+}
+
+.nf-lb__toggle button {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  min-block-size: 2.75rem;
+  min-inline-size: 6.25rem;
+  padding-inline: var(--nf-space-md);
+  border-radius: var(--nf-radius-island);
+  font-size: var(--nf-text-body-sm);
+  font-weight: 600;
+  color: var(--nf-content-secondary);
+}
+
+.nf-lb__toggle button[aria-checked="true"] {
+  color: var(--nf-platinum-ink);
+}
+
+/* The thumb slides between the halves on transform; the glyph turns over. */
+.nf-lb__thumb {
+  position: absolute;
+  top: 0.25rem;
+  bottom: 0.25rem;
+  left: 0.25rem;
+  inline-size: calc(50% - 0.25rem);
+  z-index: 0;
+  border-radius: var(--nf-radius-island);
+  background: var(--nf-platinum-fill);
+  box-shadow: var(--nf-platinum-shadow);
+  transition: transform var(--nf-duration-slow) var(--nf-ease-spring);
+}
+
+.nf-lb__toggle[data-scope="global"] .nf-lb__thumb {
+  transform: translateX(100%);
+}
+
+.nf-lb__glyph {
+  display: inline-grid;
+  place-items: center;
+}
+
+/* -------------------------------------------------------------- the sheet */
+
+.nf-lb__sheet {
+  position: relative;
+  z-index: 2;
+  margin-top: calc(-1 * var(--nf-space-md));
+  padding: var(--nf-space-lg) var(--lb-gutter) var(--nf-space-xl);
+  border-radius: var(--nf-radius-island) var(--nf-radius-island) 0 0;
+  background: var(--nf-surface-primary);
+  border-top: 1px solid var(--nf-border-subtle);
+}
+
+.nf-lb__sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--nf-space-sm);
+  flex-wrap: wrap;
+  margin-bottom: var(--nf-space-md);
+}
+
+.nf-lb__measure {
+  margin: 0;
+  font-size: var(--nf-text-caption);
+  color: var(--nf-content-secondary);
+  max-width: 22rem;
+}
+
+.nf-lb__rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--nf-space-xs);
+}
+
+.nf-lb__row {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--nf-space-sm);
+  min-block-size: 4rem;
+  padding: var(--nf-space-sm);
+  border-radius: var(--nf-radius-card);
+  background: var(--nf-surface-raised);
+  border: 1px solid var(--nf-border-subtle);
+  color: inherit;
+  text-decoration: none;
+  scroll-margin-block: 6rem;
+}
+
+.nf-lb__row[data-me] {
+  border-color: var(--nf-brand-edge);
+  background: color-mix(in srgb, var(--nf-brand-primary) 14%, var(--nf-surface-raised));
+}
+
+/* The hexagon rank badge. */
+.nf-lb__hex {
+  position: relative;
+  inline-size: 2.25rem;
+  block-size: 2.5rem;
+  display: grid;
+  place-items: center;
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+  background: var(--nf-border-default);
+  font-family: var(--nf-font-sans);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--nf-text-caption);
+  font-weight: 700;
+}
+
+.nf-lb__hex::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  clip-path: inherit;
+  background: var(--nf-surface-secondary);
+  z-index: 0;
+}
+
+.nf-lb__hex span {
+  position: relative;
+}
+
+.nf-lb__avatar {
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  border-radius: var(--nf-radius-circle);
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: var(--nf-surface-secondary);
+  font-size: var(--nf-text-caption);
+  font-weight: 600;
+}
+
+.nf-lb__avatar img {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}
+
+.nf-lb__row-main {
+  min-width: 0;
+}
+
+.nf-lb__row-name {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-weight: 600;
+  font-size: var(--nf-text-body);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nf-lb__row-sub {
+  font-size: var(--nf-text-caption);
+  color: var(--nf-content-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nf-lb__tier {
+  font-weight: 600;
+  color: var(--nf-content-primary);
+}
+.nf-lb__tier[data-tier="Gold"] {
+  color: var(--nf-gold-mid);
+}
+.nf-lb__tier[data-tier="Platinum"] {
+  color: var(--nf-platinum-mid);
+}
+
+.nf-lb__row-end {
+  display: grid;
+  justify-items: end;
+  gap: 0.125rem;
+}
+
+.nf-lb__row-end .nf-lb__figure {
+  font-size: var(--nf-text-h4);
+}
+
+.nf-lb__move {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.125rem;
+  font-size: var(--nf-text-caption);
+  font-variant-numeric: tabular-nums;
+  color: var(--nf-content-secondary);
+}
+.nf-lb__move[data-dir="up"] {
+  color: var(--nf-content-primary);
+}
+
+/* -------------------------------------------------- empty and not-live */
+
+.nf-lb__empty {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  gap: var(--nf-space-sm);
+  padding: var(--nf-space-lg) var(--nf-space-sm) var(--nf-space-md);
+}
+
+.nf-lb__empty h2 {
+  margin: 0;
+  font-family: var(--nf-font-display);
+  font-size: var(--nf-text-h3);
+  font-weight: 600;
+}
+
+.nf-lb__empty p {
+  margin: 0;
+  max-width: 24rem;
+  color: var(--nf-content-secondary);
+  font-size: var(--nf-text-body-sm);
+}
+
+.nf-lb__object {
+  inline-size: 5.5rem;
+  block-size: 5.5rem;
+  object-fit: contain;
+  filter: drop-shadow(0 18px 30px var(--nf-scrim-drawer));
+}
+
+/* The one white capsule with its floor reflection (Plasma). */
+.nf-lb__capsule.nf-btn.nf-btn,
+.nf-lb .nf-lb__capsule.nf-btn,
+.nf-lb-layer .nf-lb__capsule.nf-btn {
+  border-radius: var(--nf-radius-island);
+  background: var(--nf-content-primary);
+  color: var(--nf-platinum-ink);
+  border-color: transparent;
+  box-shadow: var(--nf-capsule-reflection);
+}
+
+.nf-lb__foot {
+  display: grid;
+  gap: var(--nf-space-md);
+  margin-top: var(--nf-space-xl);
+}
+
+.nf-lb__privacy {
+  margin: 0;
+  font-size: var(--nf-text-caption);
+  color: var(--nf-content-muted);
+}
+
+/* ----------------------------------------------------------- the You pill */
+
+.nf-lb__you {
+  position: fixed;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom) + 5.75rem);
+  z-index: 30;
+  translate: -50% 0;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nf-space-xs);
+  min-block-size: 2.75rem;
+  padding: 0.25rem 0.375rem 0.25rem var(--nf-space-md);
+  border-radius: var(--nf-radius-island);
+  background: var(--nf-smoked-glass-fill);
+  border: 1px solid var(--nf-smoked-glass-edge);
+  backdrop-filter: blur(var(--nf-smoked-glass-blur));
+  -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
+  box-shadow: 0 16px 40px -14px var(--nf-scrim-drawer);
+  font-weight: 600;
+  font-size: var(--nf-text-body-sm);
+  color: var(--nf-content-primary);
+  white-space: nowrap;
+}
+
+@media (min-width: 64rem) {
+  .nf-lb__you {
+    bottom: calc(env(safe-area-inset-bottom) + var(--nf-space-xl));
+  }
+}
+
+.nf-lb__you-arrow {
+  inline-size: 2.25rem;
+  block-size: 2.25rem;
+  border-radius: var(--nf-radius-circle);
+  display: grid;
+  place-items: center;
+  background: var(--nf-content-primary);
+  color: var(--nf-platinum-ink);
+}
+
+/* ------------------------------------------------- explainer and share */
+
+.nf-lb-device {
+  position: relative;
+  margin: var(--nf-space-md) auto var(--nf-space-lg);
+  inline-size: min(15rem, 70%);
+  block-size: 11rem;
+  border-radius: var(--nf-radius-island) var(--nf-radius-island) 0 0;
+  border: 1px solid var(--nf-border-default);
+  border-bottom: 0;
+  background: linear-gradient(180deg, var(--nf-surface-raised), transparent);
+}
+
+/* The real fragment inside the device: the podium in miniature. */
+.nf-lb-device__podium {
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  top: var(--nf-space-lg);
+  display: grid;
+  grid-template-columns: 1fr 1.15fr 1fr;
+  align-items: end;
+  gap: 0.25rem;
+}
+
+.nf-lb-device__podium span {
+  display: grid;
+  place-items: start center;
+  padding-top: 0.25rem;
+  block-size: 2.25rem;
+  border-radius: var(--nf-radius-control-sm) var(--nf-radius-control-sm) 0 0;
+  background: linear-gradient(180deg, var(--nf-surface-secondary), transparent);
+  border: 1px solid var(--nf-border-subtle);
+  border-bottom: 0;
+  font-family: var(--nf-font-display);
+  font-weight: 700;
+  font-size: var(--nf-text-body);
+  color: var(--nf-platinum-mid);
+}
+
+.nf-lb-device__podium span[data-place="1"] {
+  block-size: 3.25rem;
+  color: var(--nf-gold-mid);
+}
+
+.nf-lb-device__podium span[data-place="3"] {
+  block-size: 1.75rem;
+}
+
+.nf-lb-device__card {
+  position: absolute;
+  left: -14%;
+  right: -14%;
+  bottom: var(--nf-space-md);
+  padding: var(--nf-space-md);
+  border-radius: var(--nf-radius-card);
+  background: var(--nf-smoked-glass-fill);
+  border: 1px solid var(--nf-smoked-glass-edge);
+  backdrop-filter: blur(var(--nf-smoked-glass-blur));
+  -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
+  box-shadow: 0 24px 48px -20px var(--nf-scrim-drawer);
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: var(--nf-space-sm);
+  text-align: center;
+}
+
+.nf-lb-device__rule {
+  inline-size: 1px;
+  block-size: 2.5rem;
+  background: var(--nf-border-default);
+}
+
+.nf-lb-device__label {
+  font-size: var(--nf-text-caption);
+  color: var(--nf-content-secondary);
+}
+
+.nf-lb-device__value {
+  font-family: var(--nf-font-sans);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--nf-text-h3);
+  font-weight: 600;
+}
+
+.nf-lb-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--nf-space-md);
+}
+
+.nf-lb-steps li {
+  display: grid;
+  grid-template-columns: 2rem 1fr;
+  gap: var(--nf-space-sm);
+  align-items: start;
+}
+
+.nf-lb-steps__n {
+  inline-size: 2rem;
+  block-size: 2rem;
+  border-radius: var(--nf-radius-circle);
+  display: grid;
+  place-items: center;
+  background: var(--nf-surface-secondary);
+  font-size: var(--nf-text-caption);
+  font-weight: 700;
+}
+
+.nf-lb-steps h3 {
+  margin: 0;
+  font-size: var(--nf-text-body);
+  font-weight: 600;
+}
+
+.nf-lb-steps p {
+  margin: 0.125rem 0 0;
+  font-size: var(--nf-text-body-sm);
+  color: var(--nf-content-secondary);
+}
+
+.nf-lb-ladder {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nf-space-xs);
+  margin-top: var(--nf-space-lg);
+}
+
+.nf-lb-ladder span {
+  padding: 0.25rem 0.625rem;
+  border-radius: var(--nf-radius-island);
+  border: 1px solid var(--nf-border-subtle);
+  font-size: var(--nf-text-caption);
+  color: var(--nf-content-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.nf-lb-progress {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin: var(--nf-space-sm) auto 0;
+  padding: 0.375rem 0.875rem;
+  border-radius: var(--nf-radius-island);
+  background: var(--nf-surface-secondary);
+  font-size: var(--nf-text-body-sm);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.nf-lb-share {
+  position: relative;
+  overflow: hidden;
+  padding: var(--nf-space-lg);
+  border-radius: var(--nf-radius-card);
+  background: var(--nf-platinum-fill);
+  box-shadow: var(--nf-platinum-shadow);
+  color: var(--nf-platinum-ink);
+}
+
+.nf-lb-share::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--nf-platinum-sheen);
+  pointer-events: none;
+}
+
+.nf-lb-share__label {
+  font-size: var(--nf-text-caption);
+  color: var(--nf-platinum-ink-soft);
+}
+
+.nf-lb-share__rank {
+  font-family: var(--nf-font-display);
+  font-size: var(--nf-text-figure-xl);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.nf-lb-share__rank small {
+  font-size: 0.45em;
+  color: var(--nf-platinum-ink-soft);
+}
+
+.nf-lb-share__line {
+  margin-top: var(--nf-space-sm);
+  font-weight: 600;
+}
+
+/* ------------------------------------------------------- the earned moment */
+
+.nf-lb-layer {
+  outline: none;
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: var(--nf-space-lg) var(--nf-space-md) calc(var(--nf-space-lg) + env(safe-area-inset-bottom));
+  background: var(--nf-surface-canvas);
+  overflow: hidden;
+}
+
+.nf-lb-earned {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: var(--nf-space-sm);
+  text-align: center;
+  max-width: 22rem;
+  inline-size: 100%;
+}
+
+.nf-lb-rays {
+  position: absolute;
+  top: 42%;
+  left: 50%;
+  z-index: -1;
+  inline-size: 34rem;
+  block-size: 34rem;
+  translate: -50% -50%;
+  border-radius: var(--nf-radius-circle);
+  background: repeating-conic-gradient(
+    from 0deg,
+    color-mix(in srgb, var(--nf-gold-mid) 16%, transparent) 0deg 6deg,
+    transparent 6deg 15deg
+  );
+  mask-image: radial-gradient(closest-side, var(--nf-surface-canvas) 8%, transparent 78%);
+  -webkit-mask-image: radial-gradient(closest-side, var(--nf-surface-canvas) 8%, transparent 78%);
+  filter: blur(1.5px);
+  pointer-events: none;
+}
+
+.nf-lb-medal::before {
+  content: "";
+  position: absolute;
+  inset: -30%;
+  z-index: -1;
+  border-radius: var(--nf-radius-circle);
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--nf-gold-mid) 34%, transparent), transparent);
+}
+
+.nf-lb-medal {
+  position: relative;
+  isolation: isolate;
+  inline-size: 8.5rem;
+  block-size: 10rem;
+  margin-bottom: var(--nf-space-md);
+}
+
+.nf-lb-medal svg {
+  inline-size: 100%;
+  block-size: 100%;
+  overflow: visible;
+}
+
+.nf-lb-medal__face {
+  fill: url(#nf-lb-gold);
+  stroke: var(--nf-gold-hi);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.nf-lb-medal__inner {
+  fill: var(--nf-gold-low);
+  opacity: 0.35;
+}
+
+.nf-lb-medal__stop-hi {
+  stop-color: var(--nf-gold-hi);
+}
+.nf-lb-medal__stop-mid {
+  stop-color: var(--nf-gold-mid);
+}
+.nf-lb-medal__stop-low {
+  stop-color: var(--nf-gold-low);
+}
+
+.nf-lb-earned__back {
+  min-block-size: 2.75rem;
+  color: var(--nf-content-secondary);
+  font-weight: 600;
+  font-size: var(--nf-text-body-sm);
+}
+
+.nf-lb-medal__ribbon-a {
+  fill: var(--nf-brand-primary);
+}
+
+.nf-lb-medal__ribbon-b {
+  fill: var(--nf-platinum-mid);
+}
+
+.nf-lb-medal__numeral {
+  fill: var(--nf-gold-ink);
+  font-family: var(--nf-font-display);
+  font-weight: 700;
+  font-size: 40px;
+}
+
+.nf-lb-spark {
+  position: absolute;
+  color: var(--nf-gold-hi);
+}
+
+.nf-lb-earned h2 {
+  margin: 0;
+  font-family: var(--nf-font-display);
+  font-size: var(--nf-text-h1);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.nf-lb-earned p {
+  margin: 0;
+  color: var(--nf-content-secondary);
+  font-size: var(--nf-text-body);
+}
+
+.nf-lb-earned__actions {
+  display: grid;
+  gap: var(--nf-space-sm);
+  inline-size: 100%;
+  margin-top: var(--nf-space-xl);
+}

@@ -273,6 +273,9 @@ export function buildNav({
            running is said by the page itself, from the rewards read
            (`lib/referral/rewards-read.ts`); the row never shows a figure. */
         { href: "/rewards", label: t.experienceRewards.title, icon: "hand-coins" },
+        /* D76: the leaderboards rank counts (referrals, deals, stays), never
+           money, so the row sits beside Rewards and shows no figure. */
+        { href: "/leaderboard", label: t.experienceShell.navLeaderboard, icon: "trending-up" },
         { href: "/settings/invite", label: t.experienceShell.navInvite, icon: "users" },
       ],
     });

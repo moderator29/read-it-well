@@ -269,6 +269,10 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/rewards/referrals": "/rewards",
   "/rewards/history": "/rewards",
   "/rewards/withdraw": "/rewards",
+  /* D76: the leaderboards sit beside Rewards in the Money group; the one
+     directory flips with the side and returns home. */
+  "/leaderboard": "/rewards",
+  "/directory": "/home",
   "/rent/pay/[inspectionId]": "/bookings",
   "/rent/share/[id]": "/agreements",
   "/tenancy/[id]": "/bookings",
