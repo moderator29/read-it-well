@@ -10,6 +10,10 @@ const PAGES: [string, string][] = [
   ["pro?s=signed-out", "Pro: signed out"],
   ["pro?s=unknown", "Pro: the plan could not be read"],
   ["pro?s=held", "Pro: a plan held (no member has one yet)"],
+  ["notifications", "Notifications: Needs you as a stack in depth"],
+  ["notifications?empty=1", "Notifications: all caught up"],
+  ["settings-notifications", "Notification settings: the matrix and quiet hours"],
+  ["tracker", "The one tracker: a rental in review, a stay confirmed"],
 ];
 
 export default function PreviewP6() {

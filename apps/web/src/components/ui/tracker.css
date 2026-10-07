@@ -1,0 +1,240 @@
+/*
+  THE ONE TRACKER (`Tracker.tsx`; the founder's status-tracking-timeline.jpg,
+  7 October 2026), in Vallo dark. The status card is framed in its tone (a
+  soft tint and a lit edge, where the reference has its yellow frame) with a
+  raised inner card; the timeline is one raised card with dates on the left,
+  round glyph nodes on a spine and the step words on the right. Clean space:
+  one figure-sized title, two cells, then the moments.
+*/
+@layer components {
+  .nf-tracker {
+    --nf-tracker-tone: var(--nf-brand-primary);
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-md);
+    min-width: 0;
+  }
+  .nf-tracker[data-tone="success"] {
+    --nf-tracker-tone: var(--nf-state-success);
+  }
+  .nf-tracker[data-tone="warning"] {
+    --nf-tracker-tone: var(--nf-state-warning);
+  }
+  .nf-tracker[data-tone="danger"] {
+    --nf-tracker-tone: var(--nf-state-error);
+  }
+  .nf-tracker[data-tone="info"] {
+    --nf-tracker-tone: var(--nf-state-info);
+  }
+  .nf-tracker[data-tone="neutral"] {
+    --nf-tracker-tone: var(--nf-content-muted);
+  }
+
+  /* The thing being tracked, named once above the card ("Lekki flat · Rental"). */
+  .nf-tracker-place {
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+  }
+
+  /* --------------------------------------------------------- status card */
+  .nf-tracker__status {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-sm);
+    border-radius: var(--nf-radius-card);
+    border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-tracker-tone) 45%, transparent);
+    background: color-mix(in oklab, var(--nf-tracker-tone) 14%, var(--nf-surface-raised));
+  }
+  .nf-tracker__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    padding: var(--nf-space-2xs) var(--nf-space-sm);
+    border-radius: var(--nf-radius-badge);
+    background: var(--nf-surface-elevated);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 500;
+    color: var(--nf-content-primary);
+  }
+  .nf-tracker__chip .nf-ui-icon {
+    color: var(--nf-tracker-tone);
+  }
+  .nf-tracker__card {
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-2xs);
+    padding: var(--nf-space-md);
+    border-radius: var(--nf-radius-card-sm);
+    background: var(--nf-surface-elevated);
+  }
+  .nf-tracker__title {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h2);
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: var(--nf-tracking-tight);
+    color: var(--nf-content-primary);
+  }
+  .nf-tracker__since {
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+  }
+  .nf-tracker__cells {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+    margin: var(--nf-space-sm) 0 0;
+    border-radius: var(--nf-radius-control);
+    border: var(--nf-border-width) solid var(--nf-divider);
+  }
+  .nf-tracker__cell {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-3xs);
+    padding: var(--nf-space-sm);
+    min-width: 0;
+  }
+  .nf-tracker__cell + .nf-tracker__cell {
+    border-inline-start: var(--nf-border-width) solid var(--nf-divider);
+  }
+  .nf-tracker__cell dt {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-tracker__cell dd {
+    margin: 0;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+
+  /* ------------------------------------------------------------ timeline */
+  .nf-tracker__timeline {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-md);
+    padding: var(--nf-space-lg) var(--nf-space-md);
+    border-radius: var(--nf-radius-card);
+    border: var(--nf-border-width) solid var(--nf-tier-card-edge);
+    background: var(--nf-surface-primary);
+    box-shadow: var(--nf-card-shadow);
+  }
+  .nf-tracker__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--nf-space-sm);
+  }
+  .nf-tracker__heading {
+    font-size: var(--nf-text-h4);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-tracker__aside {
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-muted);
+  }
+  .nf-tracker__list {
+    display: flex;
+    flex-direction: column;
+  }
+  .nf-tracker__step {
+    position: relative;
+    display: grid;
+    grid-template-columns: 3.75rem 2.25rem minmax(0, 1fr);
+    column-gap: var(--nf-space-sm);
+    align-items: start;
+    padding-bottom: var(--nf-space-lg);
+  }
+  .nf-tracker__step:last-child {
+    padding-bottom: 0;
+  }
+  /* The spine: from under this node to the next one. */
+  .nf-tracker__step:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    top: 2.25rem;
+    bottom: 0;
+    left: calc(3.75rem + var(--nf-space-sm) + 1.125rem - 1px);
+    width: 2px;
+    border-radius: var(--nf-radius-xs);
+    background: var(--nf-border-strong);
+  }
+  .nf-tracker__date {
+    padding-top: var(--nf-space-xs);
+    font-family: var(--nf-font-numeric, inherit);
+    font-size: var(--nf-text-caption);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.35;
+    color: var(--nf-content-muted);
+    overflow-wrap: anywhere;
+  }
+  .nf-tracker__node {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--nf-radius-circle);
+    background: color-mix(in oklab, var(--nf-state-success) 22%, var(--nf-surface-elevated));
+    color: var(--nf-state-success);
+  }
+  .nf-tracker__step[data-state="current"] .nf-tracker__node {
+    background: var(--nf-tracker-tone);
+    color: var(--nf-surface-canvas);
+  }
+  .nf-tracker__step[data-state="failed"] .nf-tracker__node {
+    background: color-mix(in oklab, var(--nf-state-error) 24%, var(--nf-surface-elevated));
+    color: var(--nf-state-error);
+  }
+  .nf-tracker__text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-3xs);
+    padding-top: var(--nf-space-2xs);
+    min-width: 0;
+  }
+  .nf-tracker__what {
+    font-size: var(--nf-text-row);
+    font-weight: 500;
+    color: var(--nf-content-primary);
+  }
+  .nf-tracker__note {
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-muted);
+  }
+
+  /* ------------------------------------------------------- floating foot */
+  .nf-tracker-bar {
+    position: sticky;
+    bottom: calc(var(--nf-space-md) + env(safe-area-inset-bottom, 0px));
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    margin-top: var(--nf-space-lg);
+    padding: var(--nf-space-xs);
+    border-radius: var(--nf-radius-island);
+    border: var(--nf-border-width) solid var(--nf-glass-rim-thin);
+    background: var(--nf-glass-fill-strong);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur)) saturate(var(--nf-glass-saturate));
+    backdrop-filter: blur(var(--nf-glass-blur)) saturate(var(--nf-glass-saturate));
+    box-shadow: var(--nf-glass-shadow);
+  }
+  .nf-tracker-bar__message {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-glass-fill);
+    color: var(--nf-content-primary);
+  }
+  .nf-tracker-bar__action {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+}

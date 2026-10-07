@@ -8,7 +8,10 @@ import { EmptyState, TYPE } from "@/components/app/Screen";
 import { EmptyActions } from "@/components/app/EmptyActions";
 import { TenancyCard } from "@/components/app/bookings/TenancyCard";
 import { BookingDetailCard } from "./BookingDetailCard";
-import { BookingTrack } from "@/components/app/status/BookingTrack";
+import { Tracker } from "@/components/ui/Tracker";
+import type { StatusTone } from "@/components/ui/StatusPill";
+import { deriveBookingSteps } from "@/components/app/threads/booking-steps";
+import { lagosDay, lagosWhen } from "@/components/app/threads/when";
 import { readBookingStateEvents } from "@/lib/bookings/state-events";
 import { BookingMoneyRecord } from "@/components/app/after-gate/BookingMoneyRecord";
 import { ArrivalCheck } from "@/components/app/arrival-check/ArrivalCheck";
@@ -157,20 +160,56 @@ export default async function BookingDetailPage({
   const checkout = await getCheckoutView(booking.id, locale);
   const receipt = checkout.state === "ready" ? stayReceipt(checkout.view, t, locale) : null;
 
+  /* THE ONE TRACKER (ONE-PRODUCT-DECISIONS, recommendation 1): the stay's
+     status in words, when it got there, what happens next and the guest's
+     part, then the dated moments from its own state events. The reader's
+     part is said only where the record settles it: a confirmed or completed
+     stay asks nothing of the guest; a requested one is left unsaid, because
+     whether payment is still owed is the checkout's to say, not this card's. */
+  const events = await readBookingStateEvents(booking.id);
+  const derived = deriveBookingSteps({ status: booking.status, checkIn: booking.checkIn.slice(0, 10), events, today: lagosToday() });
+  const bookingWords = t.threads.booking;
+  const steps = derived.steps.map((step) => ({
+    key: step.key,
+    label: bookingWords[step.key],
+    when: step.at === null ? null : step.key === "arrival" ? lagosDay(step.at, locale) : lagosWhen(step.at, locale),
+    state: derived.cancelled && step.state === "current" ? ("failed" as const) : step.state,
+  }));
+  const latest = events.length > 0 ? events[events.length - 1] : undefined;
+  const statusWords = t.threads.reservation.status[booking.status] ?? booking.status;
+  const next = derived.cancelled ? undefined : steps.find((step) => step.state === "upcoming");
+  const BOOKING_TONE: Record<string, StatusTone> = {
+    PENDING: "warning",
+    CONFIRMED: "brand",
+    COMPLETED: "success",
+    CANCELLED: "neutral",
+    NO_SHOW: "danger",
+  };
+
   return shell(
     <>
-      {/* Where the stay is, on the shared status track (spec section 14),
-          dated from its own state events like the thread's booking face.
-          It opens the page on the hero band (plan item 21), the stay named
-          and dated above the track; the full card follows. */}
-      <BookingTrack
-        status={booking.status}
-        checkIn={booking.checkIn}
-        events={await readBookingStateEvents(booking.id)}
-        copy={t.threads.booking}
-        locale={locale}
-        band={{ title: booking.title, sub: booking.dateRange }}
+      <p className="nf-tracker-place mt-inline">
+        {booking.title} · {booking.dateRange}
+      </p>
+      <Tracker
+        className="mt-inline"
+        label={bookingWords.label}
+        icon="bed"
+        title={statusWords}
+        tone={BOOKING_TONE[booking.status] ?? "neutral"}
+        since={latest ? `${t.threads.reservation.status[latest.to] ?? latest.to} · ${lagosWhen(latest.at, locale)}` : null}
+        cells={[
+          ...(next ? [{ label: "Next step", value: next.label }] : []),
+          ...(booking.status === "CONFIRMED" || booking.status === "COMPLETED"
+            ? [{ label: "Your part", value: "No action needed from you" }]
+            : []),
+        ]}
+        steps={steps}
+        timelineLabel={bookingWords.label}
+        glyphs={{ reserved: "calendar-check", paid: "wallet", arrival: "key", completed: "circle-check" }}
+        testId="booking-track"
       />
+      {derived.cancelled ? <p className="nf-caption mt-block text-[var(--nf-content-muted)]">{bookingWords.cancelled}</p> : null}
       <div className="mt-md">
         <BookingDetailCard booking={booking} locale={locale} />
       </div>
