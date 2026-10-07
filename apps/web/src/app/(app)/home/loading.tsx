@@ -1,4 +1,4 @@
-import { Skeleton, SkeletonCard } from "@/components/ui/Skeleton";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { LoadingShell } from "@/components/app/ScreenSkeleton";
 import { panelClass } from "@/components/ui/Panel";
 import { iconPlateClass } from "@/components/ui/IconPlate";
@@ -44,13 +44,15 @@ export default function LoadingHome() {
 
       <div className="mt-section-tight">
         <Skeleton width="13rem" height="1.5rem" radius="sm" />
-        <ul className="nf-home__cards mt-heading">
-          {Array.from({ length: 2 }, (_, i) => (
-            <li key={i}>
-              <SkeletonCard className={panelClass({ variant: "card", className: "p-0" })} />
-            </li>
-          ))}
-        </ul>
+        {/* The featured stack's shape: one tall card with the next peeking. */}
+        <div className="nf-stack">
+          <div className="nf-stack__stage" aria-hidden="true">
+            <div className="nf-stack__card" data-role="next" />
+            <div className="nf-stack__card" data-role="front">
+              <Skeleton className="h-full w-full" radius="none" />
+            </div>
+          </div>
+        </div>
       </div>
     </LoadingShell>
   );

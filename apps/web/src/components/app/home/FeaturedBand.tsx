@@ -35,6 +35,7 @@ export function FeaturedBand({
   count,
   testId,
   note,
+  body,
 }: {
   title: string;
   seeAllHref: string;
@@ -47,6 +48,11 @@ export function FeaturedBand({
   testId: string;
   /** One quiet line under the title saying why the order is what it is, only when it is (Session 3, W2). */
   note?: string;
+  /**
+   * A body other than the sideways row: home's card stack (FeaturedStack).
+   * Without it the band draws its row of `children`, as it always did.
+   */
+  body?: ReactNode;
 }) {
   return (
     <section className="mt-section-tight">
@@ -69,6 +75,8 @@ export function FeaturedBand({
       ) : null}
       {count === 0 ? (
         empty
+      ) : body ? (
+        body
       ) : (
         <ul className="nf-feature-row nf-scroll-x nf-scroll-x--gutter" data-testid={testId}>
           {children}

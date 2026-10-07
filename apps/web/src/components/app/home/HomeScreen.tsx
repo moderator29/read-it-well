@@ -1,10 +1,9 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { forListingCard } from "@/lib/i18n/slice";
 import { intlTag, type Dictionary, type Locale } from "@vallo/i18n/core";
 import type { Listing } from "@/lib/listings/types";
 import type { HomeOverview } from "@/lib/app/home-queries";
-import { ListingCard } from "@/components/app/ListingCard";
+import { FeaturedStack } from "@/components/app/home/FeaturedStack";
 import { CityRow } from "@/components/app/home/CityRow";
 import { withNext } from "@/lib/auth/next-link";
 import { CategoryRow, type HomeCategory } from "@/components/app/home/CategoryRow";
@@ -322,6 +321,35 @@ export function HomeScreen({
         count={listings.length}
         testId="featured-properties"
         note={intentApplied ? dx.featuredForYou : undefined}
+        body={
+          /* The travel-app set (7 October): the featured listings as a card
+             stack, one tall photograph at a time, not a sideways row. */
+          <FeaturedStack
+            listings={listings}
+            locale={locale}
+            testId="featured-properties"
+            copy={{
+              label: t.experienceDiscover.stack.label,
+              position: t.experienceDiscover.stack.position,
+              previous: t.experienceDiscover.stack.previous,
+              next: t.experienceDiscover.stack.next,
+              open: t.experienceDiscover.stack.open,
+              moveIn: t.catalogue.card.moveIn,
+              periodShort: t.experienceLabels.periodShort,
+              reviews: t.experienceDiscover.stack.reviews,
+              mapOf: t.experienceDiscover.stack.mapOf,
+              noPhotos: t.catalogue.card.noPhotos,
+              cardCopy: {
+                moveIn: t.catalogue.card.moveIn,
+                perYear: t.catalogue.card.perYear,
+                perMonth: t.catalogue.card.perMonth,
+                perQuarter: t.catalogue.card.perQuarter,
+                night: t.catalogue.card.night,
+                head: t.catalogue.card.head,
+              },
+            }}
+          />
+        }
         empty={
           /*
            * THE ONE PLATFORM EMPTY STATE, and it ends somewhere (Stage 5:
@@ -355,13 +383,8 @@ export function HomeScreen({
           />
         }
       >
-        {listings.map((listing, index) => (
-          <li key={listing.id} className="nf-feature-row__item">
-            {/* The catalogue's card is F3's and is never forked here, so home
-                and search show one object. */}
-            <ListingCard listing={listing} locale={locale} t={forListingCard(t)} index={index} eager={index === 0} />
-          </li>
-        ))}
+        {/* The stack above is the body; the band no longer draws a row. */}
+        {null}
       </FeaturedBand>
     </div>
   );
