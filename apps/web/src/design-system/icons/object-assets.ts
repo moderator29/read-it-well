@@ -1,16 +1,14 @@
 /**
- * THE TWO-TIER ASSET MAP (D29, 6 October 2026): which glass object a call site
- * names, and which accepted replacement it now draws.
+ * THE TWO-TIER OBJECTS (D29, 6 October 2026): the accepted matte and realistic
+ * objects, by their own names.
  *
- * WHY A MAP INSIDE THE ICON COMPONENT AND NOT A CALL-SITE MIGRATION.
- *
- * Sixty-four files import `BrandIcon` and pass it a glass name (`shield-check`,
- * `bell-badge`, `villa`). The cheapest correct migration is to leave those call
- * sites alone and change what the name resolves to, so a screen that said
- * `shield-check` yesterday draws the matte royal-blue shield today with no edit.
- * `BrandIcon` consults this table first and falls back to `public/brand/glass`
- * for every name that has no accepted replacement, which is most of the long tail
- * and is listed in the report that accompanies this change.
+ * THE GLASS ORIGINALS WIN. For a few days a glass-to-tiered map redirected
+ * some 60 glass names (`shield-check`, `bell-badge`, `villa`) onto these
+ * objects with no call-site edit. The founder asked for the original icons
+ * back, so that map is gone: every glass name draws its own
+ * `public/brand/glass` file again, and a tiered object is drawn only where a
+ * call site names it directly and the glass pack has no such name
+ * (`padlock`, `prepaid-meter`, `burst-rays`).
  *
  * THE TIER IS DECIDED BY WHAT THE OBJECT IS, NOT BY ITS SIZE.
  *
@@ -19,7 +17,7 @@
  *   tier A  real things: buildings, land, Nigerian infrastructure. Rich and
  *           realistic. `public/brand/tier-a/`
  *
- * A name is in this table only if its replacement was ACCEPTED on the light-mode
+ * An object is in this table only if it was ACCEPTED on the light-mode
  * check: viewed on #F4F4F1 at 390px as well as on #010118. A rejected or
  * withheld object is not listed here, and the table in
  * `docs/design/assets-raw/2026-10-06/slice-report.json` says why.
@@ -165,99 +163,41 @@ export const TIERED_OBJECTS = {
 
 export type TieredObjectName = keyof typeof TIERED_OBJECTS;
 
-/**
- * Glass names that now draw an accepted replacement. The key is the glass name a
- * call site already passes; the value is the replacement's file stem.
- *
- * Only a CLEAR match is listed. `receipt-check` has no replacement (the receipt
- * was rejected), `card-lock` has none (the card was rejected), and a glass name
- * that means something the new set does not draw (`calendar-check`,
- * `shield-lock`, `naira-hand`) stays on its glass artwork rather than being
- * handed a near miss. A near miss is worse than a consistent old drawing,
- * because it changes what the screen says.
- */
-export const GLASS_TO_TIERED: Readonly<Record<string, TieredObjectName>> = {
-  /* Tier B: symbols */
-  "alert-triangle": "warning-triangle",
-  "bell-badge": "bell",
-  "booking-instant": "calendar-bolt",
-  bot: "robot",
-  "brain-chip": "brain-chip",
-  camera: "camera",
-  "calendar-grid": "calendar-page",
-  "chart-growth": "bars-chart",
-  "chart-ring": "donut-chart",
-  "chat-duo": "chat-pair",
-  "doc-review": "doc-search",
-  gift: "gift-box",
-  globe: "globe",
-  "globe-pin": "globe-pin",
-  headset: "headset",
-  "support-chat": "headset",
-  "heart-home": "house-heart",
-  hourglass: "hourglass",
-  info: "info-disc",
-  "key-ring": "key-ring",
-  "ledger-book": "book-bookmark",
-  "luggage-check": "suitcase",
-  "luggage-plane": "suitcase",
-  "map-spot": "map-pin",
-  "pin-map": "map-pin",
-  "naira-coins": "banknotes-stack",
-  "palm-tree": "palm-island",
-  "people-ring": "people-group",
-  "progress-ring": "progress-ring",
-  "report-stats": "bars-chart",
-  reviews: "stars-arc",
-  "shield-check": "shield-tick",
-  wallet: "wallet-angled",
-  "wallet-out": "wallet-out",
-  "wallet-plus": "wallet-plus",
-  /* Tier A: places and things */
-  "apartment-block": "apartment-block",
-  "serviced-block": "serviced-block",
-  "serviced-apartment": "midrise-block",
-  bungalow: "bungalow",
-  duplex: "townhouse-twin",
-  "twin-house": "townhouse-twin",
-  townhouse: "narrow-block",
-  "terrace-house": "terrace-row",
-  villa: "villa-pool",
-  mansion: "mansion-columns",
-  penthouse: "penthouse-terrace",
-  "modern-house": "modern-house-glass",
-  "guest-house": "small-house",
-  "mini-flat": "small-house",
-  "beach-house": "stilt-beach-house",
-  "lake-house": "lake-house",
-  "mountain-cabin": "mountain-cabin",
-  "tree-house": "tree-house",
-  "house-boat": "house-boat",
-  "farm-house": "farm-house",
-  warehouse: "warehouse",
-  "office-space": "office-tower",
-  "shop-retail": "retail-shop",
-  "land-plot": "land-plot",
-  loft: "brick-hall",
-};
-
 /** True when a name is one of the accepted new objects (as opposed to a glass name). */
 export function isTieredObject(name: string): name is TieredObjectName {
   return Object.prototype.hasOwnProperty.call(TIERED_OBJECTS, name);
 }
 
 /**
- * The asset a name resolves to, or undefined when it has no accepted
- * replacement and the glass artwork stays. A name that is itself a new object
- * wins over the glass mapping, so `bell` means the matte bell.
+ * The tiered asset a name names by its own file stem, or undefined. There is
+ * no glass-to-tiered redirect any more (see the note at the top of this file):
+ * `BrandIcon` draws the glass original for every glass name and asks this only
+ * for a name the glass pack does not have.
  */
 export function tieredAssetFor(name: string): ObjectAsset | undefined {
-  if (isTieredObject(name)) return TIERED_OBJECTS[name];
-  const mapped = GLASS_TO_TIERED[name];
-  return mapped ? TIERED_OBJECTS[mapped] : undefined;
+  return isTieredObject(name) ? TIERED_OBJECTS[name] : undefined;
 }
 
 /** The @2x file, which `next/image` resizes for the drawn size. */
 export function tieredSrc(asset: ObjectAsset): string {
   return `/brand/tier-${asset.tier}/${asset.file}@2x.webp`;
+}
+
+export type BrandArtwork = { src: string; material: "matte" | "real" | "glass"; object: string };
+
+/**
+ * What a `BrandIcon` name draws. `object` is the name with its legacy alias
+ * resolved, and `isGlass` says whether `public/brand/glass` has that object.
+ *
+ * THE GLASS ORIGINAL ALWAYS WINS, including for the names both sets share
+ * (`camera`, `headset`, `key-ring`, `land-plot`...): the founder asked for the
+ * original icons back. A tiered object is drawn only for a name the glass pack
+ * does not have, asked for by its own name (`padlock`, `prepaid-meter`).
+ */
+export function brandArtwork(name: string, object: string, isGlass: boolean): BrandArtwork {
+  if (!isGlass) {
+    const tiered = tieredAssetFor(name);
+    if (tiered) return { src: tieredSrc(tiered), material: tiered.tier === "b" ? "matte" : "real", object: name };
+  }
+  return { src: `/brand/glass/${object}.png`, material: "glass", object };
 }

@@ -156,6 +156,11 @@ describe("principle 10, the marketing and loading loops (Session 3, C1)", () => 
       "app/css/auth.css": 5,
       "app/welcome/welcome.css": 3,
       "app/welcome/onboarding-motion.css": 7,
+      /* THE FOUNDER'S RULING (October 2026): the landing's floating 3D objects
+         keep their gentle continuous float. Only when ObjectField sets
+         `data-on` (never under reduced motion, Calm, Off, data saver or a
+         low-end device), and paused while the field is off screen. */
+      "app/css/landing-3d.css": 1, // the floating 3D objects' gentle bob
     };
     const root = join(process.cwd(), "src");
     const found: Record<string, number> = {};

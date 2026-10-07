@@ -4,6 +4,8 @@ import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
 
+import { ICON_3D_NAMES, icon3dEmailSrc } from "@/components/ui/icon-3d";
+
 import { EVERY_MESSAGE } from "./fixtures";
 import {
   EMAIL_GLYPHS,
@@ -23,12 +25,13 @@ import { sortEmailImages } from "./images";
 import { heroMarkHtml, siteUrl } from "./render";
 
 /**
- * The Tier B object every email carries above its headline, and the line
- * glyphs in its rows (`icons.ts`; rewritten by W9 on 6 October 2026, when
- * the glossy first-rollout marks gave way to the founder's Tier B set).
+ * The founder's original 3D object every email carries above its headline,
+ * and the line glyphs in its rows (`icons.ts`; the founder asked for the
+ * original 3D icons back after a brief swap to the Tier B set).
  *
  * What is checked: every object an email can carry is a PNG pair of the
- * promised size, made from a Tier B source that exists; every glyph is a PNG
+ * promised size, cut from a 3D object the product itself draws, never the
+ * receipt (its "$" coin); every glyph is a PNG
  * at 3x; every message names an object and a family; the money and document
  * families are paper; every rendered message carries at most one object,
  * sized, with its family word as alt, from the site origin, above its
@@ -47,15 +50,19 @@ function pngSize(file: string): { width: number; height: number } {
 }
 
 describe("the email object files", () => {
-  it.each([...EMAIL_OBJECTS])("%s is a 128px PNG with a 256px twin, from a Tier B source", (name) => {
+  it.each([...EMAIL_OBJECTS])("%s is a 128px PNG with a 256px twin, from the original 3D art", (name) => {
     const one = onDisk(emailObjectPath(name));
     const two = one.replace(/\.png$/, "@2x.png");
     expect(existsSync(one)).toBe(true);
     expect(existsSync(two)).toBe(true);
     expect(pngSize(one)).toEqual({ width: EMAIL_OBJECT_SIZE * 2, height: EMAIL_OBJECT_SIZE * 2 });
     expect(pngSize(two)).toEqual({ width: EMAIL_OBJECT_SIZE * 4, height: EMAIL_OBJECT_SIZE * 4 });
-    /* Provenance: the PNG is a copy of a founder-approved symbol, never a new drawing. */
-    expect(existsSync(onDisk(`/brand/tier-b/${name}@2x.webp`))).toBe(true);
+    /* Provenance: the PNG is the email copy of the founder's 3D object, the same
+       art `Icon3D` draws (`icon3dEmailSrc`), never a new drawing. */
+    expect(emailObjectPath(name)).toBe(icon3dEmailSrc(name, 1));
+    expect(ICON_3D_NAMES).toContain(name);
+    expect(existsSync(onDisk(`/brand/3d/${name}@2x.webp`))).toBe(true);
+    expect(name).not.toBe("receipt");
   });
 
   it.each(Object.keys(EMAIL_GLYPHS) as EmailGlyph[])("glyph %s is a PNG at three times its drawn size", (glyph) => {
@@ -91,13 +98,13 @@ describe("the plan", () => {
 });
 
 describe("every rendered message", () => {
-  it.each(EVERY_MESSAGE)("$name carries the lockup and at most one Tier B object, named by its family", ({ message }) => {
+  it.each(EVERY_MESSAGE)("$name carries the lockup and at most one 3D object, named by its family", ({ message }) => {
     const images = sortEmailImages(message.html);
     expect(images.lockup).not.toBeNull();
     expect(images.object.length).toBeLessThanOrEqual(1);
     for (const object of images.object) {
       const src = /\bsrc="([^"]+)"/.exec(object)?.[1] ?? "";
-      expect(src.startsWith(`${siteUrl()}/brand/email/objects/`)).toBe(true);
+      expect(src.startsWith(`${siteUrl()}/brand/3d/email/`)).toBe(true);
       expect(src.endsWith(".png")).toBe(true);
       expect(existsSync(onDisk(src.slice(siteUrl().length)))).toBe(true);
       // Sized, so a blocked image keeps its box; its alt is the family word.
