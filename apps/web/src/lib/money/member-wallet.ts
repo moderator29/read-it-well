@@ -258,6 +258,8 @@ export type BalanceRead =
       live: boolean;
       figures: BalanceFigures | null;
       movements: MovementView[];
+      /** The server's clock when this was read, so "confirmed n minutes ago" agrees on both sides. */
+      readAt: string;
     };
 
 export async function profileFor(db: Db, user: User): Promise<{ firstName: string | null; lastName: string | null; phone: string | null; email: string | null }> {
@@ -298,7 +300,7 @@ export async function readMyBalance(): Promise<BalanceRead> {
           movements.map((m) => ({ kind: m.kind, status: m.status, amountMinor: m.amountMinor, providerFeeMinor: m.providerFeeMinor, observedAt: m.observedAt })),
         )
       : null;
-    return { state: "ready", live: reported?.live ?? false, figures, movements };
+    return { state: "ready", live: reported?.live ?? false, figures, movements, readAt: new Date().toISOString() };
   } catch (error) {
     await reportReadFault("read.money.member_balance", error);
     return { state: "error" };

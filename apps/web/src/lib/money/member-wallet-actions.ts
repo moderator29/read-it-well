@@ -4,7 +4,7 @@ import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { fail, ok, type ActionResult } from "../actions/envelope";
 import { resolveSession } from "../actions/session";
-import { guardMoney, type MoneyAction } from "../security/money-limits";
+import { guardMoney } from "../security/money-limits";
 import { accountNumberSchema, sameAccountName } from "../payments/bank-resolve";
 import { needsOtp } from "../payments/providers/payluk-client";
 import { memberWalletRailLive } from "../payments/providers";
@@ -67,15 +67,15 @@ import {
 
 type Ready = { db: Db; provider: WalletProvider; userId: string; customerId: string };
 
-async function ready(action: MoneyAction): Promise<{ ok: true; ctx: Ready } | { ok: false; error: string }> {
+/* The rate guard is not in here: every action calls `guardMoney` itself, with
+   its own action named, so the call-site test can see each one is spent. */
+async function ready(): Promise<{ ok: true; ctx: Ready } | { ok: false; error: string }> {
   const session = await resolveSession();
   if (session.state !== "signed-in") return { ok: false, error: "Sign in to continue." };
   if ((await memberWalletRailLive()) !== "live") return { ok: false, error: REFUSAL.notLive };
   const db = adminDb();
   const provider = walletProvider();
   if (!db || !provider) return { ok: false, error: REFUSAL.notLive };
-  const verdict = await guardMoney(action, session.user.id);
-  if (!verdict.allowed) return { ok: false, error: verdict.message };
   const account = await loadAccount(db, session.user.id);
   if (!account || account.status !== "ACTIVE" || !account.provider_customer_id) return { ok: false, error: REFUSAL.notActive };
   return { ok: true, ctx: { db, provider, userId: session.user.id, customerId: account.provider_customer_id } };
@@ -189,8 +189,10 @@ export async function openBalanceAccount(): Promise<ActionResult<OpenResult>> {
 /* --------------------------------------------------------------- banks */
 
 export async function listBalanceBanks(): Promise<ActionResult<{ banks: { name: string; code: string }[] }>> {
-  const r = await ready("balanceLookup");
+  const r = await ready();
   if (!r.ok) return fail(r.error);
+  const limit = await guardMoney("balanceLookup", r.ctx.userId);
+  if (!limit.allowed) return fail(limit.message);
   const banks = await r.ctx.provider.listBanks();
   if (!banks.ok) return fail(refusalFor(banks));
   return ok({ banks: banks.value.sort((a, b) => a.name.localeCompare(b.name)) });
@@ -206,8 +208,10 @@ const accountInput = z.object({
 export async function checkBalanceBankAccount(input: unknown): Promise<ActionResult<{ accountName: string }>> {
   const parsed = accountInput.safeParse(input);
   if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? REFUSAL.accountNotFound);
-  const r = await ready("balanceLookup");
+  const r = await ready();
   if (!r.ok) return fail(r.error);
+  const limit = await guardMoney("balanceLookup", r.ctx.userId);
+  if (!limit.allowed) return fail(limit.message);
   const v = await r.ctx.provider.resolveAccount(r.ctx.customerId, parsed.data);
   if (v.ok) return ok({ accountName: v.value.accountName });
   if (v.kind === "refused" || v.kind === "not_found") return fail(REFUSAL.accountNotFound);
@@ -316,8 +320,10 @@ export async function prepareWithdrawal(input: unknown): Promise<ActionResult<Qu
   if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? REFUSAL.refused);
   const amount = amountFrom(parsed.data.amount, WITHDRAWAL_MIN_KOBO);
   if (!amount.ok) return fail(amount.error);
-  const r = await ready("balanceMove");
+  const r = await ready();
   if (!r.ok) return fail(r.error);
+  const limit = await guardMoney("balanceMove", r.ctx.userId);
+  if (!limit.allowed) return fail(limit.message);
   const ctx = r.ctx;
 
   const prior = await existingByKey(ctx.db, ctx.userId, parsed.data.clientKey);
@@ -375,8 +381,10 @@ export type ConfirmOutcome = { movement: MovementView; needsOtp: boolean; messag
 export async function confirmBalanceMovement(input: unknown): Promise<ActionResult<ConfirmOutcome>> {
   const parsed = z.object({ movementId: z.string().uuid(), otp: z.string().trim().regex(/^\d{4,8}$/).optional() }).safeParse(input);
   if (!parsed.success) return fail(REFUSAL.refused);
-  const r = await ready("balanceMove");
+  const r = await ready();
   if (!r.ok) return fail(r.error);
+  const limit = await guardMoney("balanceMove", r.ctx.userId);
+  if (!limit.allowed) return fail(limit.message);
   const ctx = r.ctx;
   const m = await loadMovement(ctx.db, ctx.userId, parsed.data.movementId);
   if (!m || m.kind === "deposit") return fail(REFUSAL.refused);
@@ -443,8 +451,10 @@ export async function prepareDeposit(input: unknown): Promise<ActionResult<Depos
   if (!parsed.success) return fail(REFUSAL.amountInvalid);
   const amount = amountFrom(parsed.data.amount, INTENT_MIN_KOBO);
   if (!amount.ok) return fail(amount.error);
-  const r = await ready("balanceMove");
+  const r = await ready();
   if (!r.ok) return fail(r.error);
+  const limit = await guardMoney("balanceMove", r.ctx.userId);
+  if (!limit.allowed) return fail(limit.message);
   const staged = await stage(r.ctx, parsed.data.clientKey, { kind: "deposit", amountMinor: amount.minor, counterparty: {}, narration: null }, (reference) => ({
     type: "deposit",
     reference,
@@ -471,8 +481,10 @@ function hostedFromRow(m: MovementRow): HostedCollection | null {
 export async function confirmDepositPaid(input: unknown): Promise<ActionResult<ConfirmOutcome>> {
   const parsed = z.object({ movementId: z.string().uuid() }).safeParse(input);
   if (!parsed.success) return fail(REFUSAL.refused);
-  const r = await ready("balanceMove");
+  const r = await ready();
   if (!r.ok) return fail(r.error);
+  const limit = await guardMoney("balanceMove", r.ctx.userId);
+  if (!limit.allowed) return fail(limit.message);
   const ctx = r.ctx;
   const m = await loadMovement(ctx.db, ctx.userId, parsed.data.movementId);
   if (!m || m.kind !== "deposit") return fail(REFUSAL.refused);
@@ -534,8 +546,10 @@ async function findRecipientRow(db: Db, phone: string, selfId: string): Promise<
 export async function findBalanceRecipient(input: unknown): Promise<ActionResult<{ name: string }>> {
   const parsed = z.object({ phone: z.string().max(20) }).safeParse(input);
   if (!parsed.success) return fail(REFUSAL.noRecipient);
-  const r = await ready("balanceLookup");
+  const r = await ready();
   if (!r.ok) return fail(r.error);
+  const limit = await guardMoney("balanceLookup", r.ctx.userId);
+  if (!limit.allowed) return fail(limit.message);
   const found = await findRecipientRow(r.ctx.db, parsed.data.phone, r.ctx.userId);
   return "error" in found ? fail(found.error) : ok({ name: found.recipient.displayName });
 }
@@ -552,8 +566,10 @@ export async function prepareSend(input: unknown): Promise<ActionResult<Quote>> 
   if (!parsed.success) return fail(REFUSAL.refused);
   const amount = amountFrom(parsed.data.amount, INTENT_MIN_KOBO);
   if (!amount.ok) return fail(amount.error);
-  const r = await ready("balanceMove");
+  const r = await ready();
   if (!r.ok) return fail(r.error);
+  const limit = await guardMoney("balanceMove", r.ctx.userId);
+  if (!limit.allowed) return fail(limit.message);
   const ctx = r.ctx;
 
   const prior = await existingByKey(ctx.db, ctx.userId, parsed.data.clientKey);

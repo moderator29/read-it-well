@@ -8,11 +8,12 @@ import { buildNav } from "./nav-model";
  *
  * Receipts, Payouts and Refunds were built, tested and reachable only by
  * typing the address, and the founder concluded they had not been built.
- * This fails if any of them, or Payments, Rewards or Invite, loses its row.
+ * This fails if any of them, or Payments, Rewards or Invite, loses its row,
+ * or if the Balance (/wallet, Part B phase 6) does.
  */
 const t = shellDictionary(getDictionary("en"));
 const base = { t, unreadNotifications: 0, isAgent: false, isAdmin: false };
-const MONEY = ["/payments", "/receipts", "/payouts", "/refunds", "/rewards", "/settings/invite"];
+const MONEY = ["/wallet", "/payments", "/receipts", "/payouts", "/refunds", "/rewards", "/settings/invite"];
 
 describe("the side navigation's money group", () => {
   for (const side of ["property", "stays"] as const) {

@@ -243,9 +243,9 @@ export function buildNav({
      *
      * One heading for everything that is a figure about this person: what
      * they paid, the proof of it, what came back, what they are owed, and
-     * what an invite earns. Every row is a record, never an account: Vallo
-     * holds no customer money (ADR 0003), so no row here is called a wallet
-     * until a licensed provider's balance stands behind it.
+     * what an invite earns. Every row but one is a record, never an account:
+     * Vallo holds no customer money (ADR 0003). The one account, Balance, is
+     * the escrow partner's, read from it with its time (lib/money/member-wallet.ts).
      *
      * Payouts shows to everyone signed in, not only to listers: its page
      * draws an honest empty state that points at payout details, and hiding
@@ -258,6 +258,11 @@ export function buildNav({
     sections.push({
       heading: t.experienceShell.navMoneyLabel,
       items: [
+        /* The balance the escrow partner holds for this person (Part B
+           phase 6, ADR 0003): first, because it is the one row that is an
+           account, and the account is the partner's, read live. Its page
+           says plainly when the rail is not open rather than hiding. */
+        { href: "/wallet", label: t.experienceShell.navBalance, icon: "wallet" },
         /* What this person paid and what came back: a record, never an
            account. Read from the shell's slice like every neighbour. */
         { href: "/payments", label: t.experienceShell.navPayments, icon: "history" },
