@@ -1,7 +1,7 @@
 import { getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { AgentShell } from "@/components/agent/AgentShell";
-import { Ladder, Standing } from "@/app/agent/verification/page";
+import { Ladder, Standing } from "@/app/agent/verification/VerificationLadder";
 import { AGENT_LADDER, AGENT_PROFILE } from "../ops-fixtures";
 
 /** Where an agent stands on the four-rung ladder, from a fixture ladder. */

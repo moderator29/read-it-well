@@ -1,7 +1,7 @@
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { HostShell } from "@/components/host/HostShell";
-import { HostStandingBody } from "@/app/host/page";
+import { HostStandingBody } from "@/app/host/HostStandingBody";
 import { hostToday } from "@/app/host/today";
 
 /**

@@ -1,7 +1,7 @@
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { HostShell } from "@/components/host/HostShell";
-import { HostPhotosBody } from "@/app/host/photos/page";
+import { HostPhotosBody } from "@/app/host/photos/HostPhotosBody";
 import { P3_PHOTOS } from "../fixtures";
 
 /**
