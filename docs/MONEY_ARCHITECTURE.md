@@ -95,6 +95,16 @@ The function checks the caller's own role, so the app calls it with the operator
 
 **V-56 and V-92 (held agency fee, held stay caution): not built, by decision.** Both would have Vallo hold a customer's money until something is released. The Vallo Guarantee covers the same risks instead.
 
+## Restaurant table deposits (D75, off until `restaurant_deposits` is on)
+
+The OpenTable no-show pattern, on the direct rail. Migration `supabase/migrations/pending/d75a_restaurant_deposits.sql`, probe `d75a-restaurant-deposits.sql`.
+
+- **The rule is the restaurant's.** `restaurant_deposit_rules`: an amount per guest or per table, for one service window or all, from a party size up, with a refund window in hours. The owner writes them under RLS; guests read the active ones.
+- **What is owed is the database's.** `private.reservation_deposit_quote` picks the matching rule and computes the split with the same parts a stay uses: the venue owner's own subaccount (`private.payee_subaccount`) and Vallo's commission (`private.current_fee_bps('commission')`, 200 basis points live). A venue that cannot be paid asks for nothing.
+- **The charge.** A deposit has its own record (`reservation_deposits`, reference `rm-dep-<uuid>`), not a `transactions` row, because `transactions.booking_id` is a required booking and the gate and settlement are keyed on a booking and its agreement; a reservation has neither. It follows the promotion precedent and reuses the patterns: a BEFORE INSERT gate refusing any row the database did not compute, `reservation_deposit_settle` (idempotent on the reference, refund-due with a high alert when it cannot be applied), the one card refund claim (`lib/payments/refund.ts`), and the Vallo revenue ledger for the commission. The Paystack webhook routes `rm-dep-` to it (`lib/reservations/deposit-settlement.ts`).
+- **The outcome follows the reservation:** dined (COMPLETED) applies it to the bill; a guest who cancels inside the window gets it all back, later it is the venue's; a no-show is the venue's; a venue cancellation is refunded. A venue cannot confirm a table whose deposit is due and unpaid. Refunds the rule decides go out hourly (`/api/cron/reservation-deposit-refunds`), and that job also closes checkouts nobody paid within two hours.
+- **No live function changes**: two new triggers on `reservations`.
+
 ## The Vallo Guarantee
 
 - **The reserve.** Contributions flow in from every settled charge. The reserve is an append-only ledger (`guarantee_reserve_entries`), and its balance is their sum.

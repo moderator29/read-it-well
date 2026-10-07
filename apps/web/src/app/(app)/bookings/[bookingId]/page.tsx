@@ -22,6 +22,10 @@ import { ReceiptSheet } from "@/components/app/money/ReceiptSheet";
 import { DocActions } from "@/components/app/money/DocumentSheet";
 import { PrintDocumentTile } from "@/components/app/money/PrintDocumentTile";
 import { withNext } from "@/lib/auth/next-link";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { resolveSession } from "@/lib/actions/session";
+import { readStayDetails } from "@/lib/bookings/stay-details";
+import { StayDetailsPanel } from "@/components/app/bookings/StayDetailsPanel";
 
 /** A receipt for one commitment. Never indexed, and never in a tab title. */
 export async function generateMetadata(): Promise<Metadata> {
@@ -156,6 +160,13 @@ export default async function BookingDetailPage({
    */
   const checkout = await getCheckoutView(booking.id, locale);
   const receipt = checkout.state === "ready" ? stayReceipt(checkout.view, t, locale) : null;
+  /* D75: the address, the way in and the host, revealed by the database once
+     the stay is paid (my_stay_details). Not for a cancelled stay. */
+  const session = booking.status === "CANCELLED" ? null : await resolveSession();
+  const details =
+    session && session.state === "signed-in"
+      ? await readStayDetails(session.supabase as unknown as SupabaseClient, booking.id)
+      : null;
 
   return shell(
     <>
@@ -174,6 +185,7 @@ export default async function BookingDetailPage({
       <div className="mt-md">
         <BookingDetailCard booking={booking} locale={locale} />
       </div>
+      {details && <StayDetailsPanel details={details} />}
       {receipt && (
         <div className="mt-lg" data-testid="booking-receipt">
           <h2 className="nf-overline mb-sm text-[var(--nf-content-muted)]">{t.experienceMoney.bookings.receiptTitle}</h2>

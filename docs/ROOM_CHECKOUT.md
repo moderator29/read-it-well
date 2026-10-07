@@ -107,9 +107,17 @@ Nothing else. A rent charge is never touched. **Restaurants take no payment on V
 
 **Known limits.** An unpaid instant booking is CONFIRMED, so it does not count toward the "3 unconfirmed stays" hold limit; the 10 bookings a day limit and the cooldown after two lapsed holds at the same place still apply, and the hold lasts at most 45 minutes. The instant wording on the checkout is English only until the stays restyle moves it into `@vallo/i18n`.
 
+## After payment: the trip page (D75)
+
+Migration `supabase/migrations/pending/d75b_stay_trip_details.sql`, probe `d75b-stay-trip-details.sql`. Checked against live on 7 October: no member could read any address (`listings.address` and `accommodations.address` are not granted), the gate details (`listing_access`) were readable on a CONFIRMED booking whether or not it was paid, and reviews were gated on a finished booking but not on payment. With instant booking a booking is CONFIRMED before it is paid, so all three now follow the money:
+
+- `public.my_stay_details` answers the booking's own guest, once a payment has settled: the address, the hotel's check-in and check-out times and house rules, a listing's estate, gate directions, security phone and access code (the code only until the stay is over), the host's name and where to message them. Before payment it answers `unpaid` and the trip page says the details appear once the stay is paid.
+- `private.can_see_listing_access` (changed) and `reviews_insert_own` (changed) also require a paid booking.
+- The trip page and the trips spine offer **Pay** on any unpaid PENDING or CONFIRMED stay, so an instant booking is payable from there too.
+
 ## Known limits
 
-- **Reviews of hotel stays are not open yet.** A guest who stayed in a hotel room is told so kindly; reviews still work for listing stays.
+- **Reviews of hotel stays** are written against the hotel (C4, live since 30 September). D75 offers the review on the trip for a paid, finished room stay, as for a listing stay.
 - **No-shows** recorded by the host from the stay page work for listing stays only; a hotel no-show is handled by a person.
 - **Arrival charges** (a hotel's declared tourism levy or deposit) are shown from the hotel's declaration; nothing is charged for them through Vallo.
 - **One room type per request.** A guest who wants two different room types makes two requests.

@@ -181,10 +181,10 @@ The founder's ruling D73: rentals and other negotiated deals pay through escrow,
 | Release | `POST /v1/escrow/confirm-payment/{id}` (standard) or `/v1/escrow/milestone/confirm/{id}/{milestoneId}`, as the renter, on the renter's own confirmation | `release_requested`; `escrow.completed` makes it `released` |
 | Otherwise | `escrow.claimed`, `escrow.disputed`/`investigating`, `escrow.refunded`, `escrow.split` | `released`, `disputed`, `refunded`, `split` |
 
-Amounts are naira at the boundary and kobo everywhere else. The delivery window Payluk is told is the days to move-in plus the 3 day claim window, because one day after it the lister may claim the money without the renter.
+Payluk's 2 percent fee is borne by the lister (`whoPays: seller`, `VALLO_PRICING.md` section 6), so the renter pays exactly the agreed amount; the database holds every arrangement to it. Amounts are naira at the boundary and kobo everywhere else. The delivery window Payluk is told is the days to move-in plus the 3 day claim window, because one day after it the lister may claim the money without the renter.
 
 **No reference on create.** Payluk's create-escrow takes no reference of ours, so Vallo writes `Vallo reference <reference>` into the escrow's `description`. An unanswered create is `unknown` and is found again by listing the lister's escrows (`GET /v1/escrow/transactions?type=sales`) and matching the reference and amount; it is never created a second time.
 
-**Not built here:** the conditions engine and inspection evidence before release (phase 13), disputes and refunds (phase 14: Payluk refunds only through a dispute), the renter-facing screens, marking the agreement paid or opening tenancy records from a protected payment, and who bears Payluk's 2 percent fee (`whoPays` is a required input until the founder decides).
+**Not built here:** the conditions engine and inspection evidence before release (phase 13), disputes and refunds (phase 14: Payluk refunds only through a dispute), the renter-facing screens, marking the agreement paid or opening tenancy records from a protected payment.
 
 **Unverified against live docs** (each marked in the code): whether create-escrow echoes `description`; the page and limit parameter names on the escrow list; how half of an odd-kobo fee is rounded when `whoPays` is `both` (Vallo refuses rather than guess).

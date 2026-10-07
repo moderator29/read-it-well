@@ -110,7 +110,7 @@ beforeEach(() => {
   state.alerts = [];
 });
 
-const OPEN = { agreementId: "ag-1", kind: "standard" as const, whoPays: "seller" as const, purpose: "Rent" };
+const OPEN = { agreementId: "ag-1", kind: "standard" as const, purpose: "Rent" };
 
 describe("protected rental payments (D73 Part B)", () => {
   it("refuses with the switch off, before any record or call", async () => {
@@ -128,6 +128,8 @@ describe("protected rental payments (D73 Part B)", () => {
     const r = await openArrangement(deps, OPEN);
     expect(r).toMatchObject({ outcome: "arranged", status: "awaiting_payment" });
     expect(calls).toHaveLength(1);
+    // The lister bears Payluk's fee (VALLO_PRICING section 6); the open names no payer.
+    expect(state.rpcs.find((c) => c.name === "provider_arrangement_open")!.args).not.toHaveProperty("p_who_pays_fee");
     const observed = state.rpcs.find((c) => c.name === "provider_arrangement_observe")!;
     expect(observed.args).toMatchObject({
       p_to_status: "awaiting_payment",

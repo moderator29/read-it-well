@@ -308,6 +308,7 @@ const EXPECTED_PUBLIC = new Set([
   "/api/cron/email-outbox",
   "/api/cron/hold-sweep",
   "/api/cron/rent-share-refunds",
+  "/api/cron/reservation-deposit-refunds",
   "/api/cron/inventory-drift",
   "/api/cron/landlord-line",
   "/api/cron/sanctions-lists",

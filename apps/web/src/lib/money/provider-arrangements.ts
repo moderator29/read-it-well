@@ -45,6 +45,13 @@ import type { Db } from "./member-wallet";
 
 export const RENTALS_PROTECTED_PAY_FLAG = "rentals_protected_pay";
 
+/**
+ * Payluk's 2 percent escrow fee is borne by the lister (`whoPays: seller`,
+ * docs/payments/VALLO_PRICING.md section 6, D75): the renter pays exactly the
+ * agreed amount. The database holds every arrangement to it as well.
+ */
+export const LISTER_BEARS_THE_FEE = "seller" as const;
+
 export type ArrangementDeps = {
   db: Db;
   ctx: PaylukContext;
@@ -141,8 +148,6 @@ async function observeProvider(
 export type OpenInput = {
   agreementId: string;
   kind: "standard" | "milestone";
-  /** Who bears Payluk's 2 percent fee. A pricing decision the founder has not made; the caller names it. */
-  whoPays: "buyer" | "seller" | "both";
   purpose: string;
   milestones?: { title: string; description?: string | null; amountMinor: number }[];
 };
@@ -169,7 +174,6 @@ export async function openArrangement(deps: ArrangementDeps, input: OpenInput): 
   const { data, error } = await deps.db.rpc("provider_arrangement_open", {
     p_agreement: input.agreementId,
     p_kind: input.kind,
-    p_who_pays_fee: input.whoPays,
     p_milestones: input.kind === "milestone"
       ? (input.milestones ?? []).map((m) => ({ title: m.title, description: m.description ?? null, amount_minor: m.amountMinor }))
       : null,
@@ -192,7 +196,7 @@ export async function openArrangement(deps: ArrangementDeps, input: OpenInput): 
   const row = await loadRow(deps.db, "id", opened.id);
   if (!row) return { outcome: "refused", reason: "store_unavailable" };
 
-  const terms = { reference: row.reference, amountMinor: row.amount_minor, purpose: input.purpose, whoPays: input.whoPays, windowDays };
+  const terms = { reference: row.reference, amountMinor: row.amount_minor, purpose: input.purpose, whoPays: LISTER_BEARS_THE_FEE, windowDays };
   const created =
     input.kind === "milestone"
       ? await createMilestoneArrangement(deps.ctx, row.seller_customer_id, { ...terms, milestones: input.milestones ?? [] })
