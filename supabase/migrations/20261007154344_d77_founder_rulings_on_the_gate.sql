@@ -1,40 +1,15 @@
 -- D77: the founder's rulings on the gate, the fee record and the one Payluk switch.
--- Pending: NOT applied. Apply AFTER d68d_the_rail_decides_the_gate.sql (and so
--- after every file in its apply order). The lead reviews it, applies it through
--- the MCP, and commits it under the version the server stamps.
--- Probe: supabase/tests/probes-pending/d77-founder-rulings-on-the-gate.sql.
---
--- 1. FIRST-DEAL SIGNAL, SCOPED. It fires only on a first deal AND (the lister's
---    business is not verified OR the amount is over the threshold). A
---    CAC-verified business (businesses.verified with a cac_number) behind the
---    property is a different risk from an individual's first listing.
---    (private.agreement_risk_signals, from d68d, redefined.)
--- 2. THE DIRECT THRESHOLD IS 500,000 NAIRA (the direct rail carries nightly stays;
---    the top listing is 150,000 a night). Still configuration:
---    agreement_risk_settings.amount_threshold_minor, default changed and the row
---    moved from the old default only if nobody has edited it.
--- 3. A SALE NEVER ROUTES TO DIRECT. private.rail_for_booking and
---    private.rail_for_agreement (from d68d) answer no rail for a sale that would
---    otherwise resolve direct (fail closed, so no Paystack charge can carry a
---    sale), and a sale listing is never treated as a fixed-price stay. Live
---    policy already sends every sale to escrow (precedence 100); this makes the
---    database refuse even if a policy row changed. The app router does the same.
--- 4. THE LISTER'S FEE ACCEPTANCE IS RECORDED. public.lister_fee_policy and
---    public.lister_fee_accept, which the listing wizard has called since D61 and
---    which existed nowhere. The policy read answers the rates in force; the
---    accept re-derives every figure exactly as lib/money/lister-fee.ts does and
---    writes D61's listing_fee_acceptances (the record b3x reads for the gate and
---    the split). Refuses a stale rate ('rate_moved') or any figure that differs
---    ('mismatch').
--- 5. ONE PAYLUK SWITCH. The escrow rail is ready when the key is set and
---    `payments_payluk_on` is on, nothing else: private.rentals_protected_pay_on()
---    (d73b) now reads `payments_payluk_on`; the `rentals_protected_pay` row is
---    kept, noted as superseded, and read by nothing.
--- 6. STAFF CONTROLS for the admin risk settings screen: admin_update_risk_settings
---    and admin_set_review_kill_switch, `agreements` scope, validated and audited.
--- 7. THE GATE REACHES THE PROTECTED PAYMENT. Opening a protected payment and
---    funding it (Vallo's two steps toward Payluk) ask private.agreement_payable,
---    so the incident switch stops escrow too. Provider reports are never refused.
+-- Applied 7 October 2026 straight after d68d. Full rationale in the pending
+-- header (git history of supabase/migrations/pending/d77_founder_rulings_on_the_gate.sql).
+-- 1. First-deal signal scoped: first deal AND (unverified business OR over threshold).
+-- 2. Direct threshold 500,000 naira, still configuration.
+-- 3. A sale never routes to direct.
+-- 4. lister_fee_policy and lister_fee_accept write D61's fee acceptance record.
+-- 5. One Payluk switch: payments_payluk_on.
+-- 6. Staff controls for the risk settings screen.
+-- 7. Opening and funding an escrow payment ask the gate.
+
+set local lock_timeout = '10s';
 
 -- 1. -----------------------------------------------------------------------------
 create or replace function private.lister_business_verified(p_agreement uuid)
@@ -441,12 +416,9 @@ revoke all on function public.admin_set_review_kill_switch(boolean, text) from p
 grant execute on function public.admin_set_review_kill_switch(boolean, text) to authenticated;
 
 -- 7. The gate reaches the protected payment. ------------------------------------
--- d73b's provider_arrangement_open checks the agreement is an approved rental,
--- but not D68d's gate, so the incident switch did not stop a protected payment
--- from opening. Vallo's own two steps toward Payluk now ask the gate: creating
--- the arrangement, and moving it to payment_processing (the renter's funding).
--- What the provider reports afterwards (protected, released, refunded) is never
--- refused: money already taken is always recorded.
+-- Creating the arrangement, and moving it to payment_processing (the renter's
+-- funding), ask the gate. What the provider reports afterwards (protected,
+-- released, refunded) is never refused: money already taken is always recorded.
 create or replace function private.provider_arrangements_payable_gate()
 returns trigger language plpgsql security definer set search_path to '' as $function$
 declare
@@ -465,7 +437,6 @@ begin
 end;
 $function$;
 revoke all on function private.provider_arrangements_payable_gate() from public, anon, authenticated;
-drop trigger if exists provider_arrangements_00_payable_gate on public.provider_arrangements;
 create trigger provider_arrangements_00_payable_gate
   before insert or update of status on public.provider_arrangements
   for each row execute function private.provider_arrangements_payable_gate();

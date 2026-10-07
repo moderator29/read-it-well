@@ -1,45 +1,14 @@
 -- THE RAIL AT OPEN, ENFORCED BY THE DATABASE (Session 2, 7.4; Round 3 R3-20).
---
--- The app resolves the rail before opening a card payment
--- (apps/web/src/lib/payments/split-attempt.ts quoteSplit -> router.ts) and
--- writes transactions.rail and rail_policy_id. This is the backstop for every
--- path that does not: a new Paystack attempt must carry rail = 'direct' and the
--- policy row that the resolver returns for its booking TODAY. Anything else,
--- including an escrow answer (Paystack cannot hold) and a booking the policy
--- cannot place, is refused. Fail closed, exactly as the router.
---
--- Exempt, as transactions_payment_gate already exempts it: the settlement
--- path recording a charge Paystack already took for an unknown reference
--- (vallo.recording_unknown_charge = 'on'). Money already taken is recorded,
--- never refused.
---
--- A NULL RAIL IS STAMPED, NOT REFUSED (defence in depth). An attempt that
--- arrives with neither rail nor rail_policy_id, and whose booking resolves to
--- DIRECT today, is written with rail = 'direct' and the resolving policy id.
--- An escrow answer or no answer is still refused, and a caller that supplied a
--- rail or policy different from the resolver's is refused. The app writes the
--- rail itself on every path: split-attempt.ts quoteSplit and, for flatmate
--- rent shares, lib/tenancy/share-checkout.ts (same router and railGate).
---
--- Live routing (checked 2026-10-06): rent on apartment and hotel listings, and
--- room bookings at hotel / serviced-apartment businesses (lister kind
--- business), resolve to DIRECT; rent on home, rental, shortlet, villa, office
--- and shop resolves to ESCROW, which is refused until escrow is live. Business
--- kinds the router does not map (guest_house, resort, ...) resolve to no rail
--- and are refused, as in the app.
---
--- DEPLOY PRECONDITION: apply only after the app build that writes rail and
--- rail_policy_id (split-attempt.ts and share-checkout.ts) is DEPLOYED, not
--- just merged.
---
--- Additive, idempotent.
--- Probe: supabase/tests/probes-pending/b2-rail-at-open.sql (promote to
--- supabase/tests/probes/ with the migration).
+-- Applied 7 October 2026 after production deployed the app build that writes
+-- transactions.rail and rail_policy_id (main 699129993). Full rationale in the
+-- pending header (git history of supabase/migrations/pending/b2_rail_at_open.sql).
+-- A new Paystack attempt must carry rail = 'direct' and the policy row the
+-- resolver returns for its booking today; a null rail on a direct booking is
+-- stamped; anything else is refused. Money already taken is recorded, never
+-- refused (vallo.recording_unknown_charge). Additive, idempotent.
 
 set local lock_timeout = '5s';
 
--- The policy's inputs for a booking: its listing, or the business behind a
--- room booking. NULLs where it cannot be said, which resolves to no rail.
 create or replace function private.rail_for_booking(p_booking uuid, out rail text, out policy_id uuid)
 returns record
 language plpgsql
@@ -143,3 +112,4 @@ begin
   end if;
 end;
 $check$;
+

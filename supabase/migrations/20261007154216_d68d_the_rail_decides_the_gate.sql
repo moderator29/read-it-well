@@ -1,62 +1,14 @@
 -- D68d / B.3.5: THE RAIL DECIDES THE GATE AFTER BOTH PARTIES AGREE.
--- Pending: NOT applied. The lead reviews it, applies it through the MCP, and
--- commits it under the version the server stamps (scripts/check-migrations.mjs).
--- Probe: supabase/tests/probes-pending/d68d-the-rail-decides-the-gate.sql.
---
--- APPLY AFTER (it builds on each): b3_rate_agreement_gate.sql (the payment gate
--- below is b3's version with one rule changed), b3x_fee_record_unify.sql,
--- b2_rail_at_open.sql (rail_for_booking, redefined here for stays),
--- b6_member_money_rail.sql, d73a_stays_instant_pay.sql (book_stay_instantly,
--- redefined here), d73b_provider_arrangements.sql (provider_arrangements).
---
--- THE RULE (founder, D68d)
---   Escrow (Payluk): no review. Payment opens as soon as both parties agree;
---     the protection is structural (the provider holds the money) and Vallo
---     reviews during the hold, with the power to pause a release.
---   Direct (Paystack split): opens as soon as both agree UNLESS a risk signal
---     fires. No signal, no queue.
+-- Applied 7 October 2026 after b3, b3x, b2, b6, d73a (switch, trigger,
+-- notices), d73b. Live agreement_confirm_as and transactions_payment_gate were
+-- checked equal to the base this was written on before applying. Full
+-- rationale in the pending header (git history of
+-- supabase/migrations/pending/d68d_the_rail_decides_the_gate.sql).
+--   Escrow (Payluk): no review; payment opens when both parties agree.
+--   Direct (Paystack split): opens when both agree UNLESS a risk signal fires.
 --   Kill switch `agreement_review_all` (off): forces review on everything.
---   Not a global "approval off" switch.
---
--- THE SIGNALS (direct rail only), each configurable in agreement_risk_settings:
---   first_deal          the lister has no paid deal on Vallo yet
---   amount_over         the amount is above the configured threshold
---   recent_change       the listing's price or availability changed (listing_changes),
---                       or the hotel's room or rate plan was edited, in the last N days
---   payout_name         the payout account's resolved name matches neither the
---                       lister's verified legal name nor their business's registered name
---   fraud_radar         the lister's latest risk class is high, or an open high or
---                       critical risk alert names the lister, listing, hotel, booking
---                       or agreement
---
--- WHAT CHANGES
---  1. agreement_risk_settings (one row) and the kill switch flag.
---  2. private.rail_for_booking (b2, REDEFINED): a fixed-price stay (a hotel room, or
---     a listing stay at a published nightly rate) resolves as a hotel room does,
---     direct (D73, D75: fixed-price shortlets take the direct rail). Without this,
---     b2 refuses every Paystack charge on a shortlet or on a room at a guest house
---     or resort. Rent charges resolve exactly as b2 does.
---  3. private.rail_for_agreement, private.agreement_risk_signals,
---     private.agreement_review_required (the resolver), private.agreement_payable.
---  4. private.transactions_payment_gate (LIVE FUNCTION CHANGED, from b3's version):
---     instead of demanding status 'approved' unconditionally it asks
---     agreement_payable: approved, and if the resolver says review is required
---     now, approved by a person. Enforced in the database, so no path bypasses it.
---  5. public.agreement_confirm_as (LIVE FUNCTION CHANGED): when both parties have
---     confirmed, the resolver decides. Not required: APPROVED by the system
---     (decided_by null, an 'approved' event, an audit_log row, the same
---     agreement.approved notices and emails). Required: in_review, as today, with
---     the signals named in the event.
---  6. provider_arrangements: opening one asks agreement_payable (a trigger), and a
---     release can be PAUSED by staff (admin_pause_release / admin_resume_release);
---     a paused arrangement refuses release_requested in the database.
---  7. private.book_stay_instantly (d73a, REDEFINED): an instant booking falls back to
---     a request when the resolver would require review, so a guest is never shown a
---     payment the gate refuses.
---  8. public.admin_agreement_watch_list(): the admin queue becomes a watch list over
---     every live deal (waiting for review, payable and unpaid, held by the provider),
---     ordered by risk.
--- NOT CHANGED: admin_decide_agreement (staff still approve or reject in_review).
+
+set local lock_timeout = '10s';
 
 -- 1. ---------------------------------------------------------------------------
 insert into public.feature_flags (key, enabled, note)
