@@ -9,10 +9,19 @@ import { CampaignCard } from "./CampaignCard";
 import { InviteLinkCard } from "./InviteLinkCard";
 import { RewardsFigures } from "./RewardsFigures";
 import { RewardsPauseNotice } from "./RewardsPauseNotice";
+import { MoneyCurve, type CurveRange } from "@/components/money/MoneyCurve";
+import { MoneyExplainer } from "@/components/money/MoneyExplainer";
+import { MoneyFigure } from "@/components/money/kit";
 import { money } from "./format";
 import { fill, type RewardsMoneyWords } from "./money-words";
 
 type Copy = Dictionary["experienceRewards"];
+
+const EARNED_RANGES: CurveRange[] = [
+  { key: "30", label: "30 days", days: 30, caption: "Earned in the last 30 days" },
+  { key: "90", label: "90 days", days: 90, caption: "Earned in the last 90 days" },
+  { key: "365", label: "12 months", days: 365, caption: "Earned in the last 12 months" },
+];
 
 export type RewardsHrefs = { referrals: string; history: string; withdraw: string };
 
@@ -52,6 +61,7 @@ export function RewardsDashboard({
   locale,
   hrefs,
   dismissLabel,
+  now,
 }: {
   snapshot: RewardsSnapshot;
   invite: { url: string; code: string } | null;
@@ -62,15 +72,53 @@ export function RewardsDashboard({
   locale: Locale;
   hrefs: RewardsHrefs;
   dismissLabel: string;
+  /** The server's clock at render. With it, the earned curve (reference 5) is drawn from the history. */
+  now?: number;
 }) {
   const { policy, balance } = snapshot;
   const number = new Intl.NumberFormat(intlTag[locale]);
   const reward = money(policy.rewardPerReferralMinor, locale);
   const minimum = money(policy.withdrawMinimumMinor, locale);
   const paused = snapshot.programme.state === "paused" ? snapshot.programme : null;
+  /* What was earned, from the history the read returned: referrals and
+     bonuses that are done, each as it landed. Nothing projected. */
+  const earned = snapshot.history.filter((h) => (h.kind === "referral" || h.kind === "bonus") && h.state === "done").map((h) => ({ at: h.at, minor: h.amountMinor }));
 
   return (
     <div className="nf-rewards" data-testid="rewards-dashboard" data-programme={snapshot.programme.state}>
+      {paused ? null : (
+        <MoneyExplainer
+          storageKey="nf-explainer-rewards-v1"
+          name={copy.title}
+          testId="rewards-explainer"
+          panels={[
+            {
+              key: "earn",
+              title: "Earn when friends qualify",
+              body: fill(words.qualify, { reward, cap: number.format(policy.monthlyCap) }),
+              fragment: (
+                <div className="nf-frag">
+                  <span className="nf-frag__pill">{copy.policy.perReferral}</span>
+                  <MoneyFigure minor={policy.rewardPerReferralMinor} locale={locale} size="lg" kobo="auto" />
+                  <span className="nf-frag__line">{copy.policy.monthlyCap}: {number.format(policy.monthlyCap)}</span>
+                </div>
+              ),
+            },
+            {
+              key: "withdraw",
+              title: "Withdraw to your bank",
+              body: fill(words.minimum, { minimum }),
+              fragment: (
+                <div className="nf-frag">
+                  <span className="nf-frag__pill">{copy.balance.available}</span>
+                  <MoneyFigure minor={balance.availableMinor} locale={locale} size="lg" kobo="auto" />
+                  <span className="nf-frag__line">{copy.policy.minimum}: {minimum}</span>
+                </div>
+              ),
+            },
+          ]}
+        />
+      )}
       {paused ? <RewardsPauseNotice programme={paused} copy={copy.pause} earned={pausedEarned} locale={locale} inviteOff /> : null}
 
       <RewardsFigures
@@ -90,6 +138,12 @@ export function RewardsDashboard({
           )
         }
       />
+
+      {now !== undefined && earned.length > 0 ? (
+        <div className="nf-curve-card">
+          <MoneyCurve events={earned} ranges={EARNED_RANGES} now={now} locale={locale} label="Range" testId="rewards-curve" />
+        </div>
+      ) : null}
 
       {snapshot.campaign && !paused ? <CampaignCard campaign={snapshot.campaign} copy={copy.campaign} locale={locale} /> : null}
 

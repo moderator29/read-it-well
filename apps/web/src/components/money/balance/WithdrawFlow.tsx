@@ -5,7 +5,7 @@ import type { Locale } from "@vallo/i18n/core";
 import { Sheet } from "@/components/ui/Sheet";
 import { Button } from "@/components/ui/Button";
 import { DragToConfirm } from "@/components/ui/DragToConfirm";
-import { NairaField } from "@/components/ui/NairaField";
+import { AmountPad, shareChips } from "../AmountPad";
 import { SelectField, TextField } from "@/components/ui/Field";
 import { Money } from "@/components/ui/Money";
 import {
@@ -194,14 +194,24 @@ export function WithdrawFlow({
 
         {step === "amount" ? (
           <>
-            <p className="nf-body-sm text-[var(--nf-content-secondary)]">
-              To {accountName}, {bankName} •••• {lastFour(accountNumber)}.
-            </p>
-            <NairaField
-              label="Amount"
+            <AmountPad
               value={amount}
               onValueChange={setAmount}
-              hint="The smallest withdrawal is ₦1,000. The processing fee is shown before you confirm."
+              label="Amount to withdraw"
+              question="How much to withdraw?"
+              context={
+                <>
+                  To {accountName}, {bankName} •••• {lastFour(accountNumber)}
+                </>
+              }
+              chips={shareChips(availableMinor)}
+              hint={
+                <>
+                  Available <Money minor={availableMinor} locale={locale} mode="full" />. The smallest withdrawal is ₦1,000. The processing fee is shown before you
+                  confirm.
+                </>
+              }
+              testId="withdraw-pad"
             />
             <div className="grid grid-cols-2 gap-sm">
               <Button variant="secondary" onClick={() => setStep("account")}>

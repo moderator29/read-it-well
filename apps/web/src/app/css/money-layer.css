@@ -233,7 +233,7 @@
     width: 2.75rem;
     height: 2.75rem;
     border-radius: var(--nf-radius-plate);
-    background: var(--nf-ink-900);
+    background: var(--nf-surface-inset);
     overflow: hidden;
   }
   .nf-balance__plate img {
@@ -271,38 +271,47 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* The waiting room: one figure, three honest steps, and a dot that breathes
-     only while something is genuinely still moving. No bar, no percentage. */
+  /* The waiting room (section 43; references 2 and 7): the moment's ring,
+     breathing only while something is genuinely still moving, the figure,
+     one calm line on its own surface, the path, and when we last heard. No
+     bar, no percentage. The keyframes are shared with the kit's live dot. */
   .nf-wait {
     display: grid;
     gap: var(--nf-space-lg);
-    justify-items: center;
-    text-align: center;
-    padding-block: var(--nf-space-lg);
+    padding-block: var(--nf-space-sm) var(--nf-space-md);
   }
-  .nf-wait__plate {
+  .nf-wait__head .nf-moment {
+    padding-block: var(--nf-space-sm) 0;
+  }
+  .nf-wait__figure {
     display: grid;
-    place-items: center;
-    width: 4.5rem;
-    height: 4.5rem;
-    border-radius: var(--nf-radius-circle);
-    background: var(--nf-ink-900);
-    position: relative;
+    justify-items: center;
+    gap: var(--nf-space-sm);
   }
-  .nf-wait__plate img {
-    width: 3rem;
-    height: 3rem;
+  .nf-wait__calm {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-md);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-state-info-surface);
+    border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-brand-primary) 22%, transparent);
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.5;
+    color: var(--nf-content-primary);
   }
-  .nf-wait__plate[data-open="true"]::after {
-    content: "";
-    position: absolute;
-    inset: -0.375rem;
-    border-radius: var(--nf-radius-circle);
-    border: var(--nf-border-width-strong) solid var(--nf-brand-primary);
-    opacity: 0.35;
-    /* Bounded (MOTION_SYSTEM principle 10): six breaths, then the ring rests
-       where it ended, still saying "open" without moving. */
-    animation: nf-wait-breathe var(--nf-duration-cinematic) var(--nf-ease-standard) 6 alternate both;
+  .nf-wait__calm > svg {
+    flex-shrink: 0;
+    margin-top: 0.125rem;
+    color: var(--nf-brand-primary);
+  }
+  .nf-wait__meta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--nf-space-2xs) var(--nf-space-md);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
   }
   @keyframes nf-wait-breathe {
     from {
@@ -314,17 +323,1145 @@
       opacity: 0.45;
     }
   }
+
+  /* Reference 8's bill: the seven figures as one card of line items. */
+  .nf-maths--bill {
+    gap: 0;
+    padding: var(--nf-space-2xs) var(--nf-space-md);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-panel-fill-card);
+    border: var(--nf-border-width) solid var(--nf-panel-hair);
+  }
+  .nf-maths--bill .nf-maths__row {
+    align-items: baseline;
+    padding-block: var(--nf-space-sm);
+    font-size: var(--nf-text-body-sm);
+  }
+  .nf-maths--bill .nf-maths__row + .nf-maths__row {
+    border-top: var(--nf-border-width) solid var(--nf-divider);
+  }
+  .nf-maths--bill .nf-maths__row dd {
+    text-align: end;
+    color: var(--nf-content-primary);
+  }
+  .nf-maths--bill .nf-maths__row--total {
+    padding-top: var(--nf-space-sm);
+    font-size: var(--nf-text-body);
+  }
+  .nf-maths--bill .nf-maths__row--lit dd .nf-mfig {
+    color: var(--nf-brand-primary);
+    font-size: 1.125rem;
+  }
+  .nf-maths--bill .nf-maths__row--to {
+    align-items: flex-start;
+  }
+
+  /* ================================================================ D72
+     THE MONEY KIT (components/money/kit.tsx, StepPath, AmountPad,
+     MoneyExplainer). PREMIUM-STANDARD references 2, 4, 5, 7, 8 and 9 and
+     IMG_7027. Every money surface draws its figure, its card, its moment,
+     its status word and its path from here, so they read as one product.
+     ================================================================ */
+
+  /* ------------------------------------------------------- the figure
+     The naira sign quiet and raised to the cap line, the whole naira in
+     full ink, the kobo at half size in the secondary ink (reference 4's
+     "6,420.00"). Tabular, tight, never wrapped. */
+  .nf-mfig {
+    display: inline-block;
+    max-width: 100%;
+    white-space: nowrap;
+    color: var(--nf-content-primary);
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.035em;
+    font-variant-numeric: tabular-nums;
+  }
+  .nf-mfig--hero {
+    font-size: clamp(2.5rem, 1.55rem + 4.4vw, 3.5rem);
+  }
+  .nf-mfig--lg {
+    font-size: clamp(1.875rem, 1.45rem + 1.9vw, 2.375rem);
+  }
+  .nf-mfig--md {
+    font-size: 1.375rem;
+    letter-spacing: -0.02em;
+  }
+  .nf-mfig--row {
+    font-size: var(--nf-text-row);
+    font-weight: 600;
+    letter-spacing: -0.005em;
+  }
+  /* Inline, never flex: a flex item is blockified and the figure would read
+     as three lines to innerText (the receipt test reads it whole). The sign
+     rises to the cap line by vertical-align instead. */
+  .nf-mfig__cur {
+    margin-inline-end: 0.06em;
+    font-size: 0.56em;
+    font-weight: 600;
+    letter-spacing: 0;
+    vertical-align: 0.55em;
+    color: var(--nf-content-secondary);
+  }
+  .nf-mfig__sign {
+    margin-inline-end: 0.06em;
+    font-weight: 500;
+  }
+  .nf-mfig__kobo {
+    margin-inline-start: 0.03em;
+    font-size: 0.5em;
+    font-weight: 600;
+    letter-spacing: 0;
+    color: var(--nf-content-secondary);
+  }
+  .nf-mfig--row .nf-mfig__cur,
+  .nf-mfig--md .nf-mfig__cur {
+    vertical-align: baseline;
+    margin: 0;
+    font-size: 1em;
+    color: inherit;
+  }
+  .nf-mfig--row .nf-mfig__kobo {
+    font-size: 0.8em;
+  }
+
+  /* --------------------------------------------------- the money card
+     Handoff A.9: a glass object with the shape and weight of a bank card.
+     The raised night glass, one hairline edge, one brand glow bleeding from
+     the top corner (the only colour), a sheen across it. */
+  .nf-mcard {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    gap: var(--nf-space-md);
+    width: 100%;
+    max-width: 28rem;
+    min-height: 12.5rem;
+    aspect-ratio: 1.586;
+    margin-inline: auto;
+    padding: var(--nf-space-lg) var(--nf-space-lg) var(--nf-space-md);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-night-glass-raised-fill);
+    border: var(--nf-border-width) solid var(--nf-night-glass-raised-edge);
+    box-shadow: var(--nf-night-glass-raised-shadow), var(--nf-night-glass-raised-glow);
+    color: var(--nf-content-primary);
+  }
+  .nf-mcard::before {
+    content: "";
+    position: absolute;
+    inset: -40% -30% auto auto;
+    width: 85%;
+    aspect-ratio: 1;
+    z-index: -1;
+    border-radius: var(--nf-radius-circle);
+    background: radial-gradient(closest-side, color-mix(in oklab, var(--nf-brand-primary) 42%, transparent), transparent);
+    pointer-events: none;
+  }
+  .nf-mcard__sheen {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(
+      115deg,
+      transparent 28%,
+      color-mix(in oklab, var(--nf-content-primary) 7%, transparent) 44%,
+      transparent 58%
+    );
+    pointer-events: none;
+  }
+  .nf-mcard__top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--nf-space-md);
+  }
+  .nf-mcard__brand {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+  }
+  .nf-mcard__word {
+    font-size: var(--nf-text-label);
+    font-weight: 600;
+    letter-spacing: 0.32em;
+    color: var(--nf-content-secondary);
+  }
+  .nf-mcard__chip {
+    width: 2.375rem;
+    height: 1.75rem;
+    border-radius: var(--nf-radius-xs);
+    border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-content-primary) 22%, transparent);
+    background:
+      linear-gradient(90deg, transparent 32%, color-mix(in oklab, var(--nf-content-primary) 14%, transparent) 32% 36%, transparent 36% 64%, color-mix(in oklab, var(--nf-content-primary) 14%, transparent) 64% 68%, transparent 68%),
+      linear-gradient(180deg, transparent 46%, color-mix(in oklab, var(--nf-content-primary) 14%, transparent) 46% 54%, transparent 54%),
+      color-mix(in oklab, var(--nf-content-primary) 8%, transparent);
+  }
+  .nf-mcard__art {
+    margin: calc(-1 * var(--nf-space-sm)) calc(-1 * var(--nf-space-sm)) 0 0;
+    filter: drop-shadow(0 10px 18px color-mix(in oklab, var(--nf-brand-primary) 30%, transparent));
+  }
+  .nf-mcard__body {
+    display: grid;
+    align-content: end;
+    gap: var(--nf-space-xs);
+    min-width: 0;
+  }
+  .nf-mcard__caption {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 500;
+    color: var(--nf-content-secondary);
+  }
+  .nf-mcard__figure {
+    min-width: 0;
+  }
+  .nf-mcard__sub {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+  }
+  .nf-mcard__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-space-xs) var(--nf-space-md);
+    padding-top: var(--nf-space-sm);
+    border-top: var(--nf-border-width) solid color-mix(in oklab, var(--nf-content-primary) 10%, transparent);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+  }
+  @media (max-width: 359px) {
+    .nf-mcard {
+      aspect-ratio: auto;
+      padding-inline: var(--nf-space-md);
+    }
+  }
+
+  /* ---------------------------------------------- the moment and its dot
+     Reference 7: a small green check dot, a title, one line. The done dot
+     pops once (A.1: one sharp impact, one scale pop); the waiting ring
+     breathes six times and rests; a still frame under reduced motion,
+     Calm, Off and save-data. */
+  .nf-mdot {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    flex-shrink: 0;
+    border-radius: var(--nf-radius-circle);
+    color: var(--nf-content-on-brand);
+  }
+  .nf-mdot--sm {
+    width: 1.375rem;
+    height: 1.375rem;
+  }
+  .nf-mdot--md {
+    width: 2rem;
+    height: 2rem;
+  }
+  .nf-mdot--lg {
+    width: 3rem;
+    height: 3rem;
+  }
+  .nf-mdot[data-tone="done"] {
+    background: var(--nf-state-success);
+    box-shadow: 0 0 0 0.375rem color-mix(in oklab, var(--nf-state-success) 16%, transparent);
+  }
+  .nf-mdot--sm[data-tone="done"] {
+    box-shadow: none;
+  }
+  .nf-mdot[data-tone="problem"] {
+    background: var(--nf-state-error);
+    box-shadow: 0 0 0 0.375rem color-mix(in oklab, var(--nf-state-error) 14%, transparent);
+  }
+  .nf-mdot--sm[data-tone="problem"] {
+    box-shadow: none;
+  }
+  .nf-mdot[data-tone="waiting"] {
+    border: var(--nf-border-width-strong) solid var(--nf-brand-primary);
+    background: color-mix(in oklab, var(--nf-brand-primary) 12%, transparent);
+  }
+  .nf-mdot[data-tone="neutral"] {
+    border: var(--nf-border-width-strong) solid color-mix(in oklab, var(--nf-content-muted) 60%, transparent);
+  }
+  .nf-mdot__core {
+    width: 34%;
+    height: 34%;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-brand-primary);
+  }
+  .nf-mdot[data-live="true"]::after {
+    content: "";
+    position: absolute;
+    inset: -0.3125rem;
+    border-radius: var(--nf-radius-circle);
+    border: var(--nf-border-width) solid var(--nf-brand-primary);
+    opacity: 0.3;
+    animation: nf-wait-breathe var(--nf-duration-cinematic) var(--nf-ease-standard) 6 alternate both;
+  }
+  .nf-moment .nf-mdot[data-tone="done"] {
+    animation: nf-mdot-pop 460ms var(--nf-ease-spring) both;
+  }
+  @keyframes nf-mdot-pop {
+    0% {
+      transform: scale(0.6);
+      opacity: 0;
+    }
+    60% {
+      transform: scale(1.08);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
   @media (prefers-reduced-motion: reduce) {
-    .nf-wait__plate[data-open="true"]::after {
+    .nf-mdot[data-live="true"]::after,
+    .nf-moment .nf-mdot[data-tone="done"] {
       animation: none;
     }
   }
-  :root[data-motion="calm"] .nf-wait__plate[data-open="true"]::after,
-  :root[data-save-data="on"] .nf-wait__plate[data-open="true"]::after {
+  :root[data-motion="calm"] .nf-mdot[data-live="true"]::after,
+  :root[data-motion="off"] .nf-mdot[data-live="true"]::after,
+  :root[data-save-data="on"] .nf-mdot[data-live="true"]::after,
+  :root[data-motion="off"] .nf-moment .nf-mdot[data-tone="done"],
+  :root[data-save-data="on"] .nf-moment .nf-mdot[data-tone="done"] {
     animation: none;
   }
-  .nf-wait .nf-timeline {
-    justify-self: stretch;
+
+  .nf-moment {
+    display: grid;
+    justify-items: center;
+    gap: var(--nf-space-sm);
+    text-align: center;
+    padding-block: var(--nf-space-lg) var(--nf-space-md);
+  }
+  .nf-moment[data-align="start"] {
+    justify-items: start;
     text-align: start;
+    padding-block: 0;
+  }
+  .nf-moment .nf-mdot {
+    margin-block-end: var(--nf-space-xs);
+  }
+  .nf-moment__title {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h2);
+    font-weight: 650;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: var(--nf-content-primary);
+    text-wrap: balance;
+  }
+  .nf-moment__line {
+    max-width: 34ch;
+    font-size: var(--nf-text-body);
+    line-height: 1.5;
+    color: var(--nf-content-secondary);
+    text-wrap: pretty;
+  }
+
+  /* --------------------------------------------------- the status word
+     Reference 4: PAID, PROCESSING, a small tracked word under the amount,
+     a dot before it. The word carries the meaning; the colour agrees. */
+  .nf-mword {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: var(--nf-text-label);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: var(--nf-content-secondary);
+  }
+  .nf-mword__dot {
+    width: 0.375rem;
+    height: 0.375rem;
+    border-radius: var(--nf-radius-circle);
+    background: currentColor;
+  }
+  .nf-mword[data-tone="done"] {
+    color: var(--nf-state-success);
+  }
+  .nf-mword[data-tone="problem"] {
+    color: var(--nf-state-error);
+  }
+  .nf-mword[data-tone="waiting"] .nf-mword__dot {
+    background: var(--nf-brand-primary);
+  }
+  .nf-mword[data-tone="neutral"] {
+    color: var(--nf-content-muted);
+  }
+
+  /* ---------------------------------------------------- the header strip
+     Reference 8: figures side by side with tiny tracked labels. */
+  .nf-mstrip {
+    display: grid;
+    grid-template-columns: repeat(var(--nf-mstrip-count, 3), minmax(0, 1fr));
+    gap: var(--nf-space-sm);
+  }
+  .nf-mstrip[data-count="2"] {
+    --nf-mstrip-count: 2;
+  }
+  .nf-mstrip__cell {
+    display: grid;
+    gap: var(--nf-space-2xs);
+    min-width: 0;
+  }
+  .nf-mstrip__cell dt {
+    font-size: var(--nf-text-label);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--nf-content-muted);
+  }
+  .nf-mstrip__cell dd {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .nf-mstrip__cell[data-accent="true"] dd .nf-mfig,
+  .nf-mstrip__cell[data-accent="true"] dd .nf-mfig__kobo,
+  .nf-mstrip__cell[data-accent="true"] dd .nf-mfig__cur {
+    color: var(--nf-brand-primary);
+  }
+
+  /* -------------------------------------------------------- the path
+     Reference 2: a tile, two lines, a round status; a connector that fills
+     as steps complete. As cards on a page; as plain rows when compact. */
+  .nf-path {
+    display: grid;
+    gap: var(--nf-space-sm);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .nf-path__step {
+    position: relative;
+    display: grid;
+    grid-template-columns: 2.75rem minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--nf-space-md);
+    padding: var(--nf-space-md);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-panel-fill-card);
+    border: var(--nf-border-width) solid var(--nf-panel-hair);
+  }
+  .nf-path__step:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    inset-inline-start: calc(var(--nf-space-md) + 1.375rem - 1px);
+    top: calc(100% - var(--nf-space-md) + var(--nf-space-2xs));
+    height: calc(var(--nf-space-sm) + 2 * var(--nf-space-md) - 2 * var(--nf-space-2xs));
+    width: 2px;
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-divider);
+    z-index: 1;
+  }
+  .nf-path__step[data-state="done"]:not(:last-child)::after {
+    background: var(--nf-state-success);
+  }
+  .nf-path__step[data-state="current"],
+  .nf-path__step[data-state="waiting"] {
+    border-color: color-mix(in oklab, var(--nf-brand-primary) 55%, transparent);
+  }
+  .nf-path__step[data-state="problem"] {
+    border-color: color-mix(in oklab, var(--nf-state-error) 55%, transparent);
+  }
+  .nf-path__lead {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+  .nf-path__num {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--nf-radius-circle);
+    border: var(--nf-border-width-strong) solid var(--nf-divider);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-content-secondary);
+    background: var(--nf-surface-raised);
+  }
+  .nf-path__step[data-state="current"] .nf-path__num,
+  .nf-path__step[data-state="waiting"] .nf-path__num {
+    border-color: var(--nf-brand-primary);
+    color: var(--nf-content-primary);
+  }
+  .nf-path__step[data-state="done"] .nf-path__num {
+    border-color: var(--nf-state-success);
+    color: var(--nf-content-primary);
+  }
+  .nf-path__text {
+    display: grid;
+    gap: var(--nf-space-2xs);
+    min-width: 0;
+  }
+  .nf-path__title {
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--nf-content-primary);
+  }
+  .nf-path__step[data-state="upcoming"] .nf-path__title {
+    color: var(--nf-content-secondary);
+  }
+  .nf-path__sub {
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.45;
+    color: var(--nf-content-secondary);
+  }
+  .nf-path__more {
+    margin-top: var(--nf-space-sm);
+  }
+  .nf-path__status {
+    align-self: start;
+    padding-top: var(--nf-space-2xs);
+  }
+  /* Compact: the same path as rows, inside a card or a sheet. */
+  .nf-path[data-compact="true"] {
+    gap: var(--nf-space-md);
+  }
+  .nf-path[data-compact="true"] .nf-path__step {
+    padding: 0;
+    background: none;
+    border: 0;
+    grid-template-columns: 2.25rem minmax(0, 1fr) auto;
+  }
+  .nf-path[data-compact="true"] .nf-path__lead {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+  .nf-path[data-compact="true"] .nf-path__step:not(:last-child)::after {
+    inset-inline-start: calc(1.125rem - 1px);
+    top: calc(50% + 1.125rem + var(--nf-space-2xs));
+    height: calc(var(--nf-space-md) - 2 * var(--nf-space-2xs));
+  }
+
+  /* --------------------------------------------------- the amount entry
+     IMG_7027: the figure huge, the sign quiet, a muted question, chips, a
+     calm keypad of soft rounded keys. */
+  .nf-pad {
+    display: grid;
+    justify-items: center;
+    gap: var(--nf-space-md);
+    text-align: center;
+  }
+  .nf-pad__context {
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+  }
+  .nf-pad__figure {
+    position: relative;
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    max-width: 100%;
+    padding-block: var(--nf-space-sm) var(--nf-space-2xs);
+    font-size: clamp(3rem, 2rem + 6vw, 4rem);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    color: var(--nf-content-primary);
+    font-variant-numeric: tabular-nums;
+  }
+  .nf-pad__figure[data-long="true"] {
+    font-size: clamp(2.25rem, 1.6rem + 4vw, 3rem);
+  }
+  .nf-pad__cur {
+    align-self: flex-start;
+    margin-block-start: 0.12em;
+    margin-inline-end: 0.06em;
+    font-size: 0.5em;
+    font-weight: 600;
+    letter-spacing: 0;
+    color: var(--nf-content-secondary);
+  }
+  .nf-pad__figure[data-empty="true"] .nf-pad__cur {
+    color: var(--nf-content-muted);
+  }
+  .nf-pad__input {
+    min-width: 1ch;
+    max-width: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    letter-spacing: inherit;
+    text-align: center;
+    caret-color: var(--nf-brand-primary);
+    outline: none;
+    font-variant-numeric: tabular-nums;
+  }
+  .nf-pad__input::placeholder {
+    color: var(--nf-content-muted);
+    opacity: 1;
+  }
+  .nf-pad__figure::after {
+    content: "";
+    position: absolute;
+    inset-inline: 20%;
+    bottom: calc(-1 * var(--nf-space-2xs));
+    height: 2px;
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-brand-primary);
+    opacity: 0;
+    transition: opacity var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-pad__figure:focus-within::after {
+    opacity: 0.6;
+  }
+  .nf-pad__question {
+    font-size: var(--nf-text-body);
+    color: var(--nf-content-secondary);
+  }
+  .nf-pad__chips {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--nf-space-sm);
+  }
+  .nf-pad__keys {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--nf-space-sm);
+    width: 100%;
+    max-width: 22rem;
+  }
+  .nf-pad__key {
+    display: grid;
+    place-items: center;
+    min-height: 3.25rem;
+    border-radius: var(--nf-radius-control);
+    background: color-mix(in oklab, var(--nf-content-primary) 6%, transparent);
+    border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-content-primary) 6%, transparent);
+    font-size: 1.375rem;
+    font-weight: 500;
+    color: var(--nf-content-primary);
+    transition:
+      transform var(--nf-duration-fast) var(--nf-ease-press),
+      background-color var(--nf-duration-fast) var(--nf-ease-standard);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .nf-pad__key:active:not(:disabled) {
+    transform: scale(0.96);
+    background: color-mix(in oklab, var(--nf-content-primary) 12%, transparent);
+  }
+  .nf-pad__key:disabled {
+    opacity: 0.35;
+  }
+  .nf-pad__key:focus-visible {
+    outline: 2px solid var(--nf-brand-primary);
+    outline-offset: 2px;
+  }
+  .nf-pad__hint {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  @media (max-height: 700px) {
+    .nf-pad__key {
+      min-height: 2.875rem;
+    }
+    .nf-pad__figure {
+      font-size: clamp(2.5rem, 1.8rem + 5vw, 3.25rem);
+    }
+  }
+
+  /* ------------------------------------------------- the explainer
+     Reference 9: a phone frame cropped at the top, a frosted fragment of
+     the real screen breaking out of it towards the reader. */
+  .nf-explain {
+    display: grid;
+    gap: var(--nf-space-lg);
+    padding-block: var(--nf-space-sm) var(--nf-space-md);
+  }
+  .nf-explain__stage {
+    position: relative;
+    height: 15.5rem;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(180deg, var(--nf-content-primary) 72%, transparent);
+    mask-image: linear-gradient(180deg, var(--nf-content-primary) 72%, transparent);
+  }
+  .nf-explain__phone {
+    position: absolute;
+    inset: var(--nf-space-lg) 14% -2rem;
+    border-radius: var(--nf-radius-island) var(--nf-radius-island) 0 0;
+    border: var(--nf-border-width-strong) solid color-mix(in oklab, var(--nf-content-primary) 14%, transparent);
+    background: color-mix(in oklab, var(--nf-surface-inset) 80%, transparent);
+  }
+  .nf-explain__phone::before {
+    content: "";
+    position: absolute;
+    top: 0.625rem;
+    left: 50%;
+    width: 4.5rem;
+    height: 1.125rem;
+    translate: -50% 0;
+    border-radius: var(--nf-radius-pill);
+    background: color-mix(in oklab, var(--nf-content-primary) 10%, transparent);
+  }
+  .nf-explain__fragment {
+    position: absolute;
+    top: 3.25rem;
+    left: 50%;
+    width: min(88%, 20rem);
+    translate: -50% 0;
+    padding: var(--nf-space-md);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-glass-fill-strong);
+    border: var(--nf-border-width) solid var(--nf-glass-border);
+    box-shadow: var(--nf-glass-shadow-lifted);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur));
+    backdrop-filter: blur(var(--nf-glass-blur));
+    animation: nf-explain-rise var(--nf-duration-entrance) var(--nf-ease-entrance) both;
+  }
+  @keyframes nf-explain-rise {
+    from {
+      opacity: 0;
+      transform: translateY(14px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1.03);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-explain__fragment {
+      animation: none;
+      transform: scale(1.03);
+    }
+  }
+  :root[data-motion="off"] .nf-explain__fragment,
+  :root[data-motion="calm"] .nf-explain__fragment,
+  :root[data-save-data="on"] .nf-explain__fragment {
+    animation: none;
+    transform: scale(1.03);
+  }
+  .nf-explain__words {
+    display: grid;
+    gap: var(--nf-space-xs);
+    text-align: center;
+  }
+  .nf-explain__title {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h2);
+    font-weight: 650;
+    letter-spacing: -0.02em;
+    color: var(--nf-content-primary);
+  }
+  .nf-explain__body {
+    max-width: 34ch;
+    margin-inline: auto;
+    font-size: var(--nf-text-body);
+    line-height: 1.5;
+    color: var(--nf-content-secondary);
+  }
+  .nf-explain__dots {
+    display: flex;
+    justify-content: center;
+  }
+  .nf-explain__dot {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+  .nf-explain__dot::before {
+    content: "";
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: var(--nf-radius-pill);
+    background: color-mix(in oklab, var(--nf-content-primary) 25%, transparent);
+    transition: width var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  .nf-explain__dot[aria-current="step"]::before {
+    width: 1.25rem;
+    background: var(--nf-brand-primary);
+  }
+  /* The fragment's own furniture: a source pill, a figure, a muted line. */
+  .nf-frag {
+    display: grid;
+    justify-items: center;
+    gap: var(--nf-space-sm);
+    text-align: center;
+  }
+  .nf-frag__pill {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    padding: var(--nf-space-2xs) var(--nf-space-sm);
+    border-radius: var(--nf-radius-control);
+    background: color-mix(in oklab, var(--nf-content-primary) 8%, transparent);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+  }
+  .nf-frag__line {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-frag__chips {
+    display: flex;
+    gap: var(--nf-space-xs);
+  }
+  .nf-frag__chip {
+    padding: var(--nf-space-2xs) var(--nf-space-sm);
+    border-radius: var(--nf-radius-control);
+    background: color-mix(in oklab, var(--nf-content-primary) 8%, transparent);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+  }
+  .nf-frag__chip[data-on="true"] {
+    background: var(--nf-selected-fill);
+    color: var(--nf-content-on-brand);
+  }
+
+  /* ------------------------------------------- the balance, D72 pass
+     The money card, then three actions as glass tiles with a label under
+     each (6AF37222's row without its neon), then what is still moving as
+     one calm card, then where the money is, then what moved. */
+  .nf-mcard__state {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+  }
+  .nf-mfig--in {
+    color: var(--nf-state-success);
+  }
+  .nf-mactions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--nf-space-sm);
+    max-width: 28rem;
+    margin-inline: auto;
+  }
+  .nf-maction {
+    display: grid;
+    justify-items: center;
+    gap: var(--nf-space-xs);
+    min-height: 2.75rem;
+    padding-block: var(--nf-space-2xs);
+    color: var(--nf-content-primary);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .nf-maction__plate {
+    display: grid;
+    place-items: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: var(--nf-radius-control);
+    background: var(--nf-night-glass-raised-fill);
+    border: var(--nf-border-width) solid var(--nf-night-glass-raised-edge);
+    box-shadow: var(--nf-night-glass-raised-shadow);
+    color: var(--nf-brand-primary);
+    transition: transform var(--nf-duration-fast) var(--nf-ease-press);
+  }
+  .nf-maction:active:not(:disabled) .nf-maction__plate {
+    transform: scale(0.95);
+  }
+  .nf-maction:focus-visible {
+    outline: none;
+  }
+  .nf-maction:focus-visible .nf-maction__plate {
+    outline: 2px solid var(--nf-brand-primary);
+    outline-offset: 2px;
+  }
+  .nf-maction__label {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+  }
+  .nf-maction:disabled {
+    color: var(--nf-content-muted);
+  }
+  .nf-maction:disabled .nf-maction__plate {
+    opacity: 0.5;
+    color: var(--nf-content-muted);
+  }
+  .nf-moving-wrap {
+    display: grid;
+    gap: var(--nf-space-sm);
+  }
+  .nf-moving-wrap__label {
+    color: var(--nf-content-muted);
+  }
+  .nf-moving {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: var(--nf-space-md);
+    width: 100%;
+    min-height: 4.5rem;
+    padding: var(--nf-space-md);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-panel-fill-card);
+    border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-brand-primary) 45%, transparent);
+    text-align: start;
+    color: var(--nf-content-primary);
+  }
+  .nf-moving:focus-visible {
+    outline: 2px solid var(--nf-brand-primary);
+    outline-offset: 2px;
+  }
+  .nf-moving__text {
+    display: grid;
+    gap: var(--nf-space-2xs);
+    min-width: 0;
+  }
+  .nf-moving__title {
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+  }
+  .nf-moving__sub {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+  }
+  .nf-moving__end {
+    display: grid;
+    justify-items: end;
+    gap: var(--nf-space-2xs);
+  }
+  .nf-moving__chev {
+    color: var(--nf-content-muted);
+  }
+  @media (max-width: 359px) {
+    .nf-moving {
+      grid-template-columns: auto minmax(0, 1fr) auto;
+    }
+    .nf-moving__chev {
+      display: none;
+    }
+  }
+  .nf-list-row__end .nf-mword {
+    justify-self: end;
+  }
+
+  /* -------------------------------------------------- the money head
+     A state's top: one 3D object on a soft glow, a title, a body. Used by
+     the not-live balance, onboarding and the rewards and payout states. */
+  .nf-mhead {
+    display: grid;
+    justify-items: center;
+    gap: var(--nf-space-sm);
+    padding-block: var(--nf-space-lg) var(--nf-space-sm);
+    text-align: center;
+  }
+  .nf-mhead__art {
+    position: relative;
+    display: grid;
+    place-items: center;
+    margin-block-end: var(--nf-space-xs);
+  }
+  .nf-mhead__art::before {
+    content: "";
+    position: absolute;
+    inset: -30%;
+    z-index: -1;
+    border-radius: var(--nf-radius-circle);
+    background: radial-gradient(closest-side, color-mix(in oklab, var(--nf-brand-primary) 30%, transparent), transparent);
+  }
+  .nf-mhead__title {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h2);
+    font-weight: 650;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: var(--nf-content-primary);
+    text-wrap: balance;
+  }
+  .nf-mhead__body {
+    max-width: 38ch;
+    font-size: var(--nf-text-body);
+    line-height: 1.55;
+    color: var(--nf-content-secondary);
+    text-wrap: pretty;
+  }
+  .nf-mhead__actions {
+    display: grid;
+    gap: var(--nf-space-sm);
+  }
+  @media (min-width: 640px) {
+    .nf-mhead__actions {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  /* ------------------------------------------------------ the receipt
+     References 4 and 7 on the founder's receipt printer: a green check dot
+     beside the kind, the figure on its own paper inset ("You paid") with the
+     kobo set smaller, and every confirmation a blue tick beside its word. */
+  .nf-receipt__kind {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+  .nf-receipt__paid {
+    padding: var(--nf-space-md);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-surface-on-paper);
+  }
+  .nf-receipt__paid .nf-doc__figure {
+    font-family: var(--nf-font-sans);
+    font-weight: 700;
+    letter-spacing: -0.035em;
+  }
+  .nf-doc--receipt .nf-doc__state--done {
+    font-weight: 600;
+    color: var(--nf-content-link);
+  }
+  .nf-doc--receipt .nf-doc__state--done .nf-doc__mark {
+    position: relative;
+    width: 1rem;
+    height: 1rem;
+    background: var(--nf-content-link);
+    border-color: var(--nf-content-link);
+  }
+  .nf-doc--receipt .nf-doc__state--done .nf-doc__mark::after {
+    content: "";
+    position: absolute;
+    left: 0.33rem;
+    top: 0.17rem;
+    width: 0.3rem;
+    height: 0.52rem;
+    border: solid var(--nf-content-on-brand);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+  .nf-receipt-actions {
+    display: grid;
+    gap: var(--nf-space-xs);
+    margin-top: var(--nf-space-lg);
+  }
+  @media print {
+    .nf-receipt-actions {
+      display: none;
+    }
+  }
+
+  /* ------------------------------------------------------ the payouts
+     Reference 8 per payment: the space, the day and its status word, then
+     the line items on the same card. */
+  .nf-payout {
+    display: grid;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-md);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-panel-fill-card);
+    border: var(--nf-border-width) solid var(--nf-panel-hair);
+  }
+  .nf-payout__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--nf-space-md);
+  }
+  .nf-payout__title {
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-payout__day {
+    margin-top: var(--nf-space-2xs);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-maths--inset {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+  }
+
+  /* ----------------------------------------------------- the curve card
+     Reference 5: a range switch, one big tabular figure, a quiet label, a
+     smooth line with a faint fill over three hairlines. */
+  .nf-curve-card {
+    padding: var(--nf-space-lg) var(--nf-space-md) var(--nf-space-md);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-panel-fill-card);
+    border: var(--nf-border-width) solid var(--nf-panel-hair);
+    box-shadow: var(--nf-card-shadow);
+  }
+  .nf-curve {
+    display: grid;
+    gap: var(--nf-space-md);
+  }
+  .nf-curve__figure {
+    display: grid;
+    gap: var(--nf-space-2xs);
+  }
+  .nf-curve__caption {
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+  }
+  .nf-curve__chart {
+    width: 100%;
+    height: 7rem;
+    overflow: visible;
+  }
+  .nf-curve__grid {
+    stroke: var(--nf-divider);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+  }
+  .nf-curve__line {
+    fill: none;
+    stroke: var(--nf-brand-primary);
+    stroke-width: 2.25;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+  }
+  .nf-curve__stop-top {
+    stop-color: var(--nf-brand-primary);
+    stop-opacity: 0.22;
+  }
+  .nf-curve__stop-bottom {
+    stop-color: var(--nf-brand-primary);
+    stop-opacity: 0;
+  }
+  .nf-curve__note {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+
+  /* --------------------------------------------- filter chips with counts */
+  .nf-mfilters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--nf-space-sm);
+  }
+
+  /* "Payment is not open yet": the reason the agreement came back, set on
+     the error surface so it reads as the thing to fix. */
+  .nf-gate__reason {
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    border-radius: var(--nf-radius-card-sm);
+    background: var(--nf-state-error-surface);
+    color: var(--nf-content-primary);
+  }
+  /* The "You paid" inset, centred as the founder's payment-confirmed frame
+     (references/2026-10-07/payment-confirmed.jpg): a tracked label, the
+     figure, nothing else. */
+  .nf-receipt__paid {
+    justify-items: center;
+    text-align: center;
+  }
+  .nf-receipt__paid > .nf-doc__label {
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
   }
 }

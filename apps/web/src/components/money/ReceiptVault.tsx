@@ -2,7 +2,7 @@ import type { Locale } from "@vallo/i18n/core";
 import { Amount } from "@/components/ui/Amount";
 import { Chip } from "@/components/ui/Chip";
 import { ListGroup, ListRow } from "@/components/ui/ListGroup";
-import { StatusPill } from "@/components/ui/StatusPill";
+import { StatusWord } from "./kit";
 import { ButtonLink } from "@/components/ui/Button";
 import {
   RECEIPTS_FILTER,
@@ -37,6 +37,7 @@ export function ReceiptVault({
   query,
   basePath,
   locale,
+  counts,
 }: {
   /** Already filtered. */
   entries: readonly HistoryEntry[];
@@ -46,6 +47,11 @@ export function ReceiptVault({
   query: string;
   basePath: string;
   locale: Locale;
+  /**
+   * Per kind, how many receipts match the search: passed only when this page
+   * is the whole record, so a chip never shows a part as the whole.
+   */
+  counts?: Record<VaultKind, number>;
 }) {
   const href = (k: VaultKind) => {
     const p = new URLSearchParams();
@@ -74,7 +80,7 @@ export function ReceiptVault({
       </form>
       <div className="flex flex-wrap gap-inline" aria-label={RECEIPTS_SEARCH_LABEL}>
         {(["all", "payment", "refund"] as const).map((k) => (
-          <Chip key={k} behaviour="link" href={href(k)} selected={kind === k} data-testid={`vault-kind-${k}`}>
+          <Chip key={k} behaviour="link" href={href(k)} selected={kind === k} count={counts?.[k]} data-testid={`vault-kind-${k}`}>
             {RECEIPTS_FILTER[k]}
           </Chip>
         ))}
@@ -98,7 +104,7 @@ export function ReceiptVault({
                 title={entry.title ?? KIND_LABEL[entry.kind]}
                 sub={[day, KIND_LABEL[entry.kind], ref].filter(Boolean).join(" · ")}
                 value={<Amount minorUnits={entry.amountMinor} locale={locale} showFraction />}
-                status={<StatusPill tone={status.tone}>{status.label}</StatusPill>}
+                status={<StatusWord tone={status.tone}>{status.label}</StatusWord>}
                 href={entry.bookingId ? `/bookings/${encodeURIComponent(entry.bookingId)}` : undefined}
                 chevron={Boolean(entry.bookingId)}
               />

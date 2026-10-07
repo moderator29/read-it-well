@@ -1,7 +1,7 @@
 import "./rewards.css";
 import type { ReactNode } from "react";
 import type { Dictionary, Locale } from "@vallo/i18n/core";
-import { Amount } from "@/components/ui/Amount";
+import { MoneyFigure } from "@/components/money/kit";
 import { Panel } from "@/components/ui/Panel";
 import type { RewardsBalance } from "@/lib/referral/rewards";
 
@@ -40,20 +40,20 @@ export function RewardsFigures({
       <p className="nf-rewards-figures__label">{b.label}</p>
       <p className="nf-rewards-figures__eyebrow">{b.available}</p>
       <p className="nf-rewards-figures__hero" data-testid="rewards-available">
-        <Amount minorUnits={balance.availableMinor} locale={locale} />
+        <MoneyFigure minor={balance.availableMinor} locale={locale} size="hero" kobo="auto" />
       </p>
       <dl className="nf-rewards-figures__pair">
         <div>
           <dt>{b.pending}</dt>
           <dd className="nf-rewards-figures__figure" data-testid="rewards-pending">
-            <Amount minorUnits={balance.pendingMinor} locale={locale} />
+            <MoneyFigure minor={balance.pendingMinor} locale={locale} size="md" kobo="auto" />
           </dd>
           <dd className="nf-rewards-figures__hint">{b.pendingHint}</dd>
         </div>
         <div>
           <dt>{b.lifetime}</dt>
           <dd className="nf-rewards-figures__figure" data-testid="rewards-lifetime">
-            <Amount minorUnits={balance.lifetimeMinor} locale={locale} />
+            <MoneyFigure minor={balance.lifetimeMinor} locale={locale} size="md" kobo="auto" />
           </dd>
           <dd className="nf-rewards-figures__hint">{b.lifetimeHint}</dd>
         </div>

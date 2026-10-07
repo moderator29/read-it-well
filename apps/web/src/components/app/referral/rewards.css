@@ -40,13 +40,9 @@
     font-size: var(--nf-text-body-sm);
     color: var(--nf-content-secondary);
   }
+  /* The one big number (reference 5), drawn by the money kit's figure. */
   .nf-rewards-figures__hero {
     margin: 0;
-    font-family: var(--nf-font-display);
-    font-size: var(--nf-text-figure);
-    font-weight: 600;
-    line-height: 1;
-    letter-spacing: var(--nf-tracking-figure);
     color: var(--nf-content-primary);
   }
   .nf-rewards-figures__pair {
@@ -62,9 +58,13 @@
     gap: var(--nf-space-2xs);
     min-inline-size: 0;
   }
+  /* Reference 8's strip: tiny tracked labels over the two quieter figures. */
   .nf-rewards-figures__pair dt {
-    font-size: var(--nf-text-body-sm);
-    color: var(--nf-content-secondary);
+    font-size: var(--nf-text-label);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--nf-content-muted);
   }
   .nf-rewards-figures__pair dd {
     margin: 0;

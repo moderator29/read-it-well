@@ -3,10 +3,9 @@ import { bpsAsPercentText } from "@/lib/money/percent";
 import type { CheckoutView } from "@/lib/bookings/checkout-view";
 import { Amount } from "@/components/ui/Amount";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { DocActions } from "@/components/app/money/DocumentSheet";
+import { ReceiptActions } from "@/components/money/ReceiptActions";
 import { ReceiptSheet } from "@/components/app/money/ReceiptSheet";
 import { stayReceipt } from "@/components/app/money/receipt-model";
-import { PrintDocumentTile } from "@/components/app/money/PrintDocumentTile";
 import { formatMoneyDate } from "@/lib/money/dates";
 import { PLATFORM_TERMS_V1, cancelStanding } from "@/lib/trust/cancellation";
 
@@ -23,11 +22,14 @@ export function CheckoutSummary({
   view,
   locale,
   tenancy = false,
+  back,
 }: {
   view: CheckoutView;
   locale: Locale;
   /** True when this booking row carries a rent charge: no stay terms apply to it. */
   tenancy?: boolean;
+  /** Once paid: the quiet way on under "Download receipt" (reference 7's "Back to home"). */
+  back?: { href: string; label: string };
 }) {
   const t = getDictionary(locale);
   const { counts, checkout: c } = t;
@@ -146,11 +148,7 @@ export function CheckoutSummary({
         receipt={receipt}
         headingId="nf-checkout-summary"
         testId="checkout-receipt"
-        actions={
-          <DocActions label={view.title}>
-            <PrintDocumentTile label={t.afterTheGate.complaint.print} testId="checkout-receipt-print" />
-          </DocActions>
-        }
+        actions={<ReceiptActions back={back} testId="checkout-receipt-print" />}
       />
     );
   }
