@@ -183,6 +183,13 @@ export default async function SavedPage() {
         comparable={compare.columns.length}
         copy={{ shortlist: cc.shortlist, ready: cc.ready }}
         changeCopy={t.catalogue.savedChanges}
+        slotCopy={{
+          remove: t.experienceDiscover.saved.remove,
+          removeLabel: t.experienceDiscover.saved.removeLabel,
+          removed: t.experienceDiscover.saved.removed,
+          restoring: t.experienceDiscover.saved.restoring,
+          undo: t.experienceDiscover.saved.undo,
+        }}
         emptyCopy={{
           title: t.experienceDiscover.saved.emptyTitle,
           body: t.experienceDiscover.saved.emptyBody,

@@ -53,7 +53,8 @@ export default async function SavedPreview() {
       id: listing.id,
       mode: "local",
       savedAt: 1_789_698_000 - i * 60,
-      card: <ListingCard listing={listing} locale={locale} t={t} />,
+      /* Everything on the board is saved, as the route passes it. */
+      card: <ListingCard listing={listing} locale={locale} t={t} saved />,
     })),
   ];
   return (
