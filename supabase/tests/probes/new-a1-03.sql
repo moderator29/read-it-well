@@ -90,6 +90,12 @@ begin
   r := public.agreement_open_rent_as(admin, insp, lagos, null, null);
   if r ->> 'status' is distinct from 'ok' then raise exception 'PROBE_FAIL new-a1-03: fixture agreement not opened: %', r; end if;
   ag := (r ->> 'agreement_id')::uuid;
+  -- D68d: with no risk signal an agreement is approved by the system the
+  -- moment both parties confirm. This fixture walks the review path, so it
+  -- turns on the documented kill switch (agreement_review_all) for this
+  -- transaction only, which sends every agreement to review.
+  insert into public.feature_flags (key, enabled) values ('agreement_review_all', true)
+  on conflict (key) do update set enabled = true;
   r := public.agreement_confirm_as(admin, ag, 1);
   r := public.agreement_confirm_as(lister, ag, 1);
   if r ->> 'agreement_status' is distinct from 'in_review' then raise exception 'PROBE_FAIL new-a1-03: fixture agreement not submitted: %', r; end if;
