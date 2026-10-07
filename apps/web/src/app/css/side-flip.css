@@ -177,7 +177,80 @@
      back, so the two sides are two faces of one object. */
   .nf-flip-stage[data-phase="turn"] .nf-flip-card {
     transform: scale(0.94) rotateY(calc(var(--nf-flip-dir) * 180deg));
-    transition: transform var(--nf-duration-deliberate) var(--nf-ease-entrance);
+    transition: none;
+    animation: nf-flip-turn var(--nf-duration-deliberate) var(--nf-ease-entrance) both;
+  }
+  /*
+   * THE MID-TURN STATE (A.9, GOVERNING-flip-mid-turn.png). The pane does not
+   * spin through at one rate: it swings past edge-on quickly, HANGS with the
+   * incoming cover showing at a steep angle (108 degrees, the 3D scene lit on
+   * its face and the page dimmed behind it), then settles flat. It also
+   * recedes as it turns, 0.94 to 0.84 and back, because a real object turned
+   * in the hand moves away from the eye at its widest. Each leg carries its
+   * own curve: the swing on `whip`, the settle on `land`.
+   */
+  @keyframes nf-flip-turn {
+    0% {
+      transform: scale(0.94) rotateY(0deg);
+      animation-timing-function: var(--nf-ease-whip);
+    }
+    42% {
+      transform: scale(0.84) rotateY(calc(var(--nf-flip-dir) * 108deg));
+      animation-timing-function: var(--nf-ease-entrance);
+    }
+    100% {
+      transform: scale(0.94) rotateY(calc(var(--nf-flip-dir) * 180deg));
+    }
+  }
+
+  /*
+   * REAL DEPTH: THE PANE IS A SLAB, NOT A SHEET. The faces stand half the
+   * slab apart and two lit edges close the sides, so the moment the card is
+   * edge-on there is a bar of glass with light running down it, as the
+   * governing frame draws, instead of a hairline that vanishes. The card
+   * fills the viewport, so its half width is 50vw. Only while a flip is in
+   * flight: at rest the front face is the page and must carry no transform
+   * (a transform would make it the containing block of every fixed element).
+   */
+  .nf-flip-stage {
+    --nf-flip-depth: 14px;
+  }
+  .nf-flip-edge {
+    display: none;
+  }
+  .nf-flip-stage:not([data-phase="idle"]):not([data-reduced]) .nf-flip-edge {
+    position: absolute;
+    display: block;
+    inset-block: 2%;
+    inset-inline-start: calc(50% - var(--nf-flip-depth) / 2);
+    inline-size: var(--nf-flip-depth);
+    pointer-events: none;
+    backface-visibility: visible;
+    /* Brand glass across the thickness with one bright line down its middle,
+       the way a polished edge catches a single highlight. */
+    background: linear-gradient(
+      90deg,
+      color-mix(in oklab, var(--nf-glow-brand-rim) 45%, transparent) 0%,
+      color-mix(in oklab, var(--nf-glow-brand-rim) 80%, transparent) 38%,
+      color-mix(in oklab, var(--nf-rim-lit-ink) 70%, transparent) 50%,
+      color-mix(in oklab, var(--nf-glow-brand-rim) 80%, transparent) 62%,
+      color-mix(in oklab, var(--nf-glow-brand-rim) 45%, transparent) 100%
+    );
+    box-shadow:
+      0 0 18px var(--nf-glow-4),
+      0 0 56px var(--nf-glow-3);
+  }
+  .nf-flip-stage:not([data-phase="idle"]):not([data-reduced]) .nf-flip-edge--end {
+    transform: rotateY(90deg) translateZ(50vw);
+  }
+  .nf-flip-stage:not([data-phase="idle"]):not([data-reduced]) .nf-flip-edge--start {
+    transform: rotateY(-90deg) translateZ(50vw);
+  }
+  .nf-flip-stage:is([data-phase="lift"], [data-phase="turn"]):not([data-reduced]) .nf-flip-face--front {
+    transform: translateZ(calc(var(--nf-flip-depth) / 2));
+  }
+  .nf-flip-stage:is([data-phase="lift"], [data-phase="turn"]):not([data-reduced]) .nf-flip-face--back {
+    transform: rotateY(180deg) translateZ(calc(var(--nf-flip-depth) / 2));
   }
 
   /* 3. Hold and reveal: the card snaps back to identity behind the fixed
@@ -283,7 +356,13 @@
     filter:
       drop-shadow(0 0 14px color-mix(in oklab, var(--nf-side-accent) 80%, transparent))
       drop-shadow(0 0 48px color-mix(in oklab, var(--nf-side-accent) 50%, transparent));
-    transform: scale(1.25);
+  }
+  /* The tier-a scene is a rendered object with its own light, so it is shown
+     at its drawn size rather than blown up; the glow behind it does the rest. */
+  .nf-flip-cover__mark img {
+    display: block;
+    inline-size: 10.5rem;
+    block-size: auto;
   }
   .nf-flip-cover__brand {
     margin-top: var(--nf-gap-section-tight);
@@ -383,6 +462,7 @@
   .nf-flip-stage[data-reduced][data-phase="turn"] .nf-flip-card {
     transform: none;
     transition: none;
+    animation: none;
   }
   .nf-flip-stage[data-reduced] .nf-flip-face {
     border-radius: 0;
