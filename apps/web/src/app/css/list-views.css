@@ -583,3 +583,132 @@
     font-weight: 600;
   }
 }
+
+/* ======================================================= SAVED AS SHELVES
+   The founder's before-after-collection-shelves.jpg (the "after" frame) and
+   ONE-PRODUCT-DECISIONS recommendation 6. Each saved place is an object on a
+   lit ledge: a framed square thumbnail, the name and its area, the figure
+   right aligned and tabular with its unit grey, one status word under it,
+   and under the whole object a ledge with a lit top edge and depth below.
+   One column at every width: a shelf is read down, like the reference. */
+@layer components {
+  .nf-shelves {
+    display: grid;
+    gap: var(--nf-space-md);
+  }
+  .nf-shelf {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--nf-space-md);
+    padding: var(--nf-space-sm) var(--nf-space-md) calc(var(--nf-space-sm) + 0.625rem);
+    border-radius: var(--nf-radius-card);
+    background: linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--nf-content-primary) 4%, transparent),
+      color-mix(in oklab, var(--nf-content-primary) 1%, transparent)
+    );
+    color: var(--nf-content-primary);
+    transition: scale var(--nf-duration-fast) var(--nf-ease-press);
+  }
+  /* The ledge: a lit top edge, a little thickness, and the depth under it. */
+  .nf-shelf::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    height: 0.625rem;
+    border-top: var(--nf-border-width) solid var(--nf-smoked-glass-edge);
+    border-radius: 0 0 var(--nf-radius-card) var(--nf-radius-card);
+    background: linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--nf-content-primary) 14%, transparent),
+      color-mix(in oklab, var(--nf-content-primary) 5%, transparent)
+    );
+    box-shadow: var(--nf-card-shadow);
+    pointer-events: none;
+  }
+  .nf-shelf:active {
+    scale: var(--nf-press-scale);
+  }
+  .nf-shelf:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  .nf-shelf__frame {
+    display: block;
+    padding: 0.1875rem;
+    border: var(--nf-border-width) solid var(--nf-smoked-glass-edge);
+    border-radius: var(--nf-radius-control);
+    background: var(--nf-smoked-glass-fill);
+    box-shadow: var(--nf-card-shadow);
+  }
+  .nf-shelf__thumb {
+    position: relative;
+    display: block;
+    width: 4rem;
+    height: 4rem;
+    overflow: hidden;
+    border-radius: var(--nf-radius-xs);
+  }
+  .nf-shelf__words,
+  .nf-shelf__value {
+    display: grid;
+    min-width: 0;
+    gap: var(--nf-space-3xs);
+  }
+  .nf-shelf__value {
+    justify-items: end;
+    text-align: end;
+  }
+  /* Two lines before it ends: a shelf name cut at "Grand Vist..." names
+     nothing, and the figure column is the one that may not move. */
+  .nf-shelf__title {
+    display: -webkit-box;
+    overflow: hidden;
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    line-height: 1.25;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+  .nf-shelf__where {
+    overflow: hidden;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .nf-shelf__figure {
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .nf-shelf__unit {
+    font-size: var(--nf-text-caption);
+    font-weight: 400;
+    color: var(--nf-content-muted);
+  }
+  .nf-shelf__status {
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    color: var(--nf-content-muted);
+  }
+  .nf-shelf__status:empty {
+    display: none;
+  }
+  .nf-shelf__status[data-verified] {
+    color: var(--nf-state-success);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-shelf {
+      transition: none;
+    }
+    .nf-shelf:active {
+      scale: none;
+    }
+  }
+}

@@ -1,17 +1,15 @@
 import { getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
-import { ListingCard } from "@/components/app/ListingCard";
-import { StayCard } from "@/components/app/stays/StayCard";
+import { listingShelf, placeShelf } from "@/app/(app)/saved/shelf-rows";
 import { PageScene } from "@/components/app/PageScene";
 import { SavedBoard, type SavedBoardItem } from "@/app/(app)/saved/SavedBoard";
 import { RESTAURANTS, SHELF, STAYS } from "../fixtures";
 
 /**
  * /saved with all three shelves on one board: two saved listings, a saved
- * stay and a saved restaurant. The stays come through the same `StayCard`
- * the shelf and the search use, hearted and lit, because `saved_places` now
- * has a reader (`getSavedPlaces`) as well as its writes.
+ * stay and a saved restaurant, each drawn as the route draws it: a shelf
+ * (`shelf-rows.tsx`, the founder's before-after-collection-shelves.jpg).
  */
 export default async function SavedPreview() {
   const locale: Locale = await getLocale();
@@ -24,37 +22,20 @@ export default async function SavedPreview() {
       mode: "db",
       savedAt: 1_789_700_000,
       place: { kind: "accommodation", id: stay.id },
-      card: (
-        <StayCard
-          stay={{ ...stay, place: { kind: "accommodation", id: stay.id } }}
-          locale={locale}
-          t={t}
-          saved
-          canSavePlaces
-        />
-      ),
+      card: placeShelf({ ...stay, place: { kind: "accommodation", id: stay.id } }, locale, t, true),
     },
     {
       id: table.id,
       mode: "db",
       savedAt: 1_789_699_000,
       place: { kind: "restaurant", id: table.id },
-      card: (
-        <StayCard
-          stay={{ ...table, place: { kind: "restaurant", id: table.id } }}
-          locale={locale}
-          t={t}
-          saved
-          canSavePlaces
-        />
-      ),
+      card: placeShelf({ ...table, place: { kind: "restaurant", id: table.id } }, locale, t, false),
     },
     ...SHELF.slice(0, 2).map<SavedBoardItem>((listing, i) => ({
       id: listing.id,
       mode: "local",
       savedAt: 1_789_698_000 - i * 60,
-      /* Everything on the board is saved, as the route passes it. */
-      card: <ListingCard listing={listing} locale={locale} t={t} saved />,
+      card: listingShelf(listing, locale, t, false),
     })),
   ];
   return (

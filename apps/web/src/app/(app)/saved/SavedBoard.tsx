@@ -370,7 +370,7 @@ export function SavedBoard({
       </Reveal>
 
       <Reveal delay={60}>
-        <ul data-testid="saved-grid" className="grid grid-cols-1 gap-lg sm:grid-cols-2">
+        <ul data-testid="saved-grid" className="nf-shelves">
           {rendered.map(({ key, item, state }) => (
             <li key={key}>
               {state === undefined && item ? (
