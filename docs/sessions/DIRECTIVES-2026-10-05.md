@@ -3228,3 +3228,32 @@ reference of the Vallo onboarding cards ("Find your space.", 1 / 4), and the sig
 and sign-up flow, which he now calls good, may be raised further if it can be done
 better. The feed's actions become small, clean outline icons in separate capsules, per
 his reference.
+
+---
+
+## D73. Two ways to pay: rentals through escrow, fixed-price bookings by card directly (7 October 2026)
+
+The founder, in his words: "Pay is now escrow bro but for hotel and restaurants etc is
+paystack direct when price is up there fixed by the hotels and rooms bookings you know
+how LITEAPI is".
+
+- **Rentals and other negotiated property deals** pay through **escrow**, held by the
+  licensed provider (Payluk), per ADR 0003. The agreement stays, because a negotiated
+  deal has terms to agree; the payment that follows it is a protected escrow payment,
+  not a plain card charge. This is phases 11 and 12 of his payments prompt.
+- **Hotels, shortlets, restaurants and any booking at a price the business fixed**
+  pay **directly by card through Paystack**, as an instant booking in the shape of a
+  hotel booking API flow such as LiteAPI: search, pick a room and rate, see the total,
+  book and pay in one flow. No host acceptance step and no Vallo review step stand
+  between a guest and paying a published price. The existing database pricing
+  (`private.price_room_booking`), inventory hold, split and settlement are kept.
+
+This supersedes, for fixed-price bookings, the step in `docs/ROOM_CHECKOUT.md` and
+`docs/MONEY_ARCHITECTURE.md` where a stay agreement waits for both confirmations and a
+staff approval before payment opens. It is built behind a switch, reviewed, and the
+switch is turned on by him.
+
+He also sent five more references (`docs/design/references/2026-10-07/`): a premium
+paywall, a "Start for free" paywall and a one-time offer, a streak screen, store
+screenshots with huge headlines, and payment confirmed. They govern Pro, Rewards and
+Get Started.

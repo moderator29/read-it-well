@@ -113,6 +113,24 @@ are described here precisely enough to build from. Read them as rulings on feel.
    Passport): the real UI fragment as the illustration, breaking out of a device
    frame, and the quick-amount chips (25%, 50%, Max) on Withdraw and Send.
 
+### Five more, saved in the repository (`docs/design/references/2026-10-07/`)
+
+10. **Premium paywall** (`premium-paywall-monthly-yearly.jpg`): app icon tile, name with
+    a PREMIUM tag, a two-line promise, three feature rows with round icon plates in one
+    glass card, Monthly and Yearly plan tiles (selected one ringed with a check, "Best
+    value" tag on the other), a primary "Start 7-day free trial" capsule, "Cancel
+    anytime. Terms apply". **Pro, boosts and every paid upgrade.**
+11. **Start for free and the one-time offer** (`six-screens-streak-paywall-offer.jpg`): a
+    Monthly/Yearly switch, a Premium card with a check list, a tilted "80% OFF FOREVER"
+    card with confetti. **Pro.**
+12. **The streak and the soft dashboard** (same file): a big flame object, "12 day
+    streak", week dots, three stats; tiles and progress bars in soft colour. **Rewards,
+    referrals and the agent dashboard, only where real data supports it.**
+13. **Store screenshots** (`store-screens-learn-create-get-paid.jpg`): a huge three-line
+    headline with full stops, people or lit scenes, trust laurels, app fragments
+    breaking out of a device frame. **Get Started and the store listing; never invent
+    an award or a count.**
+
 And from the repository, `docs/design/references/2026-10-05/IMG_7027.png`: an amount
 entry screen with a huge figure, a coloured sign, a muted question under it ("Who's it
 for?"), chip shortcuts, a calm numeric keypad of soft rounded keys, and **swipe to
