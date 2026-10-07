@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  CRYPTO_WITHDRAWAL_ENABLED,
   ONBOARDING_STATES,
   WITHDRAWAL_MIN_KOBO,
   balanceFigures,
@@ -91,6 +92,10 @@ describe("the withdrawal breakdown (section 12)", () => {
 
   it("refuses anything but whole kobo", () => {
     expect(() => withdrawalBreakdown({ amountMinor: 100.5, providerFeeMinor: 0 })).toThrow(RangeError);
+  });
+
+  it("crypto withdrawal is built but stays off until the founder decides", () => {
+    expect(CRYPTO_WITHDRAWAL_ENABLED).toBe(false);
   });
 
   it("the minimum is 1,000 naira", () => {

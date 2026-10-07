@@ -357,8 +357,17 @@ export async function verifyAccount(
 
 /** The create-intent body for one staged movement. Lower-case values; naira, not kobo. */
 export function intentBody(input: StageIntentInput): Record<string, unknown> {
-  const base = { amount: koboToNaira(input.amountMinor), reference: input.reference, transactionType: input.type, currency: input.currency ?? "NGN" };
+  const base = {
+    amount: koboToNaira(input.amountMinor),
+    reference: input.reference,
+    /* A crypto payout is a `withdrawal` with `blockchainDetails` (create-payment-intent). */
+    transactionType: input.type === "withdrawal_crypto" ? "withdrawal" : input.type,
+    currency: input.currency ?? "NGN",
+  };
   switch (input.type) {
+    case "withdrawal_crypto":
+      if (!/^0x[0-9a-fA-F]{40}$/.test(input.chain.toAddress)) throw new RangeError("Not a BSC address.");
+      return { ...base, blockchainDetails: { toAddress: input.chain.toAddress, network: input.chain.network } };
     case "withdrawal":
       return {
         ...base,

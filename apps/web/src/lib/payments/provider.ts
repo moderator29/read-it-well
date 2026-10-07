@@ -230,6 +230,11 @@ export type StageIntentInput = {
     }
   | { type: "deposit" }
   | { type: "wallet_transfer"; recipient: { phone: string; name: string; narration?: string } }
+  /**
+   * A crypto payout. Built and NOT exposed: founder section 12 keeps it off
+   * until Vallo's product and legal design enables it (`CRYPTO_WITHDRAWAL_ENABLED`).
+   */
+  | { type: "withdrawal_crypto"; chain: { toAddress: string; network: "BSC" } }
 );
 /** How a hosted deposit is paid, exactly as the provider described it. */
 export type HostedCollection =

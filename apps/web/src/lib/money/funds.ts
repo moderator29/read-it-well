@@ -149,6 +149,13 @@ export function movementKindFor(type: string, direction: "credit" | "debit" | nu
 export const WITHDRAWAL_MIN_KOBO = 1_000_00;
 /** The provider's own minimum for a deposit or a transfer intent: 100 naira (create-payment-intent). */
 export const INTENT_MIN_KOBO = 100_00;
+/**
+ * Crypto withdrawal: the provider supports it and the adapter builds it
+ * (`withdrawal_crypto`). Founder section 12 and D68b: not exposed until
+ * Vallo's product and legal design explicitly enables it. His decision.
+ */
+export const CRYPTO_WITHDRAWAL_ENABLED = false as const;
+
 /** The largest single movement a form accepts (amount.ts). */
 export const MOVE_MAX_KOBO = 10_000_000_00;
 

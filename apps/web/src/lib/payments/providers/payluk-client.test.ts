@@ -70,6 +70,19 @@ describe("naira at the Payluk boundary, never kobo (the hundredfold error)", () 
     expect(koboToNaira(1_000_000)).toBe(10_000); // the docs: "send 10000 for ₦10,000"
   });
 
+  it("builds the crypto payout as a withdrawal with blockchainDetails, and refuses a bad address", () => {
+    const body = intentBody({
+      type: "withdrawal_crypto",
+      reference: "rm-plw-c",
+      amountMinor: 100_000,
+      chain: { toAddress: "0x0915ea16f52b11444695d283e6c0f5936d1e0d56", network: "BSC" },
+    });
+    expect(body).toMatchObject({ amount: 1000, transactionType: "withdrawal", blockchainDetails: { network: "BSC" } });
+    expect(() =>
+      intentBody({ type: "withdrawal_crypto", reference: "r", amountMinor: 100_000, chain: { toAddress: "0x123", network: "BSC" } }),
+    ).toThrow(RangeError);
+  });
+
   it("refuses a fractional kobo amount rather than rounding money", () => {
     expect(() => koboToNaira(10.5)).toThrow(RangeError);
     expect(() => koboToNaira(-1)).toThrow(RangeError);
