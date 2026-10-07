@@ -475,6 +475,7 @@ export const CHECKOUT: CheckoutView = {
   paid: false,
   holdExpiresAt: new Date(Date.now() + 40 * 60_000).toISOString(),
   holdExpired: false,
+  instantPayBy: null,
   cardAvailable: true,
   agreement: { id: "00000000-0000-4000-8000-00000000a001", status: "approved", reason: null },
 };

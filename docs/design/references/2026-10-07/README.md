@@ -71,3 +71,24 @@ in Vallo's own style.
 | `rolling-card-stack.jpg` | Stacked cards like folder tabs, each with a coloured outline glyph, a title and a mono index (01 to 04); the front one opens into a title, a line of body and a photograph that fades at its edge; the stack rolls as you scroll or tap | The landing page (Vallo's four markets or four promises), Get Started, a listing's sections |
 | `stack-scroll-reveal.jpg` | A gallery where full-bleed dark cards with a big index number ("01") stack and reveal on scroll, with a floating glass control pill (grid view, list view, pause) | The landing page's story sections, a listing gallery, the feed's media viewer |
 | `colour-band-sections-home.png` | A home where each section is a full-width band in a strong colour (violet RECENTLY OPENED, green SHARED WITH ME, pink ALL DOCS) with a count on the right, white rounded rows under each band, a date strip with today in a pink disc, and a list of colour bands as a template picker | Grouping on a busy screen; use sparingly and in Vallo's palette, never the full rainbow |
+
+## The feed set (described; sent in chat, not saved as files)
+
+His words: "if someone wants to post more than 1, 2 or 3 things it should be able to
+scroll sideways like that, clean UX smart and sharp... if users want to comment it
+should open full page like this... not some small box to comment... full page for all
+things, even posts... sharp clean but smarter UI and UX, different from X a bit (the
+icons, the flow, the look) but premium like theirs... think of more tools we don't have
+that work for us".
+
+| What it is | Take | Governs |
+| --- | --- | --- |
+| A post detail (three frames of one post): back arrow, "Post" title, more menu; the author block; the text with a hashtag in brand blue; **a horizontal media rail**: each photo a tall rounded card at about 80% of the width with the next card peeking at the edge, swiped sideways, snapping card by card; then time, date and view count; the action row with counts; a "Relevant" sort and "View quotes >"; replies under it; a pinned "Post your reply" field above the dock | Multi-photo posts in the feed and on post detail: a snapping sideways rail with a peek, never a cramped grid; post detail as a full page |
+| The reply composer: a **full page**, Cancel left and a Post capsule right (disabled until there is text), the post being replied to shown above with a thread line joining it to the member's avatar, "Replying to @..." in brand blue, a large "Post your reply" field, and a tool row above the keyboard (photo, camera, GIF, schedule, poll, place) with a character ring on the right | Replies and comments: always a full page, never a small box |
+| The new post composer: full page, Cancel and Post, the avatar and "What's happening?", a reply-audience control ("Everyone can reply") with undo and redo, the tool row (photo, camera, live, GIF, schedule, a ring, an add-thread plus) | The post and story composer |
+
+**Vallo's own tools for the composer row**, beyond X's: attach a listing (the place card),
+tag a place or area (the map pin, from Vallo's own areas), ask a question to locals (a
+poll scoped to an area), share a price check result, mark as a review of a place you
+stayed or rented (needs a real booking), and audience (everyone, followers, my area).
+Only tools that work end to end ship; the rest are not shown.

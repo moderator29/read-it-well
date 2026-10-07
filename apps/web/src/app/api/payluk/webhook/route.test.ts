@@ -127,4 +127,15 @@ describe("POST /api/payluk/webhook", () => {
     expect(await (await post(live, sign(live))).json()).toMatchObject({ ignored: "environment_mismatch" });
     expect(store.observed).toHaveLength(0);
   });
+
+  it("D73 Part B: with the escrow flows not switched on, escrow.* is stored and parked exactly as before", async () => {
+    const escrow = JSON.stringify({
+      event: "escrow.ongoing",
+      data: { id: "esc_parked", amount: 500000, status: "ONGOING", state: "OPENED", environment: "test" },
+    });
+    expect(await (await post(escrow, sign(escrow))).json()).toMatchObject({ received: true, ignored: "escrow" });
+    const row = (store.tables.provider_webhook_events ?? []).find((r) => r.event_key === "escrow:esc_parked:escrow.ongoing");
+    expect(row).toMatchObject({ processing_status: "ignored", error: "escrow_flows_not_built" });
+    expect(store.observed).toHaveLength(0);
+  });
 });
