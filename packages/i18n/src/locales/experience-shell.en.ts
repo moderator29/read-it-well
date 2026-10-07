@@ -15,4 +15,11 @@ export const experienceShellEn = {
      It names what the page does and nothing about earning: while the rewards
      read is not live, the hub itself says there is no reward for inviting. */
   navInvite: "Invite friends",
+  /* The money group (7 October 2026, D70). The founder opened the drawer,
+     looked for what he had paid for, and could not find it: these three pages
+     were built and reachable only by address. Each label is its page's title. */
+  navMoneyLabel: "Money",
+  navReceipts: "Receipts",
+  navPayouts: "Payouts",
+  navRefunds: "Refunds",
 };

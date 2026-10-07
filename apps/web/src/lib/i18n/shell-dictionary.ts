@@ -24,7 +24,10 @@ export type ShellDictionary = Pick<Dictionary, "a11y" | "common" | "nav" | "side
   priceCheck: Pick<Dictionary["priceCheck"], "title">;
   pickers: Pick<Dictionary["pickers"], "close">;
   /** The navigation's own new lines (the Payments and Invite rows). */
-  experienceShell: Pick<Dictionary["experienceShell"], "navPayments" | "navInvite">;
+  experienceShell: Pick<
+    Dictionary["experienceShell"],
+    "navPayments" | "navInvite" | "navMoneyLabel" | "navReceipts" | "navPayouts" | "navRefunds"
+  >;
   /** The Rewards row's label is the Rewards page's own title, so the two cannot drift. */
   experienceRewards: Pick<Dictionary["experienceRewards"], "title">;
 };
@@ -57,7 +60,14 @@ export function shellDictionary(t: Dictionary): ShellDictionary {
     supply: Object.fromEntries(SUPPLY_KEYS.map((key) => [key, t.supply[key]])) as ShellDictionary["supply"],
     priceCheck: { title: t.priceCheck.title },
     pickers: { close: t.pickers.close },
-    experienceShell: { navPayments: t.experienceShell.navPayments, navInvite: t.experienceShell.navInvite },
+    experienceShell: {
+      navPayments: t.experienceShell.navPayments,
+      navInvite: t.experienceShell.navInvite,
+      navMoneyLabel: t.experienceShell.navMoneyLabel,
+      navReceipts: t.experienceShell.navReceipts,
+      navPayouts: t.experienceShell.navPayouts,
+      navRefunds: t.experienceShell.navRefunds,
+    },
     experienceRewards: { title: t.experienceRewards.title },
   };
   cache.set(t, shell);

@@ -3189,3 +3189,26 @@ zero while unregistered.
 What it adds: probes asserting that every mirror row carries a provider reference
 and an observation time, and that no Vallo table claims an authoritative customer
 balance.
+
+---
+
+## D70. The money pages have doors, and the side navigation has a Money group (7 October 2026)
+
+The build session started from `f94963c7` (main) merged with the docs-only branch
+`claude/rentme-v2-platform-audit-xuvg0a` (`93ac365b`), because the handoff, the
+founder corpus, ADR 0003 and D68 to D69 had never been merged to main. **Anybody
+reading the session prompt on main will not find the files it names.** Merge that
+branch, or this one, first.
+
+Section 3.1 of the handoff was partly stale by the time this session read it: Rewards
+and Invite friends had been given rows earlier the same day. Receipts, Payouts and
+Refunds had not. They now sit in a **Money** group in `nav-model.ts`, with Payments,
+Rewards and Invite friends moved into it, on both sides, signed in only. A test
+(`nav-money.test.ts`) fails if any of the six loses its row.
+
+The navigation's groups, and the other unification answers A.16 asks for, are decided
+in `docs/design/ONE-PRODUCT-DECISIONS.md`. Every agent adds to those groups and nowhere
+else.
+
+There is no `/pro` route in the tree. The founder's "the pro and etc too" cannot be
+routed until Pro exists; it is in the report under not built.

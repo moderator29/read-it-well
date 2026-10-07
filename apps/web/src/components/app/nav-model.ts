@@ -202,24 +202,6 @@ export function buildNav({
         },
         { href: "/saved", label: t.nav.saved, icon: "heart" },
         { href: "/agreements", label: t.nav.agreements, icon: "document" },
-        /* What this person paid and what came back: a record, never an
-           account. Read from the shell's slice like every neighbour. */
-        { href: "/payments", label: t.experienceShell.navPayments, icon: "history" },
-        /*
-         * INVITE AND REWARDS HAVE DOORS (7 October 2026). Both were built and
-         * reachable only by address or from inside Settings, and the founder
-         * could not find either. They sit here, on both sides, because an
-         * invite link and what Vallo owes for it belong to the account, not to
-         * a market.
-         *
-         * Neither row claims anything. "Invite friends" says what the page
-         * does; "Rewards" is the Rewards page's own title. Whether a reward is
-         * running is said by the pages themselves, from the rewards read
-         * (`lib/referral/rewards-read.ts`), which today draws the honest
-         * not-live state. The row never shows a figure or a badge.
-         */
-        { href: "/settings/invite", label: t.experienceShell.navInvite, icon: "users" },
-        { href: "/rewards", label: t.experienceRewards.title, icon: "hand-coins" },
         /* No crypto row: V-83 took the deferred crypto market out of the
            shipped tree (parked on `claude/parked-crypto-deferred`). */
         /*
@@ -248,6 +230,45 @@ export function buildNav({
          * have followed a rename for free. (R1 finding A33.)
          */
         { href: "/assistant", label: t.nav.aiAssistant, icon: "sparkle" },
+      ],
+    });
+
+    /*
+     * MONEY IS ITS OWN GROUP (7 October 2026, D70).
+     *
+     * Receipts, Payouts and Refunds were built, tested and reachable only by
+     * typing the address. The founder opened this drawer, looked for what he
+     * had paid for, did not find it, and concluded it had not been built. He
+     * was navigating correctly; this list was wrong.
+     *
+     * One heading for everything that is a figure about this person: what
+     * they paid, the proof of it, what came back, what they are owed, and
+     * what an invite earns. Every row is a record, never an account: Vallo
+     * holds no customer money (ADR 0003), so no row here is called a wallet
+     * until a licensed provider's balance stands behind it.
+     *
+     * Payouts shows to everyone signed in, not only to listers: its page
+     * draws an honest empty state that points at payout details, and hiding
+     * the door is exactly the failure this group exists to undo.
+     *
+     * Invite friends and Rewards moved here from the account block: an
+     * invite link and what Vallo owes for it are money, and the earlier note
+     * that placed them on the account (same day) is superseded by this one.
+     */
+    sections.push({
+      heading: t.experienceShell.navMoneyLabel,
+      items: [
+        /* What this person paid and what came back: a record, never an
+           account. Read from the shell's slice like every neighbour. */
+        { href: "/payments", label: t.experienceShell.navPayments, icon: "history" },
+        { href: "/receipts", label: t.experienceShell.navReceipts, icon: "receipt" },
+        { href: "/payouts", label: t.experienceShell.navPayouts, icon: "bank" },
+        { href: "/refunds", label: t.experienceShell.navRefunds, icon: "coins" },
+        /* "Rewards" is the Rewards page's own title. Whether a reward is
+           running is said by the page itself, from the rewards read
+           (`lib/referral/rewards-read.ts`); the row never shows a figure. */
+        { href: "/rewards", label: t.experienceRewards.title, icon: "hand-coins" },
+        { href: "/settings/invite", label: t.experienceShell.navInvite, icon: "users" },
       ],
     });
   }
