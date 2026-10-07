@@ -22,6 +22,8 @@ import { useMotionGate } from "@/components/motion/useMotionGate";
 import { SPRING_SETTLE, springFor, clamp } from "@/components/ui/ported-motion";
 import { cardPose, settleTarget } from "./deck";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { icon3dSrc } from "@/components/ui/icon-3d";
+import { TIERED_OBJECTS, tieredSrc } from "@/design-system/icons/object-assets";
 import { fill } from "@/lib/passcode/tab";
 import { photo, type PhotoName } from "@/lib/site/photos";
 import { feedback } from "@/lib/ui/feedback";
@@ -39,7 +41,7 @@ export type GetStartedCopy = Dictionary["getStarted"];
  * holds your money; homes, stays, restaurants and workspaces in one place.
  * Each card is a two-line headline whose last word is lit in the landing's
  * text ramp (GOVERNING-landing-desktop-hero.png, "reimagined."), one line of
- * body, and a lit night scene of real architecture with one glowing glass
+ * body, and a lit night scene of real architecture with one solid 3D
  * object in front of it as the explanation. The Vallo lockup top left, the
  * "1 / 4" counter top right, the dots bottom left and a round glass arrow
  * bottom right. On the last card the arrow opens out into the Get started
@@ -55,7 +57,7 @@ export type GetStartedCopy = Dictionary["getStarted"];
  * mid-swipe), follows a horizontal drag directly and is sprung to the nearest
  * card on release with the finger's velocity. Every layer is written from it
  * (`paint`): the type at the full width, the photograph at 0.35 of it and
- * crossfading, the glass object at 0.7 and turning slightly, so the scene
+ * crossfading, the object at 0.7 and turning slightly, so the scene
  * moves slower than the type and the object sits between them in depth. The
  * dots' lit bar and the arrow's opening into Get started follow the same
  * value, so nothing jumps at the end of a swipe. framer-motion is the value
@@ -80,10 +82,15 @@ export type GetStartedCopy = Dictionary["getStarted"];
  */
 /**
  * Each card's scene: a lit photograph and what stands in front of it. Most
- * carry one glowing glass object; the second carries the app's own move-in
+ * carry one solid 3D object; the second carries the app's own move-in
  * fragment instead (reference 13, the fragment breaking out of the frame),
  * since a real piece of the product explains "know what you are getting"
  * better than a symbol does.
+ *
+ * NO GLASS (the founder, 7 October 2026, naming this page: "Remove all glass
+ * icons on the entire platform"). The objects are the solid renders, the
+ * Belongings rows' look: the map for finding, the card under a lock for
+ * money that is never held, the lit hotel and its bell for live, stay, dine.
  */
 const SCENES: readonly {
   photo: PhotoName;
@@ -94,30 +101,30 @@ const SCENES: readonly {
 }[] = [
   {
     photo: "villa-pool-skyline-02",
-    object: "/brand/glass/hero/hero-map-stay.png",
-    w: 512,
-    h: 512,
+    object: icon3dSrc("map"),
+    w: 256,
+    h: 256,
     front: "object",
   },
   {
     photo: "villa-exterior-gate",
-    object: "/brand/glass/hero/hero-protected.png",
-    w: 557,
-    h: 470,
+    object: icon3dSrc("home-verified"),
+    w: 256,
+    h: 256,
     front: "fragment",
   },
   {
     photo: "tower-entrance-dusk",
-    object: "/brand/glass/wallet-secure.png",
+    object: icon3dSrc("card-secure"),
     w: 256,
     h: 256,
     front: "object",
   },
   {
     photo: "restaurant-02-lounge",
-    object: "/brand/glass/hero/hero-app.png",
-    w: 557,
-    h: 470,
+    object: tieredSrc(TIERED_OBJECTS["scene-hotel-bell"]),
+    w: 768,
+    h: 768,
     front: "object",
   },
 ];

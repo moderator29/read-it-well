@@ -8,6 +8,34 @@ import LoadingProfile from "@/app/(app)/profile/loading";
 import { AddWorkspaceChooser } from "@/components/supply/AddWorkspaceChooser";
 import { PERSON } from "../../_fixtures/people";
 import { FEED_POSTS } from "../../f4/fixtures";
+import { BadgeRow } from "@/components/social/badges/BadgeRow";
+import { badgeCopyOf } from "@/components/social/badges/badge-copy";
+import type { ProfileBadge } from "@/components/social/badges/badge-model";
+
+/*
+ * `?v=badges`: the full state with a badge row. The codes, names and objects
+ * are six rows of the real `public.badges` catalogue (Neighbour draws
+ * `home-search`, the one the founder photographed); that this person holds
+ * them is the fixture.
+ */
+const CATALOGUE_BADGES: readonly [string, string, string][] = [
+  ["neighbour", "Neighbour", "home-search"],
+  ["verified_member", "Verified Member", "user-verified"],
+  ["first_stay", "First Stay", "luggage-check"],
+  ["photo_pro", "Photo Pro", "camera"],
+  ["honest_reviewer", "Honest Reviewer", "reviews"],
+  ["local_guide", "Local Guide", "map-route"],
+];
+const FIXTURE_BADGES: ProfileBadge[] = CATALOGUE_BADGES.map(([code, name, objectName], i) => ({
+  code,
+  name,
+  description: name,
+  objectName,
+  tier: 1,
+  grantedAt: `2026-0${(i % 8) + 1}-04T09:00:00.000Z`,
+  grantedLabel: "4 March 2026",
+  earned: false,
+}));
 
 /**
  * The profile's proof harness (rule R-G): the real `AccountHero`,
@@ -23,6 +51,7 @@ import { FEED_POSTS } from "../../f4/fixtures";
  *   ?v=signedout  the signed-out page
  *   ?v=loading    the profile's loading skeleton
  *   ?v=setup      the add-a-workspace chooser at /profile/setup
+ *   ?v=badges     the full state with a badge row from the real catalogue
  * The full and values states carry a gold badge tier (a fixture, standing in
  * for what `person_badge` would publish for an approved agent).
  */
@@ -60,6 +89,9 @@ export function ProfileHarness({ v = "full" }: { v?: string }) {
         }
         badgeTier={claimed ? "gold" : null}
         locale="en"
+        badges={
+          v === "badges" ? <BadgeRow badges={FIXTURE_BADGES} isOwner copy={badgeCopyOf(t)} /> : null
+        }
       />
       <AccountBody
         sheet={sheetWordsOf(t)}
