@@ -712,3 +712,59 @@
     }
   }
 }
+
+/* REMOVE ON THE SHELF (review, 7 October): the filled heart sits at the
+   object's own right end, over the shelf rather than under it, as a 44px
+   target with a quiet disc; the shelf keeps that width clear. */
+@layer components {
+  .nf-shelf-row {
+    position: relative;
+  }
+  .nf-shelf-row .nf-shelf {
+    gap: var(--nf-space-sm);
+    padding-left: var(--nf-space-sm);
+    padding-right: 3.25rem;
+  }
+  /* On a phone the frame steps down a size so the name keeps two whole lines
+     beside the figure and the heart. */
+  @media (max-width: 30rem) {
+    .nf-shelf-row .nf-shelf__thumb {
+      width: 3.5rem;
+      height: 3.5rem;
+    }
+  }
+  .nf-shelf-row__remove {
+    position: absolute;
+    top: calc(50% - 0.3125rem);
+    right: var(--nf-space-2xs);
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    translate: 0 -50%;
+    border-radius: var(--nf-radius-circle);
+    color: var(--nf-brand-secondary);
+  }
+  .nf-shelf-row__remove::before {
+    content: "";
+    position: absolute;
+    inset: 0.375rem;
+    z-index: -1;
+    border: var(--nf-border-width) solid var(--nf-smoked-glass-edge);
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-surface-raised);
+  }
+  .nf-shelf-row__remove:disabled {
+    opacity: 0.6;
+  }
+  .nf-shelf-row__remove:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: -2px;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .nf-shelf-row__remove:hover {
+      color: var(--nf-state-error);
+    }
+  }
+}
