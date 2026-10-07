@@ -479,6 +479,7 @@ export const yo: Dictionary = withFallback({
       footer: {
         legalName: "VALLO SPACES LTD",
         legalLine: "Ilé iṣẹ́ ìmọ̀ ẹ̀rọ Nàìjíríà tó ń kọ́ ọjọ́ iwájú ohun ìní.",
+        registeredOfficeLabel: "Ọ́fíìsì tí a forúkọsílẹ̀",
         stayConnected: "Wà ní ìsopọ̀",
         newsletterBody: "Àkọsílẹ̀ tuntun, ìròyìn ọjà àti ìmúdójúìwọ̀n òtítọ́ lẹ́ẹ̀kọ̀ọ̀kan.",
         emailLabel: "Àdírẹ́sì ímeèlì",

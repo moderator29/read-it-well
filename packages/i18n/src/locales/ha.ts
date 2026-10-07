@@ -480,6 +480,7 @@ export const ha: Dictionary = withFallback({
       footer: {
         legalName: "VALLO SPACES LTD",
         legalLine: "Kamfanin fasaha na Najeriya da ke gina makomar gidaje.",
+        registeredOfficeLabel: "Ofishin da aka yi rajista",
         stayConnected: "Ci gaba da haɗi",
         newsletterBody: "Sabbin lissafi, labaran samfur da sabuntawa na gaskiya lokaci-lokaci.",
         emailLabel: "Adireshin imel",

@@ -40,7 +40,7 @@ function fakeDb() {
         return chain;
       },
       maybeSingle: async () => {
-        if (name === "feature_flags") return { data: { enabled: state.flag }, error: null };
+        if (name === "feature_flags") return { data: { enabled: state.flag && filters.key === "payments_payluk_on" }, error: null };
         if (name === "deal_agreements") return { data: { terms: { move_in: "2026-10-17" } }, error: null };
         if (name === "provider_arrangements") {
           const [col, val] = Object.entries(filters)[0]!;
@@ -103,6 +103,9 @@ const escrow = (over: Record<string, unknown> = {}) => ({
 });
 
 beforeEach(() => {
+  vi.stubEnv("PAYLUK_SECRET_KEY", "");
+  vi.stubEnv("PAYLUK_TEST_SECRET_KEY", "sk_test_abc");
+  vi.stubEnv("PAYMENTS_KILL_PAYLUK", "");
   state.flag = true;
   state.row = { ...ROW };
   state.openAnswer = { status: "ok", id: "arr-1", reference: REF };
@@ -120,6 +123,18 @@ describe("protected rental payments (D73 Part B)", () => {
     expect(await openArrangement(deps, OPEN)).toEqual({ outcome: "refused", reason: "switched_off" });
     expect(state.rpcs).toHaveLength(0);
     expect(calls).toHaveLength(0);
+  });
+
+  it("D77: ready on the key and payments_payluk_on alone; no key, or the outage stop, is off", async () => {
+    const { arrangementsLive } = await import("./provider-arrangements");
+    const { deps } = harness([]);
+    expect(await arrangementsLive(deps.db)).toBe(true);
+    expect(await arrangementsLive(deps.db, { PAYLUK_TEST_SECRET_KEY: "" })).toBe(false);
+    expect(await arrangementsLive(deps.db, { PAYLUK_TEST_SECRET_KEY: "pk_test_wrong_kind" })).toBe(false);
+    expect(await arrangementsLive(deps.db, { PAYLUK_SECRET_KEY: "sk_live_x" })).toBe(true);
+    expect(await arrangementsLive(deps.db, { PAYLUK_TEST_SECRET_KEY: "sk_test_x", PAYMENTS_KILL_PAYLUK: "1" })).toBe(false);
+    state.flag = false;
+    expect(await arrangementsLive(deps.db)).toBe(false);
   });
 
   it("opens: the provider's answer makes it awaiting_payment", async () => {

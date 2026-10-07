@@ -38,9 +38,9 @@ export function paystackSeam(): AnyFiatProvider {
 /**
  * True only when an escrow payment could genuinely be held: a registered
  * provider that declares `hold_in_escrow`, the escrow flows themselves built
- * (phases 11 and 12, `PAYLUK_ESCROW_FLOWS_BUILT`), a key present, and its
- * switch on. The adapter exists now; the arrange, fund and release flows do
- * not, so this stays false whatever `payments_payluk_on` says.
+ * (phases 11 and 12, `PAYLUK_ESCROW_FLOWS_BUILT`, true from D77), a key
+ * present, and its switch on. In practice, from D77: the key and
+ * `payments_payluk_on`, nothing else (PAYMENTS_KILL_PAYLUK=1 stops it in an outage).
  */
 export async function escrowRailLive(): Promise<boolean> {
   const p = fiatProvider("payluk");

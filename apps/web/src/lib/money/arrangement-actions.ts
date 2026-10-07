@@ -4,7 +4,7 @@
  * STEP 10 to 11: the renter releases a protected payment to the lister.
  * A deliberate act (the money swipe), the renter only, through the service in
  * provider-arrangements.ts, which refuses unless the escrow flows are built,
- * `rentals_protected_pay` is on, the payment is held and the release is not
+ * `payments_payluk_on` is on (D77), the payment is held and the release is not
  * paused by Vallo (the database refuses a paused release as well). Nothing is
  * marked released here: Payluk's webhook does that.
  */

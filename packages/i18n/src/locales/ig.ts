@@ -477,6 +477,7 @@ export const ig: Dictionary = withFallback({
       footer: {
         legalName: "VALLO SPACES LTD",
         legalLine: "Ụlọ ọrụ teknụzụ Naịjirịa na-ewu ọdịnihu nke ụlọ.",
+        registeredOfficeLabel: "Ụlọ ọrụ edebanyere aha",
         stayConnected: "Nọgide na-ejikọ",
         newsletterBody: "Ndepụta ọhụrụ, akụkọ ngwaahịa na mmelite eziokwu mgbe ụfọdụ.",
         emailLabel: "Adreesị email",

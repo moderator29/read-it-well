@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Dictionary } from "@vallo/i18n/core";
 import { Logo } from "@/design-system/brand/Logo";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { COMPANY_REGISTERED_OFFICE } from "@/lib/legal/company";
 import { NewsletterForm } from "./NewsletterForm";
 import "@/app/css/site.css";
 
@@ -132,6 +133,24 @@ export function SiteFooter({ t }: { t: Dictionary }) {
             <p className="nf-body-sm mt-inline max-w-measure-lede text-[var(--nf-content-secondary)]">
               {face.footer.legalLine}
             </p>
+            {/*
+              THE REGISTERED OFFICE, IN AN <address> ELEMENT.
+
+              A marketplace that asks a stranger to send a deposit owes them
+              a real place the company can be found, so this is a trust
+              surface before it is a legal one, and it belongs in the brand
+              block rather than buried in Terms. The element is `address`
+              because that is what it is: a screen reader announces it as
+              contact information and a search engine reads it as the
+              business location, which a `p` gives neither.
+
+              `not-italic` because the user agent italicises `address` by
+              default and nothing else in this footer is italic.
+            */}
+            <address className="nf-caption mt-inline not-italic text-[var(--nf-content-muted)]">
+              <span className="sr-only">{face.footer.registeredOfficeLabel}: </span>
+              {COMPANY_REGISTERED_OFFICE}
+            </address>
           </div>
 
           {columns.map((col) => (

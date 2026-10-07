@@ -6,6 +6,7 @@ import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { readAgreement, UNNAMED_OWNER, UNNAMED_RENTER } from "@/lib/agreements/queries";
 import { readHeldPayment } from "@/lib/money/held-view";
+import { readAgreementRail } from "@/lib/money/fund-view";
 import { readChangesSinceConfirmed } from "@/lib/agreements/changes-read";
 import type { TermChange } from "@/lib/agreements/terms-diff";
 import { AgreementChanges, type WordedChange } from "@/components/app/agreements/AgreementChanges";
@@ -104,7 +105,16 @@ export default async function AgreementPage({
     a.claimWindow !== null && now >= Date.parse(a.claimWindow.opens) && now < Date.parse(a.claimWindow.closes);
   const claimedApproved = a.claims.reduce((sum, c) => sum + (c.approvedMinor ?? 0), 0);
   const cap = Math.max(0, a.amountMinor - claimedApproved);
-  const payHref = a.kind === "rent" && a.inspectionId ? `/rent/pay/${a.inspectionId}` : a.bookingId ? `/checkout/${a.bookingId}` : null;
+  /* D77: a rental on the escrow rail is paid into escrow from the renter's balance, not by card. */
+  const rentRail = a.kind === "rent" && a.status === "approved" && a.role === "renter" ? await readAgreementRail(a.id) : null;
+  const payHref =
+    rentRail === "escrow"
+      ? `/agreements/${a.id}/fund`
+      : a.kind === "rent" && a.inspectionId
+        ? `/rent/pay/${a.inspectionId}`
+        : a.bookingId
+          ? `/checkout/${a.bookingId}`
+          : null;
   const guaranteeBps = num(a.terms, "guarantee_bps");
   /* A contribution was really taken only while the Guarantee ran (D51). */
   const legacyContribution = guaranteeBps !== null && guaranteeBps > 0;

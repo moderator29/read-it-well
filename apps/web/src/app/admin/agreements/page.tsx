@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { formatMoney } from "@vallo/i18n/core";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
@@ -69,6 +70,9 @@ export default async function AgreementsDeskPage() {
         title="Agreements"
         lede="The rail decides the gate (D68d). A protected payment opens as soon as both parties agree, and you watch it while the provider holds it, with the power to pause a release. A direct payment waits here only when a risk signal fires. Both parties read a rejection's reason."
       />
+      <p className="nf-risk-settings__back">
+        <Link href="/admin/agreements/settings">Risk settings: threshold, signals and the incident switch</Link>
+      </p>
       {queue.state !== "ok" ? (
         <Panel title="Waiting for review">
           <p className="nf-body">The queue could not be read just now. Nothing was changed. Refresh to try again.</p>
