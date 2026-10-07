@@ -74,7 +74,7 @@ export function SpaceTypeRow({
                 data-testid={`home-space-type-${type}`}
               >
                 <span className="nf-space-type__object" aria-hidden="true">
-                  <BrandIcon name={SPACE_OBJECT[type]} size={64} />
+                  <BrandIcon name={SPACE_OBJECT[type]} size={64} preferRender />
                 </span>
                 <span className="nf-space-type__label">{copy.types[type]}</span>
                 {mine ? <span className="nf-space-type__mine">{copy.mine}</span> : null}
