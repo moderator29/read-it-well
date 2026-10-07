@@ -69,6 +69,14 @@ connector here: they write and roll back, and that outlasts its 60-second limit.
 - **GitHub push 500s (15:12 to 15:16):** server side on GitHub; the same commits went
   through a few minutes later. Does not matter.
 
+## 0d. Switches turned on
+
+| When (UTC) | Switches | Checked |
+| --- | --- | --- |
+| 7 Oct 15:24 | `listing_board`, `commute_by_the_clock`, `neighbours_account`, `show_me` | Code already on main. Audited by the `feature_flags` trigger. Read uncached by every visitor (select policy is open), so production sees them at once. Walked signed in as the QA member against production (`scripts/design/session-b-shots/flags-live-walk.mjs`, read-only): sign-in fine, the board door answers 200, no page errors. Nothing new is visible yet: all four hide on example listings by design, and live has no real published listing (64 examples, 1 draft). They show on the first real rental or sale. |
+
+Next: group 2 (`room_bookings`, `stays_instant_pay`, `restaurant_deposits`) after the main deploy carries their code; `stays_instant_pay` also waits for the d73a sweep. The old `wallet` key is a retired custody switch the database refuses to turn on; the balance runs on the b6 rail's own switch.
+
 ## 1. Built, with evidence
 
 | Item | Commit | Evidence |
