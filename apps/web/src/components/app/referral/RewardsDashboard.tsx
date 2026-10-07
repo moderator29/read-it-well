@@ -96,11 +96,28 @@ export function RewardsDashboard({
               key: "earn",
               title: "Earn when friends qualify",
               body: fill(words.qualify, { reward, cap: number.format(policy.monthlyCap) }),
+              screenTone: "platinum",
+              screen: (
+                <>
+                  <span className="nf-frag__label">{copy.balance.available}</span>
+                  <MoneyFigure minor={balance.availableMinor} locale={locale} size="lg" kobo="auto" />
+                </>
+              ),
               fragment: (
-                <div className="nf-frag">
-                  <span className="nf-frag__pill">{copy.policy.perReferral}</span>
-                  <MoneyFigure minor={policy.rewardPerReferralMinor} locale={locale} size="lg" kobo="auto" />
-                  <span className="nf-frag__line">{copy.policy.monthlyCap}: {number.format(policy.monthlyCap)}</span>
+                <div className="nf-frag nf-frag--card">
+                  <span className="nf-frag__row">
+                    <span>{copy.title}</span>
+                  </span>
+                  <span className="nf-frag__split">
+                    <span>
+                      <span className="nf-frag__label">{copy.policy.perReferral}</span>
+                      <MoneyFigure minor={policy.rewardPerReferralMinor} locale={locale} size="md" kobo="auto" />
+                    </span>
+                    <span>
+                      <span className="nf-frag__label">{copy.policy.monthlyCap}</span>
+                      <span className="nf-mfig nf-mfig--md nf-numeric">{number.format(policy.monthlyCap)}</span>
+                    </span>
+                  </span>
                 </div>
               ),
             },

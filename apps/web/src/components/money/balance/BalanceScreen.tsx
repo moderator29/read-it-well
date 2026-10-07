@@ -229,7 +229,7 @@ export function BalanceScreen({
         </>
       ) : null}
 
-      {canMove && figures ? <BalanceExplainer availableMinor={figures.available.minor} currency={figures.currency} locale={locale} /> : null}
+      {canMove && figures ? <BalanceExplainer figures={figures} locale={locale} /> : null}
 
       <Sheet open={opened !== null} onOpenChange={(o) => !o && setOpened(null)} title={opened ? movementTitle(opened.kind) : "Movement"} testId="balance-movement">
         {opened ? (
@@ -255,7 +255,9 @@ export function BalanceScreen({
  * Available figure: the balance, a withdrawal at half of it with the quick
  * chips, and the path a movement takes. The words are the screen's own.
  */
-function BalanceExplainer({ availableMinor, currency, locale }: { availableMinor: number; currency: string; locale: Locale }) {
+function BalanceExplainer({ figures, locale }: { figures: BalanceFigures; locale: Locale }) {
+  const availableMinor = figures.available.minor;
+  const currency = figures.currency;
   const half = Math.floor(availableMinor / 2 / 100) * 100;
   return (
     <MoneyExplainer
@@ -267,20 +269,36 @@ function BalanceExplainer({ availableMinor, currency, locale }: { availableMinor
           key: "held",
           title: "Your balance, in your name",
           body: "Our escrow partner holds it in an account in your name, never Vallo. Vallo keeps the record of every movement.",
+          screenTone: "platinum",
+          screen: (
+            <>
+              <span className="nf-frag__label">{FIGURE_LABEL.available}</span>
+              <MoneyFigure minor={availableMinor} locale={locale} currency={currency} size="lg" kobo="auto" />
+            </>
+          ),
           fragment: (
-            <div className="nf-frag">
-              <span className="nf-frag__pill">
-                <UiIcon name="shield-lock" size={14} />
-                {FIGURE_LABEL.available}
+            <div className="nf-frag nf-frag--card">
+              <span className="nf-frag__row">
+                <span>Where your money is</span>
+                <UiIcon name="chevron-right" size={16} />
               </span>
-              <MoneyFigure minor={availableMinor} locale={locale} currency={currency} size="lg" />
-              <span className="nf-frag__line">{FIGURE_HINT.available}</span>
+              <span className="nf-frag__split">
+                <span>
+                  <span className="nf-frag__label">{FIGURE_LABEL.protected}</span>
+                  <MoneyFigure minor={figures.protected.minor} locale={locale} currency={currency} size="md" kobo="auto" />
+                </span>
+                <span>
+                  <span className="nf-frag__label">{FIGURE_LABEL.pending}</span>
+                  <MoneyFigure minor={figures.pending.minor} locale={locale} currency={currency} size="md" kobo="auto" />
+                </span>
+              </span>
             </div>
           ),
         },
         {
           key: "withdraw",
           title: "Withdraw when you want",
+          screen: <span className="nf-frag__label">{ACTION_LABEL.withdraw}</span>,
           body: "Choose an amount, see every fee before you confirm, and slide to send it to your bank.",
           fragment: (
             <div className="nf-frag">

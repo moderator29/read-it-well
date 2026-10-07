@@ -426,10 +426,16 @@
   }
 
   /* --------------------------------------------------- the money card
-     Handoff A.9: a glass object with the shape and weight of a bank card.
-     The raised night glass, one hairline edge, one brand glow bleeding from
-     the top corner (the only colour), a sheen across it. */
+     Handoff A.9 (the shape and weight of a bank card) in the governing
+     material, platinum (D74, GOVERNING-plasma-rewards-platinum.jpg): brushed
+     silver to mid grey, dark ink, a bright hairline edge, and a sheen that
+     sweeps across it once when it arrives and then rests. One platinum
+     object per screen, and on the balance this is it. The metal is the same
+     in both themes, so its ink is the metal's own. */
   .nf-mcard {
+    --nf-content-primary: var(--nf-platinum-ink);
+    --nf-content-secondary: var(--nf-platinum-ink-soft);
+    --nf-content-muted: var(--nf-platinum-ink-soft);
     position: relative;
     isolation: isolate;
     overflow: hidden;
@@ -443,33 +449,66 @@
     margin-inline: auto;
     padding: var(--nf-space-lg) var(--nf-space-lg) var(--nf-space-md);
     border-radius: var(--nf-radius-card);
-    background: var(--nf-night-glass-raised-fill);
-    border: var(--nf-border-width) solid var(--nf-night-glass-raised-edge);
-    box-shadow: var(--nf-night-glass-raised-shadow), var(--nf-night-glass-raised-glow);
+    background: var(--nf-platinum-fill);
+    box-shadow: var(--nf-platinum-shadow);
     color: var(--nf-content-primary);
   }
+  /* The brushing: hairlines of the metal's own highlight, barely there. */
   .nf-mcard::before {
     content: "";
     position: absolute;
-    inset: -40% -30% auto auto;
-    width: 85%;
-    aspect-ratio: 1;
+    inset: 0;
     z-index: -1;
-    border-radius: var(--nf-radius-circle);
-    background: radial-gradient(closest-side, color-mix(in oklab, var(--nf-brand-primary) 42%, transparent), transparent);
+    background: repeating-linear-gradient(
+      100deg,
+      color-mix(in oklab, var(--nf-platinum-hi) 22%, transparent) 0 1px,
+      transparent 1px 4px
+    );
+    opacity: 0.6;
     pointer-events: none;
   }
   .nf-mcard__sheen {
     position: absolute;
-    inset: 0;
+    inset: -10% -40%;
     z-index: -1;
-    background: linear-gradient(
-      115deg,
-      transparent 28%,
-      color-mix(in oklab, var(--nf-content-primary) 7%, transparent) 44%,
-      transparent 58%
-    );
+    background: var(--nf-platinum-sheen);
     pointer-events: none;
+    transform: translateX(-70%);
+    opacity: 0;
+    animation: nf-mcard-sweep 1700ms var(--nf-ease-standard) 350ms 1 forwards;
+  }
+  @keyframes nf-mcard-sweep {
+    0% {
+      transform: translateX(-70%);
+      opacity: 0;
+    }
+    15% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateX(8%);
+      opacity: 0.55;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-mcard__sheen {
+      animation: none;
+      transform: translateX(8%);
+      opacity: 0.55;
+    }
+  }
+  :root[data-motion="calm"] .nf-mcard__sheen,
+  :root[data-motion="off"] .nf-mcard__sheen,
+  :root[data-save-data="on"] .nf-mcard__sheen {
+    animation: none;
+    transform: translateX(8%);
+    opacity: 0.55;
+  }
+  /* "Huge figures, unit in grey": the naira sign in the metal's soft ink. */
+  .nf-mcard .nf-mfig__cur {
+    font-size: 0.8em;
+    vertical-align: baseline;
+    font-weight: 600;
   }
   .nf-mcard__top {
     display: flex;
@@ -500,7 +539,6 @@
   }
   .nf-mcard__art {
     margin: calc(-1 * var(--nf-space-sm)) calc(-1 * var(--nf-space-sm)) 0 0;
-    filter: drop-shadow(0 10px 18px color-mix(in oklab, var(--nf-brand-primary) 30%, transparent));
   }
   .nf-mcard__body {
     display: grid;
@@ -975,74 +1013,74 @@
   }
 
   /* ------------------------------------------------- the explainer
-     Reference 9: a phone frame cropped at the top, a frosted fragment of
-     the real screen breaking out of it towards the reader. */
+     D74's Plasma explainer: a phone cropped at the top fades up out of the
+     near-black field, then a smoked-glass card breaks out of it towards the
+     reader. The motion is framer-motion's (MoneyExplainer); this is the
+     settled frame every motion level ends on. */
   .nf-explain {
     display: grid;
     gap: var(--nf-space-lg);
-    padding-block: var(--nf-space-sm) var(--nf-space-md);
+    padding-block: var(--nf-space-sm) var(--nf-space-xl);
   }
   .nf-explain__stage {
     position: relative;
-    height: 15.5rem;
+    height: 17rem;
     overflow: hidden;
-    -webkit-mask-image: linear-gradient(180deg, var(--nf-content-primary) 72%, transparent);
-    mask-image: linear-gradient(180deg, var(--nf-content-primary) 72%, transparent);
+    border-radius: var(--nf-radius-card);
+    background: radial-gradient(120% 90% at 50% 0%, color-mix(in oklab, var(--nf-platinum-low) 16%, transparent), transparent 70%);
+    -webkit-mask-image: linear-gradient(180deg, var(--nf-content-primary) 70%, transparent);
+    mask-image: linear-gradient(180deg, var(--nf-content-primary) 70%, transparent);
   }
   .nf-explain__phone {
     position: absolute;
-    inset: var(--nf-space-lg) 14% -2rem;
+    inset: var(--nf-space-lg) 15% -3rem;
     border-radius: var(--nf-radius-island) var(--nf-radius-island) 0 0;
-    border: var(--nf-border-width-strong) solid color-mix(in oklab, var(--nf-content-primary) 14%, transparent);
-    background: color-mix(in oklab, var(--nf-surface-inset) 80%, transparent);
+    border: 3px solid color-mix(in oklab, var(--nf-platinum-low) 70%, transparent);
+    background: var(--nf-surface-inset);
+    overflow: hidden;
   }
-  .nf-explain__phone::before {
-    content: "";
+  .nf-explain__phone[data-tone="platinum"] {
+    --nf-content-primary: var(--nf-platinum-ink);
+    --nf-content-secondary: var(--nf-platinum-ink-soft);
+    --nf-content-muted: var(--nf-platinum-ink-soft);
+    background: var(--nf-platinum-fill);
+  }
+  .nf-explain__island {
     position: absolute;
-    top: 0.625rem;
+    top: 0.5rem;
     left: 50%;
     width: 4.5rem;
     height: 1.125rem;
     translate: -50% 0;
-    border-radius: var(--nf-radius-pill);
-    background: color-mix(in oklab, var(--nf-content-primary) 10%, transparent);
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-platinum-ink);
+  }
+  .nf-explain__screen {
+    display: grid;
+    justify-items: center;
+    gap: var(--nf-space-2xs);
+    padding: 2.5rem var(--nf-space-sm) 0;
+    text-align: center;
   }
   .nf-explain__fragment {
     position: absolute;
-    top: 3.25rem;
+    top: 7rem;
     left: 50%;
-    width: min(88%, 20rem);
-    translate: -50% 0;
+    width: min(90%, 20rem);
+    margin-left: calc(min(90%, 20rem) / -2);
     padding: var(--nf-space-md);
     border-radius: var(--nf-radius-card);
-    background: var(--nf-glass-fill-strong);
-    border: var(--nf-border-width) solid var(--nf-glass-border);
+    background: var(--nf-smoked-glass-fill);
+    border: var(--nf-border-width) solid var(--nf-smoked-glass-edge);
     box-shadow: var(--nf-glass-shadow-lifted);
-    -webkit-backdrop-filter: blur(var(--nf-glass-blur));
-    backdrop-filter: blur(var(--nf-glass-blur));
-    animation: nf-explain-rise var(--nf-duration-entrance) var(--nf-ease-entrance) both;
-  }
-  @keyframes nf-explain-rise {
-    from {
-      opacity: 0;
-      transform: translateY(14px) scale(0.98);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0) scale(1.03);
-    }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .nf-explain__fragment {
-      animation: none;
-      transform: scale(1.03);
-    }
-  }
-  :root[data-motion="off"] .nf-explain__fragment,
-  :root[data-motion="calm"] .nf-explain__fragment,
-  :root[data-save-data="on"] .nf-explain__fragment {
-    animation: none;
-    transform: scale(1.03);
+    -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    /* Smoked glass is dark in both themes, so its ink is the metal's light. */
+    --nf-content-primary: var(--nf-platinum-hi);
+    --nf-content-secondary: var(--nf-platinum-mid);
+    --nf-content-muted: var(--nf-platinum-mid);
+    color: var(--nf-content-primary);
+    transform: scale(1.04);
   }
   .nf-explain__words {
     display: grid;
@@ -1463,5 +1501,159 @@
     font-weight: 600;
     letter-spacing: 0.08em;
     text-transform: uppercase;
+  }
+
+  /* ------------------------------------------------------ the payoff badge
+     D74's success screen: a scalloped seal with a check, sparkles opening out
+     once around it. One sharp impact (the pop), then stillness. */
+  .nf-mbadge {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    width: 4.5rem;
+    height: 4.5rem;
+    margin-block-end: var(--nf-space-xs);
+    color: var(--nf-content-on-brand);
+    animation: nf-mdot-pop 520ms var(--nf-ease-spring) both;
+  }
+  .nf-mbadge__seal {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    fill: var(--nf-state-success);
+    filter: drop-shadow(0 10px 22px color-mix(in oklab, var(--nf-state-success) 38%, transparent));
+  }
+  .nf-mbadge__check {
+    position: relative;
+  }
+  .nf-mbadge__spark {
+    position: absolute;
+    width: 0.625rem;
+    height: 0.625rem;
+    background: var(--nf-state-success);
+    clip-path: polygon(50% 0, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0 50%, 39% 39%);
+    animation: nf-mbadge-spark 640ms var(--nf-ease-spring) both;
+  }
+  .nf-mbadge__spark[data-at="1"] {
+    top: -8%;
+    left: -14%;
+    animation-delay: 180ms;
+  }
+  .nf-mbadge__spark[data-at="2"] {
+    top: 4%;
+    right: -22%;
+    width: 0.875rem;
+    height: 0.875rem;
+    animation-delay: 260ms;
+  }
+  .nf-mbadge__spark[data-at="3"] {
+    bottom: 6%;
+    left: -24%;
+    width: 0.4375rem;
+    height: 0.4375rem;
+    animation-delay: 320ms;
+  }
+  .nf-mbadge__spark[data-at="4"] {
+    bottom: -10%;
+    right: -6%;
+    width: 0.5rem;
+    height: 0.5rem;
+    animation-delay: 380ms;
+  }
+  @keyframes nf-mbadge-spark {
+    from {
+      opacity: 0;
+      transform: scale(0) rotate(-45deg);
+    }
+    to {
+      opacity: 0.9;
+      transform: scale(1) rotate(0);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-mbadge,
+    .nf-mbadge__spark {
+      animation: none;
+    }
+  }
+  :root[data-motion="calm"] .nf-mbadge__spark,
+  :root[data-motion="off"] .nf-mbadge,
+  :root[data-motion="off"] .nf-mbadge__spark,
+  :root[data-save-data="on"] .nf-mbadge,
+  :root[data-save-data="on"] .nf-mbadge__spark {
+    animation: none;
+  }
+
+  /* ----------------------------------------------- the reflecting capsule
+     D74 (GOVERNING-plasma-rewards-platinum.jpg): the one primary action on
+     an explainer or a payoff, a full-width capsule, light on the dark field
+     with a soft glow and its reflection on the floor beneath. One per
+     screen. Listed in check-css-tokens' PILL_ALLOWED with that image. */
+  .nf-capsule {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--nf-space-xs);
+    width: 100%;
+    min-height: 3.5rem;
+    padding-inline: var(--nf-space-lg);
+    border-radius: var(--nf-radius-pill);
+    background: linear-gradient(180deg, var(--nf-platinum-hi), color-mix(in oklab, var(--nf-platinum-hi) 82%, var(--nf-platinum-mid)));
+    color: var(--nf-platinum-ink);
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    box-shadow: var(--nf-capsule-reflection), 0 0 0 1px var(--nf-platinum-edge) inset;
+    -webkit-box-reflect: below 6px linear-gradient(transparent 55%, color-mix(in oklab, var(--nf-platinum-hi) 22%, transparent));
+    transition: transform var(--nf-duration-fast) var(--nf-ease-press);
+  }
+  .nf-capsule:active {
+    transform: scale(0.98);
+  }
+  .nf-capsule:focus-visible {
+    outline: 2px solid var(--nf-brand-primary);
+    outline-offset: 3px;
+  }
+
+  /* The smoked card's furniture: a row with a chevron, then two figures
+     split by a hairline (GOVERNING-plasma-rewards-platinum.jpg). */
+  .nf-frag--card {
+    justify-items: stretch;
+    gap: 0;
+    text-align: start;
+  }
+  .nf-frag__label {
+    font-size: var(--nf-text-caption);
+    font-weight: 500;
+    color: var(--nf-content-secondary);
+  }
+  .nf-frag__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: var(--nf-space-sm);
+    border-bottom: var(--nf-border-width) solid color-mix(in oklab, var(--nf-content-primary) 12%, transparent);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+  }
+  .nf-frag__split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding-top: var(--nf-space-sm);
+  }
+  .nf-frag__split > span {
+    display: grid;
+    justify-items: center;
+    gap: var(--nf-space-2xs);
+    min-width: 0;
+  }
+  .nf-frag__split > span + span {
+    border-inline-start: var(--nf-border-width) solid color-mix(in oklab, var(--nf-content-primary) 12%, transparent);
+  }
+  .nf-frag__split .nf-mfig {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
