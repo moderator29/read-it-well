@@ -26,6 +26,9 @@ What makes it premium, so it can be applied everywhere rather than copied once:
   (`--nf-platinum-*`: base, sheen, edge, ink) beside the existing ones and use it
   sparingly: one platinum object per screen. On Vallo's navy, platinum reads as the
   luxury layer above the blue glass, not a replacement for it.
+- **Two metals, platinum and gold**, and only two. Platinum is the default premium
+  material; gold (`--nf-gold-*`) is the higher tier and the payoff (a top rewards
+  tier, Pro, a streak milestone). Never both on one object.
 - **Near-black fields**, not busy backgrounds. The content is lit; the field is quiet.
 - **Smoked glass cards that break out of a device frame** towards the viewer: real UI
   fragments as illustration, used for every explainer and first-run moment.
@@ -38,6 +41,11 @@ What makes it premium, so it can be applied everywhere rather than copied once:
 - **Progress to the next level as a pill** ("20,000.0 to Core >").
 - **Restraint:** each screen has one idea, one figure, one action. Nothing decorative
   competes with it.
+
+Later the same afternoon he added a metal window-controls pill, an enrollment flow, a
+savings app with a streak, a success screen and the amount entry; they are described in
+`docs/design/references/2026-10-07/README.md`. Streaks, greetings by name, spotlight
+sheets with a 3D object, and scalloped success badges come from there.
 
 ## The five references he sent in chat on 7 October
 
