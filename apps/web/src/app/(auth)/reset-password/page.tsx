@@ -1,14 +1,13 @@
+import "@/app/css/auth.css";
 import type { Metadata } from "next";
 import { publicPageMetadata } from "@/lib/i18n/public-metadata";
 import { getDictionary } from "@vallo/i18n";
-import { forAuth } from "@/components/auth/auth-copy";
 import { getLocale } from "@/lib/locale";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { ResetPasswordForm } from "@/components/auth/ResetPasswordForm";
 import { AuthPillLink } from "@/components/auth/slate";
 import { passwordChangeProof, type PasswordChangeProof } from "@/lib/auth/password-change-proof";
-import "@/app/css/auth.css";
 
 /* A10: the title and description in the page's own language, with its
    canonical and hreflang (lib/i18n/public-metadata.ts; words in publicMeta). */
@@ -66,5 +65,5 @@ export default async function ResetPasswordPage() {
     );
   }
 
-  return <ResetPasswordForm t={forAuth(t)} askCurrent={proof === "current-password"} />;
+  return <ResetPasswordForm t={t} askCurrent={proof === "current-password"} />;
 }

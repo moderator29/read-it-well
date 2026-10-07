@@ -120,53 +120,10 @@ describe.skipIf(!hasBrowser && !process.env.CI)("no layout motion on the frequen
     }
   });
 
-  const AUTH_CSS = productCss("app/css/auth.css");
-  const auth = `
-    import { mount } from "@/lib/testing/browser-root";
-    mount(<main className="nf-auth nf-slate" id="auth">
-      <header className="nf-auth-cap" id="cap"><div className="nf-auth-cap__ground" id="ground" /></header>
-      <div className="nf-auth__body" id="body">
-        <div className="nf-auth__stage"><section className="nf-auth__island">
-          <h1 className="nf-auth__title" id="title">Sign in</h1>
-          <input id="email" />
-        </section></div>
-      </div>
-    </main>);
-  `;
-
-  it("the bowl closes on a registered length that only transforms read", async () => {
-    const { page, close } = await mountInBrowser({ entry: auth, css: AUTH_CSS });
-    try {
-      /* A touch screen: `pointer: coarse`, where the short bowl lives. */
-      const cdp = await page.context().newCDPSession(page);
-      await cdp.send("Emulation.setTouchEmulationEnabled", { enabled: true, maxTouchPoints: 1 });
-      await cdp.send("Emulation.setEmitTouchEventsForMouse", { enabled: true });
-      expect(await page.evaluate(() => matchMedia("(pointer: coarse)").matches)).toBe(true);
-
-      expect(await css(page, "cap", "transitionProperty")).not.toMatch(/height/);
-      expect(await css(page, "title", "transitionProperty")).toBe("scale");
-      expect(await css(page, "auth", "transitionProperty")).toBe("--nf-cap-now");
-      const restH = (await page.evaluate(() => document.getElementById("cap")!.getBoundingClientRect().height));
-      const restBody = (await page.evaluate(() => document.getElementById("body")!.getBoundingClientRect().top));
-
-      await page.focus("#email");
-      await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => r(null))));
-      /* The box snapped once, to 8.5rem... */
-      const capH = await page.evaluate(() => document.getElementById("cap")!.getBoundingClientRect().height);
-      expect(capH).toBeCloseTo(136, 0);
-      /* ...and the form is still drawn near where it stood, carried by its translate. */
-      const drawnBody = await page.evaluate(() => document.getElementById("body")!.getBoundingClientRect().top);
-      expect(drawnBody).toBeGreaterThan(restBody - (restH - 136) * 0.5);
-      expect(await css(page, "title", "fontSize")).toBe("30px");
-
-      await page.waitForTimeout(700);
-      const settledBody = await page.evaluate(() => document.getElementById("body")!.getBoundingClientRect().top);
-      expect(Math.abs(settledBody - (restBody - (restH - 136)))).toBeLessThan(1);
-      expect(await css(page, "title", "scale")).toBe("0.8667");
-    } finally {
-      await close();
-    }
-  });
+  /* The redesigned sign-in header (its bowl closing on a registered length)
+     was rolled back with the rest of that sign-in on 7 October 2026, at the
+     founder's request; the restored screens' header motion is listed with
+     its reason in no-layout-motion.test.ts. */
 
   it("the pointer bloom and the progress fill move on transform", async () => {
     const entry = `

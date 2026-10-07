@@ -9,6 +9,9 @@ import { loadProfileState } from "@/lib/profile/queries";
 import { loadSessions } from "@/lib/security/sessions";
 import { getAgentContext } from "@/lib/agent/listings-queries";
 import { LogOutRow, SettingsHub } from "./SettingsHub";
+import { inviteRewards } from "@/lib/referral/rewards";
+import { readMyRewards } from "@/lib/referral/rewards-read";
+import { rewardsDoorSub } from "@/components/app/referral/rewards-door";
 
 export async function generateMetadata(): Promise<Metadata> {
   // Static metadata cannot read the locale cookie, so the tab said "Settings"
@@ -37,10 +40,12 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function SettingsPage() {
   const locale = await getLocale();
   const t = getDictionary(locale);
-  const [account, sessions, agentContext] = await Promise.all([
+  const [account, sessions, agentContext, rewardsRead] = await Promise.all([
     loadProfileState(),
     loadSessions(),
     getAgentContext(),
+    /* The Rewards row's line. Today the read answers not-live and calls nothing. */
+    readMyRewards(),
   ]);
   const signedIn = account.state === "signed-in";
   const profile = signedIn ? account.profile : null;
@@ -94,6 +99,14 @@ export default async function SettingsPage() {
           }
           passportRow={
             signedIn ? { label: t.trustVisible.passport.title, sub: t.trustVisible.passport.subtitle } : null
+          }
+          rewardsRow={
+            signedIn
+              ? {
+                  label: t.experienceRewards.title,
+                  sub: rewardsDoorSub(inviteRewards(rewardsRead), t.experienceRewards),
+                }
+              : null
           }
         />
 

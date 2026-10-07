@@ -175,21 +175,20 @@ export function HomeScreen({
    * with the house on it.
    */
   /*
-   * THE DOORS TAKE THE TIERED OBJECTS (D29; Session 3, W2). Buy and Rent are
-   * real places, so they are drawn as Tier A places (the gated family house,
-   * the apartment block); Pay and List are ideas, so they are Tier B matte
-   * symbols (the wallet, the page with a plus). The words, the order and the
-   * destinations are unchanged (D28: the four doors stay four doors). `art`
-   * stays as the fallback the row drew before.
+   * THE DOORS DRAW THE FOUNDER'S ORIGINAL 3D ART (`art`, `/brand/3d`). They
+   * carried tiered objects for a while (D29); the founder asked for the
+   * original 3D icons back, so no door passes `object` and the row draws its
+   * `Icon3D`. The words, the order and the destinations are unchanged (D28:
+   * the four doors stay four doors).
    */
   const categories: HomeCategory[] = [
     /* Buy, Rent and Pay open with no skeleton: their pages are fetched whole
        ahead of the tap (about 35, 35 and 11 KB on the wire). List opens the
        listing form, about 120 KB, so it waits for the tap. */
-    { key: "buy", art: "buy", object: "family-house-gate", label: copy.buy, href: "/search?market=buy", icon: "home-check", glyph: "house", whole: true },
-    { key: "rent", art: "rent", object: "apartment-block", label: copy.rent, href: "/search?market=rent", icon: "keys-home", glyph: "key", whole: true },
-    { key: "pay", art: "pay", object: "wallet-angled", label: copy.pay, href: "/agreements", icon: "naira-hand", glyph: "wallet", whole: true },
-    { key: "manage", art: "list", object: "doc-plus", label: copy.manage, href: manageHref, icon: "doc-home", glyph: "file-text" },
+    { key: "buy", art: "buy", label: copy.buy, href: "/search?market=buy", icon: "home-check", glyph: "house", whole: true },
+    { key: "rent", art: "rent", label: copy.rent, href: "/search?market=rent", icon: "keys-home", glyph: "key", whole: true },
+    { key: "pay", art: "pay", label: copy.pay, href: "/agreements", icon: "naira-hand", glyph: "wallet", whole: true },
+    { key: "manage", art: "list", label: copy.manage, href: manageHref, icon: "doc-home", glyph: "file-text" },
     /*
       UX-22 / STORE-05: NO INVEST TILE. It went to `/search?market=buy`, the
       same shelf as Buy, so it filtered nothing distinct and promised an

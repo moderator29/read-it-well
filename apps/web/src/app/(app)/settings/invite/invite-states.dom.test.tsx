@@ -16,6 +16,12 @@
  *             and no first run (R1's build, unchanged)
  *   failed    the invite, and nothing about a reward either way
  *
+ * In EVERY state the hub links its referrals list and the Rewards page (the
+ * founder could not find either, 7 October 2026). The Rewards row is a door,
+ * not a reward word: it is titled "Rewards" and its line says what the page
+ * will say (not running yet, paused, or nothing on a failed read); only a
+ * running programme turns it into the Rewards Balance row.
+ *
  * The snapshot is the rewards deck's fixture (`(dev)/preview/rewards`), with
  * the policy changed once to show the figures follow the read.
  */
@@ -107,8 +113,11 @@ const REWARD_WORDS = [
   REWARDS_PENDING_THEN_AVAILABLE,
   REWARDS_MONTHLY_BUDGET,
   REWARDS_NOT_HELD,
-  'href="/rewards"',
 ];
+
+/* The two inner-page doors every state of the hub draws. */
+const REFERRALS_DOOR = 'href="/settings/invite/referrals"';
+const REWARDS_DOOR = 'href="/rewards"';
 
 function html(element: ReactElement): string {
   return renderToStaticMarkup(element)
@@ -170,6 +179,15 @@ describe("not live: no reward, said plainly, and nothing reward shaped", () => {
     expect(await PAGES.hub()).toContain('data-testid="invite-ticket"');
   });
 
+  it("the hub links who joined and the Rewards page, which says rewards are not running", async () => {
+    const hub = await PAGES.hub();
+    expect(hub).toContain(REFERRALS_DOOR);
+    expect(hub).toContain(REWARDS_DOOR);
+    expect(hub).toContain('data-testid="invite-rewards-door"');
+    expect(hub).toContain(r.states.notLiveTitle);
+    expect(hub).not.toContain('data-testid="invite-rewards-row"');
+  });
+
   it("the first run is the link, then nothing to earn", async () => {
     const run = await PAGES.run();
     expect(run).toContain(runC.p1Title);
@@ -192,7 +210,10 @@ describe("running: what the invited person gets, what the member earns and when"
     expect(hub).toContain("Each referral that qualifies adds ₦70 to your Rewards Balance, for up to 1,500 qualified referrals a month.");
     expect(hub).toContain(REWARDS_PENDING_THEN_AVAILABLE);
     expect(hub).toContain(REWARDS_MONTHLY_BUDGET);
-    expect(hub).toContain('href="/rewards"');
+    expect(hub).toContain(REWARDS_DOOR);
+    expect(hub).toContain('data-testid="invite-rewards-row"');
+    expect(hub).toContain(r.inviteHub.balanceRow);
+    expect(hub).toContain(REFERRALS_DOOR);
     none(hub, NO_REWARD, "hub");
     expect(hub).not.toContain(r.pause.title);
     expect(state.gate).toEqual(["invite"]);
@@ -253,6 +274,10 @@ describe("paused: R1's pause, unchanged, and no reward words", () => {
     const hub = await PAGES.hub();
     expect(hub).toContain(r.pause.inviteOff);
     expect(hub).not.toContain('data-testid="invite-ticket"');
+    /* What is already earned is still the member's, so the Rewards page keeps its door. */
+    expect(hub).toContain(REWARDS_DOOR);
+    expect(hub).toContain('data-testid="invite-rewards-door"');
+    expect(hub).toContain(REFERRALS_DOOR);
     expect(state.gate).toEqual([]);
   });
 
@@ -274,7 +299,12 @@ describe("a failed read: the invite, and nothing about a reward either way", () 
       none(markup, [...REWARD_WORDS, ...NO_REWARD], name);
       expect(markup, name).not.toContain(r.pause.title);
     }
-    expect(await PAGES.hub()).toContain('data-testid="invite-ticket"');
+    const hub = await PAGES.hub();
+    expect(hub).toContain('data-testid="invite-ticket"');
+    /* The doors stay; the Rewards row carries no line either way. */
+    expect(hub).toContain(REWARDS_DOOR);
+    expect(hub).toContain(REFERRALS_DOOR);
+    expect(hub).not.toContain(r.states.notLiveTitle);
     expect(await PAGES.run()).toContain(runC.p1Title);
   });
 });

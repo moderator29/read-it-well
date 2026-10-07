@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { tieredAssetFor, tieredSrc, type TieredObjectName } from "./object-assets";
+import { brandArtwork, type TieredObjectName } from "./object-assets";
 
 /**
  * Vallo brand icon.
@@ -318,18 +318,17 @@ function resolveObject(name: BrandIconProp): BrandIconObject {
     : (name as BrandIconObject);
 }
 
+const GLASS_OBJECTS: ReadonlySet<string> = new Set(BRAND_ICONS);
+
 /**
- * What a name draws: an accepted matte or realistic object (D29), or the glass
- * artwork it always drew. The legacy alias is resolved FIRST, so `bell-alert`
- * (an alias of `bell-badge`) follows `bell-badge` onto the matte bell.
+ * What a name draws. THE GLASS ORIGINAL ALWAYS WINS: every glass name (and
+ * every legacy alias, resolved first) draws its own `/brand/glass/<name>.png`
+ * (`brandArtwork` in `object-assets.ts`). A tiered object is drawn only for a
+ * name the glass pack does not have (`padlock`, `prepaid-meter`).
  */
-function resolveArtwork(name: BrandIconProp): { src: string; material: "matte" | "real" | "glass"; object: string } {
-  const direct = tieredAssetFor(name);
-  if (direct) return { src: tieredSrc(direct), material: direct.tier === "b" ? "matte" : "real", object: name };
+function resolveArtwork(name: BrandIconProp) {
   const object = resolveObject(name);
-  const mapped = tieredAssetFor(object);
-  if (mapped) return { src: tieredSrc(mapped), material: mapped.tier === "b" ? "matte" : "real", object };
-  return { src: `/brand/glass/${object}.png`, material: "glass", object };
+  return brandArtwork(name, object, GLASS_OBJECTS.has(object));
 }
 
 export function BrandIcon({

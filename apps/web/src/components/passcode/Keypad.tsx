@@ -4,27 +4,13 @@ import { useEffect, useState, type ReactNode } from "react";
 import { feedback } from "@/lib/ui/feedback";
 
 /**
- * The dots and the keypad. docs/PASSCODE.md; MOTION_SYSTEM.md section 6.
+ * The dots and the keypad. Large round keys, a delete key, a press state you
+ * can feel (a scale and a fill, turned into a plain fill under reduced
+ * motion), and the physical keyboard too: digits type, Backspace deletes.
  *
- * THE DOTS ARE THE SUBJECT OF THE SCREEN (the craft doctrine, section 4: "on
- * a passcode screen the dots"). Large and generously spaced, and the motion
- * is the whole thing, because this is the most repeated interaction in the
- * product and it has to feel right on the thousandth time:
- *
- *   a digit lands     its dot fills with a pop, 1.0 to 1.15 to 1.0 on the
- *                     `land` curve over 160ms, with one light haptic from the
- *                     key (`feedback("select")`, the light weight)
- *   a wrong code      the row shakes 6px once on `whip` over 160ms, still
- *                     full, then the fill leaves on the `leave` curve. NO red
- *                     flash: the message beneath says what happened, quietly
- *   the right code    the last dot fills and holds (PasscodeLock opens the
- *                     door 80ms later)
- *
- * Large round keys, a delete key, a press you can feel (the key sinks on the
- * press curve with a soft bloom), and the physical keyboard too: digits type,
- * Backspace deletes. The bottom-left slot is where a biometric key can sit
- * (`accessory`), which the lock uses once the person has chosen the keypad
- * over the biometric door it offers first.
+ * The bottom-left key is empty on the web. It is where a biometric unlock
+ * goes in the native app (`lib/passcode/native-unlock.ts`), passed in as
+ * `accessory`.
  */
 
 export function PasscodeDots({
@@ -35,49 +21,35 @@ export function PasscodeDots({
 }: {
   length: number;
   filled: number;
-  /** Changes every wrong attempt, so the shake and the clearing replay. */
+  /** Changes every wrong attempt, so the shake replays. */
   shake: number;
   label: string;
 }) {
-  /* Keyed by the attempt, so each wrong code starts its own shake. */
+  /* Keyed by the attempt, so each wrong code starts its own shake and its own
+     brief error colour. */
   return <DotsRow key={shake} length={length} filled={filled} erring={shake > 0} label={label} />;
 }
 
-/**
- * How long a wrong code keeps the row full: the 160ms shake, then the 240ms
- * leave fade of the fill (`passcode.css`). After it the row is simply empty.
- */
-export const WRONG_CLEAR_MS = 400;
+/** How long a wrong code keeps the dots in the error colour (the shake is shorter). */
+const ERROR_TINT_MS = 1200;
 
 function DotsRow({ length, filled, erring, label }: { length: number; filled: number; erring: boolean; label: string }) {
-  /* The attempt's dots stay full while the row shakes and then fade out, so
-     the person sees the code they typed leave rather than vanish. */
-  const [clearing, setClearing] = useState(erring);
+  const [tinted, setTinted] = useState(erring);
   useEffect(() => {
     if (!erring) return;
-    const timer = window.setTimeout(() => setClearing(false), WRONG_CLEAR_MS);
+    const timer = window.setTimeout(() => setTinted(false), ERROR_TINT_MS);
     return () => window.clearTimeout(timer);
   }, [erring]);
-  const typing = clearing && filled > 0;
   return (
     <div
-      className={`nf-passcode__dots${clearing ? " nf-passcode__dots--wrong" : ""}`}
-      data-count={length}
+      className={`nf-passcode__dots${tinted ? " nf-passcode__dots--shake" : ""}`}
       role="img"
       aria-label={label}
       data-testid="passcode-dots"
     >
-      {Array.from({ length }, (_, i) => {
-        /* A digit typed during the clearing is a new attempt and shows as one. */
-        const on = typing ? i < filled : clearing || i < filled;
-        const leaving = clearing && !typing;
-        return (
-          <span
-            key={i}
-            className={`nf-passcode__dot${on ? " nf-passcode__dot--on" : ""}${leaving ? " nf-passcode__dot--leaving" : ""}`}
-          />
-        );
-      })}
+      {Array.from({ length }, (_, i) => (
+        <span key={i} className={`nf-passcode__dot${i < filled ? " nf-passcode__dot--on" : ""}`} />
+      ))}
     </div>
   );
 }
@@ -107,7 +79,6 @@ export function Keypad({
       if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) return;
       if (/^[0-9]$/.test(event.key)) {
         event.preventDefault();
-        feedback("select");
         onDigit(event.key);
       } else if (event.key === "Backspace") {
         event.preventDefault();
@@ -118,7 +89,6 @@ export function Keypad({
     return () => window.removeEventListener("keydown", onKey);
   }, [disabled, onDigit, onDelete]);
 
-  /* The light haptic is the digit landing, so it comes with the digit. */
   const press = (digit: string) => {
     feedback("select");
     onDigit(digit);
@@ -135,14 +105,14 @@ export function Keypad({
       <button type="button" className="nf-passcode__key" disabled={disabled} onClick={() => press("0")}>
         0
       </button>
-      {/* Delete is not a digit landing, so it carries no haptic: a haptic
-          that does not help somebody understand what happened is removed
-          (craft doctrine, section 6). */}
       <button
         type="button"
         className="nf-passcode__key nf-passcode__key--quiet"
         disabled={disabled}
-        onClick={onDelete}
+        onClick={() => {
+          feedback("select");
+          onDelete();
+        }}
         aria-label={deleteLabel}
       >
         <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" focusable="false">

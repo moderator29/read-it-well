@@ -1,63 +1,46 @@
 import "./startup.css";
-import type { CSSProperties } from "react";
-import { MARK_PATHS, MARK_VIEWBOX, WORDMARK_PATHS, WORDMARK_VIEWBOX } from "@/components/auth/vector-mark";
 import { STARTUP_SCRIPT } from "./startup-script";
 
 /**
- * THE APP OPENING: 1,500ms OF BRAND, THEN THE PRODUCT (directive D31,
- * MOTION_SYSTEM.md section 3, north star section 8).
+ * The brand art the opening draws: the real glass mark and the chrome
+ * wordmark, both made for a dark ground, recompressed to twice their display
+ * size (`public/brand/startup/`, from `vallo-mark.png` and
+ * `vallo-wordmark.png`). The mark's file is also the sweep's mask
+ * (`startup.css`), and the root layout preloads both.
+ */
+export const STARTUP_MARK = { src: "/brand/startup/vallo-mark.webp", width: 280, height: 268 } as const;
+export const STARTUP_WORDMARK = { src: "/brand/startup/vallo-wordmark.webp", width: 312, height: 69 } as const;
+
+/**
+ * THE APP OPENING: THE REAL MARK, THEN THE PRODUCT (directive D31,
+ * MOTION_SYSTEM.md section 3).
  *
- * Built once Session 2 had bounded `/open` (R-1): the eight seconds the
- * founder saw were an unbounded `resolveSession()`, and an animation over that
- * would have been a longer hang with better production values. This replaces
- * the Track M splash in the same place in the root layout and keeps its gate
- * (the before-paint script there, `STARTUP_GATE_SCRIPT`: once per session,
- * which on the native shell is once per cold start; never on the console, the
- * auth callback or a shared link; never under Calm, Off, the splash switch or
- * data saver, where the app simply appears; and under the platform's reduced
- * motion, quietly: the still lockup and a 160ms crossfade).
+ * October 2026: the founder rejected the flat vector redraw of the logo this
+ * used to assemble facet by facet ("remove those vector"). The opening now
+ * draws the brand's own art, the glossy glass mark and the chrome wordmark,
+ * as plain images, and moves them with transform and opacity only:
  *
- * THE SIX BEATS, all CSS (`startup.css`), all transform, opacity and filter:
+ *     0      60   the bare navy ground, exactly the native splash
+ *     0     900   a soft glow blooms behind the mark (opacity, scale)
+ *     60    760   the mark rises into place: 24px low, 0.86 scale and
+ *                 transparent, to rest (700ms, land)
+ *     180   680   the wordmark follows, 120ms behind: 12px low to rest
+ *                 (500ms, land)
+ *     560  1460   one light sweep across the glass, masked to the mark's
+ *                 own shape (900ms, glide)
+ *     1350 1750   the door: the whole overlay fades and lifts, 1 to 1.04
+ *                 (400ms, leave), and the page comes forward beneath it
  *
- *     0     120   the bare navy ground, exactly the native splash (which
- *                 is the same navy with nothing on it, on every platform)
- *     120   480   the mark assembles at the optical centre, twice its
- *                 settled size: its six facets arrive from depth and
- *                 lock while the mark turns 12 degrees to 0 and scales 0.86
- *                 to 1                                              land
- *     380   720   the wordmark's letters from depth, 24ms apart,
- *                 blur 6 to 0                                       glide
- *     640   900   the edge light sweeps the lockup once            glide
- *     900   1150  the lockup settles and breathes, 1.0 1.02 1.0    drift
- *     1150  1530  the door: the ground parts (leave, 350ms) and the
- *                 mark rises out of it into the first screen's mark,
- *                 at that mark's size (land, 380ms)
+ * The door's 1350 is the stylesheet's (`--nf-startup-door`), so it is on
+ * time on a busy phone; the script only moves it for a tap or a key, and on
+ * the native shell holds every beat at its first frame until the native
+ * splash has been told to go (`startup-script.ts`).
  *
- * The door's 1150 is the stylesheet's (`--nf-startup-door`), so it is on
- * time on a busy phone; the script only moves it (a skip, a hold).
- *
- * WHY NOT BrandAssemble. It was built for this and it was tried first, but it
- * assembles the raster artwork (`vallo-mark.png`, 614px, and the wordmark
- * sliced five times out of one PNG), and turning and scaling a raster is
- * exactly what the north star says goes soft on a 3x screen. The vector mark
- * (`components/auth/vector-mark.ts`) is that sequence's prerequisite, so the
- * lockup here is drawn from it: each facet and each letter is its own inline
- * SVG, so each can arrive on its own beat. DepthWords is for words in the
- * reader's language and the lockup has none.
- *
- * WHERE IT ENDS. The lockup's box is exactly where Get Started draws its own
- * mark (`app/welcome/lockup.ts`), and the beats are drawn up and out of it by
- * a transform the door takes away: when the first screen is Get Started (or
- * the passcode lock) the mark the member sees next is the one that just
- * assembled, landing, with no re-entrance, and Get Started's entrance plays
- * out of the door. On any other first screen the mark fades as it rises.
- * `nf-startup__breath` is its own element so the breath scales the lockup
- * about its middle and never moves it along the rise.
- *
- * Decorative and `aria-hidden`. A tap anywhere or the first key opens the
- * door at once (the tap's own click is eaten, so it cannot land on what the
- * door reveals), and it is never on screen past four seconds whatever the
- * network does (`startup-script.ts`).
+ * Decorative and `aria-hidden`, so the images carry empty alt text. They are
+ * plain `<img>`s with their own sizes, eager and decoded synchronously, so
+ * the mark is the first thing painted once it has arrived and never pops in
+ * half-decoded. A tap anywhere or the first key opens the door at once (the
+ * tap's own click is eaten, so it cannot land on what the door reveals).
  */
 export function StartupSequence({ nonce }: { nonce?: string | undefined }) {
   return (
@@ -65,39 +48,34 @@ export function StartupSequence({ nonce }: { nonce?: string | undefined }) {
       {/* `nf-splash` keeps the Track M splash's contract with the gate script
           and with `ThresholdStage`; everything it draws is `nf-startup`. */}
       <div className="nf-splash nf-startup" aria-hidden="true">
-        <div className="nf-startup__leaf nf-startup__leaf--a" />
-        <div className="nf-startup__leaf nf-startup__leaf--b" />
         <div className="nf-startup__lockup">
-          <div className="nf-startup__breath">
-            <div className="nf-startup__mark">
-              {MARK_PATHS.map((d, i) => (
-                <svg
-                  key={d}
-                  className="nf-startup__facet"
-                  viewBox={MARK_VIEWBOX}
-                  fill="currentColor"
-                  focusable="false"
-                  style={{ "--nf-i": i } as CSSProperties}
-                >
-                  <path d={d} />
-                </svg>
-              ))}
-            </div>
-            <div className="nf-startup__word">
-              {WORDMARK_PATHS.map((d, i) => (
-                <svg
-                  key={d}
-                  className="nf-startup__letter"
-                  viewBox={WORDMARK_VIEWBOX}
-                  fill="currentColor"
-                  focusable="false"
-                  style={{ "--nf-i": i } as CSSProperties}
-                >
-                  <path d={d} fillRule={d.includes("Zm") ? "evenodd" : undefined} />
-                </svg>
-              ))}
-            </div>
+          <div className="nf-startup__glow" />
+          <div className="nf-startup__mark">
+            {/* eslint-disable-next-line @next/next/no-img-element -- a fixed-size brand image painted before hydration; next/image adds nothing here */}
+            <img
+              className="nf-startup__mark-img"
+              src={STARTUP_MARK.src}
+              width={STARTUP_MARK.width}
+              height={STARTUP_MARK.height}
+              alt=""
+              decoding="sync"
+              loading="eager"
+              fetchPriority="high"
+              draggable={false}
+            />
+            <span className="nf-startup__shine" />
           </div>
+          {/* eslint-disable-next-line @next/next/no-img-element -- as above */}
+          <img
+            className="nf-startup__word"
+            src={STARTUP_WORDMARK.src}
+            width={STARTUP_WORDMARK.width}
+            height={STARTUP_WORDMARK.height}
+            alt=""
+            decoding="sync"
+            loading="eager"
+            draggable={false}
+          />
         </div>
       </div>
       <script nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{ __html: STARTUP_SCRIPT }} />

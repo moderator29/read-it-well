@@ -42,10 +42,19 @@ describe("the invite hub", () => {
     expect(copy.referrals.emptyBody.toLowerCase()).not.toContain("will appear");
   });
 
-  it("no longer links the hub to the referrals list or draws figures", () => {
+  /*
+   * The hub links the referrals list again (7 October 2026: the founder could
+   * not find it), and that is honest only because the list page draws the
+   * unavailable state rather than a list or a count. It still draws no figure.
+   */
+  it("links the hub to the referrals list, which says it is not shown, and draws no figures", () => {
     const page = withoutComments(readFileSync(join(__dirname, "page.tsx"), "utf8"));
-    expect(page).not.toContain("/settings/invite/referrals");
+    expect(page).toContain('href="/settings/invite/referrals"');
+    expect(page).toContain('href="/rewards"');
     expect(page).not.toContain("ReferralFigures");
+    const list = withoutComments(readFileSync(join(__dirname, "referrals", "page.tsx"), "utf8"));
+    expect(list).toContain("copy.referrals.emptyTitle");
+    expect(list).not.toMatch(/ReferralList|ReferralFigures|readMyRewards/);
     expect(existsSync(join(__dirname, "referrals", "page.tsx"))).toBe(true);
     expect(existsSync(join(__dirname, "referrals", "[id]", "page.tsx"))).toBe(true);
   });

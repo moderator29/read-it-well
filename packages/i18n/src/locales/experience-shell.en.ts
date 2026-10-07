@@ -11,4 +11,8 @@ export const experienceShellEn = {
   /* The side navigation's Payments row (`nav-model.ts`): what this person
      paid and what came back. It was a literal in the model. */
   navPayments: "Payments",
+  /* The side navigation's invite row (`nav-model.ts`), to `/settings/invite`.
+     It names what the page does and nothing about earning: while the rewards
+     read is not live, the hub itself says there is no reward for inviting. */
+  navInvite: "Invite friends",
 };

@@ -146,11 +146,21 @@ describe("principle 10, the marketing and loading loops (Session 3, C1)", () => 
     const KEPT: Record<string, number> = {
       "app/css/ported.css": 1, // the assistant's thinking lines (spec)
       "components/app/assistant/assistant-answer.css": 1, // the assistant's thinking orb (spec)
-      "app/welcome/get-started.css": 2, // the aurora's drift (spec)
       /* KEPT BY THE LEAD'S RULING (Session 3): live presence signals, like the assistant's
          thinking, each stopped by reduced motion, Calm, Off and data saver. */
       "app/css/motion.css": 1, // the counterpart's typing dots
-      "app/css/auth.css": 1, // the waiting cell's caret blink
+      /* THE FOUNDER'S RESTORATION (7 October 2026): the login, sign-up and
+         welcome screens back exactly as they were before the redesign, with
+         their own loops (the code caret, the focal glow, the welcome scenes'
+         float and breath). Each is stopped by reduced motion, Calm and Off. */
+      "app/css/auth.css": 5,
+      "app/welcome/welcome.css": 3,
+      "app/welcome/onboarding-motion.css": 7,
+      /* THE FOUNDER'S RULING (October 2026): the landing's floating 3D objects
+         keep their gentle continuous float. Only when ObjectField sets
+         `data-on` (never under reduced motion, Calm, Off, data saver or a
+         low-end device), and paused while the field is off screen. */
+      "app/css/landing-3d.css": 1, // the floating 3D objects' gentle bob
     };
     const root = join(process.cwd(), "src");
     const found: Record<string, number> = {};

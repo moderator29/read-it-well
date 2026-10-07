@@ -28,7 +28,7 @@ const TOKENS = readFileSync(join(SRC, "..", "..", "..", "packages", "design-toke
 /** Hand-written offset shadows that may stay, per file: how many, and why. */
 const ALLOWED: Record<string, [number, string]> = {
   "app/admin/_review/review.css": [1, "glow: the review button's bloom in its own action colour (`--rv-btn`)"],
-  "app/css/auth.css": [1, "glow: the focused field's halo in the slate's own blue"],
+  "app/css/auth.css": [5, "the founder's restoration (7 October 2026): the login, sign-up and passcode screens back exactly as they were before the redesign: the focused field's halo and the slate's own glows, as drawn then"],
   "app/css/brand-glass.css": [1, "a night island's lift on its own artwork ink; on Paper a rung would resolve to the island's night value, so it waits for a Paper rung a dark scope can read"],
   "app/css/chips.css": [1, "glow: the lit pinned bar casts upward into the content above it (it stands on the bottom edge, as a sheet does)"],
   "app/css/chrome.css": [1, "glow: the legacy dock capsule's blue under-light"],

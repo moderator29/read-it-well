@@ -1,8 +1,8 @@
+import "@/app/css/auth.css";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { LoadingShell } from "@/components/app/ScreenSkeleton";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
-import "@/app/css/auth.css";
 
 /**
  * One auth screen, before its form: the shared shape the `(auth)` segment

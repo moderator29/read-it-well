@@ -19,7 +19,9 @@ export const dynamic = "force-dynamic";
  * not decided on any reward. So the page does not say "no referrals" (Vallo
  * cannot tell the member that), does not name a stage, and does not invent a
  * row. It says the list is not shown here and offers the way back to the code.
- * The hub no longer links here; the route stays because it is declared.
+ * The hub links here again (7 October 2026: the founder could not find it),
+ * and this page is what keeps that link honest: it says the list is not shown
+ * rather than drawing one.
  */
 export default async function ReferralsPage() {
   const t = getDictionary(await getLocale());

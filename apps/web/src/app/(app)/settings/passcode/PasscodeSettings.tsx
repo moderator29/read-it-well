@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/Button";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { Locale } from "@vallo/i18n/core";
@@ -87,9 +86,9 @@ export function PasscodeSettings({
           {done}
         </p>
       ) : null}
-      <Button
-        variant="primary"
-        full
+      <button
+        type="button"
+        className="nf-btn nf-btn--primary w-full"
         onClick={() => {
           setDone(null);
           setChanging(true);
@@ -97,7 +96,7 @@ export function PasscodeSettings({
         data-testid="passcode-change"
       >
         {copy.change}
-      </Button>
+      </button>
       <p className="nf-passcode-settings__note">{copy.forgot}</p>
       <button
         type="button"

@@ -30,6 +30,7 @@ import { OwnerAskStrip } from "./OwnerAskStrip";
 import { BulkBar } from "./BulkBar";
 import { planBulk, rangeToggle } from "./bulk";
 import { livePayoffFor, liveSeenKey } from "@/lib/agent/lister-live";
+import { canPromote, promotionHref } from "@/lib/promotion/links";
 import { markSeen, seenOnce } from "@/lib/ui/seen-once";
 import { feedback } from "@/lib/ui/feedback";
 import { motionQuiet } from "@/lib/motion/gate";
@@ -322,6 +323,7 @@ function ListingRow({
   duplicateCopy,
   statusLabel,
   healthLabel,
+  promoteLabel,
   closedReason,
   closeCopy,
   onCloseListing,
@@ -348,6 +350,8 @@ function ListingRow({
   statusLabel?: string;
   /** J4: "Health", the door to the listing's health page. */
   healthLabel?: string;
+  /** D60: "Promote", the door to a live listing's promotion screen. */
+  promoteLabel?: string;
   /* The listing code's own namespace, shared with the search page and the
      public listing page so one set of words governs the code everywhere. */
   reference: Dictionary["listingReference"];
@@ -579,6 +583,16 @@ function ListingRow({
             {healthLabel}
           </ButtonLink>
         )}
+        {/* D60: a live listing's promotion screen, its own last thirty days
+            and the four tiers. Buying there says it is not on sale yet
+            (`PROMOTION_NOT_ON_SALE`); this action only opens the screen. A
+            draft or a listing in review has nothing a renter can see, so
+            nothing to promote, and a closed one is finished. */}
+        {promoteLabel && canPromote(listing) && !closedReason && (
+          <ButtonLink href={promotionHref(listing.id)} variant="quiet" size="sm" leadingIcon="trending-up" data-testid="listing-promote">
+            {promoteLabel}
+          </ButtonLink>
+        )}
         {/* V-08: a board needs a code, and a code needs a published listing. */}
         {boardLabel && listing.reference && listing.status === "PUBLISHED" && (
           <ButtonLink href={`/agent/listings/${listing.id}/board`} variant="quiet" size="sm" leadingIcon="document" data-testid="listing-board">
@@ -657,6 +671,7 @@ export function ListingsWorkspace({
   duplicateCopy,
   statusLabel,
   healthLabel,
+  promoteLabel,
   closed = {},
   closeCopy,
   ownerAsks = [],
@@ -689,6 +704,8 @@ export function ListingsWorkspace({
   statusLabel?: string;
   /** J4, "Health". Absent in harnesses, which then draw no action. */
   healthLabel?: string;
+  /** D60, "Promote". Absent in harnesses, which then draw no action. */
+  promoteLabel?: string;
   /** V-48: closed listings and why, keyed by id. Absent draws what it drew before. */
   closed?: Record<string, string>;
   closeCopy?: CloseCopy;
@@ -897,6 +914,7 @@ export function ListingsWorkspace({
                     duplicateCopy={duplicateCopy}
                     statusLabel={statusLabel}
                     healthLabel={healthLabel}
+                    promoteLabel={promoteLabel}
                     closeCopy={closeCopy}
                     onCloseListing={closeCopy ? setClosing : undefined}
                     ownerAsk={ownerAsks.includes(listing.id)}

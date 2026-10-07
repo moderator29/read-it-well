@@ -1,7 +1,7 @@
 "use client";
+import "@/app/css/auth.css";
 
 import { useEffect } from "react";
-import "@/app/css/auth.css";
 
 /**
  * THE PILL STAYS ABOVE THE KEYBOARD.

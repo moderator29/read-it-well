@@ -23,8 +23,10 @@ export type ShellDictionary = Pick<Dictionary, "a11y" | "common" | "nav" | "side
   supply: Pick<Dictionary["supply"], (typeof SUPPLY_KEYS)[number]>;
   priceCheck: Pick<Dictionary["priceCheck"], "title">;
   pickers: Pick<Dictionary["pickers"], "close">;
-  /** The navigation's own new lines (the Payments row). */
-  experienceShell: Pick<Dictionary["experienceShell"], "navPayments">;
+  /** The navigation's own new lines (the Payments and Invite rows). */
+  experienceShell: Pick<Dictionary["experienceShell"], "navPayments" | "navInvite">;
+  /** The Rewards row's label is the Rewards page's own title, so the two cannot drift. */
+  experienceRewards: Pick<Dictionary["experienceRewards"], "title">;
 };
 
 /** The workspace switcher's lines. */
@@ -55,7 +57,8 @@ export function shellDictionary(t: Dictionary): ShellDictionary {
     supply: Object.fromEntries(SUPPLY_KEYS.map((key) => [key, t.supply[key]])) as ShellDictionary["supply"],
     priceCheck: { title: t.priceCheck.title },
     pickers: { close: t.pickers.close },
-    experienceShell: { navPayments: t.experienceShell.navPayments },
+    experienceShell: { navPayments: t.experienceShell.navPayments, navInvite: t.experienceShell.navInvite },
+    experienceRewards: { title: t.experienceRewards.title },
   };
   cache.set(t, shell);
   return shell;

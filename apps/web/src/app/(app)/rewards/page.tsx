@@ -22,9 +22,12 @@ export async function generateMetadata(): Promise<Metadata> {
  * One subject, the balance, with the invite link and two inner pages (the
  * referral list, the history) and the withdraw flow behind it (D25).
  *
- * NOT LINKED FROM MEMBER NAVIGATION, ON PURPOSE. The referral engine and its
- * read do not exist yet (R-C3-1 to Session 2), so this route draws the honest
- * not-live state and sends the member to the invite link, which works today.
+ * LINKED, AND HONEST ABOUT WHAT IS BEHIND THE LINK. It was kept out of member
+ * navigation while the referral engine and its read did not exist (R-C3-1 to
+ * Session 2), and the founder could not find it. It is a row in the member
+ * navigation, the settings hub and the invite hub now (7 October 2026), and
+ * until the read is live this route draws the honest not-live state and sends
+ * the member to the invite link, which works today. No balance is invented.
  * The dashboard itself is built and seen with fixture data at
  * `/preview/rewards`. When the read is live and the money sentences are in
  * `lib/money/copy.ts`, this page draws it with no change here.

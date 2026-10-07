@@ -37,7 +37,7 @@ const LINEAR: Record<string, [number, string]> = {
   "app/css/chrome.css": [1, "the large title's fold is a scroll-driven timeline over the first 56px"],
   "app/css/landing.css": [1, "the hero parallax is a scroll-driven timeline"],
   "app/css/landing-rooms.css": [3, "the steps' draw is a view timeline (scroll is the clock)"],
-  "app/css/landing-3d.css": [1, "the object's pop rides the steps' view timeline"],
+  "app/css/landing-3d.css": [2, "the object's pop rides the steps' view timeline; the hero objects' drift is a scroll timeline"],
   "app/css/motion.css": [1, "the card entry is a view timeline (scroll is the clock)"],
   "app/css/edge-m.css": [3, "the edge light's runners travel the rim at constant speed (two laps)"],
   "app/css/light.css": [1, "the logo's rim light turns at constant speed (two laps)"],
@@ -100,12 +100,19 @@ function audit(css: string): Finding[] {
   return found;
 }
 
+/* The founder asked (7 October 2026) for the pre-redesign login, sign-up,
+   passcode and welcome screens back exactly as they were; these sheets are
+   that restoration and keep their own curves. */
+const RESTORED_SHEETS = new Set(["app/welcome/onboarding-motion.css"]);
+
 describe("the curves in the stylesheets", () => {
   const sheets = walk(SRC, ".css").map((file) => [relative(SRC, file), audit(readFileSync(file, "utf8"))] as const);
 
   it("never fall back to the browser's ease, written or by default", () => {
     const wrong = sheets.flatMap(([file, found]) =>
-      found.filter((f) => f.kind === "bare-ease" || f.kind === "no-curve").map((f) => `${file}: ${f.item}`),
+      RESTORED_SHEETS.has(file)
+        ? []
+        : found.filter((f) => f.kind === "bare-ease" || f.kind === "no-curve").map((f) => `${file}: ${f.item}`),
     );
     expect(wrong).toEqual([]);
   });
@@ -163,8 +170,9 @@ describe("the curves in the components", () => {
 
   it("linear in script is a real clock, and only there", () => {
     const linear = files.filter(([, text]) => /easing:\s*["'`]linear["'`]/.test(text)).map(([file]) => file);
-    /* The resend countdown drains at the speed of the clock it shows. */
-    expect(linear).toEqual(["components/auth/ResendClockView.tsx"]);
+    /* No script moves linearly: the resend countdown that did was part of
+       the redesigned sign-in, which the founder rolled back (7 October). */
+    expect(linear).toEqual([]);
   });
 });
 

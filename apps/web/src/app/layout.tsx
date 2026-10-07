@@ -10,7 +10,7 @@ import { LivingCanvas } from "@/components/site/LivingCanvas";
 import { ThemeSync } from "@/components/site/ThemeControl";
 import { ServiceWorkerRegistrar } from "@/components/app/ServiceWorkerRegistrar";
 import { NativeRuntime } from "@/components/app/NativeRuntime";
-import { StartupSequence } from "@/components/startup/StartupSequence";
+import { STARTUP_MARK, STARTUP_WORDMARK, StartupSequence } from "@/components/startup/StartupSequence";
 import { STARTUP_GATE_SCRIPT } from "@/components/startup/startup-script";
 import { ThresholdStage } from "@/components/motion/ThresholdStage";
 import { MOTION_COOKIE, motionAttributes, parseMotion } from "@/lib/motion/motion-pref";
@@ -339,6 +339,14 @@ export default async function RootLayout({
             crossOrigin="anonymous"
           />
         ))}
+        {/*
+          The startup's brand art (components/startup), asked for from the
+          head: the overlay that draws it is the last thing in the body, and a
+          streamed page can reach it late. About 38 KB together, cached for
+          30 days under /brand, so a cold start pays for them once.
+        */}
+        <link rel="preload" as="image" type="image/webp" href={STARTUP_MARK.src} fetchPriority="high" />
+        <link rel="preload" as="image" type="image/webp" href={STARTUP_WORDMARK.src} />
       </head>
       <body>
         {/*

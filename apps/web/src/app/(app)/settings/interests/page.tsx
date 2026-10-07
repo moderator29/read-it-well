@@ -6,17 +6,13 @@ import { withNext } from "@/lib/auth/next-link";
 import { PageHeader } from "@/components/app/PageHeader";
 import { loadInterestsState } from "@/lib/interests/queries";
 import { InterestChoices } from "@/components/app/welcome/InterestChoices";
-import { forInterests } from "@/components/app/welcome/welcome-copy";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { IconPlate } from "@/components/ui/IconPlate";
 
-export async function generateMetadata(): Promise<Metadata> {
-  // The tab reads the reader's language, as the screen's own title does.
-  return {
-    title: getDictionary(await getLocale()).interests.screenTitle,
-    robots: { index: false, follow: false },
-  };
-}
+export const metadata: Metadata = {
+  title: "What you are here for",
+  robots: { index: false, follow: false },
+};
 
 export const dynamic = "force-dynamic";
 
@@ -68,7 +64,7 @@ export default async function InterestsSettingsPage() {
         fallback="/settings"
       />
       <div className="nf-panel nf-panel--card block p-lg sm:p-lg">
-        <InterestChoices initial={state.interests} mode="settings" t={forInterests(t)} />
+        <InterestChoices initial={state.interests} mode="settings" t={t} />
       </div>
     </div>
   );

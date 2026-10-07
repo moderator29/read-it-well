@@ -708,6 +708,8 @@ export const PAYOUT_REVERSED_LABEL = "Reversed by a refund";
 /** A row whose fee parts the record does not carry: said, never computed. */
 export const PAYOUT_FEE_UNRECORDED = "Not on this record";
 export const PAYOUTS_EMPTY_TITLE = "No payouts yet";
+/** Under the Payouts row in Settings: who the page is for, and what it records. */
+export const PAYOUTS_ROW_SUB = "For listers: what renters and guests paid for your spaces, and what reached your bank.";
 export const PAYOUTS_SAME_FIGURES =
   "Each payout shows the lines a lister sees before publishing, for the way that buyer paid: what was paid, the platform fee, payment processing where it applies, and what you received.";
 /** The processor's own fee on a direct-rail payout, borne by the lister and named. */

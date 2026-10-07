@@ -61,19 +61,23 @@ const NOOP = (): void => {};
  * dynamic imports -- `@capacitor/core`, then the module itself -- each a
  * network fetch for a separate JS chunk. On a slow or interrupted connection
  * that fetch can simply never settle. If it never settles, `startSplash()` is
- * never called, and ITS OWN four-second failsafe (`FAILSAFE_MS` in
- * `splash.ts`) is never armed either: nothing is left running that could ever
- * hide the splash. That is indistinguishable, to the person holding the
- * phone, from the app being broken, and no amount of waiting fixes it.
+ * never called, and ITS OWN failsafe (`FAILSAFE_MS` in `splash.ts`) is never
+ * armed either: nothing is left running that could ever hide the splash.
+ * That is indistinguishable, to the person holding the phone, from the app
+ * being broken, and no amount of waiting fixes it.
  *
  * `window.Capacitor.nativePromise` is injected by the native bridge itself
  * before any of this file's code runs, so calling it needs no import and no
  * network fetch of our own -- the same primitive `native-shell/shell.js` calls
- * for the same reason when the live origin cannot be reached at all. Longer
- * than `FAILSAFE_MS`, so the ordinary path's own failsafe always wins first;
+ * for the same reason when the live origin cannot be reached at all, and the
+ * one the startup's inline script (`components/startup/startup-script.ts`)
+ * calls on the document's first parse, which is what normally takes the
+ * splash down. Two and a half seconds (it was seven, and with the old
+ * frame-gated hides that was the founder's "up to eight seconds"): longer
+ * than `FAILSAFE_MS`, so the ordinary path's own failsafe still wins first;
  * this one only matters for the chunk that never arrives.
  */
-const BRIDGE_FAILSAFE_MS = 7_000;
+export const BRIDGE_FAILSAFE_MS = 2_500;
 
 function hideSplashViaBridge(): void {
   try {

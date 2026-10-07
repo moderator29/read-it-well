@@ -10,6 +10,8 @@ import { catalogueIsOpen, type Door } from "./doors";
 import { HeroSurface } from "./HeroSurface";
 import { heroCopy } from "./hero-copy";
 import { EXAMPLE_MOVE_IN } from "./example-move-in";
+import { ObjectField } from "./ObjectField";
+import { HERO_OBJECTS } from "./landing-objects";
 import "@/app/css/site.css";
 
 /**
@@ -91,6 +93,11 @@ export function Hero({ t, locale, door }: { t: Dictionary; locale: Locale; door:
         />
       </div>
       <div className="nf-shell nf-landing-hero-body">
+        {/* THE HERO'S OBJECTS: the headline's three words as the founder's
+            3D objects (rent, buy, stay) and the map pin, floating at the
+            stage's edges, leaning toward a desktop pointer (ObjectField).
+            Restored at the founder's request; still under reduced motion. */}
+        <ObjectField objects={HERO_OBJECTS} className="nf-o3--hero" pointer />
         <div className="nf-hero-copy">
           <EdgeLap as="p" className="nf-hero-eyebrow nf-rise nf-rise-1">
             <UiIcon name="sparkle" size={16} aria-hidden />

@@ -1,6 +1,7 @@
 import type { Dictionary } from "@vallo/i18n/core";
 import type { UiIconName } from "@/design-system/icons/UiIcon";
 import { buildAgentNav } from "./agent-nav-model";
+import { PROMOTION_HUB_HREF } from "@/lib/promotion/links";
 
 /**
  * The agent desk's inner pages and their words, read on the server so the
@@ -10,7 +11,8 @@ import { buildAgentNav } from "./agent-nav-model";
  *
  * The set is the desk: the overview and the queues and money pages under it
  * (north star 16.6, "Host and agent: today and what needs me; each queue,
- * calendar, decide, reviews, earnings, statements"). The account rows
+ * calendar, decide, reviews, earnings, statements"), and promotion beside
+ * the money pages, because it is what a lister pays for. The account rows
  * (verification, the assistant, settings, help) stay in the rail only.
  */
 export type AgentInnerPage =
@@ -21,7 +23,8 @@ export type AgentInnerPage =
   | "messages"
   | "reviews"
   | "earnings"
-  | "analytics";
+  | "analytics"
+  | "promotion";
 
 export const AGENT_INNER_PAGES: readonly { id: AgentInnerPage; href: string }[] = [
   { id: "dashboard", href: "/agent/dashboard" },
@@ -32,6 +35,7 @@ export const AGENT_INNER_PAGES: readonly { id: AgentInnerPage; href: string }[] 
   { id: "reviews", href: "/agent/reviews" },
   { id: "earnings", href: "/agent/earnings" },
   { id: "analytics", href: "/agent/analytics" },
+  { id: "promotion", href: PROMOTION_HUB_HREF },
 ];
 
 /** The inner page an agent route belongs to, or null for a page outside the desk's set. */

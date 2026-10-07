@@ -3,6 +3,7 @@
 import { useEffect, useId, useState } from "react";
 import type { Dictionary } from "@vallo/i18n/core";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
+import { Icon3D } from "@/components/ui/Icon3D";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
 import { ActionSheetIllustrated } from "@/components/ui/ActionSheetIllustrated";
@@ -117,7 +118,7 @@ export function InviteTicket({
           onClick={() => setRound((n) => n + 1)}
           data-testid="invite-replay"
         >
-          <BrandIcon name="gift-box" size={96} priority />
+          <Icon3D name="gift" size={96} priority />
         </button>
       </div>
 

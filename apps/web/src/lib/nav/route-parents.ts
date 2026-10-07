@@ -261,8 +261,10 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/settings/invite/how-it-works": "/settings/invite",
   "/settings/invite/referrals": "/settings/invite",
   "/settings/invite/referrals/[id]": "/settings/invite/referrals",
-  /* D51, Round 3 C3: the Rewards Balance and its inner pages. Not linked from
-     member navigation until the rewards read is live (R-C3-1). */
+  /* D51, Round 3 C3: the Rewards Balance and its inner pages. Linked from the
+     member navigation (the Rewards row in `nav-model.ts`), the settings hub
+     and the invite hub; until the rewards read is live (R-C3-1) the page
+     draws the honest not-live state. */
   "/rewards": "/settings",
   "/rewards/referrals": "/rewards",
   "/rewards/history": "/rewards",
@@ -282,9 +284,9 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
    * person sees on the web and changes the Android answer from "undeclared"
    * to a named destination.
    *
-   * `/price` has no inbound link anywhere in the product either. It is reached
-   * by address and by the share cards `lib/price-check/share-card.ts` builds,
-   * which point at `/price/area/[id]`.
+   * `/price` is a row in the member navigation (`nav-model.ts`, track L), and
+   * the share cards `lib/price-check/share-card.ts` builds point at
+   * `/price/area/[id]`.
    */
   "/price": "/home",
   "/price/area/[id]": "/price",
@@ -458,8 +460,13 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/agent/listings/[listingId]/board": "/agent/listings",
   /* V-71: the Status kit, under the listing's workspace like its board. */
   "/agent/listings/[listingId]/status": "/agent/listings",
-  /* D60: a listing's promotion results. Not linked until Session 2's reads exist. */
+  /* D60: a listing's promotion results. Linked from the Promote action on a
+     live listing's row and from `/agent/promotion`; buying still says it is
+     not on sale (`PROMOTION_NOT_ON_SALE`). */
   "/agent/listings/[listingId]/promotion": "/agent/listings",
+  /* The door into promotion from the workspace rail and the dashboard: the
+     lister's live listings, each with its Promote action. */
+  "/agent/promotion": "/agent/dashboard",
   "/agent/list": "/agent/listings",
   "/agent/messages": "/agent/dashboard",
   /* The workspace's own frame round the consumer thread and bell pages, so

@@ -184,16 +184,9 @@ const CASES: Case[] = [
        the pipeline's and the stays'. */
     count: 2,
   },
-  {
-    name: "4. the welcome pager's dots",
-    imports: `import { TourPager } from "@/components/app/welcome/TourPager";`,
-    /* Room above the pager, which a phone's sheet gives it: at the very top of the stage the probe
-       20px above the dots would be off the page. */
-    body: `<div style={{ paddingTop: 24 }}><TourPager total={4} index={1} label={t.onboardingMotion.progress}
-      stepName={(n) => t.welcomeCards.twoWorlds.step.replace("{n}", String(n + 1)).replace("{total}", "4")} onGo={() => {}} /></div>`,
-    selector: "button.nf-om-pager__dot",
-    count: 4,
-  },
+  /* 4. was the redesigned welcome tour's pager dots (TourPager); the founder
+     rolled the tour back to its earlier design on 7 October 2026, which has
+     no pager, so there is nothing of it left to measure. */
   ...[PHONE, { width: 768, height: 1024 }].map<Case>((viewport) => ({
     name: `5. the console header's home link at ${viewport.width} (bd/refunds)`,
     page: () => RefundsPreview(),

@@ -2,10 +2,11 @@
 
 import { useCallback, useId, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import type { Locale } from "@vallo/i18n/core";
+import { plural, type Locale } from "@vallo/i18n/core";
 import { forgotPasscodeAction, setPasscodeAction } from "@/lib/passcode/actions";
 import { signOut } from "@/lib/profile/actions";
 import {
+  ATTEMPTS_PER_COOLDOWN,
   DEFAULT_PASSCODE_LENGTH,
   isTrivialCode,
   type PasscodeLength,
@@ -16,7 +17,6 @@ import { showSuccess } from "@/lib/ui/success-moments";
 import { Keypad, PasscodeDots } from "./Keypad";
 import { PasscodeFrame } from "./PasscodeFrame";
 import type { PasscodeCopy } from "./PasscodeLock";
-import { wrongCodeMessage } from "./wrong-message";
 
 type Step = "current" | "enter" | "confirm";
 
@@ -30,12 +30,7 @@ type Step = "current" | "enter" | "confirm";
  *
  * The code is typed twice. A trivial code (a repeat, a run, the birth year) is
  * refused here before it is sent and again by the database, which is the
- * authority. Four digits by default (D18, `DEFAULT_PASSCODE_LENGTH` in
- * `lib/passcode/rules.ts`); one tap switches to six.
- *
- * The screen is the rebuilt frame (`PasscodeFrame`): the mark, the step's
- * title, and the dots as the subject; a refused code shakes and clears the
- * same way a wrong one does on the lock.
+ * authority. Four digits by default (D18); one tap switches to six.
  */
 export function PasscodeSetup({
   copy,
@@ -127,7 +122,12 @@ export function PasscodeSetup({
             const attempt = result.attempt;
             setCurrent("");
             if (attempt?.status === "wrong") {
-              refuse(wrongCodeMessage(attempt, copy, locale), "current");
+              refuse(
+                attempt.beforeSignOut <= ATTEMPTS_PER_COOLDOWN
+                  ? plural(attempt.beforeSignOut, copy.wrongLastBeforeSignOut, locale)
+                  : plural(attempt.beforeCooldown, copy.wrongLeft, locale),
+                "current",
+              );
             } else if (attempt?.status === "cooldown") {
               refuse(fill(copy.cooldown, { seconds: attempt.retryAfterSeconds }), "current");
             } else {
@@ -238,6 +238,7 @@ export function PasscodeSetup({
       subtitle={subtitle}
       name={name}
       avatarUrl={avatarUrl}
+      focal="lock"
       testId={`passcode-setup-${step}`}
     >
       <PasscodeDots length={width} filled={code.length} shake={shake} label={fill(copy.digitsEntered, { count: code.length, total: width })} />

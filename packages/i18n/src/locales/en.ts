@@ -363,9 +363,11 @@ export const en = {
        29 September). The old one-line tagline and the scene's label went with
        the scene. `chip` is still the label on the tour's receipt scene. */
     intro: {
+      tagline: "Homes to rent, buy and stay in, from agents a person has checked.",
       chip: "Your move-in total, printed",
       getStarted: "Get started",
       signIn: "Sign in",
+      sceneLabel: "A house and its keys, with the move-in total printed on a receipt",
     },
     label: "What Vallo is",
     skip: "Skip",

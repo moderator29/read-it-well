@@ -72,7 +72,6 @@ describe("the global stylesheet (C12)", () => {
     ],
     "auth.css": [
       "(auth)/AuthFocal.tsx",
-      "(auth)/AuthGround.tsx",
       "(auth)/AuthMain.tsx",
       "(auth)/KeepPillInView.tsx",
       "(auth)/error.tsx",
@@ -89,7 +88,6 @@ describe("the global stylesheet (C12)", () => {
       "../components/auth/ForgotPasswordForm.tsx",
       "../components/auth/NativeAppleSignIn.tsx",
       "../components/auth/PasskeySignIn.tsx",
-      "../components/auth/ResendClockView.tsx",
       "../components/auth/ResetCodeForm.tsx",
       "../components/auth/ResetPasswordForm.tsx",
       "../components/auth/SignUpOptions.tsx",

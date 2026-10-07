@@ -1,5 +1,6 @@
 import type { Dictionary } from "@vallo/i18n/core";
 import type { NavSection } from "@/components/app/nav-model";
+import { PROMOTION_HUB_HREF } from "@/lib/promotion/links";
 
 /**
  * Agent Mode navigation, as data.
@@ -76,6 +77,12 @@ export function buildAgentNav(t: Dictionary, unreadMessages = 0): NavSection[] {
            so they are two rows. */
         { href: "/agent/earnings", label: t.agent.nav.earnings, icon: "wallet" },
         { href: "/agent/analytics", label: t.agent.nav.analytics, icon: "chart-bar" },
+        /* D60, PAID PROMOTION HAS A DOOR (7 October 2026). The promotion
+           screen was built per listing and linked from nowhere, so it could
+           not be found. This row opens `/agent/promotion`: the lister's live
+           listings, each with its Promote action, and how promotion works.
+           Buying still says it is not on sale (`PROMOTION_NOT_ON_SALE`). */
+        { href: PROMOTION_HUB_HREF, label: t.experienceFeatures.promotion.hub.title, icon: "trending-up" },
       ],
     },
     {

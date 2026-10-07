@@ -1,9 +1,9 @@
+import "@/app/css/auth.css";
 import Link from "next/link";
-import type { AltDoorsCopy } from "./auth-copy";
+import type { Dictionary } from "@vallo/i18n/core";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { phoneSignInEnabled } from "@/lib/auth/phone-sign-in-flag";
 import { PasskeySignIn } from "./PasskeySignIn";
-import "@/app/css/auth.css";
 
 /**
  * A3 and A2: the other ways in, under the sign-in form. Quiet links that
@@ -11,7 +11,7 @@ import "@/app/css/auth.css";
  * "Continue with phone number" and the passkey button only when their
  * switches are on.
  */
-export function AltSignInDoors({ t, next, surface }: { t: AltDoorsCopy; next?: string; surface: string }) {
+export function AltSignInDoors({ t, next, surface }: { t: Dictionary; next?: string; surface: string }) {
   const carry = next ? `?next=${encodeURIComponent(next)}` : "";
   return (
     <div className="nf-auth__links grid justify-items-center gap-xs" data-testid="alt-sign-in">

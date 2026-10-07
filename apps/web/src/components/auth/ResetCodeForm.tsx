@@ -1,23 +1,18 @@
 "use client";
+import "@/app/css/auth.css";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useRef, useState } from "react";
 import Link from "next/link";
-import type { AuthCopy } from "./auth-copy";
+import type { Dictionary } from "@vallo/i18n/core";
 import type { AuthFormState } from "@/lib/auth/form-state";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { feedback } from "@/lib/ui/feedback";
-import { CodeInput, codeProgress } from "./CodeInput";
 import { Field } from "./fields";
 import { AuthPillButton } from "./slate";
-import { useRefusalShake } from "./useRefusalShake";
 import {
-  CONFIRMATION_CODE_LENGTH,
   CONFIRMATION_CODE_PLACEHOLDER,
-  codeLengthWord,
   readCode,
   surplusMessage,
 } from "@/lib/auth/confirmation-code";
-import "@/app/css/auth.css";
 
 const EMPTY: AuthFormState = { ok: false };
 
@@ -35,13 +30,6 @@ const EMPTY: AuthFormState = { ok: false };
  * on one device and typing on another is the case this screen exists for, and
  * nothing this device holds travels with the email. The code field submits
  * the form itself once it holds the whole code, as the sign-up code does.
- *
- * THE SAME CODE FIELD AS EVERY OTHER CODE (R3-09). This was the one code on
- * the auth screens typed into a plain text field with letter-spaced digits,
- * while the sign-up code and the sign-in code draw `CodeInput`'s cells over
- * one real input. It now draws the same cells, with the same name, the same
- * one-time-code autocomplete and the same refusal: a wrong code shakes the
- * row once (`wrongCount`) and says so under it.
  */
 export function ResetCodeForm({
   t,
@@ -49,7 +37,7 @@ export function ResetCodeForm({
   initialEmail = "",
   initialState = EMPTY,
 }: {
-  t: AuthCopy;
+  t: Dictionary;
   verify: (prev: AuthFormState, formData: FormData) => Promise<AuthFormState>;
   initialEmail?: string;
   initialState?: AuthFormState;
@@ -59,36 +47,14 @@ export function ResetCodeForm({
   const [code, setCode] = useState("");
   const [surplus, setSurplus] = useState<string | null>(null);
   const form = useRef<HTMLFormElement>(null);
-  /* How many times the server refused a code, so the cells shake once for
-     each, counted as the answer arrives (as `VerifyCodeForm` does). */
-  const [answered, setAnswered] = useState(state);
-  const [wrongCount, setWrongCount] = useState(0);
-  if (answered !== state) {
-    setAnswered(state);
-    if (state.fieldErrors?.code) setWrongCount((n) => n + 1);
-  }
-  /* A wrong code is a genuine refusal, so it is felt as well as seen, as it
-     was when this was a plain field. */
-  useEffect(() => {
-    if (wrongCount > 0) feedback("error");
-  }, [wrongCount]);
-  /* THE FORM ERROR: a refused address shakes its field once; a refused code
-     is the cells' own shake. */
-  useRefusalShake(
-    form,
-    state,
-    !state.ok && !state.fieldErrors?.code && (Boolean(state.fieldErrors?.email) || Boolean(state.message)),
-  );
 
   function onCode(value: string) {
     const reading = readCode(value);
     setCode(reading.digits);
     setSurplus(surplusMessage(reading));
-  }
-  /* Once per whole code (`CodeInput`'s `onComplete`), and only with an
-     address to send it with. */
-  function onWhole() {
-    if (!pending && address.trim().length > 0) form.current?.requestSubmit();
+    if (reading.complete && !pending && address.trim().length > 0) {
+      form.current?.requestSubmit();
+    }
   }
 
   return (
@@ -96,9 +62,7 @@ export function ResetCodeForm({
       <h1 className="nf-auth__title">{t.auth.resetCodeTitle}</h1>
       <p className="nf-auth__sub">{t.auth.resetCodeLead}</p>
 
-      <form
-        ref={form}
-        action={formAction} className="nf-auth__form nf-auth__form--fields nf-slate-stagger" noValidate>
+      <form ref={form} action={formAction} className="nf-auth__form nf-auth__form--fields nf-slate-stagger" noValidate>
         <Field
           t={t}
           id="reset-email"
@@ -111,21 +75,21 @@ export function ResetCodeForm({
           value={address}
           onChange={setAddress}
         />
-        {/* One real input under the cells: one-time-code autocomplete and
-            the numeric keyboard, so the phone offers the code from the email. */}
-        <CodeInput
+        <Field
+          t={t}
           id="reset-code"
           name="code"
+          type="text"
           label={t.auth.resetCodeLabel}
-          length={CONFIRMATION_CODE_LENGTH}
+          placeholder={CONFIRMATION_CODE_PLACEHOLDER}
+          /* Lets iOS and Android offer the code from the email above the
+             keyboard. */
+          autoComplete="one-time-code"
+          inputMode="numeric"
+          error={surplus ?? state.fieldErrors?.code}
           value={code}
           onChange={onCode}
-          onComplete={onWhole}
-          error={surplus ?? state.fieldErrors?.code}
-          wrongCount={wrongCount}
-          placeholder={CONFIRMATION_CODE_PLACEHOLDER}
-          cellsLabel={t.authFlow.codeCells.replace("{count}", codeLengthWord())}
-          progress={codeProgress(t.experienceEntry.codeProgress, code.length, CONFIRMATION_CODE_LENGTH)}
+          className="nf-numeric tracking-[0.32em]"
         />
 
         {state.message && (
