@@ -52,6 +52,29 @@ export const passcodeIg = {
   notSet: "Ị tọbeghị nọmba nzuzo.",
   lockNote: "Vallo na-akpọchi mgbe nkeji 5 gachara ị pụọ, na n'ime taabụ ọhụrụ ọ bụla.",
 
+  /* MACHINE DRAFT, 7 October 2026: the returning greeting, the setup steps
+     and Face ID or fingerprint. Same review as the rest of this file.
+     "Face ID" is Apple's name and stays as written. */
+  wordmark: "VALLO",
+  hello: "Ndewo, {name}",
+  helloNoName: "Nnọọ ọzọ",
+  switchAccount: "Gbanwee akaụntụ",
+  withPasscode: "Jiri nọmba nzuzo gị",
+  bioOfferTitle: "Ị ga-eji Face ID meghee ya oge ọzọ?",
+  bioOfferBody: "Mkpọchi ekwentị gị n'onwe ya ga-emeghe Vallo site n'ilele ma ọ bụ imetụ aka. Nọmba nzuzo gị ka bụ ụzọ ị ga-esi banye mgbe ọ bụla nke ahụ na-arụghị ọrụ.",
+  bioOfferSetUp: "Tọọ Face ID ma ọ bụ mbọ aka",
+  bioOfferLater: "Ọ bụghị ugbu a",
+  bioGroup: "Face ID ma ọ bụ mbọ aka",
+  bioRowTitle: "Jiri Face ID ma ọ bụ mbọ aka meghee",
+  bioRowUnset: "Tọọ ya otu ugboro site na okwuntughe gị. Otu igodo ahụ ga-emeghe Vallo ma kwado ịkwụ ụgwọ.",
+  bioRowSet: "A na-ebu ụzọ nye ya mgbe Vallo kpọchiri akpọchi. Nọmba nzuzo gị ka bụ ụzọ ọzọ.",
+  bioRowUnsupported: "Ihe nchọgharị a enweghị ike iru Face ID ma ọ bụ mbọ aka ngwaọrụ a. Ngwa Vallo na ọtụtụ ihe nchọgharị ekwentị nwere ike.",
+  passkeyUnlock: "Jiri Face ID ma ọ bụ mbọ aka meghee",
+  passkeyFailed: "Nke ahụ arụghị ọrụ. Tinye nọmba nzuzo gị kama.",
+  usePasscode: "Tinye nọmba nzuzo gị kama",
+  stepChoose: "Nzọụkwụ 1 n'ime 2. Họrọ ọnụọgụ {count}.",
+  stepConfirm: "Nzọụkwụ 2 n'ime 2. Tinye otu ọnụọgụ {count} ahụ ọzọ.",
+
   keypadLabel: "Bọtịnụ nọmba nzuzo",
   deleteKey: "Hichapụ",
   digitsEntered: "Etinyela ọnụọgụ {count} n'ime {total}",

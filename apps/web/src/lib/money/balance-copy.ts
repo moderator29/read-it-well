@@ -207,4 +207,5 @@ export const REFUSAL = {
   recipientOnHold: "That member cannot receive money right now. Nothing was sent.",
   depositUnavailable: "Adding money is not available from here yet. Nothing was charged.",
   generic: "Something on our side stopped this, and nothing has moved. Try again shortly.",
+  noAnswer: "We did not hear back. Check your connection and try again; anything already sent shows in your activity.",
 } as const;

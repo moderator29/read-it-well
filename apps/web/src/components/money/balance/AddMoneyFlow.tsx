@@ -9,6 +9,7 @@ import { MoneyFigure } from "../kit";
 import { confirmDepositPaid, prepareDeposit, cancelBalanceMovement, type DepositStart } from "@/lib/money/member-wallet-actions";
 import type { MovementView } from "@/lib/money/member-wallet";
 import { Watching } from "./WithdrawFlow";
+import { reach } from "./reach";
 
 /**
  * ADD MONEY (Part B phase 7): the documented payment intent's hosted
@@ -42,7 +43,7 @@ export function AddMoneyFlow({ open, onOpenChange, locale, onMoved }: { open: bo
   const [busy, setBusy] = useState(false);
 
   const close = (next: boolean) => {
-    if (!next && start && step === "pay") void cancelBalanceMovement({ movementId: start.movement.id });
+    if (!next && start && step === "pay") void reach(() => cancelBalanceMovement({ movementId: start.movement.id }));
     if (!next) {
       setStep("amount");
       setStart(null);
@@ -56,11 +57,11 @@ export function AddMoneyFlow({ open, onOpenChange, locale, onMoved }: { open: bo
   const begin = async () => {
     setBusy(true);
     setError(null);
-    const r = await prepareDeposit({ clientKey, amount });
+    const r = await reach(() => prepareDeposit({ clientKey, amount }));
     setBusy(false);
     if (!r.ok) {
       setError(r.error);
-      setClientKey(crypto.randomUUID());
+      if (!r.unreached) setClientKey(crypto.randomUUID());
       return;
     }
     setStart(r.data);
@@ -71,7 +72,7 @@ export function AddMoneyFlow({ open, onOpenChange, locale, onMoved }: { open: bo
     if (!start) return;
     setBusy(true);
     setError(null);
-    const r = await confirmDepositPaid({ movementId: start.movement.id });
+    const r = await reach(() => confirmDepositPaid({ movementId: start.movement.id }));
     setBusy(false);
     if (!r.ok) {
       setError(r.error);

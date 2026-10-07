@@ -45,7 +45,7 @@ export function StayDetailsPanel({ details }: { details: StayDetails }) {
       ) : (
         <p className="nf-body-sm text-[var(--nf-content-muted)]">Your host has not added arrival details yet. Message them for directions.</p>
       )}
-      <Link href={details.messageHref} className="nf-btn nf-btn--secondary nf-btn--sm mt-block" data-testid="stay-message-host">
+      <Link href={details.messageHref} className="nf-btn nf-btn--glass nf-btn--sm mt-block" data-testid="stay-message-host">
         {details.hostName ? `Message ${details.hostName}` : details.kind === "room" ? "Message the hotel" : "Message your host"}
       </Link>
     </section>

@@ -8,6 +8,7 @@ import { ListGroup, ListRow } from "@/components/ui/ListGroup";
 import { IconPlate, ICON_PLATE_GLYPH } from "@/components/ui/IconPlate";
 import { Sheet } from "@/components/ui/Sheet";
 import { State } from "@/components/ui/State";
+import { Button } from "@/components/ui/Button";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { formatMoneyDate } from "@/lib/money/dates";
 import type { MovementView } from "@/lib/money/member-wallet";
@@ -213,7 +214,19 @@ export function BalanceScreen({
       </p>
 
       {movements.length === 0 ? (
-        <State kind="empty" icon="wallet-ring" title="Nothing has moved yet" body="When you add, withdraw or send money it shows here, with where it is at every step." />
+        <State
+          kind="empty"
+          icon="wallet-ring"
+          title="Nothing has moved yet"
+          body="When you add, withdraw or send money it shows here, with where it is at every step."
+          action={
+            canMove ? (
+              <Button variant="primary" size="lg" onClick={() => setSheet("add")}>
+                {ACTION_LABEL.add}
+              </Button>
+            ) : null
+          }
+        />
       ) : (
         <ListGroup label="Activity">
           {movements.map((m) => (
@@ -238,12 +251,12 @@ export function BalanceScreen({
       {/* D76: the balance's own bar holds exactly two actions, Withdraw and
           Transfer, pinned to the foot of the screen above the safe area. The
           app's main dock is untouched. */}
-      <div className="nf-wallet-bar" role="group" aria-label="Move money">
-        <button type="button" className="nf-wallet-bar__btn" data-tone="primary" disabled={!canMove} onClick={() => setSheet("withdraw")} data-testid="balance-action-withdraw">
+      <div className="nf-balance-bar" role="group" aria-label="Move money">
+        <button type="button" className="nf-balance-bar__btn" data-tone="primary" disabled={!canMove} onClick={() => setSheet("withdraw")} data-testid="balance-action-withdraw">
           <UiIcon name={ACTION_ICON.withdraw} size={20} />
           {ACTION_LABEL.withdraw}
         </button>
-        <button type="button" className="nf-wallet-bar__btn" disabled={!canMove} onClick={() => setSheet("send")} data-testid="balance-action-send">
+        <button type="button" className="nf-balance-bar__btn" disabled={!canMove} onClick={() => setSheet("send")} data-testid="balance-action-send">
           <UiIcon name={ACTION_ICON.send} size={20} />
           Transfer
         </button>

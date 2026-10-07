@@ -193,6 +193,10 @@ export function HostStandingBody({
             headingLevel={2}
             data-testid="host-more"
             className="mt-block"
+            /* A business the review stopped opens with its reason and its
+               Contact us showing; folded, the one thing the host must act
+               on sat behind a closed row. */
+            defaultValue={businesses.some((b) => stoppedMeans(b.status)) ? ["businesses"] : undefined}
             items={[
               ...(open
                 ? [

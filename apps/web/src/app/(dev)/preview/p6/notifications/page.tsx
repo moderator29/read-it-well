@@ -25,7 +25,7 @@ const ROWS: NotificationItem[] = [
     kind: "booking",
     title: "New booking request",
     body: "Two nights at the Lekki studio, 18 to 20 October.",
-    href: "/host/bookings/b-1",
+    href: "/host/bookings",
     read: false,
     createdAt: ago(34),
   },

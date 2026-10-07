@@ -14,6 +14,7 @@ import { MoneyFigure, MoneyMoment, StatusWord } from "../kit";
 import { StepPath, type PathState } from "../StepPath";
 import { PaidMoment, SentMoment, WithdrawnMoment } from "@/components/ui/SuccessMoment";
 import "@/app/css/money-layer.css";
+import { reach } from "./reach";
 
 /**
  * Shared pieces of the balance surface (/wallet). The plates use the finance
@@ -126,15 +127,22 @@ export function useWatchedMovement(initial: MovementView, onSettled?: (m: Moveme
   useEffect(() => {
     if (!isOpenMovement(movement.status)) return;
     let cancelled = false;
+    let timer = 0;
+    const schedule = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(tick, POLL_MS[Math.min(attempt.current, POLL_MS.length - 1)]!);
+    };
     const tick = async () => {
-      const r = await balanceMovementStatus({ movementId: movement.id });
-      if (cancelled || !r.ok) return;
+      const r = await reach(() => balanceMovementStatus({ movementId: movement.id }));
+      if (cancelled) return;
       attempt.current += 1;
+      /* A refused or unanswered read (rate limit, offline) waits and asks
+         again; it never leaves the room watching a movement nobody reads. */
+      if (!r.ok) return schedule();
       setMovement(r.data);
       if (!isOpenMovement(r.data.status)) settled.current?.(r.data);
     };
-    const delay = POLL_MS[Math.min(attempt.current, POLL_MS.length - 1)]!;
-    const timer = window.setTimeout(tick, delay);
+    schedule();
     const onVisible = () => {
       if (document.visibilityState === "visible") void tick();
     };

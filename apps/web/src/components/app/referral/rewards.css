@@ -321,7 +321,7 @@
     text-align: center;
   }
   .nf-rewards-figures--platinum .nf-mfig__cur {
-    font-size: 0.8em;
+    font-size: max(0.8em, 0.75rem); /* never under 12px */
     vertical-align: baseline;
   }
   .nf-rewards-figures--platinum .nf-rewards-figures__action {

@@ -181,7 +181,10 @@ async function withDeposits(db: SupabaseClient, views: ReservationView[]): Promi
       .select("reservation_id, status, amount_minor, refund_until, created_at")
       .in("reservation_id", ids)
       .order("created_at", { ascending: false });
-    if (error) return views;
+    if (error) {
+      await reportReadError("read.reservations.deposits", error);
+      return views;
+    }
     const latest = new Map<string, { status: string; amountMinor: number; refundUntil: string | null }>();
     for (const row of (data ?? []) as { reservation_id: string; status: string; amount_minor: number; refund_until: string | null }[]) {
       if (row.status === "failed" || row.status === "abandoned" || latest.has(row.reservation_id)) continue;

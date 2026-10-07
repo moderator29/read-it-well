@@ -11,6 +11,7 @@ import { Money } from "@/components/ui/Money";
 import { cancelBalanceMovement, confirmBalanceMovement, findBalanceRecipient, prepareSend, type Quote } from "@/lib/money/member-wallet-actions";
 import type { MovementView } from "@/lib/money/member-wallet";
 import { Breakdown } from "./balance-ui";
+import { reach } from "./reach";
 import { Watching } from "./WithdrawFlow";
 
 /**
@@ -51,7 +52,7 @@ export function SendFlow({
   const [busy, setBusy] = useState(false);
 
   const close = (next: boolean) => {
-    if (!next && quote && step === "review") void cancelBalanceMovement({ movementId: quote.movementId });
+    if (!next && quote && step === "review") void reach(() => cancelBalanceMovement({ movementId: quote.movementId }));
     if (!next) {
       setStep("who");
       setName(null);
@@ -66,7 +67,7 @@ export function SendFlow({
   const find = async () => {
     setBusy(true);
     setError(null);
-    const r = await findBalanceRecipient({ phone });
+    const r = await reach(() => findBalanceRecipient({ phone }));
     setBusy(false);
     if (r.ok) setName(r.data.name);
     else setError(r.error);
@@ -75,11 +76,11 @@ export function SendFlow({
   const prepare = async () => {
     setBusy(true);
     setError(null);
-    const r = await prepareSend({ clientKey, phone, amount, ...(note.trim() ? { note: note.trim() } : {}) });
+    const r = await reach(() => prepareSend({ clientKey, phone, amount, ...(note.trim() ? { note: note.trim() } : {}) }));
     setBusy(false);
     if (!r.ok) {
       setError(r.error);
-      setClientKey(crypto.randomUUID());
+      if (!r.unreached) setClientKey(crypto.randomUUID());
       return;
     }
     setQuote(r.data);
@@ -88,7 +89,7 @@ export function SendFlow({
 
   const submit = async (): Promise<boolean> => {
     if (!quote) return false;
-    const r = await confirmBalanceMovement({ movementId: quote.movementId });
+    const r = await reach(() => confirmBalanceMovement({ movementId: quote.movementId }));
     if (!r.ok) {
       setError(r.error);
       return false;

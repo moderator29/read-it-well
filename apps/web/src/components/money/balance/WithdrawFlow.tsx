@@ -20,6 +20,7 @@ import type { MovementView } from "@/lib/money/member-wallet";
 import { REFUSAL } from "@/lib/money/balance-copy";
 import { lastFour } from "@/lib/money/funds";
 import { Breakdown, WaitingRoom, useWatchedMovement } from "./balance-ui";
+import { reach } from "./reach";
 import { movementReceipt } from "../movement-receipt";
 import { ReceiptActions } from "../ReceiptActions";
 
@@ -68,7 +69,7 @@ export function WithdrawFlow({
   useEffect(() => {
     if (!open || banks) return;
     let live = true;
-    void listBalanceBanks().then((r) => {
+    void reach(() => listBalanceBanks()).then((r) => {
       if (!live) return;
       if (r.ok) setBanks(r.data.banks);
       else setError(r.error);
@@ -79,7 +80,7 @@ export function WithdrawFlow({
   }, [open, banks]);
 
   const close = (next: boolean) => {
-    if (!next && quote && step === "review") void cancelBalanceMovement({ movementId: quote.movementId });
+    if (!next && quote && (step === "review" || step === "otp")) void reach(() => cancelBalanceMovement({ movementId: quote.movementId }));
     if (!next) {
       setStep("account");
       setAccountName(null);
@@ -95,7 +96,7 @@ export function WithdrawFlow({
   const check = async () => {
     setBusy(true);
     setError(null);
-    const r = await checkBalanceBankAccount({ bankCode, bankName, accountNumber });
+    const r = await reach(() => checkBalanceBankAccount({ bankCode, bankName, accountNumber }));
     setBusy(false);
     if (r.ok) setAccountName(r.data.accountName);
     else setError(r.error);
@@ -104,12 +105,12 @@ export function WithdrawFlow({
   const prepare = async () => {
     setBusy(true);
     setError(null);
-    const r = await prepareWithdrawal({ clientKey, bankCode, bankName, accountNumber, shownAccountName: accountName ?? "", amount });
+    const r = await reach(() => prepareWithdrawal({ clientKey, bankCode, bankName, accountNumber, shownAccountName: accountName ?? "", amount }));
     setBusy(false);
     if (!r.ok) {
       setError(r.error);
       /* A fresh key for a fresh attempt; the refused one moved nothing. */
-      setClientKey(crypto.randomUUID());
+      if (!r.unreached) setClientKey(crypto.randomUUID());
       return;
     }
     setQuote(r.data);
@@ -119,7 +120,7 @@ export function WithdrawFlow({
   const submit = async (code?: string): Promise<boolean> => {
     if (!quote) return false;
     setError(null);
-    const r = await confirmBalanceMovement({ movementId: quote.movementId, ...(code ? { otp: code } : {}) });
+    const r = await reach(() => confirmBalanceMovement({ movementId: quote.movementId, ...(code ? { otp: code } : {}) }));
     if (!r.ok) {
       setError(r.error);
       return false;
@@ -261,7 +262,17 @@ export function WithdrawFlow({
               value={otp}
               onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
             />
-            <Button variant="primary" size="lg" disabled={otp.length < 4} onClick={() => void submit(otp)}>
+            <Button
+              variant="primary"
+              size="lg"
+              loading={busy}
+              disabled={otp.length < 4}
+              onClick={async () => {
+                setBusy(true);
+                await submit(otp);
+                setBusy(false);
+              }}
+            >
               Confirm withdrawal
             </Button>
           </>

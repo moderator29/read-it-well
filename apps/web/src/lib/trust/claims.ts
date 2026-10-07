@@ -100,7 +100,7 @@ export const BACKED_CLAIMS: readonly BackedClaim[] = [
   /* Everyday senses of "checked". */
   { phrase: /\bchecked out\b/i, mechanism: "a stay's check-out, not a trust claim" },
   { phrase: /\brooms checked\b|^\s+checked$|\bthings that can be checked\b/i, mechanism: "the member's own inspection checklist and evidence, not a platform claim" },
-  { phrase: /\bchecked many times\b|\bhave checked that payment\b|\bcould not be checked\b|\buntil you have checked\b/i, mechanism: "payment status polling against the provider, not a trust claim" },
+  { phrase: /\bchecked many times\b|\bhave checked that (?:payment|movement)\b|\bhave checked several accounts\b|\bcould not be checked\b|\buntil you have checked\b/i, mechanism: "payment status polling against the provider, not a trust claim" },
   { phrase: /\bwhat you already checked\b|\breservation is checked against\b|\buntil it is checked\b/i, mechanism: "a process description, not a claim about a listing or a person" },
   { phrase: /\bwhether a purchase is safe\b/i, mechanism: "advice (title decides), not a claim" },
   { phrase: /\bwhat a stay is protected by instead\b/i, mechanism: "a heading over the cancellation policy text on /safety" },
@@ -133,6 +133,21 @@ export const BACKED_CLAIMS: readonly BackedClaim[] = [
     onlyIn: MONEY_COPY_FILE,
     mechanism:
       "the protected rail: funds held by the licensed provider's escrow until release (docs/payments/VALLO_FINANCIAL_LAYER.md), surfaces gated by PROTECTED_RAIL_LIVE in apps/web/src/lib/money/rails.ts (false until ADR-0003 is accepted and the merchant account is live)",
+  },
+  /* Leaderboards and the directory (D76). The ranking reads only rows whose
+     `verified` flag the admin review set, and the directory orders by it;
+     "Get verified" is the door to that review. Scoped to the two copy files. */
+  {
+    phrase: /^Get verified$|^Only verified agents, landlords and firms are ranked\. Verification is free\.$|^Only verified, published (?:hotels and stays|restaurants) are ranked\.$|\bThe first verified (?:hotel|restaurant) to (?:host a guest|seat a guest) through Vallo takes the top spot\.$/,
+    onlyIn: "apps/web/src/lib/leaderboard/copy.ts",
+    mechanism:
+      "public.leaderboard (supabase/migrations/pending/d76_leaderboards_and_directory.sql) ranks only agents with status APPROVED and verified, and businesses PUBLISHED and verified, never demo rows; verified is set by the admin verification review",
+  },
+  {
+    phrase: /\bon Vallo\. Verified first\.$/,
+    onlyIn: "apps/web/src/lib/directory/model.ts",
+    mechanism:
+      "public.directory (supabase/migrations/pending/d76_leaderboards_and_directory.sql) orders by verified desc, then completed and live listings; verified is set by the admin verification review",
   },
   { phrase: /^; Secure$/, mechanism: "the Secure attribute of the theme cookie (lib/theme/theme-client.ts), an HTTP cookie flag, not copy" },
 
