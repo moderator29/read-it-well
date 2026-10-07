@@ -13,7 +13,7 @@ import { parseRows, type Board, type LeaderRow, type Period } from "./model";
  * their new places on the client.
  *
  * NOT LIVE UNTIL THE MIGRATION IS APPLIED. `public.leaderboard` is in
- * supabase/migrations/pending/d76_leaderboards_and_directory.sql. Until the
+ * supabase/migrations/20261007151806_d76_leaderboards_and_directory.sql. Until the
  * lead applies it, PostgREST answers "function not found" and this read says
  * `not-live`; the page draws the honest "opens soon" state and never a board
  * of filler.

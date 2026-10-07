@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { ARRANGEMENT_STATUSES, ARRANGEMENT_STEPS, deliveryWindowDays, stepAllowed, valloStateFor } from "./arrangement-states";
 
 const MIGRATION = readFileSync(
-  fileURLToPath(new URL("../../../../../supabase/migrations/pending/d73b_provider_arrangements.sql", import.meta.url)),
+  fileURLToPath(new URL("../../../../../supabase/migrations/20261007151000_d73b_provider_arrangements.sql", import.meta.url)),
   "utf8",
 );
 

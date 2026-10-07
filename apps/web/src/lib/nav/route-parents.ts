@@ -333,6 +333,8 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   /* ADR 0003: /wallet is the member balance the escrow partner holds. */
   "/wallet": "/home",
   "/agreements/[id]": "/agreements",
+  "/agreements/[id]/fund": "/agreements/[id]",
+  "/agreements/[id]/held": "/agreements/[id]",
 
   /* -------------------------------------------------------------- social */
   /* As `/search` above: whichever home fits the reader. */
@@ -417,6 +419,7 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/admin/bookings/reservations": "/admin/bookings",
   "/admin/businesses": "/admin",
   "/admin/agreements": "/admin",
+  "/admin/agreements/settings": "/admin/agreements",
   /* C1 sweep: the five desks the rail files under Settings (nav.ts,
      ADMIN_SETTINGS) go back to Settings, the door they are opened from,
      not past it to the overview. */

@@ -7,7 +7,7 @@ import type { RailResult } from "../payments/provider";
  * changed, a self-send, a blocked recipient, an UNKNOWN that is never sent
  * twice, and a refusal that moved nothing. The database is an in-memory
  * stand-in whose status writer follows the same transition table as
- * `funds_movement_observe` (supabase/migrations/pending/b6_member_money_rail.sql).
+ * `funds_movement_observe` (supabase/migrations/20261007150611_b6_member_money_rail.sql).
  */
 type Row = Record<string, unknown>;
 const db = vi.hoisted(() => ({ tables: {} as Record<string, Row[]> }));
