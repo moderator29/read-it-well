@@ -1216,6 +1216,24 @@
     font-weight: 600;
     color: var(--nf-content-link);
   }
+  /* ON A WIDE SCREEN THE ROW IS A SET, NOT A SCROLLER (premium pass, 7
+     October). At 1440 the seven plates sat at 104px each on the left half of
+     the page with the right half empty, which reads as unfinished. From `lg`
+     the row is seven equal columns across the content measure; on a phone it
+     stays the sideways scroller it was. */
+  @media (min-width: 64rem) {
+    .nf-space-types .nf-space-types__row {
+      display: grid;
+      grid-auto-columns: minmax(0, 1fr);
+      grid-auto-flow: column;
+      margin-inline: 0;
+      padding-inline: 0;
+      overflow: visible;
+    }
+    .nf-space-type {
+      width: 100%;
+    }
+  }
 
   /*
    * THE SECTIONS ARRIVE AS ONE ORGANISM (MOTION_SYSTEM "List stagger"): the

@@ -144,6 +144,20 @@ export const experienceDiscoverEn = {
     creditJoin: " and ",
     approximate: " · Pins show the area, not the address.",
   },
+  /* The search field as a command palette (command-search-palette.jpg):
+     the rows a typed query offers. `{q}` is what was typed. */
+  palette: {
+    label: "Search suggestions",
+    searchFor: "Search for “{q}”",
+    rentIn: "Homes to rent in {q}",
+    buyIn: "Homes to buy in {q}",
+    enter: "Enter",
+  },
+  /* Saved as shelves (before-after-collection-shelves.jpg). */
+  shelf: {
+    verified: "Verified",
+    open: "Open {title}",
+  },
   saved: {
     /* The head-to-head of north star 15.3: two of your own saved spaces. */
     pickTwo: "Choose two of your saved spaces to set side by side.",
@@ -158,6 +172,13 @@ export const experienceDiscoverEn = {
     capture: "Your saved searches",
     /* The header link to /saved/searches, and the page title (Round 3 sweep, C3). */
     searchesLink: "Saved searches",
+    /* The quiet action under each saved card and the undo chip that takes
+       its place (SavedBoard); they were English literals in the component. */
+    remove: "Remove",
+    removeLabel: "Remove from saved",
+    removed: "Removed from saved",
+    restoring: "Putting it back",
+    undo: "Undo",
     searchesRetry: "Try again",
     /* One saved search on the board (SavedSearchBoard), moved out of the
        component (Round 3 sweep, C3). `{date}` is when it was saved. */

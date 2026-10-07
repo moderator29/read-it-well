@@ -3,7 +3,6 @@
 import { useState, useTransition, type ReactNode } from "react";
 import type { Dictionary } from "@vallo/i18n/core";
 import { Button, ButtonLink } from "@/components/ui/Button";
-import { UiIcon } from "@/design-system/icons/UiIcon";
 import { saveSearch } from "@/lib/saved/searches-actions";
 import { listingSearchHref, listingSearchParams, type CheckFacts } from "@/lib/price-check/next-actions";
 
@@ -47,11 +46,12 @@ export function NextActions({
       <h3 id="nf-pc-next" className="nf-h4">
         {copy.heading}
       </h3>
-      <ol className="mt-row grid gap-row">
+      {/* Three steps, one primary. The glyph plates that stood beside each
+          button came off (premium pass, 7 October): each button already says
+          what it does, and the plates took 52px from a button whose label
+          then wrapped onto two lines at 390. */}
+      <ol className="mt-row grid gap-md">
         <li className="nf-pc-next__step">
-          <span className="nf-pc-next__glyph" aria-hidden="true">
-            <UiIcon name="search" size={20} />
-          </span>
           <div className="min-w-0 flex-1">
             <ButtonLink href={href} variant="primary" full data-testid="nf-pc-see-listings">
               {copy.seeListings}
@@ -60,9 +60,6 @@ export function NextActions({
           </div>
         </li>
         <li className="nf-pc-next__step">
-          <span className="nf-pc-next__glyph" aria-hidden="true">
-            <UiIcon name="bell" size={20} />
-          </span>
           <div className="min-w-0 flex-1">
             {signedIn ? (
               state === "saved" ? (
@@ -98,9 +95,6 @@ export function NextActions({
           </div>
         </li>
         <li className="nf-pc-next__step">
-          <span className="nf-pc-next__glyph" aria-hidden="true">
-            <UiIcon name="share" size={20} />
-          </span>
           <div className="min-w-0 flex-1">
             {share}
             <p className="mt-inline-tight nf-caption text-[var(--nf-content-muted)]">{copy.shareBody}</p>

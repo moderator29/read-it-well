@@ -28,6 +28,25 @@ export const experienceDetailEn = {
   breakdown: {
     howRead: "How these figures are read",
     howReadHint: "Who keeps what, and the state's published limits",
+    /* True Cost as a bill (PREMIUM-STANDARD reference 8): three small
+       figures over the lines, and three equal actions under the total. */
+    stripLabel: "This bill at a glance",
+    stripRent: "Rent",
+    stripFees: "Fees",
+    stripBack: "Refundable",
+    actionsLabel: "What you can do with this breakdown",
+    ledger: "Ledger",
+    ledgerLabel: "Open the full move-in ledger",
+    share: "Share",
+    shareLabel: "Share this listing",
+    ask: "Ask",
+    askLabel: "Ask the lister about a cost",
+  },
+  /* The shelf at the foot of a listing: real listings like this one, from the
+     same catalogue search reads. Drawn only when there is at least one. */
+  similar: {
+    title: "More like this",
+    seeAll: "See all",
   },
   /* Power, water and the meter, as rows marked with the real objects. */
   utilities: {

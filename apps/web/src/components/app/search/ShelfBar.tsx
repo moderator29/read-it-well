@@ -158,6 +158,7 @@ export function ShelfBar({
         inputId="shelf-q"
         path="/search"
         copy={{ title: t.catalogue.recent.title, clear: t.catalogue.recent.clear, clearLabel: t.catalogue.recent.clearLabel }}
+        palette={t.experienceDiscover.palette}
         className="mx-auto max-w-3xl"
       />
 
