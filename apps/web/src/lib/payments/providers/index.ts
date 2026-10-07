@@ -10,21 +10,23 @@ import {
 } from "../provider";
 import { providerEnabled } from "./kill-switch";
 import { paystackProvider } from "./paystack";
+import { PAYLUK_ESCROW_FLOWS_BUILT, paylukProvider } from "./payluk";
 
 export { assertProviderEnabled, FiatProviderDisabled, providerEnabled } from "./kill-switch";
 
 /**
  * Call sites take a provider from here, as `AnyFiatProvider`, and ask `can()`
  * for anything beyond the core, rather than importing an adapter directly and
- * bypassing the capability check. Payluk returns null until its adapter is
- * written against the live docs.
+ * bypassing the capability check. Payluk is registered whether or not a key
+ * is present: `isConfigured()` says which, and every member_wallet method
+ * answers `not_configured` without one.
  */
 export function fiatProvider(id: FiatProviderId): AnyFiatProvider | null {
   switch (id) {
     case "paystack":
       return paystackProvider;
     case "payluk":
-      return null;
+      return paylukProvider;
   }
 }
 
@@ -35,13 +37,22 @@ export function paystackSeam(): AnyFiatProvider {
 
 /**
  * True only when an escrow payment could genuinely be held: a registered
- * provider that declares `hold_in_escrow`, and its switch on. Today there is
- * no Payluk adapter, so this is false whatever `payments_payluk_on` says.
+ * provider that declares `hold_in_escrow`, the escrow flows themselves built
+ * (phases 11 and 12, `PAYLUK_ESCROW_FLOWS_BUILT`), a key present, and its
+ * switch on. The adapter exists now; the arrange, fund and release flows do
+ * not, so this stays false whatever `payments_payluk_on` says.
  */
 export async function escrowRailLive(): Promise<boolean> {
   const p = fiatProvider("payluk");
-  if (!p || !can(p, "hold_in_escrow")) return false;
+  if (!p || !can(p, "hold_in_escrow") || !PAYLUK_ESCROW_FLOWS_BUILT || !p.isConfigured()) return false;
   return providerEnabled("payluk");
+}
+
+/** The member balance rail: the adapter registered, a key present, and the founder's switch on. */
+export async function memberWalletRailLive(): Promise<"live" | "not_configured" | "switched_off"> {
+  const p = fiatProvider("payluk");
+  if (!p || !can(p, "member_wallet") || !p.isConfigured()) return "not_configured";
+  return (await providerEnabled("payluk")) ? "live" : "switched_off";
 }
 
 /** The provider's full record of a reference. Read-only, so never gated by the kill switch. */
