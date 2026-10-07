@@ -261,15 +261,19 @@
     margin-inline: auto;
     max-width: var(--nf-measure-section);
   }
+  /* The Plasma pass (P7): the eyebrow is the landing's mono overline, so the
+     rooms kept from before speak the same dialect as the new ones
+     (landing-plasma.css, `.nf-pl-overline`). */
   .nf-eyebrow {
     display: inline-flex;
     align-items: center;
     gap: var(--nf-space-xs);
-    font-size: var(--nf-text-overline);
-    font-weight: 700;
-    letter-spacing: var(--nf-tracking-label);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.22em;
     text-transform: uppercase;
-    color: var(--nf-brand-secondary);
+    color: var(--nf-content-muted);
   }
   .nf-eyebrow::before {
     content: "";
@@ -294,10 +298,10 @@
     margin-top: var(--nf-gap-row);
     max-width: var(--nf-measure-display);
     font-family: var(--nf-font-display);
-    font-size: var(--nf-text-h1);
-    font-weight: 700;
-    line-height: 1.1;
-    letter-spacing: var(--nf-tracking-display);
+    font-size: clamp(2rem, 1.3rem + 2.6vw, 3.25rem);
+    font-weight: 600;
+    line-height: 1.04;
+    letter-spacing: -0.035em;
     color: var(--nf-content-primary);
   }
 
@@ -833,13 +837,14 @@
       margin-bottom: 0;
     }
   }
-  /* The eyebrow is the shared section label now: no hairlines, no brand. */
+  /* The eyebrow is the landing's mono overline (the Plasma pass, P7): no
+     hairlines, no brand, letter-spaced. */
   .nf-sec-head .nf-eyebrow {
     display: block;
     gap: 0;
-    font-size: var(--nf-text-label, 0.75rem);
-    letter-spacing: var(--nf-tracking-label, 0.06em);
-    font-weight: 600;
+    font-size: 0.75rem;
+    letter-spacing: 0.22em;
+    font-weight: 500;
     color: var(--nf-content-muted);
   }
   .nf-sec-head .nf-eyebrow::before,
@@ -849,10 +854,10 @@
   .nf-sec-title {
     margin-top: 0.5rem;
     max-width: 20ch;
-    font-size: clamp(1.75rem, 1.2rem + 2.1vw, 2.75rem);
+    font-size: clamp(2rem, 1.3rem + 2.6vw, 3.25rem);
     font-weight: 600;
-    line-height: 1.1;
-    letter-spacing: -0.02em;
+    line-height: 1.04;
+    letter-spacing: -0.035em;
   }
   .nf-sec-lede {
     margin-top: 0.75rem;

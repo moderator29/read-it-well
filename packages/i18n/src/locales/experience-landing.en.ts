@@ -54,6 +54,104 @@ export const experienceLandingEn = {
     onRent: "On a yearly rent of {amount}",
   },
   /**
+   * THE PLASMA PASS (P7, 7 October 2026; PREMIUM-STANDARD.md, the governing
+   * level). The landing told as five chapters: the hero, the four markets as
+   * a rolling card stack, how a deal works as a stack that reveals on
+   * scroll, the trust layer, and the close. Only the lines nothing else says
+   * are here. Money sentences come from `lib/money/copy.ts`, and the example
+   * flat's words from `landingRooms.stack.ui`. No claim word appears in any
+   * line below unless it is backed (`lib/trust/claims.ts`).
+   */
+  plasma: {
+    /** The hero's mono breadcrumb, the four markets in the order the stack shows them. */
+    crumb: ["Homes", "Stays", "Restaurants", "Workspaces"],
+    markets: {
+      overline: "Four markets, one account",
+      title: "Every kind of space.",
+      lede: "Rent, buy, stay, dine and work, from the same account and the same search.",
+      /** Read to a screen reader as the stack's name. */
+      label: "The four markets",
+      items: {
+        homes: {
+          tab: "Homes and rentals",
+          title: "The whole cost, up front.",
+          body: "Homes, flats and land to rent or buy, with the move-in total printed on the card.",
+          cta: "Browse homes",
+        },
+        stays: {
+          tab: "Stays and hotels",
+          title: "A night, a week, a month.",
+          body: "Hotels, shortlets and guest houses, with the full total shown before you book.",
+          cta: "Browse stays",
+        },
+        dining: {
+          tab: "Restaurants",
+          title: "A table, booked.",
+          body: "Reserve a table at the restaurants listed on Vallo, from the same account.",
+          cta: "Find a table",
+        },
+        work: {
+          tab: "Workspaces",
+          title: "Offices and shops to let.",
+          body: "Let on a yearly tenancy like a home, and inspected before anything is paid.",
+          cta: "Browse workspaces",
+        },
+      },
+    },
+    story: {
+      overline: "How a deal works",
+      title: "From the first search to the keys.",
+      lede: "Five steps, in order. Nothing moves on until the step before it is done.",
+      /** The floating pill's name. */
+      pill: "Steps of a deal",
+      steps: {
+        find: { label: "Find", title: "Find the place." },
+        verify: { label: "Verify", title: "See it, and who is behind it." },
+        agree: { label: "Agree", title: "Agree before anything is paid." },
+        pay: { label: "Pay", title: "Pay through Vallo." },
+        move: {
+          label: "Move in",
+          title: "Move in, with the record.",
+          body: "The agreement, the receipt and every message stay on your record, and the tenancy joins your Space Passport.",
+        },
+      },
+      /** The small product words on each step's fragment. */
+      frag: {
+        inspection: "Inspection",
+        noFee: "No inspection fee",
+        reviewed: "Agent application reviewed by a person",
+        gate: "Attended, recorded by both phones",
+        agreement: "Agreement",
+        confirmed: "Confirmed",
+        approved: "Approved",
+        you: "You",
+        owner: "Owner",
+        vallo: "Vallo",
+        youPaid: "You paid",
+        receipt: "Receipt",
+        kept: "Kept on your record",
+        passport: "Added to your Space Passport",
+      },
+    },
+    trust: {
+      overline: "The trust layer",
+      title: "What stands behind every deal.",
+      passport: {
+        name: "Space Passport",
+        body: "A record Vallo keeps itself: your phone, your identity, the inspections you attended and the rent you paid through Vallo. Shown only in the conversations you choose.",
+      },
+      money: {
+        title: "Where your money goes",
+        cta: "Read the safety guide",
+      },
+    },
+    close: {
+      /** The store screenshots' three-line headline, every line a step that is true today. */
+      lines: ["Find.", "Agree.", "Move in."],
+      app: "On your phone",
+    },
+  },
+  /**
    * THE PUBLIC MENU (reference 7086): each door with one line saying what is
    * behind it. The labels are `publicDoors.nav` and `landing.face.nav`.
    */

@@ -77,6 +77,9 @@ export function doorFromChapter(chapter: string | null | undefined, landmark: "h
       return "hero";
     case "categories":
     case "category":
+    /* The four markets' stack took the categories' place on the landing
+       (the Plasma pass, P7, 7 October 2026): the same kind of door. */
+    case "markets":
       return "category";
     case "check":
       return "check";

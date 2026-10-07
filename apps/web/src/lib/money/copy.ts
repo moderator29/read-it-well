@@ -112,6 +112,26 @@ export const RAIL_COPY: Record<MoneyRail, RailCopy> = {
   },
 };
 
+/**
+ * THE FRONT DOOR'S PROMISE, PER RAIL (the landing hero, P7, 7 October 2026).
+ *
+ * The founder asked for the hero to carry "Vallo does not hold your money; a
+ * licensed provider does". The first half is true on both rails. The second
+ * is true only on the protected rail, which is not live (`rails.ts`), so the
+ * direct rail says what happens on it instead. When the protected rail goes
+ * live the hero says the founder's sentence with no other change.
+ */
+export const RAIL_PROMISE: Record<MoneyRail, { lead: string; rest: string }> = {
+  direct: {
+    lead: "Vallo never holds your money.",
+    rest: "When you pay, it goes through regulated payment partners straight to the owner or agent.",
+  },
+  protected: {
+    lead: "Vallo never holds your money.",
+    rest: "A licensed provider holds it until you confirm.",
+  },
+};
+
 /* -------------------------------------------------------------------------- */
 /* INSPECTION, THE OFF-PLATFORM RULE, THE GATE                                */
 /* -------------------------------------------------------------------------- */

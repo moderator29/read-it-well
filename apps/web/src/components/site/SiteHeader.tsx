@@ -18,9 +18,11 @@ import "@/app/css/site.css";
  * and on phones the panel opener. The bar carries exactly what the render
  * carries; language is changed in Settings and nowhere else.
  *
- * `variant="landing"` makes the bar transparent over the hero photograph
- * until the page scrolls (see landing.css and NavScrollState). The content
- * pages never pass it and keep the chrome glass from the first pixel.
+ * `variant="landing"` draws the floating capsule (`LandingCapsule` below).
+ * Since the Plasma pass (P7, 7 October 2026) the public content pages pass
+ * it too (`app/(site)/layout.tsx`), so the front door and every policy page
+ * share one header. The full-width bar is what remains for any caller that
+ * passes no variant.
  */
 export function SiteHeader({
   t,

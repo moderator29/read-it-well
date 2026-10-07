@@ -276,11 +276,8 @@
     margin-top: var(--nf-gap-block);
     overflow: hidden;
     border-radius: var(--nf-container-radius);
-    border: var(--nf-border-width) solid var(--nf-panel-edge);
-    border-color: var(--nf-panel-edges);
-    box-shadow:
-      var(--nf-panel-glow),
-      var(--nf-elev-2);
+    -webkit-mask-image: radial-gradient(110% 95% at 50% 35%, #000 55%, transparent 100%);
+    mask-image: radial-gradient(110% 95% at 50% 35%, #000 55%, transparent 100%);
   }
   @media (max-width: 63.999rem) {
     .nf-site-head--tool .nf-site-head-plate {
@@ -301,16 +298,19 @@
       border: 0;
       border-radius: 0;
       box-shadow: none;
+      -webkit-mask-image: none;
+      mask-image: none;
     }
     .nf-site-head-plate::after {
       content: "";
       position: absolute;
       inset: 0;
       background:
+        radial-gradient(50% 60% at 50% 42%, color-mix(in oklab, var(--nf-landing-ink) 55%, transparent), transparent 100%),
         linear-gradient(
           180deg,
-          color-mix(in oklab, var(--nf-landing-ink) 72%, transparent) 0%,
-          color-mix(in oklab, var(--nf-landing-ink) 48%, transparent) 55%,
+          color-mix(in oklab, var(--nf-landing-ink) 82%, transparent) 0%,
+          color-mix(in oklab, var(--nf-landing-ink) 60%, transparent) 55%,
           var(--nf-surface-canvas) 100%
         );
     }
@@ -348,6 +348,27 @@
     color: var(--nf-landing-fg);
     background: var(--nf-landing-control);
   }
+  /* THE PLASMA PASS (P7): the landing's mono overline, where the chip stood. */
+  .nf-site-head-overline {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.4;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--nf-brand-secondary);
+  }
+  .nf-site-head-overline > svg {
+    flex: none;
+  }
+  @media (min-width: 64rem) {
+    .nf-site-head-overline {
+      color: var(--nf-landing-fg-2);
+    }
+  }
   .nf-site-head-body {
     display: flex;
     flex-direction: column;
@@ -360,11 +381,12 @@
   }
   .nf-site-head-title {
     font-family: var(--nf-font-display);
-    font-size: var(--nf-text-h0);
-    line-height: 1.05;
-    font-weight: 700;
-    letter-spacing: var(--nf-tracking-display);
+    font-size: clamp(2.25rem, 1.35rem + 3.4vw, 4rem);
+    line-height: 1.02;
+    font-weight: 600;
+    letter-spacing: -0.035em;
     color: var(--nf-landing-fg);
+    text-wrap: balance;
   }
   .nf-site-head-lede {
     font-size: var(--nf-text-body-lg);
