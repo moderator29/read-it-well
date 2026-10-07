@@ -100,7 +100,7 @@ export const BACKED_CLAIMS: readonly BackedClaim[] = [
   /* Everyday senses of "checked". */
   { phrase: /\bchecked out\b/i, mechanism: "a stay's check-out, not a trust claim" },
   { phrase: /\brooms checked\b|^\s+checked$|\bthings that can be checked\b/i, mechanism: "the member's own inspection checklist and evidence, not a platform claim" },
-  { phrase: /\bchecked many times\b|\bhave checked that payment\b|\bcould not be checked\b|\buntil you have checked\b/i, mechanism: "payment status polling against the provider, not a trust claim" },
+  { phrase: /\bchecked many times\b|\bhave checked that (?:payment|movement)\b|\bhave checked several accounts\b|\bcould not be checked\b|\buntil you have checked\b/i, mechanism: "payment status polling against the provider, not a trust claim" },
   { phrase: /\bwhat you already checked\b|\breservation is checked against\b|\buntil it is checked\b/i, mechanism: "a process description, not a claim about a listing or a person" },
   { phrase: /\bwhether a purchase is safe\b/i, mechanism: "advice (title decides), not a claim" },
   { phrase: /\bwhat a stay is protected by instead\b/i, mechanism: "a heading over the cancellation policy text on /safety" },
@@ -133,6 +133,17 @@ export const BACKED_CLAIMS: readonly BackedClaim[] = [
     onlyIn: MONEY_COPY_FILE,
     mechanism:
       "the protected rail: funds held by the licensed provider's escrow until release (docs/payments/VALLO_FINANCIAL_LAYER.md), surfaces gated by PROTECTED_RAIL_LIVE in apps/web/src/lib/money/rails.ts (false until ADR-0003 is accepted and the merchant account is live)",
+  },
+  /* The member balance (money rail). "Protected" there is the provider's own
+     escrowBalance as reported, shown with when it was confirmed, never a
+     figure Vallo computes; "Being checked" is the under_review status, a
+     person reading a movement whose amount or customer disagreed. Scoped to
+     the one copy file, so the same words elsewhere are still a claim. */
+  {
+    phrase: /^Protected$|^Money you can use on Vallo, money protected in a deal, and anything still on its way\.$|^Being checked$/,
+    onlyIn: "apps/web/src/lib/money/balance-copy.ts",
+    mechanism:
+      "Payluk's reported escrowBalance (parseBalance in lib/payments/providers/payluk-client.ts, drawn with its confirmation time) and the funds_movements under_review status set by lib/money/balance-events.ts on an amount or customer mismatch",
   },
   { phrase: /^; Secure$/, mechanism: "the Secure attribute of the theme cookie (lib/theme/theme-client.ts), an HTTP cookie flag, not copy" },
 

@@ -78,7 +78,7 @@ export const ONBOARDING_COPY: Record<OnboardingState, { title: string; body: str
   ACTIVE: { title: "Your balance is open", body: "You can add money, withdraw and send." },
   RESTRICTED: {
     title: "Some actions are paused",
-    body: "Our partner has limited what this balance can do for now. Your money is safe where it is. Contact support and we will find out why.",
+    body: "Our partner has limited what this balance can do for now. Nothing has been moved from it. Contact support and we will find out why.",
   },
   SUSPENDED: {
     title: "Your balance is on hold",
