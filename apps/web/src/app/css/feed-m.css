@@ -177,19 +177,15 @@
    *
    * The ring of light that followed the pop is gone (7 October 2026): a
    * payoff is one impact and one pop, never stacked effects.
+   *
+   * THE WHOLE CAPSULE POPS NOW (D72, the capsule row of reference 2). 1.04 of
+   * a 16px glyph is two thirds of a pixel and nobody feels it; 1.04 of a 60px
+   * capsule is a felt beat. One impact, 180ms, the haptic `Feed` fires with
+   * it. The glyph fills in the same frame (`ActionPill`). The press itself is
+   * the capsule's sink in `social-feed.css`, on `transform`, so it composes
+   * with this `scale` rather than fighting it.
    */
-  .nf-post__act--like svg,
-  .nf-post__act--repost svg {
-    transition: scale var(--nf-duration-fast) var(--nf-ease-spring);
-  }
-  .nf-post__act--like:active svg,
-  .nf-post__act--repost:active svg {
-    scale: 0.82;
-  }
-  /* THE PAYOFF (A.5, MOTION_SYSTEM rule 5): one sharp impact and one pop,
-     1.0 to 1.04 to 1.0 over 180ms. One effect, so the ring of light that
-     used to follow it is gone; the impact is the haptic `Feed` fires. */
-  .nf-post__act--like[data-pop] svg {
+  .nf-act-pill--like[data-pop] {
     animation: nf-feed-heart 180ms var(--nf-ease-press) both;
   }
   @keyframes nf-feed-heart {
@@ -206,7 +202,7 @@
 
   /* ------------------------------------------------------------ repost */
 
-  .nf-post__act--repost[data-pop] svg {
+  .nf-act-pill--repost[data-pop] svg {
     animation: nf-feed-turn var(--nf-duration-slow) var(--nf-ease-entrance) both;
   }
   @keyframes nf-feed-turn {
@@ -378,8 +374,8 @@
     .nf-post,
     .nf-post > *,
     .nf-post__media img,
-    .nf-post__act--like[data-pop] svg,
-    .nf-post__act--repost[data-pop] svg,
+    .nf-act-pill--like[data-pop],
+    .nf-act-pill--repost[data-pop] svg,
     .nf-story--seq .nf-story__image,
     .nf-story--seq .nf-story__top,
     .nf-story--seq .nf-story__card,
@@ -402,17 +398,30 @@
         opacity: 1;
       }
     }
-    .nf-post__act--like svg,
-    .nf-post__act--repost svg,
+    .nf-act-pill,
     .nf-feed-seg .nf-feed-seg__thumb,
     .nf-story-ring__item {
       transition: none;
     }
-    .nf-post__act--like:active svg,
-    .nf-post__act--repost:active svg,
+    .nf-act-pill:active,
+    .nf-post__attach:active {
+      transform: none;
+    }
     .nf-story-ring__item:active {
       scale: none;
     }
+    /* The picture is simply there: no blur to settle out of. */
+    .nf-pic {
+      filter: none;
+      transition: none;
+    }
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) :is(.nf-act-pill--like[data-pop], .nf-act-pill--repost[data-pop] svg) {
+    animation: none;
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-pic {
+    filter: none;
+    transition: none;
   }
 
   /* Calm and Off: a settled frame. motion-pref.css already turns scroll

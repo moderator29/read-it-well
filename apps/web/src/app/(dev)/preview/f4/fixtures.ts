@@ -94,7 +94,32 @@ export const FEED_POSTS: PostView[] = [
     likeCount: 131,
     repostCount: 18,
     replyCount: 9,
+    liked: true,
     media: [{ url: skyline, width: 640, height: 360 }],
+  }),
+  /* A flat attached to a post, in a place: the compact attachment and the
+     place line (premium pass, D72). Sample props for the harness only. */
+  post({
+    id: "00000000-0000-4000-8000-00000000a004",
+    kind: "SHOWCASE",
+    body: "Two-bed in Yaba, a short walk from the UNILAG gate. Viewings this Saturday.",
+    createdLabel: "6h ago",
+    areaName: "Yaba",
+    areaSlug: "yaba-unilag",
+    listing: {
+      id: "00000000-0000-4000-8000-00000000d001",
+      title: "Two-bedroom flat, Akoka",
+      area: "Yaba",
+      city: "Lagos",
+      priceLabel: "₦2,400,000",
+      periodLabel: "a year",
+      photoUrl: villa,
+      verified: true,
+    },
+    likeCount: 18,
+    repostCount: 2,
+    replyCount: 4,
+    saved: true,
   }),
 ];
 

@@ -241,8 +241,8 @@ export default async function AroundPage({
       </section>
 
       {/* `?compose=1` is the dock's "Post to the feed" (`CreateDock`): the
-          bloom opens on arrival. */}
-      <AroundFab currentAreaId={activeArea} initialOpen={params.compose === "1"} />
+          composer opens on arrival, in one tap from the dock. */}
+      <AroundFab currentAreaId={activeArea} compose={params.compose === "1"} />
     </div>
   );
 }

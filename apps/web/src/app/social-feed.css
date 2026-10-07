@@ -1839,23 +1839,10 @@
   .nf-comment__reply:focus-visible {
     color: var(--nf-brand-secondary);
   }
+  /* The heart is the feed's capsule (`ActionPill`, D72); this only seats it
+     at the end of the comment's foot. */
   .nf-comment__heart {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
     margin-inline-start: auto;
-    font-size: var(--nf-text-caption);
-    font-weight: 700;
-    color: var(--nf-content-muted);
-  }
-  .nf-comment__heart::before {
-    content: "";
-    position: absolute;
-    inset: -12px -8px;
-  }
-  .nf-comment__heart[aria-pressed="true"] {
-    color: var(--nf-brand-secondary);
   }
 
   /* ------------------------------------------------------ the composer */
@@ -3215,4 +3202,413 @@
    * every disabled primary keeps its lit bar at reduced strength, so the local
    * rule that stood here (a flat gradient at 0.45 opacity) is deleted.
    */
+}
+
+/* ======================================================================
+ * THE PREMIUM PASS (D72, 7 October 2026). The founder: "our feed make it
+ * clean, small icons for likes, comment, retweet... next gen one, the
+ * containers, the looks too". PREMIUM-STANDARD.md reference 2 for the row,
+ * `GOVERNING-feed-plus-bloom.png` for the card. Last in this sheet on
+ * purpose: every rule here is a decision that supersedes a measurement
+ * above it, and reading order is cascade order.
+ * ====================================================================== */
+@layer components {
+  /* ------------------------------------------------------------------
+   * The card's hierarchy. What a post is FOR is its words or its picture,
+   * so the body is the largest type on the card and the author line is
+   * small and quiet above it: name at the body-sm step, handle and time at
+   * caption. Four sizes at most on a card (the bar, rule 3).
+   * ------------------------------------------------------------------ */
+  :root {
+    --nf-feed-pad: 14px;
+    --nf-feed-gap: 12px;
+  }
+  /*
+   * THE CARD, CALMER (D74, the Plasma set: "near-black fields, the content is
+   * lit, the field is quiet"). The same shared card and the same lit edge,
+   * refined rather than replaced: the navy wash in the fill comes down to a
+   * near-black with a breath of blue at the top, and the four lit edges come
+   * down a step, so the photograph and the words are the brightest things on
+   * the card instead of its frame. No metal on a feed card: platinum is one
+   * object per screen, and a feed is a list. Padding is the breathing room
+   * the bar asks for: 14 round the words, 12 under the action row.
+   */
+  .nf-panel.nf-post {
+    padding: 12px var(--nf-feed-pad) 12px;
+    background:
+      radial-gradient(60% 18px at 50% 0, color-mix(in oklab, var(--nf-lit) 10%, transparent), transparent),
+      linear-gradient(
+        180deg,
+        color-mix(in oklab, var(--nf-lit) 12%, var(--nf-surface-canvas)) 0,
+        color-mix(in oklab, var(--nf-lit) 6%, var(--nf-surface-canvas)) 40%,
+        color-mix(in oklab, var(--nf-lit) 8%, var(--nf-surface-canvas)) 100%
+      );
+    border-color:
+      color-mix(in oklab, var(--nf-lit) 52%, var(--nf-surface-canvas))
+      color-mix(in oklab, var(--nf-lit) 34%, var(--nf-surface-canvas))
+      color-mix(in oklab, var(--nf-lit) 40%, var(--nf-surface-canvas))
+      color-mix(in oklab, var(--nf-lit) 30%, var(--nf-surface-canvas));
+  }
+  .nf-post__body {
+    margin-block-start: 8px;
+    font-size: var(--nf-text-body);
+    line-height: 1.5;
+    letter-spacing: -0.006em;
+  }
+  .nf-post__name {
+    font-size: var(--nf-text-body-sm);
+    letter-spacing: -0.01em;
+  }
+  .nf-post__handle,
+  .nf-post__when {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+
+  /* ------------------------------------------------------------------
+   * THE ACTION ROW: separate soft capsules (reference 2).
+   *
+   * Each control is its own soft charcoal capsule: a faint fill and a
+   * hairline drawn from the ink colour, so the same rule is charcoal on the
+   * dark field and a pale grey on the light one. Glyph 16, count at the
+   * caption step in tabular figures, 32 tall, 6 apart. The share disc sits
+   * alone at the far end. The 44px target is the `::before` below, as
+   * `.nf-post__act` always did it.
+   * ------------------------------------------------------------------ */
+  .nf-post__actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-block: 12px 0;
+    margin-inline: 0;
+    padding-top: 0;
+    border-top: 0;
+  }
+  .nf-act-pill {
+    position: relative;
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    block-size: 32px;
+    min-inline-size: 32px;
+    padding-inline: 10px 12px;
+    border-radius: var(--nf-radius-segment);
+    border: 1px solid color-mix(in oklab, var(--nf-content-primary) 9%, transparent);
+    background: color-mix(in oklab, var(--nf-content-primary) 5%, transparent);
+    color: var(--nf-content-secondary);
+    font-size: var(--nf-text-caption);
+    font-weight: 500;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    transition:
+      background-color var(--nf-duration-fast) var(--nf-ease-standard),
+      border-color var(--nf-duration-fast) var(--nf-ease-standard),
+      color var(--nf-duration-fast) var(--nf-ease-standard),
+      transform var(--nf-duration-press) var(--nf-ease-press);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .nf-act-pill--round {
+    inline-size: 32px;
+    padding-inline: 0;
+  }
+  .nf-act-pill--share {
+    margin-inline-start: auto;
+  }
+  .nf-act-pill::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    translate: -50% -50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+  }
+  .nf-act-pill__count {
+    min-inline-size: 1ch;
+    color: inherit;
+  }
+  .nf-act-pill:hover {
+    color: var(--nf-content-primary);
+    background: color-mix(in oklab, var(--nf-content-primary) 9%, transparent);
+  }
+  .nf-act-pill:focus-visible {
+    outline: 2px solid var(--nf-brand-secondary);
+    outline-offset: 2px;
+  }
+  /* The felt press: the capsule sinks to 0.94 on `press`, so the finger
+     feels the control take the tap before anything else happens. */
+  .nf-act-pill:active {
+    transform: scale(0.94);
+  }
+  /* Marked. Brand blue, never rose: rose means error here, and a liked post
+     is not an error. The capsule takes a faint brand wash and edge, so the
+     state reads from the shape and not from colour alone. */
+  .nf-act-pill[aria-pressed="true"] {
+    color: var(--nf-brand-secondary);
+    border-color: color-mix(in oklab, var(--nf-brand-secondary) 38%, transparent);
+    background: color-mix(in oklab, var(--nf-brand-secondary) 14%, transparent);
+  }
+  /* 320 to 359: four capsules and a disc in 270px. The capsules close up
+     rather than the row wrapping or the disc leaving the card; every target
+     is still 44 square through `::before`. */
+  @media (max-width: 359px) {
+    .nf-post__actions {
+      gap: 4px;
+    }
+    .nf-act-pill {
+      gap: 4px;
+      padding-inline: 8px 9px;
+    }
+    .nf-act-pill--round {
+      padding-inline: 0;
+    }
+  }
+
+  /* ------------------------------------------------------------------
+   * The thread: each reply steps in one level per depth and hangs off a
+   * thin rail down its left edge, bridging the gap above it so the rails
+   * of consecutive replies read as one line (reference 2's connector). A
+   * top-level depth of 0 draws no rail (its width is the depth in px,
+   * capped at one).
+   * ------------------------------------------------------------------ */
+  .nf-thread__reply {
+    position: relative;
+    padding-inline-start: calc(var(--nf-thread-depth, 0) * 16px);
+  }
+  .nf-thread__reply::before {
+    content: "";
+    position: absolute;
+    inset-block: calc(var(--nf-feed-gap) * -1) 0;
+    inset-inline-start: calc(var(--nf-thread-depth, 0) * 16px - 9px);
+    inline-size: min(1px, calc(var(--nf-thread-depth, 0) * 1px));
+    background: linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--nf-brand-secondary) 34%, transparent),
+      color-mix(in oklab, var(--nf-brand-secondary) 12%, transparent)
+    );
+    pointer-events: none;
+  }
+
+  /* The card you just published, in flight over the cards it is landing
+     above (`FreshArrival`). */
+  .nf-fresh-card {
+    position: relative;
+    z-index: 3;
+  }
+
+  /* The delete sheet: one line on what stays, then the slide. */
+  .nf-delete-sheet__body {
+    margin-block-end: 20px;
+    color: var(--nf-content-secondary);
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.5;
+  }
+
+  /* ------------------------------------------------------------------
+   * ONE PLUS PER SCREEN.
+   *
+   * On a phone `/around` drew two: the dock's "+" in the centre slot and
+   * the feed's own bloom floating over the cards at the right, covering the
+   * share disc of whichever card passed under it. Two controls that both
+   * say "make something", one tap apart, fail the one-product test (a person
+   * cannot predict which does what).
+   *
+   * `GOVERNING-feed-plus-bloom.png` draws ONE plus, the bloom, over a dock
+   * with no centre slot. The dock has since gained its "+" on the founder's
+   * in-line ruling of 22 September, and A.6 (7 October) is him asking for
+   * that "+" to be there and plain. So the governing image's rule (one
+   * plus) is kept and its instance is updated: wherever the dock's "+" is on
+   * screen, the bloom gives way to it. Its three actions keep a home:
+   * Post through the dock's Post, which now opens the composer directly
+   * (`CreateBloom` `initialCompose`); Story through "Your story" in the rail,
+   * the plus the governing image draws on the first ring; Review from the
+   * finished stay in Bookings. Wherever there is no dock (a wide screen, a
+   * thread, a place), the bloom is the one plus, exactly as ruled. An open
+   * fan is never hidden mid-gesture.
+   * ------------------------------------------------------------------ */
+  /* The dock is `lg:hidden` (1024 and up it is in the tree but not drawn),
+     so the rule stops at the same edge. */
+  @media (max-width: 1023.98px) {
+    :root:has(.nf-tab--switch) .nf-bloom:not([data-open]) {
+      display: none;
+    }
+  }
+
+  /* The story rail's names: "Your story" is the one name every reader has,
+     and it was cut to "Your sto..." at 58px. The item takes 64, the name
+     its full width and a hair of tracking back. */
+  .nf-story-ring__item {
+    inline-size: 64px;
+  }
+  .nf-story-ring__name {
+    letter-spacing: -0.01em;
+  }
+
+  /* ------------------------------------------------------------------
+   * The pictures arrive blurred and settle sharp (`PostPicture`). The
+   * element's background is the low-res copy, or the inset ground when
+   * there is none; the blur is on the element so the placeholder is the
+   * thing blurred. The filter is a transition, not a keyframe: it plays
+   * once, when the picture has decoded.
+   * ------------------------------------------------------------------ */
+  .nf-pic {
+    background-color: var(--nf-surface-inset);
+    background-size: cover;
+    background-position: center;
+    filter: blur(14px);
+    transition: filter var(--nf-duration-slow) var(--nf-ease-standard);
+  }
+  .nf-pic[data-loaded] {
+    filter: none;
+  }
+  .nf-post__media {
+    border-radius: var(--nf-radius-plate);
+    margin-block-start: 12px;
+  }
+
+  /* ------------------------------------------------------------------
+   * The place: a quiet line with its pin. The smallest thing on the card.
+   * ------------------------------------------------------------------ */
+  .nf-post__place {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    inline-size: fit-content;
+    max-inline-size: 100%;
+    /* 44 tall for the thumb; the negative margins give the extra back to
+       the rhythm, so it reads as a 20px line. */
+    min-block-size: 44px;
+    margin-block: -6px -12px;
+    color: var(--nf-content-muted);
+    font-size: var(--nf-text-caption);
+    font-weight: 500;
+  }
+  .nf-post__place:hover,
+  .nf-post__place:focus-visible {
+    color: var(--nf-brand-secondary);
+  }
+
+  /* ------------------------------------------------------------------
+   * The listing attached to a post: one compact row inside a quiet inset.
+   * ------------------------------------------------------------------ */
+  /* Thumbnail, then three lines (title, place, figure) so the title keeps
+     the whole width instead of losing it to a column of price, then the
+     chevron. */
+  .nf-post__attach {
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr) 16px;
+    grid-template-rows: auto auto;
+    align-items: center;
+    column-gap: 12px;
+    row-gap: 2px;
+    margin-block-start: 12px;
+    padding: 8px 10px 8px 8px;
+    border-radius: var(--nf-radius-plate);
+    border: 1px solid color-mix(in oklab, var(--nf-content-primary) 9%, transparent);
+    background: color-mix(in oklab, var(--nf-content-primary) 4%, transparent);
+    transition:
+      background-color var(--nf-duration-fast) var(--nf-ease-standard),
+      transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  .nf-post__attach:hover {
+    background: color-mix(in oklab, var(--nf-content-primary) 7%, transparent);
+  }
+  .nf-post__attach:active {
+    transform: scale(0.99);
+  }
+  .nf-post__attach-thumb {
+    grid-row: 1 / span 2;
+    display: grid;
+    place-items: center;
+    inline-size: 56px;
+    block-size: 56px;
+    overflow: hidden;
+    border-radius: var(--nf-radius-xs);
+    background: var(--nf-surface-inset);
+    color: var(--nf-content-muted);
+  }
+  .nf-post__attach-thumb img {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+  .nf-post__attach-text {
+    align-self: end;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-inline-size: 0;
+  }
+  .nf-post__attach-title,
+  .nf-post__attach-place {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .nf-post__attach-title {
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+  }
+  .nf-post__attach-place {
+    color: var(--nf-content-muted);
+    font-size: var(--nf-text-caption);
+  }
+  .nf-post__attach-verified {
+    color: var(--nf-brand-secondary);
+  }
+  .nf-post__attach-price {
+    grid-column: 2;
+    grid-row: 2;
+    align-self: start;
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .nf-post__attach-period {
+    color: var(--nf-content-muted);
+    font-size: var(--nf-text-caption);
+    font-weight: 500;
+    letter-spacing: 0;
+  }
+  .nf-post__attach-chevron {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+    color: var(--nf-content-muted);
+  }
+  /* ------------------------------------------------------------------
+   * A story's row: the same capsules, set on the photograph. Over a
+   * picture a 5% ink fill is invisible, so these are SMOKED GLASS, the
+   * Plasma set's material for anything that floats over media (D74,
+   * `GOVERNING-plasma-rewards-platinum.jpg`'s breakout card).
+   * ------------------------------------------------------------------ */
+  .nf-story__actions--pills {
+    align-items: center;
+    gap: 8px;
+  }
+  .nf-story__actions--pills .nf-act-pill {
+    block-size: 36px;
+    min-inline-size: 36px;
+    padding-inline: 12px 14px;
+    border-color: var(--nf-smoked-glass-edge);
+    background: var(--nf-smoked-glass-fill);
+    color: var(--nf-content-on-media);
+    -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    backdrop-filter: blur(var(--nf-smoked-glass-blur));
+  }
+  .nf-story__actions--pills .nf-act-pill--round {
+    inline-size: 36px;
+    padding-inline: 0;
+  }
+  .nf-story__actions--pills .nf-act-pill[aria-pressed="true"] {
+    color: var(--nf-content-on-media);
+    border-color: color-mix(in oklab, var(--nf-brand-secondary) 70%, transparent);
+    background: color-mix(in oklab, var(--nf-brand-primary) 55%, var(--nf-surface-on-media));
+  }
 }

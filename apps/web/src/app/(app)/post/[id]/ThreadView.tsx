@@ -8,9 +8,11 @@ import { withNext } from "@/lib/auth/next-link";
 import { PostCard, type PostView } from "@/components/social/feed/PostCard";
 import { Composer } from "@/components/social/feed/Composer";
 import { ReportSheet } from "@/components/social/ReportSheet";
+import { DELETE_WORDS, DeleteSheet } from "@/components/social/DeleteSheet";
 import { ActionSheet, actionsForPost } from "@/components/social/ActionSheet";
 import { PostEditor } from "@/components/social/feed/PostEditor";
 import { ViewportPost } from "@/components/social/feed/ViewportPost";
+import { Expand } from "@/components/social/Expand";
 import { Tombstone } from "@/components/social/feed/Tombstone";
 import { leadProps } from "@/components/social/feed/lead";
 import { feedback } from "@/lib/ui/feedback";
@@ -74,10 +76,15 @@ export function ThreadView({
   const [editing, setEditing] = useState<string | null>(null);
   /* One sheet for the whole thread, holding the post it was opened for. */
   const [sheetFor, setSheetFor] = useState<PostView | null>(null);
+  /* The post the delete slide is open for. */
+  const [deleting, setDeleting] = useState<PostView | null>(null);
   /* Muted replies the reader has chosen to open anyway. Per reply, and it lasts
      as long as the page: a mute is a standing preference and unfolding one line
      is not a decision to undo it. */
   const [unfolded, setUnfolded] = useState<string[]>([]);
+  /* The replies on the page when it opened. Only a reply that arrives after
+     (yours, after the refresh) opens into the list (`Expand`). */
+  const [firstReplies] = useState(() => new Set(thread.replies.map((reply) => reply.id)));
   const [, startTransition] = useTransition();
 
   /*
@@ -196,28 +203,28 @@ export function ThreadView({
       return;
     }
 
-    startTransition(async () => {
-      if (action === "save") {
+    /* The slide asks (`DeleteSheet`); `removeConfirmed` below does it. */
+    if (action === "delete") {
+      setDeleting(post);
+      return;
+    }
+    /* Optimistic, as in the feed: the disc marks on the tap and goes back
+       the moment the server disagrees. */
+    if (action === "save") {
+      const saved = !post.saved;
+      if (saved) feedback("select");
+      patch(post.id, { saved });
+      startTransition(async () => {
         const result = await toggleMark({ postId: post.id, mark: "SAVE" });
-        if (!result.ok) return setNotice(result.error);
-        patch(post.id, { saved: !post.saved });
-        return;
-      }
-      if (action === "delete") {
-        if (!window.confirm(POST_COPY.deleteConfirm)) return;
-        const result = await removePost({ postId: post.id });
-        if (!result.ok) return setNotice(result.error);
-        setNotice(null);
-        /* A deleted root with nothing still under it is not a conversation any
-           more, and `getThread` answers not found for it. Leave for the feed
-           rather than refresh into that. */
-        if (post.id === root.id && replies.every((reply) => reply.removed)) {
-          router.replace("/around");
-          return;
+        if (!result.ok) {
+          patch(post.id, { saved: post.saved });
+          setNotice(result.error);
         }
-        router.refresh();
-        return;
-      }
+      });
+      return;
+    }
+
+    startTransition(async () => {
       // A "hide" key used to live here writing the identical mute behind a row
       // labelled "Not interested". One key now, named for what it does.
       if (action === "mute" || action === "block") {
@@ -238,6 +245,29 @@ export function ThreadView({
         return;
       }
     });
+  };
+
+  /* The deletion itself, once the slide has been drawn across. Resolves
+     false when the server refused, so the track never says "Deleted" for a
+     post that is still there. */
+  const removeConfirmed = async (): Promise<boolean> => {
+    const post = deleting;
+    if (!post) return false;
+    const result = await removePost({ postId: post.id });
+    if (!result.ok) {
+      setNotice(result.error);
+      return false;
+    }
+    setNotice(null);
+    /* A deleted root with nothing still under it is not a conversation any
+       more, and `getThread` answers not found for it. Leave for the feed
+       rather than refresh into that. */
+    if (post.id === root.id && replies.every((reply) => reply.removed)) {
+      router.replace("/around");
+      return true;
+    }
+    router.refresh();
+    return true;
   };
 
   /*
@@ -329,7 +359,7 @@ export function ThreadView({
       {card(root)}
 
       {replyingTo === root.id && !root.removed ? (
-        <>
+        <Expand appear key="answer-root" className="flex flex-col gap-[var(--nf-feed-gap)]">
           {/*
             WHO IS BEING ANSWERED, SAID OUT LOUD.
 
@@ -348,7 +378,7 @@ export function ThreadView({
             autoFocus
             onDone={() => setReplyingTo(null)}
           />
-        </>
+        </Expand>
       ) : null}
 
       {/* Always offered, so somebody arriving from a link can answer without
@@ -382,15 +412,29 @@ export function ThreadView({
         </p>
       )}
 
+      {/*
+        THE CONVERSATION, JOINED BY ITS LINE (reference 2's connector).
+
+        Each reply steps in one level per depth (capped at three, as the
+        depth cap is) and hangs off a thin rail drawn down its left edge, so
+        a reply visibly belongs to the post above it rather than floating as
+        another card in a feed. A reply that arrives while the thread is open
+        (yours, after the refresh) opens into the list (`Expand`); what was
+        there when the page opened is simply there.
+      */}
       {replies.map((reply, index) => {
         /* The first six replies arrive 40ms apart (motion 10), the way the
            feed's first six do; the rest are simply there. */
         const lead = leadProps(index);
         return (
-        <div
+        <Expand
           key={reply.id}
-          // One step of indent per level, capped by the depth cap at three.
-          style={{ ...lead.style, marginInlineStart: `${Math.min(reply.depth, 3) * 14}px` }}
+          appear={!firstReplies.has(reply.id)}
+          className="nf-thread__reply"
+          style={{ "--nf-thread-depth": Math.min(reply.depth, 3) } as React.CSSProperties}
+        >
+        <div
+          style={lead.style}
           className={["flex flex-col gap-[var(--nf-feed-gap)]", lead.className ?? ""].filter(Boolean).join(" ")}
         >
           {reply.mutedAuthor && !unfolded.includes(reply.id) ? (
@@ -402,7 +446,7 @@ export function ThreadView({
             card(reply)
           )}
           {replyingTo === reply.id ? (
-            <>
+            <Expand appear key="answer" className="flex flex-col gap-[var(--nf-feed-gap)]">
               <ReplyingTo who={handleOf(reply)} />
               <Composer
                 parentId={replyTargetOf(reply)}
@@ -410,9 +454,10 @@ export function ThreadView({
                 autoFocus
                 onDone={() => setReplyingTo(null)}
               />
-            </>
+            </Expand>
           ) : null}
         </div>
+        </Expand>
         );
       })}
 
@@ -436,6 +481,14 @@ export function ThreadView({
           dismissLabel={sheet.dismissLabel}
         />
       ) : null}
+
+      <DeleteSheet
+        open={deleting !== null}
+        title={DELETE_WORDS.post.title}
+        body={DELETE_WORDS.post.body}
+        onClose={() => setDeleting(null)}
+        onConfirm={removeConfirmed}
+      />
 
       {reporting ? (
         <ReportSheet

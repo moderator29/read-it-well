@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/Button";
 import { BackChevron } from "@/components/social/profile/BackChevron";
 import { FollowButton } from "@/components/social/profile/FollowButton";
 import { ReportSheet } from "@/components/social/ReportSheet";
+import { DELETE_WORDS, DeleteSheet } from "@/components/social/DeleteSheet";
+import { ActionPill } from "@/components/social/feed/ActionPill";
 import type { ReportWords } from "@/components/social/sheet-words";
 import { CommentsSheet } from "@/components/social/comments/CommentsSheet";
 import { StoryRail } from "./StoryRail";
@@ -31,7 +33,7 @@ import { POST_COPY, PROFILE_REPORT_REASONS } from "@/lib/social/posts-model";
 import { STORY_COPY } from "@/lib/social/stories-model";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import { Toast, useToast } from "@/components/ui/Toast";
-import { countOf } from "@vallo/i18n/core";
+import { countOf, formatNumber } from "@vallo/i18n/core";
 import { useClientLocale } from "@/lib/i18n/use-client-locale";
 import { useSignInHref } from "@/lib/auth/use-sign-in-href";
 
@@ -214,17 +216,21 @@ export function StoryViewer({
     });
   };
 
+  /* Taking a story down is confirmed by the slide (`DeleteSheet`), never by
+     the browser's `confirm()`. */
+  const [takingDown, setTakingDown] = useState(false);
   const takeDown = () => {
     setMenuOpen(false);
-    if (!window.confirm("Take this story down? The comments under it stay.")) return;
-    startTransition(async () => {
-      const result = await removeStory({ storyId: story.id });
-      if (!result.ok) {
-        show(result.error, "error");
-        return;
-      }
-      router.replace("/around");
-    });
+    setTakingDown(true);
+  };
+  const takeDownConfirmed = async (): Promise<boolean> => {
+    const result = await removeStory({ storyId: story.id });
+    if (!result.ok) {
+      show(result.error, "error");
+      return false;
+    }
+    router.replace("/around");
+    return true;
   };
 
   /* The sheet knows nothing about stories or posts. It is handed rows and two
@@ -422,44 +428,31 @@ export function StoryViewer({
           ) : null}
 
           {/* ------------------------------------------ what I can do about it */}
-          <div className="nf-story__actions">
-            <button
-              type="button"
+          {/* THE FEED'S CAPSULES, NOT A SECOND SET OF CONTROLS (D72). The
+              like you press under a post is the like you press on a story:
+              the same soft capsule, the same thin glyph, the same tabular
+              count, the same payoff. A BOOKMARK, NOT THE REPOST ARROWS:
+              saving puts the story on the reader's own shelf and nobody else
+              sees it happen. */}
+          <div className="nf-story__actions nf-story__actions--pills">
+            <ActionPill
+              icon="heart"
+              tone="like"
+              pressed={liked}
+              payoff
+              count={formatNumber(likeCount, locale)}
+              label={liked ? `Liked, ${likeCount}. Undo` : `Likes ${likeCount}, like this story`}
               onClick={() => mark("LIKE")}
-              aria-pressed={liked}
-              className={`nf-story__act${liked ? " nf-story__act--on" : ""}`}
-            >
-              <span className="nf-story__act-circle">
-                <UiIcon name="heart" size={22} filled={liked} />
-              </span>
-              <span className="nf-story__act-count nf-numeric">{likeCount}</span>
-              <span className="sr-only">{liked ? "liked, undo" : "likes, like this story"}</span>
-            </button>
-
-            <button
-              type="button"
+            />
+            <ActionPill
+              icon="bookmark"
+              tone="save"
+              pressed={saved}
+              count={formatNumber(saveCount, locale)}
+              label={saved ? `Saved, ${saveCount}. Undo` : `Saves ${saveCount}, save this story`}
               onClick={() => mark("SAVE")}
-              aria-pressed={saved}
-              className={`nf-story__act${saved ? " nf-story__act--on" : ""}`}
-            >
-              {/* A BOOKMARK, NOT THE REPOST ARROWS. This control saves a story
-                  to the reader's own shelf: nothing is republished and nobody
-                  else sees it happen, which is the exact opposite of what two
-                  circling arrows mean to anybody who has met them on the feed
-                  card directly beneath this screen. */}
-              <span className="nf-story__act-circle">
-                <UiIcon name="bookmark" size={22} filled={saved} />
-              </span>
-              <span className="nf-story__act-count nf-numeric">{saveCount}</span>
-              <span className="sr-only">{saved ? "saved, undo" : "saves, save this story"}</span>
-            </button>
-
-            <button type="button" onClick={share} className="nf-story__act">
-              <span className="nf-story__act-circle">
-                <UiIcon name="share" size={22} />
-              </span>
-              <span className="nf-story__act-count">Share</span>
-            </button>
+            />
+            <ActionPill icon="share" tone="share" round label="Share this story" onClick={share} />
           </div>
 
           {/* --------------------------------------------- who else cared */}
@@ -536,6 +529,14 @@ export function StoryViewer({
           reportWords={reportWords}
         />
       ) : null}
+
+      <DeleteSheet
+        open={takingDown}
+        title={DELETE_WORDS.story.title}
+        body={DELETE_WORDS.story.body}
+        onClose={() => setTakingDown(false)}
+        onConfirm={takeDownConfirmed}
+      />
 
       {reporting && story.author.id ? (
         <ReportSheet
