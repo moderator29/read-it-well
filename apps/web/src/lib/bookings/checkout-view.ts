@@ -5,6 +5,7 @@ import { resolveSession } from "../actions/session";
 import { isPaystackConfigured } from "../payments/paystack";
 import type { Database } from "../supabase/database.types";
 import { guestCharge } from "../money/guest-price";
+import { instantPayBy } from "./instant-pay";
 
 /**
  * Read side of checkout.
@@ -89,6 +90,11 @@ export type CheckoutView = {
   /** When the hold on these nights runs out, as an ISO instant. */
   holdExpiresAt: string;
   holdExpired: boolean;
+  /**
+   * D73: for a stay the system booked instantly at the published price, when
+   * the unpaid hold ends (ISO); null for every other booking.
+   */
+  instantPayBy: string | null;
   /** False until the Paystack keys land, which the surface says out loud. */
   cardAvailable: boolean;
   /**
@@ -203,7 +209,7 @@ export async function getCheckoutView(
         .limit(1),
       session.supabase
         .from("deal_agreements")
-        .select("id, status, decision_reason, owner_id")
+        .select("id, status, decision_reason, owner_id, decided_by, decided_at, terms")
         .eq("booking_id", booking.id)
         .maybeSingle(),
     ]);
@@ -288,6 +294,7 @@ export async function getCheckoutView(
         paid: (settledRead.data?.length ?? 0) > 0,
         holdExpiresAt,
         holdExpired: holdExpiresAtMs <= Date.now(),
+        instantPayBy: instantPayBy(agreementRead.data ?? null),
         cardAvailable: isPaystackConfigured(),
         agreement: agreementRead.data
           ? {

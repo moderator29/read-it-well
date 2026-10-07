@@ -33,7 +33,8 @@ function harness(answers: Array<{ status: number; body?: unknown; rate?: string 
   const calls: Call[] = [];
   let i = 0;
   const fetch: PaylukFetch = async (url, init) => {
-    calls.push({ url, method: init.method, headers: init.headers, body: init.body ? JSON.parse(init.body) : undefined });
+    const body = typeof init.body === "string" ? JSON.parse(init.body) : init.body instanceof FormData ? Object.fromEntries(init.body) : undefined;
+    calls.push({ url, method: init.method, headers: init.headers, body });
     const a = answers[Math.min(i++, answers.length - 1)]!;
     if (a === "network") throw new Error("socket hang up");
     return {
