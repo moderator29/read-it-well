@@ -21,6 +21,54 @@ Branch: `claude/zen-bohr-k3fb81`.
   for (A.2) need one; what can be measured on a throttled headless Chromium is
   measured and labelled as such.
 
+## 0b. Live database, as applied (7 October 2026, under the founder's go-ahead)
+
+One migration at a time through the Supabase connector; after each, a read-only
+structural check (RLS on, no anonymous read, no member write where none is meant,
+switch rows off), then the file committed under the stamped version and recorded in
+`APPLIED.txt`. Its probe moves into `supabase/tests/probes/`, which the CI
+`db-probes` job runs on the next push to main. Probes cannot run through the
+connector here: they write and roll back, and that outlasts its 60-second limit.
+
+| Version | Migration | Check after |
+| --- | --- | --- |
+| 20261007132951 | d73a switch | `stays_instant_pay` row off |
+| 20261007145850 | b3 rate agreement gate | gate resolver present, kill switch off |
+| 20261007145948 | b3x fee record unify | applied straight after b3 |
+| 20261007150611 | b6 member money rail | RLS on, no anon read, no member write |
+| 20261007150649 | d73a trigger | instant step behind the switch |
+| 20261007150712 | d73a notices | |
+| 20261007151000 | d73b provider arrangements | three tables RLS on, no anon read, no member write |
+| 20261007151321 | d75a restaurant deposits | deposits read-only to the two parties; switch off |
+| 20261007151348 | d75b stay trip details | live review policy matched the copy before altering; `my_stay_details` not callable signed out |
+| 20261007151629 | p2 follow suggestions | runs; 0 rows today (no lister has a public handle yet) |
+| 20261007151806 | d76 leaderboards and directory | boards empty (no qualifying activity, nothing invented); directory 1 real agent; anon cannot hide; opt-outs unreadable. Lead added revokes on its five private helpers |
+
+**Not applied yet:**
+- `d73a_stays_instant_pay_sweep` (pending folder): replaces the live 15-minute sweep
+  to release unpaid instant bookings. Twice it timed out with nothing holding a lock;
+  the connector holds statements of this shape for a confirmation it cannot show
+  here. Run it in the Supabase SQL editor before `stays_instant_pay` goes on. Its
+  probe stays in `probes-pending/` until then (it exercises the sweep).
+- `b2_rail_at_open`, then `d68d_the_rail_decides_the_gate`: after the main deploy
+  that writes the rail, as their headers require.
+
+## 0c. The failed background commands, and whether they matter
+
+- **Typecheck and dev servers killed (exit 137), several times:** memory, with up to
+  six agents on a 16 GB machine. No code fault; the same checks passed when the
+  machine was quiet. Does not matter.
+- **One shell killed itself (exit 144):** `pkill -f "next dev"` matched its own command
+  line. Harmless.
+- **vitest "Target crashed" and mass timeouts in the DOM suite:** memory again; all 147
+  DOM files passed on a quiet run. Does not matter.
+- **Connector timeouts:** the first whole-file d73a apply (rolled back, nothing
+  changed; then applied in pieces), two attempts at the d73a sweep (not applied,
+  see 0b), and every probe run through the connector (moved to CI). Only the sweep
+  matters, and it is listed above.
+- **GitHub push 500s (15:12 to 15:16):** server side on GitHub; the same commits went
+  through a few minutes later. Does not matter.
+
 ## 1. Built, with evidence
 
 | Item | Commit | Evidence |
