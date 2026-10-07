@@ -10,6 +10,7 @@ import { ListGroup, ListRow } from "@/components/ui/ListGroup";
 import { IconPlate } from "@/components/ui/IconPlate";
 import { Sheet } from "@/components/ui/Sheet";
 import { State } from "@/components/ui/State";
+import { Button } from "@/components/ui/Button";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { formatMoneyDate } from "@/lib/money/dates";
 import type { MovementView } from "@/lib/money/member-wallet";
@@ -172,7 +173,18 @@ export function BalanceScreen({
       </p>
 
       {movements.length === 0 ? (
-        <State kind="empty" title="Nothing has moved yet" body="When you add, withdraw or send money it shows here, with where it is at every step." />
+        <State
+          kind="empty"
+          title="Nothing has moved yet"
+          body="When you add, withdraw or send money it shows here, with where it is at every step."
+          action={
+            canMove ? (
+              <Button variant="primary" size="lg" onClick={() => setSheet("add")}>
+                {ACTION_LABEL.add}
+              </Button>
+            ) : null
+          }
+        />
       ) : (
         <ListGroup label="Activity">
           {movements.map((m) => (
