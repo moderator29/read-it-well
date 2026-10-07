@@ -150,6 +150,15 @@ export function useWatchedMovement(initial: MovementView, onSettled?: (m: Moveme
 
 type WaitKind = "withdrawal" | "deposit" | "send";
 
+/* The status card's "Expected" cell, in the waiting sentences' own terms
+   (WAITING_COPY): usual times, said as usual, never a countdown. */
+const EXPECTED: Record<WaitKind | "check", string> = {
+  withdrawal: "Usually a few minutes",
+  deposit: "Usually a few minutes",
+  send: "Usually within a minute",
+  check: "We are checking now",
+};
+
 /**
  * THE WAITING ROOM (founder section 43; PREMIUM-STANDARD references 2 and
  * 7). "A Nigerian bank transfer takes minutes; the screen has to make waiting
@@ -201,12 +210,34 @@ export function WaitingRoom({ movement, locale, kind }: { movement: MovementView
         <MovementStatusWord movement={movement} />
       </div>
       {open ? (
-        <p className="nf-wait__calm">
-          <UiIcon name="shield-check" size={18} />
-          <span>{copy.body}</span>
-        </p>
+        /* The status card (status-tracking-timeline.jpg): how long, and
+           what, if anything, the member must do; each cell a restatement of
+           the waiting sentence under it, never a promise it does not make. */
+        <section className="nf-wait__status" aria-label="Status">
+          <dl className="nf-wait__cells">
+            <div>
+              <dt>Expected</dt>
+              <dd>{EXPECTED[movement.status === "unknown" || movement.status === "under_review" ? "check" : kind]}</dd>
+            </div>
+            <div>
+              <dt>Next action</dt>
+              <dd>{movement.status === "unknown" ? "Do not try again" : "None. You can leave this screen"}</dd>
+            </div>
+          </dl>
+          <p className="nf-wait__calm">
+            <UiIcon name="shield-check" size={18} />
+            <span>{copy.body}</span>
+          </p>
+        </section>
       ) : null}
-      <StepPath compact label="Where it is" steps={steps.map((step, i) => ({ key: step, title: step, state: stateOf(i) }))} />
+      <StepPath compact label="Where it is" steps={steps.map((step, i) => ({
+          key: step,
+          title: step,
+          /* The one step whose time the record holds: when it was asked for. */
+          sub: i === 0 && ticks[0] ? (formatMoneyDate(movement.createdAt, locale, { withTime: true }) ?? undefined) : undefined,
+          state: stateOf(i),
+        }))}
+      />
       <p className="nf-wait__meta">
         {heard ? <span>Last update {heard}</span> : null}
         <span>

@@ -66,8 +66,10 @@ export function MoneyCurve({
     const sorted = [...events].map((e) => ({ t: Date.parse(e.at), minor: e.minor })).filter((e) => Number.isFinite(e.t)).sort((a, b) => a.t - b.t);
     const from = range.days === null ? (sorted[0]?.t ?? now) : now - range.days * DAY;
     const inRange = sorted.filter((e) => e.t >= from && e.t <= now);
-    let run = 0;
-    const steps = [{ t: from, v: 0 }, ...inRange.map((e) => ({ t: e.t, v: (run += e.minor) })), { t: now, v: run }];
+    const steps: { t: number; v: number }[] = [{ t: from, v: 0 }];
+    for (const e of inRange) steps.push({ t: e.t, v: steps[steps.length - 1]!.v + e.minor });
+    const run = steps[steps.length - 1]!.v;
+    steps.push({ t: now, v: run });
     const max = Math.max(1, ...steps.map((s) => s.v));
     const min = Math.min(0, ...steps.map((s) => s.v));
     const span = Math.max(1, now - from);

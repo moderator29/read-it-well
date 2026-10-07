@@ -66,7 +66,7 @@ export default async function RewardsPage() {
         locale={locale}
         hrefs={REWARDS_HREFS}
         dismissLabel={t.experienceUi.notNow}
-        now={Date.now()}
+        now={new Date().getTime()}
       />
     </div>
   );

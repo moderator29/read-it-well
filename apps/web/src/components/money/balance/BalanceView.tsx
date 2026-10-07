@@ -24,7 +24,7 @@ import "@/app/css/money-layer.css";
  * exist now.
  */
 const OPENS: { key: keyof typeof ACTION_LABEL; icon: UiIconName; sub: string }[] = [
-  { key: "add", icon: "plus", sub: "From your own bank or card, on our escrow partner's secure page." },
+  { key: "add", icon: "plus", sub: "From your own bank or card, on our escrow partner's own payment page." },
   { key: "withdraw", icon: "bank", sub: "To a bank account in your name, with every fee shown before you confirm." },
   { key: "send", icon: "arrow-up", sub: "To another Vallo member, by their phone number." },
 ];

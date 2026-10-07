@@ -96,7 +96,7 @@ export function AddMoneyFlow({ open, onOpenChange, locale, onMoved }: { open: bo
               label="Amount to add"
               question="How much to add?"
               chips={PRESETS}
-              hint="You pay from your own bank or card on our escrow partner's secure page. The money is added once your bank confirms it. The smallest amount is ₦100."
+              hint="You pay from your own bank or card on our escrow partner's own payment page. The money is added once your bank confirms it. The smallest amount is ₦100."
               testId="add-pad"
             />
             <Button variant="primary" size="lg" loading={busy} disabled={!amount} onClick={begin}>

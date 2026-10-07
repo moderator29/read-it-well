@@ -1,0 +1,517 @@
+/*
+  premium-moments: the platform's one success moment and one explainer
+  (ONE-PRODUCT-DECISIONS "Recommendations to unify the platform"; D72, D74).
+
+  - The moment: a dot, a title, one line. Done is the scalloped success
+    badge with sparkles over soft rays (the Plasma success screen and
+    streak-earned-badge.jpg); waiting is a ring that breathes six times and
+    rests; a problem is a red mark.
+  - The explainer: the Plasma device frame (GOVERNING-plasma-*.jpg), a phone
+    fading up on the near-black field, a smoked-glass fragment breaking out
+    of it, and the reflecting capsule.
+
+  Imported by `components/ui/SuccessMoment.tsx` and
+  `components/ui/PlasmaExplainer.tsx`, so it costs nothing on a route that
+  draws neither. Tokens only, inside `@layer components`. Every motion has a
+  settled frame under reduced motion, Calm, Off and save-data.
+*/
+@layer theme, base, components, utilities;
+
+@layer components {
+  @keyframes nf-moment-breathe {
+    from {
+      transform: scale(0.96);
+      opacity: 0.2;
+    }
+    to {
+      transform: scale(1.04);
+      opacity: 0.45;
+    }
+  }
+
+  /* ---------------------------------------------- the moment and its dot
+     Reference 7: a small green check dot, a title, one line. The done dot
+     pops once (A.1: one sharp impact, one scale pop); the waiting ring
+     breathes six times and rests; a still frame under reduced motion,
+     Calm, Off and save-data. */
+  .nf-mdot {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    flex-shrink: 0;
+    border-radius: var(--nf-radius-circle);
+    color: var(--nf-content-on-brand);
+  }
+  .nf-mdot--sm {
+    width: 1.375rem;
+    height: 1.375rem;
+  }
+  .nf-mdot--md {
+    width: 2rem;
+    height: 2rem;
+  }
+  .nf-mdot--lg {
+    width: 3rem;
+    height: 3rem;
+  }
+  .nf-mdot[data-tone="done"] {
+    background: var(--nf-state-success);
+    box-shadow: 0 0 0 0.375rem color-mix(in oklab, var(--nf-state-success) 16%, transparent);
+  }
+  .nf-mdot--sm[data-tone="done"] {
+    box-shadow: none;
+  }
+  .nf-mdot[data-tone="problem"] {
+    background: var(--nf-state-error);
+    box-shadow: 0 0 0 0.375rem color-mix(in oklab, var(--nf-state-error) 14%, transparent);
+  }
+  .nf-mdot--sm[data-tone="problem"] {
+    box-shadow: none;
+  }
+  .nf-mdot[data-tone="waiting"] {
+    border: var(--nf-border-width-strong) solid var(--nf-brand-primary);
+    background: color-mix(in oklab, var(--nf-brand-primary) 12%, transparent);
+  }
+  .nf-mdot[data-tone="neutral"] {
+    border: var(--nf-border-width-strong) solid color-mix(in oklab, var(--nf-content-muted) 60%, transparent);
+  }
+  .nf-mdot__core {
+    width: 34%;
+    height: 34%;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-brand-primary);
+  }
+  .nf-mdot[data-live="true"]::after {
+    content: "";
+    position: absolute;
+    inset: -0.3125rem;
+    border-radius: var(--nf-radius-circle);
+    border: var(--nf-border-width) solid var(--nf-brand-primary);
+    opacity: 0.3;
+    animation: nf-moment-breathe var(--nf-duration-cinematic) var(--nf-ease-standard) 6 alternate both;
+  }
+  .nf-moment .nf-mdot[data-tone="done"] {
+    animation: nf-mdot-pop 460ms var(--nf-ease-spring) both;
+  }
+  @keyframes nf-mdot-pop {
+    0% {
+      transform: scale(0.6);
+      opacity: 0;
+    }
+    60% {
+      transform: scale(1.08);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-mdot[data-live="true"]::after,
+    .nf-moment .nf-mdot[data-tone="done"] {
+      animation: none;
+    }
+  }
+  :root[data-motion="calm"] .nf-mdot[data-live="true"]::after,
+  :root[data-motion="off"] .nf-mdot[data-live="true"]::after,
+  :root[data-save-data="on"] .nf-mdot[data-live="true"]::after,
+  :root[data-motion="off"] .nf-moment .nf-mdot[data-tone="done"],
+  :root[data-save-data="on"] .nf-moment .nf-mdot[data-tone="done"] {
+    animation: none;
+  }
+
+  .nf-moment {
+    display: grid;
+    justify-items: center;
+    gap: var(--nf-space-sm);
+    text-align: center;
+    padding-block: var(--nf-space-lg) var(--nf-space-md);
+  }
+  .nf-moment[data-align="start"] {
+    justify-items: start;
+    text-align: start;
+    padding-block: 0;
+  }
+  .nf-moment .nf-mdot {
+    margin-block-end: var(--nf-space-xs);
+  }
+  .nf-moment__title {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h2);
+    font-weight: 650;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: var(--nf-content-primary);
+    text-wrap: balance;
+  }
+  .nf-moment__line {
+    max-width: 34ch;
+    font-size: var(--nf-text-body);
+    line-height: 1.5;
+    color: var(--nf-content-secondary);
+    text-wrap: pretty;
+  }
+
+  /* ------------------------------------------------- the explainer
+     D74's Plasma explainer: a phone cropped at the top fades up out of the
+     near-black field, then a smoked-glass card breaks out of it towards the
+     reader. The motion is framer-motion's (MoneyExplainer); this is the
+     settled frame every motion level ends on. */
+  .nf-explain {
+    display: grid;
+    gap: var(--nf-space-lg);
+    padding-block: var(--nf-space-sm) var(--nf-space-xl);
+  }
+  .nf-explain__stage {
+    position: relative;
+    height: 17rem;
+    overflow: hidden;
+    border-radius: var(--nf-radius-card);
+    background: radial-gradient(120% 90% at 50% 0%, color-mix(in oklab, var(--nf-platinum-low) 16%, transparent), transparent 70%);
+    -webkit-mask-image: linear-gradient(180deg, var(--nf-content-primary) 70%, transparent);
+    mask-image: linear-gradient(180deg, var(--nf-content-primary) 70%, transparent);
+  }
+  .nf-explain__phone {
+    position: absolute;
+    inset: var(--nf-space-lg) 15% -3rem;
+    border-radius: var(--nf-radius-island) var(--nf-radius-island) 0 0;
+    border: 3px solid color-mix(in oklab, var(--nf-platinum-low) 70%, transparent);
+    background: var(--nf-surface-inset);
+    overflow: hidden;
+  }
+  .nf-explain__phone[data-tone="platinum"] {
+    --nf-content-primary: var(--nf-platinum-ink);
+    --nf-content-secondary: var(--nf-platinum-ink-soft);
+    --nf-content-muted: var(--nf-platinum-ink-soft);
+    background: var(--nf-platinum-fill);
+  }
+  .nf-explain__island {
+    position: absolute;
+    top: 0.5rem;
+    left: 50%;
+    width: 4.5rem;
+    height: 1.125rem;
+    translate: -50% 0;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-platinum-ink);
+  }
+  .nf-explain__screen {
+    display: grid;
+    justify-items: center;
+    gap: var(--nf-space-2xs);
+    padding: 2.5rem var(--nf-space-sm) 0;
+    text-align: center;
+  }
+  .nf-explain__fragment {
+    position: absolute;
+    top: 7rem;
+    left: 50%;
+    width: min(90%, 20rem);
+    margin-left: calc(min(90%, 20rem) / -2);
+    padding: var(--nf-space-md);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-smoked-glass-fill);
+    border: var(--nf-border-width) solid var(--nf-smoked-glass-edge);
+    box-shadow: var(--nf-glass-shadow-lifted);
+    -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    /* Smoked glass is dark in both themes, so its ink is the metal's light. */
+    --nf-content-primary: var(--nf-platinum-hi);
+    --nf-content-secondary: var(--nf-platinum-mid);
+    --nf-content-muted: var(--nf-platinum-mid);
+    color: var(--nf-content-primary);
+    transform: scale(1.04);
+  }
+  .nf-explain__words {
+    display: grid;
+    gap: var(--nf-space-xs);
+    text-align: center;
+  }
+  .nf-explain__title {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h2);
+    font-weight: 650;
+    letter-spacing: -0.02em;
+    color: var(--nf-content-primary);
+  }
+  .nf-explain__body {
+    max-width: 34ch;
+    margin-inline: auto;
+    font-size: var(--nf-text-body);
+    line-height: 1.5;
+    color: var(--nf-content-secondary);
+  }
+  .nf-explain__dots {
+    display: flex;
+    justify-content: center;
+  }
+  .nf-explain__dot {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+  .nf-explain__dot::before {
+    content: "";
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: var(--nf-radius-pill);
+    background: color-mix(in oklab, var(--nf-content-primary) 25%, transparent);
+    transition: width var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  .nf-explain__dot[aria-current="step"]::before {
+    width: 1.25rem;
+    background: var(--nf-brand-primary);
+  }
+  /* The fragment's own furniture: a source pill, a figure, a muted line. */
+  .nf-frag {
+    display: grid;
+    justify-items: center;
+    gap: var(--nf-space-sm);
+    text-align: center;
+  }
+  .nf-frag__pill {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    padding: var(--nf-space-2xs) var(--nf-space-sm);
+    border-radius: var(--nf-radius-control);
+    background: color-mix(in oklab, var(--nf-content-primary) 8%, transparent);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+  }
+  .nf-frag__line {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-frag__chips {
+    display: flex;
+    gap: var(--nf-space-xs);
+  }
+  .nf-frag__chip {
+    padding: var(--nf-space-2xs) var(--nf-space-sm);
+    border-radius: var(--nf-radius-control);
+    background: color-mix(in oklab, var(--nf-content-primary) 8%, transparent);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+  }
+  .nf-frag__chip[data-on="true"] {
+    background: var(--nf-selected-fill);
+    color: var(--nf-content-on-brand);
+  }
+
+  /* ------------------------------------------------------ the payoff badge
+     D74's success screen: a scalloped seal with a check, sparkles opening out
+     once around it. One sharp impact (the pop), then stillness. */
+  .nf-mbadge {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    width: 4.5rem;
+    height: 4.5rem;
+    margin-block-end: var(--nf-space-xs);
+    color: var(--nf-content-on-brand);
+    animation: nf-mdot-pop 520ms var(--nf-ease-spring) both;
+  }
+  .nf-mbadge__seal {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    fill: var(--nf-state-success);
+    filter: drop-shadow(0 10px 22px color-mix(in oklab, var(--nf-state-success) 38%, transparent));
+  }
+  .nf-mbadge__check {
+    position: relative;
+  }
+  .nf-mbadge__spark {
+    position: absolute;
+    width: 0.625rem;
+    height: 0.625rem;
+    background: var(--nf-state-success);
+    clip-path: polygon(50% 0, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0 50%, 39% 39%);
+    animation: nf-mbadge-spark 640ms var(--nf-ease-spring) both;
+  }
+  .nf-mbadge__spark[data-at="1"] {
+    top: -8%;
+    left: -14%;
+    animation-delay: 180ms;
+  }
+  .nf-mbadge__spark[data-at="2"] {
+    top: 4%;
+    right: -22%;
+    width: 0.875rem;
+    height: 0.875rem;
+    animation-delay: 260ms;
+  }
+  .nf-mbadge__spark[data-at="3"] {
+    bottom: 6%;
+    left: -24%;
+    width: 0.4375rem;
+    height: 0.4375rem;
+    animation-delay: 320ms;
+  }
+  .nf-mbadge__spark[data-at="4"] {
+    bottom: -10%;
+    right: -6%;
+    width: 0.5rem;
+    height: 0.5rem;
+    animation-delay: 380ms;
+  }
+  @keyframes nf-mbadge-spark {
+    from {
+      opacity: 0;
+      transform: scale(0) rotate(-45deg);
+    }
+    to {
+      opacity: 0.9;
+      transform: scale(1) rotate(0);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-mbadge,
+    .nf-mbadge__spark {
+      animation: none;
+    }
+  }
+  :root[data-motion="calm"] .nf-mbadge__spark,
+  :root[data-motion="off"] .nf-mbadge,
+  :root[data-motion="off"] .nf-mbadge__spark,
+  :root[data-save-data="on"] .nf-mbadge,
+  :root[data-save-data="on"] .nf-mbadge__spark {
+    animation: none;
+  }
+
+  /* ----------------------------------------------- the reflecting capsule
+     D74 (GOVERNING-plasma-rewards-platinum.jpg): the one primary action on
+     an explainer or a payoff, a full-width capsule, light on the dark field
+     with a soft glow and its reflection on the floor beneath. One per
+     screen. Listed in check-css-tokens' PILL_ALLOWED with that image. */
+  .nf-capsule {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--nf-space-xs);
+    width: 100%;
+    min-height: 3.5rem;
+    padding-inline: var(--nf-space-lg);
+    border-radius: var(--nf-radius-pill);
+    background: linear-gradient(180deg, var(--nf-platinum-hi), color-mix(in oklab, var(--nf-platinum-hi) 82%, var(--nf-platinum-mid)));
+    color: var(--nf-platinum-ink);
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    box-shadow: var(--nf-capsule-reflection), 0 0 0 1px var(--nf-platinum-edge) inset;
+    -webkit-box-reflect: below 6px linear-gradient(transparent 55%, color-mix(in oklab, var(--nf-platinum-hi) 22%, transparent));
+    transition: transform var(--nf-duration-fast) var(--nf-ease-press);
+  }
+  .nf-capsule:active {
+    transform: scale(0.98);
+  }
+  .nf-capsule:focus-visible {
+    outline: 2px solid var(--nf-brand-primary);
+    outline-offset: 3px;
+  }
+
+  /* The smoked card's furniture: a row with a chevron, then two figures
+     split by a hairline (GOVERNING-plasma-rewards-platinum.jpg). */
+  .nf-frag--card {
+    justify-items: stretch;
+    gap: 0;
+    text-align: start;
+  }
+  .nf-frag__label {
+    font-size: var(--nf-text-caption);
+    font-weight: 500;
+    color: var(--nf-content-secondary);
+  }
+  .nf-frag__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: var(--nf-space-sm);
+    border-bottom: var(--nf-border-width) solid color-mix(in oklab, var(--nf-content-primary) 12%, transparent);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+  }
+  .nf-frag__split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding-top: var(--nf-space-sm);
+  }
+  .nf-frag__split > span {
+    display: grid;
+    justify-items: center;
+    gap: var(--nf-space-2xs);
+    min-width: 0;
+  }
+  .nf-frag__split > span + span {
+    border-inline-start: var(--nf-border-width) solid color-mix(in oklab, var(--nf-content-primary) 12%, transparent);
+  }
+  .nf-frag__split .nf-mfig {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* The earned moment's rays (streak-earned-badge.jpg): soft light behind
+     the payoff badge, still, so the badge is what moves. */
+  .nf-mbadge::before {
+    content: "";
+    position: absolute;
+    inset: -70%;
+    z-index: -1;
+    border-radius: var(--nf-radius-circle);
+    background: repeating-conic-gradient(
+      color-mix(in oklab, var(--nf-state-success) 14%, transparent) 0deg 7deg,
+      transparent 7deg 22deg
+    );
+    -webkit-mask-image: radial-gradient(closest-side, var(--nf-content-primary), transparent);
+    mask-image: radial-gradient(closest-side, var(--nf-content-primary), transparent);
+    pointer-events: none;
+  }
+  .nf-moment {
+    isolation: isolate;
+  }
+
+  /* The medal variant, for a milestone the member earned: the same seal in
+     gold, the higher metal (D74), with the gold's own dark ink. */
+  .nf-mbadge[data-medal="true"] {
+    color: var(--nf-gold-ink);
+  }
+  .nf-mbadge[data-medal="true"] .nf-mbadge__seal {
+    fill: var(--nf-gold-mid);
+    filter: drop-shadow(0 10px 22px color-mix(in oklab, var(--nf-gold-mid) 45%, transparent));
+  }
+  .nf-mbadge[data-medal="true"] .nf-mbadge__spark {
+    background: var(--nf-gold-hi);
+  }
+  .nf-mbadge[data-medal="true"]::before {
+    background: repeating-conic-gradient(
+      color-mix(in oklab, var(--nf-gold-mid) 18%, transparent) 0deg 7deg,
+      transparent 7deg 22deg
+    );
+  }
+  /* The payoff's actions: the reflecting capsule, then one quiet way on. */
+  .nf-moment__actions {
+    display: grid;
+    gap: var(--nf-space-sm);
+    justify-self: stretch;
+    width: 100%;
+    max-width: 26rem;
+    margin: var(--nf-space-lg) auto 0;
+  }
+  .nf-moment__quiet {
+    display: grid;
+    place-items: center;
+    min-height: 2.75rem;
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+  }
+  a.nf-capsule {
+    text-decoration: none;
+  }
+}

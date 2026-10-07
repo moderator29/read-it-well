@@ -52,7 +52,7 @@ export default async function PayoutsPage({
           <HistoryUnavailable retryHref="/payouts" />
         </div>
       ) : (
-        <PayoutsView summary={read.summary} entries={read.entries} nextBefore={read.nextBefore} before={before} locale={locale} now={Date.now()} />
+        <PayoutsView summary={read.summary} entries={read.entries} nextBefore={read.nextBefore} before={before} locale={locale} now={new Date().getTime()} />
       )}
     </main>
   );

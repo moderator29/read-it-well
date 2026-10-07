@@ -172,9 +172,12 @@ describe("D64: a paused month", () => {
   it("still draws everything already earned, with the sentence that it is paid", async () => {
     const dashboard = await PAGES.rewards();
     expect(dashboard).toContain('data-testid="rewards-available"');
-    expect(dashboard).toContain("₦4,200");
-    expect(dashboard).toContain("₦700");
-    expect(dashboard).toContain("₦6,300");
+    /* The money kit draws the naira sign in its own span (the unit in grey,
+       D74), so the figures are read as text, the way a reader sees them. */
+    const shown = dashboard.replace(/<[^>]+>/g, "");
+    expect(shown).toContain("₦4,200");
+    expect(shown).toContain("₦700");
+    expect(shown).toContain("₦6,300");
     expect(dashboard).toContain('data-testid="rewards-withdraw-link"');
     expect(dashboard).toContain('data-testid="rewards-policy-minimum"');
     /* The sentence under a pause says it is paid, whichever constant is in force. */

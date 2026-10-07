@@ -959,7 +959,7 @@ const PILL_ALLOWED = new Set([
    * (PREMIUM-STANDARD.md, "The governing level"). Every other control keeps
    * the rectangle.
    */
-  "src/app/css/money-layer.css  .nf-capsule",
+  "src/app/css/premium-moments.css  .nf-capsule",
   /* PERMANENT, the same D74 ruling: the invite's share moment is one white
      capsule with a round green button at its end
      (`docs/design/references/2026-10-07/invite-ready-pill.jpg`). */

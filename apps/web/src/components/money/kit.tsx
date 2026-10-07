@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import type { Locale } from "@vallo/i18n/core";
 import { formatKoboExact } from "@/components/app/money/money";
 import { spokenMoney } from "@/lib/money/spoken";
-import { UiIcon } from "@/design-system/icons/UiIcon";
 import { LogoMark } from "@/design-system/brand/Logo";
 import type { StatusTone } from "@/components/ui/StatusPill";
 import "@/app/css/money-layer.css";
@@ -152,89 +151,11 @@ export function MoneyCard({
 
 /* ----------------------------------------------------- the moment's head */
 
-export type MomentTone = "done" | "waiting" | "problem" | "neutral";
-
-/* A scalloped seal, twelve soft lobes on a circle (the success screen the
-   founder sent with the Plasma set). Computed once, in a 48 unit box. */
-const SCALLOP = (() => {
-  const pts: string[] = [];
-  for (let i = 0; i <= 120; i++) {
-    const a = (i / 120) * Math.PI * 2;
-    const r = 21 + 2.2 * Math.cos(12 * a);
-    pts.push(`${(24 + r * Math.cos(a)).toFixed(2)},${(24 + r * Math.sin(a)).toFixed(2)}`);
-  }
-  return `M${pts.join(" L")} Z`;
-})();
-
-/**
- * The payoff badge (D74): a scalloped seal in the success colour with a
- * check, and four sparkles that open out once around it. Under reduced
- * motion, Calm, Off and save-data it is simply there.
- */
-export function SuccessBadge() {
-  return (
-    <span className="nf-mbadge" aria-hidden="true">
-      <svg viewBox="0 0 48 48" className="nf-mbadge__seal">
-        <path d={SCALLOP} />
-      </svg>
-      <UiIcon name="check" size={26} className="nf-mbadge__check" />
-      <span className="nf-mbadge__spark" data-at="1" />
-      <span className="nf-mbadge__spark" data-at="2" />
-      <span className="nf-mbadge__spark" data-at="3" />
-      <span className="nf-mbadge__spark" data-at="4" />
-    </span>
-  );
-}
-
-/** The dot alone: a green check, a breathing ring, a red mark, a quiet ring. */
-export function MomentDot({ tone, live = false, size = "md" }: { tone: MomentTone; live?: boolean; size?: "sm" | "md" | "lg" }) {
-  if (tone === "done" && size === "lg") return <SuccessBadge />;
-  return (
-    <span className={`nf-mdot nf-mdot--${size}`} data-tone={tone} data-live={live ? "true" : undefined} aria-hidden="true">
-      {tone === "done" ? <UiIcon name="check" size={size === "lg" ? 26 : size === "md" ? 18 : 12} /> : null}
-      {tone === "problem" ? <UiIcon name="close" size={size === "lg" ? 24 : size === "md" ? 16 : 11} /> : null}
-      {tone === "waiting" ? <span className="nf-mdot__core" /> : null}
-    </span>
-  );
-}
-
-/**
- * The head of a payoff or a status screen (reference 7): the dot, the title,
- * one line. `align="center"` for a moment, `start` inside a card.
- */
-export function MoneyMoment({
-  tone,
-  title,
-  line,
-  live = false,
-  align = "center",
-  as: Heading = "h2",
-  id,
-  children,
-  testId,
-}: {
-  tone: MomentTone;
-  title: ReactNode;
-  line?: ReactNode;
-  /** True only while the thing it describes is genuinely still moving. */
-  live?: boolean;
-  align?: "center" | "start";
-  as?: "h1" | "h2" | "h3";
-  id?: string;
-  children?: ReactNode;
-  testId?: string;
-}) {
-  return (
-    <div className="nf-moment" data-align={align} data-tone={tone} data-testid={testId}>
-      <MomentDot tone={tone} live={live} size="lg" />
-      <Heading id={id} className="nf-moment__title">
-        {title}
-      </Heading>
-      {line ? <p className="nf-moment__line">{line}</p> : null}
-      {children}
-    </div>
-  );
-}
+/* The moment, its dot and the payoff badge are the platform's one success
+   moment (components/ui/SuccessMoment.tsx); the money kit re-exports them
+   under the names the money surfaces already use. */
+export { MomentDot, SuccessBadge, Moment as MoneyMoment, type MomentTone } from "@/components/ui/SuccessMoment";
+import type { MomentTone } from "@/components/ui/SuccessMoment";
 
 /* ---------------------------------------------------- the status word */
 
