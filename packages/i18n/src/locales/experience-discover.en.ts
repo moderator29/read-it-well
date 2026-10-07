@@ -153,6 +153,17 @@ export const experienceDiscoverEn = {
     buyIn: "Homes to buy in {q}",
     enter: "Enter",
   },
+  /* Featured listings on home as a card stack (the travel-app set). `{at}`
+     and `{count}` are numbers; `{title}` a listing's name; `{area}` a place. */
+  stack: {
+    label: "Featured listings, one card at a time",
+    position: "{at} of {count}",
+    previous: "Previous listing",
+    next: "Next listing",
+    open: "Open {title}",
+    reviews: "reviews",
+    mapOf: "Map of {area}. The pin shows the area, not the address.",
+  },
   /* Saved as shelves (before-after-collection-shelves.jpg). */
   shelf: {
     verified: "Verified",

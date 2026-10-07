@@ -71,6 +71,15 @@ export function localityFor(
   return known ? { at: known, byArea: true } : { at: cityAt, byArea: false };
 }
 
+/**
+ * The centroid of a locality the catalogue names, or null when it is not one
+ * we hold. For still maps (`AreaMapTile`): the pin stands at the area, as the
+ * search map's does, and an unknown area draws no map rather than a guess.
+ */
+export function areaPoint(city: string, area: string): LatLng | null {
+  return AREA_COORDS[`${placeKey(city)}|${placeKey(area)}`] ?? null;
+}
+
 /** About 600 metres at Nigerian latitudes: enough to separate, never enough to mislead. */
 const SPREAD_DEGREES = 0.0055;
 

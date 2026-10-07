@@ -64,6 +64,9 @@ import { ExactPlace } from "@/components/app/listing/ExactPlace";
 import { ListingCodeRow } from "@/components/app/listing/ListingCode";
 import { ListingMoveIn } from "@/components/app/listing/ListingMoveIn";
 import { SimilarListings } from "@/components/app/listing/SimilarListings";
+import { ListingMapPanel } from "@/components/app/listing/ListingMapPanel";
+import { areaPoint } from "@/components/app/search/mapGeo";
+import { airportFor, straightKm } from "@/lib/maps/landmarks";
 import { readPayeeRecords } from "@/lib/after-gate/payee";
 import { LastLetLine } from "@/components/app/listing/LastLetLine";
 import { ReplyTimeLine } from "@/components/app/listing/ReplyTimeLine";
@@ -772,12 +775,17 @@ export default async function ListingDetailPage({
   /* The sections, in page order. The row carries the five a reader decides
      on (and reviews, which it always carried); the InnerNav lists them all. */
   const hasCost = isRental || isSale;
+  /* The Map tab's two facts we hold: the area's centroid (the search map's
+     own pin, never the address) and the city's airport. */
+  const mapPoint = areaPoint(listing.city, listing.area);
+  const airport = airportFor(listing.city);
+
   const sectionTabs = [
     { id: "overview", label: sx.sections.overview },
     ...(hasCost ? [{ id: "cost", label: sx.sections.costs }] : []),
     { id: "amenities", label: sx.sections.amenities },
     { id: "trust", label: sx.sections.trust },
-    { id: "location", label: sx.sections.location },
+    { id: "location", label: sx.map.tab },
     { id: "reviews", label: sx.sections.reviews },
   ];
   const sectionIndex: { id: string; label: string; icon: UiIconName }[] = [
@@ -788,7 +796,7 @@ export default async function ListingDetailPage({
     ...(facts.length > 0 ? [{ id: "details", label: sx.sections.details, icon: "clipboard-list" as UiIconName }] : []),
     ...((listing.videos?.length ?? 0) > 0 ? [{ id: "walkthrough", label: sx.sections.walkthrough, icon: "circle-play" as UiIconName }] : []),
     ...(listing.photos.length > 1 ? [{ id: "photos", label: sx.sections.photos, icon: "picture" as UiIconName }] : []),
-    { id: "location", label: sx.sections.location, icon: "location" },
+    { id: "location", label: sx.map.tab, icon: "location" },
     { id: "agent", label: sx.sections.agent, icon: "user" },
     { id: "reviews", label: sx.sections.reviews, icon: "star" },
   ];
@@ -1356,12 +1364,19 @@ export default async function ListingDetailPage({
                 )}
 
                 {/* ------------------------------------------- location */}
-                <Section id="location" title={t.catalogue.detail.location} divided className="scroll-mt-16">
-                  <div className="nf-detail-panel">
-                    <p className={`flex items-start gap-inline ${TYPE.body}`}>
-                      <UiIcon name="location" size={ICON.inline} className="mt-3xs shrink-0 text-[var(--nf-brand-secondary)]" />
-                      <span className="min-w-0">{where}</span>
-                    </p>
+                <Section id="location" title={sx.map.title} divided className="scroll-mt-16">
+                  {/* THE MAP TAB (the founder's travel-app set, 7 October): a
+                      still map of the AREA, getting there only where both ends
+                      are ours, Preview and Photo tour. ListingMapPanel. */}
+                  <ListingMapPanel
+                    where={where}
+                    area={listing.area || listing.city}
+                    point={mapPoint}
+                    airport={mapPoint && airport ? { name: airport.name, km: straightKm(mapPoint, airport.at) } : null}
+                    hasWalkthrough={(listing.videos?.length ?? 0) > 0}
+                    photoCount={listing.photos.length}
+                    copy={sx.map}
+                  />
                     {/*
                       TRAVEL TIME WAS REMOVED AND IT IS NOT COMING BACK AS A
                       STUB. It posted to `/api/travel-time`, a route that has
@@ -1375,7 +1390,6 @@ export default async function ListingDetailPage({
                       provider key, not a rejection fix. See the store research
                       file, A.3 fix 1.
                     */}
-                  </div>
                 </Section>
 
                 {/* ------------------------------------------ agent card */}

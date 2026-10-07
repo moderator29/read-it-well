@@ -1500,3 +1500,82 @@
     display: none;
   }
 }
+
+/* ====================================== A SHARED LISTING, AS THE STACK CARD
+   `ChatCard`'s listing face, to the founder's travel-app set (7 October):
+   the same object as home's featured stack, so a listing looks like itself
+   wherever it is passed. A tall photograph, the facts on a smoked inset at
+   its foot beside a still map of the area, Forward and Verified on the
+   photograph, the two actions under it. Scoped to `.nf-chat-card--stack`;
+   the booking face is untouched. */
+@layer components {
+  .nf-chat-card--stack .nf-chat-card__stack {
+    position: relative;
+  }
+  .nf-chat-card--stack .nf-chat-card__photo {
+    aspect-ratio: 4 / 5;
+    max-height: 24rem;
+    width: 100%;
+  }
+  .nf-chat-card--stack .nf-chat-card__seal {
+    position: absolute;
+    top: var(--nf-space-xs);
+    left: var(--nf-space-xs);
+  }
+  .nf-chat-card--stack .nf-chat-card__forward {
+    position: absolute;
+    top: var(--nf-space-2xs);
+    right: var(--nf-space-2xs);
+    width: 2.75rem;
+    height: 2.75rem;
+    margin: 0;
+    border-radius: var(--nf-radius-circle);
+    color: var(--nf-content-on-media);
+  }
+  /* The 44px target keeps its size; the disc drawn inside it is 36. */
+  .nf-chat-card--stack .nf-chat-card__forward::before {
+    content: "";
+    position: absolute;
+    inset: 0.25rem;
+    z-index: -1;
+    border: var(--nf-border-width) solid var(--nf-smoked-glass-edge);
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-smoked-glass-fill);
+  }
+  .nf-chat-card--stack .nf-chat-card__forward {
+    isolation: isolate;
+  }
+  .nf-chat-card--stack .nf-chat-card__inset {
+    position: absolute;
+    inset-inline: var(--nf-space-2xs);
+    bottom: var(--nf-space-2xs);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: var(--nf-space-xs);
+    padding: var(--nf-space-xs) var(--nf-space-sm);
+    border: var(--nf-border-width) solid var(--nf-smoked-glass-edge);
+    border-radius: calc(var(--nf-container-radius) - var(--nf-space-2xs));
+    background: var(--nf-smoked-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    backdrop-filter: blur(var(--nf-smoked-glass-blur));
+  }
+  .nf-chat-card--stack .nf-chat-card__words {
+    min-width: 0;
+  }
+  .nf-chat-card--stack :is(.nf-chat-card__title, .nf-chat-card__price) {
+    color: var(--nf-content-on-media);
+  }
+  .nf-chat-card--stack :is(.nf-chat-card__place, .nf-chat-card__features, .nf-chat-card__unit) {
+    color: var(--nf-content-on-media-muted);
+  }
+  .nf-chat-card--stack .nf-chat-card__unit {
+    font-size: var(--nf-text-caption);
+  }
+  .nf-chat-card--stack .nf-chat-card__map {
+    width: 3.75rem;
+    height: 3.75rem;
+    border: var(--nf-border-width) solid var(--nf-smoked-glass-edge);
+    border-radius: var(--nf-radius-control);
+  }
+}

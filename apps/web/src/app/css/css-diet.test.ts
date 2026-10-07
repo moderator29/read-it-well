@@ -62,7 +62,7 @@ describe("the global stylesheet (C12)", () => {
       "../components/app/desk/RangeSelect.tsx",
     ],
     "stays.css": ["host/layout.tsx", "../components/app/stays/StayCategoryTiles.tsx"],
-    "map.css": ["../components/app/search/MapCanvas.tsx"],
+    "map.css": ["../components/app/search/MapCanvas.tsx", "../components/app/maps/AreaMapTile.tsx"],
     "feed-m.css": ["(app)/layout.tsx"],
     "side-flip.css": [
       "../components/app/AppRail.tsx",

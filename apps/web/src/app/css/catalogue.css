@@ -3240,3 +3240,19 @@
     }
   }
 }
+
+/* THE CARD'S CONTROLS DRAW SMALLER (the founder, 7 October, on the search
+   results: "before clicking it's too big"). The heart and the tune control
+   beside it draw 28px with a 16px glyph instead of 36 and 20; the 44px
+   target is the invisible square both already carry, so nothing gets harder
+   to hit, only quieter to look at until it is wanted. */
+@layer components {
+  .nf-pcard .nf-pcard__heart {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+  .nf-pcard .nf-pcard__heart > svg {
+    width: 1rem;
+    height: 1rem;
+  }
+}
