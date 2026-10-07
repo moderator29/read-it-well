@@ -247,9 +247,10 @@ const nextConfig: NextConfig = {
        * now lives: the agreements that gate a payment, and the admin queue
        * that approves them. Not permanent, so a browser never caches a
        * redirect a later route might want back.
+       *
+       * 7 October 2026 (ADR 0003): `/wallet` was that later route. It is the
+       * member balance the escrow partner holds, so its redirect is gone.
        */
-      { source: "/wallet", destination: "/agreements", permanent: false },
-      { source: "/wallet/:path*", destination: "/agreements", permanent: false },
       { source: "/escrow", destination: "/agreements", permanent: false },
       { source: "/escrow/:path*", destination: "/agreements", permanent: false },
       { source: "/admin/escrow", destination: "/admin/agreements", permanent: false },

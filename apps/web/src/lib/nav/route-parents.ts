@@ -314,7 +314,7 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/messages/share/booking/[id]": "/bookings/[id]",
 
   /* --------------------------------------------------------------- money */
-  /* Track A: the wallet and escrow routes are retired (they redirect to
+  /* Track A: the escrow routes are retired (they redirect to
      /agreements in next.config.ts). The agreement list is where money now
      lives. */
   "/agreements": "/home",
@@ -324,6 +324,8 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/receipts": "/payments",
   "/refunds": "/payments",
   "/payouts": "/home",
+  /* ADR 0003: /wallet is the member balance the escrow partner holds. */
+  "/wallet": "/home",
   "/agreements/[id]": "/agreements",
 
   /* -------------------------------------------------------------- social */
@@ -694,6 +696,7 @@ export const NON_NAVIGABLE: Readonly<Record<string, string>> = {
   "/api/map/listings": "JSON read for the map.",
   "/api/paystack/reconcile": "processor reconciliation.",
   "/api/paystack/webhook": "processor webhook.",
+  "/api/payluk/webhook": "processor webhook.",
   "/api/push/drain": "scheduled job, bearer token.",
   "/api/push/key": "the public VAPID key as JSON.",
   "/api/push/register": "POST only, a subscription write.",

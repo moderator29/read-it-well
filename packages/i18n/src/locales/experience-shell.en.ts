@@ -19,6 +19,9 @@ export const experienceShellEn = {
      looked for what he had paid for, and could not find it: these three pages
      were built and reachable only by address. Each label is its page's title. */
   navMoneyLabel: "Money",
+  /* The member balance (Part B phase 6), held by the escrow partner and read
+     from it. Its page is /wallet; the word a member reads is Balance. */
+  navBalance: "Balance",
   navReceipts: "Receipts",
   navPayouts: "Payouts",
   navRefunds: "Refunds",

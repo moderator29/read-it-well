@@ -8,8 +8,9 @@
  * instead. `known-routes.test.ts` walks `src/app` and fails when a routable
  * directory is added or removed without this list following it. The
  * extra names are `next.config.ts` redirects (`/agents…` and `/trips`,
- * folded into Plans by V-76, and `/wallet` and `/escrow`, retired by Track A
- * on 25 September 2026 and sent to `/agreements`). `/support` was one until
+ * folded into Plans by V-76, and `/escrow`, retired by Track A
+ * on 25 September 2026 and sent to `/agreements`). `/wallet` was one too, until
+ * the member balance (Part B phase 6) became its page. `/support` was one until
  * it became a page of its own, the in-app help and support home.
  */
 export const KNOWN_TOP_SEGMENTS: ReadonlySet<string> = new Set([
@@ -24,7 +25,7 @@ export const KNOWN_TOP_SEGMENTS: ReadonlySet<string> = new Set([
 ]);
 
 /** The redirect sources in `next.config.ts`, which have no directory. */
-export const REDIRECT_ONLY_SEGMENTS: ReadonlySet<string> = new Set(["agents", "escrow", "trips", "wallet"]);
+export const REDIRECT_ONLY_SEGMENTS: ReadonlySet<string> = new Set(["agents", "escrow", "trips"]);
 
 /** Whether the first segment of `path` is one this app can answer at. */
 export function isKnownRoute(path: string): boolean {

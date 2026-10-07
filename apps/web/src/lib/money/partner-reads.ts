@@ -1,6 +1,7 @@
 import "server-only";
 
 import { railIsLive } from "./rails";
+import { readMyBalance } from "./member-wallet";
 import type { Balances, Payment, WithdrawalQuote } from "./vallo";
 
 /**
@@ -23,9 +24,23 @@ export type PartnerRead<T> = { state: "absent" } | { state: "failed" } | { state
 
 const ABSENT = { state: "absent" } as const;
 
+/**
+ * C2 REQUEST 3 is answered (7 October 2026): the member balance is read from
+ * the partner by `readMyBalance` (lib/money/member-wallet.ts), behind its own
+ * switch rather than the protected-payments rail, because a balance exists
+ * before any protected payment does. Absent unless that read has the
+ * partner's figures, live, with their time.
+ */
 export async function readMyBalances(): Promise<PartnerRead<Balances>> {
-  if (!railIsLive("protected")) return ABSENT;
-  return ABSENT;
+  const read = await readMyBalance();
+  if (read.state === "error") return { state: "failed" };
+  if (read.state !== "ready" || !read.figures || !read.live) return ABSENT;
+  const f = read.figures;
+  if (!f.available.confirmedAt) return ABSENT;
+  return {
+    state: "ok",
+    data: { availableMinor: f.available.minor, protectedMinor: f.protected.minor, currency: f.currency, heldBy: "Payluk", asOf: f.available.confirmedAt },
+  };
 }
 
 export async function prepareWithdrawalQuote(input: { amountMinor: number; accountId: string }): Promise<PartnerRead<WithdrawalQuote>> {

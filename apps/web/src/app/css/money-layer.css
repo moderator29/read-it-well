@@ -192,4 +192,139 @@
     font-family: var(--nf-font-mono, ui-monospace, monospace);
     color: var(--nf-content-primary);
   }
+
+  /* ------------------------------------------------- the member balance
+     /wallet (Part B phases 6 to 10). Founder references 6AF37222 (the
+     balance first, then the actions, then what moved) and 95840448 (one
+     question at a time when sending), without their neon: the figure is the
+     subject, the three actions sit under it, and waiting is calm. */
+  .nf-balance__actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--nf-space-sm);
+  }
+  .nf-balance__action {
+    display: grid;
+    justify-items: center;
+    gap: var(--nf-space-xs);
+    padding: var(--nf-space-md) var(--nf-space-xs);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-surface-raised);
+    border: var(--nf-border-width) solid var(--nf-panel-hair);
+    color: var(--nf-content-primary);
+    font-weight: 600;
+    transition: transform var(--nf-duration-fast) var(--nf-ease-press);
+  }
+  .nf-balance__action:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+  .nf-balance__action:disabled {
+    color: var(--nf-content-muted);
+  }
+  .nf-balance__action:disabled .nf-balance__plate {
+    opacity: 0.5;
+  }
+  /* The finance pack's glyphs are drawn on their own ink, so they sit on a
+     solid plate: the plate tone the icon system keeps for "an external
+     system or a done step". */
+  .nf-balance__plate {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--nf-radius-plate);
+    background: var(--nf-ink-900);
+    overflow: hidden;
+  }
+  .nf-balance__plate img {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+  .nf-balance__note {
+    display: flex;
+    gap: var(--nf-space-sm);
+    align-items: flex-start;
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    border-radius: var(--nf-radius-card-sm);
+    background: var(--nf-state-warning-surface);
+    color: var(--nf-content-primary);
+  }
+  .nf-balance__held {
+    display: flex;
+    gap: var(--nf-space-sm);
+    align-items: center;
+    color: var(--nf-content-secondary);
+  }
+  .nf-balance__held img {
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: var(--nf-radius-xs);
+  }
+  .nf-balance__verified {
+    padding: var(--nf-space-md);
+    border-radius: var(--nf-radius-card);
+    border: var(--nf-border-width-strong) solid var(--nf-state-success);
+    background: var(--nf-state-success-surface);
+  }
+  .nf-balance__otp {
+    letter-spacing: 0.4em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* The waiting room: one figure, three honest steps, and a dot that breathes
+     only while something is genuinely still moving. No bar, no percentage. */
+  .nf-wait {
+    display: grid;
+    gap: var(--nf-space-lg);
+    justify-items: center;
+    text-align: center;
+    padding-block: var(--nf-space-lg);
+  }
+  .nf-wait__plate {
+    display: grid;
+    place-items: center;
+    width: 4.5rem;
+    height: 4.5rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-ink-900);
+    position: relative;
+  }
+  .nf-wait__plate img {
+    width: 3rem;
+    height: 3rem;
+  }
+  .nf-wait__plate[data-open="true"]::after {
+    content: "";
+    position: absolute;
+    inset: -0.375rem;
+    border-radius: var(--nf-radius-circle);
+    border: var(--nf-border-width-strong) solid var(--nf-brand-primary);
+    opacity: 0.35;
+    /* Bounded (MOTION_SYSTEM principle 10): six breaths, then the ring rests
+       where it ended, still saying "open" without moving. */
+    animation: nf-wait-breathe var(--nf-duration-cinematic) var(--nf-ease-standard) 6 alternate both;
+  }
+  @keyframes nf-wait-breathe {
+    from {
+      transform: scale(0.96);
+      opacity: 0.2;
+    }
+    to {
+      transform: scale(1.04);
+      opacity: 0.45;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-wait__plate[data-open="true"]::after {
+      animation: none;
+    }
+  }
+  :root[data-motion="calm"] .nf-wait__plate[data-open="true"]::after,
+  :root[data-save-data="on"] .nf-wait__plate[data-open="true"]::after {
+    animation: none;
+  }
+  .nf-wait .nf-timeline {
+    justify-self: stretch;
+    text-align: start;
+  }
 }

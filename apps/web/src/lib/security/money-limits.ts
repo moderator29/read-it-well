@@ -68,7 +68,11 @@ export type MoneyAction =
   | "confirmCardSetup"
   | "cryptoQuote"
   | "cryptoStart"
-  | "cryptoState";
+  | "cryptoState"
+  | "balanceSetup"
+  | "balanceLookup"
+  | "balanceMove"
+  | "balanceState";
 
 export type MoneyLimit = {
   bucket: string;
@@ -215,6 +219,33 @@ export const MONEY_LIMITS: Record<MoneyAction, MoneyLimit> = {
     windowSeconds: TEN_MINUTES,
     refusal: "We have looked up that crypto payment many times and have stopped for now. This does not mean it failed: the payment page updates when the provider reports.",
   },
+  /* The member balance (lib/money/member-wallet-actions.ts). Every one of
+     these spends a request from the provider's ten a minute for the whole
+     platform, so they are sized well under it per person. */
+  balanceSetup: {
+    bucket: "money_balance_setup",
+    limit: 4,
+    windowSeconds: TEN_MINUTES,
+    refusal: "You have tried to set up your balance several times in the last few minutes, so this one was not sent.",
+  },
+  balanceLookup: {
+    bucket: "money_balance_lookup",
+    limit: 12,
+    windowSeconds: TEN_MINUTES,
+    refusal: "You have checked several accounts in the last few minutes, so this one was not looked up. Nothing has moved.",
+  },
+  balanceMove: {
+    bucket: "money_balance_move",
+    limit: 8,
+    windowSeconds: TEN_MINUTES,
+    refusal: "You have started several money movements in the last few minutes, so this one was not sent. Nothing has moved.",
+  },
+  balanceState: {
+    bucket: "money_balance_state",
+    limit: 40,
+    windowSeconds: TEN_MINUTES,
+    refusal: "We have checked that movement many times in the last few minutes and have stopped for now. This does not mean it failed: this page updates on its own when it settles.",
+  },
 };
 
 /** The unauthenticated routes count failures per address, never successes. */
@@ -224,7 +255,7 @@ export const ROUTE_FAILURE_LIMITS = {
 } as const;
 
 /** Reads of a payment already made; never refused by the passcode lock. */
-const PASSCODE_EXEMPT: ReadonlySet<MoneyAction> = new Set<MoneyAction>(["paymentState", "confirmCardSetup", "cryptoState", "cryptoQuote"]);
+const PASSCODE_EXEMPT: ReadonlySet<MoneyAction> = new Set<MoneyAction>(["paymentState", "confirmCardSetup", "cryptoState", "cryptoQuote", "balanceState"]);
 
 export type MoneyGuardVerdict =
   | { allowed: true; degraded: boolean }
