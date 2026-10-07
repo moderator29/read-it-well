@@ -66,7 +66,6 @@ export type UiIconName =
   | "chevron-down"
   | "arrow-right"
   | "arrow-left"
-  | "sparkle"
   | "home"
   | "compass"
   | "building-hotel"
@@ -124,7 +123,7 @@ export type UiIconName =
   | "info"
   | "mail"
   /* Electricity. A listing's power supply is one of the facts that decides a
-     Nigerian tenancy; `sparkle` means "recommended" and must not stand in. */
+     Nigerian tenancy; nothing else stands in for it. */
   | "bolt"
   /* The feed: two stacked cards. Not `grid`, which is a launcher. */
   | "feed"
@@ -191,7 +190,21 @@ export type UiIconName =
   | "shield-lock"
   /* The motion levels (Settings, Motion): play is standard, pause is off. */
   | "circle-play"
-  | "circle-pause";
+  | "circle-pause"
+  /* THE SPARKLE IS GONE (the founder, 7 October 2026: "what kind of icon is
+     that? Don't use it... use a real icon for each thing"). The four-point
+     star stood for the assistant, Pro, For you, "recommended", air
+     conditioning, laundry and Cinematic motion, which is to say for nothing.
+     Each meaning now has its own object: `bot` the assistant, `crown` Pro,
+     `house-heart` For you, `gift` a reward, `snowflake` air conditioning,
+     `washing-machine` laundry, `film` Cinematic. `sparkle-ban.test.ts`
+     refuses the name anywhere in the source. */
+  | "crown"
+  | "house-heart"
+  | "gift"
+  | "snowflake"
+  | "washing-machine"
+  | "film";
 
 /*
  * THE OUTLINES. Lucide names in brackets where the drawing is Lucide's, so the
@@ -441,9 +454,68 @@ const PATHS: Record<UiIconName, React.ReactNode> = {
       <path d="m19 12-7 7-7-7" />
     </>
   ),
-  // [sparkle]: the assistant, and "recommended". Never electricity.
-  sparkle: (
-    <path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z" />
+  // [crown]: Pro, the paid tier.
+  crown: (
+    <>
+      <path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z" />
+      <path d="M5 21h14" />
+    </>
+  ),
+  // [house-heart]: For you, homes picked for this member.
+  "house-heart": (
+    <>
+      <path d="M8.62 13.8A2.25 2.25 0 1 1 12 10.836a2.25 2.25 0 1 1 3.38 2.966l-2.626 2.856a.998.998 0 0 1-1.507 0z" />
+      <path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+    </>
+  ),
+  // [gift]: a reward or a bonus.
+  gift: (
+    <>
+      <rect x="3" y="8" width="18" height="4" rx="1" />
+      <path d="M12 8v13" />
+      <path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7" />
+      <path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5" />
+    </>
+  ),
+  // [snowflake]: air conditioning.
+  snowflake: (
+    <>
+      <path d="m10 20-1.25-2.5L6 18" />
+      <path d="M10 4 8.75 6.5 6 6" />
+      <path d="m14 20 1.25-2.5L18 18" />
+      <path d="m14 4 1.25 2.5L18 6" />
+      <path d="m17 21-3-6h-4" />
+      <path d="m17 3-3 6 1.5 3" />
+      <path d="M2 12h6.5L10 9" />
+      <path d="m20 10-1.5 2 1.5 2" />
+      <path d="M22 12h-6.5L14 15" />
+      <path d="m4 10 1.5 2L4 14" />
+      <path d="m7 21 3-6-1.5-3" />
+      <path d="m7 3 3 6h4" />
+    </>
+  ),
+  // [washing-machine]: laundry.
+  "washing-machine": (
+    <>
+      <path d="M3 6h3" />
+      <path d="M17 6h.01" />
+      <rect width="18" height="20" x="3" y="2" rx="2" />
+      <circle cx="12" cy="13" r="5" />
+      <path d="M12 18a2.5 2.5 0 0 0 0-5 2.5 2.5 0 0 1 0-5" />
+    </>
+  ),
+  // [film]: the Cinematic motion level.
+  film: (
+    <>
+      <rect width="18" height="18" x="3" y="3" rx="2" />
+      <path d="M7 3v18" />
+      <path d="M3 7.5h4" />
+      <path d="M3 12h18" />
+      <path d="M3 16.5h4" />
+      <path d="M17 3v18" />
+      <path d="M17 7.5h4" />
+      <path d="M17 16.5h4" />
+    </>
   ),
   // [house]: the Home tab.
   home: (
@@ -1280,7 +1352,14 @@ const FILLED: Partial<Record<UiIconName, FilledTwin>> = {
   "chat-bubble": { body: PATHS["chat-bubble"] },
   heart: { body: <path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5z" /> },
   star: { body: PATHS.star },
-  sparkle: { body: PATHS.sparkle },
+  crown: {
+    body: <path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z" />,
+    keep: <path d="M5 21h14" />,
+  },
+  "house-heart": {
+    body: <path d={HOUSE_BODY} />,
+    cut: <path d="M8.62 13.8A2.25 2.25 0 1 1 12 10.836a2.25 2.25 0 1 1 3.38 2.966l-2.626 2.856a.998.998 0 0 1-1.507 0z" fill="black" />,
+  },
   bookmark: { body: PATHS.bookmark },
   bolt: { body: PATHS.bolt },
   moon: { body: <path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401z" /> },

@@ -121,7 +121,7 @@ export function HostSettingsBody({
 
         <Link href="/host/assistant" className="nf-panel nf-panel--card nf-host-choice">
           <span className="nf-host-choice__mark" aria-hidden="true">
-            <UiIcon name="sparkle" size={24} />
+            <UiIcon name="bot" size={24} />
           </span>
           <span className="min-w-0 flex-1">
             <span className={`block ${TYPE.rowTitle}`}>{page.assistantTitle}</span>

@@ -97,7 +97,7 @@ export default async function AroundManagePage({
         title={t.social.manage}
         fallback="/around"
         actions={
-          <ButtonLink href="/around/new" variant="secondary" size="sm" leadingIcon="sparkle">
+          <ButtonLink href="/around/new" variant="secondary" size="sm" leadingIcon="plus">
             Suggest a place
           </ButtonLink>
         }

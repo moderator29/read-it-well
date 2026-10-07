@@ -58,7 +58,7 @@ export function AiConsentCard({ t, consented }: { t: AiConsentCopy; consented: b
     >
       {agreed ? (
         <RowButton
-          icon="sparkle"
+          icon="bot"
           label={copy.row}
           sub={copy.subOn}
           value={copy.on}
@@ -71,7 +71,7 @@ export function AiConsentCard({ t, consented }: { t: AiConsentCopy; consented: b
       ) : (
         <RowLink
           href="/assistant"
-          icon="sparkle"
+          icon="bot"
           label={copy.row}
           sub={copy.subOff}
           value={copy.off}

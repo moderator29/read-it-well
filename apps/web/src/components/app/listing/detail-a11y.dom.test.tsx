@@ -45,7 +45,7 @@ describe.skipIf(!hasBrowser && !process.env.CI)("listing detail (axe)", () => {
   it("the amenity capsules can be scrolled from the keyboard when they overflow", async () => {
     const items = ["Swimming pool", "Wi-Fi on every floor", "Fitted kitchen", "Parking on site"].map((label, i) => ({
       key: `k${i}`,
-      icon: "sparkle" as const,
+      icon: "circle-check" as const,
       label,
     }));
     const html = renderToStaticMarkup(<DetailCapsules items={items} label="Amenities" />);

@@ -79,7 +79,7 @@ export default async function CardsPreview({
             <ShareCardFrame
               testId="card-price"
               title="Asking prices"
-              chip={{ label: "Example", icon: "sparkle" }}
+              chip={{ label: "Example", icon: "info" }}
               figure="₦7.5m to ₦9m"
               figureSize="lg"
               figureUnit="a year"
@@ -101,7 +101,7 @@ export default async function CardsPreview({
             <ShareCardFrame
               testId="card-agent"
               variant="tinted"
-              chip={{ label: "Agent record", icon: "sparkle" }}
+              chip={{ label: "Agent record", icon: "id-card" }}
               info={{ label: "Only reviews from completed stays and lets count here." }}
               title="Average review"
               figure="4.8"
@@ -118,7 +118,7 @@ export default async function CardsPreview({
             <ShareCardFrame
               testId="card-count"
               title="Three bedroom flats in Yaba"
-              chip={{ label: "Example", icon: "sparkle" }}
+              chip={{ label: "Example", icon: "info" }}
               figure="₦3.2m to ₦4.1m"
               figureSize="lg"
               meter={{ filled: countFill(6), word: "6 listings" }}
@@ -133,7 +133,7 @@ export default async function CardsPreview({
             <ShareCardFrame
               testId="card-thin"
               title="Asking prices"
-              chip={{ label: "Example", icon: "sparkle" }}
+              chip={{ label: "Example", icon: "info" }}
               meter={{ filled: 0, word: "Not enough to tell" }}
               checks={[
                 { tone: "warning", label: "2 listings nearby, and a card needs 3" },

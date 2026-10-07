@@ -85,7 +85,7 @@ export function ListingAmenities({
     marks.push(
       known
         ? { key, icon: known.icon, label: known.label }
-        : { key, icon: "sparkle", label: prettify(key) },
+        : { key, icon: "circle-check", label: prettify(key) },
     );
   }
 

@@ -241,7 +241,7 @@ export function AccountHero({
             )}
           </span>
           <span className="nf-pf-avatar__badge nf-pf-avatar__badge--quiet" aria-hidden="true">
-            <UiIcon name={busy === "avatar" ? "sparkle" : "picture"} size="2xs" />
+            <UiIcon name={busy === "avatar" ? "hourglass" : "picture"} size="2xs" />
           </span>
         </button>
       }

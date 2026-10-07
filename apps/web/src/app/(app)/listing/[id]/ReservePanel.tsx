@@ -363,7 +363,7 @@ export function ReservePanel({
 
         {instantBook && (
           <p className="flex items-center gap-inline nf-caption font-semibold text-[var(--nf-state-warning)]">
-            <UiIcon name="sparkle" size={ICON.inline} />
+            <UiIcon name="calendar-check" size={ICON.inline} />
             Instant Book available
           </p>
         )}
