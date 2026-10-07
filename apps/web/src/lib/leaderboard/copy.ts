@@ -96,8 +96,8 @@ export function emptyTitle(scope: Scope, placeName: string | null): string {
 export const EMPTY_BODY: Record<Board, string> = {
   referrals: "Nobody has a qualified referral on this board yet. Invite a friend; it counts once they join and make their first payment.",
   property: "No rent deal has been paid through Vallo here yet. The first verified agent or landlord to close one takes the top spot.",
-  hotels: "No stay has been completed here yet. The first verified hotel to host a guest through Vallo takes the top spot.",
-  restaurants: "No reservation has been completed here yet. The first verified restaurant to seat a guest through Vallo takes the top spot.",
+  hotels: "No stay has been completed here yet. The first approved hotel to host a guest through Vallo takes the top spot.",
+  restaurants: "No reservation has been completed here yet. The first approved restaurant to seat a guest through Vallo takes the top spot.",
 };
 
 /** The next step from an empty board, or the explainer. */
@@ -123,17 +123,17 @@ export const CLIMB_STEPS: Record<Board, { title: string; body: string }[]> = {
     { title: "Climb every month", body: "The month board starts fresh on the first. All time keeps every qualified referral." },
   ],
   property: [
-    { title: "Get verified", body: "Only verified agents, landlords and firms are ranked. Verification is free." },
+    { title: "Get approved", body: "Only approved agents, landlords and firms are ranked. Approval is free." },
     { title: "Close through Vallo", body: "Each rent deal paid through Vallo counts once, for the listing's agent and their firm." },
     { title: "Climb every month", body: "The month board starts fresh on the first. Your city is where the home is." },
   ],
   hotels: [
-    { title: "Get verified", body: "Only verified, published hotels and stays are ranked." },
+    { title: "Get approved", body: "Only approved, published hotels and stays are ranked." },
     { title: "Host through Vallo", body: "Each stay booked on Vallo counts once the guest has checked out." },
     { title: "Climb every month", body: "The month board starts fresh on the first. All time keeps every stay." },
   ],
   restaurants: [
-    { title: "Get verified", body: "Only verified, published restaurants are ranked." },
+    { title: "Get approved", body: "Only approved, published restaurants are ranked." },
     { title: "Seat guests through Vallo", body: "Each reservation counts once it is marked completed." },
     { title: "Climb every month", body: "The month board starts fresh on the first. All time keeps every table." },
   ],

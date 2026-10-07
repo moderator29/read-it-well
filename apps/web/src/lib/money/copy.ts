@@ -147,7 +147,7 @@ export const LISTING_STAY_PAY_AFTER =
 
 /** What has to happen before payment is available. */
 export const PAYMENT_GATE_SENTENCE =
-  "Payment opens as soon as the inspection report is submitted and both of you confirm the agreement. A protected payment opens straight away; a direct payment waits for a person at Vallo only when something about the deal needs a second look.";
+  "Payment opens as soon as the inspection report is submitted and both of you confirm the agreement. An escrow payment opens straight away; a direct payment waits for a person at Vallo only when something about the deal needs a second look.";
 
 /* The agreement page's money lines (/agreements/[id]), moved out of the page
    (Round 3 sweep, C3). The words are the page's own, unchanged. */

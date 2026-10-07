@@ -445,7 +445,7 @@ export default async function AgreementPage({
       ) : null}
 
       {held?.state === "ready" ? (
-        <Section title="Protected payment">
+        <Section title="Escrow payment">
           <Link href={`/agreements/${a.id}/held`} className="nf-btn nf-btn--primary nf-btn--md nf-btn--full" data-testid="agreement-held">
             See where your money is held
           </Link>

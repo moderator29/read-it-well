@@ -22,7 +22,7 @@ import "./held-payment.css";
  * no figure is computed here except the lister's take-home, which is the
  * amount less Payluk's reported fee and is shown only once Payluk reported it.
  */
-export const metadata: Metadata = { title: "Protected payment" };
+export const metadata: Metadata = { title: "Escrow payment" };
 export const dynamic = "force-dynamic";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -35,7 +35,7 @@ export default async function HeldPaymentPage({ params }: { params: Promise<{ id
   if (read.state === "signed-out") {
     return (
       <div className="mx-auto max-w-xl px-md">
-        <PageHeader title="Protected payment" fallback="/agreements" />
+        <PageHeader title="Escrow payment" fallback="/agreements" />
         <ButtonLink href={withNext("/sign-in", `/agreements/${id}/held`)} variant="primary" full>
           Sign in to see it
         </ButtonLink>
@@ -45,7 +45,7 @@ export default async function HeldPaymentPage({ params }: { params: Promise<{ id
   if (read.state === "unavailable") {
     return (
       <div className="mx-auto max-w-xl px-md">
-        <PageHeader title="Protected payment" fallback={`/agreements/${id}`} />
+        <PageHeader title="Escrow payment" fallback={`/agreements/${id}`} />
         <p className="nf-body">This could not be read just now. Nothing has moved; refresh to try again.</p>
       </div>
     );
@@ -62,7 +62,7 @@ export default async function HeldPaymentPage({ params }: { params: Promise<{ id
 
   return (
     <div className="mx-auto max-w-xl px-md pb-2xl">
-      <PageHeader title="Protected payment" fallback={`/agreements/${id}`} />
+      <PageHeader title="Escrow payment" fallback={`/agreements/${id}`} />
       <section className="nf-held" aria-labelledby="held-title" data-testid="held-payment" data-role={f.role} data-status={f.status}>
         <header>
           <p className="nf-held__eyebrow">{f.placeTitle}</p>
