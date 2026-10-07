@@ -358,6 +358,8 @@ export const BOOKINGS: BookingView[] = [
     arrivingPhone: null,
     reviewed: false,
     reviewable: false,
+    paid: true,
+    payable: false,
   },
   {
     id: "00000000-0000-4000-8000-00000000f332",
@@ -380,6 +382,8 @@ export const BOOKINGS: BookingView[] = [
     arrivingPhone: null,
     reviewed: false,
     reviewable: true,
+    paid: true,
+    payable: false,
   },
 ];
 
