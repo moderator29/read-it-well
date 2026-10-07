@@ -1,0 +1,257 @@
+@layer theme, base, components, utilities;
+
+/*
+ * THE CARD STACK AND ITS FACE (the travel-app reference; reference 1's depth
+ * by stacking). Depth is scale, lift and dimming in steps, not shadow alone:
+ * the card behind is 94% and 10px lower, the one behind that 88% and 20px.
+ * The face is near-black and lit by its photograph; its words sit on smoked
+ * glass (`--nf-smoked-glass-*`, the Plasma set). The heart and the open arrow
+ * are small discs on 44px targets.
+ */
+@layer components {
+  .nf-stack {
+    display: grid;
+    gap: var(--nf-space-sm);
+    outline: none;
+  }
+  .nf-stack__deck {
+    position: relative;
+    display: grid;
+    /* Room for the two cards peeking beneath the front one. */
+    padding-block-end: 1.5rem;
+  }
+  .nf-stack__card {
+    grid-area: 1 / 1;
+    touch-action: pan-y;
+    transform-origin: 50% 100%;
+    transition:
+      scale var(--nf-duration-slow) var(--nf-ease-entrance),
+      translate var(--nf-duration-slow) var(--nf-ease-entrance),
+      opacity var(--nf-duration-slow) var(--nf-ease-entrance),
+      filter var(--nf-duration-slow) var(--nf-ease-entrance);
+  }
+  .nf-stack__card[data-depth="0"] {
+    z-index: 3;
+    cursor: grab;
+  }
+  .nf-stack__card[data-depth="0"]:active {
+    cursor: grabbing;
+  }
+  .nf-stack__card[data-depth="1"] {
+    z-index: 2;
+    scale: 0.94;
+    translate: 0 0.75rem;
+    opacity: 0.72;
+    filter: saturate(0.8);
+    pointer-events: none;
+  }
+  .nf-stack__card[data-depth="2"] {
+    z-index: 1;
+    scale: 0.88;
+    translate: 0 1.5rem;
+    opacity: 0.4;
+    filter: saturate(0.6);
+    pointer-events: none;
+  }
+  .nf-stack__nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--nf-space-md);
+  }
+  .nf-stack__arrow {
+    display: grid;
+    place-items: center;
+    inline-size: 2.75rem;
+    block-size: 2.75rem;
+    border: var(--nf-border-width) solid var(--nf-border-subtle);
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-surface-raised);
+    color: var(--nf-content-primary);
+    cursor: pointer;
+    transition: transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  .nf-stack__arrow:active {
+    transform: scale(0.94);
+  }
+  .nf-stack__arrow:focus-visible {
+    outline: 2px solid var(--nf-brand-primary);
+    outline-offset: 2px;
+  }
+  .nf-stack__count {
+    min-inline-size: 3.5rem;
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    text-align: center;
+    color: var(--nf-content-muted);
+  }
+
+  /* ------------------------------------------------------------ the face */
+  .nf-stackface {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 4 / 5;
+    max-block-size: 34rem;
+    border: var(--nf-border-width) solid var(--nf-smoked-glass-edge);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-surface-artwork);
+    box-shadow: 0 1.5rem 3rem -1.5rem color-mix(in oklab, var(--nf-surface-canvas) 70%, transparent);
+    user-select: none;
+  }
+  .nf-stackface__media {
+    position: absolute;
+    inset: 0;
+  }
+  .nf-stackface__media img {
+    -webkit-user-drag: none;
+  }
+  .nf-stackface__heart {
+    position: absolute;
+    inset-block-start: var(--nf-space-xs);
+    inset-inline-start: var(--nf-space-xs);
+    z-index: 2;
+  }
+  /* A stand-in picture says so, small, at the top centre between the two discs. */
+  .nf-stackface__note {
+    position: absolute;
+    inset-block-start: calc(var(--nf-space-xs) + 0.6rem);
+    inset-inline-start: 50%;
+    z-index: 2;
+    translate: -50% 0;
+    padding: var(--nf-space-3xs) var(--nf-space-2xs);
+    border: var(--nf-border-width) solid var(--nf-smoked-glass-edge);
+    border-radius: var(--nf-radius-badge);
+    background: var(--nf-smoked-glass-fill);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-on-media-secondary);
+    white-space: nowrap;
+    pointer-events: none;
+  }
+  /* The heart and the open arrow are one family of small discs here. */
+  .nf-stackface__heart .nf-pcard__heart {
+    border-radius: var(--nf-radius-circle);
+  }
+  .nf-stackface__open {
+    position: absolute;
+    inset-block-start: var(--nf-space-xs);
+    inset-inline-end: var(--nf-space-xs);
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    inline-size: 2.75rem;
+    block-size: 2.75rem;
+    border-radius: var(--nf-radius-circle);
+    color: var(--nf-content-on-media);
+  }
+  .nf-stackface__opendisc {
+    display: grid;
+    place-items: center;
+    inline-size: 2.125rem;
+    block-size: 2.125rem;
+    border: var(--nf-border-width) solid var(--nf-smoked-glass-edge);
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-smoked-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    backdrop-filter: blur(var(--nf-smoked-glass-blur));
+  }
+  .nf-stackface__open:focus-visible .nf-stackface__opendisc,
+  .nf-stackface__inset:focus-visible {
+    outline: 2px solid var(--nf-brand-primary);
+    outline-offset: 2px;
+  }
+  .nf-stackface__inset {
+    position: absolute;
+    inset-inline: var(--nf-space-xs);
+    inset-block-end: var(--nf-space-xs);
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-sm);
+    border: var(--nf-border-width) solid var(--nf-smoked-glass-edge);
+    border-radius: var(--nf-radius-control);
+    background: var(--nf-smoked-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    color: var(--nf-content-on-media);
+  }
+  .nf-stackface__title {
+    display: block;
+    overflow: hidden;
+    font-size: var(--nf-text-body);
+    font-weight: 700;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .nf-stackface__where {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-3xs);
+    margin-block-start: var(--nf-space-3xs);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-on-media-secondary);
+  }
+  .nf-stackface__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--nf-space-2xs) var(--nf-space-sm);
+    margin-block-start: var(--nf-space-2xs);
+    font-size: var(--nf-text-caption);
+  }
+  .nf-stackface__rating {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-3xs);
+    font-weight: 700;
+  }
+  .nf-stackface__rating svg {
+    color: var(--nf-state-warning-accent);
+  }
+  .nf-stackface__count {
+    font-weight: 500;
+    color: var(--nf-content-on-media-muted);
+  }
+  .nf-stackface__price {
+    font-weight: 700;
+  }
+  .nf-stackface__place {
+    display: block;
+    flex: none;
+    overflow: hidden;
+    inline-size: 3.5rem;
+    block-size: 3.5rem;
+    border: var(--nf-border-width) solid var(--nf-smoked-glass-edge);
+    border-radius: var(--nf-radius-control);
+    background: color-mix(in oklab, var(--nf-brand-primary) 14%, var(--nf-surface-canvas));
+  }
+  .nf-stackface__street {
+    fill: none;
+    stroke: color-mix(in oklab, var(--nf-content-on-media) 18%, transparent);
+    stroke-width: 2;
+  }
+  .nf-stackface__route {
+    fill: none;
+    stroke: var(--nf-brand-secondary);
+    stroke-width: 2;
+    stroke-dasharray: 3 3;
+    stroke-linecap: round;
+  }
+  .nf-stackface__pin {
+    fill: var(--nf-brand-primary);
+  }
+  .nf-stackface__pindot {
+    fill: var(--nf-content-on-brand);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-stack__card,
+    .nf-stack__arrow {
+      transition: none;
+    }
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-stack__card {
+    transition: none;
+  }
+}

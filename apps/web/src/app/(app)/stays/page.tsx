@@ -1,17 +1,15 @@
 import type { Metadata } from "next";
-import { forStayCard } from "@/lib/i18n/slice";
 import { marketOf } from "@/lib/listings/market";
 import { getDictionary, intlTag, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getListingRepository } from "@/lib/listings/repository";
 import { listStaysShelf } from "@/lib/stays/queries";
 import type { Listing, ListingKind } from "@/lib/listings/types";
-import { StayCard } from "@/components/app/stays/StayCard";
+import { StaysFeatured } from "@/components/app/stays/StaysFeatured";
 import { STAY_KINDS } from "@/components/app/stays/model";
 import { stayCardFromListing, stayCardFromRow, type StayCardData } from "@/components/app/stays/stay-card-model";
 import { CategoryRow, type HomeCategory } from "@/components/app/home/CategoryRow";
 import { CityRow } from "@/components/app/home/CityRow";
-import { FeaturedBand } from "@/components/app/home/FeaturedBand";
 import { HomeHero } from "@/components/app/home/HomeHero";
 import { getHomeOverview } from "@/lib/app/home-queries";
 import { LogoMark } from "@/design-system/brand/Logo";
@@ -234,43 +232,25 @@ export default async function StaysHomePage() {
       <CategoryRow categories={doors} label={copy.title} columns={2} />
 
       {/* ----------------------------------------------- 3. featured stays */}
-      <FeaturedBand
+      {/* The featured shelf as a swipeable stack (the travel-app reference). */}
+      <StaysFeatured
+        stays={featured}
         title={stays.featured}
         seeAllHref="/stays/search"
-        seeAllLabel={copy.seeAll}
-        count={Math.min(featured.length, 6)}
-        testId="featured-stays"
+        locale={locale}
+        t={t}
+        isSaved={(stay) => (stay.place ? isSaved(savedKeys, stay.place.kind, stay.place.id) : false)}
+        canSavePlaces={canSavePlaces}
         empty={
-          /* Stage 5: the empty shelf is the current product. The object
-             settles, the reason is the true one (hosts list themselves) and
-             the way onward is the search. Nothing pretends to capture a want
-             there is no place for yet: a brief is for homes to rent or buy,
-             not for a night's stay (request W2-R4 asks for a stays capture).
-             A suitcase rather than a building: the accepted Tier A set has no
-             hotel yet (the lettered ones were rejected, D29). */
           <DiscoveryEmpty
-            data-testid="stays-empty"
-            object="suitcase"
-            title={t.stays.shelfEmptyTitle}
-            body={t.stays.shelfEmptyBody}
-            primary={{ href: "/stays/search", label: t.stays.findStay }}
-          />
-        }
-      >
-        {featured.slice(0, 6).map((stay, index) => (
-          <li key={stay.id} className="nf-feature-row__item">
-            <StayCard
-              stay={stay}
-              locale={locale}
-              t={forStayCard(t)}
-              index={index}
-              eager={index === 0}
-              saved={stay.place ? isSaved(savedKeys, stay.place.kind, stay.place.id) : false}
-              canSavePlaces={canSavePlaces}
+              data-testid="stays-empty"
+              object="suitcase"
+              title={t.stays.shelfEmptyTitle}
+              body={t.stays.shelfEmptyBody}
+              primary={{ href: "/stays/search", label: t.stays.findStay }}
             />
-          </li>
-        ))}
-      </FeaturedBand>
+        }
+      />
     </div>
   );
 }
