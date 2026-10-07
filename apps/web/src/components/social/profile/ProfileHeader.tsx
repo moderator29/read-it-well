@@ -1,12 +1,8 @@
-import { initial } from "@/lib/text/initial";
-import Image from "next/image";
 import Link from "next/link";
 import { formatNumber, formatRating, type Dictionary, type Locale } from "@vallo/i18n/core";
-import { Figure } from "@/components/ui/Amount";
 import { BadgeRow, type BadgeRowCopy } from "../badges/BadgeRow";
 import { BadgeEarnedHost } from "../badges/BadgeEarnedHost";
 import type { ProfileBadge } from "../badges/badge-model";
-import { TierBadge } from "@/components/trust/TierBadge";
 import { ShareCardFrame } from "@/components/share/ShareCardFrame";
 import { BADGE_TIER_LABEL } from "@/lib/trust/badge-tier";
 import { ratingFill } from "@/lib/ui/meter";
@@ -18,8 +14,8 @@ import type { ModeratorOf, SocialProfileView } from "@/lib/social/profiles-queri
 import type { AgentTrust, Occupation, ProfilePlace, Standing } from "@/lib/social/profile-extras";
 import { BIO_HELD_DETAIL, BIO_HELD_TITLE, linkLabel } from "@/lib/social/profiles-model";
 import { ExternalLinkSheet } from "@/components/ui/ExternalLinkSheet";
-import { RemoteImage } from "@/components/ui/RemoteImage";
 import "./social-profile.css";
+import { IdentityHeader } from "@/components/app/identity/IdentityHeader";
 import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
 
 /**
@@ -71,9 +67,6 @@ import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
  * becomes a dash or a placeholder. A profile should never look like a form
  * somebody abandoned.
  */
-/** The cover for a page whose owner has set none: the founder's villa plate. */
-const COVER_PLATE = "/brand/photos/villa-pool-skyline-01.jpg";
-
 export function ProfileHeader({
   profile,
   isOwner,
@@ -88,6 +81,7 @@ export function ProfileHeader({
   trust,
   joinedLabel,
   follow,
+  message,
   menu,
   share,
   badges = null,
@@ -112,6 +106,8 @@ export function ProfileHeader({
   joinedLabel: string;
   /** The follow control, supplied by the page so this stays a server component. */
   follow?: React.ReactNode;
+  /** How to reach them: the Message control, when there is one. */
+  message?: React.ReactNode;
   /** The overflow menu. */
   menu?: React.ReactNode;
   /** Share, floating on the banner. */
@@ -129,7 +125,6 @@ export function ProfileHeader({
   const copy = t.socialProfile;
   const visible = t.trustVisible.profile;
   const name = profile.displayLabel || `@${profile.handle}`;
-  const monogram = initial(profile.displayLabel || profile.handle);
   /*
    * One badge, not a stack of them. Somebody who looks after four areas would
    * otherwise push the name off a 390px line, and the fifth badge tells a
@@ -139,174 +134,62 @@ export function ProfileHeader({
   const mod = moderatorOf[0];
 
   return (
-    <header data-testid="profile-header" data-theme="dark" className="nf-profile-top">
-      {/* ------------------------------------------------------ the banner */}
-      <div className="nf-social-cover nf-social-cover--profile">
-        {profile.coverUrl ? (
-          /* The bucket is public, so the CDN URL renders without a signed
-             request. next/image is skipped for it: one image from a host that
-             only exists once the platform keys land. The plate IS optimised. */
-          /* The largest image on the page, into a band about 140px tall. It
-             was shipping at whatever size the uploader stored. */
-          <RemoteImage
-            src={profile.coverUrl}
-            alt=""
-            width={1200}
-            height={400}
-            sizes="(max-width: 640px) 100vw, 640px"
-            className="nf-social-cover__photo"
-          />
-        ) : (
-          <Image
-            src={COVER_PLATE}
-            alt=""
-            fill
-            priority
-            sizes="(max-width: 768px) 100vw, 768px"
-            className="nf-social-cover__plate"
-          />
-        )}
-        <div className="nf-social-cover__scrim" aria-hidden="true" />
-
-        <div className="nf-social-float nf-social-float--start">
-          <BackChevron fallback="/around" label={copy.back} labelled />
-        </div>
-        {share ? (
-          <div className="nf-social-float nf-social-float--end">{share}</div>
-        ) : null}
-      </div>
-
-      {/* --------------------------------- the person, beside the picture */}
-      <div className="nf-profile-identity nf-island">
-        <div className="nf-profile-avatar">
-          <span className="nf-profile-avatar__disc">
-            {profile.avatarUrl ? (
-              <RemoteImage
-                src={profile.avatarUrl}
-                alt={`${name}, profile photo`}
-                width={192}
-                height={192}
-                sizes="96px"
-              />
-            ) : (
-              <span aria-hidden="true">{monogram}</span>
-            )}
-          </span>
-          {/*
-            NO MARK ON THE RING (the founder, 25 September 2026): the person's
-            badge is shown once, beside the name, where it says whose it is.
-            It stood at the foot of the ring as well, so a verified person
-            wore it twice. The one beside the name is still
-            `public.person_badge.tier` through the one renderer, and never
-            `isAgent`, which is a role marker and not an earned badge.
-          */}
-        </div>
-
-        <div className="nf-profile-text">
-          <div className="nf-social-nameline">
-            <h1 className="nf-social-name">
-              <span className="truncate-none">{name}</span>
-              {/* The same one mark beside the name, from the same one source. */}
-              <TierBadge tier={profile.badgeTier} size={18} className="nf-social-verified" />
-            </h1>
-            {mod ? (
-              <span
-                className="nf-social-role"
-                role="img"
-                aria-label={copy.moderatorOf.replace("{place}", mod.name)}
-                data-testid="profile-role-badge"
-              >
-                <span aria-hidden="true">{copy.moderatorShort}</span>
-                <span className="nf-social-role__dot" aria-hidden="true">
-                  ·
-                </span>
-                <span aria-hidden="true">{mod.name}</span>
-              </span>
-            ) : null}
-          </div>
-
-          <p className="nf-social-handle" data-testid="profile-handle-line">
-            @{profile.handle}
-            {/* Only when they typed it. Never inferred, never defaulted. */}
-            {profile.pronouns ? (
-              <>
-                <span className="nf-social-handle__dot" aria-hidden="true">
-                  ·
-                </span>
-                <span data-testid="profile-pronouns">{profile.pronouns}</span>
-              </>
-            ) : null}
-          </p>
-
-          {profile.bio && <p className="nf-social-bio">{profile.bio}</p>}
-
-          {/* ------------------------------------------------------- the meta: where and since when, before the counts (the doc order above) */}
-          {(place || homeArea || joinedLabel) && (
-            <div className="nf-social-meta" data-testid="profile-meta">
-              {place ? (
-                <span>
-                  <UiIcon name="location" size={16} />
-                  {place.label}
-                </span>
-              ) : homeArea ? (
-                <span>
-                  <UiIcon name="location" size={16} />
-                  {homeArea.name}, {homeArea.city}
-                </span>
-              ) : null}
-              {joinedLabel ? (
-                <span>
-                  <UiIcon name="calendar-booking" size={16} />
-                  {copy.joined.replace("{month}", joinedLabel)}
-                </span>
-              ) : null}
-            </div>
-          )}
-
-          {/*
-            Followers and Following, with a rule between them. Both lists exist
-            as routes, so both are links. Posts is the tab below rather than a
-            third number here, as the render draws it.
-          */}
-          <div className="nf-social-counts" data-testid="profile-counts">
-            <Link href={`/u/${profile.handle}/followers`} className="nf-social-count">
-              <span className="nf-social-count__value nf-numeric">
-                <Figure value={profile.followerCount} locale={locale} count />
-              </span>
-              <span className="nf-social-count__label">{copy.followers}</span>
-            </Link>
-            <span className="nf-social-count__rule" aria-hidden="true" />
-            <Link href={`/u/${profile.handle}/following`} className="nf-social-count">
-              <span className="nf-social-count__value nf-numeric">
-                <Figure value={profile.followingCount} locale={locale} count />
-              </span>
-              <span className="nf-social-count__label">{copy.following}</span>
-            </Link>
-            <span className="nf-social-count__rule" aria-hidden="true" />
-            {/* Posts is a number, not a door: the Posts tab below is that
-                list, so this is a span and keeps no 44px hit area it could
-                not honour. Real counts only: the three are the database's. */}
-            <span className="nf-social-count nf-social-count--static">
-              <span className="nf-social-count__value nf-numeric">
-                <Figure value={profile.postCount} locale={locale} count />
-              </span>
-              <span className="nf-social-count__label">{copy.posts}</span>
+    <IdentityHeader
+      state={isOwner ? "mine" : "theirs"}
+      testId="profile-header"
+      name={name}
+      handle={profile.handle}
+      pronouns={profile.pronouns || undefined}
+      bio={profile.bio || undefined}
+      badgeTier={profile.badgeTier}
+      role={
+        mod ? (
+          <span
+            className="nf-social-role"
+            role="img"
+            aria-label={copy.moderatorOf.replace("{place}", mod.name)}
+            data-testid="profile-role-badge"
+          >
+            <span aria-hidden="true">{copy.moderatorShort}</span>
+            <span className="nf-social-role__dot" aria-hidden="true">
+              ·
             </span>
-          </div>
-        </div>
-      </div>
-
-      {/* ----------------------------------- what to do about them */}
-      <div className="nf-profile-actions">
-        {isOwner ? (
-          <ButtonLink href={`/u/${profile.handle}/edit`} size="sm" variant="secondary">
-            {copy.editProfile}
-          </ButtonLink>
+            <span aria-hidden="true">{mod.name}</span>
+          </span>
+        ) : null
+      }
+      coverUrl={profile.coverUrl || undefined}
+      avatarUrl={profile.avatarUrl || undefined}
+      place={place ? place.label : homeArea ? `${homeArea.name}, ${homeArea.city}` : undefined}
+      joined={joinedLabel ? copy.joined.replace("{month}", joinedLabel) : undefined}
+      counts={{
+        followers: profile.followerCount,
+        following: profile.followingCount,
+        posts: profile.postCount,
+        labels: { followers: copy.followers, following: copy.following, posts: copy.posts },
+      }}
+      locale={locale}
+      topStart={<BackChevron fallback="/around" label={copy.back} labelled />}
+      topEnd={share}
+      actions={
+        /* MINE: the edit control. THEIRS: follow, then message when there is
+           a way to reach them, then the overflow menu. */
+        isOwner ? (
+          <>
+            <ButtonLink href={`/u/${profile.handle}/edit`} size="sm" variant="secondary">
+              {copy.editProfile}
+            </ButtonLink>
+            {menu}
+          </>
         ) : (
-          follow
-        )}
-        {menu}
-      </div>
+          <>
+            {follow}
+            {message}
+            {menu}
+          </>
+        )
+      }
+    >
 
       {/* -------------------------------------------------- what they are */}
       {(occupation || (badges === null && standing.length > 0) || profile.pidginOk) && (
@@ -431,7 +314,7 @@ export function ProfileHeader({
           ]}
         />
       ) : null}
-    </header>
+    </IdentityHeader>
   );
 }
 

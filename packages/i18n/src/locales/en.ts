@@ -754,6 +754,8 @@ export const en = {
   socialProfile: {
     /** The account page's tab pair and the rows under Belongings (`50E032EA`). */
     belongings: "Belongings",
+    /** The way to reach somebody from their profile (A.7). */
+    message: "Message",
     myBookings: "Plans",
     myBookingsSub: "Viewings, move-ins and stays",
     savedSub: "Homes, hotels and places",
