@@ -500,7 +500,7 @@ export default async function AgreementPage({
   );
 }
 
-type TrackWords = Record<AgreementStepKey, string> & { sentBack: string; cancelled: string };
+type TrackWords = Record<AgreementStepKey, string> & { sentBack: string; cancelled: string; reviewing?: string };
 
 function agreementSteps(
   status: string,
@@ -515,7 +515,9 @@ function agreementSteps(
         ? status === "rejected"
           ? track.sentBack
           : track.cancelled
-        : track[step.key],
+        : step.key === "approved" && step.state === "current"
+          ? (track.reviewing ?? track.approved)
+          : track[step.key],
     when: step.at
       ? new Date(step.at).toLocaleString(intlTag[locale], {
           day: "numeric",

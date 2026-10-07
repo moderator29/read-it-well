@@ -80,7 +80,10 @@ export function SignUpOptions({
       <div className="nf-doors__words">
         <Image
           src="/brand/vallo-mark.png"
-          alt="Vallo"
+          /* Decorative: the statement beside it is the content, and a
+             hard-coded "Vallo" alt is copy the dictionary does not own. */
+          alt=""
+          aria-hidden
           width={614}
           height={587}
           sizes="32px"
