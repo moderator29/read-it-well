@@ -1,46 +1,16 @@
 -- D76: two public leaderboards (referrals, and the top performers on Vallo)
 -- and one directory of the people and businesses behind the supply, on both
--- sides. Pending: NOT applied. The lead reviews it, applies it through the
--- MCP, and commits it under the version the server stamps
--- (scripts/check-migrations.mjs). Its probe is
--- supabase/tests/probes-pending/d76-leaderboards-and-directory.sql.
+-- sides. Applied 7 October 2026; the lead added the revokes on the private
+-- helpers at the end. Full rationale in the pending header (git history of
+-- supabase/migrations/pending/d76_leaderboards_and_directory.sql).
 --
--- WHAT IS RANKED, AND WHAT IS NEVER SHOWN (decided in D76)
 --  * Boards rank by COUNTS over a period, never by money. No naira figure,
---    email, phone, address, reward or member id leaves these functions: the
---    row types below carry a display name, a public handle or page id, an
---    avatar, a kind, a state, a verified mark, a rank, a previous rank and a
---    count, and nothing else.
---      referrals    qualified referrals (status qualified and onward, never
---                   pending or reversed), dated by qualified_at
---      property     rent deal agreements PAID through Vallo (deal_agreements
---                   status 'paid', dated by paid_at) on a non-demo listing,
---                   credited to the listing's agent (an agent, or a landlord
---                   who chose a public handle) and, separately, to its firm
---      hotels       stays COMPLETED (bookings status 'COMPLETED' on an
---                   accommodation of the business, dated by check-out)
---      restaurants  reservations COMPLETED (dated by reserved_for)
+--    email, phone, address, reward or member id leaves these functions.
 --  * Only VERIFIED, APPROVED or PUBLISHED, non-demo workspaces, and only real
 --    activity: a subject with a count of zero is not on a board. Nothing is
 --    seeded and nothing is invented to fill one.
---  * City is the Nigerian state code (public.states): a member's own state
---    from their profile, a deal's listing state, a business's state.
---  * The period is the Lagos calendar month or all time. Movement compares
---    with the previous month, or for all time with the board as it stood at
---    the start of this month.
---  * OPT-OUT: a member can take themselves off every board (the referrals
---    board and their agent or landlord row), and an owner can take each of
---    their businesses off. One table, written only through
---    leaderboard_set_hidden(); it has RLS on and no policy at all.
---
--- THE DIRECTORY (D76: "the property agents page should be stay agent too")
---  directory(p_side, ...) lists, on the Property side, approved agents, the
---  landlords who chose a public handle, and published agency firms; on the
---  Stays side, published hotels and resorts, hosts (guest houses, serviced
---  apartments) and shortlet operators. Same safe fields, plus the count of
---  completed deals or stays and of live listings. Demo rows never appear.
---  A member who has opted out of the boards is not listed either.
---
+--  * OPT-OUT: one table, written only through leaderboard_set_hidden(); RLS
+--    on and no policy at all.
 -- Read-only for everybody but the opt-out. No RLS on an existing table, no
 -- payment, agreement or auth logic is touched.
 
@@ -386,3 +356,10 @@ $$;
 
 revoke all on function public.directory(text, text, text, int) from public;
 grant execute on function public.directory(text, text, text, int) to anon, authenticated;
+
+-- Lead addition: the private helpers are only for the definer reads above.
+revoke all on function private.leaderboard_hidden(text, uuid) from public, anon, authenticated;
+revoke all on function private.leaderboard_window(text, boolean) from public, anon, authenticated;
+revoke all on function private.leaderboard_person_name(uuid) from public, anon, authenticated;
+revoke all on function private.business_ref(uuid, text) from public, anon, authenticated;
+revoke all on function private.leaderboard_scores(text, text, timestamptz, timestamptz) from public, anon, authenticated;
