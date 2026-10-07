@@ -777,7 +777,44 @@ The WOW features in section 35 of `02-master-prompt.md` and section 39 of
 `03-full-product-prompt.md` are his list of the moments meant to be remembered.
 Read them and build at least the ones that cost little and land hard.
 
-## A.16 How to actually use 144 reference images
+## A.16 One product, not twelve: the unification rule
+
+He has asked for this twice and it is the thing that most separates a 2 from a 90:
+
+> many many make the ux unified tell it make it look attractive
+
+> give it access to my prompt to make all the build unified
+
+Vallo has 223 routes built over months by several sessions. The predictable result
+is twelve dialects of the same product: three ways to show a list, four ways to show
+a figure, two profile designs (A.7 is the one he noticed), several sheet behaviours,
+and back buttons that each behave slightly differently.
+
+Unification is not a styling pass. It is deciding, once, how a thing is done and
+then doing it that way everywhere. Decide each of these yourself, write the decision
+into `docs/design/`, and hand the same answer to all four agents:
+
+| The question | Decide once |
+| --- | --- |
+| How does a list of things look? | One row component with variants, not four row designs |
+| How is a figure presented? | `--nf-font-numeric`, aligned, one way of showing a currency and a change |
+| How does a sheet arrive and leave? | One spring in, one slower exit, one backdrop treatment |
+| How does an identity appear? | One identity header with states, used on both profiles, listings and messages |
+| How does back behave? | One rule, web and native, and it matches what the user expects |
+| What does an empty state look like? | One shape, with the four states (empty, loading, error, success) all designed |
+| How is something destructive confirmed? | `DragToConfirm`, everywhere, not a dialog here and a drag there |
+| How does a page begin? | One entrance, coordinated by `--nf-splash-hold`, already half built |
+| Where does a feature's navigation live? | `InnerNav`, per A.8 |
+| How is a paid feature gated? | One pattern, per A.11 |
+
+The test for whether this worked: a person moving between two screens they have
+never seen before should be able to predict what the controls do. If they cannot,
+the product is still twelve products.
+
+`docs/design/CLEAN_UNIFIED_DIRECTION.md` already exists and is about exactly this.
+Read it before deciding, and update it with what you decide.
+
+## A.17 How to actually use 144 reference images
 
 He asked for this four separate times, and it is the instruction most likely to be
 nodded at and skipped:
@@ -1222,7 +1259,7 @@ costs about twenty minutes of CI and some of his usage limit.
    reach this?" answered for each. It is cheap, it proves breadth, and it is the
    check that would have caught the orphaned rewards routes a week ago.
 
-A.14 (the design primitives) and A.16 (the reference images) are not a track. They
+A.14 (the design primitives), A.16 (unification) and A.17 (the reference images) are not a track. They
 are read by every agent before that agent starts, and A.14's decisions are made once
 by you and handed to all four.
 

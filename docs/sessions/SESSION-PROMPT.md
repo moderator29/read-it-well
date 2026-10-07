@@ -115,6 +115,21 @@ accident:
 **Dark stays the default. The container system gets refined, not replaced.** Hold
 this one consciously.
 
+## One product, not twelve
+
+He asked for this twice: "many many make the ux unified", "make all the build
+unified". It is the single thing that most separates a 2 from a 90.
+
+223 routes were built over months by several sessions, so the product now speaks
+twelve dialects of itself: several ways to show a list, several ways to show a
+figure, two profile designs (the one he noticed), several sheet behaviours. Decide
+once how each thing is done, write it into `docs/design/`, hand the same answer to
+every agent, and then do it that way everywhere. Section A.16 of the handoff has the
+list of decisions to make.
+
+The test: somebody landing on a screen they have never seen should be able to predict
+what the controls do. If they cannot, it is still twelve products.
+
 ## His specific complaints, which are the fastest way to earn his trust
 
 Each of these he has looked at and told you about directly. Fix them early, exactly
