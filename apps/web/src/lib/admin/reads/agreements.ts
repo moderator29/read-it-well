@@ -1,6 +1,7 @@
 import "server-only";
 import { subjectHref, subjectKey, subjectTitles, type AgreementSubject } from "@/lib/agreements/subject";
 import { parseWatchList, type WatchRow } from "../watch-list";
+import { parseRiskSettings, type RiskSettings } from "../risk-settings";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
@@ -127,6 +128,31 @@ export async function readWatchList(userClient: SupabaseClient<Database>): Promi
     const { data, error } = await userClient.rpc("admin_agreement_watch_list" as never, { p_limit: 100 } as never);
     if (error) return null;
     return parseWatchList(data);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * D77: the risk settings and the incident switch, read as the staff member
+ * (the settings row is staff-only under RLS). Null when either cannot be read,
+ * including before migration d68d is applied.
+ */
+export async function readRiskSettings(userClient: SupabaseClient<Database>): Promise<RiskSettings | null> {
+  try {
+    const db = userClient as unknown as SupabaseClient;
+    const [settings, flag] = await Promise.all([
+      db
+        .from("agreement_risk_settings")
+        .select(
+          "amount_threshold_minor, recent_change_days, check_first_deal, check_amount, check_recent_change, check_payout_name, check_fraud_radar, updated_at, updated_by",
+        )
+        .eq("id", 1)
+        .maybeSingle(),
+      db.from("feature_flags").select("enabled, note").eq("key", "agreement_review_all").maybeSingle(),
+    ]);
+    if (settings.error || flag.error) return null;
+    return parseRiskSettings(settings.data, flag.data);
   } catch {
     return null;
   }

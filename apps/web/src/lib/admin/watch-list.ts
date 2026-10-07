@@ -22,7 +22,7 @@ export type WatchRow = {
 
 /** The words a reviewer reads for each signal. */
 export const SIGNAL_WORDS: Record<string, string> = {
-  first_deal: "First deal for this lister",
+  first_deal: "First deal, and the business unverified or the amount above the threshold",
   amount_over: "Above the review threshold",
   recent_change: "Price or facts changed in the last few days",
   payout_name: "Payout account name does not match the verified name",
