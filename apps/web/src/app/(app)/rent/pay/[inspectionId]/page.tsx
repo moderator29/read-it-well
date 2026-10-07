@@ -10,7 +10,7 @@ import { cryptoOfferForViewer } from "@/lib/crypto/offer";
 import { ResultScreen } from "@/components/app/ResultSheet";
 import { PageHeader } from "@/components/app/PageHeader";
 import { ButtonLink } from "@/components/ui/Button";
-import { MoneyMoment } from "@/components/money/kit";
+import { PaidMoment } from "@/components/ui/SuccessMoment";
 import { Reveal } from "@/components/site/Reveal";
 import { PaymentReturn } from "@/app/(app)/checkout/[bookingId]/PaymentReturn";
 import { PayPanel } from "./PayPanel";
@@ -195,7 +195,7 @@ export default async function RentPayPage({
         {/* The paid moment (D74 and references 4 and 7): the scalloped badge,
             what happened in one plain sentence, the one action and a quiet
             way back. Drawn only down `view.paid`; it decides nothing. */}
-        <MoneyMoment tone="done" title={c.rentIsPaid} line={c.paidRent} testId="rent-paid-moment" />
+        <PaidMoment title={c.rentIsPaid} line={c.paidRent} to={view.title} testId="rent-paid-moment" />
         <div className="nf-receipt-actions">
           <ButtonLink href="/messages" variant="primary" size="lg" full>
             {c.openMessages}

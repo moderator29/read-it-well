@@ -19,8 +19,7 @@ import { lagosToday } from "@/lib/rent/schema";
 import { getCheckoutView } from "@/lib/bookings/checkout-view";
 import { stayReceipt } from "@/components/app/money/receipt-model";
 import { ReceiptSheet } from "@/components/app/money/ReceiptSheet";
-import { DocActions } from "@/components/app/money/DocumentSheet";
-import { PrintDocumentTile } from "@/components/app/money/PrintDocumentTile";
+import { ReceiptActions } from "@/components/money/ReceiptActions";
 import { withNext } from "@/lib/auth/next-link";
 
 /** A receipt for one commitment. Never indexed, and never in a tab title. */
@@ -181,11 +180,7 @@ export default async function BookingDetailPage({
             receipt={receipt}
             headingId="booking-receipt-title"
             testId="booking-receipt-sheet"
-            actions={
-              <DocActions label={receipt.title}>
-                <PrintDocumentTile label={t.afterTheGate.complaint.print} testId="booking-receipt-print" />
-              </DocActions>
-            }
+            actions={<ReceiptActions receipt={receipt} testId="booking-receipt-print" />}
           />
         </div>
       )}

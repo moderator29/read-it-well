@@ -1,7 +1,7 @@
 import { getDictionary } from "@vallo/i18n";
 import type { Locale } from "@vallo/i18n/core";
 import type { CheckoutView } from "@/lib/bookings/checkout-view";
-import { MoneyMoment } from "@/components/money/kit";
+import { PaidMoment } from "@/components/ui/SuccessMoment";
 
 /**
  * THE PAID MOMENT (PREMIUM-STANDARD references 4 and 7): a small green
@@ -14,5 +14,5 @@ import { MoneyMoment } from "@/components/money/kit";
  */
 export function CheckoutPaidMoment({ view, locale }: { view: CheckoutView; locale: Locale }) {
   const c = getDictionary(locale).checkout;
-  return <MoneyMoment tone="done" as="h2" title={c.stayPaidFor} line={c.stayPaidBody.replace("{total}", view.totalDisplay)} testId="checkout-paid-moment" />;
+  return <PaidMoment as="h2" title={c.stayPaidFor} line={c.stayPaidBody.replace("{total}", view.totalDisplay)} to={view.title} testId="checkout-paid-moment" />;
 }

@@ -148,7 +148,7 @@ export function CheckoutSummary({
         receipt={receipt}
         headingId="nf-checkout-summary"
         testId="checkout-receipt"
-        actions={<ReceiptActions back={back} testId="checkout-receipt-print" />}
+        actions={<ReceiptActions receipt={receipt} back={back} testId="checkout-receipt-print" />}
       />
     );
   }

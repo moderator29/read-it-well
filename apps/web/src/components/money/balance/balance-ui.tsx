@@ -7,11 +7,14 @@ import { StatusPill } from "@/components/ui/StatusPill";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { balanceMovementStatus } from "@/lib/money/member-wallet-actions";
 import type { MovementView } from "@/lib/money/member-wallet";
-import { WAITING_COPY, WAITING_STEPS, movementStatusLabel, movementTone, type StatusTone } from "@/lib/money/balance-copy";
+import { HELD_BY, WAITING_COPY, WAITING_STEPS, movementStatusLabel, movementTitle, movementTone, type StatusTone } from "@/lib/money/balance-copy";
+import { formatKoboExact } from "@/components/app/money/money";
+import type { ReceiptModel } from "@/components/app/money/receipt-model";
 import { isOpenMovement, type WithdrawalBreakdown } from "@/lib/money/funds";
 import { formatMoneyDate } from "@/lib/money/dates";
 import { MoneyFigure, MoneyMoment, StatusWord } from "../kit";
 import { StepPath, type PathState } from "../StepPath";
+import { PaidMoment, SentMoment, WithdrawnMoment } from "@/components/ui/SuccessMoment";
 import "@/app/css/money-layer.css";
 
 /**
@@ -103,6 +106,40 @@ export function Breakdown({
       </div>
     </dl>
   );
+}
+
+/**
+ * A completed movement as the one receipt model (`ReceiptModel`), so it can
+ * be saved as an image or a PDF and shared like every other receipt. Only
+ * what the record holds: the amount, the day, the processor's fee when the
+ * record carries one, the partner's confirmation when it gave one, the
+ * reference. No total is worked out here.
+ */
+export function movementReceipt(m: MovementView, locale: Locale): ReceiptModel {
+  const { whole, kobo } = formatKoboExact(m.amountMinor, locale);
+  const fee = m.providerFeeMinor && m.providerFeeMinor > 0 ? formatKoboExact(m.providerFeeMinor, locale) : null;
+  const cp = m.counterparty;
+  const place =
+    m.kind === "withdrawal"
+      ? [cp.bank, cp.last4 ? `•••• ${cp.last4}` : ""].filter(Boolean).join(" ")
+      : m.kind === "transfer_out"
+        ? `To ${cp.name || "a Vallo member"}`
+        : m.kind === "transfer_in"
+          ? "From a Vallo member"
+          : "From your bank or card";
+  return {
+    kind: "Receipt",
+    title: movementTitle(m.kind),
+    place,
+    figureLabel: m.kind === "deposit" || m.kind === "transfer_in" ? "Received" : "Amount",
+    figure: `${whole}${kobo}`,
+    facts: [{ label: "Date", value: formatMoneyDate(m.createdAt, locale, { withTime: true }) ?? "" }],
+    lines: fee ? [{ label: "Processing fee", value: `${fee.whole}${fee.kobo}` }] : [],
+    total: { label: "Amount", value: `${whole}${kobo}` },
+    confirmations: m.confirmedByProvider ? [{ label: "Our escrow partner", state: "Confirmed" }] : [],
+    reference: { label: "Reference", value: m.reference },
+    note: HELD_BY,
+  };
 }
 
 /** Polling cadence for an open movement: quick at first, then patient. Never faster than the server allows. */
@@ -197,18 +234,44 @@ export function WaitingRoom({ movement, locale, kind }: { movement: MovementView
 
   return (
     <div className="nf-wait" data-testid="balance-waiting" data-status={movement.status}>
+      {/* The head is the success family's member for the kind (ONE-PRODUCT-
+          DECISIONS recommendation 2): a withdrawal shows its bank, a send
+          its recipient with the figure travelling to them, money added the
+          seal; a problem is the plain red mark. */}
       <div role="status" aria-live="polite" className="nf-wait__head">
-        <MoneyMoment
-          tone={done ? "done" : failed ? "problem" : open ? "waiting" : "neutral"}
-          live={open}
-          title={open ? copy.title : movementStatusLabel(movement.kind, movement.status)}
-          line={open ? undefined : closing}
-        />
+        {kind === "withdrawal" && !failed ? (
+          <WithdrawnMoment
+            live={open}
+            title={open ? copy.title : movementStatusLabel(movement.kind, movement.status)}
+            line={open ? undefined : closing}
+            bank={[movement.counterparty.bank, movement.counterparty.last4 ? `•••• ${movement.counterparty.last4}` : ""].filter(Boolean).join(" ") || "To your bank"}
+          />
+        ) : kind === "send" && done ? (
+          <SentMoment
+            recipient={movement.counterparty.name || "a Vallo member"}
+            figure={<MoneyFigure minor={movement.amountMinor} locale={locale} size="md" kobo="auto" />}
+            title={movementStatusLabel(movement.kind, movement.status)}
+            line={closing}
+          >
+            <MovementStatusWord movement={movement} />
+          </SentMoment>
+        ) : kind === "deposit" && done ? (
+          <PaidMoment title={movementStatusLabel(movement.kind, movement.status)} line={closing} />
+        ) : (
+          <MoneyMoment
+            tone={done ? "done" : failed ? "problem" : open ? "waiting" : "neutral"}
+            live={open}
+            title={open ? copy.title : movementStatusLabel(movement.kind, movement.status)}
+            line={open ? undefined : closing}
+          />
+        )}
       </div>
-      <div className="nf-wait__figure">
-        <MoneyFigure minor={movement.amountMinor} locale={locale} size="hero" kobo="auto" />
-        <MovementStatusWord movement={movement} />
-      </div>
+      {kind === "send" && done ? null : (
+        <div className="nf-wait__figure">
+          <MoneyFigure minor={movement.amountMinor} locale={locale} size="hero" kobo="auto" />
+          <MovementStatusWord movement={movement} />
+        </div>
+      )}
       {open ? (
         /* The status card (status-tracking-timeline.jpg): how long, and
            what, if anything, the member must do; each cell a restatement of

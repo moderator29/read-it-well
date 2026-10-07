@@ -47,6 +47,8 @@ export const WAITING: Record<string, MovementView> = {
   completed: movement({ id: "fx-0102", kind: "withdrawal", status: "completed", amountMinor: 250_000_00 }),
   failed: MOVEMENTS[4]!,
   deposit: movement({ id: "fx-0103", kind: "deposit", status: "processing", amountMinor: 500_000_00 }),
+  sent: movement({ id: "fx-0104", kind: "transfer_out", status: "completed", amountMinor: 50_000_00, counterparty: { name: "Tunde A." }, providerFeeMinor: 0 }),
+  added: movement({ id: "fx-0105", kind: "deposit", status: "completed", amountMinor: 500_000_00 }),
 };
 
 export const BALANCE_READS: Record<string, Exclude<BalanceRead, { state: "signed-out" }>> = {

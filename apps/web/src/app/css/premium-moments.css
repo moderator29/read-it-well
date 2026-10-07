@@ -514,4 +514,153 @@
   a.nf-capsule {
     text-decoration: none;
   }
+
+  /* ------------------------------------------------- the success family
+     One shell, a hero of its own per kind. The hero arrives first (the pop
+     or the travel), the words settle under it. */
+  .nf-moment__hero {
+    display: grid;
+    place-items: center;
+    min-height: 5rem;
+    margin-block-end: var(--nf-space-xs);
+  }
+  .nf-moment__figure {
+    font-size: clamp(1.875rem, 1.45rem + 1.9vw, 2.375rem);
+    font-weight: 700;
+    letter-spacing: -0.035em;
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-content-primary);
+  }
+  .nf-moment__to {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+  }
+  .nf-moment__expected {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    padding: var(--nf-space-2xs) var(--nf-space-sm);
+    border-radius: var(--nf-radius-control);
+    background: color-mix(in oklab, var(--nf-brand-primary) 12%, transparent);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+
+  /* Sent: the figure travels into the recipient's disc, then a tick lands. */
+  .nf-sent {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    width: 10rem;
+    height: 5rem;
+  }
+  .nf-sent__avatar {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 4.25rem;
+    height: 4.25rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-gradient-brand);
+    box-shadow: 0 10px 28px -10px color-mix(in oklab, var(--nf-brand-primary) 70%, transparent);
+    font-size: 1.625rem;
+    font-weight: 700;
+    color: var(--nf-content-on-brand);
+  }
+  .nf-sent__tick {
+    position: absolute;
+    right: -0.125rem;
+    bottom: -0.125rem;
+    display: grid;
+    place-items: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-state-success);
+    box-shadow: 0 0 0 3px var(--nf-surface-primary);
+    animation: nf-mdot-pop 420ms var(--nf-ease-spring) 900ms both;
+  }
+  .nf-sent__chip {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    padding: var(--nf-space-2xs) var(--nf-space-sm);
+    border-radius: var(--nf-radius-control);
+    background: var(--nf-glass-fill-strong);
+    border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-brand-primary) 35%, transparent);
+    font-size: var(--nf-text-caption);
+    font-weight: 700;
+    white-space: nowrap;
+    color: var(--nf-content-primary);
+    opacity: 0;
+    translate: -50% -50%;
+    animation: nf-sent-travel 900ms var(--nf-ease-entrance) 120ms both;
+  }
+  .nf-sent__chip .nf-mfig {
+    font-size: inherit;
+  }
+  @keyframes nf-sent-travel {
+    0% {
+      opacity: 0;
+      transform: translateX(-5.5rem) scale(1);
+    }
+    25% {
+      opacity: 1;
+    }
+    85% {
+      opacity: 1;
+      transform: translateX(0) scale(0.7);
+    }
+    100% {
+      opacity: 0;
+      transform: translateX(0) scale(0.4);
+    }
+  }
+
+  /* Withdrawn: the bank as a glass tile, its ring breathing while it is on
+     its way. */
+  .nf-withdrawn {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 4.5rem;
+    height: 4.5rem;
+    border-radius: var(--nf-radius-plate);
+    background: var(--nf-night-glass-raised-fill);
+    border: var(--nf-border-width) solid var(--nf-night-glass-raised-edge);
+    box-shadow: var(--nf-night-glass-raised-shadow);
+    color: var(--nf-brand-primary);
+  }
+  .nf-withdrawn[data-live="true"]::after {
+    content: "";
+    position: absolute;
+    inset: -0.5rem;
+    border-radius: var(--nf-radius-plate);
+    border: var(--nf-border-width-strong) solid var(--nf-brand-primary);
+    opacity: 0.3;
+    animation: nf-moment-breathe var(--nf-duration-cinematic) var(--nf-ease-standard) 6 alternate both;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-sent__chip,
+    .nf-sent__tick,
+    .nf-withdrawn[data-live="true"]::after {
+      animation: none;
+    }
+    .nf-sent__chip {
+      display: none;
+    }
+  }
+  :root[data-motion="calm"] .nf-withdrawn[data-live="true"]::after,
+  :root[data-motion="off"] .nf-withdrawn[data-live="true"]::after,
+  :root[data-motion="off"] .nf-sent__tick,
+  :root[data-save-data="on"] .nf-sent__tick {
+    animation: none;
+  }
+  :root[data-motion="off"] .nf-sent__chip,
+  :root[data-motion="calm"] .nf-sent__chip,
+  :root[data-save-data="on"] .nf-sent__chip {
+    display: none;
+  }
 }

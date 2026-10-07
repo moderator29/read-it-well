@@ -1281,4 +1281,50 @@
     }
   }
 
+  /* The waiting room's status card (status-tracking-timeline.jpg): a framed
+     card, two cells split by a hairline (how long, what you must do), then
+     the calm sentence. */
+  .nf-wait__status {
+    display: grid;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-sm);
+    border-radius: var(--nf-radius-card);
+    border: var(--nf-border-width-strong) solid color-mix(in oklab, var(--nf-brand-primary) 55%, transparent);
+    background: color-mix(in oklab, var(--nf-brand-primary) 8%, transparent);
+  }
+  .nf-wait__status .nf-wait__calm {
+    border: 0;
+    background: none;
+    padding: var(--nf-space-2xs) var(--nf-space-xs);
+  }
+  .nf-wait__cells {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-radius: var(--nf-radius-card-sm);
+    border: var(--nf-border-width) solid var(--nf-divider);
+    background: var(--nf-panel-fill-card);
+  }
+  .nf-wait__cells > div {
+    display: grid;
+    gap: var(--nf-space-2xs);
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    min-width: 0;
+  }
+  .nf-wait__cells > div + div {
+    border-inline-start: var(--nf-border-width) solid var(--nf-divider);
+  }
+  .nf-wait__cells dt {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-wait__cells dd {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-receipt-actions__tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(5.5rem, 1fr));
+    gap: var(--nf-space-sm);
+  }
 }

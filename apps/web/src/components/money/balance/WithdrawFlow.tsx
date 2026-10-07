@@ -19,7 +19,8 @@ import {
 import type { MovementView } from "@/lib/money/member-wallet";
 import { REFUSAL } from "@/lib/money/balance-copy";
 import { lastFour } from "@/lib/money/funds";
-import { Breakdown, WaitingRoom, useWatchedMovement } from "./balance-ui";
+import { Breakdown, WaitingRoom, movementReceipt, useWatchedMovement } from "./balance-ui";
+import { ReceiptActions } from "../ReceiptActions";
 
 /**
  * WITHDRAW (Part B phase 8, the founder's fourteen steps; phase 9's check):
@@ -294,6 +295,9 @@ export function Watching({
   return (
     <>
       <WaitingRoom movement={current} locale={locale} kind={kind} />
+      {/* A completed movement has a receipt like every other transaction:
+          saved as a PDF or an image, or shared (recommendation 2). */}
+      {current.status === "completed" ? <ReceiptActions receipt={movementReceipt(current, locale)} print={false} testId="balance-receipt" /> : null}
       <Button variant="secondary" size="lg" onClick={onDone}>
         {current.status === "completed" ? "Done" : "Close, keep checking"}
       </Button>

@@ -81,7 +81,7 @@ export function PlasmaExplainer({ storageKey, name, panels, testId }: { storageK
   const last = index === panels.length - 1;
 
   return (
-    <Sheet open={open} onOpenChange={setOpen} title={name} hideTitle detents={[0.94]} testId={testId}>
+    <Sheet open={open} onOpenChange={setOpen} title={name} hideTitle closeLabel="Skip" detents={[0.94]} testId={testId}>
       <div className="nf-explain" data-testid={testId ? `${testId}-panel-${panel.key}` : undefined}>
         <div className="nf-explain__stage" aria-hidden="true">
           <div ref={phone} className="nf-explain__phone" data-tone={panel.screenTone ?? "plain"}>
