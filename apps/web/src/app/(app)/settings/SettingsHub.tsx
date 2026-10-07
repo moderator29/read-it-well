@@ -27,6 +27,7 @@ import { clearLocalDevice, readLocalDevice } from "@/components/app/push/device-
 import { playThreshold } from "@/lib/motion/threshold";
 import type { ResolvedProfileSettings } from "@/lib/profile/model";
 import { RemoteImage } from "@/components/ui/RemoteImage";
+import { PAYOUTS_ROW_SUB, PAYOUTS_TITLE } from "@/lib/money/copy";
 
 /**
  * THE SETTINGS HOME, per `7F96BE6C`.
@@ -67,6 +68,12 @@ export type SettingsHubProps = {
   phoneRow?: { label: string; sub: string } | null;
   /** V-100: the renter passport row, for a signed-in person. Absent draws nothing. */
   passportRow?: { label: string; sub: string } | null;
+  /**
+   * The Rewards row, for a signed-in person: the Rewards page's title, and a
+   * line from the rewards read saying what that page will say (`rewardsDoorSub`;
+   * today "Rewards are not running yet"). Never a figure. Absent draws nothing.
+   */
+  rewardsRow?: { label: string; sub?: string | undefined } | null;
 };
 
 const ALL_ON: ResolvedProfileSettings["notifications"] = {
@@ -166,6 +173,7 @@ export function SettingsHub({
   deviceCount,
   phoneRow = null,
   passportRow = null,
+  rewardsRow = null,
 }: SettingsHubProps) {
   const hub = t.settings.hub;
   /* The appearance group and its theme row went with light mode on 23
@@ -247,6 +255,15 @@ export function SettingsHub({
           value={themeWord}
           testId="hub-appearance"
         />
+        {/* Accessibility was a destination in the settings menu and nowhere on
+            this screen, so it could not be found from here (7 October 2026). */}
+        <RowLink
+          href="/settings/accessibility"
+          glyph={<HubGlyph name="eye" />}
+          label={t.experienceSettings.accessibility.title}
+          sub={t.experienceSettings.accessibility.sub}
+          testId="hub-accessibility"
+        />
         <LanguageRow
           t={t}
           current={locale}
@@ -262,6 +279,18 @@ export function SettingsHub({
           sub={t.publicDoors.invite.rowSub}
           testId="hub-invite"
         />
+        {/* The Rewards page, beside the invite it belongs to. Its line comes
+            from the rewards read, so it says "not running yet" while that is
+            true and never shows a balance it does not have. */}
+        {rewardsRow && (
+          <RowLink
+            href="/rewards"
+            glyph={<HubGlyph name="hand-coins" />}
+            label={rewardsRow.label}
+            sub={rewardsRow.sub}
+            testId="hub-rewards"
+          />
+        )}
       </SettingsGroup>
 
       <SettingsGroup label="Privacy and security">
@@ -306,6 +335,15 @@ export function SettingsHub({
             label="Payment history"
             sub="What you paid through Vallo, and every refund"
             testId="hub-payment-history"
+          />
+          {/* A lister's payouts, payment by payment. It had a page and no row
+              (7 October 2026). Both words are Session 2's money sentences. */}
+          <RowLink
+            href="/payouts"
+            glyph={<HubGlyph name="bank" />}
+            label={PAYOUTS_TITLE}
+            sub={PAYOUTS_ROW_SUB}
+            testId="hub-payouts"
           />
         </SettingsGroup>
       )}

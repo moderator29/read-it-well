@@ -323,6 +323,27 @@ export const experienceFeaturesEn = {
     purchase: {
       title: "Choose a tier",
     },
+    /** The action on a live listing's row that opens its promotion screen. */
+    promote: "Promote",
+    /**
+     * `/agent/promotion`, the door into promotion from the workspace's rail and
+     * its dashboard: the lister's live listings, each with its Promote action.
+     * Frame words only; whether anything can be bought is the money sentence
+     * `PROMOTION_NOT_ON_SALE`, passed in from `lib/money/copy.ts`.
+     */
+    hub: {
+      title: "Promote your listings",
+      lede: "A promoted listing appears in a slot marked Promoted. Choose a live listing to see its own last thirty days and the four tiers.",
+      how: "How promotion works",
+      howSub: "What it buys, the four tiers, and what can be measured",
+      listLabel: "Your live listings",
+      emptyTitle: "No live listing to promote yet",
+      emptyBody: "Promotion is for a listing that is live. Publish one, then come back here.",
+      emptyAction: "Go to my listings",
+      unavailable: "Your listings could not be read just now. Nothing is lost; try again in a moment.",
+      /** The dashboard card's line under its title. */
+      dashboardSub: "See the tiers, and each live listing's own figures",
+    },
   },
 
   /**

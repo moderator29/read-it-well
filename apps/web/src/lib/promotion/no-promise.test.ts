@@ -41,6 +41,7 @@ const SOURCES = [
   ...readdirSync(join(WEB, "lib", "promotion")).filter((f) => /\.tsx?$/.test(f) && !f.includes(".test.")).map((f) => join(WEB, "lib", "promotion", f)),
   ...readdirSync(join(WEB, "components", "promotion")).filter((f) => /\.tsx?$/.test(f) && !f.includes(".test.")).map((f) => join(WEB, "components", "promotion", f)),
   join(WEB, "app", "agent", "listings", "[listingId]", "promotion", "page.tsx"),
+  join(WEB, "app", "agent", "promotion", "page.tsx"),
   join(WEB, "app", "(dev)", "preview", "promotion", "page.tsx"),
 ];
 

@@ -17,6 +17,7 @@ import { IconPlate } from "@/components/ui/IconPlate";
 import { Gauge, type GaugeStage } from "@/components/ui/charts/Gauge";
 import { TodayHero } from "@/components/workspace/TodayHero";
 import { waitingOn } from "@/lib/inspections/types";
+import { PROMOTION_HUB_HREF } from "@/lib/promotion/links";
 import "@/app/css/site.css";
 
 /**
@@ -285,6 +286,25 @@ export function RealDashboard({
               />
             ))
           )}
+        </ListGroup>
+
+        {/* ---------------------------------------------------- promotion */}
+        {/* D60: paid promotion's door on the screen a lister lands on. It
+            opens `/agent/promotion` (the live listings, each with Promote);
+            it shows no figure and sells nothing, because buying is not open
+            until payments for promotion are live (`PROMOTION_NOT_ON_SALE`). */}
+        <ListGroup data-testid="dashboard-promotion">
+          <ListRow
+            href={PROMOTION_HUB_HREF}
+            leading={
+              <IconPlate size="sm" shape="round" tone="brand">
+                <UiIcon name="trending-up" size={20} />
+              </IconPlate>
+            }
+            title={t.experienceFeatures.promotion.hub.title}
+            sub={t.experienceFeatures.promotion.hub.dashboardSub}
+            chevron
+          />
         </ListGroup>
 
         {/* ------------------------------------------------------ actions */}

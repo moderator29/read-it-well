@@ -18,6 +18,7 @@ import { readMyRewards } from "@/lib/referral/rewards-read";
 import { RewardsPauseNotice } from "@/components/app/referral/RewardsPauseNotice";
 import { REWARDS_PAUSED_EARNED_LINE } from "@/components/app/referral/money-words";
 import { InviteRewardLines } from "@/components/app/referral/InviteRewardLines";
+import { rewardsDoorSub } from "@/components/app/referral/rewards-door";
 
 export const dynamic = "force-dynamic";
 
@@ -50,9 +51,14 @@ export async function generateMetadata(): Promise<Metadata> {
  *             has to be corrected at launch gets forgotten at launch
  *   unknown   (signed out, or the read failed) neither
  *
- * It is a hub with inner pages (D25): `/settings/invite/how-it-works`, and the
- * two declared referral routes, which draw the honest unavailable state until
- * Session 2 lets a member read their own referrals (R-W6-1, R-W6-2).
+ * It is a hub with inner pages (D25), and it links every one of them:
+ * `/settings/invite/how-it-works`; `/settings/invite/referrals`, which draws
+ * the honest unavailable state until Session 2 lets a member read their own
+ * referrals (R-W6-1, R-W6-2); and `/rewards`. The Rewards row says what that
+ * page will say, from the same read (`rewardsDoorSub`): "not running yet"
+ * today, the pause while paused, and the Rewards Balance row while it runs.
+ * The founder could not find either page (7 October 2026), so neither waits
+ * for the reads to land before it has a door.
  *
  * PAUSED (D64). Once the rewards programme is live and the month's platform
  * budget is reached, this hub stops inviting: the ticket (copy, share sheet,
@@ -78,6 +84,35 @@ export default async function InviteSettingsPage({
      first run. The gate fails towards drawing the page. */
   const rewards = inviteRewards(await readMyRewards());
   const paused = rewards.state === "paused" ? rewards.programme : null;
+
+  /* The hub's two other inner pages, linked in every state the hub draws. */
+  const referralsRow = (
+    <RowLink
+      href="/settings/invite/referrals"
+      icon="users"
+      label={copy.referralsTitle}
+      sub={copy.referrals.lede}
+      testId="invite-referrals-row"
+    />
+  );
+  const rewardsDoor =
+    rewards.state === "running" ? (
+      <RowLink
+        href="/rewards"
+        icon="hand-coins"
+        label={t.experienceRewards.inviteHub.balanceRow}
+        sub={t.experienceRewards.inviteHub.balanceRowSub}
+        testId="invite-rewards-row"
+      />
+    ) : (
+      <RowLink
+        href="/rewards"
+        icon="hand-coins"
+        label={t.experienceRewards.title}
+        sub={rewardsDoorSub(rewards, t.experienceRewards)}
+        testId="invite-rewards-door"
+      />
+    );
   if (!paused && (await resolveSession()).state === "signed-in") {
     await gateFirstRun("invite", "/settings/invite", await searchParams);
   }
@@ -103,6 +138,8 @@ export default async function InviteSettingsPage({
               sub={copy.howSub}
               testId="invite-how-row"
             />
+            {referralsRow}
+            {rewardsDoor}
           </SettingsGroup>
         </div>
       </div>
@@ -152,15 +189,8 @@ export default async function InviteSettingsPage({
               sub={copy.howSub}
               testId="invite-how-row"
             />
-            {rewards.state === "running" ? (
-              <RowLink
-                href="/rewards"
-                icon="hand-coins"
-                label={t.experienceRewards.inviteHub.balanceRow}
-                sub={t.experienceRewards.inviteHub.balanceRowSub}
-                testId="invite-rewards-row"
-              />
-            ) : null}
+            {referralsRow}
+            {rewardsDoor}
           </SettingsGroup>
         </div>
       ) : (

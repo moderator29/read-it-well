@@ -37,6 +37,8 @@ export type HubCopy = SettingsOf<"hub" | "appearance" | "notifications" | "langu
   publicDoors: { invite: Pick<Dictionary["publicDoors"]["invite"], "rowTitle" | "rowSub"> };
   passcode: Pick<Dictionary["passcode"], "settingsRow" | "settingsRowSub">;
   paymentsPage: Pick<Dictionary["paymentsPage"], "settingsRow" | "settingsRowSub">;
+  /** The Accessibility row: the page's own title and line. */
+  experienceSettings: { accessibility: Pick<Dictionary["experienceSettings"]["accessibility"], "title" | "sub"> };
 };
 
 export function forHub(t: Dictionary): HubCopy {
@@ -47,6 +49,9 @@ export function forHub(t: Dictionary): HubCopy {
     publicDoors: { invite: { rowTitle: t.publicDoors.invite.rowTitle, rowSub: t.publicDoors.invite.rowSub } },
     passcode: { settingsRow: t.passcode.settingsRow, settingsRowSub: t.passcode.settingsRowSub },
     paymentsPage: { settingsRow: t.paymentsPage.settingsRow, settingsRowSub: t.paymentsPage.settingsRowSub },
+    experienceSettings: {
+      accessibility: { title: t.experienceSettings.accessibility.title, sub: t.experienceSettings.accessibility.sub },
+    },
   };
 }
 

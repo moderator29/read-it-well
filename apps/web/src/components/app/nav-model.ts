@@ -205,6 +205,21 @@ export function buildNav({
         /* What this person paid and what came back: a record, never an
            account. Read from the shell's slice like every neighbour. */
         { href: "/payments", label: t.experienceShell.navPayments, icon: "history" },
+        /*
+         * INVITE AND REWARDS HAVE DOORS (7 October 2026). Both were built and
+         * reachable only by address or from inside Settings, and the founder
+         * could not find either. They sit here, on both sides, because an
+         * invite link and what Vallo owes for it belong to the account, not to
+         * a market.
+         *
+         * Neither row claims anything. "Invite friends" says what the page
+         * does; "Rewards" is the Rewards page's own title. Whether a reward is
+         * running is said by the pages themselves, from the rewards read
+         * (`lib/referral/rewards-read.ts`), which today draws the honest
+         * not-live state. The row never shows a figure or a badge.
+         */
+        { href: "/settings/invite", label: t.experienceShell.navInvite, icon: "users" },
+        { href: "/rewards", label: t.experienceRewards.title, icon: "hand-coins" },
         /* No crypto row: V-83 took the deferred crypto market out of the
            shipped tree (parked on `claude/parked-crypto-deferred`). */
         /*
@@ -254,7 +269,7 @@ export function buildNav({
    */
   /*
    * PRICE CHECK HAS A DOOR (track L, 25 September 2026). `/price` had no
-   * inbound link anywhere in the product (`lib/nav/route-parents.ts` said so):
+   * inbound link anywhere in the product (`lib/nav/route-parents.ts` used to say so):
    * it was reached by address and by share cards only. It sits on the
    * Property side, because what it reports is what homes near a place are
    * asking, and signed in, because the route is behind the gate. Its own
