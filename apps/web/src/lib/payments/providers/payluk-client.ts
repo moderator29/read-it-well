@@ -45,7 +45,7 @@ import type {
 
 export type PaylukFetch = (
   url: string,
-  init: { method: string; headers: Record<string, string>; body?: string; signal?: AbortSignal },
+  init: { method: string; headers: Record<string, string>; body?: string | FormData; signal?: AbortSignal },
 ) => Promise<{ status: number; headers: { get(name: string): string | null }; json(): Promise<unknown> }>;
 
 /* ----------------------------------------------------------- amounts */
@@ -97,6 +97,8 @@ type RequestSpec = {
   path: string;
   customerId?: string;
   body?: Record<string, unknown>;
+  /** A `multipart/form-data` body (create-escrow); fetch sets the boundary. */
+  form?: Record<string, string>;
   query?: Record<string, string>;
   /** True when the call can move money or create something: no answer is then UNKNOWN. */
   mutates: boolean;
@@ -121,6 +123,12 @@ export function failureKindFor(status: number, mutates: boolean): RailFailureKin
   return "refused";
 }
 
+function formBody(fields: Record<string, string>): FormData {
+  const form = new FormData();
+  for (const [name, value] of Object.entries(fields)) form.append(name, value);
+  return form;
+}
+
 export async function paylukRequest(ctx: PaylukContext, spec: RequestSpec): Promise<Raw> {
   const wait = ctx.gate.wait();
   if (wait > 0) return fail("rate_limited", null, "Held locally: the provider's rate window is spent.", wait);
@@ -135,7 +143,7 @@ export async function paylukRequest(ctx: PaylukContext, spec: RequestSpec): Prom
     res = await ctx.fetch(`${ctx.config.baseUrl}${spec.path}${qs}`, {
       method: spec.method,
       headers,
-      ...(spec.body ? { body: JSON.stringify(spec.body) } : {}),
+      ...(spec.body ? { body: JSON.stringify(spec.body) } : spec.form ? { body: formBody(spec.form) } : {}),
       signal: AbortSignal.timeout(20_000),
     });
   } catch {
