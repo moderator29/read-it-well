@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { solidSrc } from "@/design-system/icons/object-assets";
 import {
   BOARD_LABEL,
   CLIMB_STEPS,
@@ -35,11 +36,13 @@ import { shareOrCopy } from "@/lib/ui/clipboard";
  *                   pop (MOTION_SYSTEM principle 5)
  */
 
+/* Solid objects, never glass (the founder, 7 October 2026): the same names
+   as before, drawn through `glass-to-solid.ts`. */
 const BOARD_OBJECT: Record<Board, string> = {
-  referrals: "/brand/glass/people-ring.png",
-  property: "/brand/glass/keys-handover.png",
-  hotels: "/brand/glass/hotel-star.png",
-  restaurants: "/brand/glass/concierge-bell.png",
+  referrals: solidSrc("people-ring"),
+  property: solidSrc("keys-handover"),
+  hotels: solidSrc("hotel-star"),
+  restaurants: solidSrc("concierge-bell"),
 };
 
 export function boardObject(board: Board): string {

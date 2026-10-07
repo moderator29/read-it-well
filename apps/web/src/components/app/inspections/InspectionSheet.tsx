@@ -11,6 +11,7 @@ import { GateHandshake } from "./GateHandshake";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { IconPlate } from "@/components/ui/IconPlate";
+import { icon3dSrc } from "@/components/ui/icon-3d";
 import { panelClass } from "@/components/ui/Panel";
 import { Sheet } from "@/components/ui/Sheet";
 import { SuccessSheet } from "@/components/ui/SuccessSheet";
@@ -974,9 +975,10 @@ export function InspectionHero({
           </h1>
           <p className="nf-ix-hero__sub">{sub}</p>
         </div>
-        {/* The render's own glass house, cropped and keyed (SOURCES.md). */}
+        {/* A solid house with its tick, never the render's glass house (the
+            founder, 7 October 2026: no glass anywhere). */}
         <span className="nf-ix-hero__mark" aria-hidden="true">
-          <Crop name="house-check" width={186} height={140} />
+          <Image src={icon3dSrc("home-verified")} alt="" width={140} height={140} unoptimized className="nf-ix-crop" />
         </span>
       </div>
     </div>

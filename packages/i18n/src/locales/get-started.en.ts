@@ -42,7 +42,7 @@ export const getStartedEn = {
       lines: ["Find.", "Check.", "Move in."],
       litLine: true,
       body: "Homes to rent, buy and stay in, all in one search.",
-      scene: "A lit villa above its pool at night, with a glass map pin over it",
+      scene: "A lit villa above its pool at night, with a folded map and its pin over it",
     },
     {
       lines: ["Know what", "you’re getting."],
@@ -54,13 +54,13 @@ export const getStartedEn = {
       lines: ["We never hold", "your money."],
       litLine: false,
       body: "Every payment runs through a licensed provider, not through us.",
-      scene: "A lit tower entrance at dusk, with a glass wallet and a lock",
+      scene: "A lit tower entrance at dusk, with a payment card and a lock",
     },
     {
       lines: ["Live, stay,", "dine and work."],
       litLine: false,
       body: "Homes, stays, restaurants and workspaces, on one platform.",
-      scene: "A lit restaurant lounge at night, with a glass phone holding a home and a booking",
+      scene: "A lit restaurant lounge at night, with a lit hotel and its bell",
     },
   ],
 };
