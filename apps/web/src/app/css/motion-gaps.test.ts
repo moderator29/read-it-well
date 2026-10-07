@@ -160,7 +160,11 @@ describe("principle 10, the marketing and loading loops (Session 3, C1)", () => 
          keep their gentle continuous float. Only when ObjectField sets
          `data-on` (never under reduced motion, Calm, Off, data saver or a
          low-end device), and paused while the field is off screen. */
-      "app/css/landing-3d.css": 1, // the floating 3D objects' gentle bob
+      /* THE FOUNDER'S RULING (7 October 2026, "do animations"): the hero's
+         brand-blue aurora drifts behind the copy, paused unless the hero's
+         object field is on screen and allowed to move, and still under
+         reduced motion, Calm, Off, data saver and a low-end device. */
+      "app/css/landing-3d.css": 2, // the floating 3D objects' gentle bob, and the hero's aurora
     };
     const root = join(process.cwd(), "src");
     const found: Record<string, number> = {};

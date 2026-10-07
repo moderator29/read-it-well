@@ -5,8 +5,10 @@ import { landingCatalogue } from "@/lib/listings/landing-catalogue";
 import type { Listing, ListingKind } from "@/lib/listings/types";
 import { isSocialEnabled } from "@/lib/social/flag";
 import { getPlatformStats, type PlatformStats } from "@/lib/platform-stats";
-import type { MiniListing } from "@/lib/site/listing-card";
+import { toMiniListing, type MiniListing } from "@/lib/site/listing-card";
 import { Hero } from "./Hero";
+import { Bento } from "./Bento";
+import { AiBand } from "./AiBand";
 import { MoveInBand } from "./MoveInBand";
 import { SpaceOsBand } from "./SpaceOsBand";
 import { CommunityBand } from "./CommunityBand";
@@ -26,15 +28,20 @@ import { landingDoor } from "./doors";
  * when the tally adds up to `stats.listings` the page was complete and the
  * category tiles may print numbers; otherwise they print none.
  *
- * There is no featured rail and no AI showcase any more (the platform band
- * draws labelled examples, never inventory), so the landing no longer reads
- * `recommended` or builds cards nothing renders.
+ * `showcase` is back with the AI room (7 October, at the founder's request):
+ * up to three real listings of each kind off the same catalogue page, which
+ * the example conversation may put under a reply only when two of the kind
+ * it asks about exist. No extra read: it is the page already fetched.
  */
 export type LandingData = {
   /** Unused by the landing; the preview fixtures still pass it. */
   cards?: MiniListing[];
   stats: PlatformStats | null;
   counts: ReadonlyMap<ListingKind, number> | null;
+  /** Real listings the AI room's example conversation may show under a
+      reply. Optional, so a fixture that leaves it out plays only the script
+      that needs no cards. */
+  showcase?: MiniListing[];
   /** Whether Around is switched on (the `social` flag, which fails open). The
       ecosystem layer drops its Around door when it is off, as the app does. */
   social?: boolean;
@@ -45,8 +52,8 @@ export type LandingData = {
 };
 
 export async function landingData(
-  /** Kept so the caller's signature is unchanged; nothing here is worded. */
-  _t?: Dictionary,
+  /** The words the showcase cards are labelled in (market, suffix). */
+  t?: Dictionary,
 ): Promise<LandingData> {
   /* OPS-11: the shared five-minute read when there is a database; the
      repository (empty or API-backed) otherwise. Only the catalogue is
@@ -59,8 +66,21 @@ export async function landingData(
   return {
     stats,
     counts: complete ? tally : null,
+    showcase: t ? showcaseCandidates(catalogue).map((l) => toMiniListing(l, t)) : [],
     social,
   };
+}
+
+/** Up to three listings of each kind, photographed first, for the AI room. */
+function showcaseCandidates(catalogue: Listing[]): Listing[] {
+  const byKind = new Map<ListingKind, Listing[]>();
+  const ordered = [...catalogue].sort((a, b) => Number(b.photos.length > 0) - Number(a.photos.length > 0));
+  for (const l of ordered) {
+    const list = byKind.get(l.kind) ?? [];
+    if (list.length < 3) list.push(l);
+    byKind.set(l.kind, list);
+  }
+  return [...byKind.values()].flat();
 }
 
 /**
@@ -116,19 +136,26 @@ export function LandingBody({
           App, FAQ    on your phone; the short answers in one grouped card
           Close       the final card: sign up, or sign in
 
-        Folded into the platform band, which says them as one system in one
-        screen (the four rooms measured 3,387px at 1440 before this pass):
-        the hands-on deck (its moments are the
-        layers' moments), the bento (its doors are the ecosystem layer), the
-        AI room (its truths and its first example exchange are the
-        intelligence layer) and the Property and Stays switch (the hero's
-        second door and the ecosystem layer). Their components are no longer
-        rendered here.
+        THE 3D PASS (7 October; the founder: "my landing page is even still
+        the same, no upgrade... do animations"). Two rooms that carried his
+        3D objects come back, ten rooms in all:
+
+          Bento       "Everything the move needs": seven doors, each with one
+                      of the founder's 3D objects, straight after the hero
+                      so the art is the first thing under the fold
+          AI          the assistant's three rules, each with its object,
+                      beside the example conversation that types itself
+
+        The hands-on deck and the Property and Stays switch stay folded into
+        the platform band: they carried no 3D art. Every room rises in as it
+        enters the viewport (MotionReveal; landing-3d.css, "the 3D pass").
       */}
       <Hero t={t} locale={locale} door={door} />
+      <Bento t={t} door={door} social={data.social !== false} />
       <MoveInBand t={t} locale={locale} door={door} />
       <SpaceOsBand t={t} locale={locale} door={door} social={data.social !== false} />
       <Journey t={t} />
+      <AiBand t={t} locale={locale} cards={data.showcase ?? data.cards ?? []} door={door} />
       <CategoryGrid t={t} counts={data.counts} door={door} />
       <CommunityBand t={t} locale={locale} stats={data.stats} />
       {native ? null : <AppBand t={t} native={native} />}

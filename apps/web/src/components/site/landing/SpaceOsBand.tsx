@@ -1,13 +1,15 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import type { Dictionary, Locale } from "@vallo/i18n/core";
-import { IconPlate } from "@/components/ui/IconPlate";
-import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { Icon3D } from "@/components/ui/Icon3D";
+import { MotionReveal } from "@/components/motion/Reveal";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 import { NO_CUSTODY_SENTENCE, PAYMENT_GATE_SENTENCE } from "@/lib/money/copy";
 import type { Door } from "./doors";
 import { OsTabs, type OsLayer } from "./OsTabs";
 import { SectionHead } from "./SectionHead";
 import { landingMoments } from "./StackRoom";
+import { BENTO_OBJECTS, LANDING_OBJECT_SIZE, OS_OBJECTS } from "./landing-objects";
 
 type LayerKey = "trust" | "discover" | "intelligence" | "transactions" | "operations" | "ecosystem";
 
@@ -58,13 +60,13 @@ export function SpaceOsBand({
   const truths = t.home.aiCard.truths;
   const b = rooms.bento.cards;
 
-  const allTiles: { key: string; href: string; icon: UiIconName; title: string; body: string }[] = [
-    { key: "rent", href: door("/search"), icon: "key", title: b.rent.title, body: b.rent.body },
-    { key: "stays", href: door("/stays"), icon: "bed", title: b.stays.title, body: b.stays.body },
-    { key: "ai", href: door("/assistant"), icon: "bot", title: b.ai.title, body: b.ai.body },
-    { key: "price", href: door("/price"), icon: "chart-bar", title: b.price.title, body: b.price.body },
-    { key: "messages", href: door("/messages"), icon: "messages", title: b.messages.title, body: b.messages.body },
-    { key: "feed", href: door("/around"), icon: "feed", title: b.feed.title, body: b.feed.body },
+  const allTiles: { key: keyof typeof BENTO_OBJECTS; href: string; title: string; body: string }[] = [
+    { key: "rent", href: door("/search"), title: b.rent.title, body: b.rent.body },
+    { key: "stays", href: door("/stays"), title: b.stays.title, body: b.stays.body },
+    { key: "ai", href: door("/assistant"), title: b.ai.title, body: b.ai.body },
+    { key: "price", href: door("/price"), title: b.price.title, body: b.price.body },
+    { key: "messages", href: door("/messages"), title: b.messages.title, body: b.messages.body },
+    { key: "feed", href: door("/around"), title: b.feed.title, body: b.feed.body },
   ];
   const tiles = allTiles.filter((tile) => social || tile.key !== "feed");
 
@@ -75,6 +77,11 @@ export function SpaceOsBand({
   ): ReactNode => (
     <div className="nf-os__layer" data-layer={key}>
       <div className="nf-os__copy">
+        {/* The layer's 3D object (the founder's art, 7 October), above its
+            name; it lands with a small pop when the layer is chosen. */}
+        <span className="nf-obj nf-os__obj" aria-hidden="true">
+          <Icon3D name={OS_OBJECTS[key]} size={LANDING_OBJECT_SIZE.os} />
+        </span>
         <p className="nf-section-label nf-os__name">{os.layers[key].tab}</p>
         <h3 className="nf-os__title">{copy.title}</h3>
         <div className="nf-os__body">{copy.body}</div>
@@ -204,9 +211,9 @@ export function SpaceOsBand({
           {tiles.map((tile) => (
             <li key={tile.key}>
               <Link href={tile.href} prefetch={false} className="nf-os__tile">
-                <IconPlate size="sm" shape="round" tone="brand">
-                  <UiIcon name={tile.icon} size={16} />
-                </IconPlate>
+                <span className="nf-obj nf-os__tile-obj" aria-hidden="true">
+                  <Icon3D name={BENTO_OBJECTS[tile.key]} size={LANDING_OBJECT_SIZE.tile} />
+                </span>
                 <span className="nf-os__tile-text">
                   <span className="nf-os__tile-title">{tile.title}</span>
                   <span className="nf-os__tile-body">{tile.body}</span>
@@ -222,7 +229,9 @@ export function SpaceOsBand({
   return (
     <section className="nf-shell nf-room" data-chapter="os" aria-labelledby="nf-landing-os-title">
       <SectionHead id="nf-landing-os-title" eyebrow={os.overline} title={t.landing.positioning} lede={os.lede} align="center" />
-      <OsTabs layers={layers} label={os.tabsLabel} />
+      <MotionReveal>
+        <OsTabs layers={layers} label={os.tabsLabel} />
+      </MotionReveal>
     </section>
   );
 }
