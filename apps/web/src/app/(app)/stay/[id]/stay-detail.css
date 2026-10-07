@@ -248,3 +248,15 @@
     }
   }
 }
+
+/*
+ * THE FOOT BESIDE THE RAIL, from `lg`. The pinned bar is `fixed inset-x-0`,
+ * so on a desktop it ran under the member rail and its figure sat behind the
+ * rail's foot. It starts where the content starts instead. Unlayered on purpose:
+ * the bar's position is a utility class, and a layered rule cannot outrank one.
+ */
+@media (min-width: 64rem) {
+  .nf-app-shell .nf-action-bar-pinned:has(.nf-stay-foot) {
+    left: var(--nf-rail-width);
+  }
+}
