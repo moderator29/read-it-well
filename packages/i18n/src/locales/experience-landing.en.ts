@@ -63,8 +63,6 @@ export const experienceLandingEn = {
    * line below unless it is backed (`lib/trust/claims.ts`).
    */
   plasma: {
-    /** The hero's mono breadcrumb, the four markets in the order the stack shows them. */
-    crumb: ["Homes", "Stays", "Restaurants", "Workspaces"],
     markets: {
       overline: "Four markets, one account",
       title: "Every kind of space.",
@@ -146,8 +144,7 @@ export const experienceLandingEn = {
       },
     },
     close: {
-      /** The store screenshots' three-line headline, every line a step that is true today. */
-      lines: ["Find.", "Agree.", "Move in."],
+      /** The close's one heading, over the store badges (the call to action left on 7 October). */
       app: "On your phone",
     },
   },
