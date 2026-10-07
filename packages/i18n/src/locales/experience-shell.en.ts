@@ -25,4 +25,7 @@ export const experienceShellEn = {
   navReceipts: "Receipts",
   navPayouts: "Payouts",
   navRefunds: "Refunds",
+  /* D76: the public leaderboards (referrals, and the top on Vallo), beside
+     Rewards in the money group. The page's own title. */
+  navLeaderboard: "Leaderboard",
 };

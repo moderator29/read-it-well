@@ -13,7 +13,8 @@ import { buildNav } from "./nav-model";
  */
 const t = shellDictionary(getDictionary("en"));
 const base = { t, unreadNotifications: 0, isAgent: false, isAdmin: false };
-const MONEY = ["/wallet", "/payments", "/receipts", "/payouts", "/refunds", "/rewards", "/settings/invite"];
+/* D76: the Leaderboard sits beside Rewards. */
+const MONEY = ["/wallet", "/payments", "/receipts", "/payouts", "/refunds", "/rewards", "/leaderboard", "/settings/invite"];
 
 describe("the side navigation's money group", () => {
   for (const side of ["property", "stays"] as const) {

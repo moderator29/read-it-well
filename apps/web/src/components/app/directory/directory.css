@@ -1,0 +1,195 @@
+/*
+ * THE DIRECTORY (D76), one page on both sides. The card is the identity
+ * header's grammar at row size: a rounded-square face, the name with one
+ * verified mark, the kind and the place, then a line of real counts. Raised
+ * surface on the page; glass only for the search well and the scope pill,
+ * which float.
+ */
+
+.nf-dir {
+  max-width: 48rem;
+  margin-inline: auto;
+  padding: 0 var(--nf-space-md) calc(var(--nf-space-3xl) + env(safe-area-inset-bottom));
+}
+
+.nf-dir__tools {
+  display: grid;
+  gap: var(--nf-space-sm);
+  margin-top: var(--nf-space-md);
+}
+
+.nf-dir__search {
+  display: flex;
+  align-items: center;
+  gap: var(--nf-space-sm);
+  min-block-size: 3rem;
+  padding-inline: var(--nf-space-md);
+  border-radius: var(--nf-radius-island);
+  background: var(--nf-surface-raised);
+  border: 1px solid var(--nf-border-subtle);
+  color: var(--nf-content-secondary);
+}
+
+.nf-dir__search:focus-within {
+  border-color: var(--nf-brand-edge);
+}
+
+.nf-dir__search input {
+  flex: 1;
+  min-width: 0;
+  min-block-size: 2.75rem;
+  background: transparent;
+  border: 0;
+  outline: 0;
+  color: var(--nf-content-primary);
+  font-size: var(--nf-text-body);
+}
+
+.nf-dir .nf-lb__scope {
+  margin-top: var(--nf-space-md);
+  padding-bottom: 0;
+}
+
+.nf-dir__board {
+  display: flex;
+  align-items: center;
+  gap: var(--nf-space-sm);
+  min-block-size: 3rem;
+  margin-top: var(--nf-space-md);
+  padding-inline: var(--nf-space-md);
+  border-radius: var(--nf-radius-card);
+  background: color-mix(in srgb, var(--nf-brand-primary) 12%, var(--nf-surface-raised));
+  border: 1px solid var(--nf-brand-edge-soft);
+  color: var(--nf-content-primary);
+  font-weight: 600;
+  font-size: var(--nf-text-body-sm);
+  text-decoration: none;
+}
+
+.nf-dir__board span {
+  flex: 1;
+}
+
+.nf-dir__grid {
+  list-style: none;
+  margin: var(--nf-space-lg) 0 0;
+  padding: 0;
+  display: grid;
+  gap: var(--nf-space-sm);
+}
+
+@media (min-width: 48rem) {
+  .nf-dir__grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.nf-dir__card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--nf-space-md);
+  min-block-size: 5rem;
+  padding: var(--nf-space-md);
+  border-radius: var(--nf-radius-card);
+  background: var(--nf-surface-raised);
+  border: 1px solid var(--nf-border-subtle);
+  color: inherit;
+  text-decoration: none;
+}
+
+.nf-dir__face {
+  inline-size: 3.5rem;
+  block-size: 3.5rem;
+  border-radius: var(--nf-radius-card);
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: var(--nf-night-glass-raised-fill);
+  border: 1px solid var(--nf-night-glass-raised-edge);
+  font-family: var(--nf-font-display);
+  font-weight: 600;
+  font-size: var(--nf-text-body);
+}
+
+.nf-dir__face img {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}
+
+.nf-dir__main {
+  display: grid;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.nf-dir__name {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 0;
+  font-weight: 600;
+  font-size: var(--nf-text-body);
+}
+
+.nf-dir__name-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nf-dir__verified {
+  flex: none;
+  color: var(--nf-brand-accent);
+}
+
+.nf-dir__sub,
+.nf-dir__fact {
+  font-size: var(--nf-text-caption);
+  color: var(--nf-content-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nf-dir__fact {
+  color: var(--nf-content-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.nf-dir__chev {
+  color: var(--nf-content-subtle);
+}
+
+.nf-dir__empty {
+  margin-top: var(--nf-space-xl);
+}
+
+/* Cards rise in, at most 60ms apart; a filter re-sorts them by FLIP. */
+.nf-dir__li {
+  animation: nf-lb-rise 420ms var(--nf-ease-entrance) var(--lb-delay, 0ms) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root .nf-dir * {
+    animation: none;
+    transition: none;
+  }
+}
+
+:root[data-motion="off"] .nf-dir *,
+:root[data-motion="calm"] .nf-dir *,
+:root[data-save-data="on"] .nf-dir * {
+  animation: none;
+  transition: none;
+}
+
+.nf-dir .nf-dir__cta.nf-btn {
+  margin-top: var(--nf-space-md);
+  border-radius: var(--nf-radius-island);
+  background: var(--nf-content-primary);
+  color: var(--nf-platinum-ink);
+  border-color: transparent;
+  box-shadow: var(--nf-capsule-reflection);
+}
