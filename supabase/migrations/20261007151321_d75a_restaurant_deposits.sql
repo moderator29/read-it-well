@@ -1,41 +1,7 @@
 -- D75: restaurant deposits, the OpenTable no-show pattern, on the direct rail.
--- Pending: NOT applied. The lead reviews it, applies it through the MCP, and
--- commits it under the version the server stamps (scripts/check-migrations.mjs).
--- Its probe is supabase/tests/probes-pending/d75a-restaurant-deposits.sql.
---
--- Behind the switch `restaurant_deposits`, seeded OFF (a missing row reads off).
--- With it off: no rule applies, no deposit can be opened or settled, and the
--- confirm check below does nothing; reservations behave exactly as today.
---
--- WHAT A DEPOSIT IS. A restaurant may ask for a deposit on some service windows
--- or from some party size up (`restaurant_deposit_rules`). The guest pays it by
--- card through Paystack with the same split every stay uses: the venue's share
--- to the venue owner's own Paystack subaccount (`private.payee_subaccount`), and
--- Vallo's commission (`private.current_fee_bps('commission')`, 2 percent today,
--- money_policy_versions 2026-10-06.1) to Vallo. Vallo never holds it. It is
--- recorded against the reservation, deducted from the bill when the guest dines
--- (status `applied`), refunded by the restaurant's rule when cancelled in time or
--- by the venue (`refund_due`, then `refunded` once Paystack takes the refund),
--- and kept by the venue on a late cancellation or a no-show (`forfeited`).
---
--- WHY ITS OWN CHARGE ROW AND NOT `transactions`. `transactions.booking_id` is a
--- NOT NULL foreign key to bookings, and the payment gate, the split and
--- `settle_booking_charge` are all keyed on a booking and its deal agreement. A
--- reservation has neither, and making it a fake booking would put a dinner on
--- the stays sweeps, trips and reviews. So the deposit follows the precedent the
--- promotion purchase set (its own `rm-` prefix, open and settle functions, a
--- branch in the Paystack webhook) and reuses the same parts: the same split
--- functions, a BEFORE INSERT gate that refuses any charge row the database did
--- not compute (the shape of `transactions_00_payment_gate`), the settle rules of
--- `settle_booking_charge` (idempotent on the reference, a charge that cannot be
--- applied becomes refund-due with a high risk alert and an audit row), the
--- generic card refund claim (`claim_card_refund`, through lib/payments/refund.ts),
--- and the Vallo revenue ledger (`private.ledger_append`, as promotions post).
---
--- NO LIVE FUNCTION IS CHANGED. Two new triggers sit on `reservations`: one
--- refuses a venue confirming a reservation whose deposit is due and unpaid (only
--- with the switch on), and one decides the paid deposit's outcome when the
--- reservation is cancelled, completed or marked a no-show.
+-- Behind the switch `restaurant_deposits`, seeded OFF. Full rationale in the
+-- pending header (git history of supabase/migrations/pending/d75a_restaurant_deposits.sql).
+-- No live function is changed; two new triggers sit on `reservations`.
 
 -- 0. The switch. --------------------------------------------------------------
 insert into public.feature_flags (key, enabled, note)

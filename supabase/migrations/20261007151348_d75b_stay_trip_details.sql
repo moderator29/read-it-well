@@ -1,35 +1,7 @@
--- D75: the stay journey after booking, checked against live on 7 October 2026.
--- Pending: NOT applied. The lead reviews it, applies it through the MCP, and
--- commits it under the version the server stamps (scripts/check-migrations.mjs).
--- Its probe is supabase/tests/probes-pending/d75b-stay-trip-details.sql.
--- Apply after d73a_stays_instant_pay.sql (the gap it closes is widest with it).
---
--- WHAT LIVE HAD
---  * `listings.address` and `accommodations.address` are not granted to members
---    at all, and nothing gave a guest the address of the place they booked: the
---    trip page showed area and city only.
---  * `listing_access` (estate, gate directions, security phone, access code) was
---    readable by a guest with a CONFIRMED booking, paid or not
---    (`private.can_see_listing_access`). CONFIRMED used to mean "the host
---    accepted"; with instant booking (D73) it is true the moment a guest books,
---    before a kobo is paid. A gate code must follow the money.
---  * Reviews (`reviews_insert_own`) were gated on a CONFIRMED or COMPLETED
---    booking whose check-out had passed, but not on payment.
---
--- WHAT THIS CHANGES
---  1. private.booking_is_paid(): a SUCCESSFUL transaction exists on the booking.
---  2. private.can_see_listing_access (LIVE FUNCTION CHANGED): the guest clause
---     also requires the booking to be paid. Owner and admin clauses unchanged.
---  3. reviews_insert_own (LIVE POLICY CHANGED, by ALTER POLICY so its roles and
---     name are kept): the booking must also be paid.
---  4. public.my_stay_details(): the trip page's one read. To the booking's own
---     guest only, once paid and while CONFIRMED or COMPLETED: the address, the
---     check-in and check-out times and house rules (hotels), the access details
---     (listing stays; the access code only until the stay is over), the host's
---     display name and where to message them. Unpaid, it answers 'unpaid' and
---     reveals nothing.
--- Live has 0 bookings, 0 transactions and 0 reviews today, so no existing row
--- changes meaning.
+-- D75: the stay journey after booking. Gate code and reviews follow payment;
+-- my_stay_details is the trip page's one read. Full rationale in the pending
+-- header (git history of supabase/migrations/pending/d75b_stay_trip_details.sql).
+-- Live had 0 bookings, 0 transactions and 0 reviews when applied.
 
 -- 1. ---------------------------------------------------------------------------
 create or replace function private.booking_is_paid(p_booking uuid)
