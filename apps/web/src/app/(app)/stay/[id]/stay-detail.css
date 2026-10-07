@@ -238,7 +238,7 @@
   }
   .nf-stay-foot .nf-detail-foot__action {
     box-shadow:
-      0 1rem 2.25rem -1rem color-mix(in oklab, var(--nf-brand-primary) 75%, transparent),
+      var(--nf-elevation-floating),
       var(--nf-capsule-reflection);
   }
 

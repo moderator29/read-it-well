@@ -282,7 +282,7 @@
   .nf-detail-foot .nf-detail-foot__action.nf-btn--primary {
     box-shadow:
       var(--nf-act-shadow),
-      0 22px 44px -16px color-mix(in oklab, var(--nf-brand-primary) 60%, transparent);
+      var(--nf-elevation-floating);
   }
 
   /* ------------------------------------------------- TRUE COST AS A BILL

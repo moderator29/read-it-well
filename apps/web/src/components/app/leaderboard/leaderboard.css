@@ -212,7 +212,7 @@
   border-color: var(--nf-gold-edge);
   box-shadow:
     0 0 0 1px var(--nf-gold-edge),
-    0 18px 50px -12px color-mix(in srgb, var(--nf-gold-mid) 55%, transparent);
+    var(--nf-elevation-floating);
 }
 
 /* The glow behind first. */
@@ -340,7 +340,7 @@
   top: 0;
   inline-size: 0.375rem;
   block-size: 0.625rem;
-  border-radius: 1px;
+  border-radius: var(--nf-radius-xs);
   background: var(--nf-gold-mid);
 }
 .nf-lb__bit[data-tone="1"] {
@@ -371,7 +371,7 @@
   border: 1px solid var(--nf-smoked-glass-edge);
   backdrop-filter: blur(var(--nf-smoked-glass-blur));
   -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
-  box-shadow: 0 12px 30px -12px var(--nf-scrim-drawer);
+  box-shadow: var(--nf-elevation-raised);
 }
 
 .nf-lb__toggle button {
@@ -647,7 +647,7 @@
   border: 1px solid var(--nf-smoked-glass-edge);
   backdrop-filter: blur(var(--nf-smoked-glass-blur));
   -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
-  box-shadow: 0 16px 40px -14px var(--nf-scrim-drawer);
+  box-shadow: var(--nf-elevation-floating);
   font-weight: 600;
   font-size: var(--nf-text-body-sm);
   color: var(--nf-content-primary);
@@ -730,7 +730,7 @@
   border: 1px solid var(--nf-smoked-glass-edge);
   backdrop-filter: blur(var(--nf-smoked-glass-blur));
   -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
-  box-shadow: 0 24px 48px -20px var(--nf-scrim-drawer);
+  box-shadow: var(--nf-elevation-dialog);
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;

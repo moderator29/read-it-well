@@ -60,6 +60,12 @@ export function unreadConversationCount(rows: Parameters<typeof unreadFromRows>[
 async function read() {
   if (!client) return;
   try {
+    /* No session on this device (a preview harness drawing a signed-in
+       dock, or a session that has just ended): there is no caller to count
+       for, and the function would only answer 401. The session is read from
+       the device, not the network. */
+    const { data: auth } = await client.auth.getSession();
+    if (!auth.session) return;
     const { data, error } = await client.rpc("my_unread_counts");
     if (error || !Array.isArray(data)) return;
     emit(unreadConversationCount(data));

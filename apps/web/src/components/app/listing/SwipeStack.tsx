@@ -1,7 +1,7 @@
 "use client";
 
 import { Children, useCallback, useRef, useState, type PointerEvent, type ReactNode } from "react";
-import { animate } from "framer-motion";
+import { animate, type AnimationPlaybackControls } from "framer-motion";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { motionQuiet } from "@/lib/motion/gate";
 import { feedback } from "@/lib/ui/feedback";
@@ -52,6 +52,9 @@ export function SwipeStack({
   const gesture = useRef<{ x: number; y: number; t: number; dx: number; dragging: boolean; id: number } | null>(null);
   const swallowClick = useRef(false);
   const busy = useRef(false);
+  /* The spring that returns a short release, held so a new touch or a throw
+     can stop it instead of both writing the same transform. */
+  const settle = useRef<AnimationPlaybackControls | null>(null);
 
   const place = useCallback((dx: number) => {
     const el = frontRef.current;
@@ -61,6 +64,7 @@ export function SwipeStack({
   const advance = useCallback(
     async (direction: 1 | -1, from = 0) => {
       if (total < 2 || busy.current) return;
+      settle.current?.stop();
       feedback("select");
       if (motionQuiet() || direction === -1) {
         place(0);
@@ -95,6 +99,7 @@ export function SwipeStack({
 
   const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
     if (total < 2 || busy.current || motionQuiet()) return;
+    settle.current?.stop();
     gesture.current = { x: event.clientX, y: event.clientY, t: event.timeStamp, dx: 0, dragging: false, id: event.pointerId };
     swallowClick.current = false;
   };
@@ -118,11 +123,14 @@ export function SwipeStack({
     swallowClick.current = true;
     const width = event.currentTarget.offsetWidth || 320;
     const velocity = g.dx / Math.max(1, event.timeStamp - g.t);
-    if (Math.abs(g.dx) > width / 3 || Math.abs(velocity) > 0.6) {
+    /* A throw still in flight (an arrow or a key began it mid-drag) would make
+       `advance` a no-op and leave this card at the finger's offset, so the
+       card springs home instead. */
+    if (!busy.current && (Math.abs(g.dx) > width / 3 || Math.abs(velocity) > 0.6)) {
       void advance(1, g.dx);
       return;
     }
-    void animate(g.dx, 0, { type: "spring", stiffness: 420, damping: 40, onUpdate: place });
+    settle.current = animate(g.dx, 0, { type: "spring", stiffness: 420, damping: 40, onUpdate: place });
   };
 
   if (total === 0) return null;

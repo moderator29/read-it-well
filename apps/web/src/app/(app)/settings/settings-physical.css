@@ -26,7 +26,7 @@
   .nf-settings-physical .nf-switch[aria-checked="true"] .nf-switch__thumb {
     background: radial-gradient(circle at 35% 28%, var(--nf-platinum-hi) 0%, var(--nf-platinum-mid) 58%, var(--nf-platinum-low) 100%);
     box-shadow:
-      0 2px 4px var(--nf-surface-canvas),
+      var(--nf-elevation-raised),
       inset 0 -1px 1px var(--nf-platinum-low),
       inset 0 1px 1px var(--nf-platinum-edge);
   }

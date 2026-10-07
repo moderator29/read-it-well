@@ -219,7 +219,7 @@ export function LeaderboardScreen({
       <div key={`${board}-${period}`}>
         <section className="nf-lb__stage" id="lb-stage" aria-label={`Top three, ${place}`}>
           <Beams />
-          <Podium rows={top} board={board} emptyLabel={read.state === "ready" ? "Your place" : "Opening soon"} />
+          <Podium rows={top} board={board} emptyLabel={read.state === "ready" ? "Your place" : "Not open yet"} />
           <ScopeToggle scope={scope} onChange={setScope} placeName={read.place.name} />
         </section>
 

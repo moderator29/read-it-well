@@ -23,13 +23,6 @@ import { toQueueRow } from "./rows";
 import { LISTING_TABS, isDecidedStatus, listingStatusWord, reviewHref } from "./tabs";
 import "../_review/review.css";
 
-/*
- * The card the preview harness photographs. It lived in this file and
- * `(dev)/preview/c1/listing-review` imports it from here, so it is re-exported
- * rather than moved out from under that import.
- */
-export { ListingCard } from "./ListingCard";
-
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
   return { title: t.admin.listings.title, robots: { index: false, follow: false } };

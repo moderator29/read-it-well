@@ -6,7 +6,7 @@ import { Sheet } from "@/components/ui/Sheet";
 import { Button } from "@/components/ui/Button";
 import { AmountPad, type AmountChip } from "../AmountPad";
 import { MoneyFigure } from "../kit";
-import { confirmDepositPaid, prepareDeposit, cancelBalanceMovement, type DepositStart } from "@/lib/money/member-wallet-actions";
+import { confirmDepositPaid, prepareDeposit, type DepositStart } from "@/lib/money/member-wallet-actions";
 import type { MovementView } from "@/lib/money/member-wallet";
 import { Watching } from "./WithdrawFlow";
 import { reach } from "./reach";
@@ -43,7 +43,10 @@ export function AddMoneyFlow({ open, onOpenChange, locale, onMoved }: { open: bo
   const [busy, setBusy] = useState(false);
 
   const close = (next: boolean) => {
-    if (!next && start && step === "pay") void reach(() => cancelBalanceMovement({ movementId: start.movement.id }));
+    /* Closing at the pay step leaves the deposit pending, never cancelled: the
+       member may already have paid at their bank, and a cancelled movement can
+       never be completed by the provider's word that follows. It settles or
+       expires by that word, not by this sheet closing. */
     if (!next) {
       setStep("amount");
       setStart(null);

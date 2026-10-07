@@ -1,7 +1,7 @@
 import { getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { AgentShell } from "@/components/agent/AgentShell";
-import { AgentSettingsBody } from "@/app/agent/settings/page";
+import { AgentSettingsBody } from "@/app/agent/settings/AgentSettingsBody";
 import { AGENT_PROFILE } from "../ops-fixtures";
 
 /** What a host controls about their own account, from a fixture account. */

@@ -1,0 +1,134 @@
+import type { OwnLadder } from "@/lib/agent/verification-queries";
+import { ButtonLink } from "@/components/ui/Button";
+import { StatusPill } from "@/components/ui/StatusPill";
+import {
+  nextRung,
+  TIER_NAME,
+  VERIFICATION_ORDER,
+  type VerificationTier,
+} from "@/lib/trust/verification";
+
+/**
+ * The ladder itself.
+ *
+ * Every rung is drawn, including the ones nobody has looked at, because the
+ * question this page answers is "what is left" as much as "what is done". A
+ * list that showed only decided rungs would leave an agent on tier 1 looking at
+ * a single line with no idea that three more exist.
+ */
+export function Ladder({ ladder }: { ladder: OwnLadder }) {
+  return (
+    <ol className="mt-lg flex flex-col gap-sm">
+      {VERIFICATION_ORDER.map((rung) => {
+        const decision = ladder.rungs[rung.kind];
+        const reached = ladder.tier >= rung.step;
+        const failed = decision?.status === "failed";
+
+        return (
+          <li key={rung.kind} className="nf-panel nf-panel--card block p-md sm:p-panel">
+            <div className="flex flex-wrap items-center gap-xs">
+              <span className="text-[length:var(--nf-text-overline)] font-semibold tabular-nums text-[var(--nf-content-muted)]">
+                {rung.step}
+              </span>
+              <span className="text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
+                {rung.label}
+              </span>
+              {/* Three states, and the third is the honest one that a two-state
+                  badge would have to lie about: not yet looked at is not the
+                  same as failed, and telling an agent otherwise would have them
+                  ringing support about a rung nobody has reached. */}
+              {decision ? (
+                <StatusPill tone={failed ? "danger" : "success"}>
+                  {failed ? "Not passed" : "Passed"}
+                </StatusPill>
+              ) : (
+                <StatusPill tone="neutral">Not checked yet</StatusPill>
+              )}
+            </div>
+
+            <p className="mt-xs text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+              {rung.meaning}
+            </p>
+
+            {/* Named concretely so a host can go and get it, which is the whole
+                point of publishing the ladder rather than describing it. */}
+            <p className="mt-xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
+              <span className="font-semibold">What we look at:</span> {rung.evidence}
+            </p>
+
+            {/* The most useful thing on the page. A failed rung with a reason is
+                something a host can act on this afternoon; without one it is a
+                locked door. */}
+            {decision?.note && (
+              <p
+                className={`mt-sm rounded-[var(--nf-container-radius)] px-sm py-xs text-[length:var(--nf-text-caption)] leading-relaxed ${
+                  failed
+                    ? "bg-[var(--nf-state-error-surface)] text-[var(--nf-content-primary)]"
+                    : "bg-[var(--nf-surface-raised)] text-[var(--nf-content-secondary)]"
+                }`}
+              >
+                {decision.note}
+              </p>
+            )}
+
+            {!decision && reached && (
+              /* Tier says this rung is behind them but no row records it. That
+                 is a real state: the tier is recomputed by trigger and a row can
+                 be removed. Said plainly rather than papered over. */
+              <p className="mt-xs text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">
+                Counted towards your standing, with no decision recorded against
+                it.
+              </p>
+            )}
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+export function Standing({ tier }: { tier: VerificationTier }) {
+  const next = nextRung(tier);
+  return (
+    <div className="nf-panel nf-panel--card block p-panel">
+      <p className="text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
+        Your standing
+      </p>
+      <p className="mt-2xs text-[length:var(--nf-text-h3)] font-bold leading-tight text-[var(--nf-content-primary)]">
+        {TIER_NAME[tier]}
+      </p>
+      <p className="mt-2xs text-[length:var(--nf-text-caption)] tabular-nums text-[var(--nf-content-muted)]">
+        {tier} of {VERIFICATION_ORDER.length} checks passed
+      </p>
+
+      {/*
+        THE SENTENCE IS NOT SPLICED OUT OF THE REVIEWER'S WORDS ANY MORE.
+
+        It read "Next up is bank account in their own name. The payout account
+        resolved through the payment processor, with the returned account name
+        matching the identity on file." Both halves come from
+        `lib/trust/verification.ts`, which is written for the member of staff
+        making the decision: it says "this agent", "they" and "them" about the
+        very person reading this page. Lower-casing a label into the middle of
+        a second-person sentence made it worse. The rung's own card below
+        carries the reviewer's words under "What we look at", where third
+        person is correct because it is quoting the check.
+      */}
+      <p className="mt-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+        {next
+          ? `Next on the ladder: ${next.label}. What that check looks at is on its card below.`
+          : "Every check on the ladder is passed. There is nothing further to send."}
+      </p>
+
+      {/* No upload control, on purpose. Nothing behind this page accepts a
+          document: the evidence arrived with the application and a rung is a
+          decision somebody records after reading it. Messaging support is the
+          real next step, so it is the one offered. */}
+      {next && (
+        <ButtonLink href="/support" variant="secondary" full className="mt-md">
+          Ask about this check
+        </ButtonLink>
+      )}
+    </div>
+  );
+}

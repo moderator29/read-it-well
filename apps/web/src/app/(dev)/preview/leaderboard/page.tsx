@@ -29,7 +29,7 @@ export default async function PreviewLeaderboard({
           Empty
         </Link>{" "}
         <Link className="nf-link" href="/preview/leaderboard?state=not-live">
-          Not live
+          Not switched on
         </Link>
       </p>
       <LeaderboardScreen

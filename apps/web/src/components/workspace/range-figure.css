@@ -14,7 +14,7 @@
     border: var(--nf-border-width) solid var(--nf-border-subtle);
     border-radius: var(--nf-radius-card);
     background: var(--nf-surface-raised);
-    box-shadow: 0 1.5rem 3rem -1.75rem color-mix(in oklab, var(--nf-brand-primary) 40%, transparent);
+    box-shadow: var(--nf-elevation-raised);
     overflow: hidden;
   }
   .nf-rfig__head {

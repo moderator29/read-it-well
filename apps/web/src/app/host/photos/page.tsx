@@ -1,25 +1,18 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { countOf, getDictionary, type Dictionary, type Locale } from "@vallo/i18n";
+import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { resolveSession } from "@/lib/actions/session";
-import {
-  getMyBusinesses,
-  getPrimaryAccommodation,
-  type MyAccommodation,
-  type MyBusiness,
-} from "@/lib/host/queries";
+import { getMyBusinesses, getPrimaryAccommodation } from "@/lib/host/queries";
 import { listBusinessPhotos, type BusinessPhoto } from "@/lib/stays/business-photos";
 import {
   listAccommodationPhotos,
   type AccommodationPhoto,
 } from "@/lib/stays/accommodation-photos";
 import { authHref, returnHref } from "@/components/auth/auth-intent";
-import { EmptyState, TYPE } from "@/components/app/Screen";
+import { EmptyState } from "@/components/app/Screen";
 import { ButtonLink } from "@/components/ui/Button";
 import { HostShell } from "@/components/host/HostShell";
-import { BusinessPhotoManager } from "@/components/host/BusinessPhotoManager";
-import { AccommodationPhotoManager } from "@/components/host/AccommodationPhotoManager";
+import { HostPhotosBody } from "./HostPhotosBody";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: getDictionary(await getLocale()).experienceHost.screens.photos, robots: { index: false, follow: false } };
@@ -116,118 +109,5 @@ export default async function HostPhotosPage({
         propertyPhotos={propertyPhotos}
       />
     </HostShell>
-  );
-}
-
-/**
- * The screen, apart from its reads, so the whole thing can be drawn from
- * fixtures in the preview harness and read against the register at 390 dark.
- */
-export function HostPhotosBody({
-  userId,
-  businesses,
-  chosen,
-  photos,
-  accommodation = null,
-  propertyPhotos = [],
-  copy = getDictionary("en").hostWorkspace,
-  words = getDictionary("en").experienceHost,
-  locale = "en",
-}: {
-  userId: string;
-  businesses: MyBusiness[];
-  chosen: MyBusiness | null;
-  /** The venue's own photographs, on the business spine. */
-  photos: BusinessPhoto[];
-  /** The property under the chosen business, when it has one. */
-  accommodation?: MyAccommodation | null;
-  /** That property's photographs, on the accommodation spine. */
-  propertyPhotos?: AccommodationPhoto[];
-  /** The host workspace words in the reader's language; English in the previews. */
-  copy?: Dictionary["hostWorkspace"];
-  /** The page's own words in the reader's language; English in the previews. */
-  words?: Dictionary["experienceHost"];
-  /** The reader's language, for the count; English in the previews. */
-  locale?: Locale;
-}) {
-  if (!chosen) {
-    return (
-      <EmptyState
-        icon="camera"
-        title={copy.photos.noVenueTitle}
-        body={copy.photos.noVenueBody}
-        action={
-          <ButtonLink href="/host/apply" variant="primary" size="lg">
-            {copy.doors.startApplication}
-          </ButtonLink>
-        }
-      />
-    );
-  }
-
-  /* The subject of this screen: the property when there is one, the venue
-     itself when there is not. One count and one sentence, so the heading never
-     describes one spine while the manager below writes to the other. */
-  const onRecord = accommodation ? propertyPhotos.length : photos.length;
-  const subjectName = accommodation ? accommodation.name : chosen.name;
-
-  return (
-    <>
-      <div className="nf-agent-head">
-        <div>
-          <h1 className="nf-agent-head__title">{words.screens.photos}</h1>
-          <p className={`mt-row ${TYPE.bodyLg}`}>
-            {onRecord === 0 ? words.photosNone.replace("{name}", subjectName) : `${subjectName}${countOf(onRecord, "photographsOnRecord", locale)}`}
-          </p>
-        </div>
-      </div>
-
-      {/* Only drawn where there is a choice to make. One venue is the common
-          case and a picker above it would be furniture. */}
-      {businesses.length > 1 && (
-        <nav className="mt-block flex flex-wrap gap-inline" aria-label={copy.photos.venuesLabel}>
-          {businesses.map((business) => (
-            <Link
-              key={business.id}
-              href={`/host/photos?business=${business.id}`}
-              className={`nf-chip${business.id === chosen.id ? " nf-chip--active" : ""}`}
-              aria-current={business.id === chosen.id ? "page" : undefined}
-            >
-              {business.name}
-            </Link>
-          ))}
-        </nav>
-      )}
-
-      <div className="mt-block">
-        {accommodation ? (
-          <AccommodationPhotoManager
-            accommodationId={accommodation.id}
-            userId={userId}
-            photos={propertyPhotos.map((photo) => ({ id: photo.id, url: photo.url }))}
-          />
-        ) : chosen.kind === "restaurant" ? (
-          <BusinessPhotoManager
-            businessId={chosen.id}
-            userId={userId}
-            photos={photos.map((photo) => ({ id: photo.id, url: photo.url }))}
-          />
-        ) : (
-          /* A stays business whose property has not been saved yet. The
-             photographs hang on the property, so there is one thing to do
-             first and it is named rather than drawn as an empty grid. */
-          <EmptyState
-            icon="camera"
-            title={copy.photos.saveFirstTitle}
-            body={copy.photos.saveFirstBody}
-            action={
-              <ButtonLink href="/host/apply" variant="primary" size="lg">
-                {copy.doors.openApplication}
-              </ButtonLink>
-            }
-          />
-        )}
-      </div>
-    </>
   );
 }

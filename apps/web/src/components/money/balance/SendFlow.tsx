@@ -25,7 +25,7 @@ import { Watching } from "./WithdrawFlow";
  * (`clientKey`); a blocked or unopened recipient is refused before anything
  * is staged.
  */
-type Step = "who" | "amount" | "review" | "waiting";
+type Step = "who" | "amount" | "review" | "otp" | "waiting";
 
 export function SendFlow({
   open,
@@ -46,17 +46,19 @@ export function SendFlow({
   const [name, setName] = useState<string | null>(null);
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
+  const [otp, setOtp] = useState("");
   const [quote, setQuote] = useState<Quote | null>(null);
   const [movement, setMovement] = useState<MovementView | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   const close = (next: boolean) => {
-    if (!next && quote && step === "review") void reach(() => cancelBalanceMovement({ movementId: quote.movementId }));
+    if (!next && quote && (step === "review" || step === "otp")) void reach(() => cancelBalanceMovement({ movementId: quote.movementId }));
     if (!next) {
       setStep("who");
       setName(null);
       setQuote(null);
+      setOtp("");
       setMovement(null);
       setError(null);
       setClientKey(crypto.randomUUID());
@@ -87,14 +89,16 @@ export function SendFlow({
     setStep("review");
   };
 
-  const submit = async (): Promise<boolean> => {
+  const submit = async (code?: string): Promise<boolean> => {
     if (!quote) return false;
-    const r = await reach(() => confirmBalanceMovement({ movementId: quote.movementId }));
+    setError(null);
+    const r = await reach(() => confirmBalanceMovement({ movementId: quote.movementId, ...(code ? { otp: code } : {}) }));
     if (!r.ok) {
       setError(r.error);
       return false;
     }
     if (r.data.needsOtp) {
+      setStep("otp");
       setError(r.data.message);
       return false;
     }
@@ -188,8 +192,35 @@ export function SendFlow({
               confirmingLabel="Sending"
               confirmedLabel="Sent"
               errorLabel="Not sent. Nothing has moved."
-              onConfirm={submit}
+              onConfirm={() => submit()}
             />
+          </>
+        ) : null}
+
+        {step === "otp" ? (
+          <>
+            <TextField
+              label="Code"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              maxLength={8}
+              inputClassName="nf-balance__otp"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+            />
+            <Button
+              variant="primary"
+              size="lg"
+              loading={busy}
+              disabled={otp.length < 4}
+              onClick={async () => {
+                setBusy(true);
+                await submit(otp);
+                setBusy(false);
+              }}
+            >
+              Confirm send
+            </Button>
           </>
         ) : null}
 

@@ -1,7 +1,7 @@
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { HostShell } from "@/components/host/HostShell";
-import { HostSettingsBody } from "@/app/host/settings/page";
+import { HostSettingsBody } from "@/app/host/settings/HostSettingsBody";
 
 /** The host workspace's own settings, from fixtures: a hotel and a restaurant. */
 export const dynamic = "force-dynamic";
