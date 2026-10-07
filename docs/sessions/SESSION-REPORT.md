@@ -52,6 +52,25 @@ Pending (agent 4).
 
 ## 6. Blocked on him
 
+- **"The pay is still taking me to agreement": the cause is found, and the fix is
+  his decision.** It is not the pending `b3_rate_agreement_gate.sql`, which the
+  handoff guessed: that file gates a lister publishing, not a renter paying, and it
+  stays pending. The live cause is two functions. `private.transactions_payment_gate`
+  refuses a charge unless the agreement is `approved`, and
+  `public.agreement_confirm_as` moves an agreement both parties confirmed to
+  `in_review`, where it waits for a person at Vallo to approve it on Money >
+  Agreements (`admin_decide_agreement`). So after both people agree, the pay screen
+  shows "Payment is not open yet" and sends them back to the agreement. His own
+  lifecycle (`02-master-prompt.md` section 17) goes DRAFT to AGREED to
+  AWAITING_PAYMENT, with no staff step. **The proposed fix:** a
+  `feature_flags` row `agreement_staff_review` on `/admin/switches`. Off, the second
+  confirmation of the same terms approves the agreement, writes the event log and
+  audit row, and sends the same `agreement.approved` emails a staff approval sends.
+  On, today's behaviour exactly. A missing row reads as on. Agreements already in
+  review stay in the queue. The session's safety check blocked changing a live
+  payment gate without his explicit yes, so it is **not applied**. One sentence from
+  him ("apply the agreement review switch, default off" or "default on") unblocks it.
+
 - Test account credentials and test payment keys in the environment settings
   (blocks the signed-in walk and staging verification of the Payluk adapter).
 
