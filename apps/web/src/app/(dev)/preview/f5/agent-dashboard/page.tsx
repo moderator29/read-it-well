@@ -2,6 +2,7 @@ import { getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { AgentShell } from "@/components/agent/AgentShell";
 import { RealDashboard } from "@/app/agent/dashboard/RealDashboard";
+import { DeskFigure } from "@/components/workspace/DeskFigure";
 import type { AgentNumbers } from "@/lib/agent/listings-queries";
 import { COUNTERPART } from "../../_fixtures/people";
 import { INSPECTION } from "../fixtures";
@@ -42,7 +43,15 @@ const NUMBERS: AgentNumbers = {
   unreadMessages: 3,
 };
 
+/* Fixture viewing requests for the figure card: hours back from the render,
+   the way `inspection_requests.created_at` would read. Dev preview only. */
+const REQUEST_HOURS_AGO = [1, 3, 20, 26, 30, 50, 75, 98, 120, 150, 200, 260, 300, 380, 450, 520, 610, 700];
+function figureRows(now: Date) {
+  return REQUEST_HOURS_AGO.map((hours) => ({ at: new Date(now.getTime() - hours * 3_600_000).toISOString() }));
+}
+
 export default async function PreviewAgentDashboard() {
+  const now = new Date();
   const locale: Locale = await getLocale();
   const t = getDictionary(locale);
   return (
@@ -73,6 +82,7 @@ export default async function PreviewAgentDashboard() {
         displayName={COUNTERPART.name}
         numbers={NUMBERS}
         inspections={{ inspections: [{ ...INSPECTION, state: "REQUESTED", slotAt: null }], openCount: 1, readFailed: false }}
+        figure={<DeskFigure rows={figureRows(now)} kind="viewings" t={t} locale={locale} now={now} />}
       />
     </AgentShell>
   );
