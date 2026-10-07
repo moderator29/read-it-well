@@ -391,9 +391,9 @@ describe("a STOP between issue and send is honoured", () => {
 });
 
 describe("the transport", () => {
-  it("is the stub until a vendor is wired, whatever the environment says", () => {
+  it("is the stub unless a wired vendor is named (sms is Termii, see sms-channel.test.ts)", () => {
     expect(selectPrincipalChannel({}).name).toBe("stub");
-    expect(selectPrincipalChannel({ LANDLORD_LINE_TRANSPORT: "sms" }).name).toBe("stub");
+    expect(selectPrincipalChannel({ LANDLORD_LINE_TRANSPORT: "whatsapp" }).name).toBe("stub");
     expect(transportConfigured(new StubChannel())).toBe(false);
   });
 

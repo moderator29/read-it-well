@@ -51,36 +51,58 @@ export function termiiChannels(config: TermiiConfig): TermiiChannel[] {
   return config.whatsapp ? ["whatsapp", "dnd", "generic"] : ["dnd", "generic"];
 }
 
-type Fetch = (url: string, init: RequestInit) => Promise<Response>;
+export type TermiiFetch = (url: string, init: RequestInit) => Promise<Response>;
 
-export function termiiTransport(config: TermiiConfig, fetcher: Fetch = fetch): OtpTransport {
+/** One attempt on one channel. `refused` is Termii answering no; `network` is no answer. */
+export type TermiiAttempt = { ok: true; messageId: string | null } | { ok: false; reason: "refused" | "network" };
+
+/**
+ * THE ONE TERMII CALL. Every Termii send in the app (codes here, the landlord
+ * line in `lib/landlord/sms-channel.ts`) goes through this, so there is one
+ * request shape and one reading of the answer. `to` is already in Termii's
+ * form (`termiiNumber`). It never logs the number or the message.
+ */
+export async function termiiPost(
+  config: TermiiConfig,
+  to: string,
+  message: string,
+  channel: TermiiChannel,
+  fetcher: TermiiFetch = fetch,
+): Promise<TermiiAttempt> {
+  try {
+    const response = await fetcher(`${config.baseUrl}/api/sms/send`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        api_key: config.apiKey,
+        to,
+        from: config.senderId,
+        sms: message,
+        type: "plain",
+        channel,
+      }),
+      signal: AbortSignal.timeout(8_000),
+    });
+    if (!response.ok) return { ok: false, reason: "refused" };
+    const body = (await response.json().catch(() => null)) as { code?: string; message_id?: string } | null;
+    if (body && (body.code === "ok" || typeof body.message_id === "string")) {
+      return { ok: true, messageId: typeof body.message_id === "string" ? body.message_id : null };
+    }
+    return { ok: false, reason: "refused" };
+  } catch {
+    return { ok: false, reason: "network" };
+  }
+}
+
+export function termiiTransport(config: TermiiConfig, fetcher: TermiiFetch = fetch): OtpTransport {
   return {
     name: "termii",
     async send(phoneE164: string, message: string): Promise<SendResult> {
       const to = termiiNumber(phoneE164);
       if (!to) return { ok: false, reason: "failed" };
       for (const channel of termiiChannels(config)) {
-        try {
-          const response = await fetcher(`${config.baseUrl}/api/sms/send`, {
-            method: "POST",
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify({
-              api_key: config.apiKey,
-              to,
-              from: config.senderId,
-              sms: message,
-              type: "plain",
-              channel,
-            }),
-            signal: AbortSignal.timeout(8_000),
-          });
-          if (response.ok) {
-            const body = (await response.json().catch(() => null)) as { code?: string; message_id?: string } | null;
-            if (body && (body.code === "ok" || typeof body.message_id === "string")) return { ok: true };
-          }
-        } catch {
-          /* Try the next channel. */
-        }
+        /* On any refusal or network failure, try the next channel. */
+        if ((await termiiPost(config, to, message, channel, fetcher)).ok) return { ok: true };
       }
       return { ok: false, reason: "failed" };
     },
