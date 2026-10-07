@@ -1022,6 +1022,16 @@
   .nf-pl-close__badges {
     margin-top: 0;
   }
+  /* The close with only the app left in it (FinalCta.tsx, 7 October): no
+     headline above, so no hairline and a shorter room. Layout only. */
+  .nf-pl-close--app {
+    padding-block: clamp(2.5rem, 1.75rem + 2.5vw, 4rem);
+  }
+  .nf-pl-close--app .nf-pl-close__app {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+  }
 
   /* ------------------------------------------------------------- motion */
 

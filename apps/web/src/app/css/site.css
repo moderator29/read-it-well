@@ -668,6 +668,37 @@
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
     outline-offset: 2px;
   }
+  /*
+   * A KNOWN STRANGER ON A PHONE (`data-guest`, the founder, 7 October 2026):
+   * Sign in and Sign up sit in the capsule at every width. Sized to it: the
+   * primary paints 36px inside the 60px capsule (its `::before` keeps the
+   * 44px hit area, buttons.css), Sign in is quiet text on a 44px target, and
+   * under 24rem the wordmark steps out so the mark, the two doors and the
+   * menu never touch. Layout only; the colours are the buttons' own.
+   */
+  .nf-cap__actions[data-guest] {
+    gap: 0.125rem;
+  }
+  .nf-cap__actions[data-guest] .nf-cap__signin {
+    display: inline-flex;
+    padding: 0 0.625rem;
+    border-radius: var(--nf-radius-pill);
+    white-space: nowrap;
+  }
+  .nf-cap .nf-cap__actions[data-guest] .nf-cap__start {
+    display: inline-flex;
+    min-height: 2.25rem;
+    height: 2.25rem;
+    padding-block: 0;
+    padding-inline: 0.875rem;
+    margin-inline-end: 0.375rem;
+    white-space: nowrap;
+  }
+  @media (max-width: 23.99rem) {
+    .nf-cap:has(.nf-cap__actions[data-guest]) .nf-cap__word {
+      display: none;
+    }
+  }
   /* The round brand menu button (reference 39; the header icon buttons are
      circles by the lead's Q1 ruling). */
   .nf-cap__menu {

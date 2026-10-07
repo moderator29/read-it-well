@@ -5,13 +5,12 @@ import { landingCatalogue } from "@/lib/listings/landing-catalogue";
 import type { Listing, ListingKind } from "@/lib/listings/types";
 import { isSocialEnabled } from "@/lib/social/flag";
 import { getPlatformStats, type PlatformStats } from "@/lib/platform-stats";
-import { toMiniListing, type MiniListing } from "@/lib/site/listing-card";
+import type { MiniListing } from "@/lib/site/listing-card";
 import "@/app/css/landing-plasma.css";
 import { Hero } from "./Hero";
 import { Markets } from "./Markets";
 import { DealStory } from "./DealStory";
 import { TrustLayer } from "./TrustLayer";
-import { AiBand } from "./AiBand";
 import { LandingFaq } from "./LandingFaq";
 import { FinalCta } from "./FinalCta";
 import { landingDoor } from "./doors";
@@ -25,20 +24,14 @@ import { landingDoor } from "./doors";
  * when the tally adds up to `stats.listings` the page was complete and the
  * category tiles may print numbers; otherwise they print none.
  *
- * `showcase` is back with the AI room (7 October, at the founder's request):
- * up to three real listings of each kind off the same catalogue page, which
- * the example conversation may put under a reply only when two of the kind
- * it asks about exist. No extra read: it is the page already fetched.
+ * The AI room's `showcase` (real listings its example conversation could put
+ * under a reply) left with the room itself (the founder, 7 October 2026).
  */
 export type LandingData = {
   /** Unused by the landing; the preview fixtures still pass it. */
   cards?: MiniListing[];
   stats: PlatformStats | null;
   counts: ReadonlyMap<ListingKind, number> | null;
-  /** Real listings the AI room's example conversation may show under a
-      reply. Optional, so a fixture that leaves it out plays only the script
-      that needs no cards. */
-  showcase?: MiniListing[];
   /** Whether Around is switched on (the `social` flag, which fails open). The
       ecosystem layer drops its Around door when it is off, as the app does. */
   social?: boolean;
@@ -48,10 +41,7 @@ export type LandingData = {
   open?: boolean;
 };
 
-export async function landingData(
-  /** The words the showcase cards are labelled in (market, suffix). */
-  t?: Dictionary,
-): Promise<LandingData> {
+export async function landingData(): Promise<LandingData> {
   /* OPS-11: the shared five-minute read when there is a database; the
      repository (empty or API-backed) otherwise. Only the catalogue is
      needed, for the per-kind counts. */
@@ -63,21 +53,8 @@ export async function landingData(
   return {
     stats,
     counts: complete ? tally : null,
-    showcase: t ? showcaseCandidates(catalogue).map((l) => toMiniListing(l, t)) : [],
     social,
   };
-}
-
-/** Up to three listings of each kind, photographed first, for the AI room. */
-function showcaseCandidates(catalogue: Listing[]): Listing[] {
-  const byKind = new Map<ListingKind, Listing[]>();
-  const ordered = [...catalogue].sort((a, b) => Number(b.photos.length > 0) - Number(a.photos.length > 0));
-  for (const l of ordered) {
-    const list = byKind.get(l.kind) ?? [];
-    if (list.length < 3) list.push(l);
-    byKind.set(l.kind, list);
-  }
-  return [...byKind.values()].flat();
 }
 
 /**
@@ -174,12 +151,26 @@ export function LandingBody({
         page: the markets carry the kinds of place, the story carries the
         move-in total and the steps, and the trust layer carries the check.
         Their components stay in the folder for the lead to remove.
+
+        THE FOUNDER'S CUT (7 October, late, on a phone). Six rooms now:
+
+          Hero        the slogan and the explanation; the markets breadcrumb
+                      and the money promise line left it (the money story
+                      is told in the docs, "How money moves on Vallo")
+          Markets, Story, Trust, FAQ   unchanged
+          Close       only "On your phone" and the store badges: sign in and
+                      sign up live in the top capsule, so the closing
+                      "Find. Agree. Move in." call to action left
+
+        The AI room (the example conversation that typed itself, "Play
+        again") left the page; the assistant stays one tap away in the
+        capsule's menu. AiBand.tsx and AiShowcase.tsx stay in the folder for
+        the lead to remove, with the other retired rooms.
       */}
       <Hero t={t} locale={locale} door={door} />
       <Markets t={t} door={door} />
       <DealStory t={t} locale={locale} />
       <TrustLayer t={t} locale={locale} />
-      <AiBand t={t} locale={locale} cards={data.showcase ?? data.cards ?? []} door={door} />
       <LandingFaq t={t} nonce={nonce} />
       <FinalCta t={t} native={native} />
     </main>
