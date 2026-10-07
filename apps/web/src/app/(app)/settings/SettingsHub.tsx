@@ -272,13 +272,13 @@ export function SettingsHub({
         <RowLink
           href="/settings/place"
           glyph={<HubGlyph name="location" />}
-          label={t.experienceSettings.destinations.place}
+          label={t.experienceSettings.area.destinations.place}
           testId="hub-place"
         />
         <RowLink
           href="/settings/interests"
           glyph={<HubGlyph name="heart" />}
-          label={t.experienceSettings.destinations.interests}
+          label={t.experienceSettings.area.destinations.interests}
           testId="hub-interests"
         />
       </SettingsGroup>
@@ -310,7 +310,7 @@ export function SettingsHub({
           <RowLink
             href="/settings/devices"
             glyph={<HubGlyph name="key" />}
-            label={t.experienceSettings.destinations.devices}
+            label={t.experienceSettings.area.destinations.devices}
             testId="hub-devices"
           />
         )}
