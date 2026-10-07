@@ -55,7 +55,7 @@ function WatchItem({ row, locale }: { row: WatchRow; locale: Locale }) {
           {row.releasePaused ? (
             <button
               type="button"
-              className="nf-btn nf-btn--secondary nf-btn--sm"
+              className="nf-btn nf-btn--glass nf-btn--sm"
               disabled={pending}
               onClick={() =>
                 start(async () => {
@@ -77,7 +77,7 @@ function WatchItem({ row, locale }: { row: WatchRow; locale: Locale }) {
               />
               <button
                 type="button"
-                className="nf-btn nf-btn--secondary nf-btn--sm"
+                className="nf-btn nf-btn--glass nf-btn--sm"
                 disabled={pending || reason.trim().length < 10}
                 onClick={() =>
                   start(async () => {

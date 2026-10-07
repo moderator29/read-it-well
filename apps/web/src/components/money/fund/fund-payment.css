@@ -84,7 +84,7 @@
     background: var(--nf-platinum-fill);
     box-shadow: var(--nf-platinum-shadow);
     color: var(--nf-platinum-ink);
-    animation: nf-fund-land 700ms var(--nf-ease-land, cubic-bezier(0.22, 1, 0.36, 1)) both;
+    animation: nf-fund-land 700ms var(--nf-ease-entrance) both;
   }
   .nf-fund__card::after {
     content: "";
@@ -92,7 +92,7 @@
     inset: 0;
     background: var(--nf-platinum-sheen);
     background-size: 220% 100%;
-    animation: nf-fund-sheen 2.4s 600ms ease-out 1 both;
+    animation: nf-fund-sheen 2.4s 600ms var(--nf-ease-standard) 1 both;
     pointer-events: none;
   }
   .nf-fund__label {
@@ -168,7 +168,7 @@
     background: var(--nf-platinum-ink);
     transform-origin: left center;
     transform: scaleX(var(--nf-fund-cover, 0));
-    animation: nf-fund-fill 900ms 450ms var(--nf-ease-land, cubic-bezier(0.22, 1, 0.36, 1)) both;
+    animation: nf-fund-fill 900ms 450ms var(--nf-ease-entrance) both;
   }
   .nf-fund__cover {
     font-size: var(--nf-text-caption);
@@ -189,7 +189,7 @@
     grid-template-columns: 2rem 1fr;
     gap: var(--nf-space-sm);
     align-items: start;
-    animation: nf-fund-rise 500ms var(--nf-ease-land, cubic-bezier(0.22, 1, 0.36, 1)) both;
+    animation: nf-fund-rise 500ms var(--nf-ease-entrance) both;
   }
   .nf-fund__step:nth-child(1) {
     animation-delay: 300ms;

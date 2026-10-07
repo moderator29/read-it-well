@@ -103,7 +103,7 @@ export function RiskSettingsForm({ settings, locale }: { settings: RiskSettings;
         </ul>
         {offCount > 0 && (
           <p className="nf-risk-settings__caution" role="note">
-            {offCount === 1 ? "One signal is off." : `${offCount} signals are off.`} Deals it would have caught open without a person.
+            {`Signals off: ${offCount}.`} Deals it would have caught open without a person.
           </p>
         )}
         <div className="nf-risk-settings__actions">
