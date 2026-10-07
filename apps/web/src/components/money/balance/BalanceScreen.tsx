@@ -359,7 +359,7 @@ function BalanceExplainer({ figures, locale }: { figures: BalanceFigures; locale
             <StepPath
               compact
               label="Where a withdrawal is"
-              steps={WAITING_STEPS.withdrawal.map((step, i) => ({ key: step, title: step, state: EXPLAINER_STEP_STATE[Math.min(i, 2)] }))}
+              steps={WAITING_STEPS.withdrawal.map((step, i) => ({ key: step, title: step, state: EXPLAINER_STEP_STATE[Math.min(i, 2)] ?? "upcoming" }))}
             />
           ),
         },
