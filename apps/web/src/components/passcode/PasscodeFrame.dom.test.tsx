@@ -1,8 +1,10 @@
 /**
- * The 3D passcode's presentation states (docs/PASSCODE.md; founder reference
- * 56): the frame is always a night island, the ring shows the photo, the
- * initial or the padlock, the brand is Vallo's own lockup, and setup names
- * its step under the title. Behaviour is covered by PasscodeGate.dom.test.tsx
+ * The passcode's presentation states (docs/PASSCODE.md; the founder's
+ * reference 6, the returning greeting, over his 3D passcode, reference 56):
+ * the frame is always a night island, a lit scene on top with Vallo's own
+ * lockup, a raised sheet holding the ring (the photo, the initial or the
+ * padlock), "Hello" with the first name, "Switch account", and biometric
+ * first where a passkey is enrolled; setup names its step under the title. Behaviour is covered by PasscodeGate.dom.test.tsx
  * and lib/passcode; this is only what is drawn.
  */
 import { renderToStaticMarkup } from "react-dom/server";
@@ -48,9 +50,11 @@ describe("PasscodeFrame", () => {
     expect(draw(false)).toMatch(/<section[^>]*data-theme="dark"/);
   });
 
-  it("draws the dome, Vallo's own mark and wordmark, and the ring with the initial", () => {
+  it("draws the lit scene, Vallo's own mark and wordmark, and the sheet with the ring and the initial", () => {
     const html = draw(true);
-    expect(html).toContain("nf-passcode__dome");
+    expect(html).toContain("nf-passcode__scene");
+    expect(html).toContain("villa-pool-portrait");
+    expect(html).toMatch(/nf-passcode__sheet[^>]*data-door="keypad"[\s\S]*data-ring="initial"/);
     expect(html).toContain("vallo-mark.png");
     expect(html).toContain("vallo-wordmark.png");
     expect(html).toContain('data-ring="initial"');
@@ -59,14 +63,38 @@ describe("PasscodeFrame", () => {
 });
 
 describe("the lock and setup screens", () => {
-  it("the lock greets by first name over the dots and eleven keys", () => {
+  it("the lock greets by first name, offers Switch account, and the keypad arrives in the sheet", () => {
     const html = renderToStaticMarkup(
       <PasscodeLock copy={copy} locale="en" mode="code" length={6} name="Ada Okafor" verify={async () => ({ status: "error" })} />,
     );
-    expect(html).toContain("Welcome back, Ada");
+    expect(html).toContain("Hello, Ada");
     expect(html).toContain(copy.enterCode);
+    expect(html).toContain('data-testid="passcode-switch-account"');
+    expect(html).toContain(copy.switchAccount);
     expect(html).toContain('data-ring="initial"');
     expect(html.match(/class="nf-passcode__key(?: nf-passcode__key--quiet)?"/g)?.length).toBe(11);
+  });
+
+  it("with a passkey, the biometric is the primary and the passcode the second; the keypad waits", () => {
+    const html = renderToStaticMarkup(
+      <PasscodeLock copy={copy} locale="en" mode="code" length={4} name="Ada" passkey verify={async () => ({ status: "error" })} />,
+    );
+    expect(html).toContain("Hello, Ada");
+    expect(html).toMatch(/data-door="biometric"/);
+    const bio = html.indexOf('data-testid="passcode-passkey"');
+    const second = html.indexOf('data-testid="passcode-use-keypad"');
+    expect(bio).toBeGreaterThan(-1);
+    expect(second).toBeGreaterThan(bio);
+    expect(html).toContain(copy.passkeyUnlock);
+    expect(html).toContain(copy.withPasscode);
+    expect(html).not.toContain('data-testid="passcode-keypad"');
+  });
+
+  it("with no name the greeting stands alone", () => {
+    const html = renderToStaticMarkup(
+      <PasscodeLock copy={copy} locale="en" mode="code" length={4} name="" verify={async () => ({ status: "error" })} />,
+    );
+    expect(html).toContain(copy.helloNoName);
   });
 
   it("setup draws the padlock, the title and step one, with the why under the dots", () => {

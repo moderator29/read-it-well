@@ -8,6 +8,13 @@ export const passcodeEn = {
   wordmark: "VALLO",
   welcomeBack: "Welcome back, {name}",
   welcomeBackNoName: "Welcome back",
+  /** The returning greeting (reference 6, 7 October 2026): the lock's title. */
+  hello: "Hello, {name}",
+  helloNoName: "Hello again",
+  /** Under the greeting: ends this session and opens sign in, for another account. */
+  switchAccount: "Switch account",
+  /** The second capsule where a passkey leads: the keypad. */
+  withPasscode: "Use your passcode",
   enterCode: "Enter your passcode",
   lockedTitle: "Vallo is locked",
   wrong: "That is not your passcode.",
