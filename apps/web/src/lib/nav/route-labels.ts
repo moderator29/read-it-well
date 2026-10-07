@@ -60,6 +60,7 @@ const NAMES: Readonly<Record<string, string>> = {
   "/around": "Around",
   "/around/[slug]": "the district",
   "/around/settings": "feed settings",
+  "/around/people": "find people",
   "/post/[id]": "the post",
   "/stories/[id]": "the story",
   "/u": "people",
