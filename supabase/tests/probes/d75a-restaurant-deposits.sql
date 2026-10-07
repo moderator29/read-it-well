@@ -23,9 +23,13 @@ declare
   bps int := private.current_fee_bps('commission');
 begin
   -- 1.
-  if (select enabled from public.feature_flags where key = 'restaurant_deposits') is distinct from false then
-    raise exception 'PROBE_FAIL d75a 1: restaurant_deposits is not seeded off';
+  -- The switch row exists (seeded by d75a); this probe tests the off state by
+  -- setting it off inside its own transaction, whatever live is set to (the
+  -- founder turned it on 7 October 2026), so it never depends on live's value.
+  if not exists (select 1 from public.feature_flags where key = 'restaurant_deposits') then
+    raise exception 'PROBE_FAIL d75a 1: the restaurant_deposits switch row is missing';
   end if;
+  update public.feature_flags set enabled = false where key = 'restaurant_deposits';
 
   insert into public.businesses (owner_id, kind, name, slug, status, source)
   values (host, 'restaurant', 'Probe Deposit Grill', 'probe-deposit-' || gen_random_uuid(), 'PUBLISHED', 'first_party')

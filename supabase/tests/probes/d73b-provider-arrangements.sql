@@ -27,9 +27,12 @@ begin
   -- 7 October 2026 (D77): private.rentals_protected_pay_on() now reads
   -- payments_payluk_on (the escrow rail's switch); rentals_protected_pay is
   -- superseded and read by nothing. The switch that matters is seeded off too.
-  if (select enabled from public.feature_flags where key = 'payments_payluk_on') is distinct from false then
-    raise exception 'PROBE_FAIL d73b 1: payments_payluk_on is not seeded off';
+  -- The switch row exists (seeded by d77); the off state is set inside this
+  -- transaction, so the probe holds once the founder turns Payluk on.
+  if not exists (select 1 from public.feature_flags where key = 'payments_payluk_on') then
+    raise exception 'PROBE_FAIL d73b 1: the payments_payluk_on switch row is missing';
   end if;
+  update public.feature_flags set enabled = false where key = 'payments_payluk_on';
   if private.rentals_protected_pay_on() then raise exception 'PROBE_FAIL d73b 1: reads on'; end if;
 
   -- 2.
