@@ -52,6 +52,29 @@ export const passcodeYo = {
   notSet: "O kò tíì ṣètò nọ́mbà àṣírí.",
   lockNote: "Vallo máa ń tì lẹ́yìn ìṣẹ́jú 5 tí o bá kúrò, àti nínú gbogbo táàbù tuntun.",
 
+  /* MACHINE DRAFT, 7 October 2026: the returning greeting, the setup steps
+     and Face ID or fingerprint. Same review as the rest of this file.
+     "Face ID" is Apple's name and stays as written. */
+  wordmark: "VALLO",
+  hello: "Báwo ni, {name}",
+  helloNoName: "Ẹ káàbọ̀ lẹ́ẹ̀kan sí i",
+  switchAccount: "Yí àkọọ́lẹ̀ padà",
+  withPasscode: "Lo nọ́mbà àṣírí rẹ",
+  bioOfferTitle: "Ṣé o fẹ́ ṣí i pẹ̀lú Face ID nígbà míì?",
+  bioOfferBody: "Títì fóònù rẹ fúnra rẹ̀ yóò ṣí Vallo pẹ̀lú wíwò tàbí fífọwọ́kàn. Nọ́mbà àṣírí rẹ ṣì wà gẹ́gẹ́ bí ọ̀nà àbáwọlé nígbàkígbà tí kò bá ṣiṣẹ́.",
+  bioOfferSetUp: "Ṣètò Face ID tàbí ìka ọwọ́",
+  bioOfferLater: "Kì í ṣe báyìí",
+  bioGroup: "Face ID tàbí ìka ọwọ́",
+  bioRowTitle: "Ṣí i pẹ̀lú Face ID tàbí ìka ọwọ́",
+  bioRowUnset: "Ṣètò rẹ̀ lẹ́ẹ̀kan pẹ̀lú ọ̀rọ̀ ìpamọ́ rẹ. Kọ́kọ́rọ́ kan náà yóò ṣí Vallo, yóò sì fìdí ìsanwó múlẹ̀.",
+  bioRowSet: "A máa kọ́kọ́ fún ọ ní èyí nígbà tí Vallo bá ti di títì. Nọ́mbà àṣírí rẹ ṣì wà gẹ́gẹ́ bí ọ̀nà mìíràn.",
+  bioRowUnsupported: "Aṣàwákiri yìí kò lè dé Face ID tàbí ìka ọwọ́ ẹ̀rọ yìí. Ìṣàfilọ́lẹ̀ Vallo àti ọ̀pọ̀ aṣàwákiri fóònù lè ṣe é.",
+  passkeyUnlock: "Ṣí i pẹ̀lú Face ID tàbí ìka ọwọ́",
+  passkeyFailed: "Ìyẹn kò ṣiṣẹ́. Tẹ nọ́mbà àṣírí rẹ dípò.",
+  usePasscode: "Tẹ nọ́mbà àṣírí rẹ dípò",
+  stepChoose: "Ìgbésẹ̀ 1 nínú 2. Yan nọ́mbà {count}.",
+  stepConfirm: "Ìgbésẹ̀ 2 nínú 2. Tẹ nọ́mbà {count} kan náà.",
+
   keypadLabel: "Bọ́tìnnì nọ́mbà àṣírí",
   deleteKey: "Pa rẹ́",
   digitsEntered: "A ti tẹ nọ́mbà {count} nínú {total}",
