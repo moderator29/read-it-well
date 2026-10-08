@@ -4,7 +4,7 @@
 -- The fixture is the room-bookings probe's: a published hotel owned by the QA
 -- admin with a payout subaccount, the QA member as the guest.
 --
---  1. the switch is seeded OFF; a missing row reads OFF
+--  1. the switch row exists; a missing row reads OFF
 --  2. OFF: the guest's own booking is a PENDING request with no agreement,
 --     exactly today's flow (the guest is told "Booking request sent")
 --  3. ON: the guest's own booking is CONFIRMED on creation at the database
@@ -50,9 +50,14 @@ begin
   end if;
   insert into public.feature_flags (key, enabled) values ('stays_instant_pay', false);
 
-  -- The fixture, written as the platform would after review.
-  insert into public.businesses (owner_id, kind, name, slug, status, source)
-  values (host, 'hotel', 'Probe Instant Hotel', 'probe-instant-' || gen_random_uuid(), 'PUBLISHED', 'first_party')
+  -- The fixture, written as the platform would after review. D68d/D77 send a
+  -- risky direct-rail deal to a person, so the instant fixture carries none of
+  -- the signals: the business is verified with a CAC number (a first deal is
+  -- then not a signal).
+  -- `verified` is derived from verification_tier (businesses_derive_badge).
+  insert into public.businesses (owner_id, kind, name, slug, status, source, verification_tier, cac_number)
+  values (host, 'hotel', 'Probe Instant Hotel', 'probe-instant-' || gen_random_uuid(), 'PUBLISHED', 'first_party',
+          1, 'RC0000000')
   returning id into biz;
   insert into public.accommodations (business_id, name, slug, status)
   values (biz, 'Probe Instant Hotel', 'probe-instant-a-' || gen_random_uuid(), 'PUBLISHED') returning id into acc;
@@ -64,6 +69,10 @@ begin
   for d in select generate_series(start_day, start_day + 19, interval '1 day')::date loop
     insert into public.room_inventory (room_type_id, date, units_open) values (rt, d, 2);
   end loop;
+  -- The room was created a moment ago and updated_at triggers stamp now(), so
+  -- the recent-change check is switched off in this transaction only (the d77
+  -- probe holds that signal).
+  update public.agreement_risk_settings set check_recent_change = false where id = 1;
   insert into public.bank_accounts (user_id, bank_code, bank_name, account_number, resolved_account_name, resolved_at,
                                     is_default, paystack_subaccount_code)
   values (host, '058', 'Probe Bank', '0123456789', 'Probe Host', now(), true, 'ACCT_probe_host');
