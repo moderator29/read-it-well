@@ -1,4 +1,4 @@
--- D85 Invite and Earn, for supabase/migrations/pending/d85_referral_signup_80_invite_and_earn.sql.
+-- D85 Invite and Earn, for supabase/migrations/20261008195310_d85_referral_signup_80_invite_and_earn.sql.
 -- The founder's ruling of 8 October 2026 as the lead amended it: 80 naira
 -- when the invited person signs up fully (email confirmed, terms accepted and
 -- a first name set), no payment, no phone step until TERMII_SENDER_ID is set.

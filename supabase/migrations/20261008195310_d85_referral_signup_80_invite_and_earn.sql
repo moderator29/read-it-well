@@ -1,5 +1,5 @@
 -- D85 INVITE AND EARN: 80 naira when the invited person signs up fully.
--- PENDING, NOT APPLIED. Follows 20261006154817_b4_referral_campaigns.sql,
+-- APPLIED LIVE 8 October 2026 (20261008195310). Follows 20261006154817_b4_referral_campaigns.sql,
 -- 20261006155720_b4_referral_browser_is_not_a_device.sql and the two
 -- leaderboard migrations (d76x, d78r). Additive: CREATE OR REPLACE, new
 -- triggers, a new campaign row, one campaign moved active > ended (the move
