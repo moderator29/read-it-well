@@ -27,6 +27,12 @@ export async function flagIsOn(key: string): Promise<boolean> {
 export const VIDEO_CALLS_FLAG = "video_calls";
 /** VC1: staff review calls about an existing case. Needs `video_calls` on as well. */
 export const ADMIN_REVIEW_CALLS_FLAG = "admin_review_calls";
+/**
+ * Vallo Pro and Vallo Business can be tried and paid for. Seeded ON by the
+ * subscriptions_checkout migration (the founder, 8 October); a missing row
+ * reads off here and in the database (`private.subscriptions_checkout_on`).
+ */
+export const SUBSCRIPTIONS_CHECKOUT_FLAG = "subscriptions_checkout";
 /** V-41: residents' reports beside the lister's claim. */
 export const NEIGHBOURS_FLAG = "neighbours_account";
 /** V-43: rush-hour times to named places. */

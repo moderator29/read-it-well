@@ -1,3 +1,4 @@
+import { getDictionary } from "@vallo/i18n";
 import { ProSurface } from "@/app/(app)/pro/ProSurface";
 import type { ProPlanState } from "@/app/(app)/pro/pro-state";
 import { PREVIEW_PLANS, PREVIEW_TRIAL_DAYS } from "../../pro/plans-fixture";
@@ -20,7 +21,17 @@ export default async function PreviewPro({ searchParams }: { searchParams: Promi
   const { s = "free" } = await searchParams;
   return (
     <div className="px-gutter pt-md">
-      <ProSurface state={STATES[s] ?? STATES.free!} plans={PREVIEW_PLANS} trialDays={PREVIEW_TRIAL_DAYS} locale="en" signInHref="/sign-in?next=%2Fpro" />
+      <ProSurface
+        state={STATES[s] ?? STATES.free!}
+        plans={PREVIEW_PLANS}
+        trialDays={PREVIEW_TRIAL_DAYS}
+        locale="en"
+        signInHref="/sign-in?next=%2Fpro"
+        subscriptions={{ trialUsed: false, live: null }}
+        trialOpen
+        payOpen
+        copy={getDictionary("en").subscriptions}
+      />
     </div>
   );
 }

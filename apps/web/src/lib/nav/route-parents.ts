@@ -267,6 +267,8 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/rewards": "/settings",
   /* P6: Pro sits above Settings in the side navigation and returns there. */
   "/pro": "/settings",
+  /* Where Paystack returns a member after paying for a plan. */
+  "/pro/confirm": "/pro",
   "/rewards/referrals": "/rewards",
   "/rewards/history": "/rewards",
   "/rewards/withdraw": "/rewards",

@@ -195,13 +195,20 @@ export async function initializeTransaction(params: {
    * where the transaction genuinely cannot work on another channel, and the
    * caller has to write down why beside the line.
    *
-   * There is exactly one such caller today: `startCardSetup`, whose whole
-   * purpose is to obtain a reusable card authorisation that only a card can
-   * produce.
+   * There are two such callers today: `startCardSetup`, whose whole purpose
+   * is to obtain a reusable card authorisation that only a card can produce,
+   * and a subscription checkout (lib/subscriptions/checkout.ts), which Paystack
+   * renews every month against exactly that authorisation.
    */
   channels?: readonly string[];
   /** Where the charge settles. Required for every payment a person makes to another. */
   split?: PaystackSplit;
+  /**
+   * A Paystack plan code (`PLN_...`). Paystack then charges the plan's amount
+   * and, once the charge succeeds, creates a subscription that it charges
+   * every interval itself (lib/subscriptions). Absent for every other charge.
+   */
+  plan?: string;
 }): Promise<InitializedTransaction> {
   if (!Number.isSafeInteger(params.amountMinor) || params.amountMinor <= 0) {
     throw new PaystackError("The amount must be a positive integer number of kobo.");
@@ -223,6 +230,7 @@ export async function initializeTransaction(params: {
         : {}),
       ...(params.metadata ? { metadata: params.metadata } : {}),
       ...(params.split ? splitBody(params.split) : {}),
+      ...(params.plan ? { plan: params.plan } : {}),
     },
   });
   return {
@@ -267,7 +275,40 @@ export type VerifiedTransaction = {
    * (`lib/payments/card-setup.ts`) reads it.
    */
   authorization?: unknown;
+  /** Paystack's customer code (`CUS_...`), when the verify response carried one. */
+  customerCode?: string | null;
+  /** The plan code (`PLN_...`) a subscription charge was made under, when there was one. */
+  planCode?: string | null;
 };
+
+/**
+ * The plan code a charge was made under, from a webhook payload or a verify
+ * response. Paystack sends `plan` as an object with `plan_code` on a plan
+ * charge and as an empty object (or a bare code, or nothing) otherwise, and the
+ * verify response also carries `plan_object`. Null when none of them names a
+ * `PLN_` code.
+ */
+export function planCodeOf(data: unknown): string | null {
+  if (data === null || typeof data !== "object") return null;
+  const d = data as Record<string, unknown>;
+  for (const candidate of [d["plan_object"], d["plan"]]) {
+    if (typeof candidate === "string" && /^PLN_[A-Za-z0-9]+$/.test(candidate)) return candidate;
+    if (candidate !== null && typeof candidate === "object") {
+      const code = (candidate as Record<string, unknown>)["plan_code"];
+      if (typeof code === "string" && /^PLN_[A-Za-z0-9]+$/.test(code)) return code;
+    }
+  }
+  return null;
+}
+
+/** The customer code (`CUS_...`) on a payload's `customer`, or null. */
+export function customerCodeOf(data: unknown): string | null {
+  if (data === null || typeof data !== "object") return null;
+  const customer = (data as Record<string, unknown>)["customer"];
+  if (customer === null || typeof customer !== "object") return null;
+  const code = (customer as Record<string, unknown>)["customer_code"];
+  return typeof code === "string" && code.trim().length > 0 ? code.trim() : null;
+}
 
 /**
  * Paystack metadata, as an object, whatever shape it actually arrived in.
@@ -313,9 +354,11 @@ export async function verifyTransaction(reference: string): Promise<VerifiedTran
     paid_at: string | null;
     channel: string | null;
     gateway_response: string | null;
-    customer: { email?: string | null } | null;
+    customer: { email?: string | null; customer_code?: string | null } | null;
     metadata: unknown;
     authorization?: unknown;
+    plan?: unknown;
+    plan_object?: unknown;
   }>(`/transaction/verify/${encodeURIComponent(reference)}`);
 
   const metadata = metadataObject(data.metadata);
@@ -332,6 +375,8 @@ export async function verifyTransaction(reference: string): Promise<VerifiedTran
     customerEmail: data.customer?.email ?? null,
     metadata,
     authorization: data.authorization ?? null,
+    customerCode: customerCodeOf(data),
+    planCode: planCodeOf(data),
   };
 }
 
@@ -650,6 +695,105 @@ export async function createSubaccount(params: {
     throw new PaystackError("The payment service did not return a settlement account.");
   }
   return { subaccountCode: data.subaccount_code };
+}
+
+/* ------------------------------------------------------- plans and subscriptions */
+
+/**
+ * VALLO'S OWN SUBSCRIPTIONS (Vallo Pro, Vallo Business). Paystack owns the
+ * monthly charge and the card: a plan is created once per Vallo plan, mode and
+ * price (lib/subscriptions/plans.ts records its code), a checkout initialised
+ * with `plan` creates the subscription, and Paystack charges it every month.
+ * Vallo stores no card data, only the codes Paystack returns.
+ */
+
+export type PaystackPlan = {
+  planCode: string;
+  name: string;
+  /** Integer kobo. */
+  amountMinor: number;
+  interval: string;
+  currency: string;
+};
+
+function readPlan(row: unknown): PaystackPlan | null {
+  if (row === null || typeof row !== "object") return null;
+  const r = row as Record<string, unknown>;
+  const planCode = typeof r["plan_code"] === "string" ? r["plan_code"] : "";
+  if (!/^PLN_[A-Za-z0-9]+$/.test(planCode)) return null;
+  return {
+    planCode,
+    name: typeof r["name"] === "string" ? r["name"] : "",
+    amountMinor: Number.isSafeInteger(r["amount"]) ? (r["amount"] as number) : 0,
+    interval: typeof r["interval"] === "string" ? r["interval"] : "",
+    currency: typeof r["currency"] === "string" ? r["currency"] : "",
+  };
+}
+
+/** The account's monthly plans at an amount (GET /plan). */
+export async function listPlans(params: { amountMinor: number; interval: "monthly" }): Promise<PaystackPlan[]> {
+  const query = new URLSearchParams({ perPage: "100", interval: params.interval, amount: String(params.amountMinor) });
+  const rows = await request<unknown[]>(`/plan?${query.toString()}`);
+  return (Array.isArray(rows) ? rows : []).flatMap((row) => {
+    const plan = readPlan(row);
+    return plan ? [plan] : [];
+  });
+}
+
+/** Create a plan (POST /plan). The amount is integer kobo, always the Vallo plan row's price. */
+export async function createPlan(params: {
+  name: string;
+  amountMinor: number;
+  interval: "monthly";
+  description?: string;
+}): Promise<PaystackPlan> {
+  if (!Number.isSafeInteger(params.amountMinor) || params.amountMinor <= 0) {
+    throw new PaystackError("A plan amount must be a positive integer number of kobo.");
+  }
+  const data = await request<unknown>("/plan", {
+    method: "POST",
+    body: {
+      name: params.name.slice(0, 100),
+      amount: params.amountMinor,
+      interval: params.interval,
+      currency: "NGN",
+      ...(params.description ? { description: params.description.slice(0, 200) } : {}),
+    },
+  });
+  const plan = readPlan(data);
+  if (!plan) throw new PaystackError("The payment service did not return a plan code.");
+  return plan;
+}
+
+export type PaystackSubscription = {
+  subscriptionCode: string;
+  status: string;
+  emailToken: string | null;
+  nextPaymentDate: string | null;
+};
+
+/** One subscription (GET /subscription/:code), for the email token a cancel needs. */
+export async function fetchSubscription(code: string): Promise<PaystackSubscription> {
+  const data = await request<Record<string, unknown> | null>(`/subscription/${encodeURIComponent(code)}`);
+  const text = (key: string): string | null => (typeof data?.[key] === "string" ? (data[key] as string) : null);
+  return {
+    subscriptionCode: text("subscription_code") ?? code,
+    status: text("status") ?? "unknown",
+    emailToken: text("email_token"),
+    nextPaymentDate: text("next_payment_date"),
+  };
+}
+
+/**
+ * Stop a subscription renewing (POST /subscription/disable). Paystack charges
+ * nothing more; the member keeps what they already paid for (Vallo's record
+ * of the period decides that, not this call).
+ */
+export async function disableSubscription(params: { code: string; token: string }): Promise<void> {
+  await request<unknown>("/subscription/disable", {
+    method: "POST",
+    body: { code: params.code, token: params.token },
+  });
 }
 
 /* ----------------------------------------------------------------- refunds */
