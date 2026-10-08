@@ -3426,3 +3426,10 @@ The founder, 8 October: "our wallet I don't like the way it looks not really pre
 - Glass is allowed on these two capsules only, by name (`.nf-mw-btn` in check-css-tokens). Icons stay solid everywhere (D78).
 - No figure is ever drawn without an answer to read: "Not connected yet" stands where the figure would be.
 - The feed takes its own next-gen look, researched away from X; the action icons stay bare (D78).
+
+## D81 (8 October 2026): the new logo, more orange, and the Wallet as his reference
+
+- THE NEW LOGO. `docs/design/references/2026-10-08/logo-mark-new.png` and `logo-wordmark-new.png` replace every old mark and wordmark on the platform: app chrome, landing, auth, onboarding, emails, favicons, PWA and native icons, splash, share images. Clean on dark and on light.
+- MORE ORANGE. The warm spark (`--nf-spark`) is used in more places, still as the second accent: blue leads, orange sparks. The Wallet's Send capsule is the first orange FILL the platform allows (a new token, not the spark itself).
+- THE WALLET (supersedes D80's glass capsules in the card). The governing look is the right-hand phone of `GOVERNING-wallet-overview-transactions.png`: Overview and Transactions tabs, the balance card with Total received and Total spent, "Your funds are protected", filter chips, the transaction rows, a More options group (receipts, payouts, refunds, settings) and exactly two persistent bottom capsules, Withdraw (blue) and Send (orange). From the left-hand phone only the "Pay for your space with VALLO Wallet" banner. Top up, Send and payment steps follow the Dribbble reference: amount, quick chips, method or recipient, reason, Continue, keypad. The founder's full brief is `WALLET-PROMPT.md` beside it. Nothing faked: no figure, rate, badge or transaction without a real answer behind it.
+- GET STARTED ON EVERY VISIT. Tapping Sign in or Sign up opens the slides unless they were seen in this sitting (30 minutes). A leftover session cookie no longer skips them or hides the landing capsule's two doors.
