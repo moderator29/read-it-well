@@ -493,7 +493,7 @@
  * A thin light runs round the rim of a container: two short arcs of a conic
  * gradient, masked to a 1.5px ring that follows the element's own corner
  * (`border-radius: inherit`), turned by the registered angle `--nf-logo-lap`
- * on the `nf-logo-lap` keyframes. Both are the logo pill's, declared once in
+ * on the `nf-logo-lap` keyframes. Both were the retired logo pill's (D82), declared once in
  * light.css; the keyframes are not theme-gated, so the lap runs in the night
  * too. Transform-free and paint-only on a pseudo-element, so the container's
  * content never repaints.
@@ -630,7 +630,8 @@
     height: 2.75rem;
     border-radius: var(--nf-radius-circle);
     border: var(--nf-border-width) solid var(--nf-card-border);
-    background: var(--nf-surface-primary);
+    /* The logo's plate (D82): white in both themes, so the mark looks the same everywhere. */
+    background: var(--nf-logo-plate);
     box-shadow: var(--nf-card-shadow, var(--nf-elev-1));
   }
   .nf-cap__word {

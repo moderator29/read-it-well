@@ -127,9 +127,6 @@
     align-items: center;
     gap: var(--nf-gap-inline);
   }
-  .nf-ai__lockup img {
-    filter: drop-shadow(0 0 10px var(--nf-glow-2));
-  }
   .nf-ai__word {
     display: block;
     width: 4.5rem;

@@ -36,8 +36,9 @@
     stroke-linecap: round;
   }
   .nf-vmark__orbit {
+    /* The stroke is the artwork's own orange, set on the element (D82: the
+       logo is one colour set in both themes). */
     fill: none;
-    stroke: var(--nf-spark-ink);
     stroke-width: 26;
     stroke-linecap: round;
     stroke-dasharray: 0.12 0.88;

@@ -36,8 +36,7 @@ export function BrandAssemble({ size = 64, className }: { size?: number; classNa
   return (
     <span className={`nf-assemble ${className ?? ""}`} aria-hidden="true">
       <span className="nf-assemble__mark">
-        {/* `LogoMark` and `LogoWordmark` carry both artworks, so a light page
-            assembles the daylight lockup and a night island the night one. */}
+        {/* One artwork in both themes (D82). */}
         <LogoMark size={size} priority />
       </span>
       <span className="nf-assemble__word" style={{ width: wordWidth, height: wordHeight }}>

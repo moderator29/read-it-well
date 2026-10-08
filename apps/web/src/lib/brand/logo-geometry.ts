@@ -4,8 +4,8 @@
  * so `LogoMarkLive` can raise the towers and sweep the ring (D81).
  *
  * The colours are the artwork's own, as they are inside the SVG files: the
- * logo is a drawing, not a surface, and it does not follow the theme by
- * token (it carries a night and a day palette, chosen by `light.css`).
+ * logo is a drawing, not a surface, and it never follows the theme: one
+ * colour set on every ground (D82).
  */
 /* eslint-disable nf/no-raw-colour -- the logo artwork's own palette (D81), generated */
 
@@ -40,264 +40,134 @@ export const MARK_TOWERS = [
     "side": null
   }
 ] as const;
-export const MARK_SIDE = {"night":"#0B2A9E","day":"#082690"};
-export const MARK_GRADIENTS = {
-  "night": [
-    {
-      "id": "blue",
-      "x1": 0,
-      "y1": 260,
-      "x2": 0,
-      "y2": 830,
-      "user": true,
-      "stops": [
-        [
-          0,
-          "#3FDCFF"
-        ],
-        [
-          0.45,
-          "#1C86FF"
-        ],
-        [
-          1,
-          "#1238C8"
-        ]
+export const MARK_SIDE = "#0B2A9E";
+export const MARK_ACCENT = "#FF8A3C";
+export const MARK_GRADIENTS = [
+  {
+    "id": "blue",
+    "x1": 0,
+    "y1": 260,
+    "x2": 0,
+    "y2": 830,
+    "user": true,
+    "stops": [
+      [
+        0,
+        "#3FDCFF"
+      ],
+      [
+        0.45,
+        "#1C86FF"
+      ],
+      [
+        1,
+        "#1238C8"
       ]
-    },
-    {
-      "id": "orange",
-      "x1": 0,
-      "y1": 388,
-      "x2": 0,
-      "y2": 760,
-      "user": true,
-      "stops": [
-        [
-          0,
-          "#FFA04A"
-        ],
-        [
-          0.35,
-          "#FF8A3C"
-        ],
-        [
-          1,
-          "#F2561E"
-        ]
+    ]
+  },
+  {
+    "id": "orange",
+    "x1": 0,
+    "y1": 388,
+    "x2": 0,
+    "y2": 760,
+    "user": true,
+    "stops": [
+      [
+        0,
+        "#FFA04A"
+      ],
+      [
+        0.35,
+        "#FF8A3C"
+      ],
+      [
+        1,
+        "#F2561E"
       ]
-    },
-    {
-      "id": "sheen",
-      "x1": 0,
-      "y1": 0,
-      "x2": 1,
-      "y2": 1,
-      "user": false,
-      "stops": [
-        [
-          0,
-          "#FFFFFF",
-          0.22
-        ],
-        [
-          0.45,
-          "#FFFFFF",
-          0
-        ]
+    ]
+  },
+  {
+    "id": "sheen",
+    "x1": 0,
+    "y1": 0,
+    "x2": 1,
+    "y2": 1,
+    "user": false,
+    "stops": [
+      [
+        0,
+        "#FFFFFF",
+        0.22
+      ],
+      [
+        0.45,
+        "#FFFFFF",
+        0
       ]
-    },
-    {
-      "id": "ring",
-      "x1": 250,
-      "y1": 0,
-      "x2": 995,
-      "y2": 0,
-      "user": true,
-      "stops": [
-        [
-          0,
-          "#3FDCFF"
-        ],
-        [
-          0.16,
-          "#1C86FF"
-        ],
-        [
-          0.38,
-          "#1A4CF0"
-        ],
-        [
-          0.6,
-          "#1C86FF"
-        ],
-        [
-          0.74,
-          "#1A4CF0"
-        ],
-        [
-          0.9,
-          "#FF8A3C"
-        ],
-        [
-          1,
-          "#FFA04A"
-        ]
+    ]
+  },
+  {
+    "id": "ring",
+    "x1": 250,
+    "y1": 0,
+    "x2": 995,
+    "y2": 0,
+    "user": true,
+    "stops": [
+      [
+        0,
+        "#3FDCFF"
+      ],
+      [
+        0.16,
+        "#1C86FF"
+      ],
+      [
+        0.38,
+        "#1A4CF0"
+      ],
+      [
+        0.6,
+        "#1C86FF"
+      ],
+      [
+        0.74,
+        "#1A4CF0"
+      ],
+      [
+        0.9,
+        "#FF8A3C"
+      ],
+      [
+        1,
+        "#FFA04A"
       ]
-    },
-    {
-      "id": "ringShade",
-      "x1": 0,
-      "y1": 560,
-      "x2": 0,
-      "y2": 900,
-      "user": true,
-      "stops": [
-        [
-          0,
-          "#FFFFFF",
-          0.2
-        ],
-        [
-          0.55,
-          "#FFFFFF",
-          0
-        ],
-        [
-          1,
-          "#000000",
-          0.12
-        ]
+    ]
+  },
+  {
+    "id": "ringShade",
+    "x1": 0,
+    "y1": 560,
+    "x2": 0,
+    "y2": 900,
+    "user": true,
+    "stops": [
+      [
+        0,
+        "#FFFFFF",
+        0.2
+      ],
+      [
+        0.55,
+        "#FFFFFF",
+        0
+      ],
+      [
+        1,
+        "#000000",
+        0.12
       ]
-    }
-  ],
-  "day": [
-    {
-      "id": "blue",
-      "x1": 0,
-      "y1": 260,
-      "x2": 0,
-      "y2": 830,
-      "user": true,
-      "stops": [
-        [
-          0,
-          "#0A8CE6"
-        ],
-        [
-          0.45,
-          "#1262EC"
-        ],
-        [
-          1,
-          "#0A2FA8"
-        ]
-      ]
-    },
-    {
-      "id": "orange",
-      "x1": 0,
-      "y1": 388,
-      "x2": 0,
-      "y2": 760,
-      "user": true,
-      "stops": [
-        [
-          0,
-          "#F7802C"
-        ],
-        [
-          0.35,
-          "#F26F1F"
-        ],
-        [
-          1,
-          "#DB4410"
-        ]
-      ]
-    },
-    {
-      "id": "sheen",
-      "x1": 0,
-      "y1": 0,
-      "x2": 1,
-      "y2": 1,
-      "user": false,
-      "stops": [
-        [
-          0,
-          "#FFFFFF",
-          0.14
-        ],
-        [
-          0.45,
-          "#FFFFFF",
-          0
-        ]
-      ]
-    },
-    {
-      "id": "ring",
-      "x1": 250,
-      "y1": 0,
-      "x2": 995,
-      "y2": 0,
-      "user": true,
-      "stops": [
-        [
-          0,
-          "#0A8CE6"
-        ],
-        [
-          0.16,
-          "#1262EC"
-        ],
-        [
-          0.38,
-          "#0F44D6"
-        ],
-        [
-          0.6,
-          "#1262EC"
-        ],
-        [
-          0.74,
-          "#0F44D6"
-        ],
-        [
-          0.9,
-          "#F26F1F"
-        ],
-        [
-          1,
-          "#F7802C"
-        ]
-      ]
-    },
-    {
-      "id": "ringShade",
-      "x1": 0,
-      "y1": 560,
-      "x2": 0,
-      "y2": 900,
-      "user": true,
-      "stops": [
-        [
-          0,
-          "#FFFFFF",
-          0.1
-        ],
-        [
-          0.55,
-          "#FFFFFF",
-          0
-        ],
-        [
-          1,
-          "#000000",
-          0.08
-        ]
-      ]
-    }
-  ]
-} as const;
+    ]
+  }
+] as const;

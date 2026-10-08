@@ -13,11 +13,11 @@
  * WHAT IT WRITES, AND WHO READS IT.
  *
  * apps/web/public/brand/
- *   vallo-mark.svg, vallo-mark-light.svg            the mark, night and day palettes (the app draws these)
- *   vallo-wordmark.svg, vallo-wordmark-light.svg    the wordmark, night and day
- *   vallo-mark-reverse.svg, vallo-wordmark-reverse.svg   white and ice with the orange kept, for the brand blue
- *   vallo-mark.png, vallo-mark-light.png            1024 wide, transparent (emails, share cards, scripts)
- *   vallo-wordmark.png, vallo-wordmark-light.png    1664 by 352, transparent
+ *   vallo-mark.svg, vallo-wordmark.svg              the mark and the wordmark (the app draws these)
+ *   vallo-mark.png, vallo-wordmark.png              1024 wide and 1664 by 352, transparent
+ *   vallo-mark-light.*, vallo-wordmark-light.*      byte-for-byte copies of the four above, kept
+ *                                                   only so an old reference still draws the one
+ *                                                   artwork (D82: the logo never changes colour)
  *   vallo-logo.png                                  1024 square: mark over wordmark on brand navy
  *                                                   (structured data, the lockup)
  *   vallo-icon.png                                  1024 square app icon: the mark on brand navy
@@ -28,6 +28,12 @@
  * apps/web/assets/icon-only.png, icon-foreground.png, icon-background.png   (@capacitor/assets sources)
  * apps/web/android/app/src/main/res/mipmap-* /ic_launcher*.png              every density, at its existing size
  * apps/web/ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png
+ *
+ * apps/web/public/brand/session-b/welcome/coin-face.webp   the welcome coin's face, redrawn as a
+ *                                                   solid navy disc with the logo's own blue rim
+ *                                                   (it was the old glass coin with the old towers)
+ * apps/web/android/app/src/main/res/drawable/ic_stat_vallo.xml   the Android notification icon: the
+ *                                                   new mark as a white silhouette (it was a door)
  *
  * The launch images stay a plain navy field with no mark (D68c);
  * `scripts/build-native-icons.mjs` owns them.
@@ -44,7 +50,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
 
-import { MARK_VIEWBOX, PALETTE, WORDMARK_VIEWBOX, markGradients, markParts, markSvg, wordmarkSvg } from "./brand/logo-art.mjs";
+import { COLOURS, MARK_VIEWBOX, WORDMARK_VIEWBOX, markGradients, markParts, markSvg, wordmarkSvg } from "./brand/logo-art.mjs";
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 const WEB = path.join(ROOT, "apps/web");
@@ -58,12 +64,8 @@ const NAVY = "#010118";
 const NAVY_LIFT = "#0B1C5C";
 
 const svg = {
-  markNight: markSvg({ theme: "night" }),
-  markDay: markSvg({ theme: "day" }),
-  wordNight: wordmarkSvg({ theme: "night" }),
-  wordDay: wordmarkSvg({ theme: "day" }),
-  markReverse: markSvg({ theme: "reverse" }),
-  wordReverse: wordmarkSvg({ theme: "reverse" }),
+  markNight: markSvg(),
+  wordNight: wordmarkSvg(),
 };
 
 const MARK_ASPECT = MARK_VIEWBOX.w / MARK_VIEWBOX.h;
@@ -94,16 +96,18 @@ async function iconOn(size, { scale = 0.7, shape = "square", lift = true, transp
     : `<defs><radialGradient id="g" cx="50%" cy="44%" r="62%"><stop offset="0" stop-color="${lift ? NAVY_LIFT : NAVY}"/><stop offset="1" stop-color="${NAVY}"/></radialGradient></defs>` +
       `<rect width="${size}" height="${size}" rx="${r}" ry="${r}" fill="url(#g)"/>`;
   const base = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">${ground}</svg>`);
-  if (scale <= 0) return png(await sharp(base).png().toBuffer());
+  /* A full square on navy carries no alpha channel at all: Apple rejects an
+     App Store icon with one, and an opaque icon has no use for it. */
+  const opaque = (image) => (!transparent && shape === "square" ? image.removeAlpha() : image);
+  if (scale <= 0) return png(await opaque(sharp(base)).png().toBuffer());
   const w = Math.round(size * scale);
   const mark = await raster(svg.markNight, w);
   const { height: h } = await sharp(mark).metadata();
-  return png(
-    await sharp(base)
-      .composite([{ input: mark, left: Math.round((size - w) / 2), top: Math.round((size - h) / 2 - size * dy) }])
-      .png()
-      .toBuffer(),
-  );
+  const composed = await sharp(base)
+    .composite([{ input: mark, left: Math.round((size - w) / 2), top: Math.round((size - h) / 2 - size * dy) }])
+    .png()
+    .toBuffer();
+  return png(await opaque(sharp(composed)).png().toBuffer());
 }
 
 /** A Windows ICO holding PNG images (supported by every browser that reads favicons). */
@@ -139,8 +143,8 @@ function ico(images) {
     " * so `LogoMarkLive` can raise the towers and sweep the ring (D81).",
     " *",
     " * The colours are the artwork's own, as they are inside the SVG files: the",
-    " * logo is a drawing, not a surface, and it does not follow the theme by",
-    " * token (it carries a night and a day palette, chosen by `light.css`).",
+    " * logo is a drawing, not a surface, and it never follows the theme: one",
+    " * colour set on every ground (D82).",
     " */",
     "/* eslint-disable nf/no-raw-colour -- the logo artwork's own palette (D81), generated */",
     "",
@@ -150,8 +154,9 @@ function ico(images) {
     `export const MARK_RING_CENTRE = ${JSON.stringify(parts.ringCentre)};`,
     `export const MARK_ABOVE_RING = ${JSON.stringify(parts.above)};`,
     `export const MARK_TOWERS = ${JSON.stringify(parts.towers, null, 2)} as const;`,
-    `export const MARK_SIDE = ${JSON.stringify({ night: PALETTE.night.side, day: PALETTE.day.side })};`,
-    `export const MARK_GRADIENTS = ${JSON.stringify({ night: markGradients("night"), day: markGradients("day") }, null, 2)} as const;`,
+    `export const MARK_SIDE = ${JSON.stringify(COLOURS.side)};`,
+    `export const MARK_ACCENT = ${JSON.stringify(COLOURS.orange)};`,
+    `export const MARK_GRADIENTS = ${JSON.stringify(markGradients(), null, 2)} as const;`,
     "",
   ].join("\n");
   await out(path.join(WEB, "src/lib/brand/logo-geometry.ts"), Buffer.from(body));
@@ -179,19 +184,78 @@ function ico(images) {
   await out(path.join(WEB, "src/lib/brand/og-logo.ts"), Buffer.from(body));
 }
 
+/* ---------- the welcome coin's face (no glass, no old emblem) ---------- */
+{
+  const size = 160;
+  const c = size / 2;
+  const face = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">
+    <defs>
+      <radialGradient id="f" cx="38%" cy="32%" r="75%"><stop offset="0" stop-color="${NAVY_LIFT}"/><stop offset="1" stop-color="${NAVY}"/></radialGradient>
+      <linearGradient id="r" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${COLOURS.cyan}"/><stop offset="0.5" stop-color="${COLOURS.blueMid}"/><stop offset="1" stop-color="${COLOURS.blueDeep}"/></linearGradient>
+    </defs>
+    <circle cx="${c}" cy="${c}" r="${c - 1}" fill="url(#r)"/>
+    <circle cx="${c}" cy="${c}" r="${c - 9}" fill="url(#f)"/>
+  </svg>`;
+  await out(
+    path.join(BRAND, "session-b/welcome/coin-face.webp"),
+    await sharp(Buffer.from(face)).webp({ quality: 92, alphaQuality: 100 }).toBuffer(),
+  );
+}
+
+/* ---------- the Android notification icon: the mark as a silhouette ---------- */
+{
+  /* Android keeps only the alpha of this drawable and fills it with the
+     notification colour, so the mark is drawn in opaque white: the towers,
+     clipped above the ring as in the artwork, and the ring itself. The
+     viewport is the mark's own coordinates, padded square. */
+  const parts = markParts();
+  const vb = parts.viewBox;
+  const side = Math.round(Math.max(vb.w, vb.h) * 1.1);
+  const tx = -vb.x + (side - vb.w) / 2;
+  const ty = -vb.y + (side - vb.h) / 2;
+  const xml = [
+    '<?xml version="1.0" encoding="utf-8"?>',
+    "<!--",
+    "    GENERATED by `node scripts/build-brand-logo.mjs`. Do not hand edit.",
+    "",
+    "    The small notification icon: the Vallo mark (D81), four towers in their",
+    "    orbit ring, as a white silhouette. From Android 5 the system takes only",
+    "    the ALPHA of this drawable and fills it with the notification colour, so",
+    "    every path is opaque white and the shape is carried by where the alpha is.",
+    "-->",
+    '<vector xmlns:android="http://schemas.android.com/apk/res/android"',
+    '    android:width="24dp"',
+    '    android:height="24dp"',
+    `    android:viewportWidth="${side}"`,
+    `    android:viewportHeight="${side}">`,
+    `    <group android:translateX="${tx.toFixed(1)}" android:translateY="${ty.toFixed(1)}">`,
+    `        <path android:fillColor="#FFFFFFFF" android:pathData="${parts.ring}" />`,
+    "        <group>",
+    `            <clip-path android:pathData="${parts.above}" />`,
+    ...parts.towers.map((t) => `            <path android:fillColor="#FFFFFFFF" android:pathData="${t.d}" />`),
+    "        </group>",
+    "    </group>",
+    "</vector>",
+    "",
+  ].join("\n");
+  await out(path.join(ANDROID_RES, "drawable/ic_stat_vallo.xml"), Buffer.from(xml));
+}
+
 /* ---------- the vectors ---------- */
 await out(path.join(BRAND, "vallo-mark.svg"), Buffer.from(svg.markNight));
-await out(path.join(BRAND, "vallo-mark-light.svg"), Buffer.from(svg.markDay));
+await out(path.join(BRAND, "vallo-mark-light.svg"), Buffer.from(svg.markNight));
 await out(path.join(BRAND, "vallo-wordmark.svg"), Buffer.from(svg.wordNight));
-await out(path.join(BRAND, "vallo-wordmark-light.svg"), Buffer.from(svg.wordDay));
-await out(path.join(BRAND, "vallo-mark-reverse.svg"), Buffer.from(svg.markReverse));
-await out(path.join(BRAND, "vallo-wordmark-reverse.svg"), Buffer.from(svg.wordReverse));
+await out(path.join(BRAND, "vallo-wordmark-light.svg"), Buffer.from(svg.wordNight));
 
 /* ---------- transparent PNGs ---------- */
-await out(path.join(BRAND, "vallo-mark.png"), await png(await raster(svg.markNight, 1024)));
-await out(path.join(BRAND, "vallo-mark-light.png"), await png(await raster(svg.markDay, 1024)));
-await out(path.join(BRAND, "vallo-wordmark.png"), await png(await raster(svg.wordNight, WORDMARK_VIEWBOX.w)));
-await out(path.join(BRAND, "vallo-wordmark-light.png"), await png(await raster(svg.wordDay, WORDMARK_VIEWBOX.w)));
+{
+  const markPng = await png(await raster(svg.markNight, 1024));
+  const wordPng = await png(await raster(svg.wordNight, WORDMARK_VIEWBOX.w));
+  await out(path.join(BRAND, "vallo-mark.png"), markPng);
+  await out(path.join(BRAND, "vallo-mark-light.png"), markPng);
+  await out(path.join(BRAND, "vallo-wordmark.png"), wordPng);
+  await out(path.join(BRAND, "vallo-wordmark-light.png"), wordPng);
+}
 
 /* ---------- the square lockup and the app icon ---------- */
 {

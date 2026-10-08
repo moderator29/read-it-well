@@ -164,23 +164,14 @@ export default function manifest(): MetadataRoute.Manifest {
         label: "Rent, buy, shortlet, land and commercial, in one search",
       },
       {
-        /*
-         * THIS ENTRY NAMED A FILE THAT IS NOT ON DISK (R3 finding F-11).
-         *
-         * It read `narrow-stays.jpg`; `public/pwa/shots` holds
-         * `narrow-markets.jpg`. Chrome drops the whole rich install card when
-         * one listed screenshot 404s, so the manifest lost precisely the
-         * store-style prompt this block exists for. The entry now names the
-         * file that is there. The shot is the landing's market grid, so the
-         * label says that rather than claiming a Stays screen; when
-         * `scripts/build-pwa-screenshots.mjs` is next run against a live
-         * server it writes a Stays capture and this pair is renamed together.
-         */
-        src: "/pwa/shots/narrow-markets.jpg",
+        /* The Stays home, captured by `scripts/build-pwa-screenshots.mjs`
+           (rerun 8 October 2026 for the new logo, D81 and D82; it replaced
+           `narrow-markets.jpg`, which showed the old glass mark). */
+        src: "/pwa/shots/narrow-stays.jpg",
         sizes: "780x1688",
         type: "image/jpeg",
         form_factor: "narrow",
-        label: "Every market, property and stays, in one search",
+        label: "Hotels, shortlets and restaurants, on the Stays side",
       },
       {
         src: "/pwa/shots/wide-home.jpg",

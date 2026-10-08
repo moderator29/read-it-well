@@ -59,7 +59,8 @@
     width: 2.5rem;
     height: 2.5rem;
     border-radius: var(--nf-radius-plate);
-    background: var(--nf-surface-canvas);
+    /* The logo's plate (D82): white in both themes, so the mark looks the same everywhere. */
+    background: var(--nf-logo-plate);
     isolation: isolate;
   }
   /* The one warm glow, bleeding from behind the mark. */

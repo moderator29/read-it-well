@@ -891,7 +891,8 @@
     width: 2.25rem;
     height: 2.25rem;
     border-radius: var(--nf-radius-circle);
-    background: var(--nf-platinum-ink);
+    /* The logo's plate (D82): white in both themes, so the mark looks the same everywhere. */
+    background: var(--nf-logo-plate);
   }
   .nf-pl-platinum__kind {
     font-family: var(--nf-font-display);

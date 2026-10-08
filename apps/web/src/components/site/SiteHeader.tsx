@@ -69,7 +69,7 @@ export function SiteHeader({
          once the page scrolls under it. Every other page keeps it: in light
          it is the navy VALLO band over light content (founder reference 05,
          29 September 2026), the bar's canvas glass resolving to the night
-         canvas, and the logo in it keeps the night artwork. */
+         canvas; the logo in it is its one artwork, as everywhere (D82). */
       data-theme="dark"
       data-over-night={variant === "landing" ? "" : undefined}
       suppressHydrationWarning

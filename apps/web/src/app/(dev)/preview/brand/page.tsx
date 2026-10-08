@@ -27,13 +27,15 @@ export default function BrandPreview() {
       </section>
 
       <section className="flex flex-col gap-sm">
-        <p className="nf-section-label">Reverse, on the brand blue</p>
+        <p className="nf-section-label">On the brand blue, on its white plate</p>
         <div
           className="flex items-center gap-md rounded-[var(--nf-container-radius)] p-card"
           style={{ background: "var(--nf-brand-primary)" }}
         >
-          <img src="/brand/vallo-mark-reverse.svg" alt="" width={64} height={55} />
-          <img src="/brand/vallo-wordmark-reverse.svg" alt="Vallo" width={wordmarkWidth(26)} height={26} />
+          <span className="nf-slate-top__plate">
+            <img src="/brand/vallo-mark.svg" alt="" width={36} height={31} />
+            <img src="/brand/vallo-wordmark.svg" alt="Vallo" width={wordmarkWidth(20)} height={20} />
+          </span>
         </div>
       </section>
 

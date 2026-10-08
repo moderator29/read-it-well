@@ -4,6 +4,7 @@ import {
   MARK_GRADIENTS,
   MARK_RING,
   MARK_RING_CENTRE,
+  MARK_ACCENT,
   MARK_SIDE,
   MARK_TOWERS,
   MARK_VIEWBOX,
@@ -27,8 +28,8 @@ import {
  * own durations and eases, and it stops under reduced motion, data saving
  * and the Calm and Off motion settings: the mark is then simply drawn.
  *
- * Both palettes are in the drawing; `app/css/light.css` shows the day one on
- * paper and the night one on navy, exactly as for `LogoMark`.
+ * One colour set, the founder's own, on every ground and in both themes
+ * (D82): the orbit's light is the artwork's own orange, not a theme token.
  *
  * Server-safe: markup only. `useId` keeps two marks on one page from sharing
  * gradient ids.
@@ -48,15 +49,24 @@ export function LogoMarkLive({
   const uid = useId().replace(/[^a-zA-Z0-9_-]/g, "");
   const vb = MARK_VIEWBOX;
   const height = Math.round((size * vb.h) / vb.w);
-  const id = (theme: string, name: string) => `${uid}-${theme}-${name}`;
+  const id = (name: string) => `${uid}-${name}`;
 
-  const art = (theme: "night" | "day") => (
-    <g className={`nf-logo-art nf-logo-art--${theme}`}>
+  return (
+    <svg
+      className={`nf-vmark nf-vmark--${motion} nf-logo-art ${className ?? ""}`}
+      viewBox={`${vb.x} ${vb.y} ${vb.w} ${vb.h}`}
+      width={size}
+      height={height}
+      role={title ? "img" : undefined}
+      aria-label={title}
+      aria-hidden={title ? undefined : true}
+      focusable="false"
+    >
       <defs>
-        {MARK_GRADIENTS[theme].map((g) => (
+        {MARK_GRADIENTS.map((g) => (
           <linearGradient
             key={g.id}
-            id={id(theme, g.id)}
+            id={id(g.id)}
             x1={g.x1}
             y1={g.y1}
             x2={g.x2}
@@ -73,45 +83,29 @@ export function LogoMarkLive({
             ))}
           </linearGradient>
         ))}
-        <clipPath id={id(theme, "above")}>
+        <clipPath id={id("above")}>
           <path d={MARK_ABOVE_RING} />
         </clipPath>
-        <mask id={id(theme, "sweep")} style={{ maskType: "alpha" }} maskUnits="userSpaceOnUse" x={vb.x} y={vb.y} width={vb.w} height={vb.h}>
+        <mask id={id("sweep")} style={{ maskType: "alpha" }} maskUnits="userSpaceOnUse" x={vb.x} y={vb.y} width={vb.w} height={vb.h}>
           <path className="nf-vmark__sweep" d={MARK_RING_CENTRE} pathLength={1} />
         </mask>
       </defs>
-      <g className="nf-vmark__ring-wrap" mask={motion === "reveal" ? `url(#${id(theme, "sweep")})` : undefined}>
-        <path className="nf-vmark__ring" d={MARK_RING} fill={`url(#${id(theme, "ring")})`} />
+      <g className="nf-vmark__ring-wrap" mask={motion === "reveal" ? `url(#${id("sweep")})` : undefined}>
+        <path className="nf-vmark__ring" d={MARK_RING} fill={`url(#${id("ring")})`} />
       </g>
-      <g clipPath={`url(#${id(theme, "above")})`}>
+      <g clipPath={`url(#${id("above")})`}>
         {MARK_TOWERS.map((t, i) => (
           <g key={t.id} className="nf-vmark__tower" style={{ "--nf-i": TOWER_ORDER[i] } as React.CSSProperties}>
-            <path d={t.d} fill={`url(#${id(theme, t.tone === "orange" ? "orange" : "blue")})`} />
-            {t.side ? <path d={t.side} fill={MARK_SIDE[theme]} opacity={0.55} /> : null}
-            <path d={t.d} fill={`url(#${id(theme, "sheen")})`} />
+            <path d={t.d} fill={`url(#${id(t.tone === "orange" ? "orange" : "blue")})`} />
+            {t.side ? <path d={t.side} fill={MARK_SIDE} opacity={0.55} /> : null}
+            <path d={t.d} fill={`url(#${id("sheen")})`} />
           </g>
         ))}
       </g>
-      <path d={MARK_RING} fill={`url(#${id(theme, "ringShade")})`} />
+      <path d={MARK_RING} fill={`url(#${id("ringShade")})`} />
       {motion === "orbit" ? (
-        <path className="nf-vmark__orbit" d={MARK_RING_CENTRE} pathLength={1} />
+        <path className="nf-vmark__orbit" d={MARK_RING_CENTRE} pathLength={1} stroke={MARK_ACCENT} />
       ) : null}
-    </g>
-  );
-
-  return (
-    <svg
-      className={`nf-vmark nf-vmark--${motion} ${className ?? ""}`}
-      viewBox={`${vb.x} ${vb.y} ${vb.w} ${vb.h}`}
-      width={size}
-      height={height}
-      role={title ? "img" : undefined}
-      aria-label={title}
-      aria-hidden={title ? undefined : true}
-      focusable="false"
-    >
-      {art("night")}
-      {art("day")}
     </svg>
   );
 }

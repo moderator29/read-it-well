@@ -1364,7 +1364,8 @@
     height: 3.5rem;
     border-radius: var(--nf-plate-radius-lg);
     border: var(--nf-border-width) solid var(--nf-card-border);
-    background: var(--nf-surface-primary);
+    /* The logo's plate (D82): white in both themes, so the mark looks the same everywhere. */
+    background: var(--nf-logo-plate);
     box-shadow: var(--nf-float-shadow, var(--nf-elev-2));
   }
   .nf-close__title {
@@ -1907,7 +1908,8 @@
     width: 2.5rem;
     height: 2.5rem;
     border-radius: var(--nf-radius-control);
-    background: var(--nf-ink-on-photo);
+    /* The logo's plate (D82): white in both themes, so the mark looks the same everywhere. */
+    background: var(--nf-logo-plate);
   }
   .nf-mo__facts {
     display: grid;

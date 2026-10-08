@@ -8,7 +8,8 @@
 > file disagrees with it, this file is history. It is kept because code comments
 > cite it. Do not take icon, container, glow or motion direction from here.
 
-> **THE LOGO CHANGED ON 8 OCTOBER 2026 (D81). Read section 0 first.** Every
+> **THE LOGO CHANGED ON 8 OCTOBER 2026 (D81, and D82 the same day: one colour
+> set in both themes). Read section 0 first.** Every
 > description below of the logo as a glass tile, five glass towers, a swoosh,
 > a keyed extraction or a re-toned "daylight twin" is history.
 
@@ -46,13 +47,21 @@ references, in the references' own pixel coordinates, so the drawing can be
 laid over the render and checked shape for shape. No ground and no glow are
 baked in; a glow, where a surface wants one, is CSS and on dark only.
 
-**Three palettes, one drawing.**
-
-| Palette | Files | Where |
-| --- | --- | --- |
-| night | `vallo-mark.svg`, `vallo-wordmark.svg` (+ `.png`) | navy and dark grounds, night islands, the `.nf-logo` pill in light |
-| day | `vallo-mark-light.svg`, `vallo-wordmark-light.svg` (+ `.png`) | paper: blues deepened (`#0A8CE6` to `#0A2FA8`) and the orange too, so every opaque pixel holds 3:1 on white |
-| reverse | `vallo-mark-reverse.svg`, `vallo-wordmark-reverse.svg` | the brand's own blue ground (the auth block): white and ice for the blues, the orange kept |
+**One colour set, never recoloured (D82, the founder, 8 October 2026).** "the
+logo im seeing it changing color on light mode ... make the logo and the text
+to be not change color should be same either on light mode or dark mode". So
+the mark and the wordmark are the founder's own colours (`COLOURS` in
+`logo-art.mjs`: cyan `#3FDCFF` to electric `#1C86FF` to royal `#1238C8`, the
+orange `#FFA04A` to `#FF8A3C` to `#F2561E`) on every ground and in both themes.
+The D81 day palette (deepened blues for paper) and reverse palette (white
+letters for the brand blue) are retired, and so is the founder's earlier rule
+of 29 September that put the light-theme `.nf-logo` on a navy pill with lights
+lapping its rim: D82 supersedes it. Nothing may recolour, filter or swap the
+logo per theme. Where the artwork's own blue would vanish (the brand-blue auth
+block and its focal ring) the lockup stands on a white plate
+(`--nf-logo-plate`), the same in both themes; the artwork itself never
+changes. `vallo-mark-light.*` and `vallo-wordmark-light.*` stay on disk only
+as byte-for-byte copies of the one artwork, so an old reference still draws it.
 
 **One build writes every file.** `node scripts/build-brand-logo.mjs` writes
 the SVGs, the transparent PNGs (`vallo-mark.png` 1024 wide,
@@ -61,7 +70,10 @@ navy), `vallo-icon.png` (the app icon), the favicon (a real 16, 32 and 48
 ICO), `public/pwa/icon-*.png`, `apple-touch-icon.png`, the maskable icon,
 `apps/web/assets/icon-*.png`, every Android `mipmap-*/ic_launcher*.png` (the
 adaptive foreground is now transparent), the iOS `AppIcon`, the older
-startup and sign-in cuts, and two generated modules:
+startup and sign-in cuts, the welcome coin's face (a solid navy disc with the
+logo's blue rim; it was the old glass coin with the old towers), the Android
+notification icon `drawable/ic_stat_vallo.xml` (the mark as a white
+silhouette; it was a door in an arch), and two generated modules:
 `apps/web/src/lib/brand/logo-geometry.ts` (the mark in parts, for
 `LogoMarkLive`) and `apps/web/src/lib/brand/og-logo.ts` (data URIs for the
 share cards Satori draws). Then `node scripts/build-email-lockup.mjs` (the
@@ -70,8 +82,7 @@ email band) and `node scripts/build-og-image.mjs` (the default share card).
 (the extraction from the old glass tile) are deleted.
 
 **Drawing it in the app.** `Logo`, `LogoMark` and `LogoWordmark`
-(`design-system/brand/Logo.tsx`) render the night and day SVGs and
-`app/css/light.css` shows one, keyed on `data-theme`, as before.
+(`design-system/brand/Logo.tsx`) render the one SVG each, in both themes.
 `LogoMarkLive` draws the mark inline so it can move: `reveal` (the towers rise
 out of the ring, the ring sweeps from its cyan tip to its orange end; the
 sign-out threshold) and `orbit` (a light runs round the ring; the landing's
@@ -84,7 +95,12 @@ file in the web app, the native projects, `assets/`, `packages/`, `scripts/`
 or the Supabase email templates is byte-for-byte one of the old logo files
 (by SHA-256, under any name), if the old path data appears in any source file,
 if a call site still declares the old 614 by 587 or 758 by 167 boxes, or if
-the shipped SVGs drift from `logo-art.mjs`.
+the shipped SVGs drift from `logo-art.mjs`. Since D82 it also fails if any
+logo SVG carries a colour outside the founder's set, if a kept twin differs
+from the one artwork, if source picks a logo file or class by theme, or if
+any stylesheet filters, recolours or theme-scopes a logo selector. The D81
+recolourings, the old glass coin face and the PWA install screenshots that
+showed the old glass mark are on its list of retired files.
 
 ---
 

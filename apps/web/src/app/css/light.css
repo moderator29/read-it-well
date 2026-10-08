@@ -28,117 +28,22 @@
   }
 
   /* ------------------------------------------------------------------
-   * THE LOGO: A NAVY PILL WITH A LIGHT RUNNING ROUND ITS EDGE (the founder,
-   * 29 September 2026, second pass: "like snakes moving around the edges").
+   * THE LOGO IS NOT TOUCHED BY THE THEME (D82, the founder, 8 October 2026:
+   * "make the logo and the text to be not change color should be same either
+   * on light mode or dark mode"). There used to be a daylight twin shown here
+   * on paper, a white halo filter on it, and a navy pill with two lights
+   * lapping its rim behind every `.nf-logo` in light. All three are gone: the
+   * mark and the wordmark are one artwork in the founder's own colours on
+   * every ground, and nothing in this file may select `.nf-logo` or
+   * `.nf-logo-art` (`design-system/brand/logo-sweep.test.ts`).
    *
-   * The morning's pass took the pill away and drew a paper twin of the
-   * artwork instead; the founder wants the brand's own night lockup back, on
-   * navy, everywhere the lockup appears in light. So in light every `.nf-logo`
-   * (the lockup: header, site bar, rail, auth, loading) is a navy pill, the
-   * NIGHT artwork is shown inside it and the paper twin is not, and two short
-   * arcs of light chase each other round the rim.
-   *
-   * The paper twin still serves a bare `LogoMark` outside a pill and outside
-   * a night island (the home greeting's small mark), which is why the day
-   * and night rules below exclude `.nf-logo *` rather than going away.
-   *
-   * MOTION. The arcs turn on a registered angle (`@property`), one lap in
-   * 7.5s. Under `prefers-reduced-motion`, data saving, and the app's Calm or
-   * Off motion setting the lap stops and the rim is a steady soft glow
-   * instead, so the pill is never left with two frozen dashes on it.
-   *
-   * THE DISPLAY IS `!important`, because a host that styles its own image
-   * (`.nf-assemble__mark img { display: block }` in threshold.css outranks a
-   * single class) would otherwise show both artworks at once.
+   * The lap's keyframes stay: the edge lights of the dock and the landing
+   * capsule still turn on them (shell-m.css, site.css).
    * ---------------------------------------------------------------- */
-  .nf-logo-art--day {
-    display: none !important;
-  }
-  :root[data-theme="light"] .nf-logo-art--day:not(:where([data-theme="dark"] *, .nf-logo *)) {
-    display: block !important;
-    filter: var(--nf-logo-day-halo);
-  }
-  :root[data-theme="light"] .nf-logo-art--night:not(:where([data-theme="dark"] *, .nf-logo *)) {
-    display: none !important;
-  }
-
-  /* The pill's box is the same in both themes, so switching themes never
-     moves the lockup or what is beside it: at night it is simply unpainted. */
-  .nf-logo {
-    padding: 0.25rem 0.75rem 0.25rem 0.5rem;
-    border-radius: var(--nf-radius-pill);
-  }
-  :root[data-theme="light"] .nf-logo {
-    position: relative;
-    isolation: isolate;
-    background:
-      radial-gradient(120% 160% at 18% 0%, color-mix(in oklab, var(--nf-glow-ink) 30%, transparent), transparent 62%),
-      var(--nf-night-tile-ground);
-    box-shadow:
-      inset 0 0 0 1px var(--nf-night-tile-rim),
-      inset 0 1px 0 color-mix(in oklab, var(--nf-glow-ink) 30%, transparent),
-      0 6px 16px -8px color-mix(in oklab, var(--nf-glow-ink) 70%, transparent);
-  }
-  :root[data-theme="light"] .nf-logo::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    padding: 1.5px;
-    border-radius: inherit;
-    pointer-events: none;
-    -webkit-mask:
-      linear-gradient(var(--nf-mask-opaque) 0 0) content-box,
-      linear-gradient(var(--nf-mask-opaque) 0 0);
-    -webkit-mask-composite: xor;
-    mask:
-      linear-gradient(var(--nf-mask-opaque) 0 0) content-box exclude,
-      linear-gradient(var(--nf-mask-opaque) 0 0);
-    /* The steady rim: what the lap settles to when motion is off. */
-    background: color-mix(in oklab, var(--nf-glow-ink) 55%, transparent);
-  }
-  /* The lights run on EVERY lockup in light (the founder, 29 September
-     2026: "all areas or place our logo is on light mode"): the app header,
-     the site bar, the rail and the drawer, the site menu, the footer, the
-     landing's app panel, the side cover and the staff access screen. The
-     earlier chrome-only rule stopped short of that ask. */
-  :root[data-theme="light"] .nf-logo::before {
-    background: conic-gradient(
-      from var(--nf-logo-lap),
-      transparent 0deg 110deg,
-      color-mix(in oklab, var(--nf-glow-ink) 70%, transparent) 150deg,
-      color-mix(in oklab, var(--nf-glow-ink) 50%, var(--nf-content-on-brand)) 176deg,
-      transparent 180deg 290deg,
-      color-mix(in oklab, var(--nf-glow-ink) 70%, transparent) 330deg,
-      color-mix(in oklab, var(--nf-glow-ink) 50%, var(--nf-content-on-brand)) 356deg,
-      transparent 360deg
-    );
-    animation: nf-logo-lap 7.5s linear 2 both;
-  }
-  :root[data-theme="light"] .nf-logo > * {
-    position: relative;
-    z-index: 2;
-  }
   @keyframes nf-logo-lap {
     to {
       --nf-logo-lap: 360deg;
     }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    :root[data-theme="light"] .nf-logo::before {
-      animation: none;
-      background: color-mix(in oklab, var(--nf-glow-ink) 55%, transparent);
-    }
-  }
-  :root[data-theme="light"]:is(
-      [data-save-data="on"],
-      [data-motion-ambient="off"],
-      [data-motion="calm"],
-      [data-motion="off"]
-    )
-    .nf-logo::before {
-    animation: none;
-    background: color-mix(in oklab, var(--nf-glow-ink) 55%, transparent);
   }
 
   /* ------------------------------------------------------------------
@@ -512,8 +417,9 @@
   }
 }
 
-/* The angle the logo pill's two lights turn on. Registered so it can be
-   animated; outside any layer because `@property` is document-global. */
+/* The angle the edge lights turn on (shell-m.css, site.css). Registered so
+   it can be animated; outside any layer because `@property` is
+   document-global. */
 @property --nf-logo-lap {
   syntax: "<angle>";
   inherits: false;
