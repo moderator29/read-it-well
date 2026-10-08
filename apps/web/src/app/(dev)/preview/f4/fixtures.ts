@@ -96,6 +96,9 @@ export const FEED_POSTS: PostView[] = [
     repostCount: 18,
     replyCount: 9,
     liked: true,
+    saved: true,
+    areaName: "Victoria Island",
+    areaSlug: "victoria-island",
     media: [{ url: skyline, width: 640, height: 360 }],
   }),
   /* A flat attached to a post, in a place: the compact attachment and the

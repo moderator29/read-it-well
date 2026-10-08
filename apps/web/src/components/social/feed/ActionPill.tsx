@@ -12,7 +12,7 @@ import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
  * control serves the post card, the thread, a comment and a story, so the
  * like you press in one place is the like you press everywhere.
  *
- * `round` is the share disc at the end of the row: a glyph and no count.
+ * `round` is a glyph with no count: the send and the save at the end of the row.
  *
  * THE PAYOFF. `payoff` marks a toggle whose turning ON is a moment (the
  * like): the capsule pops 1.0, 1.04, 1.0 over 180ms (A.5) and the glyph

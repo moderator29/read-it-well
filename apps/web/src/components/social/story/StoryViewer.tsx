@@ -481,6 +481,9 @@ export function StoryViewer({
                 label={liked ? `Liked, ${likeCount}. Undo` : `Likes ${likeCount}, like this story`}
                 onClick={() => mark("LIKE")}
               />
+              {/* Send, then save at the far edge: the same order as under a
+                  post, so the save is always the last mark on the row. */}
+              <ActionPill icon="send" tone="share" round label="Share this story" onClick={share} />
               <ActionPill
                 icon="bookmark"
                 tone="save"
@@ -489,7 +492,6 @@ export function StoryViewer({
                 label={saved ? `Saved, ${saveCount}. Undo` : `Saves ${saveCount}, save this story`}
                 onClick={() => mark("SAVE")}
               />
-              <ActionPill icon="share" tone="share" round label="Share this story" onClick={share} />
             </div>
           </div>
         </div>
