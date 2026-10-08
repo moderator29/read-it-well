@@ -30,7 +30,6 @@ import {
   dragPose,
   keyStep,
   motionPlan,
-  progressFills,
   sceneState,
   skipPlan,
   swipeStep,
@@ -51,12 +50,15 @@ import {
  * THE SHAPE OF A STEP, top to bottom:
  *
  *   back (steps two on), the Vallo lockup, Skip
- *   the progress bar, one segment per step, filling as you go
  *   the SCENE: the founder's clay art for the step in a rounded card, with
  *     chips in our components' style arriving over it one after another and
  *     then floating gently (`OnboardingScenes.tsx`)
- *   a big two-line title and the body, arriving after the scene
- *   one full-width pill: Continue, and on the last step the real call
+ *   a small "1 of 4", a big two-line title and the body, arriving after the
+ *     scene
+ *   the step dots, the current one brand blue (the founder, 8 October 2026:
+ *     "add those 1 of 4, 2 of 4 stuffs", to the Plasma onboarding,
+ *     `docs/design/references/2026-10-05/IMG_7052` to `IMG_7058`)
+ *   one full-width blue capsule: Continue, and on the last step the real call
  *
  * On a wide screen the scene takes the left and the words and the pill the
  * right. The rules (which step a key or a swipe lands on, what Skip does,
@@ -98,7 +100,7 @@ import {
  *                       back all step to the previous step; from step one
  *                       back leaves as it came.
  *
- * Swipe, the arrow keys (Home and End too) and the progress segments all move
+ * Swipe, the arrow keys (Home and End too) and the step dots all move
  * between steps; every change is announced in a polite live region and the
  * new step's title takes focus when the change came from inside the flow.
  * Only the step on screen is in the accessibility tree.
@@ -248,7 +250,7 @@ export function FirstRun({
   };
 
   /* Every move is announced from here, the one place a step changes, so
-     the live region speaks for segments, buttons, swipes and keys alike and
+     the live region speaks for dots, buttons, swipes and keys alike and
      says nothing on first paint. */
   const titles = slides.map((s) => `${s.titleA} ${s.titleB}`).join("\n");
 
@@ -563,7 +565,8 @@ export function FirstRun({
   }
 
   const stepName = (n: number) => w.step.replace("{n}", String(n + 1)).replace("{total}", String(total));
-  const fills = progressFills(index, total);
+  /* "1 of 4": the visible counter over the title (the founder, 8 October). */
+  const countOf = (n: number) => m.count.replace("{n}", String(n + 1)).replace("{total}", String(total));
   const tag = "en-NG";
 
   const primaryDoor = signInFirst
@@ -654,27 +657,6 @@ export function FirstRun({
         </span>
       </div>
 
-      {/* The choice alone (a returning device) is not a step of four. */}
-      <div className="nf-om-progress" role="group" aria-label={m.progress} hidden={choiceOnly}>
-        {slides.map((s, i) => (
-          <button
-            key={s.key}
-            type="button"
-            className="nf-om-seg"
-            data-filled={fills[i] ? "" : undefined}
-            data-current={i === index ? "" : undefined}
-            aria-label={stepName(i)}
-            aria-current={i === index ? "step" : undefined}
-            onClick={() => goTo(i)}
-            data-testid={`welcome-dot-${i + 1}`}
-          >
-            <span className="nf-om-seg__track">
-              <span className="nf-om-seg__fill" />
-            </span>
-          </button>
-        ))}
-      </div>
-
       <div className="nf-om-stage" aria-hidden="true">
         {slides.map((s, i) => {
           const state = sceneState(i, index);
@@ -701,6 +683,7 @@ export function FirstRun({
             the pill never jumps between steps. */}
         {slides.map((s) => (
           <div key={`size-${s.key}`} className="nf-om-words nf-om-words--sizer" aria-hidden="true">
+            <p className="nf-om-count">{countOf(0)}</p>
             <p className="nf-om-title">
               <span className="nf-om-title__a">{s.titleA}</span> <span className="nf-om-title__b">{s.titleB}</span>
             </p>
@@ -715,12 +698,37 @@ export function FirstRun({
           aria-label={stepName(index)}
           data-slide={slide.key}
         >
+          {/* Read with the step; each move is also announced by the polite
+              live region below ("Slide 2 of 4: ..."). */}
+          <p className="nf-om-count" hidden={choiceOnly} data-testid="welcome-count">
+            {countOf(index)}
+          </p>
           <h1 ref={titleRef} tabIndex={-1} className="nf-om-title">
             <span className="nf-om-title__a">{slide.titleA}</span>{" "}
             <span className="nf-om-title__b">{slide.titleB}</span>
           </h1>
           <p className="nf-om-body">{slide.body}</p>
         </div>
+      </div>
+
+
+      {/* THE STEP DOTS (the founder, 8 October 2026, to the Plasma
+          reference: "add those 1 of 4, 2 of 4"): small and centred between
+          the line and the button, the current one brand blue. Each is a 44px
+          target. The choice alone (a returning device) is not a step of four. */}
+      <div className="nf-om-progress" role="group" aria-label={m.progress} hidden={choiceOnly}>
+        {slides.map((s, i) => (
+          <button
+            key={s.key}
+            type="button"
+            className="nf-om-dot"
+            data-current={i === index ? "" : undefined}
+            aria-label={stepName(i)}
+            aria-current={i === index ? "step" : undefined}
+            onClick={() => goTo(i)}
+            data-testid={`welcome-dot-${i + 1}`}
+          />
+        ))}
       </div>
 
       <p className="sr-only" aria-live="polite" aria-atomic="true">
