@@ -36,6 +36,7 @@ import { experienceDetailEn } from "./experience-detail.en";
 import { experienceSocialEn } from "./experience-social.en";
 import { experienceInboxEn } from "./experience-inbox.en";
 import { callsEn } from "./calls.en";
+import { subscriptionsEn } from "./subscriptions.en";
 import { experienceAccountEn } from "./experience-account.en";
 import { experienceFeaturesEn } from "./experience-features.en";
 import { experienceRewardsEn } from "./experience-rewards.en";
@@ -5836,6 +5837,8 @@ export const en = {
   experienceInbox: experienceInboxEn,
   /* VC1: voice and video calls, and the review calls (docs/video-calling/). */
   calls: callsEn,
+  /* Vallo Pro and Vallo Business: the trial, the Paystack checkout, managing a plan. */
+  subscriptions: subscriptionsEn,
   experienceAccount: experienceAccountEn,
   experienceFeatures: experienceFeaturesEn,
   /* C3, Round 3: the Rewards Balance and the referral dashboard (D51). */

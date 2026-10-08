@@ -4,11 +4,11 @@ import type { PlanPerk, PlanQuotaKey } from "./pro-state";
 /**
  * THE WORDS OF /pro, IN ENGLISH, IN ONE PLACE.
  *
- * Kept beside the route rather than in `@vallo/i18n` until paying for a plan
- * opens: the sheet behind "Continue" changes then, and a namespace translated
- * into Yoruba, Hausa and Igbo before that would be translated twice. When it
- * opens, this file moves to a `pro` namespace key for key (the shape is
- * already the dictionary's shape). Listed in the P6 hand-back.
+ * Kept beside the route rather than in `@vallo/i18n`; the shape is already
+ * the dictionary's shape, so it can move to a `pro` namespace key for key.
+ * The words of the purchase itself (the trial, the terms before paying, the
+ * Paystack checkout, managing and cancelling a plan) already live in the
+ * `subscriptions` namespace (packages/i18n/src/locales/subscriptions.en.ts).
  *
  * WHAT THE PLANS SAY, AND WHERE IT COMES FROM. The two plans are the
  * founder's rulings of 8 October (DIRECTIVES D83): Vallo Pro for an
@@ -71,7 +71,7 @@ export const PRO_COPY = {
   /**
    * The plan page (GOVERNING-plasma-tier-detail-core, D74): a segmented plan
    * pill, the plan's metal card, its name and who it is for, the price line,
-   * a three-stat strip, what it includes, and "Continue with <plan>".
+   * a three-stat strip, what it includes, and the purchase under it.
    */
   detail: {
     pickLabel: "Plans",
@@ -86,22 +86,8 @@ export const PRO_COPY = {
       /** `{days}` is a whole number of days. */
       trialValue: "{days} days",
     },
-    /** `{plan}` is the plan's name. */
-    continue: "Continue with {plan}",
-    /** Where "Cancel anytime. Terms apply." sits on the paywall reference. */
-    fine: "Not on sale yet, so nothing can be charged.",
     /** When the plan rows could not be read. */
     none: "The plans could not be shown just now. Nothing has changed on your account.",
-  },
-
-  /** The one plain sheet behind "Continue" (A.11's single gate). */
-  gate: {
-    /** `{plan}` is the plan's name. */
-    title: "{plan} is not on sale yet",
-    body: "Paying for a plan is not open yet. When it opens, we will tell you, with the price, the free trial and everything included on one page before anything is charged.",
-    settings: "Choose what reaches you",
-    signIn: "Sign in",
-    close: "Close",
   },
 
   /** What a plan includes, worded. `{count}` is the monthly quota from the plan's grant. */

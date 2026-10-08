@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import { formatMoney, type Locale } from "@vallo/i18n/core";
-import { Button, ButtonLink } from "@/components/ui/Button";
 import { Segmented } from "@/components/ui/Segmented";
-import { Sheet } from "@/components/ui/Sheet";
 import { LogoMark } from "@/design-system/brand/Logo";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { planOfferFor, type SubscriptionView, type SubscriptionsCopy } from "@/lib/subscriptions/state";
+import { PlanCheckout } from "./PlanCheckout";
 import { PRO_COPY, PRO_PLAN_WORDS, type ProBenefit } from "./pro-copy";
 import type { PaidPlan } from "./pro-state";
 
@@ -35,11 +35,12 @@ export function planBenefits(plan: PaidPlan): ProBenefit[] {
  * includes (the monthly quotas from its grants, then its perks), and
  * "Continue with <plan>".
  *
- * "CONTINUE" IS NEVER A DEAD BUTTON AND NEVER A CHECKOUT. No subscription
- * checkout and no way to start a trial exist yet, so it opens a single plain
- * sheet saying the plan is not on sale yet, and offers the one real thing to
- * do now (choose what reaches you, or sign in). When paying opens, this sheet
- * becomes the page that states the price before anything is charged.
+ * THE PURCHASE IS UNDER IT (`PlanCheckout`), offering what fits the member
+ * for the chosen plan (`planOfferFor`): sign in, the free trial (no card,
+ * once ever), subscribing through Paystack, or a plain line when they already
+ * hold a plan or subscriptions are closed. The price a month, the trial's
+ * length, what the plan includes, that it renews monthly and how to cancel
+ * are all on this page before anything is charged.
  *
  * GOLD is the higher metal and the payoff, never decoration: a card turns gold
  * only for the plan the member holds (`heldName`).
@@ -51,6 +52,10 @@ export function PlanPicker({
   heldName,
   signedIn,
   signInHref,
+  subscriptions,
+  trialOpen,
+  payOpen,
+  copy,
 }: {
   plans: PaidPlan[];
   /** The free trial in days, from the settings row; null when it could not be read. */
@@ -59,11 +64,16 @@ export function PlanPicker({
   heldName?: string | null;
   signedIn: boolean;
   signInHref: string;
+  /** The member's subscriptions; null when signed out or the read failed. */
+  subscriptions: SubscriptionView | null;
+  /** The `subscriptions_checkout` switch is on. */
+  trialOpen: boolean;
+  /** The switch is on and Paystack can take a payment here. */
+  payOpen: boolean;
+  copy: SubscriptionsCopy;
 }) {
   const [chosen, setChosen] = useState<string>(plans[0]?.key ?? "");
-  const [gate, setGate] = useState(false);
   const c = PRO_COPY.detail;
-  const g = PRO_COPY.gate;
 
   if (plans.length === 0) {
     return (
@@ -178,26 +188,16 @@ export function PlanPicker({
       </ul>
 
       <div className="nf-pro-plan__go">
-        <Button variant="primary" full className="nf-btn--reflect" onClick={() => setGate(true)} data-testid="pro-continue">
-          {c.continue.replace("{plan}", plan.name)}
-        </Button>
-        <p className="nf-pro-plan__fine">{c.fine}</p>
+        <PlanCheckout
+          key={plan.key}
+          plan={plan}
+          offer={planOfferFor({ planKey: plan.key, signedIn, trialOpen, payOpen, trialDays, view: subscriptions })}
+          trialDays={trialDays}
+          locale={locale}
+          copy={copy}
+          signInHref={signInHref}
+        />
       </div>
-
-      <Sheet open={gate} onOpenChange={setGate} title={g.title.replace("{plan}", plan.name)} closeLabel={g.close} testId="pro-gate">
-        <div className="nf-pro-gate">
-          <p className="nf-pro-gate__body">{g.body}</p>
-          {signedIn ? (
-            <ButtonLink href="/settings/notifications" variant="primary" full>
-              {g.settings}
-            </ButtonLink>
-          ) : (
-            <ButtonLink href={signInHref} variant="primary" full>
-              {g.signIn}
-            </ButtonLink>
-          )}
-        </div>
-      </Sheet>
     </div>
   );
 }

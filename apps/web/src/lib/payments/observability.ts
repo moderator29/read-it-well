@@ -33,7 +33,9 @@ export type MoneySurface =
   | "refund"
   | "payout-account"
   /** D60: a promotion checkout opened by lib/promotion/purchase.ts (Vallo's own revenue). */
-  | "promotion";
+  | "promotion"
+  /** Vallo Pro and Vallo Business checkouts (lib/subscriptions/checkout.ts), Vallo's own revenue. */
+  | "subscription";
 
 /**
  * What happened. Deliberately small and closed: an alert rule wants a fixed

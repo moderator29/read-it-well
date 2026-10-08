@@ -7,6 +7,8 @@ import { ListGroup, ListRow } from "@/components/ui/ListGroup";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { Reveal } from "@/components/site/Reveal";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import type { SubscriptionView, SubscriptionsCopy } from "@/lib/subscriptions/state";
+import { ManagePlan } from "./ManagePlan";
 import { ProExplainer } from "./ProExplainer";
 import { PlanPicker } from "./PlanPicker";
 import { PRO_COPY } from "./pro-copy";
@@ -18,16 +20,19 @@ import type { PaidPlan, ProPlanState } from "./pro-state";
  *   1. The explainer: a device frame with a smoked-glass fragment of the real
  *      product breaking out of it (GOVERNING-plasma-withdraw-anytime,
  *      reference 9), then the headline with its last word in brand blue.
- *   2. Where the member stands: their plan, read from the database.
+ *   2. Where the member stands: their plan, read from the database; a plan
+ *      held through a subscription shows its status, the trial's end or the
+ *      next charge, and the way to cancel (`ManagePlan`).
  *   3. The plan page (GOVERNING-plasma-tier-detail-core): pill, metal cards
  *      fanned in depth, name, who it is for, the monthly price and the free
  *      trial read from the plan rows (D83), three stats, what it includes,
- *      "Continue with <plan>" opening the one plain gate.
+ *      then the purchase: the terms, the free trial, subscribing through
+ *      Paystack (`PlanCheckout`).
  *   4. How Pro will work: three promises in the grouped list.
  *
- * Server-safe apart from its two client islands (the plan page's choice and
- * gate). Every figure on it comes from the plan rows; no checkout, no
- * invented figure anywhere on it.
+ * Server-safe apart from its client islands (the plan page's choice, the
+ * purchase, managing a plan). Every figure on it comes from the plan rows and
+ * the member's subscription rows; no invented figure anywhere on it.
  */
 export function ProSurface({
   state,
@@ -36,6 +41,10 @@ export function ProSurface({
   switchReady = false,
   locale,
   signInHref,
+  subscriptions = null,
+  trialOpen = false,
+  payOpen = false,
+  copy,
 }: {
   state: ProPlanState;
   /** The paid plans the database describes (D83), cheapest first. */
@@ -46,8 +55,16 @@ export function ProSurface({
   switchReady?: boolean;
   locale: Locale;
   signInHref: string;
+  /** The member's subscription rows, read; null when signed out or unread. */
+  subscriptions?: SubscriptionView | null;
+  /** The `subscriptions_checkout` switch is on (a trial can start). */
+  trialOpen?: boolean;
+  /** The switch is on and Paystack can take a payment here. */
+  payOpen?: boolean;
+  copy: SubscriptionsCopy;
 }) {
   const c = PRO_COPY;
+  const live = subscriptions?.live ?? null;
   return (
     <div className="nf-pro mx-auto max-w-2xl" data-testid="pro-page">
       <PageHeader title={c.title} fallback="/settings" />
@@ -63,16 +80,24 @@ export function ProSurface({
       </section>
 
       <Reveal className="nf-pro__stack">
-        <PlanCard state={state} switchReady={switchReady} locale={locale} signInHref={signInHref} />
+        {live && state.kind !== "signed-out" ? (
+          <ManagePlan live={live} locale={locale} copy={copy} label={c.plan.label} />
+        ) : (
+          <PlanCard state={state} switchReady={switchReady} locale={locale} signInHref={signInHref} />
+        )}
 
         <section className="nf-pro-wall" aria-label={c.detail.pickLabel} data-testid="pro-wall">
           <PlanPicker
             plans={plans}
             trialDays={trialDays}
             locale={locale}
-            heldName={state.kind === "held" ? state.planName : null}
+            heldName={live ? live.planName : state.kind === "held" ? state.planName : null}
             signedIn={state.kind !== "signed-out"}
             signInHref={signInHref}
+            subscriptions={subscriptions}
+            trialOpen={trialOpen}
+            payOpen={payOpen}
+            copy={copy}
           />
         </section>
 

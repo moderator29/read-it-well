@@ -32,6 +32,9 @@ import { passcodeMoneyRefusal } from "../passcode/money";
  * | paymentState               | money_state_poll        |    40 |   10 m | Polled on a backoff: one in-app checkout spends about 12   |
  * | confirmCardSetup           | card_setup_confirm      |    30 |   10 m | Polled on the same backoff, and each hit is a Paystack verify, so tighter than paymentState |
  * | holdMoney                  | money_hold_open         |     5 |    1 h | Each one takes an amount out of a spendable balance and locks the wallet row |
+ * | startSubscriptionCheckout  | subscription_checkout_start | 6 |   1 h | Opens a hosted checkout per call, and may create a plan at Paystack |
+ * | subscriptionCheckoutState  | subscription_state_poll |    30 |   10 m | Polled on the checkout's backoff; each hit may be a Paystack verify |
+ * | cancelSubscription         | subscription_cancel     |     5 |    1 h | One Paystack call per press; a person cancels once         |
  * | signature failures, per IP | webhook_bad_signature   |    30 |   10 m | Unauthenticated: a sprayed webhook URL is answered from cache |
  * | cron secret failures, per IP | cron_bad_secret       |    30 |   10 m | Unauthenticated: same shape for the reconcile route        |
  *
@@ -72,7 +75,10 @@ export type MoneyAction =
   | "balanceSetup"
   | "balanceLookup"
   | "balanceMove"
-  | "balanceState";
+  | "balanceState"
+  | "startSubscriptionCheckout"
+  | "subscriptionCheckoutState"
+  | "cancelSubscription";
 
 export type MoneyLimit = {
   bucket: string;
@@ -246,6 +252,28 @@ export const MONEY_LIMITS: Record<MoneyAction, MoneyLimit> = {
     windowSeconds: TEN_MINUTES,
     refusal: "We have asked about that movement many times in the last few minutes and have stopped for now. This does not mean it failed: this page updates on its own when it settles.",
   },
+  /* Vallo Pro and Vallo Business (lib/subscriptions/actions.ts). Opening a
+     checkout may create a plan at Paystack and always initialises a
+     transaction; the state poll is a Paystack verify per hit until the
+     webhook lands, sized like confirmCardSetup; a cancel is one Paystack call. */
+  startSubscriptionCheckout: {
+    bucket: "subscription_checkout_start",
+    limit: 6,
+    windowSeconds: HOUR,
+    refusal: "You have opened several plan checkouts in the last hour, so this one was not opened and nothing was charged.",
+  },
+  subscriptionCheckoutState: {
+    bucket: "subscription_state_poll",
+    limit: 30,
+    windowSeconds: TEN_MINUTES,
+    refusal: "We have asked about that payment many times in the last few minutes and have stopped for now. This does not mean it failed: if it went through, your plan shows on the Vallo Pro page once it is confirmed.",
+  },
+  cancelSubscription: {
+    bucket: "subscription_cancel",
+    limit: 5,
+    windowSeconds: HOUR,
+    refusal: "You have tried to cancel several times in the last hour, so this one was not sent. Nothing has changed.",
+  },
 };
 
 /** The unauthenticated routes count failures per address, never successes. */
@@ -255,7 +283,7 @@ export const ROUTE_FAILURE_LIMITS = {
 } as const;
 
 /** Reads of a payment already made; never refused by the passcode lock. */
-const PASSCODE_EXEMPT: ReadonlySet<MoneyAction> = new Set<MoneyAction>(["paymentState", "confirmCardSetup", "cryptoState", "cryptoQuote", "balanceState"]);
+const PASSCODE_EXEMPT: ReadonlySet<MoneyAction> = new Set<MoneyAction>(["paymentState", "confirmCardSetup", "cryptoState", "cryptoQuote", "balanceState", "subscriptionCheckoutState"]);
 
 export type MoneyGuardVerdict =
   | { allowed: true; degraded: boolean }

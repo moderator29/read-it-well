@@ -598,6 +598,64 @@
     font-size: var(--nf-text-body);
     color: var(--nf-content-secondary);
   }
+
+  /* THE PURCHASE (PlanCheckout): the terms before anything is charged, then
+     the trial (the screen's one orange spark) and subscribing. */
+  .nf-pro-buy {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-md);
+    width: 100%;
+  }
+  .nf-pro-buy__terms {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-xs);
+  }
+  .nf-pro-buy__label {
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    letter-spacing: var(--nf-tracking-overline);
+    text-transform: uppercase;
+    color: var(--nf-content-muted);
+  }
+  .nf-pro-buy__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-2xs);
+    padding-left: var(--nf-space-md);
+    list-style: disc;
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+  }
+  .nf-pro-buy__note,
+  .nf-pro-buy__notice {
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+    text-align: center;
+  }
+  .nf-pro-buy__error {
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-state-error);
+  }
+  .nf-pro-buy__sum {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-xs);
+  }
+  .nf-pro-buy__sum > div {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--nf-space-md);
+    font-size: var(--nf-text-body);
+  }
+  .nf-pro-buy__sum dt {
+    color: var(--nf-content-secondary);
+  }
+  .nf-pro-buy__sum dd {
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
   @media (prefers-reduced-motion: reduce) {
     .nf-pro-metal,
     .nf-pro-metal__foot {
