@@ -23,7 +23,7 @@ describe("errors", () => {
       const words = callErrorWords({ message: token });
       expect(words, token).not.toBe("");
       expect(words, token).not.toContain(token);
-      expect(words, token).not.toContain("—");
+      expect(words, token).not.toContain("\u2014");
     }
     expect(callErrorWords({ message: "call:blocked" })).toMatch(/blocked/);
   });

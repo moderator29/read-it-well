@@ -159,7 +159,7 @@ describe("what the screen does", () => {
       for (const isInitiator of [true, false]) {
         const words = endReasonWords({ state, endReason: null, isInitiator, kind: "AUDIO" });
         expect(words.length).toBeGreaterThan(0);
-        expect(words).not.toContain("—");
+        expect(words).not.toContain("\u2014");
       }
     }
     expect(endReasonWords({ state: "MISSED", endReason: "no_answer", isInitiator: false, kind: "VIDEO" })).toBe("Missed video call");
