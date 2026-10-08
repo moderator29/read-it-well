@@ -106,7 +106,7 @@ export function BalanceOnboarding({ state, gaps }: { state: OnboardingState; gap
                         </IconPlate>
                       }
                       title={GAP_LABEL[g]}
-                      href={g === "phone" ? "/settings/phone" : "/settings/account"}
+                      href={g === "phone" ? "/settings/phone?next=%2Fwallet" : "/settings/account"}
                       chevron
                     />
                   ))}

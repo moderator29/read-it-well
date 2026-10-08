@@ -9,6 +9,8 @@ import { resolveSession } from "@/lib/actions/session";
 import { withNext } from "@/lib/auth/next-link";
 import { phoneConfirmationOn } from "@/lib/phone-otp/flag";
 import { PhoneConfirmForm } from "./PhoneConfirmForm";
+import { ProfilePhoneForm } from "./ProfilePhoneForm";
+import { safeReturnPath } from "@/lib/security/return-path";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: getDictionary(await getLocale()).trustVisible.phone.title };
@@ -23,7 +25,9 @@ export async function generateMetadata(): Promise<Metadata> {
  * four digits and the date, with a way to change it), and the form. Loading
  * is the settings route's own skeleton.
  */
-export default async function PhoneSettingsPage() {
+export default async function PhoneSettingsPage({ searchParams }: { searchParams: Promise<{ next?: string | string[] }> }) {
+  const rawNext = (await searchParams).next;
+  const next = safeReturnPath(typeof rawNext === "string" ? rawNext : "", "") || null;
   const locale = await getLocale();
   const t = getDictionary(locale);
   const copy = t.trustVisible.phone;
@@ -50,10 +54,16 @@ export default async function PhoneSettingsPage() {
   }
 
   if (!(await phoneConfirmationOn())) {
+    /* No code can be sent yet, but a number can still be put on the profile
+       for what is opened in the member's own name (the wallet). */
+    const { data: profile } = await session.supabase.from("profiles").select("phone").eq("id", session.user.id).maybeSingle();
+    const onFile = (profile as { phone?: string | null } | null)?.phone?.trim() || null;
     return (
       <div className="mx-auto max-w-2xl">
         {header}
-        <EmptyState icon="user-verified" title={copy.closedTitle} body={copy.closedBody} data-testid="phone-closed" />
+        <div data-testid="phone-closed">
+          <ProfilePhoneForm copy={copy} currentLast={onFile ? onFile.slice(-4) : null} next={next} />
+        </div>
       </div>
     );
   }
