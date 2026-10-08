@@ -265,11 +265,9 @@ begin
 end;
 $$;
 
-drop trigger if exists call_events_append_only on public.call_events;
 create trigger call_events_append_only before update or delete on public.call_events
   for each row execute function private.call_history_is_append_only();
 
-drop trigger if exists call_review_entries_append_only on public.call_review_entries;
 create trigger call_review_entries_append_only before update or delete on public.call_review_entries
   for each row execute function private.call_history_is_append_only();
 
@@ -315,13 +313,11 @@ as $$
      where r.id = p_review and private.staff_can((select auth.uid()), r.required_scope));
 $$;
 
-drop policy if exists calls_select_participant_or_reviewer on public.calls;
 create policy calls_select_participant_or_reviewer on public.calls
   for select to authenticated
   using (private.call_is_participant(id)
          or (purpose = 'ADMIN_REVIEW' and review_id is not null and private.call_review_staff_can(review_id)));
 
-drop policy if exists call_participants_select_same_call on public.call_participants;
 create policy call_participants_select_same_call on public.call_participants
   for select to authenticated
   using (private.call_is_participant(call_id)
@@ -331,7 +327,6 @@ create policy call_participants_select_same_call on public.call_participants
 
 -- The raw event history is an operations record: admins (with the console's
 -- second factor, through has_role) and the review's own scoped staff.
-drop policy if exists call_events_select_staff on public.call_events;
 create policy call_events_select_staff on public.call_events
   for select to authenticated
   using (private.has_role((select auth.uid()), 'admin'::public.app_role)
@@ -342,18 +337,15 @@ create policy call_events_select_staff on public.call_events
 
 -- No policy on call_provider_events: service role only.
 
-drop policy if exists call_reviews_select_scoped_staff on public.call_reviews;
 create policy call_reviews_select_scoped_staff on public.call_reviews
   for select to authenticated
   using (private.call_review_staff_can(id));
 
-drop policy if exists call_review_entries_select_scoped_staff on public.call_review_entries;
 create policy call_review_entries_select_scoped_staff on public.call_review_entries
   for select to authenticated
   using (private.call_review_staff_can(review_id));
 
 -- A member can never write a call marker into a conversation themselves.
-drop policy if exists messages_insert_no_call_marker on public.messages;
 create policy messages_insert_no_call_marker on public.messages
   as restrictive for insert to anon, authenticated
   with check (call_id is null);
