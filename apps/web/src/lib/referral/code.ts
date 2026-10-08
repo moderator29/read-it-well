@@ -16,3 +16,29 @@ export function normaliseInviteCode(raw: string | null | undefined): string | nu
 export function invitePath(code: string): string {
   return `/join/${code}`;
 }
+
+/** What `public.referral_claim_code` answers (D85). */
+export const CLAIM_OUTCOMES = [
+  "attributed",
+  "already_attributed",
+  "too_late",
+  "own_code",
+  "unknown_code",
+  "invalid",
+  "signed_out",
+] as const;
+export type ClaimOutcome = (typeof CLAIM_OUTCOMES)[number];
+
+export function claimOutcome(raw: unknown): ClaimOutcome | null {
+  return typeof raw === "string" && (CLAIM_OUTCOMES as readonly string[]).includes(raw) ? (raw as ClaimOutcome) : null;
+}
+
+/**
+ * Whether the kept code has done its work and the cookie can go. Every answer
+ * but "signed out" is final for this account: claimed, already claimed, too
+ * old an account, its own code, or a code that does not exist. Signed out
+ * keeps it for the session that is about to exist.
+ */
+export function claimIsFinal(outcome: ClaimOutcome): boolean {
+  return outcome !== "signed_out";
+}

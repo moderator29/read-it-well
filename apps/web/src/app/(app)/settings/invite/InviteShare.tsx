@@ -43,7 +43,6 @@ export function InviteShare({ copy, url, code }: { copy: Dictionary["publicDoors
       >
         {copy.whatsapp}
       </ButtonLink>
-      <p className="nf-caption text-[var(--nf-content-muted)]">{copy.noReward}</p>
     </div>
   );
 }

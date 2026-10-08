@@ -36,6 +36,10 @@
             "comment": "Excluded although it is a Stays path. /trips is a signed-in own-data surface with nothing on it for anybody else, so a forwarded link can only ever land its reader on a sign-in wall inside the app, which is a worse first meeting than a browser tab. The same reasoning keeps /bookings, /home and /search off this list."
           },
           {
+            "/": "/join/*",
+            "comment": "An invite link (D85). Opened in the app, /join/<code> keeps the code in the WEB VIEW's cookie jar and hands over to sign-up there, so a sign-up made in the app is attributed to the member who invited (the same route as on the web: src/app/join/hand-off.ts)."
+          },
+          {
             "/": "/listing/*",
             "comment": "The case that pays for this whole feature. A listing forwarded on WhatsApp opens in the app for anyone who has it installed."
           },

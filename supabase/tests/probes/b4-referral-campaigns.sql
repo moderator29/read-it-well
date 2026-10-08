@@ -192,13 +192,16 @@ begin
   exception when sqlstate 'RM420' then ok := true;
   end;
   if not ok then raise exception 'PROBE_FAIL b4-referral-campaigns: a campaign with an unknown requirement key was saved'; end if;
+  -- One reward per verified identity needs an anchor: a confirmed phone, or
+  -- (D85, pending) a confirmed email. A campaign with neither is refused
+  -- before and after D85.
   ok := false;
   begin
     insert into public.referral_campaigns (slug, kind, title, reward_minor, member_cap_minor, review_window, requirement_keys, starts_at, reason)
-    values ('probe-no-phone', 'consumer', 'Probe', 7000, 14000, interval '1 day', array['email_verified'], now(), 'probe: no phone key');
+    values ('probe-no-phone', 'consumer', 'Probe', 7000, 14000, interval '1 day', array['onboarding_completed'], now(), 'probe: no identity key');
   exception when sqlstate 'RM421' then ok := true;
   end;
-  if not ok then raise exception 'PROBE_FAIL b4-referral-campaigns: a campaign without phone_verified was saved'; end if;
+  if not ok then raise exception 'PROBE_FAIL b4-referral-campaigns: a campaign without an identity anchor was saved'; end if;
   ok := false;
   begin
     insert into public.referral_campaigns (slug, kind, title, reward_minor, member_cap_minor, review_window, requirement_keys,

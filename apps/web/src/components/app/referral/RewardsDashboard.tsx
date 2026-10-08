@@ -5,7 +5,11 @@ import { IconPlate } from "@/components/ui/IconPlate";
 import { ListGroup, ListRow } from "@/components/ui/ListGroup";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { canWithdraw, type RewardsSnapshot } from "@/lib/referral/rewards";
+import { REWARDS_WITHDRAW_NOT_OPEN } from "@/lib/money/copy";
 import { CampaignCard } from "./CampaignCard";
+import { EarnCard } from "./EarnSummary";
+import { ReferralRows } from "./ReferralList";
+import { qualifySentence } from "./invite-rewards";
 import { InviteLinkCard } from "./InviteLinkCard";
 import { RewardsFigures } from "./RewardsFigures";
 import { RewardsPauseNotice } from "./RewardsPauseNotice";
@@ -25,12 +29,20 @@ const EARNED_RANGES: CurveRange[] = [
 
 export type RewardsHrefs = { referrals: string; history: string; withdraw: string };
 
+/** How many people the dashboard lists before "See everyone you invited". */
+const PEOPLE_SHOWN = 5;
+
 /**
  * THE REFERRAL DASHBOARD, MEMBER SIDE (D51). One subject, the Rewards
  * Balance; everything else is quieter or an inner page (D25).
  *
- *   1. The three figures, Available forward, with Withdraw as the one primary
- *      action once Available reaches the minimum.
+ *   1. The figures, Available forward (Pending, Paid out and Earned in total
+ *      quieter), with Withdraw always there: the one primary action once
+ *      withdrawals are open and Available reaches the minimum, and while they
+ *      are not open, said beside it (`REWARDS_WITHDRAW_NOT_OPEN`, D85).
+ *   1a. How you earn (D85): the live campaign's reward for each friend who
+ *      signs up fully, what that means under it, and the review window. Then
+ *      the first people invited, each with where they stand.
  *   2. A campaign bonus's progress, only when one is running.
  *   3. The invite link: copy, share sheet, QR.
  *   4. Two doors: the referral list and the rewards history, each its own page.
@@ -94,8 +106,8 @@ export function RewardsDashboard({
           panels={[
             {
               key: "earn",
-              title: "Earn when friends qualify",
-              body: fill(words.qualify, { reward, cap: number.format(policy.monthlyCap) }),
+              title: fill(copy.earn.headline, { amount: reward }),
+              body: qualifySentence(policy, locale),
               screenTone: "platinum",
               screen: (
                 <>
@@ -144,15 +156,29 @@ export function RewardsDashboard({
         locale={locale}
         note={words.notHeld}
         action={
-          canWithdraw(balance, policy) ? (
-            <ButtonLink href={hrefs.withdraw} variant="primary" size="lg" full data-testid="rewards-withdraw-link">
+          /* D85: Withdraw is always there. While withdrawals are not open it
+             says so beside it (no date, nothing earned is lost); once open it
+             is the one primary action when Available reaches the minimum. */
+          <div className="grid gap-xs">
+            <ButtonLink
+              href={hrefs.withdraw}
+              variant={snapshot.payoutsEnabled && canWithdraw(balance, policy) ? "primary" : "secondary"}
+              size="lg"
+              full
+              data-testid="rewards-withdraw-link"
+            >
               {copy.actions.withdraw}
             </ButtonLink>
-          ) : (
-            <p className="nf-rewards-note" data-testid="rewards-below-minimum">
-              {fill(words.minimum, { minimum })}
-            </p>
-          )
+            {!snapshot.payoutsEnabled ? (
+              <p className="nf-rewards-note" data-testid="rewards-withdraw-not-open">
+                {REWARDS_WITHDRAW_NOT_OPEN}
+              </p>
+            ) : canWithdraw(balance, policy) ? null : (
+              <p className="nf-rewards-note" data-testid="rewards-below-minimum">
+                {fill(words.minimum, { minimum })}
+              </p>
+            )}
+          </div>
         }
       />
 
@@ -162,9 +188,21 @@ export function RewardsDashboard({
         </div>
       ) : null}
 
+      {paused || policy.rewardPerReferralMinor <= 0 ? null : <EarnCard snapshot={snapshot} copy={copy} locale={locale} />}
+
       {snapshot.campaign && !paused ? <CampaignCard campaign={snapshot.campaign} copy={copy.campaign} locale={locale} /> : null}
 
       {invite && !paused ? <InviteLinkCard url={invite.url} code={invite.code} copy={copy.invite} dismissLabel={dismissLabel} /> : null}
+
+      {snapshot.referrals.length > 0 ? (
+        <ReferralRows
+          rows={snapshot.referrals.slice(0, PEOPLE_SHOWN)}
+          copy={copy.referrals}
+          locale={locale}
+          label={copy.earn.people}
+          more={snapshot.referrals.length > PEOPLE_SHOWN ? { href: hrefs.referrals, label: copy.earn.seeAll } : null}
+        />
+      ) : null}
 
       <ListGroup>
         <ListRow
@@ -206,7 +244,7 @@ export function RewardsDashboard({
         <ListRow title={copy.policy.minimum} value={<span className="nf-rewards-amount">{minimum}</span>} data-testid="rewards-policy-minimum" />
       </ListGroup>
       <div className="grid gap-xs">
-        {paused ? null : <p className="nf-rewards-note">{fill(words.qualify, { reward, cap: number.format(policy.monthlyCap) })}</p>}
+        {paused ? null : <p className="nf-rewards-note">{qualifySentence(policy, locale)}</p>}
         <p className="nf-rewards-note">{words.notInvestment}</p>
       </div>
     </div>

@@ -91,14 +91,16 @@ export const experienceFeaturesEn = {
      * The invite link, in the three states of the rewards read (the same gate
      * as every rewards surface, `inviteRewards` in `lib/referral/rewards.ts`).
      *
-     * NOT LIVE: the bodies reuse `publicDoors.invite.rowSub` and `.noReward`,
-     * which are what `/settings/invite` says: no reward is attached (A5).
+     * NOT LIVE OR UNKNOWN: the link alone, its body `publicDoors.invite.rowSub`.
+     * Nothing is said about a reward either way. (The old "Nothing to earn,
+     * on purpose" panel is gone: the founder, 8 October 2026, a friend who
+     * signs up fully earns the member the live campaign's reward.)
      *
      * RUNNING: titles only. The bodies are the invite door's own claim about
      * what Vallo does for the person invited (`publicDoors.invite.doorBody`),
      * then Session 2's money sentences: `REWARDS_QUALIFY` filled from the
-     * read's policy, and `REWARDS_PENDING_THEN_AVAILABLE` with
-     * `REWARDS_MONTHLY_BUDGET` (D62's lifecycle, D64's pause).
+     * live campaign with what "signs up fully" means under it, and the review
+     * window with `REWARDS_MONTHLY_BUDGET` (D62's lifecycle, D64's pause).
      *
      * PAUSED: no first run; the route hands the member to the hub, which says
      * the pause and offers no invite (D64).
@@ -106,11 +108,10 @@ export const experienceFeaturesEn = {
     invite: {
       name: "invites",
       p1Title: "Your own invite link",
-      p2Title: "Nothing to earn, on purpose",
       action: "Get my link",
       running: {
         p1Title: "They get Vallo itself",
-        p2Title: "Earn when they qualify",
+        p2Title: "Earn for every friend who signs up fully",
         p3Title: "Pending, then Available",
       },
     },

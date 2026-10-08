@@ -4,7 +4,7 @@ import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { siteUrl } from "@/lib/site";
 import { PageHeader } from "@/components/app/PageHeader";
-import { EmptyState, TYPE } from "@/components/app/Screen";
+import { EmptyState } from "@/components/app/Screen";
 import { RowLink, RowValue, SettingsGroup } from "@/components/app/account/rows";
 import { SettingsLede } from "@/components/app/account/SettingsLede";
 import { InviteTicket } from "@/components/app/account/InviteTicket";
@@ -19,6 +19,7 @@ import { readMyRewards } from "@/lib/referral/rewards-read";
 import { RewardsPauseNotice } from "@/components/app/referral/RewardsPauseNotice";
 import { REWARDS_PAUSED_EARNED_LINE } from "@/components/app/referral/money-words";
 import { InviteRewardLines } from "@/components/app/referral/InviteRewardLines";
+import { InviteEarnings } from "@/components/app/referral/EarnSummary";
 import { rewardsDoorSub } from "@/components/app/referral/rewards-door";
 
 export const dynamic = "force-dynamic";
@@ -32,40 +33,37 @@ export async function generateMetadata(): Promise<Metadata> {
  * first visit, revealed as a gift: a sealed gift, then a dashed ticket that
  * unfolds with the code on it (`InviteTicket`).
  *
- * WHAT IS ON IT, AND WHY NOTHING ELSE. The code and the link are real. Vallo
- * records a sign-up that comes from a code, but a member cannot read that list
- * here, so there is no earned figure, no progress and no "who joined" row
- * (auditor A2, 6 October 2026). No investment framing, no downline, no
- * passive-income language: the how-it-works page says what is and is not
- * recorded.
+ * WHAT IS ON IT. The code and the link are real, and so is everything about a
+ * reward: D85 (the founder, 8 October 2026) pays the live campaign's reward
+ * for each friend who signs up fully, and the member reads their own figures
+ * and referrals through `my_rewards_summary` and `my_referral_progress`. No
+ * investment framing, no downline, no passive-income language: the
+ * how-it-works page says what is and is not recorded.
  *
  * WHAT IT SAYS ABOUT A REWARD follows the rewards read, the one gate every
  * rewards surface uses (`inviteRewards`; there is no feature flag for it):
  *
- *   not-live  under the ticket, "There is no reward for inviting", in the
- *             invite door's own words
- *   running   under the ticket, what the invited person gets, what the member
- *             earns and when (Pending, then Available) and the monthly budget,
- *             every money sentence from `lib/money/copy.ts` and the reward
- *             from the read's policy; and a row to the Rewards Balance. The
- *             founder: write it for the live state now, because a screen that
- *             has to be corrected at launch gets forgotten at launch
- *   unknown   (signed out, or the read failed) neither
+ *   running   under the ticket, the earnings card (the reward per friend who
+ *             signs up fully, Available, Pending, Paid out and Earned in
+ *             total, every figure from the read, and the door to the
+ *             earnings dashboard at `/rewards`), then what the invited person
+ *             gets, what the member earns and when, and the monthly budget,
+ *             every money sentence from `lib/money/copy.ts`
+ *   not-live  (the read cannot answer yet) and unknown (signed out, or the read
+ *             failed): nothing about a reward either way. The old "There is
+ *             no reward for inviting" line is gone
  *
  * It is a hub with inner pages (D25), and it links every one of them:
- * `/settings/invite/how-it-works`; `/settings/invite/referrals`, which draws
- * the honest unavailable state until Session 2 lets a member read their own
- * referrals (R-W6-1, R-W6-2); and `/rewards`. The Rewards row says what that
- * page will say, from the same read (`rewardsDoorSub`): "not running yet"
- * today, the pause while paused, and the Rewards Balance row while it runs.
- * The founder could not find either page (7 October 2026), so neither waits
- * for the reads to land before it has a door.
+ * `/settings/invite/how-it-works`; `/settings/invite/referrals`, which hands
+ * on to the one referrals list at `/rewards/referrals` (where each person
+ * stands, D85); and `/rewards`, the earnings dashboard. The Rewards row says
+ * what that page will say, from the same read (`rewardsDoorSub`): the pause
+ * while paused, and the Rewards Balance row while it runs.
  *
  * PAUSED (D64). Once the rewards programme is live and the month's platform
  * budget is reached, this hub stops inviting: the ticket (copy, share sheet,
  * WhatsApp) and the link row are not drawn, the invite's first run is not
- * shown, and the pause notice stands in their place. Today the rewards read
- * answers not-live, so nothing here changes until it exists.
+ * shown, and the pause notice stands in their place.
  */
 export default async function InviteSettingsPage({
   searchParams,
@@ -83,7 +81,9 @@ export default async function InviteSettingsPage({
      own (a signed-out visit falls to the "unavailable" state below), so the
      check is made here, and a visitor who is not signed in is never sent to a
      first run. The gate fails towards drawing the page. */
-  const rewards = inviteRewards(await readMyRewards());
+  const read = await readMyRewards();
+  const rewards = inviteRewards(read);
+  const snapshot = read.state === "ready" ? read.snapshot : null;
   const paused = rewards.state === "paused" ? rewards.programme : null;
 
   /* The hub's two other inner pages, linked in every state the hub draws. */
@@ -175,10 +175,8 @@ export default async function InviteSettingsPage({
             dismissLabel={t.experienceUi.notNow}
             autoplay={!seen}
           />
-          {rewards.state === "not-live" ? (
-            <p className={`${TYPE.caption} text-center`} data-testid="invite-no-reward">
-              {door.noReward}
-            </p>
+          {rewards.state === "running" && snapshot ? (
+            <InviteEarnings snapshot={snapshot} copy={t.experienceRewards} locale={locale} href="/rewards" />
           ) : null}
           {rewards.state === "running" ? (
             <InviteRewardLines policy={rewards.policy} t={t} locale={locale} testId="invite-rewards-running" />

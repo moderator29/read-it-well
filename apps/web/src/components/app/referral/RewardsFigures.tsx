@@ -8,7 +8,7 @@ import type { RewardsBalance } from "@/lib/referral/rewards";
 type Copy = Dictionary["experienceRewards"];
 
 /**
- * THE REWARDS BALANCE, AS THREE FIGURES THAT ARE NEVER MIXED (D51).
+ * THE REWARDS BALANCE, AS FIGURES THAT ARE NEVER MIXED (D51; paid out, D85).
  *
  * One subject: Available, the figure a member can withdraw, huge on the
  * platinum object (D74, GOVERNING-plasma-rewards-home.jpg) with the naira
@@ -63,6 +63,13 @@ export function RewardsFigures({
               <MoneyFigure minor={balance.pendingMinor} locale={locale} size="md" kobo="auto" />
             </dd>
             <dd className="nf-rewards-figures__hint">{b.pendingHint}</dd>
+          </div>
+          <div>
+            <dt>{b.paidOut}</dt>
+            <dd className="nf-rewards-figures__figure" data-testid="rewards-paid-out">
+              <MoneyFigure minor={balance.paidOutMinor} locale={locale} size="md" kobo="auto" />
+            </dd>
+            <dd className="nf-rewards-figures__hint">{b.paidOutHint}</dd>
           </div>
         </dl>
         <p className="nf-rewards-figures__note">{note}</p>

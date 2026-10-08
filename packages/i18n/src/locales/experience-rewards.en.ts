@@ -32,6 +32,22 @@ export const experienceRewardsEn = {
     pendingHint: "Qualified, not ready to withdraw yet",
     lifetime: "Earned in total",
     lifetimeHint: "Everything added since you started",
+    paidOut: "Paid out",
+    paidOutHint: "Sent to your bank and confirmed",
+  },
+
+  /**
+   * D85: the dashboard's "how you earn" card. `{amount}` is the live
+   * campaign's reward, formatted; the sentences under it are money copy.
+   */
+  earn: {
+    label: "How you earn",
+    /** `{amount}` is formatted money from the live campaign. */
+    headline: "Earn {amount} for each friend who signs up fully",
+    stepsLabel: "Signing up fully means they",
+    open: "Open your earnings",
+    people: "People you invited",
+    seeAll: "See everyone you invited",
   },
 
   /** Policy figures, as label and figure pairs. The figures come from `money_policy`. */
@@ -49,7 +65,7 @@ export const experienceRewardsEn = {
   },
 
   /** `{count}` is a number. The referrals row's value on the dashboard. */
-  referralsCount: "{count} joined",
+  referralsCount: "{count} signed up",
 
   /** The invite link card. */
   invite: {
@@ -95,31 +111,59 @@ export const experienceRewardsEn = {
 
   referrals: {
     title: "Your referrals",
-    lede: "People who joined with your link, and where each one stands.",
+    lede: "People who signed up with your link, and where each one stands.",
     summary: "Where your referrals stand",
     /** Shown in place of a first name the person did not give. */
     unnamed: "Somebody you invited",
     /** `{date}` is a formatted date. */
-    joinedOn: "Joined {date}",
+    joinedOn: "Signed up {date}",
     qualifiedOn: "Qualified {date}",
+    /** D85: one word per stage, in the order a referral moves through them. */
     status: {
-      joined: "Joined",
-      pending: "Pending",
-      under_review: "Under review",
-      qualified: "Qualified",
+      signing_up: "Signed up",
+      counting: "Signed up fully",
+      in_review: "In review",
+      earned: "Earned",
+      not_eligible: "Not eligible",
+    },
+    /** What a referral that is not finished waits on. Never a reason for a review. */
+    waiting: {
+      email: "Waiting for email confirmation",
+      setup: "Finishing sign-up",
+      phone: "Waiting for phone confirmation",
+      other_step: "A step of signing up is still to do",
+      rewards_paused: "Counts when rewards open again",
+      monthly_limit: "Counts next month: this month's limit is reached",
+      counting: "Being counted now",
+    },
+    /** `{date}` is a formatted date. */
+    inReviewUntil: "In review until {date}",
+    inReviewChecking: "A person at Vallo is looking at it",
+    /** `{amount}` is formatted money, frozen when it qualified. */
+    earnedAmount: "{amount} earned",
+    earned: {
+      available: "Available to withdraw",
+      on_its_way: "On its way to your bank",
+      paid: "Paid out",
+    },
+    notEligible: {
+      already_rewarded: "That email address or phone number already earned an invite reward",
+      not_approved: "Not approved after Vallo's review",
+      reversed: "The reward was taken back",
     },
     /**
-     * What each status means, in one line. UNDER REVIEW NEVER SAYS WHY: no
-     * risk reason, check name or signal reaches a member's screen.
+     * What each stage means, in one line. A REVIEW NEVER SAYS WHY: no risk
+     * reason, check name or signal reaches a member's screen.
      */
     meaning: {
-      joined: "Signed up with your link.",
-      pending: "Using Vallo, and not qualified yet.",
-      under_review: "A person at Vallo is looking at it before it can qualify.",
-      qualified: "Qualified, and counted in your Rewards Balance.",
+      signing_up: "Signed up with your link and has a step of signing up left.",
+      counting: "Signed up fully. The reward is being added.",
+      in_review: "The reward is earned and Pending until the review period ends.",
+      earned: "Available in your Rewards Balance, or already paid out.",
+      not_eligible: "This sign-up does not earn a reward, for the reason shown.",
     },
     meaningsLabel: "What each one means",
-    emptyTitle: "Nobody has joined with your link yet",
+    emptyTitle: "Nobody has signed up with your link yet",
     emptyBody: "When somebody signs up with your link, they are listed here with where they stand.",
     emptyAction: "Share your link",
   },
@@ -192,9 +236,23 @@ export const experienceRewardsEn = {
     belowMinimumTitle: "Not enough to withdraw yet",
     noDestinationTitle: "Add a bank account first",
     addAccount: "Add a bank account",
-    notOpenTitle: "Withdrawals are not open",
-    notOpenBody: "Withdrawing from a Rewards Balance is not switched on yet, so nothing can be prepared here.",
+    /** The body under it is money copy (`REWARDS_WITHDRAW_NOT_OPEN`). */
+    notOpenTitle: "Withdrawals are not open yet",
     back: "Back to rewards",
+    /** The payout form, once withdrawals open (`requestRewardsPayout`). */
+    form: {
+      bank: "Bank",
+      bankPlaceholder: "Choose your bank",
+      account: "Account number",
+      accountHint: "Ten digits. Your bank confirms the name on the account before anything is sent.",
+      /** `{amount}` is the formatted Available figure. */
+      submit: "Withdraw {amount}",
+      sending: "Sending",
+      noBanks: "The list of banks could not be read just now. Try again in a moment.",
+      /** `{amount}` is formatted money. */
+      sent: "{amount} is on its way to your bank. It shows as paid once the bank confirms it.",
+      review: "Your withdrawal is with a person at Vallo before it is sent. Nothing has left your Rewards Balance yet.",
+    },
   },
 
   /**
@@ -221,13 +279,16 @@ export const experienceRewardsEn = {
    * programme runs. Titles only: every sentence under them that says what is
    * earned, when it can be withdrawn or what a pause does is a money sentence
    * from `lib/money/copy.ts`, and what the invited person gets is the invite
-   * door's own claim (`publicDoors.invite.doorBody`), not rephrased. While
-   * rewards are not live the hub keeps "There is no reward for inviting".
+   * door's own claim (`publicDoors.invite.doorBody`), not rephrased. The
+   * old "no reward for inviting" line is gone (the founder, 8 October 2026:
+   * a friend who signs up fully earns the member the live campaign's reward).
    */
   inviteHub: {
     label: "Inviting, while rewards run",
     theyGetTitle: "What they get",
     earnTitle: "What you earn",
+    /** `{amount}` is formatted money from the live campaign. */
+    earnTitleAmount: "Earn {amount} for each friend who signs up fully",
     pendingTitle: "Pending, then Available",
     budgetTitle: "One monthly budget",
     balanceRow: "Your Rewards Balance",
@@ -236,8 +297,8 @@ export const experienceRewardsEn = {
 
   /** The states every rewards route draws in place of its content. */
   states: {
-    notLiveTitle: "Rewards are not running yet",
-    notLiveBody: "No reward is added for invites today, so there is no Rewards Balance to show. Your invite link works now.",
+    notLiveTitle: "Your rewards cannot be shown here yet",
+    notLiveBody: "Your invite link works now, and everybody who signs up with it is recorded as yours.",
     notLiveAction: "Get my invite link",
     signedOutTitle: "Sign in to see your rewards",
     signedOutBody: "Your Rewards Balance and the people who joined with your link are shown only to you.",

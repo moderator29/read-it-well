@@ -12,7 +12,7 @@ const src = (path: string) => readFileSync(join(__dirname, "../..", path), "utf8
 describe("the front door's hooks on sign up", () => {
   it("A5: sign up records the invite code the /join door left, when no code was typed", () => {
     const actions = src("lib/auth/actions.ts");
-    expect(actions).toContain('import { inviteCodeFromCookie } from "@/lib/referral/server";');
+    expect(actions).toMatch(/import \{[^}]*inviteCodeFromCookie[^}]*\} from "@\/lib\/referral\/server";/);
     expect(actions).toMatch(
       /referral_code: field\(formData, "referralCode"\)\.trim\(\) \|\| \(await inviteCodeFromCookie\(\)\) \|\| null/,
     );

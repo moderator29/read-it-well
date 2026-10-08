@@ -203,6 +203,10 @@
                 <data android:pathPrefix="/u/" />
                 <data android:pathPrefix="/post/" />
                 <data android:pathPrefix="/stories/" />
+                <!-- An invite link (D85): /join/<code> keeps the code in the
+                     web view's cookie jar and hands over to sign-up there, so
+                     a sign-up made in the app is attributed to the inviter. -->
+                <data android:pathPrefix="/join/" />
                 <!-- The auth return. Social sign-in is off inside the shell
                      (STORE-02/03), but email confirmation and reset links for
                      an account made in the app still need to come back to the
