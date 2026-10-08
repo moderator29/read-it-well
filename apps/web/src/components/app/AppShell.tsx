@@ -372,7 +372,7 @@ export function AppShell({
           /* THE NAVY TOP BLOCK (founder reference 05, 29 September 2026). The
              header is a night island in both themes: in light it is the dark
              VALLO band over light content, painted by `app/css/light.css`,
-             and the logo inside it keeps the night artwork. In dark the
+             and the logo is its one artwork, as everywhere (D82). In dark the
              attribute changes nothing. */
           data-theme="dark"
           className={`nf-safe-top nf-app-header sticky top-0 z-40 ${

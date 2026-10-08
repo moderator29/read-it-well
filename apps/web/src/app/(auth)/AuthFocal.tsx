@@ -18,7 +18,7 @@ export function AuthFocal() {
   if (art.kind === "object") return <FocalArtImage art={art} />;
   return (
     <Image
-      src="/brand/vallo-mark-reverse.svg"
+      src="/brand/vallo-mark.svg"
       alt=""
       width={776}
       height={664}

@@ -819,7 +819,7 @@
    *
    * 50px, and it was 44: still inside the 56px tab, so the capsule does not
    * grow, and the whole fifth of the row stays the target. The rim light is
-   * the logo pill's own: a conic of two short arcs turned by the registered
+   * the retired logo pill's (D82): a conic of two short arcs turned by the registered
    * angle `--nf-logo-lap` on the `nf-logo-lap` keyframes, both declared once
    * in light.css ("THE LOGO") and not repeated here. The keyframes are not
    * theme-gated, so the lap runs in both themes. Under reduced motion, data

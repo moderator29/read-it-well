@@ -343,6 +343,17 @@
     border-radius: var(--nf-radius-sm);
     transition: margin-top var(--nf-duration-slow) var(--nf-ease-standard);
   }
+  /* THE LOGO'S PLATE (D82): the lockup in its own colours on white, the
+     same in both themes, because the block behind it is the brand blue. */
+  .nf-slate-top__plate {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    padding: var(--nf-space-xs) var(--nf-space-sm);
+    border-radius: var(--nf-radius-md);
+    background: var(--nf-logo-plate);
+    box-shadow: var(--nf-elev-1);
+  }
   .nf-slate-top__mark {
     display: block;
     width: 1.875rem;
@@ -350,8 +361,9 @@
   }
   /* The wordmark artwork (D81), at the cap height the tracked name had. */
   .nf-slate-top__word {
+    display: block;
     width: auto;
-    height: 1.375rem;
+    height: 1.125rem;
   }
   .nf-slate-top__line {
     max-width: 17rem;
@@ -1558,10 +1570,17 @@
     background: linear-gradient(180deg, color-mix(in oklab, var(--nf-content-on-brand) 26%, transparent), transparent 42%);
     pointer-events: none;
   }
+  /* The mark in the ring stands on the logo's white plate, the same in both
+     themes (D82): the ring's blue glass would swallow its blue towers. */
+  .nf-slate-focal__ring:has(> .nf-slate-focal__mark) {
+    background: var(--nf-logo-plate);
+  }
+  .nf-slate-focal__ring:has(> .nf-slate-focal__mark)::after {
+    content: none;
+  }
   .nf-slate-focal__mark {
-    width: 56%;
+    width: 60%;
     height: auto;
-    filter: drop-shadow(0 4px 8px color-mix(in oklab, var(--nf-surface-artwork) 55%, transparent));
   }
   .nf-slate-focal__icon {
     width: 76%;

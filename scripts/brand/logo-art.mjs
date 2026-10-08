@@ -25,12 +25,13 @@
  * right one laid over the left so the fold shows; the A carries an orange
  * triangle in its counter; the O carries an orange sweep over its upper right.
  *
- * THREE GROUNDS, THREE PALETTES, ONE DRAWING. `reverse` (white and ice for the
- * blues, the orange kept) is for the brand's own blue ground. `night` is the founder's palette, for
- * navy. `day` keeps the same shapes and deepens the blues and the orange, so
- * every opaque pixel holds at least 3:1 on white (a graphic's WCAG floor) and
- * the cyan catch-light does not vanish into paper. No glow is baked into either:
- * a glow, where one is wanted, is CSS, on dark only.
+ * ONE COLOUR SET, EVERYWHERE (D82, the founder, 8 October 2026: "make the
+ * logo and the text to be not change color should be same either on light
+ * mode or dark mode"). The founder's own colours: cyan to electric to royal
+ * blue on the towers and letters, orange on the fourth tower, the A's
+ * triangle and the O's sweep, the ring blue into orange. There is no day
+ * palette, no reversed palette and no recolouring by theme: the same artwork
+ * on navy, on paper and on the brand blue. No glow is baked in.
  */
 
 const r2 = (n) => Math.round(n * 10) / 10;
@@ -38,46 +39,17 @@ const pt = ([x, y]) => `${r2(x)} ${r2(y)}`;
 
 /* ---------- palettes ---------- */
 
-export const PALETTE = {
-  night: {
-    blueTop: "#3FDCFF",
-    blueMid: "#1C86FF",
-    blueLow: "#1A4CF0",
-    blueDeep: "#1238C8",
-    cyan: "#3FDCFF",
-    orangeTop: "#FFA04A",
-    orange: "#FF8A3C",
-    orangeLow: "#F2561E",
-    sheen: 0.22,
-    side: "#0B2A9E",
-  },
-  day: {
-    blueTop: "#0A8CE6",
-    blueMid: "#1262EC",
-    blueLow: "#0F44D6",
-    blueDeep: "#0A2FA8",
-    cyan: "#0A8CE6",
-    orangeTop: "#F7802C",
-    orange: "#F26F1F",
-    orangeLow: "#DB4410",
-    sheen: 0.14,
-    side: "#082690",
-  },
-  /* REVERSE: for the brand's own blue ground (the auth block), where blue
-     letters would vanish. The blues turn to white and ice, the orange stays
-     orange, so the drawing still reads as the logo. */
-  reverse: {
-    blueTop: "#FFFFFF",
-    blueMid: "#F1F6FF",
-    blueLow: "#DCE8FF",
-    blueDeep: "#CCDDFF",
-    cyan: "#FFFFFF",
-    orangeTop: "#FFA04A",
-    orange: "#FF8A3C",
-    orangeLow: "#F2561E",
-    sheen: 0,
-    side: "#9DB6EE",
-  },
+export const COLOURS = {
+  blueTop: "#3FDCFF",
+  blueMid: "#1C86FF",
+  blueLow: "#1A4CF0",
+  blueDeep: "#1238C8",
+  cyan: "#3FDCFF",
+  orangeTop: "#FFA04A",
+  orange: "#FF8A3C",
+  orangeLow: "#F2561E",
+  sheen: 0.22,
+  side: "#0B2A9E",
 };
 
 /* ---------- small geometry helpers ---------- */
@@ -276,8 +248,8 @@ function ellipseD(e) {
 }
 
 /** The mark's gradients, as data, so the inline drawing in the app uses the same ones. */
-export function markGradients(theme) {
-  const c = PALETTE[theme];
+export function markGradients() {
+  const c = COLOURS;
   return [
     { id: "blue", x1: 0, y1: 260, x2: 0, y2: 830, user: true, stops: [[0, c.blueTop], [0.45, c.blueMid], [1, c.blueDeep]] },
     { id: "orange", x1: 0, y1: 388, x2: 0, y2: 760, user: true, stops: [[0, c.orangeTop], [0.35, c.orange], [1, c.orangeLow]] },
@@ -298,7 +270,7 @@ export function markGradients(theme) {
       x2: 0,
       y2: 900,
       user: true,
-      stops: [[0, "#FFFFFF", r2(c.sheen * 0.9)], [0.55, "#FFFFFF", 0], [1, "#000000", theme === "night" ? 0.12 : 0.08]],
+      stops: [[0, "#FFFFFF", r2(c.sheen * 0.9)], [0.55, "#FFFFFF", 0], [1, "#000000", 0.12]],
     },
   ];
 }
@@ -331,10 +303,10 @@ export function markParts() {
   };
 }
 
-export function markSvg({ theme = "night", title = "Vallo" } = {}) {
-  const c = PALETTE[theme];
+export function markSvg({ title = "Vallo" } = {}) {
+  const c = COLOURS;
   const vb = MARK_VIEWBOX;
-  const id = (s) => `vm${theme[0]}-${s}`;
+  const id = (s) => `vm-${s}`;
   const ts = towers();
 
   const towerFill = (t) => (t.tone === "orange" ? `url(#${id("orange")})` : `url(#${id("blue")})`);
@@ -354,7 +326,7 @@ export function markSvg({ theme = "night", title = "Vallo" } = {}) {
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb.x} ${vb.y} ${vb.w} ${vb.h}" role="img" aria-label="${title}">`,
     `<title>${title}</title>`,
     `<defs>`,
-    ...markGradients(theme).map((g) => gradientSvg(g, id)),
+    ...markGradients().map((g) => gradientSvg(g, id)),
     `<clipPath id="${id("above")}">${clip}</clipPath>`,
     `</defs>`,
     `<path d="${bandD()}" fill="url(#${id("ring")})"/>`,
@@ -471,10 +443,10 @@ function oLetter() {
   return { ring, sweep };
 }
 
-export function wordmarkSvg({ theme = "night", title = "Vallo" } = {}) {
-  const c = PALETTE[theme];
+export function wordmarkSvg({ title = "Vallo" } = {}) {
+  const c = COLOURS;
   const vb = WORDMARK_VIEWBOX;
-  const id = (s) => `vw${theme[0]}-${s}`;
+  const id = (s) => `vw-${s}`;
   const v = vLetter();
   const a = aLetter();
   const o = oLetter();
@@ -488,7 +460,7 @@ export function wordmarkSvg({ theme = "night", title = "Vallo" } = {}) {
     `<linearGradient id="${id("blue")}" x1="0" y1="240" x2="0" y2="578" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="${c.blueTop}"/><stop offset="0.42" stop-color="${c.blueMid}"/><stop offset="1" stop-color="${c.blueLow}"/></linearGradient>`,
     `<linearGradient id="${id("orange")}" x1="0" y1="236" x2="0" y2="520" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="${c.orangeTop}"/><stop offset="0.4" stop-color="${c.orange}"/><stop offset="1" stop-color="${c.orangeLow}"/></linearGradient>`,
     `<linearGradient id="${id("sheen")}" x1="0" y1="240" x2="0" y2="578" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#FFFFFF" stop-opacity="${c.sheen * 0.8}"/><stop offset="0.3" stop-color="#FFFFFF" stop-opacity="0"/></linearGradient>`,
-    `<linearGradient id="${id("fold")}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#000000" stop-opacity="${theme === "night" ? 0.22 : theme === "day" ? 0.14 : 0.1}"/><stop offset="0.3" stop-color="#000000" stop-opacity="0"/></linearGradient>`,
+    `<linearGradient id="${id("fold")}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#000000" stop-opacity="0.22"/><stop offset="0.3" stop-color="#000000" stop-opacity="0"/></linearGradient>`,
     `</defs>`,
     /* V: the back ribbon, then the front one over it with a soft fold shadow. */
     `<path d="${v.back}" fill="${blue}"/>`,

@@ -58,10 +58,12 @@ export function RiseWords({ text, start = 0 }: { text: string; start?: number })
  * the light theme gets the artwork made for a light ground.
  */
 export function Lockup({ onCanvas = false, themed = false }: { onCanvas?: boolean; themed?: boolean }) {
-  const pair = (day: boolean) => (
+  /* One artwork in both themes (D82); the two sets welcome.css switches
+     between are the same picture. */
+  const pair = (_day: boolean) => (
     <>
       <Image
-        src={day ? "/brand/vallo-mark-light.svg" : "/brand/vallo-mark.svg"}
+        src="/brand/vallo-mark.svg"
         alt=""
         width={776}
         height={664}
@@ -69,7 +71,7 @@ export function Lockup({ onCanvas = false, themed = false }: { onCanvas?: boolea
         className="nf-gs-lockup__mark"
       />
       <Image
-        src={day ? "/brand/vallo-wordmark-light.svg" : "/brand/vallo-wordmark.svg"}
+        src="/brand/vallo-wordmark.svg"
         alt=""
         width={1664}
         height={352}

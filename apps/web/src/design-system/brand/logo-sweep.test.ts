@@ -4,7 +4,8 @@ import { dirname, extname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 // @ts-expect-error: the drawing is a plain ES module in the repository's scripts folder.
-import { markSvg, wordmarkSvg } from "../../../../../scripts/brand/logo-art.mjs";
+import { COLOURS, markSvg, wordmarkSvg } from "../../../../../scripts/brand/logo-art.mjs";
+import { MARK_ACCENT, MARK_GRADIENTS, MARK_SIDE } from "@/lib/brand/logo-geometry";
 
 /*
  * THE LOGO SWEEP, PROVED (D81, 8 October 2026). The founder: "any single place
@@ -77,6 +78,20 @@ const OLD_LOGO_FILES: ReadonlyArray<readonly [string, string]> = [
   ["f39e37acf08918a02b3fc0c3e2d3838bea4a299af385c3003ec1e394fe273ca1", "apps/web/ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png"],
   ["f648f0cf082b8ea6035b6aedecf56c5aa91189535af2e80feb51e605d42fd2eb", "apps/web/android/app/src/main/res/mipmap-xhdpi/ic_launcher_round.png"],
   ["feae800ad5d3cb6166d209bb4da7ebb3ed5964b9fdf8e4c5eead6e7970bbb00b", "apps/web/android/app/src/main/res/mipmap-mdpi/ic_launcher_foreground.png"],
+  /* D82: the D81 day and reverse recolourings, the welcome coin's old glass
+     face (the old towers under glass) and the PWA install screenshots that
+     showed the old glass mark in the header. */
+  ["ec33bdccada1a04f9eb35de4a90031ae8a26e34319fdf86be638a759fe73ff51", "apps/web/public/brand/session-b/welcome/coin-face.webp"],
+  ["c2d4642df1916ef04befc20e78bf50fdc9bc7372f8c34a43659495dc8cc48ec3", "apps/web/public/brand/vallo-mark-light.png (the day recolouring)"],
+  ["e1d689a2874a53c75fc8b3483e32de69ac074286cccb7ec5cc07b404ac5b9782", "apps/web/public/brand/vallo-mark-light.svg (the day recolouring)"],
+  ["037fb1a937dc802f7d8de0dd90f28693059a747858c4ec8ca3b2c61d3f6aa8da", "apps/web/public/brand/vallo-mark-reverse.svg"],
+  ["d49913a09306dbc2a45f5f3b146c96e42f5f502991cd5f963e78461ec0bfc70b", "apps/web/public/brand/vallo-wordmark-light.png (the day recolouring)"],
+  ["1187cd7d0b38e9fa4597c769a4b731de524992e6bbd572c37832f8a16374894d", "apps/web/public/brand/vallo-wordmark-light.svg (the day recolouring)"],
+  ["12285119dbf6f3f7a26bdadbb6323bd6db38707304ea74673c06a6ca634bb705", "apps/web/public/brand/vallo-wordmark-reverse.svg"],
+  ["2143489327beb87f731a2760fc8989434cedfc51b6ae8797a6f15a7f53b294d9", "apps/web/public/pwa/shots/narrow-home.jpg"],
+  ["426823eb489132c8736d8e6c3422e079df9579798dae6028b81c8c8a57947070", "apps/web/public/pwa/shots/narrow-markets.jpg"],
+  ["489d673a3f36fa7f275ec8378bac5844511c7b179def0bb99d1ccd3e1a5ad563", "apps/web/public/pwa/shots/narrow-search.jpg"],
+  ["e128645f686e05ef8a4ca5e337d104f07e7ce3d9131cfd21b9570ecca4fbc02f", "apps/web/public/pwa/shots/wide-home.jpg"],
 ];
 
 const OLD_PATH_DATA = [
@@ -86,6 +101,8 @@ const OLD_PATH_DATA = [
   /* the old wordmark (`vallo-wordmark.svg`) */
   "M21 21H59L106 110 153 21H191L120 155H92Z",
   "M248.8 21H257.2L345 155H305L253 75.6 201 155H161Z",
+  /* the old Android notification icon (a door in an arch) */
+  "M12,2.5L3.5,9.2v11.3h5.2V13.4h6.6v7.1h5.2V9.2L12,2.5z",
 ];
 
 const SKIP_DIRS = new Set(["node_modules", ".next", "test-results", "playwright-report", ".turbo"]);
@@ -102,7 +119,7 @@ function walk(dir: string, out: string[] = []): string[] {
 }
 
 const IMAGE = new Set([".png", ".jpg", ".jpeg", ".webp", ".ico", ".svg", ".gif"]);
-const SOURCE = new Set([".ts", ".tsx", ".mjs", ".js", ".css", ".html", ".svg", ".json"]);
+const SOURCE = new Set([".ts", ".tsx", ".mjs", ".js", ".css", ".html", ".svg", ".json", ".xml"]);
 
 const SWEPT = [
   join(WEB, "public"),
@@ -160,20 +177,145 @@ describe("the old logo is gone from the platform (D81)", () => {
 
   it("the shipped SVGs are exactly the drawing in scripts/brand/logo-art.mjs", () => {
     const brand = join(WEB, "public", "brand");
-    expect(readFileSync(join(brand, "vallo-mark.svg"), "utf8")).toBe(markSvg({ theme: "night" }));
-    expect(readFileSync(join(brand, "vallo-mark-light.svg"), "utf8")).toBe(markSvg({ theme: "day" }));
-    expect(readFileSync(join(brand, "vallo-wordmark.svg"), "utf8")).toBe(wordmarkSvg({ theme: "night" }));
-    expect(readFileSync(join(brand, "vallo-wordmark-light.svg"), "utf8")).toBe(wordmarkSvg({ theme: "day" }));
-    expect(readFileSync(join(brand, "vallo-mark-reverse.svg"), "utf8")).toBe(markSvg({ theme: "reverse" }));
-    expect(readFileSync(join(brand, "vallo-wordmark-reverse.svg"), "utf8")).toBe(wordmarkSvg({ theme: "reverse" }));
+    expect(readFileSync(join(brand, "vallo-mark.svg"), "utf8")).toBe(markSvg());
+    expect(readFileSync(join(brand, "vallo-wordmark.svg"), "utf8")).toBe(wordmarkSvg());
   });
 
   it("the new artwork has no baked ground and no baked glow", () => {
-    const names = ["mark", "wordmark"].flatMap((n) => [`vallo-${n}.svg`, `vallo-${n}-light.svg`, `vallo-${n}-reverse.svg`]);
-    for (const name of names) {
+    for (const name of ["vallo-mark.svg", "vallo-wordmark.svg"]) {
       const svg = readFileSync(join(WEB, "public", "brand", name), "utf8");
       expect(svg, name).not.toMatch(/<rect\b/);
       expect(svg, name).not.toMatch(/<filter\b|feGaussianBlur/);
     }
   });
 });
+
+/*
+ * ONE COLOUR SET (D82, the founder, 8 October 2026: "make the logo and the
+ * text to be not change color should be same either on light mode or dark
+ * mode"). The logo is the founder's own colours on every ground and in both
+ * themes. These fail if a second palette, a recoloured copy, a per-theme swap
+ * or a filter on the artwork comes back.
+ */
+describe("the logo never changes colour (D82)", () => {
+  const brand = join(WEB, "public", "brand");
+  /* Every colour the artwork may carry: the founder's set, and the white and
+     black of its sheen and shade (used only at partial opacity). */
+  // eslint-disable-next-line nf/no-raw-colour -- the sheen's white and the shade's black are part of the artwork, compared as data
+  const SHEEN_AND_SHADE = ["#FFFFFF", "#000000"];
+  const ALLOWED = new Set([...Object.values(COLOURS).filter((v): v is string => typeof v === "string"), ...SHEEN_AND_SHADE].map((c) => c.toUpperCase()));
+  const coloursIn = (text: string) => [...text.matchAll(/(?:stop-color|fill|stroke)="(#[0-9A-Fa-f]{3,8})"/g)].map((m) => m[1]!.toUpperCase());
+
+  it("every logo SVG on disk carries only the founder's colours", () => {
+    const svgs = readdirSync(brand).filter((n) => /^vallo-.*\.svg$/.test(n));
+    expect(svgs.length).toBeGreaterThanOrEqual(2);
+    for (const name of svgs) {
+      const colours = coloursIn(readFileSync(join(brand, name), "utf8"));
+      expect(colours.length, name).toBeGreaterThan(5);
+      expect(colours.filter((c) => !ALLOWED.has(c)), name).toEqual([]);
+    }
+  });
+
+  it("there is no second palette: every kept twin is byte-for-byte the one artwork", () => {
+    for (const [twin, one] of [
+      ["vallo-mark-light.svg", "vallo-mark.svg"],
+      ["vallo-wordmark-light.svg", "vallo-wordmark.svg"],
+      ["vallo-mark-light.png", "vallo-mark.png"],
+      ["vallo-wordmark-light.png", "vallo-wordmark.png"],
+    ] as const) {
+      if (!existsSync(join(brand, twin))) continue;
+      expect(readFileSync(join(brand, twin)).equals(readFileSync(join(brand, one))), twin).toBe(true);
+    }
+    for (const gone of ["vallo-mark-reverse.svg", "vallo-wordmark-reverse.svg"]) {
+      expect(existsSync(join(brand, gone)), gone).toBe(false);
+    }
+  });
+
+  it("the inline (animated) mark draws the same colours", () => {
+    const colours = [
+      ...MARK_GRADIENTS.flatMap((g) => g.stops.map((stop) => stop[1])),
+      MARK_SIDE,
+      MARK_ACCENT,
+    ].map((c) => c.toUpperCase());
+    expect(colours.filter((c) => !ALLOWED.has(c))).toEqual([]);
+    expect(Array.isArray(MARK_GRADIENTS)).toBe(true);
+  });
+
+  it("no source picks a logo file, a palette or a class by theme", () => {
+    const found: string[] = [];
+    for (const f of walk(join(WEB, "src"))) {
+      if (!/\.(tsx?|css)$/.test(f) || f === THIS_FILE) continue;
+      const text = readFileSync(f, "utf8");
+      if (/vallo-(mark|wordmark)-(light|reverse|day|night)\b/.test(text)) found.push(`${relative(ROOT, f)}: a theme twin of the logo`);
+      if (/nf-logo-art--(night|day)/.test(text)) found.push(`${relative(ROOT, f)}: a per-theme logo class`);
+    }
+    expect(found).toEqual([]);
+  });
+
+  /* The logo's own selectors: the lockup, its art and the places that size it. */
+  const LOGO = /\.nf-(logo|logo-art|logo__word|logo__text|vmark|slate-top__mark|slate-top__word|slate-focal__mark|doors__mark|passcode__mark|passcode__word|ai__word|ai__lockup|mcard__word|gs-lockup__mark|gs-lockup__word|system__icon|system__wordmark|wait__mark|assemble__mark)\b/;
+  const RECOLOUR = /\b(filter|mix-blend-mode|-webkit-filter)\s*:\s*(?!none\b)|invert\(|hue-rotate\(|grayscale\(|saturate\(|brightness\(|sepia\(/;
+
+  /** Every rule as [selector, body, enclosing at-rule preludes]. */
+  function rules(css: string): Array<{ selector: string; body: string; at: string }> {
+    const out: Array<{ selector: string; body: string; at: string }> = [];
+    const text = css.replace(/\/\*[\s\S]*?\*\//g, "");
+    const stack: string[] = [];
+    let buf = "";
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i]!;
+      if (ch === "{") {
+        stack.push(buf.trim());
+        buf = "";
+      } else if (ch === "}") {
+        const prelude = stack.pop() ?? "";
+        if (!prelude.startsWith("@") && buf.trim()) out.push({ selector: prelude, body: buf, at: stack.filter((x) => x.startsWith("@")).join(" ") });
+        buf = "";
+      } else if (ch === ";" && stack.length > 0 && !stack[stack.length - 1]!.startsWith("@")) {
+        buf += ch;
+      } else {
+        buf += ch;
+      }
+    }
+    return out;
+  }
+
+  /* The plates the mark stands on: each is the one white logo plate, never a
+     themed surface, so the mark reads the same in both themes. */
+  const PLATES = [".nf-cap__plate", ".nf-close__plate", ".nf-push-ask__mark", ".nf-pl-platinum__mark", ".nf-mo__seal", ".nf-slate-top__plate"];
+
+  it("every plate a mark stands on is the one logo plate, in both themes", () => {
+    const found: string[] = [];
+    const seen = new Set<string>();
+    for (const f of walk(join(WEB, "src"))) {
+      if (!f.endsWith(".css")) continue;
+      for (const r of rules(readFileSync(f, "utf8"))) {
+        for (const plate of PLATES) {
+          if (!r.selector.split(",").some((sel) => sel.trim().endsWith(plate))) continue;
+          const bg = r.body.match(/(?:^|;|\s)background(?:-color)?\s*:\s*([^;]+)/);
+          if (!bg) continue;
+          seen.add(plate);
+          if (bg[1]!.trim() !== "var(--nf-logo-plate)") found.push(`${relative(ROOT, f)}: ${plate} stands on ${bg[1]!.trim()}`);
+          if (/data-theme|prefers-color-scheme/.test(r.selector + " " + r.at)) found.push(`${relative(ROOT, f)}: ${plate} is styled per theme`);
+        }
+      }
+    }
+    expect(found).toEqual([]);
+    expect([...seen].sort()).toEqual([...PLATES].sort());
+  });
+
+  it("no stylesheet recolours the logo, or styles it per theme", () => {
+    const found: string[] = [];
+    for (const f of walk(join(WEB, "src"))) {
+      if (!f.endsWith(".css")) continue;
+      for (const r of rules(readFileSync(f, "utf8"))) {
+        if (!LOGO.test(r.selector)) continue;
+        const where = `${relative(ROOT, f)}: ${r.selector.replace(/\s+/g, " ").slice(0, 120)}`;
+        if (RECOLOUR.test(r.body)) found.push(`${where} recolours or filters the logo`);
+        if (/data-theme|prefers-color-scheme/.test(r.selector + " " + r.at)) found.push(`${where} styles the logo per theme`);
+      }
+    }
+    expect(found).toEqual([]);
+  });
+});
+

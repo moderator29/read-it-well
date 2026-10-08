@@ -112,7 +112,6 @@
     width: 5.5rem;
     height: 5.5rem;
     border-radius: var(--nf-radius-squircle);
-    filter: drop-shadow(0 0 22px var(--nf-glow-3));
   }
   .nf-system__icon--sm {
     width: 4rem;
@@ -123,7 +122,6 @@
     width: 9.5rem;
     height: auto;
     margin-top: var(--nf-space-md);
-    filter: drop-shadow(0 0 14px var(--nf-glow-2));
   }
 
   /* ----------------------------------------------------------------- card */
@@ -366,7 +364,6 @@
        the other is also what `next/image` warns about. */
     height: auto;
     border-radius: var(--nf-radius-squircle);
-    filter: drop-shadow(0 0 16px var(--nf-glow-2));
   }
   .nf-panel.nf-wait__pill {
     flex-direction: row;

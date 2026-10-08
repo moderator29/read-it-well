@@ -85,30 +85,31 @@ export function AuthCurveBlock({
 }) {
   const word = (
     <>
-      {/* The new logo (D81) in its REVERSE colours: the block is the brand
-          blue in both themes, where the blue letters of the night and day
-          artwork vanish, so the blues turn white and ice and the orange
-          stays. The word used to be the name in tracked capitals; it is the
-          wordmark now, and the dictionary's spaced name stays in the link's
-          text for a reader. */}
-      <Image
-        src="/brand/vallo-mark-reverse.svg"
-        alt=""
-        aria-hidden
-        width={MARK_VIEWBOX.w}
-        height={MARK_VIEWBOX.h}
-        priority
-        className="nf-slate-top__mark"
-      />
-      <Image
-        src="/brand/vallo-wordmark-reverse.svg"
-        alt=""
-        aria-hidden
-        width={WORDMARK_VIEWBOX.w}
-        height={WORDMARK_VIEWBOX.h}
-        priority
-        className="nf-slate-top__word"
-      />
+      {/* The logo (D81) in its own colours, the same in both themes (D82).
+          The block is the brand blue, where the blue letters would vanish,
+          so the lockup stands on a white plate (`--nf-logo-plate`); the
+          artwork itself is never recoloured. The dictionary's spaced name
+          stays the link's text for a reader. */}
+      <span className="nf-slate-top__plate">
+        <Image
+          src="/brand/vallo-mark.svg"
+          alt=""
+          aria-hidden
+          width={MARK_VIEWBOX.w}
+          height={MARK_VIEWBOX.h}
+          priority
+          className="nf-slate-top__mark"
+        />
+        <Image
+          src="/brand/vallo-wordmark.svg"
+          alt=""
+          aria-hidden
+          width={WORDMARK_VIEWBOX.w}
+          height={WORDMARK_VIEWBOX.h}
+          priority
+          className="nf-slate-top__word"
+        />
+      </span>
       <span className="sr-only">{wordmark}</span>
     </>
   );
