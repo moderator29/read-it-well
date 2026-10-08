@@ -107,7 +107,7 @@ const KNOWN_BOUNDARY: Record<string, { fill: number; edge: number }> = {
 /* Each case: an id, the JSX, whether it is interactive, and whether it owes a boundary. */
 type Case = { id: string; jsx: string; interactive: boolean; boundary: boolean; kind: "button" | "chip" | "segment"; target?: string };
 
-const BUTTON_VARIANTS = ["primary", "secondary", "glass", "quiet", "ghost", "danger", "dangerQuiet"] as const;
+const BUTTON_VARIANTS = ["primary", "secondary", "glass", "quiet", "ghost", "danger", "dangerQuiet", "spark"] as const;
 
 const CASES: Case[] = [
   ...BUTTON_VARIANTS.map<Case>((v) => ({
