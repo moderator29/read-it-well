@@ -38,6 +38,38 @@ export const REQUIREMENT_COPY: Record<RequirementKey, string> = {
   space_published: "Publishes a space that passes review",
 };
 
+/**
+ * The same steps as the end of a sentence about the person invited ("once
+ * they ..."), so a member reads what "signs up fully" means under the live
+ * campaign, from its keys, before they invite anybody (D85).
+ */
+export const REQUIREMENT_STEP: Record<RequirementKey, string> = {
+  phone_verified: "confirm their phone number",
+  email_verified: "confirm their email address",
+  onboarding_completed: "finish setting up their account",
+  meaningful_activity: "complete a payment of their own on Vallo",
+  business_profile_completed: "complete their business profile",
+  business_verified: "pass Vallo's business review",
+  property_owner_verified: "have their ownership of a property accepted",
+  space_published: "publish a space that passes review",
+};
+
+/** "a", "a and b", "a, b and c". */
+function joinSteps(steps: readonly string[]): string {
+  if (steps.length <= 1) return steps[0] ?? "";
+  return `${steps.slice(0, -1).join(", ")} and ${steps[steps.length - 1]}`;
+}
+
+/**
+ * "A friend has signed up fully once they confirm their email address and
+ * finish setting up their account." Null when the read named no step, so a
+ * screen says nothing rather than guessing.
+ */
+export function signedUpFullySentence(keys: readonly unknown[]): string | null {
+  const steps = keys.filter(isRequirementKey).map((k) => REQUIREMENT_STEP[k]);
+  return steps.length === 0 ? null : `A friend has signed up fully once they ${joinSteps(steps)}.`;
+}
+
 /** The keys a campaign lists, in its order, dropping anything unknown. */
 export function requirementLines(keys: unknown): string[] {
   if (!Array.isArray(keys)) return [];

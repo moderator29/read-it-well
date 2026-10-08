@@ -469,9 +469,31 @@ export const CHECKOUT_CONDITION_CANCEL = "The cancellation terms below are fixed
 export const REWARDS_NOT_HELD =
   "Your Rewards Balance is what Vallo owes you for referrals that qualified. It is not money held for you, and it does not expire.";
 
-/** How a referral earns. `{reward}` is formatted money, `{cap}` a number. Must match Session 2's qualification rule. */
+/**
+ * How a referral earns (D85, the founder, 8 October 2026: it counts when the
+ * person signs up fully, with no payment). `{reward}` is formatted money and
+ * `{cap}` a number, both from the live campaign. What "signs up fully" means
+ * is the campaign's own steps, said beside it (`signedUpFullySentence` in
+ * `lib/referral/requirements.ts`), never written here, so a successor
+ * campaign that adds the phone step changes the screens without a deploy.
+ */
 export const REWARDS_QUALIFY =
-  "Each referral that qualifies adds {reward} to your Rewards Balance, for up to {cap} qualified referrals a month. Signing up alone does not qualify: the person must confirm their phone number and use Vallo for real.";
+  "Each friend who signs up fully with your link adds {reward} to your Rewards Balance, for up to {cap} friends a month.";
+
+/**
+ * When a reward can be withdrawn, with the live campaign's review window.
+ * `{days}` is a count of days ("7 days"). Used where the read gives the window; otherwise
+ * REWARDS_PENDING_THEN_AVAILABLE says the same without a length.
+ */
+export const REWARDS_REVIEW_WINDOW =
+  "Each reward is Pending for {days} from the day your friend signs up fully, while Vallo's review period runs. After that it is Available, and Available is what you can withdraw.";
+
+/**
+ * While `referral_policy.payouts_enabled` is off (no separate marketing-float
+ * account yet). No date, because none is decided; nothing earned is lost.
+ */
+export const REWARDS_WITHDRAW_NOT_OPEN =
+  "Withdrawals are not open yet. Every reward you earn is recorded in your Rewards Balance and stays yours, and you can withdraw it here once withdrawals open.";
 
 /** Stated before anybody starts earning. `{minimum}` is formatted money. */
 export const REWARDS_WITHDRAW_MINIMUM = "You can withdraw once your Rewards Balance reaches {minimum}.";

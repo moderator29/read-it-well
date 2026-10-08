@@ -7,10 +7,13 @@
  * `feature_flags`. Each surface is rendered for real (its page function, the
  * request-bound modules stubbed) in four reads, and the markup is scanned:
  *
- *   not-live  "There is no reward for inviting" and "Nothing to earn", and no
- *             reward words at all
- *   running   the invite, what the invited person gets, the reward and the
- *             monthly count from the read's policy, Pending then Available,
+ *   not-live  the invite, and nothing about a reward either way (the old "no
+ *             reward for inviting" and "Nothing to earn" lines are gone: the
+ *             founder, 8 October 2026)
+ *   running   the invite, the earnings card (the reward per friend who signs
+ *             up fully and the four figures, from the read), what the invited
+ *             person gets, the reward, the monthly count and the steps from
+ *             the live campaign, Pending for the review window then Available,
  *             the monthly budget, the Rewards Balance; and no "no reward"
  *   paused    the pause notice, no invite, no reward words, no "no reward",
  *             and no first run (R1's build, unchanged)
@@ -34,6 +37,7 @@ import {
   REWARDS_NOT_HELD,
   REWARDS_PENDING_THEN_AVAILABLE,
   REWARDS_QUALIFY,
+  REWARDS_REVIEW_WINDOW,
 } from "@/lib/money/copy";
 import { REWARDS_PAUSED_EARNED_LINE } from "@/components/app/referral/money-words";
 import { FIXTURE_PAUSED_SNAPSHOT, FIXTURE_SNAPSHOT } from "@/app/(dev)/preview/rewards/fixtures";
@@ -95,8 +99,13 @@ const runC = t.experienceFeatures.firstRun.invite;
 const RUNNING: RewardsSnapshot = { ...FIXTURE_SNAPSHOT, programme: { state: "running" } };
 const PAUSED: RewardsSnapshot = FIXTURE_PAUSED_SNAPSHOT;
 
-/* The "no reward" wording, which belongs to not-live alone. */
-const NO_REWARD = [door.noReward, runC.p2Title];
+/* The retired "no reward" wording (D85): it may never render again, in any state. */
+const NO_REWARD = ["There is no reward for inviting", "Nothing to earn, on purpose", "no reward for inviting"];
+
+/* What the running fixture's campaign says (8,000 kobo, email and onboarding, 7 days). */
+const QUALIFY_80 = "Each friend who signs up fully with your link adds ₦80 to your Rewards Balance, for up to 1,500 friends a month.";
+const FULLY = "A friend has signed up fully once they confirm their email address and finish setting up their account.";
+const REVIEW_7 = "Each reward is Pending for 7 days from the day your friend signs up fully";
 
 /* Every word that speaks of a reward being earned. Not one may show unless the programme runs. */
 const REWARD_WORDS = [
@@ -111,8 +120,11 @@ const REWARD_WORDS = [
   runC.running.p3Title,
   REWARDS_QUALIFY.split("{reward}")[0]!,
   REWARDS_PENDING_THEN_AVAILABLE,
+  REWARDS_REVIEW_WINDOW.split("{days}")[0]!,
   REWARDS_MONTHLY_BUDGET,
   REWARDS_NOT_HELD,
+  r.earn.headline.split("{amount}")[0]!,
+  r.earn.open,
 ];
 
 /* The two inner-page doors every state of the hub draws. */
@@ -164,16 +176,15 @@ describe("the gate is the rewards read, and its states never mix", () => {
   });
 });
 
-describe("not live: no reward, said plainly, and nothing reward shaped", () => {
+describe("not live: the invite, and nothing about a reward either way", () => {
   beforeEach(() => {
     state.read = { state: "not-live" };
   });
 
-  it("the hub and How invites work say there is no reward", async () => {
+  it("the hub and How invites work neither promise a reward nor say there is none", async () => {
     for (const name of ["hub", "how"] as const) {
       const markup = await PAGES[name]();
-      expect(markup, name).toContain(door.noReward);
-      none(markup, REWARD_WORDS, name);
+      none(markup, [...REWARD_WORDS, ...NO_REWARD], name);
       expect(markup, name).not.toContain(r.pause.title);
     }
     expect(await PAGES.hub()).toContain('data-testid="invite-ticket"');
@@ -188,12 +199,10 @@ describe("not live: no reward, said plainly, and nothing reward shaped", () => {
     expect(hub).not.toContain('data-testid="invite-rewards-row"');
   });
 
-  it("the first run is the link, then nothing to earn", async () => {
+  it("the first run is the link alone", async () => {
     const run = await PAGES.run();
     expect(run).toContain(runC.p1Title);
-    expect(run).toContain(runC.p2Title);
-    expect(run).toContain(door.noReward);
-    none(run, REWARD_WORDS, "run");
+    none(run, [...REWARD_WORDS, ...NO_REWARD], "run");
   });
 });
 
@@ -207,8 +216,15 @@ describe("running: what the invited person gets, what the member earns and when"
     expect(hub).toContain('data-testid="invite-ticket"');
     expect(hub).toContain('data-testid="invite-rewards-running"');
     expect(hub).toContain(door.doorBody);
-    expect(hub).toContain("Each referral that qualifies adds ₦70 to your Rewards Balance, for up to 1,500 qualified referrals a month.");
-    expect(hub).toContain(REWARDS_PENDING_THEN_AVAILABLE);
+    expect(hub).toContain(QUALIFY_80);
+    expect(hub).toContain(FULLY);
+    expect(hub).toContain(REVIEW_7);
+    /* D85: the earnings card, every figure from the read, and its door to /rewards. */
+    expect(hub).toContain('data-testid="invite-earnings"');
+    expect(hub).toContain("Earn ₦80 for each friend who signs up fully");
+    expect(hub).toContain('data-testid="invite-earnings-open"');
+    const shown = hub.replace(/<[^>]+>/g, "");
+    for (const figure of ["₦4,200", "₦700", "₦2,100", "₦6,300"]) expect(shown, figure).toContain(figure);
     expect(hub).toContain(REWARDS_MONTHLY_BUDGET);
     expect(hub).toContain(REWARDS_DOOR);
     expect(hub).toContain('data-testid="invite-rewards-row"');
@@ -221,32 +237,39 @@ describe("running: what the invited person gets, what the member earns and when"
 
   it("How invites work says the same, and closes on what a Rewards Balance is", async () => {
     const how = await PAGES.how();
-    for (const words of [door.doorBody, r.inviteHub.earnTitle, "adds ₦70", REWARDS_PENDING_THEN_AVAILABLE, REWARDS_MONTHLY_BUDGET, REWARDS_NOT_HELD]) {
+    for (const words of [door.doorBody, "Earn ₦80 for each friend who signs up fully", "adds ₦80", FULLY, REVIEW_7, REWARDS_MONTHLY_BUDGET, REWARDS_NOT_HELD]) {
       expect(how, words).toContain(words);
     }
     none(how, NO_REWARD, "how");
     expect(how).not.toContain(r.pause.title);
   });
 
-  it("the first run is what they get, what you earn, then Pending and Available with the budget", async () => {
+  it("the first run is what they get, what you earn for a full sign-up, then Pending and Available with the budget", async () => {
     const run = await PAGES.run();
     expect(run).toContain(runC.running.p1Title);
     expect(run).toContain(door.doorBody);
     expect(run).toContain(runC.running.p2Title);
-    expect(run).toContain("adds ₦70 to your Rewards Balance, for up to 1,500");
-    expect(run).toContain(`${REWARDS_PENDING_THEN_AVAILABLE} ${REWARDS_MONTHLY_BUDGET}`);
+    expect(run).toContain(QUALIFY_80);
+    expect(run).toContain(FULLY);
+    expect(run).toContain(REVIEW_7);
+    expect(run).toContain(REWARDS_MONTHLY_BUDGET);
     none(run, NO_REWARD, "run");
   });
 
   it("takes every figure from the read, never from the page", async () => {
     state.read = {
       state: "ready",
-      snapshot: { ...RUNNING, policy: { rewardPerReferralMinor: 12_300, monthlyCap: 40, withdrawMinimumMinor: 50_000 } },
+      snapshot: {
+        ...RUNNING,
+        policy: { rewardPerReferralMinor: 12_300, monthlyCap: 40, withdrawMinimumMinor: 50_000, steps: ["phone_verified"], reviewDays: null },
+      },
     };
     for (const name of ["hub", "how", "run"] as const) {
       const markup = await PAGES[name]();
-      expect(markup, name).toContain("adds ₦123 to your Rewards Balance, for up to 40 qualified referrals a month");
-      expect(markup, name).not.toContain("₦70");
+      expect(markup, name).toContain("adds ₦123 to your Rewards Balance, for up to 40 friends a month");
+      expect(markup, name).toContain("A friend has signed up fully once they confirm their phone number.");
+      expect(markup, name).toContain(REWARDS_PENDING_THEN_AVAILABLE);
+      expect(markup, name).not.toContain("₦80");
     }
   });
 

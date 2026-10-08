@@ -2,7 +2,6 @@ import { notFound } from "next/navigation";
 import { getDictionary } from "@vallo/i18n";
 import { previewHarnessIsOpen } from "@/lib/preview-harness";
 import { PageHeader } from "@/components/app/PageHeader";
-import { TYPE } from "@/components/app/Screen";
 import { InviteTicket } from "@/components/app/account/InviteTicket";
 import { InviteReadyPill } from "@/components/money/InviteReadyPill";
 import { RowLink, RowValue, SettingsGroup } from "@/components/app/account/rows";
@@ -26,7 +25,6 @@ export default async function InvitePreview() {
       <div className="space-y-block">
         <InviteReadyPill label="Your invite is ready" url={url} shareText={door.shareText.replace("{url}", url)} shareAria={copy.shareAria} />
         <InviteTicket copy={copy} code={code} url={url} shareText={door.shareText.replace("{url}", url)} whatsappLabel={door.whatsapp} dismissLabel={t.experienceUi.notNow} autoplay={false} />
-        <p className={`${TYPE.caption} text-center`}>{door.noReward}</p>
         <SettingsGroup label={copy.groupLabel}>
           <RowValue icon="link" label={copy.linkLabel} value={<span className="nf-numeric break-all">{url.replace(/^https?:\/\//, "")}</span>} testId="invite-url" />
           <RowLink href="/settings/invite/how-it-works" icon="info" label={copy.howTitle} sub={copy.howSub} testId="invite-how-row" />

@@ -206,10 +206,60 @@
     gap: var(--nf-space-xs);
     margin: 0;
   }
+  /* Five stages (D85): three across on a tablet, all five on a wide screen. */
   @media (min-width: 40rem) {
     .nf-rewards-counts {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
+  }
+  @media (min-width: 64rem) {
+    .nf-rewards-counts {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+  }
+
+  /* ---------------------------------------------------------- how you earn (D85) */
+  .nf-rewards-earn {
+    display: grid;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-lg);
+  }
+  .nf-rewards-earn__headline {
+    margin: 0;
+    font-size: var(--nf-text-h4);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-rewards-earn__body {
+    margin: 0;
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+  }
+  .nf-rewards-earn__figures {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--nf-space-md);
+    margin: var(--nf-space-xs) 0 0;
+    padding-block-start: var(--nf-space-md);
+    border-block-start: 1px solid var(--nf-border-default);
+  }
+  .nf-rewards-earn__figures > div {
+    display: grid;
+    gap: var(--nf-space-2xs);
+    min-inline-size: 0;
+  }
+  .nf-rewards-earn__figures dt {
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-muted);
+  }
+  .nf-rewards-earn__figures dd {
+    margin: 0;
+    color: var(--nf-content-primary);
+  }
+  .nf-rewards-earn__actions {
+    display: grid;
+    gap: var(--nf-space-xs);
+    margin-block-start: var(--nf-space-xs);
   }
   .nf-rewards-counts > div {
     display: grid;

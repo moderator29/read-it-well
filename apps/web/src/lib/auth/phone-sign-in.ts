@@ -8,6 +8,7 @@ import { consume, ipFromHeaders, subjectForIp } from "@/lib/security/rate-limit"
 import { safeReturnPath } from "@/lib/security/return-path";
 import { formatPhone, normalisePhone } from "@/lib/phone";
 import { rememberFirstCodeSignIn } from "./first-sign-in-server";
+import { claimInviteFromCookie } from "@/lib/referral/server";
 import { isSixDigits, type CodeSignInState } from "./code-sign-in-state";
 import { phoneSignInEnabled } from "./phone-sign-in-flag";
 
@@ -63,6 +64,9 @@ export async function verifyPhoneSignInCode(_prev: CodeSignInState, formData: Fo
   /* A first sign-in (this code confirmed the number) earns "Welcome to
      Vallo" on the next screen, by the one-shot cookie. */
   await rememberFirstCodeSignIn(supabase, data?.user, "phone");
+  /* D85: a phone sign-up carries no metadata, so the invite the /join link
+     kept in this browser is claimed now (a new account only). */
+  await claimInviteFromCookie();
 
   revalidatePath("/", "layout");
   const next = formData.get("next");

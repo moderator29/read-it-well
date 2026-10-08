@@ -7,11 +7,12 @@ import { withoutComments } from "@/lib/copy/source-scan";
 /**
  * THE INVITE HUB DRAWS ONLY WHAT IS TRUE (auditor A2, 6 October 2026).
  *
- * Vallo records a sign-up that comes from a code, but a member cannot read that
- * list, and the founder has not decided on any reward. So nothing here may be
- * reward shaped, and the two referral routes (declared, so kept) draw the
- * honest unavailable state. When Session 2 lands the reads (R-W6-1, R-W6-2) and
- * the founder decides on rewards, these are the tests to change, deliberately.
+ * The account copy for the hub stays free of reward and scheme wording: every
+ * sentence about what a member earns is a money sentence (`lib/money/copy.ts`)
+ * filled from the live campaign (D85), never a dictionary line. The two
+ * referral routes (declared, so kept) hand on to the one list at
+ * `/rewards/referrals`, which reads `my_referral_progress` (the reads
+ * R-W6-1 and R-W6-2 asked for).
  */
 const copy = getDictionary("en").experienceAccount.invite;
 
@@ -43,19 +44,20 @@ describe("the invite hub", () => {
   });
 
   /*
-   * The hub links the referrals list again (7 October 2026: the founder could
-   * not find it), and that is honest only because the list page draws the
-   * unavailable state rather than a list or a count. It still draws no figure.
+   * The hub links the referrals list (7 October 2026: the founder could not
+   * find it). Since D85 the member can read it, so the hub's address hands on
+   * to the one list at /rewards/referrals rather than keeping a second copy.
+   * The hub draws no figure of its own: its earnings card is the read's.
    */
-  it("links the hub to the referrals list, which says it is not shown, and draws no figures", () => {
+  it("links the hub to the one referrals list and the earnings dashboard", () => {
     const page = withoutComments(readFileSync(join(__dirname, "page.tsx"), "utf8"));
     expect(page).toContain('href="/settings/invite/referrals"');
     expect(page).toContain('href="/rewards"');
     expect(page).not.toContain("ReferralFigures");
-    const list = withoutComments(readFileSync(join(__dirname, "referrals", "page.tsx"), "utf8"));
-    expect(list).toContain("copy.referrals.emptyTitle");
-    expect(list).not.toMatch(/ReferralList|ReferralFigures|readMyRewards/);
-    expect(existsSync(join(__dirname, "referrals", "page.tsx"))).toBe(true);
-    expect(existsSync(join(__dirname, "referrals", "[id]", "page.tsx"))).toBe(true);
+    for (const route of [["referrals", "page.tsx"], ["referrals", "[id]", "page.tsx"]]) {
+      const file = join(__dirname, ...route);
+      expect(existsSync(file)).toBe(true);
+      expect(withoutComments(readFileSync(file, "utf8"))).toContain('redirect("/rewards/referrals")');
+    }
   });
 });

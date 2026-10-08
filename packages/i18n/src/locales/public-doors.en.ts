@@ -210,7 +210,6 @@ export const publicDoorsEn = {
     copied: "Link copied",
     whatsapp: "Share on WhatsApp",
     shareText: "I use Vallo to find homes and stays in Nigeria. Join with my link: {url}",
-    noReward: "There is no reward for inviting. It only records who brought whom.",
     unavailable: "Your invite link could not be made just now.",
     doorTitle: "{name} invited you to Vallo",
     doorTitleNoName: "You were invited to Vallo",

@@ -368,3 +368,59 @@ words. **Everything already qualified is honoured and paid in full.**
    next; it never reaches backwards.
 3. **The pause is visible to members, not silent.** A rewards surface that keeps inviting
    people while the programme is paused is lying by omission.
+
+## 11. Invite and Earn: 80 naira when the invited person signs up fully (8 October 2026)
+
+**The founder's ruling, 8 October 2026:** a referral earns 80 naira (8,000 kobo) when the
+invited person signs up fully. No payment is required. Members get an earnings dashboard,
+end to end. **Amended the same day by the lead:** phone codes cannot be sent in production
+yet (`TERMII_SENDER_ID` is not set in Vercel; the `phone_confirmation` flag is off), and the
+founder wants referrals earning now, so "signs up fully" is, for this campaign, **email
+confirmed and onboarding completed** (terms accepted, first name set).
+
+**phone_verified to be added by a successor campaign once TERMII_SENDER_ID is set.** A
+campaign's terms are written once (the campaign guard), so that change is a new campaign
+row, not an edit, and the screens follow it without a deploy: the steps a member reads are
+the live campaign's own requirement keys.
+
+As configuration, in the pending migration `supabase/migrations/pending/d85_referral_signup_80_invite_and_earn.sql`
+(probe: `supabase/tests/probes-pending/d85-referral-signup-80.sql`):
+
+- `launch-d51` is ended (active to ended, the move the guard allows) and `signup-80` starts:
+  consumer, "Invite and Earn", 8,000 kobo, `[email_verified, onboarding_completed]`, the
+  same 7-day review window, the same per-member cap logic (1,500 a month at the reward,
+  12,000,000 kobo). The reward is read from the campaign, never from `referral_policy`, so
+  no policy row is added: the 1,000 naira minimum, `payouts_enabled = false`, the risk,
+  cluster and velocity thresholds and the 700,000 naira platform budget are unchanged.
+- One reward per verified identity stays, anchored on the confirmed phone when there is
+  one, else on the confirmed mailbox (canonicalised: lower case, the +tag dropped, Gmail's
+  dots dropped), in the same column and unique index. The campaign guard now asks for
+  `phone_verified` or `email_verified`.
+- A qualifying payment is recorded only by a campaign that requires one, so a refund of an
+  unrelated payment never takes a sign-up reward back.
+
+What was missing end to end, and is closed by the same migration:
+
+1. **Attribution at sign-up.** A referrals row used to be written only when qualification
+   was tried (a confirmed phone or a settled payment). Now `auth.users` AFTER INSERT
+   attributes from the sign-up's `referral_code` at once.
+2. **Re-evaluation when a step completes.** Email confirmed (`auth.users`) and onboarding
+   finished (`profiles.terms_accepted_at`, `first_name`) each try qualification; a phone
+   confirmation and a settled payment already did.
+3. **Sign-ups that carry no metadata** (Google, Apple, a phone code) claim the code the
+   `/join/<code>` link kept in the browser, through `public.referral_claim_code`, only for
+   an account made in the last 24 hours that is not already attributed and never with its
+   own code. The app calls it after every action that ends with a session.
+4. **The sweeps are scheduled:** `vallo_referral_qualify` (every 15 minutes),
+   `vallo_referral_flag_clusters` (hourly, before release), `vallo_referral_release_due`
+   (twice an hour). Before this no reward could ever leave its review window.
+5. **The member reads each referral's progress** through `public.my_referral_progress()`:
+   signed up (waiting for email confirmation, finishing sign-up), signed up fully (being
+   counted, or waiting for rewards to open again), in review until a date, earned
+   (available, on its way, paid), not eligible with a plain reason. Never a risk reason.
+
+The native app claims `/join/*` (the AASA file and the Android intent filter), so an invite
+link opens in the web view and the kept code lands in the web view's cookie jar. What no
+link can do: a person who opens the link in a browser, then installs the app and signs up
+there, arrives without the code (there is no deferred deep link). They can still sign up on
+the web from the same link.
