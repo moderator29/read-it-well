@@ -3417,3 +3417,12 @@ This supersedes the platinum direction in `docs/design/PREMIUM-STANDARD.md` wher
 - **The bell shows only on Home, Search and Feed** (each side's own), nowhere else.
 - **The platform's documents (Terms, Privacy, Safety, Help) sit under VALLO SPACES LTD** at the foot of the side nav.
 - **A member's public profile has no composer +** (that belongs on the Feed), quiet Back and Share without containers, a smaller Follow button, a ••• menu that opens fully on screen, and clean, sharp tabs.
+
+## D80 (8 October 2026): a premium Wallet, and a feed that is not X
+
+The founder, 8 October: "our wallet I don't like the way it looks not really premium!! I need something more premium looks and clean UX and the withdrawal and transfer button should be capsule each okay and glass too and make the whole vibes clean!" And: "the socials look for a new next gen style of ux for it that won't be like x ... make the feed looks more kinda clean and premium but a bit look away from x".
+
+- The Wallet hero is one deep navy-to-blue card, the same object in light and dark. Add money is the one solid blue capsule on it. Withdraw and Transfer are two separate frosted-glass capsules inside the card, side by side. This supersedes D76's sticky two-action bar at the foot of the screen: the two actions now live on the card.
+- Glass is allowed on these two capsules only, by name (`.nf-mw-btn` in check-css-tokens). Icons stay solid everywhere (D78).
+- No figure is ever drawn without an answer to read: "Not connected yet" stands where the figure would be.
+- The feed takes its own next-gen look, researched away from X; the action icons stay bare (D78).
