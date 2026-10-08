@@ -10,6 +10,7 @@ import { RemoteImage } from "@/components/ui/RemoteImage";
 import { Segmented } from "@/components/ui/Segmented";
 import { useMotionGate } from "@/components/motion/useMotionGate";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { solidSrc } from "@/design-system/icons/object-assets";
 import {
   DIRECTORY_COPY,
   KIND_ONE,
@@ -166,7 +167,7 @@ function DirEmpty({
     <div className="nf-lb__empty nf-dir__empty" data-testid="dir-empty">
       <Image
         className="nf-lb__object"
-        src={side === "property" ? "/brand/glass/user-verified.png" : "/brand/glass/hotel-star.png"}
+        src={solidSrc(side === "property" ? "user-verified" : "hotel-star")}
         alt=""
         width={88}
         height={88}

@@ -1,31 +1,22 @@
-import Link from "next/link";
 import type { Dictionary } from "@vallo/i18n/core";
-import { ButtonLink } from "@/components/ui/Button";
 import { MotionReveal } from "@/components/motion/Reveal";
-import { LogoMark } from "@/design-system/brand/Logo";
 import { StoreBadges } from "./StoreBadges";
 import { storeBadges } from "./store-badges";
 
 /**
- * THE CLOSE: THE APP AND THE SIGN-UP CAPSULE (P7, 7 October 2026).
+ * THE CLOSE: THE APP (P7, 7 October 2026; cut down the same evening).
  *
- * The founder's store screenshots (`store-screens-learn-create-get-paid.jpg`):
- * a huge three-line headline with full stops, every line a step that is true
- * today ("Find. Agree. Move in."). Then the Plasma payoff: one white capsule
- * with its reflection on the floor, "Create your account", and a quiet "Sign
- * in" beside it. Under a hairline, the app: the store badges, honest about a
- * store that is not live yet (`store-badges.ts`), and none at all inside a
- * native shell (STORE-06, App Store 2.3.10).
- *
- * This replaces the old big card with three floating objects and the
- * separate "Take Vallo with you" band: one room, one action.
- *
- * BOTH DOORS ARE WHAT THEY SAY. "Create your account" goes to `/start`,
- * which hands a stranger to first run and on to sign up; "Sign in" goes to
- * sign in. Neither promises the catalogue (UIUX item 12).
+ * It used to be the founder's store-screenshot headline ("Find. Agree. Move
+ * in."), a white "Create your account" capsule and a quiet "Sign in", with
+ * the app under a hairline. The founder took the call to action off the page
+ * on 7 October: Sign in and Sign up now live in the top capsule
+ * (`SiteHeader.tsx`, `LandingCapsule`), so a second pair at the bottom only
+ * repeated them. What stays is the app: "On your phone" and the store badges,
+ * honest about a store that is not live yet (`store-badges.ts`), and nothing
+ * at all inside a native shell (STORE-06, App Store 2.3.10), where the room
+ * would have nothing left to say.
  */
 export function FinalCta({ t, native = false }: { t: Dictionary; native?: boolean }) {
-  const c = t.landingRooms.close;
   const p = t.experienceLanding.plasma.close;
   /* `NEXT_PUBLIC_*` is inlined at build time. */
   const badges = storeBadges({
@@ -33,35 +24,20 @@ export function FinalCta({ t, native = false }: { t: Dictionary; native?: boolea
     playStoreUrl: process.env.NEXT_PUBLIC_PLAY_STORE_URL,
     native,
   });
+  if (badges.length === 0) return null;
   return (
-    <section className="nf-pl-close" data-chapter="close" data-theme="dark" aria-labelledby="nf-landing-close-title">
+    /* No longer a night island: with the headline gone it is a quiet band
+       that follows the reader's theme, like the FAQ above it and the footer
+       below, so light mode does not get a lone dark slab. */
+    <section className="nf-pl-close nf-pl-close--app" data-chapter="close" aria-labelledby="nf-landing-close-title">
       <div className="nf-shell">
         <MotionReveal className="nf-pl-close__stage">
-          <span className="nf-pl-close__mark" aria-hidden="true">
-            <LogoMark size={40} />
-          </span>
-          <h2 id="nf-landing-close-title" className="nf-pl-close__title">
-            {p.lines.map((line, i) => (
-              <span key={line} data-last={i === p.lines.length - 1 ? "true" : undefined}>
-                {line}
-              </span>
-            ))}
-          </h2>
-          <p className="nf-pl-close__body">{c.body}</p>
-          <div className="nf-pl-close__actions">
-            <ButtonLink href="/start" variant="primary" size="lg" trailingIcon="arrow-right" className="nf-pl-capsule">
-              {c.join}
-            </ButtonLink>
-            <Link href="/sign-in" className="nf-pl-close__signin">
-              {c.signIn}
-            </Link>
+          <div className="nf-pl-close__app">
+            <h2 id="nf-landing-close-title" className="nf-pl-overline">
+              {p.app}
+            </h2>
+            <StoreBadges badges={badges} labels={t.landingRooms.badges} className="nf-pl-close__badges" />
           </div>
-          {badges.length > 0 ? (
-            <div className="nf-pl-close__app">
-              <p className="nf-pl-overline">{p.app}</p>
-              <StoreBadges badges={badges} labels={t.landingRooms.badges} className="nf-pl-close__badges" />
-            </div>
-          ) : null}
         </MotionReveal>
       </div>
     </section>

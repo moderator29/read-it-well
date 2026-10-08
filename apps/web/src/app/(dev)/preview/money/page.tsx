@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { previewHarnessIsOpen } from "@/lib/preview-harness";
 import { MoneyCentre } from "@/components/money/MoneyCentre";
@@ -30,6 +31,25 @@ export default function MoneyDeck() {
           a placeholder. The protected-rail surfaces here are not reachable from the product until the rail is live.
         </p>
         <h1 className="nf-h2">Money surfaces</h1>
+
+        <section className="grid gap-sm" data-testid="money-wallet-links">
+          <h2 className="nf-h3">Wallet</h2>
+          <p className="nf-body-sm">The member wallet, full screen, with sample data:</p>
+          <ul className="grid gap-xs nf-body-sm">
+            {[
+              ["live", "Connected, with activity"],
+              ["quiet", "Connected, nothing moved yet"],
+              ["stale", "Connected, last confirmed figures"],
+              ["not-live", "Not connected (what /wallet shows today)"],
+            ].map(([state, label]) => (
+              <li key={state}>
+                <Link className="underline" href={`/preview/money/wallet?state=${state}`}>
+                  {label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
 
         <section className="grid gap-sm">
           <h2 className="nf-h3">The lister&apos;s fee, before publishing</h2>

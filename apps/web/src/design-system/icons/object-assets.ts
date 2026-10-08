@@ -1,14 +1,15 @@
+import { icon3dSrc } from "@/components/ui/icon-3d";
+import { GLASS_TO_SOLID } from "./glass-to-solid";
+
 /**
  * THE TWO-TIER OBJECTS (D29, 6 October 2026): the accepted matte and realistic
  * objects, by their own names.
  *
- * THE GLASS ORIGINALS WIN. For a few days a glass-to-tiered map redirected
- * some 60 glass names (`shield-check`, `bell-badge`, `villa`) onto these
- * objects with no call-site edit. The founder asked for the original icons
- * back, so that map is gone: every glass name draws its own
- * `public/brand/glass` file again, and a tiered object is drawn only where a
- * call site names it directly and the glass pack has no such name
- * (`padlock`, `prepaid-meter`, `burst-rays`).
+ * NO NAME DRAWS GLASS (the founder, 7 October 2026: "Remove all glass icons on
+ * the entire platform"). A name that is a tiered object draws it; every glass
+ * name draws the solid object `glass-to-solid.ts` chose for its meaning, from
+ * this table or from the founder's 3D sheet in `public/brand/3d`. The glass
+ * PNGs stay on disk and nothing references them.
  *
  * THE TIER IS DECIDED BY WHAT THE OBJECT IS, NOT BY ITS SIZE.
  *
@@ -169,10 +170,8 @@ export function isTieredObject(name: string): name is TieredObjectName {
 }
 
 /**
- * The tiered asset a name names by its own file stem, or undefined. There is
- * no glass-to-tiered redirect any more (see the note at the top of this file):
- * `BrandIcon` draws the glass original for every glass name and asks this only
- * for a name the glass pack does not have.
+ * The tiered asset a name names by its own file stem, or undefined. A glass
+ * name is resolved by `brandArtwork` through `GLASS_TO_SOLID`, not here.
  */
 export function tieredAssetFor(name: string): ObjectAsset | undefined {
   return isTieredObject(name) ? TIERED_OBJECTS[name] : undefined;
@@ -184,31 +183,56 @@ export function tieredSrc(asset: ObjectAsset): string {
 }
 
 /**
- * The accepted render for a name, when there is one, for a call site that
- * asks for renders explicitly (`BrandIcon`'s `preferRender`, 7 October 2026:
- * the founder asked for one style across the space types row). Undefined when
- * the name has no tiered render, so the caller falls back to the glass rule.
+ * `matte` is tier B, `real` is tier A, `solid` is the founder's 3D sheet
+ * (`public/brand/3d`). There is no `glass`: nothing draws it any more.
  */
-export function renderArtwork(name: string): BrandArtwork | undefined {
-  const tiered = tieredAssetFor(name);
-  return tiered ? { src: tieredSrc(tiered), material: tiered.tier === "b" ? "matte" : "real", object: name } : undefined;
+export type BrandArtwork = { src: string; material: "matte" | "real" | "solid"; object: string };
+
+function tieredArtwork(name: TieredObjectName): BrandArtwork {
+  const asset = TIERED_OBJECTS[name];
+  return { src: tieredSrc(asset), material: asset.tier === "b" ? "matte" : "real", object: name };
 }
 
-export type BrandArtwork = { src: string; material: "matte" | "real" | "glass"; object: string };
+/**
+ * The accepted tiered render a name names by its own stem, or undefined.
+ * Since 7 October 2026 every `BrandIcon` draws a render or a solid object by
+ * default, so this is only a lookup for a call site that wants to know.
+ */
+export function renderArtwork(name: string): BrandArtwork | undefined {
+  return isTieredObject(name) ? tieredArtwork(name) : undefined;
+}
+
+export type SolidName = keyof typeof GLASS_TO_SOLID;
+
+/** True when a glass name has a solid object chosen for it. */
+export function hasSolidArtwork(object: string): object is SolidName {
+  return Object.prototype.hasOwnProperty.call(GLASS_TO_SOLID, object);
+}
 
 /**
- * What a `BrandIcon` name draws. `object` is the name with its legacy alias
- * resolved, and `isGlass` says whether `public/brand/glass` has that object.
- *
- * THE GLASS ORIGINAL ALWAYS WINS, including for the names both sets share
- * (`camera`, `headset`, `key-ring`, `land-plot`...): the founder asked for the
- * original icons back. A tiered object is drawn only for a name the glass pack
- * does not have, asked for by its own name (`padlock`, `prepaid-meter`).
+ * The solid file a glass name draws, for the few places that set an image
+ * path directly rather than through `BrandIcon` (the leaderboard's board
+ * object, the directory's empty state, the setup paths' tiles).
  */
-export function brandArtwork(name: string, object: string, isGlass: boolean): BrandArtwork {
-  if (!isGlass) {
-    const tiered = tieredAssetFor(name);
-    if (tiered) return { src: tieredSrc(tiered), material: tiered.tier === "b" ? "matte" : "real", object: name };
-  }
-  return { src: `/brand/glass/${object}.png`, material: "glass", object };
+export function solidSrc(object: SolidName): string {
+  const art = GLASS_TO_SOLID[object];
+  return art.set === "3d" ? icon3dSrc(art.name) : tieredSrc(TIERED_OBJECTS[art.name]);
+}
+
+/**
+ * What a `BrandIcon` name draws. `name` is what the call site passed and
+ * `object` is that name with its legacy alias resolved.
+ *
+ * NOTHING HERE RETURNS GLASS. A name that is itself a tiered object draws it
+ * (`padlock`, `prepaid-meter`, `camera`, `land-plot`); a glass name draws the
+ * solid object `GLASS_TO_SOLID` chose for its meaning. A name in neither is
+ * ruled out by the types; at runtime it draws the shield, the platform's
+ * neutral mark, rather than a broken image.
+ */
+export function brandArtwork(name: string, object: string): BrandArtwork {
+  if (isTieredObject(name)) return tieredArtwork(name);
+  if (isTieredObject(object)) return tieredArtwork(object);
+  const solid = GLASS_TO_SOLID[hasSolidArtwork(object) ? object : "shield-check"];
+  if (solid.set === "3d") return { src: icon3dSrc(solid.name), material: "solid", object };
+  return { ...tieredArtwork(solid.name), object };
 }

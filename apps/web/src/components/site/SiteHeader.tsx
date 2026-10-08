@@ -27,11 +27,20 @@ import "@/app/css/site.css";
 export function SiteHeader({
   t,
   variant,
+  signedIn,
 }: {
   t: Dictionary;
   /** Still passed by the layouts; the bar no longer draws a language control. */
   locale: Locale;
   variant?: "landing";
+  /**
+   * Whether the visitor is signed in, when the page knows. `false` (a known
+   * stranger) puts Sign in and Sign up in the capsule at every width; `true`
+   * takes them out; left out (a page that cannot know without turning
+   * dynamic), the capsule keeps them from 64rem only, as before, and a phone
+   * reaches them in the menu.
+   */
+  signedIn?: boolean;
 }) {
   const nav = t.landing.face.nav;
   const links = [
@@ -47,7 +56,7 @@ export function SiteHeader({
   const id = "nf-site-nav";
 
   if (variant === "landing") {
-    return <LandingCapsule t={t} id={id} links={links} more={more} mega={mega} />;
+    return <LandingCapsule t={t} id={id} links={links} more={more} mega={mega} signedIn={signedIn} />;
   }
 
   return (
@@ -98,9 +107,9 @@ export function SiteHeader({
             <Link href="/sign-in" prefetch className="nf-site-nav-glass hidden sm:inline-flex">
               {nav.signIn}
             </Link>
-            {/* /start, not /sign-up: it sends a stranger to the Get started
-                intro (`/welcome?next=/sign-up`, `app/welcome/WelcomeIntro.tsx`),
-                which is not skippable, and on to the sign-up options. */}
+            {/* /start hands over to the sign-up door, which shows the one
+                onboarding first on a device that has never seen it
+                (`app/(auth)/sign-in/first-run-gate.ts`), then the options. */}
             <ButtonLink href="/start" variant="primary" size="sm">
               {nav.getStarted}
             </ButtonLink>
@@ -126,12 +135,18 @@ export function SiteHeader({
  * capsule on paper, a raised night surface at night), with the logo mark on
  * a round plate, the wordmark, and the round brand menu button at the right
  * on a phone. From 64rem the same capsule carries the nav links, Sign in and
- * Get started. The rim carries the edge lap (`EdgeLap`), the logo pill's
+ * Sign up. The rim carries the edge lap (`EdgeLap`), the logo pill's
  * moving light.
  *
  * STICKY, AND IT COMPACTS ON SCROLL: `NavScrollState` writes
  * `data-scrolled`, and the capsule tightens its height and deepens its
  * shadow (site.css, "THE LANDING CAPSULE"). Transform and shadow only.
+ *
+ * SIGN IN AND SIGN UP ON A PHONE (the founder, 7 October 2026). Where the
+ * page knows the visitor is a stranger (`signedIn={false}`, the landing, from
+ * cookie names alone), both sit in the capsule at every width, sized to it:
+ * Sign up the one primary, Sign in a quiet text door. A signed-in visitor
+ * sees neither. A page that cannot know keeps them from 64rem only.
  *
  * Not a night island: the hero under it is paper in light since the clean
  * pass, so the header takes the page's own palette in both themes.
@@ -142,12 +157,14 @@ function LandingCapsule({
   links,
   more,
   mega,
+  signedIn,
 }: {
   t: Dictionary;
   id: string;
   links: { href: string; label: string }[];
   more: { href: string; label: string }[];
   mega: MegaGroup[];
+  signedIn?: boolean;
 }) {
   const nav = t.landing.face.nav;
   return (
@@ -166,14 +183,18 @@ function LandingCapsule({
           <nav aria-label={t.nav.primaryLabel} className="nf-cap__nav">
             <SiteNavLinks links={links} more={more} mega={mega} moreLabel={nav.more} />
           </nav>
-          <div className="nf-cap__actions">
-            <Link href="/sign-in" prefetch className="nf-cap__signin">
-              {nav.signIn}
-            </Link>
-            {/* /start hands a stranger to first run and on to sign up. */}
-            <ButtonLink href="/start" variant="primary" size="sm" className="nf-cap__start">
-              {nav.getStarted}
-            </ButtonLink>
+          <div className="nf-cap__actions" data-guest={signedIn === false ? "" : undefined}>
+            {signedIn ? null : (
+              <>
+                <Link href="/sign-in" prefetch className="nf-cap__signin">
+                  {nav.signIn}
+                </Link>
+                {/* /start hands a stranger to first run and on to sign up. */}
+                <ButtonLink href="/start" variant="primary" size="sm" className="nf-cap__start">
+                  {t.common.signUp}
+                </ButtonLink>
+              </>
+            )}
             <MobileMenu
               links={[...links, ...more]}
               signIn={nav.signIn}

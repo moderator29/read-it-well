@@ -174,6 +174,11 @@ const NOT_MEMBER_COPY = [/^app\/\(dev\)\//, /^app\/admin\//, /^lib\/admin\//, /^
  *     Payluk by Payluk's word for it; it reaches staff logs, never a member.
  */
 const BARE_WALLET_ALLOWED: { file: string; text: RegExp; why: string }[] = [
+  {
+    file: "lib/money/copy.ts",
+    text: /^(From Wallet(: the agreed rent, and nothing more\.)?|Add money to Wallet|Open Wallet( first, then pay from it\.)?|Wallet could not be read just now\. Nothing has been taken; refresh to try again\.)$/,
+    why: "D78: the screen's name, on the screen that pays rent from it",
+  },
   { file: "lib/account-deletion/emails.ts", text: /\bwallet entries\b/, why: "legal: records retained under AML rules" },
   { file: "lib/account-deletion/plan.ts", text: /^a wallet is a ledger\b/, why: "legal: the retained `wallets` table's reason" },
   { file: "lib/payments/observability.ts", text: /^wallet=/, why: "technical: a log field" },
@@ -182,7 +187,37 @@ const BARE_WALLET_ALLOWED: { file: string; text: RegExp; why: string }[] = [
     text: /^Payluk documents no API route that withdraws the merchant wallet\./,
     why: "operations: the commission sweep's reason about Vallo's own Payluk merchant account (Payluk's word); no member surface reads it",
   },
+  /* D78 (the founder, 7 October: "What is balance? Call it WALLET"): the
+     screen's NAME, capitalised as a name, and only where the screen itself is
+     named. Every sentence about the money says account, Available or the
+     escrow partner; none says Vallo holds it (HELD_BY stays the custody line). */
+  { file: "lib/money/balance-copy.ts", text: /^Wallet$/, why: "D78: the screen's name (BALANCE_TITLE)" },
+  { file: "app/(app)/wallet/page.tsx", text: /^Wallet$/, why: "D78: the screen's name (metadata title)" },
+  { file: "lib/nav/route-labels.ts", text: /^Wallet$/, why: "D78: the screen's name (route label)" },
+  { file: "app/(app)/wallet/page.tsx", text: /^Sign in to open Wallet$/, why: "D78: the screen's name" },
+  { file: "app/(app)/wallet/loading.tsx", text: /^Loading Wallet$/, why: "D78: the screen's name" },
+  { file: "components/money/balance/BalanceScreen.tsx", text: /^Wallet$/, why: "D78: the screen's name (the explainer's name)" },
+  { file: "components/money/balance/BalanceOnboarding.tsx", text: /^Setting up Wallet$/, why: "D78: the screen's name" },
+  { file: "lib/money/balance-copy.ts", text: /^Opens when Wallet is connected$/, why: "D78: the screen's name" },
+  { file: "lib/money/balance-copy.ts", text: /^(Set up Wallet|Setting up Wallet|Wallet is ready|We could not set up Wallet)$/, why: "D78: the screen's name (onboarding titles and action)" },
+  {
+    file: "lib/money/balance-copy.ts",
+    text: /^Your money is held by our escrow partner, never by Vallo\. To set up Wallet we share/,
+    why: "D78: the screen's name, in the sentence that says the partner, never Vallo, holds the money",
+  },
+  { file: "lib/money/balance-copy.ts", text: /^Wallet is not connected yet, so nothing was sent\.$/, why: "D78: the screen's name" },
 ];
+
+/**
+ * D78 (7 October 2026, evening): THE FOUNDER NAMED THE SCREEN "Wallet". "What
+ * is balance? Call it wallet." The word is allowed as the NAME of the member's
+ * money screen (the account the licensed escrow partner holds and Vallo reads,
+ * ADR 0003), and only as that name: these dictionary paths, and the literals
+ * the Wallet screen lists in BARE_WALLET_ALLOWED with the same reason. The
+ * custody rule itself stands: no line may say Vallo holds a member's money,
+ * which the phrase checks above still enforce.
+ */
+const WALLET_NAME_PATHS: readonly string[] = ["experienceShell.navBalance"];
 
 function readsAsWords(text: string): boolean {
   /* An interpolation is code, not words: `${origin}/wallet?funded=1` is an address. */
@@ -204,7 +239,7 @@ describe("D48: the bare word wallet is out of member copy", () => {
       const namespace = namespaceOf(file);
       expect(dictionary[namespace], `${file} is registered as ${namespace}`).toBeDefined();
       for (const { path, text } of leaves(dictionary[namespace], [namespace])) {
-        if (BARE_WALLET.test(text)) found.push(`${path}: "${text}"`);
+        if (BARE_WALLET.test(text) && !WALLET_NAME_PATHS.includes(path)) found.push(`${path}: "${text}"`);
       }
     }
     expect(found).toEqual([]);

@@ -390,7 +390,7 @@ export function StayFilterSheetPanel({
                 ? () => setDraft((c) => ({ ...c, facilities: [], ac: false, parking: false, wifi: false, breakfast: false })) : undefined}>
               <div className="divide-y divide-[var(--nf-divider)]">
                 <SwitchRow icon="wifi" label="Wi-Fi" checked={draft.wifi} testId="stay-wifi" onChange={(v) => setDraft((c) => ({ ...c, wifi: v }))} />
-                <SwitchRow icon="sparkle" label="Air conditioning" checked={draft.ac} testId="stay-ac" onChange={(v) => setDraft((c) => ({ ...c, ac: v }))} />
+                <SwitchRow icon="snowflake" label="Air conditioning" checked={draft.ac} testId="stay-ac" onChange={(v) => setDraft((c) => ({ ...c, ac: v }))} />
                 <SwitchRow icon="parking" label="Parking" checked={draft.parking} testId="stay-parking" onChange={(v) => setDraft((c) => ({ ...c, parking: v }))} />
                 <SwitchRow icon="utensils" label={copy.stays.breakfast} checked={draft.breakfast} testId="stay-breakfast" onChange={(v) => setDraft((c) => ({ ...c, breakfast: v }))} />
                 {FACILITIES.map((facility) => (

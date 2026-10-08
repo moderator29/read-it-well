@@ -5,8 +5,6 @@ import { Amount } from "@/components/ui/Amount";
 import { DepthWords, wordCount } from "@/components/motion/DepthWords";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { photo } from "@/lib/site/photos";
-import { LIVE_RAIL } from "@/lib/money/rails";
-import { RAIL_PROMISE } from "@/lib/money/copy";
 import { catalogueIsOpen, type Door } from "./doors";
 import { HeroSurface } from "./HeroSurface";
 import { heroCopy } from "./hero-copy";
@@ -66,11 +64,8 @@ import "@/app/css/site.css";
  * THE PLASMA PASS (P7, 7 October 2026; PREMIUM-STANDARD.md, the governing
  * level). The frames stay; the stage got quieter and the content lit:
  *
- *   - the eyebrow capsule became the frames' mono breadcrumb, the four
- *     markets in the order the stack below shows them;
- *   - the trust promise is the line under the explanation, read per rail
- *     from `RAIL_PROMISE`, so it says only what is true on the rail that is
- *     live, and says the founder's sentence the day the protected rail is;
+ *   - the eyebrow capsule became the frames' mono breadcrumb, and a trust
+ *     promise sat under the explanation (both since removed, below);
  *   - the one action is the white capsule with its reflection on the floor
  *     (the Plasma "Next"), the secondary a quiet door beside it;
  *   - the floating 3D objects and the three facts left the hero: Plasma
@@ -78,7 +73,14 @@ import "@/app/css/site.css";
  *     properly in the deal story below, where the objects now illustrate
  *     the five steps and each one explains something.
  *
- * The intro (item 24, landing-rooms.css): the eyebrow rises first, the words
+ * WHAT LEFT THE HERO (the founder, 7 October 2026, on a phone). The mono
+ * breadcrumb of the four markets, which the markets band below already says,
+ * and the "Vallo never holds your money" promise line over the actions. The
+ * money story is told in the docs instead (/docs/money-and-the-guarantee,
+ * "How money moves on Vallo"), in full sentences per route; the FAQ and the
+ * deal story still answer it on this page.
+ *
+ * The intro (item 24, landing-rooms.css): the words
  * arrive 45ms apart, the sub, the actions and the facts rise 12px from 300ms,
  * the search at 420ms, and the card lands last; under 900ms in all, once per
  * visit.
@@ -90,8 +92,6 @@ export function Hero({ t, locale, door }: { t: Dictionary; locale: Locale; door:
   const [lead, accent] = copy.lines;
   const open = catalogueIsOpen(door);
   const u = t.landingRooms.stack.ui;
-  const p = t.experienceLanding.plasma;
-  const promise = RAIL_PROMISE[LIVE_RAIL];
 
   return (
     /* `data-startup-pin`: the intro is timed from the startup's door, and the
@@ -118,19 +118,6 @@ export function Hero({ t, locale, door }: { t: Dictionary; locale: Locale; door:
       </div>
       <div className="nf-shell nf-landing-hero-body">
         <div className="nf-hero-copy">
-          {/* The frames' breadcrumb: the four markets, letter-spaced. */}
-          <p className="nf-pl-crumb nf-rise nf-rise-1">
-            {p.crumb.map((word, i) => (
-              <span key={word}>
-                {i > 0 ? (
-                  <span className="nf-pl-crumb__sep" aria-hidden="true">
-                    /
-                  </span>
-                ) : null}
-                {word}
-              </span>
-            ))}
-          </p>
           {/* THE DEPTH ARRIVAL. Each word comes forward, 45ms after the word
               before it, once per visit. The words are spans inside the line,
               so the heading still reads as written. */}
@@ -145,15 +132,6 @@ export function Hero({ t, locale, door }: { t: Dictionary; locale: Locale; door:
             ) : null}
           </h1>
           <p className="nf-rise nf-rise-3 nf-landing-sub">{copy.subtitle}</p>
-          {/* The trust promise, per rail (lib/money/copy.ts, RAIL_PROMISE). */}
-          <p className="nf-pl-promise nf-rise nf-rise-3">
-            <span className="nf-pl-promise__plate" aria-hidden="true">
-              <UiIcon name="shield-check" size={16} />
-            </span>
-            <span>
-              <strong>{promise.lead}</strong> {promise.rest}
-            </span>
-          </p>
           <div className="nf-rise nf-rise-4 nf-hero-action">
             <div className="nf-hero-action__row">
               {/* The one action: the white capsule with its reflection. */}

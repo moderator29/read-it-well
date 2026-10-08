@@ -71,6 +71,13 @@ import { CreateDock } from "./CreateDock";
  * gets the calm the reference has. If labels ever return, they return for
  * everyone, not only the active tab.
  *
+ * AND THE CHOSEN TAB'S WORD WENT TOO (the founder, 7 October 2026: "When I
+ * click any icon it shows the text, like Home. Make it not show the text of
+ * the icon, just the icon, when clicked."). The pill that opened with the
+ * word is now one slot wide around the glyph alone, on both sides' docks; the
+ * pill, the brand ink and the solid twin carry the state, and the name stays
+ * in `aria-label`. Pinned by `app/css/dock-label.dom.test.tsx`.
+ *
  * THE ACTIVE GLYPH CHANGES WEIGHT, not only colour. `UiIcon` carries a drawn
  * solid silhouette for each of these four, so the active destination reads as
  * solid at a glance rather than as a slightly different shade of the same line.
@@ -373,14 +380,14 @@ export function MobileTabBar({
           icon: "calendar-booking",
         },
         { href: "/saved", label: t.nav.saved, icon: "heart" },
-        { href: "/assistant", label: t.nav.aiAssistant, icon: "sparkle" },
+        { href: "/assistant", label: t.nav.aiAssistant, icon: "bot" },
         { href: "/agreements", label: t.nav.agreements, icon: "document" },
         { href: "/price", label: t.priceCheck.title, icon: "price-tag" },
         { href: "/settings", label: t.nav.settings, icon: "settings-gear" },
         { href: "/support", label: t.nav.helpSupport, icon: "headset" },
       ]
     : [
-        { href: "/assistant", label: t.nav.aiAssistant, icon: "sparkle" },
+        { href: "/assistant", label: t.nav.aiAssistant, icon: "bot" },
         { href: "/price", label: t.priceCheck.title, icon: "price-tag" },
         { href: "/help", label: t.nav.helpSupport, icon: "headset" },
       ];
@@ -462,16 +469,13 @@ export function MobileTabBar({
               >
                 {/* The second ruling (B1, references 44 and 45): every dock
                     glyph is its SOLID CUTOUT twin, ink at rest and brand blue
-                    when chosen; the chosen tab opens into a pill with its
-                    word (shell-m.css, "SECOND RULING"). */}
-                {/* One body for the glyph and its word, so choosing a tab
-                    slides it on transform rather than re-laying the dock out
-                    (shell-m.css, "THE GLYPH AND ITS WORD, AS ONE BODY"). */}
+                    when chosen; the chosen tab sits in a pill around the
+                    glyph alone, with no word (7 October; the name is the
+                    link's `aria-label`). */}
                 <span className="nf-tab__body">
-                  <span className="nf-tab__icon">
+                  <span className="nf-tab__icon" data-glyph={tab.icon}>
                     <UiIcon name={tab.icon} size="md" filled weight="bold" />
                   </span>
-                  <span className="nf-tab__label">{tab.label}</span>
                 </span>
               </Link>
             </li>

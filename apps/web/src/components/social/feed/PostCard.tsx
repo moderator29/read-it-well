@@ -5,6 +5,7 @@ import { DEFAULT_LOCALE, formatNumber, type Locale } from "@vallo/i18n/core";
 import { useClientCopy } from "@/lib/i18n/client-copy";
 import { useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motionQuiet } from "@/lib/motion/gate";
 import { isPhotoMorphFor, startPhotoMorph } from "@/lib/motion/photo-morph";
 import { AuthGate } from "@/components/auth/AuthGate";
@@ -141,7 +142,7 @@ function compact(n: number, locale: Locale): string {
 
 function Avatar({ author }: { author: PostAuthor | null }) {
   const initial = initialOf(author?.displayLabel ?? author?.handle);
-  return (
+  const face = (
     /* The glass ring the render draws around every face: a thin luminous
        border box with the photo cut inside it, lit from the upper left like
        the rest of the material. */
@@ -168,15 +169,36 @@ function Avatar({ author }: { author: PostAuthor | null }) {
       )}
     </span>
   );
+  /*
+   * THE FACE OPENS THE PERSON (founder, 7 October: "I can't click a profile").
+   * It was an inert span, so a tap on it fell through to the card and opened
+   * the post. It is the same door as the name beside it: the name is the one
+   * a screen reader and the keyboard use, so the face is taken out of the tab
+   * order rather than announced twice.
+   */
+  if (!author?.handle) return face;
+  return (
+    <Link
+      href={`/u/${author.handle}`}
+      className="nf-post__face"
+      tabIndex={-1}
+      aria-hidden="true"
+      data-testid="post-avatar"
+    >
+      {face}
+    </Link>
+  );
 }
 
 /**
  * THE ACTION ROW, AS HIS REFERENCE DRAWS IT (PREMIUM-STANDARD.md reference 2,
  * D72: "small clean icons for likes, comment, retweet").
  *
- * Reply, repost, like and save, each a soft capsule of its own with a thin
- * 16px outline glyph and a tabular count, then share alone as a round disc at
- * the far end. The kebab stays in the head, where `GOVERNING-feed-plus-bloom`
+ * Reply, repost, like, save and share, bare glyphs (D79: the capsules and the
+ * disc are gone, the founder's "remove the wrapper"), spread evenly across
+ * the card. A count of nothing is not drawn: "0" under every new post is
+ * noise, and the label still says the count aloud. The kebab stays in the
+ * head, where `GOVERNING-feed-plus-bloom`
  * puts it. The order is his reference's: the two you do to the writer's
  * words, the one that is a verdict, the one you keep for yourself, and the
  * one you send to somebody else.
@@ -229,7 +251,7 @@ function ActionRow({
           icon="chat-bubble"
           tone="reply"
           className="nf-post__act--reply"
-          count={compact(post.replyCount, locale)}
+          count={post.replyCount > 0 ? compact(post.replyCount, locale) : undefined}
           label={`${countOf(post.replyCount, "replies", locale)}, reply to this`}
           onClick={onReply}
         />
@@ -242,7 +264,7 @@ function ActionRow({
           className="nf-post__act--repost"
           pressed={post.reposted}
           payoff
-          count={reposts}
+          count={post.repostCount > 0 ? reposts : undefined}
           label={post.reposted ? `Reposted, ${reposts}. Undo` : `Reposts ${reposts}, repost this`}
           onClick={onRepost}
         />
@@ -255,7 +277,7 @@ function ActionRow({
           className="nf-post__act--like"
           pressed={post.liked}
           payoff
-          count={likes}
+          count={post.likeCount > 0 ? likes : undefined}
           label={post.liked ? `Liked, ${likes}. Undo` : `Likes ${likes}, like this`}
           onClick={onLike}
         />
@@ -286,6 +308,10 @@ function ActionRow({
     </div>
   );
 }
+
+/** What keeps its own tap inside a card. Anything else opens the post. */
+const CONTROL =
+  "a, button, input, textarea, select, label, summary, video, [role='button'], [role='menuitem'], [role='dialog'], [contenteditable='true']";
 
 export function PostCard({
   post,
@@ -333,29 +359,55 @@ export function PostCard({
    * `startPhotoMorph` opens, so a hard load names nothing.
    */
   const mediaRef = useRef<HTMLDivElement>(null);
-  /* The overlay link that opens the post. The picture hands its own tap to it
-     (`openFromPicture`) so the picture can stay a real, pressable image. */
-  const openRef = useRef<HTMLAnchorElement>(null);
-  const openFromPicture = (event: React.MouseEvent<HTMLElement>) => {
-    /* Anything inside the media that is itself a link or a button keeps its own
-       tap. A plain picture opens the post, as the card always did. */
-    if ((event.target as HTMLElement).closest("a, button")) return;
-    const link = openRef.current;
-    if (!link) return;
-    /*
-     * A cmd or ctrl click, or the middle button, means "in a new tab", as it
-     * does on the link itself. Forwarding it with `link.click()` dropped the
-     * modifier and opened the post in THIS tab (audit A7), so it is opened
-     * where the person asked, from inside their own gesture. Shift and alt
-     * (a new window, a download) are the browser's to answer and are left
-     * alone rather than guessed at.
-     */
+  const router = useRouter();
+  /*
+   * TAPPING THE POST OPENS THE POST; TAPPING A CONTROL DOES THAT CONTROL.
+   *
+   * THE DEAD FEED (founder, 7 October: "I can't click a profile, it takes me
+   * into the actual content of the post... can't like or comment"). The card
+   * used to be opened by an absolutely positioned anchor laid over the whole
+   * card at z-index 1, with every control raised to z-index 2 above it. The
+   * feed's arrival motion (feed-m.css, `nf-feed-part`) animates the head and
+   * the action row on a view timeline with `forwards` fill, and a filled
+   * opacity and translate animation makes each of them a STACKING CONTEXT: the
+   * z-index 2 on the like button was then only a rank inside the action row,
+   * and the row itself painted below the overlay. Every tap on the avatar, the
+   * name, like, reply, repost, save, share and the kebab landed on the anchor
+   * and opened the post. Chrome on Android supports view timelines, so it was
+   * dead exactly where the founder reads it.
+   *
+   * So no overlay. The card listens for the click itself and opens the post
+   * only when the tap did not land on (or inside) something that is its own
+   * control. Nothing can be painted over a control now, whatever any future
+   * animation does to the stacking order. A tap that ends a text selection is
+   * a selection, not a navigation. The time is a real link to the post, so a
+   * keyboard and a screen reader have the same door in.
+   */
+  const openPost = (event: React.MouseEvent<HTMLElement>) => {
+    if (editor) return;
+    const target = event.target as HTMLElement;
+    const control = target.closest(CONTROL);
+    if (control !== null && control !== event.currentTarget) return;
+    const selection = typeof window !== "undefined" ? window.getSelection?.() : null;
+    if (selection && !selection.isCollapsed && selection.toString().trim() !== "") return;
+    const href = `/post/${post.id}`;
+    /* A cmd or ctrl click, or the middle button, means "in a new tab" (audit
+       A7), opened from inside the person's own gesture. Shift and alt are the
+       browser's to answer and are left alone rather than guessed at. */
     if (event.metaKey || event.ctrlKey || event.button === 1) {
-      window.open(link.href, "_blank", "noopener");
+      window.open(new URL(href, window.location.href).toString(), "_blank", "noopener");
       return;
     }
     if (event.shiftKey || event.altKey || event.button !== 0) return;
-    link.click();
+    const media = mediaRef.current;
+    if (media && !motionQuiet()) {
+      media.style.viewTransitionName = `post-photo-${post.id}`;
+      startPhotoMorph(`post-${post.id}`);
+      window.setTimeout(() => {
+        media.style.viewTransitionName = "";
+      }, 1500);
+    }
+    router.push(href);
   };
   const [arriving] = useState(() => isPhotoMorphFor(`post-${post.id}`));
   /*
@@ -426,6 +478,7 @@ export function PostCard({
                 <Link
                   href={post.author?.handle ? `/u/${post.author.handle}` : "#"}
                   className="nf-post__name"
+                  data-testid="post-author"
                 >
                   {post.author?.displayLabel ?? `@${post.author?.handle ?? "someone"}`}
                 </Link>
@@ -448,10 +501,12 @@ export function PostCard({
           )}
         </div>
 
-        <span className="nf-post__when">
+        {/* The time is the post's own link: the keyboard's and the screen
+            reader's way into the thread, as on every feed people know. */}
+        <Link href={`/post/${post.id}`} className="nf-post__when" aria-label="Open post and replies">
           {post.createdLabel}
           {post.edited ? " · edited" : ""}
-        </span>
+        </Link>
 
         {/* The header carries the name, the time and this. Nothing else: the
             bookmark that used to sit here lives in the sheet this opens. */}
@@ -515,13 +570,11 @@ export function PostCard({
           className="nf-post__media nf-post__media--rail"
           style={arriving ? { viewTransitionName: `post-photo-${post.id}` } : undefined}
         >
-          <MediaRail media={post.media.slice(0, 4)} onOpen={openFromPicture} />
+          <MediaRail media={post.media.slice(0, 4)} />
         </div>
       ) : post.media.length === 1 ? (
         <div
           ref={mediaRef}
-          onClick={openFromPicture}
-          onAuxClick={openFromPicture}
           className={`nf-post__media nf-post__media--${Math.min(post.media.length, 4)}`}
           style={arriving ? { viewTransitionName: `post-photo-${post.id}` } : undefined}
         >
@@ -618,57 +671,13 @@ export function PostCard({
   );
 
   return (
-    <article className={shell} aria-label={describe(post)}>
-      {/*
-        TAPPING THE POST OPENS THE POST.
-
-        Until now the body was inert: the only ways into a thread were the
-        reply count and the timestamp, so a reader who tapped the words, which
-        is what everybody does, got nothing at all.
-
-        This is an overlay link rather than a wrapper, and the reason is that a
-        post already contains links: the author, the area, a listing, a
-        mention. Nesting those inside an anchor is invalid HTML, and browsers
-        resolve it by breaking the inner one, so wrapping the card would have
-        traded one dead tap for four.
-
-        So the whole card gets one absolutely positioned anchor sitting above
-        the text and BELOW every control, which `.nf-post__open` and the
-        z-index rule beside it in social-feed.css arrange. A tap on the words
-        hits this; a tap on the like button, the author or the listing plate
-        hits that.
-
-        `editor` is the inline reply composer. While it is open this link is
-        not rendered at all, because an overlay across a form is a text field
-        that navigates away when you try to click into it.
-      */}
-      {editor ? null : (
-        <Link
-          ref={openRef}
-          href={`/post/${post.id}`}
-          className="nf-post__open"
-          aria-label="Open post and replies"
-          onClick={(event) => {
-            if (
-              event.defaultPrevented ||
-              event.button !== 0 ||
-              event.metaKey ||
-              event.ctrlKey ||
-              event.shiftKey ||
-              event.altKey
-            ) {
-              return;
-            }
-            const media = mediaRef.current;
-            if (!media || motionQuiet()) return;
-            media.style.viewTransitionName = `post-photo-${post.id}`;
-            startPhotoMorph(`post-${post.id}`);
-            window.setTimeout(() => {
-              media.style.viewTransitionName = "";
-            }, 1500);
-          }}
-        />
-      )}
+    <article
+      className={shell}
+      aria-label={describe(post)}
+      onClick={openPost}
+      onAuxClick={openPost}
+      data-testid="post-card"
+    >
       {body}
     </article>
   );

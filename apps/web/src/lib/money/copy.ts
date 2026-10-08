@@ -812,7 +812,7 @@ export const REFUND_NO_BALANCE =
 
 /** /docs chapter 6 and the FAQ: no Vallo balance holds a payment. */
 export const NO_PAYMENT_BALANCE =
-  "No Vallo balance holds your rent or any other payment, so there is nothing to top up before you pay, and no payment of yours waits with Vallo to be withdrawn.";
+  "No Vallo balance holds your rent or any other payment, and no payment of yours waits with Vallo to be withdrawn.";
 
 /** After NO_PAYMENT_BALANCE, wherever somebody may be asking about rewards. */
 export const REWARDS_BALANCE_SEPARATE =
@@ -1007,7 +1007,7 @@ export const FUND_BY_LINE = "Payluk, a licensed payment provider, holds it until
 export const FUND_NO_FEE_LINE = "No fee for you. Payluk's fee comes out of the lister's share.";
 /** What happens, in order, from this screen. */
 export const FUND_STEPS: readonly { title: string; body: string }[] = [
-  { title: "You pay it in", body: "From your Vallo balance: the agreed rent, and nothing more." },
+  { title: "You pay it in", body: "From Wallet: the agreed rent, and nothing more." },
   { title: "Payluk holds it", body: "The lister can see it is there, and cannot touch it." },
   { title: "You confirm the move-in", body: "Only your swipe releases it to the lister." },
 ];
@@ -1016,10 +1016,10 @@ export const FUND_SWIPE_LABEL = "Swipe to pay into escrow";
 export const FUND_ARMED_LABEL = "Press again to pay";
 export const FUND_CONFIRMING_LABEL = "Paying it into escrow";
 export const FUND_CONFIRMED_LABEL = "Paid in. Opening your escrow";
-/** The balance row's words. */
-export const FUND_FROM_BALANCE = "From your Vallo balance";
-export const FUND_TOP_UP = "Add money to your balance";
-export const FUND_OPEN_BALANCE = "Open your Vallo balance";
+/** The wallet row's words (D78: the screen is called Wallet). */
+export const FUND_FROM_BALANCE = "From Wallet";
+export const FUND_TOP_UP = "Add money to Wallet";
+export const FUND_OPEN_BALANCE = "Open Wallet";
 /** Why the screen cannot take a payment yet, each in one sentence. */
 export const FUND_CLOSED = {
   not_renter: "Only the renter pays into escrow. You will see it here the moment it is held for you.",
@@ -1028,7 +1028,7 @@ export const FUND_CLOSED = {
   not_approved: "Payment opens once both of you have confirmed the agreement.",
   review_required: "A person at Vallo is looking at this deal before payment opens. Nothing has been taken.",
   not_live: "Escrow payments open soon. Nothing has been taken.",
-  balance_unreadable: "Your Vallo balance could not be read just now. Nothing has been taken; refresh to try again.",
+  balance_unreadable: "Wallet could not be read just now. Nothing has been taken; refresh to try again.",
 } as const;
 /** The server's refusals, as the renter reads them. */
 export const FUND_REFUSED: Record<string, string> = {
@@ -1036,7 +1036,7 @@ export const FUND_REFUSED: Record<string, string> = {
   not_found: "We could not find that agreement on your account.",
   not_payable: FUND_CLOSED.not_approved,
   review_required: FUND_CLOSED.review_required,
-  buyer_not_onboarded: "Open your Vallo balance first, then pay from it.",
+  buyer_not_onboarded: "Open Wallet first, then pay from it.",
   seller_not_onboarded: "The lister has not finished setting up to receive this payment. Nothing has been taken.",
   below_provider_minimum: "This amount is below what Payluk can hold. Talk to the lister about how to pay.",
   move_in_unreadable: "The agreement has no move-in date Payluk can hold it against. Ask the lister to add one.",

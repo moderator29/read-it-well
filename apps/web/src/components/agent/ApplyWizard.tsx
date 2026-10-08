@@ -831,7 +831,7 @@ function UploadZone({
           </>
         ) : (
           <>
-            <UiIcon name="sparkle" size={28} className="text-[var(--nf-content-muted)]" />
+            <UiIcon name="file-text" size={28} className="text-[var(--nf-content-muted)]" />
             <span className="px-sm text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">{hint}</span>
           </>
         )}

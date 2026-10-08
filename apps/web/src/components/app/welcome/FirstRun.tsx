@@ -41,6 +41,13 @@ import {
  * (`docs/design/references/2026-09-29/51` to `53`) inside the full-page steps
  * of `42` and `43`.
  *
+ * THE ONE ONBOARDING (the founder, 7 October 2026: "I'm seeing 2 different
+ * types... Keep THESE ones"). This carousel is the only get-started there is:
+ * the four-card intro that used to open a cold start (`WelcomeIntro`,
+ * `get-started.css`) is retired, and every way in (Sign in, Sign up, Get
+ * started, the app's first open, an invite link) reaches this, once per
+ * device, then goes straight to the page it asked for.
+ *
  * THE SHAPE OF A STEP, top to bottom:
  *
  *   back (steps two on), the Vallo lockup, Skip
@@ -56,10 +63,10 @@ import {
  * what moves under each motion setting) are pure functions in
  * `onboarding-flow.ts`, tested on their own.
  *
- *   1. Two worlds. One platform.  Renting and buying, and stays.
- *   2. Verified means a person    The shield and the ID under a scan frame,
- *      checked.                   the Verified agent badge and the Record.
- *   3. Talk first. Pay when sure. A conversation, then Pay on Vallo.
+ *   1. Homes. Stays. Restaurants. Homes and Stays over the home and hotel.
+ *   2. Know who you deal with.    The shield and the ID under a scan frame,
+ *                                 the Verified agent badge and the Record.
+ *   3. Talk first. Pay when sure. A question, then an Example Pay on Vallo.
  *   4. The ending.                The keys and an Example move-in total. A
  *                                 stranger: Create account (or Sign in).
  *                                 Somebody signed in: one Continue into the
@@ -103,6 +110,7 @@ type Slide = {
   key: string;
   titleA: string;
   titleB: string;
+  /** One short line, never a paragraph (the founder, 7 October). */
   body: string;
   /** One sentence for a reader: what the scene shows. */
   label: string;
@@ -135,9 +143,10 @@ export function FirstRun({
   /* A same-origin path the person was on their way to, already vetted. */
   next?: string | null;
   /**
-   * What a stranger was stopped on the way to (V-18). Present, first run
-   * opens on the account choice headed with it and the steps stay one
-   * segment away; absent, it is the cold start and opens on step one.
+   * What a stranger was stopped on the way to (V-18). Present, the last
+   * slide is headed with it. Every stranger starts on slide one (the
+   * founder, 7 October: the first Sign in or Sign up on a device shows the
+   * carousel first, then the page they asked for).
    */
   arrival?: Arrival | null;
   /** A returning device going nowhere: open on the closing choice. */
@@ -159,6 +168,7 @@ export function FirstRun({
   const w = t.welcomeCards.twoWorlds;
   const f = t.welcomeCards.firstRun;
   const m = t.onboardingMotion;
+  const words = m.slides;
   const guest = viewer === "guest";
   /* Only a guest with the form to go back to: `skip` sends a guest to `next`. */
   const backToForm = guest && fromSignUpForm && isSignUpForm(next);
@@ -171,35 +181,38 @@ export function FirstRun({
   const last: Slide = guest
     ? {
         key: "choice",
-        titleA: wall ? wall.titleA : f.choice.titleA,
-        titleB: wall ? wall.titleB : f.choice.titleB,
-        body: wall ? wall.body : f.choice.body,
+        titleA: wall ? wall.titleA : words.ready.titleA,
+        titleB: wall ? wall.titleB : words.ready.titleB,
+        body: wall ? words.ready.wallLine : words.ready.line,
         label: m.moveIn.label,
       }
     : {
         key: "member",
-        titleA: f.member.titleA,
-        titleB: f.member.titleB,
-        body: askQuestion ? f.member.bodyAsk : f.member.bodyDone,
+        titleA: words.member.titleA,
+        titleB: words.member.titleB,
+        body: askQuestion ? words.member.lineAsk : words.member.lineDone,
         label: m.moveIn.label,
       };
 
+  const slide3 = (key: string, copy: { titleA: string; titleB: string; line: string }, label: string): Slide => ({
+    key,
+    titleA: copy.titleA,
+    titleB: copy.titleB,
+    body: copy.line,
+    label,
+  });
   const slides: Slide[] = [
-    { key: "worlds", titleA: w.titleA, titleB: w.titleB, body: w.body, label: m.worlds.label },
-    {
-      key: "verified",
-      titleA: f.verified.titleA,
-      titleB: f.verified.titleB,
-      body: f.verified.body,
-      label: m.know.label,
-    },
-    { key: "safe", titleA: f.safe.titleA, titleB: f.safe.titleB, body: f.safe.body, label: m.talk.label },
+    slide3("worlds", words.worlds, m.worlds.label),
+    slide3("verified", words.know, m.know.label),
+    slide3("safe", words.talk, m.talk.label),
     last,
   ];
   const total = slides.length;
   const lastIndex = total - 1;
-  /* A stranger with a destination starts on the choice (V-18). */
-  const initialIndex = wall || (guest && atChoice) ? lastIndex : 0;
+  /* Every arrival starts on slide one; only a returning device going
+     nowhere (the app reopened signed out) opens on the choice alone. */
+  const choiceOnly = guest && atChoice;
+  const initialIndex = choiceOnly ? lastIndex : 0;
 
   const [beat, setBeat] = useState<"slides" | "question">(
     !guest && !showCards ? "question" : "slides",
@@ -517,8 +530,9 @@ export function FirstRun({
         ? withNext("/sign-in", arrival.destination)
         : "/sign-in";
   /* The primary door is the one the heading names (V-18). Without a heading,
-     the one they came through. */
-  const signInFirst = wall ? wall.primary === "sign-in" : signInHref !== "/sign-in";
+     the one they came through: a tapped Sign in ends on Sign in (the founder,
+     7 October), anything else on Create account. */
+  const signInFirst = wall ? wall.primary === "sign-in" : Boolean(next && /^\/sign-in(?:[/?#]|$)/.test(next));
 
   if (beat === "question") {
     return (
@@ -563,7 +577,7 @@ export function FirstRun({
     const priority = i === initialIndex;
     switch (key) {
       case "worlds":
-        return <WorldsScene t={t} priority={priority} />;
+        return <WorldsScene copy={m} priority={priority} />;
       case "verified":
         return <KnowScene copy={m} priority={priority} />;
       case "safe":
@@ -571,7 +585,6 @@ export function FirstRun({
       default:
         return (
           <MoveInScene
-            t={t}
             copy={m}
             priority={priority}
             active={i === index}
@@ -594,6 +607,7 @@ export function FirstRun({
       aria-label={f.carousel}
       data-step={index + 1}
       data-last={onLast ? "" : undefined}
+      data-choice={choiceOnly ? "" : undefined}
       data-quiet={motion.slide ? undefined : ""}
       data-still={motion.idle ? undefined : ""}
       onPointerDown={onPointerDown}
@@ -623,8 +637,8 @@ export function FirstRun({
             />
           )}
         </span>
-        {/* Always dark (the founder, 30 September): the night lockup. */}
-        <Lockup />
+        {/* Follows the reader's theme: the night lockup, or the day one. */}
+        <Lockup themed />
         <span className="nf-om-top__side nf-om-top__side--end">
           {!onLast && (
             <button
@@ -640,7 +654,8 @@ export function FirstRun({
         </span>
       </div>
 
-      <div className="nf-om-progress" role="group" aria-label={m.progress}>
+      {/* The choice alone (a returning device) is not a step of four. */}
+      <div className="nf-om-progress" role="group" aria-label={m.progress} hidden={choiceOnly}>
         {slides.map((s, i) => (
           <button
             key={s.key}

@@ -45,10 +45,10 @@ export default function LoadingHome() {
       <div className="mt-section-tight">
         <Skeleton width="13rem" height="1.5rem" radius="sm" />
         {/* The featured stack's shape: one tall card with the next peeking. */}
-        <div className="nf-stack">
-          <div className="nf-stack__stage" aria-hidden="true">
-            <div className="nf-stack__card" data-role="next" />
-            <div className="nf-stack__card" data-role="front">
+        <div className="nf-fstack">
+          <div className="nf-fstack__stage" aria-hidden="true">
+            <div className="nf-fstack__card" data-role="next" />
+            <div className="nf-fstack__card" data-role="front">
               <Skeleton className="h-full w-full" radius="none" />
             </div>
           </div>

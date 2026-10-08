@@ -19,13 +19,13 @@ const AMENITY_ICON: Record<string, UiIconName> = {
   security: "verified",
   generator: "bolt",
   gym: "bolt",
-  ac: "sparkle",
+  ac: "snowflake",
   tv: "picture",
   furnished: "home",
   balcony: "building-apartment",
   garden: "map",
-  laundry: "sparkle",
-  water: "sparkle",
+  laundry: "washing-machine",
+  water: "droplet",
   shower: "bath",
   breakfast: "utensils",
   workspace: "document",
@@ -64,7 +64,7 @@ export function ListingAmenityTiles({
     >
       {shown.map((code) => (
         <li key={code} className={panelClass({ variant: "card", className: "nf-amenity-tile" })}>
-          <UiIcon name={AMENITY_ICON[code] ?? "sparkle"} size={ICON.inline} />
+          <UiIcon name={AMENITY_ICON[code] ?? "circle-check"} size={ICON.inline} />
           <span>{amenityLabel(code)}</span>
         </li>
       ))}

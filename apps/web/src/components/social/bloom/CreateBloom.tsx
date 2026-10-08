@@ -7,6 +7,7 @@ import { useOverlay } from "@/lib/ui/use-overlay";
 import { Sheet } from "@/components/ui/Sheet";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { Composer } from "../feed/Composer";
+import { COMPOSE_POST_EVENT } from "../feed/ComposeButton";
 import { LineGlyph, type LineGlyphName } from "../feed/LineGlyph";
 import {
   BLOOM_STAGGER_MS,
@@ -257,6 +258,23 @@ export function CreateBloom({
   }, [open]);
 
   /* Focus lands on the nearest plate once it is in the document. */
+  /* The feed's own plus (`ComposeButton`) opens the composer here directly,
+     so the page keeps one composer and one draft whichever door was used. */
+  useEffect(() => {
+    const onCompose = () => {
+      setOpen(false);
+      if (!signedIn) {
+        router.push(signInHref);
+        return;
+      }
+      setAreaId(currentAreaId);
+      setPicking(false);
+      setComposing(true);
+    };
+    window.addEventListener(COMPOSE_POST_EVENT, onCompose);
+    return () => window.removeEventListener(COMPOSE_POST_EVENT, onCompose);
+  }, [signedIn, router, signInHref, currentAreaId]);
+
   useEffect(() => {
     if (!open) return;
     const raf = requestAnimationFrame(() => itemRefs.current[0]?.focus());

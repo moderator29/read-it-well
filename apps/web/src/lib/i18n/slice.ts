@@ -63,7 +63,7 @@ export const SLICES = {
   stayFilterSheet: ["catalogue", "shape", "stayDetail", "stays"],
   priceCheck: ["home", "priceCheck"],
   proofStrip: ["trustVisible"],
-  settingsHub: ["common", "directHome", "experienceSettings", "memberKit", "passcode", "paymentsPage", "platform", "publicDoors", "settings", "socialProfile", "units"],
+  settingsHub: ["common", "directHome", "experienceSettings", "interests", "memberKit", "passcode", "paymentsPage", "platform", "publicDoors", "settings", "socialProfile", "units"],
 } as const satisfies Record<string, readonly (keyof Dictionary)[]>;
 
 /*

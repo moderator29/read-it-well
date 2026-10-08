@@ -6,7 +6,7 @@
 --  1. the public row types carry no email, phone, amount, member id or owner id
 --  2. every read is security definer with a pinned search_path; anon may read
 --     the boards and the directory, never the opt-out
---  3. referrals: qualified and onward count, pending and reversed do not;
+--  3. referrals (D78r): every sign-up counts, dated by the sign-up; reversed does not;
 --     the month board holds only this month, all time holds both members,
 --     and ties share a rank
 --  4. movement: on all time the guest was ranked before this month; the host
@@ -51,33 +51,36 @@ begin
     raise exception 'PROBE_FAIL d76 2: the opt-out is reachable outside its function';
   end if;
 
-  -- The fixture: two referrals for the host this month, one for the guest last
-  -- month, and a pending and a reversed one for the host that must not count.
+  -- The fixture: three referrals for the host this month (qualified, paid and
+  -- pending: since D78r a sign-up counts whatever its reward status), one for
+  -- the guest signed up last month, and a reversed one for the host that must
+  -- not count.
   delete from public.leaderboard_opt_outs where subject_id in (host, guest);
   -- A referral that has qualified carries its terms (referrals_qualified_has_terms:
   -- reward, campaign, period and review window), and every status but
   -- attributed and reversed has qualified (referrals_live_was_qualified), so
-  -- the pending one is qualified this month too: its status alone keeps it off.
+  -- the pending one is qualified this month too. Each row's sign-up date
+  -- (attributed_at) is set, since the board is dated by the sign-up.
   select id into camp from public.referral_campaigns order by created_at limit 1;
   if camp is null then raise exception 'PROBE_FAIL d76 3: fixture needs a referral campaign row'; end if;
   insert into public.referrals (referrer_id, referred_id, code, status, qualified_at, month,
-                                reward_minor, campaign_id, period_month, review_until)
+                                reward_minor, campaign_id, period_month, review_until, attributed_at)
   values (host, gen_random_uuid(), 'PROBE76', 'qualified', now(), private.lagos_month(now()),
-          1, camp, private.lagos_month(now()), now() + interval '7 days'),
+          1, camp, private.lagos_month(now()), now() + interval '7 days', now()),
          (host, gen_random_uuid(), 'PROBE76', 'paid', now(), private.lagos_month(now()),
-          1, camp, private.lagos_month(now()), now() + interval '7 days'),
+          1, camp, private.lagos_month(now()), now() + interval '7 days', now()),
          (guest, gen_random_uuid(), 'PROBE76', 'approved', last_month, private.lagos_month(last_month),
-          1, camp, private.lagos_month(last_month), last_month + interval '7 days'),
+          1, camp, private.lagos_month(last_month), last_month + interval '7 days', last_month),
          (host, gen_random_uuid(), 'PROBE76', 'pending', now(), private.lagos_month(now()),
-          1, camp, private.lagos_month(now()), now() + interval '7 days'),
+          1, camp, private.lagos_month(now()), now() + interval '7 days', now()),
          (host, gen_random_uuid(), 'PROBE76', 'reversed', now(), private.lagos_month(now()),
-          1, camp, private.lagos_month(now()), now() + interval '7 days');
+          1, camp, private.lagos_month(now()), now() + interval '7 days', now());
 
   perform set_config('request.jwt.claims', json_build_object('sub', host::text, 'role', 'authenticated')::text, true);
 
   -- 3. Month and all time. Written relative to whatever else is live.
   select * into r from public.leaderboard('referrals', null, 'month', 100) where is_me;
-  if r is null or r.score <> 2 then
+  if r is null or r.score <> 3 then
     raise exception 'PROBE_FAIL d76 3: the host''s month row is wrong: %', r;
   end if;
   if exists (select 1 from public.leaderboard('referrals', null, 'month', 100) l where l.score = r.score and l.rank <> r.rank) then

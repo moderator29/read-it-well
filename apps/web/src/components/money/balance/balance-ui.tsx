@@ -89,7 +89,7 @@ export function Breakdown({
         <dd>{breakdown.vatMinor === 0 ? "Included in the processing fee where charged" : money(breakdown.vatMinor)}</dd>
       </div>
       <div className="nf-maths__row nf-maths__row--total">
-        <dt>Total from your balance</dt>
+        <dt>Total from Available</dt>
         <dd>{money(breakdown.totalDebitedMinor)}</dd>
       </div>
       <div className="nf-maths__row nf-maths__row--total nf-maths__row--lit">
@@ -194,7 +194,7 @@ export function WaitingRoom({ movement, locale, kind }: { movement: MovementView
   const closing = done
     ? "Confirmed. This is done."
     : movement.status === "reversed"
-      ? "Your bank returned this. The money is back in your balance."
+      ? "Your bank returned this. The money is back in Available."
       : "This did not go through, and nothing was taken for it.";
   const stateOf = (i: number): PathState => {
     if (ticks[i]) return "done";

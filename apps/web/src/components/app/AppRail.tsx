@@ -338,6 +338,17 @@ export function AppRail({
             <span className="nf-nav__legalname">{COMPANY_LEGAL_NAME}</span>
           </Link>
         )}
+        {/* D78: the platform's documents sit beside the registered name, one
+            compact line of links, so the legal and help pages are one tap from
+            anywhere without a row each. Drawer only, as the name is. */}
+        {drawer && (
+          <nav className="nf-nav__docs" aria-label={t.experienceShell.navDocsLabel}>
+            <Link href="/terms" onClick={onNavigate}>{t.experienceShell.navDocsTerms}</Link>
+            <Link href="/privacy" onClick={onNavigate}>{t.experienceShell.navDocsPrivacy}</Link>
+            <Link href="/safety" onClick={onNavigate}>{t.experienceShell.navDocsSafety}</Link>
+            <Link href="/help" onClick={onNavigate}>{t.experienceShell.navDocsHelp}</Link>
+          </nav>
+        )}
       </div>
     </aside>
   );

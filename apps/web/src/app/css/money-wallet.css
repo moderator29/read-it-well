@@ -1,0 +1,166 @@
+/*
+  THE WALLET SCREEN (/wallet; the founder, 7 October: "Call it WALLET...
+  design it to be fully clean... remove that icon, that glass").
+
+  One card on the platform's own blue container (`.nf-panel`, which the
+  night theme turns into the blue glass the Profile lists sit on, D78), the
+  figure set large with its unit soft, a foot with one short line and Add
+  money, then the lists, then the wallet's own two-action bar (D76) pinned to
+  the foot of the screen. No new colour: every value is a token the platform
+  already uses. Tokens only, inside `@layer components`.
+*/
+@layer components {
+  /* The screen is a column whose last child, the bar, rests at the foot of
+     the viewport when there is little above it and sticks there when the
+     page scrolls. */
+  .nf-mw {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-lg);
+    min-height: calc(100svh - 8.5rem - env(safe-area-inset-top, 0px));
+  }
+
+  /* --------------------------------------------------------- the card */
+  .nf-mw-card {
+    gap: var(--nf-space-lg);
+    padding: var(--nf-space-lg);
+  }
+  .nf-mw-card__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 2.75rem;
+    margin-block: calc(-1 * var(--nf-space-xs));
+  }
+  .nf-mw-card__brand {
+    display: inline-flex;
+    opacity: 0.9;
+  }
+  .nf-mw-card__eye {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    margin-inline-end: calc(-1 * var(--nf-space-xs));
+    border-radius: var(--nf-radius-circle);
+    color: var(--nf-content-secondary);
+    transition: background-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-mw-card__eye:hover {
+    background: var(--nf-tier-plate-hover);
+  }
+  .nf-mw-card__eye:focus-visible {
+    outline: 2px solid var(--nf-brand-primary);
+    outline-offset: 2px;
+  }
+  .nf-mw-card__body {
+    display: grid;
+    gap: var(--nf-space-xs);
+    min-width: 0;
+  }
+  .nf-mw-card__caption {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+  }
+  .nf-mw-card__figure {
+    min-width: 0;
+    color: var(--nf-content-primary);
+    overflow-wrap: anywhere;
+  }
+  /* "Huge figures, unit in grey": the naira sign in the soft ink. */
+  .nf-mw-card .nf-mfig__cur {
+    font-size: max(0.8em, 0.75rem);
+    font-weight: 600;
+    color: var(--nf-content-muted);
+  }
+  /* No answer to read: calm words where the figure would sit, set at the
+     body size so they can never be taken for an amount: small and calm. */
+  .nf-mw-card__none {
+    font-size: var(--nf-text-body-lg);
+    font-weight: 500;
+    line-height: 1.3;
+    color: var(--nf-content-secondary);
+  }
+  .nf-mw-card__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-space-sm) var(--nf-space-md);
+    padding-top: var(--nf-space-md);
+    border-top: var(--nf-border-width) solid var(--nf-divider);
+  }
+  .nf-mw-card__line {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    min-width: 0;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+  }
+
+  /* ------------------------------------------------ the empty activity */
+  .nf-mw-empty {
+    align-items: center;
+    gap: var(--nf-space-xs);
+    padding: var(--nf-space-lg);
+    text-align: center;
+  }
+  .nf-mw-empty__title {
+    margin-top: var(--nf-space-sm);
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-mw-empty__body {
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+  }
+
+  /* ADR 0003's one line, as a caption. */
+  .nf-mw__held {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: var(--nf-space-xs);
+    text-align: start;
+    color: var(--nf-content-muted);
+  }
+  .nf-mw__held svg {
+    flex: none;
+    margin-top: 0.125rem;
+  }
+
+  /* ------------------------------------------------- the bar (D76)
+     Exactly two actions, Withdraw and Transfer, the platform's own buttons
+     side by side, resting at the foot above the safe area. A quiet scrim
+     under them keeps the list readable as it scrolls beneath. */
+  .nf-mw-bar {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--nf-space-sm);
+    margin-top: auto;
+    padding-block: var(--nf-space-sm) calc(var(--nf-space-md) + env(safe-area-inset-bottom, 0px));
+    /* Solid under the buttons (a disabled button is translucent and must not
+       show a row through it), fading into the page just above them. */
+    background: var(--nf-surface-canvas);
+  }
+  .nf-mw-bar::before {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: 100%;
+    height: var(--nf-space-lg);
+    background: linear-gradient(to top, var(--nf-surface-canvas), transparent);
+    pointer-events: none;
+  }
+  @media (max-width: 339px) {
+    .nf-mw-bar {
+      grid-template-columns: 1fr;
+    }
+  }
+}

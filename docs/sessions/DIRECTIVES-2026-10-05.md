@@ -3385,3 +3385,35 @@ D73 and is superseded for fixed-price shortlets. He can overturn this.
   page, flipped by the side switch, the same way the rest of the shell flips.
 - **The wallet's own bottom bar has two actions, Withdraw and Transfer.** The wallet is
   a feature, not a main section; the main dock is unchanged.
+
+## D78 (7 October 2026, evening): blue is the identity; no glass
+
+From the founder's production screenshots (leaderboard, passcode, profile, /pro):
+
+- **No platinum on controls.** Every button, selected pill or toggle that used the platinum (silver-white) colour is Vallo blue. The leaderboard's "FCT (Abuja) | Global" selected pill is the example.
+- **No white buttons.** Every call to action is the platform's primary blue button ("Invite friends", "Continue with Agent Pro" were the examples).
+- **No grey containers.** Stat strips and cards sit on the platform's own blue-tinted container, the one the Profile lists use ("4 Tools | Coming | Nothing" on /pro was the example). This applies to new features too.
+- **The passcode keypad is blue**, not grey.
+- **No glass icons anywhere.** Icons are the solid, opaque blue 3D renders (the Profile "Belongings" rows: Plans, Saved, Agreements, Workspaces). Named: Get started, side nav, flip card, the Neighbour badge.
+- Gold is not part of this ruling.
+
+This supersedes the platinum direction in `docs/design/PREMIUM-STANDARD.md` where they disagree.
+
+### D78, continued (same evening)
+
+- **It is the Wallet**, never "Balance", in everything a member reads. The wallet screen shows its full designed layout even before the provider is connected: actions present but disabled with one short line, no paragraphs about partners or rails, and still never a figure the provider did not give.
+- **The dock is icon-only**, the active tab included (a blue fill behind the icon marks it; the name stays for screen readers).
+- **No four-point sparkle icon anywhere.** For you, Pro and the assistant each get a real icon that means the thing.
+- **The feed must work and look clean**: avatar and name open the profile, every action does its own thing, actions are bare icons (no pill wrappers), the feed has its own + to post, story avatars sit in clean even rings, the story viewer is calm and full-bleed.
+- **The platform's docs sit beside "VALLO SPACES LTD"** at the foot of the side nav.
+
+### D78, navigation (same evening; the lead owns navigation from here)
+
+- **Settings has no pull-out menu.** Every settings page is a row on the Settings page and goes back to it; nothing else lists them.
+- **Space Passport is a side-nav feature**, beside Agreements.
+- **Money in the side nav is three rows: Wallet, Rewards, Referral.** Payments, Receipts, Payouts and Refunds live on the Wallet screen.
+- **"Invite friends" is Referral**, and the Leaderboard opens from the Referral page, not the side nav.
+- **No logo or wordmark in the app's top bar.**
+- **The bell shows only on Home, Search and Feed** (each side's own), nowhere else.
+- **The platform's documents (Terms, Privacy, Safety, Help) sit under VALLO SPACES LTD** at the foot of the side nav.
+- **A member's public profile has no composer +** (that belongs on the Feed), quiet Back and Share without containers, a smaller Follow button, a ••• menu that opens fully on screen, and clean, sharp tabs.

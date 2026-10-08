@@ -259,7 +259,7 @@ export function PrivacyCard({ t }: { t: PrivacyCardCopy }) {
         onChange={(next) => set("readReceipts", next)}
       />
       <RowSwitch
-        icon="sparkle"
+        icon="house-heart"
         label={copy.personalised}
         sub={copy.personalisedSub}
         checked={settings.personalisedRecs}

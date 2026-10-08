@@ -31,8 +31,8 @@ export function FeedTabs({ active, t }: { active: FeedTab; t: Dictionary }) {
   /* The founder's image draws a sparkle on For You and two people on
      Following, both plain line glyphs, 14 CSS px drawn (sparkle at the 28 step, whose
      path fills half its box; people at 20). */
-  const segments: { tab: FeedTab; label: string; icon: "sparkle" | "people" }[] = [
-    { tab: "for-you", label: t.social.tabForYou, icon: "sparkle" },
+  const segments: { tab: FeedTab; label: string; icon: "house-heart" | "people" }[] = [
+    { tab: "for-you", label: t.social.tabForYou, icon: "house-heart" },
     { tab: "following", label: t.social.tabFollowing, icon: "people" },
   ];
   /* An old `?tab=new` link lights For you, which is the mode it reads as. */

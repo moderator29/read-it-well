@@ -126,11 +126,17 @@
     flex: 1;
     flex-direction: column;
     gap: var(--nf-space-3xs);
-    padding: var(--nf-space-2xs) var(--nf-space-xs) var(--nf-space-xs);
+    /* THE EDGE FLOOR (the founder, 7 October 2026: "many things where the
+       content sits too close to the edges, sides or bottom of the container
+       it is in"). No word or fact sits closer than 12px (`space-sm`) to the
+       card's edge; it was 8 at the sides and the bottom, so the fact row
+       ("2 beds, 3 baths") sat on the card's foot. From a tablet up, the
+       ordinary card inset, `--nf-pad-card`. */
+    padding: var(--nf-space-xs) var(--nf-space-sm) var(--nf-space-sm);
   }
   @media (min-width: 40rem) {
     .nf-pcard__body {
-      padding: var(--nf-space-xs) var(--nf-space-sm) var(--nf-space-sm);
+      padding: var(--nf-space-sm) var(--nf-pad-card) var(--nf-pad-card);
     }
   }
   /* Up to three lines, then the ellipsis, with the whole title on the
@@ -1532,9 +1538,13 @@
     justify-content: center;
     gap: var(--nf-space-2xs);
     min-height: 3rem;
-    padding: var(--nf-space-2xs) var(--nf-space-xs);
+    /* The edge floor (7 October): 12 above and below, so a pair that wraps
+       to two lines ("2 room types") no longer sits 7px from the strip's
+       border. */
+    padding: var(--nf-space-sm) var(--nf-space-xs);
     font-size: var(--nf-text-caption);
     font-weight: 600;
+    line-height: 1.25;
     color: var(--nf-content-primary);
     text-align: center;
   }

@@ -60,7 +60,7 @@ import "@/app/css/list-views.css";
  * time and the ticks, the assistant's glass on the left with the concierge
  * object beside it), the real catalogue results as two-up cards inside the
  * thread, the thinking pill while the model works, the suggestion chips on a
- * rail above the composer, and the composer with the sparkle in its well.
+ * rail above the composer, and the composer with the assistant's `bot` glyph in its well.
  *
  * WHAT IS REAL, because every control on this screen does its thing:
  *
@@ -953,7 +953,7 @@ export function AssistantChat({
               Message Vallo AI
             </label>
             <div className="nf-ai__well nf-focus-well">
-              <UiIcon name="sparkle" size={20} />
+              <UiIcon name="bot" size={20} />
               <input
                 id="assistant-input"
                 ref={inputRef}

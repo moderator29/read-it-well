@@ -40,7 +40,7 @@ export function unitFor(board: Board, n: number): string {
 
 /** One plain line under the title: what the board ranks. */
 export const BOARD_MEASURE: Record<Board, string> = {
-  referrals: "Ranked by friends who joined and made their first payment.",
+  referrals: "Ranked by friends who joined with your link.",
   property: "Ranked by rent deals paid through Vallo.",
   hotels: "Ranked by completed stays booked on Vallo.",
   restaurants: "Ranked by completed table reservations.",
@@ -94,7 +94,7 @@ export function emptyTitle(scope: Scope, placeName: string | null): string {
 }
 
 export const EMPTY_BODY: Record<Board, string> = {
-  referrals: "Nobody has a qualified referral on this board yet. Invite a friend; it counts once they join and make their first payment.",
+  referrals: "Nobody has a referral on this board yet. Invite a friend; it counts as soon as they sign up.",
   property: "No rent deal has been paid through Vallo here yet. The first verified agent or landlord to close one takes the top spot.",
   hotels: "No stay has been completed here yet. The first approved hotel to host a guest through Vallo takes the top spot.",
   restaurants: "No reservation has been completed here yet. The first approved restaurant to seat a guest through Vallo takes the top spot.",
@@ -119,8 +119,8 @@ export const ERROR_BODY = "Nothing is wrong with your account. Pull down or try 
 export const CLIMB_STEPS: Record<Board, { title: string; body: string }[]> = {
   referrals: [
     { title: "Share your link", body: "Every friend who signs up with your link is yours. Nobody can claim them after." },
-    { title: "It counts when they pay", body: "A referral qualifies once they confirm their phone and make their first payment on Vallo." },
-    { title: "Climb every month", body: "The month board starts fresh on the first. All time keeps every qualified referral." },
+    { title: "It counts when they join", body: "A friend counts the moment they finish signing up with your link." },
+    { title: "Climb every month", body: "The month board starts fresh on the first. All time keeps every referral." },
   ],
   property: [
     { title: "Get approved", body: "Only approved agents, landlords and firms are ranked. Approval is free." },

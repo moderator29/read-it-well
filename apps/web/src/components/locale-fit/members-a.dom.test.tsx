@@ -141,7 +141,7 @@ describe.skipIf(!hasBrowser && !process.env.CI)("locale fit: inbox, thread, noti
               <RowLink href="/help" icon="ticket" label={t.settings.about.help} sub={t.settings.about.helpSub} />
               <RowLink href="/terms" icon="grid" label={t.settings.about.terms} />
               <RowLink href="/privacy" icon="verified" label={t.settings.about.privacy} />
-              <RowValue icon="sparkle" label={t.settings.about.version} value="0.1.0" />
+              <RowValue icon="info" label={t.settings.about.version} value="0.1.0" />
             </SettingsGroup>
           </div>
         </div>`,

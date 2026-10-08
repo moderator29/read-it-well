@@ -64,7 +64,7 @@ describe.skipIf(!hasBrowser && !process.env.CI)("locale fit: first runs and the 
       setup: `const f = t.experienceFeatures.plans;`,
       body: `
         <PlanPaywall
-          artefact={<div style={{ maxWidth: 320, margin: "0 auto" }}><Credential face={{ material: "edge", eyebrow: t.common.verified, title: t.nav.exploreStays, glyph: "sparkle" }} /></div>}
+          artefact={<div style={{ maxWidth: 320, margin: "0 auto" }}><Credential face={{ material: "edge", eyebrow: t.common.verified, title: t.nav.exploreStays, glyph: "certificate" }} /></div>}
           promise={t.frontDoor.door.signInArea}
           benefits={[
             { icon: "check", text: t.nav.exploreStays },
