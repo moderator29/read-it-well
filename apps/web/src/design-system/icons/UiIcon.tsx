@@ -207,7 +207,19 @@ export type UiIconName =
   | "gift"
   | "snowflake"
   | "washing-machine"
-  | "film";
+  | "film"
+  /* VC1, THE CALL GLYPHS (8 October 2026): the thread header's voice and
+     video buttons, the call screen's controls and the history rows. Lucide
+     drawings with solid twins, because the call controls are solid (D78). */
+  | "video"
+  | "video-off"
+  | "mic"
+  | "mic-off"
+  | "phone-missed"
+  | "phone-incoming"
+  | "phone-outgoing"
+  | "switch-camera"
+  | "volume";
 
 /*
  * THE OUTLINES. Lucide names in brackets where the drawing is Lucide's, so the
@@ -215,6 +227,82 @@ export type UiIconName =
  * rules. Every stroke takes the svg's computed width, round caps, round joins.
  */
 const PATHS: Record<UiIconName, React.ReactNode> = {
+  // [video]
+  video: (
+    <>
+      <path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5" />
+      <rect x="2" y="6" width="14" height="12" rx="2" />
+    </>
+  ),
+  // [video-off]
+  "video-off": (
+    <>
+      <path d="M10.66 6H14a2 2 0 0 1 2 2v2.5l5.248-3.062A.5.5 0 0 1 22 7.87v8.196" />
+      <path d="M16 16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h2" />
+      <path d="m2 2 20 20" />
+    </>
+  ),
+  // [mic]
+  mic: (
+    <>
+      <path d="M12 19v3" />
+      <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+      <rect x="9" y="2" width="6" height="13" rx="3" />
+    </>
+  ),
+  // [mic-off]
+  "mic-off": (
+    <>
+      <path d="M12 19v3" />
+      <path d="M15 9.34V5a3 3 0 0 0-5.68-1.33" />
+      <path d="M16.95 16.95A7 7 0 0 1 5 12v-2" />
+      <path d="M18.89 13.23A7 7 0 0 0 19 12v-2" />
+      <path d="m2 2 20 20" />
+      <path d="M9 9v3a3 3 0 0 0 5.12 2.12" />
+    </>
+  ),
+  // [phone-missed]
+  "phone-missed": (
+    <>
+      <path d="m16 2 6 6" />
+      <path d="m22 2-6 6" />
+      <path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384" />
+    </>
+  ),
+  // [phone-incoming]
+  "phone-incoming": (
+    <>
+      <path d="M16 2v6h6" />
+      <path d="m22 2-6 6" />
+      <path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384" />
+    </>
+  ),
+  // [phone-outgoing]
+  "phone-outgoing": (
+    <>
+      <path d="m16 8 6-6" />
+      <path d="M22 8V2h-6" />
+      <path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384" />
+    </>
+  ),
+  // [switch-camera]
+  "switch-camera": (
+    <>
+      <path d="M11 19H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5" />
+      <path d="M13 5h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-5" />
+      <circle cx="12" cy="12" r="3" />
+      <path d="m18 22-3-3 3-3" />
+      <path d="m6 2 3 3-3 3" />
+    </>
+  ),
+  // [volume-2]
+  volume: (
+    <>
+      <path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z" />
+      <path d="M16 9a5 5 0 0 1 0 6" />
+      <path d="M19.364 18.364a9 9 0 0 0 0-12.728" />
+    </>
+  ),
   // [phone]
   phone: (
     <path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384" />
@@ -1308,6 +1396,63 @@ const HOUSE_BODY =
   "M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z";
 
 const FILLED: Partial<Record<UiIconName, FilledTwin>> = {
+  /* VC1: the call controls' solid twins. A slash is cut a little below
+     and right of the line it keeps, so the solid body shows a clean gap. */
+  video: {
+    body: (
+      <>
+        <rect x="2" y="6" width="14" height="12" rx="2" />
+        <path d="M16 10.5l5.248-3.062A.5.5 0 0 1 22 7.87v8.196a.5.5 0 0 1-.777.416L16 13z" />
+      </>
+    ),
+  },
+  "video-off": {
+    body: (
+      <>
+        <rect x="2" y="6" width="14" height="12" rx="2" />
+        <path d="M16 10.5l5.248-3.062A.5.5 0 0 1 22 7.87v8.196a.5.5 0 0 1-.777.416L16 13z" />
+      </>
+    ),
+    cut: <path d="m3.5 1.5 20 20" />,
+    keep: <path d="m2 2 20 20" />,
+  },
+  mic: {
+    body: <rect x="9" y="2" width="6" height="13" rx="3" />,
+    keep: (
+      <>
+        <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+        <path d="M12 19v3" />
+      </>
+    ),
+  },
+  "mic-off": {
+    body: <rect x="9" y="2" width="6" height="13" rx="3" />,
+    cut: <path d="m3.5 1.5 20 20" />,
+    keep: (
+      <>
+        <path d="M16.95 16.95A7 7 0 0 1 5 12v-2" />
+        <path d="M18.89 13.23A7 7 0 0 0 19 12v-2" />
+        <path d="M12 19v3" />
+        <path d="m2 2 20 20" />
+      </>
+    ),
+  },
+  "phone-missed": {
+    body: <path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384z" />,
+    keep: <path d="m16 2 6 6M22 2l-6 6" />,
+  },
+  "phone-incoming": {
+    body: <path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384z" />,
+    keep: <path d="M16 2v6h6M22 2l-6 6" />,
+  },
+  "phone-outgoing": {
+    body: <path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384z" />,
+    keep: <path d="m16 8 6-6M22 8V2h-6" />,
+  },
+  volume: {
+    body: <path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z" />,
+    keep: <path d="M16 9a5 5 0 0 1 0 6M19.364 18.364a9 9 0 0 0 0-12.728" />,
+  },
   home: {
     body: <path d={HOUSE_BODY} />,
     cut: <path d="M10.5 21.5v-6a1.5 1.5 0 0 1 3 0v6z" fill="black" />,

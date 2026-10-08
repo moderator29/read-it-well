@@ -211,3 +211,25 @@ export function feedback(kind: FeedbackKind): void {
   }
   void haptics().then(run, () => run(null));
 }
+
+/**
+ * VC1: the incoming call's buzz, the one REPEATING pattern the platform has,
+ * so it lives here with every other vibration rather than in the call screen.
+ * A ring is a call for attention, not a reply to a press, which is why it is
+ * outside the five kinds above. Where `navigator.vibrate` exists (Android),
+ * never under reduced motion, never while the page is hidden.
+ * `ringBuzz(false)` stops it.
+ */
+export function ringBuzz(on: boolean): void {
+  if (typeof navigator === "undefined" || typeof navigator.vibrate !== "function") return;
+  try {
+    if (!on) {
+      navigator.vibrate(0);
+      return;
+    }
+    if (reducedMotion() || (typeof document !== "undefined" && document.hidden)) return;
+    navigator.vibrate([400, 200, 400]);
+  } catch {
+    /* Not supported. */
+  }
+}

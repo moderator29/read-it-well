@@ -1043,6 +1043,20 @@ const PILL_ALLOWED = new Set([
   "src/app/css/money-wallet.css  .nf-mw-cap",
   "src/app/css/money-wallet.css  .nf-mw-add",
   "src/app/css/money-wallet.css  .nf-mw-banner__cta",
+  /*
+   * PERMANENT, by the founder's video calling brief of 8 October 2026
+   * (`docs/video-calling/BRIEF.md`, phase 2 and phase 11: "premium incoming
+   * and outgoing screens ... elegant controls ... camera and microphone
+   * controls; camera switch; speaker; end call") and D2's own words: the pill
+   * is reserved for "circular icon controls". Every call control (accept,
+   * decline, end, mute, camera, switch, output) is a 56 to 72px round button
+   * holding ONE glyph and no word; its caption is a separate element under
+   * it. This is the round icon control every phone's call screen draws, and
+   * the reason it is visible here rather than drawn with the circle token,
+   * which this check does not read: a permission said out loud. Nothing else
+   * in `calls.css` wears a capsule.
+   */
+  "src/app/css/calls.css  .nf-call-btn",
 ]);
 
 /* The TSX half of the same list, and it has one entry. The two round things
