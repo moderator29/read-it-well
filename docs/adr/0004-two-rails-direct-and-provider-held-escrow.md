@@ -1,10 +1,25 @@
-# ADR 0003: Two rails, and escrow held by a provider, never by Vallo
+# ADR 0004: Two rails, direct and provider held escrow
 
-**Status:** proposed, 6 October 2026, by Session 2. Needs the founder's acceptance, and
-the escrow rail stays off until Nigerian counsel's written opinion is in hand.
-**Supersedes, once accepted:** ADR 0002 in part. Its central rule stands unchanged:
-**Vallo never holds customer money.** What changes is that a regulated provider may hold
-it, on one of two rails.
+**Status:** accepted, 8 October 2026. Written 6 October 2026 by Session 2 as a proposal.
+**Renumbered from 0003 on 8 October 2026**, because two files had been written as ADR
+0003 independently. The founder ruled that
+`0003-a-licensed-provider-holds-the-money-vallo-records-it.md` keeps the number 0003 and
+governs the custody question. This file keeps its content and takes the next free number.
+**Subordinate to ADR 0003**, which settles who may hold customer money and how Vallo's
+database objects are named. Where the two disagree, ADR 0003 wins.
+**Amends:** ADR 0002 in part, exactly as ADR 0003 does. Its central rule stands
+unchanged: **Vallo never holds customer money.** What changes is that a regulated
+provider may hold it, on one of two rails.
+
+**What this file is for, now that 0003 exists.** ADR 0003 answers *whether* a provider
+may hold the money and what Vallo may call its own tables. This one answers *which rail
+a given payment takes*, which is a separate question and is already built: the policy
+lives in `public.payment_rail_policy`, migration `20261006030027`, and D68d and D83 both
+build on it. Neither file replaces the other.
+
+**One caveat carried forward from the proposal:** the escrow rail stays off until the
+Payluk adapter exists and Nigerian counsel's written opinion is in hand. That is
+unchanged by acceptance.
 
 ## Decision
 

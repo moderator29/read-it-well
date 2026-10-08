@@ -98,3 +98,18 @@ work. This file resolves it.
   an authoritative customer balance.
 - The commission sweep and the Payluk merchant client already on main are
   consistent with this decision and need no change.
+
+## The numbering, settled 8 October 2026
+
+Two files were written as ADR 0003 independently: this one, and Session 2's "Two rails,
+and escrow held by a provider, never by Vallo" of 6 October. The founder ruled that this
+file keeps the number and governs. The other was renumbered to
+`0004-two-rails-direct-and-provider-held-escrow.md`, accepted on the same day, and is
+subordinate to this one: where the two disagree, this file wins.
+
+They answer different questions and neither replaces the other. This one settles whether
+a provider may hold customer money, that Vallo's records mirror provider state rather
+than being it, and how Vallo's database objects are named so the custody guard stays
+meaningful. ADR 0004 settles which rail a given payment takes, which is already built in
+`public.payment_rail_policy` (migration `20261006030027`) and which D68d and D83 both
+build on.

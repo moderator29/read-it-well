@@ -3501,12 +3501,14 @@ machinery. The figures are small against real revenue: at 2 percent on a median
 3,000,000 naira rent, one closed deal pays Vallo 60,000, so the subscription sells
 visibility rather than carrying the business.
 
-**The trial: the founder asked for 2 days and was advised 7.** Two days shows a lister
-nothing, because no enquiries will have arrived yet, so they cancel having seen an empty
-dashboard; it also forces card on file at signup, which is real friction on Nigerian
-cards. Seven days is long enough for a boosted listing to produce the enquiries that
-actually convert. **Awaiting his word; build the trial length as configuration either
-way, so the answer is a value and not a change.**
+**The trial is 4 days.** Settled by the founder on 8 October, and already given to the
+build session, which is working to it. He asked for 2 first and was advised 7, on the
+grounds that two days shows a lister nothing because no enquiries will have arrived yet,
+so they cancel having seen an empty dashboard. Four is his landing between the two and
+it is the number to build. **Build it as configuration, not a constant**, so the next
+revision is a value rather than a change: a boosted listing's first enquiries are the
+thing that converts a trial, and how long that actually takes is unknown until there is
+real traffic.
 
 **Also settled on 8 October, outside the five:**
 
