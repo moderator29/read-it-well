@@ -86,7 +86,11 @@ export const ADMIN_PRIMARY: AdminDestination[] = [
     icon: glyph("check-square"),
     label: "Verification",
     /* SCUML: the AML/CFT duties, one lane each. */
-    children: [{ key: "compliance", href: "/admin/compliance", icon: glyph("shield-lock"), label: "Compliance" }],
+    children: [
+      { key: "compliance", href: "/admin/compliance", icon: glyph("shield-lock"), label: "Compliance" },
+      /* VC1: staff review calls, reached from the case desks and from here. */
+      { key: "review-calls", href: "/admin/review-calls", icon: ui("video"), label: "Review calls" },
+    ],
   },
   {
     key: "money",
