@@ -937,6 +937,26 @@
   .nf-composer__send:active:not(:disabled) {
     transform: scale(var(--nf-press-scale-sm));
   }
+  /*
+   * A SEND WITH A WORD ON IT (founder, 8 October 2026: "the sending is too big
+   * in that container ... make it an orange container long"). The square above
+   * is the conversation's paper-plane send; the feed composer and the comment
+   * sheet say "Post", "Reply" or "Send", which a 44px square clipped. They
+   * take a long orange container instead: the spark fill (white on it clears
+   * 4.5:1, control-contrast.dom.test.tsx), width from the word with a floor, so
+   * "Sending" never jumps the bar.
+   */
+  .nf-composer__send.nf-composer__send--label {
+    width: auto;
+    min-inline-size: 6.5rem;
+    padding-inline: var(--nf-space-md);
+    gap: var(--nf-gap-inline-tight);
+    white-space: nowrap;
+    color: var(--nf-spark-on-fill);
+    background: var(--nf-spark-fill);
+    border-color: transparent;
+    box-shadow: var(--nf-spark-glow);
+  }
   .nf-composer__pending {
     display: flex;
     align-items: center;

@@ -320,14 +320,14 @@ export function CommentsSheet({
             />
             <Button
               type="submit"
-              variant="primary"
+              variant="spark"
               size="sm"
-              iconOnly
-              leadingIcon="share"
-              className="shrink-0"
+              className="nf-composer__send nf-composer__send--label shrink-0"
+              loading={pending}
               disabled={pending || body.trim().length === 0}
-              aria-label="Send"
-            />
+            >
+              {draft ? "Reply" : "Send"}
+            </Button>
           </div>
           {left < 240 ? (
             <span className="nf-comments__count nf-numeric">{left}</span>

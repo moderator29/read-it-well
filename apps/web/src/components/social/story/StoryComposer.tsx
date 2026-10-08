@@ -12,7 +12,6 @@ import {
   STORY_COPY,
   STORY_FAILURE,
   STORY_HEADLINE_MAX,
-  STORY_HEADLINE_MIN,
   STORY_IMAGE_MAX_BYTES,
   STORY_IMAGE_MAX_EDGE,
   STORY_PLACE_MAX,
@@ -164,8 +163,14 @@ export function StoryComposer({
 
   /* The picture and the headline are the story. A standfirst is optional,
      because a photograph with a good headline is already a piece. */
-  const canPublish =
-    Boolean(blob) && headline.trim().length >= STORY_HEADLINE_MIN && !pending;
+  /* The picture is the story; the caption is optional and any length (the
+     founder, 8 October: "even if it's just T"). Only the second line written:
+     it becomes the headline. Nothing written: a picture-only story. */
+  const written = headline.trim() || standfirst.trim();
+  const finalHeadline = written.slice(0, STORY_HEADLINE_MAX);
+  const finalStandfirst = headline.trim() ? standfirst.trim() : "";
+  /* Publish is never a dead grey button: a tap says what is missing. */
+  const canPublish = !pending;
 
   const publish = () => {
     if (!blob || !userId) {
@@ -206,8 +211,8 @@ export function StoryComposer({
         stage = "publish";
         const result = await publishStory({
           areaId,
-          headline: headline.trim(),
-          standfirst: standfirst.trim(),
+          headline: finalHeadline,
+          standfirst: finalStandfirst,
           placeLabel: place.trim(),
           imagePath: path,
           ...(size ? { width: size.width, height: size.height } : {}),
@@ -329,7 +334,7 @@ export function StoryComposer({
         </p>
       ) : null}
 
-      <Button type="submit" variant="primary" full disabled={!canPublish}>
+      <Button type="submit" variant="spark" full loading={pending} disabled={!canPublish}>
         {pending ? STORY_COPY.publishing : STORY_COPY.publish}
       </Button>
 

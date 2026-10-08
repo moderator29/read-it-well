@@ -37,7 +37,8 @@
 
 import { DB_LIMIT_CODE, DB_LIMIT_MESSAGE } from "@/lib/security/db-limit";
 
-export const STORY_HEADLINE_MIN = 3;
+/* No floor: the picture is the story; a caption of any length, or none (founder, 8 October 2026). */
+export const STORY_HEADLINE_MIN = 0;
 
 export const STORY_HEADLINE_MAX = 120;
 
@@ -69,7 +70,7 @@ export const STORY_COPY = {
   imagePrompt: "Choose the picture",
   imageNote:
     "Pictures are re-encoded on your phone before they are uploaded, so the location tag a camera writes never leaves it.",
-  needsImage: "The picture is the story. Choose one and it will publish.",
+  needsImage: "Choose a picture and it will publish. A caption is optional.",
   held:
     "Your story mentions something we check by hand. Somebody is reading it before it goes up, and only you can see it until then.",
   emptyMine:

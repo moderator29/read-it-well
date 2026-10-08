@@ -477,7 +477,7 @@ export function Composer({
           )}
           {/* Disabled until there is something to send; it keeps its fill
               at rest (`nf-composer__send`, R1 A26). */}
-          <Button type="submit" variant="primary" size="sm" className="nf-composer__send nf-compose-page__send" disabled={!canSend}>
+          <Button type="submit" variant="spark" size="sm" className="nf-composer__send nf-composer__send--label nf-compose-page__send" loading={pending} disabled={!canSend}>
             {pending ? "Sending" : isReply ? "Reply" : "Post"}
           </Button>
         </div>
@@ -703,7 +703,7 @@ export function Composer({
             nobody has typed yet, which is its resting state, not a fault, and
             the platform's flat grey disabled reads as a broken control on the
             one primary the screen has (R1 A26). */}
-        <Button type="submit" variant="primary" size="sm" className="nf-composer__send" disabled={!canSend}>
+        <Button type="submit" variant="spark" size="sm" className="nf-composer__send nf-composer__send--label" loading={pending} disabled={!canSend}>
           {pending ? "Sending" : isReply ? "Reply" : "Post"}
         </Button>
       </div>

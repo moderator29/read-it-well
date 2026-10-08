@@ -25,7 +25,7 @@ export const storyInputSchema = z.object({
   headline: z
     .string()
     .trim()
-    .min(STORY_HEADLINE_MIN, "Give it a headline.")
+    .min(STORY_HEADLINE_MIN)
     .max(STORY_HEADLINE_MAX, `Keep the headline under ${STORY_HEADLINE_MAX} characters.`),
   standfirst: z
     .string()
