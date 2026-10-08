@@ -62,8 +62,9 @@ describe("settings words come from the dictionary", () => {
         <p>page</p>
       </SettingsAreaNav>,
     );
-    /* The current destination is named from the dictionary. */
-    expect(html).toContain(copy.destinations.region);
+    /* D78: settings has no pull-out menu. Everything lives on the Settings
+       page itself, so the area wrapper draws only the page it holds. */
+    expect(html).toBe("<p>page</p>");
     expectNoEnglish(html, en.area);
   });
 
