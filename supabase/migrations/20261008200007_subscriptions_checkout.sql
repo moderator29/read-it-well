@@ -1,5 +1,5 @@
 -- SUBSCRIPTIONS CHECKOUT: Vallo Pro and Vallo Business can be tried and paid for.
--- PENDING. Not applied by its author; the lead applies it and records it.
+-- APPLIED LIVE 8 October 2026 (20261008200007).
 --
 -- Base read from the live database on 8 October 2026 before writing:
 -- public.entitlement_plans holds `free` (1), `pro` (2, 950000 a month) and

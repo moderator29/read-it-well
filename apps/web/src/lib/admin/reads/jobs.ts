@@ -103,6 +103,7 @@ export const PG_CRON_JOBS: readonly PgCronJob[] = [
   { name: "vallo_referral_qualify", cron: "3,18,33,48 * * * *", when: "every 15 min", what: "retries qualification for every invited member who has finished a step (Invite and Earn, D85)" },
   { name: "vallo_referral_flag_clusters", cron: "26 * * * *", when: "hourly at :26", what: "flags clusters of referrals that look like one person, for review before any reward is released (D85)" },
   { name: "vallo_referral_release_due", cron: "11,41 * * * *", when: "every 30 min", what: "makes a referral reward available once its review window has passed (D85)" },
+  { name: "vallo_subscriptions_sweep", cron: "9,24,39,54 * * * *", when: "every 15 min", what: "moves Pro and Business subscriptions with the clock: trials end, lapsed and cancelled plans close, unpaid checkouts are abandoned" },
   { name: "vallo_release_stale_holds", cron: "*/15 * * * *", when: "every 15 min", what: "database side of the hold release" },
   { name: "vallo_remind_hosts_to_decide", cron: "4,19,34,49 * * * *", when: "every 15 min", what: "reminds a host once when a room or table request has used three quarters of its window (C3)" },
   { name: "vallo_send_member_reminders", cron: "7,22,37,52 * * * *", when: "every 15 min", what: "sends each viewing reminder (the evening before, two hours before) and rent-due reminder (180, 90, 30, 7 days) once (B5, B10)" },

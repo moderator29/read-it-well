@@ -1,6 +1,6 @@
 -- SUBSCRIPTIONS-CHECKOUT: Vallo Pro and Vallo Business can be tried and paid for.
 -- Needs, applied in order: b2_ledger, b3_tax_entitlements_promotion,
--- d84_founder_rulings_8_october, subscriptions_checkout (pending).
+-- d84_founder_rulings_8_october, subscriptions_checkout (20261008200007).
 --  PROBE 1  the switch: a missing `subscriptions_checkout` row reads off, and
 --           off, no trial starts and no checkout opens
 --  PROBE 2  a trial needs no card, grants the plan at once through
