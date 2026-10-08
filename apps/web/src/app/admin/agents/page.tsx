@@ -5,6 +5,7 @@ import { getAgentApplications, type ApplicationView } from "@/lib/admin/queries"
 import { getVerificationLadders, type AgentLadder } from "@/lib/admin/verification-queries";
 import { VERIFICATION_ORDER } from "@/lib/trust/verification";
 import { ApplicationDecision, VerificationRungDecision } from "../_components/AdminActions";
+import { ReviewCallAction } from "@/components/calls/admin/ReviewCallAction";
 import { fill, type AdminCommon, type AdminCopy } from "../_components/copy";
 import { adminUi, type AdminUi } from "../_components/ui";
 import { QueueTable, type QueueRowData } from "../_components/QueueTable";
@@ -264,12 +265,16 @@ function ApplicationCard({
       </ui.DetailSection>
 
       {decidable ? (
-        <ApplicationDecision
-          applicationId={application.id}
-          applicantName={application.fullName ?? copy.thisApplicant}
-          copy={copy}
-          common={common}
-        />
+        <>
+          <ApplicationDecision
+            applicationId={application.id}
+            applicantName={application.fullName ?? copy.thisApplicant}
+            copy={copy}
+            common={common}
+          />
+          {/* VC1: a review call with the applicant (KYC scope, both switches on). */}
+          <ReviewCallAction caseKind="agent_application" caseId={application.id} />
+        </>
       ) : (
         <p className="mt-md text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           {fill(copy.decidedWhen, { when: ui.when(application.reviewedAt) })} {common.inAuditLog}
