@@ -43,7 +43,7 @@ describe("the device memory", () => {
   it("lasts, is first party and is sent on a normal navigation", () => {
     const c = firstRunCookieString(true);
     expect(c).toMatch(/Path=\//);
-    expect(c).toMatch(/Max-Age=34560000/);
+    expect(c).toMatch(/Max-Age=1800/);
     expect(c).toMatch(/SameSite=Lax/);
     expect(c).toMatch(/Secure/);
     expect(firstRunCookieString(false)).not.toMatch(/Secure/);

@@ -18,9 +18,12 @@ import { safeReturnPath } from "@/lib/security/return-path";
 export const FIRST_RUN_COOKIE = "vallo_first_run";
 export const FIRST_RUN_SEEN = "seen";
 
-/* 400 days is the ceiling browsers now enforce on any cookie, so asking for
-   longer is asking for this. */
-export const FIRST_RUN_MAX_AGE = 60 * 60 * 24 * 400;
+/* THE FOUNDER, 8 October 2026: "once I click sign up or sign in it should
+   show me this get started" -- every visit, not once a device. So "seen"
+   lasts one sitting: long enough that Skip, then Sign up a minute later,
+   does not show the slides twice (and the hand-off can never loop), short
+   enough that the next visit opens on them again. */
+export const FIRST_RUN_MAX_AGE = 60 * 30;
 
 /**
  * The query flag a first-run exit carries ONLY when the cookie would not

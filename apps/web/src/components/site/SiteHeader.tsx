@@ -183,18 +183,20 @@ function LandingCapsule({
           <nav aria-label={t.nav.primaryLabel} className="nf-cap__nav">
             <SiteNavLinks links={links} more={more} mega={mega} moreLabel={nav.more} />
           </nav>
-          <div className="nf-cap__actions" data-guest={signedIn === false ? "" : undefined}>
-            {signedIn ? null : (
-              <>
-                <Link href="/sign-in" prefetch className="nf-cap__signin">
-                  {nav.signIn}
-                </Link>
-                {/* /start hands a stranger to first run and on to sign up. */}
-                <ButtonLink href="/start" variant="primary" size="sm" className="nf-cap__start">
-                  {t.common.signUp}
-                </ButtonLink>
-              </>
-            )}
+          {/* THE FOUNDER, 8 October 2026: in light mode on his phone the
+              capsule showed only the logo and the menu. A browser still
+              holding an old, expired session cookie read as "signed in", so
+              both doors were hidden. A member whose session is live never
+              sees the landing (`/` sends them home), so wherever the landing
+              knows its visitor at all, both doors stand at every width. */}
+          <div className="nf-cap__actions" data-guest={signedIn === undefined ? undefined : ""}>
+            <Link href="/sign-in" prefetch className="nf-cap__signin">
+              {nav.signIn}
+            </Link>
+            {/* /start hands a stranger to first run and on to sign up. */}
+            <ButtonLink href="/start" variant="primary" size="sm" className="nf-cap__start">
+              {t.common.signUp}
+            </ButtonLink>
             <MobileMenu
               links={[...links, ...more]}
               signIn={nav.signIn}

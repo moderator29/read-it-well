@@ -21,9 +21,9 @@ describe("sign-in meets first run once (request W2)", () => {
     expect(doorFirstRunRedirect({ door: "/sign-up", cookie: "seen", params: {} })).toBeNull();
   });
 
-  it("never shows it to a signed-in member", () => {
-    expect(signInFirstRunRedirect({ cookie: undefined, signedIn: true, params: {} })).toBeNull();
-    expect(doorFirstRunRedirect({ door: "/sign-up", cookie: undefined, signedIn: true, params: {} })).toBeNull();
+  it("a leftover session cookie does not skip it (the founder, 8 October: an expired one sent him straight past)", () => {
+    expect(signInFirstRunRedirect({ cookie: undefined, signedIn: true, params: {} })).toBe("/welcome?next=%2Fsign-in");
+    expect(doorFirstRunRedirect({ door: "/sign-up", cookie: undefined, signedIn: true, params: {} })).toBe("/welcome?next=%2Fsign-up");
     expect(hasSessionCookie(["vallo_first_run", "sb-abc-auth-token.0"])).toBe(true);
     expect(hasSessionCookie(["vallo_first_run", "nf_theme"])).toBe(false);
   });

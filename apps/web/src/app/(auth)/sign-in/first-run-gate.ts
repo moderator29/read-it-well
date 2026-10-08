@@ -11,7 +11,9 @@ import {
  * THE FOUNDER, 7 October 2026: the first time somebody taps Sign in or Sign up
  * on a device, anywhere (the landing capsule, the nav, a gated action), they
  * see the onboarding carousel first; at its end, or on Skip, they land on the
- * page they asked for. After that, on that device, both doors open straight.
+ * page they asked for. THE FOUNDER, 8 October 2026, widened it to every
+ * visit: the "seen" cookie now lasts one sitting (30 minutes, `first-run-seen.ts`),
+ * so both doors open straight only for the rest of that sitting.
  * So the whole door address (its `next`, its `notice`) is carried as
  * `/welcome?next=...` and comes back intact. This replaces V-18's "a Sign in
  * pressed on purpose never sees it".
@@ -24,7 +26,11 @@ import {
  * Ways straight through, each there to stop a loop or a wrong screen:
  *   - the cookie: this device has seen it;
  *   - `welcomed=1`: the storage-blocked hand-off above;
- *   - a session cookie on the request: never shown to a signed-in member;
+ *   - NOT a bare session cookie any more (the founder, 8 October 2026): an
+ *     old, expired cookie read as "signed in" and sent him straight to
+ *     "Create your account" with no slides. Whoever taps Sign in or Sign up
+ *     is, for that tap, somebody arriving; `signedIn` is kept on the input
+ *     for its callers but no longer opens the door straight;
  *   - any notice except `sign-in-required`: the account notices (a spent
  *     link, a sign-out, a passcode lock, an unconfigured platform) are about
  *     somebody who already has an account. `sign-in-required` is the wall in
@@ -43,7 +49,6 @@ export function doorFirstRunRedirect(input: {
   params: Record<string, string | string[] | undefined>;
 }): string | null {
   if (isFirstRunSeen(input.cookie)) return null;
-  if (input.signedIn) return null;
   const passed = input.params[FIRST_RUN_PASSED_PARAM];
   if (passed === "1" || (Array.isArray(passed) && passed.includes("1"))) return null;
   const notice = input.params.notice;
