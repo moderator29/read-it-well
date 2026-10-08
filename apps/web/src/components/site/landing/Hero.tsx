@@ -144,7 +144,9 @@ export function Hero({ t, locale, door }: { t: Dictionary; locale: Locale; door:
               >
                 {open ? hero.explore : hero.getStarted}
               </ButtonLink>
-              <ButtonLink href={door("/stays")} variant="quiet" size="lg" className="nf-pl-quiet">
+              {/* The second door is the warm spark (D81): blue leads, orange
+                  sparks, one orange button in the hero. */}
+              <ButtonLink href={door("/stays")} variant="spark" size="lg" className="nf-pl-spark">
                 {t.landingRooms.worlds.stays.cta}
               </ButtonLink>
             </div>

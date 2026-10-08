@@ -737,7 +737,8 @@ export function ReservePanel({
           <Button type="submit" variant="primary" full disabled={!ready} loading={pending}>
             Reserve
           </Button>
-          <ButtonLink href={messageHref} variant="secondary" full>
+          {/* The second action under the blue Reserve is the warm spark (D81). */}
+          <ButtonLink href={messageHref} variant="spark" full>
             Message agent
           </ButtonLink>
         </div>

@@ -119,8 +119,14 @@
         0 22px 50px -16px color-mix(in oklab, var(--nf-content-primary) 70%, transparent);
     }
   }
-  .nf-btn.nf-pl-quiet {
-    color: var(--nf-content-primary);
+  /* The second door in the hero (D81): the orange capsule beside the blue
+     one, the same height and shape so the pair reads as a pair, with the
+     spark's own fill and glow (spark.css) and no reflection: the mirror is
+     the primary's alone. */
+  .nf-btn.nf-pl-spark {
+    --nf-btn-h: 3.5rem;
+    border-radius: var(--nf-radius-pill);
+    padding-inline: var(--nf-space-xl);
   }
 
   /* ----------------------------------------------------------- the hero */
