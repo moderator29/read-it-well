@@ -542,13 +542,13 @@ begin
   -- The marker in the conversation. Best effort: a refused marker (a message
   -- limit, a block written a second ago) never undoes the call's own ending.
   if c.purpose = 'CONVERSATION' and c.conversation_id is not null and c.initiator_id is not null then
-    if c.state = 'ENDED' and c.duration_seconds is not null and c.duration_seconds > 0 then
+    if c.state = 'ENDED' and c.connected_at is not null and c.duration_seconds is not null then
       mins := c.duration_seconds / 60;
       secs := c.duration_seconds % 60;
-      marker := initcap(words) || ', '
+      marker := upper(left(words, 1)) || substr(words, 2) || ', '
         || case when mins > 0 then mins::text || ' min ' else '' end || secs::text || ' s';
     else
-      marker := initcap(words) || ', ' || case c.state
+      marker := upper(left(words, 1)) || substr(words, 2) || ', ' || case c.state
         when 'ENDED' then 'ended'
         when 'DECLINED' then 'declined'
         when 'CANCELLED' then 'cancelled'

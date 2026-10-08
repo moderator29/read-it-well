@@ -214,6 +214,9 @@ begin
   if (select count(*) from public.messages where call_id = call1) <> 1 then
     raise exception 'PROBE_FAIL vc1-video-calls 7: the thread does not hold exactly one marker';
   end if;
+  if (select body from public.messages where call_id = call1) !~ '^Video call, ([0-9]+ min )?[0-9]+ s$' then
+    raise exception 'PROBE_FAIL vc1-video-calls 7: the marker reads %', (select body from public.messages where call_id = call1);
+  end if;
   reset role;
   perform set_config('request.jwt.claims', '{"role":"service_role"}', true);
   if exists (select 1 from public.notifications n join public.messages m on m.call_id = call1
