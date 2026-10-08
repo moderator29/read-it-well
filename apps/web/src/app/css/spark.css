@@ -8,11 +8,12 @@
  * `-fill-solid`, `-on-fill`, `-glow`, tokens.css), answered for night and for
  * paper, so no rule names a theme.
  *
- *   1. the spark button        `.nf-btn--spark`: the orange fill, a white 600
- *                              label at 16px, the second action beside a blue
- *                              primary and never two on one screen
- *   2. the light sweep         one band of warm light crosses a filled button
- *                              on hover and on press
+ *   1. the spark button        `.nf-btn--spark` (buttons.css): the orange
+ *                              fill, a white 600 label at 16px, the second
+ *                              action beside a blue primary, never two on one
+ *                              screen
+ *   2. the light sweep         (buttons.css) one band of warm light crosses a
+ *                              filled button on hover and on press
  *   3. the states that point   the dock's chosen tab, the segmented thumb, the
  *                              count badges, the story ring's far end, the
  *                              progress bar's leading edge, the pull to refresh
@@ -27,102 +28,9 @@
  * `:root` to win at the next weight up rather than by load order.
  */
 @layer components {
-  /* ------------------------------------------------- 1. the spark button */
-  .nf-btn--spark {
-    color: var(--nf-spark-on-fill);
-    background: var(--nf-spark-fill);
-    border: var(--nf-border-width) solid transparent;
-    box-shadow: var(--nf-spark-glow);
-    text-shadow: none;
-    filter: none;
-    font-weight: 600;
-  }
-  /* A white label on the orange holds up at 16px and 600 (the large-text
-     rung), so the small and medium buttons step up to it. */
-  .nf-btn--spark.nf-btn--sm,
-  .nf-btn--spark.nf-btn--md {
-    font-size: max(1rem, var(--nf-text-body));
-  }
-  .nf-btn--spark::after {
-    content: none;
-  }
-  .nf-btn--spark:focus-visible {
-    box-shadow:
-      0 0 0 2px var(--nf-surface-canvas),
-      0 0 0 4px var(--nf-spark);
-  }
-  .nf-btn--spark:active:not(:disabled, [aria-disabled="true"]) {
-    background: var(--nf-spark-fill-solid);
-    box-shadow: none;
-  }
-  @media (hover: hover) {
-    .nf-btn--spark:hover:not(:disabled, [aria-disabled="true"]) {
-      box-shadow:
-        var(--nf-spark-glow),
-        0 0 0 1px color-mix(in oklab, var(--nf-spark) 55%, transparent);
-    }
-  }
-
-  /* ----------------------------------------------------- 2. the light sweep */
-  /* Its own clipped layer (Button.tsx, `Sweep`): absolutely placed, so it is
-     never a flex item and never moves the label. */
-  .nf-btn__sweep {
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    overflow: hidden;
-    border-radius: inherit;
-    pointer-events: none;
-  }
-  .nf-btn__sweep::before {
-    content: "";
-    position: absolute;
-    top: -20%;
-    bottom: -20%;
-    left: 0;
-    width: 42%;
-    background: linear-gradient(
-      100deg,
-      transparent 0%,
-      color-mix(in oklab, var(--nf-spark) 34%, transparent) 42%,
-      color-mix(in oklab, var(--nf-spark-on-fill) 26%, transparent) 54%,
-      transparent 100%
-    );
-    opacity: 0;
-    transform: translate3d(-120%, 0, 0) skewX(-14deg);
-  }
-  /* On the orange button the band is white light, not more orange. */
-  .nf-btn--spark .nf-btn__sweep::before {
-    background: linear-gradient(
-      100deg,
-      transparent 0%,
-      color-mix(in oklab, var(--nf-spark-on-fill) 30%, transparent) 50%,
-      transparent 100%
-    );
-  }
-  @media (prefers-reduced-motion: no-preference) {
-    @media (hover: hover) {
-      .nf-btn:hover:not(:disabled, [aria-disabled="true"]) > .nf-btn__sweep::before {
-        animation: nf-btn-sweep var(--nf-duration-cinematic) var(--nf-ease-standard) both;
-      }
-    }
-    .nf-btn:active:not(:disabled, [aria-disabled="true"]) > .nf-btn__sweep::before {
-      animation: nf-btn-sweep var(--nf-duration-deliberate) var(--nf-ease-standard) both;
-    }
-  }
-  @keyframes nf-btn-sweep {
-    0% {
-      opacity: 0;
-      transform: translate3d(-120%, 0, 0) skewX(-14deg);
-    }
-    18% {
-      opacity: 1;
-    }
-    100% {
-      opacity: 0;
-      transform: translate3d(300%, 0, 0) skewX(-14deg);
-    }
-  }
+  /* 1 and 2, the spark button and the light sweep, live in buttons.css with
+     the rest of the button system, so every harness that draws a Button
+     draws them too. */
 
   /* -------------------------------------------- 3. the states that point */
 
@@ -247,10 +155,14 @@
 }
 
 /* Data saving, Calm and Off: the colours stay, nothing moves. */
-:root:is([data-save-data="on"], [data-motion="calm"], [data-motion="off"]) .nf-btn__sweep::before,
 :root:is([data-save-data="on"], [data-motion="calm"], [data-motion="off"]) .nf-app-header__dot,
 :root:is([data-save-data="on"], [data-motion="calm"], [data-motion="off"])
   .nf-tabbar
   :is(.nf-tab__link[aria-current="page"], .nf-tab__link[data-on])::after {
   animation: none;
+}
+/* The light sweep (buttons.css) is not drawn at all under data saving, Calm
+   or Off. */
+:root:is([data-save-data="on"], [data-motion="calm"], [data-motion="off"]) .nf-btn__sweep {
+  display: none;
 }
