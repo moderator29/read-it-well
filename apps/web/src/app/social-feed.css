@@ -4539,7 +4539,7 @@
     backdrop-filter: none;
     color: var(--nf-content-secondary);
     font-size: var(--nf-text-caption);
-    font-weight: 500;
+    font-weight: 400;
   }
   .nf-act-pill--share {
     margin-inline-start: 0;
@@ -4756,7 +4756,7 @@
     border: 0;
     background: none;
     color: var(--nf-content-on-media-secondary);
-    font-weight: 500;
+    font-weight: 400;
   }
   .nf-story--seq .nf-story__bar {
     gap: 4px;
