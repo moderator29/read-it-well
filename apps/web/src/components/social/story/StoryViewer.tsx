@@ -459,18 +459,6 @@ export function StoryViewer({
               BOOKMARK, NOT THE REPOST ARROWS: saving puts the story on the
               reader's own shelf and nobody else sees it happen. */}
           <div className="nf-story__bar">
-            <button
-              type="button"
-              onClick={() => setCommenting(true)}
-              className="nf-story__reply"
-            >
-              <UiIcon name="chat-bubble" size={16} />
-              <span className="truncate">
-                {story.commentCount > 0
-                  ? countOf(story.commentCount, "comments", locale)
-                  : STORY_COPY.addComment}
-              </span>
-            </button>
             <div className="nf-story__actions nf-story__actions--pills">
               <ActionPill
                 icon="heart"
@@ -480,6 +468,15 @@ export function StoryViewer({
                 count={formatNumber(likeCount, locale)}
                 label={liked ? `Liked, ${likeCount}. Undo` : `Likes ${likeCount}, like this story`}
                 onClick={() => mark("LIKE")}
+              />
+              {/* The comment is a bare glyph and its count like the like (D78:
+                  no wrapper around any action on the story). */}
+              <ActionPill
+                icon="chat-bubble"
+                tone="reply"
+                count={formatNumber(story.commentCount, locale)}
+                label={story.commentCount > 0 ? countOf(story.commentCount, "comments", locale) : STORY_COPY.addComment}
+                onClick={() => setCommenting(true)}
               />
               {/* Send, then save at the far edge: the same order as under a
                   post, so the save is always the last mark on the row. */}

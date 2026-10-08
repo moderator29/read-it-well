@@ -4322,37 +4322,19 @@
     border-color: var(--nf-brand-secondary);
   }
 
-  /* One bar: the reply capsule takes the room, the three capsules sit at
-     the end. */
+  /* One bar of bare actions, the order under a post: like and comment
+     at the start, send and save at the far edge (D78, D80). */
   .nf-story__bar {
     display: flex;
     align-items: center;
     gap: 8px;
   }
-  .nf-story__reply {
-    display: flex;
-    flex: 1 1 auto;
-    align-items: center;
-    gap: 8px;
-    min-inline-size: 0;
-    block-size: 44px;
-    padding-inline: 16px;
-    border-radius: var(--nf-radius-segment);
-    border: 1px solid var(--nf-smoked-glass-edge);
-    background: var(--nf-smoked-glass-fill);
-    -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
-    backdrop-filter: blur(var(--nf-smoked-glass-blur));
-    color: var(--nf-content-on-media-secondary);
-    font-size: var(--nf-text-body-sm);
-    text-align: start;
-    transition: transform var(--nf-duration-press) var(--nf-ease-press);
-  }
-  .nf-story__reply:active {
-    transform: scale(0.98);
-  }
   .nf-story__bar .nf-story__actions--pills {
-    flex: none;
+    flex: 1 1 auto;
     gap: 6px;
+  }
+  .nf-story__bar .nf-act-pill--share {
+    margin-inline-start: auto;
   }
   .nf-story__bar .nf-act-pill {
     block-size: 44px;
@@ -4935,9 +4917,6 @@
   }
   .nf-story--seq .nf-story__bar {
     gap: 4px;
-  }
-  .nf-story--seq .nf-story__reply {
-    margin-inline-end: 4px;
   }
   .nf-story--seq .nf-story__bar .nf-act-pill {
     padding-inline: 10px;
