@@ -191,22 +191,18 @@ function Avatar({ author }: { author: PostAuthor | null }) {
 }
 
 /**
- * THE ACTION ROW, AS HIS REFERENCE DRAWS IT (PREMIUM-STANDARD.md reference 2,
- * D72: "small clean icons for likes, comment, retweet").
+ * THE ACTION ROW, VALLO'S OWN (founder, 8 October: "a new next gen style...
+ * a bit look away from x").
  *
- * Reply, repost, like, save and share, bare glyphs (D79: the capsules and the
- * disc are gone, the founder's "remove the wrapper"), spread evenly across
- * the card. A count of nothing is not drawn: "0" under every new post is
- * noise, and the label still says the count aloud. The kebab stays in the
- * head, where `GOVERNING-feed-plus-bloom`
- * puts it. The order is his reference's: the two you do to the writer's
- * words, the one that is a verdict, the one you keep for yourself, and the
- * one you send to somebody else.
- *
- * Save came back to the row. It had been moved into the kebab's sheet to keep
- * the row short; four capsules and a disc fit at 320px because only the counts
- * grow, and saving is the mark people look for under a post. Saves are
- * private, so the save disc carries no count.
+ * X draws five equal glyphs spread across the full width, reply first. This
+ * row is two groups. On the left, what you say back to the writer, verdict
+ * first: like, comment, repost, each a bare glyph with its count close beside
+ * it. On the right, set apart, what you do with the post: send it to
+ * somebody, and save it to your own shelf, the save at the far edge where the
+ * eye ends, because on a property network the saved home is the mark people
+ * come back for. Bare glyphs throughout (D79: no capsule, no disc), each a
+ * 44px target in its own box. A count of nothing is not drawn; the label
+ * still says it aloud. Saves are private, so the save carries no count.
  *
  * Views stay off the row: a count of how many saw something is a fact about
  * it, not something anybody can do to it.
@@ -246,65 +242,69 @@ function ActionRow({
         reads as broken; one whose actions invite you to join reads as a
         product.
       */}
-      <AuthGate action="post">
-        <ActionPill
-          icon="chat-bubble"
-          tone="reply"
-          className="nf-post__act--reply"
-          count={post.replyCount > 0 ? compact(post.replyCount, locale) : undefined}
-          label={`${countOf(post.replyCount, "replies", locale)}, reply to this`}
-          onClick={onReply}
-        />
-      </AuthGate>
-
-      <AuthGate action="react">
-        <ActionPill
-          icon="repost"
-          tone="repost"
-          className="nf-post__act--repost"
-          pressed={post.reposted}
-          payoff
-          count={post.repostCount > 0 ? reposts : undefined}
-          label={post.reposted ? `Reposted, ${reposts}. Undo` : `Reposts ${reposts}, repost this`}
-          onClick={onRepost}
-        />
-      </AuthGate>
-
-      <AuthGate action="react">
-        <ActionPill
-          icon="heart"
-          tone="like"
-          className="nf-post__act--like"
-          pressed={post.liked}
-          payoff
-          count={post.likeCount > 0 ? likes : undefined}
-          label={post.liked ? `Liked, ${likes}. Undo` : `Likes ${likes}, like this`}
-          onClick={onLike}
-        />
-      </AuthGate>
-
-      {onSave ? (
+      <div className="nf-post__acts nf-post__acts--say">
         <AuthGate action="react">
           <ActionPill
-            icon="bookmark"
-            tone="save"
-            round
-            className="nf-post__act--save"
-            pressed={post.saved}
-            label={post.saved ? "Saved. Remove from saved" : "Save this post"}
-            onClick={onSave}
+            icon="heart"
+            tone="like"
+            className="nf-post__act--like"
+            pressed={post.liked}
+            payoff
+            count={post.likeCount > 0 ? likes : undefined}
+            label={post.liked ? `Liked, ${likes}. Undo` : `Likes ${likes}, like this`}
+            onClick={onLike}
           />
         </AuthGate>
-      ) : null}
 
-      <ActionPill
-        icon="share"
-        tone="share"
-        round
-        className="nf-post__act--share"
-        label="Share this post"
-        onClick={onShare}
-      />
+        <AuthGate action="post">
+          <ActionPill
+            icon="chat-bubble"
+            tone="reply"
+            className="nf-post__act--reply"
+            count={post.replyCount > 0 ? compact(post.replyCount, locale) : undefined}
+            label={`${countOf(post.replyCount, "replies", locale)}, reply to this`}
+            onClick={onReply}
+          />
+        </AuthGate>
+
+        <AuthGate action="react">
+          <ActionPill
+            icon="repost-loop"
+            tone="repost"
+            className="nf-post__act--repost"
+            pressed={post.reposted}
+            payoff
+            count={post.repostCount > 0 ? reposts : undefined}
+            label={post.reposted ? `Reposted, ${reposts}. Undo` : `Reposts ${reposts}, repost this`}
+            onClick={onRepost}
+          />
+        </AuthGate>
+      </div>
+
+      <div className="nf-post__acts nf-post__acts--keep">
+        <ActionPill
+          icon="send"
+          tone="share"
+          round
+          className="nf-post__act--share"
+          label="Share this post"
+          onClick={onShare}
+        />
+
+        {onSave ? (
+          <AuthGate action="react">
+            <ActionPill
+              icon="bookmark"
+              tone="save"
+              round
+              className="nf-post__act--save"
+              pressed={post.saved}
+              label={post.saved ? "Saved. Remove from saved" : "Save this post"}
+              onClick={onSave}
+            />
+          </AuthGate>
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -436,11 +436,40 @@ export function PostCard({
       .join(" "),
   });
 
+  /* The time is the post's own link: the keyboard's and the screen reader's
+     way into the thread, as on every feed people know. */
+  const when = (
+    <Link href={`/post/${post.id}`} className="nf-post__when" aria-label="Open post and replies">
+      {post.createdLabel}
+      {post.edited ? " · edited" : ""}
+    </Link>
+  );
+
+  /*
+   * THE PLACE, AS A CONTEXT CHIP. This is a network about homes, stays and
+   * neighbourhoods, so where a post was written is part of what it says. A
+   * small chip on the platform's blue tint with the pin in brand blue; on a
+   * single photograph it rides the picture's lower corner on a dark scrim,
+   * the way a listing photo carries its badge, and otherwise it sits under
+   * the words. It takes you to the place. The 44px target is the link's own
+   * box; the chip is drawn inside it.
+   */
+  const place =
+    post.areaName && post.areaSlug && !isSystem ? (
+      <Link href={`/around/${post.areaSlug}`} className="nf-post__place">
+        <span className="nf-post__place-chip">
+          <UiIcon name="location" size={12} filled />
+          <span className="truncate">{aroundLine.replace("{area}", post.areaName)}</span>
+        </span>
+      </Link>
+    ) : null;
+  const placeOnPhoto = place !== null && post.media.length === 1;
+
   const body = (
     <>
       {post.repostedBy ? (
         <p className="mb-xs flex items-center gap-xs text-[length:var(--nf-text-overline)] font-semibold text-[var(--nf-content-muted)]">
-          <UiIcon name="repost" size={14} />
+          <UiIcon name="repost-loop" size={14} />
           Reposted by {post.repostedBy}
         </p>
       ) : null}
@@ -448,9 +477,9 @@ export function PostCard({
       {/*
         THE HEAD, AS THE RENDER DRAWS IT.
 
-        The face in its glass ring, then the name with the verified mark beside
-        it and the handle on the line under, then the time and the kebab at the
-        far end. The mark is `TierBadge`, the one badge on the
+        The face, then the name with the verified mark beside it and the
+        handle and the time on one quiet line under it, then the kebab alone
+        at the far end. The mark is `TierBadge`, the one badge on the
         platform, drawn from `public.person_badge` and nothing else. It used to
         be a tick for `isAgent`, which is a role marker and not a check of
         anybody (`lib/trust/badge-tier.ts` forbids exactly that reading).
@@ -466,11 +495,18 @@ export function PostCard({
 
         <div className="nf-post__who">
           {isSystem ? (
-            <span className="nf-post__name">Vallo</span>
+            <>
+              <span className="nf-post__name">Vallo</span>
+              <span className="nf-post__metaline">{when}</span>
+            </>
           ) : isBot ? (
             <>
               <span className="nf-post__name">Vallo AI</span>
-              <span className="nf-post__handle">The assistant</span>
+              <span className="nf-post__metaline">
+                <span className="nf-post__handle">The assistant</span>
+                <span className="nf-post__dot" aria-hidden="true" />
+                {when}
+              </span>
             </>
           ) : (
             <>
@@ -494,19 +530,20 @@ export function PostCard({
                   </span>
                 ) : null}
               </span>
-              {post.author?.handle ? (
-                <span className="nf-post__handle">@{post.author.handle}</span>
-              ) : null}
+              {/* The handle and the time share one quiet line under the
+                  name, so the far end of the head holds the menu alone. */}
+              <span className="nf-post__metaline">
+                {post.author?.handle ? (
+                  <>
+                    <span className="nf-post__handle">@{post.author.handle}</span>
+                    <span className="nf-post__dot" aria-hidden="true" />
+                  </>
+                ) : null}
+                {when}
+              </span>
             </>
           )}
         </div>
-
-        {/* The time is the post's own link: the keyboard's and the screen
-            reader's way into the thread, as on every feed people know. */}
-        <Link href={`/post/${post.id}`} className="nf-post__when" aria-label="Open post and replies">
-          {post.createdLabel}
-          {post.edited ? " · edited" : ""}
-        </Link>
 
         {/* The header carries the name, the time and this. Nothing else: the
             bookmark that used to sit here lives in the sheet this opens. */}
@@ -517,7 +554,7 @@ export function PostCard({
           aria-haspopup="dialog"
           onClick={onMenu}
         >
-          <UiIcon name="more" size={16} />
+          <UiIcon name="more" size={20} />
         </button>
       </div>
 
@@ -536,21 +573,13 @@ export function PostCard({
         </p>
       ) : null}
 
-      {editor ? (
-        <div className="mt-sm">{editor}</div>
-      ) : post.body ? (
-        <PostBody
-          text={post.body}
-          className={
-            isSystem
-              ? "nf-post__body nf-post__body--system"
-              : "nf-post__body"
-          }
-        />
-      ) : null}
-
       {/*
-        * The pictures.
+        * The pictures, FIRST (8 October). The photograph leads and the words
+        * read under it as its caption, the order of a listing card and of
+        * every picture-led feed, and the opposite of a text timeline where a
+        * picture is an attachment under somebody's words. On a network about
+        * homes, stays and places, the place is usually the post.
+        *
         *
         * Signed URLs against a private bucket, which is why they are read and
         * signed for a whole page at once and why this is a plain `img`: a
@@ -558,7 +587,7 @@ export function PostCard({
         * image optimiser would cache somebody's private photograph behind a
         * URL that outlives the signature.
         *
-        * One is a wide plate; two to four are a sideways rail of tall cards
+        * One is a 4:3 plate; two to four are a sideways rail of tall cards
         * (`MediaRail`). Every shape is fixed before a byte arrives, so the
         * card does not jump when the pictures do.
         */}
@@ -598,19 +627,24 @@ export function PostCard({
               }
             />
           ))}
+          {placeOnPhoto ? <span className="nf-post__place-on-photo">{place}</span> : null}
         </div>
       ) : null}
 
-      {post.areaName && post.areaSlug && !isSystem ? (
-        /* THE PLACE, as a quiet line with its pin rather than a bordered
-           chip: it says where the post was written and takes you there, and
-           it is the smallest thing on the card. The 44px target is the
-           row's own height. */
-        <Link href={`/around/${post.areaSlug}`} className="nf-post__place">
-          <UiIcon name="location" size={12} />
-          <span className="truncate">{aroundLine.replace("{area}", post.areaName)}</span>
-        </Link>
+      {editor ? (
+        <div className="mt-sm">{editor}</div>
+      ) : post.body ? (
+        <PostBody
+          text={post.body}
+          className={
+            isSystem
+              ? "nf-post__body nf-post__body--system"
+              : "nf-post__body"
+          }
+        />
       ) : null}
+
+      {placeOnPhoto ? null : place}
 
       {post.cited.length > 0 ? (
         <div className="nf-post__cited">

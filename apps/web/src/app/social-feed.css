@@ -4384,11 +4384,22 @@
 
   /* ---------------------------------------------------- the card itself */
 
-  /* One clean card on the platform's own container (`Panel`, card): its
-     fill, its per-side edge, its rim and glow, nothing feed-only painted on
-     top. The air is the premium: 16 around, 12 between the parts. */
+  /*
+   * THE VALLO CARD (8 October, the founder: "a new next gen style... clean
+   * and premium... a bit look away from x").
+   *
+   * X is a flat column of rows split by hairlines, the avatar in a gutter
+   * and five glyphs spread under each. This is the other way: every post is
+   * its own soft card on the platform's container (`Panel`, card: its fill,
+   * its per-side edge, its rim and glow, nothing feed-only painted on top),
+   * with a generous corner and air on every side, the photograph leading at
+   * 4:3, the place as a chip, and an action row in two groups. The air is the
+   * premium: 18 at the sides, 14 between the parts.
+   */
   .nf-panel.nf-post {
-    padding: 16px 16px 4px;
+    --nf-feed-pad: 18px;
+    padding: 16px var(--nf-feed-pad) 6px;
+    border-radius: var(--nf-radius-xl);
     background: var(--nf-panel-fill-card);
     border-color: var(--nf-panel-edges);
     box-shadow:
@@ -4396,12 +4407,12 @@
       var(--nf-panel-glow);
   }
   .nf-feed-page {
-    --nf-feed-gap: 12px;
+    --nf-feed-gap: 14px;
   }
 
-  /* The author line: face, name over handle, the time, the menu. */
+  /* The author line: face, name over handle and time, the menu. */
   .nf-post__head {
-    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
     column-gap: 12px;
   }
@@ -4448,19 +4459,49 @@
     letter-spacing: -0.01em;
     color: var(--nf-content-primary);
   }
-  .nf-post__handle {
-    margin: 0;
+  /* The handle, a dot and the time on one quiet line. */
+  .nf-post__metaline {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-inline-size: 0;
     color: var(--nf-content-muted);
+    font-size: var(--nf-text-caption);
+    line-height: 1.35;
   }
-  /* The time is the post's own link now: a 44px target with the same
-     visual size, pulled back by the padding it adds. */
+  .nf-post__handle {
+    min-inline-size: 0;
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--nf-content-muted);
+    font-size: var(--nf-text-caption);
+    line-height: 1.35;
+  }
+  .nf-post__dot {
+    flex: none;
+    inline-size: 3px;
+    block-size: 3px;
+    border-radius: var(--nf-radius-circle);
+    background: currentColor;
+  }
+  /* The time is the post's own link: a 44px target at the same visual size,
+     pulled back by the padding it adds. */
   .nf-post__when {
+    flex: none;
     align-self: center;
     padding: 14px 2px;
     margin-block: -14px;
+    white-space: nowrap;
     color: var(--nf-content-muted);
     font-size: var(--nf-text-caption);
+    line-height: 1.35;
     font-variant-numeric: tabular-nums;
+  }
+  .nf-post__when:hover,
+  .nf-post__when:focus-visible {
+    color: var(--nf-content-secondary);
   }
   .nf-post__kebab {
     display: grid;
@@ -4469,7 +4510,7 @@
     inline-size: 44px;
     block-size: 44px;
     margin-block: -10px;
-    margin-inline: -8px -12px;
+    margin-inline: 0 -12px;
     color: var(--nf-content-muted);
   }
   .nf-post__body {
@@ -4482,40 +4523,135 @@
   .nf-post__body--system {
     color: var(--nf-content-secondary);
   }
+
+  /* THE PHOTOGRAPH LEADS. One picture is a 4:3 plate, the proportion a
+     listing photograph is taken in, with a soft corner and a hairline so it
+     sits in the card. Two to four stay the sideways rail. */
   .nf-post__media {
     position: relative;
-    margin-block-start: 12px;
-    border-radius: var(--nf-radius-plate);
+    margin-block-start: 14px;
+    border: 1px solid var(--nf-panel-hair);
+    border-radius: var(--nf-radius-lg);
+    box-shadow: none;
+  }
+  .nf-post__media--1 img {
+    aspect-ratio: 4 / 3;
   }
   .nf-post__media--rail {
+    border: 0;
     border-radius: 0;
+  }
+  .nf-post__media--rail .nf-post__rail-track img {
+    border-radius: var(--nf-radius-lg);
   }
   /* The post opens on a tap of the card, so the card says so to a pointer. */
   .nf-post--pressable {
     cursor: pointer;
   }
 
-  /* ------------------------------------------------- the action row, bare */
+  /* -------------------------------------------------- the place, a chip */
 
-  /* Reply, repost, like, save and share: five glyphs with their counts,
-     spread evenly across the card's width. The row is pulled out by the
-     glyph's own side bearing so the first glyph lines up with the words. */
+  /* The link is the 44px target; the chip is drawn inside it, a rounded
+     rectangle on the control radius (the shape law: no capsules). */
+  .nf-post__place {
+    display: flex;
+    align-items: center;
+    inline-size: fit-content;
+    max-inline-size: 100%;
+    min-block-size: 44px;
+    margin-block: 4px -6px;
+    color: var(--nf-content-secondary);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .nf-post__place-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-inline-size: 0;
+    max-inline-size: 100%;
+    block-size: 30px;
+    padding-inline: 10px 12px;
+    border-radius: var(--nf-radius-control-sm);
+    background: var(--nf-brand-tint-1);
+    transition: background-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-post__place-chip .nf-ui-icon {
+    flex: none;
+    color: var(--nf-brand-secondary);
+  }
+  .nf-post__place:hover,
+  .nf-post__place:focus-visible {
+    color: var(--nf-content-primary);
+  }
+  .nf-post__place:hover .nf-post__place-chip {
+    background: var(--nf-brand-tint-2);
+  }
+  /* On a single photograph the chip rides the lower corner on a dark scrim,
+     the way a listing photograph carries its badge. */
+  .nf-post__place-on-photo {
+    position: absolute;
+    inset-inline-start: 6px;
+    inset-block-end: 4px;
+    z-index: 1;
+    display: flex;
+    max-inline-size: calc(100% - 12px);
+  }
+  .nf-post__place-on-photo .nf-post__place {
+    margin: 0;
+    padding-inline: 4px;
+    color: var(--nf-content-on-media);
+  }
+  .nf-post__place-on-photo .nf-post__place-chip,
+  .nf-post__place-on-photo .nf-post__place:hover .nf-post__place-chip {
+    background: var(--nf-surface-control-on-media-strong);
+  }
+  .nf-post__place-on-photo .nf-post__place-chip .nf-ui-icon {
+    color: var(--nf-content-on-media);
+  }
+
+  /* The flat attached to a post sits on the platform's blue-tinted
+     container (D78: no grey containers), corner to match the photograph. */
+  .nf-post__attach {
+    margin-block-start: 14px;
+    padding: 8px 12px 8px 8px;
+    border-radius: var(--nf-radius-lg);
+    border: 1px solid var(--nf-brand-tint-2);
+    background: var(--nf-brand-tint-1);
+  }
+  .nf-post__attach:hover {
+    background: var(--nf-brand-tint-2);
+  }
+  .nf-post__attach-thumb {
+    border-radius: var(--nf-radius-md);
+  }
+
+  /* ---------------------------------------- the action row, in two groups */
+
+  /* Like, comment and repost together on the left; send and save together
+     on the right. The row is pulled out by the glyph's own side bearing so
+     the first glyph lines up with the words and the last with the menu. */
   .nf-post__actions {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 0;
+    gap: 8px;
     margin-block: 8px 0;
-    margin-inline: -12px;
+    margin-inline: -10px;
     padding: 0;
     border: 0;
   }
-  .nf-post__act--like,
-  .nf-post__act--repost {
-    min-inline-size: 44px;
+  .nf-post__acts {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    min-inline-size: 0;
   }
-  .nf-post__act--share {
-    margin-inline-end: 0;
+  .nf-post__act--like,
+  .nf-post__act--repost,
+  .nf-post__act--reply {
+    min-inline-size: 44px;
   }
 
   /* THE GLYPH WITH NO WRAPPER. No fill, no edge, no capsule, no disc: the
@@ -4541,6 +4677,12 @@
     font-size: var(--nf-text-caption);
     font-weight: 400;
   }
+  /* The glyph a touch larger than a row icon: the controls under a post are
+     what the thumb is looking for. */
+  .nf-post__actions .nf-act-pill__glyph {
+    inline-size: 22px;
+    block-size: 22px;
+  }
   .nf-act-pill--share {
     margin-inline-start: 0;
   }
@@ -4548,13 +4690,20 @@
     background: none;
     color: var(--nf-content-primary);
   }
-  /* On: the glyph fills (heart, bookmark) and takes the brand blue, so the
-     state is in the shape and not in colour alone. */
+  /* On: the glyph fills (heart, bookmark) in the brand blue and the count
+     follows it, so the state is in the shape and not in colour alone. The
+     like takes the bright brand blue, the save the deep one. */
   .nf-act-pill[aria-pressed="true"],
   .nf-story__actions--pills .nf-act-pill[aria-pressed="true"] {
     border-color: transparent;
     background: none;
     color: var(--nf-brand-secondary);
+  }
+  .nf-act-pill--like[aria-pressed="true"] {
+    color: var(--nf-brand-primary);
+  }
+  .nf-act-pill[aria-pressed="true"] .nf-act-pill__count {
+    font-weight: 600;
   }
   .nf-act-pill__count {
     font-variant-numeric: tabular-nums;
@@ -4562,7 +4711,12 @@
   @media (max-width: 359px) {
     .nf-act-pill,
     .nf-act-pill--round {
+      gap: 4px;
       padding-inline: 8px;
+    }
+    .nf-post__actions .nf-act-pill__glyph {
+      inline-size: 20px;
+      block-size: 20px;
     }
   }
 
@@ -4613,6 +4767,14 @@
     background:
       linear-gradient(var(--nf-surface-canvas), var(--nf-surface-canvas)) padding-box,
       linear-gradient(var(--nf-ring-seen), var(--nf-ring-seen)) border-box;
+  }
+  /* "Your story" is a way to post, not a story waiting to be seen, so its
+     ring is the platform's quiet blue tint at the same size and stroke: it
+     lines up with the others and never reads as a seen grey. */
+  .nf-story-ring .nf-story-ring__disc.nf-story-ring__disc--you:not([style*="--nf-ring"]) {
+    background:
+      linear-gradient(var(--nf-surface-canvas), var(--nf-surface-canvas)) padding-box,
+      linear-gradient(var(--nf-brand-tint-3), var(--nf-brand-tint-3)) border-box;
   }
   .nf-story-ring .nf-story-ring__disc img {
     display: block;
@@ -4724,6 +4886,13 @@
     color: var(--nf-content-on-media);
     filter: drop-shadow(0 1px 6px var(--nf-overlay-media));
   }
+  /* The menu's three dots at the size of the back arrow beside them, so the
+     two ends of the row weigh the same. */
+  .nf-story--seq .nf-story__top .nf-social-round .nf-ui-icon {
+    flex: none;
+    inline-size: 22px;
+    block-size: 22px;
+  }
 
   /* The foot: caption, who liked it, the comment field and the glyphs,
      together at the bottom on the picture's own dark wash. No card. */
@@ -4757,6 +4926,12 @@
     background: none;
     color: var(--nf-content-on-media-secondary);
     font-weight: 400;
+  }
+  /* "+12" beside the faces is the faces' own blue, not a grey wash (D78: no
+     grey containers). */
+  .nf-story--seq .nf-story__more {
+    background: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
   }
   .nf-story--seq .nf-story__bar {
     gap: 4px;
