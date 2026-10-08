@@ -219,7 +219,8 @@
       width: calc((100% - (var(--nf-ink-n) - 1) * var(--nf-ink-gap)) / var(--nf-ink-n));
       height: 2px;
       border-radius: var(--nf-radius-xs);
-      background: var(--nf-content-primary);
+      /* The selected rule is the brand blue (founder ruling, 7 October). */
+      background: var(--nf-act-blue);
       pointer-events: none;
       transform: translateX(calc(var(--nf-ink-i) * (100% + var(--nf-ink-gap)) * var(--nf-ink-dir)))
         scaleX(var(--nf-ink-trim));
