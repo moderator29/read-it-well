@@ -112,7 +112,41 @@ HTTP, Supabase Auth, PostgREST, Realtime and the push pipeline.
 | The live probe | waits for the lead to apply the migration |
 | Push delivery of an incoming call to a phone | FCM/APNs devices and keys |
 | Weak network, network switch, Bluetooth audio | devices |
-| The call screens | not built here (frontend agent) |
+| The call screens | built by the frontend agent; see section 3a |
+
+## 3a. The call screens (frontend, 8 October 2026)
+
+Built in `apps/web/src/components/calls/` (thread call buttons, the global
+call layer and deep links, incoming / outgoing / connecting / in-call /
+reconnecting / ended / permission / recovery screens, call history rows,
+the inbox's missed-call line), `components/calls/admin/` and
+`app/admin/review-calls/` (the staff desk), `app/(app)/calls/reviews/`
+(the subject's invitation). All behind `video_calls` (and
+`admin_review_calls` for reviews); off, nothing is drawn and the routes say
+"not available yet".
+
+| Test | What it is | Result |
+|---|---|---|
+| `lib/calls/screen.test.ts`, `components/calls/call-store.test.ts` | unit: the server clock, refusal and glare handling, markers, permission platforms, Lagos time, the staff forms, the one-call store | 32 passed |
+| `components/calls/media-boundary.test.ts` | unit: `livekit-client` is imported by one module, reached only by `import()` from the lazy stage; the shells mount the layer through the flag check | passed |
+| `components/calls/calls.dom.test.tsx` | Chromium, real components, staged server actions: incoming accept / accept with voice / decline / refused accept; in-call mute, camera, switch, end, 56 to 64px controls, keyboard-movable self view, voice call without camera controls; history rows and call back; the outcome form's validation | 9 passed |
+| `scripts/calls/ui-e2e.mjs` | the REAL call components bundled from source, two headless Chromium pages with fake devices, the real VC1 SQL on PGlite, the real `livekit-server`, Vallo's token service, adapter and webhook handler; the server actions replaced by a shim that calls the same SQL functions | 25 of 25 checks, three consecutive runs |
+
+The e2e drives: a tap on the thread's video button (one `startCall`),
+Ringing, the callee's `?call=` deep link resolved by the call layer, Accept,
+both pages decoding the other's video, ACTIVE from the provider's webhooks,
+the clock on the server's time, mute seen by the other side, camera off and
+on seen by the other side, End, both ended screens, ENDED with one marker in
+the thread, then a voice call answered on a browser that refuses the camera
+and microphone: the permission screen with its platform steps, no join token
+asked for, Keep messaging ending the call cleanly.
+
+It is NOT: a phone, a native shell, LiveKit Cloud, Supabase Realtime, the
+Next.js server actions over HTTP, or production. Two runs of an earlier
+draft failed at the media step, each straight after a run that had crashed:
+that run's `livekit-server` was still answering the port with another key.
+The script now checks that the server answering is its own process, waits
+for it to exit, and reports a crashed step as a failed check.
 
 ## 5. Reproduce
 
@@ -128,6 +162,9 @@ VC_PGLITE_MODULE=<...> node scripts/calls/pglite-mutations.mjs
 LIVEKIT_SERVER_BIN=<livekit-server> \
 VC_LIVEKIT_CLIENT_UMD=<livekit-client>/dist/livekit-client.umd.js \
 VC_PGLITE_MODULE=<...> node scripts/calls/livekit-e2e.mjs
+
+# the real call screens through a real call
+LIVEKIT_SERVER_BIN=<livekit-server> VC_PGLITE_MODULE=<...> node scripts/calls/ui-e2e.mjs
 ```
 
 ## 6. Repository gates at the time of writing (8 October 2026, this branch)

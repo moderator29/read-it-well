@@ -4,6 +4,7 @@ import { BUSINESS_RUNGS, type BusinessQueueRow } from "@/lib/admin/business-quer
 import { BUSINESS_LADDER, BUSINESS_TIER_NAME, asBusinessTier } from "@/lib/admin/business-ladder";
 import type { AdminUi } from "../_components/ui";
 import { BusinessReviewDecision, PublishControl, RungDecision } from "./BusinessDecisions";
+import { ReviewCallAction } from "@/components/calls/admin/ReviewCallAction";
 import { DocumentViewer } from "../_components/DocumentViewer";
 
 /** The four rungs in ladder order, with the ladder's own words. */
@@ -360,7 +361,11 @@ export function BusinessCard({ row, ui }: { row: BusinessQueueRow; ui: AdminUi }
       )}
 
       {decidable ? (
-        <BusinessReviewDecision businessId={row.id} name={row.name} />
+        <>
+          <BusinessReviewDecision businessId={row.id} name={row.name} />
+          {/* VC1: a review call with the owner (KYC scope, both switches on). */}
+          <ReviewCallAction caseKind="business_verification" caseId={row.id} />
+        </>
       ) : (
         <p className="nf-overline mt-group">
           {row.status === "PUBLISHED"

@@ -5,6 +5,7 @@ import { getLocale } from "@/lib/locale";
 import { AgentShell } from "@/components/agent/AgentShell";
 import { agentProfileFrom, getAgentContext } from "@/lib/agent/listings-queries";
 import ConversationPage from "@/app/(app)/messages/[id]/page";
+import { callIdFromParam } from "@/lib/calls/screen";
 
 export const metadata: Metadata = {
   title: "Conversation",
@@ -33,10 +34,14 @@ export default async function AgentConversationPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ attach?: string | string[]; showme?: string | string[] }>;
+  searchParams: Promise<{ attach?: string | string[]; showme?: string | string[]; call?: string | string[] }>;
 }) {
-  const [{ id }, context] = await Promise.all([params, getAgentContext()]);
-  if (context.state !== "agent") redirect(`/messages/${encodeURIComponent(id)}`);
+  const [{ id }, context, query] = await Promise.all([params, getAgentContext(), searchParams]);
+  if (context.state !== "agent") {
+    /* VC1: a call link keeps its call when it moves to the member address. */
+    const call = callIdFromParam(query.call);
+    redirect(`/messages/${encodeURIComponent(id)}${call ? `?call=${call}` : ""}`);
+  }
 
   const locale = await getLocale();
   const t = getDictionary(locale);

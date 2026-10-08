@@ -148,6 +148,10 @@ describe("principle 10, the marketing and loading loops (Session 3, C1)", () => 
       /* KEPT BY THE LEAD'S RULING (Session 3): live presence signals, like the assistant's
          thinking, each stopped by reduced motion, Calm, Off and data saver. */
       "app/css/motion.css": 1, // the counterpart's typing dots
+      /* VC1: the ring round a calling avatar, a live signal like the typing
+         dots, that lasts only while a call rings (45 s at most) and is
+         stopped by reduced motion, Calm, Off and data saver. */
+      "app/css/calls.css": 1,
       /* THE FOUNDER'S RESTORATION (7 October 2026): the login, sign-up and
          welcome screens back exactly as they were before the redesign, with
          their own loops (the code caret, the focal glow, the welcome scenes'

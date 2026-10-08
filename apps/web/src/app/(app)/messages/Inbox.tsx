@@ -76,6 +76,12 @@ export type InboxRow = {
    * earned. Absent never means "offline", it means "not known".
    */
   presence?: "online";
+  /**
+   * VC1: the newest message is a call this reader missed (read from the
+   * call marker's `call_id`, never from typed words). Drawn as a red
+   * missed-call line in place of the preview.
+   */
+  missedCall?: { kind: "AUDIO" | "VIDEO"; words: string };
 };
 
 const CONTEXT_GLYPH: Partial<Record<ThreadContextKind, UiIconName>> = {
@@ -187,7 +193,16 @@ function Row({
                   : "text-[var(--nf-content-secondary)]"
             }`}
           >
-            {typing ? words.typing : preview}
+            {typing ? (
+              words.typing
+            ) : row.missedCall ? (
+              <span className="inline-flex items-center gap-inline-tight text-[var(--nf-state-error)]" data-testid="inbox-missed-call">
+                <UiIcon name="phone-missed" size={16} filled />
+                {row.missedCall.words}
+              </span>
+            ) : (
+              preview
+            )}
           </span>
         </span>
 

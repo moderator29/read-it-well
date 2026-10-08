@@ -364,6 +364,9 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   /* D22: every notification's designed full view, reached by a route so back
      behaves and a push lands. Its way up is the list it belongs to. */
   "/notifications/[id]": "/notifications",
+  /* VC1: review call invitations, reached from their notification. */
+  "/calls/reviews": "/notifications",
+  "/calls/reviews/[id]": "/calls/reviews",
   "/profile": "/home",
   "/profile/application": "/profile",
   "/profile/setup": "/profile",
@@ -459,6 +462,9 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/admin/people/[id]": "/admin/people",
   "/admin/supply": "/admin",
   "/admin/support": "/admin",
+  /* VC1: the review calls desk, and one review call. */
+  "/admin/review-calls": "/admin",
+  "/admin/review-calls/[id]": "/admin/review-calls",
   "/admin/switches": "/admin/settings",
 
   /* ---------------------------------------------------- the agent console */

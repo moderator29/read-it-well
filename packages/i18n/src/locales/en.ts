@@ -35,6 +35,7 @@ import { experienceDiscoverEn } from "./experience-discover.en";
 import { experienceDetailEn } from "./experience-detail.en";
 import { experienceSocialEn } from "./experience-social.en";
 import { experienceInboxEn } from "./experience-inbox.en";
+import { callsEn } from "./calls.en";
 import { experienceAccountEn } from "./experience-account.en";
 import { experienceFeaturesEn } from "./experience-features.en";
 import { experienceRewardsEn } from "./experience-rewards.en";
@@ -5833,6 +5834,8 @@ export const en = {
   experienceDetail: experienceDetailEn,
   experienceSocial: experienceSocialEn,
   experienceInbox: experienceInboxEn,
+  /* VC1: voice and video calls, and the review calls (docs/video-calling/). */
+  calls: callsEn,
   experienceAccount: experienceAccountEn,
   experienceFeatures: experienceFeaturesEn,
   /* C3, Round 3: the Rewards Balance and the referral dashboard (D51). */

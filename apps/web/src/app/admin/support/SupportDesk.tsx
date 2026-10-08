@@ -24,6 +24,7 @@ import { NoteForm } from "../_components/NoteForm";
 import { CalmNote, Panel } from "../_components/panels";
 import type { AdminCopy } from "../_components/copy";
 import { TicketClaim } from "./TicketClaim";
+import { ReviewCallAction } from "@/components/calls/admin/ReviewCallAction";
 import { SupportComposer } from "./SupportComposer";
 import { ReturnEscalation, SupportEscalate } from "./SupportEscalate";
 import { SupportKeys } from "./SupportKeys";
@@ -494,6 +495,9 @@ function Ticket({
               taken={live.map((e) => e.toScope)}
             />
           ) : null}
+
+          {/* VC1: a review call about this request (support scope, both switches on). */}
+          {supportMode && open && row.hasAccount ? <ReviewCallAction caseKind="support_ticket" caseId={row.id} /> : null}
 
           {past.length > 0 ? (
             <Section title="Handed back">

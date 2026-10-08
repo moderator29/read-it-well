@@ -45,6 +45,8 @@ export type LiveConversationSummary = {
   lastFromMe: boolean;
   /** ISO instant of the most recent message, for ageing a waiting thread. */
   lastAt: string;
+  /** The newest message's id: VC1 asks whether it is a call marker (the inbox's missed-call line). */
+  lastMessageId?: string | null;
   /**
    * True when this thread is a request: somebody the caller has never spoken
    * to opened it, and the caller has never sent a message in it. The inbox
@@ -252,7 +254,7 @@ export async function loadConversationSummaries(
   const [{ data: recent }, { data: mine }, identities, exactUnread] = await Promise.all([
     supabase
       .from("messages")
-      .select("conversation_id, sender_id, body, created_at, read_at")
+      .select("id, conversation_id, sender_id, body, created_at, read_at")
       .in("conversation_id", ids)
       .order("created_at", { ascending: false })
       .limit(400),
@@ -272,12 +274,13 @@ export async function loadConversationSummaries(
 
   const lastByConversation = new Map<
     string,
-    { body: string; at: string; senderId: string }
+    { id: string; body: string; at: string; senderId: string }
   >();
   const unreadByConversation = new Map<string, number>();
   for (const m of recent ?? []) {
     if (!lastByConversation.has(m.conversation_id)) {
       lastByConversation.set(m.conversation_id, {
+        id: m.id,
         body: m.body,
         at: m.created_at,
         senderId: m.sender_id,
@@ -319,6 +322,7 @@ export async function loadConversationSummaries(
         c.businesses?.name ??
         null,
       lastMessage: last?.body ?? "No messages yet",
+      lastMessageId: last?.id ?? null,
       whenLabel: lagosWhenLabel(last?.at ?? c.last_message_at),
       unread: (exactUnread ? exactUnread.byConversation : unreadByConversation).get(c.id) ?? 0,
       /* No messages at all counts as not from us, so a brand new enquiry with

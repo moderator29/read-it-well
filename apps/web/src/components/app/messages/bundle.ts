@@ -60,6 +60,8 @@ function sameAct(prev: BundleInput, next: BundleInput): boolean {
 function joins(run: BundleInput[], next: BundleInput): boolean {
   const prev = run[run.length - 1]!;
   if (!sameAct(prev, next)) return false;
+  /* VC1: a call marker is its own row, never a photo's caption. */
+  if ((next as { call?: unknown }).call) return false;
   if (!isPhotoOnly(prev)) return false;
   return isPhotoOnly(next) || isCaption(next);
 }

@@ -29,6 +29,7 @@ import { AppShell } from "@/components/app/AppShell";
 import { PasscodeGate } from "@/components/passcode/PasscodeGate";
 import { resolvePasscodeGate } from "@/lib/passcode/state";
 import { isSocialEnabled } from "@/lib/social/flag";
+import { CallLayerMount } from "@/components/calls/CallLayerMount";
 /* C12: the feed's motion sheet, out of `globals.css`; only this tree draws a post. */
 import "@/app/css/feed-m.css";
 
@@ -149,6 +150,9 @@ export default async function AppLayout({
       <OfflineTray />
       {/* V-98: the home-screen widget's token, in the native app only. */}
       <WidgetBridge />
+      {/* VC1: incoming calls on any page, and the one call surface, only
+          while video_calls is on (nothing at all otherwise). */}
+      <CallLayerMount />
       {/* The passcode lock (docs/PASSCODE.md): the page only when this
           session is unlocked, the lock or the setup screen otherwise. */}
       <PasscodeGate t={t} locale={locale} name={signedIn && userName !== "Guest" ? userName : ""} avatarUrl={avatarUrl}>
