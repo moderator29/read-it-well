@@ -62,10 +62,14 @@
     inline-size: 100%;
     min-block-size: 5.5rem;
     justify-content: flex-start;
-    padding: var(--nf-space-xs) var(--nf-space-2xs);
-    border: var(--nf-border-width) solid var(--nf-tier-plate-edge);
-    border-radius: var(--nf-tier-plate-radius);
-    background: var(--nf-tier-plate-fill);
+    padding: var(--nf-space-sm) var(--nf-space-xs);
+    /* D78: a badge sits on the platform's own blue container (the panel the
+       profile lists use, `list-group.css`), not the see-through glass plate it
+       used to. */
+    border: var(--nf-border-width) solid var(--nf-tier-card-edge);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-surface-primary);
+    box-shadow: var(--nf-card-shadow);
     color: var(--nf-content-primary);
     text-align: center;
     cursor: pointer;
@@ -74,10 +78,9 @@
       scale var(--nf-duration-press) var(--nf-ease-press);
   }
   .nf-merit-tile:hover {
-    background: var(--nf-tier-plate-hover);
+    border-color: var(--nf-brand-secondary);
   }
   .nf-merit-tile:active {
-    background: var(--nf-tier-plate-press);
     scale: 0.985;
   }
   .nf-merit-tile:focus-visible {
