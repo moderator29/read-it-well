@@ -130,6 +130,15 @@ VC_LIVEKIT_CLIENT_UMD=<livekit-client>/dist/livekit-client.umd.js \
 VC_PGLITE_MODULE=<...> node scripts/calls/livekit-e2e.mjs
 ```
 
-## 6. Repository gates at the time of writing
+## 6. Repository gates at the time of writing (8 October 2026, this branch)
 
-Recorded in section 7 below once the full run finished.
+| Gate | Result |
+|---|---|
+| `npx vitest run --project unit --maxWorkers=2` | 855 files, 10,092 passed, 1 skipped, 0 failed |
+| `NODE_OPTIONS=--max-old-space-size=6144 npx tsc --noEmit -p .` | clean |
+| eslint on every changed file | clean |
+| `node scripts/check-no-em-dash.mjs`, `check-valuation-words`, `check-css-tokens` | clean |
+| `npm run -s check:claims` | 45 passed |
+| `node scripts/check-migrations.mjs` | clean (the VC1 file is pending, not recorded) |
+| Migration content rules M1 to M4 (`check-migration-rules.mjs` `checkText`) on the VC1 file | no findings |
+| `node scripts/db-probes/run.mjs --check` and `checkProbeSource` on the VC1 probe | contract kept |
