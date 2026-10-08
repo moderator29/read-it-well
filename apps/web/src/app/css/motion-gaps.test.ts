@@ -165,6 +165,12 @@ describe("principle 10, the marketing and loading loops (Session 3, C1)", () => 
          object field is on screen and allowed to move, and still under
          reduced motion, Calm, Off, data saver and a low-end device. */
       "app/css/landing-3d.css": 2, // the floating 3D objects' gentle bob, and the hero's aurora
+      /* D81 (8 October 2026): the new mark as the loader. While a page or a
+         sign-in link is still being fetched, a light runs round the mark's
+         ring; it is a wait signal like the assistant's thinking, gone the
+         moment the page arrives, and never drawn under reduced motion, Calm,
+         Off or data saver. */
+      "app/css/logo-motion.css": 1, // the orbit loader's light
     };
     const root = join(process.cwd(), "src");
     const found: Record<string, number> = {};

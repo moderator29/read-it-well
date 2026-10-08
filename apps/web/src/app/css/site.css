@@ -612,7 +612,7 @@
   .nf-cap__brand {
     display: inline-flex;
     align-items: center;
-    gap: 0.625rem;
+    gap: 0.5rem;
     min-height: 2.75rem;
     padding-inline-end: var(--nf-space-xs);
     border-radius: var(--nf-radius-pill);
@@ -636,6 +636,8 @@
   .nf-cap__word {
     display: inline-flex;
     align-items: center;
+    /* The wordmark keeps its drawn shape; a squeezed one reads as a typo. */
+    flex-shrink: 0;
   }
   .nf-cap__nav {
     display: none;

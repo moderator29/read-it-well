@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import type { Locale } from "@vallo/i18n/core";
 import { formatKoboExact } from "@/components/app/money/money";
 import { spokenMoney } from "@/lib/money/spoken";
-import { LogoMark } from "@/design-system/brand/Logo";
+import { LogoMark, LogoWordmark, wordmarkWidth } from "@/design-system/brand/Logo";
 import type { StatusTone } from "@/components/ui/StatusPill";
 import "@/app/css/money-layer.css";
 
@@ -136,7 +136,7 @@ export function MoneyCard({
       <div className="nf-mcard__top">
         <span className="nf-mcard__brand" aria-hidden="true">
           <LogoMark size={22} />
-          <span className="nf-mcard__word">VALLO</span>
+          <LogoWordmark width={wordmarkWidth(14)} height={14} className="nf-mcard__word" />
         </span>
         {corner ? corner : art ? <span className="nf-mcard__art">{art}</span> : <span className="nf-mcard__chip" aria-hidden="true" />}
       </div>

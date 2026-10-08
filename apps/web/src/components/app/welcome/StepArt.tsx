@@ -61,20 +61,18 @@ export function Lockup({ onCanvas = false, themed = false }: { onCanvas?: boolea
   const pair = (day: boolean) => (
     <>
       <Image
-        src={day ? "/brand/vallo-mark-light.png" : "/brand/vallo-mark.png"}
+        src={day ? "/brand/vallo-mark-light.svg" : "/brand/vallo-mark.svg"}
         alt=""
-        width={614}
-        height={587}
-        sizes="28px"
+        width={776}
+        height={664}
         priority
         className="nf-gs-lockup__mark"
       />
       <Image
-        src={day ? "/brand/vallo-wordmark-light.png" : "/brand/vallo-wordmark.png"}
+        src={day ? "/brand/vallo-wordmark-light.svg" : "/brand/vallo-wordmark.svg"}
         alt=""
-        width={758}
-        height={167}
-        sizes="84px"
+        width={1664}
+        height={352}
         priority
         className="nf-gs-lockup__word"
       />

@@ -1,0 +1,106 @@
+/*
+ * THE MARK IN MOTION (D81, 8 October 2026: "Let's make this cinematic").
+ *
+ * `LogoMarkLive` (design-system/brand/LogoMarkLive.tsx) draws the new mark
+ * inline, in parts, so it can move:
+ *
+ *   .nf-vmark--reveal  the towers rise out of the ring, the small ones first
+ *                      and the tall blue one last, while the ring draws
+ *                      itself from the cyan tip, round the front, to its
+ *                      orange end.
+ *   .nf-vmark--orbit   the loading mark: the towers rise once, then a short
+ *                      light runs along the ring, blue into orange, on a loop.
+ *
+ * The towers are clipped above the ring's inner edge in the drawing itself,
+ * so a tower moved down simply sinks behind the front of the ring: the rise
+ * needs no mask of its own.
+ *
+ * Every movement is on the app's own duration and ease tokens, so the Motion
+ * setting's cinematic and calm ladders reach it. Under reduced motion, data
+ * saving, Calm and Off the mark is drawn at rest and the orbit light is not
+ * drawn at all.
+ */
+@layer components {
+  .nf-vmark {
+    display: block;
+    overflow: visible;
+  }
+  .nf-vmark__tower {
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
+  }
+  .nf-vmark__sweep {
+    fill: none;
+    stroke: var(--nf-mask-opaque);
+    stroke-width: 140;
+    stroke-linecap: round;
+  }
+  .nf-vmark__orbit {
+    fill: none;
+    stroke: var(--nf-spark-ink);
+    stroke-width: 26;
+    stroke-linecap: round;
+    stroke-dasharray: 0.12 0.88;
+    stroke-dashoffset: 0.12;
+    opacity: 0;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .nf-vmark--reveal .nf-vmark__tower,
+    .nf-vmark--orbit .nf-vmark__tower {
+      animation: nf-vmark-rise var(--nf-duration-cinematic) var(--nf-ease-entrance) both;
+      animation-delay: calc(var(--nf-i, 0) * 110ms + 120ms);
+    }
+    .nf-vmark--reveal .nf-vmark__sweep {
+      stroke-dasharray: 1 1;
+      animation: nf-vmark-sweep var(--nf-duration-cinematic) var(--nf-ease-entrance) both;
+    }
+    .nf-vmark--orbit .nf-vmark__orbit {
+      animation: nf-vmark-orbit 1.6s var(--nf-ease-standard) calc(var(--nf-duration-cinematic) + 200ms) infinite;
+    }
+  }
+
+  @keyframes nf-vmark-rise {
+    from {
+      transform: translate3d(0, 62%, 0);
+    }
+    to {
+      transform: none;
+    }
+  }
+  @keyframes nf-vmark-sweep {
+    from {
+      stroke-dashoffset: 1;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  @keyframes nf-vmark-orbit {
+    0% {
+      stroke-dashoffset: 0.12;
+      opacity: 0;
+    }
+    15% {
+      opacity: 1;
+    }
+    80% {
+      opacity: 1;
+    }
+    100% {
+      stroke-dashoffset: -0.92;
+      opacity: 0;
+    }
+  }
+}
+
+/* Data saving, Calm and Off: the mark at rest, the orbit light not drawn.
+   Unlayered, like the other partials' answers to the root's switches. */
+:root:is([data-save-data="on"], [data-motion="calm"], [data-motion="off"]) .nf-vmark__tower,
+:root:is([data-save-data="on"], [data-motion="calm"], [data-motion="off"]) .nf-vmark__sweep,
+:root:is([data-save-data="on"], [data-motion="calm"], [data-motion="off"]) .nf-vmark__orbit {
+  animation: none;
+}
+:root:is([data-save-data="on"], [data-motion="calm"], [data-motion="off"]) .nf-vmark__sweep {
+  stroke-dasharray: none;
+}

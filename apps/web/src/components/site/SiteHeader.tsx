@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ButtonLink } from "@/components/ui/Button";
 import type { Dictionary, Locale } from "@vallo/i18n/core";
-import { Logo, LogoMark, LogoWordmark } from "@/design-system/brand/Logo";
+import { Logo, LogoMark, LogoWordmark, wordmarkWidth } from "@/design-system/brand/Logo";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { EdgeLap } from "./EdgeLap";
 import { MobileMenu } from "./MobileMenu";
@@ -174,10 +174,10 @@ function LandingCapsule({
         <EdgeLap className="nf-cap">
           <Link href="/" aria-label={t.a11y.logoHome} className="nf-cap__brand">
             <span className="nf-cap__plate" aria-hidden="true">
-              <LogoMark size={26} priority />
+              <LogoMark size={30} priority />
             </span>
             <span className="nf-cap__word" aria-hidden="true">
-              <LogoWordmark width={758} height={167} sizes="96px" priority style={{ height: 17, width: "auto" }} />
+              <LogoWordmark width={wordmarkWidth(16)} height={16} priority style={{ height: 16, width: "auto", flexShrink: 0 }} />
             </span>
           </Link>
           <nav aria-label={t.nav.primaryLabel} className="nf-cap__nav">

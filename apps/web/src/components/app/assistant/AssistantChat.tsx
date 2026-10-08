@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useOverlay } from "@/lib/ui/use-overlay";
 import Image from "next/image";
 import Link from "next/link";
-import { LogoMark, LogoWordmark } from "@/design-system/brand/Logo";
+import { LogoMark, LogoWordmark, wordmarkWidth } from "@/design-system/brand/Logo";
 import { DepthWords } from "@/components/motion/DepthWords";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import {
@@ -680,7 +680,7 @@ export function AssistantChat({
               {/* 72 by 16: the artwork is 758 by 167, so at 72 wide it draws 15.9
                   tall. Declared as 15, the browser's rounded 16 read to Next
                   as a height changed without the width (integration QA O4). */}
-              <LogoWordmark width={72} height={16} priority className="nf-ai__word" />
+              <LogoWordmark width={wordmarkWidth(16)} height={16} priority className="nf-ai__word" />
             </Link>
             {barActions}
           </div>

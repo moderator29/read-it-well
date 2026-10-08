@@ -55,8 +55,8 @@ describe("PasscodeFrame", () => {
     expect(html).toContain("nf-passcode__scene");
     expect(html).toContain("villa-pool-portrait");
     expect(html).toMatch(/nf-passcode__sheet[^>]*data-door="keypad"[\s\S]*data-ring="initial"/);
-    expect(html).toContain("vallo-mark.png");
-    expect(html).toContain("vallo-wordmark.png");
+    expect(html).toContain("vallo-mark.svg");
+    expect(html).toContain("vallo-wordmark.svg");
     expect(html).toContain('data-ring="initial"');
     expect(html).toMatch(/nf-passcode__initial">A</);
   });
