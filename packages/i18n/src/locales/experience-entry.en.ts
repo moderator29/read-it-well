@@ -13,14 +13,17 @@ export const experienceEntryEn = {
   resendWindow: "That is every code we can send for now. You can ask for another in {time}.",
   resendReady: "You can ask for a new code now.",
 
-  /* The offline page (`app/offline/`): one Island, one action, and words that
-     say what is happening. It is precached and static, so English. */
-  offlineTitle: "No connection",
-  offlineBody:
-    "Vallo could not reach the network. Your balance, messages and bookings are never shown from an old copy, and anything you had typed but not sent may need typing again.",
+  /* The offline page (`app/offline/`). Shown ONLY for a page this phone has
+     never opened, asked for with no signal: every page opened before opens
+     from the phone instead (`public/sw.js`). So it is small and calm, says
+     what is true, and offers the way back to what does work. It is
+     precached and static, so English. */
+  offlineTitle: "This page needs a connection",
+  offlineBody: "You have not opened it on this phone yet. Pages you have opened still work while you are offline.",
   offlineRetry: "Try again",
+  offlineHome: "Go to Home",
   offlineStatusOnline: "Your phone reports a connection. Tap Try again.",
-  offlineStatusOffline: "Your phone reports no connection right now. We will try again by ourselves when it comes back.",
+  offlineStatusOffline: "We will open it by ourselves when the signal is back.",
 
   /* The code field (`components/auth/CodeInput.tsx`): how far the code has
      got, read by a screen reader with the field's description. */

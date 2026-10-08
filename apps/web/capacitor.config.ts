@@ -161,10 +161,26 @@ const config: CapacitorConfig = {
        that resolves `@/`. If the chrome colour moves, these three move with it,
        and that note is at the definition too. */
     backgroundColor: "#010118",
-    /* Links that are not ours open in the system browser rather than replacing
-       the application. See `src/lib/native/external-links.ts` for why that
-       matters to payments and to OAuth specifically. */
-    limitsNavigationsToAppBoundDomains: false,
+    /*
+     * APP-BOUND DOMAINS, ON (8 October 2026), BECAUSE IT IS WHAT TURNS ON THE
+     * SERVICE WORKER IN AN IPHONE'S WEB VIEW. WKWebView runs a service worker
+     * only for an app that lists its domains (`WKAppBoundDomains` in
+     * `ios/App/App/Info.plist`, which explains each entry), and Capacitor asks
+     * for this flag to be true whenever that list exists. With it, the pages a
+     * member has opened open again with no signal (`public/sw.js`) instead of
+     * the packaged offline card.
+     *
+     * Links that are not ours still open in the system browser rather than
+     * replacing the application: Capacitor's own navigation delegate hands any
+     * host outside `allowNavigation` to the operating system before WebKit's
+     * app-bound check is reached, and `src/lib/native/external-links.ts` does
+     * the same in the page for payments and OAuth. What this flag adds is a
+     * refusal of a top-level load to an unlisted host, which is a load that
+     * delegate already never lets happen.
+     *
+     * NEEDS A NATIVE REBUILD to take effect; `cap sync` copies it.
+     */
+    limitsNavigationsToAppBoundDomains: true,
   },
 
   plugins: {

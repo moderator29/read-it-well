@@ -23,7 +23,12 @@ export const detailsEn = {
     failed: "Could not share from this browser. Copy the address instead.",
   },
   connection: {
-    offline: "You are offline. Pages you opened still work.",
+    /* The phone has no signal: the page on screen is the one this phone
+       kept, and every page opened before still opens. */
+    offline: "You are offline. Showing what you saw last.",
+    /* The phone reports signal but the network was too slow to wait for, so
+       the kept copy is on screen while the fresh one loads. */
+    kept: "Slow connection. Showing what you saw last.",
     back: "Back online",
   },
   refresh: {

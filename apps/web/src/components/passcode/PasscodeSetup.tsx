@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { plural, type Locale } from "@vallo/i18n/core";
 import { forgotPasscodeAction, setPasscodeAction } from "@/lib/passcode/actions";
 import { signOut } from "@/lib/profile/actions";
+import { forgetKeptPages } from "@/lib/offline/page-cache";
 import {
   ATTEMPTS_PER_COOLDOWN,
   DEFAULT_PASSCODE_LENGTH,
@@ -332,6 +333,8 @@ export function PasscodeSetup({
             onClick={() =>
               startLeaving(async () => {
                 await signOut();
+                /* The pages this phone kept for offline go with the session. */
+                await forgetKeptPages();
                 window.location.assign("/");
               })
             }

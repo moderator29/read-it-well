@@ -19,6 +19,7 @@ import { useNfSettings } from "@/components/app/account/settings-store";
 import { clearPacks } from "@/lib/offline/pack-store";
 import { clearShelf } from "@/lib/offline/shelf-store";
 import { clearOutbox } from "@/lib/offline/outbox";
+import { forgetKeptPages } from "@/lib/offline/page-cache";
 import { forgetWidget } from "@/lib/native/widget";
 import { revokeWidgetTokens } from "@/lib/native/widget-actions";
 import { clearAllInflight } from "@/lib/offline/inflight";
@@ -384,6 +385,8 @@ export function LogOutRow({ t, signedIn }: { t: HubCopy; signedIn: boolean }) {
               /* SUP-16: a listing draft never outlives the session that wrote it. */
               clearListingDrafts();
               await clearOutbox();
+              /* The pages this phone kept for offline go with the session. */
+              await forgetKeptPages();
               await forgetWidget();
               clearAllInflight();
               clearLocalDevice();

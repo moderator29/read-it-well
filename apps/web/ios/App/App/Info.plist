@@ -269,5 +269,54 @@
 	     no iPad orientation list. iPads run it in iPhone compatibility mode. -->
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<!--
+		APP-BOUND DOMAINS (8 October 2026): THE KEY THAT LETS VALLO WORK OFFLINE
+		ON AN IPHONE.
+
+		WKWebView runs a service worker only for an app that names its own
+		domains here. Without this key `public/sw.js` never registered in the
+		iOS app at all, so every launch or tap with a weak signal fell through
+		to the packaged "No connection" card, which is what the founder saw on
+		TestFlight. With it, the screens a member has opened open again from
+		the phone, as they already did on Android and in a browser.
+
+		THE LIST, AND WHY EACH IS ON IT (WebKit allows ten):
+		  www.vallospaces.com, vallospaces.com   the live origin and its apex
+		                                         (`capacitor.config.ts`)
+		  localhost                              the packaged shell itself
+		                                         (`capacitor://localhost`), whose
+		                                         offline card must still reach the
+		                                         Capacitor bridge to take the
+		                                         splash down (`native-shell/shell.js`)
+		  checkout.paystack.com, checkout.paystack.co, standard.paystack.co,
+		  paystack.com                           Paystack's checkout frame. WebKit
+		                                         withdraws script injection and
+		                                         message handlers from a page while
+		                                         a frame from a domain NOT on this
+		                                         list is in it, which would cut the
+		                                         Capacitor bridge for the length of
+		                                         a payment. Listing the checkout
+		                                         hosts (the same set as `frame-src`
+		                                         in `lib/security/csp.ts`) keeps the
+		                                         bridge whole. A top-level visit to
+		                                         them still leaves for the system
+		                                         browser: they are not in
+		                                         `allowNavigation`.
+
+		Paired with `ios.limitsNavigationsToAppBoundDomains: true` in
+		`capacitor.config.ts`, as Capacitor requires. A change here needs a
+		native rebuild and a TestFlight check of payment, Google and Apple sign
+		in, and an airplane-mode launch (`docs/VALLO_NATIVE_TEST_MATRIX.md`).
+	-->
+	<key>WKAppBoundDomains</key>
+	<array>
+		<string>www.vallospaces.com</string>
+		<string>vallospaces.com</string>
+		<string>localhost</string>
+		<string>checkout.paystack.com</string>
+		<string>checkout.paystack.co</string>
+		<string>standard.paystack.co</string>
+		<string>paystack.com</string>
+	</array>
 </dict>
 </plist>

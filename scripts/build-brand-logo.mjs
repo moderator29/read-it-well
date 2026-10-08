@@ -23,6 +23,8 @@
  *   vallo-icon.png                                  1024 square app icon: the mark on brand navy
  *   startup/vallo-mark.webp, startup/vallo-wordmark.webp, session-b/signin/lockup.webp
  *                                                   the older startup and sign-in cuts, redrawn
+ * apps/web/native-shell/vallo-mark.svg             the mark again, packaged in the binary for the
+ *                                                   native offline card (it cannot fetch anything)
  * apps/web/public/favicon.ico                       a real ICO: 16, 32 and 48
  * apps/web/public/pwa/icon-{16,32,48,64,192,512}.png, apple-touch-icon.png, icon-maskable-512.png
  * apps/web/assets/icon-only.png, icon-foreground.png, icon-background.png   (@capacitor/assets sources)
@@ -246,6 +248,8 @@ await out(path.join(BRAND, "vallo-mark.svg"), Buffer.from(svg.markNight));
 await out(path.join(BRAND, "vallo-mark-light.svg"), Buffer.from(svg.markNight));
 await out(path.join(BRAND, "vallo-wordmark.svg"), Buffer.from(svg.wordNight));
 await out(path.join(BRAND, "vallo-wordmark-light.svg"), Buffer.from(svg.wordNight));
+/* The native shell's offline card draws the same mark from the binary. */
+await out(path.join(WEB, "native-shell/vallo-mark.svg"), Buffer.from(svg.markNight));
 
 /* ---------- transparent PNGs ---------- */
 {

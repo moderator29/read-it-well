@@ -10,36 +10,29 @@
       The shell the binary carries.
 
       Capacitor packages this folder into the application, and the live origin
-      is loaded over it at launch. This file is what a person sees when that
-      origin cannot be reached: a dead network on a metered data bundle, an
-      aeroplane, or a build that was shipped without CAPACITOR_SERVER_URL set.
+      is loaded over it at launch. This page is what a person sees only when
+      that origin cannot be reached AND the app has nothing of its own to show
+      yet: the very first launch with no signal, before Vallo has ever loaded
+      on this phone. Every launch after that, the web app's service worker
+      (`public/sw.js`) answers from the phone: the screens the member opened
+      open again offline, with a quiet line at the top saying so, and this
+      page is never reached. On iOS that needs App-Bound Domains, which
+      `Info.plist` and `capacitor.config.ts` now declare.
 
-      It is deliberately one file with no external request of any kind. A
-      fallback that needs the network to render is not a fallback. There is no
-      font file, no image file and no script beyond the few lines at the foot,
-      so it paints instantly from the binary with the radio switched off.
+      REDRAWN 8 OCTOBER 2026, AFTER THE FOUNDER SAW IT ON TESTFLIGHT. The old
+      card was a full-screen wall that said nothing could open, under a
+      placeholder drawing of five towers that was never the brand. This one is
+      calm and small: the real Vallo mark (`vallo-mark.svg`, written into this
+      folder by `scripts/build-brand-logo.mjs`, the same artwork in the same
+      colours on every ground, D82), one line that says what is happening, one
+      button, and it keeps trying by itself so the person does not have to.
 
-      REDRAWN 6 OCTOBER 2026 (W11, north star section 10 L): the navy ground,
-      ONE Island, ONE action, and copy that says what is happening. A store
-      reviewer on a bad hotel connection meets this before they meet anything
-      else we have made, so it is the product's own register in the one place
-      it cannot fetch anything: the night navy with its aurora, one Island of
-      navy glass with the real Vallo mark above its words, and a single
-      rectangle button. The paper twin that used to follow a device set to
-      light is gone: the product's doors are night (north star D1), the status
-      bar is the night colour whatever the setting (`native-chrome.test.ts`),
-      and a card that flashes white on a phone set to light, with the radio off,
-      would be the loudest thing the app ever drew. The explanatory panel that
-      stood inside the card is a line of its own now: a second container inside
-      the Island was a fifth container.
+      It is still one page with no network request of any kind beyond the
+      retry probe. The mark is a file in the binary, not a fetch. There is no
+      font file, so it paints instantly with the radio switched off.
 
-      Drawn with nothing but CSS and inline SVG so the no-request rule holds.
       The values are literals because this file cannot import the token sheet;
-      each comment says which token it is copied from. NO SHAPE HERE IS A
-      CAPSULE: the button is 14px on a 48px box (0.29) and the Island 28px on
-      a card far taller than that.
-
-      House rules apply here as they do everywhere: no em dashes, British
+      each comment says which token it is copied from. No em dashes, British
       spelling, brand blue only, and every state designed rather than left to
       a browser default.
     -->
@@ -51,10 +44,9 @@
         /* The one blue family, from the brand ramp. */
         --brand: #0257fd;
         --brand-lift: #2f7dff;
-        --brand-deep: #012e78;
         --brand-edge: rgba(2, 87, 253, 0.42);
-        --glow: rgba(2, 87, 253, 0.34);
-        /* The Island's navy glass (`--nf-tier-island-fill`) and its edge light. */
+        --glow: rgba(2, 87, 253, 0.28);
+        /* The Island's navy glass (`--nf-tier-island-fill`). */
         --island: rgba(4, 10, 31, 0.78);
         --text: rgba(255, 255, 255, 0.94);
         --muted: rgba(255, 255, 255, 0.64);
@@ -80,111 +72,84 @@
         font-family:
           -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
           sans-serif;
-        line-height: 1.55;
+        line-height: 1.5;
         display: flex;
         align-items: center;
         justify-content: center;
         /* The notch and the home indicator. `viewport-fit=cover` above is what
            makes these resolve to anything other than zero. */
-        padding: calc(env(safe-area-inset-top, 0px) + 1.5rem) 1.25rem
+        padding: calc(env(safe-area-inset-top, 0px) + 1.5rem) 1rem
           calc(env(safe-area-inset-bottom, 0px) + 1.5rem);
         min-height: 100dvh;
         overflow-x: hidden;
       }
 
-      /*
-       * THE AURORA, WHICH IS THE GROUND AND NOT DECORATION. Two soft blue
-       * lights in the navy, one high and one low: two radial gradients, no
-       * request, painted once, and it does not move.
-       */
+      /* The ground: two soft blue lights in the navy, painted once. */
       .aurora {
         position: fixed;
         inset: 0;
         pointer-events: none;
         background:
-          radial-gradient(
-            72% 48% at 50% -6%,
-            rgba(2, 87, 253, 0.26) 0%,
-            rgba(2, 87, 253, 0.08) 42%,
-            transparent 72%
-          ),
-          radial-gradient(
-            120% 60% at 50% 112%,
-            rgba(1, 46, 120, 0.4) 0%,
-            transparent 68%
-          ),
+          radial-gradient(72% 48% at 50% -6%, rgba(2, 87, 253, 0.2) 0%, transparent 72%),
           linear-gradient(180deg, var(--ground) 0%, var(--ground-deep) 100%);
       }
 
       main {
         position: relative;
         width: 100%;
-        max-width: 24rem;
+        max-width: 21rem;
       }
 
-      /* ------------------------------------------------------ the Island */
-
-      /*
-       * The one container: navy glass, its one edge the brand's light on the
-       * border (28px, the Island's own radius, `--nf-tier-island-radius`). The
-       * mark stands in it, then the words, then the one button.
-       */
+      /* The one container: navy glass with the brand's light on its edge. */
       .island {
         position: relative;
-        padding: 2.25rem 1.5rem 1.75rem;
+        padding: 1.75rem 1.25rem 1.25rem;
         text-align: center;
         border: 1px solid var(--brand-edge);
         border-radius: 1.75rem;
         background: var(--island);
-        box-shadow: 0 24px 60px rgba(0, 4, 16, 0.55);
-        animation: rise 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+        box-shadow: 0 20px 48px rgba(0, 4, 16, 0.5);
+        animation: rise 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
       }
 
-      /* The real mark, drawn rather than fetched (the vector master, inlined). */
+      /* The real mark, never recoloured. */
       .mark {
         display: block;
-        width: 3.5rem;
+        width: 2.75rem;
         height: auto;
-        margin: 0 auto 1.5rem;
-        color: var(--brand-lift);
+        margin: 0 auto 1rem;
       }
 
-      /* ------------------------------------------------------- the words */
-
       h1 {
-        margin: 0 0 0.625rem;
-        font-size: 1.625rem;
-        line-height: 1.15;
+        margin: 0 0 0.375rem;
+        font-size: 1.25rem;
+        line-height: 1.2;
         font-weight: 600;
-        letter-spacing: -0.02em;
+        letter-spacing: -0.01em;
       }
 
       .lede {
         margin: 0;
-        font-size: 0.9375rem;
+        font-size: 0.875rem;
         color: var(--muted);
       }
 
-      /* ---------------------------------------------------- the control */
-
-      /*
-       * A ROUNDED RECTANGLE, NEVER A CAPSULE. 0.875rem of corner on a 3rem
-       * box is a ratio of 0.29: the platform's primary at its large rung.
-       */
+      /* A ROUNDED RECTANGLE, NEVER A CAPSULE: 0.875rem on a 2.75rem box. */
       button {
-        margin-top: 1.5rem;
+        margin-top: 1.25rem;
         width: 100%;
-        min-height: 3rem;
-        padding: 0.75rem 1.5rem;
+        min-height: 2.75rem;
+        padding: 0.625rem 1.25rem;
         border: 1px solid var(--brand-edge);
         border-radius: 0.875rem;
         background: var(--brand);
         color: var(--on-brand);
         font: inherit;
-        font-size: 1rem;
+        font-size: 0.9375rem;
         font-weight: 600;
         cursor: pointer;
-        box-shadow: 0 8px 24px var(--glow);
+        touch-action: manipulation;
+        box-shadow: 0 6px 18px var(--glow);
         transition: transform 120ms ease-out;
       }
 
@@ -202,8 +167,9 @@
         outline-offset: 3px;
       }
 
-      .footnote {
-        margin: 1rem 0 0;
+      .status {
+        margin: 0.75rem 0 0;
+        min-height: 1.1rem;
         font-size: 0.75rem;
         color: var(--faint);
       }
@@ -211,7 +177,7 @@
       @keyframes rise {
         from {
           opacity: 0;
-          transform: translate3d(0, 18px, 0);
+          transform: translate3d(0, 12px, 0);
         }
       }
 
@@ -239,44 +205,22 @@
       body[data-state="unconfigured"] #unconfigured {
         display: block;
       }
-
-      .code {
-        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-        font-size: 0.8125rem;
-        color: var(--text);
-      }
     </style>
   </head>
   <body>
     <div class="aurora" aria-hidden="true"></div>
 
     <main>
-      <div class="island">
-        <!--
-          THE Vallo mark: the five towers and the orbital swoosh from the
-          vector master, `src/components/auth/vector-mark.ts`, inlined path for
-          path; `vector-mark.test.ts` fails if these paths and the master ever
-          differ. One ink, the brand blue. No text is baked into it.
-        -->
-        <svg class="mark" viewBox="0 0 614 587" role="img" aria-label="Vallo" fill="currentColor">
-          <path d="M52 325 109 296V508L52 512Z" />
-          <path d="M134 209 200 165V495L134 505Z" />
-          <path d="M223 98 345 21V452L223 489Z" />
-          <path d="M370 120 459 175V394L370 441Z" />
-          <path d="M479 253 495 263V367L479 377Z" />
-          <path d="M104 522C214 532 340 512 432 465C506 427 563 377 576 321C583 289 566 266 525 260L507 257C536 270 546 292 539 321C526 364 472 406 395 444C314 482 216 509 104 522Z" />
-        </svg>
+      <div class="island" role="status" aria-live="polite">
+        <!-- THE Vallo mark, the same file the web app draws, packaged here. -->
+        <img class="mark" src="vallo-mark.svg" alt="" width="44" height="38" />
 
         <div id="offline">
-          <h1>No connection</h1>
-          <p class="lede">
-            Vallo could not reach the network, and homes, stays, messages and
-            your balance are read from Vallo, so none of them can open yet.
-            <span id="still" hidden>Still no connection. Try again when you have signal.</span>
-          </p>
+          <h1>Waiting for a connection</h1>
+          <p class="lede">Vallo opens as soon as your phone finds a signal.</p>
 
           <button type="button" id="retry">Try again</button>
-          <p class="footnote">Check Wi-Fi or mobile data, and that aeroplane mode is off. We will also try again by ourselves when the connection comes back.</p>
+          <p class="status"><span id="still" hidden>Still no signal. We keep trying by ourselves.</span></p>
         </div>
 
         <!--
@@ -288,8 +232,7 @@
         <div id="unconfigured">
           <h1>This copy of Vallo needs updating</h1>
           <p class="lede">
-            It cannot find its way to Vallo. Install the latest version from
-            your app store, or open vallospaces.com in your browser.
+            Install the latest version from your app store, or open vallospaces.com in your browser.
           </p>
         </div>
       </div>

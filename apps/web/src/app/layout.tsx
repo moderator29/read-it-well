@@ -9,6 +9,7 @@ import { ScrollToTop } from "@/components/site/ScrollToTop";
 import { LivingCanvas } from "@/components/site/LivingCanvas";
 import { ThemeSync } from "@/components/site/ThemeControl";
 import { ServiceWorkerRegistrar } from "@/components/app/ServiceWorkerRegistrar";
+import { VIEWER_HEADER, viewerMeta } from "@/lib/offline/viewer-stamp";
 import { NativeRuntime } from "@/components/app/NativeRuntime";
 import { STARTUP_GATE_SCRIPT, STARTUP_NATIVE_SCRIPT } from "@/components/startup/startup-script";
 import { ThresholdStage } from "@/components/motion/ThresholdStage";
@@ -304,6 +305,11 @@ export default async function RootLayout({
      writing `nonce="undefined"`, and no policy is being served on those paths
      either, so the two absences agree. */
   const nonce = (await headers()).get(NONCE_HEADER) ?? undefined;
+  /* Whose page this is, for the service worker that keeps it for offline
+     (`lib/offline/viewer-stamp.ts`): the copy in the head is the one the
+     Android app's worker can read. Null on every render the proxy did not
+     stamp, and then nothing is drawn. */
+  const offlineStamp = viewerMeta(await headers());
   /* The theme the person chose, from the cookie, so an explicit Light is
      rendered light by the server and never flashes dark. "system" renders
      dark here and the before-paint script below resolves it. */
@@ -331,6 +337,7 @@ export default async function RootLayout({
           report back. Silent on the website. See components/startup.
         */}
         <script nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{ __html: STARTUP_NATIVE_SCRIPT }} />
+        {offlineStamp ? <meta name={VIEWER_HEADER} content={offlineStamp.viewer} data-path={offlineStamp.path} /> : null}
         {/*
           The face arrives with the stylesheet rather than after it. `crossorigin`
           is not optional even though these are our own files: a font is always
