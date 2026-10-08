@@ -1026,6 +1026,15 @@ const PILL_ALLOWED = new Set([
    * test above cannot see them. They are buttons; nothing else wears it.
    */
   "src/app/admin/_review/review.css  .nf-rv-btn",
+  /*
+   * PERMANENT, by the founder's Wallet ruling of 8 October 2026: "the
+   * withdrawal and transfer button should be capsule each okay and glass
+   * too". The wallet card's actions (Add money solid, Withdraw and Transfer
+   * frosted glass) are buttons drawn by the wallet's own class (`nf-mw-btn`,
+   * money-wallet.css) rather than `.nf-btn`, so the button test above cannot
+   * see them. They are buttons; nothing else wears it.
+   */
+  "src/app/css/money-wallet.css  .nf-mw-btn",
 ]);
 
 /* The TSX half of the same list, and it has one entry. The two round things

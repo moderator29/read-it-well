@@ -1,121 +1,403 @@
 /*
   THE WALLET SCREEN (/wallet; the founder, 7 October: "Call it WALLET...
-  design it to be fully clean... remove that icon, that glass").
+  design it to be fully clean"; 8 October: "not really premium!! I need
+  something more premium looks and clean UX and the withdrawal and transfer
+  button should be capsule each okay and glass too and make the whole vibes
+  clean!").
 
-  One card on the platform's own blue container (`.nf-panel`, which the
-  night theme turns into the blue glass the Profile lists sit on, D78), the
-  figure set large with its unit soft, a foot with one short line and Add
-  money, then the lists, then the wallet's own two-action bar (D76) pinned to
-  the foot of the screen. No new colour: every value is a token the platform
-  already uses. Tokens only, inside `@layer components`.
+  One card, deep navy into the Vallo blue in both themes (D78: blue is the
+  identity), with a fine light edge, one soft inner highlight and a gentle
+  shadow. On it: the name with Add money (the one solid blue capsule), the
+  figure with its unit soft, one short status line, and Withdraw and Transfer
+  as two frosted glass capsules side by side. Under it, the platform's own
+  container (`--nf-platform-card-*`) holds every list, each row marked with a
+  solid blue object on a quiet plate (D78: no glass icon). Tokens only,
+  inside `@layer components`.
 */
 @layer components {
-  /* The screen is a column whose last child, the bar, rests at the foot of
-     the viewport when there is little above it and sticks there when the
-     page scrolls. */
+  /* The card's material, resolved in the PAGE's theme (the card itself is a
+     night island, so its own tokens are the night palette in both). The
+     navy is the artwork ground and the blue is the action blue: both hold
+     the same value in every theme, so the card is one object in daylight
+     and at night. Its lift is the elevation rung of the page's theme (read
+     here, outside the island), plus one under-light in its own blue. */
   .nf-mw {
+    --nf-mw-navy: var(--nf-surface-artwork);
+    --nf-mw-blue: var(--nf-act-blue);
+    --nf-mw-white: var(--nf-content-on-brand);
+    --nf-mw-card-fill:
+      radial-gradient(120% 85% at 100% 0%, color-mix(in oklab, var(--nf-mw-blue) 42%, transparent) 0%, transparent 60%),
+      radial-gradient(90% 70% at 0% 0%, color-mix(in oklab, var(--nf-mw-white) 7%, transparent) 0%, transparent 55%),
+      linear-gradient(
+        160deg,
+        color-mix(in oklab, var(--nf-mw-blue) 16%, var(--nf-mw-navy)) 0%,
+        color-mix(in oklab, var(--nf-mw-blue) 46%, var(--nf-mw-navy)) 52%,
+        color-mix(in oklab, var(--nf-mw-blue) 82%, var(--nf-mw-navy)) 100%
+      );
+    --nf-mw-card-edge: color-mix(in oklab, var(--nf-mw-white) 14%, transparent);
+    --nf-mw-card-shadow:
+      inset 0 1px 0 color-mix(in oklab, var(--nf-mw-white) 20%, transparent),
+      inset 0 -1px 0 color-mix(in oklab, var(--nf-mw-navy) 40%, transparent),
+      var(--nf-elevation-floating),
+      0 28px 56px -28px color-mix(in oklab, var(--nf-mw-blue) 60%, transparent);
+
     display: flex;
     flex-direction: column;
-    gap: var(--nf-space-lg);
-    min-height: calc(100svh - 8.5rem - env(safe-area-inset-top, 0px));
+    gap: var(--nf-space-xl);
+    /* A wallet is a phone-shaped object: on a wide screen the column keeps
+       a card's proportions, aligned with the page title, instead of
+       stretching into a banner. */
+    max-width: 42rem;
   }
 
   /* --------------------------------------------------------- the card */
   .nf-mw-card {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
     gap: var(--nf-space-lg);
+    overflow: hidden;
     padding: var(--nf-space-lg);
+    border: var(--nf-border-width) solid var(--nf-mw-card-edge);
+    border-radius: var(--nf-radius-2xl);
+    background: var(--nf-mw-card-fill);
+    box-shadow: var(--nf-mw-card-shadow);
+    color: var(--nf-mw-white);
+  }
+  /* One soft light behind the capsules, low on the card, so the frosted
+     glass has something to soften and reads as glass rather than a tint. */
+  .nf-mw-card::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset-inline-end: -18%;
+    inset-block-end: -42%;
+    width: 78%;
+    aspect-ratio: 1;
+    border-radius: var(--nf-radius-circle);
+    background: radial-gradient(closest-side, color-mix(in oklab, var(--nf-act-cyan) 34%, transparent), transparent);
+    pointer-events: none;
+  }
+  /* The fine edge light along the top, brightest at the centre. */
+  .nf-mw-card::after {
+    content: "";
+    position: absolute;
+    inset-inline: 12%;
+    top: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--nf-mw-white) 45%, transparent), transparent);
+    pointer-events: none;
   }
   .nf-mw-card__top {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: var(--nf-space-sm);
     min-height: 2.75rem;
-    margin-block: calc(-1 * var(--nf-space-xs));
   }
-  .nf-mw-card__brand {
-    display: inline-flex;
-    opacity: 0.9;
-  }
-  .nf-mw-card__eye {
-    display: grid;
-    place-items: center;
-    width: 2.75rem;
-    height: 2.75rem;
-    margin-inline-end: calc(-1 * var(--nf-space-xs));
-    border-radius: var(--nf-radius-circle);
-    color: var(--nf-content-secondary);
-    transition: background-color var(--nf-duration-fast) var(--nf-ease-standard);
-  }
-  .nf-mw-card__eye:hover {
-    background: var(--nf-tier-plate-hover);
-  }
-  .nf-mw-card__eye:focus-visible {
-    outline: 2px solid var(--nf-brand-primary);
-    outline-offset: 2px;
+  .nf-mw-card__name {
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: color-mix(in oklab, var(--nf-mw-white) 88%, transparent);
   }
   .nf-mw-card__body {
     display: grid;
     gap: var(--nf-space-xs);
     min-width: 0;
+    padding-block: var(--nf-space-xs) var(--nf-space-2xs);
   }
   .nf-mw-card__caption {
-    font-size: var(--nf-text-body-sm);
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    min-height: 2.25rem;
+    margin-block: calc(-1 * var(--nf-space-xs)) calc(-1 * var(--nf-space-2xs));
+    font-size: var(--nf-text-caption);
     font-weight: 600;
-    color: var(--nf-content-secondary);
+    letter-spacing: 0.02em;
+    color: color-mix(in oklab, var(--nf-mw-white) 66%, transparent);
   }
   .nf-mw-card__figure {
     min-width: 0;
-    color: var(--nf-content-primary);
+    color: var(--nf-mw-white);
     overflow-wrap: anywhere;
   }
-  /* "Huge figures, unit in grey": the naira sign in the soft ink. */
-  .nf-mw-card .nf-mfig__cur {
-    font-size: max(0.8em, 0.75rem);
+  .nf-mw-card .nf-mfig {
+    color: var(--nf-mw-white);
+  }
+  /* "Huge figures, unit in grey": the naira sign and the kobo soft. */
+  .nf-mw-card .nf-mfig__cur,
+  .nf-mw-card .nf-mfig__kobo {
     font-weight: 600;
-    color: var(--nf-content-muted);
+    color: color-mix(in oklab, var(--nf-mw-white) 60%, transparent);
   }
-  /* No answer to read: calm words where the figure would sit, set at the
-     body size so they can never be taken for an amount: small and calm. */
+  /* No answer to read: calm words where the figure would sit, a title, not
+     a figure, so they can never be taken for an amount. */
   .nf-mw-card__none {
-    font-size: var(--nf-text-body-lg);
-    font-weight: 400;
-    line-height: 1.3;
-    color: var(--nf-content-secondary);
-  }
-  .nf-mw-card__foot {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--nf-space-sm) var(--nf-space-md);
-    padding-top: var(--nf-space-md);
-    border-top: var(--nf-border-width) solid var(--nf-divider);
+    font-size: var(--nf-text-h3);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    color: color-mix(in oklab, var(--nf-mw-white) 94%, transparent);
   }
   .nf-mw-card__line {
-    display: inline-flex;
-    align-items: center;
+    display: flex;
+    align-items: flex-start;
+    line-height: 1.4;
     gap: var(--nf-space-xs);
     min-width: 0;
     font-size: var(--nf-text-caption);
-    color: var(--nf-content-secondary);
+    color: color-mix(in oklab, var(--nf-mw-white) 74%, transparent);
+  }
+  .nf-mw-card__clock {
+    flex: none;
+    margin-top: 0.05em;
+    color: color-mix(in oklab, var(--nf-mw-white) 74%, transparent);
+  }
+  .nf-mw-card__dot {
+    flex: none;
+    margin: 0.35em 0.125rem 0;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-state-warning);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--nf-state-warning) 26%, transparent);
+  }
+  .nf-mw-card__dot[data-tone="done"] {
+    background: var(--nf-state-success);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--nf-state-success) 26%, transparent);
+  }
+  .nf-mw-card__dot[data-tone="problem"] {
+    background: var(--nf-state-error);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--nf-state-error) 26%, transparent);
   }
 
-  /* ------------------------------------------------ the empty activity */
-  .nf-mw-empty {
+  /* The hide toggle beside the caption: a 36px circle with a 44px reach. */
+  .nf-mw-card__eye {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--nf-radius-circle);
+    color: color-mix(in oklab, var(--nf-mw-white) 72%, transparent);
+    transition:
+      background-color var(--nf-duration-fast) var(--nf-ease-standard),
+      color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-mw-card__eye::before {
+    content: "";
+    position: absolute;
+    inset: -0.25rem;
+  }
+  .nf-mw-card__eye:hover {
+    background: color-mix(in oklab, var(--nf-mw-white) 10%, transparent);
+    color: var(--nf-mw-white);
+  }
+  .nf-mw-card__eye:focus-visible {
+    outline: 2px solid var(--nf-mw-white);
+    outline-offset: 2px;
+  }
+
+  /* ------------------------------------------------------ the capsules
+     The founder, 8 October: "capsule each okay and glass too". Every
+     action on the card is a full capsule (PILL_ALLOWED in
+     `scripts/check-css-tokens.mjs` records the ruling): Add money solid in
+     the action blue, Withdraw and Transfer frosted glass over the card. */
+  .nf-mw-btn {
+    display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: var(--nf-space-xs);
-    padding: var(--nf-space-lg);
+    min-height: 3rem;
+    padding-inline: var(--nf-space-md) calc(var(--nf-space-md) + var(--nf-space-3xs));
+    border: var(--nf-border-width) solid transparent;
+    border-radius: var(--nf-radius-pill);
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+      background-color var(--nf-duration-fast) var(--nf-ease-standard),
+      border-color var(--nf-duration-fast) var(--nf-ease-standard),
+      transform var(--nf-duration-press) var(--nf-ease-press),
+      opacity var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-mw-btn:focus-visible {
+    outline: 2px solid var(--nf-mw-white);
+    outline-offset: 3px;
+  }
+  .nf-mw-btn:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+  .nf-mw-btn:disabled {
+    cursor: not-allowed;
+  }
+
+  /* Add money: the one solid capsule, the action blue with its own rim. */
+  .nf-mw-btn--solid {
+    min-height: 2.75rem;
+    padding-inline: var(--nf-space-sm) var(--nf-space-md);
+    border-color: color-mix(in oklab, var(--nf-mw-white) 22%, transparent);
+    background: var(--nf-act-fill);
+    box-shadow:
+      inset 0 1px 0 color-mix(in oklab, var(--nf-mw-white) 30%, transparent),
+      0 8px 20px -10px color-mix(in oklab, var(--nf-mw-blue) 90%, transparent);
+    color: var(--nf-act-on);
+    font-size: var(--nf-text-body-sm);
+  }
+  .nf-mw-btn--solid:hover:not(:disabled) {
+    background: var(--nf-act-fill-hover);
+  }
+  .nf-mw-btn--solid:disabled {
+    border-color: color-mix(in oklab, var(--nf-mw-white) 12%, transparent);
+    background: color-mix(in oklab, var(--nf-mw-blue) 34%, transparent);
+    box-shadow: none;
+    color: color-mix(in oklab, var(--nf-mw-white) 58%, transparent);
+  }
+
+  /* Withdraw and Transfer: frosted glass over the blue. A translucent white
+     fill brighter at the top, the card blurred behind it, a fine light edge
+     and a soft highlight along the top. */
+  .nf-mw-moves {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--nf-space-sm);
+  }
+  .nf-mw-btn--glass {
+    border-color: color-mix(in oklab, var(--nf-mw-white) 30%, transparent);
+    background: linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--nf-mw-white) 24%, transparent) 0%,
+      color-mix(in oklab, var(--nf-mw-white) 10%, transparent) 100%
+    );
+    box-shadow:
+      inset 0 1px 0 color-mix(in oklab, var(--nf-mw-white) 50%, transparent),
+      inset 0 -1px 0 color-mix(in oklab, var(--nf-mw-white) 8%, transparent),
+      var(--nf-elevation-raised);
+    -webkit-backdrop-filter: blur(18px) saturate(170%);
+    backdrop-filter: blur(18px) saturate(170%);
+    color: var(--nf-mw-white);
+  }
+  .nf-mw-btn--glass:hover:not(:disabled) {
+    border-color: color-mix(in oklab, var(--nf-mw-white) 42%, transparent);
+    background: linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--nf-mw-white) 32%, transparent) 0%,
+      color-mix(in oklab, var(--nf-mw-white) 16%, transparent) 100%
+    );
+  }
+  .nf-mw-btn--glass:disabled {
+    border-color: color-mix(in oklab, var(--nf-mw-white) 16%, transparent);
+    background: color-mix(in oklab, var(--nf-mw-white) 9%, transparent);
+    box-shadow: inset 0 1px 0 color-mix(in oklab, var(--nf-mw-white) 18%, transparent);
+    color: color-mix(in oklab, var(--nf-mw-white) 56%, transparent);
+  }
+  @media (max-width: 339px) {
+    .nf-mw-moves {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* ------------------------------------------------------ the lists
+     The platform's own container, by name, in each theme. */
+  .nf-mw-group .nf-list-group:not(.nf-list-group--bare) {
+    border-color: var(--nf-platform-card-edge);
+    border-radius: var(--nf-radius-xl);
+    background: var(--nf-platform-card-fill);
+    box-shadow: var(--nf-platform-card-shadow);
+  }
+  .nf-mw-group .nf-list-row {
+    min-height: 4rem;
+    padding-inline: var(--nf-space-md);
+  }
+  /* A word is never broken: the title and its line take one line each and
+     end on an ellipsis, and the status under a figure wraps between words
+     inside its own narrow column instead of squeezing the title. */
+  .nf-mw-group :is(.nf-list-row__title, .nf-list-row__sub) {
+    overflow: hidden;
+    overflow-wrap: normal;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .nf-mw-group .nf-list-row__end {
+    max-width: 8.5rem;
+  }
+  /* Inline, so a status that wraps keeps its dot beside its first word. */
+  .nf-mw-group .nf-list-row__end .nf-mword {
+    display: inline;
+    max-width: 8.5rem;
+  }
+  .nf-mw-group .nf-list-row__end .nf-mword__dot {
+    display: inline-block;
+    margin-inline-end: 0.375rem;
+    vertical-align: 0.1em;
+  }
+  .nf-mw-group .nf-list-item:has(.nf-mw-mark) {
+    --nf-list-inset: calc(var(--nf-space-md) + 2.5rem + var(--nf-space-sm));
+  }
+
+  /* A row's mark: the solid object on a quiet blue plate, the Profile
+     belongings' plate (radius, one hairline, a few percent of brand). */
+  .nf-mw-mark {
+    display: grid;
+    flex: none;
+    place-items: center;
+    border: var(--nf-border-width) solid var(--nf-tier-plate-edge);
+    border-radius: var(--nf-tier-plate-radius);
+    background: color-mix(in oklab, var(--nf-brand-primary) 8%, transparent);
+  }
+  .nf-mw-mark--row {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+  .nf-mw-mark--state {
+    width: 4rem;
+    height: 4rem;
+    border-radius: var(--nf-radius-lg);
+  }
+
+  /* The activity before there is any: the same container, one object and
+     one line, centred. */
+  .nf-mw-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-xl) var(--nf-space-lg);
+    border: var(--nf-border-width) solid var(--nf-platform-card-edge);
+    border-radius: var(--nf-radius-xl);
+    background: var(--nf-platform-card-fill);
+    box-shadow: var(--nf-platform-card-shadow);
     text-align: center;
   }
   .nf-mw-empty__title {
-    margin-top: var(--nf-space-sm);
     font-size: var(--nf-text-body);
     font-weight: 600;
-    color: var(--nf-content-primary);
+    color: var(--nf-content-secondary);
   }
-  .nf-mw-empty__body {
+
+  /* The figures could not be refreshed: one calm line on the container. */
+  .nf-mw-note {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nf-space-xs);
+    margin-top: calc(-1 * var(--nf-space-md));
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    border: var(--nf-border-width) solid var(--nf-platform-card-edge);
+    border-radius: var(--nf-radius-lg);
+    background: var(--nf-platform-card-fill);
     font-size: var(--nf-text-body-sm);
     color: var(--nf-content-secondary);
+  }
+  .nf-mw-note svg {
+    flex: none;
+    margin-top: var(--nf-space-3xs);
+    color: var(--nf-state-warning);
   }
 
   /* ADR 0003's one line, as a caption. */
@@ -124,43 +406,24 @@
     align-items: flex-start;
     justify-content: center;
     gap: var(--nf-space-xs);
+    padding-inline: var(--nf-space-md);
+    padding-bottom: var(--nf-space-lg);
     text-align: start;
     color: var(--nf-content-muted);
   }
   .nf-mw__held svg {
     flex: none;
-    margin-top: 0.125rem;
+    margin-top: var(--nf-space-3xs);
   }
 
-  /* ------------------------------------------------- the bar (D76)
-     Exactly two actions, Withdraw and Transfer, the platform's own buttons
-     side by side, resting at the foot above the safe area. A quiet scrim
-     under them keeps the list readable as it scrolls beneath. */
-  .nf-mw-bar {
-    position: sticky;
-    bottom: 0;
-    z-index: 5;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--nf-space-sm);
-    margin-top: auto;
-    padding-block: var(--nf-space-sm) calc(var(--nf-space-md) + env(safe-area-inset-bottom, 0px));
-    /* Solid under the buttons (a disabled button is translucent and must not
-       show a row through it), fading into the page just above them. */
-    background: var(--nf-surface-canvas);
-  }
-  .nf-mw-bar::before {
-    content: "";
-    position: absolute;
-    inset-inline: 0;
-    bottom: 100%;
-    height: var(--nf-space-lg);
-    background: linear-gradient(to top, var(--nf-surface-canvas), transparent);
-    pointer-events: none;
-  }
-  @media (max-width: 339px) {
-    .nf-mw-bar {
-      grid-template-columns: 1fr;
+  /* Wider screens: the card breathes a little more. */
+  @media (min-width: 768px) {
+    .nf-mw-card {
+      gap: var(--nf-space-xl);
+      padding: var(--nf-space-xl);
+    }
+    .nf-mw-moves {
+      max-width: 28rem;
     }
   }
 }
