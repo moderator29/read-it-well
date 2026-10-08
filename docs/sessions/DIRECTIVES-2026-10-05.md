@@ -3441,3 +3441,85 @@ The founder, 8 October, on the D81 screenshots: "the logo im seeing it changing 
 - ONE COLOUR SET. The mark and the wordmark are the founder's own colours (the D81 references: cyan to electric to royal blue, the orange accents) on every ground, in light and in dark. No day palette, no reversed palette, no filter, no per-theme swap. This SUPERSEDES the 29 September rule that put the light-theme `.nf-logo` lockup on a navy pill with lights lapping its rim: the logo is not put on a plate to change how it looks in light mode. Where its own blue would vanish (the brand-blue auth block), it stands on a white plate that is the same in both themes. `docs/BRAND_MARKS.md` section 0; enforced by `apps/web/src/design-system/brand/logo-sweep.test.ts`.
 - NO GLASS LOGO ANYWHERE. Every file and every surface that drew the old glass mark is the new artwork: the app icons on every platform (the iOS AppIcon, every Android launcher density, the adaptive layers, the favicon, the PWA and maskable icons), the Android notification icon, the welcome coin, the PWA install screenshots, emails, share cards, splash and loading moments, inner pages and desks.
 - THE NEXT TESTFLIGHT CARRIES IT. The native icon files are in the iOS and Android projects in the repository, so the next build picks them up with no other change.
+
+## D83. The founder's rulings of 8 October: the gate, the signals, the threshold, the fee, and Pro.
+
+**Numbered D83, not D70.** It was written as D70 against a tree that did not yet carry
+the other session's D70 to D82. The content is unchanged; only the number moved.
+
+**8 October 2026. Five decisions, given directly. They are settled; do not reopen them.**
+
+**1. No staff approval before payment. The switch goes in, default OFF.** His words: "yes
+put it off no admin need to approve before a agreement is confirmed". So
+`public.agreement_confirm_as` stops moving a fully confirmed agreement to `in_review`.
+The second confirmation of the same terms approves it, writes the event log and the
+audit row, and sends the same `agreement.approved` emails a staff approval sends.
+A `feature_flags` row `agreement_staff_review` exists on `/admin/switches` and is
+**off**; a missing row reads as on, so the row must be written, not merely absent.
+Agreements already in review stay in the queue. This matches his own lifecycle in
+`founder-corpus/02-master-prompt.md` section 17: DRAFT to AGREED to AWAITING_PAYMENT,
+with no staff step. D68d's rail logic is unchanged and still governs the direct rail.
+
+**2. The first-deal signal is scoped, not removed.** Agreed as proposed: it fires on a
+first deal **AND** (an unverified business **OR** an amount over the stays threshold).
+A CAC verified business with a physical property is a different risk from an
+individual's first listing. Reason, from the live data: the median nightly rate across
+the 12 priced stay listings is 65,000 naira, and holding a booking of that size for a
+human defeats instant booking, which is the point of that rail. You would lose the
+hotel long before you caught a fraud.
+
+**3. The direct-rail review threshold is 500,000 naira**, not 3,000,000. Decided on the
+founder's instruction to pick the best number. The evidence, read from the live database
+on 8 October: rent runs 650,000 to 25,000,000 with a median of 3,000,000, but rent goes
+to escrow and escrow never reviews; the direct rail carries stays, where 12 priced
+listings run 6,500 to 150,000 a night. Fourteen nights at the dearest listing is
+2,100,000, still under 3,000,000, so the seeded threshold would have fired essentially
+never: a rent shaped number on a stays shaped rail, dead code that reads like a control.
+500,000 is about 7.7 times the median nightly rate, so an ordinary one to five night
+booking never trips it while a week at a premium property does. It stays configuration.
+**Revisit after 100 real transactions**, because there are zero today.
+
+**4. The lister pays Payluk's escrow fee.** Confirmed by the founder, and already built:
+`whoPays` is `seller` on both rails per `docs/payments/VALLO_PRICING.md`. It is what
+Booking.com, Uber, Amazon and Etsy do. Nothing to change.
+
+**5. Pro and Business, monthly, with a trial.** Two paid plans above the existing `free`
+plan, which is the only row in `entitlement_plans` today.
+
+| | Vallo Pro | Vallo Business (the top plan) |
+| --- | --- | --- |
+| Price | 9,500 naira a month | 35,000 naira a month |
+| For | An individual agent or landlord | An agency, hotel or serviced apartments |
+| Promotion included | 4 Boosts, worth 10,000 | 2 Spotlights and 1 Featured, worth 35,000 |
+| Also | Deep analytics, pro badge, priority support | Team members, command centre, bulk tools, export |
+
+Both are priced **below the a la carte value of what they bundle**, which is what makes
+a subscription an obvious choice rather than a calculation. The promotion tiers already
+exist as entitlement feature keys (`listing_boost`, `listing_spotlight`,
+`listing_featured`, `listing_prime`), so the plans are rows and grants, not new
+machinery. The figures are small against real revenue: at 2 percent on a median
+3,000,000 naira rent, one closed deal pays Vallo 60,000, so the subscription sells
+visibility rather than carrying the business.
+
+**The trial: the founder asked for 2 days and was advised 7.** Two days shows a lister
+nothing, because no enquiries will have arrived yet, so they cancel having seen an empty
+dashboard; it also forces card on file at signup, which is real friction on Nigerian
+cards. Seven days is long enough for a boosted listing to produce the enquiries that
+actually convert. **Awaiting his word; build the trial length as configuration either
+way, so the answer is a value and not a change.**
+
+**Also settled on 8 October, outside the five:**
+
+- **`aps-environment` stays `development` and is NOT changed.** The entitlements file
+  says why in its own comment: Xcode's automatic signing rewrites it to `production` for
+  a Release archive, while a development build needs a sandbox token. The half that does
+  not change itself is the server's, and `APNS_PRODUCTION=true` is now set in Vercel on
+  the production target only. An earlier report calling this an outstanding founder item
+  was wrong.
+- **The Payluk environment variables are already set** and are named correctly:
+  `PAYLUK_SECRET_KEY` and `PAYLUK_TEST_SECRET_KEY`, which is what
+  `apps/web/src/lib/payouts/payluk-merchant.ts` reads. A request for `PAYLUK_API_KEY`
+  used the wrong name. **One fix outstanding:** both are scoped to Production only, and
+  the test key needs Preview too or no preview deployment can reach staging.
+- **The App Store Connect key keeps its Admin role.** Founder's call, declined the
+  downgrade to App Manager.
