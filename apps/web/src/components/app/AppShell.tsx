@@ -7,7 +7,7 @@ import { useSwipeToClose } from "@/lib/ui/use-swipe-to-close";
 import { WholePrefetchLink } from "@/components/app/WholePrefetchLink";
 import { usePathname, useSearchParams } from "next/navigation";
 import { AppRail } from "./AppRail";
-import { MobileTabBar, isImmersiveRoute, showsTabBar } from "./MobileTabBar";
+import { MobileTabBar, isFocusedRoute, isImmersiveRoute, showsTabBar } from "./MobileTabBar";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { AuthGateProvider, SignedOutActions } from "@/components/auth/AuthGate";
 import { sideOfPath, sideOfPlansQuery, type Side } from "@/lib/side.constants";
@@ -158,7 +158,7 @@ export function AppShell({
     anywhere. The one exception stays: a photo-first detail page reaches the
     top edge with its own controls riding the picture.
   */
-  const showsHeader = !immersive && !edgeToEdge;
+  const showsHeader = !immersive && !edgeToEdge && !isFocusedRoute(active);
 
   /* The drawer closes on navigation. State derived during render rather than
      in an effect, so there is no frame with the old page under an open panel. */

@@ -5,6 +5,7 @@ import { DockMore, type DockMoreItem } from "./DockMore";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import type { Side } from "@/lib/side.constants";
 import { CreateDock } from "./CreateDock";
+import { isFocusedRoute } from "./focused-route";
 
 /**
  * The bottom tab bar.
@@ -176,6 +177,10 @@ export function isImmersiveRoute(pathname: string): boolean {
   return /^\/messages\/(?!new$)[^/]+$/.test(pathname);
 }
 
+/* The focused routes (/wallet and its screens, D81) step out of the dock too:
+   `isFocusedRoute` in focused-route.ts says which, for the shell and here. */
+export { isFocusedRoute };
+
 /**
  * The tab a route belongs to, or null when none does.
  *
@@ -201,7 +206,7 @@ export function isImmersiveRoute(pathname: string): boolean {
  * lie. The root is the tab, so the pill goes where the reader is.
  */
 export function tabRootFor(pathname: string): string | null {
-  if (isImmersiveRoute(pathname)) return null;
+  if (isImmersiveRoute(pathname) || isFocusedRoute(pathname)) return null;
   return (
     TAB_BAR_ROUTES.find(
       (route) => pathname === route || pathname.startsWith(`${route}/`),

@@ -72,7 +72,7 @@ export const NOT_CONNECTED_LINE = "Opens when Wallet is connected";
 export const UNREACHABLE_FIGURE = "Not available right now";
 export const UNREACHABLE_LINE = "We could not read your figures just now. Nothing has moved.";
 
-export const ACTIVITY_EMPTY = { title: "No activity yet", body: "Money you add, withdraw or transfer shows here." } as const;
+export const ACTIVITY_EMPTY = { title: "No activity yet", body: "Money you add, send or withdraw shows here." } as const;
 
 /* The founder's ruling, 7 October: the wallet is where all money lives, so
    the records the side nav used to list sit on the wallet as one group. */
@@ -83,6 +83,117 @@ export const WALLET_RECORDS = [
   { href: "/payouts", title: "Payouts", icon: "bank" },
   { href: "/refunds", title: "Refunds", icon: "hand-coins" },
 ] as const;
+
+/* ------------------------------------------------- the D81 Wallet screens
+   The founder's governing reference (8 October 2026,
+   `docs/design/references/2026-10-08/`): Overview and Transactions tabs,
+   Money in and Money out, the protected row, the "Pay for your space"
+   banner, More options, and the two bottom capsules, Withdraw and Send.
+   "Send" is the one word for moving money to a member (the brief: never
+   Send and Transfer as two buttons for one operation). */
+
+export const WALLET_TABS = { overview: "Overview", transactions: "Transactions" } as const;
+export const WALLET_SETTINGS_TITLE = "Wallet settings";
+export const WALLET_BACK = "Back";
+
+/** Sums over completed movements only (`sumMovements`), so they are facts, never estimates. */
+export const TOTALS_LABEL = { in: "Money in", out: "Money out" } as const;
+export const TOTALS_NOTE = "Completed movements";
+
+/** The reference's "Your funds are protected" row, said as it is (no claim word: claims.ts). The sub is HELD_BY once connected. */
+export const PROTECTED_TITLE = "Who holds your money";
+export const PROTECTED_SUB_NOT_CONNECTED = "See how payments work on Vallo";
+
+/** From the left-hand phone, only this (D81). Rent paid from Wallet is held until the move-in (FUND_STEPS). */
+export const SPACE_BANNER = {
+  title: "Pay for your space with Vallo Wallet",
+  body: "Pay agreed rent from Wallet. It is released only when you confirm the move-in.",
+  action: "Learn more",
+  href: "/safety#how-payments",
+} as const;
+
+export const RECENT_LABEL = "Recent activity";
+export const SEE_ALL = "See all";
+export const MORE_OPTIONS_LABEL = "More options";
+
+/** The overview's compact tools (the founder: "the receipts payout and refunds should be design and put cleanly in the wallet page too"). */
+export const MORE_OPTIONS = [
+  { href: "/receipts", title: "Receipts", sub: "Every receipt" },
+  { href: "/payouts", title: "Payouts", sub: "Paid to your bank" },
+  { href: "/refunds", title: "Refunds", sub: "Money returned" },
+  { href: "/wallet/settings", title: "Settings", sub: "Tools and methods" },
+] as const;
+
+/**
+ * THE TOOLS DESTINATION (the brief, section 5): every row leads to a real
+ * screen. Cards and bank accounts are one screen on Vallo
+ * (/settings/payments), so they are one row, never two labels for one place.
+ */
+export const WALLET_TOOL_GROUPS = [
+  {
+    label: "Records",
+    tools: [
+      { href: "/receipts", title: "Receipts", sub: "Every payment and refund, with its receipt" },
+      { href: "/wallet/transactions", title: "Transaction history", sub: "Every movement, with filters" },
+    ],
+  },
+  {
+    label: "Payment methods",
+    tools: [{ href: "/settings/payments", title: "Cards and bank accounts", sub: "The cards you pay with and the accounts you are paid into" }],
+  },
+  {
+    label: "Money management",
+    tools: [
+      { href: "/payments", title: "Payments", sub: "What you paid for bookings and rent" },
+      { href: "/payouts", title: "Payouts", sub: "What you received, with the platform fee" },
+      { href: "/refunds", title: "Refunds", sub: "Where each refund stands" },
+    ],
+  },
+  {
+    label: "Security and preferences",
+    tools: [
+      { href: "/settings/passcode", title: "Passcode", sub: "The lock on your money screens" },
+      { href: "/settings/notifications", title: "Notifications", sub: "What we tell you about payments" },
+    ],
+  },
+] as const;
+
+export const FILTER_LABEL = { all: "All", received: "Received", added: "Added", sent: "Sent", withdrawals: "Withdrawals" } as const;
+export const FILTER_EMPTY = {
+  all: "No activity yet",
+  received: "Nothing received yet",
+  added: "No money added yet",
+  sent: "Nothing sent yet",
+  withdrawals: "No withdrawals yet",
+} as const;
+export const TRANSACTIONS_MORE = "Showing your most recent movements.";
+
+/* The move-money screens (the Dribbble "Supay" reference: amount, quick
+   chips, method or recipient, reason, Continue, keypad). */
+export const MOVE_COPY = {
+  enterAmount: "Enter amount",
+  available: "Available",
+  others: "Other",
+  continue: "Continue",
+  change: "Change",
+  method: "Payment method",
+  methodName: "Bank transfer or card",
+  methodSub: "On the payment provider's own page",
+  methodSheet: "Pay with",
+  methodOnly: "This is the one way to add money for now.",
+  sendTo: "Send to",
+  chooseRecipient: "Choose who to send to",
+  reason: "What is it for?",
+  otherReason: "Say what it is for",
+  withdrawTo: "Withdraw to",
+  chooseAccount: "Choose a bank account",
+  review: "Check and confirm",
+  notAvailableTitle: "Not available yet",
+  notAvailableAdd: "Adding money opens when Wallet is connected. Nothing was charged.",
+  notAvailableSend: "Sending opens when Wallet is connected. Nothing was sent.",
+  notAvailableWithdraw: "Withdrawals open when Wallet is connected. Nothing has moved.",
+  backToWallet: "Back to Wallet",
+} as const;
 
 /* ---------------------------------------------------------- onboarding */
 

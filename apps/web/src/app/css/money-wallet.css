@@ -1,180 +1,218 @@
 /*
-  THE WALLET SCREEN (/wallet; the founder, 7 October: "Call it WALLET...
-  design it to be fully clean"; 8 October: "not really premium!! I need
-  something more premium looks and clean UX and the withdrawal and transfer
-  button should be capsule each okay and glass too and make the whole vibes
-  clean!").
+  THE WALLET (/wallet and its screens; D81, 8 October 2026). The founder's
+  governing reference is the right-hand phone of
+  `docs/design/references/2026-10-08/GOVERNING-wallet-overview-transactions.png`:
+  a header with back and a settings gear, Overview and Transactions tabs, the
+  balance card (Available with its eye, the figure, a wallet object on the
+  right, Money in and Money out), "Your payments are protected", filter
+  chips, rows marked with coloured squares, a More options group, and two
+  big capsules at the very bottom: Withdraw in the action blue and Send in
+  the first orange fill the platform allows (`--nf-spark-fill`, D81). From
+  the left-hand phone, only the "Pay for your space" banner. The move-money
+  screens follow the Dribbble "Supay" reference: the amount large, quick
+  chips, a method or recipient row, reason chips, Continue and a keypad.
 
-  One card, deep navy into the Vallo blue in both themes (D78: blue is the
-  identity), with a fine light edge, one soft inner highlight and a gentle
-  shadow. On it: the name with Add money (the one solid blue capsule), the
-  figure with its unit soft, one short status line, and Withdraw and Transfer
-  as two frosted glass capsules side by side. Under it, the platform's own
-  container (`--nf-platform-card-*`) holds every list, each row marked with a
-  solid blue object on a quiet plate (D78: no glass icon). Tokens only,
-  inside `@layer components`.
+  The reference is dark; the light version keeps the card a night island
+  (the same object in both themes, D80) on Paper's own containers. Tokens
+  only, inside `@layer components`. Shadows read the elevation rungs and the
+  spark glow; the two hand-written lifts are the card's blue under-light and
+  the Withdraw capsule's bloom in its own blue (one-light.test.ts).
 */
 @layer components {
-  /* The card's material, resolved in the PAGE's theme (the card itself is a
-     night island, so its own tokens are the night palette in both). The
-     navy is the artwork ground and the blue is the action blue: both hold
-     the same value in every theme, so the card is one object in daylight
-     and at night. Its lift is the elevation rung of the page's theme (read
-     here, outside the island), plus one under-light in its own blue. */
   .nf-mw {
     --nf-mw-navy: var(--nf-surface-artwork);
     --nf-mw-blue: var(--nf-act-blue);
     --nf-mw-white: var(--nf-content-on-brand);
+    --nf-mw-in: var(--nf-state-success);
+    --nf-mw-out: var(--nf-spark-ink);
     --nf-mw-card-fill:
-      radial-gradient(120% 85% at 100% 0%, color-mix(in oklab, var(--nf-mw-blue) 42%, transparent) 0%, transparent 60%),
-      radial-gradient(90% 70% at 0% 0%, color-mix(in oklab, var(--nf-mw-white) 7%, transparent) 0%, transparent 55%),
+      radial-gradient(110% 90% at 100% 0%, color-mix(in oklab, var(--nf-mw-blue) 46%, transparent) 0%, transparent 62%),
+      radial-gradient(80% 60% at 0% 0%, color-mix(in oklab, var(--nf-mw-white) 6%, transparent) 0%, transparent 55%),
       linear-gradient(
-        160deg,
-        color-mix(in oklab, var(--nf-mw-blue) 16%, var(--nf-mw-navy)) 0%,
-        color-mix(in oklab, var(--nf-mw-blue) 46%, var(--nf-mw-navy)) 52%,
-        color-mix(in oklab, var(--nf-mw-blue) 82%, var(--nf-mw-navy)) 100%
+        155deg,
+        color-mix(in oklab, var(--nf-mw-blue) 22%, var(--nf-mw-navy)) 0%,
+        color-mix(in oklab, var(--nf-mw-blue) 40%, var(--nf-mw-navy)) 55%,
+        color-mix(in oklab, var(--nf-mw-blue) 70%, var(--nf-mw-navy)) 100%
       );
-    --nf-mw-card-edge: color-mix(in oklab, var(--nf-mw-white) 14%, transparent);
-    --nf-mw-card-shadow:
-      inset 0 1px 0 color-mix(in oklab, var(--nf-mw-white) 20%, transparent),
-      inset 0 -1px 0 color-mix(in oklab, var(--nf-mw-navy) 40%, transparent),
-      var(--nf-elevation-floating),
-      0 28px 56px -28px color-mix(in oklab, var(--nf-mw-blue) 60%, transparent);
+    --nf-mw-edge: color-mix(in oklab, var(--nf-brand-primary) 30%, transparent);
+    --nf-mw-surface: var(--nf-platform-card-fill);
+    --nf-mw-surface-edge: var(--nf-platform-card-edge);
 
     display: flex;
     flex-direction: column;
-    gap: var(--nf-space-xl);
-    /* A wallet is a phone-shaped object: on a wide screen the column keeps
-       a card's proportions, aligned with the page title, instead of
-       stretching into a banner. */
-    max-width: 42rem;
+    gap: var(--nf-space-md);
+    width: 100%;
+    max-width: 40rem;
+    min-width: 0;
+    margin-inline: auto;
+  }
+  /* A screen with the two capsules leaves the room they take at its foot. */
+  .nf-mw[data-capsules] {
+    padding-bottom: 0;
   }
 
-  /* --------------------------------------------------------- the card */
+  /* ------------------------------------------------------------ header */
+  .nf-mw-head {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    min-height: 3rem;
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  .nf-mw-head__title {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h2);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--nf-content-primary);
+  }
+  .nf-mw-head__btn {
+    position: relative;
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: var(--nf-border-width) solid transparent;
+    border-radius: var(--nf-radius-circle);
+    color: var(--nf-content-primary);
+    -webkit-tap-highlight-color: transparent;
+    transition: background-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-mw-head__btn--back {
+    margin-inline-start: calc(-1 * var(--nf-space-xs));
+  }
+  .nf-mw-head__btn--gear {
+    border-color: var(--nf-mw-edge);
+    background: var(--nf-mw-surface);
+  }
+  .nf-mw-head__btn:hover {
+    background: var(--nf-brand-tint-1);
+  }
+  .nf-mw-head__btn:focus-visible {
+    outline: 2px solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+
+  /* -------------------------------------------------------------- tabs
+     Overview | Transactions: the segmented role, a pill track with a pill
+     thumb (D2), as links because each tab is its own screen. */
+  .nf-mw-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--nf-space-3xs);
+    padding: var(--nf-space-3xs);
+    border: var(--nf-border-width) solid var(--nf-mw-edge);
+    border-radius: var(--nf-radius-segment);
+    background: var(--nf-mw-surface);
+  }
+  .nf-mw-tabs__tab {
+    display: grid;
+    place-items: center;
+    min-height: 2.75rem;
+    border: var(--nf-border-width) solid transparent;
+    border-radius: var(--nf-radius-segment);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+    -webkit-tap-highlight-color: transparent;
+    transition:
+      background-color var(--nf-duration-fast) var(--nf-ease-standard),
+      color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-mw-tabs__tab:hover {
+    color: var(--nf-content-primary);
+  }
+  .nf-mw-tabs__tab[aria-current="page"] {
+    border-color: color-mix(in oklab, var(--nf-brand-primary) 70%, transparent);
+    background: color-mix(in oklab, var(--nf-brand-primary) 38%, var(--nf-mw-navy));
+    color: var(--nf-mw-white);
+  }
+  .nf-mw-tabs__tab:focus-visible {
+    outline: 2px solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+
+  /* ---------------------------------------------------------- columns
+     A phone is one column in the reference's order; from a laptop up the
+     overview is two (the card and the activity, then the protected row,
+     the banner and the tools), never a stretched phone. */
+  .nf-mw-cols {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-md);
+    min-width: 0;
+  }
+  .nf-mw-col {
+    display: contents;
+  }
+  .nf-mw-cols [data-order="card"] {
+    order: 1;
+  }
+  .nf-mw-cols [data-order="strip"] {
+    order: 2;
+  }
+  .nf-mw-cols [data-order="protect"] {
+    order: 3;
+  }
+  .nf-mw-cols [data-order="activity"] {
+    order: 4;
+  }
+  .nf-mw-cols [data-order="banner"] {
+    order: 5;
+  }
+  .nf-mw-cols [data-order="more"] {
+    order: 6;
+  }
+
+  /* ------------------------------------------------------------ card */
   .nf-mw-card {
     position: relative;
     isolation: isolate;
     display: flex;
     flex-direction: column;
-    gap: var(--nf-space-lg);
+    gap: var(--nf-space-xs);
     overflow: hidden;
-    padding: var(--nf-space-lg);
-    border: var(--nf-border-width) solid var(--nf-mw-card-edge);
-    border-radius: var(--nf-radius-2xl);
+    padding: var(--nf-space-md) var(--nf-space-md) var(--nf-space-md);
+    border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-brand-primary) 55%, transparent);
+    border-radius: var(--nf-radius-xl);
     background: var(--nf-mw-card-fill);
-    box-shadow: var(--nf-mw-card-shadow);
+    box-shadow:
+      inset 0 1px 0 color-mix(in oklab, var(--nf-mw-white) 16%, transparent),
+      var(--nf-elevation-floating),
+      0 24px 48px -28px color-mix(in oklab, var(--nf-mw-blue) 70%, transparent);
     color: var(--nf-mw-white);
   }
-  /* One soft light behind the capsules, low on the card, so the frosted
-     glass has something to soften and reads as glass rather than a tint. */
-  .nf-mw-card::before {
-    content: "";
-    position: absolute;
-    z-index: -1;
-    inset-inline-end: -18%;
-    inset-block-end: -42%;
-    width: 78%;
-    aspect-ratio: 1;
-    border-radius: var(--nf-radius-circle);
-    background: radial-gradient(closest-side, color-mix(in oklab, var(--nf-act-cyan) 34%, transparent), transparent);
-    pointer-events: none;
-  }
-  /* The fine edge light along the top, brightest at the centre. */
   .nf-mw-card::after {
     content: "";
     position: absolute;
-    inset-inline: 12%;
+    inset-inline: 10%;
     top: 0;
     height: 1px;
-    background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--nf-mw-white) 45%, transparent), transparent);
+    background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--nf-mw-white) 40%, transparent), transparent);
     pointer-events: none;
   }
-  .nf-mw-card__top {
+  .nf-mw-card__head {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: var(--nf-space-sm);
     min-height: 2.75rem;
   }
-  .nf-mw-card__name {
-    font-size: var(--nf-text-body);
-    font-weight: 600;
-    letter-spacing: 0.01em;
-    color: color-mix(in oklab, var(--nf-mw-white) 88%, transparent);
-  }
-  .nf-mw-card__body {
-    display: grid;
-    gap: var(--nf-space-xs);
-    min-width: 0;
-    padding-block: var(--nf-space-xs) var(--nf-space-2xs);
-  }
   .nf-mw-card__caption {
     display: flex;
     align-items: center;
-    gap: var(--nf-space-2xs);
-    min-height: 2.25rem;
-    margin-block: calc(-1 * var(--nf-space-xs)) calc(-1 * var(--nf-space-2xs));
-    font-size: var(--nf-text-caption);
+    gap: var(--nf-space-3xs);
+    font-size: var(--nf-text-body-sm);
     font-weight: 600;
-    letter-spacing: 0.02em;
-    color: color-mix(in oklab, var(--nf-mw-white) 66%, transparent);
+    color: color-mix(in oklab, var(--nf-mw-white) 80%, transparent);
   }
-  .nf-mw-card__figure {
-    min-width: 0;
-    color: var(--nf-mw-white);
-    overflow-wrap: anywhere;
-  }
-  .nf-mw-card .nf-mfig {
-    color: var(--nf-mw-white);
-  }
-  /* "Huge figures, unit in grey": the naira sign and the kobo soft. */
-  .nf-mw-card .nf-mfig__cur,
-  .nf-mw-card .nf-mfig__kobo {
-    font-weight: 600;
-    color: color-mix(in oklab, var(--nf-mw-white) 60%, transparent);
-  }
-  /* No answer to read: calm words where the figure would sit, a title, not
-     a figure, so they can never be taken for an amount. */
-  .nf-mw-card__none {
-    font-size: var(--nf-text-h3);
-    font-weight: 600;
-    line-height: 1.2;
-    letter-spacing: -0.01em;
-    color: color-mix(in oklab, var(--nf-mw-white) 94%, transparent);
-  }
-  .nf-mw-card__line {
-    display: flex;
-    align-items: flex-start;
-    line-height: 1.4;
-    gap: var(--nf-space-xs);
-    min-width: 0;
-    font-size: var(--nf-text-caption);
-    color: color-mix(in oklab, var(--nf-mw-white) 74%, transparent);
-  }
-  .nf-mw-card__clock {
-    flex: none;
-    margin-top: 0.05em;
-    color: color-mix(in oklab, var(--nf-mw-white) 74%, transparent);
-  }
-  .nf-mw-card__dot {
-    flex: none;
-    margin: 0.35em 0.125rem 0;
-    width: 0.5rem;
-    height: 0.5rem;
-    border-radius: var(--nf-radius-circle);
-    background: var(--nf-state-warning);
-    box-shadow: 0 0 0 3px color-mix(in oklab, var(--nf-state-warning) 26%, transparent);
-  }
-  .nf-mw-card__dot[data-tone="done"] {
-    background: var(--nf-state-success);
-    box-shadow: 0 0 0 3px color-mix(in oklab, var(--nf-state-success) 26%, transparent);
-  }
-  .nf-mw-card__dot[data-tone="problem"] {
-    background: var(--nf-state-error);
-    box-shadow: 0 0 0 3px color-mix(in oklab, var(--nf-state-error) 26%, transparent);
-  }
-
-  /* The hide toggle beside the caption: a 36px circle with a 44px reach. */
   .nf-mw-card__eye {
     position: relative;
     display: grid;
@@ -182,10 +220,7 @@
     width: 2.25rem;
     height: 2.25rem;
     border-radius: var(--nf-radius-circle);
-    color: color-mix(in oklab, var(--nf-mw-white) 72%, transparent);
-    transition:
-      background-color var(--nf-duration-fast) var(--nf-ease-standard),
-      color var(--nf-duration-fast) var(--nf-ease-standard);
+    color: color-mix(in oklab, var(--nf-mw-white) 76%, transparent);
   }
   .nf-mw-card__eye::before {
     content: "";
@@ -196,201 +231,507 @@
     background: color-mix(in oklab, var(--nf-mw-white) 10%, transparent);
     color: var(--nf-mw-white);
   }
-  .nf-mw-card__eye:focus-visible {
+  .nf-mw-card__eye:focus-visible,
+  .nf-mw-add:focus-visible {
     outline: 2px solid var(--nf-mw-white);
     outline-offset: 2px;
   }
 
-  /* ------------------------------------------------------ the capsules
-     The founder, 8 October: "capsule each okay and glass too". Every
-     action on the card is a full capsule (PILL_ALLOWED in
-     `scripts/check-css-tokens.mjs` records the ruling): Add money solid in
-     the action blue, Withdraw and Transfer frosted glass over the card. */
-  .nf-mw-btn {
+  /* Add money: a small capsule where the reference keeps its currency
+     selector (there is one currency, so no selector). */
+  .nf-mw-add {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
-    gap: var(--nf-space-xs);
-    min-height: 3rem;
-    padding-inline: var(--nf-space-md) calc(var(--nf-space-md) + var(--nf-space-3xs));
-    border: var(--nf-border-width) solid transparent;
-    border-radius: var(--nf-radius-pill);
-    font-size: var(--nf-text-body);
-    font-weight: 600;
-    line-height: 1;
-    white-space: nowrap;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    transition:
-      background-color var(--nf-duration-fast) var(--nf-ease-standard),
-      border-color var(--nf-duration-fast) var(--nf-ease-standard),
-      transform var(--nf-duration-press) var(--nf-ease-press),
-      opacity var(--nf-duration-fast) var(--nf-ease-standard);
-  }
-  .nf-mw-btn:focus-visible {
-    outline: 2px solid var(--nf-mw-white);
-    outline-offset: 3px;
-  }
-  .nf-mw-btn:active:not(:disabled) {
-    transform: scale(0.97);
-  }
-  .nf-mw-btn:disabled {
-    cursor: not-allowed;
-  }
-
-  /* Add money: the one solid capsule, the action blue with its own rim. */
-  .nf-mw-btn--solid {
+    gap: var(--nf-space-2xs);
     min-height: 2.75rem;
     padding-inline: var(--nf-space-sm) var(--nf-space-md);
-    border-color: color-mix(in oklab, var(--nf-mw-white) 22%, transparent);
-    background: var(--nf-act-fill);
-    box-shadow:
-      inset 0 1px 0 color-mix(in oklab, var(--nf-mw-white) 30%, transparent),
-      0 8px 20px -10px color-mix(in oklab, var(--nf-mw-blue) 90%, transparent);
-    color: var(--nf-act-on);
+    border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-mw-white) 22%, transparent);
+    border-radius: var(--nf-radius-pill);
+    background: color-mix(in oklab, var(--nf-mw-navy) 40%, transparent);
     font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-mw-white);
+    -webkit-tap-highlight-color: transparent;
   }
-  .nf-mw-btn--solid:hover:not(:disabled) {
-    background: var(--nf-act-fill-hover);
+  .nf-mw-add:hover {
+    background: color-mix(in oklab, var(--nf-mw-white) 12%, transparent);
   }
-  .nf-mw-btn--solid:disabled {
-    border-color: color-mix(in oklab, var(--nf-mw-white) 12%, transparent);
-    background: color-mix(in oklab, var(--nf-mw-blue) 34%, transparent);
-    box-shadow: none;
-    color: color-mix(in oklab, var(--nf-mw-white) 58%, transparent);
+  .nf-mw-add__plus {
+    display: grid;
+    place-items: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-act-fill);
+    color: var(--nf-act-on);
   }
 
-  /* Withdraw and Transfer: frosted glass over the blue. A translucent white
-     fill brighter at the top, the card blurred behind it, a fine light edge
-     and a soft highlight along the top. */
-  .nf-mw-moves {
+  .nf-mw-card__main {
+    position: relative;
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--nf-space-sm);
+    gap: var(--nf-space-2xs);
+    min-width: 0;
+    padding-inline-end: 5.5rem;
   }
-  .nf-mw-btn--glass {
-    border-color: color-mix(in oklab, var(--nf-mw-white) 30%, transparent);
-    background: linear-gradient(
-      180deg,
-      color-mix(in oklab, var(--nf-mw-white) 24%, transparent) 0%,
-      color-mix(in oklab, var(--nf-mw-white) 10%, transparent) 100%
-    );
-    box-shadow:
-      inset 0 1px 0 color-mix(in oklab, var(--nf-mw-white) 50%, transparent),
-      inset 0 -1px 0 color-mix(in oklab, var(--nf-mw-white) 8%, transparent),
-      var(--nf-elevation-raised);
-    -webkit-backdrop-filter: blur(18px) saturate(170%);
-    backdrop-filter: blur(18px) saturate(170%);
+  .nf-mw-card__figure {
+    min-width: 0;
     color: var(--nf-mw-white);
   }
-  .nf-mw-btn--glass:hover:not(:disabled) {
-    border-color: color-mix(in oklab, var(--nf-mw-white) 42%, transparent);
-    background: linear-gradient(
-      180deg,
-      color-mix(in oklab, var(--nf-mw-white) 32%, transparent) 0%,
-      color-mix(in oklab, var(--nf-mw-white) 16%, transparent) 100%
-    );
+  .nf-mw-card__figure .nf-mfig--hero {
+    font-size: clamp(1.875rem, 8.6vw, 2.5rem);
   }
-  .nf-mw-btn--glass:disabled {
-    border-color: color-mix(in oklab, var(--nf-mw-white) 16%, transparent);
-    background: color-mix(in oklab, var(--nf-mw-white) 9%, transparent);
-    box-shadow: inset 0 1px 0 color-mix(in oklab, var(--nf-mw-white) 18%, transparent);
-    color: color-mix(in oklab, var(--nf-mw-white) 56%, transparent);
+  .nf-mw-card .nf-mfig {
+    color: var(--nf-mw-white);
   }
-  @media (max-width: 339px) {
-    .nf-mw-moves {
-      grid-template-columns: 1fr;
-    }
+  .nf-mw-card .nf-mfig__cur,
+  .nf-mw-card .nf-mfig__kobo {
+    font-weight: 600;
+    color: color-mix(in oklab, var(--nf-mw-white) 64%, transparent);
+  }
+  /* No answer to read: calm words in the figure's place, never a zero. */
+  .nf-mw-card__none {
+    font-size: var(--nf-text-h3);
+    font-weight: 600;
+    line-height: 1.2;
+    color: color-mix(in oklab, var(--nf-mw-white) 94%, transparent);
+  }
+  .nf-mw-card__line {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    min-width: 0;
+    font-size: var(--nf-text-caption);
+    line-height: 1.35;
+    color: color-mix(in oklab, var(--nf-mw-white) 72%, transparent);
+  }
+  .nf-mw-card__dot {
+    flex: none;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-state-warning);
+  }
+  .nf-mw-card__dot[data-tone="done"] {
+    background: var(--nf-state-success);
+  }
+  .nf-mw-card__dot[data-tone="problem"] {
+    background: var(--nf-state-error);
+  }
+  .nf-mw-card__line svg {
+    flex: none;
+  }
+  /* The wallet object on the right (the reference's illustration), solid
+     and behind the words, so a long figure stays readable over it. */
+  .nf-mw-card__art {
+    position: absolute;
+    z-index: -1;
+    inset-inline-end: calc(-1 * var(--nf-space-2xs));
+    top: 58%;
+    width: 6.25rem;
+    height: auto;
+    transform: translateY(-50%) rotate(-6deg);
+    pointer-events: none;
   }
 
-  /* ------------------------------------------------------ the lists
-     The platform's own container, by name, in each theme. */
-  .nf-mw-group .nf-list-group:not(.nf-list-group--bare) {
-    border-color: var(--nf-platform-card-edge);
-    border-radius: var(--nf-radius-xl);
-    background: var(--nf-platform-card-fill);
-    box-shadow: var(--nf-platform-card-shadow);
+  .nf-mw-card__totals {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--nf-space-xs);
+    margin-top: var(--nf-space-xs);
   }
-  .nf-mw-group .nf-list-row {
-    min-height: 4rem;
-    padding-inline: var(--nf-space-md);
+  .nf-mw-total {
+    display: grid;
+    gap: var(--nf-space-3xs);
+    min-width: 0;
+    padding: var(--nf-space-sm);
+    border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-mw-white) 14%, transparent);
+    border-radius: var(--nf-radius-md);
+    background: color-mix(in oklab, var(--nf-mw-navy) 46%, transparent);
   }
-  /* A word is never broken: the title and its line take one line each and
-     end on an ellipsis, and the status under a figure wraps between words
-     inside its own narrow column instead of squeezing the title. */
-  .nf-mw-group :is(.nf-list-row__title, .nf-list-row__sub) {
+  .nf-mw-total__label {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-3xs);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: color-mix(in oklab, var(--nf-mw-white) 72%, transparent);
+  }
+  .nf-mw-total__label svg {
+    flex: none;
+  }
+  .nf-mw-total[data-way="in"] .nf-mw-total__label svg {
+    color: var(--nf-mw-in);
+  }
+  .nf-mw-total[data-way="out"] .nf-mw-total__label svg {
+    color: var(--nf-spark);
+  }
+  .nf-mw-total__value {
+    min-width: 0;
     overflow: hidden;
-    overflow-wrap: normal;
+    font-size: var(--nf-text-body-lg);
+    font-weight: 700;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .nf-mw-group .nf-list-row__end {
-    max-width: 8.5rem;
+  .nf-mw-total__value .nf-mfig--md {
+    font-size: var(--nf-text-body-lg);
   }
-  /* Inline, so a status that wraps keeps its dot beside its first word. */
-  .nf-mw-group .nf-list-row__end .nf-mword {
-    display: inline;
-    max-width: 8.5rem;
-  }
-  .nf-mw-group .nf-list-row__end .nf-mword__dot {
-    display: inline-block;
-    margin-inline-end: 0.375rem;
-    vertical-align: 0.1em;
-  }
-  .nf-mw-group .nf-list-item:has(.nf-mw-mark) {
-    --nf-list-inset: calc(var(--nf-space-md) + 2.5rem + var(--nf-space-sm));
+  .nf-mw-total__none {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: color-mix(in oklab, var(--nf-mw-white) 60%, transparent);
   }
 
-  /* A row's mark: the solid object on a quiet blue plate, the Profile
-     belongings' plate (radius, one hairline, a few percent of brand). */
-  .nf-mw-mark {
+  /* --------------------------------------------- where the money is */
+  .nf-mw-strip {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border: var(--nf-border-width) solid var(--nf-mw-surface-edge);
+    border-radius: var(--nf-radius-lg);
+    background: var(--nf-mw-surface);
+  }
+  .nf-mw-strip > div {
+    display: grid;
+    gap: var(--nf-space-3xs);
+    min-width: 0;
+    padding: var(--nf-space-sm);
+  }
+  .nf-mw-strip > div + div {
+    border-inline-start: var(--nf-border-width) solid var(--nf-mw-surface-edge);
+  }
+  .nf-mw-strip dt {
+    overflow: hidden;
+    font-size: var(--nf-text-caption);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--nf-content-secondary);
+  }
+  .nf-mw-strip dd {
+    min-width: 0;
+    overflow: hidden;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--nf-content-primary);
+  }
+
+  /* ---------------------------------------------------- the panels */
+  .nf-mw-panel {
+    border: var(--nf-border-width) solid var(--nf-mw-surface-edge);
+    border-radius: var(--nf-radius-lg);
+    background: var(--nf-mw-surface);
+    box-shadow: var(--nf-platform-card-shadow);
+  }
+
+  /* The protected row: one solid shield, a title, the custody line, a chevron. */
+  .nf-mw-protect {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    min-height: 4rem;
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    color: var(--nf-content-primary);
+  }
+  .nf-mw-protect:hover {
+    border-color: var(--nf-mw-edge);
+  }
+  .nf-mw-protect:focus-visible,
+  .nf-mw-tool:focus-visible,
+  .nf-mw-row:focus-visible,
+  .nf-mw-link:focus-visible {
+    outline: 2px solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  .nf-mw-protect__art {
     display: grid;
     flex: none;
     place-items: center;
-    border: var(--nf-border-width) solid var(--nf-tier-plate-edge);
-    border-radius: var(--nf-tier-plate-radius);
-    background: color-mix(in oklab, var(--nf-brand-primary) 8%, transparent);
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--nf-radius-md);
+    background: color-mix(in oklab, var(--nf-brand-primary) 14%, transparent);
   }
-  .nf-mw-mark--row {
-    width: 2.5rem;
-    height: 2.5rem;
+  .nf-mw-protect__text {
+    display: grid;
+    flex: 1;
+    gap: var(--nf-space-3xs);
+    min-width: 0;
   }
-  .nf-mw-mark--state {
-    width: 4rem;
-    height: 4rem;
-    border-radius: var(--nf-radius-lg);
+  .nf-mw-protect__title {
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+  }
+  .nf-mw-protect__sub {
+    font-size: var(--nf-text-caption);
+    line-height: 1.4;
+    color: var(--nf-content-secondary);
+  }
+  .nf-mw-chev {
+    flex: none;
+    color: var(--nf-content-muted);
   }
 
-  /* The activity before there is any: the same container, one object and
-     one line, centred. */
+  /* The banner (the left-hand phone's one borrowed piece): words on the
+     left, the house on the right, fading into the card. */
+  .nf-mw-banner {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    gap: var(--nf-space-xs);
+    overflow: hidden;
+    min-height: 9rem;
+    padding: var(--nf-space-md);
+    border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-brand-primary) 45%, transparent);
+    border-radius: var(--nf-radius-lg);
+    background: var(--nf-mw-navy);
+    color: var(--nf-mw-white);
+  }
+  .nf-mw-banner__photo {
+    position: absolute;
+    z-index: -2;
+    inset-block: 0;
+    inset-inline-end: 0;
+    width: 62%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .nf-mw-banner::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      var(--nf-mw-navy) 0%,
+      color-mix(in oklab, var(--nf-mw-navy) 92%, transparent) 40%,
+      color-mix(in oklab, var(--nf-mw-navy) 20%, transparent) 78%,
+      transparent 100%
+    );
+  }
+  .nf-mw-banner__title {
+    max-width: 13rem;
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h4);
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  .nf-mw-banner__body {
+    max-width: 12.5rem;
+    font-size: var(--nf-text-caption);
+    line-height: 1.4;
+    color: color-mix(in oklab, var(--nf-mw-white) 78%, transparent);
+  }
+  .nf-mw-banner__cta {
+    display: inline-flex;
+    align-items: center;
+    justify-self: start;
+    gap: var(--nf-space-3xs);
+    min-height: 2.75rem;
+    margin-top: var(--nf-space-3xs);
+    padding-inline: var(--nf-space-md) var(--nf-space-sm);
+    border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-mw-white) 40%, transparent);
+    border-radius: var(--nf-radius-pill);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-mw-white);
+  }
+  .nf-mw-banner__cta:hover {
+    background: color-mix(in oklab, var(--nf-mw-white) 10%, transparent);
+  }
+  .nf-mw-banner__cta:focus-visible {
+    outline: 2px solid var(--nf-mw-white);
+    outline-offset: 2px;
+  }
+
+  /* --------------------------------------------------------- sections */
+  .nf-mw-section {
+    display: grid;
+    gap: var(--nf-space-sm);
+    min-width: 0;
+  }
+  .nf-mw-section__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-space-sm);
+    min-height: 2.75rem;
+    margin-bottom: calc(-1 * var(--nf-space-xs));
+  }
+  .nf-mw-section__title {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h4);
+    font-weight: 700;
+    color: var(--nf-content-primary);
+  }
+  .nf-mw-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    padding-inline: var(--nf-space-2xs);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-link);
+  }
+
+  /* ------------------------------------------------------------ rows */
+  .nf-mw-list {
+    display: grid;
+    overflow: hidden;
+  }
+  .nf-mw-list > li + li {
+    border-top: var(--nf-border-width) solid var(--nf-mw-surface-edge);
+  }
+  /* The reference's row: the square, then the title over its "From:" or
+     "To:" line, and on the right the amount over the date; the status pill
+     under them, at the right, free to take the row's width when its words
+     are long ("On its way to your bank"). */
+  .nf-mw-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      "tile title amount"
+      "tile sub date"
+      "tile status status";
+    align-items: center;
+    column-gap: var(--nf-space-sm);
+    row-gap: var(--nf-space-3xs);
+    width: 100%;
+    min-height: 4.5rem;
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    text-align: start;
+    color: var(--nf-content-primary);
+    -webkit-tap-highlight-color: transparent;
+    transition: background-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-mw-row:hover {
+    background: var(--nf-brand-tint-1);
+  }
+  .nf-mw-row > .nf-mw-tile {
+    grid-area: tile;
+    align-self: start;
+  }
+  .nf-mw-row__title,
+  .nf-mw-row__sub {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .nf-mw-row__title {
+    grid-area: title;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+  }
+  .nf-mw-row__sub {
+    grid-area: sub;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+  }
+  .nf-mw-row__amount {
+    grid-area: amount;
+    justify-self: end;
+    white-space: nowrap;
+  }
+  .nf-mw-row__status {
+    grid-area: status;
+    justify-self: end;
+  }
+  .nf-mw-row__amount .nf-mfig--row {
+    font-size: var(--nf-text-body);
+    font-weight: 700;
+  }
+  .nf-mw-row__amount[data-way="in"] .nf-mfig {
+    color: var(--nf-mw-in);
+  }
+  .nf-mw-row__amount[data-way="out"] .nf-mfig {
+    color: var(--nf-mw-out);
+  }
+  .nf-mw-row__amount[data-moved="false"] .nf-mfig {
+    color: var(--nf-content-muted);
+    text-decoration: line-through;
+  }
+  .nf-mw-row__date {
+    grid-area: date;
+    justify-self: end;
+    font-size: var(--nf-text-caption);
+    white-space: nowrap;
+    color: var(--nf-content-muted);
+  }
+
+  /* The coloured squares: green in, orange to someone, blue to a bank. */
+  .nf-mw-tile {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--nf-radius-md);
+    background: var(--nf-act-fill);
+    color: var(--nf-mw-white);
+  }
+  .nf-mw-tile[data-tone="in"] {
+    background: linear-gradient(180deg, color-mix(in oklab, var(--nf-state-success) 80%, var(--nf-mw-white)), var(--nf-state-success));
+  }
+  .nf-mw-tile[data-tone="send"] {
+    background: var(--nf-spark-fill);
+    color: var(--nf-spark-on-fill);
+  }
+  .nf-mw-tile[data-tone="neutral"] {
+    background: var(--nf-surface-raised);
+    color: var(--nf-content-primary);
+  }
+
+  /* A status, in a small pill under the figure. */
+  .nf-mw-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem var(--nf-space-xs);
+    border-radius: var(--nf-radius-xs);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    line-height: 1.3;
+    white-space: nowrap;
+    background: color-mix(in oklab, var(--nf-state-warning) 16%, transparent);
+    color: var(--nf-state-warning);
+  }
+  .nf-mw-pill[data-tone="done"] {
+    background: color-mix(in oklab, var(--nf-state-success) 16%, transparent);
+    color: var(--nf-state-success);
+  }
+  .nf-mw-pill[data-tone="problem"] {
+    background: color-mix(in oklab, var(--nf-state-error) 14%, transparent);
+    color: var(--nf-state-error);
+  }
+  .nf-mw-pill[data-tone="neutral"] {
+    background: var(--nf-surface-raised);
+    color: var(--nf-content-secondary);
+  }
+
+  /* Nothing yet: one solid object and one line, centred. */
   .nf-mw-empty {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: var(--nf-space-sm);
     padding: var(--nf-space-xl) var(--nf-space-lg);
-    border: var(--nf-border-width) solid var(--nf-platform-card-edge);
-    border-radius: var(--nf-radius-xl);
-    background: var(--nf-platform-card-fill);
-    box-shadow: var(--nf-platform-card-shadow);
     text-align: center;
   }
   .nf-mw-empty__title {
     font-size: var(--nf-text-body);
     font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-mw-empty__body {
+    max-width: 18rem;
+    font-size: var(--nf-text-body-sm);
     color: var(--nf-content-secondary);
   }
-
-  /* The figures could not be refreshed: one calm line on the container. */
   .nf-mw-note {
     display: flex;
     align-items: flex-start;
     gap: var(--nf-space-xs);
-    margin-top: calc(-1 * var(--nf-space-md));
     padding: var(--nf-space-sm) var(--nf-space-md);
-    border: var(--nf-border-width) solid var(--nf-platform-card-edge);
-    border-radius: var(--nf-radius-lg);
-    background: var(--nf-platform-card-fill);
     font-size: var(--nf-text-body-sm);
     color: var(--nf-content-secondary);
   }
@@ -400,30 +741,573 @@
     color: var(--nf-state-warning);
   }
 
-  /* ADR 0003's one line, as a caption. */
-  .nf-mw__held {
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
+  /* ---------------------------------------------------- More options */
+  .nf-mw-tools {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: var(--nf-space-xs);
-    padding-inline: var(--nf-space-md);
-    padding-bottom: var(--nf-space-lg);
-    text-align: start;
+    padding: var(--nf-space-xs);
+  }
+  .nf-mw-tool {
+    display: grid;
+    justify-items: center;
+    align-content: start;
+    gap: var(--nf-space-3xs);
+    min-width: 0;
+    min-height: 5.75rem;
+    padding: var(--nf-space-sm) var(--nf-space-3xs);
+    border: var(--nf-border-width) solid var(--nf-mw-surface-edge);
+    border-radius: var(--nf-radius-md);
+    background: color-mix(in oklab, var(--nf-brand-primary) 6%, transparent);
+    text-align: center;
+    color: var(--nf-content-primary);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .nf-mw-tool:hover {
+    border-color: var(--nf-mw-edge);
+  }
+  .nf-mw-tool__title {
+    max-width: 100%;
+    overflow: hidden;
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .nf-mw-tool__sub {
+    font-size: var(--nf-text-caption);
+    line-height: 1.25;
     color: var(--nf-content-muted);
   }
-  .nf-mw__held svg {
-    flex: none;
-    margin-top: var(--nf-space-3xs);
+  @media (max-width: 359px) {
+    .nf-mw-tools {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
   }
 
-  /* Wider screens: the card breathes a little more. */
-  @media (min-width: 768px) {
-    .nf-mw-card {
-      gap: var(--nf-space-xl);
-      padding: var(--nf-space-xl);
+  /* The tools destination: groups of wide tool cards, two across. */
+  .nf-mw-toolgrid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--nf-space-sm);
+  }
+  .nf-mw-toolcard {
+    display: grid;
+    align-content: start;
+    gap: var(--nf-space-xs);
+    min-height: 8.25rem;
+    padding: var(--nf-space-md);
+    color: var(--nf-content-primary);
+  }
+  .nf-mw-toolcard:hover {
+    border-color: var(--nf-mw-edge);
+  }
+  .nf-mw-toolcard:focus-visible {
+    outline: 2px solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  .nf-mw-toolcard__title {
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+  }
+  .nf-mw-toolcard__sub {
+    font-size: var(--nf-text-caption);
+    line-height: 1.4;
+    color: var(--nf-content-secondary);
+  }
+  .nf-mw-tool-art {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--nf-radius-md);
+    background: color-mix(in oklab, var(--nf-brand-primary) 12%, transparent);
+  }
+  @media (max-width: 339px) {
+    .nf-mw-toolgrid {
+      grid-template-columns: 1fr;
     }
-    .nf-mw-moves {
-      max-width: 28rem;
+  }
+
+  /* --------------------------------------------------------- filters */
+  .nf-mw-chips {
+    display: flex;
+    gap: var(--nf-space-xs);
+    padding-block: var(--nf-space-3xs);
+    padding-inline-end: var(--nf-space-lg);
+    overflow-x: auto;
+    /* The next chip fades at the edge instead of being sliced. */
+    -webkit-mask-image: linear-gradient(90deg, var(--nf-content-primary) 85%, transparent);
+    mask-image: linear-gradient(90deg, var(--nf-content-primary) 85%, transparent);
+    scrollbar-width: none;
+    scroll-snap-type: x proximity;
+  }
+  .nf-mw-chips::-webkit-scrollbar {
+    display: none;
+  }
+  .nf-mw-chip {
+    flex: none;
+    min-height: 2.75rem;
+    padding-inline: var(--nf-space-md);
+    border: var(--nf-border-width) solid var(--nf-mw-edge);
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-mw-surface);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--nf-content-primary);
+    scroll-snap-align: start;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+      background-color var(--nf-duration-fast) var(--nf-ease-standard),
+      border-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-mw-chip:hover {
+    border-color: color-mix(in oklab, var(--nf-brand-primary) 60%, transparent);
+  }
+  .nf-mw-chip[aria-pressed="true"] {
+    border-color: transparent;
+    background: var(--nf-act-fill);
+    color: var(--nf-act-on);
+  }
+  .nf-mw-chip:focus-visible {
+    outline: 2px solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  .nf-mw-chip[data-tone="spark"][aria-pressed="true"] {
+    background: var(--nf-spark-fill);
+    color: var(--nf-spark-on-fill);
+  }
+
+  /* The Transactions screen's compact summary: the figure once, small. */
+  .nf-mw-summary {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-md);
+  }
+  .nf-mw-summary__main {
+    display: grid;
+    gap: var(--nf-space-3xs);
+    min-width: 0;
+  }
+  .nf-mw-summary__label {
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+  }
+  .nf-mw-summary__figure {
+    min-width: 0;
+    overflow: hidden;
+    font-size: var(--nf-text-h3);
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--nf-content-primary);
+  }
+  .nf-mw-summary__figure .nf-mfig--lg {
+    font-size: var(--nf-text-h3);
+  }
+  .nf-mw-summary__ways {
+    display: grid;
+    gap: var(--nf-space-3xs);
+    justify-items: end;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+  }
+  .nf-mw-summary__way {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    white-space: nowrap;
+  }
+  .nf-mw-summary__way[data-way="in"] svg {
+    color: var(--nf-mw-in);
+  }
+  .nf-mw-summary__way[data-way="out"] svg {
+    color: var(--nf-spark);
+  }
+  .nf-mw-summary__way .nf-mfig {
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+
+  /* ------------------------------------------------------- capsules
+     Exactly two, at the very bottom, side by side: Withdraw in the action
+     blue, Send in the spark fill (D81). They ride the foot of the screen
+     in the page's own flow (sticky), so they never cover the last row, and
+     they clear the home indicator. */
+  .nf-mw-capsules {
+    position: sticky;
+    z-index: 20;
+    bottom: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--nf-space-sm);
+    margin-top: var(--nf-space-xs);
+    margin-inline: calc(-1 * var(--nf-space-2xs));
+    padding: var(--nf-space-md) var(--nf-space-2xs) max(var(--nf-space-sm), env(safe-area-inset-bottom, 0px));
+    background: linear-gradient(180deg, transparent 0%, color-mix(in oklab, var(--nf-surface-canvas) 92%, transparent) 34%, var(--nf-surface-canvas) 60%);
+  }
+  .nf-mw-cap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--nf-space-xs);
+    min-height: 3.5rem;
+    padding-inline: var(--nf-space-md);
+    border: var(--nf-border-width) solid transparent;
+    border-radius: var(--nf-radius-pill);
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+      transform var(--nf-duration-press) var(--nf-ease-press),
+      filter var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-mw-cap:active {
+    transform: scale(0.97);
+  }
+  .nf-mw-cap:hover {
+    filter: brightness(1.06);
+  }
+  .nf-mw-cap:focus-visible {
+    outline: 2px solid var(--nf-focus-ring);
+    outline-offset: 3px;
+  }
+  .nf-mw-cap--blue {
+    border-color: color-mix(in oklab, var(--nf-mw-white) 22%, transparent);
+    background: linear-gradient(180deg, color-mix(in oklab, var(--nf-mw-blue) 78%, var(--nf-mw-white)) 0%, var(--nf-mw-blue) 100%);
+    box-shadow: 0 12px 28px -14px color-mix(in oklab, var(--nf-mw-blue) 80%, transparent);
+    color: var(--nf-act-on);
+  }
+  .nf-mw-cap--spark {
+    border-color: color-mix(in oklab, var(--nf-mw-white) 22%, transparent);
+    background: var(--nf-spark-fill);
+    box-shadow: var(--nf-spark-glow);
+    color: var(--nf-spark-on-fill);
+  }
+
+  /* ------------------------------------------------- move-money screens
+     The Supay reference: the amount large, chips, rows, Continue, keypad. */
+  .nf-mw-move {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-md);
+    min-height: calc(100dvh - 9rem);
+  }
+  .nf-mw-avail {
+    display: inline-flex;
+    align-items: center;
+    align-self: center;
+    gap: var(--nf-space-xs);
+    min-height: 2.25rem;
+    padding-inline: var(--nf-space-md);
+    border: var(--nf-border-width) solid var(--nf-mw-edge);
+    border-radius: var(--nf-radius-segment);
+    background: var(--nf-mw-surface);
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+  }
+  .nf-mw-avail .nf-mfig {
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-mw-amount {
+    display: grid;
+    justify-items: center;
+    gap: var(--nf-space-2xs);
+    padding-block: var(--nf-space-sm);
+  }
+  .nf-mw-amount__label {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+  }
+  .nf-mw-amount__figure {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    max-width: 100%;
+    font-family: var(--nf-font-display);
+    font-size: clamp(2.5rem, 13vw, 3.5rem);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--nf-content-primary);
+  }
+  .nf-mw-amount__figure[data-long] {
+    font-size: clamp(2rem, 9.5vw, 2.75rem);
+  }
+  .nf-mw-amount__cur {
+    margin-inline-end: var(--nf-space-3xs);
+    font-size: max(0.6em, 0.75rem);
+    font-weight: 600;
+    color: var(--nf-content-muted);
+  }
+  .nf-mw-amount__figure {
+    position: relative;
+    padding-inline: var(--nf-space-xs);
+    border-radius: var(--nf-radius-md);
+  }
+  .nf-mw-amount__digits[data-empty] {
+    color: var(--nf-content-muted);
+  }
+  .nf-mw-amount__input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: transparent;
+    caret-color: transparent;
+    opacity: 0;
+    cursor: text;
+  }
+  .nf-mw-amount__figure:focus-within {
+    outline: 2px solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  .nf-mw-amount__hint {
+    max-width: 20rem;
+    text-align: center;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-mw-quick {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--nf-space-xs);
+  }
+  .nf-mw-quick .nf-mw-chip {
+    padding-inline: var(--nf-space-2xs);
+  }
+  .nf-mw-reasons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--nf-space-xs);
+  }
+  .nf-mw-label {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+
+  /* A row that opens a choice: method, recipient, bank account. */
+  .nf-mw-pick {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    width: 100%;
+    min-height: 4.25rem;
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    text-align: start;
+    color: var(--nf-content-primary);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .nf-mw-pick:hover {
+    border-color: var(--nf-mw-edge);
+  }
+  .nf-mw-pick:focus-visible {
+    outline: 2px solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  .nf-mw-pick__text {
+    display: grid;
+    flex: 1;
+    gap: var(--nf-space-3xs);
+    min-width: 0;
+  }
+  .nf-mw-pick__label {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+  }
+  .nf-mw-pick__value {
+    overflow: hidden;
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .nf-mw-pick__change {
+    flex: none;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-link);
+  }
+  .nf-mw-avatar {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-act-fill);
+    font-size: var(--nf-text-body);
+    font-weight: 700;
+    color: var(--nf-act-on);
+  }
+
+  .nf-mw-foot {
+    display: grid;
+    gap: var(--nf-space-sm);
+    margin-top: auto;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .nf-mw-go {
+    width: 100%;
+  }
+
+  /* The keypad: on a phone it is the keyboard; on a laptop the field takes typing. */
+  .nf-mw-keys {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--nf-space-2xs);
+  }
+  .nf-mw-key {
+    display: grid;
+    place-items: center;
+    min-height: 3.25rem;
+    border-radius: var(--nf-radius-md);
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h3);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+    -webkit-tap-highlight-color: transparent;
+    transition: background-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-mw-key:hover:not(:disabled),
+  .nf-mw-key:active:not(:disabled) {
+    background: var(--nf-brand-tint-2);
+  }
+  .nf-mw-key:disabled {
+    color: var(--nf-content-muted);
+  }
+  .nf-mw-key:focus-visible {
+    outline: 2px solid var(--nf-focus-ring);
+    outline-offset: -2px;
+  }
+  @media (min-width: 768px) {
+    .nf-mw-keys {
+      display: none;
+    }
+  }
+
+  /* The honest end of a flow that cannot run yet. */
+  .nf-mw-result {
+    display: grid;
+    justify-items: center;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-xl) var(--nf-space-lg);
+    text-align: center;
+  }
+  .nf-mw-result__title {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h3);
+    font-weight: 700;
+    color: var(--nf-content-primary);
+  }
+  .nf-mw-result__body {
+    max-width: 20rem;
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+  }
+  .nf-mw-sum {
+    display: grid;
+    gap: var(--nf-space-xs);
+    padding: var(--nf-space-md);
+  }
+  .nf-mw-sum > div {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--nf-space-sm);
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+  }
+  .nf-mw-sum dd {
+    min-width: 0;
+    font-weight: 600;
+    text-align: end;
+    color: var(--nf-content-primary);
+  }
+  .nf-mw-error {
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-state-error);
+  }
+
+  /* ------------------------------------------------------- light theme
+     Paper: the card stays a night island; the rest sits on Paper's white
+     containers, the tabs and chips in the brand blue when chosen. */
+  :root[data-theme="light"] .nf-mw-tabs__tab[aria-current="page"] {
+    border-color: transparent;
+    background: var(--nf-act-fill);
+    color: var(--nf-act-on);
+  }
+
+  /* --------------------------------------------------------- smallest
+     At 320 a row gives its date a line of its own, the strip and the
+     summary stack, so no figure is ever cut. */
+  @media (max-width: 359px) {
+    .nf-mw-row {
+      grid-template-areas:
+        "tile title amount"
+        "tile sub sub"
+        "tile date date"
+        "tile status status";
+    }
+    .nf-mw-row__date {
+      justify-self: start;
+    }
+    .nf-mw-strip {
+      grid-template-columns: 1fr;
+    }
+    .nf-mw-strip > div {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      padding-block: var(--nf-space-xs);
+    }
+    .nf-mw-strip > div + div {
+      border-inline-start: 0;
+      border-top: var(--nf-border-width) solid var(--nf-mw-surface-edge);
+    }
+    .nf-mw-summary {
+      grid-template-columns: 1fr;
+    }
+    .nf-mw-summary__ways {
+      justify-items: start;
+    }
+  }
+
+  /* ---------------------------------------------------------- larger */
+  @media (min-width: 1024px) {
+    .nf-mw[data-screen="overview"] {
+      max-width: 64rem;
+    }
+    .nf-mw-cols {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+      align-items: start;
+      gap: var(--nf-space-lg);
+    }
+    .nf-mw-col {
+      display: flex;
+      flex-direction: column;
+      gap: var(--nf-space-md);
+      min-width: 0;
+    }
+    .nf-mw[data-screen="overview"] .nf-mw-tabs {
+      width: min(100%, 28rem);
+    }
+    .nf-mw[data-screen="overview"] .nf-mw-capsules {
+      align-self: flex-end;
+      width: min(100%, 28rem);
+      margin-inline-start: auto;
     }
   }
 }

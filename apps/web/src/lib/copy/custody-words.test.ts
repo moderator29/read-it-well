@@ -206,6 +206,22 @@ const BARE_WALLET_ALLOWED: { file: string; text: RegExp; why: string }[] = [
     why: "D78: the screen's name, in the sentence that says the partner, never Vallo, holds the money",
   },
   { file: "lib/money/balance-copy.ts", text: /^Wallet is not connected yet, so nothing was sent\.$/, why: "D78: the screen's name" },
+  /* D81 (8 October 2026): the founder's governing Wallet reference and his
+     brief. The screen's name again, on its own screens: the gear's
+     destination, the "Pay for your space with VALLO Wallet" banner he kept
+     from the left-hand phone (rent paid from Wallet is held by the partner
+     until the move-in, FUND_STEPS), and the one plain line each move-money
+     screen ends on before Wallet is connected. None says Vallo holds money. */
+  { file: "lib/money/balance-copy.ts", text: /^Wallet settings$/, why: "D81: the screen's name (the tools destination)" },
+  { file: "lib/nav/route-labels.ts", text: /^Wallet settings$/, why: "D81: the screen's name (route label)" },
+  { file: "lib/money/balance-copy.ts", text: /^Pay for your space with Vallo Wallet$/, why: "D81: the founder's banner, the product's name" },
+  { file: "lib/money/balance-copy.ts", text: /^Pay agreed rent from Wallet\. It is released only when you confirm the move-in\.$/, why: "D81: the banner's line; the partner holds it until the move-in (FUND_STEPS)" },
+  {
+    file: "lib/money/balance-copy.ts",
+    text: /^(Adding money opens|Sending opens|Withdrawals open) when Wallet is connected\. Nothing (was charged|was sent|has moved)\.$/,
+    why: "D81: the honest last step before the provider is connected",
+  },
+  { file: "lib/money/balance-copy.ts", text: /^Back to Wallet$/, why: "D81: the screen's name" },
 ];
 
 /**

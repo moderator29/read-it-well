@@ -331,6 +331,12 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/payouts": "/home",
   /* ADR 0003: /wallet is the member balance the escrow partner holds. */
   "/wallet": "/home",
+  /* D81: the Wallet's own screens, each one back to the overview. */
+  "/wallet/transactions": "/wallet",
+  "/wallet/settings": "/wallet",
+  "/wallet/add": "/wallet",
+  "/wallet/send": "/wallet",
+  "/wallet/withdraw": "/wallet",
   "/agreements/[id]": "/agreements",
   "/agreements/[id]/fund": "/agreements/[id]",
   "/agreements/[id]/held": "/agreements/[id]",

@@ -1027,14 +1027,22 @@ const PILL_ALLOWED = new Set([
    */
   "src/app/admin/_review/review.css  .nf-rv-btn",
   /*
-   * PERMANENT, by the founder's Wallet ruling of 8 October 2026: "the
-   * withdrawal and transfer button should be capsule each okay and glass
-   * too". The wallet card's actions (Add money solid, Withdraw and Transfer
-   * frosted glass) are buttons drawn by the wallet's own class (`nf-mw-btn`,
-   * money-wallet.css) rather than `.nf-btn`, so the button test above cannot
-   * see them. They are buttons; nothing else wears it.
+   * PERMANENT, by D81 (8 October 2026), which supersedes D80's glass
+   * capsules: the founder's governing Wallet
+   * (`docs/design/references/2026-10-08/GOVERNING-wallet-overview-transactions.png`,
+   * the right-hand phone). Its Overview | Transactions tabs are the
+   * segmented role (a pill track, a pill thumb, D2), and its filter chips
+   * (All, Received, Sent, Withdrawals), the move-money screens' quick amounts
+   * and reason chips are the chip role D2 reserves the pill for. The two
+   * bottom capsules (Withdraw, Send), Add money on the card and the banner's
+   * Learn more are buttons drawn by the Wallet's own classes rather than
+   * `.nf-btn`, which is why the button test above cannot see them.
    */
-  "src/app/css/money-wallet.css  .nf-mw-btn",
+  "src/app/css/money-wallet.css  .nf-mw-tabs__tab",
+  "src/app/css/money-wallet.css  .nf-mw-chip",
+  "src/app/css/money-wallet.css  .nf-mw-cap",
+  "src/app/css/money-wallet.css  .nf-mw-add",
+  "src/app/css/money-wallet.css  .nf-mw-banner__cta",
 ]);
 
 /* The TSX half of the same list, and it has one entry. The two round things

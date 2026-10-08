@@ -19,6 +19,9 @@ import {
   type OnboardingState,
   type ProfileGap,
 } from "./funds";
+import { sumMovements, type MovementTotals } from "./wallet-view";
+
+export type { MovementTotals };
 
 /**
  * THE MEMBER BALANCE, SERVER SIDE (Part B phase 6; founder section 10).
@@ -107,6 +110,29 @@ export async function recentMovements(db: Db, userId: string, limit = 20): Promi
     .limit(limit);
   if (error) throw error;
   return (data as MovementRow[] | null) ?? [];
+}
+
+/**
+ * MONEY IN AND MONEY OUT, from the member's own completed movements (D81:
+ * the founder's Total received and Total spent). Only rows the provider
+ * confirmed as completed count (the database refuses "completed" from
+ * anywhere else), so the two sums are facts, never estimates. The sum
+ * itself is `sumMovements` (wallet-view.ts, pure and tested).
+ */
+/** The most completed rows the totals read: past it, the totals say nothing rather than a partial sum. */
+export const TOTALS_ROW_LIMIT = 5000;
+
+export async function movementTotals(db: Db, userId: string): Promise<MovementTotals | null> {
+  const { data, error } = await db
+    .from("funds_movements")
+    .select("kind, amount_minor")
+    .eq("user_id", userId)
+    .eq("status", "completed")
+    .limit(TOTALS_ROW_LIMIT + 1);
+  if (error) throw error;
+  const rows = (data as { kind: MovementKind; amount_minor: number }[] | null) ?? [];
+  if (rows.length > TOTALS_ROW_LIMIT) return null;
+  return sumMovements(rows.map((r) => ({ kind: r.kind, amountMinor: Number(r.amount_minor) })));
 }
 
 export type ObserveSource = "vallo" | "provider_response" | "provider_webhook" | "provider_readback";
@@ -258,6 +284,13 @@ export type BalanceRead =
       live: boolean;
       figures: BalanceFigures | null;
       movements: MovementView[];
+      /**
+       * Money in and out from completed movements; null when they could not
+       * be summed honestly. Optional so the older reads stay valid.
+       */
+      totals?: MovementTotals | null;
+      /** True when `movements` stopped at the read's limit and older ones exist. */
+      more?: boolean;
       /** The server's clock when this was read, so "confirmed n minutes ago" agrees on both sides. */
       readAt: string;
     };
@@ -268,8 +301,12 @@ export async function profileFor(db: Db, user: User): Promise<{ firstName: strin
   return { firstName: p.first_name ?? null, lastName: p.surname ?? null, phone: p.phone ?? user.phone ?? null, email: user.email ?? null };
 }
 
-/** The /wallet page's one read. */
-export async function readMyBalance(): Promise<BalanceRead> {
+/**
+ * The /wallet page's one read. `limit` is how many recent movements to bring;
+ * the Transactions screen asks for more than the overview's preview.
+ */
+export async function readMyBalance(opts: { limit?: number } = {}): Promise<BalanceRead> {
+  const limit = opts.limit ?? 20;
   const session = await resolveSession();
   if (session.state !== "signed-in") return { state: "signed-out" };
   const rail = await memberWalletRailLive();
@@ -292,15 +329,16 @@ export async function readMyBalance(): Promise<BalanceRead> {
     }
 
     const { reported } = await reportedBalance(db, provider, userId, account.provider_customer_id);
-    const rows = await recentMovements(db, userId);
-    const movements = rows.map(movementView);
+    const [rows, totals] = await Promise.all([recentMovements(db, userId, limit + 1), movementTotals(db, userId)]);
+    const more = rows.length > limit;
+    const movements = rows.slice(0, limit).map(movementView);
     const figures = reported
       ? balanceFigures(
           reported,
           movements.map((m) => ({ kind: m.kind, status: m.status, amountMinor: m.amountMinor, providerFeeMinor: m.providerFeeMinor, observedAt: m.observedAt })),
         )
       : null;
-    return { state: "ready", live: reported?.live ?? false, figures, movements, readAt: new Date().toISOString() };
+    return { state: "ready", live: reported?.live ?? false, figures, movements, totals, more, readAt: new Date().toISOString() };
   } catch (error) {
     await reportReadFault("read.money.member_balance", error);
     return { state: "error" };
