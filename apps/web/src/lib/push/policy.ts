@@ -98,9 +98,26 @@ export const URGENT_PATH_PREFIXES: readonly string[] = ["/settings/devices/alert
 export function isUrgentPath(href: string | null): boolean {
   if (typeof href !== "string") return false;
   const path = safeHref(href);
-  return URGENT_PATH_PREFIXES.some(
-    (prefix) => path === prefix || path.startsWith(`${prefix}?`) || path.startsWith(`${prefix}/`),
+  return (
+    isIncomingCallPath(path) ||
+    URGENT_PATH_PREFIXES.some(
+      (prefix) => path === prefix || path.startsWith(`${prefix}?`) || path.startsWith(`${prefix}/`),
+    )
   );
+}
+
+/**
+ * AN INCOMING CALL RINGS THROUGH QUIET HOURS (the founder, 8 October 2026).
+ * Only the ring itself: `private.call_ring` alone writes a call link carrying
+ * `?call=<id>` (a thread, the agent side of one, or a review invitation), and
+ * that push already expires with the 45 second ring, so it can never wake
+ * somebody about a call that has stopped. The missed-call notice links
+ * without `?call=` and still waits for the morning.
+ */
+const INCOMING_CALL_PATH = /^\/(?:agent\/messages|messages|calls\/reviews)\/[0-9a-f-]{36}\?call=[0-9a-f-]{36}$/;
+
+export function isIncomingCallPath(path: string): boolean {
+  return INCOMING_CALL_PATH.test(path);
 }
 
 /**

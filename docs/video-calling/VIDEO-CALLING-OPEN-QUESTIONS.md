@@ -10,16 +10,17 @@ The default VC1 chose is stated, so nothing is blocked while it is answered.
    agent or business be able to call an enquirer who has only sent the first
    message? (Today: yes, because the enquirer wrote.) Should a guest be able
    to call a business that has never replied? (Today: no.)
-2. **Quiet hours.** An incoming call is not "urgent", so during a person's
-   quiet hours the push is held past its 45 s life and never sent; the call
-   shows as missed in the morning. Should calls ring through quiet hours?
+2. **Quiet hours.** DECIDED by the founder, 8 October 2026: calls ring through
+   quiet hours. `isIncomingCallPath` in `apps/web/src/lib/push/policy.ts` marks
+   the ringing push (its link carries `?call=`) urgent; the missed-call notice
+   still waits for the morning.
    (One line in `lib/push/policy.ts`: treat the incoming-call path as urgent.)
 3. **Push collapse.** Call pushes share the `vallo-message` collapse tag, so
    an incoming call replaces a pending message notification on the lock
    screen. Give calls their own tag?
-4. **Who answers for a firm.** Calls go to the conversation's `agent_id`; a
-   firm's routed agent (`routed_agent_id`) is not rung. Should a call ring the
-   routed agent instead, or both?
+4. **Who answers for a firm.** DECIDED by the founder, 8 October 2026: "the
+   person who listed it". Calls go to the conversation's `agent_id` (the
+   lister), as built; the firm's routed agent is not rung.
 5. **Business workspaces.** A business conversation rings the business owner
    only, not staff in a workspace. Multi-device and team ringing are later.
 6. **Space walkthroughs, scheduled viewings, group calls** (brief stage 4):
