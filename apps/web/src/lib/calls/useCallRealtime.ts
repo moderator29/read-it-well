@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { isSupabaseConfigured } from "../supabase/env";
-import { createClient } from "../supabase/client";
+import { loadBrowserClient, type BrowserClient } from "../supabase/load-client";
 import type { CallState } from "./types";
 
 /**
@@ -17,7 +17,37 @@ import type { CallState } from "./types";
  * `newerSnapshot` (higher version wins, a finished call never comes back to
  * life). If realtime drops, the heartbeat every `HEARTBEAT_SECONDS` still
  * carries the state, so a stale screen corrects itself within seconds.
+ *
+ * THE CLIENT IS LOADED, NOT IMPORTED (speed pass, 8 October 2026). The
+ * incoming-calls listener is mounted in the signed-in shell, so a static
+ * import of `../supabase/client` put supabase-js (about 66 KB gzipped) in the
+ * first load of EVERY in-app route, before a single call was ever placed.
+ * `loadBrowserClient` fetches it after the shell has painted; a call cannot
+ * ring sooner than the channel is open either way.
  */
+
+type Channel = ReturnType<BrowserClient["channel"]>;
+
+/**
+ * Open one channel once the client has loaded, and close it on cleanup even
+ * when the cleanup comes first. Returns the cleanup.
+ */
+function openChannel(build: (supabase: BrowserClient) => Channel): () => void {
+  let closed = false;
+  let opened: { supabase: BrowserClient; channel: Channel } | null = null;
+  void loadBrowserClient()
+    .then((supabase) => {
+      if (closed || !supabase) return;
+      opened = { supabase, channel: build(supabase) };
+    })
+    .catch(() => {
+      /* No client (offline, missing env): the heartbeat still carries the state. */
+    });
+  return () => {
+    closed = true;
+    if (opened) void opened.supabase.removeChannel(opened.channel);
+  };
+}
 
 export type CallNudge = { callId: string; state: CallState | null; version: number | null };
 
@@ -41,21 +71,19 @@ export function useCallUpdates(callId: string | null, onNudge: (nudge: CallNudge
   });
   useEffect(() => {
     if (!callId || !isSupabaseConfigured()) return;
-    const supabase = createClient();
-    const channel = supabase
-      .channel(`call-${callId}`)
-      .on(
-        "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "calls", filter: `id=eq.${callId}` },
-        (payload) => {
-          const nudge = nudgeFrom(payload.new, "id");
-          if (nudge) handler.current(nudge);
-        },
-      )
-      .subscribe();
-    return () => {
-      void supabase.removeChannel(channel);
-    };
+    return openChannel((supabase) =>
+      supabase
+        .channel(`call-${callId}`)
+        .on(
+          "postgres_changes",
+          { event: "UPDATE", schema: "public", table: "calls", filter: `id=eq.${callId}` },
+          (payload) => {
+            const nudge = nudgeFrom(payload.new, "id");
+            if (nudge) handler.current(nudge);
+          },
+        )
+        .subscribe(),
+    );
   }, [callId]);
 }
 
@@ -71,20 +99,18 @@ export function useIncomingCalls(userId: string | null, onNudge: (nudge: CallNud
   });
   useEffect(() => {
     if (!userId || !isSupabaseConfigured()) return;
-    const supabase = createClient();
-    const channel = supabase
-      .channel(`call-invites-${userId}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "call_participants", filter: `user_id=eq.${userId}` },
-        (payload) => {
-          const nudge = nudgeFrom(payload.new, "call_id");
-          if (nudge) handler.current(nudge);
-        },
-      )
-      .subscribe();
-    return () => {
-      void supabase.removeChannel(channel);
-    };
+    return openChannel((supabase) =>
+      supabase
+        .channel(`call-invites-${userId}`)
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "call_participants", filter: `user_id=eq.${userId}` },
+          (payload) => {
+            const nudge = nudgeFrom(payload.new, "call_id");
+            if (nudge) handler.current(nudge);
+          },
+        )
+        .subscribe(),
+    );
   }, [userId]);
 }

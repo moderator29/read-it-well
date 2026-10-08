@@ -72,20 +72,24 @@ export default async function InboxPage() {
       );
     }
 
-    /* Track G: which threads this reader archived or reported, and which side
-       the shell is on, so the inbox opens where the reader already is. */
-    const views = await loadInboxViews(
-      session.supabase as unknown as SupabaseClient,
-      session.user.id,
-      conversations.map((c) => ({ id: c.id, counterpartId: c.counterpartId ?? "", lastAt: c.lastAt })),
-    );
     /* VC1: a thread whose newest message is a call this reader missed shows
        the missed-call line. Only rows whose words look like a call marker are
        asked about, and `messages.call_id` decides, so typed words never can. */
     const maybeCalls = conversations
       .filter((c) => !c.lastFromMe && c.lastMessageId && parseCallMarker(c.lastMessage))
       .map((c) => c.lastMessageId!);
-    const markers = await markerIds(session.supabase, maybeCalls);
+    /* Track G: which threads this reader archived or reported, and which side
+       the shell is on, so the inbox opens where the reader already is. Asked
+       beside the missed-call markers, not after them (speed pass, 8 October
+       2026): both hang off the threads alone, so they are one round trip. */
+    const [views, markers] = await Promise.all([
+      loadInboxViews(
+        session.supabase as unknown as SupabaseClient,
+        session.user.id,
+        conversations.map((c) => ({ id: c.id, counterpartId: c.counterpartId ?? "", lastAt: c.lastAt })),
+      ),
+      markerIds(session.supabase, maybeCalls),
+    ]);
     const missedWords = { VIDEO: dictionary.calls.history.inboxMissedVideo, AUDIO: dictionary.calls.history.inboxMissedVoice };
     const rows: InboxRow[] = conversations.map((c) => {
       const missed = inboxMissedCall(c.lastMessage, c.lastFromMe, Boolean(c.lastMessageId && markers.has(c.lastMessageId)));
