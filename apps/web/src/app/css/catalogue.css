@@ -3145,22 +3145,22 @@
     color: var(--nf-status-verified);
   }
   .nf-map-dock .nf-map-dock__card.nf-panel {
-    border-color: var(--nf-smoked-glass-edge);
-    background: var(--nf-smoked-glass-fill);
+    border-color: var(--nf-platform-card-edge);
+    background: var(--nf-platform-card-fill);
     -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
     backdrop-filter: blur(var(--nf-smoked-glass-blur));
   }
   @media (prefers-reduced-transparency: reduce) {
     .nf-pcard :is(.nf-pcard__heart, .nf-pcard__photobtn, .nf-pcard__nophoto, .nf-pcard__mark--verified),
     .nf-map-dock .nf-map-dock__card.nf-panel {
-      background: var(--nf-platinum-ink);
+      background: var(--nf-smoked-glass-fill);
       -webkit-backdrop-filter: none;
       backdrop-filter: none;
     }
   }
   :root[data-transparency="reduced"]
     :is(.nf-pcard .nf-pcard__heart, .nf-pcard .nf-pcard__photobtn, .nf-pcard .nf-pcard__nophoto, .nf-pcard .nf-pcard__mark--verified, .nf-map-dock .nf-map-dock__card.nf-panel) {
-    background: var(--nf-platinum-ink);
+    background: var(--nf-smoked-glass-fill);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }
@@ -3193,15 +3193,13 @@
      smoke is laid over the near-black ink and reads as one solid object. */
   :root:not([data-theme="light"]) .nf-shelf-bar > .nf-recent {
     border-color: var(--nf-smoked-glass-edge);
-    background:
-      linear-gradient(var(--nf-smoked-glass-fill), var(--nf-smoked-glass-fill)),
-      var(--nf-platinum-ink);
+    background: var(--nf-smoked-glass-fill);
     -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
     backdrop-filter: blur(var(--nf-smoked-glass-blur));
   }
   @media (prefers-reduced-transparency: reduce) {
     :root:not([data-theme="light"]) .nf-shelf-bar > .nf-recent {
-      background: var(--nf-platinum-ink);
+      background: var(--nf-smoked-glass-fill);
     }
   }
   .nf-recent__list--palette .nf-recent__row {

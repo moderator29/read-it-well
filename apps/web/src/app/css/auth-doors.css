@@ -134,20 +134,17 @@
     height: 3.5rem;
     min-height: 3.5rem;
     border-radius: var(--nf-radius-island);
-    border: 1px solid transparent;
-    background: var(--nf-content-primary);
-    color: var(--nf-platinum-ink);
-    box-shadow: var(--nf-capsule-reflection);
     font-weight: 600;
   }
-  /* Email, where a provider leads: the dark smoked-glass capsule. */
+  /* Email, where a provider leads: the secondary button's own navy and blue
+     edge (founder ruling, 7 October: one blue identity, no smoked grey). */
   .nf-doors .nf-doors__stack .nf-slate-pill.nf-btn.nf-doors__glass {
-    background: var(--nf-smoked-glass-fill);
-    color: var(--nf-content-primary);
-    border-color: var(--nf-smoked-glass-edge);
-    backdrop-filter: blur(var(--nf-smoked-glass-blur));
-    -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
-    box-shadow: none;
+    background: var(--nf-act-surface);
+    color: var(--nf-act-outline-ink);
+    border: var(--nf-act-edge-width) solid var(--nf-act-edge);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: var(--nf-act-surface-shadow);
   }
   .nf-doors__have {
     display: flex;

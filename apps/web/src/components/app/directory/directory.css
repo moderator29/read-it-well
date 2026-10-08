@@ -92,8 +92,10 @@
   min-block-size: 5rem;
   padding: var(--nf-space-md);
   border-radius: var(--nf-radius-card);
-  background: var(--nf-surface-raised);
-  border: 1px solid var(--nf-border-subtle);
+  /* The platform container (founder ruling, 7 October). */
+  background: var(--nf-platform-card-fill);
+  border: 1px solid var(--nf-platform-card-edge);
+  box-shadow: var(--nf-platform-card-shadow);
   color: inherit;
   text-decoration: none;
 }
@@ -188,8 +190,4 @@
 .nf-dir .nf-dir__cta.nf-btn {
   margin-top: var(--nf-space-md);
   border-radius: var(--nf-radius-island);
-  background: var(--nf-content-primary);
-  color: var(--nf-platinum-ink);
-  border-color: transparent;
-  box-shadow: var(--nf-capsule-reflection);
 }

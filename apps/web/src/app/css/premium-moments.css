@@ -167,7 +167,7 @@
     height: 17rem;
     overflow: hidden;
     border-radius: var(--nf-radius-card);
-    background: radial-gradient(120% 90% at 50% 0%, color-mix(in oklab, var(--nf-platinum-low) 16%, transparent), transparent 70%);
+    background: radial-gradient(120% 90% at 50% 0%, color-mix(in oklab, var(--nf-container-ink) 22%, transparent), transparent 70%);
     -webkit-mask-image: linear-gradient(180deg, var(--nf-content-primary) 70%, transparent);
     mask-image: linear-gradient(180deg, var(--nf-content-primary) 70%, transparent);
   }
@@ -175,7 +175,7 @@
     position: absolute;
     inset: var(--nf-space-lg) 15% -3rem;
     border-radius: var(--nf-radius-island) var(--nf-radius-island) 0 0;
-    border: 3px solid color-mix(in oklab, var(--nf-platinum-low) 70%, transparent);
+    border: 3px solid var(--nf-smoked-glass-edge);
     background: var(--nf-surface-inset);
     overflow: hidden;
   }
@@ -193,7 +193,7 @@
     height: 1.125rem;
     translate: -50% 0;
     border-radius: var(--nf-radius-circle);
-    background: var(--nf-platinum-ink);
+    background: var(--nf-surface-artwork);
   }
   .nf-explain__screen {
     display: grid;
@@ -399,12 +399,12 @@
     min-height: 3.5rem;
     padding-inline: var(--nf-space-lg);
     border-radius: var(--nf-radius-pill);
-    background: linear-gradient(180deg, var(--nf-platinum-hi), color-mix(in oklab, var(--nf-platinum-hi) 82%, var(--nf-platinum-mid)));
-    color: var(--nf-platinum-ink);
+    background: var(--nf-act-fill);
+    color: var(--nf-act-on);
     font-size: var(--nf-text-body);
     font-weight: 600;
-    box-shadow: var(--nf-capsule-reflection), 0 0 0 1px var(--nf-platinum-edge) inset;
-    -webkit-box-reflect: below 6px linear-gradient(transparent 55%, color-mix(in oklab, var(--nf-platinum-hi) 22%, transparent));
+    box-shadow: var(--nf-act-shadow), var(--nf-capsule-reflection);
+    -webkit-box-reflect: below 6px linear-gradient(transparent 55%, color-mix(in oklab, var(--nf-act-blue) 22%, transparent));
     transition: transform var(--nf-duration-fast) var(--nf-ease-press);
   }
   .nf-capsule:active {

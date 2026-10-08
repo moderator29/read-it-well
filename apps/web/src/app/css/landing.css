@@ -1064,15 +1064,16 @@
     overflow: hidden;
     text-overflow: ellipsis;
   }
+  /* The selected segment is the brand blue, its word and glyph white
+     (founder ruling, 7 October: every selected segment is blue). */
   .nf-landing-pill-seg[aria-checked="true"] {
-    color: var(--nf-content-primary);
+    background: var(--nf-act-fill);
+    color: var(--nf-act-on);
+    box-shadow: var(--nf-act-shadow);
     font-weight: 600;
   }
   .nf-landing-pill-seg[aria-checked="true"] svg {
-    color: var(--nf-brand-primary);
-  }
-  :root:not([data-theme="light"]) .nf-landing-pill-seg[aria-checked="true"] svg {
-    color: var(--nf-brand-secondary);
+    color: var(--nf-act-on);
   }
   .nf-landing-pill-seg:focus-visible {
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
@@ -1231,17 +1232,14 @@
       background-color var(--nf-duration-fast) var(--nf-ease-standard),
       color var(--nf-duration-fast) var(--nf-ease-standard);
   }
+  /* The selected tab is the brand blue with its white word, in both themes,
+     as every segmented control on the platform (founder ruling, 7 October:
+     the selected "Buy" read grey). White on the act ramp holds 4.8:1. */
   .nf-hero-tab[aria-selected="true"] {
-    background: color-mix(in oklab, var(--nf-brand-primary) 12%, var(--nf-surface-primary));
-    /* The link ink, the light theme's brand colour for text: the brand blue on
-       its own wash fell under 4.5:1 at 14px (front door a11y, light). Night
-       answers below with its own brand ink. */
-    color: var(--nf-content-link);
+    background: var(--nf-act-fill);
+    color: var(--nf-act-on);
+    box-shadow: var(--nf-act-shadow);
     font-weight: 600;
-  }
-  :root:not([data-theme="light"]) .nf-hero-tab[aria-selected="true"] {
-    background: color-mix(in oklab, var(--nf-brand-primary) 24%, var(--nf-surface-canvas));
-    color: var(--nf-brand-secondary);
   }
   @media (hover: hover) {
     .nf-hero-tab[aria-selected="false"]:hover {

@@ -53,8 +53,10 @@
     padding-block: var(--nf-space-xl) var(--nf-space-2xl);
     padding-inline: var(--nf-space-md);
     border-radius: var(--nf-radius-lg);
-    background: radial-gradient(120% 70% at 50% 0%, color-mix(in oklab, var(--nf-platinum-low) 14%, transparent), transparent 60%),
-      color-mix(in oklab, var(--nf-platinum-ink) 94%, var(--nf-brand-primary));
+    /* The platform container (founder ruling, 7 October), the navy glass
+       and blue edge, dark in both themes as the field always was. */
+    border: var(--nf-border-width) solid var(--nf-smoked-glass-edge);
+    background: var(--nf-smoked-glass-fill);
     color: var(--nf-platinum-hi);
   }
 

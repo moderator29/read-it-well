@@ -251,23 +251,23 @@
     color: var(--nf-content-on-media);
   }
   .nf-gallery .nf-gallery-mark.nf-badge--verified {
-    border: var(--nf-border-width) solid var(--nf-platinum-edge);
-    background: var(--nf-platinum-sheen), var(--nf-platinum-fill);
-    box-shadow: var(--nf-platinum-shadow);
-    color: var(--nf-platinum-ink);
+    border: var(--nf-border-width) solid transparent;
+    background: var(--nf-act-fill);
+    box-shadow: var(--nf-act-shadow);
+    color: var(--nf-act-on);
   }
   /* Reduced transparency: the smoke goes solid rather than see-through. */
   @media (prefers-reduced-transparency: reduce) {
     .nf-gallery .nf-icon-btn.nf-icon-btn--round,
     .nf-gallery .nf-media-chip:not(.nf-media-chip--lg),
     .nf-gallery .nf-gallery-mark.nf-badge--info {
-      background: var(--nf-platinum-ink);
+      background: var(--nf-smoked-glass-fill);
       -webkit-backdrop-filter: none;
       backdrop-filter: none;
     }
   }
   :root[data-transparency="reduced"] .nf-gallery :is(.nf-icon-btn.nf-icon-btn--round, .nf-media-chip:not(.nf-media-chip--lg), .nf-gallery-mark.nf-badge--info) {
-    background: var(--nf-platinum-ink);
+    background: var(--nf-smoked-glass-fill);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }

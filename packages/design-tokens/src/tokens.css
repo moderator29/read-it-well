@@ -4601,12 +4601,35 @@
  * diagonal sheen, dark ink on it, a bright hairline edge.
  *
  * ONE PLATINUM OBJECT PER SCREEN: the balance, the member's tier card, the
- * Pro card, the hero figure's backing. On the navy it reads as the luxury
- * layer above the blue glass, never a replacement for it. The same values in
- * both themes, because metal does not change colour with the lights.
+ * Pro card, the hero figure's backing.
  *
- * The smoked glass is the dark card that breaks out of a device frame on an
- * explainer; the reflection is the floor glow under the one capsule action.
+ * RE-POINTED TO THE PLATFORM (founder ruling, 7 October 2026, on production
+ * screenshots, dark mode): "The platinum colour: all the buttons you used
+ * that colour on, change it to our blue colour. It's grey, it's supposed to
+ * be blue, our identity colour and vibe ... The grey containers the stats sit
+ * on: make them our platform container colour." The names stay (26 surfaces
+ * read them); the values are now the platform's own:
+ *   fill, edge,    the platform container: what the platinum filled was a
+ *   shadow         card the figures sit on (the balance, the rent, the held
+ *                  figure, the Pro card, the share card), so it is the same
+ *                  navy glass and blue edge as the smoked glass below. A
+ *                  button or a selected pill that wore the metal now reads
+ *                  the primary's own `--nf-act-fill` at its rule, never this
+ *   ink, ink-soft  the light inks of that navy (the old hi and mid tones)
+ *   sheen          none: clean
+ *   smoked glass   the platform container, the night glass the Profile
+ *                  list card and `ListGroup` wear (`--nf-night-glass-*`):
+ *                  the container ink's bloom and wash over the night
+ *                  surface, and its blue edge. Its layers are composed here
+ *                  on an opaque base, because this material floats (the You
+ *                  pill, the palette, the chips on a photograph) and nothing
+ *                  may read through it; and on the night surface in both
+ *                  themes, because it sits on photographs and explainer
+ *                  stages whose ink is light in both. No blur: the surface
+ *                  is opaque (north star: no blur per card)
+ *   reflection     a blue floor glow under the one capsule action
+ * `--nf-platinum-hi/-mid/-low` keep their neutral values: light inks on that
+ * navy, and the tier named Platinum. Gold is not part of the ruling.
  */
 :root,
 [data-theme="dark"],
@@ -4614,28 +4637,52 @@
   --nf-platinum-hi: #F1F2F4;
   --nf-platinum-mid: #BABEC5;
   --nf-platinum-low: #80858E;
-  --nf-platinum-ink: #0B0D12;
-  --nf-platinum-ink-soft: #565B64;
-  --nf-platinum-edge: rgb(255 255 255 / 0.55);
-  --nf-platinum-fill: linear-gradient(
-    135deg,
-    var(--nf-platinum-hi) 0%,
-    var(--nf-platinum-mid) 52%,
-    var(--nf-platinum-low) 100%
-  );
-  --nf-platinum-sheen: linear-gradient(
-    115deg,
-    transparent 32%,
-    rgb(255 255 255 / 0.42) 46%,
-    transparent 60%
-  );
-  --nf-platinum-shadow: 0 24px 60px -24px rgb(0 0 0 / 0.65), 0 0 0 1px var(--nf-platinum-edge) inset;
+  --nf-platinum-ink: var(--nf-platinum-hi);
+  --nf-platinum-ink-soft: var(--nf-platinum-mid);
+  --nf-platinum-edge: var(--nf-smoked-glass-edge);
+  --nf-platinum-fill: var(--nf-smoked-glass-fill);
+  --nf-platinum-sheen: linear-gradient(transparent, transparent);
+  --nf-platinum-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.08),
+    inset 0 0 0 1px var(--nf-smoked-glass-edge),
+    0 0 28px -12px color-mix(in oklab, var(--nf-container-ink) 50%, transparent),
+    0 14px 30px -22px rgb(1 1 24 / 0.8);
 
-  --nf-smoked-glass-fill: rgb(20 22 28 / 0.74);
-  --nf-smoked-glass-edge: rgb(255 255 255 / 0.1);
-  --nf-smoked-glass-blur: 22px;
+  --nf-smoked-glass-fill:
+    radial-gradient(120% 85% at 0% 0%, color-mix(in oklab, var(--nf-container-ink) 22%, transparent), transparent 62%),
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--nf-container-ink) 8%, transparent) 0%,
+      color-mix(in oklab, var(--nf-container-ink) 2%, transparent) 70%
+    ),
+    #040A1F;
+  --nf-smoked-glass-edge: color-mix(in oklab, var(--nf-container-ink) 50%, transparent);
+  --nf-smoked-glass-blur: 0px;
 
-  --nf-capsule-reflection: 0 22px 44px -16px rgb(255 255 255 / 0.32);
+  --nf-capsule-reflection: 0 22px 44px -16px color-mix(in oklab, var(--nf-act-blue) 55%, transparent);
+}
+
+/*
+ * THE PLATFORM CARD, BY NAME (the same ruling). A container in the page that
+ * holds figures in the page's own ink (the /pro stat strip) reads the card
+ * the Profile list and `ListGroup` wear, in each theme: the night glass at
+ * night (`brand-glass.css` paints `.nf-pf-rows` and `.nf-list-group` with
+ * exactly these), the card surface, hairline and shadow on paper. The smoked
+ * glass above is the same navy, held in both themes, for what floats on a
+ * photograph or a dark stage; this one follows the lights.
+ */
+:root,
+[data-theme="dark"],
+[data-theme="light"] {
+  --nf-platform-card-fill: var(--nf-surface-primary);
+  --nf-platform-card-edge: var(--nf-card-border);
+  --nf-platform-card-shadow: var(--nf-card-shadow);
+}
+:root:not([data-theme="light"]),
+:root:not([data-theme="light"]) [data-theme="dark"] {
+  --nf-platform-card-fill: var(--nf-night-glass-fill);
+  --nf-platform-card-edge: var(--nf-night-glass-edge);
+  --nf-platform-card-shadow: var(--nf-night-glass-shadow);
 }
 
 /*

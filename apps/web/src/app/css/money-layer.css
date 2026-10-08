@@ -454,9 +454,10 @@
     box-shadow: var(--nf-platinum-shadow);
     color: var(--nf-content-primary);
   }
-  /* The brushing: hairlines of the metal's own highlight, barely there. */
+  /* The brushing went with the metal (founder ruling, 7 October): the card
+     is the platform container now, clean. */
   .nf-mcard::before {
-    content: "";
+    content: none;
     position: absolute;
     inset: 0;
     z-index: -1;
@@ -1186,8 +1187,11 @@
   }
 
   /* ------------------------------------------------ the invite, ready
-     invite-ready-pill.jpg: a white capsule with the words and a round green
-     button at its end. Listed in PILL_ALLOWED with the D74 capsule. */
+     invite-ready-pill.jpg's shape: a capsule with the words and a round
+     button at its end. In the platform's colours (founder ruling, 7 October:
+     "no green and no white pill"): the navy container with its blue edge,
+     white words, the arrow on the primary blue. Listed in PILL_ALLOWED with
+     the D74 capsule. */
   .nf-ready {
     display: grid;
     justify-items: center;
@@ -1200,11 +1204,10 @@
     min-height: 4rem;
     padding: var(--nf-space-xs) var(--nf-space-xs) var(--nf-space-xs) var(--nf-space-lg);
     border-radius: var(--nf-radius-pill);
-    background: linear-gradient(180deg, var(--nf-platinum-hi), color-mix(in oklab, var(--nf-platinum-hi) 88%, var(--nf-platinum-mid)));
-    box-shadow:
-      var(--nf-elevation-floating),
-      0 0 0 1px var(--nf-platinum-edge) inset;
-    color: var(--nf-platinum-ink);
+    border: var(--nf-border-width) solid var(--nf-smoked-glass-edge);
+    background: var(--nf-smoked-glass-fill);
+    box-shadow: var(--nf-elevation-floating);
+    color: var(--nf-platinum-hi);
     transition: transform var(--nf-duration-fast) var(--nf-ease-press);
   }
   .nf-ready__pill:active {
@@ -1226,9 +1229,9 @@
     width: 3rem;
     height: 3rem;
     border-radius: var(--nf-radius-circle);
-    background: var(--nf-state-success);
-    color: var(--nf-content-on-brand);
-    box-shadow: var(--nf-elevation-raised);
+    background: var(--nf-act-fill);
+    color: var(--nf-act-on);
+    box-shadow: var(--nf-act-shadow);
   }
   @media (max-width: 359px) {
     .nf-ready__label {
@@ -1309,8 +1312,11 @@
     min-height: 2.75rem;
     padding-inline: var(--nf-space-md);
     border-radius: var(--nf-radius-control);
-    background: var(--nf-platinum-ink);
-    color: var(--nf-platinum-hi);
+    /* The card's one action is the brand blue button (founder ruling,
+       7 October), white words on it. */
+    background: var(--nf-act-fill);
+    color: var(--nf-act-on);
+    box-shadow: var(--nf-act-shadow);
     font-size: var(--nf-text-body-sm);
     font-weight: 600;
   }
@@ -1342,16 +1348,17 @@
     gap: var(--nf-space-xs);
     min-height: 3.25rem;
     border-radius: var(--nf-radius-control);
-    background: color-mix(in oklab, var(--nf-platinum-hi) 10%, transparent);
+    /* Blue-tinted on the navy, never a grey wash (founder ruling, 7 October). */
+    background: color-mix(in oklab, var(--nf-container-ink) 22%, transparent);
     color: var(--nf-platinum-hi);
     font-size: var(--nf-text-body);
     font-weight: 600;
     transition: transform var(--nf-duration-fast) var(--nf-ease-press);
   }
   .nf-balance-bar__btn[data-tone="primary"] {
-    background: var(--nf-platinum-fill);
-    color: var(--nf-platinum-ink);
-    box-shadow: 0 0 0 1px var(--nf-platinum-edge) inset;
+    background: var(--nf-act-fill);
+    color: var(--nf-act-on);
+    box-shadow: var(--nf-act-shadow);
   }
   .nf-balance-bar__btn:active:not(:disabled) {
     transform: scale(0.97);

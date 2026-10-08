@@ -70,15 +70,18 @@
     /* Deep blue glass lit from the upper left: a body that deepens toward
        its lower edge, a light caught in the glass at the bottom, and a rim. */
     /* The keys are calm soft-rounded objects (the Plasma set, D74, and his
-       amount-entry reference IMG_7026): smoked glass tiles lit softly from
-       above, a hairline rim, white figures. Not spheres any more. */
+       amount-entry reference IMG_7026): tiles lit softly from above, a rim,
+       white figures. Not spheres any more. Vallo blue, not grey (founder
+       ruling, 7 October): the container ink's wash over the raised night
+       surface, a step lighter than the sheet so each key stands off it, and
+       the blue edge the platform's cards wear. */
     --nf-passcode-sphere:
-      linear-gradient(180deg, color-mix(in oklab, var(--nf-content-on-brand) 9%, transparent) 0%, color-mix(in oklab, var(--nf-content-on-brand) 4%, transparent) 100%),
+      linear-gradient(180deg, color-mix(in oklab, var(--nf-container-ink) 34%, transparent) 0%, color-mix(in oklab, var(--nf-container-ink) 16%, transparent) 100%),
       var(--nf-smoked-glass-fill);
-    --nf-passcode-sphere-rim: var(--nf-smoked-glass-edge);
+    --nf-passcode-sphere-rim: color-mix(in oklab, var(--nf-container-ink) 62%, transparent);
     --nf-passcode-sphere-depth: inset 0 1px 0 color-mix(in oklab, var(--nf-content-on-brand) 10%, transparent);
     /* The highlight: a soft wash, brighter while pressed. */
-    --nf-passcode-sphere-light: linear-gradient(180deg, color-mix(in oklab, var(--nf-content-on-brand) 14%, transparent) 0%, transparent 70%);
+    --nf-passcode-sphere-light: linear-gradient(180deg, color-mix(in oklab, var(--nf-content-on-brand) 18%, transparent) 0%, transparent 70%);
     --nf-passcode-sphere-light-rest: 0.5;
     --nf-passcode-sphere-light-press: 1;
     --nf-passcode-sphere-ink: var(--nf-content-on-brand);
@@ -216,8 +219,8 @@
     min-height: min(31rem, 64%);
     padding-bottom: max(var(--nf-space-xs), env(safe-area-inset-bottom, 0px));
     border-radius: var(--nf-radius-2xl) var(--nf-radius-2xl) 0 0;
-    /* Smoked glass (the Plasma set, D74): near black, the scene's light
-       just showing through at the top edge. */
+    /* The platform container (founder ruling, 7 October): the navy glass
+       and blue edge of the Profile cards, opaque under the keys. */
     background: var(--nf-smoked-glass-fill);
     backdrop-filter: blur(var(--nf-smoked-glass-blur));
     -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
@@ -410,25 +413,15 @@
   .nf-passcode__second {
     width: 100%;
   }
-  /* The Plasma capsule (D74): the primary white with a soft glow, the second
-     smoked glass; corners at half the height, which is what a capsule is. */
+  /* The Plasma capsule (D74): the primary is the brand blue button (founder
+     ruling, 7 October: no white buttons), the second the secondary button,
+     navy with the blue edge; corners at half the height, which is what a
+     capsule is. */
   .nf-passcode .nf-passcode__offer .nf-btn {
     height: 3.5rem;
     min-height: 3.5rem;
     border-radius: var(--nf-radius-island);
     font-weight: 600;
-  }
-  .nf-passcode .nf-passcode__offer .nf-passcode__bio {
-    background: var(--nf-content-primary);
-    color: var(--nf-platinum-ink);
-    border-color: transparent;
-    box-shadow: var(--nf-capsule-reflection);
-  }
-  .nf-passcode .nf-passcode__offer .nf-passcode__second {
-    background: var(--nf-smoked-glass-fill);
-    color: var(--nf-content-primary);
-    border: 1px solid var(--nf-smoked-glass-edge);
-    box-shadow: none;
   }
   .nf-passcode__bio-glyph {
     flex: none;
@@ -570,6 +563,9 @@
     border-color: transparent;
     background: none;
     box-shadow: none;
+  }
+  .nf-passcode__key--quiet::before {
+    content: none;
   }
   .nf-passcode__key--quiet svg {
     width: calc(var(--nf-passcode-key) * 0.34);
@@ -713,7 +709,8 @@
     gap: var(--nf-space-2xs);
     padding: var(--nf-space-3xs);
     border-radius: var(--nf-act-radius-md);
-    background: var(--nf-surface-inset);
+    border: var(--nf-border-width) solid var(--nf-act-well-edge);
+    background: var(--nf-act-well);
   }
   .nf-passcode-settings__segment {
     min-height: 2.75rem;
@@ -722,10 +719,12 @@
     font-weight: 600;
     color: var(--nf-content-secondary);
   }
+  /* The selected segment is the brand blue, as every segmented control on
+     the platform (founder ruling, 7 October). */
   .nf-passcode-settings__segment--on {
-    background: var(--nf-surface-elevated);
-    color: var(--nf-content-primary);
-    box-shadow: var(--nf-elev-1);
+    background: var(--nf-act-fill);
+    color: var(--nf-act-on);
+    box-shadow: var(--nf-act-shadow);
   }
   .nf-passcode-settings__note {
     font-size: var(--nf-text-body-sm);

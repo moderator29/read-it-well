@@ -354,7 +354,7 @@
   }
 
   /* THE CAPSULE WITH A REFLECTION (the Plasma set, D74): the one action, a
-     full-width white capsule with a soft glow, and its mirror on the floor
+     full-width blue capsule with a soft glow, and its mirror on the floor
      under it. Its corners are half its height, which is what a capsule is;
      the founder's D74 ruling asks for exactly this on an explainer's one
      action, over check-css-tokens rule 10 (named in the hand-back). "Next"
@@ -375,13 +375,15 @@
     justify-content: center;
     gap: var(--nf-space-xs);
     border-radius: var(--nf-radius-island);
-    background: var(--nf-content-primary);
-    color: var(--nf-platinum-ink);
+    /* The brand blue button, white words (founder ruling, 7 October: no
+       white buttons, "our blue button colour"). */
+    background: var(--nf-act-fill);
+    color: var(--nf-act-on);
     font-size: var(--nf-text-body);
     font-weight: 600;
     text-decoration: none;
     box-shadow:
-      inset 0 -2px 0 color-mix(in oklab, var(--nf-platinum-low) 40%, transparent),
+      var(--nf-act-shadow),
       var(--nf-capsule-reflection);
     transition: scale var(--nf-duration-press) var(--nf-ease-press);
   }

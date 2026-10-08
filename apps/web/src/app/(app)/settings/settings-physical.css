@@ -24,10 +24,9 @@
   }
   .nf-settings-physical .nf-switch__thumb,
   .nf-settings-physical .nf-switch[aria-checked="true"] .nf-switch__thumb {
-    background: radial-gradient(circle at 35% 28%, var(--nf-platinum-hi) 0%, var(--nf-platinum-mid) 58%, var(--nf-platinum-low) 100%);
-    box-shadow:
-      var(--nf-elevation-raised),
-      inset 0 -1px 1px var(--nf-platinum-low),
-      inset 0 1px 1px var(--nf-platinum-edge);
+    /* The knob is the switch's own clean white (founder ruling, 7 October:
+       the grey metal goes), on the blue track when it is on. */
+    background: var(--nf-act-knob);
+    box-shadow: var(--nf-act-knob-shadow);
   }
 }

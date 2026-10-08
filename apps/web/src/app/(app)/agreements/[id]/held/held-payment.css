@@ -34,8 +34,10 @@
     padding-block: var(--nf-space-xl) var(--nf-space-2xl);
     padding-inline: var(--nf-space-md);
     border-radius: var(--nf-radius-lg);
-    background: radial-gradient(120% 70% at 50% 0%, color-mix(in oklab, var(--nf-platinum-low) 14%, transparent), transparent 60%),
-      color-mix(in oklab, var(--nf-platinum-ink) 94%, var(--nf-brand-primary));
+    /* The platform container (founder ruling, 7 October), the navy glass
+       and blue edge, dark in both themes as the field always was. */
+    border: var(--nf-border-width) solid var(--nf-smoked-glass-edge);
+    background: var(--nf-smoked-glass-fill);
     color: var(--nf-platinum-hi);
   }
 
@@ -95,11 +97,14 @@
   .nf-held__figure {
     display: flex;
     align-items: baseline;
-    flex-wrap: wrap;
-    gap: 0.35em;
+    flex-wrap: nowrap;
+    gap: 0.2em;
     font-family: var(--nf-font-display);
     font-variant-numeric: tabular-nums;
-    font-size: var(--nf-text-figure-xl);
+    /* Huge, and never wider than the card (the funding screen's rule): a
+       seven-figure deposit fits a 320px phone instead of running off it. */
+    font-size: min(var(--nf-text-figure-xl), 13vw);
+    white-space: nowrap;
     font-weight: 600;
     line-height: 1;
     letter-spacing: -0.02em;

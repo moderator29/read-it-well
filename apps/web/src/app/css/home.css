@@ -1015,8 +1015,11 @@
     gap: var(--nf-space-2xs);
     padding: var(--nf-space-sm) var(--nf-space-2xs);
     border-radius: var(--nf-radius-card, var(--nf-radius-lg));
-    border: var(--nf-border-width) solid var(--nf-card-border);
-    background: color-mix(in oklab, var(--nf-content-primary) 5%, var(--nf-surface-primary));
+    /* The platform container, the Profile list card's own (founder ruling,
+       7 October: the doors' card read brown-grey against the blue cards). */
+    border: var(--nf-border-width) solid var(--nf-platform-card-edge);
+    background: var(--nf-platform-card-fill);
+    box-shadow: var(--nf-platform-card-shadow);
   }
   .nf-home-doors[data-columns="2"] {
     grid-template-columns: repeat(2, minmax(0, 1fr));

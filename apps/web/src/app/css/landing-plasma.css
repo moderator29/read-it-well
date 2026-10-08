@@ -92,14 +92,15 @@
   .nf-btn.nf-pl-capsule {
     --nf-btn-h: 3.5rem;
     border-radius: var(--nf-radius-pill);
-    border: var(--nf-border-width) solid var(--nf-content-primary);
-    background: var(--nf-content-primary);
-    color: var(--nf-surface-canvas);
+    /* The brand blue button (founder ruling, 7 October: no white buttons). */
+    border: var(--nf-border-width) solid transparent;
+    background: var(--nf-act-fill);
+    color: var(--nf-act-on);
     text-shadow: none;
     padding-inline: var(--nf-space-xl);
     box-shadow:
-      0 0 0 1px color-mix(in oklab, var(--nf-content-primary) 30%, transparent),
-      0 18px 40px -18px color-mix(in oklab, var(--nf-content-primary) 55%, transparent);
+      var(--nf-act-shadow),
+      var(--nf-capsule-reflection);
     -webkit-box-reflect: below 6px linear-gradient(transparent 52%, color-mix(in oklab, var(--nf-surface-canvas) 18%, transparent));
   }
   .nf-btn.nf-pl-capsule::after {
@@ -108,7 +109,7 @@
     top: calc(100% + 0.25rem);
     height: 1.75rem;
     border-radius: var(--nf-radius-pill);
-    background: radial-gradient(50% 50% at 50% 50%, color-mix(in oklab, var(--nf-content-primary) 32%, transparent), transparent 100%);
+    background: radial-gradient(50% 50% at 50% 50%, color-mix(in oklab, var(--nf-act-blue) 40%, transparent), transparent 100%);
     filter: blur(10px);
   }
   @media (hover: hover) {
@@ -755,8 +756,8 @@
       color var(--nf-duration-fast) var(--nf-ease-standard);
   }
   .nf-pl-pill__step[aria-current="step"] {
-    background: var(--nf-content-primary);
-    color: var(--nf-surface-canvas);
+    background: var(--nf-act-fill);
+    color: var(--nf-act-on);
   }
   .nf-pl-pill__step:focus-visible {
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);

@@ -113,10 +113,10 @@
     gap: var(--nf-space-sm);
     padding: var(--nf-space-lg);
     border-radius: var(--nf-radius-card);
-    background: var(--nf-smoked-glass-fill);
+    background: var(--nf-platform-card-fill);
     backdrop-filter: blur(var(--nf-smoked-glass-blur)) saturate(var(--nf-glass-saturate));
     -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur)) saturate(var(--nf-glass-saturate));
-    border: var(--nf-border-width) solid var(--nf-smoked-glass-edge);
+    border: var(--nf-border-width) solid var(--nf-platform-card-edge);
     box-shadow: var(--nf-glass-shadow-lifted);
     z-index: 2;
   }
@@ -247,8 +247,10 @@
     gap: var(--nf-space-xs);
     padding: var(--nf-space-lg);
     border-radius: var(--nf-radius-card);
-    background: var(--nf-surface-raised);
-    border: var(--nf-border-width) solid var(--nf-border-subtle);
+    /* The platform container (founder ruling, 7 October). */
+    background: var(--nf-platform-card-fill);
+    border: var(--nf-border-width) solid var(--nf-platform-card-edge);
+    box-shadow: var(--nf-platform-card-shadow);
   }
   .nf-pro-mine .nf-btn {
     margin-top: var(--nf-space-sm);
@@ -292,8 +294,10 @@
     gap: var(--nf-space-lg);
     padding: var(--nf-space-lg) var(--nf-space-md);
     border-radius: var(--nf-radius-card);
-    border: var(--nf-border-width) solid var(--nf-smoked-glass-edge);
-    background: var(--nf-surface-raised);
+    /* The platform container (founder ruling, 7 October). */
+    border: var(--nf-border-width) solid var(--nf-platform-card-edge);
+    background: var(--nf-platform-card-fill);
+    box-shadow: var(--nf-platform-card-shadow);
     overflow: hidden;
   }
   .nf-pro-plan {
@@ -425,14 +429,11 @@
     color: var(--nf-gold-ink);
   }
 
-  /* THE REFLECTING CAPSULE (D74): the one primary action, light on the dark
-     field, a soft glow, and its reflection on the floor beneath it. */
+  /* THE REFLECTING CAPSULE (D74): the one primary action, the brand blue
+     button itself (founder ruling, 7 October: "the white buttons ... our
+     blue button colour"), and its blue reflection on the floor beneath it. */
   .nf-pro .nf-btn--reflect {
     position: relative;
-    background: var(--nf-platinum-hi);
-    color: var(--nf-platinum-ink);
-    border-color: var(--nf-platinum-edge);
-    box-shadow: var(--nf-capsule-reflection);
   }
   .nf-pro .nf-btn--reflect::after {
     content: "";
@@ -443,7 +444,7 @@
     height: 70%;
     margin-top: 0.375rem;
     border-radius: inherit;
-    background: linear-gradient(to bottom, color-mix(in oklab, var(--nf-platinum-hi) 22%, transparent), transparent);
+    background: linear-gradient(to bottom, color-mix(in oklab, var(--nf-act-blue) 30%, transparent), transparent);
     filter: blur(6px);
     pointer-events: none;
   }
@@ -453,7 +454,7 @@
     position: absolute;
     inset: 10% 0 0;
     border-radius: var(--nf-radius-circle);
-    background: radial-gradient(closest-side, color-mix(in oklab, var(--nf-platinum-mid) 16%, transparent), transparent);
+    background: radial-gradient(closest-side, color-mix(in oklab, var(--nf-container-ink) 24%, transparent), transparent);
     filter: blur(10px);
   }
   .nf-pro-metal[data-depth="0"] {
@@ -498,7 +499,11 @@
     margin: 0;
     padding: var(--nf-space-md) 0;
     border-radius: var(--nf-radius-card-sm);
-    background: var(--nf-glass-fill);
+    /* The platform container (founder ruling, 7 October: "the grey
+       containers the stats sit on"), the Profile list card's own. */
+    border: var(--nf-border-width) solid var(--nf-platform-card-edge);
+    background: var(--nf-platform-card-fill);
+    box-shadow: var(--nf-platform-card-shadow);
   }
   .nf-pro-plan__stat {
     display: flex;
@@ -527,8 +532,9 @@
     display: flex;
     flex-direction: column;
     border-radius: var(--nf-radius-card-sm);
-    border: var(--nf-border-width) solid var(--nf-smoked-glass-edge);
-    background: var(--nf-surface-elevated);
+    /* The platform container (founder ruling, 7 October). */
+    border: var(--nf-border-width) solid var(--nf-platform-card-edge);
+    background: var(--nf-platform-card-fill);
   }
   .nf-pro-plan__benefit {
     display: flex;

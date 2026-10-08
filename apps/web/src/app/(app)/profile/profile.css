@@ -468,7 +468,8 @@
     bottom: -1px;
     height: 2px;
     border-radius: var(--nf-radius-xs);
-    background: var(--nf-content-primary);
+    /* The selected rule is the brand blue (founder ruling, 7 October). */
+    background: var(--nf-act-blue);
     transform: scaleX(0);
     transition: transform var(--nf-duration-base) var(--nf-ease-entrance);
   }

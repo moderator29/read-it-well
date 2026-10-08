@@ -3623,8 +3623,8 @@
     min-block-size: 48px;
     padding-inline: 16px;
     border-radius: var(--nf-radius-segment);
-    border: 1px solid var(--nf-smoked-glass-edge);
-    background: var(--nf-smoked-glass-fill);
+    border: 1px solid var(--nf-platform-card-edge);
+    background: var(--nf-platform-card-fill);
     -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
     backdrop-filter: blur(var(--nf-smoked-glass-blur));
     color: var(--nf-content-muted);
