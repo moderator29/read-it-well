@@ -22,9 +22,11 @@ import {
   movementReference,
   normalisePhone,
   onboardingStateFor,
+  openFailureKind,
   profileGaps,
   withdrawalBreakdown,
   type OnboardingState,
+  type OpenFailure,
   type ProfileGap,
   type WithdrawalBreakdown,
 } from "./funds";
@@ -107,7 +109,7 @@ function amountFrom(raw: string, minimum: number): { ok: true; minor: number } |
 
 /* ---------------------------------------------------------- onboarding */
 
-export type OpenResult = { state: OnboardingState; gaps: ProfileGap[] };
+export type OpenResult = { state: OnboardingState; gaps: ProfileGap[]; failure?: OpenFailure | null };
 
 /**
  * Open the member's balance at the provider (founder sections 8 and 9).
@@ -166,7 +168,7 @@ export async function openBalanceAccount(): Promise<ActionResult<OpenResult>> {
       /* A refusal is a real answer; anything else is not, and the next try looks up first. */
       if (created.kind === "refused") {
         await save("FAILED", null, null, created.detail);
-        return ok({ state: "FAILED", gaps: [] });
+        return ok({ state: "FAILED", gaps: [], failure: openFailureKind(created.detail) });
       }
       return ok({ state: "PENDING", gaps: [] });
     }

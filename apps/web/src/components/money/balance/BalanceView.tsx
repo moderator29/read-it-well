@@ -94,7 +94,7 @@ export function BalanceView({
       <WalletHeader title={SCREEN_TITLE[screen]} back={tabs ? links.home : links.overview} settings={tabs ? links.settings : null} />
       {tabs ? <WalletTabs active={screen === "transactions" ? "transactions" : "overview"} links={links} /> : null}
       {read.state === "onboarding" ? (
-        <BalanceOnboarding state={read.onboarding} gaps={read.gaps} />
+        <BalanceOnboarding state={read.onboarding} gaps={read.gaps} failure={read.failure ?? null} />
       ) : (
         <State kind="error" title="Your figures could not be read" body="Nothing has moved. Try again in a moment." primary={{ href: links.overview, label: "Try again" }} />
       )}

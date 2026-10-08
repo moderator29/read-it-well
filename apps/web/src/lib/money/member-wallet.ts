@@ -13,7 +13,9 @@ import {
   movementStatusForProvider,
   onboardingStateFor,
   profileGaps,
+  openFailureKind,
   type BalanceFigures,
+  type OpenFailure,
   type MovementKind,
   type MovementStatus,
   type OnboardingState,
@@ -48,6 +50,7 @@ export type AccountRow = {
   status: OnboardingState;
   provider_status: string | null;
   status_observed_at: string;
+  metadata?: { last_failure?: string | null } | null;
 };
 
 export type MovementRow = {
@@ -86,7 +89,7 @@ export function adminDb(): Db | null {
 export async function loadAccount(db: Db, userId: string): Promise<AccountRow | null> {
   const { data, error } = await db
     .from("financial_provider_accounts")
-    .select("id, user_id, provider, provider_customer_id, status, provider_status, status_observed_at")
+    .select("id, user_id, provider, provider_customer_id, status, provider_status, status_observed_at, metadata")
     .eq("user_id", userId)
     .eq("provider", "payluk")
     .maybeSingle();
@@ -276,7 +279,7 @@ export function movementView(m: MovementRow): MovementView {
 export type BalanceRead =
   | { state: "signed-out" }
   | { state: "not-live"; reason: "not_configured" | "switched_off" }
-  | { state: "onboarding"; onboarding: OnboardingState; gaps: ProfileGap[] }
+  | { state: "onboarding"; onboarding: OnboardingState; gaps: ProfileGap[]; failure?: OpenFailure | null }
   | { state: "error" }
   | {
       state: "ready";
@@ -325,7 +328,8 @@ export async function readMyBalance(opts: { limit?: number } = {}): Promise<Bala
         customer: null,
         gaps,
       });
-      return { state: "onboarding", onboarding, gaps };
+      const failure = onboarding === "FAILED" ? openFailureKind(account?.metadata?.last_failure) : null;
+      return { state: "onboarding", onboarding, gaps, failure };
     }
 
     const { reported } = await reportedBalance(db, provider, userId, account.provider_customer_id);

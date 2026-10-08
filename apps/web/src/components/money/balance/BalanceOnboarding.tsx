@@ -8,8 +8,8 @@ import { ListGroup, ListRow } from "@/components/ui/ListGroup";
 import { IconPlate, ICON_PLATE_GLYPH } from "@/components/ui/IconPlate";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { openBalanceAccount } from "@/lib/money/member-wallet-actions";
-import { GAP_LABEL, HELD_BY, HELD_BY_HREF, HELD_BY_LINK, ONBOARDING_COPY, OPEN_ACTION } from "@/lib/money/balance-copy";
-import type { OnboardingState, ProfileGap } from "@/lib/money/funds";
+import { GAP_LABEL, HELD_BY, HELD_BY_HREF, HELD_BY_LINK, ONBOARDING_COPY, OPEN_ACTION, PHONE_TAKEN_COPY } from "@/lib/money/balance-copy";
+import type { OnboardingState, OpenFailure, ProfileGap } from "@/lib/money/funds";
 import { StepPath, type PathState } from "../StepPath";
 import { reach } from "./reach";
 
@@ -25,7 +25,7 @@ import { reach } from "./reach";
  * inside the second. Each of the seven states has its own words.
  */
 const WHO_DOES_WHAT: { icon: "shield-lock" | "user-check" | "eye-off"; title: string; sub: string }[] = [
-  { icon: "shield-lock", title: "Our escrow partner holds the money", sub: "In an account in your name. Vallo never holds it." },
+  { icon: "shield-lock", title: "Payluk holds the money", sub: "Our licensed payments partner, in an account in your name. Vallo never holds it." },
   { icon: "user-check", title: "Vallo keeps the record", sub: "Every movement, with where it is and when the partner confirmed it." },
   { icon: "eye-off", title: "Only what is needed is shared", sub: "Your name, email and phone. Nothing else, and no card or bank details." },
 ];
@@ -49,13 +49,23 @@ function pathFor(state: OnboardingState, missing: number): [PathState, PathState
   }
 }
 
-export function BalanceOnboarding({ state, gaps }: { state: OnboardingState; gaps: ProfileGap[] }) {
+export function BalanceOnboarding({
+  state,
+  gaps,
+  failure = null,
+}: {
+  state: OnboardingState;
+  gaps: ProfileGap[];
+  failure?: OpenFailure | null;
+}) {
   const router = useRouter();
   const [current, setCurrent] = useState(state);
   const [missing, setMissing] = useState(gaps);
+  const [why, setWhy] = useState<OpenFailure | null>(failure);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const copy = ONBOARDING_COPY[current];
+  const phoneTaken = current === "FAILED" && why === "phone_taken";
+  const copy = phoneTaken ? PHONE_TAKEN_COPY : ONBOARDING_COPY[current];
   const canOpen = missing.length === 0 && (current === "NOT_STARTED" || current === "FAILED" || current === "PENDING" || current === "VERIFICATION_REQUIRED");
   const [details, opening, adding] = pathFor(current, missing.length);
 
@@ -70,6 +80,7 @@ export function BalanceOnboarding({ state, gaps }: { state: OnboardingState; gap
     }
     setCurrent(r.data.state);
     setMissing(r.data.gaps);
+    setWhy(r.data.failure ?? null);
     if (r.data.state === "ACTIVE") router.refresh();
   };
 
@@ -115,15 +126,24 @@ export function BalanceOnboarding({ state, gaps }: { state: OnboardingState; gap
           },
           {
             key: "open",
-            title: "Open with our escrow partner",
+            title: "Open your wallet with Payluk",
             sub:
               current === "PENDING"
                 ? "Asked. Waiting for their answer; this updates on its own."
                 : current === "RESTRICTED" || current === "SUSPENDED"
                   ? "On hold with our partner. Support can find out why."
-                  : "We ask them to open it in your name. Nothing is charged.",
+                  : "Our licensed payments partner opens it in your name. Nothing is charged.",
             state: opening,
-            children: canOpen ? (
+            children: phoneTaken ? (
+              <div className="space-y-row">
+                <ButtonLink href="/settings/phone?next=%2Fwallet" variant="primary" size="lg" full data-testid="balance-change-phone">
+                  {PHONE_TAKEN_COPY.action}
+                </ButtonLink>
+                <Button variant="secondary" size="lg" full loading={busy} onClick={open} data-testid="balance-open">
+                  Try again
+                </Button>
+              </div>
+            ) : canOpen ? (
               <Button variant="primary" size="lg" full loading={busy} onClick={open} data-testid="balance-open">
                 {current === "FAILED" ? "Try again" : current === "PENDING" ? "Check again" : OPEN_ACTION}
               </Button>

@@ -282,3 +282,16 @@ export function lastFour(accountNumber: string): string {
   const d = accountNumber.replace(/\D/g, "");
   return d.slice(-4);
 }
+
+/**
+ * Why the provider refused to open an account, in the member's terms. Payluk
+ * holds one account per mobile number, and a number already on another Payluk
+ * account (the founder's own was on Vallo's merchant account, 8 October 2026)
+ * is refused; every other refusal is about the details as a whole.
+ */
+export type OpenFailure = "phone_taken" | "details";
+
+export function openFailureKind(detail: string | null | undefined): OpenFailure {
+  const text = (detail ?? "").toLowerCase();
+  return /phone/.test(text) && /(already|exist|registered|taken|in use|duplicate|merchant)/.test(text) ? "phone_taken" : "details";
+}
