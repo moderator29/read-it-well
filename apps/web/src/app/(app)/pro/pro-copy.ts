@@ -1,34 +1,36 @@
 import type { UiIconName } from "@/design-system/icons/UiIcon";
+import type { PlanPerk, PlanQuotaKey } from "./pro-state";
 
 /**
  * THE WORDS OF /pro, IN ENGLISH, IN ONE PLACE.
  *
- * Kept beside the route rather than in `@vallo/i18n` for one reason: the
- * founder has not decided what Pro costs or exactly what it includes, and a
- * namespace translated into Yoruba, Hausa and Igbo before that decision would
- * be translated twice. When he decides, this file moves to a `pro` namespace
- * key for key (the shape is already the dictionary's shape) and the page
- * reads it from `getDictionary`. Listed in the P6 hand-back.
+ * Kept beside the route rather than in `@vallo/i18n` until paying for a plan
+ * opens: the sheet behind "Continue" changes then, and a namespace translated
+ * into Yoruba, Hausa and Igbo before that would be translated twice. When it
+ * opens, this file moves to a `pro` namespace key for key (the shape is
+ * already the dictionary's shape). Listed in the P6 hand-back.
  *
- * WHAT THE PLANS SAY, AND WHERE IT COMES FROM. The four plans and what each
- * covers are the founder's own lists (`founder-corpus/02-master-prompt.md`
- * section 30, "Professional products"; `03-full-product-prompt.md` "Agent Pro,
- * Owner Pro, Hospitality Pro, Business Pro"). The reason under each benefit
- * says what the tool is for, never a number it achieves. Nothing here is a
- * price, a quota, a saving or a date, because none exists.
+ * WHAT THE PLANS SAY, AND WHERE IT COMES FROM. The two plans are the
+ * founder's rulings of 8 October (DIRECTIVES D83): Vallo Pro for an
+ * individual agent or landlord, Vallo Business for an agency, hotel or
+ * serviced apartments. NO FIGURE LIVES HERE: the price, the monthly quotas,
+ * the list of what each plan includes and the trial's length are read from
+ * the plan rows (`pro-state.ts`). This file only words them: `{price}`,
+ * `{count}` and `{days}` are filled from the database, and a perk or quota
+ * the database names that has no words here is not drawn. The reason under
+ * each benefit says what it is, never a number it achieves.
  */
 
 export type ProBenefit = { claim: string; reason: string; icon: UiIconName };
 
-export type ProPlanCard = {
-  key: "agent" | "owner" | "hospitality" | "business";
-  name: string;
+/** The words for a plan the database describes, by its `plan_key`. */
+export type ProPlanWords = {
   /** The segmented pill's word. */
   short: string;
-  /** The two-line promise under the name. */
+  /** Who the plan is for, under its name. */
   line: string;
-  /** The founder's own list for this plan, four benefits. */
-  benefits: ProBenefit[];
+  /** The small word on the metal card. */
+  tag: string;
 };
 
 export const PRO_COPY = {
@@ -68,40 +70,77 @@ export const PRO_COPY = {
 
   /**
    * The plan page (GOVERNING-plasma-tier-detail-core, D74): a segmented plan
-   * pill, the plan's metal card, its name and promise, the price line, a
-   * three-stat strip, the benefit rows, and "Continue with <plan>".
+   * pill, the plan's metal card, its name and who it is for, the price line,
+   * a three-stat strip, what it includes, and "Continue with <plan>".
    */
   detail: {
     pickLabel: "Plans",
-    tag: "Pro",
-    /** The price line, in grey, until the founder sets a price. */
-    priceComing: "Price coming. Nothing is charged until you choose.",
+    /** `{price}` is a formatted amount read from the plan row. */
+    price: "{price} a month",
+    /** `{days}` is the trial length read from the settings row. */
+    trial: "{days}-day free trial",
     stats: {
-      /** `{count}` is a number. */
-      tools: "Tools",
-      price: "Price",
-      priceValue: "Coming",
-      charged: "Charged today",
-      chargedValue: "Nothing",
+      included: "Included",
+      price: "A month",
+      trial: "Free trial",
+      /** `{days}` is a whole number of days. */
+      trialValue: "{days} days",
     },
     /** `{plan}` is the plan's name. */
     continue: "Continue with {plan}",
     /** Where "Cancel anytime. Terms apply." sits on the paywall reference. */
-    fine: "No price is set yet, so nothing can be charged.",
-    /** Shown only when the database offers a plan by name. */
-    offeredLabel: "Offered now",
-    offeredNote: "Its price is shown in full before you pay.",
+    fine: "Not on sale yet, so nothing can be charged.",
+    /** When the plan rows could not be read. */
+    none: "The plans could not be shown just now. Nothing has changed on your account.",
   },
 
   /** The one plain sheet behind "Continue" (A.11's single gate). */
   gate: {
     /** `{plan}` is the plan's name. */
     title: "{plan} is not on sale yet",
-    body: "When it opens, we will tell you, with its price and everything it includes on one page before anything is charged.",
+    body: "Paying for a plan is not open yet. When it opens, we will tell you, with the price, the free trial and everything included on one page before anything is charged.",
     settings: "Choose what reaches you",
     signIn: "Sign in",
     close: "Close",
   },
+
+  /** What a plan includes, worded. `{count}` is the monthly quota from the plan's grant. */
+  quotas: {
+    listing_boost: {
+      one: "{count} Boost a month",
+      other: "{count} Boosts a month",
+      reason: "A week in a marked slot on your area's page and its searches.",
+      icon: "trending-up",
+    },
+    listing_spotlight: {
+      one: "{count} Spotlight a month",
+      other: "{count} Spotlights a month",
+      reason: "Two weeks in the Promoted carousel at the top of your area and its searches.",
+      icon: "eye",
+    },
+    listing_featured: {
+      one: "{count} Featured a month",
+      other: "{count} Featured a month",
+      reason: "A month on the front door, the city page, your area and matching searches.",
+      icon: "grid",
+    },
+    listing_prime: {
+      one: "{count} Everywhere a month",
+      other: "{count} Everywhere a month",
+      reason: "Everything Featured gets, plus the saved-search and area digests and the map.",
+      icon: "chart-bar",
+    },
+  } as Record<PlanQuotaKey, { one: string; other: string; reason: string; icon: UiIconName }>,
+
+  perks: {
+    deep_analytics: { claim: "Deep analytics", reason: "What each listing is doing, week by week.", icon: "chart-bar" },
+    pro_badge: { claim: "Pro badge", reason: "Shows you hold Vallo Pro. It is not a verification mark.", icon: "circle-check" },
+    priority_support: { claim: "Priority support", reason: "Your questions are answered before the general queue.", icon: "users" },
+    team_members: { claim: "Team members", reason: "Your colleagues work under one account.", icon: "user-check" },
+    command_centre: { claim: "Command centre", reason: "Your listings, bookings and enquiries in one view.", icon: "clipboard-list" },
+    bulk_tools: { claim: "Bulk tools", reason: "Change many listings at once.", icon: "file-text" },
+    export: { claim: "Export", reason: "Take your records out as a file.", icon: "receipt" },
+  } as Record<PlanPerk, ProBenefit>,
 
   promises: {
     label: "How Pro will work",
@@ -125,53 +164,11 @@ export const PRO_COPY = {
   },
 } as const;
 
-export const PRO_PLAN_CARDS: ProPlanCard[] = [
-  {
-    key: "agent",
-    name: "Agent Pro",
-    short: "Agent",
-    line: "For agents who run many listings and many people.",
-    benefits: [
-      { claim: "Leads and clients", reason: "Every enquiry and every client in one place.", icon: "users" },
-      { claim: "Follow-ups", reason: "Who is waiting on you, and since when.", icon: "clock" },
-      { claim: "Portfolio", reason: "Your listings as one body of work.", icon: "grid" },
-      { claim: "Analytics", reason: "What each listing is doing, week by week.", icon: "chart-bar" },
-    ],
-  },
-  {
-    key: "owner",
-    name: "Owner Pro",
-    short: "Owner",
-    line: "For owners who let what they own.",
-    benefits: [
-      { claim: "Tenants and rent", reason: "Who lives where, and what is due.", icon: "key" },
-      { claim: "Expenses", reason: "What each property costs you to keep.", icon: "receipt" },
-      { claim: "Maintenance", reason: "Repairs asked for, booked and done.", icon: "clipboard-list" },
-      { claim: "Documents", reason: "Agreements and receipts, filed by property.", icon: "file-text" },
-    ],
-  },
-  {
-    key: "hospitality",
-    name: "Hospitality Pro",
-    short: "Hotels",
-    line: "For hotels, shortlets and guest houses.",
-    benefits: [
-      { claim: "Reservations", reason: "Every stay, from request to checkout.", icon: "calendar-booking" },
-      { claim: "Calendar", reason: "Rooms and dates on one timeline.", icon: "calendar-check" },
-      { claim: "Housekeeping", reason: "Which room is ready, and which is next.", icon: "concierge-bell" },
-      { claim: "Revenue", reason: "What each room earned, night by night.", icon: "trending-up" },
-    ],
-  },
-  {
-    key: "business",
-    name: "Business Pro",
-    short: "Business",
-    line: "For businesses with a place people visit.",
-    benefits: [
-      { claim: "Bookings", reason: "Tables, slots and visits in one list.", icon: "calendar-clock" },
-      { claim: "Offers", reason: "What you are offering, and to whom.", icon: "price-tag" },
-      { claim: "Customers", reason: "The people who come back.", icon: "user-check" },
-      { claim: "Analytics", reason: "How people find you, week by week.", icon: "chart-bar" },
-    ],
-  },
-];
+/**
+ * The plans' words, by `plan_key`. A plan row whose key is not here is still
+ * drawn, under its own name from the row, with no line under it.
+ */
+export const PRO_PLAN_WORDS: Record<string, ProPlanWords> = {
+  pro: { short: "Pro", line: "For an individual agent or landlord.", tag: "Pro" },
+  business: { short: "Business", line: "For an agency, a hotel or serviced apartments.", tag: "Top plan" },
+};

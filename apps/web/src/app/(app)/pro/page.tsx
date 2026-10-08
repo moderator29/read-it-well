@@ -2,10 +2,22 @@ import type { Metadata } from "next";
 import { resolveSession } from "@/lib/actions/session";
 import { getLocale } from "@/lib/locale";
 import { withNext } from "@/lib/auth/next-link";
+import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { createClient } from "@/lib/supabase/server";
 import { presentEntitlement } from "@/components/app/pro/pro-entitlement";
 import { PRO_COPY } from "./pro-copy";
 import { ProSurface } from "./ProSurface";
-import { offeredPlans, planClock, planStateFrom, type MemberPlanRow, type PlanRow, type ProPlanState } from "./pro-state";
+import {
+  paidPlansFrom,
+  planClock,
+  planStateFrom,
+  trialDaysFrom,
+  type MemberPlanRow,
+  type PaidPlan,
+  type PlanFeatureRow,
+  type PlanRow,
+  type ProPlanState,
+} from "./pro-state";
 
 export const dynamic = "force-dynamic";
 
@@ -14,68 +26,87 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+/* The plan tables are newer than the generated types, so the reads are typed
+   here by hand (`pro-state.ts`) rather than by `Database`. */
+type LooseDb = {
+  from: (table: string) => {
+    select: (columns: string) => PromiseLike<{ data: unknown; error: unknown }> & {
+      eq: (column: string, value: unknown) => { maybeSingle: () => PromiseLike<{ data: unknown; error: unknown }> };
+    };
+  };
+};
+
 /**
- * /pro: WHAT PRO IS, WHAT IT WILL UNLOCK, AND WHERE THE MEMBER STANDS (P6,
- * 7 October 2026; handoff A.11; the founder's reference 9).
+ * /pro: THE PLANS, WHAT EACH INCLUDES, AND WHERE THE MEMBER STANDS (P6,
+ * 7 October 2026; D83, the founder's rulings of 8 October).
  *
- * THE HONEST STATE. The plan tables are live and hold one plan, the default
- * "Free", with no price anywhere in the schema. So the page reads the member's
- * own plan and the plans on offer, shows "Free" (the database's own word) or
- * whatever plan they hold, and draws every Pro plan as "Not on sale yet". No
- * price, no checkout, no waitlist (none exists to join): one calm line, "When
- * it opens, we will tell you."
+ * THE HONEST STATE. The plans are rows: Vallo Pro and Vallo Business, each
+ * with its monthly price, its promotion quotas and what else it includes, and
+ * the free trial's length as one settings value. The page reads them for
+ * everybody (the plan tables are public), so a visitor sees the same prices a
+ * member does. Paying for a plan is not open: no subscription checkout and no
+ * way to start a trial exist yet, so "Continue" opens one plain sheet saying
+ * so. A read that fails shows no plan at all rather than a remembered figure.
  *
  * THE SWITCH IS NOT HERE. A.11: the Pro switch exists only for somebody who
  * has paid, and it lives in the workspace it deepens (`ProSwitch` in the agent
- * and host shells). This page is the surface for everybody else: what Pro
- * does, shown beautifully. A member who holds a plan is told where the switch
- * is, never shown a second one.
- *
- * A held plan points at its switch only when `presentEntitlement` (fail
- * closed) agrees for one of the two scopes; until W7-R4 it never does, and the
- * held card says the tools arrive in the workspace as they open.
+ * and host shells). A member who holds a plan is told where the switch is,
+ * never shown a second one.
  */
 export default async function ProPage() {
   const [session, locale] = await Promise.all([resolveSession(), getLocale()]);
   const now = planClock();
 
   let state: ProPlanState = { kind: "signed-out" };
-  let offered: string[] = [];
+  let plans: PaidPlan[] = [];
+  let trialDays: number | null = null;
   let switchReady = false;
 
+  let db: LooseDb | null = null;
   if (session.state === "signed-in") {
-    /* The plan tables are newer than the generated types, so the reads are
-       typed here by hand (`pro-state.ts`) rather than by `Database`. */
-    const db = session.supabase as unknown as {
-      from: (table: string) => {
-        select: (columns: string) => PromiseLike<{ data: unknown; error: unknown }>;
-      };
-    };
-    const [mine, plans] = await Promise.all([
-      db.from("member_entitlement_plans").select("effective_from, effective_to, plan:entitlement_plans(plan_key, name, is_default)"),
-      db.from("entitlement_plans").select("plan_key, name, is_default, effective_from, effective_to"),
-    ]);
-    const mineRows = mine.error ? null : ((mine.data as MemberPlanRow[] | null) ?? []);
-    const planRows = plans.error ? null : ((plans.data as PlanRow[] | null) ?? []);
-    state = planStateFrom(mineRows, planRows, now);
-    offered = offeredPlans(planRows, now);
-
-    /* A plan row is the database's word that a plan is held. Whether its
-       switch is drawn yet is the entitlement check's word (fail closed, null
-       for everybody until W7-R4 lands), so the page only points at the
-       switch when the check agrees. */
-    if (state.kind === "held") {
-      const [host, agent] = await Promise.all([presentEntitlement("host"), presentEntitlement("agent")]);
-      switchReady = Boolean(host ?? agent);
+    db = session.supabase as unknown as LooseDb;
+  } else if (session.state === "signed-out" && isSupabaseConfigured()) {
+    try {
+      db = (await createClient()) as unknown as LooseDb;
+    } catch {
+      db = null;
     }
   } else if (session.state === "unconfigured") {
     state = { kind: "unknown" };
   }
 
+  if (db) {
+    const [planRead, featureRead, settingsRead, mine] = await Promise.all([
+      db.from("entitlement_plans").select("*"),
+      db.from("entitlement_plan_features").select("plan_id, feature_key, granted, quota"),
+      db.from("subscription_settings").select("trial_days").eq("id", 1).maybeSingle(),
+      session.state === "signed-in"
+        ? db.from("member_entitlement_plans").select("effective_from, effective_to, plan:entitlement_plans(plan_key, name, is_default)")
+        : Promise.resolve({ data: null, error: null }),
+    ]);
+    const planRows = planRead.error ? null : ((planRead.data as PlanRow[] | null) ?? []);
+    const featureRows = featureRead.error ? null : ((featureRead.data as PlanFeatureRow[] | null) ?? []);
+    plans = featureRows ? paidPlansFrom(planRows, featureRows, now) : [];
+    trialDays = settingsRead.error ? null : trialDaysFrom(settingsRead.data);
+
+    if (session.state === "signed-in") {
+      const mineRows = mine.error ? null : ((mine.data as MemberPlanRow[] | null) ?? []);
+      state = planStateFrom(mineRows, planRows, now);
+      /* A plan row is the database's word that a plan is held. Whether its
+         switch is drawn yet is the entitlement check's word (fail closed), so
+         the page only points at the switch when the check agrees. */
+      if (state.kind === "held") {
+        const [host, agent] = await Promise.all([presentEntitlement("host"), presentEntitlement("agent")]);
+        switchReady = Boolean(host ?? agent);
+      }
+    }
+  }
+
   return (
     <ProSurface
       state={state}
-      offered={offered}
+      plans={plans}
+      trialDays={trialDays}
       switchReady={switchReady}
       locale={locale}
       signInHref={withNext("/sign-in", "/pro")}
