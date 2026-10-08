@@ -35,6 +35,18 @@ only; never paste a value into chat or git.
   In the Payluk dashboard then: webhook `https://www.vallospaces.com/api/payluk/webhook`
   and whoPays = seller.
 
+## Voice and video calls (VC1, 8 October 2026)
+
+| Key | What it unblocks | Note |
+| --- | --- | --- |
+| `LIVEKIT_URL` | Calls in Messages and staff review calls | `wss://<project>.livekit.cloud`, from LiveKit Cloud > Settings |
+| `LIVEKIT_API_KEY` | Signing join tokens, verifying webhooks | LiveKit Cloud > Settings > Keys. Server only |
+| `LIVEKIT_API_SECRET` | Same | Server only. Never `NEXT_PUBLIC_`, never pasted anywhere but Vercel |
+
+In the LiveKit dashboard then: webhook `https://www.vallospaces.com/api/calls/webhook`
+(signed with the same key). Calls stay off until the `video_calls` flag is switched on.
+Full list: `docs/video-calling/VIDEO-CALLING-PRODUCTION-CHECKLIST.md`.
+
 ## Not needed
 
 `YELLOWCARD_*`, `VALLO_NIMC_*`, `WHATSAPP_*`.

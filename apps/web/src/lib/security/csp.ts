@@ -1,3 +1,4 @@
+import { callMediaOrigins } from "../calls/media-origins";
 import { SUPABASE_URL } from "../supabase/env";
 
 /**
@@ -392,11 +393,12 @@ export function contentSecurityPolicy(nonce: string): string {
     // Self-hosted faces only, and `data:` for nothing. See public/fonts.
     ["font-src", ["'self'"]],
 
-    // The browser talks to us and to Supabase, and to nothing else at all.
-    // Every payment call is server side, so Paystack does not belong here:
-    // if a browser ever starts calling an API directly, this directive is
-    // what reports it.
-    ["connect-src", ["'self'", ...supabase]],
+    // The browser talks to us, to Supabase and, on a call screen, to the
+    // media provider's signalling host (VC1, `lib/calls/media-origins.ts`;
+    // nothing is added while LIVEKIT_URL is unset). Every payment call is
+    // server side, so Paystack does not belong here: if a browser ever
+    // starts calling an API directly, this directive is what reports it.
+    ["connect-src", ["'self'", ...supabase, ...callMediaOrigins(process.env.LIVEKIT_URL)]],
 
     // No plugins, no applets, ever.
     ["object-src", ["'none'"]],

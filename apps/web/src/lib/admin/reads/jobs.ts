@@ -80,6 +80,8 @@ export const VERCEL_JOBS: readonly VercelJob[] = [
   /* C2: hosts' Airbnb and Booking.com calendars pulled in. A no-op while CALENDAR_SYNC_ENABLED is off. */
   { name: "calendar-sync", cron: "2,17,32,47 * * * *", schedule: "Every 15 minutes", maxGapHours: 2, audit: { entityType: "cron_job", term: "calendar-sync" } },
   { name: "reservation-deposit-refunds", cron: "40 * * * *", schedule: "Hourly at :40", maxGapHours: 2, audit: { entityType: "cron_job", term: "reservation-deposit-refunds" } },
+  /* VC1: closes the provider rooms of finished calls. Skipped while `video_calls` is off. */
+  { name: "calls-sweep", cron: "*/5 * * * *", schedule: "Every 5 minutes", maxGapHours: 1, audit: { entityType: "cron_job", term: "calls-sweep" } },
 ];
 
 /**

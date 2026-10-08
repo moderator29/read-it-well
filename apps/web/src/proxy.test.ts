@@ -303,7 +303,10 @@ const EXPECTED_PUBLIC = new Set([
      first-party funnel beacon, rate limited, recording no person. */
   "/api/email/unsubscribe",
   "/api/funnel",
+  /* VC1: the media provider's webhook, behind its signature over the body. */
+  "/api/calls/webhook",
   "/api/cron/account-purge",
+  "/api/cron/calls-sweep",
   "/api/cron/complete-stays",
   "/api/cron/email-outbox",
   "/api/cron/hold-sweep",

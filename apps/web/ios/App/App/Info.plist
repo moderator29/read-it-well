@@ -152,11 +152,16 @@
 		The camera, and why it is present when the permission inventory calls it
 		unused.
 
-		Both statements are true, because they are about two different
-		mechanisms. `docs/MOBILE_READINESS.md` records that nothing on this
-		platform opens a camera STREAM, and that is still correct: no
-		`getUserMedia` call exists anywhere in `src`, and the web platform sends
-		`Permissions-Policy: camera=()` on every response to keep it that way.
+		CORRECTED 8 OCTOBER 2026 (VC1): the paragraph below was true until calls.
+		A call screen now opens a camera and microphone STREAM, and the site
+		sends `camera=(self), microphone=(self)`. The note at the two strings
+		further down says what changed.
+
+		Both statements were true, because they are about two different
+		mechanisms. `docs/MOBILE_READINESS.md` recorded that nothing on this
+		platform opened a camera STREAM: no `getUserMedia` call existed in
+		`src`, and the web platform sent `Permissions-Policy: camera=()` on
+		every response to keep it that way.
 
 		This key is not about that. Eleven `<input type="file">` elements exist,
 		and the three behind listing photos, message attachments and agent
@@ -179,11 +184,23 @@
 		string no longer says Vallo never records video (that was false the
 		moment the option existed), and the microphone string below exists:
 		recording video with sound without one terminates the app.
+
+		VC1 (8 October 2026): VOICE AND VIDEO CALLS. A call screen now asks for
+		a camera and microphone STREAM through getUserMedia, inside the web
+		view, and the site allows it for its own origin
+		(`Permissions-Policy: camera=(self), microphone=(self)`). Capacitor's
+		`WebViewDelegationHandler` answers WebKit's media-capture question for
+		the page (iOS 15+, the deployment target here), and iOS then shows the
+		system prompt with these strings. So both strings now name calls, and
+		say what is true: nothing is recorded or kept, and a call uses the
+		camera and microphone only while it is on screen. CallKit, background
+		ringing and lock-screen answering are NOT built (no `voip` background
+		mode, no PushKit); see docs/video-calling/VIDEO-CALLING-MOBILE-COMPATIBILITY.md.
 	-->
 	<key>NSCameraUsageDescription</key>
-	<string>Vallo opens your camera only when you choose to take a photo or record a video: a place you are listing, a walkthrough video of it, a document that verifies you as an agent, or something you want to send in a message. Nothing is captured until you tap the shutter, and Vallo never opens the camera on its own.</string>
+	<string>Vallo uses your camera when you start or answer a video call, and when you choose to take a photo or record a video: a place you are listing, a walkthrough video of it, a document that verifies you as an agent, or something you want to send in a message. Calls are not recorded, nothing is captured until you tap the shutter, and Vallo never opens the camera on its own.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Vallo uses the microphone only while you record a walkthrough video of a property you are listing, so the video has sound. Nothing is recorded until you start recording.</string>
+	<string>Vallo uses the microphone during a voice or video call you start or answer, and while you record a walkthrough video of a property you are listing so the video has sound. Calls are not recorded, and nothing is recorded until you start recording.</string>
 	<!--
 		FACE ID (7 October 2026). Vallo unlocks with Face ID through a WebAuthn
 		platform key (passkey) in the web view, verified on the server; see the

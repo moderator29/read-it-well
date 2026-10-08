@@ -678,6 +678,8 @@ export const NON_NAVIGABLE: Readonly<Record<string, string>> = {
   "/gallery/today-hero": "a development harness for the workspace today hero (B-33), behind the preview flag like /gallery; not product.",
   "/gallery/brand-icons": "a development harness for the tiered brand objects on night and on paper (B-33), behind the preview flag like /gallery; not product.",
   "/api/cron/account-purge": "scheduled job, bearer token.",
+  "/api/calls/webhook": "media provider webhook (VC1), signed.",
+  "/api/cron/calls-sweep": "scheduled job, bearer token.",
   "/api/cron/canary": "scheduled job, bearer token.",
   "/api/cron/calendar-sync": "scheduled job, bearer token (C2, behind CALENDAR_SYNC_ENABLED).",
   "/api/calendar/feed": "C2: a room's calendar as iCal for another site to subscribe to, behind its secret token.",

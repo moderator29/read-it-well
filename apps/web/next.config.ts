@@ -318,8 +318,17 @@ const nextConfig: NextConfig = {
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "X-DNS-Prefetch-Control", value: "on" },
           {
+            /*
+             * VC1: camera and microphone are allowed for OUR OWN ORIGIN, and
+             * still for no other one (no embedded frame can ask). `camera=()`
+             * used to switch getUserMedia off for the whole site, which was
+             * right while nothing asked for it and would fail every call
+             * silently now: the browser rejects the request without ever
+             * showing the person a prompt. A permission is still only asked
+             * for when a person starts or answers a call.
+             */
             key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=(self), interest-cohort=()",
+            value: "camera=(self), microphone=(self), geolocation=(self), interest-cohort=()",
           },
           {
             key: "Strict-Transport-Security",

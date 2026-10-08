@@ -268,10 +268,13 @@
         habit. The rule it sets is that the native build declares exactly what
         the web build already declares and nothing more, because the edge sends
 
-            Permissions-Policy: camera=(), microphone=(), geolocation=(self)
+            Permissions-Policy: camera=(self), microphone=(self), geolocation=(self)
 
         on every response, and a native shell that asks for more than the site
-        it loads is asking for something the site cannot use.
+        it loads is asking for something the site cannot use. (Until VC1, 8
+        October 2026, the edge sent `camera=(), microphone=()`; voice and video
+        calls are why both are now `(self)`, and why CAMERA, RECORD_AUDIO and
+        MODIFY_AUDIO_SETTINGS are declared below.)
     -->
 
     <!--
@@ -403,10 +406,60 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <!--
+        VC1 (8 October 2026): VOICE AND VIDEO CALLS. CAMERA, RECORD_AUDIO AND
+        MODIFY_AUDIO_SETTINGS ARE NOW DECLARED, and this is why each is needed.
+
+        A call screen asks for a camera and microphone stream with
+        `getUserMedia` inside the web view. The WebView turns that into
+        `WebChromeClient.onPermissionRequest`, and Capacitor's own
+        `BridgeWebChromeClient` (8.5.2, read from node_modules) already
+        handles it: VIDEO_CAPTURE requests CAMERA, AUDIO_CAPTURE requests
+        MODIFY_AUDIO_SETTINGS and RECORD_AUDIO, as one runtime batch, and
+        grants the page only if all come back granted. So MainActivity needs
+        no WebChromeClient of its own. What it needs is the declarations: an
+        undeclared permission is refused by the system WITHOUT a prompt, the
+        batch fails, and the call screen sees "permission denied" with no
+        dialogue ever shown. MODIFY_AUDIO_SETTINGS is a normal (install time)
+        permission, never a prompt, but it is in the same batch, so it must be
+        declared too or every audio request fails.
+
+        The page that asks is only ever our own origin: `server.url` is the
+        www host and `allowNavigation` lists only our hosts, and the site's
+        `Permissions-Policy` allows the camera and microphone for `self` alone.
+
+        THE SIDE EFFECT ON PHOTO CAPTURE, recorded so nobody is surprised.
+        Before VC1 the paragraph below kept CAMERA undeclared so that a
+        `capture` file input went straight to the system camera app with no
+        grant. With CAMERA declared, `BridgeWebChromeClient.isMediaCaptureSupported()`
+        now asks for the permission first (once; a person who allowed it for a
+        call is not asked again), and the Camera plugin does the same. A refusal
+        returns no photo to that input, and the person can still choose a file
+        from the gallery. That trade is accepted for calls.
+
+        The three `uses-feature` lines keep the app installable on a device
+        without a camera or microphone: declaring CAMERA otherwise IMPLIES
+        `android.hardware.camera` as required, and Play would hide the app
+        from those devices. Such a device gets voice calls, or a clear
+        "no camera found" on the call screen.
+
+        Background ringing, ConnectionService and a lock-screen call UI are
+        NOT built: no FOREGROUND_SERVICE, no MANAGE_OWN_CALLS, no
+        USE_FULL_SCREEN_INTENT. See docs/video-calling/VIDEO-CALLING-MOBILE-COMPATIBILITY.md.
+    -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
+
+    <!--
         Not declared, on purpose, so that the next person does not add them
         back wondering whether they were forgotten:
 
-        CAMERA. Listing photos, avatars, verification documents and message
+        CAMERA, AND THIS PARAGRAPH IS NOW HISTORY: VC1 DECLARES IT ABOVE, for
+        calls. What follows is kept as the record of the earlier reasoning.
+        Listing photos, avatars, verification documents and message
         attachments all arrive through an ordinary `<input type="file">`. On
         Android that opens the system document picker, which reads the file on
         the application's behalf and needs no grant of ours.
@@ -434,8 +487,9 @@
         broad file access that this application cannot justify, and it would
         gain nothing.
 
-        RECORD_AUDIO, READ_CONTACTS, READ_CALENDAR. Nothing in the product
-        records audio, reads an address book or writes a calendar entry.
+        READ_CONTACTS, READ_CALENDAR. Nothing in the product reads an address
+        book or writes a calendar entry. (RECORD_AUDIO used to be on this line;
+        VC1 declares it above, for calls. Calls are not recorded.)
 
         POST_NOTIFICATIONS USED TO BE ON THIS LIST AND IS NOT ANY MORE.
         It is declared above, and this paragraph is the record of why the
