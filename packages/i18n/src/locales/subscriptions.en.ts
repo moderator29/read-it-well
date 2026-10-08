@@ -79,6 +79,8 @@ export const subscriptionsEn = {
     subscribedOther: "You are subscribed to {plan}. To change plan, cancel it under Your plan above; when it ends you can subscribe to another.",
     /** `{plan}` is the plan's name, `{date}` the trial's end. */
     trialStarted: "Your free trial of {plan} has started. It ends {date}.",
+    /** The iPhone app sells no plan (App Store rule 3.1.1); a plan held already works here. */
+    iosApp: "Plans are not sold in the iPhone app. A plan you already hold works here as usual.",
   },
 
   /** /pro/confirm, where Paystack sends the member back. */

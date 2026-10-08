@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useSyncExternalStore, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { Locale } from "@vallo/i18n/core";
 import { Button, ButtonLink } from "@/components/ui/Button";
@@ -15,6 +15,17 @@ import {
 import type { PlanOffer, SubscriptionsCopy } from "@/lib/subscriptions/state";
 import { fill, longDate, money } from "./plan-format";
 import type { PaidPlan } from "./pro-state";
+import { nativePlatform } from "@/lib/native/platform";
+
+/* Founder, 8 October 2026 (option A): the iPhone app shows no trial and no
+   checkout, so App Review never meets a purchase outside Apple's in-app
+   purchase (guideline 3.1.1). Members subscribe on the website; a plan they
+   hold works in the app. The server render is the website; the shell reads
+   true after hydration. */
+const noSubscribe = () => () => {};
+function useIosApp(): boolean {
+  return useSyncExternalStore(noSubscribe, () => nativePlatform() === "ios", () => false);
+}
 
 type Opened = { reference: string; amountMinor: number; accessCode: string; authorizationUrl: string };
 
@@ -61,6 +72,7 @@ export function PlanCheckout({
   const price = money(plan.priceMinor, locale);
   const days = trialDays != null ? String(trialDays) : "";
   const refusal = (reason: SubscriptionRefusal) => copy.errors[reason as keyof typeof copy.errors] ?? copy.errors.unavailable;
+  const iosApp = useIosApp();
 
   if (offer.kind === "sign-in") {
     return (
@@ -69,6 +81,13 @@ export function PlanCheckout({
           {copy.actions.signIn}
         </ButtonLink>
       </div>
+    );
+  }
+  if (iosApp && offer.kind !== "subscribed") {
+    return (
+      <p className="nf-pro-buy__note" role="status" data-testid="pro-buy" data-offer="ios-app">
+        {copy.offer.iosApp}
+      </p>
     );
   }
   if (offer.kind === "closed" || offer.kind === "unknown") {
