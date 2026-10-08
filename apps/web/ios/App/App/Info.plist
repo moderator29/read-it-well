@@ -15,10 +15,16 @@
 		push this platform sends is an alert with a title and a body a person
 		will see, which is also what `userVisibleOnly` promises on the web
 		side in `components/app/push/enrol.ts`.
+
+		`audio` (VC1, 8 October 2026): a voice or video call the member is
+		in keeps its sound when they lock the screen or switch apps, as on
+		every calling app. It is used only while a call is live; nothing
+		plays or records in the background otherwise.
 	-->
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>
+		<string>audio</string>
 	</array>
   <key>CAPACITOR_DEBUG</key>
 	<string>$(CAPACITOR_DEBUG)</string>
