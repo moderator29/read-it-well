@@ -8,6 +8,10 @@
 > file disagrees with it, this file is history. It is kept because code comments
 > cite it. Do not take icon, container, glow or motion direction from here.
 
+> **THE LOGO CHANGED ON 8 OCTOBER 2026 (D81). Read section 0 first.** Every
+> description below of the logo as a glass tile, five glass towers, a swoosh,
+> a keyed extraction or a re-toned "daylight twin" is history.
+
 > **Track A, 25 September 2026.** Vallo no longer holds customer money: the wallet, escrow and held payments are retired. Where this document describes them it describes the past; the current truth is [`docs/MONEY_ARCHITECTURE.md`](/docs/MONEY_ARCHITECTURE.md).
 
 **Rewritten 16 September 2026, and the thing it used to say is now wrong.**
@@ -25,6 +29,62 @@ arrived, under which names, and which one must not be used.
 
 Read `docs/archive/HANDOFF_03_FRONTEND.md` for the direction, `docs/ICON_SYSTEM.md` for
 the two tiers, and `docs/archive/FRONTEND_REVAMP.md` for the full replacement map.
+
+---
+
+## 0. The logo, from 8 October 2026 (D81)
+
+The founder supplied a new mark and wordmark
+(`docs/design/references/2026-10-08/logo-mark-new.png`,
+`logo-wordmark-new.png`): four towers, three blue and one orange, inside an
+orbit ring that sweeps from cyan to royal blue to orange; and VALLO in
+cyan-to-royal-blue letters with an orange triangle in the A and an orange
+sweep on the O. They replace every older mark and wordmark on the platform.
+
+**They are vectors now.** `scripts/brand/logo-art.mjs` redraws both from the
+references, in the references' own pixel coordinates, so the drawing can be
+laid over the render and checked shape for shape. No ground and no glow are
+baked in; a glow, where a surface wants one, is CSS and on dark only.
+
+**Three palettes, one drawing.**
+
+| Palette | Files | Where |
+| --- | --- | --- |
+| night | `vallo-mark.svg`, `vallo-wordmark.svg` (+ `.png`) | navy and dark grounds, night islands, the `.nf-logo` pill in light |
+| day | `vallo-mark-light.svg`, `vallo-wordmark-light.svg` (+ `.png`) | paper: blues deepened (`#0A8CE6` to `#0A2FA8`) and the orange too, so every opaque pixel holds 3:1 on white |
+| reverse | `vallo-mark-reverse.svg`, `vallo-wordmark-reverse.svg` | the brand's own blue ground (the auth block): white and ice for the blues, the orange kept |
+
+**One build writes every file.** `node scripts/build-brand-logo.mjs` writes
+the SVGs, the transparent PNGs (`vallo-mark.png` 1024 wide,
+`vallo-wordmark.png` 1664 by 352), `vallo-logo.png` (the square lockup on
+navy), `vallo-icon.png` (the app icon), the favicon (a real 16, 32 and 48
+ICO), `public/pwa/icon-*.png`, `apple-touch-icon.png`, the maskable icon,
+`apps/web/assets/icon-*.png`, every Android `mipmap-*/ic_launcher*.png` (the
+adaptive foreground is now transparent), the iOS `AppIcon`, the older
+startup and sign-in cuts, and two generated modules:
+`apps/web/src/lib/brand/logo-geometry.ts` (the mark in parts, for
+`LogoMarkLive`) and `apps/web/src/lib/brand/og-logo.ts` (data URIs for the
+share cards Satori draws). Then `node scripts/build-email-lockup.mjs` (the
+email band) and `node scripts/build-og-image.mjs` (the default share card).
+`scripts/build-brand-marks.mjs` and `assets/brand-sheets/vallo-wordmark-source.png`
+(the extraction from the old glass tile) are deleted.
+
+**Drawing it in the app.** `Logo`, `LogoMark` and `LogoWordmark`
+(`design-system/brand/Logo.tsx`) render the night and day SVGs and
+`app/css/light.css` shows one, keyed on `data-theme`, as before.
+`LogoMarkLive` draws the mark inline so it can move: `reveal` (the towers rise
+out of the ring, the ring sweeps from its cyan tip to its orange end; the
+sign-out threshold) and `orbit` (a light runs round the ring; the landing's
+loading screen and the sign-in verifying panel). `app/css/logo-motion.css`
+holds the motion; reduced motion, data saving, Calm and Off draw it at rest.
+The launch image still carries no mark at all (D68c).
+
+**The sweep is a test.** `design-system/brand/logo-sweep.test.ts` fails if any
+file in the web app, the native projects, `assets/`, `packages/`, `scripts/`
+or the Supabase email templates is byte-for-byte one of the old logo files
+(by SHA-256, under any name), if the old path data appears in any source file,
+if a call site still declares the old 614 by 587 or 758 by 167 boxes, or if
+the shipped SVGs drift from `logo-art.mjs`.
 
 ---
 
@@ -307,7 +367,9 @@ anatomy is worth taking while its execution is everything this brand is not.
 
 ## 8. The logo in daylight, and the icon plate
 
-Added 29 September 2026.
+Added 29 September 2026. **The logo half of this section is history since
+8 October 2026: section 0 is the logo now.** The icon plate below still
+stands.
 
 > **Superseded the same day for the lockup.** The founder then asked for the
 > navy pill back, with a light "like snakes" running round its edge,

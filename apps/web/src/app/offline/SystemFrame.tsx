@@ -109,8 +109,8 @@ export function PlainSystemMoment({
             <img
               src="/brand/vallo-wordmark.png"
               alt="Vallo"
-              width={758}
-              height={167}
+              width={1664}
+              height={352}
               decoding="async"
               className="nf-system__wordmark"
             />

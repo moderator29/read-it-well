@@ -1,3 +1,4 @@
+import { OgLogo } from "./og-logo";
 import {
   OG_BRAND,
   OG_CANVAS,
@@ -256,7 +257,7 @@ export function ogShareCard(input: OgShareCardInput) {
           </div>
         </div>
 
-        {/* The foot: the word mark, small, bottom left. */}
+        {/* The foot: the logo, small, bottom left (D81, `og-logo.tsx`). */}
         <div
           style={{
             display: "flex",
@@ -267,10 +268,7 @@ export function ogShareCard(input: OgShareCardInput) {
             fontSize: 22 * s,
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", color: OG_INK, letterSpacing: 3 }}>
-            <div style={{ display: "flex", width: 12 * s, height: 12 * s, borderRadius: 3 * s, background: OG_BRAND, marginRight: 10 * s }} />
-            VALLO
-          </div>
+          <OgLogo height={Math.round(20 * s)} />
           {input.footRight ? <div style={{ display: "flex" }}>{input.footRight}</div> : <div style={{ display: "flex" }} />}
         </div>
       </div>

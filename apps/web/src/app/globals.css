@@ -77,6 +77,8 @@
 /* The grouped list and the disclosure (clean unified sweep, 29 September). */
 @import "./css/list-group.css";
 @import "./css/chrome.css";
+/* The new mark in motion: the reveal and the orbit loader (D81). */
+@import "./css/logo-motion.css";
 @import "./css/explore.css";
 @import "./css/ambient.css";
 @import "./css/animation.css";
@@ -206,6 +208,10 @@
 /* The small things: toast, connection line, back to top, pull to refresh,
    the late spinner, the done check, the card menu, the field counter. */
 @import "./css/details.css";
+/* D81: the warm spark used more (the orange button, the light sweep, the
+   states that point, the waits). After every partial whose states it warms,
+   before the motion setting so "off" still wins. */
+@import "./css/spark.css";
 /* Track M: the motion setting (cinematic, standard, calm, off). Last, so
    "off" wins over every partial above it. */
 @import "./css/motion-pref.css";

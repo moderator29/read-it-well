@@ -1,3 +1,4 @@
+import { OgLogo } from "@/components/share/og-logo";
 import { readFile } from "node:fs/promises";
 import { ImageResponse } from "next/og";
 import type { Dictionary } from "@vallo/i18n/core";
@@ -7,7 +8,6 @@ import {
   OG_BRAND,
   OG_CANVAS,
   OG_INK,
-  OG_INK_MUTED,
   OG_INK_SECONDARY,
   OG_PANEL,
 } from "@/lib/price-check/og-palette";
@@ -239,9 +239,9 @@ export async function statusImage(
     return new ImageResponse(
       frame(
         <>
-          {/* One brand mark only: the word at the top. The mark-only face
-              (a door that cannot be read) is that word and nothing else. */}
-          <div style={{ display: "flex", color: OG_INK_MUTED, fontSize: 40, letterSpacing: 6 }}>VALLO</div>
+          {/* One brand mark only: the logo at the top (D81). The mark-only
+              face (a door that cannot be read) is that and nothing else. */}
+          <OgLogo height={38} />
           <div style={{ display: "flex", flexDirection: "column" }}>
             {example && (
               <div style={{ display: "flex", color: OG_INK, fontSize: 96 }}>
@@ -266,7 +266,7 @@ export async function statusImage(
     frame(
       <>
         <div style={{ display: "flex", flexDirection: "column" }}>
-          <div style={{ display: "flex", color: OG_INK_MUTED, fontSize: 40, letterSpacing: 6 }}>VALLO</div>
+          <OgLogo height={38} />
           {photo && (
             // Satori draws this; there is no browser here for next/image to serve.
             // eslint-disable-next-line @next/next/no-img-element

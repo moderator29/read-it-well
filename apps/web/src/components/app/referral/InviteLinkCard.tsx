@@ -107,9 +107,11 @@ export function InviteLinkCard({
         >
           {copied ? copy.copied : copy.copy}
         </Button>
+        {/* Share is the warm spark (D81): the second action on Rewards, beside
+            the blue Withdraw. */}
         <Button
           type="button"
-          variant="secondary"
+          variant="spark"
           size="lg"
           full
           leadingIcon="share"

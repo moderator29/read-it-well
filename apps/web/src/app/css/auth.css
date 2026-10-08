@@ -348,26 +348,10 @@
     width: 1.875rem;
     height: auto;
   }
-  /* The artwork for the ground: the night mark on the navy block (light
-     mode), the day mark on the paper block (dark mode). */
-  .nf-slate-top__mark--on-navy {
-    display: none;
-  }
-  :root[data-theme="light"] .nf-slate-top__mark--on-navy {
-    display: block;
-  }
-  :root[data-theme="light"] .nf-slate-top__mark--on-paper {
-    display: none;
-  }
+  /* The wordmark artwork (D81), at the cap height the tracked name had. */
   .nf-slate-top__word {
-    font-family: var(--nf-font-display);
-    font-size: 1.625rem;
-    font-weight: 500;
-    line-height: 1;
-    letter-spacing: 0.34em;
-    /* The tracking trails the last letter; pull it back so the word's box
-       ends where the O does. */
-    margin-right: -0.34em;
+    width: auto;
+    height: 1.375rem;
   }
   .nf-slate-top__line {
     max-width: 17rem;
@@ -1523,13 +1507,6 @@
       0 0 0 3px color-mix(in oklab, var(--nf-brand-primary) 30%, transparent),
       0 0 22px 2px color-mix(in oklab, var(--nf-brand-primary) 45%, transparent),
       0 12px 24px -10px color-mix(in oklab, color-mix(in oklab, var(--nf-brand-primary) 62%, var(--nf-surface-artwork)) 55%, transparent);
-  }
-  /* The block is blue in both themes, so it always carries the night mark. */
-  .nf-slate-top__mark--on-navy {
-    display: block;
-  }
-  .nf-slate-top__mark--on-paper {
-    display: none;
   }
   /* A brighter thread of light along the bowl. */
   .nf-slate-top__edge {

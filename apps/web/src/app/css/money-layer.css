@@ -523,11 +523,11 @@
     align-items: center;
     gap: var(--nf-space-xs);
   }
+  /* The wordmark artwork (D81), at the label's cap height. */
   .nf-mcard__word {
-    font-size: var(--nf-text-label);
-    font-weight: 600;
-    letter-spacing: 0.32em;
-    color: var(--nf-content-secondary);
+    display: block;
+    width: auto;
+    height: 0.875rem;
   }
   .nf-mcard__chip {
     width: 2.375rem;

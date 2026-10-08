@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * Builds `apps/web/public/brand/vallo-email-lockup.png`: the glass mark and the
- * wordmark on their own rounded navy tile, as one picture, for the brand band
- * at the top of every email.
+ * Builds `apps/web/public/brand/vallo-email-lockup.png`: the mark and the
+ * wordmark (D81, the new logo of 8 October 2026) on their own rounded navy
+ * tile, as one picture, for the brand band at the top of every email.
  *
  * WHY A PICTURE WITH ITS OWN GROUND. Mail clients that force a dark mode
  * (Gmail's apps above all) invert colours but leave images alone. A lockup
@@ -46,9 +46,9 @@ const browser = await chromium.launch({ executablePath });
 const page = await browser.newPage({ viewport: { width: WIDTH, height: HEIGHT }, deviceScaleFactor: SCALE });
 await page.setContent(`<!doctype html><html><body style="margin:0;background:transparent;">
   <div id="tile" style="box-sizing:border-box;width:${WIDTH}px;height:${HEIGHT}px;border-radius:14px;background:${NAVY};
-       padding:8px 14px;display:flex;align-items:center;gap:10px;">
-    <img src="${dataUri("vallo-mark.png")}" style="width:42px;height:40px;display:block;" />
-    <img src="${dataUri("vallo-wordmark.png")}" style="width:118px;height:26px;display:block;" />
+       padding:8px 14px;display:flex;align-items:center;justify-content:center;gap:10px;">
+    <img src="${dataUri("vallo-mark.png")}" style="width:44px;height:auto;display:block;" />
+    <img src="${dataUri("vallo-wordmark.png")}" style="width:112px;height:auto;display:block;" />
   </div></body></html>`);
 await page.locator("#tile").screenshot({ path: OUT, omitBackground: true });
 await browser.close();

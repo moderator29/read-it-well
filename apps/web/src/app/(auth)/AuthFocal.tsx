@@ -18,11 +18,10 @@ export function AuthFocal() {
   if (art.kind === "object") return <FocalArtImage art={art} />;
   return (
     <Image
-      src="/brand/vallo-mark.png"
+      src="/brand/vallo-mark-reverse.svg"
       alt=""
-      width={614}
-      height={587}
-      sizes="48px"
+      width={776}
+      height={664}
       priority
       className="nf-slate-focal__mark"
     />

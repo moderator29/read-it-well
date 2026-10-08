@@ -1,4 +1,4 @@
-import { LogoMark } from "@/design-system/brand/Logo";
+import { LogoMarkLive } from "@/design-system/brand/LogoMarkLive";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { LoadingShell } from "@/components/app/ScreenSkeleton";
 import "@/app/css/system.css";
@@ -27,13 +27,12 @@ import "@/app/css/system.css";
 export default function LoadingRoot() {
   return (
     <LoadingShell label="Loading Vallo" className="nf-shell nf-wait py-section">
-      {/* 48 by 46, which is the mark's real 614:587 shape. It was declared
-          square here and squared again by `.nf-wait__mark`, so the first
-          thing a stranger saw on the slowest page in the product was the
-          logo stretched 4.6 per cent. See `design-system/brand/Logo.tsx`.
-          `LogoMark` carries the daylight twin, so a light page waits on the
-          ink mark rather than pale night glass. */}
-      <LogoMark size={48} priority className="nf-wait__mark" />
+      {/* The new mark as the loader (D81): the towers rise out of the ring,
+          then a light runs round the ring, blue into orange, until the page
+          arrives. Inline, so it needs no request of its own; it carries both
+          palettes, so a light page waits on the day mark. At rest under
+          reduced motion, data saving, Calm and Off. */}
+      <LogoMarkLive size={56} motion="orbit" className="nf-wait__mark" />
 
       <div className="mt-xl max-w-2xl">
         {/* Three display lines, which is what the hero is. */}

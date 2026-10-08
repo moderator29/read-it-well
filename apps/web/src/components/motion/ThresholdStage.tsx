@@ -8,13 +8,17 @@ import { THRESHOLD_EVENT, thresholdAllowed, type ThresholdKind } from "@/lib/mot
 /*
  * THE SIGN-OUT MARK LOADS WHEN SIGN-OUT PLAYS (speed, 6 October 2026). This
  * stage is mounted in the root layout, so everything it imports statically is
- * first-load JavaScript on every route, and `LogoMark` draws through
+ * first-load JavaScript on every route, and `LogoMark` drew through
  * `next/image`, whose client runtime (about 15 KB raw) was in the chunk every
- * route loads for this one import, among three. The mark is drawn only by the
+ * route loads for this one import, among three. The mark it draws now is the
+ * inline `LogoMarkLive` (D81), whose towers rise and whose ring sweeps, and it
+ * stays a lazy import for the same reason: its geometry is only wanted here. The mark is drawn only by the
  * `leave` threshold, which is rare and starts with 360ms of closing panels
  * before the mark's own entrance (threshold.css), so it is fetched then.
  */
-const LogoMark = dynamic(() => import("@/design-system/brand/Logo").then((m) => m.LogoMark), { ssr: false });
+const LogoMarkLive = dynamic(() => import("@/design-system/brand/LogoMarkLive").then((m) => m.LogoMarkLive), {
+  ssr: false,
+});
 
 /**
  * THE STAGE THE THRESHOLD MOMENTS PLAY ON (Track M, 25 September 2026).
@@ -190,7 +194,7 @@ export function ThresholdStage({ welcome }: { welcome: string }) {
           <div className="nf-threshold__panel nf-threshold__panel--a" />
           <div className="nf-threshold__panel nf-threshold__panel--b" />
           <div className="nf-threshold__center">
-            <LogoMark size={56} />
+            <LogoMarkLive size={64} motion="reveal" />
           </div>
         </>
       )}

@@ -1,3 +1,4 @@
+import { MARK_VIEWBOX } from "@/lib/brand/logo-geometry";
 import "@/app/css/auth.css";
 import "@/app/css/auth-doors.css";
 import Image from "next/image";
@@ -79,14 +80,13 @@ export function SignUpOptions({
 
       <div className="nf-doors__words">
         <Image
-          src="/brand/vallo-mark.png"
+          src="/brand/vallo-mark.svg"
           /* Decorative: the statement beside it is the content, and a
              hard-coded "Vallo" alt is copy the dictionary does not own. */
           alt=""
           aria-hidden
-          width={614}
-          height={587}
-          sizes="32px"
+          width={MARK_VIEWBOX.w}
+          height={MARK_VIEWBOX.h}
           priority
           className="nf-doors__mark"
         />

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, type ReactNode } from "react";
 import Image from "next/image";
-import { LogoMark } from "@/design-system/brand/Logo";
+import { LogoMark, LogoWordmark, wordmarkWidth } from "@/design-system/brand/Logo";
 import { focalObject } from "@/components/auth/focal-art";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import { initial } from "@/lib/text/initial";
@@ -152,16 +152,7 @@ export function PasscodeFrame({
         ) : null}
         <span className="nf-passcode__brand" role="img" aria-label="Vallo">
           <LogoMark size={34} className="nf-passcode__mark" priority />
-          <Image
-            src="/brand/vallo-wordmark.png"
-            alt=""
-            aria-hidden
-            width={758}
-            height={167}
-            sizes="96px"
-            priority
-            className="nf-passcode__word"
-          />
+          <LogoWordmark width={wordmarkWidth(20)} height={20} priority className="nf-passcode__word" />
         </span>
       </div>
       <div className="nf-passcode__sheet" data-door={door}>

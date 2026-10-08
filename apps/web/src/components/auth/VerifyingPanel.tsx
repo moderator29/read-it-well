@@ -1,6 +1,6 @@
 "use client";
 
-import { LogoMark } from "@/design-system/brand/Logo";
+import { LogoMarkLive } from "@/design-system/brand/LogoMarkLive";
 import { ButtonLink } from "@/components/ui/Button";
 import { useClientCopy } from "@/lib/i18n/client-copy";
 
@@ -36,7 +36,7 @@ export function VerifyingPanel({ moment = "sign-up" }: { moment?: AuthMoment }) 
   return (
     <div className="w-full max-w-[24rem] text-center" data-testid="verifying" aria-live="polite">
       <span className="flex justify-center">
-        <LogoMark size={44} title="Vallo" />
+        <LogoMarkLive size={52} motion="orbit" title="Vallo" />
       </span>
       <h1 className="nf-h2 mt-5">{words.title}</h1>
       <p className="mt-3 leading-relaxed text-[var(--nf-content-secondary)]">{words.body}</p>

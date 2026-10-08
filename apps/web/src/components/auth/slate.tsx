@@ -1,3 +1,4 @@
+import { MARK_VIEWBOX, WORDMARK_VIEWBOX } from "@/lib/brand/logo-geometry";
 import "@/app/css/auth.css";
 import Image from "next/image";
 import Link from "next/link";
@@ -84,29 +85,31 @@ export function AuthCurveBlock({
 }) {
   const word = (
     <>
+      {/* The new logo (D81) in its REVERSE colours: the block is the brand
+          blue in both themes, where the blue letters of the night and day
+          artwork vanish, so the blues turn white and ice and the orange
+          stays. The word used to be the name in tracked capitals; it is the
+          wordmark now, and the dictionary's spaced name stays in the link's
+          text for a reader. */}
       <Image
-        src="/brand/vallo-mark.png"
+        src="/brand/vallo-mark-reverse.svg"
         alt=""
         aria-hidden
-        width={614}
-        height={587}
-        sizes="32px"
+        width={MARK_VIEWBOX.w}
+        height={MARK_VIEWBOX.h}
         priority
-        className="nf-slate-top__mark nf-slate-top__mark--on-navy"
+        className="nf-slate-top__mark"
       />
       <Image
-        src="/brand/vallo-mark-light.png"
+        src="/brand/vallo-wordmark-reverse.svg"
         alt=""
         aria-hidden
-        width={614}
-        height={587}
-        sizes="32px"
+        width={WORDMARK_VIEWBOX.w}
+        height={WORDMARK_VIEWBOX.h}
         priority
-        className="nf-slate-top__mark nf-slate-top__mark--on-paper"
+        className="nf-slate-top__word"
       />
-      <span className="nf-slate-top__word" aria-hidden="true">
-        {wordmark}
-      </span>
+      <span className="sr-only">{wordmark}</span>
     </>
   );
 

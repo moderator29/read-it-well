@@ -1,3 +1,4 @@
+import { OgLogo } from "./og-logo";
 import { OG_BRAND, OG_CANVAS, OG_CHIP, OG_INK, OG_INK_MUTED, OG_INK_SECONDARY, ogAlpha } from "@/lib/price-check/og-palette";
 
 /**
@@ -47,13 +48,9 @@ export type OgCentredInput = {
   footRight?: string | null;
 };
 
+/** The logo, bottom left: the new mark and wordmark (D81, `og-logo.tsx`). */
 function WordMark() {
-  return (
-    <div style={{ display: "flex", alignItems: "center", color: OG_INK, fontSize: 24, letterSpacing: 4 }}>
-      <div style={{ display: "flex", width: 14, height: 14, borderRadius: 4, background: OG_BRAND, marginRight: 12 }} />
-      VALLO
-    </div>
-  );
+  return <OgLogo height={22} />;
 }
 
 /**
