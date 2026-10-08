@@ -1,6 +1,6 @@
 -- D73A-STAYS-INSTANT-PAY: a hotel room at the published price is booked and
 -- paid in one flow when `stays_instant_pay` is on, and nothing changes when it
--- is off. Needs supabase/migrations/pending/d73a_stays_instant_pay.sql applied.
+-- is off. Needs the d73a migrations applied (switch, trigger, notices, sweep).
 -- The fixture is the room-bookings probe's: a published hotel owned by the QA
 -- admin with a payout subaccount, the QA member as the guest.
 --
@@ -39,9 +39,10 @@ begin
           union select host union select guest) s(console_probe_uid)
   on conflict (user_id, session_id) do update set expires_at = excluded.expires_at;
 
-  -- 1. Seeded off; a missing row is off.
-  if (select enabled from public.feature_flags where key = 'stays_instant_pay') is distinct from false then
-    raise exception 'PROBE_FAIL d73a 1: stays_instant_pay is not seeded off';
+  -- 1. A missing row is off. (The row exists live; the founder switched it on
+  --    on 8 October 2026, so the probe no longer asserts the live value.)
+  if (select count(*) from public.feature_flags where key = 'stays_instant_pay') <> 1 then
+    raise exception 'PROBE_FAIL d73a 1: the stays_instant_pay row is missing';
   end if;
   delete from public.feature_flags where key = 'stays_instant_pay';
   if private.stays_instant_pay_on() then

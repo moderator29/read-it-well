@@ -80,7 +80,7 @@ Before switching on in Production, make sure:
 
 The founder's ruling of 7 October 2026 (D73 in `docs/sessions/DIRECTIVES-2026-10-05.md`): a booking at a price the business fixed is booked and paid in one flow, the way a hotel booking API such as LiteAPI works. No host acceptance and no Vallo review stand between a guest and paying a published price. Rentals and anything negotiated keep the agreement and review, and go to escrow (Part B).
 
-**Status: built, off.** Migration `supabase/migrations/pending/d73a_stays_instant_pay.sql` (pending, applied by the lead) seeds `stays_instant_pay` off. A missing row reads as off.
+**Status: live and ON since 8 October 2026** (the founder switched it on; the 15-minute sweep that releases an unpaid instant booking is applied as `20261008164113_d73a_stays_instant_pay_sweep.sql`). A missing row reads as off.
 
 **Which bookings.** Read from the live schema:
 
