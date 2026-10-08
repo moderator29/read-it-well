@@ -20,6 +20,13 @@ export async function flagIsOn(key: string): Promise<boolean> {
   }
 }
 
+/**
+ * VC1: voice and video calls in Messages. Seeded OFF by the VC1 migration; the
+ * database refuses every call function while it is off, this only words screens.
+ */
+export const VIDEO_CALLS_FLAG = "video_calls";
+/** VC1: staff review calls about an existing case. Needs `video_calls` on as well. */
+export const ADMIN_REVIEW_CALLS_FLAG = "admin_review_calls";
 /** V-41: residents' reports beside the lister's claim. */
 export const NEIGHBOURS_FLAG = "neighbours_account";
 /** V-43: rush-hour times to named places. */

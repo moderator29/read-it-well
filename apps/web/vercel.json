@@ -20,6 +20,7 @@
     { "path": "/api/cron/risk-classes", "schedule": "50 3 * * *" },
     { "path": "/api/cron/rent-share-refunds", "schedule": "35 * * * *" },
     { "path": "/api/cron/calendar-sync", "schedule": "2,17,32,47 * * * *" },
-    { "path": "/api/cron/reservation-deposit-refunds", "schedule": "40 * * * *" }
+    { "path": "/api/cron/reservation-deposit-refunds", "schedule": "40 * * * *" },
+    { "path": "/api/cron/calls-sweep", "schedule": "*/5 * * * *" }
   ]
 }

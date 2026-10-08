@@ -257,9 +257,9 @@ const PUBLIC_PATHS = new Set(["/", "/robots.txt", "/sitemap.xml", "/opengraph-im
  * page list: a new endpoint is then born closed. Every entry here carries its
  * own guard, and none of them is a session:
  *
- *   webhooks           a signature over the body, from Paystack, Yellow Card
- *                      and Supabase's own auth hook. The sender has no cookie
- *                      and never will.
+ *   webhooks           a signature over the body, from Paystack, Yellow Card,
+ *                      LiveKit (`/api/calls/webhook`, VC1) and Supabase's own
+ *                      auth hook. The sender has no cookie and never will.
  *   cron               a bearer secret through `lib/cron/run.ts`, including
  *                      `/api/push/drain`, which pg_net calls every five
  *                      minutes, and `/api/paystack/reconcile`.
@@ -305,7 +305,9 @@ const PUBLIC_API_PATHS = new Set([
      64-character token in the query is the whole key; it returns dates only. */
   "/api/calendar/feed",
   "/api/client-error",
+  "/api/calls/webhook",
   "/api/cron/account-purge",
+  "/api/cron/calls-sweep",
   "/api/cron/canary",
   /* C2: calendar sync, behind the cron bearer and CALENDAR_SYNC_ENABLED. */
   "/api/cron/calendar-sync",
