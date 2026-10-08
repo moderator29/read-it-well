@@ -13,8 +13,50 @@ import { formatMoneyDate } from "@/lib/money/dates";
 import { MoneyFigure, MoneyMoment, StatusWord } from "../kit";
 import { StepPath, type PathState } from "../StepPath";
 import { PaidMoment, SentMoment, WithdrawnMoment } from "@/components/ui/SuccessMoment";
+import { Button } from "@/components/ui/Button";
 import "@/app/css/money-layer.css";
 import { reach } from "./reach";
+import { movementReceipt } from "../movement-receipt";
+import { ReceiptActions } from "../ReceiptActions";
+
+/**
+ * A movement being watched until the provider settles it: the waiting room,
+ * the receipt once it is completed, and one way out. Used at the end of
+ * every move-money screen and in a transaction's details.
+ */
+export function Watching({
+  movement,
+  locale,
+  onDone,
+  onSettled,
+  kind = "withdrawal",
+  doneLabel,
+}: {
+  movement: MovementView;
+  locale: Locale;
+  onDone(): void;
+  onSettled(): void;
+  kind?: "withdrawal" | "deposit" | "send";
+  doneLabel?: string;
+}) {
+  const current = useWatchedMovement(movement, onSettled);
+  return (
+    <>
+      <WaitingRoom movement={current} locale={locale} kind={kind} />
+      {/* A completed movement has a receipt like every other transaction:
+          saved as a PDF or an image, or shared (recommendation 2). */}
+      {current.status === "completed" ? <ReceiptActions receipt={movementReceipt(current, locale)} print={false} testId="balance-receipt" /> : null}
+      <Button variant="secondary" size="lg" onClick={onDone}>
+        {current.status === "completed" ? (doneLabel ?? "Done") : "Close, keep checking"}
+      </Button>
+    </>
+  );
+}
+
+/** The waiting room's kind for a movement's kind. */
+export function waitKind(kind: MovementView["kind"]): "withdrawal" | "deposit" | "send" {
+  return kind === "withdrawal" ? "withdrawal" : kind === "deposit" || kind === "transfer_in" ? "deposit" : "send";
+}
 
 /**
  * Shared pieces of the balance surface (/wallet). The plates use the finance

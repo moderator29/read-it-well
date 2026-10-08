@@ -1,19 +1,15 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import type { Locale } from "@vallo/i18n/core";
-import { ListGroup, ListRow } from "@/components/ui/ListGroup";
-import { Sheet } from "@/components/ui/Sheet";
-import { Icon3D, type Icon3DName } from "@/components/ui/Icon3D";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import type { TieredObjectName } from "@/design-system/icons/object-assets";
-import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
-import { formatMoneyDate } from "@/lib/money/dates";
-import type { MovementView } from "@/lib/money/member-wallet";
-import type { BalanceFigures, MovementKind } from "@/lib/money/funds";
-import { isOpenMovement } from "@/lib/money/funds";
+import { UiIcon } from "@/design-system/icons/UiIcon";
+import type { MovementTotals, MovementView } from "@/lib/money/member-wallet";
+import type { BalanceFigures } from "@/lib/money/funds";
 import {
   ACTION_LABEL,
   ACTIVITY_EMPTY,
@@ -21,106 +17,57 @@ import {
   FIGURE_LABEL,
   HELD_BY,
   HELD_BY_HREF,
-  HELD_BY_LINK,
+  MORE_OPTIONS,
+  MORE_OPTIONS_LABEL,
   NOT_CONNECTED_FIGURE,
   NOT_CONNECTED_LINE,
+  PROTECTED_SUB_NOT_CONNECTED,
+  PROTECTED_TITLE,
+  RECENT_LABEL,
+  SEE_ALL,
+  SPACE_BANNER,
   STALE_NOTE,
+  TOTALS_LABEL,
   UNREACHABLE_FIGURE,
   UNREACHABLE_LINE,
-  WALLET_RECORDS,
-  WALLET_RECORDS_LABEL,
   WAITING_COPY,
   WAITING_STEPS,
   confirmedAgo,
-  movementTitle,
 } from "@/lib/money/balance-copy";
 import { MoneyFigure } from "../kit";
 import { StepPath } from "../StepPath";
 import { MoneyExplainer } from "../MoneyExplainer";
-import { MovementStatusWord } from "./balance-ui";
 import { WalletCard } from "./WalletCard";
-import { WithdrawFlow, Watching } from "./WithdrawFlow";
-import { AddMoneyFlow } from "./AddMoneyFlow";
-import { SendFlow } from "./SendFlow";
+import { WALLET_LINKS, WalletCapsules, WalletHeader, WalletTabs, type WalletLinks } from "./WalletChrome";
+import { MovementList, MovementsEmpty } from "./WalletRows";
 import "@/app/css/money-wallet.css";
 
 /**
- * THE WALLET SCREEN (founder sections 36 to 43; Part B phase 6; D76; D78;
- * the founder on 7 October: "Call it WALLET... design it to be fully clean";
- * and on 8 October: "not really premium!!... the withdrawal and transfer
- * button should be capsule each okay and glass too").
+ * THE WALLET OVERVIEW (D81; the founder's brief of 8 October and his
+ * governing reference, the right-hand phone).
  *
- * One layout for every state, so the member sees the real wallet before the
- * key is connected. The card, navy into the Vallo blue, holds the name with
- * Add money (the one solid blue capsule), the figure (or calm words in its
- * place, never a zero), one short status line, and Withdraw and Transfer as
- * two frosted glass capsules side by side. Under it, on the platform's own
- * container: what is still moving, where the money is, the wallet's records
- * (Payments, Receipts, Payouts, Refunds, D78) and the recent activity, every
- * row marked with a solid object (D78: no glass icon).
+ * Header (back, Wallet, the settings gear), Overview and Transactions, the
+ * card (Available, the figure, Money in and Money out), where the rest of the
+ * money is, "Your payments are protected" with the one custody line, a short
+ * preview of recent activity with See all, the "Pay for your space" banner
+ * (the only piece from the left-hand phone), More options (receipts,
+ * payouts, refunds, settings) and, at the very bottom, exactly two capsules:
+ * Withdraw and Send.
  *
- * Not connected: no figure, every action visibly present and disabled, and
- * one short line on the card saying why. Connected: every figure arrives
- * from the server and this component adds nothing up; when the partner could
- * not be reached the last confirmed figures are shown, labelled, and the
- * actions wait.
+ * One layout for every state (D78): not connected draws the whole screen with
+ * no figure, not even a zero, and one short line on the card. Connected,
+ * every figure arrives from the server and this component adds nothing up.
  */
 
-/** A solid object from one of the two opaque blue sets (`glass-to-solid.ts`). */
-type SolidArt = { set: "3d"; name: Icon3DName } | { set: "tiered"; name: TieredObjectName };
-const d3 = (name: Icon3DName): SolidArt => ({ set: "3d", name });
-const tier = (name: TieredObjectName): SolidArt => ({ set: "tiered", name });
+/** Rows the overview previews; the rest are on the Transactions screen. */
+export const OVERVIEW_ROWS = 4;
 
-/* No receipt object beside a naira sum: the 3D receipt carries a "$" coin. */
-const KIND_ART: Record<MovementKind, SolidArt> = {
-  deposit: tier("wallet-plus"),
-  transfer_in: d3("earnings"),
-  withdrawal: d3("bank"),
-  transfer_out: tier("paper-plane"),
-  other: tier("banknotes-stack"),
+const TOOL_ART: Record<(typeof MORE_OPTIONS)[number]["href"], TieredObjectName> = {
+  "/receipts": "doc-search",
+  "/payouts": "banknotes-stack",
+  "/refunds": "sync-arrows",
+  "/wallet/settings": "wallet-card",
 };
-
-const FIGURE_ART: Record<"protected" | "pending" | "processing", SolidArt> = {
-  protected: tier("safe-dial"),
-  pending: tier("hourglass"),
-  processing: d3("clock"),
-};
-
-const RECORD_ART: Record<(typeof WALLET_RECORDS)[number]["href"], SolidArt> = {
-  "/payments": d3("card-secure"),
-  "/receipts": d3("receipt"),
-  "/payouts": d3("earnings"),
-  "/refunds": tier("sync-arrows"),
-};
-
-/** A row's mark: the solid object on the quiet blue plate the Profile rows use. */
-function SolidMark({ art, size = "row" }: { art: SolidArt; size?: "row" | "state" }) {
-  const px = size === "row" ? 30 : 44;
-  return (
-    <span className={`nf-mw-mark nf-mw-mark--${size}`} data-host-plate="" aria-hidden="true">
-      {art.set === "3d" ? <Icon3D name={art.name} size={px} /> : <BrandIcon name={art.name} size={px} />}
-    </span>
-  );
-}
-
-const ACTION_ICON: Record<"add" | "withdraw" | "send", UiIconName> = { add: "plus", withdraw: "bank", send: "arrow-up" };
-
-function sign(kind: MovementKind): "+" | "-" | undefined {
-  if (kind === "deposit" || kind === "transfer_in") return "+";
-  if (kind === "withdrawal" || kind === "transfer_out") return "-";
-  return undefined;
-}
-
-function counterpartyLine(m: MovementView): string {
-  const cp = m.counterparty;
-  if (m.kind === "withdrawal") return [cp.bank, cp.last4 ? `•••• ${cp.last4}` : ""].filter(Boolean).join(" ");
-  if (m.kind === "transfer_out") return cp.name ? `To ${cp.name}` : "To a Vallo member";
-  if (m.kind === "transfer_in") return "From a Vallo member";
-  return "From your bank or card";
-}
-
-/** The explainer's sample withdrawal: first step done, second in progress, the rest ahead. */
-const EXPLAINER_STEP_STATE = ["done", "current", "upcoming"] as const;
 
 export function BalanceScreen({
   figures,
@@ -130,6 +77,8 @@ export function BalanceScreen({
   now,
   connected = true,
   reason,
+  totals = null,
+  links = WALLET_LINKS,
 }: {
   figures: BalanceFigures | null;
   movements: MovementView[];
@@ -137,224 +86,219 @@ export function BalanceScreen({
   locale: Locale;
   /** The server's clock at render, so "confirmed n minutes ago" is the same on both sides. */
   now: number;
-  /**
-   * False while the provider's key is not connected (the route's not-live
-   * read): the whole wallet is drawn, with no figure, every action disabled
-   * and one short line saying why. True is every existing path.
-   */
+  /** False while the provider's key is not connected: the whole wallet, with no figure. */
   connected?: boolean;
   /** Why it is not connected, for the record (`data-reason`), never shown. */
   reason?: string;
+  /** Money in and Money out from completed movements, when the server could sum them. */
+  totals?: MovementTotals | null;
+  links?: WalletLinks;
 }) {
   const router = useRouter();
-  const [sheet, setSheet] = useState<"add" | "withdraw" | "send" | null>(null);
-  const [opened, setOpened] = useState<MovementView | null>(null);
   /* D76's hide toggle: for this visit only, never stored. */
   const [hidden, setHidden] = useState(false);
   const refresh = () => router.refresh();
   const canMove = connected && live && figures !== null;
-  const watching = connected ? movements.find((m) => isOpenMovement(m.status)) : undefined;
   const availableAt = figures?.available.confirmedAt ?? null;
   const unreachable = connected && figures === null;
+  const settingsHref = links.settings;
+  const preview = movements.slice(0, OVERVIEW_ROWS);
+
+  const hide = (node: ReactNode) =>
+    hidden ? (
+      <span className="nf-mfig nf-mfig--md" aria-label="Amount hidden">
+        <span aria-hidden="true">₦ ••••</span>
+      </span>
+    ) : (
+      node
+    );
 
   return (
     <div
-      className="nf-balance nf-mw mt-inline"
+      className="nf-balance nf-mw"
+      data-screen="overview"
+      data-capsules=""
       data-testid={connected ? "balance-screen" : "balance-not-live"}
       data-live={live ? "true" : "false"}
       data-reason={reason}
     >
-      <WalletCard
-        name={BALANCE_TITLE}
-        caption={FIGURE_LABEL.available}
-        figure={
-          figures ? (
-            hidden ? (
-              <span className="nf-mfig nf-mfig--hero nf-mfig--hidden" data-testid="balance-available">
-                <span className="nf-mfig__cur">₦</span>
-                <span aria-hidden="true">••••••</span>
-                <span className="sr-only">Amount hidden</span>
-              </span>
+      <WalletHeader title={BALANCE_TITLE} back={links.home} settings={settingsHref} />
+      <WalletTabs active="overview" links={links} />
+
+      <div className="nf-mw-cols">
+        <div className="nf-mw-col">
+          <WalletCard
+            caption={FIGURE_LABEL.available}
+            figure={
+              figures ? (
+                hidden ? (
+                  <span className="nf-mfig nf-mfig--hero nf-mfig--hidden" data-testid="balance-available">
+                    <span className="nf-mfig__cur">₦</span>
+                    <span aria-hidden="true">••••••</span>
+                    <span className="sr-only">Amount hidden</span>
+                  </span>
+                ) : (
+                  <MoneyFigure minor={figures.available.minor} locale={locale} currency={figures.currency} size="hero" testId="balance-available" />
+                )
+              ) : undefined
+            }
+            empty={connected ? UNREACHABLE_FIGURE : NOT_CONNECTED_FIGURE}
+            line={!connected ? NOT_CONNECTED_LINE : unreachable ? UNREACHABLE_LINE : confirmedAgo(availableAt, now)}
+            tone={!connected ? "neutral" : live && figures ? "done" : "waiting"}
+            corner={
+              figures ? (
+                <button
+                  type="button"
+                  className="nf-mw-card__eye"
+                  aria-pressed={hidden}
+                  aria-label={hidden ? "Show amount" : "Hide amount"}
+                  onClick={() => setHidden((h) => !h)}
+                  data-testid="balance-hide"
+                >
+                  <UiIcon name={hidden ? "eye-off" : "eye"} size={18} />
+                </button>
+              ) : null
+            }
+            action={
+              unreachable ? (
+                <button type="button" className="nf-mw-add" onClick={refresh} data-testid="balance-retry">
+                  <span className="nf-mw-add__plus" aria-hidden="true">
+                    <UiIcon name="history" size={14} />
+                  </span>
+                  <span>Try again</span>
+                </button>
+              ) : (
+                <Link href={links.add} className="nf-mw-add" data-testid="balance-action-add">
+                  <span className="nf-mw-add__plus" aria-hidden="true">
+                    <UiIcon name="plus" size={14} />
+                  </span>
+                  <span>{ACTION_LABEL.add}</span>
+                </Link>
+              )
+            }
+            totals={
+              <div className="nf-mw-card__totals" data-testid="balance-totals">
+                {(["in", "out"] as const).map((way) => (
+                  <div key={way} className="nf-mw-total" data-way={way}>
+                    <span className="nf-mw-total__label">
+                      <UiIcon name={way === "in" ? "arrow-down" : "arrow-up"} size={14} />
+                      {TOTALS_LABEL[way]}
+                    </span>
+                    {totals && figures ? (
+                      <span className="nf-mw-total__value">
+                        {hide(<MoneyFigure minor={way === "in" ? totals.inMinor : totals.outMinor} locale={locale} size="md" kobo="auto" />)}
+                      </span>
+                    ) : (
+                      <span className="nf-mw-total__none">{connected ? "Not available" : "Not connected"}</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            }
+          />
+
+          {!live && figures ? (
+            <p className="nf-mw-panel nf-mw-note" role="status" data-order="strip">
+              <UiIcon name="info" size={18} />
+              <span>{STALE_NOTE}</span>
+            </p>
+          ) : null}
+
+          {figures ? (
+            /* Where the rest of the money is: the three figures the provider
+               reports beside Available, each with its own word. */
+            <dl className="nf-mw-strip" data-order="strip" data-testid="balance-where">
+              {(["protected", "pending", "processing"] as const).map((k) => (
+                <div key={k}>
+                  <dt>{FIGURE_LABEL[k]}</dt>
+                  <dd>{hide(<MoneyFigure minor={figures[k].minor} locale={locale} currency={figures.currency} size="row" kobo="auto" />)}</dd>
+                </div>
+              ))}
+            </dl>
+          ) : null}
+
+          <section className="nf-mw-section" aria-labelledby="nf-mw-recent" data-order="activity">
+            <div className="nf-mw-section__head">
+              <h2 id="nf-mw-recent" className="nf-mw-section__title">
+                {RECENT_LABEL}
+              </h2>
+              {movements.length > 0 ? (
+                <Link href={links.transactions} className="nf-mw-link" data-testid="balance-see-all">
+                  {SEE_ALL}
+                </Link>
+              ) : null}
+            </div>
+            {preview.length === 0 ? (
+              <MovementsEmpty title={ACTIVITY_EMPTY.title} body={ACTIVITY_EMPTY.body} testId="balance-activity-empty" />
             ) : (
-              <MoneyFigure minor={figures.available.minor} locale={locale} currency={figures.currency} size="hero" testId="balance-available" />
-            )
-          ) : undefined
-        }
-        empty={connected ? UNREACHABLE_FIGURE : NOT_CONNECTED_FIGURE}
-        line={!connected ? NOT_CONNECTED_LINE : unreachable ? UNREACHABLE_LINE : confirmedAgo(availableAt, now)}
-        tone={!connected ? "neutral" : live && figures ? "done" : "waiting"}
-        corner={
-          figures ? (
-            <button
-              type="button"
-              className="nf-mw-card__eye"
-              aria-pressed={hidden}
-              aria-label={hidden ? "Show amount" : "Hide amount"}
-              onClick={() => setHidden((h) => !h)}
-              data-testid="balance-hide"
-            >
-              <UiIcon name={hidden ? "eye-off" : "eye"} size={18} />
-            </button>
-          ) : null
-        }
-        action={
-          unreachable ? (
-            <button type="button" className="nf-mw-btn nf-mw-btn--solid" onClick={refresh} data-testid="balance-retry">
-              <UiIcon name="history" size={18} />
-              <span>Try again</span>
-            </button>
-          ) : (
-            /* D76: Add money stays on the card, the one solid capsule. */
-            <button type="button" className="nf-mw-btn nf-mw-btn--solid" disabled={!canMove} onClick={() => setSheet("add")} data-testid="balance-action-add">
-              <UiIcon name={ACTION_ICON.add} size={18} />
-              <span>{ACTION_LABEL.add}</span>
-            </button>
-          )
-        }
-      >
-        {/* The founder, 8 October: Withdraw and Transfer are a capsule each,
-            and glass: two frosted capsules side by side on the blue. */}
-        <div className="nf-mw-moves" role="group" aria-label="Move money">
-          <button type="button" className="nf-mw-btn nf-mw-btn--glass" disabled={!canMove} onClick={() => setSheet("withdraw")} data-testid="balance-action-withdraw">
-            <UiIcon name={ACTION_ICON.withdraw} size={20} />
-            <span>{ACTION_LABEL.withdraw}</span>
-          </button>
-          <button type="button" className="nf-mw-btn nf-mw-btn--glass" disabled={!canMove} onClick={() => setSheet("send")} data-testid="balance-action-send">
-            <UiIcon name={ACTION_ICON.send} size={20} />
-            <span>Transfer</span>
-          </button>
+              <MovementList movements={preview} locale={locale} onSettled={refresh} testId="balance-activity" />
+            )}
+          </section>
         </div>
-      </WalletCard>
 
-      {!live && figures ? (
-        <p className="nf-mw-note" role="status">
-          <UiIcon name="info" size={18} />
-          <span>{STALE_NOTE}</span>
-        </p>
-      ) : null}
+        <div className="nf-mw-col">
+          {/* The reference's "Your funds are protected", said as it is: the
+              one custody line (ADR 0003) once the money is actually held. */}
+          <Link href={HELD_BY_HREF} className="nf-mw-panel nf-mw-protect" data-order="protect" data-testid="balance-protected">
+            <span className="nf-mw-protect__art" data-host-plate="" aria-hidden="true">
+              <BrandIcon name="shield-tick" size={30} />
+            </span>
+            <span className="nf-mw-protect__text">
+              <span className="nf-mw-protect__title">{PROTECTED_TITLE}</span>
+              <span className="nf-mw-protect__sub" data-testid={connected && figures ? "balance-held-by" : undefined}>
+                {connected && figures ? HELD_BY : PROTECTED_SUB_NOT_CONNECTED}
+              </span>
+            </span>
+            <UiIcon name="chevron-right" size={18} className="nf-mw-chev" />
+          </Link>
 
-      {watching ? (
-        <ListGroup label="Still moving" className="nf-mw-group">
-          <ListRow
-            leading={<SolidMark art={KIND_ART[watching.kind]} />}
-            title={movementTitle(watching.kind)}
-            sub={counterpartyLine(watching)}
-            value={<MoneyFigure minor={watching.amountMinor} locale={locale} size="row" kobo="auto" />}
-            status={<MovementStatusWord movement={watching} />}
-            chevron
-            onClick={() => setOpened(watching)}
-            data-testid="balance-moving"
-          />
-        </ListGroup>
-      ) : null}
-
-      {figures ? (
-        <ListGroup label="Where your money is" className="nf-mw-group">
-          {(["protected", "pending", "processing"] as const).map((k) => {
-            const at = figures[k].confirmedAt;
-            /* The time is said once, on the card; a row repeats it only when it differs. */
-            const own = at && at !== availableAt ? confirmedAgo(at, now) : undefined;
-            return (
-              <ListRow
-                key={k}
-                leading={<SolidMark art={FIGURE_ART[k]} />}
-                title={FIGURE_LABEL[k]}
-                sub={own}
-                value={<MoneyFigure minor={figures[k].minor} locale={locale} currency={figures.currency} size="row" kobo="auto" />}
-              />
-            );
-          })}
-        </ListGroup>
-      ) : null}
-
-      {/* The wallet is where all money lives (D78): the records, one tap away. */}
-      <ListGroup label={WALLET_RECORDS_LABEL} className="nf-mw-group" data-testid="balance-records">
-        {WALLET_RECORDS.map((r) => (
-          <ListRow key={r.href} href={r.href} leading={<SolidMark art={RECORD_ART[r.href]} />} title={r.title} chevron />
-        ))}
-      </ListGroup>
-
-      {movements.length === 0 ? (
-        <section className="nf-list-section nf-mw-group" aria-labelledby="nf-mw-activity">
-          <div className="nf-list-section__head">
-            <h3 id="nf-mw-activity" className="nf-section-label">
-              Recent activity
-            </h3>
-          </div>
-          <div className="nf-mw-empty" data-testid="balance-activity-empty">
-            <SolidMark art={tier("clipboard-list")} size="state" />
-            <p className="nf-mw-empty__title">{ACTIVITY_EMPTY.title}</p>
-          </div>
-        </section>
-      ) : (
-        <ListGroup label="Recent activity" className="nf-mw-group">
-          {movements.map((m) => (
-            <ListRow
-              key={m.id}
-              leading={<SolidMark art={KIND_ART[m.kind]} />}
-              title={movementTitle(m.kind)}
-              sub={formatMoneyDate(m.createdAt, locale, { withTime: true }) ?? counterpartyLine(m)}
-              value={<MoneyFigure minor={m.amountMinor} locale={locale} size="row" kobo="auto" sign={sign(m.kind)} className={sign(m.kind) === "+" ? "nf-mfig--in" : undefined} />}
-              status={<MovementStatusWord movement={m} />}
-              chevron
-              onClick={() => setOpened(m)}
-            />
-          ))}
-        </ListGroup>
-      )}
-
-      {/* ADR 0003's one line, only where money is actually held. */}
-      {connected && figures ? (
-        <p className="nf-mw__held nf-caption" data-testid="balance-held-by">
-          <UiIcon name="shield-lock" size={16} />
-          <span>
-            {HELD_BY}{" "}
-            <Link href={HELD_BY_HREF} className="underline">
-              {HELD_BY_LINK}
+          <section className="nf-mw-banner" data-theme="dark" aria-labelledby="nf-mw-banner" data-order="banner" data-testid="balance-banner">
+            <Image className="nf-mw-banner__photo" src="/brand/photos/villa-exterior-sunset-640.jpg" alt="" width={640} height={427} unoptimized aria-hidden="true" />
+            <h2 id="nf-mw-banner" className="nf-mw-banner__title">
+              {SPACE_BANNER.title}
+            </h2>
+            <p className="nf-mw-banner__body">{SPACE_BANNER.body}</p>
+            <Link href={SPACE_BANNER.href} className="nf-mw-banner__cta">
+              {SPACE_BANNER.action}
+              <UiIcon name="chevron-right" size={16} />
             </Link>
-          </span>
-        </p>
-      ) : null}
+          </section>
 
-      {figures ? (
-        <>
-          <AddMoneyFlow open={sheet === "add"} onOpenChange={(o) => setSheet(o ? "add" : null)} locale={locale} onMoved={refresh} />
-          <WithdrawFlow
-            open={sheet === "withdraw"}
-            onOpenChange={(o) => setSheet(o ? "withdraw" : null)}
-            locale={locale}
-            availableMinor={figures.available.minor}
-            onMoved={refresh}
-          />
-          <SendFlow open={sheet === "send"} onOpenChange={(o) => setSheet(o ? "send" : null)} locale={locale} availableMinor={figures.available.minor} onMoved={refresh} />
-        </>
-      ) : null}
+          <section className="nf-mw-section" aria-labelledby="nf-mw-more" data-order="more">
+            <div className="nf-mw-section__head">
+              <h2 id="nf-mw-more" className="nf-mw-section__title">
+                {MORE_OPTIONS_LABEL}
+              </h2>
+            </div>
+            <nav className="nf-mw-panel nf-mw-tools" aria-labelledby="nf-mw-more" data-testid="balance-records">
+              {MORE_OPTIONS.map((t) => (
+                <Link key={t.href} href={t.href === "/wallet/settings" ? settingsHref : t.href} className="nf-mw-tool">
+                  <span className="nf-mw-tool-art" data-host-plate="" aria-hidden="true">
+                    <BrandIcon name={TOOL_ART[t.href]} size={28} />
+                  </span>
+                  <span className="nf-mw-tool__title">{t.title}</span>
+                  <span className="nf-mw-tool__sub">{t.sub}</span>
+                </Link>
+              ))}
+            </nav>
+          </section>
+        </div>
+      </div>
+
+      <WalletCapsules links={links} />
 
       {canMove && figures ? <BalanceExplainer figures={figures} locale={locale} /> : null}
-
-      <Sheet open={opened !== null} onOpenChange={(o) => !o && setOpened(null)} title={opened ? movementTitle(opened.kind) : "Movement"} testId="balance-movement">
-        {opened ? (
-          <div className="grid gap-block pb-block">
-            <Watching
-              key={opened.id}
-              kind={opened.kind === "withdrawal" ? "withdrawal" : opened.kind === "deposit" || opened.kind === "transfer_in" ? "deposit" : "send"}
-              movement={opened}
-              locale={locale}
-              onDone={() => setOpened(null)}
-              onSettled={refresh}
-            />
-          </div>
-        ) : null}
-      </Sheet>
     </div>
   );
 }
 
+/** The explainer's sample withdrawal: first step done, second in progress, the rest ahead. */
+const EXPLAINER_STEP_STATE = ["done", "current", "upcoming"] as const;
+
 /**
- * The first visit to a live balance (PREMIUM-STANDARD reference 9). Three
+ * The first visit to a live wallet (PREMIUM-STANDARD reference 9). Three
  * panels, each a fragment of the real screen drawn from the member's own
- * Available figure: the balance, a withdrawal at half of it with the quick
- * chips, and the path a movement takes. The words are the screen's own.
+ * Available figure. The words are the screen's own.
  */
 function BalanceExplainer({ figures, locale }: { figures: BalanceFigures; locale: Locale }) {
   const availableMinor = figures.available.minor;

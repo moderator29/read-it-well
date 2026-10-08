@@ -1,27 +1,24 @@
+import Image from "next/image";
 import type { ReactNode } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { MomentTone } from "../kit";
 
 /**
- * THE WALLET CARD (the founder, 8 October: "not really premium!! I need
- * something more premium looks and clean UX... the withdrawal and transfer
- * button should be capsule each okay and glass too and make the whole vibes
- * clean"; D78: blue is the identity, no platinum, no glass icon).
+ * THE WALLET CARD (D81; the founder's governing reference, right-hand phone:
+ * "Available Balance" with its eye, the big figure, the wallet object on the
+ * right, and Total Received and Total Spent under it). D78 renames the words:
+ * the caption is "Available", never "Balance".
  *
  * One card, deep navy into the Vallo blue in both themes (a night island,
- * `data-theme="dark"`, so every token inside it resolves in the night
- * palette), with a fine light edge and one soft highlight. Inside it, in
- * this order and nothing else: the name ("Wallet") with the card's one solid
- * action at its end, the figure the screen is for, one short status line,
- * and the move-money capsules (`children`), which are frosted glass over the
- * blue.
- *
- * The figure slot takes whatever the screen can honestly say: the amount
- * from the provider, the hidden dots, or, with no answer to read, a calm
- * phrase in the figure's place (`empty`) that never looks like an amount.
+ * `data-theme="dark"`), with a fine light edge. In this order and nothing
+ * else: the caption with the hide toggle and Add money at the far end (where
+ * the reference keeps a currency selector; Vallo has one currency, so no
+ * selector), the figure or calm words in its place, one short status line,
+ * the solid wallet object, and the two totals. Withdraw and Send are NOT on
+ * the card: they are the two capsules at the foot of the screen (D81
+ * supersedes D80's capsules in the card).
  */
 export function WalletCard({
-  name,
   caption,
   figure,
   empty,
@@ -29,11 +26,9 @@ export function WalletCard({
   tone,
   corner,
   action,
-  children,
+  totals,
 }: {
-  /** The card's name, "Wallet". */
-  name: string;
-  /** What the figure is ("Available"), shown only above a figure. */
+  /** What the figure is ("Available"). */
   caption: string;
   /** The amount, read from the provider. */
   figure?: ReactNode;
@@ -41,53 +36,46 @@ export function WalletCard({
   empty?: string;
   /** The card's state, in one short line. */
   line: string;
-  /** The mark before the line; "neutral" (nothing to confirm yet) draws a clock, not an empty ring. */
+  /** The mark before the line; "neutral" (nothing to confirm yet) draws a clock. */
   tone: MomentTone;
   /** Beside the caption: the hide toggle, when there is a figure to hide. */
   corner?: ReactNode;
-  /** At the end of the name row: Add money, or Try again. */
+  /** At the head's end: Add money, or Try again. */
   action?: ReactNode;
-  /** The move-money capsules at the foot of the card. */
-  children?: ReactNode;
+  /** Money in and Money out, under the figure. */
+  totals?: ReactNode;
 }) {
   return (
     <section
       className="nf-mw-card"
       data-theme="dark"
-      aria-labelledby="nf-mw-name"
+      aria-labelledby="nf-mw-caption"
       data-testid="balance-card"
       data-empty={figure ? undefined : "true"}
+      data-order="card"
     >
-      <div className="nf-mw-card__top">
-        <h2 id="nf-mw-name" className="nf-mw-card__name">
-          {name}
+      <div className="nf-mw-card__head">
+        <h2 className="nf-mw-card__caption">
+          <span id="nf-mw-caption">{caption}</span>
+          {corner}
         </h2>
         {action}
       </div>
-      <div className="nf-mw-card__body">
+      <div className="nf-mw-card__main">
         {figure ? (
-          <>
-            <div className="nf-mw-card__caption">
-              <span id="nf-mw-caption">{caption}</span>
-              {corner}
-            </div>
-            <p className="nf-mw-card__figure">{figure}</p>
-          </>
+          <p className="nf-mw-card__figure">{figure}</p>
         ) : (
           <p className="nf-mw-card__none" data-testid="balance-available-none">
             {empty}
           </p>
         )}
         <p className="nf-mw-card__line" role="status">
-          {tone === "neutral" ? (
-            <UiIcon name="clock" size={16} className="nf-mw-card__clock" />
-          ) : (
-            <span className="nf-mw-card__dot" data-tone={tone} aria-hidden="true" />
-          )}
+          {tone === "neutral" ? <UiIcon name="clock" size={14} /> : <span className="nf-mw-card__dot" data-tone={tone} aria-hidden="true" />}
           <span>{line}</span>
         </p>
+        <Image className="nf-mw-card__art" src="/brand/tier-b/wallet-card@2x.webp" alt="" width={208} height={208} unoptimized aria-hidden="true" />
       </div>
-      {children}
+      {totals}
     </section>
   );
 }
