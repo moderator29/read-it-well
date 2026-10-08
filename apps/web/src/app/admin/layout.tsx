@@ -29,6 +29,7 @@ import { BackButton } from "@/components/site/BackButton";
 import { getPersonTiers } from "@/lib/admin/reads/shared";
 import { ENTRY_COOKIE } from "./_components/entry";
 import { PasscodeLayer } from "@/components/passcode/PasscodeLayer";
+import { CallLayerMount } from "@/components/calls/CallLayerMount";
 /* The console's stylesheet, loaded by the console alone (B-4): it left
    `globals.css`, where every page paid for it. */
 import "@/app/css/admin.css";
@@ -81,6 +82,8 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       <StaffFrame staff={door.staff} name={name}>
         <PasscodeLayer>{children}</PasscodeLayer>
         <DeskKeys jumps={CONSOLE_JUMPS} jumpWords={CONSOLE_JUMP_WORDS} />
+        {/* VC1: review calls ring and play on the staff desk too. */}
+        <CallLayerMount />
       </StaffFrame>
     );
   }
@@ -128,6 +131,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
         <PasscodeLayer>{children}</PasscodeLayer>
         {/* C6: j/k, a/x, g-jumps and ? on every desk but support, which has its own. */}
         <DeskKeys jumps={CONSOLE_JUMPS} jumpWords={CONSOLE_JUMP_WORDS} />
+        <CallLayerMount />
       </EntryGate>
     </AdminFrame>
   );

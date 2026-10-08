@@ -1,0 +1,196 @@
+"use client";
+
+import { lazy, Suspense, useCallback, useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { acceptCall, declineCall } from "@/lib/calls/actions";
+import { callPhase, durationWords, endReasonWords } from "@/lib/calls/lifecycle";
+import { returnHref, ringSecondsLeft } from "@/lib/calls/screen";
+import type { CallKind } from "@/lib/calls/types";
+import { dismissCall, mergeSnapshot, setAnsweredWith, useCallStore, type ActiveCall } from "./call-store";
+import { placeCall } from "./place-call";
+import { startRing } from "./ring";
+import { useCallPulse, useServerClock } from "./use-call-pulse";
+import { EndedView, IncomingCallView, OutgoingView, RecoveryView, type CallsCopy } from "./views";
+
+/**
+ * THE CALL SURFACE: the one full-screen layer that draws whatever call the
+ * store holds, on any page of the signed-in shell.
+ *
+ *   incoming (not answered yet)   IncomingCallScreen   light, in this chunk
+ *   ended                         EndedScreen          light, in this chunk
+ *   anything else                 CallStage            LAZY: its chunk, and the
+ *                                                       media SDK behind it, load
+ *                                                       only when a call needs them
+ *
+ * An incoming screen warms the stage chunk while it rings, so Accept does
+ * not wait on a download.
+ */
+
+const loadStage = () => import("./CallStage");
+const CallStage = lazy(loadStage);
+
+export function CallSurface({ copy }: { copy: CallsCopy }) {
+  const { active, gone } = useCallStore();
+  if (gone) return <GoneScreen copy={copy} />;
+  if (!active) return null;
+  if (active.recovery) return <RecoveryScreen active={active} copy={copy} />;
+  const phase = callPhase(active.snapshot.state, active.snapshot.role);
+  if (phase === "ended") return <EndedScreen active={active} copy={copy} />;
+  if (phase === "incoming" && !active.answeredWith) return <IncomingCallScreen active={active} copy={copy} />;
+  return (
+    <Suspense
+      fallback={
+        <OutgoingView
+          copy={copy}
+          name={active.snapshot.otherName ?? ""}
+          kind={active.snapshot.kind}
+          context={active.context.line}
+          status={copy.connecting.title}
+          onCancel={() => undefined}
+          busy
+        />
+      }
+    >
+      <CallStage active={active} copy={copy} />
+    </Suspense>
+  );
+}
+
+export function IncomingCallScreen({ active, copy }: { active: ActiveCall; copy: CallsCopy }) {
+  const s = active.snapshot;
+  const beat = useCallPulse(s.id);
+  const now = useServerClock(s, active.offsetMs, beat);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => startRing(), []);
+  useEffect(() => {
+    void loadStage().catch(() => undefined);
+  }, []);
+
+  const accept = useCallback(
+    async (as: CallKind) => {
+      setBusy(true);
+      setError(null);
+      const answer = await acceptCall({ callId: s.id }).catch(() => null);
+      if (answer?.ok) {
+        setAnsweredWith(as);
+        mergeSnapshot(answer.data);
+        return;
+      }
+      setError(answer ? answer.error : copy.connecting.body);
+      setBusy(false);
+      void beat();
+    },
+    [s.id, beat, copy.connecting.body],
+  );
+
+  const decline = useCallback(async () => {
+    setBusy(true);
+    const answer = await declineCall({ callId: s.id }).catch(() => null);
+    if (answer?.ok) {
+      dismissCall();
+      return;
+    }
+    setError(answer ? answer.error : copy.connecting.body);
+    setBusy(false);
+    void beat();
+  }, [s.id, beat, copy.connecting.body]);
+
+  return (
+    <IncomingCallView
+      copy={copy}
+      name={s.otherName ?? ""}
+      kind={s.kind}
+      review={s.purpose === "ADMIN_REVIEW"}
+      context={active.context.line}
+      secondsLeft={ringSecondsLeft(s, now)}
+      busy={busy}
+      error={error}
+      onAccept={(as) => void accept(as)}
+      onDecline={() => void decline()}
+    />
+  );
+}
+
+export function EndedScreen({ active, copy }: { active: ActiveCall; copy: CallsCopy }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const s = active.snapshot;
+  const href = returnHref(s, pathname);
+  const missed = !s.isInitiator && (s.state === "MISSED" || s.state === "CANCELLED" || s.state === "BUSY");
+  const back = () => {
+    dismissCall();
+    if (pathname !== href) router.push(href);
+  };
+  const callBack =
+    s.purpose === "CONVERSATION" && s.conversationId
+      ? () => {
+          dismissCall();
+          void placeCall({ conversationId: s.conversationId!, kind: s.kind, context: active.context });
+        }
+      : undefined;
+  return (
+    <EndedView
+      copy={copy}
+      name={s.otherName ?? ""}
+      kind={s.kind}
+      words={endReasonWords(s)}
+      duration={s.state === "ENDED" && s.connectedAt ? durationWords(s.durationSeconds) : ""}
+      missed={missed}
+      backLabel={s.reviewId ? copy.ended.backReview : copy.ended.back}
+      onBack={back}
+      onCallBack={callBack}
+      onClose={() => dismissCall()}
+    />
+  );
+}
+
+function RecoveryScreen({ active, copy }: { active: ActiveCall; copy: CallsCopy }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const s = active.snapshot;
+  const missed = !s.isInitiator && (s.state === "MISSED" || s.state === "CANCELLED" || s.state === "BUSY");
+  const href = returnHref(s, pathname);
+  return (
+    <RecoveryView
+      copy={copy}
+      name={s.otherName ?? undefined}
+      title={missed ? copy.recovery.missedTitle : copy.recovery.endedTitle}
+      body={endReasonWords(s)}
+      primaryLabel={s.reviewId ? copy.ended.backReview : copy.ended.back}
+      onPrimary={() => {
+        dismissCall();
+        if (pathname !== href) router.push(href);
+      }}
+      onCallBack={
+        s.purpose === "CONVERSATION" && s.conversationId
+          ? () => {
+              dismissCall();
+              void placeCall({ conversationId: s.conversationId!, kind: s.kind });
+            }
+          : undefined
+      }
+      onClose={() => dismissCall()}
+    />
+  );
+}
+
+function GoneScreen({ copy }: { copy: CallsCopy }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const messages = pathname.startsWith("/agent/") ? "/agent/messages" : "/messages";
+  return (
+    <RecoveryView
+      copy={copy}
+      title={copy.recovery.goneTitle}
+      body={copy.recovery.goneBody}
+      primaryLabel={copy.recovery.openMessages}
+      onPrimary={() => {
+        dismissCall();
+        if (pathname !== messages) router.push(messages);
+      }}
+      onClose={() => dismissCall()}
+    />
+  );
+}

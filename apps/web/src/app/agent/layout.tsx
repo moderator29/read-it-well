@@ -14,6 +14,7 @@ import "@/app/css/detail-m.css";
 import "@/app/css/member-loop.css";
 import type { ReactNode } from "react";
 import { PasscodeLayer } from "@/components/passcode/PasscodeLayer";
+import { CallLayerMount } from "@/components/calls/CallLayerMount";
 import { DeskKeys } from "@/components/app/desk/DeskKeys";
 import { AGENT_JUMPS, AGENT_JUMP_WORDS } from "@/components/app/desk/desk-keys";
 /* C12: the workspace sheet, out of `globals.css`. */
@@ -31,6 +32,8 @@ export default function AgentLayout({ children }: { children: ReactNode }) {
       {children}
       {/* C6: the desks' shared keys (j/k, a/x, g-jumps, ?). */}
       <DeskKeys jumps={AGENT_JUMPS} jumpWords={AGENT_JUMP_WORDS} />
+      {/* VC1: incoming calls and the call surface, while video_calls is on. */}
+      <CallLayerMount />
     </PasscodeLayer>
   );
 }

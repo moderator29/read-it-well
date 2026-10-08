@@ -12,6 +12,8 @@ import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { withNext } from "@/lib/auth/next-link";
 import { Inbox, InboxEmpty, type InboxRow } from "./Inbox";
+import { markerIds } from "@/lib/calls/thread-calls";
+import { inboxMissedCall, parseCallMarker } from "@/lib/calls/screen";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: getDictionary(await getLocale()).experienceInbox.inbox.title };
@@ -45,7 +47,8 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function InboxPage() {
   const [session, locale] = await Promise.all([resolveSession(), getLocale()]);
-  const words = getDictionary(locale).experienceInbox.inbox;
+  const dictionary = getDictionary(locale);
+  const words = dictionary.experienceInbox.inbox;
 
   if (session.state === "signed-in") {
     /* The switch, the threads and the side are asked for together; the
@@ -76,7 +79,18 @@ export default async function InboxPage() {
       session.user.id,
       conversations.map((c) => ({ id: c.id, counterpartId: c.counterpartId ?? "", lastAt: c.lastAt })),
     );
-    const rows: InboxRow[] = conversations.map((c) => ({
+    /* VC1: a thread whose newest message is a call this reader missed shows
+       the missed-call line. Only rows whose words look like a call marker are
+       asked about, and `messages.call_id` decides, so typed words never can. */
+    const maybeCalls = conversations
+      .filter((c) => !c.lastFromMe && c.lastMessageId && parseCallMarker(c.lastMessage))
+      .map((c) => c.lastMessageId!);
+    const markers = await markerIds(session.supabase, maybeCalls);
+    const missedWords = { VIDEO: dictionary.calls.history.inboxMissedVideo, AUDIO: dictionary.calls.history.inboxMissedVoice };
+    const rows: InboxRow[] = conversations.map((c) => {
+      const missed = inboxMissedCall(c.lastMessage, c.lastFromMe, Boolean(c.lastMessageId && markers.has(c.lastMessageId)));
+      return {
+      ...(missed ? { missedCall: { kind: missed, words: missedWords[missed] } } : {}),
       id: c.id,
       counterpartName: c.counterpartName,
       listingTitle: c.listingTitle,
@@ -91,7 +105,8 @@ export default async function InboxPage() {
       side: c.side ?? "property",
       archived: views.archived.has(c.id),
       reported: views.reported.has(c.id),
-    }));
+      };
+    });
 
     return (
       <PullToRefresh className="mx-auto max-w-(--container-2xl) lg:max-w-(--container-4xl)">

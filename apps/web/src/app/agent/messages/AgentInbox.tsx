@@ -40,7 +40,10 @@ function ThreadRow({
   askedLabel,
   stage,
   deskCopy,
+  missedWords,
 }: {
+  /** VC1: "Missed video call" and "Missed voice call", from the page's dictionary. */
+  missedWords?: { VIDEO: string; AUDIO: string } | undefined;
   thread: AgentThread;
   askedLabel?: string | undefined;
   stage?: DeskStage | undefined;
@@ -92,7 +95,14 @@ function ThreadRow({
         </div>
 
         <p className="mt-sm line-clamp-2 text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
-          {thread.lastMessage}
+          {thread.missedCall && missedWords ? (
+            <span className="inline-flex items-center gap-inline-tight font-semibold text-[var(--nf-state-error)]" data-testid="inbox-missed-call">
+              <UiIcon name="phone-missed" size={16} filled />
+              {missedWords[thread.missedCall]}
+            </span>
+          ) : (
+            thread.lastMessage
+          )}
         </p>
 
         {/* V-14: a still-available question waiting on a one-tap answer. */}
@@ -122,7 +132,10 @@ export function AgentInbox({
   stage,
   deskCopy,
   briefsLabel,
+  missedWords,
 }: {
+  /** VC1: the missed-call line's words. */
+  missedWords?: { VIDEO: string; AUDIO: string };
   inbox: Inbox;
   filter: InboxFilter;
   /**
@@ -217,6 +230,7 @@ export function AgentInbox({
               askedLabel={asked?.has(thread.id) ? askedLabel : undefined}
               stage={staged?.get(thread.id)}
               deskCopy={deskCopy}
+              missedWords={missedWords}
             />
           ))}
         </ul>
