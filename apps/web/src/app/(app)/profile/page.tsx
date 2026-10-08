@@ -125,19 +125,22 @@ export default async function ProfilePage({
 
   const identity = social.state === "claimed" ? social.identity : null;
 
-  // Only somebody with a handle has posts to read, and the read is keyed by
-  // user id rather than handle, so it needs the identity to have resolved.
-  const posts =
-    social.state === "claimed" ? await getProfileFeed(social.userId) : [];
-
-  /* The badges on this account, for the row under the hero and the earned
-     moment. Null when the read failed, and then nothing is drawn: the row
-     never guesses. Only a signed-in account has any. */
+  /*
+   * Only somebody with a handle has posts to read, and the read is keyed by
+   * user id rather than handle, so it needs the identity to have resolved.
+   * The badges on this account, for the row under the hero and the earned
+   * moment: null when the read failed, and then nothing is drawn; the row
+   * never guesses. Only a signed-in account has any. The two are independent,
+   * so they go out together (speed pass, 8 October 2026), not one after the
+   * other.
+   */
   const shareUrl = identity ? `${siteUrl().replace(/\/+$/, "")}/u/${identity.handle}` : undefined;
-  const badges =
+  const [posts, badges] = await Promise.all([
+    social.state === "claimed" ? getProfileFeed(social.userId) : Promise.resolve([]),
     account.state === "signed-in"
-      ? await readProfileBadges(await createClient(), account.profile.userId, locale)
-      : null;
+      ? createClient().then((client) => readProfileBadges(client, account.profile.userId, locale))
+      : Promise.resolve(null),
+  ]);
   const copy = {
     bookings: t.nav.bookings,
     saved: t.nav.saved,

@@ -483,6 +483,6 @@ export const trustVisibleEn = {
     screenErrorRef: "Reference {digest}. If this keeps happening, quote it to support.",
     offlineOverline: "Connection",
     offlineTitle: "You are offline",
-    offlineBody: "The connection dropped before this page could load. Anything you had typed but not sent may need typing again. Your balance, messages and bookings are never shown from an old copy.",
+    offlineBody: "The connection dropped before this page could load. Pages you have opened before still open, and your balance is never shown from an old copy.",
   },
 };

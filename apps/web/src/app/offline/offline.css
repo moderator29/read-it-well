@@ -1,15 +1,15 @@
 /*
- * THE OFFLINE PAGE (W11, 6 October 2026; north star section 10 L): the navy
- * ground, ONE Island, ONE action, and words that say what is happening. It is
- * the same register as the packaged shell's card (`native-shell/index.html`),
- * which is what a person sees when the app itself cannot reach us, so the two
- * offline moments read as one.
+ * THE OFFLINE PAGE, MADE SMALL (8 October 2026). Every page a member has
+ * opened now opens again from the phone (`public/sw.js`), so this page only
+ * ever stands in for a page this phone has never opened, asked for with no
+ * signal. It used to be a full-screen moment with a large title; it is one
+ * calm card now: the real mark, one title line, one body line, the retry and
+ * the way back home. Still on the night ground in both themes (D1): a white
+ * flash on a phone that has just lost its signal is the loudest thing the app
+ * could draw.
  *
- * It must paint with no network at all: the mark is inline SVG, nothing is
- * fetched, and the ground is two gradients. A night page in both themes
- * (`data-theme="dark"` on the stage): the product's doors are night (D1) and a
- * white flash on a phone that has just lost its signal is the loudest thing
- * the app could draw.
+ * It must paint with no network at all: the mark is the precached brand file,
+ * nothing else is fetched, and the ground is two gradients.
  *
  * One Island only (north star 4: an Island is one per view). What the phone
  * holds for the person with no signal (an inspection pack's gate code, the
@@ -49,19 +49,21 @@
 
   .nf-offline__island {
     width: 100%;
-    max-width: 24rem;
-    padding: var(--nf-space-xl) var(--nf-space-lg) var(--nf-space-lg);
+    max-width: 22rem;
+    padding: var(--nf-space-lg) var(--nf-space-lg) var(--nf-space-md);
     text-align: center;
     animation: nf-offline-rise var(--nf-duration-entrance) var(--nf-ease-entrance) both;
   }
+  /* The real mark, drawn as it is everywhere: never recoloured (D82). */
   .nf-offline__mark {
     display: block;
-    margin: 0 auto var(--nf-space-lg);
-    color: var(--nf-brand-quiet);
+    width: 2.75rem;
+    height: auto;
+    margin: 0 auto var(--nf-space-md);
   }
   .nf-offline__title {
     font-family: var(--nf-font-display);
-    font-size: 1.75rem;
+    font-size: 1.25rem;
     font-weight: 600;
     line-height: 1.15;
     letter-spacing: var(--nf-tracking-tight);
@@ -69,13 +71,34 @@
   }
   .nf-offline__body {
     margin-top: var(--nf-space-xs);
-    font-size: 0.9375rem;
+    font-size: 0.875rem;
     line-height: 1.5;
     color: var(--nf-content-secondary);
     text-wrap: pretty;
   }
   .nf-offline__action {
     margin-top: var(--nf-space-lg);
+  }
+  /* The way back to what works offline: quiet, under the one primary. */
+  .nf-offline__home {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-block-size: 2.75rem;
+    margin-top: var(--nf-space-xs);
+    padding-inline: var(--nf-space-md);
+    border-radius: var(--nf-radius-md);
+    color: var(--nf-content-secondary);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .nf-offline__home:active {
+    color: var(--nf-content-primary);
+  }
+  .nf-offline__home:focus-visible {
+    outline: 2px solid var(--nf-focus-ring);
+    outline-offset: 2px;
   }
   /* What the phone itself reports, in a live region, in the quiet size. */
   .nf-offline__status {

@@ -1,11 +1,15 @@
 "use client";
 
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
+import { announceVisit } from "@/lib/offline/page-cache";
+import { isDataSaver } from "@/lib/ui/data-saver";
 
 /**
- * Registers the service worker that gives Vallo its offline shell.
+ * Registers the service worker that keeps Vallo working with a weak signal or
+ * none, and tells it which pages were opened.
  *
- * Four deliberate constraints:
+ * Four deliberate constraints on the registration:
  *
  *   - Production only. A worker in development caches build output that
  *     changes on every keystroke and produces phantom stale bugs.
@@ -19,9 +23,39 @@ import { useEffect } from "react";
  *     refused, the site must behave exactly as it did before it existed, so
  *     nothing is thrown and nothing is shown to the user.
  *
+ * THE VISITS (8 October 2026). A tap inside the app is a data fetch, not a
+ * page load, so the worker never sees the page it opened and could not keep
+ * it for offline. So every page this component sees opened is announced to
+ * the worker a moment after it lands (`lib/offline/page-cache.ts`), once the
+ * navigation's own requests are done; the worker decides whether to keep it.
+ * The first page is announced again when the worker takes control, because
+ * on a first visit it loaded before there was a worker to see it.
+ *
+ * NOT WHILE SAVING DATA. Keeping a page opened inside the app costs one more
+ * download of it, so nothing is announced when the person turned data saving
+ * on in Settings, or their phone says Save-Data or 2g (`isDataSaver`). The
+ * worker checks the phone's own signal again. Pages opened by a full load
+ * are kept either way, because that costs nothing extra.
+ *
  * Renders nothing.
  */
+
+/** How long after a page lands before it is announced: its own fetches go first. */
+const ANNOUNCE_AFTER_MS = 1200;
+
+function currentPath(): string {
+  return window.location.pathname + window.location.search;
+}
+
+/** Announce the page on screen, unless the person is saving data. */
+function announceHere(): void {
+  if (isDataSaver()) return;
+  announceVisit(currentPath());
+}
+
 export function ServiceWorkerRegistrar() {
+  const pathname = usePathname();
+
   useEffect(() => {
     if (process.env.NODE_ENV !== "production") return;
     if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) return;
@@ -35,6 +69,10 @@ export function ServiceWorkerRegistrar() {
       });
     };
 
+    /* The page that loaded before the worker could see it. */
+    const onControl = () => announceHere();
+    navigator.serviceWorker.addEventListener("controllerchange", onControl);
+
     if (document.readyState === "complete") {
       register();
     } else {
@@ -44,8 +82,16 @@ export function ServiceWorkerRegistrar() {
     return () => {
       cancelled = true;
       window.removeEventListener("load", register);
+      navigator.serviceWorker.removeEventListener("controllerchange", onControl);
     };
   }, []);
+
+  useEffect(() => {
+    if (process.env.NODE_ENV !== "production") return;
+    if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) return;
+    const timer = window.setTimeout(announceHere, ANNOUNCE_AFTER_MS);
+    return () => window.clearTimeout(timer);
+  }, [pathname]);
 
   return null;
 }

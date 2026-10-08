@@ -57,6 +57,14 @@ describe("livekit-client stays behind the call's own lazy chunk", () => {
     }
   });
 
+  it("the shell's realtime listener loads supabase-js when it opens a channel, never in the first load", () => {
+    /* Speed pass, 8 October 2026: a static import here put about 66 KB of
+       gzipped supabase-js in the first load of every in-app route. */
+    const text = readFileSync(join(SRC, "lib/calls/useCallRealtime.ts"), "utf8");
+    expect(STATIC_IMPORT(/(?:\.\.\/supabase\/client|@\/lib\/supabase\/client)/).test(text)).toBe(false);
+    expect(text).toMatch(/loadBrowserClient\(\)/);
+  });
+
   it("the shells mount the layer through the flag-checking server component", () => {
     for (const layout of ["app/(app)/layout.tsx", "app/agent/layout.tsx", "app/admin/layout.tsx"]) {
       const text = readFileSync(join(SRC, layout), "utf8");

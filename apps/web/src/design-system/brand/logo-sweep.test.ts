@@ -124,6 +124,9 @@ const SOURCE = new Set([".ts", ".tsx", ".mjs", ".js", ".css", ".html", ".svg", "
 const SWEPT = [
   join(WEB, "public"),
   join(WEB, "src"),
+  /* The packaged shell's offline card (8 October 2026): it drew the old
+     towers inline until the founder saw them on TestFlight. */
+  join(WEB, "native-shell"),
   join(WEB, "assets"),
   join(WEB, "android", "app", "src", "main", "res"),
   join(WEB, "ios", "App", "App", "Assets.xcassets"),
@@ -179,6 +182,8 @@ describe("the old logo is gone from the platform (D81)", () => {
     const brand = join(WEB, "public", "brand");
     expect(readFileSync(join(brand, "vallo-mark.svg"), "utf8")).toBe(markSvg());
     expect(readFileSync(join(brand, "vallo-wordmark.svg"), "utf8")).toBe(wordmarkSvg());
+    /* The native offline card draws the same mark from the binary. */
+    expect(readFileSync(join(WEB, "native-shell", "vallo-mark.svg"), "utf8")).toBe(markSvg());
   });
 
   it("the new artwork has no baked ground and no baked glow", () => {

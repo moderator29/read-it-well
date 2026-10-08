@@ -192,16 +192,23 @@ html:active-view-transition-type(nf-back)::view-transition-new(root) {
 }
 
 /* Tab: sideways, nothing pushed. MOTION_SYSTEM "Tab change": a crossfade
-   plus a 12px lift, `glide` 240ms, both on the one clock (W2, round 5: the
-   lift ran on `land` over the slow rung, 380ms, so it was still travelling
-   140ms after the fade had landed; a tab is browsing, 160 to 240ms). */
+   plus a 12px lift, both on the one clock (W2, round 5: the lift ran on
+   `land` over the slow rung, 380ms, so it was still travelling 140ms after
+   the fade had landed; a tab is browsing, 160 to 240ms).
+
+   AT THE FAST END OF THAT RANGE (speed pass, 8 October 2026). The founder on
+   TestFlight: "it doesn't act fast, takes 0.3 seconds sometimes before
+   another page opens". A tab in the apps he measures Vallo against changes in
+   about one frame. The page leaving now goes on the instant rung (90ms) and
+   the one arriving is whole by the fast rung (160ms), so the new tab is
+   readable before the old 240ms crossfade had reached half way. */
 :root[data-nav-dir="tab"]::view-transition-old(root) {
-  animation: nf-route-fade-out var(--nf-duration-fast) var(--nf-ease-exit) both;
+  animation: nf-route-fade-out var(--nf-duration-instant) var(--nf-ease-exit) both;
 }
 :root[data-nav-dir="tab"]::view-transition-new(root) {
   animation:
-    nf-route-fade-in var(--nf-duration-base) var(--nf-ease-standard) both,
-    nf-route-lift var(--nf-duration-base) var(--nf-ease-standard) both;
+    nf-route-fade-in var(--nf-duration-fast) var(--nf-ease-standard) both,
+    nf-route-lift var(--nf-duration-fast) var(--nf-ease-standard) both;
 }
 
 /* The side flip turns the whole screen itself: the swap under it is instant. */
@@ -241,8 +248,15 @@ html:active-view-transition-type(nf-flip)::view-transition-new(root) {
 /*
  * EVERY PAGE ARRIVES IN A BREATH, NOT A BLOCK (second sweep: every main page,
  * on the first paint and on every move, not only a tab switch). The first six
- * sections of the page rise 10px into place 50ms apart, inside whatever the
- * page itself is doing, and the last one lands inside 650ms.
+ * sections of the page rise 10px into place 30ms apart, inside whatever the
+ * page itself is doing, and the last one lands inside 310ms.
+ *
+ * TWICE AS QUICK AS IT WAS (speed pass, 8 October 2026). It was 50ms apart on
+ * the slow rung, so the sixth section was still invisible a quarter of a
+ * second after the tap and only whole at 630ms: a page that had arrived read
+ * as a page still arriving, which is the "0.3 seconds before another page
+ * opens" the founder measured on TestFlight. Now each section rises on the
+ * fast rung, 30ms apart.
  *
  * `:where()` keeps it at no specificity at all, so a block that already has
  * an entrance of its own (the home hero, the cards, a page title) keeps its
@@ -275,23 +289,23 @@ html:active-view-transition-type(nf-flip)::view-transition-new(root) {
             )
         )
     ) {
-    animation: nf-route-stagger var(--nf-duration-slow) var(--nf-ease-entrance) backwards;
+    animation: nf-route-stagger var(--nf-duration-fast) var(--nf-ease-entrance) backwards;
     animation-delay: var(--nf-splash-hold, 0s);
   }
   :where(.nf-page-stage > * > :nth-child(2)) {
-    animation-delay: calc(var(--nf-splash-hold, 0s) + 50ms);
+    animation-delay: calc(var(--nf-splash-hold, 0s) + 30ms);
   }
   :where(.nf-page-stage > * > :nth-child(3)) {
-    animation-delay: calc(var(--nf-splash-hold, 0s) + 100ms);
+    animation-delay: calc(var(--nf-splash-hold, 0s) + 60ms);
   }
   :where(.nf-page-stage > * > :nth-child(4)) {
-    animation-delay: calc(var(--nf-splash-hold, 0s) + 150ms);
+    animation-delay: calc(var(--nf-splash-hold, 0s) + 90ms);
   }
   :where(.nf-page-stage > * > :nth-child(5)) {
-    animation-delay: calc(var(--nf-splash-hold, 0s) + 200ms);
+    animation-delay: calc(var(--nf-splash-hold, 0s) + 120ms);
   }
   :where(.nf-page-stage > * > :nth-child(6)) {
-    animation-delay: calc(var(--nf-splash-hold, 0s) + 250ms);
+    animation-delay: calc(var(--nf-splash-hold, 0s) + 150ms);
   }
   :where(:root[data-motion="calm"], :root[data-save-data="on"]) :where(.nf-page-stage > * > :nth-child(-n + 6)) {
     animation-name: none;

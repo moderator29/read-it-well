@@ -9,6 +9,7 @@ import type { LockMode } from "@/lib/passcode/decide";
 import { fill, herePath, markTabUnlocked } from "@/lib/passcode/tab";
 import { thresholdAllowed } from "@/lib/motion/threshold";
 import { signOut } from "@/lib/profile/actions";
+import { forgetKeptPages } from "@/lib/offline/page-cache";
 import { feedback } from "@/lib/ui/feedback";
 import { Button } from "@/components/ui/Button";
 import { Keypad, PasscodeDots } from "./Keypad";
@@ -246,6 +247,8 @@ export function PasscodeLock({
   const switchAccount = () =>
     startLeaving(async () => {
       await signOut();
+      /* The pages this phone kept for offline go with the session. */
+      await forgetKeptPages();
       window.location.assign("/sign-in");
     });
 

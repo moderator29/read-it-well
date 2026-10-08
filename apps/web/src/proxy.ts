@@ -35,6 +35,7 @@ import {
   URL_PATH_HEADER,
 } from "@/lib/i18n/public-locale";
 import { LOCALE_COOKIE } from "@/lib/locale.constants";
+import { ANON_VIEWER, VIEWER_HEADER, VIEWER_PATH_HEADER, viewerStamp, wantsViewerStamp } from "@/lib/offline/viewer-stamp";
 import {
   finishSetupGateApplies,
   finishSetupHref,
@@ -483,6 +484,9 @@ export async function proxy(request: NextRequest) {
    */
   const nonce = createNonce();
   request.headers.set(NONCE_HEADER, nonce);
+  /* The offline stamp is the server's to set, never the client's. */
+  request.headers.delete(VIEWER_HEADER);
+  request.headers.delete(VIEWER_PATH_HEADER);
 
   /*
    * A10: LANGUAGES YOU CAN LINK TO. `/ha/about` is the Hausa `/about`: the
@@ -544,6 +548,33 @@ export async function proxy(request: NextRequest) {
   }
 
   /*
+   * WHOSE PAGE THIS IS, for the service worker that keeps visited pages for
+   * offline (`lib/offline/viewer-stamp.ts`). Set once the session has been
+   * read, below; left null when it could not be, and never put on a response
+   * that sets a cookie, so neither is ever kept.
+   */
+  let viewer: string | null = null;
+
+  /*
+   * The stamp goes on the response header (in `finish`) and into the render,
+   * for the head's meta tag, which is the copy the Android app's worker can
+   * read. Into the render means onto the forwarded request, so the
+   * pass-through is rebuilt with it; only when nothing has set a cookie on the
+   * response yet, so nothing is lost by rebuilding it, and only when this
+   * response will not set the language cookie either.
+   */
+  const stampRender = (current: NextResponse): NextResponse => {
+    const setsLocale = Boolean(urlLocale && !request.cookies.get(LOCALE_COOKIE));
+    if (!viewer || setsLocale || current.headers.get("set-cookie")) {
+      viewer = null;
+      return current;
+    }
+    request.headers.set(VIEWER_HEADER, viewer);
+    request.headers.set(VIEWER_PATH_HEADER, request.nextUrl.pathname);
+    return forward();
+  };
+
+  /*
    * What every page response on a language-bearing address also carries: the
    * hreflang set (so a search engine finds all four languages from any one),
    * and, for a first-time visitor who arrived through a language address with
@@ -561,6 +592,7 @@ export async function proxy(request: NextRequest) {
         sameSite: "lax",
       });
     }
+    if (viewer && !response.headers.get("set-cookie")) response.headers.set(VIEWER_HEADER, viewer);
     return withSecurityPolicy(response, nonce);
   };
 
@@ -609,8 +641,11 @@ export async function proxy(request: NextRequest) {
 
   let response = forward();
 
+  const stamped = wantsViewerStamp(request);
+
   if (!isSupabaseConfigured()) {
-    return finish(response);
+    if (stamped) viewer = ANON_VIEWER;
+    return finish(stampRender(response));
   }
 
   const supabase = createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -707,6 +742,7 @@ export async function proxy(request: NextRequest) {
      to sign-in at once. */
   if (reader === "unknown") return finish(response);
   const user = reader;
+  if (stamped) viewer = await viewerStamp(user);
 
   /* SPEED-4: the 404 check for a detail page, when it is already known to be
      needed, starts beside the stranger's rate-limit read instead of after it.
@@ -879,7 +915,7 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  return finish(response);
+  return finish(stampRender(response));
 }
 
 /** The one read the finish-setup gate makes, narrowed to its shape. */

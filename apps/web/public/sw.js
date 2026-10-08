@@ -2,13 +2,21 @@
  * Vallo service worker. Hand written, no library, deliberately small.
  *
  * The audience is Nigerian and frequently on a mid-range Android over 3G with
- * a metered data bundle, so this worker has three jobs and no others:
+ * a metered data bundle, so this worker has four jobs and no others:
  *
- *   1. Keep a tiny offline shell so a dropped connection shows a designed
- *      screen instead of the browser's dinosaur.
- *   2. Stop the phone paying twice for bytes that never change (the hashed
- *      Next build output and the brand artwork).
- *   3. Turn a push into a notification, and a tap on that notification into
+ *   1. OPEN WHAT YOU ALREADY SAW, WITH OR WITHOUT SIGNAL (the founder, 8
+ *      October 2026: an app that shows a full-screen "no connection" card
+ *      instead of the screen you were just on is not how Instagram, WhatsApp
+ *      or Airbnb behave). Every page a member opens is kept on this phone,
+ *      for that member only, and answers again when the network is down or
+ *      too slow to wait for. See THE PAGES below.
+ *   2. Keep a tiny offline shell so a page that was never opened here, asked
+ *      for with no network, shows one calm Vallo screen instead of the
+ *      browser's dinosaur.
+ *   3. Stop the phone paying twice for bytes that never change (the hashed
+ *      Next build output, the brand artwork, the fonts and the listing
+ *      photographs the optimiser has already sized for this phone).
+ *   4. Turn a push into a notification, and a tap on that notification into
  *      the right screen. See THE PUSH HALF at the foot of this file.
  *
  * THE PUSH HANDLERS LIVE HERE AND NOT IN A SECOND WORKER, and that is a
@@ -23,51 +31,69 @@
  * one. One worker at `/` sees every tab, so a tap lands in the tab the person
  * already has.
  *
- * What it must never do is answer a question about money, messages or
- * identity from a cache. A stale balance or a stale conversation is worse
- * than no answer at all, so:
+ * WHAT IT MUST NEVER DO:
  *
- *   - No HTML document is ever written to a cache. Navigations are always
- *     network first, and the only cached document is the static /offline
- *     page precached at install. There is therefore no code path by which a
- *     page of personal data can be served from disk.
- *   - Runtime caching is an allowlist (hashed build output plus brand and
- *     icon images), not a blocklist, so a new authenticated route added
- *     later is excluded by default rather than by remembering to exclude it.
- *   - On top of that allowlist there is an explicit blocklist of first path
- *     segments: api, admin, agent, wallet, messages, notifications, auth.
- *   - Any response carrying Authorization, Set-Cookie, Vary: Cookie, or a
- *     no-store / private cache directive is passed through untouched.
+ *   - Answer one person with another person's page. Pages are kept per
+ *     VIEWER, and the viewer is not something a page claims: the server
+ *     stamps every document it renders with `x-vallo-viewer` (`proxy.ts`), an
+ *     opaque digest of the signed-in account, or `anon`, on the response and
+ *     again in the head (`app/layout.tsx`, the copy the Android app can read;
+ *     `lib/offline/viewer-stamp.ts` says why). A page is kept only
+ *     under the viewer its own response names, the moment a response names a
+ *     different viewer every page kept for the previous one is deleted, and
+ *     signing out deletes them all from the page as well
+ *     (`lib/offline/page-cache.ts`). A response with no stamp (an auth outage,
+ *     a redirect, a refreshed session cookie) is never kept.
+ *   - Keep money, identity or a live call. The never-kept list below covers
+ *     the API, every route that moves or shows money (wallet, checkout, pay,
+ *     payments, payouts, refunds, receipts, rent), sign-in and its kin,
+ *     security settings, admin and the supply workspaces. A stale balance is
+ *     worse than none, so those routes go to the network or to the offline
+ *     screen, never to an old copy.
+ *   - Write anything that is not a plain same-origin GET. Server actions,
+ *     every POST, every webhook and every API response go straight out,
+ *     untouched.
+ *   - Answer an asset from a response that says it is personal: anything
+ *     carrying Authorization, Set-Cookie, Vary: Cookie, or a no-store /
+ *     private directive is passed through untouched.
  *
- * Save-Data is respected: when the hint is present the asset cache is not
- * populated at all, because filling a cache is itself paid-for traffic the
- * user has asked us to economise on.
+ * Save-Data is respected: when the hint is present the background refresh of
+ * the asset cache and the warming of visited pages are skipped, because
+ * fetching a second copy is itself paid-for traffic the person has asked us
+ * to economise on. A response that was already fetched is still kept, which
+ * costs nothing.
  *
  * Bump CACHE_VERSION on any change to this file. The activate step deletes
  * every cache that is not in the current set, so a deploy can never leave a
- * user on last week's shell.
+ * person on last week's shell.
  */
 
 /* Bumped to v2 when the push handlers moved in from `/api/push/sw`.
    Bumped to v3 (V-35, V-78) when the offline page began carrying the gate
    code and its script chunks were precached, and when the asset cache key
    stopped including the deployment id. v4 (V-53) when notifications gained
-   buttons. */
-const CACHE_VERSION = "v4";
+   buttons. v5 (8 October 2026) when visited pages began opening offline, per
+   viewer, and listing photographs and fonts joined the kept assets. */
+const CACHE_VERSION = "v5";
 const SHELL_CACHE = `vallo-shell-${CACHE_VERSION}`;
 const ASSET_CACHE = `vallo-assets-${CACHE_VERSION}`;
-const CURRENT_CACHES = [SHELL_CACHE, ASSET_CACHE];
+const IMAGE_CACHE = `vallo-images-${CACHE_VERSION}`;
+const META_CACHE = `vallo-meta-${CACHE_VERSION}`;
+/* One page cache per viewer: `vallo-pages-v5-<viewer>`. */
+const PAGE_CACHE_PREFIX = `vallo-pages-${CACHE_VERSION}-`;
+const CURRENT_CACHES = [SHELL_CACHE, ASSET_CACHE, IMAGE_CACHE, META_CACHE];
 
 const OFFLINE_URL = "/offline";
 
 /*
- * The whole offline shell. Three entries, roughly 30 kB in total: the offline
- * document, the small brand icon it renders, and the manifest so an installed
- * app still knows its own name and colours with no network.
+ * The whole offline shell, roughly 40 kB: the offline document, Vallo's real
+ * mark it draws, the app icon a notification uses, and the manifest so an
+ * installed app still knows its own name and colours with no network.
  */
-const SHELL_ASSETS = [OFFLINE_URL, "/pwa/icon-192.png", "/manifest.webmanifest"];
+const SHELL_ASSETS = [OFFLINE_URL, "/brand/vallo-mark.svg", "/pwa/icon-192.png", "/manifest.webmanifest"];
 
-/* First path segment is enough to name a surface that must never be cached. */
+/* First path segment is enough to name a surface whose ASSETS must never be
+   cached (the asset allowlist below is the primary rule; this is the floor). */
 const NEVER_CACHE_SEGMENTS = new Set([
   "api",
   "admin",
@@ -78,11 +104,81 @@ const NEVER_CACHE_SEGMENTS = new Set([
   "auth",
 ]);
 
+/*
+ * PAGES THAT ARE NEVER KEPT, by first path segment. Money, identity, sign-in,
+ * the supply workspaces, live calls, token links, and the worker's own
+ * routes. Everything else a member opens is kept for that member.
+ */
+const NEVER_KEEP_PAGE_SEGMENTS = new Set([
+  "api",
+  "_next",
+  "admin",
+  "agent",
+  "host",
+  "auth",
+  "wallet",
+  "checkout",
+  "pay",
+  "payments",
+  "payouts",
+  "refunds",
+  "receipts",
+  "rent",
+  "verification",
+  "calls",
+  "settings",
+  "sign-in",
+  "sign-up",
+  "forgot-password",
+  "reset-password",
+  "start",
+  "open",
+  "offline",
+  "first-run",
+  "home-or-landing",
+  "join",
+  "email",
+  "s",
+  "safe",
+  "landlord",
+  "r",
+  "preview",
+  "dev",
+]);
+
 /* Prefixes whose bytes are immutable or effectively so, and therefore worth keeping. */
-const CACHEABLE_ASSET_PREFIXES = ["/_next/static/", "/brand/", "/icons/", "/pwa/"];
+const CACHEABLE_ASSET_PREFIXES = ["/_next/static/", "/brand/", "/icons/", "/pwa/", "/fonts/"];
 
 /* A single pathological entry must not swallow the origin's storage quota. */
 const MAX_CACHEABLE_BYTES = 5 * 1024 * 1024;
+
+/*
+ * HOW LONG A NAVIGATION WAITS FOR THE NETWORK BEFORE THE KEPT COPY ANSWERS.
+ * Only when there IS a kept copy: with nothing to show instead, the page waits
+ * for the network as long as the browser does. The network keeps going in the
+ * background and the fresh copy replaces the kept one (the page is told, and
+ * refreshes itself quietly; `ConnectionLine`).
+ */
+const NAVIGATION_TIMEOUT_MS = 3000;
+
+/* How many pages and photographs one phone keeps, oldest out first. */
+const MAX_PAGES_PER_VIEWER = 60;
+const MAX_IMAGES = 200;
+
+/* A page warmed in the background is not warmed again inside this window. */
+const WARM_INTERVAL_MS = 5 * 60 * 1000;
+
+/* The stamp `proxy.ts` puts on a document: a digest, or `anon`. */
+const VIEWER_HEADER = "x-vallo-viewer";
+const VIEWER_PATTERN = /^(anon|[a-f0-9]{16,64})$/;
+
+/* What a page served from this phone says about itself, for `ConnectionLine`
+   (read through `performance.getEntriesByType("navigation")[0].serverTiming`). */
+const FROM_CACHE_TIMING = 'vallo-kept;desc="kept"';
+
+/* Where the shell's own start (`/open`, and `/` for the shell) lands offline,
+   in order: the first of these this viewer has kept. */
+const START_FALLBACKS = ["/home", "/search", "/stays", "/welcome"];
 
 /* ------------------------------------------------------------------ helpers */
 
@@ -100,6 +196,20 @@ function isCacheableAssetPath(pathname) {
   return CACHEABLE_ASSET_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 }
 
+/* Whether a page at this path may be kept on the phone at all. */
+function isKeepablePagePath(pathname) {
+  if (typeof pathname !== "string" || pathname.charAt(0) !== "/") return false;
+  if (pathname.endsWith(".js") || pathname.endsWith(".webmanifest") || pathname.endsWith(".txt")) return false;
+  const segment = firstSegment(pathname);
+  if (segment.startsWith("(") || segment.startsWith("_")) return false;
+  return !NEVER_KEEP_PAGE_SEGMENTS.has(segment);
+}
+
+/* The shell's start addresses, which only ever redirect. */
+function isStartPath(pathname) {
+  return pathname === "/open" || pathname === "/open/";
+}
+
 /*
  * The Save-Data hint. The header is checked first because that is the literal
  * signal on the request; navigator.connection is the fallback because a
@@ -107,18 +217,20 @@ function isCacheableAssetPath(pathname) {
  */
 function saveDataRequested(request) {
   try {
-    if (request.headers.get("save-data")) return true;
+    if (request && request.headers.get("save-data")) return true;
   } catch {
     /* Header access can throw on an opaque request. Fall through. */
   }
   const connection = self.navigator && self.navigator.connection;
-  return Boolean(connection && connection.saveData);
+  if (!connection) return false;
+  if (connection.saveData) return true;
+  return connection.effectiveType === "2g" || connection.effectiveType === "slow-2g";
 }
 
 /*
- * Whether a response may be written to disk. Deliberately conservative: any
- * hint that this body was personalised, or that the server asked for it not
- * to be stored, is a refusal.
+ * Whether an ASSET response may be written to disk. Deliberately
+ * conservative: any hint that this body was personalised, or that the server
+ * asked for it not to be stored, is a refusal.
  */
 function isStorableResponse(response) {
   if (!response || !response.ok || response.status !== 200) return false;
@@ -139,6 +251,55 @@ function isStorableResponse(response) {
   if (length > MAX_CACHEABLE_BYTES) return false;
 
   return true;
+}
+
+/*
+ * Whether a document response is the shape a kept page may take: a plain 200
+ * HTML answer from our own origin, not a redirect, not too large. Pages are
+ * personal by nature (`Cache-Control: private, no-store` is what every
+ * dynamic page carries, and that directive is about shared HTTP caches), so
+ * the rule for a page is not the asset rule: it is this shape plus the
+ * server's own stamp (`keepPage`).
+ */
+function isKeepableDocument(response) {
+  if (!response || response.status !== 200 || !response.ok) return false;
+  if (response.type !== "basic" && response.type !== "default") return false;
+  if (response.redirected) return false;
+  const headers = response.headers;
+  if (headers.get("set-cookie")) return false;
+  const type = (headers.get("content-type") || "").toLowerCase();
+  if (!type.startsWith("text/html")) return false;
+  const length = Number(headers.get("content-length") || "0");
+  return length <= MAX_CACHEABLE_BYTES;
+}
+
+/*
+ * The stamp in the document head (`app/layout.tsx`): the viewer and the path
+ * the server rendered. It is the copy the Android app can read, because
+ * Capacitor fetches every document itself to put its bridge in and hands the
+ * page its own default headers, following any redirect out of sight. Only the
+ * head is searched.
+ */
+function metaStamp(html) {
+  if (typeof html !== "string") return null;
+  const head = html.slice(0, 64 * 1024);
+  const tag = /<meta\b[^>]*\bname="x-vallo-viewer"[^>]*>/i.exec(head);
+  if (!tag) return null;
+  const content = /\bcontent="([^"]*)"/i.exec(tag[0]);
+  const path = /\bdata-path="([^"]*)"/i.exec(tag[0]);
+  const viewer = content ? content[1].trim().toLowerCase() : "";
+  if (!VIEWER_PATTERN.test(viewer) || !path) return null;
+  return { viewer, path: path[1].replace(/&amp;/g, "&") };
+}
+
+/* The viewer a response NAMES, kept or not: enough to notice a change of account. */
+function namedViewer(response) {
+  try {
+    const viewer = ((response && response.headers.get(VIEWER_HEADER)) || "").trim().toLowerCase();
+    return VIEWER_PATTERN.test(viewer) ? viewer : null;
+  } catch {
+    return null;
+  }
 }
 
 function carriesCredentials(request) {
@@ -172,6 +333,37 @@ function assetCacheKey(url) {
 }
 
 /*
+ * A page's key: the address as asked for, with the router's own cache-busting
+ * parameter and the fragment dropped. The search stays, because `/search?q=`
+ * with two different questions is two different pages.
+ */
+function pageCacheKey(url) {
+  const params = new URLSearchParams(url.search);
+  params.delete("_rsc");
+  const search = params.toString();
+  return url.origin + url.pathname + (search ? `?${search}` : "");
+}
+
+/*
+ * A listing photograph the optimiser has already sized for this phone
+ * (`/_next/image?url=...&w=...&q=...`). The query IS the identity here (the
+ * source, the width and the quality), so the key is the whole address. The
+ * `Accept` header picks AVIF or WebP, and one phone always sends the same one.
+ */
+function imageCacheKey(url) {
+  if (url.pathname !== "/_next/image") return null;
+  const params = new URLSearchParams(url.search);
+  if (!params.get("url") || !params.get("w")) return null;
+  params.delete("dpl");
+  return `${url.origin}${url.pathname}?${params.toString()}`;
+}
+
+/* The page cache's name for a viewer. */
+function pageCacheName(viewer) {
+  return PAGE_CACHE_PREFIX + viewer;
+}
+
+/*
  * The offline document's stylesheet and scripts are hashed Next chunks whose
  * names this file cannot know, so they are discovered by reading the
  * precached HTML once at install time. Without the stylesheet the offline page
@@ -195,27 +387,230 @@ function offlineAssetUrls(html) {
   return Array.from(found);
 }
 
+/* Keep the assets a document needs, so it can be drawn again offline. Under
+   Save-Data only the ones already on the phone count (`frugal`), because a
+   second download is the thing being saved. */
+async function keepDocumentAssets(html, frugal) {
+  if (frugal) return;
+  const assets = await caches.open(ASSET_CACHE);
+  await Promise.all(
+    offlineAssetUrls(html).map(async (path) => {
+      try {
+        const url = new URL(path, self.location.origin);
+        const key = assetCacheKey(url);
+        if (!key) return;
+        if (await assets.match(key)) return;
+        const fetched = await fetch(url.href);
+        if (isStorableResponse(fetched)) await assets.put(key, fetched);
+      } catch {
+        /* One missing chunk costs that chunk, never the install. */
+      }
+    }),
+  );
+}
+
 async function precacheOfflineAssets(shell) {
   try {
     const response = await shell.match(OFFLINE_URL);
     if (!response) return;
-    const html = await response.clone().text();
-    const assets = await caches.open(ASSET_CACHE);
-    await Promise.all(
-      offlineAssetUrls(html).map(async (path) => {
-        try {
-          const url = new URL(path, self.location.origin);
-          const key = assetCacheKey(url);
-          if (!key) return;
-          const fetched = await fetch(url.href);
-          if (isStorableResponse(fetched)) await assets.put(key, fetched);
-        } catch {
-          /* One missing chunk costs that chunk, never the install. */
-        }
-      }),
-    );
+    await keepDocumentAssets(await response.clone().text());
   } catch {
     /* A missing stylesheet costs styling, never correctness. */
+  }
+}
+
+/* Oldest out first, so one cache never grows past its share. */
+async function trim(cache, max) {
+  try {
+    const keys = await cache.keys();
+    const excess = keys.length - max;
+    for (let i = 0; i < excess; i += 1) await cache.delete(keys[i]);
+  } catch {
+    /* A cache that cannot be listed is left as it is. */
+  }
+}
+
+/* ------------------------------------------------------------- the viewer */
+
+/*
+ * WHO THE KEPT PAGES BELONG TO. Remembered in its own small cache so it
+ * survives the worker being stopped and started, which a browser does all the
+ * time. Read and written only here.
+ */
+const VIEWER_KEY = "/__vallo/viewer";
+
+/* The record, held in memory while this worker lives, so a navigation does
+   not open a cache to learn it; `undefined` means not read yet. */
+let viewerMemo;
+
+async function readViewer() {
+  if (viewerMemo !== undefined) return viewerMemo;
+  try {
+    const meta = await caches.open(META_CACHE);
+    const stored = await meta.match(VIEWER_KEY);
+    const viewer = stored ? (await stored.text()).trim() : "";
+    viewerMemo = VIEWER_PATTERN.test(viewer) ? viewer : null;
+  } catch {
+    return null;
+  }
+  return viewerMemo;
+}
+
+async function writeViewer(viewer) {
+  viewerMemo = viewer || null;
+  try {
+    const meta = await caches.open(META_CACHE);
+    if (viewer) await meta.put(VIEWER_KEY, new Response(viewer));
+    else await meta.delete(VIEWER_KEY);
+  } catch {
+    /* Without a record nothing is served from a page cache, which is safe. */
+  }
+}
+
+/* Delete every kept page that does not belong to `keep` (all of them for null). */
+async function forgetPagesExcept(keep) {
+  try {
+    const names = await caches.keys();
+    await Promise.all(
+      names
+        .filter((name) => name.startsWith("vallo-pages-") && (!keep || name !== pageCacheName(keep)))
+        .map((name) => caches.delete(name)),
+    );
+  } catch {
+    /* Nothing listed, nothing to forget. */
+  }
+}
+
+/*
+ * A response named a viewer: if it is a different one, the previous viewer's
+ * pages go before anything else happens.
+ */
+async function noteViewer(viewer) {
+  if (!viewer) return;
+  const current = await readViewer();
+  if (current === viewer) return;
+  await forgetPagesExcept(viewer);
+  await writeViewer(viewer);
+}
+
+/*
+ * The headers a kept page carries: the server's own (its Content Security
+ * Policy above all, whose nonce the kept markup still carries), minus the ones
+ * that describe the wire rather than the page. The body is kept decoded, so a
+ * Content-Encoding would make the browser try to decode it twice.
+ */
+const DROPPED_ON_KEEP = new Set([
+  "content-encoding",
+  "content-length",
+  "transfer-encoding",
+  "set-cookie",
+  "cache-control",
+  "etag",
+  "last-modified",
+  "vary",
+  "age",
+  "date",
+]);
+
+function keptHeaders(source, viewer) {
+  const headers = new Headers();
+  source.forEach((value, name) => {
+    if (!DROPPED_ON_KEEP.has(name.toLowerCase())) headers.set(name, value);
+  });
+  if (!headers.get("content-type")) headers.set("content-type", "text/html; charset=utf-8");
+  headers.set(VIEWER_HEADER, viewer);
+  headers.set("x-vallo-kept-at", String(Date.now()));
+  return headers;
+}
+
+/*
+ * Keep one document for the viewer the SERVER names, and notice a change of
+ * account on any document at all. The header is read first; the head's stamp
+ * is read from the body. When both are there they must agree, and when the
+ * head says the server rendered a different address (a redirect followed out
+ * of sight, as Capacitor's Android proxy does) nothing is kept.
+ */
+async function keepPage(url, response) {
+  const headerViewer = namedViewer(response);
+  if (!isKeepableDocument(response)) {
+    await noteViewer(headerViewer);
+    return false;
+  }
+  let body;
+  try {
+    body = await response.text();
+  } catch {
+    await noteViewer(headerViewer);
+    return false;
+  }
+  const meta = metaStamp(body);
+  if (headerViewer && meta && meta.viewer !== headerViewer) return false;
+  const viewer = headerViewer || (meta ? meta.viewer : null);
+  await noteViewer(viewer);
+  if (!viewer || !isKeepablePagePath(url.pathname)) return false;
+  if (meta && meta.path !== url.pathname) return false;
+  try {
+    const cache = await caches.open(pageCacheName(viewer));
+    const key = pageCacheKey(url);
+    /* Delete first so a re-kept page moves to the back of the queue. */
+    await cache.delete(key);
+    await cache.put(key, new Response(body, { status: 200, headers: keptHeaders(response.headers, viewer) }));
+    await trim(cache, MAX_PAGES_PER_VIEWER);
+    /* The chunks this page draws with, so it can be drawn again offline. */
+    await keepDocumentAssets(body, saveDataRequested(null));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/* The kept copy of a page for the current viewer, or undefined. */
+async function keptPage(url) {
+  if (!isKeepablePagePath(url.pathname) && !isStartPath(url.pathname) && url.pathname !== "/") return undefined;
+  const viewer = await readViewer();
+  if (!viewer) return undefined;
+  try {
+    const cache = await caches.open(pageCacheName(viewer));
+    /* The shell's start only ever redirects, so it is answered by where it
+       would have gone; the front door, by itself first. */
+    const fallbacks = START_FALLBACKS.map((path) => url.origin + path);
+    const candidates = isStartPath(url.pathname)
+      ? fallbacks
+      : url.pathname === "/"
+        ? [pageCacheKey(url), ...fallbacks]
+        : [pageCacheKey(url)];
+    for (const key of candidates) {
+      const hit = await cache.match(key, { ignoreVary: true, ignoreSearch: false });
+      if (hit) return hit;
+    }
+  } catch {
+    /* Fall through to the network or the offline screen. */
+  }
+  return undefined;
+}
+
+/* A kept page, marked so the page can tell it is showing what was seen last. */
+function markKept(response) {
+  const headers = new Headers(response.headers);
+  headers.set("server-timing", FROM_CACHE_TIMING);
+  headers.set("cache-control", "no-store");
+  return new Response(response.body, { status: 200, statusText: "OK", headers });
+}
+
+/* Tell every open Vallo tab on this address that a fresh copy has landed. */
+async function announceFresh(url) {
+  try {
+    const list = await self.clients.matchAll({ type: "window" });
+    for (const client of list) {
+      try {
+        const at = new URL(client.url);
+        if (at.pathname === url.pathname) client.postMessage({ type: "vallo:page-fresh", path: url.pathname });
+      } catch {
+        /* A client with no readable address is skipped. */
+      }
+    }
+  } catch {
+    /* No clients to tell. */
   }
 }
 
@@ -248,7 +643,12 @@ self.addEventListener("activate", (event) => {
       const names = await caches.keys();
       await Promise.all(
         names
-          .filter((name) => name.startsWith("vallo-") && !CURRENT_CACHES.includes(name))
+          .filter(
+            (name) =>
+              name.startsWith("vallo-") &&
+              !CURRENT_CACHES.includes(name) &&
+              !name.startsWith(PAGE_CACHE_PREFIX),
+          )
           .map((name) => caches.delete(name)),
       );
       await self.clients.claim();
@@ -258,41 +658,95 @@ self.addEventListener("activate", (event) => {
 
 /* -------------------------------------------------------------------- fetch */
 
+/* The screen for a page this phone has never kept, asked for with no network. */
+async function offlineFallback() {
+  const cached = await caches.match(OFFLINE_URL);
+  if (cached) return cached;
+  return new Response("You are offline. Reconnect and try again.", {
+    status: 503,
+    statusText: "Offline",
+    headers: { "Content-Type": "text/plain; charset=utf-8" },
+  });
+}
+
 /*
- * Navigations: network first, always. Nothing is written to a cache here, so
- * a page can never be answered from disk. When the network fails, the
- * precached offline document stands in.
+ * NAVIGATIONS: THE NETWORK FIRST, THE KEPT COPY WHEN THE NETWORK FAILS OR
+ * DAWDLES.
+ *
+ *   - With a kept copy: the network has NAVIGATION_TIMEOUT_MS. If it answers,
+ *     that answer is shown and kept. If it fails or is slower, the kept copy
+ *     is shown at once, and the network carries on in the background; when it
+ *     lands, the fresh copy is kept and the page is told (`vallo:page-fresh`),
+ *     and it refreshes itself in place.
+ *   - With no kept copy: the network as long as it takes, and the offline
+ *     screen only if it fails outright.
  */
-async function handleNavigation(request) {
-  try {
-    return await fetch(request);
-  } catch {
-    const cached = await caches.match(OFFLINE_URL);
-    if (cached) return cached;
-    return new Response(
-      "You are offline. Reconnect and try again.",
-      {
-        status: 503,
-        statusText: "Offline",
-        headers: { "Content-Type": "text/plain; charset=utf-8" },
-      },
-    );
-  }
+function handleNavigation(event) {
+  const request = event.request;
+  const url = new URL(request.url);
+
+  /* Which answer the page got, so a fresh copy that lands after the kept one
+     was shown can tell the page to refresh itself. */
+  let settled = "pending";
+
+  /* The network starts at once, beside the cache read, and the copy is kept
+     in the background: the page gets its answer as it streams, never after
+     the whole document has been read for keeping. */
+  const network = fetch(request);
+  const keeping = network
+    .then(async (response) => {
+      const fresh = await keepPage(url, response.clone());
+      /* Just kept: the page's own announcement need not fetch it again. */
+      if (fresh) lastWarmed.set(pageCacheKey(url), Date.now());
+      if (fresh && settled === "kept") await announceFresh(url);
+    })
+    .catch(() => undefined);
+  event.waitUntil(keeping);
+
+  return (async () => {
+    const kept = await keptPage(url);
+
+    if (!kept) {
+      try {
+        const response = await network;
+        settled = "network";
+        return response;
+      } catch {
+        settled = "offline";
+        return offlineFallback();
+      }
+    }
+
+    let timer;
+    const timeout = new Promise((resolve) => {
+      timer = setTimeout(() => resolve("timeout"), NAVIGATION_TIMEOUT_MS);
+    });
+    const outcome = await Promise.race([network.then((r) => r, () => "failed"), timeout]);
+    clearTimeout(timer);
+
+    if (outcome !== "timeout" && outcome !== "failed") {
+      settled = "network";
+      return outcome;
+    }
+    settled = "kept";
+    return markKept(kept);
+  })();
 }
 
 /*
  * Static assets: stale while revalidate. The cached copy answers immediately,
- * a background fetch refreshes it for next time. Under Save-Data the cache is
- * read but never written, so the user pays for exactly what they asked for.
+ * a background fetch refreshes it for next time. Under Save-Data the cached
+ * copy answers with no background fetch at all.
  */
 async function handleAsset(request, key) {
   const cache = await caches.open(ASSET_CACHE);
   const cached = await cache.match(key);
-  const allowWrite = !saveDataRequested(request);
+
+  if (cached && saveDataRequested(request)) return cached;
 
   const network = fetch(request)
     .then((response) => {
-      if (allowWrite && isStorableResponse(response)) {
+      if (isStorableResponse(response)) {
         cache.put(key, response.clone()).catch(() => {
           /* Quota or a rejected key. Not worth failing the request over. */
         });
@@ -306,6 +760,32 @@ async function handleAsset(request, key) {
   const fresh = await network;
   if (fresh) return fresh;
   return new Response("", { status: 504, statusText: "Offline" });
+}
+
+/*
+ * Photographs: cache first. An optimised image at a given address never
+ * changes (the source, the width and the quality are all in the address), so
+ * once this phone has paid for it, it never pays again, and a listing it has
+ * seen still has its pictures with no signal.
+ */
+async function handleImage(request, key) {
+  const cache = await caches.open(IMAGE_CACHE);
+  const cached = await cache.match(key);
+  if (cached) return cached;
+  try {
+    const response = await fetch(request);
+    if (isStorableResponse(response)) {
+      cache
+        .put(key, response.clone())
+        .then(() => trim(cache, MAX_IMAGES))
+        .catch(() => {
+          /* Quota. The photograph still shows. */
+        });
+    }
+    return response;
+  } catch {
+    return new Response("", { status: 504, statusText: "Offline" });
+  }
 }
 
 self.addEventListener("fetch", (event) => {
@@ -326,7 +806,13 @@ self.addEventListener("fetch", (event) => {
   if (url.origin !== self.location.origin) return;
 
   if (request.mode === "navigate") {
-    event.respondWith(handleNavigation(request));
+    event.respondWith(handleNavigation(event));
+    return;
+  }
+
+  const imageKey = imageCacheKey(url);
+  if (imageKey) {
+    event.respondWith(handleImage(request, imageKey));
     return;
   }
 
@@ -340,6 +826,73 @@ self.addEventListener("fetch", (event) => {
 
   // Everything else, including every API and authenticated data response, is
   // left entirely alone: no interception, no cache, no stale answer.
+});
+
+/* ---------------------------------------------------------------- messages */
+
+/*
+ * WHAT A PAGE MAY ASK OF THIS WORKER, and nothing else:
+ *
+ *   `vallo:visited`   a page the router opened without a document load (a
+ *                     tap inside the app is a data fetch, not a page load, so
+ *                     this worker never saw it). The worker fetches that one
+ *                     address as a document, in the background, once per
+ *                     WARM_INTERVAL_MS, and keeps it under the viewer the
+ *                     server names. Never under Save-Data or on 2g.
+ *   `vallo:forget`    sign-out: every kept page is deleted and the viewer
+ *                     forgotten. The page deletes them itself too
+ *                     (`lib/offline/page-cache.ts`); this is the second hand.
+ *
+ * A message only ever narrows what is kept or asks for a same-origin page the
+ * server will stamp for itself; no message can choose whose page is kept.
+ */
+const lastWarmed = new Map();
+
+async function warmPage(path) {
+  if (typeof path !== "string" || path.length > 2000) return;
+  let url;
+  try {
+    url = new URL(path, self.location.origin);
+  } catch {
+    return;
+  }
+  if (url.origin !== self.location.origin || !isKeepablePagePath(url.pathname)) return;
+  if (saveDataRequested(null)) return;
+  const key = pageCacheKey(url);
+  const now = Date.now();
+  const last = lastWarmed.get(key) || 0;
+  if (now - last < WARM_INTERVAL_MS) return;
+  lastWarmed.set(key, now);
+  if (lastWarmed.size > 200) lastWarmed.delete(lastWarmed.keys().next().value);
+  try {
+    const response = await fetch(url.href, {
+      credentials: "same-origin",
+      redirect: "manual",
+      headers: { accept: "text/html", "x-vallo-warm": "1" },
+    });
+    await keepPage(url, response);
+  } catch {
+    /* No signal: the page is warmed the next time it is opened. */
+  }
+}
+
+self.addEventListener("message", (event) => {
+  const data = event && event.data;
+  if (!data || typeof data !== "object") return;
+  if (event.origin && event.origin !== self.location.origin) return;
+  if (data.type === "vallo:visited") {
+    const work = warmPage(data.path);
+    if (typeof event.waitUntil === "function") event.waitUntil(work);
+    return;
+  }
+  if (data.type === "vallo:forget") {
+    const work = (async () => {
+      await forgetPagesExcept(null);
+      await writeViewer(null);
+      lastWarmed.clear();
+    })();
+    if (typeof event.waitUntil === "function") event.waitUntil(work);
+  }
 });
 
 /* =========================================================================
