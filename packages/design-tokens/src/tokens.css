@@ -965,6 +965,23 @@
   --nf-spark-ink: #FF8A5C;
   --nf-spark-soft: color-mix(in oklab, var(--nf-spark) 16%, transparent);
   --nf-spark-on: #111318;
+  /*
+   * THE ORANGE FILL (the founder, 8 October 2026: "make use of orange in many
+   * places ... in buttons too and animations too ... let's make this
+   * cinematic"). The spark was never a fill; from D81 it may be one, as the
+   * SECOND action beside a blue one (the Wallet's Send beside Withdraw) and
+   * on chosen secondary calls to action. Blue still leads. White words on
+   * it are 600 weight at 1rem or larger (3.4:1 at the bottom stop, the
+   * large-text bar).
+   *   --nf-spark-fill        the capsule's gradient
+   *   --nf-spark-fill-solid  its flat stop, for edges and pressed states
+   *   --nf-spark-on-fill     words and glyphs on it
+   *   --nf-spark-glow        its lift
+   */
+  --nf-spark-fill: linear-gradient(180deg, #FF8A4C 0%, #F2561E 100%);
+  --nf-spark-fill-solid: #F2561E;
+  --nf-spark-on-fill: #FFFFFF;
+  --nf-spark-glow: 0 12px 28px -14px color-mix(in oklab, #F2561E 70%, transparent);
   --nf-status-pending-surface: var(--nf-state-warning-surface);
   /*
    * THE ACCENT, WHICH EXISTS ENTIRELY FOR DAYLIGHT, and is the same colour as
@@ -3988,6 +4005,10 @@
   --nf-spark-ink: #B93A0E;
   --nf-spark-soft: color-mix(in oklab, var(--nf-spark) 12%, transparent);
   --nf-spark-on: #111318;
+  --nf-spark-fill: linear-gradient(180deg, #FF7A3A 0%, #E4501A 100%);
+  --nf-spark-fill-solid: #E4501A;
+  --nf-spark-on-fill: #FFFFFF;
+  --nf-spark-glow: 0 12px 26px -14px color-mix(in oklab, #E4501A 55%, transparent);
   --nf-state-success-surface: color-mix(in oklab, var(--nf-state-success) 10%, transparent);
   --nf-state-warning-surface: color-mix(in oklab, var(--nf-state-warning) 10%, transparent);
   --nf-state-error-surface: color-mix(in oklab, var(--nf-state-error) 9%, transparent);
