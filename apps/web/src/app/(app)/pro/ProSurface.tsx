@@ -10,7 +10,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ProExplainer } from "./ProExplainer";
 import { PlanPicker } from "./PlanPicker";
 import { PRO_COPY } from "./pro-copy";
-import type { ProPlanState } from "./pro-state";
+import type { PaidPlan, ProPlanState } from "./pro-state";
 
 /**
  * THE /pro SURFACE (P6, 7 October 2026), to the governing level (D74):
@@ -20,23 +20,28 @@ import type { ProPlanState } from "./pro-state";
  *      reference 9), then the headline with its last word in brand blue.
  *   2. Where the member stands: their plan, read from the database.
  *   3. The plan page (GOVERNING-plasma-tier-detail-core): pill, metal cards
- *      fanned in depth, name, promise, the honest price line, three stats,
- *      benefit rows, "Continue with <plan>" opening the one plain gate.
+ *      fanned in depth, name, who it is for, the monthly price and the free
+ *      trial read from the plan rows (D83), three stats, what it includes,
+ *      "Continue with <plan>" opening the one plain gate.
  *   4. How Pro will work: three promises in the grouped list.
  *
  * Server-safe apart from its two client islands (the plan page's choice and
- * gate). No price, no checkout, no invented figure anywhere on it.
+ * gate). Every figure on it comes from the plan rows; no checkout, no
+ * invented figure anywhere on it.
  */
 export function ProSurface({
   state,
-  offered,
+  plans,
+  trialDays,
   switchReady = false,
   locale,
   signInHref,
 }: {
   state: ProPlanState;
-  /** Plans the database offers by name today (none on 7 October). */
-  offered: string[];
+  /** The paid plans the database describes (D83), cheapest first. */
+  plans: PaidPlan[];
+  /** The free trial in days, from the settings row; null when unread. */
+  trialDays: number | null;
   /** The entitlement check agrees a switch is drawn for this member. */
   switchReady?: boolean;
   locale: Locale;
@@ -61,13 +66,10 @@ export function ProSurface({
         <PlanCard state={state} switchReady={switchReady} locale={locale} signInHref={signInHref} />
 
         <section className="nf-pro-wall" aria-label={c.detail.pickLabel} data-testid="pro-wall">
-          {offered.length > 0 ? (
-            <p className="nf-pro__offered" data-testid="pro-offered">
-              <span className="nf-pro__offered-label">{c.detail.offeredLabel}</span> {offered.join(", ")}.{" "}
-              {c.detail.offeredNote}
-            </p>
-          ) : null}
           <PlanPicker
+            plans={plans}
+            trialDays={trialDays}
+            locale={locale}
             heldName={state.kind === "held" ? state.planName : null}
             signedIn={state.kind !== "signed-out"}
             signInHref={signInHref}

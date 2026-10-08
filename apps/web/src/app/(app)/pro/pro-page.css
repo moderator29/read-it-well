@@ -276,13 +276,9 @@
     color: var(--nf-content-secondary);
   }
 
-  .nf-pro__offered {
+  .nf-pro__none {
     font-size: var(--nf-text-body-sm);
     color: var(--nf-content-secondary);
-  }
-  .nf-pro__offered-label {
-    font-weight: 600;
-    color: var(--nf-content-primary);
   }
 
   /* THE PLAN PAGE'S FIELD (GOVERNING-plasma-tier-detail-core in Vallo dark):
@@ -486,16 +482,24 @@
     letter-spacing: var(--nf-tracking-tight);
     color: var(--nf-content-primary);
   }
+  /* The price is read from the plan row (D83), so it is drawn in the
+     primary ink; the trial and the not-on-sale line stay quiet under it. */
   .nf-pro-plan__price {
     margin-top: var(--nf-space-2xs);
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-pro-plan__trial {
     font-size: var(--nf-text-body-sm);
     color: var(--nf-content-muted);
   }
 
-  /* Three stats split by hairlines. */
+  /* Three stats split by hairlines (two when the trial length could not be read). */
   .nf-pro-plan__stats {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
     margin: 0;
     padding: var(--nf-space-md) 0;
     border-radius: var(--nf-radius-card-sm);

@@ -3,11 +3,13 @@
  *
  * The plan tables exist (`b3_tax_entitlements_promotion`, applied 6 October):
  * `entitlement_plans` (readable by anyone), `member_entitlement_plans` (each
- * member reads only their own rows under RLS). On 7 October the only plan in
- * the database is the default, "Free", whose note reads "everything free
- * today stays free. No price exists." There is no price column anywhere, and
- * no Pro product. So this page never shows a price, never offers a checkout,
- * and says plainly that Pro is coming.
+ * member reads only their own rows under RLS). D83 (the founder's rulings of
+ * 8 October, migration d84) adds the two paid plans as rows: Vallo Pro and
+ * Vallo Business, each with its monthly price on the row, its promotion quotas
+ * as grants and what else it includes as `perks`, and the free trial's length
+ * as one settings value (`subscription_settings.trial_days`). Every figure the
+ * page shows is read from those rows; none is written in code. No checkout and
+ * no way to start a trial exist yet, so the page never offers one.
  *
  * The answer is one of four, and the page draws each one differently:
  *   signed-out  nobody to ask about
@@ -33,13 +35,54 @@ export type MemberPlanRow = {
   plan: { plan_key: string; name: string; is_default: boolean } | null;
 };
 
-/** A plan row from `entitlement_plans`. */
+/**
+ * A plan row from `entitlement_plans`. The page selects `*`, so before the
+ * d84 migration adds the price columns they are simply absent, never an error.
+ */
 export type PlanRow = {
+  id?: number;
   plan_key: string;
   name: string;
   is_default: boolean;
   effective_from: string;
   effective_to: string | null;
+  price_minor?: number | null;
+  billing_interval?: string | null;
+  perks?: string[] | null;
+};
+
+/** A row from `entitlement_plan_features`. */
+export type PlanFeatureRow = {
+  plan_id: number;
+  feature_key: string;
+  granted: boolean;
+  quota: number | null;
+};
+
+/** The promotion keys a plan can carry a monthly quota of, in reach order. */
+export const PLAN_QUOTA_KEYS = ["listing_boost", "listing_spotlight", "listing_featured", "listing_prime"] as const;
+export type PlanQuotaKey = (typeof PLAN_QUOTA_KEYS)[number];
+
+/** What a plan includes beyond its quotas, as the database names it. */
+export const PLAN_PERKS = [
+  "deep_analytics",
+  "pro_badge",
+  "priority_support",
+  "team_members",
+  "command_centre",
+  "bulk_tools",
+  "export",
+] as const;
+export type PlanPerk = (typeof PLAN_PERKS)[number];
+
+/** A paid plan as the page draws it: every figure from the rows. */
+export type PaidPlan = {
+  key: string;
+  name: string;
+  priceMinor: number;
+  interval: "month";
+  quotas: { key: PlanQuotaKey; count: number }[];
+  perks: PlanPerk[];
 };
 
 function inForce(from: string, to: string | null, now: number): boolean {
@@ -71,18 +114,53 @@ export function planStateFrom(
   return { kind: "free", planName: fallback.name };
 }
 
-/**
- * The paid plans the database offers today: every plan in force that is not
- * the default. Empty on 7 October, which is what turns the page's plan cards
- * into "coming". When the founder adds a plan row, its name appears here; a
- * price still does not, because no price column exists to read.
- */
 /** The server's clock for one request, read once (kept out of render for the purity rule). */
 export function planClock(): number {
   return Date.now();
 }
 
-export function offeredPlans(plans: readonly PlanRow[] | null, now: number): string[] {
+/**
+ * The paid plans the database describes today: every plan in force that is
+ * not the default and carries a monthly price, cheapest first, with its
+ * granted promotion quotas and its known perks. A plan with no price, an
+ * interval other than a month, or a read that failed is left out rather than
+ * drawn with a guessed figure. A perk this page has no words for is skipped.
+ */
+export function paidPlansFrom(
+  plans: readonly PlanRow[] | null,
+  features: readonly PlanFeatureRow[] | null,
+  now: number,
+): PaidPlan[] {
   if (!plans) return [];
-  return plans.filter((p) => !p.is_default && inForce(p.effective_from, p.effective_to, now)).map((p) => p.name);
+  return plans
+    .filter(
+      (p) =>
+        !p.is_default &&
+        inForce(p.effective_from, p.effective_to, now) &&
+        typeof p.price_minor === "number" &&
+        Number.isSafeInteger(p.price_minor) &&
+        p.price_minor > 0 &&
+        p.billing_interval === "month",
+    )
+    .sort((a, b) => (a.price_minor as number) - (b.price_minor as number))
+    .map((p) => {
+      const mine = (features ?? []).filter((f) => f.plan_id === p.id && f.granted);
+      const quotas = PLAN_QUOTA_KEYS.flatMap((key) => {
+        const row = mine.find((f) => f.feature_key === key);
+        return row && typeof row.quota === "number" && row.quota > 0 ? [{ key, count: row.quota }] : [];
+      });
+      const perks = (p.perks ?? []).filter((k): k is PlanPerk => (PLAN_PERKS as readonly string[]).includes(k));
+      return { key: p.plan_key, name: p.name, priceMinor: p.price_minor as number, interval: "month" as const, quotas, perks };
+    });
+}
+
+/**
+ * The free trial's length in whole days, from `subscription_settings`. Null
+ * when the row could not be read or holds no usable number, and then the page
+ * says nothing about a trial rather than a remembered figure.
+ */
+export function trialDaysFrom(row: unknown): number | null {
+  if (!row || typeof row !== "object") return null;
+  const days = (row as { trial_days?: unknown }).trial_days;
+  return typeof days === "number" && Number.isInteger(days) && days > 0 && days <= 60 ? days : null;
 }

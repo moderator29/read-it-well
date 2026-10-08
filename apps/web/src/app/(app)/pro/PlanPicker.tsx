@@ -1,78 +1,109 @@
 "use client";
 
 import { useState } from "react";
+import { formatMoney, type Locale } from "@vallo/i18n/core";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Segmented } from "@/components/ui/Segmented";
 import { Sheet } from "@/components/ui/Sheet";
 import { LogoMark } from "@/design-system/brand/Logo";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { PRO_COPY, PRO_PLAN_CARDS, type ProPlanCard } from "./pro-copy";
+import { PRO_COPY, PRO_PLAN_WORDS, type ProBenefit } from "./pro-copy";
+import type { PaidPlan } from "./pro-state";
 
-type PlanKey = ProPlanCard["key"];
+/** What a plan includes, in the page's words: its monthly quotas, then its perks. */
+export function planBenefits(plan: PaidPlan): ProBenefit[] {
+  const quotas = plan.quotas.map((q) => {
+    const words = PRO_COPY.quotas[q.key];
+    return {
+      claim: (q.count === 1 ? words.one : words.other).replace("{count}", String(q.count)),
+      reason: words.reason,
+      icon: words.icon,
+    };
+  });
+  return [...quotas, ...plan.perks.map((k) => PRO_COPY.perks[k])];
+}
 
 /**
  * THE PLAN PAGE (D74: GOVERNING-plasma-tier-detail-core for the page,
- * GOVERNING-plasma-tiers-cards for the cards).
+ * GOVERNING-plasma-tiers-cards for the cards), drawing the plans the database
+ * describes (D83: Vallo Pro and Vallo Business).
  *
  * A segmented plan pill at the top. Under it the plans as brushed platinum
- * cards fanned in depth: the chosen one floats in front with a long soft
- * shadow over a tinted fog, the others step back to the left, lower, smaller
- * and turned further; tapping one brings it forward. Then the plan's name and
- * mark, its two-line promise, the price line in grey (the honest "coming"),
- * a three-stat strip split by hairlines, the benefit rows (a bold claim, a
- * muted reason, a round badge), and "Continue with <plan>" as the one
- * reflecting capsule.
+ * cards fanned in depth: the chosen one floats in front, the other steps back.
+ * Then the plan's name, who it is for, its monthly price and the free trial
+ * (both read from the rows, never written here), a three-stat strip, what it
+ * includes (the monthly quotas from its grants, then its perks), and
+ * "Continue with <plan>".
  *
- * "CONTINUE" IS NEVER A DEAD BUTTON AND NEVER A CHECKOUT. A.11's one gating
- * pattern: it opens a single plain sheet saying the plan is not on sale yet,
- * that its price and contents will be shown in full before anything is
- * charged, and offers the one real thing to do now (choose what reaches you,
- * or sign in). When a price exists this sheet becomes the gate that states it.
+ * "CONTINUE" IS NEVER A DEAD BUTTON AND NEVER A CHECKOUT. No subscription
+ * checkout and no way to start a trial exist yet, so it opens a single plain
+ * sheet saying the plan is not on sale yet, and offers the one real thing to
+ * do now (choose what reaches you, or sign in). When paying opens, this sheet
+ * becomes the page that states the price before anything is charged.
  *
  * GOLD is the higher metal and the payoff, never decoration: a card turns gold
- * only for the plan the member holds (`heldName`). Nobody holds one on
- * 7 October, so every card is platinum. Which plan is "the top plan" is the
- * founder's to name; until he does, gold means "yours".
+ * only for the plan the member holds (`heldName`).
  */
 export function PlanPicker({
+  plans,
+  trialDays,
+  locale,
   heldName,
   signedIn,
   signInHref,
 }: {
+  plans: PaidPlan[];
+  /** The free trial in days, from the settings row; null when it could not be read. */
+  trialDays: number | null;
+  locale: Locale;
   heldName?: string | null;
   signedIn: boolean;
   signInHref: string;
 }) {
-  const [chosen, setChosen] = useState<PlanKey>(PRO_PLAN_CARDS[0]!.key);
+  const [chosen, setChosen] = useState<string>(plans[0]?.key ?? "");
   const [gate, setGate] = useState(false);
-  const at = Math.max(
-    0,
-    PRO_PLAN_CARDS.findIndex((p) => p.key === chosen),
-  );
-  const plan = PRO_PLAN_CARDS[at]!;
-  const n = PRO_PLAN_CARDS.length;
   const c = PRO_COPY.detail;
   const g = PRO_COPY.gate;
 
+  if (plans.length === 0) {
+    return (
+      <p className="nf-pro__none" role="status" data-testid="pro-plans-none">
+        {c.none}
+      </p>
+    );
+  }
+
+  const at = Math.max(
+    0,
+    plans.findIndex((p) => p.key === chosen),
+  );
+  const plan = plans[at]!;
+  const n = plans.length;
+  const words = PRO_PLAN_WORDS[plan.key];
+  const benefits = planBenefits(plan);
+  const price = c.price.replace("{price}", formatMoney(plan.priceMinor, locale));
+
   return (
     <div className="nf-pro-plan" data-testid="pro-plan-detail">
-      <Segmented<PlanKey>
-        label={c.pickLabel}
-        semantics="tabs"
-        shape="pill"
-        size="sm"
-        full
-        options={PRO_PLAN_CARDS.map((p) => ({ value: p.key, label: p.short }))}
-        value={chosen}
-        onChange={setChosen}
-        className="nf-pro-plan__pick"
-      />
+      {n > 1 ? (
+        <Segmented<string>
+          label={c.pickLabel}
+          semantics="tabs"
+          shape="pill"
+          size="sm"
+          full
+          options={plans.map((p) => ({ value: p.key, label: PRO_PLAN_WORDS[p.key]?.short ?? p.name }))}
+          value={plan.key}
+          onChange={setChosen}
+          className="nf-pro-plan__pick"
+        />
+      ) : null}
 
       {/* The fan is the picture of the choice; the pill above is the
           control, so the cards are hidden from a screen reader. */}
       <div className="nf-pro-fan" aria-hidden="true">
         <span className="nf-pro-fan__fog" />
-        {PRO_PLAN_CARDS.map((p, i) => {
+        {plans.map((p, i) => {
           const depth = (i - at + n) % n;
           const gold = heldName != null && heldName === p.name;
           return (
@@ -89,7 +120,7 @@ export function PlanPicker({
                   <LogoMark size={18} />
                   Vallo
                 </span>
-                <span className="nf-pro-metal__tier">{c.tag}</span>
+                {PRO_PLAN_WORDS[p.key]?.tag ? <span className="nf-pro-metal__tier">{PRO_PLAN_WORDS[p.key]!.tag}</span> : null}
               </span>
               <span className="nf-pro-metal__foot">
                 <span className="nf-pro-metal__name">{p.name}</span>
@@ -104,27 +135,36 @@ export function PlanPicker({
           <LogoMark size={22} />
           {plan.name}
         </p>
-        <p className="nf-pro-plan__promise">{plan.line}</p>
-        <p className="nf-pro-plan__price">{c.priceComing}</p>
+        {words ? <p className="nf-pro-plan__promise">{words.line}</p> : null}
+        <p className="nf-pro-plan__price nf-numeric" data-testid="pro-plan-price">
+          {price}
+        </p>
+        {trialDays != null ? (
+          <p className="nf-pro-plan__trial" data-testid="pro-plan-trial">
+            {c.trial.replace("{days}", String(trialDays))}
+          </p>
+        ) : null}
       </div>
 
       <dl className="nf-pro-plan__stats">
         <div className="nf-pro-plan__stat">
-          <dt>{c.stats.tools}</dt>
-          <dd className="nf-numeric">{plan.benefits.length}</dd>
+          <dt>{c.stats.included}</dt>
+          <dd className="nf-numeric">{benefits.length}</dd>
         </div>
         <div className="nf-pro-plan__stat">
           <dt>{c.stats.price}</dt>
-          <dd className="nf-numeric">{c.stats.priceValue}</dd>
+          <dd className="nf-numeric">{formatMoney(plan.priceMinor, locale)}</dd>
         </div>
-        <div className="nf-pro-plan__stat">
-          <dt>{c.stats.charged}</dt>
-          <dd className="nf-numeric">{c.stats.chargedValue}</dd>
-        </div>
+        {trialDays != null ? (
+          <div className="nf-pro-plan__stat">
+            <dt>{c.stats.trial}</dt>
+            <dd className="nf-numeric">{c.stats.trialValue.replace("{days}", String(trialDays))}</dd>
+          </div>
+        ) : null}
       </dl>
 
       <ul className="nf-pro-plan__benefits">
-        {plan.benefits.map((b) => (
+        {benefits.map((b) => (
           <li key={b.claim} className="nf-pro-plan__benefit">
             <span className="nf-pro-plan__benefit-text">
               <span className="nf-pro-plan__claim">{b.claim}</span>

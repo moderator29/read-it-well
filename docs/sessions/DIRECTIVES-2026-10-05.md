@@ -3525,3 +3525,8 @@ real traffic.
   the test key needs Preview too or no preview deployment can reach staging.
 - **The App Store Connect key keeps its Admin role.** Founder's call, declined the
   downgrade to App Manager.
+
+**Trial length decided by the founder, 8 October: 4 days (configuration).** It is the
+value `public.subscription_settings.trial_days`, seeded as 4 by
+`supabase/migrations/pending/d84_founder_rulings_8_october.sql`; a later change is that
+value, not code.
