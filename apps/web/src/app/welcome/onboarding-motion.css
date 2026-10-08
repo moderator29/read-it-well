@@ -10,12 +10,15 @@
  *
  * CLEAN AND BLUE (the founder, 7 October, and D78): the chips sit on the
  * platform's blue container (`--om-card`, the elevated surface with the brand
- * mixed in, never grey), the progress is blue, the buttons are the primary
- * blue, and at most two pieces sit over each picture.
+ * mixed in, never grey), the current dot is blue, the buttons are the
+ * primary blue, and at most two pieces sit over each picture.
  *
- * THE SHAPE, top to bottom on a phone: back, the lockup and Skip; the
- * segmented progress; the scene (the founder's clay art in a rounded card,
- * with chips arriving over it); the title and body; one pill. On a wide
+ * THE SHAPE, top to bottom on a phone: back, the lockup and Skip; the scene
+ * (the founder's clay art in a rounded card, with chips arriving over it); a
+ * small "1 of 4", the title and the body; the step dots; one full-width blue
+ * capsule. The counter, the dots and the capsule follow the Plasma onboarding
+ * the founder pointed at on 8 October 2026 ("add those 1 of 4, 2 of 4",
+ * `docs/design/references/2026-10-05/IMG_7052` to `IMG_7058`). On a wide
  * screen the scene takes the left and the rest stacks on the right.
  *
  * MOTION, transform and opacity only:
@@ -38,8 +41,8 @@
     isolation: isolate;
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto auto minmax(0, 1fr) auto auto;
-    grid-template-areas: "top" "progress" "stage" "copy" "foot";
+    grid-template-rows: auto minmax(0, 1fr) auto auto auto;
+    grid-template-areas: "top" "stage" "copy" "progress" "foot";
     row-gap: var(--nf-space-sm);
     width: 100%;
     max-width: 30rem;
@@ -128,63 +131,46 @@
     outline-offset: var(--nf-focus-ring-offset);
   }
 
-  /* ------------------------------------------------------- the progress */
+  /* ------------------------------------------------------ the step dots
+     The Plasma reference's dots (the founder, 8 October 2026): small and
+     centred between the line and the button, the current one a short blue
+     bar, the rest quiet. Each dot is a 44px target; the mark inside is 8px. */
 
   .nf-om-progress {
     grid-area: progress;
     display: flex;
-    gap: var(--nf-space-xs);
+    justify-content: center;
   }
   .nf-om-progress[hidden] {
     display: none;
   }
-  .nf-om-seg {
-    position: relative;
-    display: flex;
-    flex: 1 1 0;
-    align-items: center;
-    min-height: 1.75rem;
+  .nf-om-dot {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
     padding: 0;
     border: 0;
     background: transparent;
     cursor: pointer;
   }
-  /* The tap target is 44px tall; the bar itself is four. */
-  .nf-om-seg::after {
+  .nf-om-dot::before {
     content: "";
-    position: absolute;
-    inset: -0.5rem 0;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: var(--nf-radius-xs);
+    background: color-mix(in oklab, var(--nf-content-primary) 24%, transparent);
+    transition: background-color var(--nf-duration-base) var(--nf-ease-standard);
   }
-  .nf-om-seg:focus-visible {
-    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
-    outline-offset: 2px;
-    border-radius: var(--nf-radius-pill);
-  }
-  .nf-om-seg__track {
-    position: relative;
-    display: block;
-    width: 100%;
-    height: 4px;
-    overflow: hidden;
-    border-radius: var(--nf-radius-pill);
-    background: var(--nf-brand-tint-2);
-  }
-  .nf-om-seg__fill {
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: var(--nf-brand-quiet);
-    transform: scaleX(0);
-    transform-origin: left center;
-    transition: transform var(--nf-duration-entrance) var(--nf-ease-entrance);
-  }
-  .nf-om-seg[data-filled] .nf-om-seg__fill {
-    transform: scaleX(1);
-  }
-  /* Where you are: the brand blue at full strength (D78: blue is the
-     identity; the spark it used to be read as a second accent). */
-  .nf-om-seg[data-current] .nf-om-seg__fill {
+  /* Where you are: the brand blue (D78: blue is the identity). */
+  .nf-om-dot[data-current]::before {
+    width: 1.375rem;
     background: var(--nf-brand-primary);
+  }
+  .nf-om-dot:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: -4px;
+    border-radius: var(--nf-radius-sm);
   }
 
   /* ---------------------------------------------------------- the stage */
@@ -563,6 +549,18 @@
   .nf-om-words--sizer {
     visibility: hidden;
   }
+  /* "1 of 4": small and muted over the title (the founder, 8 October). */
+  .nf-om-count {
+    margin: 0 0 var(--nf-space-xs);
+    color: var(--nf-content-secondary);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    font-variant-numeric: tabular-nums;
+  }
+  .nf-om-count[hidden] {
+    display: none;
+  }
   .nf-om-title {
     margin: 0;
     font-size: clamp(1.75rem, 1.1rem + 2.6vw, 2.25rem);
@@ -604,6 +602,16 @@
     gap: var(--nf-space-2xs);
     padding-top: var(--nf-space-xs);
   }
+  /* On a phone with the height to spare, the foot is always as tall as the
+     last step's two doors (two large buttons), so the words, the dots and
+     the capsule hold still from step to step, as the reference's do; on the
+     other steps the capsule's light lies in the room under it. A short
+     screen keeps that room for the art. */
+  @media (min-height: 44rem) {
+    .nf-om-foot {
+      min-height: calc(var(--nf-space-xs) + 7.5rem + var(--nf-space-2xs));
+    }
+  }
   .nf-om-doors {
     display: flex;
     flex-direction: column;
@@ -614,11 +622,16 @@
   .nf-om-cta__arrow {
     display: inline-flex;
   }
-  /* The founder, 30 September: the doors' buttons are clean rectangles
-     with softly rounded corners, not pills. */
-  .nf-om .nf-om-foot :is(.nf-om-cta, .nf-om-second) {
-    /* The button system's large corner (tokens.css, --nf-act-radius-*). */
-    border-radius: var(--nf-act-radius-lg);
+  /* The founder, 8 October 2026, to the Plasma reference: the main button
+     is a full-width brand-blue capsule with its soft light on the floor
+     (D74's capsule, `--nf-capsule-reflection`), and the second door beside
+     it the same shape. A button keeps the capsule (section 17). */
+  .nf-om .nf-om-foot .nf-btn.nf-om-cta,
+  .nf-om .nf-om-foot .nf-btn.nf-om-second {
+    border-radius: var(--nf-radius-pill);
+  }
+  .nf-om .nf-om-foot .nf-btn--primary.nf-om-cta {
+    box-shadow: var(--nf-act-shadow), var(--nf-capsule-reflection);
   }
 
   /* ---------------------------------------------------------- the motion */
@@ -631,6 +644,9 @@
   .nf-om-scene[data-state="active"] .nf-om-art-wrap {
     animation-name: nf-om-rise-art;
     animation-timing-function: var(--nf-ease-entrance);
+  }
+  .nf-om-words:not(.nf-om-words--sizer) > .nf-om-count {
+    animation: nf-om-rise 520ms var(--nf-ease-entrance) 260ms both;
   }
   .nf-om-words:not(.nf-om-words--sizer) > .nf-om-title {
     animation: nf-om-rise 560ms var(--nf-ease-entrance) 320ms both;
@@ -670,24 +686,33 @@
   /* Quiet: every step lands at once. `data-quiet` is the hydrated answer
      (reduced motion, Calm or Off); the two rules after it hold the first
      paint before the script has read the setting. */
-  .nf-om[data-quiet] :is(.nf-om-scene, .nf-om-copy, .nf-om-seg__fill) {
+  .nf-om[data-quiet] :is(.nf-om-scene, .nf-om-copy) {
     transition: none;
   }
-  .nf-om[data-quiet] :is(.nf-om-pop, .nf-om-float, .nf-om-words > *, .nf-om-scan__frame, .nf-om-scan__line, .nf-om-total__part) {
+  .nf-om[data-quiet] .nf-om-dot::before {
+    transition: none;
+  }
+  .nf-om[data-quiet] :is(.nf-om-pop, .nf-om-float, .nf-om-count, .nf-om-words > *, .nf-om-scan__frame, .nf-om-scan__line, .nf-om-total__part) {
     animation: none;
   }
   @media (prefers-reduced-motion: reduce) {
-    .nf-om :is(.nf-om-scene, .nf-om-copy, .nf-om-seg__fill) {
+    .nf-om :is(.nf-om-scene, .nf-om-copy) {
       transition: none;
     }
-    .nf-om :is(.nf-om-pop, .nf-om-float, .nf-om-words > *, .nf-om-scan__frame, .nf-om-scan__line, .nf-om-total__part) {
+    .nf-om .nf-om-dot::before {
+      transition: none;
+    }
+    .nf-om :is(.nf-om-pop, .nf-om-float, .nf-om-count, .nf-om-words > *, .nf-om-scan__frame, .nf-om-scan__line, .nf-om-total__part) {
       animation: none;
     }
   }
-  :root:is([data-motion="calm"], [data-motion="off"]) .nf-om :is(.nf-om-scene, .nf-om-copy, .nf-om-seg__fill) {
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-om :is(.nf-om-scene, .nf-om-copy) {
     transition: none;
   }
-  :root:is([data-motion="calm"], [data-motion="off"]) .nf-om :is(.nf-om-pop, .nf-om-float, .nf-om-words > *, .nf-om-scan__frame, .nf-om-scan__line, .nf-om-total__part) {
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-om .nf-om-dot::before {
+    transition: none;
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-om :is(.nf-om-pop, .nf-om-float, .nf-om-count, .nf-om-words > *, .nf-om-scan__frame, .nf-om-scan__line, .nf-om-total__part) {
     animation: none;
   }
 
@@ -782,8 +807,8 @@
       grid-template-areas:
         "top top"
         "stage ."
-        "stage progress"
         "stage copy"
+        "stage progress"
         "stage foot"
         "stage .";
       column-gap: clamp(3rem, 6vw, 6rem);

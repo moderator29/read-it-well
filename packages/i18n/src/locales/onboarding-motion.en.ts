@@ -17,6 +17,9 @@ export const onboardingMotionEn = {
   continue: "Continue",
   example: "Example",
   progress: "Your progress",
+  /* The small counter over each step's title (the founder, 8 October 2026:
+     "add those 1 of 4, 2 of 4"). */
+  count: "{n} of {total}",
   slides: {
     worlds: {
       titleA: "Homes. Stays.",
