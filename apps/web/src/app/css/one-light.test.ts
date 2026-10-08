@@ -37,6 +37,7 @@ const ALLOWED: Record<string, [number, string]> = {
   "app/css/landing.css": [2, "glow: the landing's lit primary, rest and hover (the view's one primary)"],
   "app/css/light.css": [9, "glows on Paper in brand ink (the lit chip, tiles, the profile ring and its contact, the hero chips) and the two night islands on Paper (home top, hero band), which wait for a Paper rung a dark scope can read"],
   "app/css/money-surface.css": [1, "glow: the processor's brand mark lit in its own blue"],
+  "app/css/money-wallet.css": [2, "glows (the founder's Wallet ruling, 8 October 2026): the wallet card's under-light in its own blue, and Add money's bloom in the action blue; both lifts otherwise read the elevation rungs"],
   "app/css/shell-m.css": [3, "glows: the side rail's sideways edge light, the dock plus's brand bloom and its rim"],
   "app/css/site.css": [2, "glow: the site's lit primary and its chip in brand ink"],
   /* PENDING: files that carry another agent's uncommitted work right now. */

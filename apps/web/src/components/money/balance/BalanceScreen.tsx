@@ -5,9 +5,10 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { Locale } from "@vallo/i18n/core";
 import { ListGroup, ListRow } from "@/components/ui/ListGroup";
-import { IconPlate, ICON_PLATE_GLYPH } from "@/components/ui/IconPlate";
 import { Sheet } from "@/components/ui/Sheet";
-import { Button } from "@/components/ui/Button";
+import { Icon3D, type Icon3DName } from "@/components/ui/Icon3D";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
+import type { TieredObjectName } from "@/design-system/icons/object-assets";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { formatMoneyDate } from "@/lib/money/dates";
 import type { MovementView } from "@/lib/money/member-wallet";
@@ -16,7 +17,7 @@ import { isOpenMovement } from "@/lib/money/funds";
 import {
   ACTION_LABEL,
   ACTIVITY_EMPTY,
-  FIGURE_HINT,
+  BALANCE_TITLE,
   FIGURE_LABEL,
   HELD_BY,
   HELD_BY_HREF,
@@ -33,7 +34,7 @@ import {
   confirmedAgo,
   movementTitle,
 } from "@/lib/money/balance-copy";
-import { MoneyFigure, MomentDot } from "../kit";
+import { MoneyFigure } from "../kit";
 import { StepPath } from "../StepPath";
 import { MoneyExplainer } from "../MoneyExplainer";
 import { MovementStatusWord } from "./balance-ui";
@@ -45,29 +46,62 @@ import "@/app/css/money-wallet.css";
 
 /**
  * THE WALLET SCREEN (founder sections 36 to 43; Part B phase 6; D76; D78;
- * the founder on 7 October: "Call it WALLET... design it to be fully clean").
+ * the founder on 7 October: "Call it WALLET... design it to be fully clean";
+ * and on 8 October: "not really premium!!... the withdrawal and transfer
+ * button should be capsule each okay and glass too").
  *
  * One layout for every state, so the member sees the real wallet before the
- * key is connected: the wallet card on the platform's blue container (the
- * figure, or calm words in its place, never a zero), Add money on the card,
- * what is still moving, where the money is, the activity, and the wallet's
- * own two-action bar (Withdraw, Transfer) at the foot.
+ * key is connected. The card, navy into the Vallo blue, holds the name with
+ * Add money (the one solid blue capsule), the figure (or calm words in its
+ * place, never a zero), one short status line, and Withdraw and Transfer as
+ * two frosted glass capsules side by side. Under it, on the platform's own
+ * container: what is still moving, where the money is, the wallet's records
+ * (Payments, Receipts, Payouts, Refunds, D78) and the recent activity, every
+ * row marked with a solid object (D78: no glass icon).
  *
  * Not connected: no figure, every action visibly present and disabled, and
  * one short line on the card saying why. Connected: every figure arrives
  * from the server and this component adds nothing up; when the partner could
  * not be reached the last confirmed figures are shown, labelled, and the
- * actions wait. References: GOVERNING-plasma-rewards-home and -spendable
- * (the wallet home), ledger-home-net-balance-mascot (the movement list),
- * PREMIUM-STANDARD 4 (the figure, its kobo smaller).
+ * actions wait.
  */
-const KIND_ICON: Record<MovementKind, UiIconName> = {
-  deposit: "arrow-down",
-  transfer_in: "arrow-down",
-  withdrawal: "bank",
-  transfer_out: "arrow-up",
-  other: "coins",
+
+/** A solid object from one of the two opaque blue sets (`glass-to-solid.ts`). */
+type SolidArt = { set: "3d"; name: Icon3DName } | { set: "tiered"; name: TieredObjectName };
+const d3 = (name: Icon3DName): SolidArt => ({ set: "3d", name });
+const tier = (name: TieredObjectName): SolidArt => ({ set: "tiered", name });
+
+/* No receipt object beside a naira sum: the 3D receipt carries a "$" coin. */
+const KIND_ART: Record<MovementKind, SolidArt> = {
+  deposit: tier("wallet-plus"),
+  transfer_in: d3("earnings"),
+  withdrawal: d3("bank"),
+  transfer_out: tier("paper-plane"),
+  other: tier("banknotes-stack"),
 };
+
+const FIGURE_ART: Record<"protected" | "pending" | "processing", SolidArt> = {
+  protected: tier("safe-dial"),
+  pending: tier("hourglass"),
+  processing: d3("clock"),
+};
+
+const RECORD_ART: Record<(typeof WALLET_RECORDS)[number]["href"], SolidArt> = {
+  "/payments": d3("card-secure"),
+  "/receipts": d3("receipt"),
+  "/payouts": d3("earnings"),
+  "/refunds": tier("sync-arrows"),
+};
+
+/** A row's mark: the solid object on the quiet blue plate the Profile rows use. */
+function SolidMark({ art, size = "row" }: { art: SolidArt; size?: "row" | "state" }) {
+  const px = size === "row" ? 30 : 44;
+  return (
+    <span className={`nf-mw-mark nf-mw-mark--${size}`} data-host-plate="" aria-hidden="true">
+      {art.set === "3d" ? <Icon3D name={art.name} size={px} /> : <BrandIcon name={art.name} size={px} />}
+    </span>
+  );
+}
 
 const ACTION_ICON: Record<"add" | "withdraw" | "send", UiIconName> = { add: "plus", withdraw: "bank", send: "arrow-up" };
 
@@ -131,6 +165,7 @@ export function BalanceScreen({
       data-reason={reason}
     >
       <WalletCard
+        name={BALANCE_TITLE}
         caption={FIGURE_LABEL.available}
         figure={
           figures ? (
@@ -158,65 +193,73 @@ export function BalanceScreen({
               onClick={() => setHidden((h) => !h)}
               data-testid="balance-hide"
             >
-              <UiIcon name={hidden ? "eye-off" : "eye"} size={20} />
+              <UiIcon name={hidden ? "eye-off" : "eye"} size={18} />
             </button>
           ) : null
         }
         action={
           unreachable ? (
-            <Button variant="secondary" size="md" onClick={refresh} data-testid="balance-retry">
-              Try again
-            </Button>
+            <button type="button" className="nf-mw-btn nf-mw-btn--solid" onClick={refresh} data-testid="balance-retry">
+              <UiIcon name="history" size={18} />
+              <span>Try again</span>
+            </button>
           ) : (
-            /* D76: Add money stays on the card. */
-            <Button variant="secondary" size="md" leadingIcon="plus" disabled={!canMove} onClick={() => setSheet("add")} data-testid="balance-action-add">
-              {ACTION_LABEL.add}
-            </Button>
+            /* D76: Add money stays on the card, the one solid capsule. */
+            <button type="button" className="nf-mw-btn nf-mw-btn--solid" disabled={!canMove} onClick={() => setSheet("add")} data-testid="balance-action-add">
+              <UiIcon name={ACTION_ICON.add} size={18} />
+              <span>{ACTION_LABEL.add}</span>
+            </button>
           )
         }
-      />
+      >
+        {/* The founder, 8 October: Withdraw and Transfer are a capsule each,
+            and glass: two frosted capsules side by side on the blue. */}
+        <div className="nf-mw-moves" role="group" aria-label="Move money">
+          <button type="button" className="nf-mw-btn nf-mw-btn--glass" disabled={!canMove} onClick={() => setSheet("withdraw")} data-testid="balance-action-withdraw">
+            <UiIcon name={ACTION_ICON.withdraw} size={20} />
+            <span>{ACTION_LABEL.withdraw}</span>
+          </button>
+          <button type="button" className="nf-mw-btn nf-mw-btn--glass" disabled={!canMove} onClick={() => setSheet("send")} data-testid="balance-action-send">
+            <UiIcon name={ACTION_ICON.send} size={20} />
+            <span>Transfer</span>
+          </button>
+        </div>
+      </WalletCard>
 
       {!live && figures ? (
-        <p className="nf-balance__note nf-body-sm" role="status">
-          <UiIcon name="info" />
+        <p className="nf-mw-note" role="status">
+          <UiIcon name="info" size={18} />
           <span>{STALE_NOTE}</span>
         </p>
       ) : null}
 
       {watching ? (
-        <section aria-label="Still moving" className="nf-moving-wrap">
-          <h2 className="nf-overline nf-moving-wrap__label">Still moving</h2>
-          <button type="button" className="nf-moving" onClick={() => setOpened(watching)} data-testid="balance-moving">
-            <MomentDot tone="waiting" live size="md" />
-            <span className="nf-moving__text">
-              <span className="nf-moving__title">{movementTitle(watching.kind)}</span>
-              <span className="nf-moving__sub">{counterpartyLine(watching)}</span>
-            </span>
-            <span className="nf-moving__end">
-              <MoneyFigure minor={watching.amountMinor} locale={locale} size="row" kobo="auto" />
-              <MovementStatusWord movement={watching} />
-            </span>
-            <UiIcon name="chevron-right" size={16} className="nf-moving__chev" />
-          </button>
-        </section>
+        <ListGroup label="Still moving" className="nf-mw-group">
+          <ListRow
+            leading={<SolidMark art={KIND_ART[watching.kind]} />}
+            title={movementTitle(watching.kind)}
+            sub={counterpartyLine(watching)}
+            value={<MoneyFigure minor={watching.amountMinor} locale={locale} size="row" kobo="auto" />}
+            status={<MovementStatusWord movement={watching} />}
+            chevron
+            onClick={() => setOpened(watching)}
+            data-testid="balance-moving"
+          />
+        </ListGroup>
       ) : null}
 
       {figures ? (
-        <ListGroup label="Where your money is">
+        <ListGroup label="Where your money is" className="nf-mw-group">
           {(["protected", "pending", "processing"] as const).map((k) => {
             const at = figures[k].confirmedAt;
             /* The time is said once, on the card; a row repeats it only when it differs. */
-            const own = at && at !== availableAt ? ` ${confirmedAgo(at, now)}.` : "";
+            const own = at && at !== availableAt ? confirmedAgo(at, now) : undefined;
             return (
               <ListRow
                 key={k}
-                leading={
-                  <IconPlate size="sm" tone={k === "protected" ? "info" : "neutral"}>
-                    <UiIcon name={k === "protected" ? "shield-lock" : k === "pending" ? "hourglass" : "clock"} size={ICON_PLATE_GLYPH.sm} />
-                  </IconPlate>
-                }
+                leading={<SolidMark art={FIGURE_ART[k]} />}
                 title={FIGURE_LABEL[k]}
-                sub={`${FIGURE_HINT[k]}${own}`}
+                sub={own}
                 value={<MoneyFigure minor={figures[k].minor} locale={locale} currency={figures.currency} size="row" kobo="auto" />}
               />
             );
@@ -224,31 +267,31 @@ export function BalanceScreen({
         </ListGroup>
       ) : null}
 
+      {/* The wallet is where all money lives (D78): the records, one tap away. */}
+      <ListGroup label={WALLET_RECORDS_LABEL} className="nf-mw-group" data-testid="balance-records">
+        {WALLET_RECORDS.map((r) => (
+          <ListRow key={r.href} href={r.href} leading={<SolidMark art={RECORD_ART[r.href]} />} title={r.title} chevron />
+        ))}
+      </ListGroup>
+
       {movements.length === 0 ? (
-        <section className="nf-list-section" aria-labelledby="nf-mw-activity">
+        <section className="nf-list-section nf-mw-group" aria-labelledby="nf-mw-activity">
           <div className="nf-list-section__head">
             <h3 id="nf-mw-activity" className="nf-section-label">
-              Activity
+              Recent activity
             </h3>
           </div>
-          <div className="nf-panel nf-mw-empty" data-testid="balance-activity-empty">
-            <IconPlate size="md" tone="brand">
-              <UiIcon name="receipt" size={ICON_PLATE_GLYPH.md} />
-            </IconPlate>
+          <div className="nf-mw-empty" data-testid="balance-activity-empty">
+            <SolidMark art={tier("clipboard-list")} size="state" />
             <p className="nf-mw-empty__title">{ACTIVITY_EMPTY.title}</p>
-            <p className="nf-mw-empty__body">{ACTIVITY_EMPTY.body}</p>
           </div>
         </section>
       ) : (
-        <ListGroup label="Activity">
+        <ListGroup label="Recent activity" className="nf-mw-group">
           {movements.map((m) => (
             <ListRow
               key={m.id}
-              leading={
-                <IconPlate size="sm" shape="round">
-                  <UiIcon name={KIND_ICON[m.kind]} size={ICON_PLATE_GLYPH.sm} />
-                </IconPlate>
-              }
+              leading={<SolidMark art={KIND_ART[m.kind]} />}
               title={movementTitle(m.kind)}
               sub={formatMoneyDate(m.createdAt, locale, { withTime: true }) ?? counterpartyLine(m)}
               value={<MoneyFigure minor={m.amountMinor} locale={locale} size="row" kobo="auto" sign={sign(m.kind)} className={sign(m.kind) === "+" ? "nf-mfig--in" : undefined} />}
@@ -259,23 +302,6 @@ export function BalanceScreen({
           ))}
         </ListGroup>
       )}
-
-      {/* The wallet is where all money lives: the records, one tap away. */}
-      <ListGroup label={WALLET_RECORDS_LABEL} data-testid="balance-records">
-        {WALLET_RECORDS.map((r) => (
-          <ListRow
-            key={r.href}
-            href={r.href}
-            leading={
-              <IconPlate size="sm">
-                <UiIcon name={r.icon} size={ICON_PLATE_GLYPH.sm} />
-              </IconPlate>
-            }
-            title={r.title}
-            chevron
-          />
-        ))}
-      </ListGroup>
 
       {/* ADR 0003's one line, only where money is actually held. */}
       {connected && figures ? (
@@ -289,18 +315,6 @@ export function BalanceScreen({
           </span>
         </p>
       ) : null}
-
-      {/* D76: the wallet's own bar holds exactly two actions, Withdraw and
-          Transfer, at the foot of the screen above the safe area. The app's
-          main dock is untouched. */}
-      <div className="nf-mw-bar" role="group" aria-label="Move money">
-        <Button variant="primary" size="lg" full leadingIcon={ACTION_ICON.withdraw} disabled={!canMove} onClick={() => setSheet("withdraw")} data-testid="balance-action-withdraw">
-          {ACTION_LABEL.withdraw}
-        </Button>
-        <Button variant="secondary" size="lg" full leadingIcon={ACTION_ICON.send} disabled={!canMove} onClick={() => setSheet("send")} data-testid="balance-action-send">
-          Transfer
-        </Button>
-      </div>
 
       {figures ? (
         <>
