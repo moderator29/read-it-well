@@ -76,15 +76,16 @@ export const COMPANY_RC_NUMBER: string | null = "9870413";
 export const COMPANY_NDPC_REGISTRATION: string | null = null;
 
 /**
- * The Data Protection Officer, named and reachable.
+ * The Data Protection Officer, when one is appointed. Null until then.
  *
- * The Act wants a contact point a person can actually address, not a role
- * title. The founder holds it personally until somebody is appointed, and that
- * is a disclosed arrangement rather than a gap: a named human who reads the
- * channel beats a `dpo@` alias with no mailbox behind it, which is the mistake
- * this codebase already made once with `support@rentme.ng`.
+ * An earlier session wrote the founder in as Data Protection Officer without
+ * his say. He is the co-founder and CEO, not the DPO (founder, 9 October
+ * 2026), so nobody is named. Privacy requests still have a real channel (the
+ * contact form, Privacy as the subject), and the notice says who handles them
+ * without naming a person. Set this to the appointed officer's name once the
+ * company appoints one (an in-house DPO or a licensed DPCO).
  */
-export const DATA_PROTECTION_OFFICER = "Omojuni Oluwaseyifunmi Ebenezer";
+export const DATA_PROTECTION_OFFICER: string | null = null;
 
 /**
  * The host a reader sees written in the notice, when the deployment knows it.

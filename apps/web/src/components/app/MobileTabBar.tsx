@@ -479,7 +479,9 @@ export function MobileTabBar({
                     link's `aria-label`). */}
                 <span className="nf-tab__body">
                   <span className="nf-tab__icon" data-glyph={tab.icon}>
-                    <UiIcon name={tab.icon} size="md" filled weight="bold" />
+                    {/* The search disc draws its lens inside a ring, so at the shared size it
+                        read smaller than its neighbours (founder, 9 October): one rung up. */}
+                    <UiIcon name={tab.icon} size={tab.icon === "search-disc" ? "lg" : "md"} filled weight="bold" />
                   </span>
                 </span>
               </Link>

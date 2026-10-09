@@ -145,7 +145,8 @@
      * The term named the wrong box. Left alone it under-reserved by 14px, in
      * the one token whose whole job is not to under-reserve.
      */
-    --nf-dock-height: 4.375rem;
+    /* 3.75rem tabs since 9 October 2026 (shell-m.css, "THE DOCK, 9 OCTOBER"). */
+    --nf-dock-height: 4.625rem;
     /*
      * ZERO, AND IT WAS 1rem. THE LIFT IS REVERSED ON THE FOUNDER'S RULING.
      *

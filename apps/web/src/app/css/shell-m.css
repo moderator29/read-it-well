@@ -1342,3 +1342,32 @@
   --nf-glow-3: color-mix(in oklab, var(--nf-glow-ink) calc(32% * var(--nf-glow-scale)), transparent);
   --nf-glow-4: color-mix(in oklab, var(--nf-glow-ink) calc(46% * var(--nf-glow-scale)), transparent);
 }
+
+/*
+ * THE DOCK, 9 OCTOBER 2026 (founder: "make it a bit bigger, not longer but a
+ * bit wider ... and the long one a bit shorter so there is a space between it
+ * and the circle"). The capsule and the round More button grow from 56 to 60
+ * px tall together, and the gap between them doubles (8 to 16 px), which the
+ * capsule pays for by being that much shorter: it is `flex: 1 1 auto` and
+ * takes whatever the row leaves. `--nf-dock-height` in chrome.css moves with
+ * it so the content clearance stays exact.
+ */
+@layer components {
+  .nf-dockrow {
+    gap: var(--nf-space-md);
+  }
+  .nf-tabbar .nf-tab__link {
+    height: 3.75rem;
+  }
+  .nf-dockmore__button,
+  .nf-dock-island {
+    width: 3.75rem;
+    height: 3.75rem;
+  }
+  @media (max-width: 379.98px) {
+    .nf-dockmore__button {
+      width: 3.25rem;
+      height: 3.25rem;
+    }
+  }
+}
