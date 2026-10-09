@@ -18,4 +18,5 @@ export const SHOTS_V2 = [
   std(12, "renter-passport-you-choose-to-share", "passport-user", ["Renter passport", "you choose to share"], { sub: "Shown only in conversations you pick." }),
   std(13, "your-workspace-for-every-listing", "workspace-user", ["Your workspace", "for every listing"]),
   std(14, "find-a-restaurant-you-love", "restaurant", ["Find a restaurant", "you love"]),
+  std(15, "app-store-header", "home", ["Homes, stays", "and restaurants"], { sub: "Rent, buy, book a stay or a table." }),
 ];
