@@ -126,7 +126,7 @@ export function BalanceOnboarding({
           },
           {
             key: "open",
-            title: "Open your wallet with Payluk",
+            title: "Open your account with Payluk",
             sub:
               current === "PENDING"
                 ? "Asked. Waiting for their answer; this updates on its own."

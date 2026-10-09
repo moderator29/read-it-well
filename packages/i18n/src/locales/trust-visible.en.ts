@@ -124,7 +124,7 @@ export const trustVisibleEn = {
     /* While codes are not sent: the number is saved to the profile unconfirmed,
        for the things that need one on file (a wallet opened in the member's own name). */
     profileTitle: "Your mobile number",
-    profileBody: "Saved to your profile so things opened in your own name, like your wallet, can use it. It is never shown to anybody. We will ask you to confirm it with a code later.",
+    profileBody: "Saved to your profile so anything opened in your own name, like your payments account, can use it. It is never shown to anybody. We will ask you to confirm it with a code later.",
     profileHint: "A Nigerian mobile number, for example 0803 123 4567.",
     /** `{last}` is the last four digits. */
     profileCurrent: "On your profile: the number ending {last}.",
