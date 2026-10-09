@@ -129,3 +129,28 @@ Produced on 30 September 2026: 35 screenshots for each store and the Play featur
   5. the assistant with its disclosure.
 
   If a screenshot shows an example listing, its Example label must be visible.
+
+---
+
+## Age rating as submitted (9 October 2026)
+
+Recorded from the App Store Connect age-rating form as filled in. Apple's
+calculated rating is **13+**.
+
+**Features:** Parental Controls NO. Age Assurance NO. Unrestricted Web Access
+NO. User-Generated Content YES. Social Media YES. Social Media disabled for
+users under 13 NO. Messaging and Chat YES. Advertising NO.
+
+**Mature themes:** Profanity or Crude Humor NONE. Horror/Fear NONE. Alcohol,
+Tobacco or Drug Use INFREQUENT (restaurant listings can mention bars).
+
+**Medical or Wellness:** Medical or Treatment Information NONE. Health or
+Wellness Topics NO.
+
+**Open conflict, to resolve before the next publish:**
+- This doc says the listing is **18+** because the Terms require users to be
+  18 and over. The submitted rating is **13+**. The two must match: either
+  change the rating to 18+ on the form, or change the Terms and this doc.
+- Apple's form requires Age Assurance to be YES if Social Media is disabled
+  for under-13s. The app has no age check, so the under-13 answer was set to
+  NO. Revisit both when an age check ships.
