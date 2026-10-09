@@ -171,3 +171,16 @@ Change this file in the same commit as any of the following:
 `apps/web/src/lib/legal/privacy-truth.test.ts` fails if the code starts
 calling a processor the notice does not name. It does not read this file:
 reconciling this file is the job of the person who makes the change.
+
+---
+
+## If Vallo adds advertising later
+
+Nothing below applies today. The app has no advertising SDK, no advertising identifier and no tracking, so the answers above stay as they are. Before any ad SDK, attribution tool or advertising identifier is added, the following must change in the same release:
+
+- **Apple:** Q3 becomes **Yes**. Add Advertising Data and Device ID with the purpose Developer's Advertising or Marketing. Request App Tracking Transparency and add `NSUserTrackingUsageDescription`.
+- **Google Play:** declare the advertising ID under Data safety, and update the ads declaration in App content.
+- **Privacy notice** (`apps/web/src/lib/legal/privacy.tsx`) and this file must describe the same data, purposes and partners.
+- **Review notes:** say which SDK does what, and that the user can refuse tracking.
+
+Declaring advertising or tracking before it exists is also a mismatch, so do not pre-declare it.
