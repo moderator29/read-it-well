@@ -95,7 +95,11 @@ export function PeopleSearch({
           clearable={copy.clear}
           onClear={() => setValue("")}
           name="q"
-          type="search"
+          /* Text, not "search": a search input draws the browser's own clear
+             button beside ours. The search keyboard still comes from
+             inputMode and enterKeyHint. */
+          type="text"
+          inputMode="search"
           value={value}
           onChange={(event) => setValue(event.target.value)}
           placeholder={copy.placeholder}
