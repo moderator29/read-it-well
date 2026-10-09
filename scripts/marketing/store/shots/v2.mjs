@@ -14,7 +14,7 @@ export const SHOTS_V2 = [
   std(8, "search-homes-across-nigeria", "search", ["Search homes", "across Nigeria"]),
   std(9, "homes-stays-and-restaurants", "welcome-user", ["Homes, stays", "and restaurants"], { sub: "Rent, buy, book a stay or a table." }),
   std(10, "help-is-one-tap-away", "support", ["Help is one tap away"]),
-  std(11, "your-wallet-add-send-withdraw", "wallet-user", ["Your wallet,", "add, send, withdraw"], { sub: "Your money is held by Payluk, our licensed payments partner." }),
+  std(11, "your-wallet-add-send-withdraw", "wallet-user", ["Your wallet,", "add, send, withdraw"], { sub: "Your money is held by our licensed payments provider, not by Vallo." }),
   std(12, "renter-passport-you-choose-to-share", "passport-user", ["Renter passport", "you choose to share"], { sub: "Shown only in conversations you pick." }),
   std(13, "your-workspace-for-every-listing", "workspace-user", ["Your workspace", "for every listing"]),
   std(14, "find-a-restaurant-you-love", "restaurant", ["Find a restaurant", "you love"]),
