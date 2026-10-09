@@ -12,8 +12,7 @@ The rules this copy follows:
   catalogue is labelled example listings (STORE-11).
 - **No escrow, no "safe", no "secure", no "guaranteed", no
   "protected".** Vallo never holds customer money (Track A). Money in the
-  wallet is held by our licensed payments provider, never by Vallo, and the
-  copy says so. "The Vallo
+  wallet is held by Payluk, our licensed payments partner, never by Vallo. "The Vallo
   Guarantee" may be named as a product, always with its limits (capped,
   reviewed, rentals and stays only).
 - **No "best price" and no "cheapest".** The price check says what a place
@@ -51,8 +50,8 @@ Character limits are in brackets. The counts include spaces.
 > Follow areas and people, read and post updates, and share a listing with a friend.
 >
 > PAY THROUGH A LICENSED PROVIDER
-> Add money to your wallet, send it or withdraw it. Your money is held by our
-> licensed payments provider, not by Vallo.
+> Add money to your wallet, send it or withdraw it. Your money is held by
+> Payluk, our licensed payments partner, not by Vallo.
 > Inspect, confirm the agreement with the owner or agent, and pay once Vallo
 > approves it. Their share goes straight to their bank. Vallo charges no
 > inspection fee.
