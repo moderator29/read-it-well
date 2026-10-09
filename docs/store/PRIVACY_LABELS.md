@@ -153,7 +153,7 @@ is stored) / **Required or optional?** / **Purposes**.
 - Independent security review: **No**
 
 ### Other Play declarations that must agree with this
-- **Financial features:** Vallo holds no money (Track A). Digital wallet: **no**.
+- **Financial features:** Vallo holds no money (Track A). Customer funds in the wallet are held by our licensed payments provider. Digital wallet: **yes**, provided through that licensed provider. Counsel to confirm this declaration before submission.
   P2P transfer: **no**. Payments for rentals and stays through a licensed
   processor, split at the moment of payment: yes. Crypto: no. Loans: no.
 - **Target audience:** 18 and over.

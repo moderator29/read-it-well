@@ -51,7 +51,7 @@ A Nigerian app for homes, hotels, shortlets and restaurants, with one account: r
 
 Floating cards that overlap a phone's edge, like a notification that just arrived. Glass: white at 92% (on light) or navy `rgb(10 16 60 / .82)` with a 1.5 px `rgb(120 170 255 / .35)` edge (on dark), backdrop blur, radius 28–36 px, soft long shadow. An icon chip (Fluent sticker or lucide icon on a tinted circle), a bold title, one line under it, optional amount, optional "now". Only phrasing that describes what the product really does:
 
-- "Payment settled · ₦1,800,000 straight to your bank" (for an owner; never "held" or "wallet")
+- "Payment settled · ₦1,800,000 straight to your bank" (for an owner; never "held by Vallo"; a wallet is held by our licensed provider)
 - "Room booked · Lagoon Crest Resort · 3 nights"
 - "Table for 2 · Tonight, 8:00 PM · Harbour Lights Kitchen"
 - "New message · Vallo Examples replied" (match the thread on screen; never "the owner replied" over a thread with an agent)
