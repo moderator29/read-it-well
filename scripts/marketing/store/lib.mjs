@@ -18,7 +18,7 @@ export const FONTS = join(REPO, "apps", "web", "public", "fonts");
 /* STORE_SCREENS points the compositor at another folder of displays (design proofs). */
 export const SCREENS = process.env.STORE_SCREENS || join(REPO, "docs", "marketing", "screens");
 export const SOURCE = join(REPO, "docs", "marketing", "source");
-export const OUT = join(REPO, "docs", "store", "screenshots");
+export const OUT = process.env.STORE_OUT ?? join(REPO, "docs", "store", "screenshots");
 const MODULES = join(MARKETING, "node_modules");
 const ICONS = join(MODULES, "lucide-static", "icons");
 

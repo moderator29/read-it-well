@@ -93,7 +93,7 @@ async function stdPhone(ctx, m, id) {
 }
 
 /** The template every plain image follows. */
-function std(n, slug, id, lines, { sub, extra } = {}) {
+export function std(n, slug, id, lines, { sub, extra } = {}) {
   return {
     n, slug, captures: [id],
     async layout(ctx) {
@@ -128,7 +128,7 @@ function pageBox(at, [x0, y0, x1, y1], label, dx = 0) {
  * the phone is drawn once, tilted by the 3D studio, and keeps the studio's
  * own mapping of the capture.
  */
-function pair(a, b, { id, rotation, fov, dx = 0, h = 1, clear, through, extraA, extraB }) {
+export function pair(a, b, { id, rotation, fov, dx = 0, h = 1, clear, through, extraA, extraB }) {
   const shared = async ({ pc, W, H, ios }) => {
     const m = M({ W, H, ios });
     const o = { id, cy: m.phoneTop + m.phoneH / 2, h: m.phoneH * h, rotation, fov, color: PHONE_COLOR, margin: ios ? 64 : 70 };

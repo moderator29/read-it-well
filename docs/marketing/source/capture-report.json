@@ -644,7 +644,14 @@
   },
   "home": {
     "url": "/home",
-    "at": "2026-09-30T20:36:35.669Z",
+    "at": "2026-10-09T06:19:38.418Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "home-featured": {
+    "url": "/home",
+    "at": "2026-10-09T06:25:39.931Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
@@ -665,7 +672,7 @@
   },
   "home-recent": {
     "url": "/home",
-    "at": "2026-09-30T22:59:25.011Z",
+    "at": "2026-10-09T06:20:30.356Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
@@ -714,7 +721,7 @@
   },
   "listing": {
     "url": "/listing/ed000000-0000-4000-8000-00000000003e",
-    "at": "2026-09-30T15:25:27.088Z",
+    "at": "2026-10-09T06:21:36.291Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
@@ -735,7 +742,7 @@
   },
   "listing-cost": {
     "url": "/listing/ed000000-0000-4000-8000-00000000003e",
-    "at": "2026-09-30T15:25:37.483Z",
+    "at": "2026-10-09T06:21:47.463Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
@@ -840,14 +847,14 @@
   },
   "payment-methods": {
     "url": "/settings/payments",
-    "at": "2026-09-30T15:31:39.273Z",
+    "at": "2026-10-09T06:23:37.810Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
   },
   "payments": {
     "url": "/payments",
-    "at": "2026-09-30T15:31:30.560Z",
+    "at": "2026-10-09T06:23:27.778Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
@@ -882,7 +889,7 @@
   },
   "profile": {
     "url": "/profile",
-    "at": "2026-09-30T15:30:52.312Z",
+    "at": "2026-10-09T06:23:09.983Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
@@ -910,14 +917,14 @@
   },
   "restaurants": {
     "url": "/restaurants",
-    "at": "2026-09-30T15:28:36.382Z",
+    "at": "2026-10-09T06:22:59.055Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
   },
   "saved": {
     "url": "/saved",
-    "at": "2026-09-30T23:52:20.663Z",
+    "at": "2026-10-09T06:22:17.843Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
@@ -931,7 +938,7 @@
   },
   "search": {
     "url": "/search?market=rent",
-    "at": "2026-09-30T15:24:25.937Z",
+    "at": "2026-10-09T06:21:05.277Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
@@ -980,7 +987,7 @@
   },
   "sign-up": {
     "url": "/sign-up",
-    "at": "2026-09-30T15:22:05.827Z",
+    "at": "2026-10-09T06:18:58.472Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": false
@@ -1008,7 +1015,7 @@
   },
   "stays": {
     "url": "/stays",
-    "at": "2026-09-30T20:37:43.540Z",
+    "at": "2026-10-09T06:22:39.655Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
@@ -1064,7 +1071,7 @@
   },
   "support": {
     "url": "/support",
-    "at": "2026-09-30T15:31:47.518Z",
+    "at": "2026-10-09T06:23:46.127Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
@@ -1112,11 +1119,8 @@
     "signedIn": true
   },
   "welcome-1": {
-    "url": "/welcome",
-    "at": "2026-09-30T15:19:34.195Z",
-    "kind": "mobile",
-    "theme": "dark",
-    "signedIn": false
+    "failed": "locator.click: Timeout 12000ms exceeded.",
+    "at": "2026-10-09T06:18:47.658Z"
   },
   "welcome-1-lt": {
     "url": "/welcome",

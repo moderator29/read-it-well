@@ -78,6 +78,7 @@ const BASE_CAPTURES = [
   { id: "home", full: true, steps: HOME },
   /* "Looked at recently" is what this phone remembers (lib/search/memory.ts),
      so the capture looks at three places first. */
+  { id: "home-featured", steps: [...HOME, { reveal: "[data-testid=featured-properties]", offset: 96 }] },
   { id: "home-recent", steps: [{ goto: LISTING_BANANA }, { goto: LISTING_SALE }, { goto: LISTING_RENT }, ...HOME, { reveal: "h2:text-is('Looked at recently')", offset: 60 }] },
   { id: "drawer", steps: [...HOME, { click: "button[aria-label='Open menu']" }, { wait: 1200 }] },
   { id: "search", full: true, steps: go("/search?market=rent") },
