@@ -845,6 +845,13 @@
     "theme": "light",
     "signedIn": true
   },
+  "passport": {
+    "url": "/first-run/passport?next=%2Fsettings%2Fpassport",
+    "at": "2026-10-09T07:00:29.025Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
   "payment-methods": {
     "url": "/settings/payments",
     "at": "2026-10-09T06:33:53.405Z",
@@ -896,7 +903,7 @@
   },
   "restaurant": {
     "url": "/restaurant/eb000000-0000-4000-8000-000000000006",
-    "at": "2026-09-30T15:28:53.729Z",
+    "at": "2026-10-09T07:01:22.043Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
@@ -1118,6 +1125,13 @@
     "theme": "light",
     "signedIn": true
   },
+  "wallet": {
+    "url": "/wallet",
+    "at": "2026-10-09T07:00:21.008Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
   "welcome-1": {
     "failed": "locator.click: Timeout 12000ms exceeded.",
     "at": "2026-10-09T06:18:47.658Z"
@@ -1146,6 +1160,13 @@
   "welcome-4": {
     "url": "/welcome",
     "at": "2026-09-30T15:20:15.685Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": false
+  },
+  "welcome-first": {
+    "url": "/welcome",
+    "at": "2026-10-09T07:01:02.429Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": false
@@ -1205,5 +1226,12 @@
     "theme": "light",
     "signedIn": false,
     "locale": "yo"
+  },
+  "workspace": {
+    "url": "/agent/dashboard",
+    "at": "2026-10-09T07:00:39.257Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
   }
 }
