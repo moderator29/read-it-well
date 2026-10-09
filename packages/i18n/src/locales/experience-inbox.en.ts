@@ -296,6 +296,31 @@ export const experienceInboxEn = {
     send: "Send",
   },
 
+  /**
+   * A message to a person, written from their profile (9 October 2026).
+   * `{name}` is their name, `{handle}` their @name.
+   */
+  direct: {
+    metaTitle: "Message",
+    title: "Message {name}",
+    placeholder: "Write a message to {name}",
+    hint: "They get a notification. Once they reply you can call each other from the chat.",
+    send: "Send",
+    sending: "Sending",
+    back: "Back to the profile",
+    signedOutTitle: "Sign in to message {name}",
+    signedOutBody: "Messages are between members, so this needs your account. You will come straight back here.",
+    signIn: "Sign in",
+    notFoundTitle: "We could not find that person",
+    notFoundBody: "They may have changed their name, or you may not be able to reach them. Search for them again.",
+    findPeople: "Find people",
+    selfTitle: "That is you",
+    selfBody: "Pick somebody else to message, or open your inbox.",
+    inbox: "Open your inbox",
+    unreachableTitle: "We cannot reach messaging right now",
+    unreachableBody: "This is on our side, not yours. Nothing has been sent. Try again in a few minutes.",
+  },
+
   /* ------------------------------------------------------------- assistant */
   assistant: {
     answerLabel: "Vallo AI",

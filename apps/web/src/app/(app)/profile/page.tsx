@@ -10,6 +10,7 @@ import { loadProfileState } from "@/lib/profile/queries";
 import { loadAccountSocialIdentity } from "@/lib/profile/social-identity";
 import { getProfileFeed } from "@/lib/social/posts-queries";
 import { AccountHero } from "./AccountHero";
+import { PeopleSearch } from "@/components/social/find/PeopleSearch";
 import { SignedOutHero } from "./SignedOutHero";
 import { AccountBody } from "./AccountBody";
 import { getAgentContext } from "@/lib/agent/listings-queries";
@@ -252,6 +253,22 @@ export default async function ProfilePage({
           ) : null
         }
       />
+
+      {/* Find anybody by @username (founder, 9 October 2026): type, and their
+          profile is one tap away, where Follow and Message are. */}
+      <div className="mx-gutter mt-block">
+        <PeopleSearch
+          mode="dropdown"
+          copy={{
+            label: t.experienceSocial.people.findLabel,
+            placeholder: t.experienceSocial.people.findPlaceholder,
+            clear: t.experienceSocial.people.clear,
+            searching: t.experienceSocial.people.findSearching,
+            none: t.experienceSocial.people.findNone,
+            seeAll: t.experienceSocial.people.findSeeAll,
+          }}
+        />
+      </div>
 
       {/*
         The calm verification prompt, under the person rather than above the

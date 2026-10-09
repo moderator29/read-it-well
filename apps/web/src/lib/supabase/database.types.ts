@@ -15169,7 +15169,7 @@ export type Database = {
         | "operations"
       supply_role: "owner" | "agent"
       support_ticket_status: "open" | "pending" | "resolved" | "closed"
-      thread_context: "listing" | "reservation" | "booking" | "business"
+      thread_context: "listing" | "reservation" | "booking" | "business" | "direct"
       transaction_status:
         | "SUCCESSFUL"
         | "PENDING"
@@ -15554,7 +15554,7 @@ export const Constants = {
       ],
       supply_role: ["owner", "agent"],
       support_ticket_status: ["open", "pending", "resolved", "closed"],
-      thread_context: ["listing", "reservation", "booking", "business"],
+      thread_context: ["listing", "reservation", "booking", "business", "direct"],
       transaction_status: [
         "SUCCESSFUL",
         "PENDING",

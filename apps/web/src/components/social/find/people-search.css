@@ -1,0 +1,57 @@
+/*
+ * FIND PEOPLE BY @USERNAME (9 October 2026). The live search box on the Profile
+ * tab: a field, and under it the first few matches as plain rows. Tapping a
+ * row opens that person's profile. The rows borrow the people list's avatar,
+ * name and handle classes (social-feed.css) so a person looks the same here
+ * as on /u.
+ */
+@layer components {
+  .nf-pfind {
+    display: grid;
+    gap: var(--nf-space-xs);
+  }
+  .nf-pfind__panel {
+    display: grid;
+    padding: var(--nf-space-2xs);
+    border: var(--nf-border-width) solid var(--nf-tier-card-edge);
+    border-radius: var(--nf-radius-lg);
+    background: var(--nf-surface-primary);
+    box-shadow: var(--nf-card-shadow);
+  }
+  .nf-pfind__row {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    min-block-size: 3.5rem;
+    padding: var(--nf-space-xs) var(--nf-space-sm);
+    border-radius: var(--nf-radius-md);
+    color: var(--nf-content-primary);
+    text-decoration: none;
+  }
+  .nf-pfind__row:hover,
+  .nf-pfind__row:focus-visible {
+    background: color-mix(in oklab, var(--nf-content-primary) 6%, transparent);
+  }
+  .nf-pfind__row:active {
+    background: color-mix(in oklab, var(--nf-content-primary) 10%, transparent);
+  }
+  .nf-pfind__who {
+    min-inline-size: 0;
+    flex: 1;
+  }
+  .nf-pfind__note {
+    margin: 0;
+    padding: var(--nf-space-sm);
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-muted);
+  }
+  .nf-pfind__all {
+    display: block;
+    padding: var(--nf-space-sm);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-brand-secondary);
+    text-decoration: none;
+    border-block-start: var(--nf-border-width) solid var(--nf-divider);
+  }
+}

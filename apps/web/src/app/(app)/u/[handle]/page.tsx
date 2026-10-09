@@ -209,17 +209,17 @@ export default async function SocialProfilePage({
               />
             )
           }
-          /* How to reach them (A.7). Messages on Vallo are about a place, so
-             the way to reach an agent is their newest published listing's
-             conversation, which opens with that listing attached. Somebody
-             with nothing listed has no message control rather than one that
-             leads to an empty inbox. */
+          /* How to reach them. Every other member can be written to from their
+             profile (founder, 9 October 2026): one chat per pair of people,
+             separate from the chats about a listing, which still start from
+             the listing. Signed out, the same link leads to a sign-in that
+             returns here. */
           message={
-            !view.isOwner && isAgentPage && properties[0] ? (
-              <ButtonLink href={`/messages/new?listing=${properties[0].id}`} size="sm" variant="secondary">
+            view.isOwner ? undefined : (
+              <ButtonLink href={`/u/${view.profile.handle}/message`} size="sm" variant="secondary" leadingIcon="messages" className="shrink-0">
                 {t.socialProfile.message}
               </ButtonLink>
-            ) : undefined
+            )
           }
           share={
             <ProfileShare

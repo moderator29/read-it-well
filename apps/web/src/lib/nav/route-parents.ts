@@ -359,6 +359,7 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/u/[handle]/edit": "/u/[handle]",
   "/u/[handle]/followers": "/u/[handle]",
   "/u/[handle]/following": "/u/[handle]",
+  "/u/[handle]/message": "/u/[handle]",
 
   /* ------------------------------------------------------------- account */
   "/assistant": "/home",

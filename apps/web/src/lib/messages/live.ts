@@ -251,7 +251,7 @@ export async function loadConversationSummaries(
      together rather than one after another (Track M performance: the inbox
      finished 1.4 seconds after the tap on production). What each one reads
      is unchanged. */
-  const [{ data: recent }, { data: mine }, identities, exactUnread] = await Promise.all([
+  const [{ data: recent }, { data: mine }, identities, exactUnread, { data: myProfile }] = await Promise.all([
     supabase
       .from("messages")
       .select("id, conversation_id, sender_id, body, created_at, read_at")
@@ -270,7 +270,12 @@ export async function loadConversationSummaries(
        unread too, and missed anything below its 400th message. It stays
        only as the fallback when the function cannot be read. */
     loadUnreadCounts(supabase),
+    /* How this person wants to be written to (profile setting "Who can message
+       you"): "Anyone" lets a new person's chat arrive in Primary instead of
+       Requests. Read once for the whole inbox. */
+    supabase.from("social_profiles").select("contact_policy").eq("user_id", user.id).maybeSingle(),
   ]);
+  const openToAnyone = (myProfile as { contact_policy?: string } | null)?.contact_policy === "OPEN";
 
   const lastByConversation = new Map<
     string,
@@ -297,14 +302,18 @@ export async function loadConversationSummaries(
   const spokenIn = new Set<string>();
   for (const row of mine ?? []) spokenIn.add(row.conversation_id);
 
-  /* UX-P2-03: a listing thread with no message in it is a tap somebody
-     abandoned (the old "Message" page opened one on load). It is not shown in
-     either inbox. Only when the recent sweep was not cut off, so an old,
+  /* UX-P2-03: a listing (or direct) thread with no message in it is a tap
+     somebody abandoned (the old "Message" page opened one on load). It is not
+     shown in either inbox. Only when the recent sweep was not cut off, so an old,
      quiet thread is never mistaken for an empty one. */
   const sweepComplete = (recent ?? []).length < 400;
   const shown = conversations.filter(
     (c) =>
-      !(sweepComplete && !lastByConversation.has(c.id) && (c.context_kind ?? "listing") === "listing"),
+      !(
+        sweepComplete &&
+        !lastByConversation.has(c.id) &&
+        ((c.context_kind ?? "listing") === "listing" || c.context_kind === "direct")
+      ),
   );
 
   return shown.map((c) => {
@@ -332,7 +341,7 @@ export async function loadConversationSummaries(
       /* A request is a thread the caller has never spoken in AND did not open.
          An enquiry the caller sent themselves is theirs even before the host
          answers, so it belongs in Primary from the first second. */
-      isRequest: !spokenIn.has(c.id) && c.guest_id !== user.id,
+      isRequest: !spokenIn.has(c.id) && c.guest_id !== user.id && !(c.context_kind === "direct" && openToAnyone),
       counterpartKind: identity?.isAgent ? "agent" : "member",
       counterpartVerified: identity?.verified ?? false,
       counterpartTier: identity?.tier ?? "none",
@@ -477,6 +486,10 @@ export async function getThreadContext(conversationId: string): Promise<ThreadCo
       })),
     };
   }
+
+  /* A chat between two members (9 October 2026): no listing, no desk, no
+     agent and tenant tags, just the two people. */
+  if (conversation.context_kind === "direct") return { kind: "direct" };
 
   return {
     kind: "listing",
