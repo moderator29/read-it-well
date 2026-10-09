@@ -307,7 +307,10 @@ export async function createCustomer(ctx: PaylukContext, input: RailCustomerInpu
       lastname: input.lastName,
       email: input.email,
       phone: input.phone,
-      ...(input.country ? { countryId: input.country } : {}),
+      /* Only a Payluk country id is sent; a two-letter code is refused live
+         ("Cast to ObjectId failed"), so it is dropped and Payluk falls back to
+         the merchant account's own country. */
+      ...(input.country && /^[0-9a-f]{24}$/i.test(input.country) ? { countryId: input.country } : {}),
     },
     mutates: true,
   });

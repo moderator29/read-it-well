@@ -162,7 +162,10 @@ export async function openBalanceAccount(): Promise<ActionResult<OpenResult>> {
       lastName: profile.lastName!.trim(),
       email,
       phone: normalisePhone(profile.phone ?? "")!,
-      country: "NG",
+      /* No countryId: Payluk's live API refuses "NG" (it casts the field to its
+         own internal id, despite the docs), and an omitted country inherits the
+         merchant account's, which is Nigeria (create-merchant-customer). Seen
+         live 9 October 2026: "Cast to ObjectId failed for value NG". */
     });
     if (!created.ok) {
       /* A refusal is a real answer; anything else is not, and the next try looks up first. */

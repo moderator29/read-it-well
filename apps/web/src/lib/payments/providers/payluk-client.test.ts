@@ -222,7 +222,8 @@ describe("customers", () => {
     ]);
     const r = await createCustomer(ctx, { firstName: "Ada", lastName: "Eze", email: "ada@example.com", phone: "08012345678", country: "NG" });
     expect(r).toMatchObject({ ok: true, value: { customerId: "6a19b57ffa797d3af379ca2a", status: "active", blocked: false, canWithdraw: true } });
-    expect(calls[0]!.body).toEqual({ firstname: "Ada", lastname: "Eze", email: "ada@example.com", phone: "08012345678", countryId: "NG" });
+    /* A two-letter code is dropped: Payluk's live API refuses it (9 October 2026). */
+    expect(calls[0]!.body).toEqual({ firstname: "Ada", lastname: "Eze", email: "ada@example.com", phone: "08012345678" });
   });
 });
 
