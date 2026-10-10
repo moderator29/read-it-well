@@ -418,7 +418,7 @@ Apple, stage 2 (after the D-U-N-S number arrives):
 Google (Play Console status unconfirmed):
 
 - [ ] Create or confirm the Play Console account (organisation)
-- [ ] Paste the Firebase Android API key into `apps/web/android/app/google-services.json` (project `vallo-44059`)
+- [ ] Paste the Firebase Android API key into `apps/web/android/app/google-services.json` (project `vallo-6f946`)
 - [ ] Create the upload keystore and `android/keystore.properties` (never committed)
 - [ ] Create the Play app; enrol in Play App Signing on first upload
 - [ ] Put the app-signing and upload-key SHA-256 fingerprints into `assetlinks.json`

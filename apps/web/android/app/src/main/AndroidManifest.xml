@@ -244,7 +244,7 @@
             reason and is the default people fall back to.
 
             NONE OF THIS DOES ANYTHING WITHOUT A VALID `app/google-services.json`.
-            The file is in the repository for Firebase project `vallo-44059`
+            The file is in the repository for Firebase project `vallo-6f946`
             but its `current_key` is still a placeholder, so `app/build.gradle`
             refuses a release build until the owner pastes the real Android
             API key in.

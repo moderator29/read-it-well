@@ -15,7 +15,7 @@ status and findings: `VALLO_NATIVE_RELEASE_AUDIT.md`.
 | Versions | `versionCode 100000`, `versionName "0.1.0"` from `npm run sync:versions` (refuses to move backwards) | READY |
 | Release build type | `debuggable false`, R8 on, `shrinkResources false` (splash resolved by name) | READY; R8 output UNVERIFIED |
 | Signing | `keystore.properties` + `*.jks` gitignored; absent file gives an unsigned artefact, never debug-signed | BLOCKED BY CREDENTIALS (upload keystore) |
-| Firebase | `app/google-services.json` for project `vallo-44059`, package matches; `current_key` is a placeholder; release refuses until real | BLOCKED BY CREDENTIALS (Android API key). Server side (`FCM_*`) already in Vercel |
+| Firebase | `app/google-services.json` for project `vallo-6f946`, package matches; `current_key` is a placeholder; release refuses until real | BLOCKED BY CREDENTIALS (Android API key). Server side (`FCM_*`) already in Vercel |
 
 ## Manifest
 
@@ -32,7 +32,7 @@ status and findings: `VALLO_NATIVE_RELEASE_AUDIT.md`.
 ## Steps, in order
 
 1. [ ] Play Console account (organisation); create the app `com.vallospaces.app`.
-2. [ ] Firebase console, project `vallo-44059`: copy the Android API key into `current_key` in `google-services.json` and commit it (not a secret).
+2. [ ] Firebase console, project `vallo-6f946`: copy the Android API key into `current_key` in `google-services.json` and commit it (not a secret).
 3. [ ] Create the upload keystore; write `apps/web/android/keystore.properties`; store both outside git and in the CI secret store.
 4. [ ] The debug APK is already built by CI on every run (artifact `vallo-android-debug-<sha>`, 14 days), so Android Studio is not needed for a first device pass: install it and run the P0 rows of `VALLO_NATIVE_TEST_MATRIX.md` (see `FOUNDER_DEVICE_TEST_BRIEF.md`). To build locally instead: `npm ci`, `CAPACITOR_SERVER_URL=https://www.vallospaces.com npm run cap:sync:dev --workspace @vallo/web`, `./gradlew assembleDebug`, install, run `VALLO_NATIVE_TEST_MATRIX.md`.
 5. [ ] `VALLO_BUILD=<n> npm run sync:versions`, `./gradlew bundleRelease` → `app/build/outputs/bundle/release/app-release.aab`.
