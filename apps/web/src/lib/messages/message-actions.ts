@@ -18,11 +18,6 @@ import { deleteMessageSchema, forwardMessageSchema } from "./schema";
 const PAUSED_MESSAGE = "Messaging is paused for maintenance. Please try again in a little while.";
 const FAILED_MESSAGE = "That did not work. Please try again.";
 
-type RpcCall = (
-  fn: string,
-  args: Record<string, unknown>,
-) => PromiseLike<{ data: unknown; error: { message: string } | null }>;
-
 export type DeleteMessageResult = { scope: "me" | "everyone"; messageId: string };
 
 export async function deleteMessage(input: {
@@ -37,10 +32,7 @@ export async function deleteMessage(input: {
   const parsed = validate(deleteMessageSchema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
-  /* The two functions are in migration 20261011120000, still pending. Until it is
-     applied and the database types are regenerated, the typed client does not
-     know their names, so the call is typed by hand here. Remove the casts then. */
-  const { data, error } = await (session.supabase.rpc as unknown as RpcCall)("delete_message", {
+  const { data, error } = await session.supabase.rpc("delete_message", {
     p_message_id: parsed.data.messageId,
     p_scope: parsed.data.scope,
   });
@@ -60,7 +52,7 @@ export async function forwardMessage(input: {
   const parsed = validate(forwardMessageSchema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
-  const { data, error } = await (session.supabase.rpc as unknown as RpcCall)("forward_message", {
+  const { data, error } = await session.supabase.rpc("forward_message", {
     p_message_id: parsed.data.messageId,
     p_conversation_id: parsed.data.conversationId,
   });

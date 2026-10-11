@@ -791,6 +791,45 @@ export type Database = {
           },
         ]
       }
+      agreement_risk_settings: {
+        Row: {
+          amount_threshold_minor: number
+          check_amount: boolean
+          check_first_deal: boolean
+          check_fraud_radar: boolean
+          check_payout_name: boolean
+          check_recent_change: boolean
+          id: number
+          recent_change_days: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          amount_threshold_minor?: number
+          check_amount?: boolean
+          check_first_deal?: boolean
+          check_fraud_radar?: boolean
+          check_payout_name?: boolean
+          check_recent_change?: boolean
+          id?: number
+          recent_change_days?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          amount_threshold_minor?: number
+          check_amount?: boolean
+          check_first_deal?: boolean
+          check_fraud_radar?: boolean
+          check_payout_name?: boolean
+          check_recent_change?: boolean
+          id?: number
+          recent_change_days?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       ai_conversations: {
         Row: {
           created_at: string
@@ -1603,6 +1642,63 @@ export type Database = {
             columns: ["booking_id"]
             isOneToOne: true
             referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      booking_refund_parts: {
+        Row: {
+          amount_minor: number
+          claim_key: string
+          created_at: string
+          id: string
+          processor_refund_id: string | null
+          processor_status: string
+          provider_ref: string
+          refund_id: string
+          settled_at: string | null
+          submitted_at: string | null
+          transaction_id: string
+        }
+        Insert: {
+          amount_minor: number
+          claim_key: string
+          created_at?: string
+          id?: string
+          processor_refund_id?: string | null
+          processor_status?: string
+          provider_ref: string
+          refund_id: string
+          settled_at?: string | null
+          submitted_at?: string | null
+          transaction_id: string
+        }
+        Update: {
+          amount_minor?: number
+          claim_key?: string
+          created_at?: string
+          id?: string
+          processor_refund_id?: string | null
+          processor_status?: string
+          provider_ref?: string
+          refund_id?: string
+          settled_at?: string | null
+          submitted_at?: string | null
+          transaction_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_refund_parts_refund_id_fkey"
+            columns: ["refund_id"]
+            isOneToOne: false
+            referencedRelation: "booking_refunds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_refund_parts_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
             referencedColumns: ["id"]
           },
         ]
@@ -2549,6 +2645,428 @@ export type Database = {
           },
         ]
       }
+      call_events: {
+        Row: {
+          actor_id: string | null
+          call_id: string
+          created_at: string
+          detail: Json
+          event: string
+          from_state: string | null
+          id: number
+          source: string
+          to_state: string | null
+        }
+        Insert: {
+          actor_id?: string | null
+          call_id: string
+          created_at?: string
+          detail?: Json
+          event: string
+          from_state?: string | null
+          id?: never
+          source: string
+          to_state?: string | null
+        }
+        Update: {
+          actor_id?: string | null
+          call_id?: string
+          created_at?: string
+          detail?: Json
+          event?: string
+          from_state?: string | null
+          id?: never
+          source?: string
+          to_state?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_events_call_id_fkey"
+            columns: ["call_id"]
+            isOneToOne: false
+            referencedRelation: "calls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      call_participants: {
+        Row: {
+          call_id: string
+          connected_seconds: number
+          first_joined_at: string | null
+          id: string
+          invited_at: string
+          join_count: number
+          joined_at: string | null
+          last_seen_at: string | null
+          last_token_at: string | null
+          left_at: string | null
+          provider_identity: string | null
+          responded_at: string | null
+          role: string
+          state: string
+          token_count: number
+          user_id: string
+        }
+        Insert: {
+          call_id: string
+          connected_seconds?: number
+          first_joined_at?: string | null
+          id?: string
+          invited_at?: string
+          join_count?: number
+          joined_at?: string | null
+          last_seen_at?: string | null
+          last_token_at?: string | null
+          left_at?: string | null
+          provider_identity?: string | null
+          responded_at?: string | null
+          role: string
+          state?: string
+          token_count?: number
+          user_id: string
+        }
+        Update: {
+          call_id?: string
+          connected_seconds?: number
+          first_joined_at?: string | null
+          id?: string
+          invited_at?: string
+          join_count?: number
+          joined_at?: string | null
+          last_seen_at?: string | null
+          last_token_at?: string | null
+          left_at?: string | null
+          provider_identity?: string | null
+          responded_at?: string | null
+          role?: string
+          state?: string
+          token_count?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_participants_call_id_fkey"
+            columns: ["call_id"]
+            isOneToOne: false
+            referencedRelation: "calls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      call_provider_events: {
+        Row: {
+          call_id: string | null
+          event: string
+          event_id: string
+          outcome: string
+          provider: string
+          provider_created_at: string | null
+          received_at: string
+          room: string | null
+        }
+        Insert: {
+          call_id?: string | null
+          event: string
+          event_id: string
+          outcome?: string
+          provider: string
+          provider_created_at?: string | null
+          received_at?: string
+          room?: string | null
+        }
+        Update: {
+          call_id?: string | null
+          event?: string
+          event_id?: string
+          outcome?: string
+          provider?: string
+          provider_created_at?: string | null
+          received_at?: string
+          room?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_provider_events_call_id_fkey"
+            columns: ["call_id"]
+            isOneToOne: false
+            referencedRelation: "calls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      call_review_entries: {
+        Row: {
+          author_id: string | null
+          body: string
+          corrects_id: string | null
+          created_at: string
+          evidence_ref: string | null
+          id: string
+          kind: string
+          outcome: string | null
+          review_id: string
+        }
+        Insert: {
+          author_id?: string | null
+          body: string
+          corrects_id?: string | null
+          created_at?: string
+          evidence_ref?: string | null
+          id?: string
+          kind: string
+          outcome?: string | null
+          review_id: string
+        }
+        Update: {
+          author_id?: string | null
+          body?: string
+          corrects_id?: string | null
+          created_at?: string
+          evidence_ref?: string | null
+          id?: string
+          kind?: string
+          outcome?: string | null
+          review_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_review_entries_corrects_id_fkey"
+            columns: ["corrects_id"]
+            isOneToOne: false
+            referencedRelation: "call_review_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "call_review_entries_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "call_reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      call_reviews: {
+        Row: {
+          case_id: string
+          case_kind: string
+          created_at: string
+          follow_up_due_at: string | null
+          id: string
+          kind: string
+          outcome: string | null
+          outcome_at: string | null
+          outcome_by: string | null
+          proposed_for: string | null
+          purpose: string
+          requested_by: string | null
+          required_scope: string
+          respond_by: string
+          scheduled_for: string | null
+          status: string
+          subject_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          case_id: string
+          case_kind: string
+          created_at?: string
+          follow_up_due_at?: string | null
+          id?: string
+          kind?: string
+          outcome?: string | null
+          outcome_at?: string | null
+          outcome_by?: string | null
+          proposed_for?: string | null
+          purpose: string
+          requested_by?: string | null
+          required_scope: string
+          respond_by?: string
+          scheduled_for?: string | null
+          status?: string
+          subject_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          case_id?: string
+          case_kind?: string
+          created_at?: string
+          follow_up_due_at?: string | null
+          id?: string
+          kind?: string
+          outcome?: string | null
+          outcome_at?: string | null
+          outcome_by?: string | null
+          proposed_for?: string | null
+          purpose?: string
+          requested_by?: string | null
+          required_scope?: string
+          respond_by?: string
+          scheduled_for?: string | null
+          status?: string
+          subject_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      calls: {
+        Row: {
+          accepted_at: string | null
+          business_id: string | null
+          client_key: string | null
+          connected_at: string | null
+          connecting_at: string | null
+          conversation_id: string | null
+          created_at: string
+          duration_seconds: number | null
+          end_reason: string | null
+          ended_at: string | null
+          id: string
+          initiator_id: string | null
+          interrupted_at: string | null
+          invitation_expires_at: string | null
+          kind: string
+          last_activity_at: string
+          listing_id: string | null
+          max_duration_seconds: number
+          participant_seconds: number | null
+          presence_checked_at: string | null
+          provider: string
+          provider_closed_at: string | null
+          provider_room: string
+          purpose: string
+          reconciled_participant_seconds: number | null
+          reconnect_count: number
+          review_id: string | null
+          ring_expires_at: string | null
+          ringing_at: string | null
+          scheduled_for: string | null
+          state: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          accepted_at?: string | null
+          business_id?: string | null
+          client_key?: string | null
+          connected_at?: string | null
+          connecting_at?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          end_reason?: string | null
+          ended_at?: string | null
+          id?: string
+          initiator_id?: string | null
+          interrupted_at?: string | null
+          invitation_expires_at?: string | null
+          kind: string
+          last_activity_at?: string
+          listing_id?: string | null
+          max_duration_seconds?: number
+          participant_seconds?: number | null
+          presence_checked_at?: string | null
+          provider?: string
+          provider_closed_at?: string | null
+          provider_room?: string
+          purpose?: string
+          reconciled_participant_seconds?: number | null
+          reconnect_count?: number
+          review_id?: string | null
+          ring_expires_at?: string | null
+          ringing_at?: string | null
+          scheduled_for?: string | null
+          state?: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          accepted_at?: string | null
+          business_id?: string | null
+          client_key?: string | null
+          connected_at?: string | null
+          connecting_at?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          end_reason?: string | null
+          ended_at?: string | null
+          id?: string
+          initiator_id?: string | null
+          interrupted_at?: string | null
+          invitation_expires_at?: string | null
+          kind?: string
+          last_activity_at?: string
+          listing_id?: string | null
+          max_duration_seconds?: number
+          participant_seconds?: number | null
+          presence_checked_at?: string | null
+          provider?: string
+          provider_closed_at?: string | null
+          provider_room?: string
+          purpose?: string
+          reconciled_participant_seconds?: number | null
+          reconnect_count?: number
+          review_id?: string | null
+          ring_expires_at?: string | null
+          ringing_at?: string | null
+          scheduled_for?: string | null
+          state?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calls_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calls_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calls_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listing_credentials"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "calls_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listing_lister"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "calls_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listing_lister_tier"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "calls_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calls_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "call_reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cancellation_policies: {
         Row: {
           created_at: string
@@ -2944,6 +3462,124 @@ export type Database = {
             columns: ["obligation_id"]
             isOneToOne: false
             referencedRelation: "caution_obligations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chargeback_events: {
+        Row: {
+          actor_id: string | null
+          chargeback_id: string
+          created_at: string
+          evidence_due_at: string | null
+          from_state: string | null
+          id: string
+          kind: string
+          note: string | null
+          raw: Json | null
+          recovered_minor: number | null
+          recovery: string | null
+          to_state: string
+        }
+        Insert: {
+          actor_id?: string | null
+          chargeback_id: string
+          created_at?: string
+          evidence_due_at?: string | null
+          from_state?: string | null
+          id?: string
+          kind?: string
+          note?: string | null
+          raw?: Json | null
+          recovered_minor?: number | null
+          recovery?: string | null
+          to_state: string
+        }
+        Update: {
+          actor_id?: string | null
+          chargeback_id?: string
+          created_at?: string
+          evidence_due_at?: string | null
+          from_state?: string | null
+          id?: string
+          kind?: string
+          note?: string | null
+          raw?: Json | null
+          recovered_minor?: number | null
+          recovery?: string | null
+          to_state?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chargeback_events_chargeback_id_fkey"
+            columns: ["chargeback_id"]
+            isOneToOne: false
+            referencedRelation: "chargebacks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chargebacks: {
+        Row: {
+          amount_minor: number
+          closed_at: string | null
+          currency: string
+          evidence_due_at: string | null
+          id: string
+          lister_unattributed: boolean
+          lister_user_id: string | null
+          opened_at: string
+          provider: string
+          provider_dispute_id: string
+          provider_status: string | null
+          recovered_minor: number
+          recovery_closed_at: string | null
+          recovery_state: string
+          state: string
+          transaction_id: string
+        }
+        Insert: {
+          amount_minor: number
+          closed_at?: string | null
+          currency: string
+          evidence_due_at?: string | null
+          id?: string
+          lister_unattributed?: boolean
+          lister_user_id?: string | null
+          opened_at?: string
+          provider: string
+          provider_dispute_id: string
+          provider_status?: string | null
+          recovered_minor?: number
+          recovery_closed_at?: string | null
+          recovery_state?: string
+          state?: string
+          transaction_id: string
+        }
+        Update: {
+          amount_minor?: number
+          closed_at?: string | null
+          currency?: string
+          evidence_due_at?: string | null
+          id?: string
+          lister_unattributed?: boolean
+          lister_user_id?: string | null
+          opened_at?: string
+          provider?: string
+          provider_dispute_id?: string
+          provider_status?: string | null
+          recovered_minor?: number
+          recovery_closed_at?: string | null
+          recovery_state?: string
+          state?: string
+          transaction_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chargebacks_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
             referencedColumns: ["id"]
           },
         ]
@@ -4084,6 +4720,77 @@ export type Database = {
           },
         ]
       }
+      entitlement_plan_features: {
+        Row: {
+          feature_key: string
+          granted: boolean
+          plan_id: number
+          quota: number | null
+        }
+        Insert: {
+          feature_key: string
+          granted: boolean
+          plan_id: number
+          quota?: number | null
+        }
+        Update: {
+          feature_key?: string
+          granted?: boolean
+          plan_id?: number
+          quota?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entitlement_plan_features_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "entitlement_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      entitlement_plans: {
+        Row: {
+          billing_interval: string | null
+          created_at: string
+          effective_from: string
+          effective_to: string | null
+          id: number
+          is_default: boolean
+          name: string
+          note: string | null
+          perks: string[]
+          plan_key: string
+          price_minor: number | null
+        }
+        Insert: {
+          billing_interval?: string | null
+          created_at?: string
+          effective_from: string
+          effective_to?: string | null
+          id?: never
+          is_default?: boolean
+          name: string
+          note?: string | null
+          perks?: string[]
+          plan_key: string
+          price_minor?: number | null
+        }
+        Update: {
+          billing_interval?: string | null
+          created_at?: string
+          effective_from?: string
+          effective_to?: string | null
+          id?: never
+          is_default?: boolean
+          name?: string
+          note?: string | null
+          perks?: string[]
+          plan_key?: string
+          price_minor?: number | null
+        }
+        Relationships: []
+      }
       event_attendees: {
         Row: {
           decided_at: string | null
@@ -4218,6 +4925,30 @@ export type Database = {
         }
         Relationships: []
       }
+      fee_protection_rates: {
+        Row: {
+          created_at: string
+          effective_from: string
+          id: number
+          note: string
+          protection_bps: number
+        }
+        Insert: {
+          created_at?: string
+          effective_from: string
+          id?: never
+          note: string
+          protection_bps: number
+        }
+        Update: {
+          created_at?: string
+          effective_from?: string
+          id?: never
+          note?: string
+          protection_bps?: number
+        }
+        Relationships: []
+      }
       fee_rates: {
         Row: {
           basis_points: number
@@ -4248,6 +4979,51 @@ export type Database = {
           id?: string
           kind?: Database["public"]["Enums"]["fee_kind"]
           note?: string | null
+        }
+        Relationships: []
+      }
+      financial_provider_accounts: {
+        Row: {
+          country: string | null
+          created_at: string
+          currency: string
+          id: string
+          metadata: Json
+          provider: string
+          provider_customer_id: string | null
+          provider_status: string | null
+          status: string
+          status_observed_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          country?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          metadata?: Json
+          provider: string
+          provider_customer_id?: string | null
+          provider_status?: string | null
+          status?: string
+          status_observed_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          country?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          metadata?: Json
+          provider?: string
+          provider_customer_id?: string | null
+          provider_status?: string | null
+          status?: string
+          status_observed_at?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -4346,6 +5122,24 @@ export type Database = {
           },
         ]
       }
+      first_runs_seen: {
+        Row: {
+          feature: string
+          seen_at: string
+          user_id: string
+        }
+        Insert: {
+          feature: string
+          seen_at?: string
+          user_id: string
+        }
+        Update: {
+          feature?: string
+          seen_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       follows: {
         Row: {
           created_at: string
@@ -4361,6 +5155,119 @@ export type Database = {
           created_at?: string
           followee_id?: string
           follower_id?: string
+        }
+        Relationships: []
+      }
+      funds_movement_events: {
+        Row: {
+          detail: Json
+          from_status: string | null
+          id: number
+          movement_id: string
+          observed_at: string
+          provider_status: string | null
+          source: string
+          to_status: string
+        }
+        Insert: {
+          detail?: Json
+          from_status?: string | null
+          id?: never
+          movement_id: string
+          observed_at?: string
+          provider_status?: string | null
+          source: string
+          to_status: string
+        }
+        Update: {
+          detail?: Json
+          from_status?: string | null
+          id?: never
+          movement_id?: string
+          observed_at?: string
+          provider_status?: string | null
+          source?: string
+          to_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "funds_movement_events_movement_id_fkey"
+            columns: ["movement_id"]
+            isOneToOne: false
+            referencedRelation: "funds_movements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      funds_movements: {
+        Row: {
+          amount_minor: number
+          client_key: string | null
+          counterparty: Json
+          created_at: string
+          currency: string
+          id: string
+          kind: string
+          narration: string | null
+          provider: string
+          provider_fee_minor: number | null
+          provider_metadata: Json
+          provider_status: string | null
+          provider_transaction_id: string | null
+          reference: string
+          status: string
+          status_observed_at: string
+          status_source: string
+          updated_at: string
+          user_id: string
+          vallo_fee_minor: number
+          vat_minor: number
+        }
+        Insert: {
+          amount_minor: number
+          client_key?: string | null
+          counterparty?: Json
+          created_at?: string
+          currency?: string
+          id?: string
+          kind: string
+          narration?: string | null
+          provider: string
+          provider_fee_minor?: number | null
+          provider_metadata?: Json
+          provider_status?: string | null
+          provider_transaction_id?: string | null
+          reference: string
+          status?: string
+          status_observed_at?: string
+          status_source?: string
+          updated_at?: string
+          user_id: string
+          vallo_fee_minor?: number
+          vat_minor?: number
+        }
+        Update: {
+          amount_minor?: number
+          client_key?: string | null
+          counterparty?: Json
+          created_at?: string
+          currency?: string
+          id?: string
+          kind?: string
+          narration?: string | null
+          provider?: string
+          provider_fee_minor?: number | null
+          provider_metadata?: Json
+          provider_status?: string | null
+          provider_transaction_id?: string | null
+          reference?: string
+          status?: string
+          status_observed_at?: string
+          status_source?: string
+          updated_at?: string
+          user_id?: string
+          vallo_fee_minor?: number
+          vat_minor?: number
         }
         Relationships: []
       }
@@ -5221,6 +6128,96 @@ export type Database = {
           },
         ]
       }
+      leaderboard_opt_outs: {
+        Row: {
+          created_at: string
+          owner_id: string
+          subject_id: string
+          subject_kind: string
+        }
+        Insert: {
+          created_at?: string
+          owner_id: string
+          subject_id: string
+          subject_kind: string
+        }
+        Update: {
+          created_at?: string
+          owner_id?: string
+          subject_id?: string
+          subject_kind?: string
+        }
+        Relationships: []
+      }
+      ledger_customer_funds: {
+        Row: {
+          amount_minor: number
+          corrects_entry_id: string | null
+          created_at: string
+          created_by: string | null
+          currency: string
+          direction: string
+          event_type: string
+          id: string
+          idempotency_key: string
+          metadata: Json
+          provider: string
+          provider_reference: string | null
+          rail: string | null
+          status: string
+          transaction_id: string | null
+        }
+        Insert: {
+          amount_minor: number
+          corrects_entry_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency: string
+          direction: string
+          event_type: string
+          id?: string
+          idempotency_key: string
+          metadata?: Json
+          provider: string
+          provider_reference?: string | null
+          rail?: string | null
+          status?: string
+          transaction_id?: string | null
+        }
+        Update: {
+          amount_minor?: number
+          corrects_entry_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          direction?: string
+          event_type?: string
+          id?: string
+          idempotency_key?: string
+          metadata?: Json
+          provider?: string
+          provider_reference?: string | null
+          rail?: string | null
+          status?: string
+          transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ledger_customer_funds_corrects_entry_id_fkey"
+            columns: ["corrects_entry_id"]
+            isOneToOne: false
+            referencedRelation: "ledger_customer_funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ledger_customer_funds_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ledger_entries: {
         Row: {
           agent_share_minor: number
@@ -5268,6 +6265,144 @@ export type Database = {
           },
           {
             foreignKeyName: "ledger_entries_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ledger_marketing_float: {
+        Row: {
+          amount_minor: number
+          corrects_entry_id: string | null
+          created_at: string
+          created_by: string | null
+          currency: string
+          direction: string
+          event_type: string
+          id: string
+          idempotency_key: string
+          metadata: Json
+          provider: string
+          provider_reference: string | null
+          rail: string | null
+          status: string
+          transaction_id: string | null
+        }
+        Insert: {
+          amount_minor: number
+          corrects_entry_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency: string
+          direction: string
+          event_type: string
+          id?: string
+          idempotency_key: string
+          metadata?: Json
+          provider: string
+          provider_reference?: string | null
+          rail?: string | null
+          status?: string
+          transaction_id?: string | null
+        }
+        Update: {
+          amount_minor?: number
+          corrects_entry_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          direction?: string
+          event_type?: string
+          id?: string
+          idempotency_key?: string
+          metadata?: Json
+          provider?: string
+          provider_reference?: string | null
+          rail?: string | null
+          status?: string
+          transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ledger_marketing_float_corrects_entry_id_fkey"
+            columns: ["corrects_entry_id"]
+            isOneToOne: false
+            referencedRelation: "ledger_marketing_float"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ledger_marketing_float_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ledger_vallo_revenue: {
+        Row: {
+          amount_minor: number
+          corrects_entry_id: string | null
+          created_at: string
+          created_by: string | null
+          currency: string
+          direction: string
+          event_type: string
+          id: string
+          idempotency_key: string
+          metadata: Json
+          provider: string
+          provider_reference: string | null
+          rail: string | null
+          status: string
+          transaction_id: string | null
+        }
+        Insert: {
+          amount_minor: number
+          corrects_entry_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency: string
+          direction: string
+          event_type: string
+          id?: string
+          idempotency_key: string
+          metadata?: Json
+          provider: string
+          provider_reference?: string | null
+          rail?: string | null
+          status?: string
+          transaction_id?: string | null
+        }
+        Update: {
+          amount_minor?: number
+          corrects_entry_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          direction?: string
+          event_type?: string
+          id?: string
+          idempotency_key?: string
+          metadata?: Json
+          provider?: string
+          provider_reference?: string | null
+          rail?: string | null
+          status?: string
+          transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ledger_vallo_revenue_corrects_entry_id_fkey"
+            columns: ["corrects_entry_id"]
+            isOneToOne: false
+            referencedRelation: "ledger_vallo_revenue"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ledger_vallo_revenue_transaction_id_fkey"
             columns: ["transaction_id"]
             isOneToOne: false
             referencedRelation: "transactions"
@@ -5534,6 +6669,87 @@ export type Database = {
             columns: ["listing_id"]
             isOneToOne: false
             referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      listing_fee_acceptances: {
+        Row: {
+          accepted_at: string
+          cap_minor: number | null
+          cap_threshold_minor: number | null
+          commission_bps: number
+          fee_high_minor: number
+          fee_low_minor: number
+          figures_shown: Json
+          id: string
+          listing_id: string
+          member_id: string
+          policy_version: string
+          policy_version_id: number
+          property_type: Database["public"]["Enums"]["property_type"]
+          protection_bps: number
+          protection_rate_id: number
+          receive_high_minor: number
+          receive_low_minor: number
+          rent_minor: number
+          terms_version: string
+        }
+        Insert: {
+          accepted_at?: string
+          cap_minor?: number | null
+          cap_threshold_minor?: number | null
+          commission_bps: number
+          fee_high_minor: number
+          fee_low_minor: number
+          figures_shown: Json
+          id?: string
+          listing_id: string
+          member_id: string
+          policy_version: string
+          policy_version_id: number
+          property_type: Database["public"]["Enums"]["property_type"]
+          protection_bps: number
+          protection_rate_id: number
+          receive_high_minor: number
+          receive_low_minor: number
+          rent_minor: number
+          terms_version: string
+        }
+        Update: {
+          accepted_at?: string
+          cap_minor?: number | null
+          cap_threshold_minor?: number | null
+          commission_bps?: number
+          fee_high_minor?: number
+          fee_low_minor?: number
+          figures_shown?: Json
+          id?: string
+          listing_id?: string
+          member_id?: string
+          policy_version?: string
+          policy_version_id?: number
+          property_type?: Database["public"]["Enums"]["property_type"]
+          protection_bps?: number
+          protection_rate_id?: number
+          receive_high_minor?: number
+          receive_low_minor?: number
+          rent_minor?: number
+          terms_version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_fee_acceptances_policy_version_id_fkey"
+            columns: ["policy_version_id"]
+            isOneToOne: false
+            referencedRelation: "money_policy_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "listing_fee_acceptances_protection_rate_id_fkey"
+            columns: ["protection_rate_id"]
+            isOneToOne: false
+            referencedRelation: "fee_protection_rates"
             referencedColumns: ["id"]
           },
         ]
@@ -5944,6 +7160,62 @@ export type Database = {
             columns: ["listing_id"]
             isOneToOne: false
             referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      listing_rate_acceptances: {
+        Row: {
+          accepted_at: string
+          amount_minor: number
+          cap_minor: number | null
+          cap_threshold_minor: number | null
+          commission_bps: number
+          commission_minor: number
+          figures_shown: Json
+          id: string
+          listing_id: string
+          member_id: string
+          net_minor: number
+          policy_version_id: number
+          property_type: Database["public"]["Enums"]["property_type"]
+        }
+        Insert: {
+          accepted_at?: string
+          amount_minor: number
+          cap_minor?: number | null
+          cap_threshold_minor?: number | null
+          commission_bps: number
+          commission_minor: number
+          figures_shown: Json
+          id?: string
+          listing_id: string
+          member_id: string
+          net_minor: number
+          policy_version_id: number
+          property_type: Database["public"]["Enums"]["property_type"]
+        }
+        Update: {
+          accepted_at?: string
+          amount_minor?: number
+          cap_minor?: number | null
+          cap_threshold_minor?: number | null
+          commission_bps?: number
+          commission_minor?: number
+          figures_shown?: Json
+          id?: string
+          listing_id?: string
+          member_id?: string
+          net_minor?: number
+          policy_version_id?: number
+          property_type?: Database["public"]["Enums"]["property_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_rate_acceptances_policy_version_id_fkey"
+            columns: ["policy_version_id"]
+            isOneToOne: false
+            referencedRelation: "money_policy_versions"
             referencedColumns: ["id"]
           },
         ]
@@ -6641,6 +7913,77 @@ export type Database = {
         }
         Relationships: []
       }
+      member_entitlement_plans: {
+        Row: {
+          created_at: string
+          effective_from: string
+          effective_to: string | null
+          granted_by: string | null
+          id: string
+          plan_id: number
+          reason: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          effective_from?: string
+          effective_to?: string | null
+          granted_by?: string | null
+          id?: string
+          plan_id: number
+          reason: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          effective_from?: string
+          effective_to?: string | null
+          granted_by?: string | null
+          id?: string
+          plan_id?: number
+          reason?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_entitlement_plans_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "entitlement_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      member_funds_reported: {
+        Row: {
+          available_minor: number
+          currency: string
+          observed_at: string
+          protected_minor: number
+          provider: string
+          provider_balance_id: string
+          user_id: string
+        }
+        Insert: {
+          available_minor: number
+          currency: string
+          observed_at: string
+          protected_minor: number
+          provider: string
+          provider_balance_id: string
+          user_id: string
+        }
+        Update: {
+          available_minor?: number
+          currency?: string
+          observed_at?: string
+          protected_minor?: number
+          provider?: string
+          provider_balance_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       member_notes: {
         Row: {
           author_id: string | null
@@ -6721,6 +8064,105 @@ export type Database = {
           subject_id?: string
         }
         Relationships: []
+      }
+      member_subscriptions: {
+        Row: {
+          amount_minor: number | null
+          cancel_requested_at: string | null
+          checkout_email_sha256: string | null
+          checkout_reference: string | null
+          created_at: string
+          currency: string | null
+          current_period_end: string | null
+          current_period_start: string | null
+          end_reason: string | null
+          ended_at: string | null
+          grant_id: string | null
+          id: string
+          kind: string
+          mode: string | null
+          plan_id: number
+          plan_key: string
+          provider: string | null
+          provider_customer_code: string | null
+          provider_email_token: string | null
+          provider_plan_code: string | null
+          provider_subscription_code: string | null
+          status: string
+          trial_ends_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_minor?: number | null
+          cancel_requested_at?: string | null
+          checkout_email_sha256?: string | null
+          checkout_reference?: string | null
+          created_at?: string
+          currency?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          end_reason?: string | null
+          ended_at?: string | null
+          grant_id?: string | null
+          id?: string
+          kind: string
+          mode?: string | null
+          plan_id: number
+          plan_key: string
+          provider?: string | null
+          provider_customer_code?: string | null
+          provider_email_token?: string | null
+          provider_plan_code?: string | null
+          provider_subscription_code?: string | null
+          status: string
+          trial_ends_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_minor?: number | null
+          cancel_requested_at?: string | null
+          checkout_email_sha256?: string | null
+          checkout_reference?: string | null
+          created_at?: string
+          currency?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          end_reason?: string | null
+          ended_at?: string | null
+          grant_id?: string | null
+          id?: string
+          kind?: string
+          mode?: string | null
+          plan_id?: number
+          plan_key?: string
+          provider?: string | null
+          provider_customer_code?: string | null
+          provider_email_token?: string | null
+          provider_plan_code?: string | null
+          provider_subscription_code?: string | null
+          status?: string
+          trial_ends_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_subscriptions_grant_id_fkey"
+            columns: ["grant_id"]
+            isOneToOne: false
+            referencedRelation: "member_entitlement_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "entitlement_plans"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       message_account_checks: {
         Row: {
@@ -6843,37 +8285,89 @@ export type Database = {
           },
         ]
       }
+      message_hidden: {
+        Row: {
+          hidden_at: string
+          message_id: string
+          user_id: string
+        }
+        Insert: {
+          hidden_at?: string
+          message_id: string
+          user_id: string
+        }
+        Update: {
+          hidden_at?: string
+          message_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_hidden_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           body: string
+          call_id: string | null
           conversation_id: string
           created_at: string
+          deleted_for_everyone_at: string | null
+          forwarded: boolean
           id: string
           read_at: string | null
+          reply_to_id: string | null
           sender_id: string
         }
         Insert: {
           body: string
+          call_id?: string | null
           conversation_id: string
           created_at?: string
+          deleted_for_everyone_at?: string | null
+          forwarded?: boolean
           id?: string
           read_at?: string | null
+          reply_to_id?: string | null
           sender_id: string
         }
         Update: {
           body?: string
+          call_id?: string | null
           conversation_id?: string
           created_at?: string
+          deleted_for_everyone_at?: string | null
+          forwarded?: boolean
           id?: string
           read_at?: string | null
+          reply_to_id?: string | null
           sender_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "messages_call_id_fkey"
+            columns: ["call_id"]
+            isOneToOne: false
+            referencedRelation: "calls"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "messages_conversation_id_fkey"
             columns: ["conversation_id"]
             isOneToOne: false
             referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_reply_to_id_fkey"
+            columns: ["reply_to_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
             referencedColumns: ["id"]
           },
         ]
@@ -6973,6 +8467,136 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: []
+      }
+      money_policy_commission_rates: {
+        Row: {
+          cap_minor: number | null
+          cap_threshold_minor: number | null
+          commission_bps: number
+          created_at: string
+          id: number
+          policy_version_id: number
+          property_type: Database["public"]["Enums"]["property_type"]
+        }
+        Insert: {
+          cap_minor?: number | null
+          cap_threshold_minor?: number | null
+          commission_bps: number
+          created_at?: string
+          id?: never
+          policy_version_id: number
+          property_type: Database["public"]["Enums"]["property_type"]
+        }
+        Update: {
+          cap_minor?: number | null
+          cap_threshold_minor?: number | null
+          commission_bps?: number
+          created_at?: string
+          id?: never
+          policy_version_id?: number
+          property_type?: Database["public"]["Enums"]["property_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "money_policy_commission_rates_policy_version_id_fkey"
+            columns: ["policy_version_id"]
+            isOneToOne: false
+            referencedRelation: "money_policy_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      money_policy_versions: {
+        Row: {
+          commission_bps: number
+          created_at: string
+          created_by: string | null
+          effective_from: string
+          effective_to: string | null
+          guarantee_bps: number
+          id: number
+          note: string
+          vat_bps: number
+          vat_registered: boolean
+          version: string
+          withdrawal_min_minor: number
+        }
+        Insert: {
+          commission_bps: number
+          created_at?: string
+          created_by?: string | null
+          effective_from: string
+          effective_to?: string | null
+          guarantee_bps: number
+          id?: never
+          note: string
+          vat_bps: number
+          vat_registered: boolean
+          version: string
+          withdrawal_min_minor: number
+        }
+        Update: {
+          commission_bps?: number
+          created_at?: string
+          created_by?: string | null
+          effective_from?: string
+          effective_to?: string | null
+          guarantee_bps?: number
+          id?: never
+          note?: string
+          vat_bps?: number
+          vat_registered?: boolean
+          version?: string
+          withdrawal_min_minor?: number
+        }
+        Relationships: []
+      }
+      money_policy_withdrawal_bands: {
+        Row: {
+          confirmed: boolean
+          created_at: string
+          fee_bps: number | null
+          fee_cap_minor: number | null
+          flat_fee_minor: number | null
+          from_minor: number
+          id: number
+          note: string | null
+          policy_version_id: number
+          to_minor: number | null
+        }
+        Insert: {
+          confirmed: boolean
+          created_at?: string
+          fee_bps?: number | null
+          fee_cap_minor?: number | null
+          flat_fee_minor?: number | null
+          from_minor: number
+          id?: never
+          note?: string | null
+          policy_version_id: number
+          to_minor?: number | null
+        }
+        Update: {
+          confirmed?: boolean
+          created_at?: string
+          fee_bps?: number | null
+          fee_cap_minor?: number | null
+          flat_fee_minor?: number | null
+          from_minor?: number
+          id?: never
+          note?: string | null
+          policy_version_id?: number
+          to_minor?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "money_policy_withdrawal_bands_policy_version_id_fkey"
+            columns: ["policy_version_id"]
+            isOneToOne: false
+            referencedRelation: "money_policy_versions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       money_step_ups: {
         Row: {
@@ -7278,6 +8902,54 @@ export type Database = {
           },
         ]
       }
+      payluk_commission_sweeps: {
+        Row: {
+          currency: string | null
+          environment: string
+          error_code: string | null
+          error_detail: string | null
+          escrow_balance_minor: number | null
+          finished_at: string | null
+          id: string
+          main_balance_minor: number | null
+          outcome: string
+          rate_limit_remaining: number | null
+          started_at: string
+          withdrawal_minor: number | null
+          withdrawal_reference: string | null
+        }
+        Insert: {
+          currency?: string | null
+          environment: string
+          error_code?: string | null
+          error_detail?: string | null
+          escrow_balance_minor?: number | null
+          finished_at?: string | null
+          id?: string
+          main_balance_minor?: number | null
+          outcome: string
+          rate_limit_remaining?: number | null
+          started_at?: string
+          withdrawal_minor?: number | null
+          withdrawal_reference?: string | null
+        }
+        Update: {
+          currency?: string | null
+          environment?: string
+          error_code?: string | null
+          error_detail?: string | null
+          escrow_balance_minor?: number | null
+          finished_at?: string | null
+          id?: string
+          main_balance_minor?: number | null
+          outcome?: string
+          rate_limit_remaining?: number | null
+          started_at?: string
+          withdrawal_minor?: number | null
+          withdrawal_reference?: string | null
+        }
+        Relationships: []
+      }
       payment_methods: {
         Row: {
           authorization_code: string
@@ -7338,6 +9010,51 @@ export type Database = {
           signature?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      payment_rail_policy: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          effective_from: string
+          effective_to: string | null
+          id: string
+          lister_kind: Database["public"]["Enums"]["agent_type"] | null
+          listing_intent: Database["public"]["Enums"]["listing_intent"] | null
+          milestones: boolean
+          precedence: number
+          property_type: Database["public"]["Enums"]["property_type"] | null
+          rail: string
+          reason: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          effective_from?: string
+          effective_to?: string | null
+          id?: string
+          lister_kind?: Database["public"]["Enums"]["agent_type"] | null
+          listing_intent?: Database["public"]["Enums"]["listing_intent"] | null
+          milestones?: boolean
+          precedence?: number
+          property_type?: Database["public"]["Enums"]["property_type"] | null
+          rail: string
+          reason: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          effective_from?: string
+          effective_to?: string | null
+          id?: string
+          lister_kind?: Database["public"]["Enums"]["agent_type"] | null
+          listing_intent?: Database["public"]["Enums"]["listing_intent"] | null
+          milestones?: boolean
+          precedence?: number
+          property_type?: Database["public"]["Enums"]["property_type"] | null
+          rail?: string
+          reason?: string
         }
         Relationships: []
       }
@@ -8460,6 +10177,243 @@ export type Database = {
           },
         ]
       }
+      provider_arrangement_events: {
+        Row: {
+          arrangement_id: string
+          detail: Json
+          from_status: string | null
+          id: number
+          observed_at: string
+          provider_event_key: string | null
+          provider_state: string | null
+          provider_status: string | null
+          refused: boolean
+          source: string
+          to_status: string
+        }
+        Insert: {
+          arrangement_id: string
+          detail?: Json
+          from_status?: string | null
+          id?: never
+          observed_at?: string
+          provider_event_key?: string | null
+          provider_state?: string | null
+          provider_status?: string | null
+          refused?: boolean
+          source: string
+          to_status: string
+        }
+        Update: {
+          arrangement_id?: string
+          detail?: Json
+          from_status?: string | null
+          id?: never
+          observed_at?: string
+          provider_event_key?: string | null
+          provider_state?: string | null
+          provider_status?: string | null
+          refused?: boolean
+          source?: string
+          to_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provider_arrangement_events_arrangement_id_fkey"
+            columns: ["arrangement_id"]
+            isOneToOne: false
+            referencedRelation: "provider_arrangements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      provider_arrangement_milestones: {
+        Row: {
+          amount_minor: number
+          arrangement_id: string
+          description: string | null
+          id: string
+          position: number
+          provider_milestone_id: string | null
+          provider_status: string | null
+          release_requested_at: string | null
+          released_at: string | null
+          status: string
+          title: string
+        }
+        Insert: {
+          amount_minor: number
+          arrangement_id: string
+          description?: string | null
+          id?: string
+          position: number
+          provider_milestone_id?: string | null
+          provider_status?: string | null
+          release_requested_at?: string | null
+          released_at?: string | null
+          status?: string
+          title: string
+        }
+        Update: {
+          amount_minor?: number
+          arrangement_id?: string
+          description?: string | null
+          id?: string
+          position?: number
+          provider_milestone_id?: string | null
+          provider_status?: string | null
+          release_requested_at?: string | null
+          released_at?: string | null
+          status?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provider_arrangement_milestones_arrangement_id_fkey"
+            columns: ["arrangement_id"]
+            isOneToOne: false
+            referencedRelation: "provider_arrangements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      provider_arrangements: {
+        Row: {
+          agreement_id: string
+          amount_minor: number
+          buyer_customer_id: string
+          buyer_user_id: string
+          created_at: string
+          currency: string
+          id: string
+          kind: string
+          provider: string
+          provider_arrangement_id: string | null
+          provider_fee_minor: number | null
+          provider_payment_token: string | null
+          provider_state: string | null
+          provider_status: string | null
+          reference: string
+          release_pause_reason: string | null
+          release_paused_at: string | null
+          release_paused_by: string | null
+          seller_customer_id: string
+          seller_user_id: string
+          status: string
+          status_observed_at: string
+          status_source: string
+          updated_at: string
+          who_pays_fee: string
+        }
+        Insert: {
+          agreement_id: string
+          amount_minor: number
+          buyer_customer_id: string
+          buyer_user_id: string
+          created_at?: string
+          currency?: string
+          id?: string
+          kind: string
+          provider?: string
+          provider_arrangement_id?: string | null
+          provider_fee_minor?: number | null
+          provider_payment_token?: string | null
+          provider_state?: string | null
+          provider_status?: string | null
+          reference: string
+          release_pause_reason?: string | null
+          release_paused_at?: string | null
+          release_paused_by?: string | null
+          seller_customer_id: string
+          seller_user_id: string
+          status?: string
+          status_observed_at?: string
+          status_source?: string
+          updated_at?: string
+          who_pays_fee?: string
+        }
+        Update: {
+          agreement_id?: string
+          amount_minor?: number
+          buyer_customer_id?: string
+          buyer_user_id?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          kind?: string
+          provider?: string
+          provider_arrangement_id?: string | null
+          provider_fee_minor?: number | null
+          provider_payment_token?: string | null
+          provider_state?: string | null
+          provider_status?: string | null
+          reference?: string
+          release_pause_reason?: string | null
+          release_paused_at?: string | null
+          release_paused_by?: string | null
+          seller_customer_id?: string
+          seller_user_id?: string
+          status?: string
+          status_observed_at?: string
+          status_source?: string
+          updated_at?: string
+          who_pays_fee?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provider_arrangements_agreement_id_fkey"
+            columns: ["agreement_id"]
+            isOneToOne: false
+            referencedRelation: "deal_agreements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      provider_webhook_events: {
+        Row: {
+          environment: string | null
+          error: string | null
+          event_key: string
+          event_type: string
+          id: number
+          payload: Json
+          processed_at: string | null
+          processing_status: string
+          provider: string
+          received_at: string
+          retry_count: number
+          signature_valid: boolean
+        }
+        Insert: {
+          environment?: string | null
+          error?: string | null
+          event_key: string
+          event_type: string
+          id?: never
+          payload: Json
+          processed_at?: string | null
+          processing_status?: string
+          provider: string
+          received_at?: string
+          retry_count?: number
+          signature_valid: boolean
+        }
+        Update: {
+          environment?: string | null
+          error?: string | null
+          event_key?: string
+          event_type?: string
+          id?: never
+          payload?: Json
+          processed_at?: string | null
+          processing_status?: string
+          provider?: string
+          received_at?: string
+          retry_count?: number
+          signature_valid?: boolean
+        }
+        Relationships: []
+      }
       push_deliveries: {
         Row: {
           attempted_at: string
@@ -8837,6 +10791,134 @@ export type Database = {
         }
         Relationships: []
       }
+      referral_budget_periods: {
+        Row: {
+          alerted_at: string | null
+          cap_minor: number
+          committed_minor: number
+          created_at: string
+          created_by: string | null
+          period_month: string
+          reason: string
+          updated_at: string
+        }
+        Insert: {
+          alerted_at?: string | null
+          cap_minor: number
+          committed_minor?: number
+          created_at?: string
+          created_by?: string | null
+          period_month: string
+          reason: string
+          updated_at?: string
+        }
+        Update: {
+          alerted_at?: string | null
+          cap_minor?: number
+          committed_minor?: number
+          created_at?: string
+          created_by?: string | null
+          period_month?: string
+          reason?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      referral_budget_releases: {
+        Row: {
+          amount_minor: number
+          campaign_id: string
+          created_at: string
+          member_id: string
+          period_month: string
+          reason: string
+          referral_id: string
+        }
+        Insert: {
+          amount_minor: number
+          campaign_id: string
+          created_at?: string
+          member_id: string
+          period_month: string
+          reason: string
+          referral_id: string
+        }
+        Update: {
+          amount_minor?: number
+          campaign_id?: string
+          created_at?: string
+          member_id?: string
+          period_month?: string
+          reason?: string
+          referral_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_budget_releases_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "referral_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referral_campaigns: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          ends_at: string | null
+          id: string
+          kind: string
+          member_cap_minor: number
+          reason: string
+          requirement_keys: string[]
+          requirement_params: Json
+          review_window: string
+          reward_minor: number
+          slug: string
+          starts_at: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          ends_at?: string | null
+          id?: string
+          kind: string
+          member_cap_minor: number
+          reason: string
+          requirement_keys: string[]
+          requirement_params?: Json
+          review_window: string
+          reward_minor: number
+          slug: string
+          starts_at: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          ends_at?: string | null
+          id?: string
+          kind?: string
+          member_cap_minor?: number
+          reason?: string
+          requirement_keys?: string[]
+          requirement_params?: Json
+          review_window?: string
+          reward_minor?: number
+          slug?: string
+          starts_at?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       referral_codes: {
         Row: {
           code: string
@@ -8854,6 +10936,263 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      referral_events: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          detail: Json
+          from_status: string | null
+          id: string
+          reason: string
+          referral_id: string
+          to_status: string
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          detail?: Json
+          from_status?: string | null
+          id?: string
+          reason: string
+          referral_id: string
+          to_status: string
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          detail?: Json
+          from_status?: string | null
+          id?: string
+          reason?: string
+          referral_id?: string
+          to_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_events_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "referrals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referral_member_period_spend: {
+        Row: {
+          campaign_id: string
+          committed_minor: number
+          member_id: string
+          period_month: string
+          updated_at: string
+        }
+        Insert: {
+          campaign_id: string
+          committed_minor: number
+          member_id: string
+          period_month: string
+          updated_at?: string
+        }
+        Update: {
+          campaign_id?: string
+          committed_minor?: number
+          member_id?: string
+          period_month?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_member_period_spend_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "referral_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referral_policy: {
+        Row: {
+          cluster_flag_score: number
+          created_at: string
+          created_by: string | null
+          effective_from: string
+          effective_to: string | null
+          hold_days: number
+          id: string
+          member_monthly_cap: number
+          payouts_enabled: boolean
+          platform_monthly_budget_minor: number
+          reason: string
+          review_risk_score: number
+          reward_minor: number
+          velocity_per_day: number
+          withdrawal_min_minor: number
+        }
+        Insert: {
+          cluster_flag_score?: number
+          created_at?: string
+          created_by?: string | null
+          effective_from?: string
+          effective_to?: string | null
+          hold_days?: number
+          id?: string
+          member_monthly_cap: number
+          payouts_enabled?: boolean
+          platform_monthly_budget_minor: number
+          reason: string
+          review_risk_score?: number
+          reward_minor: number
+          velocity_per_day?: number
+          withdrawal_min_minor: number
+        }
+        Update: {
+          cluster_flag_score?: number
+          created_at?: string
+          created_by?: string | null
+          effective_from?: string
+          effective_to?: string | null
+          hold_days?: number
+          id?: string
+          member_monthly_cap?: number
+          payouts_enabled?: boolean
+          platform_monthly_budget_minor?: number
+          reason?: string
+          review_risk_score?: number
+          reward_minor?: number
+          velocity_per_day?: number
+          withdrawal_min_minor?: number
+        }
+        Relationships: []
+      }
+      referral_requirements: {
+        Row: {
+          check_function: string
+          created_at: string
+          description: string
+          key: string
+          takes_params: boolean
+        }
+        Insert: {
+          check_function: string
+          created_at?: string
+          description: string
+          key: string
+          takes_params?: boolean
+        }
+        Update: {
+          check_function?: string
+          created_at?: string
+          description?: string
+          key?: string
+          takes_params?: boolean
+        }
+        Relationships: []
+      }
+      referrals: {
+        Row: {
+          approved_at: string | null
+          attributed_at: string
+          available_at: string | null
+          blocked_on: string | null
+          campaign_id: string | null
+          code: string
+          id: string
+          last_checked_at: string | null
+          month: string | null
+          payout_id: string | null
+          period_month: string | null
+          policy_id: string | null
+          qualified_at: string | null
+          qualifying_booking_id: string | null
+          qualifying_tx_id: string | null
+          referred_id: string
+          referred_phone_key: string | null
+          referrer_id: string
+          review_reason: string | null
+          review_until: string | null
+          reward_minor: number | null
+          risk_reasons: Json
+          risk_score: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          attributed_at?: string
+          available_at?: string | null
+          blocked_on?: string | null
+          campaign_id?: string | null
+          code: string
+          id?: string
+          last_checked_at?: string | null
+          month?: string | null
+          payout_id?: string | null
+          period_month?: string | null
+          policy_id?: string | null
+          qualified_at?: string | null
+          qualifying_booking_id?: string | null
+          qualifying_tx_id?: string | null
+          referred_id: string
+          referred_phone_key?: string | null
+          referrer_id: string
+          review_reason?: string | null
+          review_until?: string | null
+          reward_minor?: number | null
+          risk_reasons?: Json
+          risk_score?: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          attributed_at?: string
+          available_at?: string | null
+          blocked_on?: string | null
+          campaign_id?: string | null
+          code?: string
+          id?: string
+          last_checked_at?: string | null
+          month?: string | null
+          payout_id?: string | null
+          period_month?: string | null
+          policy_id?: string | null
+          qualified_at?: string | null
+          qualifying_booking_id?: string | null
+          qualifying_tx_id?: string | null
+          referred_id?: string
+          referred_phone_key?: string | null
+          referrer_id?: string
+          review_reason?: string | null
+          review_until?: string | null
+          reward_minor?: number | null
+          risk_reasons?: Json
+          risk_score?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referrals_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "referral_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_payout_fk"
+            columns: ["payout_id"]
+            isOneToOne: false
+            referencedRelation: "rewards_payouts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_policy_id_fkey"
+            columns: ["policy_id"]
+            isOneToOne: false
+            referencedRelation: "referral_policy"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       refund_request_decisions: {
         Row: {
@@ -9302,6 +11641,102 @@ export type Database = {
         }
         Relationships: []
       }
+      reservation_deposits: {
+        Row: {
+          access_code: string | null
+          amount_minor: number
+          authorization_url: string | null
+          commission_bps: number
+          commission_minor: number
+          created_at: string
+          currency: string
+          decided_at: string | null
+          guest_id: string
+          id: string
+          lister_share_minor: number
+          outcome_reason: string | null
+          paid_at: string | null
+          payee_subaccount_code: string
+          payee_user_id: string
+          paystack_mode: string | null
+          processor_refund_id: string | null
+          provider: string
+          provider_ref: string
+          refund_until: string
+          reservation_id: string
+          rule_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          access_code?: string | null
+          amount_minor: number
+          authorization_url?: string | null
+          commission_bps: number
+          commission_minor: number
+          created_at?: string
+          currency?: string
+          decided_at?: string | null
+          guest_id: string
+          id?: string
+          lister_share_minor: number
+          outcome_reason?: string | null
+          paid_at?: string | null
+          payee_subaccount_code: string
+          payee_user_id: string
+          paystack_mode?: string | null
+          processor_refund_id?: string | null
+          provider?: string
+          provider_ref: string
+          refund_until: string
+          reservation_id: string
+          rule_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          access_code?: string | null
+          amount_minor?: number
+          authorization_url?: string | null
+          commission_bps?: number
+          commission_minor?: number
+          created_at?: string
+          currency?: string
+          decided_at?: string | null
+          guest_id?: string
+          id?: string
+          lister_share_minor?: number
+          outcome_reason?: string | null
+          paid_at?: string | null
+          payee_subaccount_code?: string
+          payee_user_id?: string
+          paystack_mode?: string | null
+          processor_refund_id?: string | null
+          provider?: string
+          provider_ref?: string
+          refund_until?: string
+          reservation_id?: string
+          rule_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reservation_deposits_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "reservations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservation_deposits_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "restaurant_deposit_rules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reservations: {
         Row: {
           business_id: string | null
@@ -9386,6 +11821,60 @@ export type Database = {
             columns: ["listing_id"]
             isOneToOne: false
             referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      restaurant_deposit_rules: {
+        Row: {
+          active: boolean
+          amount_minor: number
+          business_id: string
+          created_at: string
+          id: string
+          min_party_size: number | null
+          per_guest: boolean
+          refund_until_hours: number
+          service_window_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          amount_minor: number
+          business_id: string
+          created_at?: string
+          id?: string
+          min_party_size?: number | null
+          per_guest?: boolean
+          refund_until_hours?: number
+          service_window_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          amount_minor?: number
+          business_id?: string
+          created_at?: string
+          id?: string
+          min_party_size?: number | null
+          per_guest?: boolean
+          refund_until_hours?: number
+          service_window_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "restaurant_deposit_rules_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "restaurant_deposit_rules_service_window_id_fkey"
+            columns: ["service_window_id"]
+            isOneToOne: false
+            referencedRelation: "service_windows"
             referencedColumns: ["id"]
           },
         ]
@@ -9637,6 +12126,162 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      rewards_ledger: {
+        Row: {
+          actor_id: string | null
+          amount_minor: number
+          created_at: string
+          id: string
+          idempotency_key: string
+          kind: string
+          member_id: string
+          payout_id: string | null
+          reason: string
+          referral_id: string | null
+        }
+        Insert: {
+          actor_id?: string | null
+          amount_minor: number
+          created_at?: string
+          id?: string
+          idempotency_key: string
+          kind: string
+          member_id: string
+          payout_id?: string | null
+          reason: string
+          referral_id?: string | null
+        }
+        Update: {
+          actor_id?: string | null
+          amount_minor?: number
+          created_at?: string
+          id?: string
+          idempotency_key?: string
+          kind?: string
+          member_id?: string
+          payout_id?: string | null
+          reason?: string
+          referral_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rewards_ledger_payout_id_fkey"
+            columns: ["payout_id"]
+            isOneToOne: false
+            referencedRelation: "rewards_payouts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rewards_ledger_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "referrals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rewards_payouts: {
+        Row: {
+          account_key: string | null
+          account_last4: string
+          account_name: string
+          amount_minor: number
+          bank_code: string
+          created_at: string
+          failure_reason: string | null
+          id: string
+          member_id: string
+          provider_status: string | null
+          recipient_code: string | null
+          reference: string
+          risk_reasons: Json
+          risk_score: number
+          settled_at: string | null
+          status: string
+          transfer_code: string | null
+          transfer_initiated_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          account_key?: string | null
+          account_last4: string
+          account_name: string
+          amount_minor: number
+          bank_code: string
+          created_at?: string
+          failure_reason?: string | null
+          id?: string
+          member_id: string
+          provider_status?: string | null
+          recipient_code?: string | null
+          reference: string
+          risk_reasons?: Json
+          risk_score?: number
+          settled_at?: string | null
+          status?: string
+          transfer_code?: string | null
+          transfer_initiated_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          account_key?: string | null
+          account_last4?: string
+          account_name?: string
+          amount_minor?: number
+          bank_code?: string
+          created_at?: string
+          failure_reason?: string | null
+          id?: string
+          member_id?: string
+          provider_status?: string | null
+          recipient_code?: string | null
+          reference?: string
+          risk_reasons?: Json
+          risk_score?: number
+          settled_at?: string | null
+          status?: string
+          transfer_code?: string | null
+          transfer_initiated_at?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      rewards_transfer_events: {
+        Row: {
+          amount_minor: number | null
+          event: string
+          id: string
+          idempotency_key: string
+          outcome: string
+          payload: Json
+          received_at: string
+          reference: string
+          transfer_code: string | null
+        }
+        Insert: {
+          amount_minor?: number | null
+          event: string
+          id?: string
+          idempotency_key: string
+          outcome: string
+          payload?: Json
+          received_at?: string
+          reference: string
+          transfer_code?: string | null
+        }
+        Update: {
+          amount_minor?: number | null
+          event?: string
+          id?: string
+          idempotency_key?: string
+          outcome?: string
+          payload?: Json
+          received_at?: string
+          reference?: string
+          transfer_code?: string | null
+        }
+        Relationships: []
       }
       risk_alerts: {
         Row: {
@@ -10928,6 +13573,134 @@ export type Database = {
           },
         ]
       }
+      subscription_events: {
+        Row: {
+          amount_minor: number | null
+          currency: string | null
+          event_key: string
+          event_type: string
+          from_status: string | null
+          id: number
+          invoice_code: string | null
+          mode: string | null
+          outcome: string
+          provider: string
+          provider_status: string | null
+          provider_subscription_code: string | null
+          received_at: string
+          reference: string | null
+          subscription_id: string | null
+          to_status: string | null
+        }
+        Insert: {
+          amount_minor?: number | null
+          currency?: string | null
+          event_key: string
+          event_type: string
+          from_status?: string | null
+          id?: never
+          invoice_code?: string | null
+          mode?: string | null
+          outcome: string
+          provider: string
+          provider_status?: string | null
+          provider_subscription_code?: string | null
+          received_at?: string
+          reference?: string | null
+          subscription_id?: string | null
+          to_status?: string | null
+        }
+        Update: {
+          amount_minor?: number | null
+          currency?: string | null
+          event_key?: string
+          event_type?: string
+          from_status?: string | null
+          id?: never
+          invoice_code?: string | null
+          mode?: string | null
+          outcome?: string
+          provider?: string
+          provider_status?: string | null
+          provider_subscription_code?: string | null
+          received_at?: string
+          reference?: string | null
+          subscription_id?: string | null
+          to_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_events_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "member_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscription_provider_plans: {
+        Row: {
+          amount_minor: number
+          billing_interval: string
+          created_at: string
+          currency: string
+          id: number
+          mode: string
+          plan_key: string
+          provider: string
+          provider_plan_code: string
+        }
+        Insert: {
+          amount_minor: number
+          billing_interval?: string
+          created_at?: string
+          currency?: string
+          id?: never
+          mode: string
+          plan_key: string
+          provider?: string
+          provider_plan_code: string
+        }
+        Update: {
+          amount_minor?: number
+          billing_interval?: string
+          created_at?: string
+          currency?: string
+          id?: never
+          mode?: string
+          plan_key?: string
+          provider?: string
+          provider_plan_code?: string
+        }
+        Relationships: []
+      }
+      subscription_settings: {
+        Row: {
+          id: number
+          note: string | null
+          renewal_grace_days: number
+          trial_days: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          id?: number
+          note?: string | null
+          renewal_grace_days?: number
+          trial_days?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          id?: number
+          note?: string | null
+          renewal_grace_days?: number
+          trial_days?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       support_ticket_attachments: {
         Row: {
           created_at: string
@@ -11133,6 +13906,45 @@ export type Database = {
           topic?: string | null
           updated_at?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      tax_schedule_lines: {
+        Row: {
+          borne_by: string
+          confirmed_by: string | null
+          created_at: string
+          effective_from: string
+          effective_to: string | null
+          id: number
+          note: string
+          rate_bps: number | null
+          source: string | null
+          tax_kind: string
+        }
+        Insert: {
+          borne_by: string
+          confirmed_by?: string | null
+          created_at?: string
+          effective_from: string
+          effective_to?: string | null
+          id?: never
+          note: string
+          rate_bps?: number | null
+          source?: string | null
+          tax_kind: string
+        }
+        Update: {
+          borne_by?: string
+          confirmed_by?: string | null
+          created_at?: string
+          effective_from?: string
+          effective_to?: string | null
+          id?: never
+          note?: string
+          rate_bps?: number | null
+          source?: string | null
+          tax_kind?: string
         }
         Relationships: []
       }
@@ -11729,6 +14541,8 @@ export type Database = {
           processor_status: string | null
           provider: string
           provider_ref: string | null
+          rail: string | null
+          rail_policy_id: string | null
           reserve_subaccount_code: string | null
           share_payer_id: string | null
           status: Database["public"]["Enums"]["transaction_status"]
@@ -11755,6 +14569,8 @@ export type Database = {
           processor_status?: string | null
           provider?: string
           provider_ref?: string | null
+          rail?: string | null
+          rail_policy_id?: string | null
           reserve_subaccount_code?: string | null
           share_payer_id?: string | null
           status?: Database["public"]["Enums"]["transaction_status"]
@@ -11781,6 +14597,8 @@ export type Database = {
           processor_status?: string | null
           provider?: string
           provider_ref?: string | null
+          rail?: string | null
+          rail_policy_id?: string | null
           reserve_subaccount_code?: string | null
           share_payer_id?: string | null
           status?: Database["public"]["Enums"]["transaction_status"]
@@ -11799,6 +14617,13 @@ export type Database = {
             columns: ["booking_id"]
             isOneToOne: false
             referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_rail_policy_id_fkey"
+            columns: ["rail_policy_id"]
+            isOneToOne: false
+            referencedRelation: "payment_rail_policy"
             referencedColumns: ["id"]
           },
         ]
@@ -12118,6 +14943,15 @@ export type Database = {
           },
         ]
       }
+      ledger_balances_by_book: {
+        Row: {
+          balance_minor: number | null
+          currency: string | null
+          entries: number | null
+          pot: string | null
+        }
+        Relationships: []
+      }
       listing_credentials: {
         Row: {
           checked_at: string | null
@@ -12273,6 +15107,28 @@ export type Database = {
       }
     }
     Functions: {
+      accept_fee_terms: {
+        Args: {
+          p_fee_high_minor: number
+          p_fee_low_minor: number
+          p_listing: string
+          p_policy_version: number
+          p_protection_rate: number
+          p_receive_high_minor: number
+          p_receive_low_minor: number
+          p_rent_minor: number
+          p_terms_version: string
+        }
+        Returns: Json
+      }
+      accept_listing_rate: {
+        Args: {
+          p_amount_minor: number
+          p_listing: string
+          p_policy_version: number
+        }
+        Returns: Json
+      }
       account_deletion_blockers: { Args: { p_user: string }; Returns: Json }
       acting_for: { Args: { p_id: string; p_kind: string }; Returns: Json }
       add_rent_contributor: {
@@ -12283,6 +15139,7 @@ export type Database = {
         Args: { p_item: string; p_path: string; p_report: string }
         Returns: Json
       }
+      admin_agreement_watch_list: { Args: { p_limit?: number }; Returns: Json }
       admin_begin_email_recovery: {
         Args: { p_request: string }
         Returns: {
@@ -12396,11 +15253,40 @@ export type Database = {
         }
         Returns: string
       }
+      admin_pause_release: {
+        Args: { p_arrangement: string; p_reason: string }
+        Returns: Json
+      }
+      admin_payluk_commission_sweep: { Args: never; Returns: Json }
       admin_payment_health: {
         Args: { p_stale_minutes?: number }
         Returns: Json
       }
       admin_person_file: { Args: { p_user: string }; Returns: Json }
+      admin_referral_budget_set: {
+        Args: { p_cap_minor: number; p_month: string; p_reason: string }
+        Returns: Json
+      }
+      admin_referral_cluster_exposure: {
+        Args: { p_limit?: number }
+        Returns: {
+          exposure_minor: number
+          members: number
+          non_network: boolean
+          reasons: Json
+          referrer_id: string
+          score: number
+        }[]
+      }
+      admin_referral_clusters: {
+        Args: { p_min_size?: number }
+        Returns: {
+          referred_ids: string[]
+          referrer_id: string
+          shared_by: number
+          signal: string
+        }[]
+      }
       admin_referral_counts: {
         Args: { p_days?: number }
         Returns: {
@@ -12409,6 +15295,22 @@ export type Database = {
           first_name: string
         }[]
       }
+      admin_referral_decide: {
+        Args: { p_decision: string; p_reason: string; p_referral: string }
+        Returns: string
+      }
+      admin_referral_graph: {
+        Args: { p_depth?: number; p_member: string }
+        Returns: {
+          depth: number
+          referred_id: string
+          referrer_id: string
+          risk_reasons: Json
+          risk_score: number
+          status: string
+        }[]
+      }
+      admin_referral_liability: { Args: never; Returns: Json }
       admin_refund_clock: {
         Args: never
         Returns: {
@@ -12433,6 +15335,7 @@ export type Database = {
           report_id: string
         }[]
       }
+      admin_resume_release: { Args: { p_arrangement: string }; Returns: Json }
       admin_retire_demo_listings: {
         Args: { p_listing_ids: string[] }
         Returns: Json
@@ -12441,6 +15344,10 @@ export type Database = {
       admin_revoke_staff: {
         Args: { p_reason: string; p_user: string }
         Returns: Json
+      }
+      admin_rewards_payout_decide: {
+        Args: { p_decision: string; p_payout: string; p_reason: string }
+        Returns: string
       }
       admin_rule_caution_dispute: {
         Args: { p_allowed_minor: number; p_deduction: string; p_reason: string }
@@ -12452,6 +15359,22 @@ export type Database = {
       }
       admin_set_internal: {
         Args: { p_internal: boolean; p_reason?: string; p_user: string }
+        Returns: Json
+      }
+      admin_set_review_kill_switch: {
+        Args: { p_on: boolean; p_reason: string }
+        Returns: Json
+      }
+      admin_update_risk_settings: {
+        Args: {
+          p_amount_threshold_minor: number
+          p_check_amount: boolean
+          p_check_first_deal: boolean
+          p_check_fraud_radar: boolean
+          p_check_payout_name: boolean
+          p_check_recent_change: boolean
+          p_recent_change_days: number
+        }
         Returns: Json
       }
       admin_user_id_by_email: { Args: { p_email: string }; Returns: string }
@@ -12494,6 +15417,7 @@ export type Database = {
         }
         Returns: Json
       }
+      agreement_payable_for: { Args: { p_agreement: string }; Returns: Json }
       answer_arrival_check: {
         Args: {
           p_answer: string
@@ -12773,8 +15697,128 @@ export type Database = {
           url: string
         }[]
       }
+      call_accept: { Args: { p_call: string }; Returns: Json }
+      call_cancel: { Args: { p_call: string }; Returns: Json }
+      call_decline: { Args: { p_call: string }; Returns: Json }
+      call_end: { Args: { p_call: string }; Returns: Json }
+      call_heartbeat: { Args: { p_call: string }; Returns: Json }
+      call_history: {
+        Args: { p_conversation: string; p_limit?: number }
+        Returns: Json
+      }
+      call_join_check: { Args: { p_call: string }; Returns: Json }
+      call_provider_event: {
+        Args: {
+          p_at: string
+          p_event: string
+          p_event_id: string
+          p_identity: string
+          p_provider: string
+          p_room: string
+        }
+        Returns: Json
+      }
+      call_provider_presence: {
+        Args: { p_call: string; p_identities: string[] }
+        Returns: Json
+      }
+      call_review_add_entry: {
+        Args: {
+          p_body: string
+          p_corrects?: string
+          p_evidence_ref?: string
+          p_kind: string
+          p_review: string
+        }
+        Returns: Json
+      }
+      call_review_cancel: {
+        Args: { p_reason: string; p_review: string }
+        Returns: Json
+      }
+      call_review_complete: {
+        Args: {
+          p_follow_up_due_at?: string
+          p_outcome: string
+          p_review: string
+          p_summary: string
+        }
+        Returns: Json
+      }
+      call_review_request: {
+        Args: {
+          p_case_id: string
+          p_case_kind: string
+          p_kind?: string
+          p_purpose: string
+          p_scheduled_for?: string
+        }
+        Returns: Json
+      }
+      call_review_reschedule: {
+        Args: { p_reason: string; p_review: string; p_scheduled_for: string }
+        Returns: Json
+      }
+      call_review_respond: {
+        Args: { p_proposed_for?: string; p_response: string; p_review: string }
+        Returns: Json
+      }
+      call_review_start: { Args: { p_review: string }; Returns: Json }
+      call_start: {
+        Args: { p_client_key?: string; p_conversation: string; p_kind: string }
+        Returns: Json
+      }
+      call_usage_summary: {
+        Args: { p_from: string; p_to: string }
+        Returns: Json
+      }
+      calls_mark_rooms_closed: { Args: { p_calls: string[] }; Returns: number }
+      calls_rooms_to_close: {
+        Args: { p_limit?: number }
+        Returns: {
+          call_id: string
+          provider: string
+          provider_room: string
+        }[]
+      }
+      calls_sweep_service: { Args: never; Returns: Json }
       cancel_account_deletion: {
         Args: { p_restore_code_hash: string; p_user: string }
+        Returns: Json
+      }
+      card_refund_claims_for: {
+        Args: { p_refs: string[] }
+        Returns: {
+          amount_minor: number
+          claim_key: string
+          reference: string
+          state: string
+        }[]
+      }
+      chargeback_move: {
+        Args: {
+          p_chargeback: string
+          p_evidence_due_at?: string
+          p_note?: string
+          p_provider_status?: string
+          p_raw?: Json
+          p_recovered_total_minor?: number
+          p_recovery?: string
+          p_to_state?: string
+        }
+        Returns: Json
+      }
+      chargeback_open: {
+        Args: {
+          p_amount_minor: number
+          p_evidence_due_at?: string
+          p_note?: string
+          p_provider: string
+          p_provider_dispute_id: string
+          p_provider_status?: string
+          p_raw?: Json
+          p_reference: string
+        }
         Returns: Json
       }
       claim_card_refund: {
@@ -12826,6 +15870,14 @@ export type Database = {
           closed_at: string
           listing_id: string
         }[]
+      }
+      commission_quote: {
+        Args: {
+          p_amount_minor: number
+          p_type: Database["public"]["Enums"]["property_type"]
+          p_version: number
+        }
+        Returns: Json
       }
       commute_for: {
         Args: { p_anchor: string; p_area: string; p_state: string }
@@ -13069,6 +16121,36 @@ export type Database = {
         }[]
       }
       current_agent_id: { Args: never; Returns: string }
+      current_fee_acceptance: {
+        Args: { p_at?: string; p_listing: string }
+        Returns: {
+          accepted_at: string
+          cap_minor: number | null
+          cap_threshold_minor: number | null
+          commission_bps: number
+          fee_high_minor: number
+          fee_low_minor: number
+          figures_shown: Json
+          id: string
+          listing_id: string
+          member_id: string
+          policy_version: string
+          policy_version_id: number
+          property_type: Database["public"]["Enums"]["property_type"]
+          protection_bps: number
+          protection_rate_id: number
+          receive_high_minor: number
+          receive_low_minor: number
+          rent_minor: number
+          terms_version: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "listing_fee_acceptances"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       decide_edd_review: {
         Args: {
           p_note: string
@@ -13112,6 +16194,10 @@ export type Database = {
         Args: { p_accommodation: string; p_charges: Json; p_listing: string }
         Returns: Json
       }
+      delete_message: {
+        Args: { p_message_id: string; p_scope: string }
+        Returns: Json
+      }
       demand_board: {
         Args: { p_weeks?: number }
         Returns: {
@@ -13129,6 +16215,28 @@ export type Database = {
       destroy_expired_money_records: {
         Args: { p_limit?: number }
         Returns: Json
+      }
+      directory: {
+        Args: {
+          p_limit?: number
+          p_query?: string
+          p_side: string
+          p_state?: string
+        }
+        Returns: {
+          area: string
+          avatar_url: string
+          completed: number
+          display_name: string
+          kind: string
+          live_listings: number
+          place_code: string
+          place_name: string
+          ref: string
+          since: string
+          verification_tier: number
+          verified: boolean
+        }[]
       }
       due_account_purges: { Args: { p_limit: number }; Returns: Json }
       due_kyc_destructions: { Args: { p_limit?: number }; Returns: Json }
@@ -13196,6 +16304,10 @@ export type Database = {
           status: Database["public"]["Enums"]["area_status"]
         }[]
       }
+      entitlement_check: {
+        Args: { p_at?: string; p_feature: string; p_user: string }
+        Returns: boolean
+      }
       escalate_caution_to_guarantee: {
         Args: { p_obligation: string }
         Returns: Json
@@ -13238,6 +16350,22 @@ export type Database = {
         Args: { p_reason: string; p_request: string }
         Returns: Json
       }
+      fee_protection_rate_at: {
+        Args: { p_at?: string }
+        Returns: {
+          created_at: string
+          effective_from: string
+          id: number
+          note: string
+          protection_bps: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "fee_protection_rates"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       fee_rate_at: {
         Args: { p_at?: string; p_kind: Database["public"]["Enums"]["fee_kind"] }
         Returns: {
@@ -13247,6 +16375,7 @@ export type Database = {
           rate_id: string
         }[]
       }
+      fee_terms_quote: { Args: { p_listing: string }; Returns: Json }
       feel_unsafe: {
         Args: { p_block: boolean; p_conversation: string; p_inspection: string }
         Returns: Json
@@ -13296,6 +16425,22 @@ export type Database = {
           p_relation: string
           p_role: string
           p_user: string
+        }
+        Returns: string
+      }
+      forward_message: {
+        Args: { p_conversation_id: string; p_message_id: string }
+        Returns: string
+      }
+      funds_movement_observe: {
+        Args: {
+          p_detail?: Json
+          p_provider_fee_minor?: number
+          p_provider_status?: string
+          p_provider_transaction_id?: string
+          p_reference: string
+          p_source: string
+          p_to_status: string
         }
         Returns: string
       }
@@ -13390,10 +16535,92 @@ export type Database = {
           state_code: string
         }[]
       }
+      leaderboard: {
+        Args: {
+          p_board: string
+          p_limit?: number
+          p_period?: string
+          p_state?: string
+        }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          is_me: boolean
+          kind: string
+          next_score: number
+          place_code: string
+          place_name: string
+          previous_rank: number
+          rank: number
+          ref: string
+          score: number
+          total: number
+          verified: boolean
+        }[]
+      }
+      leaderboard_set_hidden: {
+        Args: { p_business?: string; p_hidden: boolean }
+        Returns: boolean
+      }
+      ledger_record: {
+        Args: {
+          p_actor?: string
+          p_amount: number
+          p_corrects?: string
+          p_currency: string
+          p_direction: string
+          p_event: string
+          p_key: string
+          p_metadata?: Json
+          p_pot: string
+          p_provider: string
+          p_provider_reference?: string
+          p_rail?: string
+          p_status?: string
+          p_transaction?: string
+        }
+        Returns: string
+      }
+      ledger_record_payluk_commission: {
+        Args: {
+          p_actor?: string
+          p_amount: number
+          p_provider_reference?: string
+          p_transaction: string
+        }
+        Returns: Json
+      }
       lister_caution_record: { Args: { p_lister: string }; Returns: Json }
+      lister_chargeback_hold: { Args: { p_lister: string }; Returns: boolean }
       lister_confirm_available: {
         Args: { p_listings: string[] }
         Returns: number
+      }
+      lister_fee_accept: {
+        Args: {
+          p_cap_minor: number
+          p_direct_processor_fee_cap_minor: number
+          p_escrow_protection_bps: number
+          p_escrow_protection_minor: number
+          p_listing: string
+          p_price_minor: number
+          p_processor_up_to_minor: number
+          p_rate_version: string
+          p_receive_high_minor: number
+          p_receive_low_minor: number
+          p_terms_version: string
+          p_vallo_bps: number
+          p_vallo_minor: number
+        }
+        Returns: Json
+      }
+      lister_fee_policy: {
+        Args: {
+          p_listing: string
+          p_listing_intent: string
+          p_property_type: string
+        }
+        Returns: Json
       }
       lister_record_by_code: {
         Args: { p_code: string }
@@ -13695,6 +16922,7 @@ export type Database = {
         }[]
       }
       mandate_withdraw: { Args: { p_invitation: string }; Returns: number }
+      mark_first_run_seen: { Args: { p_feature: string }; Returns: boolean }
       moderation_decide: {
         Args: {
           p_decision: string
@@ -13703,6 +16931,29 @@ export type Database = {
           p_target: string
         }
         Returns: Json
+      }
+      money_policy_at: {
+        Args: { p_at?: string }
+        Returns: {
+          commission_bps: number
+          created_at: string
+          created_by: string | null
+          effective_from: string
+          effective_to: string | null
+          guarantee_bps: number
+          id: number
+          note: string
+          vat_bps: number
+          vat_registered: boolean
+          version: string
+          withdrawal_min_minor: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "money_policy_versions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       my_agent_lookup: { Args: never; Returns: Json }
       my_brief_answers: {
@@ -13731,6 +16982,7 @@ export type Database = {
           tenancy_ends_on: string
         }[]
       }
+      my_call_reviews: { Args: never; Returns: Json }
       my_earnings_history: {
         Args: { p_before?: string; p_limit?: number }
         Returns: {
@@ -13748,6 +17000,16 @@ export type Database = {
         }[]
       }
       my_earnings_summary: { Args: never; Returns: Json }
+      my_leaderboard_visibility: {
+        Args: never
+        Returns: {
+          business_id: string
+          hidden: boolean
+          kind: string
+          name: string
+          subject_kind: string
+        }[]
+      }
       my_listing_mandate: { Args: { p_listing: string }; Returns: Json }
       my_new_device: {
         Args: { p_fingerprint: string }
@@ -13784,6 +17046,32 @@ export type Database = {
         }[]
       }
       my_referral_code: { Args: never; Returns: string }
+      my_referral_progress: {
+        Args: { p_limit?: number }
+        Returns: {
+          earned_state: string
+          first_name: string
+          id: string
+          joined_at: string
+          not_eligible_reason: string
+          qualified_at: string
+          review_until: string
+          reward_minor: number
+          stage: string
+          waiting_on: string
+        }[]
+      }
+      my_referrals: {
+        Args: { p_limit?: number }
+        Returns: {
+          attributed_at: string
+          first_name: string
+          id: string
+          qualified_at: string
+          reward_minor: number
+          status: string
+        }[]
+      }
       my_rent_share: { Args: { p_contributor: string }; Returns: Json }
       my_renter_passport: {
         Args: never
@@ -13809,6 +17097,7 @@ export type Database = {
           target_type: string
         }[]
       }
+      my_rewards_summary: { Args: never; Returns: Json }
       my_routing_firms: {
         Args: never
         Returns: {
@@ -13829,6 +17118,7 @@ export type Database = {
         }[]
       }
       my_staff_access: { Args: never; Returns: Json }
+      my_stay_details: { Args: { p_booking: string }; Returns: Json }
       my_unread_counts: {
         Args: never
         Returns: {
@@ -13938,6 +17228,10 @@ export type Database = {
         Args: { p_code: string; p_phone: string; p_user: string }
         Returns: string
       }
+      plan_booking_refund: {
+        Args: { p_parts?: Json; p_refund: string }
+        Returns: Json
+      }
       platform_stats: {
         Args: never
         Returns: {
@@ -13976,6 +17270,48 @@ export type Database = {
           state: string
           user_id: string
         }[]
+      }
+      promotion_my_purchases: {
+        Args: never
+        Returns: {
+          amount_minor: number
+          created_at: string
+          currency: string
+          duration_days: number
+          ends_at: string
+          id: string
+          listing_id: string
+          paid_at: string
+          starts_at: string
+          status: string
+          tier: string
+        }[]
+      }
+      promotion_price_now: {
+        Args: { p_tier: string }
+        Returns: unknown
+        SetofOptions: {
+          from: "*"
+          to: "tier_prices"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      promotion_purchase_mark: {
+        Args: { p_reference: string; p_status: string }
+        Returns: boolean
+      }
+      promotion_purchase_open: {
+        Args: { p_listing: string; p_member: string; p_tier: string }
+        Returns: Json
+      }
+      promotion_purchase_settle: {
+        Args: {
+          p_amount_minor: number
+          p_currency: string
+          p_reference: string
+        }
+        Returns: Json
       }
       property_candidates: {
         Args: { p_listing: string }
@@ -14026,6 +17362,27 @@ export type Database = {
         }
         Returns: Json
       }
+      provider_arrangement_observe: {
+        Args: {
+          p_arrangement: string
+          p_detail?: Json
+          p_milestones?: Json
+          p_provider_amount_minor?: number
+          p_provider_arrangement_id?: string
+          p_provider_event_key?: string
+          p_provider_fee_minor?: number
+          p_provider_payment_token?: string
+          p_provider_state?: string
+          p_provider_status?: string
+          p_source: string
+          p_to_status: string
+        }
+        Returns: string
+      }
+      provider_arrangement_open: {
+        Args: { p_agreement: string; p_kind: string; p_milestones?: Json }
+        Returns: Json
+      }
       purge_account_rows: { Args: { p_request: string }; Returns: Json }
       purge_job_runs: { Args: { p_keep_days?: number }; Returns: number }
       queue_assign: {
@@ -14044,6 +17401,7 @@ export type Database = {
         Args: { p_batch?: string; p_item: string; p_kind: string }
         Returns: Json
       }
+      quote_listing_rate: { Args: { p_listing: string }; Returns: Json }
       record_area_pulse: {
         Args: { p_answer: string; p_area: string; p_kind: string }
         Returns: string
@@ -14166,6 +17524,10 @@ export type Database = {
         }
         Returns: Json
       }
+      record_refund_part: {
+        Args: { p_part: string; p_processor_id: string; p_status: string }
+        Returns: Json
+      }
       record_rent_share_refund: {
         Args: { p_processor_id: string; p_refund: string; p_status: string }
         Returns: Json
@@ -14193,7 +17555,16 @@ export type Database = {
         }
         Returns: string
       }
+      referral_claim_code: { Args: { p_code: string }; Returns: string }
       referral_door: { Args: { p_code: string }; Returns: Json }
+      referral_flag_clusters: { Args: { p_limit?: number }; Returns: number }
+      referral_programme_status: { Args: never; Returns: Json }
+      referral_qualify_pending: { Args: { p_limit?: number }; Returns: Json }
+      referral_release_due: { Args: never; Returns: number }
+      referral_reverse_for_chargeback: {
+        Args: { p_reason: string; p_tx: string }
+        Returns: number
+      }
       refund_agent_check_slot: {
         Args: { p_bucket: string; p_window_start: string }
         Returns: undefined
@@ -14300,6 +17671,30 @@ export type Database = {
         Args: { p_conversation: string; p_item: string; p_note?: string }
         Returns: string
       }
+      reservation_deposit_close: {
+        Args: { p_reference: string; p_status: string }
+        Returns: string
+      }
+      reservation_deposit_open: {
+        Args: { p_guest: string; p_mode: string; p_reservation: string }
+        Returns: Json
+      }
+      reservation_deposit_quote_for: {
+        Args: { p_reservation: string }
+        Returns: Json
+      }
+      reservation_deposit_refunded: {
+        Args: { p_processor_refund_id: string; p_reference: string }
+        Returns: string
+      }
+      reservation_deposit_settle: {
+        Args: {
+          p_amount_minor: number
+          p_currency: string
+          p_reference: string
+        }
+        Returns: Json
+      }
       reserve_room_nights: {
         Args: {
           p_check_in: string
@@ -14309,6 +17704,15 @@ export type Database = {
           p_rooms: number
         }
         Returns: number
+      }
+      resolve_payment_rail: {
+        Args: {
+          p_at?: string
+          p_lister_kind: Database["public"]["Enums"]["agent_type"]
+          p_listing_intent: Database["public"]["Enums"]["listing_intent"]
+          p_property_type: Database["public"]["Enums"]["property_type"]
+        }
+        Returns: Record<string, unknown>
       }
       respond_to_business_transfer: {
         Args: { p_accept: boolean; p_transfer: string; p_user: string }
@@ -14327,6 +17731,66 @@ export type Database = {
           target_user: string
         }
         Returns: Json
+      }
+      rewards_payout_claim_send: {
+        Args: { p_reference: string }
+        Returns: boolean
+      }
+      rewards_payout_open: {
+        Args: {
+          p_account_name: string
+          p_account_number: string
+          p_bank_code: string
+          p_member: string
+          p_recipient_code: string
+        }
+        Returns: Json
+      }
+      rewards_payout_settle: {
+        Args: {
+          p_outcome: string
+          p_provider_status?: string
+          p_reason?: string
+          p_recipient_code?: string
+          p_reference: string
+          p_transfer_code?: string
+        }
+        Returns: Json
+      }
+      rewards_payout_webhook: {
+        Args: {
+          p_amount_minor: number
+          p_event: string
+          p_payload?: Json
+          p_reference: string
+          p_transfer_code?: string
+        }
+        Returns: Json
+      }
+      rewards_payouts_stuck: {
+        Args: { p_older_than_hours?: number }
+        Returns: {
+          created_at: string
+          initiated: boolean
+          reference: string
+          status: string
+        }[]
+      }
+      rewards_payouts_to_send: {
+        Args: { p_older_than_minutes?: number }
+        Returns: {
+          amount_minor: number
+          recipient_code: string
+          reference: string
+        }[]
+      }
+      rewards_payouts_to_verify: {
+        Args: { p_older_than_minutes?: number }
+        Returns: {
+          created_at: string
+          reference: string
+          status: string
+        }[]
       }
       risk_desk: { Args: never; Returns: Json }
       risk_factors_for: { Args: { p_user: string }; Returns: Json }
@@ -14506,6 +17970,25 @@ export type Database = {
       }
       shell_context: { Args: never; Returns: Json }
       signup_method_for_email: { Args: { p_email: string }; Returns: string }
+      social_follow_suggestions: {
+        Args: {
+          p_city?: string
+          p_kind?: string
+          p_limit?: number
+          p_offset?: number
+          p_query?: string
+        }
+        Returns: {
+          avatar_path: string
+          city: string
+          display_label: string
+          handle: string
+          kind: string
+          published: number
+          user_id: string
+          verified: boolean
+        }[]
+      }
       staff_acknowledge_handbook: { Args: { p_version: string }; Returns: Json }
       staff_add_member_note: {
         Args: { p_body: string; p_scope?: string; p_subject: string }
@@ -14542,6 +18025,28 @@ export type Database = {
           term: string
         }[]
       }
+      staff_chargebacks: {
+        Args: never
+        Returns: {
+          amount_minor: number
+          closed_at: string
+          currency: string
+          evidence_due_at: string
+          id: string
+          lister_unattributed: boolean
+          lister_user_id: string
+          opened_at: string
+          provider: string
+          provider_dispute_id: string
+          provider_status: string
+          recovered_minor: number
+          recovery_closed_at: string
+          recovery_state: string
+          reference: string
+          state: string
+          transaction_id: string
+        }[]
+      }
       staff_member_notes: {
         Args: { p_subject: string }
         Returns: {
@@ -14565,6 +18070,7 @@ export type Database = {
           subject_id: string
         }[]
       }
+      start_direct_conversation: { Args: { p_other: string }; Returns: string }
       status_stats: {
         Args: { p_listing: string }
         Returns: {
@@ -14833,6 +18339,40 @@ export type Database = {
         Args: { p_case: string; p_note: string }
         Returns: Json
       }
+      subscription_apply_event: {
+        Args: {
+          p_data: Json
+          p_event: string
+          p_event_key: string
+          p_mode: string
+        }
+        Returns: Json
+      }
+      subscription_checkout_open: {
+        Args: {
+          p_amount_minor: number
+          p_email_sha256: string
+          p_mode: string
+          p_plan_code: string
+          p_plan_key: string
+          p_user: string
+        }
+        Returns: Json
+      }
+      subscription_mark_cancelled: {
+        Args: { p_subscription: string; p_user: string }
+        Returns: Json
+      }
+      subscription_provider_plan_record: {
+        Args: {
+          p_amount_minor: number
+          p_mode: string
+          p_plan_code: string
+          p_plan_key: string
+        }
+        Returns: string
+      }
+      subscription_start_trial: { Args: { p_plan_key: string }; Returns: Json }
       support_escalate_ticket: {
         Args: { p_reason: string; p_scope: string; p_ticket: string }
         Returns: Json
@@ -14880,6 +18420,7 @@ export type Database = {
         }
         Returns: Json
       }
+      tax_line_at: { Args: { p_at?: string; p_kind: string }; Returns: Json }
       tenancy_is_void: { Args: { p_rent_payment: string }; Returns: boolean }
       thread_counterpart_facts: {
         Args: { p_conversation: string }
@@ -14955,6 +18496,10 @@ export type Database = {
         Returns: Json
       }
       withdraw_my_report: { Args: { p_report: string }; Returns: Json }
+      withdrawal_fee_quote: {
+        Args: { p_amount_minor: number; p_at?: string }
+        Returns: Json
+      }
     }
     Enums: {
       agent_application_status:
@@ -15169,7 +18714,12 @@ export type Database = {
         | "operations"
       supply_role: "owner" | "agent"
       support_ticket_status: "open" | "pending" | "resolved" | "closed"
-      thread_context: "listing" | "reservation" | "booking" | "business" | "direct"
+      thread_context:
+        | "listing"
+        | "reservation"
+        | "booking"
+        | "business"
+        | "direct"
       transaction_status:
         | "SUCCESSFUL"
         | "PENDING"
@@ -15554,7 +19104,13 @@ export const Constants = {
       ],
       supply_role: ["owner", "agent"],
       support_ticket_status: ["open", "pending", "resolved", "closed"],
-      thread_context: ["listing", "reservation", "booking", "business", "direct"],
+      thread_context: [
+        "listing",
+        "reservation",
+        "booking",
+        "business",
+        "direct",
+      ],
       transaction_status: [
         "SUCCESSFUL",
         "PENDING",
