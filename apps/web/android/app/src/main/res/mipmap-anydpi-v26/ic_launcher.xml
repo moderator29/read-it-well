@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Full bleed: launchers move and scale the background layer during
-         parallax and animation, and an inset one shows an unpainted ring. -->
-    <background android:drawable="@mipmap/ic_launcher_background" />
-    <foreground>
-        <inset android:drawable="@mipmap/ic_launcher_foreground" android:inset="16.7%" />
-    </foreground>
+    <!-- Full bleed: the Vallo logo is the whole square artwork, so the
+         foreground is not inset. Background is the app's dark brand colour. -->
+    <background android:drawable="@drawable/ic_launcher_background" />
+    <foreground android:drawable="@mipmap/ic_launcher_foreground" />
 </adaptive-icon>
