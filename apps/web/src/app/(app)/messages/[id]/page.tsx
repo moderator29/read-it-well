@@ -321,6 +321,7 @@ export default async function ConversationPage({
            that made this reader a party at all. It exists so the options
            sheet can offer Block, which before this had no id to act on. */
         counterpartId={thread.counterpartId}
+        counterpartHandle={thread.counterpartHandle}
         listing={
           thread.listing
             ? {

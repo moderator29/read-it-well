@@ -155,6 +155,8 @@ export type ThreadViewProps = {
    * that cannot act.
    */
   counterpartId?: string | null;
+  /** The other person's public handle, so their avatar and name open their profile. */
+  counterpartHandle?: string | null;
   /**
    * The counterpart's REAL verification state, from `agents.verified`.
    *
@@ -358,6 +360,7 @@ export function ThreadView({
   counterpartName,
   counterpartPhone = null,
   counterpartId = null,
+  counterpartHandle = null,
   counterpartTier,
   listing,
   inspected: inspectedInitial,
@@ -921,9 +924,19 @@ export function ThreadView({
         ) : venueFace ? (
           <InitialsTile name={counterpartName} size="md" className="nf-thread__initials" />
         ) : (
-          <span className="nf-thread__ring">
-            <VerifiedAvatar name={counterpartName} tier={counterpartTier} size="md" />
-          </span>
+          counterpartHandle ? (
+            <a
+              href={`/u/${counterpartHandle}`}
+              className="nf-thread__ring"
+              aria-label={`${counterpartName}, open profile`}
+            >
+              <VerifiedAvatar name={counterpartName} tier={counterpartTier} size="md" />
+            </a>
+          ) : (
+            <span className="nf-thread__ring">
+              <VerifiedAvatar name={counterpartName} tier={counterpartTier} size="md" />
+            </span>
+          )
         )}
         <div className="min-w-0 flex-1">
           <h1 className={`nf-thread__title${propertyFace ? " nf-thread__title--place" : ""}`}>

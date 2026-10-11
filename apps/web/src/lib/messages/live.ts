@@ -104,6 +104,8 @@ export type LiveThreadData = {
    * party at all, and nothing is resolved before it has passed.
    */
   counterpartPhone: string | null;
+  /** The other party's public handle, or null when they have not claimed one. */
+  counterpartHandle: string | null;
   /**
    * The other party's user id.
    *
@@ -567,9 +569,16 @@ export async function loadThread(
      generic label; the number fails soft to nothing at all, because a label
      that is too generic is a small loss and a number handed to the wrong
      reader is not. */
-  const [identities, counterpartPhone] = await Promise.all([
+  const [identities, counterpartPhone, handleRow] = await Promise.all([
     identitiesOf([counterpartId]),
     callableNumberFor(user.id, counterpartId),
+    /* The public handle, so the person's avatar in the thread can open their profile. */
+    createAdminClient()
+      .from("social_profiles")
+      .select("handle")
+      .eq("user_id", counterpartId)
+      .maybeSingle()
+      .then((r) => r.data),
   ]);
   const counterpart = identities.get(counterpartId);
 
@@ -582,6 +591,7 @@ export async function loadThread(
     counterpartTier: counterpart?.tier ?? "none",
     counterpartPhone,
     counterpartId,
+    counterpartHandle: handleRow?.handle ?? null,
     listing: conversation.listings
       ? {
           id: conversation.listings.id,

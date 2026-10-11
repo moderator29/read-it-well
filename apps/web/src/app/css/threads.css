@@ -1678,3 +1678,55 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* THE FIRST MESSAGE TO A MEMBER: a chat screen, not a form. The header carries
+   the person; the body is the empty conversation; the composer is docked. */
+.nf-direct {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  min-height: 100dvh;
+}
+.nf-direct__head {
+  display: flex;
+  align-items: center;
+  gap: var(--nf-space-xs);
+  padding: var(--nf-space-xs) var(--nf-space-md);
+  border-bottom: 1px solid var(--nf-border-subtle);
+}
+.nf-direct__avatar {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--nf-surface-inset);
+  color: var(--nf-content-secondary);
+  flex-shrink: 0;
+}
+.nf-direct__name {
+  display: block;
+  font-weight: 600;
+  color: var(--nf-content-primary);
+}
+.nf-direct__handle {
+  display: block;
+  font-size: var(--nf-text-caption);
+  color: var(--nf-content-muted);
+}
+.nf-direct__body {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: var(--nf-space-xs);
+  padding: var(--nf-space-lg) var(--nf-space-md);
+}
+.nf-direct__hint {
+  max-width: 22rem;
+  text-align: center;
+  color: var(--nf-content-muted);
+}
+.nf-direct__composer {
+  position: sticky;
+  bottom: 0;
+}
