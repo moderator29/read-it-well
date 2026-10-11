@@ -32,7 +32,7 @@ export type Bundle<T extends BundleInput> = {
 /** The body a photo-only message carries, as `attachImage` writes it. */
 const PHOTO_BODY = "\u{1F4F7} Photo";
 
-function isPhotoOnly(m: BundleInput): boolean {
+export function isPhotoOnly(m: BundleInput): boolean {
   return m.imageUrl !== null && (m.body.trim().length === 0 || m.body === PHOTO_BODY);
 }
 

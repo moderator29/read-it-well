@@ -17,7 +17,7 @@ import { MediaFrame } from "@/components/app/MediaFrame";
 import { InitialsTile } from "@/components/ui/InitialsTile";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ChatCard, type ChatCardData } from "@/components/app/messages/ChatCard";
-import { bundlePhotos, isCaption } from "@/components/app/messages/bundle";
+import { bundlePhotos, isCaption, isPhotoOnly } from "@/components/app/messages/bundle";
 import { parseShare, shareHref, SHARE_LEAD } from "@/components/app/messages/share";
 import {
   attachImage,
@@ -1096,7 +1096,9 @@ export function ThreadView({
             prev !== null && prev.mine === m.mine && prev.timeLabel === m.timeLabel && !prev.state && !m.state;
           const photos = run.filter((p) => p.imageUrl !== null);
           const caption = run.length > 1 ? run.find((p) => isCaption(p)) : null;
-          const words = run.length === 1 ? m.body : (caption?.body ?? "");
+          /* A photo sent alone carries the placeholder body the server writes; it is
+             not words, so no caption and no camera glyph under the picture. */
+          const words = run.length === 1 ? (isPhotoOnly(m) ? "" : m.body) : (caption?.body ?? "");
           const last = run[run.length - 1]!;
           /* V-04: the first message in this run from the other side that
              carries an account number gets the receiver's card above it. */

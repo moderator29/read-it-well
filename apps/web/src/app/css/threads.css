@@ -464,12 +464,23 @@
   .nf-bubble__photo {
     display: block;
     width: 100%;
-    max-height: 16rem;
-    aspect-ratio: 4 / 3;
-    object-fit: cover;
+    height: auto;
+    max-height: 22rem;
+    object-fit: contain;
     border-radius: var(--nf-radius-md);
     background: var(--nf-surface-inset);
-    margin-bottom: var(--nf-space-xs);
+  }
+  /* A photo sent alone is the whole bubble: no inner padding, no white frame,
+     the picture at its own proportions. */
+  .nf-bubble:has(> .nf-bubble__photo:only-child),
+  .nf-bubble:has(> .nf-photo-bundle:only-child) {
+    padding: 0;
+    overflow: hidden;
+    background: transparent;
+  }
+  .nf-bubble:has(> .nf-bubble__photo:only-child) .nf-bubble__foot,
+  .nf-bubble:has(> .nf-photo-bundle:only-child) .nf-bubble__foot {
+    padding: var(--nf-space-2xs) var(--nf-space-xs) var(--nf-space-xs);
   }
 
   /* The photo bundle inside a bubble: three thumbnails and a +n plate. */
