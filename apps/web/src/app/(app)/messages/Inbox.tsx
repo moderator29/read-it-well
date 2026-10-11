@@ -511,7 +511,11 @@ export function Inbox({
             on the two chips that have a queue. Chips have room for a count
             where the old segmented track cut the word. */}
         <ChipRow label={tabLabels.filterLabel} radiogroup bleed={false}>
-          {VIEW_ORDER.map((key) => {
+          {/* A filter appears only when it has something in it. Recent and
+              Requests always show; the view you are on never vanishes under you. */}
+          {VIEW_ORDER.filter(
+            (key) => key === "recent" || key === "requests" || view === key || onSide.some((r) => inView(r, key)),
+          ).map((key) => {
             const count = key === "unread" ? unreadThreads : key === "requests" ? requests.length : 0;
             return (
               <Chip
