@@ -43,6 +43,7 @@ export function CallButtons({
 }) {
   const [pending, setPending] = useState<CallKind | null>(null);
   const [note, setNote] = useState<{ title?: string; body: string } | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => registerContext(conversationId, { line: contextLine ?? null }), [conversationId, contextLine]);
   useEffect(() => {
@@ -73,25 +74,50 @@ export function CallButtons({
       <button
         type="button"
         className="nf-thread__call"
-        aria-label={fill(copy.buttons.voiceWith, { name })}
-        aria-busy={pending === "AUDIO" || undefined}
+        aria-label={fill(copy.buttons.voice, { name })}
+        aria-haspopup="menu"
+        aria-expanded={menuOpen}
         disabled={pending !== null}
-        onClick={() => void tap("AUDIO")}
-        data-testid="thread-call-voice"
+        onClick={() => setMenuOpen((open) => !open)}
+        data-testid="thread-call"
       >
-        <UiIcon name="phone" size={24} filled />
+        <UiIcon name="phone" size={22} />
       </button>
-      <button
-        type="button"
-        className="nf-thread__call"
-        aria-label={fill(copy.buttons.videoWith, { name })}
-        aria-busy={pending === "VIDEO" || undefined}
-        disabled={pending !== null}
-        onClick={() => void tap("VIDEO")}
-        data-testid="thread-call-video"
-      >
-        <UiIcon name="video" size={24} filled />
-      </button>
+      {menuOpen ? (
+        <>
+          <button type="button" className="nf-call-menu__scrim" aria-label="Close" onClick={() => setMenuOpen(false)} />
+          <span role="menu" className="nf-call-menu" data-testid="thread-call-menu">
+            <button
+              type="button"
+              role="menuitem"
+              className="nf-call-menu__item"
+              aria-busy={pending === "AUDIO" || undefined}
+              onClick={() => {
+                setMenuOpen(false);
+                void tap("AUDIO");
+              }}
+              data-testid="thread-call-voice"
+            >
+              <UiIcon name="phone" size={18} />
+              <span>{copy.buttons.voice}</span>
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              className="nf-call-menu__item"
+              aria-busy={pending === "VIDEO" || undefined}
+              onClick={() => {
+                setMenuOpen(false);
+                void tap("VIDEO");
+              }}
+              data-testid="thread-call-video"
+            >
+              <UiIcon name="video" size={18} />
+              <span>{copy.buttons.video}</span>
+            </button>
+          </span>
+        </>
+      ) : null}
       {note ? (
         <span className="nf-call-note nf-call-note--pop" role="status" data-testid="thread-call-note">
           <span style={{ minWidth: 0, flex: 1 }}>

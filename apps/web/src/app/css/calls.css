@@ -785,3 +785,46 @@
     overflow: hidden;
   }
 }
+
+/* THE CALL MENU: one phone control in the thread header, opening Voice call
+   and Video call. A plain panel under the control, closed by a scrim. */
+.nf-call-menu__scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: transparent;
+  border: 0;
+  cursor: default;
+}
+.nf-call-menu {
+  position: absolute;
+  top: calc(100% + var(--nf-space-2xs));
+  right: 0;
+  z-index: 41;
+  display: grid;
+  min-width: 11rem;
+  padding: var(--nf-space-3xs);
+  gap: var(--nf-space-3xs);
+  border-radius: var(--nf-radius-md);
+  background: var(--nf-surface-raised);
+  border: 1px solid var(--nf-border-subtle);
+  box-shadow: var(--nf-elevation-floating);
+}
+.nf-call-menu__item {
+  display: flex;
+  align-items: center;
+  gap: var(--nf-space-2xs);
+  min-height: 44px;
+  padding: 0 var(--nf-space-xs);
+  border: 0;
+  border-radius: var(--nf-radius-sm);
+  background: transparent;
+  color: var(--nf-content-primary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.nf-call-menu__item:hover,
+.nf-call-menu__item:focus-visible {
+  background: var(--nf-surface-inset);
+}

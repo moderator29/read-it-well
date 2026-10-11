@@ -887,7 +887,9 @@ export function ThreadView({
               carries "Rental enquiry", and the render does not repeat it. */}
           {!propertyFace && (
             <p className="nf-thread__context">
-              <UiIcon name={contextGlyph} size={14} className="shrink-0" />
+              {contextGlyph !== "chat-bubble" ? (
+                <UiIcon name={contextGlyph} size={14} className="shrink-0" />
+              ) : null}
               <span className="truncate">{contextLine}</span>
             </p>
           )}
@@ -952,7 +954,7 @@ export function ThreadView({
           >
             {/* Upright, as GOVERNING-chat-booking-card.png draws the header's
                 options control: the shared three nodes turned a quarter. */}
-            <UiIcon name="more" size={ICON.inline} className="rotate-90" />
+            <UiIcon name="more" size={16} className="rotate-90" />
           </Button>
         </div>
       </header>
