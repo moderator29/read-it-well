@@ -1,12 +1,16 @@
 [
   {
-    "relation": ["delegate_permission/common.handle_all_urls", "delegate_permission/common.get_login_creds"],
+    "relation": [
+      "delegate_permission/common.handle_all_urls",
+      "delegate_permission/common.get_login_creds"
+    ],
     "target": {
       "namespace": "android_app",
       "package_name": "com.vallospaces.app",
       "sha256_cert_fingerprints": [
-        "PLACEHOLDER_REPLACE_WITH_PLAY_APP_SIGNING_SHA256_SEE_ANDROIDMANIFEST_XML",
-        "98:CA:7B:40:66:03:AE:39:94:BD:AA:C1:3F:D7:26:E1:12:20:7E:AC:BD:53:80:95:9A:FA:A0:F8:07:5B:66:A8"
+        "98:CA:7B:40:66:03:AE:39:94:BD:AA:C1:3F:D7:26:E1:12:20:7E:AC:BD:53:80:95:9A:FA:A0:F8:07:5B:66:A8",
+        "CA:34:7C:79:2E:C8:3B:65:9A:2F:89:33:12:F5:E3:06:C3:22:53:66:82:8E:D7:99:C9:11:41:A9:00:03:94:B0",
+        "04:72:8F:7E:34:67:5E:61:C9:E3:D7:C0:92:3A:B7:3B:3C:45:3E:9C"
       ]
     }
   }
