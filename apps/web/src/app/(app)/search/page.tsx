@@ -728,6 +728,7 @@ export default async function SearchPage({
                     index={i}
                     eager={i === 0}
                     dense={query.view !== "rows"}
+                    brief={query.view !== "rows"}
                     saved={savedIds.has(l.id)}
                     intent={tuning.signedIn ? tuning.interests : undefined}
                     messageAgent
