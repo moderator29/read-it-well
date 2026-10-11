@@ -9,8 +9,8 @@ import { EmptyPanel } from "@/components/social/profile/EmptyPanel";
 import { FollowButton } from "@/components/social/profile/FollowButton";
 import { AroundFab } from "@/components/social/AroundFab";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { Button } from "@/components/ui/Button";
-import { TextField } from "@/components/ui/Field";
+import { PeopleSearch } from "@/components/social/find/PeopleSearch";
+import { ButtonLink } from "@/components/ui/Button";
 import { isSocialEnabled } from "@/lib/social/flag";
 import { findPeople } from "@/lib/social/people-queries";
 import { RemoteImage } from "@/components/ui/RemoteImage";
@@ -89,23 +89,20 @@ export default async function PeoplePage({
         field, so clearing writes the DOM directly and the form still posts
         empty, which is the "see everybody" case.
       */}
-      <form action="/u" method="get" className="mt-2xs flex items-start gap-xs">
-        <TextField
-          className="min-w-0 flex-1"
-          label={w.searchLabel}
-          hideLabel
-          leadingIcon="search"
-          clearable={w.clear}
-          name="q"
-          type="search"
-          defaultValue={view.query}
-          placeholder={w.placeholder}
-          autoComplete="off"
+      <div className="mt-2xs">
+        <PeopleSearch
+          mode="page"
+          initialQuery={view.query}
+          copy={{
+            label: w.searchLabel,
+            placeholder: w.findPlaceholder,
+            clear: w.clear,
+            searching: w.findSearching,
+            none: w.findNone,
+            seeAll: w.findSeeAll,
+          }}
         />
-        <Button type="submit" variant="primary" className="h-12 shrink-0">
-          {w.search}
-        </Button>
-      </form>
+      </div>
 
       <p className="mt-md nf-section-label">
         {searching ? w.matching.replace("{query}", view.query) : w.arrived}
@@ -196,12 +193,23 @@ export default async function PeoplePage({
               {person.isViewer ? (
                 <span className="nf-people__you">You</span>
               ) : (
-                <FollowButton
-                  handle={person.handle}
-                  initialFollowing={person.viewerFollows}
-                  signedIn={view.signedIn}
-                  compact
-                />
+                <span className="flex shrink-0 items-center gap-xs">
+                  <FollowButton
+                    handle={person.handle}
+                    initialFollowing={person.viewerFollows}
+                    signedIn={view.signedIn}
+                    compact
+                  />
+                  <ButtonLink
+                    href={`/u/${person.handle}/message`}
+                    size="sm"
+                    variant="secondary"
+                    leadingIcon="messages"
+                    aria-label={w.messageLabel.replace("{name}", person.displayLabel)}
+                  >
+                    {w.messageAction}
+                  </ButtonLink>
+                </span>
               )}
             </li>
           ))}

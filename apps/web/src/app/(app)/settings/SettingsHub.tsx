@@ -19,6 +19,7 @@ import { useNfSettings } from "@/components/app/account/settings-store";
 import { clearPacks } from "@/lib/offline/pack-store";
 import { clearShelf } from "@/lib/offline/shelf-store";
 import { clearOutbox } from "@/lib/offline/outbox";
+import { forgetKeptPages } from "@/lib/offline/page-cache";
 import { forgetWidget } from "@/lib/native/widget";
 import { revokeWidgetTokens } from "@/lib/native/widget-actions";
 import { clearAllInflight } from "@/lib/offline/inflight";
@@ -67,6 +68,12 @@ export type SettingsHubProps = {
   phoneRow?: { label: string; sub: string } | null;
   /** V-100: the renter passport row, for a signed-in person. Absent draws nothing. */
   passportRow?: { label: string; sub: string } | null;
+  /**
+   * The Rewards row, for a signed-in person: the Rewards page's title, and a
+   * line from the rewards read saying what that page will say (`rewardsDoorSub`;
+   * today "Rewards are not running yet"). Never a figure. Absent draws nothing.
+   */
+  rewardsRow?: { label: string; sub?: string | undefined } | null;
 };
 
 const ALL_ON: ResolvedProfileSettings["notifications"] = {
@@ -247,6 +254,15 @@ export function SettingsHub({
           value={themeWord}
           testId="hub-appearance"
         />
+        {/* Accessibility was a destination in the settings menu and nowhere on
+            this screen, so it could not be found from here (7 October 2026). */}
+        <RowLink
+          href="/settings/accessibility"
+          glyph={<HubGlyph name="eye" />}
+          label={t.experienceSettings.accessibility.title}
+          sub={t.experienceSettings.accessibility.sub}
+          testId="hub-accessibility"
+        />
         <LanguageRow
           t={t}
           current={locale}
@@ -254,13 +270,17 @@ export function SettingsHub({
           sub={hub.languageSub}
           glyph={<HubGlyph name="globe" />}
         />
-        {/* A5: the member's own invite link. */}
         <RowLink
-          href="/settings/invite"
-          glyph={<HubGlyph name="users" />}
-          label={t.publicDoors.invite.rowTitle}
-          sub={t.publicDoors.invite.rowSub}
-          testId="hub-invite"
+          href="/settings/place"
+          glyph={<HubGlyph name="location" />}
+          label={t.experienceSettings.area.destinations.place}
+          testId="hub-place"
+        />
+        <RowLink
+          href="/settings/interests"
+          glyph={<HubGlyph name="heart" />}
+          label={t.experienceSettings.area.destinations.interests}
+          testId="hub-interests"
         />
       </SettingsGroup>
 
@@ -287,6 +307,14 @@ export function SettingsHub({
             testId="hub-passcode"
           />
         )}
+        {signedIn && (
+          <RowLink
+            href="/settings/devices"
+            glyph={<HubGlyph name="key" />}
+            label={t.experienceSettings.area.destinations.devices}
+            testId="hub-devices"
+          />
+        )}
       </SettingsGroup>
 
       {signedIn && (
@@ -297,15 +325,6 @@ export function SettingsHub({
             label={t.paymentsPage.settingsRow}
             sub="Cards you pay with, and the bank accounts you are paid into"
             testId="hub-payments"
-          />
-          {/* The record of what was paid and refunded. Read-only: there is
-              nothing held, so nothing here to top up or take out. */}
-          <RowLink
-            href="/payments"
-            glyph={<HubGlyph name="history" />}
-            label="Payment history"
-            sub="What you paid through Vallo, and every refund"
-            testId="hub-payment-history"
           />
         </SettingsGroup>
       )}
@@ -366,6 +385,8 @@ export function LogOutRow({ t, signedIn }: { t: HubCopy; signedIn: boolean }) {
               /* SUP-16: a listing draft never outlives the session that wrote it. */
               clearListingDrafts();
               await clearOutbox();
+              /* The pages this phone kept for offline go with the session. */
+              await forgetKeptPages();
               await forgetWidget();
               clearAllInflight();
               clearLocalDevice();

@@ -1,7 +1,7 @@
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { HostShell } from "@/components/host/HostShell";
-import { HostRoomsBody } from "@/app/host/rooms/page";
+import { HostRoomsBody } from "@/app/host/rooms/HostRoomsBody";
 import { C2_HOTEL, C2_HOTEL_PROPERTY, C2_ROOM_TYPES_NO_NIGHTS } from "../fixtures";
 
 /**

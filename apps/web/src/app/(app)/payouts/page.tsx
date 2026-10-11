@@ -2,21 +2,13 @@ import type { Metadata } from "next";
 import { getLocale } from "@/lib/locale";
 import { readMyEarnings } from "@/lib/money/history";
 import { parseBefore } from "@/lib/money/history-model";
-import {
-  EARNINGS_SETTLEMENT,
-  HOST_EARNINGS_EMPTY_BODY,
-  PAYOUTS_EMPTY_TITLE,
-  PAYOUTS_LEDE,
-  PAYOUTS_TITLE,
-} from "@/lib/money/copy";
+import { PAYOUTS_LEDE, PAYOUTS_TITLE } from "@/lib/money/copy";
 import { PageHeader } from "@/components/app/PageHeader";
-import { EmptyState, TYPE } from "@/components/app/Screen";
+import { EmptyState } from "@/components/app/Screen";
 import { ButtonLink } from "@/components/ui/Button";
 import { withNext } from "@/lib/auth/next-link";
-import { HistoryEmpty, HistoryUnavailable } from "@/components/app/money-history/HistoryStates";
-import { HistoryHero } from "@/components/app/money-history/HistoryHero";
-import { PayoutList } from "@/components/money/PayoutList";
-import { EARNINGS_TOTAL_LABEL, HISTORY_NOT_A_BALANCE } from "@/lib/money/copy";
+import { HistoryUnavailable } from "@/components/app/money-history/HistoryStates";
+import { PayoutsView } from "@/components/money/PayoutsView";
 
 export const metadata: Metadata = { title: "Payouts", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -60,27 +52,7 @@ export default async function PayoutsPage({
           <HistoryUnavailable retryHref="/payouts" />
         </div>
       ) : (
-        <div className="mt-inline space-y-block">
-          <HistoryHero
-            id="nf-payouts-total"
-            label={EARNINGS_TOTAL_LABEL}
-            totalMinor={read.summary.netMinor}
-            locale={locale}
-            note={`${EARNINGS_SETTLEMENT} ${HISTORY_NOT_A_BALANCE}`}
-            facts={[]}
-          />
-          <p className={TYPE.body}>{PAYOUTS_LEDE}</p>
-          {read.entries.length === 0 && !before ? (
-            <HistoryEmpty icon="bank-column" title={PAYOUTS_EMPTY_TITLE} body={HOST_EARNINGS_EMPTY_BODY} next={{ href: "/settings/payments", label: "Check your payout details" }} />
-          ) : (
-            <PayoutList entries={read.entries} locale={locale} />
-          )}
-          {read.nextBefore ? (
-            <ButtonLink href={`/payouts?before=${encodeURIComponent(read.nextBefore)}`} variant="secondary" size="md">
-              Show earlier
-            </ButtonLink>
-          ) : null}
-        </div>
+        <PayoutsView summary={read.summary} entries={read.entries} nextBefore={read.nextBefore} before={before} locale={locale} now={new Date().getTime()} />
       )}
     </main>
   );

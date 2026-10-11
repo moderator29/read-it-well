@@ -9,9 +9,11 @@
  * public.platform_stats(), and a figure we cannot support is not published at
  * all rather than rounded up.
  *
- * The figures now print once, in the community band, as a row of two or
+ * The figures printed once, in the community band, as a row of two or
  * three or not at all (a single figure alone reads as a boast about a small
- * number). This spec asserts that rule whatever the database answers, plus
+ * number). The band left the page in the Plasma pass (7 October); the rule
+ * now holds for any row of figures anywhere on it. This spec asserts that
+ * rule whatever the database answers, plus
  * the regression guard that no figure carries a "+" ever again. Checked at
  * 390px in both themes.
  */
@@ -75,9 +77,11 @@ async function run(theme) {
        answer, and CommunityBand prints the row only when at least two
        figures stand. The Languages / Support band this spec was written
        for is gone. */
-    const community = page.locator('[data-chapter="community"]');
-    check("the community band renders", (await community.count()) === 1);
-    const band = community.locator(".nf-landing-figures");
+    /* THE PLASMA PASS (P7, 7 October 2026) retired the community band, and
+       with it the only row of figures on the landing. The rule is kept for
+       wherever a row of figures appears on the page: two or three, or none,
+       never a "+". Today the landing prints none. */
+    const band = page.locator(".nf-landing-figures");
     const rows = await band.count();
     const items = rows ? await band.locator("li").allInnerTexts() : [];
     const flat = items.map((t) => t.replace(/\s+/g, " ").trim());

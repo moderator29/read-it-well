@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Dictionary } from "@vallo/i18n/core";
 import { Logo } from "@/design-system/brand/Logo";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { COMPANY_REGISTERED_OFFICE } from "@/lib/legal/company";
 import { NewsletterForm } from "./NewsletterForm";
 import "@/app/css/site.css";
 
@@ -148,7 +149,7 @@ export function SiteFooter({ t }: { t: Dictionary }) {
             */}
             <address className="nf-caption mt-inline not-italic text-[var(--nf-content-muted)]">
               <span className="sr-only">{face.footer.registeredOfficeLabel}: </span>
-              {face.footer.registeredOffice}
+              {COMPANY_REGISTERED_OFFICE}
             </address>
           </div>
 

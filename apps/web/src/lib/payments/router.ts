@@ -55,10 +55,20 @@ export async function resolveRail(
       p_lister_kind: input.listerKind,
     });
     if (error) return { state: "unavailable" };
-    return readRailAnswer(data);
+    return saleNeverDirect(input.listingIntent, readRailAnswer(data));
   } catch {
     return { state: "unavailable" };
   }
+}
+
+/**
+ * D77, the founder's ruling: a sale never routes to the direct rail. A policy row
+ * that answers direct for a sale is read as no answer, so the payment does not
+ * open (private.rail_for_booking says the same in the database).
+ */
+export function saleNeverDirect(listingIntent: ListingIntent, answer: RailAnswer): RailAnswer {
+  if (listingIntent === "sale" && answer.state === "resolved" && answer.rail === "direct") return { state: "unresolved" };
+  return answer;
 }
 
 /** Pure, so the fail-closed reading is tested without a database. */
@@ -111,6 +121,9 @@ type Loose = {
 
 type Row = Record<string, unknown>;
 
+/** A fixed-price stay is placed by the policy's hotel row (D73, D75). */
+export const FIXED_PRICE_STAY: RailInputs = { propertyType: "hotel", listingIntent: "rent", listerKind: "business" };
+
 async function one(db: Loose, table: string, columns: string, id: unknown): Promise<Row | null | "error"> {
   if (typeof id !== "string" || id.length === 0) return null;
   const { data, error } = await db.from(table).select(columns).eq("id", id).maybeSingle();
@@ -127,12 +140,25 @@ async function one(db: Loose, table: string, columns: string, id: unknown): Prom
 export async function railInputsForBooking(client: unknown, bookingId: string): Promise<RailInputs | null | "error"> {
   const db = client as Loose;
   try {
-    const booking = await one(db, "bookings", "id, listing_id, accommodation_id", bookingId);
+    const booking = await one(db, "bookings", "id, listing_id, accommodation_id, room_type_id", bookingId);
     if (booking === "error") return "error";
     if (!booking) return null;
+    /* D73/D75, twin of private.rail_for_booking (migration d68d): a fixed-price
+       stay (a room, or a listing at a published nightly rate) that is not a
+       rent charge settles as a hotel room does. */
+    const rentCharge = await db.from("rent_payments").select("id").eq("booking_id", bookingId).maybeSingle();
+    if (rentCharge.error) return "error";
+    const isRentCharge = rentCharge.data !== null;
+    if (!isRentCharge && typeof booking.listing_id !== "string" && typeof booking.room_type_id === "string") {
+      return FIXED_PRICE_STAY;
+    }
     if (typeof booking.listing_id === "string") {
-      const listing = await one(db, "listings", "id, property_type, listing_intent, agent_id", booking.listing_id);
+      const listing = await one(db, "listings", "id, property_type, listing_intent, agent_id, rate_period", booking.listing_id);
       if (listing === "error") return "error";
+      /* D77: a sale never takes the stay rule, whatever its rate period. */
+      if (!isRentCharge && listing && listing.rate_period === "night" && listing.listing_intent !== "sale") {
+        return FIXED_PRICE_STAY;
+      }
       if (!listing || typeof listing.property_type !== "string" || typeof listing.listing_intent !== "string") return null;
       let listerKind: ListerKind | null = null;
       if (typeof listing.agent_id === "string") {

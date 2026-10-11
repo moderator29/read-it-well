@@ -54,7 +54,10 @@ begin
          'owner', 'call_back', '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now()
     from public.listings where id = lst and listing_role <> 'owner'
      and not private.listing_has_live_mandate(id);
-  update public.listings set is_demo = false, status = 'PUBLISHED', listing_intent = 'rent',
+  -- 7 October 2026 (b2 rail at open): a Paystack charge must resolve to the
+  -- direct rail. A shortlet is escrow; the fixture lets the place as a
+  -- registered business's apartment, which the rail policy settles direct.
+  update public.listings set is_demo = false, status = 'PUBLISHED', listing_intent = 'rent', property_type = 'apartment',
          rent_amount_minor = 200000000, caution_deposit_minor = 20000000, service_charge_minor = null,
          agency_fee_minor = 20000000, legal_fee_minor = null, agreement_fee_minor = null,
          total_move_in_cost_minor = null, rent_period = 'year', rate_minor = 0, rate_period = null
@@ -63,8 +66,12 @@ begin
   -- 1. A card-paid rent charge settles the lister's share in the same charge.
   insert into public.inspection_requests (listing_id, requester_id, lister_id, state, requested_at, slot_at)
   values (lst, member, lister, 'CONFIRMED', now(), now() + interval '1 day') returning id into insp;
-  insert into public.deal_agreements (kind, listing_id, inspection_id, renter_id, owner_id, amount_minor, terms, status)
-  values ('rent', lst, insp, member, lister, 240000000, '{}'::jsonb, 'approved') returning id into ag;
+  -- Approved by a person (D68d): a system approval on the direct rail is
+  -- payable only while no risk signal fires, and this deal is over the
+  -- amount threshold. This probe is about the money, not the review.
+  insert into public.deal_agreements (kind, listing_id, inspection_id, renter_id, owner_id, amount_minor, terms, status,
+         decided_by, decided_at)
+  values ('rent', lst, insp, member, lister, 240000000, '{}'::jsonb, 'approved', admin, now()) returning id into ag;
   r := private.open_rent_charge(member, insp, lagos + 7);
   if r->>'status' <> 'ok' then raise exception 'PROBE_FAIL v-33: open %', r; end if;
   bk := (r->>'booking_id')::uuid; total := (r->>'total_minor')::bigint;

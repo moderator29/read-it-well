@@ -235,17 +235,36 @@ export function LiveNotifications({
     return (
       <div>
         {header}
-        <EmptyState
-          icon="bell-badge"
-          title={c.empty.title}
-          body={c.empty.body}
-          action={
-            <ButtonLink href="/search" variant="primary">
+        {/* ALL CAUGHT UP, drawn as the founder's reference 1: the stack of
+            notifications in depth, empty, with one warm glow behind the bell;
+            a confident title, one muted line, then the one way onward and
+            the quiet way to choose what arrives here. The cards are shapes,
+            never invented notices. */}
+        <div className="nf-notif-quiet" data-testid="notifications-empty">
+          <div className="nf-notif-quiet__stack" aria-hidden="true">
+            <span className="nf-notif-quiet__card nf-notif-quiet__card--3" />
+            <span className="nf-notif-quiet__card nf-notif-quiet__card--2" />
+            <span className="nf-notif-quiet__card nf-notif-quiet__card--1">
+              <span className="nf-notif-quiet__plate">
+                <UiIcon name="bell" size={20} />
+              </span>
+              <span className="nf-notif-quiet__lines">
+                <span className="nf-notif-quiet__line" />
+                <span className="nf-notif-quiet__line nf-notif-quiet__line--short" />
+              </span>
+            </span>
+          </div>
+          <h2 className="nf-notif-quiet__title">{c.empty.title}</h2>
+          <p className="nf-notif-quiet__body">{c.empty.body}</p>
+          <div className="nf-notif-quiet__actions">
+            <ButtonLink href="/search" variant="primary" full>
               {c.empty.action}
             </ButtonLink>
-          }
-          data-testid="notifications-empty"
-        />
+            <Link href="/settings/notifications" className="nf-notif-quiet__link">
+              {c.preferencesLabel}
+            </Link>
+          </div>
+        </div>
       </div>
     );
   }
@@ -361,6 +380,13 @@ function Section({
   markOne(id: string): void;
   needs?: boolean;
 }) {
+  /* THE DEPTH STACK (the founder's reference 1, 7 October): "Needs you" is
+     drawn as cards stacked in depth, the front one whole and frosted, each
+     one behind it narrower, dimmer and lower, so the stack reads as real
+     depth rather than a list. One tap fans it open into the list. Rows behind
+     the front card are `inert` while stacked, so a keyboard or a screen
+     reader meets the front card, then the control that opens the rest. */
+  const [open, setOpen] = useState(false);
   if (entries.length === 0) return null;
   /* THE CYAN BADGE COUNTS UNREAD, and only unread (north star 15.4: cyan
      unread counts). It counted every row, so a day whose two notices were both
@@ -370,6 +396,30 @@ function Section({
   const unread = entries.filter((e) => !e.row.read).length;
   const verdicts = new Map(entries.map((e) => [e.row.id, e.verdict]));
   const groups = groupByObject(entries.map((e) => e.row));
+  const stacked = needs && groups.length > 1 && !open;
+  const badge =
+    unread > 0 ? (
+      <span
+        className="nf-count-badge nf-numeric nf-notif__count"
+        aria-label={c.unread.replace("{count}", new Intl.NumberFormat(intlTag[locale]).format(unread))}
+        data-testid={`notifications-${id}-unread`}
+      >
+        {unread}
+      </span>
+    ) : null;
+  const fan =
+    needs && groups.length > 1 ? (
+      <button
+        type="button"
+        className="nf-notif__fan"
+        aria-expanded={open}
+        aria-label={c.emptyFamily.action}
+        onClick={() => setOpen((v) => !v)}
+        data-testid="notifications-needs-fan"
+      >
+        <UiIcon name="chevron-down" size={16} />
+      </button>
+    ) : null;
   return (
     /* ONE GROUPED LIST per section, rows on inset hairlines inside a single
        card. A day is its own list, so the divider is the label above it. */
@@ -377,24 +427,30 @@ function Section({
       aria-label={label}
       label={label}
       action={
-        unread > 0 ? (
-          <span
-            className="nf-count-badge nf-numeric nf-notif__count"
-            aria-label={c.unread.replace("{count}", new Intl.NumberFormat(intlTag[locale]).format(unread))}
-            data-testid={`notifications-${id}-unread`}
-          >
-            {unread}
+        badge || fan ? (
+          <span className="nf-notif__section-tools">
+            {badge}
+            {fan}
           </span>
         ) : undefined
       }
-      className={`nf-notif__group${needs ? " nf-notif__group--needs" : ""}`}
+      className={`nf-notif__group${needs ? " nf-notif__group--needs nf-notif__group--stack" : ""}`}
+      data-stacked={needs ? (stacked ? "true" : "false") : undefined}
       data-testid={`notifications-${id}`}
     >
-      {groups.map((g) =>
+      {groups.map((g, i) =>
         g.rows.length > 1 ? (
-          <GroupRow key={g.key} rows={g.rows} c={c} locale={locale} markOne={markOne} />
+          <GroupRow key={g.key} rows={g.rows} c={c} locale={locale} markOne={markOne} behind={stacked && i > 0} />
         ) : needs ? (
-          <NeedsRow key={g.key} n={g.lead} verb={verdicts.get(g.lead.id)?.verb} c={c} locale={locale} markOne={markOne} />
+          <NeedsRow
+            key={g.key}
+            n={g.lead}
+            verb={verdicts.get(g.lead.id)?.verb}
+            c={c}
+            locale={locale}
+            markOne={markOne}
+            behind={stacked && i > 0}
+          />
         ) : (
           <NoticeRow key={g.key} n={g.lead} c={c} locale={locale} markOne={markOne} />
         ),
@@ -487,11 +543,14 @@ function GroupRow({
   c,
   locale,
   markOne,
+  behind = false,
 }: {
   rows: NotificationItem[];
   c: Copy;
   locale: Locale;
   markOne(id: string): void;
+  /** Behind the front card of a stacked "Needs you": seen, not reachable. */
+  behind?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const lead = rows[0]!;
@@ -502,7 +561,7 @@ function GroupRow({
       ? plural(rows.length, c.group.messages, locale)
       : lead.title;
   return (
-    <li className="nf-list-item">
+    <li className="nf-list-item" inert={behind || undefined}>
       <button
         type="button"
         className={`nf-list-row nf-list-row--two nf-notif__row${unread > 0 ? " nf-notif__row--unread" : ""}`}
@@ -544,16 +603,19 @@ function NeedsRow({
   c,
   locale,
   markOne,
+  behind = false,
 }: {
   n: NotificationItem;
   verb?: SeverityVerb | undefined;
   c: Copy;
   locale: Locale;
   markOne(id: string): void;
+  /** Behind the front card of a stacked "Needs you": seen, not reachable. */
+  behind?: boolean;
 }) {
   const family = familyOf(n);
   return (
-    <li className="nf-list-item">
+    <li className="nf-list-item" inert={behind || undefined}>
       <div
         className="nf-list-row nf-list-row--two nf-notif__row nf-notif__row--unread nf-notif__needs"
         data-testid="notification-row"

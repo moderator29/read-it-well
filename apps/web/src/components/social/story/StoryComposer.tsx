@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -12,7 +12,6 @@ import {
   STORY_COPY,
   STORY_FAILURE,
   STORY_HEADLINE_MAX,
-  STORY_HEADLINE_MIN,
   STORY_IMAGE_MAX_BYTES,
   STORY_IMAGE_MAX_EDGE,
   STORY_PLACE_MAX,
@@ -66,6 +65,17 @@ export function StoryComposer({
   const [error, setError] = useState<string | null>(null);
   const [held, setHeld] = useState(false);
   const [pending, startTransition] = useTransition();
+  /* The object already in the bucket for the picture on screen, so a retry
+     after a failed publish writes the row against it instead of uploading
+     another copy nobody will ever read. */
+  const uploaded = useRef<{ blob: Blob; path: string } | null>(null);
+  /* A preview URL holds its picture in memory until it is revoked: the old
+     one goes when a new picture replaces it, the last one when the composer
+     closes. */
+  useEffect(() => {
+    if (!preview) return;
+    return () => URL.revokeObjectURL(preview);
+  }, [preview]);
 
   if (!signedIn || !userId) {
     return (
@@ -153,8 +163,14 @@ export function StoryComposer({
 
   /* The picture and the headline are the story. A standfirst is optional,
      because a photograph with a good headline is already a piece. */
-  const canPublish =
-    Boolean(blob) && headline.trim().length >= STORY_HEADLINE_MIN && !pending;
+  /* The picture is the story; the caption is optional and any length (the
+     founder, 8 October: "even if it's just T"). Only the second line written:
+     it becomes the headline. Nothing written: a picture-only story. */
+  const written = headline.trim() || standfirst.trim();
+  const finalHeadline = written.slice(0, STORY_HEADLINE_MAX);
+  const finalStandfirst = headline.trim() ? standfirst.trim() : "";
+  /* Publish is never a dead grey button: a tap says what is missing. */
+  const canPublish = !pending;
 
   const publish = () => {
     if (!blob || !userId) {
@@ -164,42 +180,56 @@ export function StoryComposer({
     setError(null);
 
     startTransition(async () => {
-      const supabase = await loadBrowserClient();
-      if (!supabase) {
-        setError(STORY_FAILURE.upload);
-        return;
-      }
-      /* The post id is not known yet, so the object goes under a fresh uuid in
-         the person's own folder. The bucket's insert policy only checks the
-         first path segment; the read policy resolves the post id out of the
-         second, which the server action fills in when it writes the media row. */
-      const path = `${userId}/${crypto.randomUUID()}.jpg`;
-      const upload = await supabase.storage
-        .from("social-media")
-        .upload(path, blob, { contentType: "image/jpeg", cacheControl: "3600", upsert: false });
-      if (upload.error) {
-        setError(STORY_FAILURE.upload);
-        return;
-      }
+      /* A throw (a dropped connection, a server action that did not answer)
+         is said here in the composer, never handed to the error boundary with
+         the person's writing still in it. */
+      let stage: "upload" | "publish" = "upload";
+      try {
+        let path = uploaded.current?.blob === blob ? uploaded.current.path : null;
+        if (!path) {
+          const supabase = await loadBrowserClient();
+          if (!supabase) {
+            setError(STORY_FAILURE.upload);
+            return;
+          }
+          /* The post id is not known yet, so the object goes under a fresh uuid in
+             the person's own folder. The bucket's insert policy only checks the
+             first path segment; the read policy resolves the post id out of the
+             second, which the server action fills in when it writes the media row. */
+          const fresh = `${userId}/${crypto.randomUUID()}.jpg`;
+          const upload = await supabase.storage
+            .from("social-media")
+            .upload(fresh, blob, { contentType: "image/jpeg", cacheControl: "3600", upsert: false });
+          if (upload.error) {
+            setError(STORY_FAILURE.upload);
+            return;
+          }
+          uploaded.current = { blob, path: fresh };
+          path = fresh;
+        }
 
-      const result = await publishStory({
-        areaId,
-        headline: headline.trim(),
-        standfirst: standfirst.trim(),
-        placeLabel: place.trim(),
-        imagePath: path,
-        ...(size ? { width: size.width, height: size.height } : {}),
-      });
+        stage = "publish";
+        const result = await publishStory({
+          areaId,
+          headline: finalHeadline,
+          standfirst: finalStandfirst,
+          placeLabel: place.trim(),
+          imagePath: path,
+          ...(size ? { width: size.width, height: size.height } : {}),
+        });
 
-      if (!result.ok) {
-        setError(result.error);
-        return;
+        if (!result.ok) {
+          setError(result.error);
+          return;
+        }
+        if (result.data.held) {
+          setHeld(true);
+          return;
+        }
+        router.replace(`/stories/${result.data.storyId}`);
+      } catch {
+        setError(stage === "upload" ? STORY_FAILURE.upload : STORY_FAILURE.down);
       }
-      if (result.data.held) {
-        setHeld(true);
-        return;
-      }
-      router.replace(`/stories/${result.data.storyId}`);
     });
   };
 
@@ -211,70 +241,72 @@ export function StoryComposer({
         if (canPublish) publish();
       }}
     >
-      {/* ------------------------------------------------------ the picture */}
-      <button
-        type="button"
-        onClick={() => fileInput.current?.click()}
-        className={`nf-story-pick${preview ? " nf-story-pick--filled" : ""}`}
-      >
+      {/*
+        WHAT YOU WRITE IS WHAT POSTS (D74; the founder: posting a story was
+        "so ugly and not neat not clean"). The composer is the story itself, at
+        the viewer's own proportions: the picture full bleed in a tall frame,
+        the near-black wash over its foot, and the headline, the line under it
+        and the place typed straight onto the smoked glass card the viewer
+        draws. Three labelled fields became one object you are making.
+        Cropping is not offered: the viewer covers the frame from the centre
+        and there is nowhere to store a crop, so a crop control would be a
+        promise the post cannot keep.
+      */}
+      <div className={`nf-story-compose${preview ? " is-filled" : ""}`}>
         {preview ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={preview} alt="The picture you chose" />
-        ) : (
-          <span className="nf-story-pick__prompt">
-            <IconPlate size="lg">
-              <UiIcon name="camera" size={24} />
-            </IconPlate>
-            <span className="nf-story-pick__label">{STORY_COPY.imagePrompt}</span>
-            <span className="nf-story-pick__note">{STORY_COPY.imageNote}</span>
-          </span>
-        )}
-      </button>
-      {preview ? (
-        <Button variant="quiet" size="sm" onClick={() => fileInput.current?.click()} className="-mt-sm self-start">
-          Choose a different picture
-        </Button>
-      ) : null}
-
-      {/* ----------------------------------------------------- the headline */}
-      <label className="block">
-        <span className="nf-overline">Headline</span>
-        <textarea
-          className="nf-field mt-xs w-full resize-none text-[length:var(--nf-text-h4)] font-bold leading-tight tracking-[-0.02em]"
-          rows={2}
-          value={headline}
-          maxLength={STORY_HEADLINE_MAX}
-          placeholder={STORY_COPY.headlinePlaceholder}
-          onChange={(event) => setHeadline(event.target.value)}
-        />
-      </label>
-
-      <label className="block">
-        <span className="nf-overline">The opening paragraph</span>
-        <textarea
-          className="nf-field mt-xs min-h-[110px] w-full resize-y text-[length:var(--nf-text-body)] leading-relaxed"
-          value={standfirst}
-          maxLength={STORY_STANDFIRST_MAX}
-          placeholder={STORY_COPY.standfirstPlaceholder}
-          onChange={(event) => setStandfirst(event.target.value)}
-        />
-      </label>
-
-      <label className="block">
-        <span className="nf-overline">Where it happened</span>
-        <div className="relative mt-xs">
-          <span className="pointer-events-none absolute inset-y-0 start-3 grid place-items-center text-[var(--nf-content-muted)]">
-            <UiIcon name="location" size={16} />
-          </span>
-          <input
-            className="nf-field w-full ps-2xl"
-            value={place}
-            maxLength={STORY_PLACE_MAX}
-            placeholder={STORY_COPY.placePlaceholder}
-            onChange={(event) => setPlace(event.target.value)}
+          <img src={preview} alt="The picture you chose" className="nf-story-compose__img" />
+        ) : null}
+        <button
+          type="button"
+          onClick={() => fileInput.current?.click()}
+          className={preview ? "nf-story-compose__swap" : "nf-story-compose__pick"}
+          aria-label={preview ? "Choose a different picture" : undefined}
+        >
+          {preview ? (
+            <UiIcon name="camera" size={20} />
+          ) : (
+            <span className="nf-story-compose__prompt">
+              <span className="nf-story-compose__plate">
+                <UiIcon name="camera" size={24} />
+              </span>
+              <span className="nf-story-compose__label">{STORY_COPY.imagePrompt}</span>
+              <span className="nf-story-compose__note">{STORY_COPY.imageNote}</span>
+            </span>
+          )}
+        </button>
+        <div className="nf-story-compose__wash" aria-hidden="true" />
+        <div className="nf-story-compose__card">
+          <textarea
+            className="nf-story-compose__headline"
+            rows={2}
+            value={headline}
+            maxLength={STORY_HEADLINE_MAX}
+            placeholder={STORY_COPY.headlinePlaceholder}
+            aria-label="Headline"
+            onChange={(event) => setHeadline(event.target.value)}
           />
+          <textarea
+            className="nf-story-compose__standfirst"
+            rows={2}
+            value={standfirst}
+            maxLength={STORY_STANDFIRST_MAX}
+            placeholder={STORY_COPY.standfirstPlaceholder}
+            aria-label="The opening paragraph"
+            onChange={(event) => setStandfirst(event.target.value)}
+          />
+          <label className="nf-story-compose__place">
+            <UiIcon name="location" size={12} />
+            <input
+              value={place}
+              maxLength={STORY_PLACE_MAX}
+              placeholder={STORY_COPY.placePlaceholder}
+              aria-label="Where it happened"
+              onChange={(event) => setPlace(event.target.value)}
+            />
+          </label>
         </div>
-      </label>
+      </div>
 
       {areas.length > 1 ? (
         <label className="block">
@@ -302,7 +334,7 @@ export function StoryComposer({
         </p>
       ) : null}
 
-      <Button type="submit" variant="primary" full disabled={!canPublish}>
+      <Button type="submit" variant="spark" full loading={pending} disabled={!canPublish}>
         {pending ? STORY_COPY.publishing : STORY_COPY.publish}
       </Button>
 

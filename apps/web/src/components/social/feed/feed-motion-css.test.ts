@@ -16,8 +16,10 @@ describe("feed-m.css", () => {
   });
 
   it("pops the heart and the repost only on the tap that turns them on", () => {
-    expect(css).toContain('.nf-post__act--like[data-pop] svg');
-    expect(css).toContain('.nf-post__act--repost[data-pop] svg');
+    /* The like pops its whole capsule (D72, reference 2); the repost turns
+       its glyph. Both keyed on `data-pop`, which only the tap sets. */
+    expect(css).toContain(".nf-act-pill--like[data-pop] {");
+    expect(css).toContain(".nf-act-pill--repost[data-pop] svg");
     /* An already-liked post must not throw its heart as the feed loads. */
     expect(css).not.toMatch(/\[aria-pressed="true"\]\s*svg\s*\{\s*animation/);
   });

@@ -1,23 +1,25 @@
+import type { Icon3DName } from "@/components/ui/icon-3d";
+
 /**
  * THE OBJECT IN EVERY EMAIL'S HEADER, AND THE GLYPHS IN ITS ROWS (north star
- * 16.5, D23 and D29; Session 3, W9, 6 October 2026).
+ * 16.5 and D23).
  *
- * WHAT CHANGED, AND WHY. Until today each message carried one of the first
- * 3D rollout's objects (`public/brand/3d/email/`), chosen per message. Those
- * are the glossy generation D29 retired for symbols, and one of them, the
- * receipt, has a dollar sign baked into it, which breaks two rules at once:
- * no text in any asset, and no currency Vallo does not take. So every
- * message now carries a TIER B object, the matte royal-blue symbol set the
- * founder approved (`public/brand/tier-b/`), chosen by the message's FAMILY:
- * the object names what kind of email this is (a wallet for money, an
- * envelope for a code, a scroll for an agreement), the way an app icon sits
- * beside a notification.
+ * THE FOUNDER'S ORIGINAL 3D OBJECTS. Each message carries one of the founder's
+ * 30 September 3D objects (royal blue clay, one orange accent), the same art
+ * `Icon3D` draws in the product, chosen per message for what the message is
+ * about (an envelope for a code, a contract for an agreement), the way an app
+ * icon sits beside a notification. For a few days on 6 October 2026 these
+ * were swapped for the matte "tier B" set; the founder asked for the original
+ * 3D icons back, so they are back.
  *
- * PNG, NEVER WEBP. Tier B ships as webp, which classic Outlook, older Apple
- * Mail and several webmails do not draw. The email copies are PNGs in
- * `public/brand/email/objects/<name>.png` (128px, drawn at 64, so every
- * screen gets 2x) beside `<name>@2x.png` (256px), made from the tier-b
- * sources without any change to the drawing (W9 report: the build script).
+ * PNG, NEVER WEBP. The site serves the cutouts as webp, which classic Outlook,
+ * older Apple Mail and several webmails do not draw. The email copies are PNGs
+ * in `public/brand/3d/email/<name>.png` (128px, drawn at 64, so every screen
+ * gets 2x) beside `<name>@2x.png` (256px), cut from the same sources as the
+ * webp files (`icon3dEmailSrc` in `components/ui/icon-3d.ts`).
+ *
+ * THE RECEIPT IS NEVER USED HERE: it carries a "$" coin, and Vallo's mail is
+ * in naira.
  *
  * THE ALT IS THE FAMILY, A WORD (north star 16.5: "every image carries alt
  * text and a sensible fallback"). With images off the reader sees "Payment"
@@ -31,38 +33,39 @@
  * thing, so their alt is empty: with images off the row is its words.
  *
  * The five Supabase auth templates (`scripts/build-auth-emails.mjs`, not this
- * module) still carry the old marks from `public/brand/3d/email/`, which is
- * why those files stay on disk; moving the generator is request R-24.
+ * module) carry the same 3D marks from `public/brand/3d/email/`.
  */
 
-/** Every Tier B object an email carries. Each has a PNG pair on disk (icons.test.ts). */
+/** Every 3D object an email carries. Each has a PNG pair on disk (icons.test.ts). */
 export const EMAIL_OBJECTS = [
   "envelope",
-  "padlock",
-  "shield-tick",
-  "warning-triangle",
-  "passport-book",
-  "door-open",
-  "key-ring",
-  "house-heart",
-  "people-group",
-  "hourglass",
-  "rosette",
-  "clipboard-list",
-  "doc-search",
-  "chat-pair",
-  "headset",
-  "calendar-page",
-  "calendar-bolt",
-  "scroll-unrolled",
-  "scales",
+  "passcode-lock",
+  "card-secure",
+  "bank",
+  "report-flag",
+  "id-check",
+  "rent",
+  "buy",
+  "keys",
+  "home-small",
+  "city",
+  "explore",
+  "clock",
+  "celebrate",
+  "list",
+  "home-verified",
+  "verified",
+  "local-talks",
+  "support",
+  "calendar-booked",
+  "calendar-pending",
+  "contract",
+  "shield",
   "bell",
-  "cup-saucer",
-  "wallet-card",
-  "wallet-out",
-  "wallet-angled",
-  "banknote-fold",
-] as const;
+  "pay",
+  "earnings",
+  "restaurant",
+] as const satisfies readonly Icon3DName[];
 
 export type EmailObject = (typeof EMAIL_OBJECTS)[number];
 
@@ -174,77 +177,81 @@ const p = (family: EmailFamily, object: EmailObject): Plan => ({ family, object 
 /**
  * Which object and family each message carries. The object names what the
  * message is ABOUT and never claims more than its words: a submission waits
- * (the hourglass), only a passed check carries the tick, and a claim on the
- * Guarantee is the scales, because it is weighed by a person before
- * anything is paid.
+ * (the clock or the pending calendar), and only a passed check carries the
+ * verified mark.
  */
 export const EMAIL_PLAN: Readonly<Record<EmailKind, Plan>> = {
   verificationCode: p("account", "envelope"),
-  passwordReset: p("account", "padlock"),
-  passwordChanged: p("account", "padlock"),
+  passwordReset: p("account", "passcode-lock"),
+  passwordChanged: p("account", "passcode-lock"),
   emailRecoveryOpened: p("account", "envelope"),
   emailRecoveryCompleted: p("account", "envelope"),
-  newDeviceSignIn: p("account", "padlock"),
-  "paymentInstrumentChanged:card": p("account", "wallet-card"),
+  newDeviceSignIn: p("account", "passcode-lock"),
+  "paymentInstrumentChanged:card": p("account", "card-secure"),
   /* A payout account change (display only; nothing about payouts changes here). */
-  "paymentInstrumentChanged:bank": p("account", "wallet-out"),
-  deletionStarted: p("account", "padlock"),
-  deletionCompleted: p("account", "padlock"),
+  "paymentInstrumentChanged:bank": p("account", "bank"),
+  deletionStarted: p("account", "passcode-lock"),
+  deletionCompleted: p("account", "passcode-lock"),
   /* The recall follows a report upheld against an account. */
-  scamRecall: p("account", "warning-triangle"),
-  staffAccessGranted: p("account", "passport-book"),
+  scamRecall: p("account", "report-flag"),
+  staffAccessGranted: p("account", "id-check"),
 
-  "welcome:renter": p("welcome", "key-ring"),
-  "welcome:buyer": p("welcome", "house-heart"),
-  "welcome:landlord": p("welcome", "key-ring"),
-  "welcome:seller": p("welcome", "house-heart"),
-  "welcome:agent": p("welcome", "people-group"),
-  "welcome:unstated": p("welcome", "door-open"),
+  "welcome:renter": p("welcome", "rent"),
+  "welcome:buyer": p("welcome", "buy"),
+  "welcome:landlord": p("welcome", "keys"),
+  "welcome:seller": p("welcome", "home-small"),
+  "welcome:agent": p("welcome", "city"),
+  "welcome:unstated": p("welcome", "explore"),
 
-  listingSubmitted: p("listing", "hourglass"),
-  listingApproved: p("listing", "rosette"),
-  listingRejected: p("listing", "clipboard-list"),
-  listingPassedReview: p("listing", "shield-tick"),
-  listingChangesRequested: p("listing", "clipboard-list"),
-  agentApplicationApproved: p("listing", "rosette"),
-  agentApplicationRejected: p("listing", "clipboard-list"),
-  agentApplicationNeedsMore: p("listing", "doc-search"),
-  verificationRungPassed: p("account", "shield-tick"),
-  verificationRungFailed: p("account", "doc-search"),
+  /* Waiting on review. */
+  listingSubmitted: p("listing", "clock"),
+  /* The listing is live. */
+  listingApproved: p("listing", "celebrate"),
+  listingRejected: p("listing", "list"),
+  listingPassedReview: p("listing", "home-verified"),
+  listingChangesRequested: p("listing", "list"),
+  agentApplicationApproved: p("listing", "verified"),
+  agentApplicationRejected: p("listing", "id-check"),
+  agentApplicationNeedsMore: p("listing", "id-check"),
+  verificationRungPassed: p("account", "verified"),
+  verificationRungFailed: p("account", "id-check"),
 
-  newEnquiry: p("message", "chat-pair"),
-  supportTicketFiled: p("support", "headset"),
-  supportReplied: p("support", "headset"),
+  newEnquiry: p("message", "local-talks"),
+  supportTicketFiled: p("support", "support"),
+  supportReplied: p("support", "support"),
 
-  inspectionScheduled: p("viewing", "calendar-page"),
-  inspectionProposed: p("viewing", "calendar-bolt"),
-  inspectionDeclined: p("viewing", "calendar-page"),
-  inspectionWithdrawn: p("viewing", "calendar-page"),
-  inspectionCompleted: p("viewing", "clipboard-list"),
+  inspectionScheduled: p("viewing", "calendar-booked"),
+  inspectionProposed: p("viewing", "calendar-pending"),
+  inspectionDeclined: p("viewing", "calendar-pending"),
+  inspectionWithdrawn: p("viewing", "calendar-pending"),
+  inspectionCompleted: p("viewing", "home-verified"),
 
-  agreementSubmitted: p("agreement", "scroll-unrolled"),
-  agreementWaiting: p("agreement", "scroll-unrolled"),
-  agreementApproved: p("agreement", "scroll-unrolled"),
-  agreementRejected: p("agreement", "scroll-unrolled"),
-  agreementCancelled: p("agreement", "scroll-unrolled"),
-  guaranteeClaimOpened: p("payment", "scales"),
-  guaranteeClaimDecided: p("payment", "scales"),
+  agreementSubmitted: p("agreement", "contract"),
+  agreementWaiting: p("agreement", "contract"),
+  agreementApproved: p("agreement", "contract"),
+  agreementRejected: p("agreement", "contract"),
+  agreementCancelled: p("agreement", "contract"),
+  /* A claim on the guarantee is money under protection: the shield. */
+  guaranteeClaimOpened: p("payment", "shield"),
+  guaranteeClaimDecided: p("payment", "shield"),
 
-  bookingRequested: p("stay", "hourglass"),
+  bookingRequested: p("stay", "calendar-pending"),
   /* A host with a request waiting on them: the bell. */
   bookingRequestedHost: p("stay", "bell"),
-  bookingConfirmed: p("stay", "calendar-page"),
-  stayArrivalDetails: p("stay", "key-ring"),
-  bookingCancelled: p("stay", "calendar-page"),
-  /* Money coming back to somebody. */
-  bookingRefunded: p("payment", "banknote-fold"),
-  refundRequested: p("payment", "banknote-fold"),
+  bookingConfirmed: p("stay", "calendar-booked"),
+  stayArrivalDetails: p("stay", "keys"),
+  bookingCancelled: p("stay", "pay"),
+  /* Money coming back to somebody: the open hand with the naira coin. */
+  bookingRefunded: p("payment", "earnings"),
+  refundRequested: p("payment", "earnings"),
 
-  reservationConfirmed: p("table", "cup-saucer"),
-  reservationCancelled: p("table", "cup-saucer"),
+  reservationConfirmed: p("table", "restaurant"),
+  reservationCancelled: p("table", "restaurant"),
 
-  cryptoPayment: p("payment", "wallet-angled"),
-  paymentReceipt: p("payment", "wallet-card"),
+  /* The plain coin reads as a blank disc at 64px; the wallet says payment. */
+  cryptoPayment: p("payment", "pay"),
+  /* Not the receipt object: it carries a "$" coin beside a naira sum. */
+  paymentReceipt: p("payment", "pay"),
 };
 
 /** The object a message carries, or null for a kind this module does not know. */
@@ -263,9 +270,9 @@ export function emailRegisterOf(kind: EmailKind): EmailRegister {
   return family ? FAMILY[family].register : "shell";
 }
 
-/** Site path of an object's 128px PNG. */
+/** Site path of an object's 128px PNG (the founder's original 3D art). */
 export function emailObjectPath(name: EmailObject): string {
-  return `/brand/email/objects/${name}.png`;
+  return `/brand/3d/email/${name}.png`;
 }
 
 /** The drawn size of the header object, in CSS pixels. The 128px file gives 2x. */

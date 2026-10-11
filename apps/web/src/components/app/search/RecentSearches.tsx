@@ -49,20 +49,44 @@ import {
  * Device only: nothing leaves the phone. Nothing renders until there is
  * something remembered for this screen (`/search` or `/stays/search`).
  */
+/**
+ * THE PALETTE (the founder's `command-search-palette.jpg`, 7 October, and
+ * ONE-PRODUCT-DECISIONS recommendation 4, "one search"). When a page passes
+ * `palette`, the panel is no longer only the remembered searches on an empty
+ * field: it opens on focus and stays while somebody types, as one card of
+ * rows, each a small glyph tile and a label. Typing filters it: the first row
+ * is what Enter will do (searching the words, with every filter the bar
+ * already carries), drawn on the soft fill with the return hint, then the
+ * same words as a rental and as a purchase, then the remembered searches
+ * that contain them. Every row is a real destination; nothing is suggested
+ * that the catalogue was not asked for. Without `palette` the panel is
+ * exactly what it was.
+ */
+export type PaletteCopy = {
+  label: string;
+  searchFor: string;
+  rentIn: string;
+  buyIn: string;
+  enter: string;
+};
+
 export function RecentSearches({
   inputId,
   path,
   copy,
   className,
+  palette,
 }: {
   inputId: string;
   path: "/search" | "/stays/search";
   copy: { title: string; clear: string; clearLabel: string };
   className?: string;
+  palette?: PaletteCopy;
 }) {
   const all = useSyncExternalStore(subscribeRecent, recentSearchesSnapshot, recentSearchesServerSnapshot);
   const entries = searchesFor(all, path);
   const [open, setOpen] = useState(false);
+  const [typed, setTyped] = useState("");
   const listId = useId();
   const titleId = useId();
   /* Set when focus is sent back to the field on purpose (Escape, Clear): the
@@ -91,7 +115,8 @@ export function RecentSearches({
         dismissed.current = false;
         return;
       }
-      setOpen(document.activeElement === input && input.value.trim() === "");
+      setTyped(input.value.trim());
+      setOpen(document.activeElement === input && (palette !== undefined || input.value.trim() === ""));
     };
     const onInput = () => {
       dismissed.current = false;
@@ -129,14 +154,24 @@ export function RecentSearches({
       document.removeEventListener("focusout", onFocusOut);
       input.removeEventListener("keydown", onKey);
     };
-  }, [inputId, listId]);
+  }, [inputId, listId, palette]);
 
   /* No `aria-expanded` on the input: it is a plain search field, not a combobox
      (the panel is a list of links, not options), and `aria-expanded` is not
      allowed on a textbox (axe `aria-allowed-attr`, W12). The panel carries
      `hidden` while it is closed, and the input keeps `aria-controls`. */
 
-  const shown = open && entries.length > 0;
+  const q = palette ? typed : "";
+  const needle = q.toLowerCase();
+  const recents = q ? entries.filter((entry) => entry.label.toLowerCase().includes(needle)).slice(0, 4) : entries;
+  const commands = q && palette
+    ? [
+        { key: "search", glyph: "search" as const, label: palette.searchFor.replace("{q}", q), href: `${path}?q=${encodeURIComponent(q)}`, submit: true },
+        { key: "rent", glyph: "key" as const, label: palette.rentIn.replace("{q}", q), href: `${path}?q=${encodeURIComponent(q)}&market=rent`, submit: false },
+        { key: "buy", glyph: "house" as const, label: palette.buyIn.replace("{q}", q), href: `${path}?q=${encodeURIComponent(q)}&market=buy`, submit: false },
+      ]
+    : [];
+  const shown = open && (entries.length > 0 || commands.length > 0);
 
   /* The field describes itself with the list's title while the list is shown.
      The title only exists while it is shown, so the reference is added and
@@ -210,7 +245,50 @@ export function RecentSearches({
         else links[at - 1]?.focus();
       }}
     >
-      {shown ? (
+      {shown && commands.length > 0 && palette ? (
+        <ul className="nf-recent__list nf-recent__list--palette" aria-label={palette.label}>
+          {commands.map((row, index) => (
+            <li key={row.key}>
+              <Link
+                href={row.href}
+                className="nf-recent__row"
+                data-active={index === 0 || undefined}
+                onClick={(event) => {
+                  setOpen(false);
+                  if (!row.submit) return;
+                  /* The first row is Enter: the form submits, so the filters
+                     the bar carries in its hidden fields travel too. */
+                  const input = document.getElementById(inputId);
+                  const form = input instanceof HTMLInputElement ? input.form : null;
+                  if (!form) return;
+                  event.preventDefault();
+                  form.requestSubmit();
+                }}
+              >
+                <span className="nf-recent__tile" aria-hidden="true">
+                  <UiIcon name={row.glyph} size={16} />
+                </span>
+                <span className="nf-recent__label">{row.label}</span>
+                {index === 0 ? (
+                  <kbd className="nf-recent__kbd" aria-hidden="true">
+                    {palette.enter}
+                  </kbd>
+                ) : null}
+              </Link>
+            </li>
+          ))}
+          {recents.map((entry) => (
+            <li key={entry.href}>
+              <Link href={entry.href} className="nf-recent__row" onClick={() => setOpen(false)}>
+                <span className="nf-recent__tile" aria-hidden="true">
+                  <UiIcon name="history" size={16} />
+                </span>
+                <span className="nf-recent__label">{entry.label}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      ) : shown ? (
         <>
           <div className="nf-recent__head">
             <p id={titleId} className="nf-section-label">

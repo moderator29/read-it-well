@@ -1,0 +1,21 @@
+@layer theme, base, components, utilities;
+
+/*
+ * THE STAYS CARD'S OWN REFINEMENTS, scoped to `.nf-stay-card` so the Property
+ * side's `ListingCard` (which shares the `nf-pcard` anatomy) is untouched.
+ *
+ * "No photographs yet" used to sit in the dead centre of the stand-in scene,
+ * where it read as an error stamped across a photograph. It is a caption about
+ * the picture, so it sits where a caption sits: small, in the bottom right
+ * corner of the media, clear of the open-hours chip on the bottom left and
+ * the heart on the top right.
+ */
+@layer components {
+  .nf-stay-card .nf-pcard__nophoto {
+    top: auto;
+    left: auto;
+    right: var(--nf-space-xs);
+    bottom: var(--nf-space-xs);
+    translate: none;
+  }
+}

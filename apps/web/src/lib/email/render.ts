@@ -63,7 +63,7 @@ import {
  * WHITE IN LIGHT MODE, THE PRODUCT'S NIGHT IN DARK (D23, 6 October 2026,
  * superseding the dark-everywhere ruling of 29 September for the inline
  * layer). Every message is a white ground and one white card with a hairline
- * edge: the lockup and the slogan, the family's Tier B object, the subject as
+ * edge: the lockup and the slogan, the message's 3D object, the subject as
  * a display line, the consequence, the figure where there is money, the
  * detail as key-value rows with line glyphs, one primary button with its
  * address as a plain link beneath it, then the footer on the ground. Table
@@ -87,7 +87,7 @@ import {
  *
  * NO WORDS IN IMAGES BEYOND THE BRAND'S OWN. The shell carries the lockup,
  * whose alt is the brand name, so with images off the reader sees "Vallo"
- * once, in its place; at most one Tier B object above the headline
+ * once, in its place; at most one 3D object above the headline
  * (`icons.ts`), whose alt is its family word; and 16px line glyphs in the
  * rows, decorative beside their labels, alt empty.
  * Every other word is live text. Copy baked into
@@ -985,7 +985,7 @@ function textBlock(block: Block): string {
 
 export type ComposeOptions = {
   /**
-   * Which message this is, which picks the Tier B object in the header, its
+   * Which message this is, which picks the 3D object in the header, its
    * family word, and the register it is drawn in (`icons.ts`). Required, so
    * no new message ships without one being chosen.
    */
@@ -1134,7 +1134,7 @@ export function brandBandRow(ink: Ink = SHELL_INK): string {
 }
 
 /**
- * THE OBJECT: the message family's Tier B object above the headline, like
+ * THE OBJECT: the message's 3D object above the headline, like
  * an app icon beside a notification (icons.ts). Drawn at 64px from a 128px
  * PNG (webp is not drawn by every client), with width and height set so a
  * blocked image reserves its box, and alt set to the family word in quiet

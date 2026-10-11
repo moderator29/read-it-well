@@ -1,3 +1,4 @@
+import { STAYS_INSTANT_PAY_FLAG, flagIsOn } from "@/lib/flags/read";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { listingById } from "@/lib/listings/listing-by-id";
@@ -7,6 +8,12 @@ import { getLocale } from "@/lib/locale";
 import { StayDetailView } from "./StayDetailView";
 import { readStayDates } from "@/components/app/stays/model";
 import type { StayDetail } from "./detail-model";
+
+/* About a kilometre: two decimal places. The Map tab draws an area, never the door. */
+function areaPoint(lat: number | null, lng: number | null): { lat: number; lng: number } | null {
+  if (lat === null || lng === null || !Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  return { lat: Math.round(lat * 100) / 100, lng: Math.round(lng * 100) / 100 };
+}
 import { getStayDetail } from "@/lib/stays/queries";
 import { listSavedPlaces } from "@/lib/saved/places-actions";
 import { isSaved, savedKeySet } from "@/lib/saved/places";
@@ -44,6 +51,7 @@ async function readStayDetail(id: string): Promise<StayDetail | null> {
     starRating: accommodation.star_rating,
     city: accommodation.city,
     area: accommodation.area,
+    areaPoint: areaPoint(accommodation.latitude, accommodation.longitude),
     checkInFrom: accommodation.check_in_from,
     checkOutBy: accommodation.check_out_by,
     houseRules: accommodation.house_rules,
@@ -191,7 +199,7 @@ export default async function StayDetailPage({
     return <ListingPage params={params} searchParams={searchParams} />;
   }
 
-  const [locale, query, savedPlaces, session] = await Promise.all([
+  const [locale, query, savedPlaces, session, instant] = await Promise.all([
     getLocale(),
     searchParams,
     /* THE HEART'S RESTING STATE, read on the server so it survives a reload.
@@ -200,6 +208,8 @@ export default async function StayDetailPage({
        alone; `isSaved` decides this one card. */
     listSavedPlaces(),
     resolveSession(),
+    /* D73: words only. The database decides whether each booking is instant. */
+    flagIsOn(STAYS_INSTANT_PAY_FLAG),
   ]);
   const t = getDictionary(locale);
   const { checkIn, checkOut, nights, guests } = readStayDates(query);
@@ -224,6 +234,7 @@ export default async function StayDetailPage({
       reserve={{ stayId: detail.id, checkIn, checkOut, guests }}
       saved={saved}
       signedIn={session.state === "signed-in"}
+      instant={instant}
     />
   );
 }

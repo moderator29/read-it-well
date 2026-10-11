@@ -69,13 +69,10 @@
     animation-delay: calc(var(--nf-splash-hold, 0s) + 700ms);
   }
 
-  /* Once per visit: the second time the landing opens this session, the
-     hero is simply there (the flag is set by the script in app/(landing)/page.tsx). */
-  :root[data-intro="seen"] .nf-landing-title .nf-depth-word,
-  :root[data-intro="seen"] .nf-landing-hero .nf-rise,
-  :root[data-intro="seen"] .nf-depth-last {
-    animation: none;
-  }
+  /* EVERY LOAD, NOT ONCE PER VISIT (7 October). The founder reloads the
+     page and saw nothing move, and read that as "no upgrade". The intro is
+     under 1.2 seconds, so it plays on every load; `data-intro` is still set
+     by app/(landing)/page.tsx and no longer silences it. */
 
   .nf-room-link {
     display: inline-flex;
@@ -264,15 +261,19 @@
     margin-inline: auto;
     max-width: var(--nf-measure-section);
   }
+  /* The Plasma pass (P7): the eyebrow is the landing's mono overline, so the
+     rooms kept from before speak the same dialect as the new ones
+     (landing-plasma.css, `.nf-pl-overline`). */
   .nf-eyebrow {
     display: inline-flex;
     align-items: center;
     gap: var(--nf-space-xs);
-    font-size: var(--nf-text-overline);
-    font-weight: 700;
-    letter-spacing: var(--nf-tracking-label);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
     text-transform: uppercase;
-    color: var(--nf-brand-secondary);
+    color: var(--nf-content-muted);
   }
   .nf-eyebrow::before {
     content: "";
@@ -297,10 +298,10 @@
     margin-top: var(--nf-gap-row);
     max-width: var(--nf-measure-display);
     font-family: var(--nf-font-display);
-    font-size: var(--nf-text-h1);
-    font-weight: 700;
-    line-height: 1.1;
-    letter-spacing: var(--nf-tracking-display);
+    font-size: clamp(2rem, 1.3rem + 2.6vw, 3.25rem);
+    font-weight: 600;
+    line-height: 1.04;
+    letter-spacing: -0.035em;
     color: var(--nf-content-primary);
   }
 
@@ -836,12 +837,13 @@
       margin-bottom: 0;
     }
   }
-  /* The eyebrow is the shared section label now: no hairlines, no brand. */
+  /* The eyebrow is the landing's mono overline (the Plasma pass, P7): no
+     hairlines, no brand, letter-spaced. */
   .nf-sec-head .nf-eyebrow {
     display: block;
     gap: 0;
-    font-size: var(--nf-text-label, 0.75rem);
-    letter-spacing: var(--nf-tracking-label, 0.06em);
+    font-size: 0.75rem;
+    letter-spacing: 0.22em;
     font-weight: 600;
     color: var(--nf-content-muted);
   }
@@ -852,10 +854,10 @@
   .nf-sec-title {
     margin-top: 0.5rem;
     max-width: 20ch;
-    font-size: clamp(1.75rem, 1.2rem + 2.1vw, 2.75rem);
+    font-size: clamp(2rem, 1.3rem + 2.6vw, 3.25rem);
     font-weight: 600;
-    line-height: 1.1;
-    letter-spacing: -0.02em;
+    line-height: 1.04;
+    letter-spacing: -0.035em;
   }
   .nf-sec-lede {
     margin-top: 0.75rem;
@@ -1362,7 +1364,8 @@
     height: 3.5rem;
     border-radius: var(--nf-plate-radius-lg);
     border: var(--nf-border-width) solid var(--nf-card-border);
-    background: var(--nf-surface-primary);
+    /* The logo's plate (D82): white in both themes, so the mark looks the same everywhere. */
+    background: var(--nf-logo-plate);
     box-shadow: var(--nf-float-shadow, var(--nf-elev-2));
   }
   .nf-close__title {
@@ -1424,23 +1427,26 @@
   /* ------------------------------------------- the hero intro (item 24) */
 
   /*
-   * SHORTER AND SHARPER: under 900ms from the first word to the search.
-   * The eyebrow rises first; the words arrive 45ms apart, each 420ms on
-   * the entrance curve out of a 6px blur (no blur on a slow device or data
-   * saver); the sub, the action and the facts rise 12px over 480ms from
-   * 300ms; the search at 420ms; the grid settles from 1.04 over 1200ms on a
-   * desktop. Once per visit (`data-intro`). Calm: a 160ms fade only.
+   * THE WORDS RISE IN, 60MS APART (7 October, the founder's "do
+   * animations"). Each word comes up half a line out of nothing and lands
+   * on the entrance curve, 640ms a word, transform and opacity only (the
+   * blur went: it was the one filter on the first frame). The eyebrow rises
+   * first; the sub, the action and the facts rise 12px over 480ms after the
+   * words; the search next. The photograph settles from 1.06 to rest over
+   * 2.6 seconds behind them (landing-3d.css, "the 3D pass"). Everything
+   * waits 200 to 350ms past the startup's hold: on a first visit the page
+   * comes forward out of the startup's door (threshold.css) in that time,
+   * and the words used to finish underneath it, unseen. Calm: a 160ms fade
+   * only.
    */
   @keyframes nf-hero-word {
     from {
       opacity: 0;
-      transform: translate3d(0, 0.18em, 0) scale(1.06);
-      filter: blur(6px);
+      transform: translate3d(0, 0.55em, 0) rotate(2deg) scale(0.96);
     }
     to {
       opacity: 1;
       transform: none;
-      filter: none;
     }
   }
   @keyframes nf-hero-word-lite {
@@ -1479,8 +1485,9 @@
     }
   }
   .nf-landing-title .nf-depth-word {
-    animation: nf-hero-word 420ms var(--nf-ease-entrance) both;
-    animation-delay: calc(var(--nf-splash-hold, 0s) + 60ms + var(--nf-i, 0) * 45ms);
+    transform-origin: 0 100%;
+    animation: nf-hero-word 640ms var(--nf-ease-entrance) both;
+    animation-delay: calc(var(--nf-hero-hold, 0s) + 350ms + var(--nf-i, 0) * 60ms);
   }
   :root:is([data-save-data="on"], [data-motion-lite="on"]) .nf-landing-title .nf-depth-word {
     animation-name: nf-hero-word-lite;
@@ -1489,25 +1496,22 @@
     animation: nf-hero-rise 480ms var(--nf-ease-entrance) both;
   }
   .nf-landing-hero .nf-rise-1 {
-    animation-delay: var(--nf-splash-hold, 0s);
+    animation-delay: calc(var(--nf-hero-hold, 0s) + 200ms);
   }
   .nf-landing-hero .nf-rise-3 {
-    animation-delay: calc(var(--nf-splash-hold, 0s) + 300ms);
+    animation-delay: calc(var(--nf-hero-hold, 0s) + 660ms);
   }
   .nf-landing-hero .nf-rise-4 {
-    animation-delay: calc(var(--nf-splash-hold, 0s) + 360ms);
+    animation-delay: calc(var(--nf-hero-hold, 0s) + 740ms);
   }
   .nf-landing-hero .nf-depth-last {
-    animation: nf-hero-rise 480ms var(--nf-ease-entrance) both;
-    animation-delay: calc(var(--nf-splash-hold, 0s) + 420ms);
+    animation: nf-hero-rise 560ms var(--nf-ease-entrance) both;
+    animation-delay: calc(var(--nf-hero-hold, 0s) + 840ms);
   }
   @media (min-width: 64rem) {
     .nf-landing-hero .nf-hero-grid {
       animation: nf-hero-settle 1200ms var(--nf-ease-standard) both;
     }
-  }
-  :root[data-intro="seen"] .nf-landing-hero :is(.nf-depth-word, .nf-rise, .nf-depth-last, .nf-hero-grid) {
-    animation: none;
   }
   :root[data-motion="calm"] .nf-landing-hero :is(.nf-depth-word, .nf-rise, .nf-depth-last) {
     animation: nf-hero-fade var(--nf-duration-fast) var(--nf-ease-standard) both;
@@ -1558,11 +1562,8 @@
     }
   }
   .nf-landing-hero .nf-hero-card {
-    animation: nf-hero-card-in var(--nf-duration-entrance) var(--nf-ease-entrance) both;
-    animation-delay: calc(var(--nf-splash-hold, 0s) + 520ms);
-  }
-  :root[data-intro="seen"] .nf-landing-hero .nf-hero-card {
-    animation: none;
+    animation: nf-hero-card-in var(--nf-duration-deliberate) var(--nf-ease-entrance) both;
+    animation-delay: calc(var(--nf-hero-hold, 0s) + 940ms);
   }
 
   /* ------------------------------------------- the cards' float on scroll */
@@ -1907,7 +1908,8 @@
     width: 2.5rem;
     height: 2.5rem;
     border-radius: var(--nf-radius-control);
-    background: var(--nf-ink-on-photo);
+    /* The logo's plate (D82): white in both themes, so the mark looks the same everywhere. */
+    background: var(--nf-logo-plate);
   }
   .nf-mo__facts {
     display: grid;

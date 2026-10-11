@@ -121,6 +121,20 @@ export const trustVisibleEn = {
     why: "Vallo asks for a confirmed mobile number once, before your first inspection request, your first review and your first report. It is never shown to anybody. It keeps one person to one account, which is what makes reviews and reports worth trusting.",
     closedTitle: "Nothing is needed from you",
     closedBody: "Vallo is not asking for phone numbers at the moment. Browsing, saving and messaging never need one.",
+    /* While codes are not sent: the number is saved to the profile unconfirmed,
+       for the things that need one on file (a wallet opened in the member's own name). */
+    profileTitle: "Your mobile number",
+    profileBody: "Saved to your profile so anything opened in your own name, like your payments account, can use it. It is never shown to anybody. We will ask you to confirm it with a code later.",
+    profileHint: "A Nigerian mobile number, for example 0803 123 4567.",
+    /** `{last}` is the last four digits. */
+    profileCurrent: "On your profile: the number ending {last}.",
+    profileSave: "Save number",
+    profileSaving: "Saving",
+    profileSaved: "Saved. Your number is on your profile.",
+    profileInvalid: "That is not a Nigerian mobile number. It has 11 digits and starts 070, 071, 080, 081, 090 or 091.",
+    profileRefused: "That number cannot be used on Vallo. Use your own mobile number.",
+    profileFailed: "We could not save your number just now. Nothing was changed. Try again in a moment.",
+    profileBack: "Continue",
     signedOutTitle: "Sign in to confirm your number",
     signedOutBody: "A number is confirmed for an account, so this needs yours.",
     signIn: "Sign in",
@@ -483,6 +497,6 @@ export const trustVisibleEn = {
     screenErrorRef: "Reference {digest}. If this keeps happening, quote it to support.",
     offlineOverline: "Connection",
     offlineTitle: "You are offline",
-    offlineBody: "The connection dropped before this page could load. Anything you had typed but not sent may need typing again. Your balance, messages and bookings are never shown from an old copy.",
+    offlineBody: "The connection dropped before this page could load. Pages you have opened before still open, and your balance is never shown from an old copy.",
   },
 };

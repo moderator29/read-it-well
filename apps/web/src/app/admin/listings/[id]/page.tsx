@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { InternalNotes } from "../../_components/InternalNotes";
+import { ReviewCallAction } from "@/components/calls/admin/ReviewCallAction";
 import { readPayeeContext } from "@/lib/after-gate/payee";
 import { getDictionary } from "@vallo/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -111,6 +112,8 @@ export default async function ListingUnderReviewPage({
     <>
       <LiveRefresh seconds={30} />
       {extra?.lister ? <InternalNotes subjectId={extra.lister.userId} path={`/admin/listings/${found.id}`} /> : null}
+      {/* VC1: a review call with the lister (listing approval scope, both switches on). */}
+      <ReviewCallAction caseKind="listing" caseId={found.id} />
       <ListingReview
         listing={found}
         extras={extra}

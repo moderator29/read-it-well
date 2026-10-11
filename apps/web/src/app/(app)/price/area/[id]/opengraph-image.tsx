@@ -1,3 +1,4 @@
+import { OgLogo } from "@/components/share/og-logo";
 import { readFile } from "node:fs/promises";
 import { ImageResponse } from "next/og";
 import { getDictionary, DEFAULT_LOCALE } from "@vallo/i18n";
@@ -5,7 +6,7 @@ import { listStates } from "@/lib/places/queries";
 import { shareById } from "@/lib/price-check/queries";
 import { shareLines } from "@/lib/price-check/share-card";
 import { shareCardCopy } from "@/components/app/price/share-copy";
-import { OG_CANVAS, OG_INK_MUTED } from "@/lib/price-check/og-palette";
+import { OG_CANVAS } from "@/lib/price-check/og-palette";
 import { ogShareCard } from "@/components/share/og-share-card";
 import { countFill } from "@/lib/ui/meter";
 
@@ -136,13 +137,9 @@ export default async function Image({ params }: { params: Promise<{ id: string }
             alignItems: "center",
             justifyContent: "center",
             background: OG_CANVAS,
-            color: OG_INK_MUTED,
-            fontFamily: "Inter",
-            fontSize: 44,
-            letterSpacing: -0.5,
           }}
         >
-          Vallo
+          <OgLogo height={64} />
         </div>
       ),
       { ...size, fonts },

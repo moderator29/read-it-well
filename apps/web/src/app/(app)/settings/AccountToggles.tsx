@@ -137,11 +137,11 @@ export function AccountNotificationsCard({
   };
 
   /* Payments covers payment and receipt emails, so the glyph is a document. */
-  const ICON: Record<NotifyKey, "calendar-booking" | "chat-bubble" | "document" | "sparkle" | "price-tag"> = {
+  const ICON: Record<NotifyKey, "calendar-booking" | "chat-bubble" | "document" | "mail" | "price-tag"> = {
     bookings: "calendar-booking",
     messages: "chat-bubble",
     payments: "document",
-    marketing: "sparkle",
+    marketing: "mail",
     savedPriceDrops: "price-tag",
   };
 

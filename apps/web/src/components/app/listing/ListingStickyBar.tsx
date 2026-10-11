@@ -288,7 +288,10 @@ export function ListingStickyBar({
             className="nf-detail-foot__secondary"
             data-testid="sticky-breakdown"
           >
-            <span className="nf-btn__label sm:hidden">{secondaryShortLabel ?? secondary.label}</span>
+            {/* Under 23rem (a 320 phone, two rows) the short word; from 23rem
+                to `sm` the glyph alone on the one-row bar; the full label
+                from `sm`. The accessible name is the full label throughout. */}
+            <span className="nf-btn__label min-[23rem]:hidden">{secondaryShortLabel ?? secondary.label}</span>
             <span className="nf-btn__label hidden sm:inline">{secondary.label}</span>
           </ButtonLink>
         ) : secondary ? (

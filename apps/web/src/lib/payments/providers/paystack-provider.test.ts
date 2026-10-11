@@ -91,6 +91,7 @@ describe("paystack behind the fiat seam", () => {
     // @ts-expect-error: not narrowed, so the split method is not on the type.
     void p.collectWithSplit;
     if (can(p, "split_at_charge")) expect(typeof p.collectWithSplit).toBe("function");
-    expect(fiatProvider("payluk")).toBeNull();
+    // A member balance is the provider-held rail's, never Paystack's.
+    expect(can(p, "member_wallet")).toBe(false);
   });
 });

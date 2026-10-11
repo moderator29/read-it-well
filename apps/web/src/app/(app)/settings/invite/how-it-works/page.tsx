@@ -31,8 +31,8 @@ export async function generateMetadata(): Promise<Metadata> {
  * WHAT IT SAYS ABOUT A REWARD follows the rewards read (`inviteRewards`, the
  * one gate every rewards surface uses), one state at a time:
  *
- *   not-live  closes on "There is no reward for inviting", in the invite door's
- *             own words, not rephrased
+ *   not-live  says nothing about a reward (the old "no reward for inviting"
+ *             line is gone: the founder, 8 October 2026)
  *   running   adds what the invited person gets, what the member earns and
  *             when, and the monthly budget (`runningInviteLines`: the reward
  *             from the read's policy, every money sentence from
@@ -80,11 +80,6 @@ export default async function InviteHowItWorksPage() {
         <div className="mt-block">
           <RewardsPauseNotice programme={rewards.programme} copy={t.experienceRewards.pause} earned={REWARDS_PAUSED_EARNED_LINE} locale={locale} />
         </div>
-      ) : null}
-      {rewards.state === "not-live" ? (
-        <p className={`${TYPE.caption} mt-block text-center`} data-testid="invite-no-reward">
-          {t.publicDoors.invite.noReward}
-        </p>
       ) : null}
       {rewards.state === "running" ? (
         <p className={`${TYPE.caption} mt-block text-center`} data-testid="invite-rewards-not-held">

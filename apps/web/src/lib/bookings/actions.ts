@@ -25,6 +25,8 @@
 
 import { revalidatePath } from "next/cache";
 import { stayTitle } from "./stay-title";
+import { readInstantOutcome } from "./instant-pay";
+import { STAYS_INSTANT_PAY_FLAG, flagIsOn } from "../flags/read";
 import { fail, formDataToObject, ok, validate, type ActionResult } from "../actions/envelope";
 import { bestEffortEmail, sendMessage } from "../email/client";
 import {
@@ -114,6 +116,10 @@ export type ReserveReceipt = {
   totalMinor: number;
   /** The person arriving, when the payer named somebody else. */
   arrivingName: string | null;
+  /** D73: the database booked it instantly at the published rate; pay now. */
+  instant: boolean;
+  /** When an unpaid instant booking stops being held (ISO), else null. */
+  payBy: string | null;
 };
 
 export async function reserve(
@@ -324,10 +330,20 @@ export async function reserve(
   revalidatePath("/bookings");
   revalidatePath(`/listing/${input.listingId}`);
 
+  /* D73: with stays_instant_pay on the database may have accepted the stay
+     already (published nightly rate, host ready to be paid). Read only with
+     the switch on, so with it off nothing here changes. */
+  const outcome = (await flagIsOn(STAYS_INSTANT_PAY_FLAG))
+    ? await readInstantOutcome(session.supabase, created.id)
+    : { instant: false, payBy: null };
+
   // ------------------------------------------------------------- email
   // The booking exists. Both sends are best effort from here: the guest gets
   // their request back in writing, the host gets something to act on.
-  await bestEffortEmail(async () => {
+  /* An instant booking is not a request: the "request sent" and "new
+     request" emails would be wrong. The database's in-app notices tell both
+     sides, and the payment receipt follows settlement as for every stay. */
+  if (!outcome.instant) await bestEffortEmail(async () => {
     // "Bookings" on /settings governs this. A guest who switched it off
     // resolves to no recipient at all, so nothing is rendered and nothing is
     // sent; the booking itself is untouched either way.
@@ -379,6 +395,7 @@ export async function reserve(
     cleaningMinor,
     totalMinor,
     arrivingName: arriving?.name ?? null,
+    ...outcome,
   });
 }
 

@@ -23,8 +23,14 @@ export type ShellDictionary = Pick<Dictionary, "a11y" | "common" | "nav" | "side
   supply: Pick<Dictionary["supply"], (typeof SUPPLY_KEYS)[number]>;
   priceCheck: Pick<Dictionary["priceCheck"], "title">;
   pickers: Pick<Dictionary["pickers"], "close">;
-  /** The navigation's own new lines (the Payments row). */
-  experienceShell: Pick<Dictionary["experienceShell"], "navPayments">;
+  /** The navigation's own new lines (the Payments and Invite rows). */
+  experienceShell: Pick<
+    Dictionary["experienceShell"],
+    "navPayments" | "navInvite" | "navMoneyLabel" | "navBalance" | "navReceipts" | "navPayouts" | "navRefunds" | "navLeaderboard" | "navPassport"
+    | "navDocsLabel" | "navDocsTerms" | "navDocsPrivacy" | "navDocsSafety" | "navDocsHelp"
+  >;
+  /** The Rewards row's label is the Rewards page's own title, so the two cannot drift. */
+  experienceRewards: Pick<Dictionary["experienceRewards"], "title">;
 };
 
 /** The workspace switcher's lines. */
@@ -55,7 +61,23 @@ export function shellDictionary(t: Dictionary): ShellDictionary {
     supply: Object.fromEntries(SUPPLY_KEYS.map((key) => [key, t.supply[key]])) as ShellDictionary["supply"],
     priceCheck: { title: t.priceCheck.title },
     pickers: { close: t.pickers.close },
-    experienceShell: { navPayments: t.experienceShell.navPayments },
+    experienceShell: {
+      navPayments: t.experienceShell.navPayments,
+      navInvite: t.experienceShell.navInvite,
+      navPassport: t.experienceShell.navPassport,
+      navDocsLabel: t.experienceShell.navDocsLabel,
+      navDocsTerms: t.experienceShell.navDocsTerms,
+      navDocsPrivacy: t.experienceShell.navDocsPrivacy,
+      navDocsSafety: t.experienceShell.navDocsSafety,
+      navDocsHelp: t.experienceShell.navDocsHelp,
+      navMoneyLabel: t.experienceShell.navMoneyLabel,
+      navBalance: t.experienceShell.navBalance,
+      navReceipts: t.experienceShell.navReceipts,
+      navPayouts: t.experienceShell.navPayouts,
+      navRefunds: t.experienceShell.navRefunds,
+      navLeaderboard: t.experienceShell.navLeaderboard,
+    },
+    experienceRewards: { title: t.experienceRewards.title },
   };
   cache.set(t, shell);
   return shell;

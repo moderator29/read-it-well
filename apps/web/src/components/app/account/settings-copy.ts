@@ -37,6 +37,12 @@ export type HubCopy = SettingsOf<"hub" | "appearance" | "notifications" | "langu
   publicDoors: { invite: Pick<Dictionary["publicDoors"]["invite"], "rowTitle" | "rowSub"> };
   passcode: Pick<Dictionary["passcode"], "settingsRow" | "settingsRowSub">;
   paymentsPage: Pick<Dictionary["paymentsPage"], "settingsRow" | "settingsRowSub">;
+  /** The Accessibility row: the page's own title and line. */
+  experienceSettings: {
+    accessibility: Pick<Dictionary["experienceSettings"]["accessibility"], "title" | "sub">;
+    /** D78: every settings page is a row on the hub; these are their names. */
+    area: { destinations: Pick<Dictionary["experienceSettings"]["area"]["destinations"], "devices" | "place" | "interests"> };
+  };
 };
 
 export function forHub(t: Dictionary): HubCopy {
@@ -47,6 +53,16 @@ export function forHub(t: Dictionary): HubCopy {
     publicDoors: { invite: { rowTitle: t.publicDoors.invite.rowTitle, rowSub: t.publicDoors.invite.rowSub } },
     passcode: { settingsRow: t.passcode.settingsRow, settingsRowSub: t.passcode.settingsRowSub },
     paymentsPage: { settingsRow: t.paymentsPage.settingsRow, settingsRowSub: t.paymentsPage.settingsRowSub },
+    experienceSettings: {
+      accessibility: { title: t.experienceSettings.accessibility.title, sub: t.experienceSettings.accessibility.sub },
+      area: {
+        destinations: {
+          devices: t.experienceSettings.area.destinations.devices,
+          place: t.experienceSettings.area.destinations.place,
+          interests: t.experienceSettings.area.destinations.interests,
+        },
+      },
+    },
   };
 }
 

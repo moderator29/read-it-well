@@ -2,23 +2,13 @@ import type { Metadata } from "next";
 import { getLocale } from "@/lib/locale";
 import { readMyPayments } from "@/lib/money/history";
 import { parseBefore } from "@/lib/money/history-model";
-import { refundEntries } from "@/lib/money/vault";
-import {
-  REFUNDS_EMPTY_BODY,
-  REFUNDS_EMPTY_TITLE,
-  REFUNDS_HOW_BODY,
-  REFUNDS_HOW_TITLE,
-  REFUNDS_LEDE,
-  REFUNDS_SCOPE,
-  REFUNDS_TITLE,
-  REFUND_ROUTE,
-} from "@/lib/money/copy";
+import { REFUNDS_LEDE, REFUNDS_TITLE } from "@/lib/money/copy";
 import { PageHeader } from "@/components/app/PageHeader";
-import { EmptyState, TYPE } from "@/components/app/Screen";
+import { EmptyState } from "@/components/app/Screen";
 import { ButtonLink } from "@/components/ui/Button";
 import { withNext } from "@/lib/auth/next-link";
-import { HistoryList } from "@/components/app/money-history/HistoryList";
-import { HistoryEmpty, HistoryUnavailable } from "@/components/app/money-history/HistoryStates";
+import { HistoryUnavailable } from "@/components/app/money-history/HistoryStates";
+import { RefundsView } from "@/components/money/RefundsView";
 
 export const metadata: Metadata = { title: "Refunds", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -61,36 +51,7 @@ export default async function RefundsPage({
           <HistoryUnavailable retryHref="/refunds" />
         </div>
       ) : (
-        <div className="mt-inline space-y-block">
-          <p className={TYPE.body}>{REFUNDS_LEDE}</p>
-          {(() => {
-            const refunds = refundEntries(read.entries);
-            if (refunds.length === 0 && !read.nextBefore && !before) {
-              return <HistoryEmpty title={REFUNDS_EMPTY_TITLE} body={REFUNDS_EMPTY_BODY} next={{ href: "/bookings", label: "See your bookings" }} />;
-            }
-            return (
-              <>
-                <p className={TYPE.rowMeta}>{REFUNDS_SCOPE}</p>
-                <HistoryList
-                  entries={refunds}
-                  nextBefore={read.nextBefore}
-                  basePath="/refunds"
-                  paged={before !== null}
-                  locale={locale}
-                  heading="Your refunds"
-                  linkToBooking
-                />
-              </>
-            );
-          })()}
-          <section className="nf-panel nf-panel--card" aria-labelledby="nf-refund-how">
-            <h2 id="nf-refund-how" className="nf-body font-semibold text-[var(--nf-content-primary)]">
-              {REFUNDS_HOW_TITLE}
-            </h2>
-            <p className="nf-body-sm mt-inline text-[var(--nf-content-secondary)]">{REFUNDS_HOW_BODY}</p>
-            <p className="nf-body-sm mt-inline text-[var(--nf-content-secondary)]">{REFUND_ROUTE}</p>
-          </section>
-        </div>
+        <RefundsView entries={read.entries} nextBefore={read.nextBefore} before={before} locale={locale} />
       )}
     </main>
   );

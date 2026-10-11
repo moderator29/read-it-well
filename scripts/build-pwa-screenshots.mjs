@@ -85,6 +85,8 @@ for (const shot of SHOTS) {
   });
   await page.goto(ORIGIN + shot.route, { waitUntil: "networkidle", timeout: 180000 });
   await page.evaluate(() => document.documentElement.setAttribute("data-theme", "dark"));
+  /* A dev server draws its own indicator in the corner; it is not the app. */
+  await page.addStyleTag({ content: "nextjs-portal{display:none!important}" });
   if (shot.anchor) {
     const found = await page.evaluate((sel) => {
       const el = document.querySelector(sel);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ReportSheet } from "@/components/social/ReportSheet";
@@ -80,6 +80,34 @@ export function ProfileMenu({
   const menuRef = useRef<HTMLDivElement>(null);
   const openerRef = useRef<HTMLButtonElement>(null);
   const blockedRef = useRef<HTMLDivElement>(null);
+
+  /*
+   * THE MENU OPENS WHOLLY ON SCREEN (D79, founder: it "renders clipped off
+   * the right edge"). It hangs from the trigger's start edge; where that
+   * would run past the viewport it hangs from the end edge instead, and if a
+   * narrow screen still cuts it, it is slid back inside an 8px margin. Read
+   * and written before paint, so it never flashes in the wrong place.
+   */
+  useLayoutEffect(() => {
+    const menu = menuRef.current;
+    if (!open || !menu) return;
+    const MARGIN = 8;
+    const viewport = document.documentElement.clientWidth;
+    const fits = () => {
+      const box = menu.getBoundingClientRect();
+      return box.left >= MARGIN && box.right <= viewport - MARGIN;
+    };
+    menu.style.insetInlineStart = "";
+    menu.style.insetInlineEnd = "";
+    menu.style.translate = "";
+    if (fits()) return;
+    menu.style.insetInlineStart = "auto";
+    menu.style.insetInlineEnd = "0px";
+    if (fits()) return;
+    const box = menu.getBoundingClientRect();
+    const shift = box.left < MARGIN ? MARGIN - box.left : viewport - MARGIN - box.right;
+    menu.style.translate = `${shift}px 0`;
+  }, [open]);
 
   const who = displayLabel || `@${handle}`;
 

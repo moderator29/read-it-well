@@ -5,11 +5,13 @@ import { PageHeader } from "@/components/app/PageHeader";
 import { EmptyState } from "@/components/app/Screen";
 import { ButtonLink } from "@/components/ui/Button";
 import { RewardsState } from "@/components/app/referral/RewardsState";
-import { WithdrawFlow } from "@/components/app/referral/WithdrawFlow";
+import { RewardsPayoutForm } from "@/components/app/referral/RewardsPayoutForm";
 import { RewardsPauseNotice } from "@/components/app/referral/RewardsPauseNotice";
 import { fill, REWARDS_PAUSED_EARNED_LINE } from "@/components/app/referral/money-words";
+import { REWARDS_PAID_FROM, REWARDS_WITHDRAW_NOT_OPEN } from "@/lib/money/copy";
+import { isPaystackConfigured, listBanks, type PaystackBank } from "@/lib/payments/paystack";
 import { pausedProgramme, withdrawGate } from "@/lib/referral/rewards";
-import { withdrawActions } from "@/lib/referral/rewards-read";
+import { withdrawRewards } from "@/lib/referral/withdraw-action";
 import { INVITE_HREF, REWARDS_HREFS, rewardsScreen, signInHref } from "../screen";
 
 export const dynamic = "force-dynamic";
@@ -18,14 +20,30 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: getDictionary(await getLocale()).experienceRewards.withdraw.title, robots: { index: false, follow: false } };
 }
 
+/** The banks Paystack pays out to; empty when it has no key or does not answer, which the form says. */
+async function payoutBanks(): Promise<PaystackBank[]> {
+  if (!isPaystackConfigured()) return [];
+  try {
+    return await listBanks();
+  } catch {
+    return [];
+  }
+}
+
 /**
- * /rewards/withdraw: from the Rewards Balance to the member's bank (D51).
+ * /rewards/withdraw: from the Rewards Balance to the member's bank (D51, D85).
  *
- * The minimum and the way the fee is set are stated before anything is
- * prepared; the fee itself is the payout provider's, read back when the
- * withdrawal is prepared (`WithdrawFlow`). Four honest states before the flow:
- * the rewards read not live, withdrawals not open (no `WithdrawActions`,
- * R-C3-2), the available figure under the minimum, and no bank account.
+ * Three honest states, in this order (`withdrawGate`):
+ *
+ *   not-open       `referral_policy.payouts_enabled` is off (no separate
+ *                  marketing-float account yet): "Withdrawals are not open
+ *                  yet", and that every reward earned is recorded and stays
+ *                  the member's. No date, because none is decided
+ *   below-minimum  Available has not reached the withdrawal minimum, said
+ *                  with the minimum from the read
+ *   open           the payout form: a bank and ten digits, through the
+ *                  existing payout path (`requestRewardsPayout`), which pays
+ *                  the whole Available balance in whole referrals
  *
  * PAUSED (D64): withdrawing what is already earned carries on exactly as
  * before; the pause is said above it so nobody reads it as a freeze.
@@ -48,7 +66,7 @@ export default async function RewardsWithdrawPage() {
   }
 
   const { snapshot, words } = screen;
-  const gate = withdrawGate(snapshot, withdrawActions !== null);
+  const gate = withdrawGate(snapshot);
   const back = (
     <ButtonLink href="/rewards" variant="secondary" size="lg">
       {w.back}
@@ -61,18 +79,19 @@ export default async function RewardsWithdrawPage() {
     <div className="mx-auto max-w-2xl space-y-block">
       {header}
       {paused ? <RewardsPauseNotice programme={paused} copy={copy.pause} earned={REWARDS_PAUSED_EARNED_LINE} locale={locale} /> : null}
-      {gate === "open" && withdrawActions && snapshot.destination ? (
-        <WithdrawFlow
-          availableMinor={snapshot.balance.availableMinor}
-          minimumMinor={snapshot.policy.withdrawMinimumMinor}
-          destination={snapshot.destination}
-          actions={withdrawActions}
-          copy={w}
-          money={words}
-          locale={locale}
-          historyHref={REWARDS_HREFS.history}
-          backHref="/rewards"
-        />
+      {gate === "open" ? (
+        <div className="grid gap-sm" data-testid="rewards-withdraw-open">
+          <p className="nf-rewards-note">{fill(words.minimum, { minimum: formatMoney(snapshot.policy.withdrawMinimumMinor, locale) })}</p>
+          <RewardsPayoutForm
+            availableMinor={snapshot.balance.availableMinor}
+            banks={await payoutBanks()}
+            copy={w}
+            locale={locale}
+            action={withdrawRewards}
+            historyHref={REWARDS_HREFS.history}
+          />
+          <p className="nf-rewards-note">{REWARDS_PAID_FROM}</p>
+        </div>
       ) : gate === "below-minimum" ? (
         <EmptyState
           icon="gift"
@@ -82,25 +101,12 @@ export default async function RewardsWithdrawPage() {
           action={back}
           data-testid="rewards-withdraw-below-minimum"
         />
-      ) : gate === "no-destination" ? (
-        <EmptyState
-          icon="gift"
-          art={false}
-          title={w.noDestinationTitle}
-          body={w.errors.noDestination}
-          action={
-            <ButtonLink href="/settings/payments" variant="primary" size="lg">
-              {w.addAccount}
-            </ButtonLink>
-          }
-          data-testid="rewards-withdraw-no-destination"
-        />
       ) : (
         <EmptyState
           icon="gift"
           art={false}
           title={w.notOpenTitle}
-          body={w.notOpenBody}
+          body={REWARDS_WITHDRAW_NOT_OPEN}
           action={back}
           data-testid="rewards-withdraw-not-open"
         />

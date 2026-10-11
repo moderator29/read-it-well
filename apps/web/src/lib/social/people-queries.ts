@@ -83,7 +83,8 @@ export async function findPeople(rawQuery: string): Promise<PeopleDirectory> {
   const session = await resolveSession();
   const supabase = session.state === "signed-in" ? session.supabase : await createClient();
   const viewerId = session.state === "signed-in" ? session.user.id : null;
-  const query = rawQuery.trim().slice(0, 40);
+  /* A leading @ is how people write a username ("@ada"): it is the same search. */
+  const query = rawQuery.trim().replace(/^@+/, "").slice(0, 40);
   const pattern = safePattern(query);
 
   const nobody = (): PeopleDirectory => ({
@@ -133,6 +134,15 @@ export async function findPeople(rawQuery: string): Promise<PeopleDirectory> {
       bio_status: string | null;
     }[];
     if (rows.length === 0) return nobody();
+    /* The person whose @username is exactly what was typed comes first, then
+       handles that start with it, then names that do: a search for "@ada"
+       puts Ada at the top instead of somebody whose handle merely contains it. */
+    if (pattern) {
+      const q = pattern.toLowerCase();
+      const rank = (row: { handle: string; display_label: string | null }) =>
+        row.handle === q ? 0 : row.handle.startsWith(q) ? 1 : (row.display_label ?? "").toLowerCase().startsWith(q) ? 2 : 3;
+      rows.sort((x, y) => rank(x) - rank(y) || x.handle.localeCompare(y.handle));
+    }
 
     const ids = rows.map((row) => row.user_id);
     const [published, badges] = await Promise.all([

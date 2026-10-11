@@ -11,7 +11,7 @@ type Copy = Dictionary["experienceRewards"]["history"];
 
 const GLYPH: Readonly<Record<RewardsEntryKind, UiIconName>> = {
   referral: "ticket",
-  bonus: "sparkle",
+  bonus: "gift",
   withdrawal: "bank",
   reversal: "repost",
 };

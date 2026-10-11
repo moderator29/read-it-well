@@ -1,3 +1,4 @@
+import { OgLogo } from "@/components/share/og-logo";
 import { ImageResponse } from "next/og";
 import { DEFAULT_LOCALE, getDictionary } from "@vallo/i18n";
 import { shareCardCopy } from "@/components/app/price/share-copy";
@@ -56,7 +57,7 @@ export default async function Image({ params }: { params: Promise<{ state: strin
     return new ImageResponse(
       (
         <Frame>
-          <div style={{ display: "flex", color: OG_INK_MUTED, fontSize: 36, letterSpacing: 6 }}>VALLO</div>
+          <OgLogo height={34} />
           <div style={{ display: "flex" }} />
         </Frame>
       ),
@@ -70,7 +71,7 @@ export default async function Image({ params }: { params: Promise<{ state: strin
     (
       <Frame>
         <div style={{ display: "flex", flexDirection: "column" }}>
-          <div style={{ display: "flex", color: OG_INK_MUTED, fontSize: 28, letterSpacing: 4 }}>VALLO</div>
+          <OgLogo height={26} />
           <div style={{ display: "flex", marginTop: 16, color: OG_INK, fontSize: 52, lineHeight: 1.15 }}>{title}</div>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>

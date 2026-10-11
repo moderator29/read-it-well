@@ -44,12 +44,11 @@ describe("the dock pill springs on drift at 240ms", () => {
   /* From the slot rule through the pill rule (about 3.5KB of the dock block). */
   const dock = shell.slice(from, from + 3500);
 
-  it("the slot, its word and its pill all travel on drift at the base rung", () => {
-    /* flex-grow (the slot), the word's slide, the glyph-and-word body's slide
-       (round 5: transform, where max-width and margin used to grow), and the
-       pill, which is the next rule after the body's. */
+  it("the slot and its pill travel on drift at the base rung", () => {
+    /* flex-grow (the slot) and the pill. The chosen word and the body's slide
+       went with the word (7 October: the dock is icon only). */
     const through = shell.slice(from, shell.indexOf('.nf-tabbar :is(.nf-tab__link[aria-current="page"], .nf-tab__link[data-on])::after', from));
-    expect(through.match(/var\(--nf-duration-base\) var\(--nf-ease-spring\)/g)).toHaveLength(4);
+    expect(through.match(/var\(--nf-duration-base\) var\(--nf-ease-spring\)/g)).toHaveLength(2);
     expect(through).not.toMatch(/--nf-duration-slow\) var\(--nf-ease-spring\)/);
     expect(dock).not.toMatch(/(?:max-width|margin) var\(--nf-duration-base\)/);
   });
@@ -146,11 +145,36 @@ describe("principle 10, the marketing and loading loops (Session 3, C1)", () => 
     const KEPT: Record<string, number> = {
       "app/css/ported.css": 1, // the assistant's thinking lines (spec)
       "components/app/assistant/assistant-answer.css": 1, // the assistant's thinking orb (spec)
-      "app/welcome/get-started.css": 2, // the aurora's drift (spec)
       /* KEPT BY THE LEAD'S RULING (Session 3): live presence signals, like the assistant's
          thinking, each stopped by reduced motion, Calm, Off and data saver. */
       "app/css/motion.css": 1, // the counterpart's typing dots
-      "app/css/auth.css": 1, // the waiting cell's caret blink
+      /* VC1: the ring round a calling avatar, a live signal like the typing
+         dots, that lasts only while a call rings (45 s at most) and is
+         stopped by reduced motion, Calm, Off and data saver. */
+      "app/css/calls.css": 1,
+      /* THE FOUNDER'S RESTORATION (7 October 2026): the login, sign-up and
+         welcome screens back exactly as they were before the redesign, with
+         their own loops (the code caret, the focal glow, the welcome scenes'
+         float and breath). Each is stopped by reduced motion, Calm and Off.
+         The onboarding's own loops (onboarding-motion.css) became finite on
+         7 October: each floats or sweeps a few times and rests. */
+      "app/css/auth.css": 5,
+      "app/welcome/welcome.css": 3,
+      /* THE FOUNDER'S RULING (October 2026): the landing's floating 3D objects
+         keep their gentle continuous float. Only when ObjectField sets
+         `data-on` (never under reduced motion, Calm, Off, data saver or a
+         low-end device), and paused while the field is off screen. */
+      /* THE FOUNDER'S RULING (7 October 2026, "do animations"): the hero's
+         brand-blue aurora drifts behind the copy, paused unless the hero's
+         object field is on screen and allowed to move, and still under
+         reduced motion, Calm, Off, data saver and a low-end device. */
+      "app/css/landing-3d.css": 2, // the floating 3D objects' gentle bob, and the hero's aurora
+      /* D81 (8 October 2026): the new mark as the loader. While a page or a
+         sign-in link is still being fetched, a light runs round the mark's
+         ring; it is a wait signal like the assistant's thinking, gone the
+         moment the page arrives, and never drawn under reduced motion, Calm,
+         Off or data saver. */
+      "app/css/logo-motion.css": 1, // the orbit loader's light
     };
     const root = join(process.cwd(), "src");
     const found: Record<string, number> = {};
@@ -187,11 +211,10 @@ describe("principle 10, the marketing and loading loops (Session 3, C1)", () => 
     }
   });
 
-  it("the dock's chosen label stays nowrap while it animates and wraps only once settled", () => {
+  it("the dock draws no chosen label at all (7 October: icon only), so no word animates", () => {
     const shell = strip(css("shell-m.css"));
-    expect(shell).toContain("white-space 0s linear;");
-    expect(shell).toContain("transition-behavior: normal, normal, normal, normal, allow-discrete;");
-    expect(shell).toContain("transition-delay: 60ms, 0s, 0s, 0s, var(--nf-duration-base);");
-    expect(shell).toMatch(/white-space: normal;\s*text-wrap: balance;/);
+    expect(shell).toMatch(/\.nf-tabbar \.nf-tab__label \{\s*display: none;\s*\}/);
+    expect(shell).not.toMatch(/nf-tab__link\[data-on\] \.nf-tab__label \{[^}]*opacity: 1/);
+    expect(shell).not.toContain("transition-delay: 60ms, 0s, 0s, 0s, var(--nf-duration-base);");
   });
 });

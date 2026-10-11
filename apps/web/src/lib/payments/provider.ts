@@ -46,6 +46,12 @@ export type CollectInput = {
    * setup, which needs a reusable card authorisation).
    */
   channels?: readonly string[];
+  /**
+   * The payer's customer id at the provider, for a provider that collects
+   * only on behalf of a customer it knows (Payluk: every payment route takes
+   * a `customer-id`). Paystack ignores it.
+   */
+  payerCustomerId?: string;
 };
 export type CollectResult = {
   reference: string;
@@ -71,8 +77,13 @@ export type FiatCore = {
   readonly displayName: string;
   isConfigured(): boolean;
   collect(input: CollectInput): Promise<CollectResult>;
-  /** Also the reconciliation read-back: the provider's state for one reference. */
-  verifyByReference(reference: string): Promise<VerifiedCollection>;
+  /**
+   * Also the reconciliation read-back: the provider's state for one reference.
+   * `scope` names the customer the reference belongs to, for a provider whose
+   * history is per customer (Payluk). Without it such a provider answers
+   * `unknown`, never a guess.
+   */
+  verifyByReference(reference: string, scope?: { customerId?: string }): Promise<VerifiedCollection>;
   /** Raw body, constant-time, never throws. Headers, because each provider names its own. */
   verifyWebhook(rawBody: string, headers: Headers): boolean;
 };
@@ -91,8 +102,34 @@ export type FiatCapabilityMethods = {
   split_at_charge: {
     collectWithSplit(input: CollectInput & { split: ChargeSplit }): Promise<CollectResult>;
   };
-  /** Money is held until a release decision (Payluk escrow). Methods land with the Payluk adapter. */
+  /**
+   * Money is held until a release decision (Payluk escrow). Declared by the
+   * Payluk adapter because Payluk does hold; the arrange, fund, release and
+   * dispute methods land with phases 11 and 12 (standard and milestone escrow).
+   */
   hold_in_escrow: Record<never, never>;
+  /**
+   * A per-member balance the PROVIDER holds and reports (ADR 0003): the
+   * customer record, the balance read, the bank list and account check, and
+   * the two-step intent (stage, read the fee back, then submit) behind
+   * deposits, withdrawals and member-to-member sends. Amounts cross this
+   * seam in kobo whatever the provider counts in. Nothing here throws for a
+   * provider answer: every outcome, including UNKNOWN, is a value.
+   */
+  member_wallet: {
+    findCustomer(input: { email: string }): Promise<RailResult<RailCustomer | null>>;
+    createCustomer(input: RailCustomerInput): Promise<RailResult<RailCustomer>>;
+    readCustomer(customerId: string): Promise<RailResult<RailCustomer>>;
+    readBalance(customerId: string): Promise<RailResult<ReportedBalance>>;
+    listBanks(): Promise<RailResult<RailBank[]>>;
+    resolveAccount(
+      customerId: string,
+      input: { accountNumber: string; bankCode: string; bankName?: string },
+    ): Promise<RailResult<ResolvedAccount>>;
+    stageIntent(customerId: string, input: StageIntentInput): Promise<RailResult<StagedIntent>>;
+    submitIntent(customerId: string, input: { reference: string; otp?: string }): Promise<RailResult<StagedIntent>>;
+    findMovement(customerId: string, reference: string): Promise<RailResult<RailMovement | null>>;
+  };
   /**
    * A charge can be refunded by API without a dispute. Paystack: yes, and on a
    * split charge the refund is drawn from the MAIN balance, because the
@@ -132,6 +169,99 @@ export type FiatCapabilityMethods = {
   };
 };
 export type FiatCapability = keyof FiatCapabilityMethods;
+
+/* ------------------------------------------------ the member_wallet shapes */
+
+/**
+ * Why a provider call gave no answer, in Vallo's words. `unknown` is the one
+ * that matters: the request may have moved money, so it is never retried
+ * blindly and is resolved by reading the provider back.
+ */
+export type RailFailureKind =
+  | "not_configured"
+  | "rate_limited"
+  | "unavailable"
+  | "refused"
+  | "not_found"
+  | "unreadable"
+  | "unknown";
+export type RailFailure = {
+  ok: false;
+  kind: RailFailureKind;
+  httpStatus: number | null;
+  /** The provider's own message, for the server log and the audit view only. Never shown to a member. */
+  detail: string;
+  /** Seconds until the provider's rate window resets, when it said. */
+  retryAfterSeconds: number | null;
+};
+export type RailResult<T> = { ok: true; value: T } | RailFailure;
+
+export type RailCustomerInput = { firstName: string; lastName: string; email: string; phone: string; country?: string };
+export type RailCustomer = {
+  customerId: string;
+  /** The provider's word, e.g. `active`. */
+  status: string;
+  /** The phone as the provider stores it, which is what a send to this customer must name. */
+  phone: string;
+  displayName: string;
+  canWithdraw: boolean | null;
+  canBuy: boolean | null;
+  canSell: boolean | null;
+  blocked: boolean;
+};
+export type ReportedBalance = {
+  providerBalanceId: string;
+  availableMinor: number;
+  protectedMinor: number;
+  currency: string;
+  /** When the provider says the balance last changed, if it said. */
+  providerUpdatedAt: string | null;
+};
+export type RailBank = { name: string; code: string };
+export type ResolvedAccount = { accountName: string; accountNumber: string; bankCode: string };
+export type StageIntentInput = {
+  reference: string;
+  amountMinor: number;
+  currency?: string;
+} & (
+  | {
+      type: "withdrawal";
+      bank: { bankCode: string; bankName: string; accountNumber: string; accountName: string; narration?: string };
+    }
+  | { type: "deposit" }
+  | { type: "wallet_transfer"; recipient: { phone: string; name: string; narration?: string } }
+  /**
+   * A crypto payout. Built and NOT exposed: founder section 12 keeps it off
+   * until Vallo's product and legal design enables it (`CRYPTO_WITHDRAWAL_ENABLED`).
+   */
+  | { type: "withdrawal_crypto"; chain: { toAddress: string; network: "BSC" } }
+);
+/** How a hosted deposit is paid, exactly as the provider described it. */
+export type HostedCollection =
+  | { kind: "checkout_url"; url: string }
+  | { kind: "checkout_config"; config: Record<string, unknown> }
+  | { kind: "test_account"; details: Record<string, string> };
+export type StagedIntent = {
+  providerId: string;
+  reference: string;
+  amountMinor: number;
+  /** The provider's fee, fixed when the intent was staged. Never computed by Vallo. */
+  feeMinor: number;
+  /** The provider's word: `pending`, `success`, `failed`, ... */
+  status: string;
+  hosted: HostedCollection | null;
+};
+export type RailMovement = {
+  providerId: string;
+  reference: string;
+  amountMinor: number;
+  feeMinor: number;
+  status: string;
+  type: string;
+  direction: "credit" | "debit" | null;
+  customerId: string | null;
+  updatedAt: string | null;
+};
 
 type UnionToIntersection<U> = (U extends unknown ? (x: U) => void : never) extends (x: infer I) => void ? I : never;
 

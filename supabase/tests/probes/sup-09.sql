@@ -29,6 +29,15 @@ declare
   ag_a uuid; ag_b uuid; ag_a2 uuid;
   r jsonb; bk_a uuid; bk_b uuid; bk_a2 uuid; n bigint; st text;
 begin
+  -- 7 October 2026 (D68d, D77): an agreement approved by the system (no
+  -- decided_by) is payable only while no risk signal fires for it. This probe
+  -- is about the payment, not the review, so its fixture deals are ordinary
+  -- deals that raise no signal: the signals are switched off in
+  -- agreement_risk_settings for this transaction only.
+  update public.agreement_risk_settings
+     set check_first_deal = false, check_amount = false, check_recent_change = false,
+         check_payout_name = false, check_fraud_radar = false
+   where id = 1;
   -- SCUML item 17 (live 29 Sep): an agent listing goes live only on an
   -- approved mandate. The fixture files one as the platform would.
   insert into public.listing_mandates (listing_id, kind, principal_name, review_status, reviewed_by, reviewed_at,

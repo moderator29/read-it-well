@@ -40,6 +40,7 @@ export function LegalDocument({
   sections,
   otherHref,
   otherLabel,
+  also,
 }: {
   title: string;
   intro: string;
@@ -48,6 +49,12 @@ export function LegalDocument({
   /** The sibling document, linked to its IN-PRODUCT route, never the site one. */
   otherHref: string;
   otherLabel: string;
+  /**
+   * A third document in the set. The in-app disclaimer had no way in at all
+   * (ROUTE-AUDIT.md, 7 October 2026): Terms and Privacy pointed at each other
+   * and nothing pointed at it, so Terms names it here.
+   */
+  also?: { href: string; label: string };
 }) {
   return (
     <div className="mx-auto w-full max-w-3xl pb-3xl pt-md">
@@ -98,7 +105,13 @@ export function LegalDocument({
       {/* Both links stay inside the product. Sending somebody to /terms from
           here would undo the entire reason this page exists. */}
       <p className="nf-legal__foot">
-        See also our <Link href={otherHref}>{otherLabel}</Link>, or{" "}
+        See also our <Link href={otherHref}>{otherLabel}</Link>
+        {also ? (
+          <>
+            , our <Link href={also.href}>{also.label}</Link>
+          </>
+        ) : null}
+        , or{" "}
         <Link href={SUPPORT_HREF}>{SUPPORT_LABEL}</Link>{" "}
         with any question.
       </p>

@@ -205,8 +205,8 @@ const AMENITY_ICON: Record<string, UiIconName> = {
   parking: "parking",
   wifi: "wifi",
   kitchen: "kitchen",
-  ac: "sparkle",
-  water: "sparkle",
+  ac: "snowflake",
+  water: "droplet",
 };
 
 /*
@@ -978,7 +978,7 @@ export function FilterDrawerPanel({
                   {amenityOptions.map((code) => (
                     <div key={code} data-testid={`filter-amenity-${code}`}>
                       <SwitchRow
-                        icon={AMENITY_ICON[code] ?? "sparkle"}
+                        icon={AMENITY_ICON[code] ?? "circle-check"}
                         label={amenityLabel(code)}
                         checked={draft.amenities.includes(code)}
                         onChange={(next) => toggleAmenity(code, next)}

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useOverlay } from "@/lib/ui/use-overlay";
 import Image from "next/image";
 import Link from "next/link";
-import { LogoMark, LogoWordmark } from "@/design-system/brand/Logo";
+import { LogoMark, LogoWordmark, wordmarkWidth } from "@/design-system/brand/Logo";
 import { DepthWords } from "@/components/motion/DepthWords";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import {
@@ -60,7 +60,7 @@ import "@/app/css/list-views.css";
  * time and the ticks, the assistant's glass on the left with the concierge
  * object beside it), the real catalogue results as two-up cards inside the
  * thread, the thinking pill while the model works, the suggestion chips on a
- * rail above the composer, and the composer with the sparkle in its well.
+ * rail above the composer, and the composer with the assistant's `bot` glyph in its well.
  *
  * WHAT IS REAL, because every control on this screen does its thing:
  *
@@ -680,7 +680,7 @@ export function AssistantChat({
               {/* 72 by 16: the artwork is 758 by 167, so at 72 wide it draws 15.9
                   tall. Declared as 15, the browser's rounded 16 read to Next
                   as a height changed without the width (integration QA O4). */}
-              <LogoWordmark width={72} height={16} priority className="nf-ai__word" />
+              <LogoWordmark width={wordmarkWidth(16)} height={16} priority className="nf-ai__word" />
             </Link>
             {barActions}
           </div>
@@ -953,7 +953,7 @@ export function AssistantChat({
               Message Vallo AI
             </label>
             <div className="nf-ai__well nf-focus-well">
-              <UiIcon name="sparkle" size={20} />
+              <UiIcon name="bot" size={20} />
               <input
                 id="assistant-input"
                 ref={inputRef}

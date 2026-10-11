@@ -6,33 +6,32 @@ import { OfflineShelf } from "./OfflineShelf";
 import { OfflineScreen } from "./OfflineScreen";
 
 /**
- * The offline shell: the navy ground, one Island, one action (W11, 6 October
- * 2026; `offline.css`). The brand moment with the real retry.
+ * The offline fallback: one calm card (`OfflineScreen`, `offline.css`).
  *
- * Precached by `public/sw.js` at install and served whenever a navigation
- * cannot reach the network. Two constraints shape it:
+ * Precached by `public/sw.js` at install and served ONLY when a navigation
+ * cannot reach the network AND this phone has no kept copy of that page
+ * (every page a member has opened opens again from the phone instead). Two
+ * constraints shape it:
  *
  *   1. It must render with no network at all, so it uses no optimised
- *      `next/image` URL, no image file and no data source: the mark is the
- *      inline vector and the ground is two gradients, so there is no hole when
- *      a first visit has fetched nothing.
- *   2. The copy has to be honest. Vallo never answers a question about
- *      money, messages or bookings from an old copy, so this screen says
- *      that plainly rather than implying more works offline than really
- *      does.
+ *      `next/image` URL and no data source: the mark is the precached brand
+ *      file and the ground is two gradients.
+ *   2. The copy has to be honest. It says this page has not been opened here
+ *      yet, and that the pages that have been still open, which is what
+ *      the worker does. "Go to Home" is a full load, so the worker answers it
+ *      from the phone.
  */
 export const metadata: Metadata = {
   title: "You are offline",
-  description: "Vallo could not reach the network. Reconnect to carry on.",
+  description: "This page needs a connection. Pages you have opened still work offline.",
   robots: { index: false, follow: false },
 };
 
 export default function OfflinePage() {
   const t = getDictionary(DEFAULT_LOCALE);
   const copy = t.experienceEntry;
-  /* V-97 and W11: the navy ground, one Island, one action. The page is
-     precached and static, so the copy is English, the same as every other
-     sentence on it. */
+  /* The page is precached and static, so the copy is English, the same as
+     every other sentence on it. */
   return (
     <OfflineScreen
       title={copy.offlineTitle}
@@ -43,6 +42,14 @@ export default function OfflinePage() {
           statusOnline={copy.offlineStatusOnline}
           statusOffline={copy.offlineStatusOffline}
         />
+      }
+      secondary={
+        /* A plain anchor, never `Link`: the client router cannot fetch with
+           no network, and a full load is what the worker answers from the
+           phone. */
+        <a href="/home" className="nf-offline__home nf-tap">
+          {copy.offlineHome}
+        </a>
       }
     >
       {/* V-35: this phone's inspection packs, with their gate codes. */}

@@ -4,15 +4,13 @@ import type { ShellDictionary } from "@/lib/i18n/shell-dictionary";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useOverlay } from "@/lib/ui/use-overlay";
 import { useSwipeToClose } from "@/lib/ui/use-swipe-to-close";
-import Link from "next/link";
 import { WholePrefetchLink } from "@/components/app/WholePrefetchLink";
 import { usePathname, useSearchParams } from "next/navigation";
 import { AppRail } from "./AppRail";
-import { MobileTabBar, isImmersiveRoute, showsTabBar } from "./MobileTabBar";
-import { Logo } from "@/design-system/brand/Logo";
+import { MobileTabBar, isFocusedRoute, isImmersiveRoute, showsTabBar } from "./MobileTabBar";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { AuthGateProvider, SignedOutActions } from "@/components/auth/AuthGate";
-import { sideOfPath, sideOfPlansQuery, SIDE_HOME, type Side } from "@/lib/side.constants";
+import { sideOfPath, sideOfPlansQuery, type Side } from "@/lib/side.constants";
 import { SideFlip } from "./flip/SideFlip";
 import { CreateDock } from "./CreateDock";
 import { SideSync } from "./SideSync";
@@ -63,6 +61,15 @@ import type { ProfileSelection, Workspace } from "@/lib/supply/workspaces";
  * then either the bell and the avatar (signed in) or Sign up and Log in
  * (signed out).
  */
+/**
+ * WHERE THE BELL SHOWS (D78, 7 October 2026, evening). The founder: the
+ * notification bell belongs on the top bar of the dock's main places only,
+ * Home, Search and Feed (each side's own), and nowhere else: not on a
+ * profile, a listing, settings or any feature page. Notifications stay one
+ * tap away in the side navigation everywhere.
+ */
+const BELL_PATHS: ReadonlySet<string> = new Set(["/home", "/stays", "/search", "/stays/search", "/around"]);
+
 export function AppShell({
   t,
   side = "property",
@@ -151,7 +158,7 @@ export function AppShell({
     anywhere. The one exception stays: a photo-first detail page reaches the
     top edge with its own controls riding the picture.
   */
-  const showsHeader = !immersive && !edgeToEdge;
+  const showsHeader = !immersive && !edgeToEdge && !isFocusedRoute(active);
 
   /* The drawer closes on navigation. State derived during render rather than
      in an effect, so there is no frame with the old page under an open panel. */
@@ -215,8 +222,8 @@ export function AppShell({
     <>
       <CreateDock
         t={t}
+        side={effectiveSide}
         isHost={isHost}
-        signedIn={signedIn}
         socialOn={socialOn}
         listHref={isAgent ? "/agent/list" : effectiveSide === "stays" ? "/profile/setup?side=stays" : "/profile/setup"}
       />
@@ -365,7 +372,7 @@ export function AppShell({
           /* THE NAVY TOP BLOCK (founder reference 05, 29 September 2026). The
              header is a night island in both themes: in light it is the dark
              VALLO band over light content, painted by `app/css/light.css`,
-             and the logo inside it keeps the night artwork. In dark the
+             and the logo is its one artwork, as everywhere (D82). In dark the
              attribute changes nothing. */
           data-theme="dark"
           className={`nf-safe-top nf-app-header sticky top-0 z-40 ${
@@ -425,13 +432,10 @@ export function AppShell({
             >
               <UiIcon name="menu" size={20} />
             </button>
-            <Link
-              href={SIDE_HOME[effectiveSide]}
-              aria-label={t.a11y.logoHome}
-              className="nf-tap nf-app-header__brand min-w-0 lg:hidden"
-            >
-              <Logo size={40} wordSize={19} responsive />
-            </Link>
+            {/* D78 (7 October 2026, evening): no logo or wordmark in the app's
+                top bar. The founder: "in the platform top dashboard inside the
+                app, remove our logo and the VALLO text". The menu and the bell
+                are what the bar holds; the brand is the whole screen. */}
             {/* The fold slot (plan item 29): a `PageHeader variant="large"`
                 portals its title here once the large title has scrolled
                 under the bar. Empty, and invisible, on every other screen. */}
@@ -449,7 +453,7 @@ export function AppShell({
               </span>
             )}
             <SignedOutActions t={t} className="ms-auto" />
-            {signedIn && (
+            {signedIn && BELL_PATHS.has(pathname ?? "") && (
               <>
                 {/* Fetched whole, so the bell opens the list with no skeleton:
                     about 11 KB on the wire, kept for five minutes. */}

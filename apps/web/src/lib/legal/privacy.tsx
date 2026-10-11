@@ -61,14 +61,16 @@ export const PRIVACY_SECTIONS: { id?: string; title: string; body: React.ReactNo
           ) : null}
         </p>
         <p>
-          Our Data Protection Officer is {DATA_PROTECTION_OFFICER}. Questions about this
-          policy, about the data we hold about you, or any request to exercise the rights
-          in section 8, should go to{" "}
+          {DATA_PROTECTION_OFFICER ? <>Our Data Protection Officer is {DATA_PROTECTION_OFFICER}. </> : null}
+          Questions about this policy, about the data we hold about you, or any request to
+          exercise the rights in section 8, should go to{" "}
           <a href={SUPPORT_HREF} className="font-semibold text-[var(--nf-content-link)] hover:underline">
             {SUPPORT_LABEL}
           </a>
-          , with Privacy as the subject. Requests sent that way reach the Data Protection
-          Officer.
+          , with Privacy as the subject.{" "}
+          {DATA_PROTECTION_OFFICER
+            ? "Requests sent that way reach the Data Protection Officer."
+            : "Requests sent that way reach the people at Vallo responsible for data protection."}
         </p>
       </>
     ),

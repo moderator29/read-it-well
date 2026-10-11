@@ -59,3 +59,16 @@ against the file named, not against this summary.
 7. **Milestone and vault escrows exist.** Milestones fund upfront and release in
    stages on buyer confirmation, which maps closely onto a rent schedule and is
    worth considering rather than modelling instalments ourselves.
+
+## Added 7 October 2026, for the member money rail
+
+Fetched verbatim from `docs.payluk.ng` by the money rail session, because the
+adapter calls these routes and every request and response shape it relies on
+should be checkable in the repository: `api-reference_merchant-customers_*`
+(create, get, list with the `email` / `phone` lookup, customer wallet),
+`api-reference_payments_*` (create payment intent, verify payment, payment
+history, bank list, verify account number) and `concepts_merchant-customers`.
+
+## Added 7 October 2026, for protected rental payments (D73 Part B)
+
+Fetched verbatim for phases 11 and 12: `api-reference_escrow_*` (overview, create, claim funds, delete, verify payment token, list escrow transactions), `api-reference_milestone-escrow_*` (create, confirm, get milestones), `api-reference_payments_pay-escrow-buy`, `api-reference_disputes_*` (overview, buyer confirm payment standard) and `concepts_milestone-escrows`. `concepts_how-it-works` was fetched again and is unchanged.

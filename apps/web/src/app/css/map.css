@@ -267,3 +267,83 @@
     overflow: hidden;
   }
 }
+
+/* ======================================================= THE STILL AREA MAP
+   `AreaMapTile`: four tiles of the live map's own style laid so the area's
+   centroid sits at the centre, one pin, and (on a large tile) the credit.
+   The quiet ground under the tiles is what shows on a data-saver connection
+   or when a tile fails, so the frame is never a hole. */
+@layer components {
+  .nf-area-tile {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    background:
+      linear-gradient(var(--nf-divider), var(--nf-divider)) 50% 0 / 1px 100% no-repeat,
+      linear-gradient(var(--nf-divider), var(--nf-divider)) 0 50% / 100% 1px no-repeat,
+      var(--nf-surface-raised);
+    isolation: isolate;
+  }
+  .nf-area-tile__sheet {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 512px;
+    height: 512px;
+    pointer-events: none;
+  }
+  .nf-area-tile__img {
+    position: absolute;
+    width: 256px;
+    height: 256px;
+    max-width: none;
+    opacity: 0;
+    user-select: none;
+    transition: opacity var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  .nf-area-tile__img[data-loaded] {
+    opacity: 1;
+  }
+  /* The pin: a brand disc with a white ring and a soft halo for the area it
+     stands for, centred, never a teardrop that would point at an address. */
+  .nf-area-tile__pin {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 1;
+    width: 0.875rem;
+    height: 0.875rem;
+    translate: -50% -50%;
+    border: 2px solid var(--nf-content-on-media);
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-brand-primary);
+    box-shadow: 0 0 0 0.625rem color-mix(in oklab, var(--nf-brand-primary) 22%, transparent);
+  }
+  .nf-area-tile__credits {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+    padding: var(--nf-space-3xs) var(--nf-space-2xs);
+    border-top-left-radius: var(--nf-radius-xs);
+    background: var(--nf-smoked-glass-fill);
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-on-media);
+  }
+  :root[data-save-data="on"] :is(.nf-area-tile__sheet, .nf-area-tile__credits) {
+    display: none;
+  }
+  .nf-area-tile__credits a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+}
+
+@layer components {
+  @media (prefers-reduced-motion: reduce) {
+    .nf-area-tile__img {
+      transition: none;
+    }
+  }
+}

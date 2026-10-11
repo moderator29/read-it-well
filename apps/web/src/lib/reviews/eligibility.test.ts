@@ -32,4 +32,11 @@ describe("reviewIneligibility", () => {
     expect(at("CONFIRMED", "2026-09-20", true)).toBe("tenancy");
     expect(at("COMPLETED", "2026-09-20", true)).toBe("tenancy");
   });
+
+  it("D75: a finished stay with no payment on it is not reviewable; an unread payment is the database's call", () => {
+    const paid = (p: boolean | undefined) => reviewIneligibility({ status: "COMPLETED", checkOut: "2026-09-20", isTenancy: false, paid: p }, TODAY);
+    expect(paid(false)).toBe("unpaid");
+    expect(paid(true)).toBeNull();
+    expect(paid(undefined)).toBeNull();
+  });
 });

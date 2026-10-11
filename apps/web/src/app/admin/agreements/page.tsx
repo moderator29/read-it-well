@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { formatMoney } from "@vallo/i18n/core";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { rulingWords } from "../_components/rulings";
 import { requireAdmin } from "@/lib/admin/guard";
-import { readAgreementQueue, readGuaranteeDesk } from "@/lib/admin/reads/agreements";
+import { readAgreementQueue, readGuaranteeDesk, readWatchList } from "@/lib/admin/reads/agreements";
 import { GuaranteeClaims } from "../money/GuaranteeDesk";
 import { PageHead, Panel } from "../_components/panels";
 import { AgreementQueue } from "./AgreementQueue";
+import { WatchList } from "./WatchList";
 import "./agreements.css";
 
 export const metadata: Metadata = {
@@ -61,19 +63,29 @@ export default async function AgreementsDeskPage() {
       </div>
     );
   }
-  const queue = await readAgreementQueue(access.supabase);
+  const [queue, watch] = await Promise.all([readAgreementQueue(access.supabase), readWatchList(access.userClient)]);
   return (
     <div className="nf-console">
       <PageHead
         title="Agreements"
-        lede="Approve or reject each agreement before payment opens. Check the inspection evidence, that the dates and the amount match the listing, and that a live mandate stands behind an agent. Both parties read a rejection's reason."
+        lede="The rail decides the gate (D68d). A protected payment opens as soon as both parties agree, and you watch it while the provider holds it, with the power to pause a release. A direct payment waits here only when a risk signal fires. Both parties read a rejection's reason."
       />
+      <p className="nf-risk-settings__back">
+        <Link href="/admin/agreements/settings">Risk settings: threshold, signals and the incident switch</Link>
+      </p>
       {queue.state !== "ok" ? (
         <Panel title="Waiting for review">
           <p className="nf-body">The queue could not be read just now. Nothing was changed. Refresh to try again.</p>
         </Panel>
       ) : (
         <>
+          <Panel title="Watch list, riskiest first" id="watch">
+            {watch === null ? (
+              <p className="nf-body text-[var(--nf-content-secondary)]">The watch list opens once migration d68d is applied.</p>
+            ) : (
+              <WatchList rows={watch} locale={locale} />
+            )}
+          </Panel>
           <Panel title={`Waiting for review (${queue.waiting.length})`} id="waiting">
             <AgreementQueue rows={queue.waiting} locale={locale} now={now} />
           </Panel>

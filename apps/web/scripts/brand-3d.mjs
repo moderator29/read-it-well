@@ -59,10 +59,15 @@ const SHEETS = [
      re-render, 30 September) replaced icon-sheet-transparent.png, which
      stays in assets-src as a source only. Its objects stand in a baked,
      opaque navy glow, so it runs in "rim" mode. */
+  /* THE FOUNDER, 8 October 2026: "the old one is bad on light mode ...
+     replace them all with this new transparent". icon-sheet-6-transparent.png
+     carries a real alpha channel (no baked navy glow), so the same eight
+     run in "alpha" mode and sit clean on paper. icon-sheet-4 stays in
+     assets-src as a source only. */
   {
-    file: "icon-sheet-4-transparent.png",
-    mode: "rim",
-    matte: { max: [60, 90, 230], dark: 120, step: 6, feather: 2 },
+    file: "icon-sheet-6-transparent.png",
+    mode: "alpha",
+    matte: { step: 2, erode: 2, feather: 1 },
     layout: {
       grid: {
         cols: 4,

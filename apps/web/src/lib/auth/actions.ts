@@ -45,7 +45,7 @@ import { doneFlagForLinkType } from "./link-moment";
 import { finishSetupHref, SETUP_DONE_CLAIM } from "./finish-setup";
 import { setupOnRecord, setupStillOwed } from "./finish-setup-server";
 import { contentRefusal } from "@/lib/safety/content-refusal";
-import { inviteCodeFromCookie } from "@/lib/referral/server";
+import { claimInviteFromCookie, inviteCodeFromCookie } from "@/lib/referral/server";
 import { recordFunnelStep } from "@/lib/funnel/record";
 import type {
   AuthField,
@@ -685,6 +685,8 @@ export async function verifySignUpCode(
   }
 
   await forgetPendingEmail();
+  /* D85: the sign-up carried the invite in its metadata; this only clears the kept code. */
+  await claimInviteFromCookie();
   /*
    * THE FIRST EMAIL THIS PLATFORM SENDS, at the first moment the address is a
    * fact rather than a claim.
@@ -879,6 +881,8 @@ export async function completeEmailVerification(input: {
   if (refused) return refused;
 
   await forgetPendingEmail();
+  /* D85: an invite the sign-up could not carry (Google, Apple, a phone code) is claimed now, for a new account only. */
+  await claimInviteFromCookie();
   /* The link half of the same moment. Same key, same unique index, so two taps
      on one email and the trigger's own row are still one welcome. */
   const { data: confirmed } = await supabase.auth.getUser();
@@ -1073,6 +1077,8 @@ export async function signInWithAppleIdToken(input: {
   if (error) return { ok: false, message: authMessage(error.message, await refusals()) };
   const { data } = await supabase.auth.getUser();
   if (data.user) await welcomeOnce(data.user.id);
+  /* D85: an invite the sign-up could not carry (Google, Apple, a phone code) is claimed now, for a new account only. */
+  await claimInviteFromCookie();
   revalidatePath("/", "layout");
   /* B-2: a new Apple account agrees to the terms and says it is 18 or over
      before it goes in. */
@@ -1143,6 +1149,8 @@ export async function finishSocialSetup(
       message: "We could not record that just now. Nothing you ticked was lost. Please try again in a moment.",
     };
   }
+  /* D85: an invite the sign-up could not carry (Google, Apple, a phone code) is claimed now, for a new account only. */
+  await claimInviteFromCookie();
 
   /* The edge gate's shortcut: once the receipt is on file, a flag in
      `app_metadata` (service role only) lets `proxy.ts` decide from the token

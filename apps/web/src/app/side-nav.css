@@ -126,7 +126,7 @@
      * 1440x900 its list was 114px taller than the 623 it was given and
      * Settings sat under the fold. The boundaries go to 4 + 4, the headings
      * lose their spare air, and the foot's coin card and theme row step down
-     * one size. The head keeps its padding: the light-mode logo pill needs it. The glyphs, the label size, the panel's glass
+     * one size. The head keeps its padding. The glyphs, the label size, the panel's glass
      * and glow and the grouping are untouched.
      */
     .nf-nav--rail .nf-nav__section + .nf-nav__section {

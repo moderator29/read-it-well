@@ -36,8 +36,12 @@ export async function PasscodeGate({
   const { view } = await resolvePasscodeGate();
   const copy = t.passcode;
   /* C14: one read of whether this member holds a platform key; only asked
-     when a lock can be drawn. A failed read is "no", which leaves the code. */
-  const passkey = view.kind === "unlocked" || view.kind === "locked" ? await passkeyUnlockOffered().catch(() => false) : false;
+     when a lock can be drawn, or a first passcode set (for the one-time Face
+     ID offer). A failed read is "no", which leaves the code. */
+  const passkey =
+    view.kind === "unlocked" || view.kind === "locked" || (view.kind === "setup" && view.mode === "first")
+      ? await passkeyUnlockOffered().catch(() => false)
+      : false;
 
   switch (view.kind) {
     case "open":
@@ -57,7 +61,19 @@ export async function PasscodeGate({
         </PasscodeGuard>
       );
     case "setup":
-      return <PasscodeSetup copy={copy} locale={locale} mode={view.mode} name={name} avatarUrl={avatarUrl} overlay />;
+      /* A first passcode may be followed once by the Face ID offer, only for a
+         member who holds no key yet (`biometric-offer.ts`). */
+      return (
+        <PasscodeSetup
+          copy={copy}
+          locale={locale}
+          mode={view.mode}
+          name={name}
+          avatarUrl={avatarUrl}
+          overlay
+          offerBiometric={view.mode === "first" && !passkey}
+        />
+      );
     case "locked":
       return (
         <PasscodeLock

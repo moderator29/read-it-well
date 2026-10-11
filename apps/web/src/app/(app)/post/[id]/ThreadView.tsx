@@ -1,16 +1,22 @@
 "use client";
 
 import type { SheetWords } from "@/components/social/sheet-words";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
+import { Sheet } from "@/components/ui/Sheet";
+import { RemoteImage } from "@/components/ui/RemoteImage";
+import { UiIcon } from "@/design-system/icons/UiIcon";
+import { initial as initialOf } from "@/lib/text/initial";
 import { Button } from "@/components/ui/Button";
 import { usePathname, useRouter } from "next/navigation";
 import { withNext } from "@/lib/auth/next-link";
 import { PostCard, type PostView } from "@/components/social/feed/PostCard";
 import { Composer } from "@/components/social/feed/Composer";
 import { ReportSheet } from "@/components/social/ReportSheet";
+import { DELETE_WORDS, DeleteSheet } from "@/components/social/DeleteSheet";
 import { ActionSheet, actionsForPost } from "@/components/social/ActionSheet";
 import { PostEditor } from "@/components/social/feed/PostEditor";
 import { ViewportPost } from "@/components/social/feed/ViewportPost";
+import { Expand } from "@/components/social/Expand";
 import { Tombstone } from "@/components/social/feed/Tombstone";
 import { leadProps } from "@/components/social/feed/lead";
 import { feedback } from "@/lib/ui/feedback";
@@ -74,10 +80,15 @@ export function ThreadView({
   const [editing, setEditing] = useState<string | null>(null);
   /* One sheet for the whole thread, holding the post it was opened for. */
   const [sheetFor, setSheetFor] = useState<PostView | null>(null);
+  /* The post the delete slide is open for. */
+  const [deleting, setDeleting] = useState<PostView | null>(null);
   /* Muted replies the reader has chosen to open anyway. Per reply, and it lasts
      as long as the page: a mute is a standing preference and unfolding one line
      is not a decision to undo it. */
   const [unfolded, setUnfolded] = useState<string[]>([]);
+  /* The replies on the page when it opened. Only a reply that arrives after
+     (yours, after the refresh) opens into the list (`Expand`). */
+  const [firstReplies] = useState(() => new Set(thread.replies.map((reply) => reply.id)));
   const [, startTransition] = useTransition();
 
   /*
@@ -196,28 +207,28 @@ export function ThreadView({
       return;
     }
 
-    startTransition(async () => {
-      if (action === "save") {
+    /* The slide asks (`DeleteSheet`); `removeConfirmed` below does it. */
+    if (action === "delete") {
+      setDeleting(post);
+      return;
+    }
+    /* Optimistic, as in the feed: the disc marks on the tap and goes back
+       the moment the server disagrees. */
+    if (action === "save") {
+      const saved = !post.saved;
+      if (saved) feedback("select");
+      patch(post.id, { saved });
+      startTransition(async () => {
         const result = await toggleMark({ postId: post.id, mark: "SAVE" });
-        if (!result.ok) return setNotice(result.error);
-        patch(post.id, { saved: !post.saved });
-        return;
-      }
-      if (action === "delete") {
-        if (!window.confirm(POST_COPY.deleteConfirm)) return;
-        const result = await removePost({ postId: post.id });
-        if (!result.ok) return setNotice(result.error);
-        setNotice(null);
-        /* A deleted root with nothing still under it is not a conversation any
-           more, and `getThread` answers not found for it. Leave for the feed
-           rather than refresh into that. */
-        if (post.id === root.id && replies.every((reply) => reply.removed)) {
-          router.replace("/around");
-          return;
+        if (!result.ok) {
+          patch(post.id, { saved: post.saved });
+          setNotice(result.error);
         }
-        router.refresh();
-        return;
-      }
+      });
+      return;
+    }
+
+    startTransition(async () => {
       // A "hide" key used to live here writing the identical mute behind a row
       // labelled "Not interested". One key now, named for what it does.
       if (action === "mute" || action === "block") {
@@ -238,6 +249,29 @@ export function ThreadView({
         return;
       }
     });
+  };
+
+  /* The deletion itself, once the slide has been drawn across. Resolves
+     false when the server refused, so the track never says "Deleted" for a
+     post that is still there. */
+  const removeConfirmed = async (): Promise<boolean> => {
+    const post = deleting;
+    if (!post) return false;
+    const result = await removePost({ postId: post.id });
+    if (!result.ok) {
+      setNotice(result.error);
+      return false;
+    }
+    setNotice(null);
+    /* A deleted root with nothing still under it is not a conversation any
+       more, and `getThread` answers not found for it. Leave for the feed
+       rather than refresh into that. */
+    if (post.id === root.id && replies.every((reply) => reply.removed)) {
+      router.replace("/around");
+      return true;
+    }
+    router.refresh();
+    return true;
   };
 
   /*
@@ -282,6 +316,16 @@ export function ThreadView({
    * conversation does not break. `PostCard` itself draws nothing for a removed
    * post, so no feed or profile can ever show one.
    */
+  /* The post the reply page is open for, read from the live list so a like
+     made meanwhile is shown as it is now. */
+  const replyTarget: PostView | null =
+    replyingTo === null
+      ? null
+      : replyingTo === root.id
+        ? root
+        : (replies.find((reply) => reply.id === replyingTo) ?? null);
+  const replyField = useRef<HTMLTextAreaElement>(null);
+
   const card = (post: PostView) =>
     post.removed ? (
       <Tombstone replyCount={post.replyCount} />
@@ -289,9 +333,10 @@ export function ThreadView({
     <ViewportPost postId={post.id}>
       <PostCard
         post={post}
+        detail={post.id === root.id}
         onLike={() => onLike(post)}
         onRepost={() => onRepost(post)}
-        onReply={() => setReplyingTo(replyingTo === post.id ? null : post.id)}
+        onReply={() => setReplyingTo(post.id)}
         // The control is keyed on the post tapped; where the reply LANDS is
         // decided by `replyTargetOf` when the composer renders.
         onShare={() => onMenuAction(post, "share")}
@@ -328,36 +373,6 @@ export function ThreadView({
 
       {card(root)}
 
-      {replyingTo === root.id && !root.removed ? (
-        <>
-          {/*
-            WHO IS BEING ANSWERED, SAID OUT LOUD.
-
-            A composer under a card is ambiguous the moment there is more than
-            one card on the screen: at three levels of nesting the box under a
-            reply and the box under the post look identical, and the only way to
-            tell which one you are writing into is to remember which control you
-            pressed. Naming the person removes the guess, and it is the same
-            line every platform with threaded replies has settled on because it
-            is the one that works.
-          */}
-          <ReplyingTo who={handleOf(root)} />
-          <Composer
-            parentId={root.id}
-            signedIn={signedIn}
-            autoFocus
-            onDone={() => setReplyingTo(null)}
-          />
-        </>
-      ) : null}
-
-      {/* Always offered, so somebody arriving from a link can answer without
-          hunting for the control. Never under a deleted root: `place_post`
-          refuses a reply to a parent that is not LIVE ("You cannot reply to a
-          post that has been removed"), so the box would only ever fail. */}
-      {replyingTo === null && !root.removed ? (
-        <Composer parentId={root.id} signedIn={signedIn} onDone={undefined} />
-      ) : null}
 
       {replies.length > 0 ? (
         <h2 className="mt-xs text-[length:var(--nf-text-overline)] font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
@@ -382,15 +397,29 @@ export function ThreadView({
         </p>
       )}
 
+      {/*
+        THE CONVERSATION, JOINED BY ITS LINE (reference 2's connector).
+
+        Each reply steps in one level per depth (capped at three, as the
+        depth cap is) and hangs off a thin rail drawn down its left edge, so
+        a reply visibly belongs to the post above it rather than floating as
+        another card in a feed. A reply that arrives while the thread is open
+        (yours, after the refresh) opens into the list (`Expand`); what was
+        there when the page opened is simply there.
+      */}
       {replies.map((reply, index) => {
         /* The first six replies arrive 40ms apart (motion 10), the way the
            feed's first six do; the rest are simply there. */
         const lead = leadProps(index);
         return (
-        <div
+        <Expand
           key={reply.id}
-          // One step of indent per level, capped by the depth cap at three.
-          style={{ ...lead.style, marginInlineStart: `${Math.min(reply.depth, 3) * 14}px` }}
+          appear={!firstReplies.has(reply.id)}
+          className="nf-thread__reply"
+          style={{ "--nf-thread-depth": Math.min(reply.depth, 3) } as React.CSSProperties}
+        >
+        <div
+          style={lead.style}
           className={["flex flex-col gap-[var(--nf-feed-gap)]", lead.className ?? ""].filter(Boolean).join(" ")}
         >
           {reply.mutedAuthor && !unfolded.includes(reply.id) ? (
@@ -401,20 +430,52 @@ export function ThreadView({
           ) : (
             card(reply)
           )}
-          {replyingTo === reply.id ? (
-            <>
-              <ReplyingTo who={handleOf(reply)} />
-              <Composer
-                parentId={replyTargetOf(reply)}
-                signedIn={signedIn}
-                autoFocus
-                onDone={() => setReplyingTo(null)}
-              />
-            </>
-          ) : null}
         </div>
+        </Expand>
         );
       })}
+
+      {/* THE PINNED WAY IN (the feed set): a smoked "Post your reply" bar
+          that stays at the foot of the thread and opens the full page. Never
+          under a deleted root: `place_post` refuses a reply to a parent that
+          is not LIVE, so the page would only ever fail. */}
+      {!root.removed ? (
+        <button type="button" className="nf-reply-bar" onClick={() => setReplyingTo(root.id)}>
+          <UiIcon name="chat-bubble" size={16} />
+          Post your reply
+        </button>
+      ) : null}
+
+      {/*
+        EVERY REPLY IS A FULL PAGE (the founder: "if users want to comment it
+        should open full page... not some small box"). The post being
+        answered sits above the field, joined to it by a thread line, with
+        "Replying to @handle" in brand blue, so the box can never be mistaken
+        for an answer to a different card. One page for the root and for
+        every reply in the thread.
+      */}
+      <Sheet
+        open={replyTarget !== null}
+        onOpenChange={(next) => {
+          if (!next) setReplyingTo(null);
+        }}
+        title="Reply"
+        hideTitle
+        fullPage
+        initialFocus={replyField}
+      >
+        {replyTarget ? (
+          <Composer
+            page
+            parentId={replyTargetOf(replyTarget)}
+            signedIn={signedIn}
+            autoFocus
+            fieldRef={replyField}
+            onDone={() => setReplyingTo(null)}
+            context={<ReplyContext post={replyTarget} />}
+          />
+        ) : null}
+      </Sheet>
 
       {sheetFor ? (
         <ActionSheet
@@ -436,6 +497,14 @@ export function ThreadView({
           dismissLabel={sheet.dismissLabel}
         />
       ) : null}
+
+      <DeleteSheet
+        open={deleting !== null}
+        title={DELETE_WORDS.post.title}
+        body={DELETE_WORDS.post.body}
+        onClose={() => setDeleting(null)}
+        onConfirm={removeConfirmed}
+      />
 
       {reporting ? (
         <ReportSheet
@@ -500,10 +569,43 @@ function handleOf(post: PostView): string {
  * the moment somebody types, which is exactly when they most want to be able to
  * glance up and check. It stays for the whole time the composer is open.
  */
-function ReplyingTo({ who }: { who: string }) {
+/**
+ * WHAT IS BEING ANSWERED, ABOVE THE FIELD, AND WHO.
+ *
+ * The author's face with a thread line running down from it towards the
+ * field, their name and handle, the first lines of what they said, and
+ * "Replying to @handle" in brand blue. At three levels of nesting a box
+ * under one card and a box under another look identical; naming the person
+ * removes the guess.
+ */
+function ReplyContext({ post }: { post: PostView }) {
+  const name = post.author?.displayLabel ?? (post.authorKind === "BOT" ? "Vallo AI" : "Vallo");
   return (
-    <p className="ps-2xs text-[length:var(--nf-text-caption)] leading-snug text-[var(--nf-content-muted)]">
-      Replying to <span className="font-semibold text-[var(--nf-brand-secondary)]">{who}</span>
-    </p>
+    <div>
+      <div className="nf-reply-context">
+        <span className="nf-reply-context__rail" aria-hidden="true">
+          <span className="nf-reply-context__face">
+            {post.author?.avatarPath ? (
+              <RemoteImage src={post.author.avatarPath} alt="" width={72} height={72} sizes="36px" />
+            ) : (
+              initialOf(name)
+            )}
+          </span>
+          <span className="nf-reply-context__line" />
+        </span>
+        <div className="min-w-0">
+          <p className="nf-reply-context__who">
+            <span className="nf-reply-context__name">{name}</span>
+            {post.author?.handle ? (
+              <span className="nf-reply-context__handle">@{post.author.handle}</span>
+            ) : null}
+          </p>
+          {post.body ? <p className="nf-reply-context__body">{post.body}</p> : null}
+        </div>
+      </div>
+      <p className="nf-reply-context__to">
+        Replying to <strong>{handleOf(post)}</strong>
+      </p>
+    </div>
   );
 }

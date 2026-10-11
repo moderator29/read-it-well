@@ -29,6 +29,7 @@ export default async function PreviewRewards() {
         locale={locale}
         hrefs={{ referrals: "/preview/rewards/referrals", history: "/preview/rewards/history", withdraw: "/preview/rewards/withdraw" }}
         dismissLabel={t.experienceUi.notNow}
+        now={Date.parse("2026-10-07T10:00:00Z")}
       />
     </FixtureFrame>
   );

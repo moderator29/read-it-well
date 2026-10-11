@@ -112,6 +112,26 @@ export const RAIL_COPY: Record<MoneyRail, RailCopy> = {
   },
 };
 
+/**
+ * THE FRONT DOOR'S PROMISE, PER RAIL (the landing hero, P7, 7 October 2026).
+ *
+ * The founder asked for the hero to carry "Vallo does not hold your money; a
+ * licensed provider does". The first half is true on both rails. The second
+ * is true only on the protected rail, which is not live (`rails.ts`), so the
+ * direct rail says what happens on it instead. When the protected rail goes
+ * live the hero says the founder's sentence with no other change.
+ */
+export const RAIL_PROMISE: Record<MoneyRail, { lead: string; rest: string }> = {
+  direct: {
+    lead: "Vallo never holds your money.",
+    rest: "When you pay, it goes through regulated payment partners straight to the owner or agent.",
+  },
+  protected: {
+    lead: "Vallo never holds your money.",
+    rest: "A licensed provider holds it until you confirm.",
+  },
+};
+
 /* -------------------------------------------------------------------------- */
 /* INSPECTION, THE OFF-PLATFORM RULE, THE GATE                                */
 /* -------------------------------------------------------------------------- */
@@ -147,7 +167,7 @@ export const LISTING_STAY_PAY_AFTER =
 
 /** What has to happen before payment is available. */
 export const PAYMENT_GATE_SENTENCE =
-  "Payment opens only after the inspection report is submitted, both of you confirm the agreement, and Vallo approves it.";
+  "Payment opens as soon as the inspection report is submitted and both of you confirm the agreement. An escrow payment opens straight away; a direct payment waits for a person at Vallo only when something about the deal needs a second look.";
 
 /* The agreement page's money lines (/agreements/[id]), moved out of the page
    (Round 3 sweep, C3). The words are the page's own, unchanged. */
@@ -157,12 +177,12 @@ export function agreementPayLabel(amount: string): string {
 }
 /** Both parties confirmed and Vallo is reviewing. */
 export const AGREEMENT_IN_REVIEW =
-  "Both of you confirmed. A person at Vallo is reviewing the agreement. You will get an email and a notification the moment it is decided. Payment opens only after approval.";
+  "Both of you confirmed. Because this payment goes straight to the lister, a person at Vallo is checking the deal first. You will get an email and a notification the moment it is decided.";
 /** The section an approved agreement opens. */
 export const AGREEMENT_PAYMENT_OPEN_TITLE = "Payment is open";
 /** The lister's line once the agreement is approved. */
 export function agreementOwnerApproved(kind: "rent" | "stay"): string {
-  return `Vallo approved the agreement. The ${kind === "rent" ? "renter" : "guest"} can pay now, and your share settles straight to your bank account from the same payment.`;
+  return `The agreement is approved. The ${kind === "rent" ? "renter" : "guest"} can pay now, and your share settles straight to your bank account from the same payment.`;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -449,9 +469,31 @@ export const CHECKOUT_CONDITION_CANCEL = "The cancellation terms below are fixed
 export const REWARDS_NOT_HELD =
   "Your Rewards Balance is what Vallo owes you for referrals that qualified. It is not money held for you, and it does not expire.";
 
-/** How a referral earns. `{reward}` is formatted money, `{cap}` a number. Must match Session 2's qualification rule. */
+/**
+ * How a referral earns (D85, the founder, 8 October 2026: it counts when the
+ * person signs up fully, with no payment). `{reward}` is formatted money and
+ * `{cap}` a number, both from the live campaign. What "signs up fully" means
+ * is the campaign's own steps, said beside it (`signedUpFullySentence` in
+ * `lib/referral/requirements.ts`), never written here, so a successor
+ * campaign that adds the phone step changes the screens without a deploy.
+ */
 export const REWARDS_QUALIFY =
-  "Each referral that qualifies adds {reward} to your Rewards Balance, for up to {cap} qualified referrals a month. Signing up alone does not qualify: the person must confirm their phone number and use Vallo for real.";
+  "Each friend who signs up fully with your link adds {reward} to your Rewards Balance, for up to {cap} friends a month.";
+
+/**
+ * When a reward can be withdrawn, with the live campaign's review window.
+ * `{days}` is a count of days ("7 days"). Used where the read gives the window; otherwise
+ * REWARDS_PENDING_THEN_AVAILABLE says the same without a length.
+ */
+export const REWARDS_REVIEW_WINDOW =
+  "Each reward is Pending for {days} from the day your friend signs up fully, while Vallo's review period runs. After that it is Available, and Available is what you can withdraw.";
+
+/**
+ * While `referral_policy.payouts_enabled` is off (no separate marketing-float
+ * account yet). No date, because none is decided; nothing earned is lost.
+ */
+export const REWARDS_WITHDRAW_NOT_OPEN =
+  "Withdrawals are not open yet. Every reward you earn is recorded in your Rewards Balance and stays yours, and you can withdraw it here once withdrawals open.";
 
 /** Stated before anybody starts earning. `{minimum}` is formatted money. */
 export const REWARDS_WITHDRAW_MINIMUM = "You can withdraw once your Rewards Balance reaches {minimum}.";
@@ -708,6 +750,8 @@ export const PAYOUT_REVERSED_LABEL = "Reversed by a refund";
 /** A row whose fee parts the record does not carry: said, never computed. */
 export const PAYOUT_FEE_UNRECORDED = "Not on this record";
 export const PAYOUTS_EMPTY_TITLE = "No payouts yet";
+/** Under the Payouts row in Settings: who the page is for, and what it records. */
+export const PAYOUTS_ROW_SUB = "For listers: what renters and guests paid for your spaces, and what reached your bank.";
 export const PAYOUTS_SAME_FIGURES =
   "Each payout shows the lines a lister sees before publishing, for the way that buyer paid: what was paid, the platform fee, payment processing where it applies, and what you received.";
 /** The processor's own fee on a direct-rail payout, borne by the lister and named. */
@@ -790,7 +834,7 @@ export const REFUND_NO_BALANCE =
 
 /** /docs chapter 6 and the FAQ: no Vallo balance holds a payment. */
 export const NO_PAYMENT_BALANCE =
-  "No Vallo balance holds your rent or any other payment, so there is nothing to top up before you pay, and no payment of yours waits with Vallo to be withdrawn.";
+  "No Vallo balance holds your rent or any other payment, and no payment of yours waits with Vallo to be withdrawn.";
 
 /** After NO_PAYMENT_BALANCE, wherever somebody may be asking about rewards. */
 export const REWARDS_BALANCE_SEPARATE =
@@ -930,3 +974,94 @@ export const PROMOTION_FULL_DAYS =
 /** Statement 7 and the refund route. */
 export const PROMOTION_REFUNDED =
   "It stops appearing as the refund is recorded, and the refund goes back to the card or bank account you paid with, through our payment processor.";
+
+/* -------------------------------------------------------------------------- */
+/* STEP 8, FUNDED (D68d, B.3.5): the protected payment, held by the provider   */
+/* -------------------------------------------------------------------------- */
+
+/** The licensed provider that holds a protected payment, as members read it. */
+export const HELD_PROVIDER_NAME = "Payluk";
+
+/** The renter's headline once the money is held. */
+export const HELD_TITLE_RENTER = "Your money is held, not paid";
+/** The lister's headline once the money is held. */
+export const HELD_TITLE_LISTER = "The renter's payment is held for you";
+
+/** Who holds it, in one line, for both sides. Vallo never holds it. */
+export const HELD_BY_LINE =
+  "Held by Payluk, a licensed payment provider, until the move-in is confirmed. Vallo never holds it.";
+
+/** What releases it, in the order it happens. */
+export const HELD_RELEASE_STEPS: readonly { title: string; body: string }[] = [
+  { title: "You move in", body: "Inspect the home on the move-in date and collect the keys." },
+  { title: "You confirm", body: "Only you can release it, with a deliberate swipe. Nobody else can confirm for you." },
+  { title: "The lister is paid", body: "Payluk pays the lister. Payluk's fee comes out of the lister's share, not yours." },
+];
+
+/** The lister's view of the same steps. */
+export const HELD_RELEASE_STEPS_LISTER: readonly { title: string; body: string }[] = [
+  { title: "The renter moves in", body: "Hand over the keys on the move-in date." },
+  { title: "The renter confirms", body: "Their confirmation releases the payment to you." },
+  { title: "You are paid", body: "Payluk pays you, less its fee for holding it." },
+];
+
+/** If something is wrong, before release. */
+export const HELD_IF_WRONG =
+  "Something not as agreed? Do not confirm. Raise it from this page and the money stays held while it is looked at.";
+
+/** Vallo has paused the release while it looks at the deal. */
+export const HELD_PAUSED =
+  "Vallo is looking at this deal. The money stays held by Payluk until it is done; nothing moves meanwhile.";
+
+/** The swipe that releases it. */
+export const RELEASE_SWIPE_LABEL = "Swipe to release to the lister";
+export const RELEASE_ARMED_LABEL = "Press again to release";
+
+/* -------------------------------------------------------------------------- */
+/* STEP 7, FUND (D77): the renter pays the agreed rent into escrow             */
+/* -------------------------------------------------------------------------- */
+
+/** The renter's headline before paying. */
+export const FUND_TITLE = "Pay it into escrow";
+/** Under the figure: who will hold it, and until when. */
+export const FUND_BY_LINE = "Payluk, a licensed payment provider, holds it until you confirm the move-in. Vallo never holds it.";
+/** The renter pays exactly the agreed rent; the escrow fee is the lister's (VALLO_PRICING section 6). */
+export const FUND_NO_FEE_LINE = "No fee for you. Payluk's fee comes out of the lister's share.";
+/** What happens, in order, from this screen. */
+export const FUND_STEPS: readonly { title: string; body: string }[] = [
+  { title: "You pay it in", body: "From Wallet: the agreed rent, and nothing more." },
+  { title: "Payluk holds it", body: "The lister can see it is there, and cannot touch it." },
+  { title: "You confirm the move-in", body: "Only your swipe releases it to the lister." },
+];
+/** The swipe. */
+export const FUND_SWIPE_LABEL = "Swipe to pay into escrow";
+export const FUND_ARMED_LABEL = "Press again to pay";
+export const FUND_CONFIRMING_LABEL = "Paying it into escrow";
+export const FUND_CONFIRMED_LABEL = "Paid in. Opening your escrow";
+/** The wallet row's words (D78: the screen is called Wallet). */
+export const FUND_FROM_BALANCE = "From Wallet";
+export const FUND_TOP_UP = "Add money to Wallet";
+export const FUND_OPEN_BALANCE = "Open Wallet";
+/** Why the screen cannot take a payment yet, each in one sentence. */
+export const FUND_CLOSED = {
+  not_renter: "Only the renter pays into escrow. You will see it here the moment it is held for you.",
+  not_rent: "This booking is paid by card, not into escrow.",
+  direct: "This deal is paid by card through Paystack, not into escrow.",
+  not_approved: "Payment opens once both of you have confirmed the agreement.",
+  review_required: "A person at Vallo is looking at this deal before payment opens. Nothing has been taken.",
+  not_live: "Escrow payments open soon. Nothing has been taken.",
+  balance_unreadable: "Wallet could not be read just now. Nothing has been taken; refresh to try again.",
+} as const;
+/** The server's refusals, as the renter reads them. */
+export const FUND_REFUSED: Record<string, string> = {
+  switched_off: FUND_CLOSED.not_live,
+  not_found: "We could not find that agreement on your account.",
+  not_payable: FUND_CLOSED.not_approved,
+  review_required: FUND_CLOSED.review_required,
+  buyer_not_onboarded: "Open Wallet first, then pay from it.",
+  seller_not_onboarded: "The lister has not finished setting up to receive this payment. Nothing has been taken.",
+  below_provider_minimum: "This amount is below what Payluk can hold. Talk to the lister about how to pay.",
+  move_in_unreadable: "The agreement has no move-in date Payluk can hold it against. Ask the lister to add one.",
+  provider_refused: "Payluk did not take the payment. Check that your balance covers it; nothing has moved.",
+  unavailable: "That could not be done just now. Nothing has been taken; try again in a moment.",
+};

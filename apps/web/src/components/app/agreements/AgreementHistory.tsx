@@ -18,6 +18,23 @@ export const EVENT_LABEL: Record<string, string> = {
   paid: "Paid",
 };
 
+/**
+ * D73: a stay's agreement (a booking at a price the business fixed) is never
+ * drawn as a staff review, so its review events read as the booking being
+ * confirmed. Presentation only; a rental keeps the words above.
+ */
+const STAY_EVENT_LABEL: Record<string, string> = {
+  submitted: "Sent to be confirmed",
+  approved: "Confirmed",
+  rejected: "Not confirmed",
+};
+
+/** An event in words for this agreement's kind. */
+export function eventLabel(action: string, kind?: string | null): string {
+  if (kind && kind !== "rent" && STAY_EVENT_LABEL[action]) return STAY_EVENT_LABEL[action]!;
+  return EVENT_LABEL[action] ?? action;
+}
+
 /** The events that name a version worth printing beside them. */
 const VERSIONED = new Set(["opened", "confirmed", "amended", "submitted", "approved", "rejected"]);
 
@@ -49,11 +66,14 @@ export function AgreementHistory({
   names,
   locale,
   copy,
+  kind,
 }: {
   events: readonly RecordEvent[];
   names: Record<PartySide, string>;
   locale: Locale;
   copy: Copy;
+  /** The agreement's kind; a stay's review events are worded as confirmation (D73). */
+  kind?: string | null;
 }) {
   return (
     <ol className="nf-agr-history" data-testid="agreement-history">
@@ -67,7 +87,7 @@ export function AgreementHistory({
             <span className="nf-agr-history__mark" aria-hidden="true" />
             <div className="nf-agr-history__body">
               <p className="nf-agr-history__what">
-                {EVENT_LABEL[e.action] ?? e.action}
+                {eventLabel(e.action, kind)}
                 {who ? <span className="nf-agr-history__who"> · {who}</span> : null}
               </p>
               <p className="nf-agr-history__meta">

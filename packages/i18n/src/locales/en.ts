@@ -35,6 +35,8 @@ import { experienceDiscoverEn } from "./experience-discover.en";
 import { experienceDetailEn } from "./experience-detail.en";
 import { experienceSocialEn } from "./experience-social.en";
 import { experienceInboxEn } from "./experience-inbox.en";
+import { callsEn } from "./calls.en";
+import { subscriptionsEn } from "./subscriptions.en";
 import { experienceAccountEn } from "./experience-account.en";
 import { experienceFeaturesEn } from "./experience-features.en";
 import { experienceRewardsEn } from "./experience-rewards.en";
@@ -61,6 +63,7 @@ import { mailEn } from "./mail.en";
 import { detailsEn } from "./details.en";
 /* Get started in motion: the chips and controls of the four scenes. */
 import { onboardingMotionEn } from "./onboarding-motion.en";
+/* Get Started as four cards (reference 3, 7 October). */
 
 /**
  * The counted nouns, in every form English uses.
@@ -363,9 +366,11 @@ export const en = {
        29 September). The old one-line tagline and the scene's label went with
        the scene. `chip` is still the label on the tour's receipt scene. */
     intro: {
+      tagline: "Homes to rent, buy and stay in, from agents a person has checked.",
       chip: "Your move-in total, printed",
       getStarted: "Get started",
       signIn: "Sign in",
+      sceneLabel: "A house and its keys, with the move-in total printed on a receipt",
     },
     label: "What Vallo is",
     skip: "Skip",
@@ -613,9 +618,10 @@ export const en = {
     messages: "Messages",
     agreements: "Agreements",
     /*
-     * The dock's centre "+" and the sheet it opens (29 September 2026). The
-     * workspace switch that button used to be moved into this sheet as its
-     * last row, so nothing it did was lost.
+     * The dock's centre "+" and the sheet it opens. Since 7 October 2026
+     * (handoff A.6) the sheet is three plain titles per side and nothing
+     * else; the `...Sub` lines and `switch` are no longer drawn there.
+     * Switch workspace lives on `/profile` (the Switch role row).
      */
     create: {
       trigger: "Create",
@@ -627,6 +633,7 @@ export const en = {
       viewing: "Book a viewing",
       viewingSub: "Find a place and choose a time to see it",
       stay: "Create a stay listing",
+      bookStay: "Book a stay",
       staySub: "A room type or a whole place for guests",
       switch: "Switch workspace",
       switchSub: "Personal, or a workspace you hold",
@@ -750,6 +757,8 @@ export const en = {
   socialProfile: {
     /** The account page's tab pair and the rows under Belongings (`50E032EA`). */
     belongings: "Belongings",
+    /** The way to reach somebody from their profile (A.7). */
+    message: "Message",
     myBookings: "Plans",
     myBookingsSub: "Viewings, move-ins and stays",
     savedSub: "Homes, hotels and places",
@@ -1020,7 +1029,6 @@ export const en = {
            it is rendered in an <address> element so a reader, a screen
            reader and a search engine all read it as one. */
         registeredOfficeLabel: "Registered office",
-        registeredOffice: "Plot 5, Zone 6, Dutse Alhaji, Bwari Area Council, FCT, Abuja",
         stayConnected: "Stay connected",
         newsletterBody: "New listings, product news and the occasional honest update.",
         emailLabel: "Email address",
@@ -4790,6 +4798,9 @@ export const en = {
     aboutTitle: "About this place",
     roomsTitle: "Rooms",
     roomsDescription: "Tap a room to see its rates and what each one includes.",
+    /* D73: a fixed-price stay books instantly; the rate cards are the choice. */
+    ratesDescription: "Choose a rate. The total below follows your choice.",
+    bookAndPay: "Book and pay",
     theDetails: "The details",
     amenitiesTitle: "What is here",
     policyTitle: "Cancellation",
@@ -4856,6 +4867,9 @@ export const en = {
     menu: "See the menu",
     openNowTitle: "Open now",
     perHead: "a head, typically",
+    /* The place tabs and the anchored foot (7 October 2026). */
+    tabTable: "The table",
+    reserveFootCaption: "Pick a day, a time and your party",
     reserveTitle: "Hold a table",
     reserveBody: "Pick a time and the restaurant answers. Nothing is charged to hold a table.",
     hoursTitle: "Opening hours",
@@ -5121,6 +5135,26 @@ export const en = {
       seeAll: "See all",
       perNight: "per night",
       reviews: "({count} reviews)",
+      /* The featured stack (the travel-app reference) and a place's Map tab. */
+      stack: {
+        open: "Open",
+        next: "Next place",
+        previous: "Previous place",
+        position: "{n} of {total}",
+      },
+      place: {
+        tabStay: "The stay",
+        tabMap: "Map",
+        mapLead: "The area. The exact address comes with your confirmation.",
+        mapLeadTable: "The area. The full address is in your reservation.",
+        area: "Area",
+        photoTour: "Photo tour",
+        photos: "{count} photographs",
+        noPhotos: "No photographs yet",
+        checkIn: "Check in from",
+        checkOut: "Check out by",
+        mapUnavailable: "The map did not load. The area is {area}.",
+      },
       results: "{count} stays",
       resultsOne: "1 stay",
       resultsNone: "No stays match yet",
@@ -5801,6 +5835,10 @@ export const en = {
   experienceDetail: experienceDetailEn,
   experienceSocial: experienceSocialEn,
   experienceInbox: experienceInboxEn,
+  /* VC1: voice and video calls, and the review calls (docs/video-calling/). */
+  calls: callsEn,
+  /* Vallo Pro and Vallo Business: the trial, the Paystack checkout, managing a plan. */
+  subscriptions: subscriptionsEn,
   experienceAccount: experienceAccountEn,
   experienceFeatures: experienceFeaturesEn,
   /* C3, Round 3: the Rewards Balance and the referral dashboard (D51). */
@@ -5830,6 +5868,7 @@ export const en = {
   mail: mailEn,
 
   onboardingMotion: onboardingMotionEn,
+
 
   /*
    * THE SUCCESS SHEET (components/ui/SuccessSheet.tsx, docs/SUCCESS_MOMENTS.md).

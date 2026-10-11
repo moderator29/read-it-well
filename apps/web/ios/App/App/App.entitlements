@@ -51,6 +51,18 @@
 	<key>com.apple.developer.associated-domains</key>
 	<array>
 		<string>applinks:www.vallospaces.com</string>
+		<!--
+			FACE ID ON THE PASSCODE AND THE MONEY LOCK (7 October 2026, the
+			founder: "set and build Face ID to work"). Vallo's biometric is a
+			WebAuthn platform key verified on the server
+			(`src/lib/passcode/passkey-unlock.ts`). WKWebView runs WebAuthn
+			for a site only when the app is associated with it as a web
+			credential, which is this entry plus the `webcredentials` block in
+			`public/.well-known/apple-app-site-association`. The Associated
+			Domains capability is already on the App ID (applinks above), so
+			this needs no portal change; it needs a NATIVE REBUILD.
+		-->
+		<string>webcredentials:www.vallospaces.com</string>
 	</array>
 
 	<!--

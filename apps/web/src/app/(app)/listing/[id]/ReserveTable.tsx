@@ -74,7 +74,17 @@ export function ReserveTable({
   success,
   windows,
   windowCopy,
+  title = "Book a table",
+  formId,
 }: {
+  /**
+   * The card's own heading. A page that already heads the section (a
+   * restaurant's "Hold a table") passes null, so one card does not carry two
+   * titles. Defaults to the heading it always had.
+   */
+  title?: string | null;
+  /** The form's element id, for an anchored foot that scrolls to it. */
+  formId?: string;
   /**
    * The venue's published service windows. With them, the time row offers
    * only the half hours inside the picked day's windows (`table-windows.ts`);
@@ -180,7 +190,7 @@ export function ReserveTable({
   }
 
   return (
-    <form action={formAction} className="nf-panel nf-panel--card isolate p-lg">
+    <form id={formId} action={formAction} className="nf-panel nf-panel--card isolate scroll-mt-28 p-lg">
       {/* One target, never both: the field that is not this venue's is simply
           not in the form, which is what `reserveSchema`'s refine asks for. */}
       {listingId && <input type="hidden" name="listingId" value={listingId} />}
@@ -188,11 +198,11 @@ export function ReserveTable({
       <input type="hidden" name="date" value={date} />
       <input type="hidden" name="time" value={shownTime} />
 
-      <p className="text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
-        Book a table
-      </p>
+      {title ? (
+        <p className="text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">{title}</p>
+      ) : null}
 
-      <div className="mt-md">
+      <div className={title ? "mt-md" : undefined}>
         <span className="nf-label" id={dateId}>
           Day
         </span>

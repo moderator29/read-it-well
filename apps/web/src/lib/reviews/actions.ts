@@ -43,6 +43,7 @@ const INELIGIBLE_MESSAGES: Record<ReviewIneligibility, string> = {
   cancelled: "This stay was cancelled, so there is nothing to review.",
   unconfirmed:
     "This stay is still awaiting the host, so it cannot be reviewed yet. You can write one once the host has accepted and the stay has finished.",
+  unpaid: "Reviews are for stays that were paid for through Vallo, and this one has no payment on it.",
   "not-finished": "You can share a review once the stay has finished. Enjoy the rest of it.",
   "no-show":
     "This stay was recorded as not attended, so it cannot be reviewed. If that is not right, contact support from your bookings.",
@@ -119,9 +120,22 @@ async function submitReviewWork(
     .limit(1)
     .maybeSingle();
   if (rentError) return fail(SERVICE_DOWN_MESSAGE);
+  /* D75: a review needs a stay that was paid for (reviews_insert_own). Read
+     under the guest's own RLS; a failed read leaves it to the database. */
+  const { data: settled, error: settledError } = await session.supabase
+    .from("transactions")
+    .select("id")
+    .eq("booking_id", booking.id)
+    .eq("status", "SUCCESSFUL")
+    .limit(1);
 
   const reason = reviewIneligibility(
-    { status: booking.status, checkOut: booking.check_out, isTenancy: rentCharge !== null },
+    {
+      status: booking.status,
+      checkOut: booking.check_out,
+      isTenancy: rentCharge !== null,
+      paid: settledError ? undefined : (settled?.length ?? 0) > 0,
+    },
     lagosToday(),
   );
   if (reason) return fail(INELIGIBLE_MESSAGES[reason]);

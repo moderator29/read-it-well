@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getDictionary } from "@vallo/i18n";
-import { forAuth } from "@/components/auth/auth-copy";
 import { getLocale } from "@/lib/locale";
 import { finishSocialSetup } from "@/lib/auth/actions";
 import { finishSetupView } from "@/lib/auth/finish-setup-server";
@@ -49,7 +48,7 @@ export default async function FinishSetupPage({
   const t = getDictionary(await getLocale());
   return (
     <FinishSetupForm
-      t={forAuth(t)}
+      t={t}
       action={finishSocialSetup}
       next={next}
       initialFirstName={view.firstName}

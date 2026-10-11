@@ -6,6 +6,7 @@ import { SUPPORT_HREF, SUPPORT_LABEL } from "@/lib/support-email";
 import { FULL_REFUND_HOURS } from "@/lib/trust/cancellation";
 import { VERIFICATION_ORDER } from "@/lib/trust/verification";
 import { MAX_MOVE_KOBO, MIN_MOVE_KOBO } from "@/lib/money/amount";
+import { railIsLive } from "@/lib/money/rails";
 import {
   DIRECT_RAIL_STANDING,
   HELD_MONEY_NOT_US,
@@ -71,6 +72,9 @@ export type DocChapter = {
 
 /** How a link inside the prose is drawn. One class, every chapter. */
 const A = "font-semibold text-[var(--nf-content-link)] hover:underline";
+
+/** Whether the held (escrow) route is open; chapter 6 says which, from the same switch. */
+const HELD_ROUTE_OPEN = railIsLive("protected");
 
 const MIN_MOVE = formatMoney(MIN_MOVE_KOBO);
 const MAX_MOVE = formatMoney(MAX_MOVE_KOBO);
@@ -1252,34 +1256,64 @@ const WRITTEN: DocChapter[] = [
     number: 6,
     title: "Money and agreements",
     summary:
-      "How a payment is split at the moment you pay, why Vallo never holds your money, the agreement both sides confirm and Vallo approves, where a refund goes, and what stands behind a payment.",
+      "How money moves on Vallo: a direct payment split at the moment you pay, a held payment for rent, Vallo's fee, why Vallo never holds your money, the agreement both sides confirm, where a refund goes, and what stands behind a payment.",
     icon: "shield-lock",
     sections: [
+      /* HOW MONEY MOVES ON VALLO (the founder, 7 October 2026). The landing
+         hero's one-line promise ("Vallo never holds your money. When you pay,
+         it goes through regulated payment partners straight to the owner or
+         agent.") left the front page; it is said here instead, in full and
+         per route. Each sentence is true to the code: the direct route is the
+         live rail (`lib/money/rails.ts`, LIVE_RAIL), split by Paystack in the
+         same transaction; the held route is built and switched off
+         (PROTECTED_RAIL_LIVE, docs/payments/VALLO_FINANCIAL_LAYER.md section
+         5), and a payment the rail policy sends to it is refused rather than
+         opened as a direct one (`lib/payments/router.ts`, the escrow gate).
+         The held route's partner is not named: members are told who holds
+         the money by role, as `lib/money/copy.ts` does outside a receipt.
+         `HELD_ROUTE_OPEN` turns the "not open yet" lines into the open ones
+         the day the rail goes live, with no other edit. The ids `never-held`
+         and `the-split` are kept so old links still land. */
       {
         id: "never-held",
-        heading: "Vallo never holds your money",
+        heading: "How money moves on Vallo",
         body: (
           <>
-            <p>{NO_CUSTODY_SENTENCE}</p>
-            {/* "Vallo keeps no balance in your name ... nothing to withdraw"
-                was untrue beside the Rewards Balance (D51); the narrower true
-                thing is lib/money/copy.ts's (A9). */}
             <p>
-              {NO_PAYMENT_BALANCE} {REWARDS_BALANCE_SEPARATE} {HELD_MONEY_NOT_US}
+              Vallo is where you find a place, agree the terms and pay for it. It is not
+              where your money is kept. A payment on Vallo moves on one of two routes, and
+              on neither of them does it pass through an account of Vallo&rsquo;s:
+            </p>
+            <ul>
+              <li>
+                <strong>A direct payment</strong> is divided by Paystack at the moment you
+                pay, and the owner&rsquo;s or business&rsquo;s share settles to their own bank
+                account.
+              </li>
+              <li>
+                <strong>A held payment</strong>, made for rent agreements, waits with a
+                licensed payment partner until you confirm the move-in.
+                {HELD_ROUTE_OPEN ? null : " This route is not open yet."}
+              </li>
+            </ul>
+            <p>
+              On both routes Vallo&rsquo;s fee is taken from the owner&rsquo;s or
+              agent&rsquo;s share, never added to what you pay. The sections below take each
+              route in turn.
             </p>
           </>
         ),
       },
       {
         id: "the-split",
-        heading: "How a payment is split",
+        heading: "Paying directly",
         body: (
           <>
             <DocsFlow
               label="How one payment divides"
               steps={[
                 { object: "payment-sent", label: "You pay" },
-                { object: "transfer-arrow", label: "Payment processor" },
+                { object: "transfer-arrow", label: "Paystack" },
                 {
                   object: "bank-column",
                   label: "Divided in one transaction",
@@ -1292,20 +1326,99 @@ const WRITTEN: DocChapter[] = [
             />
 
             <p>
-              When you pay by card or bank transfer, the payment processor divides that one
-              payment in the same transaction: the owner&rsquo;s or agent&rsquo;s share,
-              paid to the bank account on their payout details, and Vallo&rsquo;s platform
-              fee. The parts always add up exactly to what you paid, and the database
-              refuses a payment row where they do not.
+              Fixed-price bookings, such as a stay, are paid directly. Card details are
+              entered on Paystack&rsquo;s own checkout page, never on Vallo.
             </p>
             <p>
-              The platform fee comes out of the owner&rsquo;s or agent&rsquo;s share. It is
-              never added on top of the price you were shown.
+              Paystack divides that one payment in the same transaction. The owner&rsquo;s or
+              business&rsquo;s share goes to the bank account on their payout details, and
+              Vallo&rsquo;s platform fee is the other part. The parts always add up exactly
+              to what you paid, and the database refuses a payment record where they do
+              not. Paystack then pays the share into that bank account on its normal
+              settlement schedule. At no point does the money sit with Vallo.
             </p>
             <p>
               Where crypto payment is offered, Yellow Card converts it to naira first and the
               naira is split the same way. Vallo never holds crypto and never gives you a
               crypto address of its own.
+            </p>
+          </>
+        ),
+      },
+      {
+        id: "held-payments",
+        heading: "Payments held until you confirm",
+        body: (
+          <>
+            <DocsFlow
+              label="How a held payment moves"
+              steps={[
+                { object: "payment-sent", label: "You pay the agreed rent" },
+                { object: "doc-lock", label: "Held by a licensed partner" },
+                { object: "keys-handover", label: "You confirm the move-in" },
+                { object: "bank-column", label: "Released to the owner or agent" },
+              ]}
+            />
+
+            <p>
+              Rent agreements have a second route, made for a large sum paid before the keys
+              change hands. On it, your payment goes into escrow with a licensed payment
+              partner. It is not paid to Vallo, and it is not yet paid to the owner or agent.
+            </p>
+            <p>
+              The partner keeps it until you confirm the move-in, or until the release
+              condition written into the agreement is met. Only then is it released to the
+              owner or agent. If the payment does not go ahead, it goes back to you from the
+              partner, once the cancellation is agreed or decided.
+            </p>
+            <p>
+              You pay exactly the agreed rent. The partner&rsquo;s fee comes out of the
+              owner&rsquo;s or agent&rsquo;s share, as Vallo&rsquo;s does.
+            </p>
+            {HELD_ROUTE_OPEN ? (
+              <p>
+                When an agreement uses this route, its page says so and takes you to the
+                payment step.
+              </p>
+            ) : (
+              <p>
+                This route is built and is not open yet; it opens once the partner account is
+                live, and this page will say so. A payment meant for it is never sent as a
+                direct payment instead: until the route opens, that payment does not open
+                either.
+              </p>
+            )}
+          </>
+        ),
+      },
+      {
+        id: "the-fee",
+        heading: "Vallo's fee",
+        body: (
+          <>
+            <p>{WHO_PAYS_SENTENCE}</p>
+            <p>
+              On a direct payment the fee is one part of the same split, so it is never
+              taken later from money the owner or business has already received.
+            </p>
+          </>
+        ),
+      },
+      {
+        id: "what-vallo-never-does",
+        heading: "What Vallo never does",
+        body: (
+          <>
+            <p>
+              Vallo never holds a member&rsquo;s money, on either route. It does not keep
+              your rent, your booking or a refund in an account of its own, and it never
+              asks you to pay into one.
+            </p>
+            {/* "Vallo keeps no balance in your name ... nothing to withdraw"
+                was untrue beside the Rewards Balance (D51); the narrower true
+                thing is lib/money/copy.ts's (A9). */}
+            <p>
+              {NO_PAYMENT_BALANCE} {REWARDS_BALANCE_SEPARATE} {HELD_MONEY_NOT_US}
             </p>
           </>
         ),

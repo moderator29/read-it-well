@@ -3243,7 +3243,209 @@ balance.
 
 ---
 
-## D70. The founder's rulings of 8 October: the gate, the signals, the threshold, the fee, and Pro.
+## D70. The money pages have doors, and the side navigation has a Money group (7 October 2026)
+
+The build session started from `f94963c7` (main) merged with the docs-only branch
+`claude/rentme-v2-platform-audit-xuvg0a` (`93ac365b`), because the handoff, the
+founder corpus, ADR 0003 and D68 to D69 had never been merged to main. **Anybody
+reading the session prompt on main will not find the files it names.** Merge that
+branch, or this one, first.
+
+Section 3.1 of the handoff was partly stale by the time this session read it: Rewards
+and Invite friends had been given rows earlier the same day. Receipts, Payouts and
+Refunds had not. They now sit in a **Money** group in `nav-model.ts`, with Payments,
+Rewards and Invite friends moved into it, on both sides, signed in only. A test
+(`nav-money.test.ts`) fails if any of the six loses its row.
+
+The navigation's groups, and the other unification answers A.16 asks for, are decided
+in `docs/design/ONE-PRODUCT-DECISIONS.md`. Every agent adds to those groups and nowhere
+else.
+
+There is no `/pro` route in the tree. The founder's "the pro and etc too" cannot be
+routed until Pro exists; it is in the report under not built.
+
+---
+
+## D72. The whole platform, to the premium standard, by six agents (7 October 2026)
+
+The founder, mid-session: upgrade every page of the platform to a premium, consistent,
+next-generation standard, on Android, iOS and the web, with up to six agents working
+autonomously, following the handoff and this instruction together. He sent five
+reference images in chat; they are described precisely in
+`docs/design/PREMIUM-STANDARD.md`, which is now the bar every agent builds to.
+
+He reopened two things earlier rulings had closed. **Get Started is redesigned**, to his
+reference of the Vallo onboarding cards ("Find your space.", 1 / 4), and the sign-in
+and sign-up flow, which he now calls good, may be raised further if it can be done
+better. The feed's actions become small, clean outline icons in separate capsules, per
+his reference.
+
+---
+
+## D73. Two ways to pay: rentals through escrow, fixed-price bookings by card directly (7 October 2026)
+
+The founder, in his words: "Pay is now escrow bro but for hotel and restaurants etc is
+paystack direct when price is up there fixed by the hotels and rooms bookings you know
+how LITEAPI is".
+
+- **Rentals and other negotiated property deals** pay through **escrow**, held by the
+  licensed provider (Payluk), per ADR 0003. The agreement stays, because a negotiated
+  deal has terms to agree; the payment that follows it is a protected escrow payment,
+  not a plain card charge. This is phases 11 and 12 of his payments prompt.
+- **Hotels, shortlets, restaurants and any booking at a price the business fixed**
+  pay **directly by card through Paystack**, as an instant booking in the shape of a
+  hotel booking API flow such as LiteAPI: search, pick a room and rate, see the total,
+  book and pay in one flow. No host acceptance step and no Vallo review step stand
+  between a guest and paying a published price. The existing database pricing
+  (`private.price_room_booking`), inventory hold, split and settlement are kept.
+
+This supersedes, for fixed-price bookings, the step in `docs/ROOM_CHECKOUT.md` and
+`docs/MONEY_ARCHITECTURE.md` where a stay agreement waits for both confirmations and a
+staff approval before payment opens. It is built behind a switch, reviewed, and the
+switch is turned on by him.
+
+He also sent five more references (`docs/design/references/2026-10-07/`): a premium
+paywall, a "Start for free" paywall and a one-time offer, a streak screen, store
+screenshots with huge headlines, and payment confirmed. They govern Pro, Rewards and
+Get Started.
+
+---
+
+## D74. The Plasma set is the premium level, platform wide (7 October 2026)
+
+The founder sent five frames of the Plasma app (rewards, tiers, withdraw, the rewards
+home) and ruled them the level of premium he wants across the whole platform, naming
+the platinum rewards frame specifically: "that platinum mid color those style clean...
+this is the level of premium I need in my platform wide... use them in wallet
+withdrawal etc". Saved as `docs/design/references/2026-10-07/GOVERNING-plasma-*.jpg`
+and decoded in `docs/design/PREMIUM-STANDARD.md` under "The governing level". A
+platinum material joins the token set; dark stays the default.
+
+---
+
+## D75. Bookings end to end, the way the best booking platforms do it, in Vallo's own way (7 October 2026)
+
+The founder: "design it how Airbnb and all these booking platforms are but in our own
+way and how we can connect it with the hotels flow how it's done industry standard...
+same as this restaurants too and shortlet our commissions too... all end to end".
+
+**The journeys** (each in Vallo's dialect, never a copy):
+
+- **Shortlets and serviced apartments (the Airbnb shape):** search with dates and
+  guests, map and list together, a listing page with the gallery, the host, house
+  rules, amenities, cancellation policy and reviews, a sticky price bar showing the
+  total for the dates, a full breakdown (nights x rate, any cleaning or service line the
+  listing really carries, Vallo's fee), Reserve, instant booking and card payment
+  (D73), a trip page (dates, address revealed after payment, check-in instructions,
+  message the host, the receipt), and a review after check-out.
+- **Hotels (the Booking.com and hotel-API shape):** room types, rate plans
+  (refundable or not, breakfast or not), per-night availability from the hotel's rate
+  calendar and room inventory (built), the total for the stay, instant booking and
+  card payment, the same trip page. Hotels manage rooms, rates and the calendar in the
+  host console today. **Connecting outside hotel supply** (a channel manager or a hotel
+  API such as LiteAPI, so hotels that are not on Vallo appear with live rates) is the
+  industry route to inventory at scale; it is a separate integration that needs a
+  provider account and keys, recorded as a founder decision, not built blind.
+- **Restaurants (the OpenTable shape):** date, party size and time slots, instant
+  confirmation, a reservation page with the restaurant's details, reminders, and the
+  restaurant's own console of the day's bookings. **No payment today** (a reservation
+  has no price). The industry pattern for no-shows is an **optional deposit** a
+  restaurant can set for some slots or party sizes, paid by card on the direct rail and
+  deducted from the bill; built behind its own switch, off.
+
+**Commissions** (from `docs/payments/VALLO_PRICING.md`, unchanged): Vallo's commission
+is **2 percent on every transaction, both rails**; the direct rail (hotels, shortlets,
+restaurant deposits) pays Paystack's own fee, capped at 2,000 naira, and Vallo keeps its
+2 percent; on the escrow rail (rent, sale, land) Payluk's 2 percent is **borne by the
+lister** (decided 6 October; the D73 agent's "who pays" question is already answered).
+Every booking shows the guest the total and its breakdown before paying, and the host
+sees what they receive.
+
+**Decided for him:** shortlets and serviced apartments with a fixed nightly rate take
+the direct rail (instant booking, card), because their price is fixed like a hotel's.
+`VALLO_PRICING.md` section 2 listed shortlets on the escrow rail; that line predates
+D73 and is superseded for fixed-price shortlets. He can overturn this.
+
+---
+
+## D76. Leaderboards, who to follow, one agents directory for both sides, and the wallet's two-action bar (7 October 2026)
+
+- **Two public leaderboards, City and Global:** (1) **referrals**, by qualified
+  referrals; (2) **top performers on the platform**, by completed deals through Vallo,
+  across agents, landlords, realtors and firms, with **hotels and restaurants** ranked in
+  their own boards by completed bookings and reservations. A 3D podium for the top three,
+  ranks 4 and on as rows, a floating "You" pill, a month or period subtitle.
+  **Decided for him:** boards rank by counts of completed deals and bookings, never by a
+  member's naira earnings shown publicly; a member or business can opt out; only
+  verified workspaces and real activity appear; nothing is invented to fill a board.
+- **Who to follow** in the feed suggests top agents, landlords, hotels and restaurants
+  near the member; a **social search** finds them by City or Global.
+- **The agents directory covers both sides:** on the Property side it lists agents,
+  landlords and firms; on the Stays side, hosts, hotels and shortlet operators. One
+  page, flipped by the side switch, the same way the rest of the shell flips.
+- **The wallet's own bottom bar has two actions, Withdraw and Transfer.** The wallet is
+  a feature, not a main section; the main dock is unchanged.
+
+## D78 (7 October 2026, evening): blue is the identity; no glass
+
+From the founder's production screenshots (leaderboard, passcode, profile, /pro):
+
+- **No platinum on controls.** Every button, selected pill or toggle that used the platinum (silver-white) colour is Vallo blue. The leaderboard's "FCT (Abuja) | Global" selected pill is the example.
+- **No white buttons.** Every call to action is the platform's primary blue button ("Invite friends", "Continue with Agent Pro" were the examples).
+- **No grey containers.** Stat strips and cards sit on the platform's own blue-tinted container, the one the Profile lists use ("4 Tools | Coming | Nothing" on /pro was the example). This applies to new features too.
+- **The passcode keypad is blue**, not grey.
+- **No glass icons anywhere.** Icons are the solid, opaque blue 3D renders (the Profile "Belongings" rows: Plans, Saved, Agreements, Workspaces). Named: Get started, side nav, flip card, the Neighbour badge.
+- Gold is not part of this ruling.
+
+This supersedes the platinum direction in `docs/design/PREMIUM-STANDARD.md` where they disagree.
+
+### D78, continued (same evening)
+
+- **It is the Wallet**, never "Balance", in everything a member reads. The wallet screen shows its full designed layout even before the provider is connected: actions present but disabled with one short line, no paragraphs about partners or rails, and still never a figure the provider did not give.
+- **The dock is icon-only**, the active tab included (a blue fill behind the icon marks it; the name stays for screen readers).
+- **No four-point sparkle icon anywhere.** For you, Pro and the assistant each get a real icon that means the thing.
+- **The feed must work and look clean**: avatar and name open the profile, every action does its own thing, actions are bare icons (no pill wrappers), the feed has its own + to post, story avatars sit in clean even rings, the story viewer is calm and full-bleed.
+- **The platform's docs sit beside "VALLO SPACES LTD"** at the foot of the side nav.
+
+### D78, navigation (same evening; the lead owns navigation from here)
+
+- **Settings has no pull-out menu.** Every settings page is a row on the Settings page and goes back to it; nothing else lists them.
+- **Space Passport is a side-nav feature**, beside Agreements.
+- **Money in the side nav is three rows: Wallet, Rewards, Referral.** Payments, Receipts, Payouts and Refunds live on the Wallet screen.
+- **"Invite friends" is Referral**, and the Leaderboard opens from the Referral page, not the side nav.
+- **No logo or wordmark in the app's top bar.**
+- **The bell shows only on Home, Search and Feed** (each side's own), nowhere else.
+- **The platform's documents (Terms, Privacy, Safety, Help) sit under VALLO SPACES LTD** at the foot of the side nav.
+- **A member's public profile has no composer +** (that belongs on the Feed), quiet Back and Share without containers, a smaller Follow button, a ••• menu that opens fully on screen, and clean, sharp tabs.
+
+## D80 (8 October 2026): a premium Wallet, and a feed that is not X
+
+The founder, 8 October: "our wallet I don't like the way it looks not really premium!! I need something more premium looks and clean UX and the withdrawal and transfer button should be capsule each okay and glass too and make the whole vibes clean!" And: "the socials look for a new next gen style of ux for it that won't be like x ... make the feed looks more kinda clean and premium but a bit look away from x".
+
+- The Wallet hero is one deep navy-to-blue card, the same object in light and dark. Add money is the one solid blue capsule on it. Withdraw and Transfer are two separate frosted-glass capsules inside the card, side by side. This supersedes D76's sticky two-action bar at the foot of the screen: the two actions now live on the card.
+- Glass is allowed on these two capsules only, by name (`.nf-mw-btn` in check-css-tokens). Icons stay solid everywhere (D78).
+- No figure is ever drawn without an answer to read: "Not connected yet" stands where the figure would be.
+- The feed takes its own next-gen look, researched away from X; the action icons stay bare (D78).
+
+## D81 (8 October 2026): the new logo, more orange, and the Wallet as his reference
+
+- THE NEW LOGO. `docs/design/references/2026-10-08/logo-mark-new.png` and `logo-wordmark-new.png` replace every old mark and wordmark on the platform: app chrome, landing, auth, onboarding, emails, favicons, PWA and native icons, splash, share images. Clean on dark and on light.
+- MORE ORANGE. The warm spark (`--nf-spark`) is used in more places, still as the second accent: blue leads, orange sparks. The Wallet's Send capsule is the first orange FILL the platform allows (a new token, not the spark itself).
+- THE WALLET (supersedes D80's glass capsules in the card). The governing look is the right-hand phone of `GOVERNING-wallet-overview-transactions.png`: Overview and Transactions tabs, the balance card with Total received and Total spent, "Your funds are protected", filter chips, the transaction rows, a More options group (receipts, payouts, refunds, settings) and exactly two persistent bottom capsules, Withdraw (blue) and Send (orange). From the left-hand phone only the "Pay for your space with VALLO Wallet" banner. Top up, Send and payment steps follow the Dribbble reference: amount, quick chips, method or recipient, reason, Continue, keypad. The founder's full brief is `WALLET-PROMPT.md` beside it. Nothing faked: no figure, rate, badge or transaction without a real answer behind it.
+- GET STARTED ON EVERY VISIT. Tapping Sign in or Sign up opens the slides unless they were seen in this sitting (30 minutes). A leftover session cookie no longer skips them or hides the landing capsule's two doors.
+
+## D82 (8 October 2026): the logo never changes colour, and no glass logo anywhere
+
+The founder, 8 October, on the D81 screenshots: "the logo im seeing it changing color on light mode from your ss make the logo and the text to be not change color should be same either on light mode or dark mode and set it that so in new testflight the new logo update okay and make sure no places our glass logo is used better go deep into that okay and swap every single places be it inner pages any places all okay? clean sweep okay".
+
+- ONE COLOUR SET. The mark and the wordmark are the founder's own colours (the D81 references: cyan to electric to royal blue, the orange accents) on every ground, in light and in dark. No day palette, no reversed palette, no filter, no per-theme swap. This SUPERSEDES the 29 September rule that put the light-theme `.nf-logo` lockup on a navy pill with lights lapping its rim: the logo is not put on a plate to change how it looks in light mode. Where its own blue would vanish (the brand-blue auth block), it stands on a white plate that is the same in both themes. `docs/BRAND_MARKS.md` section 0; enforced by `apps/web/src/design-system/brand/logo-sweep.test.ts`.
+- NO GLASS LOGO ANYWHERE. Every file and every surface that drew the old glass mark is the new artwork: the app icons on every platform (the iOS AppIcon, every Android launcher density, the adaptive layers, the favicon, the PWA and maskable icons), the Android notification icon, the welcome coin, the PWA install screenshots, emails, share cards, splash and loading moments, inner pages and desks.
+- THE NEXT TESTFLIGHT CARRIES IT. The native icon files are in the iOS and Android projects in the repository, so the next build picks them up with no other change.
+
+## D83. The founder's rulings of 8 October: the gate, the signals, the threshold, the fee, and Pro.
+
+**Numbered D83, not D70.** It was written as D70 against a tree that did not yet carry
+the other session's D70 to D82. The content is unchanged; only the number moved.
 
 **8 October 2026. Five decisions, given directly. They are settled; do not reopen them.**
 
@@ -3299,12 +3501,14 @@ machinery. The figures are small against real revenue: at 2 percent on a median
 3,000,000 naira rent, one closed deal pays Vallo 60,000, so the subscription sells
 visibility rather than carrying the business.
 
-**The trial: the founder asked for 2 days and was advised 7.** Two days shows a lister
-nothing, because no enquiries will have arrived yet, so they cancel having seen an empty
-dashboard; it also forces card on file at signup, which is real friction on Nigerian
-cards. Seven days is long enough for a boosted listing to produce the enquiries that
-actually convert. **Awaiting his word; build the trial length as configuration either
-way, so the answer is a value and not a change.**
+**The trial is 4 days.** Settled by the founder on 8 October, and already given to the
+build session, which is working to it. He asked for 2 first and was advised 7, on the
+grounds that two days shows a lister nothing because no enquiries will have arrived yet,
+so they cancel having seen an empty dashboard. Four is his landing between the two and
+it is the number to build. **Build it as configuration, not a constant**, so the next
+revision is a value rather than a change: a boosted listing's first enquiries are the
+thing that converts a trial, and how long that actually takes is unknown until there is
+real traffic.
 
 **Also settled on 8 October, outside the five:**
 
@@ -3321,3 +3525,8 @@ way, so the answer is a value and not a change.**
   the test key needs Preview too or no preview deployment can reach staging.
 - **The App Store Connect key keeps its Admin role.** Founder's call, declined the
   downgrade to App Manager.
+
+**Trial length decided by the founder, 8 October: 4 days (configuration).** It is the
+value `public.subscription_settings.trial_days`, seeded as 4 by
+`supabase/migrations/pending/d84_founder_rulings_8_october.sql`; a later change is that
+value, not code.

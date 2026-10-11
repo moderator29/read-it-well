@@ -52,7 +52,7 @@ describe("authHref", () => {
   });
 
   it("can send somebody to sign in instead", () => {
-    expect(authHref("/payments?do=pay", "sign-in")).toBe("/sign-in?next=%2Fpayments%3Fdo%3Dpay");
+    expect(authHref("/wallet?do=wallet", "sign-in")).toBe("/sign-in?next=%2Fwallet%3Fdo%3Dwallet");
   });
 });
 
@@ -91,14 +91,6 @@ describe("isGatedAction", () => {
     expect(isGatedAction(null)).toBe(false);
     expect(isGatedAction("")).toBe(false);
     expect(isGatedAction("delete-account")).toBe(false);
-  });
-
-  /* D48: Vallo holds no customer money, so there is no wallet to come back to.
-     The verb is refused rather than carried to a route that does not exist. */
-  it("refuses wallet, which names custody Vallo does not have", () => {
-    expect(isGatedAction("wallet")).toBe(false);
-    expect(readIntent("?do=wallet")).toBeNull();
-    expect(GATED_ACTIONS as readonly string[]).not.toContain("wallet");
   });
 });
 

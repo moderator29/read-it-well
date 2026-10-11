@@ -1,8 +1,16 @@
 import Image from "next/image";
-import { tieredAssetFor, tieredSrc, type TieredObjectName } from "./object-assets";
+import { brandArtwork, type TieredObjectName } from "./object-assets";
 
 /**
  * Vallo brand icon.
+ *
+ * NO BRANDICON DRAWS GLASS (the founder, 7 October 2026: "Remove all glass
+ * icons on the entire platform"). The names below are still the vocabulary a
+ * call site speaks, but each one now draws a SOLID object: the tiered render
+ * of the same name where there is one, else the solid object
+ * `glass-to-solid.ts` chose for its meaning (tier B, tier A, or the founder's
+ * 3D sheet). The history below is about the glass pack and is kept so the
+ * next reader knows why the files are still on disk.
  *
  * The content tier: one object per thing the product talks about. A shield, a
  * villa, a receipt. Navigation is `UiIcon`: the side drawer, the rail, the
@@ -319,17 +327,13 @@ function resolveObject(name: BrandIconProp): BrandIconObject {
 }
 
 /**
- * What a name draws: an accepted matte or realistic object (D29), or the glass
- * artwork it always drew. The legacy alias is resolved FIRST, so `bell-alert`
- * (an alias of `bell-badge`) follows `bell-badge` onto the matte bell.
+ * What a name draws (7 October 2026, the founder: no glass anywhere). The
+ * legacy alias is resolved first, then `brandArtwork` in `object-assets.ts`
+ * picks the tiered render of the same name where one exists, else the solid
+ * object `glass-to-solid.ts` chose. It never returns a `/brand/glass/` path.
  */
-function resolveArtwork(name: BrandIconProp): { src: string; material: "matte" | "real" | "glass"; object: string } {
-  const direct = tieredAssetFor(name);
-  if (direct) return { src: tieredSrc(direct), material: direct.tier === "b" ? "matte" : "real", object: name };
-  const object = resolveObject(name);
-  const mapped = tieredAssetFor(object);
-  if (mapped) return { src: tieredSrc(mapped), material: mapped.tier === "b" ? "matte" : "real", object };
-  return { src: `/brand/glass/${object}.png`, material: "glass", object };
+function resolveArtwork(name: BrandIconProp) {
+  return brandArtwork(name, resolveObject(name));
 }
 
 export function BrandIcon({
@@ -368,7 +372,7 @@ export function BrandIcon({
    */
   loading?: "eager" | "lazy";
   /**
-   * Draw the full glass chip behind the object. OFF by default: see the note
+   * Draw the chip (`.nf-icon-tile`) behind the object. OFF by default: see the note
    * at the top of this file. Turn it on only where the object is the subject
    * of the surface rather than an ornament on it.
    */
@@ -401,6 +405,13 @@ export function BrandIcon({
    * motion on a money surface and a design decision rather than a cleanup.
    */
   state?: "alert" | "confirmed";
+  /**
+   * @deprecated No effect. It asked for the render over the glass original
+   * (the space types row, 7 October 2026); later that day the founder ruled
+   * out glass everywhere, so the render is now what every BrandIcon draws.
+   * Kept so existing call sites compile; drop it when you touch one.
+   */
+  preferRender?: boolean;
   className?: string;
 }) {
   const decorative = !label;

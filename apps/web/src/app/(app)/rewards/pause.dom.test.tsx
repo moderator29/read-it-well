@@ -45,21 +45,21 @@ vi.mock("@/lib/referral/server", () => ({ myInviteCode: async () => "K7M2QX" }))
 vi.mock("@/lib/referral/rewards-read", () => ({
   readMyRewards: async () => state.read,
   rewardsSource: { read: async () => ({ state: "not-live" }) },
-  /* Open, so the withdraw page draws the flow itself in both months. */
-  withdrawActions: { quote: async () => ({ ok: false, reason: "unavailable" }), confirm: async () => ({ ok: false, reason: "unavailable" }) },
+  withdrawActions: null,
 }));
 
+const ROW = { waitingOn: null, qualifiedOn: null, reviewUntil: null, rewardMinor: null, earnedState: null, notEligibleReason: null } as const;
 const t = getDictionary("en");
 const r = t.experienceRewards;
 const door = t.publicDoors.invite;
 
 const RUNNING: RewardsSnapshot = {
-  policy: { rewardPerReferralMinor: 7_000, monthlyCap: 1_500, withdrawMinimumMinor: 100_000 },
+  policy: { rewardPerReferralMinor: 7_000, monthlyCap: 1_500, withdrawMinimumMinor: 100_000, steps: ["email_verified", "onboarding_completed"], reviewDays: 7 },
   programme: { state: "running" },
-  balance: { availableMinor: 420_000, pendingMinor: 70_000, lifetimeMinor: 630_000 },
+  balance: { availableMinor: 420_000, pendingMinor: 70_000, lifetimeMinor: 630_000, paidOutMinor: 0 },
   referrals: [
-    { id: "r1", firstName: "Slot", status: "qualified", joinedOn: "2026-09-02", qualifiedOn: "2026-09-09" },
-    { id: "r2", firstName: null, status: "pending", joinedOn: "2026-10-01", qualifiedOn: null },
+    { ...ROW, id: "r1", firstName: "Slot", stage: "earned", joinedOn: "2026-09-02", qualifiedOn: "2026-09-09", rewardMinor: 7_000, earnedState: "available" },
+    { ...ROW, id: "r2", firstName: null, stage: "signing_up", joinedOn: "2026-10-01", waitingOn: "email" },
   ],
   history: [
     { id: "h1", kind: "referral", amountMinor: 7_000, at: "2026-09-09T10:12:00+01:00", state: "done", firstName: "Slot", withdrawal: null },
@@ -75,6 +75,8 @@ const RUNNING: RewardsSnapshot = {
   ],
   campaign: { id: "c1", name: "Slot campaign", target: 20, reached: 12, bonusMinor: 100_000, endsOn: "2026-10-31" },
   destination: { bankName: "Slot Bank", accountLast4: "0001", accountName: "Slot" },
+  /* Open, so the withdraw page draws its form in both months. */
+  payoutsEnabled: true,
 };
 const PAUSED: RewardsSnapshot = { ...RUNNING, programme: { state: "paused", resumesOn: null } };
 
@@ -172,9 +174,12 @@ describe("D64: a paused month", () => {
   it("still draws everything already earned, with the sentence that it is paid", async () => {
     const dashboard = await PAGES.rewards();
     expect(dashboard).toContain('data-testid="rewards-available"');
-    expect(dashboard).toContain("₦4,200");
-    expect(dashboard).toContain("₦700");
-    expect(dashboard).toContain("₦6,300");
+    /* The money kit draws the naira sign in its own span (the unit in grey,
+       D74), so the figures are read as text, the way a reader sees them. */
+    const shown = dashboard.replace(/<[^>]+>/g, "");
+    expect(shown).toContain("₦4,200");
+    expect(shown).toContain("₦700");
+    expect(shown).toContain("₦6,300");
     expect(dashboard).toContain('data-testid="rewards-withdraw-link"');
     expect(dashboard).toContain('data-testid="rewards-policy-minimum"');
     /* The sentence under a pause says it is paid, whichever constant is in force. */
@@ -187,10 +192,10 @@ describe("D64: a paused month", () => {
 
     const referrals = await PAGES.referrals();
     expect(referrals).toContain("Slot");
-    expect(referrals).toContain(r.referrals.status.qualified);
+    expect(referrals).toContain(r.referrals.status.earned);
 
     const withdraw = await PAGES.withdraw();
-    expect(withdraw).toContain(r.withdraw.amountLabel);
+    expect(withdraw).toContain('data-testid="rewards-withdraw-open"');
     expect(withdraw).toContain(REWARDS_PAID_FROM);
   });
 
@@ -232,7 +237,7 @@ describe("D64: a running month draws what it drew before", () => {
     expect(hub).toContain('data-testid="invite-ticket"');
     /* Running, the hub says what is earned, never "no reward" (R2, round 4). */
     expect(hub).toContain('data-testid="invite-rewards-running"');
-    expect(hub).not.toContain(door.noReward);
+    expect(hub.toLowerCase()).not.toContain("no reward for inviting");
     expect(hub).not.toContain(r.pause.title);
     expect(state.gate).toEqual(["invite"]);
   });

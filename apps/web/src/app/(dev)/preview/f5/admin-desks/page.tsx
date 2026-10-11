@@ -1,7 +1,7 @@
 import { getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { adminUi } from "@/app/admin/_components/ui";
-import { SwitchRow } from "@/app/admin/switches/page";
+import { SwitchRow } from "@/app/admin/switches/SwitchRow";
 import { StandingDesk } from "@/app/admin/standing/StandingDesk";
 import { StopsDesk } from "@/app/admin/stops/StopsDesk";
 import { RetireExamples } from "@/app/admin/examples/RetireExamples";

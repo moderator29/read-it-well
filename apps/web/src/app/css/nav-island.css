@@ -297,3 +297,25 @@
     padding-inline: 0;
   }
 }
+
+/*
+ * THE CREATE SHEET: THREE PLAIN OPTIONS (handoff A.6, the founder: "it should
+ * just have the normal 3 options"). No plate, no subtitle, no chevron: the
+ * word is the whole row, set at one confident size on the row's 56px rhythm,
+ * divided by the list's own hairline. The press is the shared row press
+ * (press-motion.css), so nothing here animates.
+ */
+@layer components {
+  .nf-create-sheet__option {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-height: 3.5rem;
+    padding-inline: var(--nf-space-sm);
+    font-size: var(--nf-text-body-lg);
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    color: var(--nf-content-primary);
+    text-align: start;
+  }
+}

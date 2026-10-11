@@ -14,9 +14,9 @@ import {
 import { promotionTiers } from "@/lib/promotion/tiers";
 import { frontDoorCountText, tierPriceLine } from "@/lib/promotion/front-door";
 import { measurementRows, type ListingMeasurementRead } from "@/lib/promotion/measurement";
-import { REWARDS_MONTHLY_BUDGET, REWARDS_PENDING_THEN_AVAILABLE } from "@/lib/money/copy";
+import { REWARDS_MONTHLY_BUDGET } from "@/lib/money/copy";
 import type { InviteRewards } from "@/lib/referral/rewards";
-import { qualifySentence } from "@/components/app/referral/invite-rewards";
+import { pendingSentence, qualifySentence } from "@/components/app/referral/invite-rewards";
 
 /**
  * THE FEATURE ONBOARDING REGISTRY (north star 14.1, founder directive D11).
@@ -144,7 +144,7 @@ export type FirstRunContent = {
  * `invite` is what the rewards read says (`inviteRewards`), and only the
  * invite's first run reads it. Without it the invite run says nothing either
  * way about a reward (the "unknown" state), so a caller that forgets it can
- * never put "nothing to earn" in front of a running programme.
+ * never say anything about a reward the read did not confirm.
  *
  * `promotion` is the listing's own last thirty days
  * (`readListingMeasurement`), and only promotion's first run reads it.
@@ -261,11 +261,14 @@ export function firstRunContent(
 /**
  * THE INVITE'S PANELS, ONE SET PER STATE OF THE REWARDS READ. They never mix.
  *
- *   not-live  the link, then "There is no reward for inviting" (A5), as before
+ *   not-live  the link alone (the old "no reward for inviting" panel is gone:
+ *             the founder, 8 October 2026)
  *   running   what the invited person gets (the invite door's own claim), what
- *             the member earns and when (`REWARDS_QUALIFY` from the read's
- *             policy), then Pending and Available with the monthly budget in
- *             one line (D62, D64). Money sentences are `lib/money/copy.ts`'s
+ *             the member earns for each friend who signs up fully and what
+ *             that means (`REWARDS_QUALIFY` and the live campaign's steps),
+ *             then Pending for the review window and Available, with the
+ *             monthly budget in one line (D62, D64, D85). Money sentences are
+ *             `lib/money/copy.ts`'s
  *   paused    none: the run cannot mount, and the route hands the member to
  *             the hub, which says the pause and offers no invite (D64)
  *   unknown   the link alone. Nothing about a reward, either way
@@ -275,8 +278,6 @@ function invitePanels(t: Dictionary, invite: InviteRewards, locale?: Locale): Fi
   const door = t.publicDoors.invite;
   const link: FirstRunPanel = { object: "ticket", title: c.p1Title, body: door.rowSub };
   switch (invite.state) {
-    case "not-live":
-      return [link, { object: "gift-box", title: c.p2Title, body: door.noReward }];
     case "running":
       return [
         { object: "ticket", title: c.running.p1Title, body: door.doorBody },
@@ -284,11 +285,12 @@ function invitePanels(t: Dictionary, invite: InviteRewards, locale?: Locale): Fi
         {
           object: "calendar-page",
           title: c.running.p3Title,
-          body: `${REWARDS_PENDING_THEN_AVAILABLE} ${REWARDS_MONTHLY_BUDGET}`,
+          body: `${pendingSentence(invite.policy, locale ?? "en")} ${REWARDS_MONTHLY_BUDGET}`,
         },
       ];
     case "paused":
       return [];
+    case "not-live":
     case "unknown":
       return [link];
   }

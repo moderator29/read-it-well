@@ -65,7 +65,16 @@ describe.skipIf(!hasBrowser && !process.env.CI)("a post's picture", () => {
     const { page, close } = await mountInBrowser({ entry, init });
     try {
       const id = await page.evaluate(() => (window as unknown as { __postId: string }).__postId);
-      await Promise.all([page.waitForURL(`**/post/${id}`), page.locator(".nf-post__media").first().click()]);
+      /* The card opens the post through the router now (D79: no overlay
+         anchor), so the plain tap is one `push` to the post. */
+      await page.locator(".nf-post__media").first().click();
+      const pushes = await page.evaluate(() =>
+        ((window as unknown as { __router?: { calls: unknown[][] } }).__router?.calls ?? [])
+          .filter((call) => call[0] === "push")
+          .map((call) => String(call[1])),
+      );
+      expect(pushes).toEqual([`/post/${id}`]);
+      expect(await opened(page)).toHaveLength(0);
     } finally {
       await close();
     }

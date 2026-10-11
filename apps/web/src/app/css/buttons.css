@@ -1445,4 +1445,113 @@
       transition: none;
     }
   }
+
+  /* =====================================================================
+   * D81 (8 October 2026): THE SPARK BUTTON AND THE LIGHT SWEEP. The founder:
+   * "use it [orange] more areas in buttons too and animations too ... Let's
+   * make this cinematic". Spark tokens only (tokens.css, the fill family);
+   * the rest of the warm spark's placements are `spark.css`.
+   * ===================================================================== */
+  /* ------------------------------------------------- 1. the spark button */
+  .nf-btn--spark {
+    color: var(--nf-spark-on-fill);
+    background: var(--nf-spark-fill);
+    border: var(--nf-border-width) solid transparent;
+    box-shadow: var(--nf-spark-glow);
+    text-shadow: none;
+    filter: none;
+    font-weight: 600;
+  }
+  /* A white label on the orange holds up at 16px and 600 (the large-text
+     rung), so the small and medium buttons step up to it. */
+  .nf-btn--spark.nf-btn--sm,
+  .nf-btn--spark.nf-btn--md {
+    font-size: max(1rem, var(--nf-text-body));
+  }
+  .nf-btn--spark::after {
+    content: none;
+  }
+  .nf-btn--spark:focus-visible {
+    box-shadow:
+      0 0 0 2px var(--nf-surface-canvas),
+      0 0 0 4px var(--nf-spark);
+  }
+  .nf-btn--spark:active:not(:disabled, [aria-disabled="true"]) {
+    background: var(--nf-spark-fill-solid);
+    box-shadow: none;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .nf-btn--spark:hover:not(:disabled, [aria-disabled="true"]) {
+      box-shadow:
+        var(--nf-spark-glow),
+        0 0 0 1px color-mix(in oklab, var(--nf-spark) 55%, transparent);
+    }
+  }
+
+  /* ----------------------------------------------------- 2. the light sweep */
+  /* Its own clipped layer (Button.tsx, `Sweep`): absolutely placed, so it is
+     never a flex item and never moves the label. Held 3px inside the edge, so
+     the light crosses the face and never thins the button's boundary
+     (control-contrast.dom.test measures that edge mid-press). */
+  .nf-btn__sweep {
+    position: absolute;
+    inset: 3px;
+    z-index: 0;
+    overflow: hidden;
+    border-radius: inherit;
+    pointer-events: none;
+  }
+  .nf-btn__sweep::before {
+    content: "";
+    position: absolute;
+    top: -20%;
+    bottom: -20%;
+    left: 0;
+    width: 42%;
+    background: linear-gradient(
+      100deg,
+      transparent 0%,
+      color-mix(in oklab, var(--nf-spark) 34%, transparent) 42%,
+      color-mix(in oklab, var(--nf-spark-on-fill) 26%, transparent) 54%,
+      transparent 100%
+    );
+    opacity: 0;
+    transform: translate3d(-120%, 0, 0) skewX(-14deg);
+  }
+  /* On the orange button the band is white light, not more orange. */
+  .nf-btn--spark .nf-btn__sweep::before {
+    background: linear-gradient(
+      100deg,
+      transparent 0%,
+      color-mix(in oklab, var(--nf-spark-on-fill) 30%, transparent) 50%,
+      transparent 100%
+    );
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .nf-btn:hover:not(:disabled, [aria-disabled="true"]) > .nf-btn__sweep::before {
+      animation: nf-btn-sweep var(--nf-duration-cinematic) var(--nf-ease-standard) both;
+    }
+  }
+  .nf-btn:active:not(:disabled, [aria-disabled="true"]) > .nf-btn__sweep::before {
+    animation: nf-btn-sweep var(--nf-duration-deliberate) var(--nf-ease-standard) both;
+  }
+  /* Asked for less motion: no light crosses at all. */
+  @media (prefers-reduced-motion: reduce) {
+    .nf-btn__sweep {
+      display: none;
+    }
+  }
+  @keyframes nf-btn-sweep {
+    0% {
+      opacity: 0;
+      transform: translate3d(-120%, 0, 0) skewX(-14deg);
+    }
+    18% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      transform: translate3d(300%, 0, 0) skewX(-14deg);
+    }
+  }
 }

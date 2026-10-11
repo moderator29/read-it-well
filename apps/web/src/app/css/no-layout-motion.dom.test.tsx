@@ -3,9 +3,9 @@
  * `no-layout-motion.test.ts`). Read off a real Chromium: what each element
  * transitions, and where its box is on the first frame of the change.
  *
- *   the dock     the chosen word's box is its full size on the first frame
- *                (it used to grow `max-width` and `margin` per frame) and the
- *                glyph starts where it stood, carried by the body's translate;
+ *   the dock     icon only since 7 October: a tap draws the pill and moves
+ *                no box (the chosen word, which used to grow, is gone and
+ *                stays hidden even if a label element is passed in);
  *   the bowl     on a touch screen, a focused field snaps the bowl's box once
  *                and the form is DRAWN where the bowl is, on a registered
  *                length that only transforms read;
@@ -61,108 +61,46 @@ const box = (page: Page, id: string) =>
 const css = (page: Page, id: string, prop: string) =>
   page.evaluate(([i, p]) => (getComputedStyle(document.getElementById(i!)!) as unknown as Record<string, string>)[p!] ?? "", [id, prop] as const);
 
-/** The slot and its link carry no layout motion of the word's; the link's own centre is the reference. */
-const linkCentre = (page: Page) => box(page, "b");
-
 describe.skipIf(!hasBrowser && !process.env.CI)("no layout motion on the frequent paths", () => {
-  it("the dock word takes its room at once and the glyph slides from where it stood", async () => {
+  it("a tap moves nothing in the dock: the glyph stays centred and every slot keeps its width", async () => {
     const { page, close } = await mountInBrowser({ entry: dock, css: DOCK_CSS });
     try {
-      /* Nothing the word transitions over time is a layout property. */
-      const props = (await css(page, "b-label", "transitionProperty")).split(", ");
-      const durs = (await css(page, "b-label", "transitionDuration")).split(", ");
-      const timed = props.filter((_, i) => durs[i] !== "0s");
-      expect(timed).toEqual(["opacity", "transform"]);
-      expect(await css(page, "b-body", "transitionProperty")).toBe("translate");
+      /* The body carries no translate (there is no word for the glyph to make room for). */
+      expect(await css(page, "b-body", "transitionProperty")).not.toContain("translate");
 
       const iconBefore = await box(page, "b-icon");
-      const centreBefore = await linkCentre(page);
-      expect(Math.abs(iconBefore.x - centreBefore.x)).toBeLessThan(1);
+      const slotBefore = await box(page, "b");
+      expect(Math.abs(iconBefore.x - slotBefore.x)).toBeLessThan(1);
 
-      /* The frame the change lands on, measured in the same task as the tap:
-         the word's box is already its settled width. */
+      /* The frame the change lands on, measured in the same task as the tap. */
       const first = await page.evaluate(() => {
         (window as unknown as { __choose: () => void }).__choose();
         const at = (i: string) => {
           const r = document.getElementById(i)!.getBoundingClientRect();
           return { x: r.left + r.width / 2, w: r.width };
         };
-        return { label: at("b-label"), icon: at("b-icon"), centre: at("b") };
+        return { icon: at("b-icon"), slot: at("b"), label: at("b-label") };
       });
-      const { label: firstLabel, icon: firstIcon, centre: firstCentre } = first;
-      /* And the glyph is still on the link's centre: the body's translate holds it there. */
-      expect(Math.abs(firstIcon.x - firstCentre.x), `glyph ${firstIcon.x} centre ${firstCentre.x}`).toBeLessThan(3);
-      expect(await css(page, "b-label", "maxWidth")).toBe("88px");
+      expect(Math.abs(first.icon.x - first.slot.x), `glyph ${first.icon.x} centre ${first.slot.x}`).toBeLessThan(1);
+      expect(first.label.w, "no word takes room").toBe(0);
 
       await page.waitForTimeout(600);
-      const settledLabel = await box(page, "b-label");
-      expect(firstLabel.w).toBeGreaterThan(20);
-      expect(Math.abs(firstLabel.w - settledLabel.w)).toBeLessThan(0.5);
-      /* Settled: the glyph has moved left of centre, beside its word, and the body rests untranslated. */
-      expect(await css(page, "b-body", "translate")).toBe("none");
       const settledIcon = await box(page, "b-icon");
-      expect(settledIcon.x).toBeLessThan((await linkCentre(page)).x - 10);
+      const settledSlot = await box(page, "b");
+      expect(Math.abs(settledIcon.x - settledSlot.x)).toBeLessThan(1);
+      expect(Math.abs(settledSlot.w - slotBefore.w), "the chosen slot keeps its share").toBeLessThan(1);
+      expect(await css(page, "b-label", "display")).toBe("none");
     } finally {
       await close();
     }
   });
 
-  it("under reduced motion the dock word and its glyph are settled at once", async () => {
+  it("under reduced motion the dock is settled at once", async () => {
     const { page, close } = await mountInBrowser({ entry: dock, css: DOCK_CSS, reducedMotion: true });
     try {
-      expect(await css(page, "b-label", "transitionDuration")).toBe("0s");
       expect(await css(page, "b-body", "transitionDuration")).toBe("0s");
       await page.evaluate(() => (window as unknown as { __choose: () => void }).__choose());
-      expect(await css(page, "b-body", "translate")).toBe("none");
-      expect(await css(page, "b-label", "opacity")).toBe("1");
-    } finally {
-      await close();
-    }
-  });
-
-  const AUTH_CSS = productCss("app/css/auth.css");
-  const auth = `
-    import { mount } from "@/lib/testing/browser-root";
-    mount(<main className="nf-auth nf-slate" id="auth">
-      <header className="nf-auth-cap" id="cap"><div className="nf-auth-cap__ground" id="ground" /></header>
-      <div className="nf-auth__body" id="body">
-        <div className="nf-auth__stage"><section className="nf-auth__island">
-          <h1 className="nf-auth__title" id="title">Sign in</h1>
-          <input id="email" />
-        </section></div>
-      </div>
-    </main>);
-  `;
-
-  it("the bowl closes on a registered length that only transforms read", async () => {
-    const { page, close } = await mountInBrowser({ entry: auth, css: AUTH_CSS });
-    try {
-      /* A touch screen: `pointer: coarse`, where the short bowl lives. */
-      const cdp = await page.context().newCDPSession(page);
-      await cdp.send("Emulation.setTouchEmulationEnabled", { enabled: true, maxTouchPoints: 1 });
-      await cdp.send("Emulation.setEmitTouchEventsForMouse", { enabled: true });
-      expect(await page.evaluate(() => matchMedia("(pointer: coarse)").matches)).toBe(true);
-
-      expect(await css(page, "cap", "transitionProperty")).not.toMatch(/height/);
-      expect(await css(page, "title", "transitionProperty")).toBe("scale");
-      expect(await css(page, "auth", "transitionProperty")).toBe("--nf-cap-now");
-      const restH = (await page.evaluate(() => document.getElementById("cap")!.getBoundingClientRect().height));
-      const restBody = (await page.evaluate(() => document.getElementById("body")!.getBoundingClientRect().top));
-
-      await page.focus("#email");
-      await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => r(null))));
-      /* The box snapped once, to 8.5rem... */
-      const capH = await page.evaluate(() => document.getElementById("cap")!.getBoundingClientRect().height);
-      expect(capH).toBeCloseTo(136, 0);
-      /* ...and the form is still drawn near where it stood, carried by its translate. */
-      const drawnBody = await page.evaluate(() => document.getElementById("body")!.getBoundingClientRect().top);
-      expect(drawnBody).toBeGreaterThan(restBody - (restH - 136) * 0.5);
-      expect(await css(page, "title", "fontSize")).toBe("30px");
-
-      await page.waitForTimeout(700);
-      const settledBody = await page.evaluate(() => document.getElementById("body")!.getBoundingClientRect().top);
-      expect(Math.abs(settledBody - (restBody - (restH - 136)))).toBeLessThan(1);
-      expect(await css(page, "title", "scale")).toBe("0.8667");
+      expect(await css(page, "b-label", "display")).toBe("none");
     } finally {
       await close();
     }

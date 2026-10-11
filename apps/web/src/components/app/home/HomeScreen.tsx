@@ -1,10 +1,9 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { forListingCard } from "@/lib/i18n/slice";
 import { intlTag, type Dictionary, type Locale } from "@vallo/i18n/core";
 import type { Listing } from "@/lib/listings/types";
 import type { HomeOverview } from "@/lib/app/home-queries";
-import { ListingCard } from "@/components/app/ListingCard";
+import { FeaturedStack } from "@/components/app/home/FeaturedStack";
 import { CityRow } from "@/components/app/home/CityRow";
 import { withNext } from "@/lib/auth/next-link";
 import { CategoryRow, type HomeCategory } from "@/components/app/home/CategoryRow";
@@ -175,21 +174,20 @@ export function HomeScreen({
    * with the house on it.
    */
   /*
-   * THE DOORS TAKE THE TIERED OBJECTS (D29; Session 3, W2). Buy and Rent are
-   * real places, so they are drawn as Tier A places (the gated family house,
-   * the apartment block); Pay and List are ideas, so they are Tier B matte
-   * symbols (the wallet, the page with a plus). The words, the order and the
-   * destinations are unchanged (D28: the four doors stay four doors). `art`
-   * stays as the fallback the row drew before.
+   * THE DOORS DRAW THE FOUNDER'S ORIGINAL 3D ART (`art`, `/brand/3d`). They
+   * carried tiered objects for a while (D29); the founder asked for the
+   * original 3D icons back, so no door passes `object` and the row draws its
+   * `Icon3D`. The words, the order and the destinations are unchanged (D28:
+   * the four doors stay four doors).
    */
   const categories: HomeCategory[] = [
     /* Buy, Rent and Pay open with no skeleton: their pages are fetched whole
        ahead of the tap (about 35, 35 and 11 KB on the wire). List opens the
        listing form, about 120 KB, so it waits for the tap. */
-    { key: "buy", art: "buy", object: "family-house-gate", label: copy.buy, href: "/search?market=buy", icon: "home-check", glyph: "house", whole: true },
-    { key: "rent", art: "rent", object: "apartment-block", label: copy.rent, href: "/search?market=rent", icon: "keys-home", glyph: "key", whole: true },
-    { key: "pay", art: "pay", object: "wallet-angled", label: copy.pay, href: "/agreements", icon: "naira-hand", glyph: "wallet", whole: true },
-    { key: "manage", art: "list", object: "doc-plus", label: copy.manage, href: manageHref, icon: "doc-home", glyph: "file-text" },
+    { key: "buy", art: "buy", label: copy.buy, href: "/search?market=buy", icon: "home-check", glyph: "house", whole: true },
+    { key: "rent", art: "rent", label: copy.rent, href: "/search?market=rent", icon: "keys-home", glyph: "key", whole: true },
+    { key: "pay", art: "pay", label: copy.pay, href: "/agreements", icon: "naira-hand", glyph: "wallet", whole: true },
+    { key: "manage", art: "list", label: copy.manage, href: manageHref, icon: "doc-home", glyph: "file-text" },
     /*
       UX-22 / STORE-05: NO INVEST TILE. It went to `/search?market=buy`, the
       same shelf as Buy, so it filtered nothing distinct and promised an
@@ -323,6 +321,35 @@ export function HomeScreen({
         count={listings.length}
         testId="featured-properties"
         note={intentApplied ? dx.featuredForYou : undefined}
+        body={
+          /* The travel-app set (7 October): the featured listings as a card
+             stack, one tall photograph at a time, not a sideways row. */
+          <FeaturedStack
+            listings={listings}
+            locale={locale}
+            testId="featured-properties"
+            copy={{
+              label: t.experienceDiscover.stack.label,
+              position: t.experienceDiscover.stack.position,
+              previous: t.experienceDiscover.stack.previous,
+              next: t.experienceDiscover.stack.next,
+              open: t.experienceDiscover.stack.open,
+              moveIn: t.catalogue.card.moveIn,
+              periodShort: t.experienceLabels.periodShort,
+              reviews: t.experienceDiscover.stack.reviews,
+              mapOf: t.experienceDiscover.stack.mapOf,
+              noPhotos: t.catalogue.card.noPhotos,
+              cardCopy: {
+                moveIn: t.catalogue.card.moveIn,
+                perYear: t.catalogue.card.perYear,
+                perMonth: t.catalogue.card.perMonth,
+                perQuarter: t.catalogue.card.perQuarter,
+                night: t.catalogue.card.night,
+                head: t.catalogue.card.head,
+              },
+            }}
+          />
+        }
         empty={
           /*
            * THE ONE PLATFORM EMPTY STATE, and it ends somewhere (Stage 5:
@@ -356,13 +383,8 @@ export function HomeScreen({
           />
         }
       >
-        {listings.map((listing, index) => (
-          <li key={listing.id} className="nf-feature-row__item">
-            {/* The catalogue's card is F3's and is never forked here, so home
-                and search show one object. */}
-            <ListingCard listing={listing} locale={locale} t={forListingCard(t)} index={index} eager={index === 0} />
-          </li>
-        ))}
+        {/* The stack above is the body; the band no longer draws a row. */}
+        {null}
       </FeaturedBand>
     </div>
   );

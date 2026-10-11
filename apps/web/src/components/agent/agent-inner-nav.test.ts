@@ -29,6 +29,9 @@ describe("the agent desk's inner navigation", () => {
     expect(agentInnerPageFor("/agent/listings")).toBe("listings");
     expect(agentInnerPageFor("/agent/listings/abc/health")).toBe("listings");
     expect(agentInnerPageFor("/agent/analytics/listings/abc")).toBe("analytics");
+    expect(agentInnerPageFor("/agent/promotion")).toBe("promotion");
+    /* A listing's own promotion screen sits under the listing it promotes. */
+    expect(agentInnerPageFor("/agent/listings/abc/promotion")).toBe("listings");
     expect(agentInnerPageFor("/agent/settings")).toBeNull();
     expect(agentInnerPageFor("/agent/list")).toBeNull();
   });

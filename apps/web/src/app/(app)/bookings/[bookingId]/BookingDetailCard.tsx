@@ -85,7 +85,7 @@ export function BookingDetailCard({ booking, locale }: { booking: BookingView; l
         {/* The same controls the hub draws, from the same guarded facts, so a
             booking opened from a chat can be finished without a second hop. */}
         <span className="flex flex-wrap items-center gap-md">
-          {booking.status === "PENDING" && (
+          {booking.payable && (
             <ButtonLink href={`/checkout/${booking.id}`} variant="primary" size="sm">
               {copy.payNow}
             </ButtonLink>

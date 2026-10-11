@@ -100,7 +100,7 @@ export const BACKED_CLAIMS: readonly BackedClaim[] = [
   /* Everyday senses of "checked". */
   { phrase: /\bchecked out\b/i, mechanism: "a stay's check-out, not a trust claim" },
   { phrase: /\brooms checked\b|^\s+checked$|\bthings that can be checked\b/i, mechanism: "the member's own inspection checklist and evidence, not a platform claim" },
-  { phrase: /\bchecked many times\b|\bhave checked that payment\b|\bcould not be checked\b|\buntil you have checked\b/i, mechanism: "payment status polling against the provider, not a trust claim" },
+  { phrase: /\bchecked many times\b|\bhave checked that (?:payment|movement)\b|\bhave checked several accounts\b|\bcould not be checked\b|\buntil you have checked\b/i, mechanism: "payment status polling against the provider, not a trust claim" },
   { phrase: /\bwhat you already checked\b|\breservation is checked against\b|\buntil it is checked\b/i, mechanism: "a process description, not a claim about a listing or a person" },
   { phrase: /\bwhether a purchase is safe\b/i, mechanism: "advice (title decides), not a claim" },
   { phrase: /\bwhat a stay is protected by instead\b/i, mechanism: "a heading over the cancellation policy text on /safety" },

@@ -43,7 +43,7 @@ describe("the device memory", () => {
   it("lasts, is first party and is sent on a normal navigation", () => {
     const c = firstRunCookieString(true);
     expect(c).toMatch(/Path=\//);
-    expect(c).toMatch(/Max-Age=34560000/);
+    expect(c).toMatch(/Max-Age=1800/);
     expect(c).toMatch(/SameSite=Lax/);
     expect(c).toMatch(/Secure/);
     expect(firstRunCookieString(false)).not.toMatch(/Secure/);
@@ -131,7 +131,7 @@ describe("the destination", () => {
   });
 });
 
-describe("arrivals with a destination skip the slides (V-18)", () => {
+describe("arrivals with a destination are named on the last slide (V-18; every stranger starts on slide one since 7 October)", () => {
   it("reads the destination under the wall's sign-in door", () => {
     const next = "/sign-in?next=%2Fsearch%3Fq%3DLagos&notice=sign-in-required";
     const plan = planFirstRun({ session: signedOut, next });

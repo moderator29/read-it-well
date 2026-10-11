@@ -61,7 +61,7 @@ export function PasskeySignIn({ label, next, failed }: { label: string; next?: s
         {label}
       </Button>
       {error && (
-        <p role="alert" className="nf-auth__alert">
+        <p role="alert" className="nf-auth__notice">
           {failed}
         </p>
       )}

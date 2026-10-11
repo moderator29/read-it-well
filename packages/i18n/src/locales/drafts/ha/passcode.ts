@@ -54,6 +54,29 @@ export const passcodeHa = {
   notSet: "Ba ka saita lambar sirri ba tukuna.",
   lockNote: "Vallo yana kullewa bayan minti 5 da ka tafi, da kuma a kowane sabon shafi.",
 
+  /* MACHINE DRAFT, 7 October 2026: the returning greeting, the setup steps
+     and Face ID or fingerprint. Same review as the rest of this file.
+     "Face ID" is Apple's name and stays as written. */
+  wordmark: "VALLO",
+  hello: "Sannu, {name}",
+  helloNoName: "Sannu kuma",
+  switchAccount: "Canza asusu",
+  withPasscode: "Yi amfani da lambar sirrinka",
+  bioOfferTitle: "Ka buɗe da Face ID a gaba?",
+  bioOfferBody: "Makullin wayarka yana buɗe Vallo da kallo ko taɓawa. Lambar sirrinka tana nan a matsayin hanyar shiga duk lokacin da hakan bai yiwu ba.",
+  bioOfferSetUp: "Saita Face ID ko zanen yatsa",
+  bioOfferLater: "Ba yanzu ba",
+  bioGroup: "Face ID ko zanen yatsa",
+  bioRowTitle: "Buɗe da Face ID ko zanen yatsa",
+  bioRowUnset: "Saita shi sau ɗaya da kalmar sirrinka. Maɓalli ɗaya ne zai buɗe Vallo kuma ya tabbatar da biyan kuɗi.",
+  bioRowSet: "Ana fara bayar da shi idan Vallo a kulle yake. Lambar sirrinka tana nan a matsayin madadin.",
+  bioRowUnsupported: "Wannan burauzar ba ta iya kaiwa ga Face ID ko zanen yatsan wannan na'urar ba. Manhajar Vallo da yawancin burauzar waya suna iya.",
+  passkeyUnlock: "Buɗe da Face ID ko zanen yatsa",
+  passkeyFailed: "Hakan bai yi aiki ba. Shigar da lambar sirrinka maimakon haka.",
+  usePasscode: "Shigar da lambar sirrinka maimakon haka",
+  stepChoose: "Mataki na 1 cikin 2. Zaɓi lambobi {count}.",
+  stepConfirm: "Mataki na 2 cikin 2. Rubuta lambobi {count} iri ɗaya.",
+
   keypadLabel: "Maɓallan lambar sirri",
   deleteKey: "Goge",
   digitsEntered: "An shigar da lambobi {count} cikin {total}",

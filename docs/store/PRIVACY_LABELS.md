@@ -217,3 +217,34 @@ Change this file in the same commit as any of the following:
 `apps/web/src/lib/legal/privacy-truth.test.ts` fails if the code starts
 calling a processor the notice does not name. It does not read this file:
 reconciling this file is the job of the person who makes the change.
+
+---
+
+## Apple App Privacy as submitted (9 October 2026)
+
+This is what App Store Connect shows as published. It does **not** match the
+answers above, and it must not be treated as correct.
+
+**Linked to you (as submitted):** Financial Info; Location (Precise);
+User Content; Contact Info (Name, Email, Phone, Physical Address).
+
+**Not linked to you (as submitted):** Location (Coarse); Identifiers;
+Usage Data; Diagnostics; Search History; Browsing History.
+
+**Mismatches with the answers above, to fix before the next publish:**
+- **Advertising Data** and the purposes **Developer's Advertising or
+  Marketing** are listed. The app has no advertising.
+- **Coarse Location, Audio Data, Browsing History, Other Usage Data** are
+  listed. The answers above say No for each.
+- **Analytics** and **Product Personalization** are listed for most types.
+  Only Product Interaction is Analytics; everything else is App Functionality
+  (Customer Support for email and support).
+- **Other Financial Info, Purchase History, Other User Content and Other Data
+  Types** are missing. The answers above say Yes for each.
+- **Other Purposes** is listed for email and support.
+- **Device ID, User ID, Search History and Product Interaction** are under
+  "not linked". The answers above say linked for User ID, Device ID and
+  Search History, and Product Interaction is linked too.
+
+Tracking is No for every type in both places. Counsel should confirm the
+final answers against the privacy notice before the next publish.

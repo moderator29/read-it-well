@@ -41,6 +41,29 @@ export const AGREEMENT_STATUS_TONE: Record<string, StatusTone> = {
   cancelled: "neutral",
 };
 
+/**
+ * D73 (7 October 2026): a booking at a price the business fixed (a stay, a
+ * table) pays directly by card, and its agreement is not a deal Vallo's staff
+ * review. So a stay's agreement is never DRAWN as "with Vallo for review" or
+ * "approved by Vallo", whatever state the record holds: the same states read
+ * as the booking being confirmed. Presentation only; the states and their
+ * gates are unchanged. A rental keeps its review words.
+ */
+const STAY_STATUS_LABEL: Record<string, string> = {
+  in_review: "Being confirmed",
+  approved: "Confirmed: payment is open",
+  rejected: "Not confirmed",
+};
+
+/** The status in words for this agreement's kind ("rent" keeps the review words). */
+export function agreementStatusLabel(status: string, kind: string): string {
+  if (kind !== "rent" && STAY_STATUS_LABEL[status]) return STAY_STATUS_LABEL[status]!;
+  return AGREEMENT_STATUS_LABEL[status] ?? status;
+}
+
+/** The track's step words for a stay, where no staff review step exists. */
+export const STAY_TRACK_WORDS = { approved: "Confirmed", sentBack: "Not confirmed" } as const;
+
 export function agreementStatusTone(status: string): StatusTone {
   return AGREEMENT_STATUS_TONE[status] ?? "neutral";
 }

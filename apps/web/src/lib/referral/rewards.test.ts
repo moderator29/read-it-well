@@ -7,11 +7,12 @@ import {
   campaignReached,
   canWithdraw,
   checkWithdrawAmount,
-  countByStatus,
+  countByStage,
   entryDirection,
   nairaToKobo,
   newestFirst,
   pausedProgramme,
+  REFERRAL_NOT_ELIGIBLE,
   quoteAddsUp,
   withdrawGate,
   type RewardsEntry,
@@ -19,18 +20,20 @@ import {
   type WithdrawQuote,
 } from "./rewards";
 
-const POLICY = { rewardPerReferralMinor: 7_000, monthlyCap: 1_500, withdrawMinimumMinor: 100_000 };
+const POLICY = { rewardPerReferralMinor: 8_000, monthlyCap: 1_500, withdrawMinimumMinor: 100_000, steps: ["email_verified", "onboarding_completed"], reviewDays: 7 };
+const ROW = { waitingOn: null, qualifiedOn: null, reviewUntil: null, rewardMinor: null, earnedState: null, notEligibleReason: null } as const;
 const DEST = { bankName: "Bank", accountLast4: "0001", accountName: "A" };
 
 function snapshot(over: Partial<RewardsSnapshot> = {}): RewardsSnapshot {
   return {
     policy: POLICY,
     programme: { state: "running" },
-    balance: { availableMinor: 150_000, pendingMinor: 0, lifetimeMinor: 150_000 },
+    balance: { availableMinor: 150_000, pendingMinor: 0, lifetimeMinor: 150_000, paidOutMinor: 0 },
     referrals: [],
     history: [],
     campaign: null,
     destination: DEST,
+    payoutsEnabled: true,
     ...over,
   };
 }
@@ -51,8 +54,8 @@ describe("the withdrawal minimum is checked before the provider is asked", () =>
   });
 
   it("offers a withdrawal only once available reaches the minimum from policy", () => {
-    expect(canWithdraw({ availableMinor: 99_999, pendingMinor: 500_000, lifetimeMinor: 0 }, POLICY)).toBe(false);
-    expect(canWithdraw({ availableMinor: 100_000, pendingMinor: 0, lifetimeMinor: 0 }, POLICY)).toBe(true);
+    expect(canWithdraw({ availableMinor: 99_999, pendingMinor: 500_000, lifetimeMinor: 0, paidOutMinor: 0 }, POLICY)).toBe(false);
+    expect(canWithdraw({ availableMinor: 100_000, pendingMinor: 0, lifetimeMinor: 0, paidOutMinor: 0 }, POLICY)).toBe(true);
   });
 
   it("reads typed naira as whole kobo", () => {
@@ -88,24 +91,26 @@ describe("a quote is drawn only when its own figures add up", () => {
 });
 
 describe("the withdraw screen's gate says the most useful truth first", () => {
-  it("names a rail that is not open before anything else", () => {
-    expect(withdrawGate(snapshot({ destination: null }), false)).toBe("not-open");
+  it("names withdrawals that are not open before anything else (payouts_enabled off)", () => {
+    expect(withdrawGate(snapshot({ payoutsEnabled: false }))).toBe("not-open");
+    expect(withdrawGate(snapshot({ payoutsEnabled: false, balance: { availableMinor: 1, pendingMinor: 0, lifetimeMinor: 1, paidOutMinor: 0 } }))).toBe("not-open");
   });
-  it("then the minimum, then the bank account, then opens", () => {
-    expect(withdrawGate(snapshot({ balance: { availableMinor: 1, pendingMinor: 0, lifetimeMinor: 1 } }), true)).toBe("below-minimum");
-    expect(withdrawGate(snapshot({ destination: null }), true)).toBe("no-destination");
-    expect(withdrawGate(snapshot(), true)).toBe("open");
+  it("then the minimum, then opens (the bank account is asked for in the form)", () => {
+    expect(withdrawGate(snapshot({ balance: { availableMinor: 1, pendingMinor: 0, lifetimeMinor: 1, paidOutMinor: 0 } }))).toBe("below-minimum");
+    expect(withdrawGate(snapshot({ destination: null }))).toBe("open");
+    expect(withdrawGate(snapshot())).toBe("open");
   });
 });
 
 describe("the referral list and the history", () => {
-  it("counts every status, zero when none", () => {
+  it("counts every stage, zero when none", () => {
     expect(
-      countByStatus([
-        { id: "a", firstName: null, status: "qualified", joinedOn: "2026-10-01", qualifiedOn: "2026-10-02" },
-        { id: "b", firstName: null, status: "under_review", joinedOn: "2026-10-01", qualifiedOn: null },
+      countByStage([
+        { ...ROW, id: "a", firstName: null, stage: "earned", joinedOn: "2026-10-01", qualifiedOn: "2026-10-02", earnedState: "available" },
+        { ...ROW, id: "b", firstName: null, stage: "in_review", joinedOn: "2026-10-01", reviewUntil: "2026-10-08" },
+        { ...ROW, id: "c", firstName: null, stage: "signing_up", joinedOn: "2026-10-01", waitingOn: "email" },
       ]),
-    ).toEqual({ joined: 0, pending: 0, under_review: 1, qualified: 1 });
+    ).toEqual({ signing_up: 1, counting: 0, in_review: 1, earned: 1, not_eligible: 0 });
   });
 
   it("takes away only for a withdrawal or a reversal", () => {
@@ -147,11 +152,14 @@ describe("what the rewards screens may never say or carry (D51)", () => {
     expect(copy.invite.shareText.toLowerCase()).not.toMatch(/earn|reward|naira|₦|bonus|paid/);
   });
 
-  it("gives a referral no field for a reason, a risk signal or a second level", () => {
+  it("gives a referral no field for a risk reason, a signal or a second level", () => {
     const model = withoutComments(readFileSync(join(__dirname, "rewards.ts"), "utf8"));
     const row = /export type ReferralRow = \{([\s\S]*?)\n\};/.exec(model)?.[1] ?? "";
-    expect(row).toContain("status: ReferralStatus");
-    expect(row).not.toMatch(/reason|risk|fraud|score|signal|invitedBy|children|level/i);
+    expect(row).toContain("stage: ReferralStage");
+    /* The one reason a member reads is why a sign-up is not eligible, from a
+       fixed list of plain words (D85); never a risk reason or a check name. */
+    expect(row.replace(/notEligibleReason: ReferralNotEligible \| null;/, "")).not.toMatch(/reason|risk|fraud|score|signal|invitedBy|children|level/i);
+    expect([...REFERRAL_NOT_ELIGIBLE]).toEqual(["already_rewarded", "not_approved", "reversed"]);
   });
 
   it("writes no rate, cap or minimum into a referral component or route", () => {

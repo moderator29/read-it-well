@@ -1,6 +1,6 @@
 import type { ShellDictionary } from "@/lib/i18n/shell-dictionary";
 import type { Side } from "@/lib/side.constants";
-import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import Image from "next/image";
 import { Logo } from "@/design-system/brand/Logo";
 import "@/app/css/side-flip.css";
 
@@ -8,9 +8,11 @@ import "@/app/css/side-flip.css";
  * The side cover: the back face of the flip.
  *
  * A full-viewport card in the INCOMING side's world. Canvas navy, the side's
- * glass mark, the wordmark, the side's name and one line about it, an accent
- * glow, and a still miniature of the other side's shelf: three glass objects
- * that stand for what lives there. It is static brand, needs no data, and is
+ * real 3D scene (the tier-a renders: a house with its keys, a hotel with its
+ * bell; it was a flat glass glyph, raised twice, A.9), the wordmark, the
+ * side's name and one line about it, an accent glow, and a still miniature of
+ * the other side's shelf: three tier-a objects that stand for what lives
+ * there. It is static brand, needs no data, and is
  * complete at any duration, which is the whole reason it exists: the flip
  * never races the network. Only the reveal into the real page waits, on this
  * cover's quiet shimmer if it must.
@@ -24,17 +26,14 @@ import "@/app/css/side-flip.css";
  * glow is the Stays glow before the shell has switched, without a second
  * token.
  */
-const COVER: Record<
-  Side,
-  { mark: BrandIconName; miniature: BrandIconName[] }
-> = {
+const COVER: Record<Side, { mark: string; miniature: string[] }> = {
   stays: {
-    mark: "hotel",
-    miniature: ["hotel", "shortlet", "serviced-apartment"],
+    mark: "/brand/tier-a/scene/scene-hotel-bell@2x.webp",
+    miniature: ["serviced-block", "villa-pool", "penthouse-terrace"],
   },
   property: {
-    mark: "keys-home",
-    miniature: ["keys-home", "home-check", "land-plot"],
+    mark: "/brand/tier-a/scene/scene-house-keys@2x.webp",
+    miniature: ["small-house", "apartment-block", "land-plot"],
   },
 };
 
@@ -74,7 +73,7 @@ export function SideCover({
       <div className="nf-flip-cover__glow" />
       <div className="nf-flip-cover__body">
         <div className="nf-flip-cover__mark">
-          <BrandIcon name={mark} size={128} priority />
+          <Image src={mark} alt="" width={168} height={168} sizes="168px" priority />
         </div>
         <div className="nf-flip-cover__brand">
           <Logo size={30} wordSize={16} />
@@ -86,7 +85,7 @@ export function SideCover({
         <ul className="nf-flip-cover__miniature" data-shimmer={shimmer || undefined}>
           {miniature.map((object, index) => (
             <li key={object} style={{ "--nf-flip-mini-i": index } as React.CSSProperties}>
-              <BrandIcon name={object} size={40} />
+              <Image src={`/brand/tier-a/${object}@2x.webp`} alt="" width={44} height={44} sizes="44px" />
             </li>
           ))}
         </ul>

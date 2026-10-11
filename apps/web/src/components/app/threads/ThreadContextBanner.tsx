@@ -59,6 +59,9 @@ export function ThreadContextBanner({
 }) {
   const words = copy.context;
 
+  /* A chat between two members has no context to card: no listing, stay or table. */
+  if (context.kind === "direct") return null;
+
   if (context.kind === "reservation") {
     if (!context.reservation) return null;
     const reservation = context.reservation;

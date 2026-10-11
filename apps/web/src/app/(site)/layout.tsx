@@ -39,7 +39,9 @@ export default async function SiteLayout({
 
   return (
     <>
-      {!shell && <SiteHeader t={t} locale={locale} />}
+      {/* The Plasma pass (P7): the landing's floating capsule on every public
+          page too, so the front door and the policies share one header. */}
+      {!shell && <SiteHeader t={t} locale={locale} variant="landing" />}
 
       {/* overflow-clip, not hidden: it clips the aurora the same way but is
           not a scroll container, so `position: sticky` inside works (the

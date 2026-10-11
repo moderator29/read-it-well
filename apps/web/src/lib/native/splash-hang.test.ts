@@ -15,8 +15,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
  *      the bridge primitive the native runtime injects, so the splash comes
  *      down even when the dynamic import of `@capacitor/core` never settles and
  *      `startSplash()` is therefore never reached at all.
- *   2. `splash.ts` arms its own FAILSAFE_MS timer the moment it runs, for the
- *      web view that never fires `load` or never paints another frame.
+ *   2. `splash.ts` hides at once and arms its own FAILSAFE_MS timer the
+ *      moment it runs, for a first hide the bridge never answers. (It used to
+ *      wait for `load` and two frames, which on Android never come while the
+ *      splash plugin is cancelling draws: October 2026, "up to 8 seconds".)
  *   3. `app/home-or-landing/route.ts` races `resolveSession()`, a live GoTrue
  *      round trip, against a deadline, because this route is the shell's cold
  *      start navigation: while it hangs, no document is delivered, so neither
@@ -24,7 +26,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
  *
  * The timings are asserted as the ordering they have to keep, not just as
  * literals: the bridge failsafe must be the LAST one to fire, so an ordinary
- * launch is never taken down by the escape hatch meant for a broken one.
+ * launch is never taken down by the escape hatch meant for a broken one, and
+ * both are short (2 and 2.5 seconds), because the first hide is now made by
+ * the startup's inline script on the document's first parse and these are
+ * only ever backups.
  */
 
 type TimerWindow = {
@@ -58,7 +63,7 @@ afterEach(() => {
 });
 
 describe("the bridge failsafe in boot.ts, for the chunk that never arrives", () => {
-  it("hides the splash through the injected bridge, 7 seconds after the runtime starts", async () => {
+  it("hides the splash through the injected bridge, 2.5 seconds after the runtime starts", async () => {
     vi.useFakeTimers();
     const nativePromise = vi.fn().mockResolvedValue(undefined);
     installWindow({
@@ -67,10 +72,11 @@ describe("the bridge failsafe in boot.ts, for the chunk that never arrives", () 
     /* The native chunk is the thing being simulated as never arriving, so the
        second (authoritative) gate must answer no and stop the async half. */
     vi.doMock("@capacitor/core", () => ({ Capacitor: { isNativePlatform: () => false } }));
-    const { startNativeRuntime } = await import("./boot");
+    const { startNativeRuntime, BRIDGE_FAILSAFE_MS } = await import("./boot");
+    expect(BRIDGE_FAILSAFE_MS).toBe(2_500);
 
     const stop = startNativeRuntime({ goBack: () => {} });
-    await vi.advanceTimersByTimeAsync(6_999);
+    await vi.advanceTimersByTimeAsync(2_499);
     expect(nativePromise).not.toHaveBeenCalled();
     await vi.advanceTimersByTimeAsync(1);
     expect(nativePromise).toHaveBeenCalledWith("SplashScreen", "hide", { fadeOutDuration: 200 });
@@ -90,7 +96,7 @@ describe("the bridge failsafe in boot.ts, for the chunk that never arrives", () 
     const { startNativeRuntime } = await import("./boot");
 
     const stop = startNativeRuntime({ goBack: () => {} });
-    await vi.advanceTimersByTimeAsync(7_000);
+    await vi.advanceTimersByTimeAsync(2_500);
     expect(nativePromise).toHaveBeenCalledTimes(1);
 
     stop();
@@ -122,56 +128,81 @@ describe("the bridge failsafe in boot.ts, for the chunk that never arrives", () 
   });
 });
 
-describe("the failsafe inside splash.ts, for the view that never paints", () => {
-  async function loadSplash(readyState: string) {
-    const hide = vi.fn().mockResolvedValue(undefined);
+describe("splash.ts: at once, with a failsafe for a hide the bridge never answers", () => {
+  async function loadSplash(answer: "resolves" | "never" | "rejects" = "resolves") {
+    const hide = vi.fn(() =>
+      answer === "resolves" ? Promise.resolve() : answer === "rejects" ? Promise.reject(new Error("no")) : new Promise<void>(() => {}),
+    );
     vi.doMock("@capacitor/splash-screen", () => ({ SplashScreen: { hide } }));
-    vi.stubGlobal("document", { readyState });
-    const { startSplash } = await import("./splash");
-    return { startSplash, hide };
+    /* A page still loading: the hide must not wait for `load` or a frame. */
+    vi.stubGlobal("document", { readyState: "loading" });
+    const { startSplash, FAILSAFE_MS } = await import("./splash");
+    return { startSplash, hide, FAILSAFE_MS };
   }
 
-  it("hides the splash after 4 seconds even though load never fires", async () => {
+  it("hides the splash at once, without waiting for load or a painted frame", async () => {
     vi.useFakeTimers();
-    installWindow();
-    const { startSplash, hide } = await loadSplash("loading");
+    const raf = vi.fn();
+    installWindow({ requestAnimationFrame: raf });
+    const { startSplash, hide } = await loadSplash();
 
     startSplash();
-    await vi.advanceTimersByTimeAsync(3_999);
-    expect(hide).not.toHaveBeenCalled();
-    await vi.advanceTimersByTimeAsync(1);
+    expect(hide).toHaveBeenCalledTimes(1);
     expect(hide).toHaveBeenCalledWith({ fadeOutDuration: 220 });
+    expect(raf).not.toHaveBeenCalled();
   });
 
-  it("fires well before the bridge failsafe, so the ordinary path always wins", async () => {
-    /* 4 s then 7 s. Reversed, every launch would be taken down by the escape
-       hatch, and the one failure the bridge timer exists for would be masked. */
+  it("hides only once when the first hide is answered: the failsafe finds the work done", async () => {
     vi.useFakeTimers();
     installWindow();
-    const { startSplash, hide } = await loadSplash("loading");
-    startSplash();
-    await vi.advanceTimersByTimeAsync(6_999);
-    expect(hide).toHaveBeenCalledTimes(1);
-  });
-
-  it("hides after two frames when the page is already complete, and hides only once", async () => {
-    vi.useFakeTimers();
-    installWindow();
-    const { startSplash, hide } = await loadSplash("complete");
-
-    startSplash();
-    expect(hide).not.toHaveBeenCalled();
-    await vi.advanceTimersByTimeAsync(32);
-    expect(hide).toHaveBeenCalledTimes(1);
-    /* The failsafe finds the work done rather than hiding a second time. */
+    const { startSplash, hide } = await loadSplash("resolves");
+    const stop = startSplash();
     await vi.advanceTimersByTimeAsync(10_000);
     expect(hide).toHaveBeenCalledTimes(1);
+    /* Nor does the teardown hide a second time. */
+    stop();
+    expect(hide).toHaveBeenCalledTimes(1);
   });
 
-  it("hides on teardown, because a cover over the whole screen must not survive", async () => {
+  it("hides again at 2 seconds when the bridge never answers the first hide", async () => {
+    vi.useFakeTimers();
     installWindow();
-    const { startSplash, hide } = await loadSplash("loading");
-    startSplash()();
+    const { startSplash, hide, FAILSAFE_MS } = await loadSplash("never");
+    expect(FAILSAFE_MS).toBe(2_000);
+
+    startSplash();
+    await vi.advanceTimersByTimeAsync(1_999);
     expect(hide).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(hide).toHaveBeenCalledTimes(2);
+    await vi.advanceTimersByTimeAsync(10_000);
+    expect(hide).toHaveBeenCalledTimes(2);
+  });
+
+  it("hides again at the failsafe when the plugin refuses the first hide", async () => {
+    vi.useFakeTimers();
+    installWindow();
+    const { startSplash, hide, FAILSAFE_MS } = await loadSplash("rejects");
+    startSplash();
+    await vi.advanceTimersByTimeAsync(FAILSAFE_MS);
+    expect(hide).toHaveBeenCalledTimes(2);
+  });
+
+  it("fires before the bridge failsafe, so the ordinary path always wins", async () => {
+    /* Reversed, every broken launch would wait on the escape hatch, and the
+       one failure the bridge timer exists for would be masked. */
+    installWindow();
+    const { FAILSAFE_MS } = await loadSplash();
+    vi.doMock("@capacitor/core", () => new Promise(() => {}));
+    const { BRIDGE_FAILSAFE_MS } = await import("./boot");
+    expect(FAILSAFE_MS).toBeLessThan(BRIDGE_FAILSAFE_MS);
+    vi.doUnmock("@capacitor/core");
+  });
+
+  it("hides on teardown when nothing has answered yet, because a cover over the whole screen must not survive", async () => {
+    installWindow();
+    const { startSplash, hide } = await loadSplash("never");
+    startSplash()();
+    expect(hide).toHaveBeenCalledTimes(2);
   });
 });

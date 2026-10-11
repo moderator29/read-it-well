@@ -18,6 +18,12 @@ import "@/app/css/site.css";
  * rule the landing hero follows). The plate is decorative (`alt=""`,
  * `aria-hidden`), sized through `next/image` at the width it is shown.
  *
+ * THE PLASMA PASS (P7, 7 October 2026). The head speaks the landing's
+ * dialect: a mono overline instead of a chip, the title at the landing's
+ * display weight and tightness, the field nearer black with one soft light
+ * behind the copy, and on a phone the plate as a photograph that fades at
+ * its edge (the rolling card stack's photograph) rather than a framed panel.
+ *
  * `heading` lets a layout render the head above pages that carry their own
  * h1 (the docs chapters); everywhere else it is the page's one h1.
  */
@@ -50,10 +56,13 @@ export function SiteHead({
       <div className="nf-aurora nf-site-head-aurora" aria-hidden="true" />
       <div className="nf-shell">
         <div className="nf-site-head-body mx-auto max-w-3xl">
-          <span className="nf-chip nf-rise">
-            <UiIcon name={lineGlyphFor(icon)} size={16} />
+          {/* The landing's mono overline (the Plasma pass, P7): the page's
+              kind, letter-spaced, with its line glyph, where a chip capsule
+              stood. One dialect from the front door to the last policy. */}
+          <p className="nf-site-head-overline nf-rise">
+            <UiIcon name={lineGlyphFor(icon)} size={16} aria-hidden />
             {chip}
-          </span>
+          </p>
           <Title className="nf-site-head-title nf-rise nf-rise-2 max-w-measure-display">{title}</Title>
           {lede && <p className="nf-site-head-lede nf-rise nf-rise-3 max-w-measure-lede">{lede}</p>}
           {children}

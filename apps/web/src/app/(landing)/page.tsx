@@ -1,4 +1,5 @@
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
+import { carriesSessionCookie } from "@/lib/auth/session-cookie";
 import { redirect } from "next/navigation";
 import { getDictionary, type Locale } from "@vallo/i18n";
 import { isShellUserAgent, SHELL_START } from "@/lib/native/shell";
@@ -77,8 +78,11 @@ export default async function LandingPage() {
   const nonce = head.get(NONCE_HEADER) ?? undefined;
   const locale: Locale = await getLocale();
   const t = getDictionary(locale);
-  const data = await landingData(t);
+  const data = await landingData();
   const native = (await requestSurface()) !== "web";
+  /* The capsule's Sign in and Sign up are for strangers only. Cookie names
+     alone, so the header never waits on auth (lib/auth/session-cookie.ts). */
+  const signedIn = carriesSessionCookie((await cookies()).getAll().map(({ name }) => name));
 
   return (
     /* THE LANDING FOLLOWS THE CHOSEN THEME (the founder, 25 September 2026:
@@ -95,7 +99,7 @@ export default async function LandingPage() {
       <JsonLd data={[organizationLd(), websiteLd({ searchOpen: publicCatalogueEnabled() })]} />
       {/* A6: the first-party funnel's landing view and "get started" door. */}
       <FunnelBeacon step="landing_view" watchStart />
-      <SiteHeader t={t} locale={locale} variant="landing" />
+      <SiteHeader t={t} locale={locale} variant="landing" signedIn={signedIn} />
       <LandingBody t={t} locale={locale} data={data} native={native} nonce={nonce} />
       <SiteFooter t={t} />
     </div>

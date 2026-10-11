@@ -107,7 +107,16 @@ describe("the results screen", () => {
     expect(results).not.toMatch(/bySource|apportion|estimate/);
   });
 
-  it("is not linked from anywhere: it waits for Session 2's reads", () => {
+  /*
+   * IT IS LINKED NOW, AND FROM ONE PLACE. This test used to assert the screen
+   * was linked from nowhere while Session 2's reads were missing; the founder
+   * could not find it, so it has doors (7 October 2026): the Promote action on
+   * a live listing's row and `/agent/promotion`. Both build the address with
+   * `promotionHref` in `lib/promotion/links.ts`, so the literal path appears
+   * there and nowhere else, and buying on the screen still says it is not on
+   * sale.
+   */
+  it("is linked only through lib/promotion/links.ts, from the listings row and the promotion hub", () => {
     const SRC = join(__dirname, "..", "..");
     const PAGE = join("app", "agent", "listings", "[listingId]", "promotion", "page.tsx");
     /* A literal path to the screen, outside the screen itself and the route maps
@@ -127,6 +136,14 @@ describe("the results screen", () => {
       }
     };
     walk(SRC);
-    expect(offenders).toEqual([]);
+    expect(offenders).toEqual(["/lib/promotion/links.ts"]);
+
+    /* The two doors use it, and the row offers it on a live listing only. */
+    const row = readFileSync(join(SRC, "app", "agent", "listings", "ListingsWorkspace.tsx"), "utf8");
+    expect(row).toMatch(/href=\{promotionHref\(listing\.id\)\}/);
+    expect(row).toMatch(/canPromote\(listing\)/);
+    const hub = readFileSync(join(SRC, "app", "agent", "promotion", "page.tsx"), "utf8");
+    expect(hub).toMatch(/href=\{promotionHref\(listing\.id\)\}/);
+    expect(hub).toContain("PROMOTION_NOT_ON_SALE");
   });
 });

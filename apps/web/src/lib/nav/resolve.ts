@@ -286,6 +286,7 @@ const FLOWS: readonly string[] = [
   "/around/new",
   "/support/new",
   "/u/[handle]/edit",
+  "/u/[handle]/message",
   "/tenancy/[id]/complaint",
   "/bookings/[bookingId]/review",
   "/checkout",

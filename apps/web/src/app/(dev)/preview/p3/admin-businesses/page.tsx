@@ -8,7 +8,7 @@ import { AdminRail, AdminTabs, ConsoleSearch } from "@/app/admin/_components/Adm
 import { ConsoleFooter } from "@/app/admin/_components/QueueTable";
 import { QueueFilters } from "@/app/admin/_components/QueueFilters";
 import { adminUi } from "@/app/admin/_components/ui";
-import { BusinessCard } from "@/app/admin/businesses/page";
+import { BusinessCard } from "@/app/admin/businesses/BusinessCard";
 import { BUSINESS_STATUSES } from "@/lib/admin/business-queries";
 import { PERSON } from "../../_fixtures/people";
 import { P3_BUSINESS, P3_BUSINESS_APPROVED } from "../fixtures";

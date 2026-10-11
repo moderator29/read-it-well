@@ -1,56 +1,51 @@
 "use client";
 
-import { useState } from "react";
 import type { Dictionary, Locale } from "@vallo/i18n/core";
+import { formatNumber } from "@vallo/i18n/core";
 import { Amount } from "@/components/ui/Amount";
-import { ButtonLink } from "@/components/ui/Button";
-import { Sheet } from "@/components/ui/Sheet";
-import { Panel } from "@/components/ui/Panel";
-import { ICON_PLATE_GLYPH, IconPlate } from "@/components/ui/IconPlate";
+import { IconPlate, ICON_PLATE_GLYPH } from "@/components/ui/IconPlate";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { ICON, Row, RowList, TYPE } from "@/components/app/Screen";
+import { TYPE } from "@/components/app/Screen";
+import { feedback } from "@/lib/ui/feedback";
 import {
   reserveHref,
-  type ReserveBase,
   MEAL_PLAN_KEY,
   ROOM_CATEGORY_KEY,
   orderedRooms,
   planAcceptsNights,
   ratePlanTotalMinor,
-  roomFromMinor,
   type StayDetail,
   type StayRatePlan,
-  type StayRoomType,
 } from "./detail-model";
+import { useStayPick } from "./StayPick";
+import "./stay-detail.css";
 
 /**
- * THE ROOMS, AS ROWS.
+ * THE ROOMS AND THEIR RATES, AS AN INSTANT BOOKING (D73, 7 October 2026).
  *
- * A hotel is a list of rooms and a room is a list of rates, and the mistake
- * every booking site makes is drawing that as a wall of cards with a price in
- * each corner. Rows: the name, who it sleeps, what the rate includes, and the
- * price, in one boxed list, the way the rest of this product draws a run of
- * like things. Tapping one opens its rate plans, which is the only place a
- * choice actually has to be made.
+ * A fixed-price stay books the way a hotel booking API does: pick a room and a
+ * rate, see the total, book and pay. So the rates are no longer behind a tap
+ * and a sheet. Each room is a header row (name, who it sleeps, its size) and
+ * under it every rate it offers is a clear card: the rate's name, what it
+ * includes, its cancellation policy in the policy's own words, the nightly
+ * price and, once dates are picked, the total for them. A card is a radio:
+ * choosing one moves the cost card and the anchored "Book and pay" to it
+ * (`StayPick`). The page starts on the rate Book now always chose.
  *
- * WHAT THE RATE INCLUDES IS ON THE ROW, not behind the tap, because it is the
- * difference between two numbers that otherwise look like the same room at
- * two prices.
+ * Still one list of like things, the rule the rows were written to: rooms are
+ * one boxed group, rates are rows of cards inside it, never a wall of
+ * unrelated tiles. A rate that cannot take these nights says why and cannot be
+ * chosen. Without dates nothing can be chosen, because there is no total to
+ * book yet; the cards still show every rate and price.
  */
 
 type StaysCopy = Dictionary["stayDetail"];
 
 /*
- * `ReserveBase` and `reserveHref` MOVED TO `detail-model.ts`.
- *
- * They were declared in this file, which carries "use client", so the server
- * component above it could not call `reserveHref` at all: Next refuses a
- * client export invoked from the server, and the stay face went to its error
- * boundary the moment its availability card tried to build a checkout link.
- * The link builder is pure string work with no browser in it, so it belongs in
- * the view model both sides already import. Re-exported here so every existing
- * call site keeps working and there is still exactly one definition.
+ * `ReserveBase` and `reserveHref` live in `detail-model.ts` (a "use client"
+ * export cannot be called from the server face). Re-exported here so every
+ * existing call site keeps working and there is one definition.
  */
 export type { ReserveBase } from "./detail-model";
 export { reserveHref };
@@ -61,154 +56,87 @@ export function RoomTypes({
   nights,
   locale,
   copy,
-  reserve,
 }: {
   detail: StayDetail;
   guests: number;
   nights: number | null;
   locale: Locale;
   copy: StaysCopy;
-  /**
-   * What the first-party checkout link is built from, as data: this is a
-   * client component under a server page, and a function cannot cross that
-   * line. The link itself is assembled here by `reserveHref`.
-   */
-  reserve: ReserveBase;
 }) {
-  const [open, setOpen] = useState<StayRoomType | null>(null);
+  const ctx = useStayPick();
   const rooms = orderedRooms(detail, guests);
+  const datesPicked = nights !== null && nights > 0;
 
   return (
-    <>
-      <RowList boxed>
-        {rooms.map((room) => {
-          const from = roomFromMinor(room, nights);
-          const fits = room.sleeps >= guests;
-          const includes = room.ratePlans[0]
-            ? copy.meal[MEAL_PLAN_KEY[room.ratePlans[0].mealPlan]]
-            : null;
-          return (
-            <Row key={room.id} tappable className="items-start">
-              <button
-                type="button"
-                onClick={() => setOpen(room)}
-                className="flex w-full items-start gap-sm text-left"
-                aria-label={copy.seeRates.replace("{room}", room.name)}
-              >
-                <IconPlate size="md" className="mt-3xs">
-                  <UiIcon name="bed" size={ICON_PLATE_GLYPH.md} />
-                </IconPlate>
-
-                <span className="min-w-0 flex-1">
-                  <span className={`block ${TYPE.rowTitle}`}>{room.name}</span>
-                  <span className={`mt-3xs block ${TYPE.rowMeta}`}>
-                    {copy.category[ROOM_CATEGORY_KEY[room.category]]}
-                    {" · "}
-                    {copy.sleeps.replace("{count}", String(room.sleeps))}
-                    {room.sizeSqm ? `\u00a0· ${room.sizeSqm} m²` : ""}
-                  </span>
-                  {includes && <span className={`mt-3xs block ${TYPE.rowMeta}`}>{includes}</span>}
-                  {!fits && (
-                    <span className="mt-2xs block">
-                      <StatusPill tone="neutral">{copy.tooSmall}</StatusPill>
-                    </span>
-                  )}
+    <div className="nf-rooms" role={datesPicked ? "radiogroup" : undefined} aria-label={copy.roomsTitle}>
+      {rooms.map((room) => {
+        const fits = room.sleeps >= guests;
+        return (
+          <section key={room.id} className="nf-rooms__room" aria-label={room.name}>
+            <div className="nf-rooms__head">
+              <IconPlate size="md">
+                <UiIcon name="bed" size={ICON_PLATE_GLYPH.md} />
+              </IconPlate>
+              <span className="min-w-0 flex-1">
+                <span className={`block ${TYPE.rowTitle}`}>{room.name}</span>
+                <span className={`mt-3xs block ${TYPE.rowMeta}`}>
+                  {copy.category[ROOM_CATEGORY_KEY[room.category]]}
+                  {" · "}
+                  {copy.sleeps.replace("{count}", formatNumber(room.sleeps, locale))}
+                  {room.sizeSqm ? ` · ${formatNumber(room.sizeSqm, locale)} m²` : ""}
                 </span>
+                {room.description ? <span className={`mt-3xs block ${TYPE.rowMeta}`}>{room.description}</span> : null}
+              </span>
+              {!fits && <StatusPill tone="neutral">{copy.tooSmall}</StatusPill>}
+            </div>
 
-                <span className="shrink-0 text-right">
-                  {from !== null ? (
-                    <>
-                      <span className={`block ${TYPE.label}`}>{copy.from}</span>
-                      <span className="nf-numeric block nf-body font-semibold text-[var(--nf-content-primary)]">
-                        <Amount minorUnits={from} locale={locale} />
-                      </span>
-                      <span className={`block ${TYPE.caption}`}>{copy.perNight}</span>
-                    </>
-                  ) : (
-                    <span className={`block ${TYPE.rowMeta}`}>{copy.noRate}</span>
-                  )}
-                </span>
-              </button>
-            </Row>
-          );
-        })}
-      </RowList>
-
-      {open && (
-        <RatePlanSheet
-          room={open}
-          nights={nights}
-          locale={locale}
-          copy={copy}
-          reserve={reserve}
-          onClose={() => setOpen(null)}
-        />
-      )}
-    </>
+            {room.ratePlans.length === 0 ? (
+              <p className={`nf-rooms__none ${TYPE.rowMeta}`}>{copy.noRatesYet}</p>
+            ) : (
+              <ul className="nf-rooms__rates">
+                {room.ratePlans.map((plan) => (
+                  <li key={plan.id}>
+                    <RateCard
+                      plan={plan}
+                      nights={nights}
+                      locale={locale}
+                      copy={copy}
+                      selected={ctx?.pick?.roomId === room.id && ctx.pick.planId === plan.id}
+                      onChoose={
+                        datesPicked && ctx
+                          ? () => {
+                              feedback("select");
+                              ctx.setPick({ roomId: room.id, planId: plan.id });
+                            }
+                          : null
+                      }
+                    />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        );
+      })}
+    </div>
   );
 }
 
-/**
- * The rates for one room.
- *
- * Each plan states what it includes, what it costs for THIS stay (not per
- * night, because the total is the thing being decided), and the cancellation
- * policy's own sentence. A plan that cannot take these dates is drawn as
- * refused, with the reason, rather than left out: "why can I not book the
- * cheap one" is answered on the screen instead of at the payment step.
- */
-function RatePlanSheet({
-  room,
-  nights,
-  locale,
-  copy,
-  reserve,
-  onClose,
-}: {
-  room: StayRoomType;
-  nights: number | null;
-  locale: Locale;
-  copy: StaysCopy;
-  reserve: ReserveBase;
-  onClose: () => void;
-}) {
-  return (
-    <Sheet open onOpenChange={(next) => !next && onClose()} title={room.name} detents={[0.62, 0.92]}>
-      {room.description && <p className={TYPE.body}>{room.description}</p>}
-
-      {room.ratePlans.length === 0 ? (
-        <p className={`mt-row ${TYPE.rowMeta}`}>{copy.noRatesYet}</p>
-      ) : (
-        <ul className="mt-row space-y-row">
-          {room.ratePlans.map((plan) => (
-            <li key={plan.id}>
-              <PlanCard
-                plan={plan}
-                nights={nights}
-                locale={locale}
-                copy={copy}
-                href={reserveHref(reserve, room.id, plan.id)}
-              />
-            </li>
-          ))}
-        </ul>
-      )}
-    </Sheet>
-  );
-}
-
-function PlanCard({
+function RateCard({
   plan,
   nights,
   locale,
   copy,
-  href,
+  selected,
+  onChoose,
 }: {
   plan: StayRatePlan;
   nights: number | null;
   locale: Locale;
   copy: StaysCopy;
-  href: string;
+  selected: boolean;
+  /** Null when nothing can be chosen yet (no dates). */
+  onChoose: (() => void) | null;
 }) {
   const total = ratePlanTotalMinor(plan, nights);
   const accepts = planAcceptsNights(plan, nights);
@@ -216,63 +144,74 @@ function PlanCard({
     accepts || nights === null
       ? null
       : nights < plan.minStayNights
-        ? copy.minStay.replace("{count}", String(plan.minStayNights))
-        : copy.maxStay.replace("{count}", String(plan.maxStayNights ?? 0));
+        ? copy.minStay.replace("{count}", formatNumber(plan.minStayNights, locale))
+        : copy.maxStay.replace("{count}", formatNumber(plan.maxStayNights ?? 0, locale));
+  const choosable = onChoose !== null && refusal === null && total !== null;
+  const meal = copy.meal[MEAL_PLAN_KEY[plan.mealPlan]];
 
-  return (
-    <Panel as="div" variant="card" className="isolate">
-      <div className="flex items-start justify-between gap-row">
-        <div className="min-w-0">
-          <p className={TYPE.rowTitle}>{plan.name}</p>
-          <p className={`mt-3xs ${TYPE.rowMeta}`}>{copy.meal[MEAL_PLAN_KEY[plan.mealPlan]]}</p>
-        </div>
-        <div className="shrink-0 text-right">
-          <span className="nf-numeric block nf-body font-semibold text-[var(--nf-content-primary)]">
-            <Amount minorUnits={plan.rateMinor} locale={locale} />
+  const body = (
+    <>
+      <span className="nf-rate__main">
+        <span className={`block ${TYPE.rowTitle}`}>{plan.name}</span>
+        {/* What the rate includes, unless the rate is already named for it
+            ("Room only" over "Room only" says one thing twice). */}
+        {meal.toLowerCase() !== plan.name.trim().toLowerCase() ? (
+          <span className={`mt-3xs block ${TYPE.rowMeta}`}>{meal}</span>
+        ) : null}
+        {/* The cancellation policy in its own words, from the policy's summary
+            column. Not paraphrased: a refund rule a screen rewrote is a refund
+            rule nobody can be held to. */}
+        {plan.policy ? (
+          <span className={`nf-rate__policy ${TYPE.rowMeta}`} data-free={plan.policy.freeUntilHours !== null || undefined}>
+            <UiIcon name="verified" size={14} className="mt-3xs shrink-0" />
+            <span className="min-w-0">{plan.policy.summary}</span>
           </span>
-          <span className={`block ${TYPE.caption}`}>{copy.perNight}</span>
-        </div>
+        ) : null}
+        {refusal ? (
+          <span role="status" className={`mt-2xs block ${TYPE.rowMeta}`}>
+            {refusal}
+          </span>
+        ) : null}
+      </span>
+      <span className="nf-rate__price">
+        <span className="nf-numeric block font-semibold text-[var(--nf-content-primary)]">
+          <Amount minorUnits={plan.rateMinor} locale={locale} />
+        </span>
+        <span className={`block ${TYPE.caption}`}>{copy.perNight}</span>
+        {total !== null && nights !== null && refusal === null ? (
+          <span className="nf-rate__total nf-numeric">
+            <Amount minorUnits={total} locale={locale} />
+            <span className={`block ${TYPE.caption}`}>{copy.totalFor.replace("{count}", formatNumber(nights, locale))}</span>
+          </span>
+        ) : null}
+      </span>
+      {onChoose !== null ? (
+        <span className="nf-rate__check" aria-hidden="true" data-on={selected || undefined}>
+          {selected ? <UiIcon name="check" size={14} /> : null}
+        </span>
+      ) : null}
+    </>
+  );
+
+  if (onChoose === null) {
+    return (
+      <div className="nf-rate" data-testid="rate-card">
+        {body}
       </div>
-
-      {/* The cancellation policy in its own words, from the policy's summary
-          column. Not paraphrased here: a refund rule a screen rewrote is a
-          refund rule nobody can be held to. */}
-      {plan.policy && (
-        <p className={`mt-row flex items-start gap-inline-tight ${TYPE.rowMeta}`}>
-          <UiIcon
-            name="verified"
-            size={ICON.inline}
-            className={`mt-3xs shrink-0 ${
-              plan.policy.freeUntilHours !== null ? "text-[var(--nf-state-success)]" : ""
-            }`}
-          />
-          <span className="min-w-0">{plan.policy.summary}</span>
-        </p>
-      )}
-
-      {refusal ? (
-        <p role="status" className={`mt-row ${TYPE.rowMeta}`}>
-          {refusal}
-        </p>
-      ) : total !== null ? (
-        <div className="mt-row flex items-end justify-between gap-row">
-          <p className="min-w-0">
-            <span className={`block ${TYPE.label}`}>
-              {copy.totalFor.replace("{count}", String(nights ?? 0))}
-            </span>
-            <span className="nf-numeric block nf-h3 text-[var(--nf-content-primary)]">
-              <Amount minorUnits={total} locale={locale} />
-            </span>
-          </p>
-          {/* The FIRST-PARTY checkout, always. This lane never borrows a step
-              from the third-party one. */}
-          <ButtonLink href={href} variant="primary" className="shrink-0">
-            {copy.reserve}
-          </ButtonLink>
-        </div>
-      ) : (
-        <p className={`mt-row ${TYPE.rowMeta}`}>{copy.pickDatesForTotal}</p>
-      )}
-    </Panel>
+    );
+  }
+  return (
+    <button
+      type="button"
+      role="radio"
+      aria-checked={selected}
+      disabled={!choosable}
+      onClick={choosable ? onChoose : undefined}
+      className="nf-rate nf-rate--choice"
+      data-selected={selected || undefined}
+      data-testid="rate-card"
+    >
+      {body}
+    </button>
   );
 }

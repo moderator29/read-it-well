@@ -87,10 +87,10 @@ export function SystemMoment({
           />
           {!inset && (
             <Image
-              src="/brand/vallo-wordmark.png"
+              src="/brand/vallo-wordmark.svg"
               alt="Vallo"
               width={176}
-              height={39}
+              height={37}
               priority
               className="nf-system__wordmark"
             />

@@ -104,7 +104,7 @@ export function ProfileEditor({
           className="nf-panel nf-panel--card nf-panel--held p-md"
         >
           <p className="flex items-center gap-xs text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-status-pending)]">
-            <UiIcon name="sparkle" size={15} className="shrink-0" />
+            <UiIcon name="hourglass" size={15} className="shrink-0" />
             {BIO_HELD_TITLE}
           </p>
           <p className="mt-2xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">

@@ -57,20 +57,3 @@ export function forAuth(t: Dictionary): AuthCopy {
     welcomeCards: { label: t.welcomeCards.label },
   };
 }
-
-/** What the welcome intro reads (`WelcomeIntro`). */
-export type WelcomeCopy = {
-  welcomeCards: Pick<Dictionary["welcomeCards"], "intro">;
-  landing: Pick<Dictionary["landing"], "slogan" | "explanation">;
-  auth: Pick<Dictionary["auth"], "termsNotice">;
-  safety: Pick<Dictionary["safety"], "termsLink" | "privacyLink">;
-};
-
-export function forWelcome(t: Dictionary): WelcomeCopy {
-  return {
-    welcomeCards: { intro: t.welcomeCards.intro },
-    landing: { slogan: t.landing.slogan, explanation: t.landing.explanation },
-    auth: { termsNotice: t.auth.termsNotice },
-    safety: { termsLink: t.safety.termsLink, privacyLink: t.safety.privacyLink },
-  };
-}

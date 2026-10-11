@@ -1,6 +1,6 @@
 import type { InterestsState } from "@/lib/interests/queries";
 import { firstRunNext, isAuthDoor } from "@/components/app/welcome/first-run-seen";
-import { isPropertyType, type PropertyType } from "@/lib/interests/model";
+import { isPropertyType, type PropertyType } from "@/lib/interests/schema";
 
 /**
  * Who sees what at `/welcome`, as one pure function so it can be tested
@@ -32,8 +32,8 @@ export type FirstRunPlan =
       next: string | null;
       /**
        * Where the stranger was actually going, when they were going somewhere.
-       * Present means the slides are skipped and the choice is headed with it
-       * (V-18). Absent means a cold start: the store install, the typed
+       * Present means the last slide's choice is headed with it (V-18); the
+       * slides still show first (the founder, 7 October 2026). Absent means a cold start: the store install, the typed
        * domain, Get started on the landing page.
        */
       arrival: Arrival | null;

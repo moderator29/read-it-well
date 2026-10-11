@@ -5,13 +5,15 @@ import { DEFAULT_LOCALE, formatNumber, type Locale } from "@vallo/i18n/core";
 import { useClientCopy } from "@/lib/i18n/client-copy";
 import { useRef, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { motionQuiet } from "@/lib/motion/gate";
 import { isPhotoMorphFor, startPhotoMorph } from "@/lib/motion/photo-morph";
 import { AuthGate } from "@/components/auth/AuthGate";
 import { PostBody } from "./PostBody";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { LineGlyph } from "./LineGlyph";
+import { ActionPill } from "./ActionPill";
+import { PostPicture } from "./PostPicture";
+import { MediaRail } from "./MediaRail";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import { TierBadge } from "@/components/trust/TierBadge";
 import { panelClass } from "@/components/ui/Panel";
@@ -140,7 +142,7 @@ function compact(n: number, locale: Locale): string {
 
 function Avatar({ author }: { author: PostAuthor | null }) {
   const initial = initialOf(author?.displayLabel ?? author?.handle);
-  return (
+  const face = (
     /* The glass ring the render draws around every face: a thin luminous
        border box with the photo cut inside it, lit from the upper left like
        the rest of the material. */
@@ -167,26 +169,46 @@ function Avatar({ author }: { author: PostAuthor | null }) {
       )}
     </span>
   );
+  /*
+   * THE FACE OPENS THE PERSON (founder, 7 October: "I can't click a profile").
+   * It was an inert span, so a tap on it fell through to the card and opened
+   * the post. It is the same door as the name beside it: the name is the one
+   * a screen reader and the keyboard use, so the face is taken out of the tab
+   * order rather than announced twice.
+   */
+  if (!author?.handle) return face;
+  return (
+    <Link
+      href={`/u/${author.handle}`}
+      className="nf-post__face"
+      tabIndex={-1}
+      aria-hidden="true"
+      data-testid="post-avatar"
+    >
+      {face}
+    </Link>
+  );
 }
 
 /**
- * The metric row.
+ * THE ACTION ROW, VALLO'S OWN (founder, 8 October: "a new next gen style...
+ * a bit look away from x").
  *
- * Like, comment, share, then the view count, then a bookmark pushed to the far
- * right. That order is the board's and it is also the order of intent: the two
- * you do to the writer, the one you do to somebody else, the fact about the
- * post, and the one you do for yourself.
+ * X draws five equal glyphs spread across the full width, reply first. This
+ * row is two groups. On the left, what you say back to the writer, verdict
+ * first: like, comment, repost, each a bare glyph with its count close beside
+ * it. On the right, set apart, what you do with the post: send it to
+ * somebody, and save it to your own shelf, the save at the far edge where the
+ * eye ends, because on a property network the saved home is the mark people
+ * come back for. Bare glyphs throughout (D79: no capsule, no disc), each a
+ * 44px target in its own box. A count of nothing is not drawn; the label
+ * still says it aloud. Saves are private, so the save carries no count.
  *
- * Views are a plain number and they are not a button. A count of how many
- * people saw something is a fact about it, not something anybody can do to it,
- * and rendering it as a control would promise an action that does not exist.
+ * Views stay off the row: a count of how many saw something is a fact about
+ * it, not something anybody can do to it.
  *
- * Repost IS here now. The note that used to sit in its place said the row was
- * full at 390px and sent people to the action sheet for it - and the sheet had
- * no repost row either, so a real RLS-bound write sat unreachable behind an
- * `onRepost` prop nothing ever passed. Five controls and a number do fit,
- * because the counts are the only thing that grows and they are the thing a
- * reader most wants beside the control.
+ * The haptic for a like is the handler's (`Feed`), where the optimistic write
+ * is; the pop is `ActionPill`'s and plays only on the tap that turns it on.
  */
 function ActionRow({
   post,
@@ -194,6 +216,7 @@ function ActionRow({
   onLike,
   onReply,
   onRepost,
+  onSave,
   onShare,
 }: {
   post: PostView;
@@ -201,93 +224,94 @@ function ActionRow({
   onLike: () => void;
   onReply: () => void;
   onRepost: () => void;
+  onSave?: () => void;
   onShare: () => void;
 }) {
-  /*
-   * WHICH CONTROL WAS JUST TAPPED ON, for the pop in `feed-m.css`.
-   *
-   * `data-pop` is set only on the tap that turns a mark ON and only while the
-   * mark is on, so a post somebody liked last week does not throw its heart
-   * as the feed loads. The haptic for a like is the handler's (`Feed`), where
-   * the optimistic write is.
-   */
-  const [popped, setPopped] = useState<"like" | "repost" | null>(null);
+  const likes = compact(post.likeCount, locale);
+  const reposts = compact(post.repostCount, locale);
   return (
     <div className="nf-post__actions">
       {/*
         THE WRITE ACTIONS GATE, THE READ ONES DO NOT.
 
-        Like, reply and repost all write a row against an account, so a guest
-        tapping one is sent to sign up carrying the feed URL and the verb and
-        comes back to this post. Share writes nothing and is left alone: a
-        guest may share a post they are allowed to read.
-
-        The controls stay at full strength rather than being hidden or dimmed.
-        A feed with its actions greyed out reads as broken; a feed whose
-        actions invite you to join reads as a product.
-
-        Heart, repost, reply, then share on its own at the far end: the order
-        the governing image draws. Save lives in the kebab's sheet, and the
-        view count is a fact the sheet's surface does not need to carry.
+        Reply, repost, like and save all write a row against an account, so a
+        guest tapping one is sent to sign up carrying the feed URL and the verb
+        and comes back to this post. Share writes nothing and is left alone: a
+        guest may share a post they are allowed to read. The controls stay at
+        full strength rather than dimmed: a feed with its actions greyed out
+        reads as broken; one whose actions invite you to join reads as a
+        product.
       */}
-      <AuthGate action="react">
-        <button
-          type="button"
-          className="nf-post__act nf-post__act--like"
-          aria-pressed={post.liked}
-          data-pop={popped === "like" && post.liked ? "" : undefined}
-          onClick={() => {
-            if (!post.liked) setPopped("like");
-            onLike();
-          }}
-        >
-          <UiIcon name="heart" size={20} filled={post.liked} />
-          <span className="nf-numeric">{compact(post.likeCount, locale)}</span>
-          <span className="sr-only">{post.liked ? "liked, undo" : "likes, like this"}</span>
-        </button>
-      </AuthGate>
+      <div className="nf-post__acts nf-post__acts--say">
+        <AuthGate action="react">
+          <ActionPill
+            icon="heart"
+            tone="like"
+            className="nf-post__act--like"
+            pressed={post.liked}
+            payoff
+            count={post.likeCount > 0 ? likes : undefined}
+            label={post.liked ? `Liked, ${likes}. Undo` : `Likes ${likes}, like this`}
+            onClick={onLike}
+          />
+        </AuthGate>
 
-      <AuthGate action="react">
-        <button
-          type="button"
-          className="nf-post__act nf-post__act--repost"
-          aria-pressed={post.reposted}
-          data-active={post.reposted ? "" : undefined}
-          data-pop={popped === "repost" && post.reposted ? "" : undefined}
-          onClick={() => {
-            if (!post.reposted) setPopped("repost");
-            onRepost();
-          }}
-        >
-          <LineGlyph name="repost" size={20} />
-          <span className="nf-numeric">{compact(post.repostCount, locale)}</span>
-          <span className="sr-only">
-            {post.reposted ? "reposted, undo" : "reposts, repost this"}
-          </span>
-        </button>
-      </AuthGate>
+        <AuthGate action="post">
+          <ActionPill
+            icon="chat-bubble"
+            tone="reply"
+            className="nf-post__act--reply"
+            count={post.replyCount > 0 ? compact(post.replyCount, locale) : undefined}
+            label={`${countOf(post.replyCount, "replies", locale)}, reply to this`}
+            onClick={onReply}
+          />
+        </AuthGate>
 
-      <AuthGate action="post">
-        <button type="button" className="nf-post__act nf-post__act--reply" onClick={onReply}>
-          <UiIcon name="chat-bubble" size={16} />
-          <span className="nf-numeric" aria-hidden="true">{compact(post.replyCount, locale)}</span>
-          <span className="sr-only">
-            {countOf(post.replyCount, "replies", locale)}, reply to this
-          </span>
-        </button>
-      </AuthGate>
+        <AuthGate action="react">
+          <ActionPill
+            icon="repost-loop"
+            tone="repost"
+            className="nf-post__act--repost"
+            pressed={post.reposted}
+            payoff
+            count={post.repostCount > 0 ? reposts : undefined}
+            label={post.reposted ? `Reposted, ${reposts}. Undo` : `Reposts ${reposts}, repost this`}
+            onClick={onRepost}
+          />
+        </AuthGate>
+      </div>
 
-      <button
-        type="button"
-        className="nf-post__act nf-post__act--share ms-auto"
-        onClick={onShare}
-        aria-label="Share this post"
-      >
-        <UiIcon name="share" size={20} />
-      </button>
+      <div className="nf-post__acts nf-post__acts--keep">
+        <ActionPill
+          icon="send"
+          tone="share"
+          round
+          className="nf-post__act--share"
+          label="Share this post"
+          onClick={onShare}
+        />
+
+        {onSave ? (
+          <AuthGate action="react">
+            <ActionPill
+              icon="bookmark"
+              tone="save"
+              round
+              className="nf-post__act--save"
+              pressed={post.saved}
+              label={post.saved ? "Saved. Remove from saved" : "Save this post"}
+              onClick={onSave}
+            />
+          </AuthGate>
+        ) : null}
+      </div>
     </div>
   );
 }
+
+/** What keeps its own tap inside a card. Anything else opens the post. */
+const CONTROL =
+  "a, button, input, textarea, select, label, summary, video, [role='button'], [role='menuitem'], [role='dialog'], [contenteditable='true']";
 
 export function PostCard({
   post,
@@ -296,8 +320,10 @@ export function PostCard({
   onReply,
   onRepost,
   onShare,
+  onSave,
   onMenu,
   editor,
+  detail = false,
 }: {
   post: PostView;
   /* Optional so a caller that has not been threaded yet still compiles and
@@ -308,14 +334,16 @@ export function PostCard({
   onReply: () => void;
   onRepost: () => void;
   onShare: () => void;
-  /** Accepted for the callers that wire it; saving lives in the kebab's sheet
-      now, which is where the row's bookmark went. */
+  /** The save disc in the action row. A surface that cannot save (a preview,
+      a record) leaves it out and the row draws no disc. */
   onSave?: () => void;
   /** Opens the action sheet. The sheet itself belongs to the surface, so one
       sheet exists per screen rather than one per card. */
   onMenu: () => void;
   /** Rendered in place of the body while this post is being changed. */
   editor?: React.ReactNode;
+  /** The post's own page: adds the time and view line above the actions. */
+  detail?: boolean;
 }) {
   /* Read before the early return below: a hook runs on every render. */
   const aroundLine = useClientCopy().uiCommon.around;
@@ -331,29 +359,55 @@ export function PostCard({
    * `startPhotoMorph` opens, so a hard load names nothing.
    */
   const mediaRef = useRef<HTMLDivElement>(null);
-  /* The overlay link that opens the post. The picture hands its own tap to it
-     (`openFromPicture`) so the picture can stay a real, pressable image. */
-  const openRef = useRef<HTMLAnchorElement>(null);
-  const openFromPicture = (event: React.MouseEvent<HTMLElement>) => {
-    /* Anything inside the media that is itself a link or a button keeps its own
-       tap. A plain picture opens the post, as the card always did. */
-    if ((event.target as HTMLElement).closest("a, button")) return;
-    const link = openRef.current;
-    if (!link) return;
-    /*
-     * A cmd or ctrl click, or the middle button, means "in a new tab", as it
-     * does on the link itself. Forwarding it with `link.click()` dropped the
-     * modifier and opened the post in THIS tab (audit A7), so it is opened
-     * where the person asked, from inside their own gesture. Shift and alt
-     * (a new window, a download) are the browser's to answer and are left
-     * alone rather than guessed at.
-     */
+  const router = useRouter();
+  /*
+   * TAPPING THE POST OPENS THE POST; TAPPING A CONTROL DOES THAT CONTROL.
+   *
+   * THE DEAD FEED (founder, 7 October: "I can't click a profile, it takes me
+   * into the actual content of the post... can't like or comment"). The card
+   * used to be opened by an absolutely positioned anchor laid over the whole
+   * card at z-index 1, with every control raised to z-index 2 above it. The
+   * feed's arrival motion (feed-m.css, `nf-feed-part`) animates the head and
+   * the action row on a view timeline with `forwards` fill, and a filled
+   * opacity and translate animation makes each of them a STACKING CONTEXT: the
+   * z-index 2 on the like button was then only a rank inside the action row,
+   * and the row itself painted below the overlay. Every tap on the avatar, the
+   * name, like, reply, repost, save, share and the kebab landed on the anchor
+   * and opened the post. Chrome on Android supports view timelines, so it was
+   * dead exactly where the founder reads it.
+   *
+   * So no overlay. The card listens for the click itself and opens the post
+   * only when the tap did not land on (or inside) something that is its own
+   * control. Nothing can be painted over a control now, whatever any future
+   * animation does to the stacking order. A tap that ends a text selection is
+   * a selection, not a navigation. The time is a real link to the post, so a
+   * keyboard and a screen reader have the same door in.
+   */
+  const openPost = (event: React.MouseEvent<HTMLElement>) => {
+    if (editor) return;
+    const target = event.target as HTMLElement;
+    const control = target.closest(CONTROL);
+    if (control !== null && control !== event.currentTarget) return;
+    const selection = typeof window !== "undefined" ? window.getSelection?.() : null;
+    if (selection && !selection.isCollapsed && selection.toString().trim() !== "") return;
+    const href = `/post/${post.id}`;
+    /* A cmd or ctrl click, or the middle button, means "in a new tab" (audit
+       A7), opened from inside the person's own gesture. Shift and alt are the
+       browser's to answer and are left alone rather than guessed at. */
     if (event.metaKey || event.ctrlKey || event.button === 1) {
-      window.open(link.href, "_blank", "noopener");
+      window.open(new URL(href, window.location.href).toString(), "_blank", "noopener");
       return;
     }
     if (event.shiftKey || event.altKey || event.button !== 0) return;
-    link.click();
+    const media = mediaRef.current;
+    if (media && !motionQuiet()) {
+      media.style.viewTransitionName = `post-photo-${post.id}`;
+      startPhotoMorph(`post-${post.id}`);
+      window.setTimeout(() => {
+        media.style.viewTransitionName = "";
+      }, 1500);
+    }
+    router.push(href);
   };
   const [arriving] = useState(() => isPhotoMorphFor(`post-${post.id}`));
   /*
@@ -367,7 +421,6 @@ export function PostCard({
 
   const isSystem = post.authorKind === "SYSTEM";
   const isBot = post.authorKind === "BOT";
-  const hasPlate = Boolean(post.listing?.photoUrl);
 
   /* The shared card (`Panel`, variant card): the console's lit glass, the
      one container anatomy on the platform. The feed's own rules only tune
@@ -383,11 +436,40 @@ export function PostCard({
       .join(" "),
   });
 
+  /* The time is the post's own link: the keyboard's and the screen reader's
+     way into the thread, as on every feed people know. */
+  const when = (
+    <Link href={`/post/${post.id}`} className="nf-post__when" aria-label="Open post and replies">
+      {post.createdLabel}
+      {post.edited ? " · edited" : ""}
+    </Link>
+  );
+
+  /*
+   * THE PLACE, AS A CONTEXT CHIP. This is a network about homes, stays and
+   * neighbourhoods, so where a post was written is part of what it says. A
+   * small chip on the platform's blue tint with the pin in brand blue; on a
+   * single photograph it rides the picture's lower corner on a dark scrim,
+   * the way a listing photo carries its badge, and otherwise it sits under
+   * the words. It takes you to the place. The 44px target is the link's own
+   * box; the chip is drawn inside it.
+   */
+  const place =
+    post.areaName && post.areaSlug && !isSystem ? (
+      <Link href={`/around/${post.areaSlug}`} className="nf-post__place">
+        <span className="nf-post__place-chip">
+          <UiIcon name="location" size={12} filled />
+          <span className="truncate">{aroundLine.replace("{area}", post.areaName)}</span>
+        </span>
+      </Link>
+    ) : null;
+  const placeOnPhoto = place !== null && post.media.length === 1;
+
   const body = (
     <>
       {post.repostedBy ? (
         <p className="mb-xs flex items-center gap-xs text-[length:var(--nf-text-overline)] font-semibold text-[var(--nf-content-muted)]">
-          <UiIcon name="repost" size={14} />
+          <UiIcon name="repost-loop" size={14} />
           Reposted by {post.repostedBy}
         </p>
       ) : null}
@@ -395,9 +477,9 @@ export function PostCard({
       {/*
         THE HEAD, AS THE RENDER DRAWS IT.
 
-        The face in its glass ring, then the name with the verified mark beside
-        it and the handle on the line under, then the time and the kebab at the
-        far end. The mark is `TierBadge`, the one badge on the
+        The face, then the name with the verified mark beside it and the
+        handle and the time on one quiet line under it, then the kebab alone
+        at the far end. The mark is `TierBadge`, the one badge on the
         platform, drawn from `public.person_badge` and nothing else. It used to
         be a tick for `isAgent`, which is a role marker and not a check of
         anybody (`lib/trust/badge-tier.ts` forbids exactly that reading).
@@ -413,11 +495,18 @@ export function PostCard({
 
         <div className="nf-post__who">
           {isSystem ? (
-            <span className="nf-post__name">Vallo</span>
+            <>
+              <span className="nf-post__name">Vallo</span>
+              <span className="nf-post__metaline">{when}</span>
+            </>
           ) : isBot ? (
             <>
               <span className="nf-post__name">Vallo AI</span>
-              <span className="nf-post__handle">The assistant</span>
+              <span className="nf-post__metaline">
+                <span className="nf-post__handle">The assistant</span>
+                <span className="nf-post__dot" aria-hidden="true" />
+                {when}
+              </span>
             </>
           ) : (
             <>
@@ -425,6 +514,7 @@ export function PostCard({
                 <Link
                   href={post.author?.handle ? `/u/${post.author.handle}` : "#"}
                   className="nf-post__name"
+                  data-testid="post-author"
                 >
                   {post.author?.displayLabel ?? `@${post.author?.handle ?? "someone"}`}
                 </Link>
@@ -440,17 +530,20 @@ export function PostCard({
                   </span>
                 ) : null}
               </span>
-              {post.author?.handle ? (
-                <span className="nf-post__handle">@{post.author.handle}</span>
-              ) : null}
+              {/* The handle and the time share one quiet line under the
+                  name, so the far end of the head holds the menu alone. */}
+              <span className="nf-post__metaline">
+                {post.author?.handle ? (
+                  <>
+                    <span className="nf-post__handle">@{post.author.handle}</span>
+                    <span className="nf-post__dot" aria-hidden="true" />
+                  </>
+                ) : null}
+                {when}
+              </span>
             </>
           )}
         </div>
-
-        <span className="nf-post__when">
-          {post.createdLabel}
-          {post.edited ? " · edited" : ""}
-        </span>
 
         {/* The header carries the name, the time and this. Nothing else: the
             bookmark that used to sit here lives in the sheet this opens. */}
@@ -461,7 +554,7 @@ export function PostCard({
           aria-haspopup="dialog"
           onClick={onMenu}
         >
-          <UiIcon name="more" size={16} />
+          <UiIcon name="more" size={20} />
         </button>
       </div>
 
@@ -480,21 +573,13 @@ export function PostCard({
         </p>
       ) : null}
 
-      {editor ? (
-        <div className="mt-sm">{editor}</div>
-      ) : post.body ? (
-        <PostBody
-          text={post.body}
-          className={
-            isSystem
-              ? "nf-post__body nf-post__body--system"
-              : "nf-post__body"
-          }
-        />
-      ) : null}
-
       {/*
-        * The pictures.
+        * The pictures, FIRST (8 October). The photograph leads and the words
+        * read under it as its caption, the order of a listing card and of
+        * every picture-led feed, and the opposite of a text timeline where a
+        * picture is an attachment under somebody's words. On a network about
+        * homes, stays and places, the place is usually the post.
+        *
         *
         * Signed URLs against a private bucket, which is why they are read and
         * signed for a whole page at once and why this is a plain `img`: a
@@ -502,20 +587,28 @@ export function PostCard({
         * image optimiser would cache somebody's private photograph behind a
         * URL that outlives the signature.
         *
-        * One is a wide plate, two are a pair, three are a tall one beside two,
-        * four are a square. Every layout is a fixed shape, so the card does not
-        * jump when the pictures arrive.
+        * One is a 4:3 plate; two to four are a sideways rail of tall cards
+        * (`MediaRail`). Every shape is fixed before a byte arrives, so the
+        * card does not jump when the pictures do.
         */}
-      {post.media.length > 0 ? (
+      {post.media.length > 1 ? (
+        /* Two to four pictures: the sideways rail (`MediaRail`), here and on
+           the post's own page. The photo-open transition names the rail. */
         <div
           ref={mediaRef}
-          onClick={openFromPicture}
-          onAuxClick={openFromPicture}
+          className="nf-post__media nf-post__media--rail"
+          style={arriving ? { viewTransitionName: `post-photo-${post.id}` } : undefined}
+        >
+          <MediaRail media={post.media.slice(0, 4)} />
+        </div>
+      ) : post.media.length === 1 ? (
+        <div
+          ref={mediaRef}
           className={`nf-post__media nf-post__media--${Math.min(post.media.length, 4)}`}
           style={arriving ? { viewTransitionName: `post-photo-${post.id}` } : undefined}
         >
           {post.media.slice(0, 4).map((picture, index) => (
-            <RemoteImage
+            <PostPicture
               key={picture.url}
               src={picture.url}
               alt={
@@ -532,32 +625,26 @@ export function PostCard({
                   ? "(max-width: 640px) 100vw, 640px"
                   : "(max-width: 640px) 50vw, 320px"
               }
-              loading="lazy"
             />
           ))}
+          {placeOnPhoto ? <span className="nf-post__place-on-photo">{place}</span> : null}
         </div>
       ) : null}
 
-      {post.areaName && post.areaSlug && !isSystem ? (
-        <Link
-          href={`/around/${post.areaSlug}`}
-          /*
-           * THE SHAPE LAW, AND THIS ONE PASSED EVERY GREP FOR A YEAR.
-           *
-           * It was `h-6` on `--nf-radius-control`: 14px of radius on a 24px
-           * box, a ratio of 0.583, which the browser draws as a capsule with a
-           * 4px straight edge down each side. The token name is the correct
-           * one and `check-css-tokens.mjs` rule 10 passed it, which is exactly
-           * why DESIGN_DIRECTION.md:80 makes the test the RATIO and not the
-           * name. 10 on 28 is 0.357, which matches `.nf-landing-float-badge`,
-           * the same object on the landing page, which already reasoned its
-           * way to this pair.
-           */
-          className="mt-sm inline-flex h-7 items-center rounded-[var(--nf-radius-sm)] border border-[var(--nf-border-subtle)] px-sm text-[length:var(--nf-text-overline)] font-semibold text-[var(--nf-content-muted)]"
-        >
-          {aroundLine.replace("{area}", post.areaName)}
-        </Link>
+      {editor ? (
+        <div className="mt-sm">{editor}</div>
+      ) : post.body ? (
+        <PostBody
+          text={post.body}
+          className={
+            isSystem
+              ? "nf-post__body nf-post__body--system"
+              : "nf-post__body"
+          }
+        />
       ) : null}
+
+      {placeOnPhoto ? null : place}
 
       {post.cited.length > 0 ? (
         <div className="nf-post__cited">
@@ -578,19 +665,7 @@ export function PostCard({
         </p>
       ) : null}
 
-      {post.listing && hasPlate ? (
-        <div className="nf-post__media nf-post__media--1" onClick={openFromPicture} onAuxClick={openFromPicture}>
-          <Image
-            src={post.listing.photoUrl as string}
-            alt={post.listing.title}
-            width={800}
-            height={600}
-            sizes="(max-width: 768px) 100vw, 640px"
-          />
-        </div>
-      ) : null}
-
-      {post.listing ? <ListingBlock listing={post.listing} /> : null}
+      {post.listing ? <ListingAttachment listing={post.listing} /> : null}
 
       {/*
         The row is on every card, a platform post included.
@@ -603,69 +678,40 @@ export function PostCard({
         A platform post is still a post: it can be saved, replied to, and it
         has a view count somebody may want to see.
       */}
+      {detail ? (
+        /* On the post's own page: when it was written and how many have
+           seen it, the facts the feed card leaves out. A glyph and a figure,
+           no noun to inflect. */
+        <p className="nf-post__meta">
+          <span>{post.createdLabel}</span>
+          <span aria-hidden="true">&middot;</span>
+          <span className="nf-post__meta-views">
+            <UiIcon name="views" size={12} />
+            <span className="nf-numeric">{compact(post.viewCount, locale)}</span>
+            <span className="sr-only">seen</span>
+          </span>
+        </p>
+      ) : null}
       <ActionRow
         post={post}
         locale={locale}
         onLike={onLike}
         onReply={onReply}
         onRepost={onRepost}
+        onSave={onSave}
         onShare={onShare}
       />
     </>
   );
 
   return (
-    <article className={shell} aria-label={describe(post)}>
-      {/*
-        TAPPING THE POST OPENS THE POST.
-
-        Until now the body was inert: the only ways into a thread were the
-        reply count and the timestamp, so a reader who tapped the words, which
-        is what everybody does, got nothing at all.
-
-        This is an overlay link rather than a wrapper, and the reason is that a
-        post already contains links: the author, the area, a listing, a
-        mention. Nesting those inside an anchor is invalid HTML, and browsers
-        resolve it by breaking the inner one, so wrapping the card would have
-        traded one dead tap for four.
-
-        So the whole card gets one absolutely positioned anchor sitting above
-        the text and BELOW every control, which `.nf-post__open` and the
-        z-index rule beside it in social-feed.css arrange. A tap on the words
-        hits this; a tap on the like button, the author or the listing plate
-        hits that.
-
-        `editor` is the inline reply composer. While it is open this link is
-        not rendered at all, because an overlay across a form is a text field
-        that navigates away when you try to click into it.
-      */}
-      {editor ? null : (
-        <Link
-          ref={openRef}
-          href={`/post/${post.id}`}
-          className="nf-post__open"
-          aria-label="Open post and replies"
-          onClick={(event) => {
-            if (
-              event.defaultPrevented ||
-              event.button !== 0 ||
-              event.metaKey ||
-              event.ctrlKey ||
-              event.shiftKey ||
-              event.altKey
-            ) {
-              return;
-            }
-            const media = mediaRef.current;
-            if (!media || motionQuiet()) return;
-            media.style.viewTransitionName = `post-photo-${post.id}`;
-            startPhotoMorph(`post-${post.id}`);
-            window.setTimeout(() => {
-              media.style.viewTransitionName = "";
-            }, 1500);
-          }}
-        />
-      )}
+    <article
+      className={shell}
+      aria-label={describe(post)}
+      onClick={openPost}
+      onAuxClick={openPost}
+      data-testid="post-card"
+    >
       {body}
     </article>
   );
@@ -683,48 +729,37 @@ export function PostCard({
  * card needs that query widened first; it is filed as a finding rather than
  * worked around by copying the catalogue card's anatomy into this file.
  *
- * So this deliberately stays a PLATE and not a card: one line of title, one
- * of place, the figure and the way in. It carries the register's lit edge so
- * it belongs to the card it sits in, and it borrows none of the catalogue
- * card's composition, which is what forking it would mean.
+ * SO IT IS A COMPACT ATTACHMENT, ONE TAP, NO SECOND PRIMARY. The plate used to
+ * be a wide photograph, a title, a place, a large figure and a lit "See the
+ * place" button: a second primary on a card whose primary is the post, and
+ * the clutter A.5 names. It is now one row inside a quiet inset: a square
+ * thumbnail (reserved, blur-up), the title and the place, the figure set
+ * tabular on the right, and a chevron. The whole row is the link, so the way
+ * in is the attachment itself, as on every product people already know.
  */
-function ListingFacts({ listing }: { listing: PostListing }) {
+function ListingAttachment({ listing }: { listing: PostListing }) {
   return (
-    <div className="mt-sm border-t border-[var(--nf-brand-edge-soft)] pt-sm">
-      <p className="text-[length:var(--nf-text-body-sm)] font-bold tracking-[-0.015em] text-[var(--nf-content-primary)]">
-        {listing.title}
-      </p>
-      <p className="mt-3xs flex items-center gap-2xs text-[length:var(--nf-text-overline)] text-[var(--nf-brand-secondary)]">
-        {listing.area}, {listing.city}
-        {listing.verified ? (
-          <span className="font-semibold text-[var(--nf-brand-secondary)]">&middot; Verified</span>
-        ) : null}
-      </p>
-      <div className="mt-sm flex flex-wrap items-center justify-between gap-sm">
-        <p className="nf-numeric text-[length:var(--nf-text-body-lg)] font-bold tracking-[-0.03em] text-[var(--nf-content-primary)]">
-          {listing.priceLabel}{" "}
-          <span className="text-[length:var(--nf-text-overline)] font-semibold tracking-normal text-[var(--nf-brand-secondary)]">
-            {listing.periodLabel}
-          </span>
-        </p>
-        <Link
-          href={`/listing/${listing.id}`}
-          className="nf-btn nf-btn--primary inline-flex h-9 items-center px-md text-[length:var(--nf-text-caption)]"
-        >
-          See the place
-        </Link>
-      </div>
-    </div>
-  );
-}
-
-function ListingBlock({ listing }: { listing: PostListing }) {
-  return (
-    <div className="nf-post__plate mt-sm overflow-hidden">
-      <div className="p-sm">
-        <ListingFacts listing={listing} />
-      </div>
-    </div>
+    <Link href={`/listing/${listing.id}`} className="nf-post__attach">
+      <span className="nf-post__attach-thumb" aria-hidden="true">
+        {listing.photoUrl ? (
+          <PostPicture src={listing.photoUrl} alt="" width={160} height={160} sizes="64px" />
+        ) : (
+          <UiIcon name="home" size={20} />
+        )}
+      </span>
+      <span className="nf-post__attach-text">
+        <span className="nf-post__attach-title">{listing.title}</span>
+        <span className="nf-post__attach-place">
+          {listing.area}, {listing.city}
+          {listing.verified ? <span className="nf-post__attach-verified"> &middot; Verified</span> : null}
+        </span>
+      </span>
+      <span className="nf-post__attach-price nf-numeric">
+        {listing.priceLabel}
+        <span className="nf-post__attach-period">{listing.periodLabel}</span>
+      </span>
+      <UiIcon name="chevron-right" size={16} className="nf-post__attach-chevron" />
+    </Link>
   );
 }
 

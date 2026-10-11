@@ -4,7 +4,6 @@ import { ButtonLink } from "@/components/ui/Button";
 import { Amount } from "@/components/ui/Amount";
 import { DepthWords, wordCount } from "@/components/motion/DepthWords";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { EdgeLap } from "@/components/site/EdgeLap";
 import { photo } from "@/lib/site/photos";
 import { catalogueIsOpen, type Door } from "./doors";
 import { HeroSurface } from "./HeroSurface";
@@ -62,7 +61,26 @@ import "@/app/css/site.css";
  * opens the catalogue it is "Explore properties". The secondary is the Stays
  * side, through the same honest door.
  *
- * The intro (item 24, landing-rooms.css): the eyebrow rises first, the words
+ * THE PLASMA PASS (P7, 7 October 2026; PREMIUM-STANDARD.md, the governing
+ * level). The frames stay; the stage got quieter and the content lit:
+ *
+ *   - the eyebrow capsule became the frames' mono breadcrumb, and a trust
+ *     promise sat under the explanation (both since removed, below);
+ *   - the one action is the white capsule with its reflection on the floor
+ *     (the Plasma "Next"), the secondary a quiet door beside it;
+ *   - the floating 3D objects and the three facts left the hero: Plasma
+ *     holds one idea and one action per screen, and the facts are told
+ *     properly in the deal story below, where the objects now illustrate
+ *     the five steps and each one explains something.
+ *
+ * WHAT LEFT THE HERO (the founder, 7 October 2026, on a phone). The mono
+ * breadcrumb of the four markets, which the markets band below already says,
+ * and the "Vallo never holds your money" promise line over the actions. The
+ * money story is told in the docs instead (/docs/money-and-the-guarantee,
+ * "How money moves on Vallo"), in full sentences per route; the FAQ and the
+ * deal story still answer it on this page.
+ *
+ * The intro (item 24, landing-rooms.css): the words
  * arrive 45ms apart, the sub, the actions and the facts rise 12px from 300ms,
  * the search at 420ms, and the card lands last; under 900ms in all, once per
  * visit.
@@ -73,11 +91,19 @@ export function Hero({ t, locale, door }: { t: Dictionary; locale: Locale; door:
   const copy = heroCopy(t);
   const [lead, accent] = copy.lines;
   const open = catalogueIsOpen(door);
-  const facts = [hero.facts.inspect, hero.facts.moveIn, hero.facts.agree];
   const u = t.landingRooms.stack.ui;
 
   return (
-    <section className="nf-landing-hero" data-chapter="hero" data-theme="dark" aria-labelledby="nf-landing-title">
+    /* `data-startup-pin`: the intro is timed from the startup's door, and the
+       startup pins that time here before it lets go (landing-3d.css, "the
+       hero's own hold"), so nothing waiting jumps to its end. */
+    <section
+      className="nf-landing-hero nf-landing-hero--plasma"
+      data-chapter="hero"
+      data-theme="dark"
+      data-startup-pin=""
+      aria-labelledby="nf-landing-title"
+    >
       {/* The back layer: the night photograph, at 0.6x. Decorative; the
           frames' villa is a picture of a place, not a listing. */}
       <div className="nf-hero-photo" aria-hidden="true">
@@ -92,10 +118,6 @@ export function Hero({ t, locale, door }: { t: Dictionary; locale: Locale; door:
       </div>
       <div className="nf-shell nf-landing-hero-body">
         <div className="nf-hero-copy">
-          <EdgeLap as="p" className="nf-hero-eyebrow nf-rise nf-rise-1">
-            <UiIcon name="sparkle" size={16} aria-hidden />
-            <span>{hero.eyebrow}</span>
-          </EdgeLap>
           {/* THE DEPTH ARRIVAL. Each word comes forward, 45ms after the word
               before it, once per visit. The words are spans inside the line,
               so the heading still reads as written. */}
@@ -112,10 +134,19 @@ export function Hero({ t, locale, door }: { t: Dictionary; locale: Locale; door:
           <p className="nf-rise nf-rise-3 nf-landing-sub">{copy.subtitle}</p>
           <div className="nf-rise nf-rise-4 nf-hero-action">
             <div className="nf-hero-action__row">
-              <ButtonLink href={door("/search")} variant="primary" size="lg" trailingIcon="arrow-right">
+              {/* The one action: the white capsule with its reflection. */}
+              <ButtonLink
+                href={door("/search")}
+                variant="primary"
+                size="lg"
+                trailingIcon="arrow-right"
+                className="nf-pl-capsule"
+              >
                 {open ? hero.explore : hero.getStarted}
               </ButtonLink>
-              <ButtonLink href={door("/stays")} variant="secondary" size="lg">
+              {/* The second door is the warm spark (D81): blue leads, orange
+                  sparks, one orange button in the hero. */}
+              <ButtonLink href={door("/stays")} variant="spark" size="lg" className="nf-pl-spark">
                 {t.landingRooms.worlds.stays.cta}
               </ButtonLink>
             </div>
@@ -155,15 +186,6 @@ export function Hero({ t, locale, door }: { t: Dictionary; locale: Locale; door:
               one surface (HeroSurface.tsx). */}
           <HeroSurface search={face.search} moveIn={t.publicDoors.moveIn} />
         </div>
-
-        <ul className="nf-hero-facts nf-rise nf-rise-4">
-          {facts.map((fact) => (
-            <li key={fact}>
-              <UiIcon name="circle-check" size={16} aria-hidden />
-              {fact}
-            </li>
-          ))}
-        </ul>
       </div>
     </section>
   );

@@ -79,6 +79,9 @@ export const VERCEL_JOBS: readonly VercelJob[] = [
   { name: "rent-share-refunds", cron: "35 * * * *", schedule: "Hourly at :35", maxGapHours: 2, audit: { entityType: "cron_job", term: "rent-share-refunds" } },
   /* C2: hosts' Airbnb and Booking.com calendars pulled in. A no-op while CALENDAR_SYNC_ENABLED is off. */
   { name: "calendar-sync", cron: "2,17,32,47 * * * *", schedule: "Every 15 minutes", maxGapHours: 2, audit: { entityType: "cron_job", term: "calendar-sync" } },
+  { name: "reservation-deposit-refunds", cron: "40 * * * *", schedule: "Hourly at :40", maxGapHours: 2, audit: { entityType: "cron_job", term: "reservation-deposit-refunds" } },
+  /* VC1: closes the provider rooms of finished calls. Skipped while `video_calls` is off. */
+  { name: "calls-sweep", cron: "*/5 * * * *", schedule: "Every 5 minutes", maxGapHours: 1, audit: { entityType: "cron_job", term: "calls-sweep" } },
 ];
 
 /**
@@ -96,6 +99,11 @@ export const PG_CRON_JOBS: readonly PgCronJob[] = [
   { name: "vallo_push_drain", cron: "*/5 * * * *", when: "every 5 min", what: "asks the app to drain the push queue" },
   { name: "vallo_safety_share_sweep", cron: "*/10 * * * *", when: "every 10 min", what: "reminds a renter who has not checked in after an inspection they shared" },
   { name: "vallo_hold_claims_sweep", cron: "* * * * *", when: "every minute", what: "lets compliance hold claims take over within a minute of a this-was-not-me hold ending (SCUML items 6 and 8)" },
+  { name: "vallo_calls_sweep", cron: "* * * * *", when: "every minute", what: "applies every call deadline (missed, failed, connection lost, expired reviews) and writes the missed-call notice (VC1)" },
+  { name: "vallo_referral_qualify", cron: "3,18,33,48 * * * *", when: "every 15 min", what: "retries qualification for every invited member who has finished a step (Invite and Earn, D85)" },
+  { name: "vallo_referral_flag_clusters", cron: "26 * * * *", when: "hourly at :26", what: "flags clusters of referrals that look like one person, for review before any reward is released (D85)" },
+  { name: "vallo_referral_release_due", cron: "11,41 * * * *", when: "every 30 min", what: "makes a referral reward available once its review window has passed (D85)" },
+  { name: "vallo_subscriptions_sweep", cron: "9,24,39,54 * * * *", when: "every 15 min", what: "moves Pro and Business subscriptions with the clock: trials end, lapsed and cancelled plans close, unpaid checkouts are abandoned" },
   { name: "vallo_release_stale_holds", cron: "*/15 * * * *", when: "every 15 min", what: "database side of the hold release" },
   { name: "vallo_remind_hosts_to_decide", cron: "4,19,34,49 * * * *", when: "every 15 min", what: "reminds a host once when a room or table request has used three quarters of its window (C3)" },
   { name: "vallo_send_member_reminders", cron: "7,22,37,52 * * * *", when: "every 15 min", what: "sends each viewing reminder (the evening before, two hours before) and rent-due reminder (180, 90, 30, 7 days) once (B5, B10)" },

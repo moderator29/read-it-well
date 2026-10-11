@@ -3,6 +3,7 @@ import { sheetWordsOf } from "@/components/social/sheet-words";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
+import { ButtonLink } from "@/components/ui/Button";
 import { FollowButton } from "@/components/social/profile/FollowButton";
 import { ProfileHeader } from "@/components/social/profile/ProfileHeader";
 import { ValloRecord } from "@/components/app/trust/ValloRecord";
@@ -21,7 +22,6 @@ import {
   MEMBER_TABS,
   type TabKey,
 } from "@/lib/social/profile-tabs-schema";
-import { AroundFab } from "@/components/social/AroundFab";
 import { loadPublicProfile, normaliseHandle } from "@/lib/social/profiles-queries";
 import { siteUrl } from "@/lib/site";
 import { withNext } from "@/lib/auth/next-link";
@@ -177,9 +177,9 @@ export default async function SocialProfilePage({
       ]);
 
     return (
-      /* Room under the tabs' last line for the floating compose button, as
-         the other Around pages keep (`pb-4xl`): a short page's empty state
-         sat under it with no way to scroll it clear (Round 3 sweep). */
+      /* Room under the tabs' last line for the dock (`pb-4xl`): a short
+         page's empty state sat under it with no way to scroll it clear
+         (Round 3 sweep). */
       <div className="mx-auto max-w-2xl pb-4xl">
         <ProfileHeader
           profile={view.profile}
@@ -204,7 +204,21 @@ export default async function SocialProfilePage({
                 initialFollowing={view.viewerFollows}
                 signedIn={view.signedIn}
                 labels={t.socialProfile}
+                /* The compact rung (D79: "a bit smaller and clean"). */
+                compact
               />
+            )
+          }
+          /* How to reach them. Every other member can be written to from their
+             profile (founder, 9 October 2026): one chat per pair of people,
+             separate from the chats about a listing, which still start from
+             the listing. Signed out, the same link leads to a sign-in that
+             returns here. */
+          message={
+            view.isOwner ? undefined : (
+              <ButtonLink href={`/u/${view.profile.handle}/message`} size="sm" variant="secondary" leadingIcon="messages" className="shrink-0">
+                {t.socialProfile.message}
+              </ButtonLink>
             )
           }
           share={
@@ -241,7 +255,8 @@ export default async function SocialProfilePage({
           data={{ posts, replies, media, activity, properties, stories, reviews }}
         />
 
-        <AroundFab />
+        {/* No create fan here (founder, 7 October): the composer belongs on
+            the feed, which has its own plus; a person's profile is theirs. */}
       </div>
     );
   }

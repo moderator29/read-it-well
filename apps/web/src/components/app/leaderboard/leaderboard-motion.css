@@ -1,0 +1,306 @@
+/*
+ * THE LEADERBOARD'S MOTION (D76, MOTION_SYSTEM 2b). One sequence of ideas:
+ * light arrives, the plinths rise 2, 3, 1, the people drop onto them, first
+ * is celebrated, the rest of the board rises, the You pill arrives last.
+ * Transform and opacity only; nothing loops. The base styles in
+ * leaderboard.css are the settled frame, so a gated root simply drops these.
+ * The re-rank when City and Global flip is a FLIP in parts.tsx.
+ */
+
+/* ------------------------------------------------------------ small parts */
+
+.nf-lb__frame {
+  position: relative;
+  display: inline-grid;
+}
+
+.nf-lb__drop {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.nf-lb__bit {
+  opacity: 0;
+}
+
+button.nf-lb__row {
+  inline-size: 100%;
+  text-align: start;
+  font: inherit;
+}
+
+.nf-lb__row-name-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nf-lb__empty-actions {
+  display: grid;
+  gap: var(--nf-space-sm);
+  inline-size: 100%;
+  max-inline-size: 20rem;
+  margin-top: var(--nf-space-md);
+}
+
+.nf-lb__text-button {
+  min-block-size: 2.75rem;
+}
+
+.nf-lb__dir-link {
+  display: flex;
+  align-items: center;
+  gap: var(--nf-space-sm);
+  min-block-size: 2.75rem;
+  color: var(--nf-content-primary);
+  font-size: var(--nf-text-body-sm);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.nf-lb__dir-link span {
+  flex: 1;
+}
+
+.nf-lb-share-actions {
+  display: grid;
+  gap: var(--nf-space-sm);
+  margin-top: var(--nf-space-lg);
+}
+
+.nf-lb-share-actions p {
+  text-align: center;
+}
+
+.nf-lb-steps-wrap {
+  margin-top: var(--nf-space-lg);
+}
+
+.nf-lb-explainer-actions {
+  margin-top: var(--nf-space-xl);
+}
+
+.nf-lb-earned__body {
+  margin-top: var(--nf-space-xs);
+}
+
+.nf-lb-spark[data-spark="0"] {
+  left: -18%;
+  top: 8%;
+  --lb-delay: 500ms;
+}
+.nf-lb-spark[data-spark="1"] {
+  left: 104%;
+  top: 16%;
+  --lb-delay: 620ms;
+}
+.nf-lb-spark[data-spark="2"] {
+  left: -6%;
+  top: 70%;
+  --lb-delay: 740ms;
+}
+.nf-lb-spark[data-spark="3"] {
+  left: 96%;
+  top: 78%;
+  --lb-delay: 560ms;
+}
+
+/* -------------------------------------------------------------- keyframes */
+
+@keyframes nf-lb-sweep {
+  from {
+    transform: rotate(var(--lb-sweep));
+    opacity: 0;
+  }
+  to {
+    transform: rotate(0deg);
+    opacity: 0.85;
+  }
+}
+
+@keyframes nf-lb-rise-plinth {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes nf-lb-drop {
+  from {
+    transform: translateY(-2.25rem);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes nf-lb-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes nf-lb-fall {
+  0% {
+    transform: translate3d(0, -1.5rem, 0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(var(--lb-drift), 22rem, 0) rotate(var(--lb-turn));
+    opacity: 0;
+  }
+}
+
+@keyframes nf-lb-rise {
+  from {
+    transform: translateY(0.875rem);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes nf-lb-turn {
+  from {
+    transform: rotateY(90deg);
+    opacity: 0;
+  }
+  to {
+    transform: rotateY(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes nf-lb-you {
+  from {
+    transform: translateY(1.5rem);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes nf-lb-rays-in {
+  from {
+    transform: rotate(-12deg) scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: rotate(0deg) scale(1);
+    opacity: 1;
+  }
+}
+
+/* The one payoff that may pop: 1.0 to 1.04 to 1.0 (MOTION_SYSTEM principle 5). */
+@keyframes nf-lb-medal {
+  0% {
+    transform: translateY(0.75rem) scale(0.6);
+    opacity: 0;
+  }
+  70% {
+    transform: translateY(0) scale(1.04);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes nf-lb-spark {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.8);
+    opacity: 0.9;
+  }
+}
+
+/* ------------------------------------------------------------ the sequence */
+
+.nf-lb__beam {
+  animation: nf-lb-sweep 1400ms var(--nf-ease-entrance) both;
+}
+
+.nf-lb__plinth {
+  animation: nf-lb-rise-plinth 620ms var(--nf-ease-entrance) var(--lb-delay, 0ms) both;
+}
+
+.nf-lb__drop {
+  animation: nf-lb-drop 520ms var(--nf-ease-entrance) calc(var(--lb-delay, 0ms) + 340ms) both;
+}
+
+.nf-lb__glow {
+  animation: nf-lb-fade 600ms var(--nf-ease-entrance) 660ms both;
+}
+
+.nf-lb__bit {
+  animation: nf-lb-fall 1700ms var(--nf-ease-exit) calc(var(--lb-delay, 0ms) + 1080ms) both;
+}
+
+.nf-lb__glyph {
+  animation: nf-lb-turn 220ms var(--nf-ease-entrance) both;
+}
+
+.nf-lb__li {
+  animation: nf-lb-rise 460ms var(--nf-ease-entrance) calc(var(--lb-delay, 0ms) + 700ms) both;
+}
+
+/* After the entrance, a row that arrives on a re-rank rises at once. */
+.nf-lb[data-settled] .nf-lb__li {
+  animation-delay: var(--lb-delay, 0ms);
+}
+
+.nf-lb__you {
+  animation: nf-lb-you 520ms var(--nf-ease-entrance) 1100ms both;
+}
+
+.nf-lb-rays {
+  animation: nf-lb-rays-in 1200ms var(--nf-ease-entrance) both;
+}
+
+.nf-lb-medal {
+  animation: nf-lb-medal 620ms var(--nf-ease-entrance) 120ms both;
+}
+
+.nf-lb-spark {
+  animation: nf-lb-spark 600ms var(--nf-ease-entrance) var(--lb-delay, 0ms) both;
+}
+
+.nf-lb-earned__copy {
+  animation: nf-lb-rise 400ms var(--nf-ease-entrance) 400ms both;
+}
+
+/* ------------------------------------------- the settled frame, when gated */
+
+@media (prefers-reduced-motion: reduce) {
+  :root .nf-lb *,
+  :root .nf-lb-layer * {
+    animation: none;
+    transition: none;
+  }
+}
+
+:root[data-motion="off"] :is(.nf-lb, .nf-lb-layer) *,
+:root[data-motion="calm"] :is(.nf-lb, .nf-lb-layer) *,
+:root[data-save-data="on"] :is(.nf-lb, .nf-lb-layer) * {
+  animation: none;
+  transition: none;
+}

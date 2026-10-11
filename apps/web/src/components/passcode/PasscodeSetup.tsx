@@ -2,10 +2,12 @@
 
 import { useCallback, useId, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import type { Locale } from "@vallo/i18n/core";
+import { plural, type Locale } from "@vallo/i18n/core";
 import { forgotPasscodeAction, setPasscodeAction } from "@/lib/passcode/actions";
 import { signOut } from "@/lib/profile/actions";
+import { forgetKeptPages } from "@/lib/offline/page-cache";
 import {
+  ATTEMPTS_PER_COOLDOWN,
   DEFAULT_PASSCODE_LENGTH,
   isTrivialCode,
   type PasscodeLength,
@@ -13,10 +15,12 @@ import {
 import { fill, herePath, markTabUnlocked } from "@/lib/passcode/tab";
 import { feedback } from "@/lib/ui/feedback";
 import { showSuccess } from "@/lib/ui/success-moments";
+import { platformLockAvailable } from "@/lib/security/webauthn-client";
+import { Button, ButtonLink } from "@/components/ui/Button";
+import { BIO_ENROL_HREF, markBioOfferSeen, readBioOfferSeen, shouldOfferBiometric } from "./biometric-offer";
 import { Keypad, PasscodeDots } from "./Keypad";
 import { PasscodeFrame } from "./PasscodeFrame";
 import type { PasscodeCopy } from "./PasscodeLock";
-import { wrongCodeMessage } from "./wrong-message";
 
 type Step = "current" | "enter" | "confirm";
 
@@ -30,12 +34,7 @@ type Step = "current" | "enter" | "confirm";
  *
  * The code is typed twice. A trivial code (a repeat, a run, the birth year) is
  * refused here before it is sent and again by the database, which is the
- * authority. Four digits by default (D18, `DEFAULT_PASSCODE_LENGTH` in
- * `lib/passcode/rules.ts`); one tap switches to six.
- *
- * The screen is the rebuilt frame (`PasscodeFrame`): the mark, the step's
- * title, and the dots as the subject; a refused code shakes and clears the
- * same way a wrong one does on the lock.
+ * authority. Four digits by default (D18); one tap switches to six.
  */
 export function PasscodeSetup({
   copy,
@@ -48,6 +47,7 @@ export function PasscodeSetup({
   currentLength = DEFAULT_PASSCODE_LENGTH,
   initialLength = DEFAULT_PASSCODE_LENGTH,
   onDone,
+  offerBiometric = false,
 }: {
   copy: PasscodeCopy;
   locale: Locale;
@@ -59,6 +59,13 @@ export function PasscodeSetup({
   currentLength?: PasscodeLength;
   initialLength?: PasscodeLength;
   onDone?: (event: "set" | "change" | "reset") => void;
+  /**
+   * The member holds no platform key yet, so a NEW passcode may be followed,
+   * once per device and only where the device can ask its own lock, by the
+   * offer to unlock with Face ID or fingerprint next time (`biometric-offer.ts`).
+   * The offer links to the enrolment; it unlocks nothing.
+   */
+  offerBiometric?: boolean;
 }) {
   const titleId = useId();
   const router = useRouter();
@@ -73,6 +80,8 @@ export function PasscodeSetup({
   const [busy, setBusy] = useState(false);
   const [leaving, startLeaving] = useTransition();
   const sending = useRef(false);
+  /* The passcode is saved and the one-time Face ID offer is on screen. */
+  const [offering, setOffering] = useState(false);
 
   /* The typed digits, mirrored in a ref so two keys pressed inside one
      render are both kept. */
@@ -112,7 +121,16 @@ export function PasscodeSetup({
           setFirst("");
           setCurrent("");
           if (onDone) onDone(result.event);
-          else router.refresh();
+          else if (
+            overlay &&
+            offerBiometric &&
+            result.event === "set" &&
+            shouldOfferBiometric({ enrolled: false, supported: await platformLockAvailable(), seen: readBioOfferSeen() })
+          ) {
+            /* Saved and unlocked already; the offer only waits for a choice. */
+            markBioOfferSeen();
+            setOffering(true);
+          } else router.refresh();
           return;
         }
         switch (result.reason) {
@@ -127,7 +145,12 @@ export function PasscodeSetup({
             const attempt = result.attempt;
             setCurrent("");
             if (attempt?.status === "wrong") {
-              refuse(wrongCodeMessage(attempt, copy, locale), "current");
+              refuse(
+                attempt.beforeSignOut <= ATTEMPTS_PER_COOLDOWN
+                  ? plural(attempt.beforeSignOut, copy.wrongLastBeforeSignOut, locale)
+                  : plural(attempt.beforeCooldown, copy.wrongLeft, locale),
+                "current",
+              );
             } else if (attempt?.status === "cooldown") {
               refuse(fill(copy.cooldown, { seconds: attempt.retryAfterSeconds }), "current");
             } else {
@@ -158,7 +181,7 @@ export function PasscodeSetup({
         setBusy(false);
       }
     },
-    [askCurrent, copy, current, first, length, locale, onDone, put, refuse, router],
+    [askCurrent, copy, current, first, length, locale, offerBiometric, onDone, overlay, put, refuse, router],
   );
 
   /* The last digit moves the flow on, from the key press itself. */
@@ -229,6 +252,46 @@ export function PasscodeSetup({
         : fill(copy.stepChoose, { count: length });
   const hint = step === "enter" ? (mode === "reset" ? copy.resetBody : copy.setupBody) : "";
 
+  if (offering) {
+    return (
+      <PasscodeFrame
+        overlay={overlay}
+        wordmark={copy.wordmark}
+        titleId={titleId}
+        title={copy.bioOfferTitle}
+        subtitle={copy.bioOfferBody}
+        name={name}
+        avatarUrl={avatarUrl}
+        focal="lock"
+        door="biometric"
+        testId="passcode-bio-offer"
+      >
+        <div className="nf-passcode__offer">
+          <ButtonLink
+            href={BIO_ENROL_HREF}
+            variant="primary"
+            size="lg"
+            full
+            className="nf-passcode__bio"
+            data-testid="passcode-bio-offer-set-up"
+          >
+            {copy.bioOfferSetUp}
+          </ButtonLink>
+          <Button
+            variant="secondary"
+            size="lg"
+            full
+            className="nf-passcode__second"
+            onClick={() => router.refresh()}
+            data-testid="passcode-bio-offer-later"
+          >
+            {copy.bioOfferLater}
+          </Button>
+        </div>
+      </PasscodeFrame>
+    );
+  }
+
   return (
     <PasscodeFrame
       overlay={overlay}
@@ -238,6 +301,7 @@ export function PasscodeSetup({
       subtitle={subtitle}
       name={name}
       avatarUrl={avatarUrl}
+      focal="lock"
       testId={`passcode-setup-${step}`}
     >
       <PasscodeDots length={width} filled={code.length} shake={shake} label={fill(copy.digitsEntered, { count: code.length, total: width })} />
@@ -269,6 +333,8 @@ export function PasscodeSetup({
             onClick={() =>
               startLeaving(async () => {
                 await signOut();
+                /* The pages this phone kept for offline go with the session. */
+                await forgetKeptPages();
                 window.location.assign("/");
               })
             }

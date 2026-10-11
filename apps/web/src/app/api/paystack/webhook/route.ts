@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import {
+  currentPaystackMode,
   isPaystackConfigured,
   metadataObject,
 } from "@/lib/payments/paystack";
@@ -16,14 +17,17 @@ import { markChargeFailed, settleBookingCharge } from "@/lib/bookings/settlement
 import { savePaymentMethodFromCharge } from "@/lib/payments/methods";
 import { recordAlert } from "@/lib/alerts";
 import { ROUTE_FAILURE_LIMITS, countRouteFailure } from "@/lib/security/money-limits";
-import { BOOKING_PREFIX, FUND_PREFIX, isBookingReference } from "@/lib/payments/references";
+import { BOOKING_PREFIX, DEPOSIT_PREFIX, FUND_PREFIX, isBookingReference } from "@/lib/payments/references";
 import { refundChargeToCard } from "@/lib/payments/refund";
 import { handleRefundEvent, readRefundEvent } from "@/lib/payments/refund-events";
 import { REFUND_ALREADY_CLAIMED } from "@/lib/payments/refund-outcomes";
 import { PROMOTION_PREFIX } from "@/lib/promotion/reference";
 import { handlePromotionChargeFailed, handlePromotionChargeSuccess } from "@/lib/promotion/webhook";
+import { handleDepositChargeFailed, handleDepositChargeSuccess } from "@/lib/reservations/deposit-settlement";
 import { settleRewardsTransferEvent } from "@/lib/payouts/referral-payout";
 import { isRewardsReference } from "@/lib/payouts/referral-transfer";
+import { SUBSCRIPTION_PREFIX, isSubscriptionCharge } from "@/lib/subscriptions/events";
+import { handleSubscriptionEvent } from "@/lib/subscriptions/webhook";
 
 /**
  * Paystack webhook.
@@ -79,6 +83,11 @@ import { isRewardsReference } from "@/lib/payouts/referral-transfer";
  *  - transfer.* events for a Rewards Balance payout (`vallo-rw-`, from the
  *    marketing float) go to `settleRewardsTransferEvent`, the only path that
  *    marks one paid (D62). Every other transfer.* is acknowledged and ignored.
+ *  - Vallo Pro and Vallo Business, Vallo's own revenue: charge.success on an
+ *    `rm-sub-` checkout or on a renewal Paystack charged under a plan, and
+ *    subscription.create / not_renew / disable and invoice.create / update /
+ *    payment_failed, all go to lib/subscriptions/webhook.ts, which applies
+ *    them in one database transaction (`subscription_apply_event`).
  *
  * Completion notifications fire from the database trigger, never from here.
  */
@@ -301,6 +310,8 @@ async function dispatch(
     if (reference.startsWith(BOOKING_PREFIX)) return handleBookingChargeSuccess(admin, data);
     // D60: a promotion purchase, Vallo's own revenue. Single-party charge, no split.
     if (reference.startsWith(PROMOTION_PREFIX)) return handlePromotionChargeSuccess(admin, data);
+    // D75: a restaurant table deposit, split to the venue at the charge.
+    if (reference.startsWith(DEPOSIT_PREFIX)) return handleDepositChargeSuccess(admin, data);
     if (reference.startsWith(FUND_PREFIX)) {
       // A retired wallet top-up. Nothing credits it: it goes back to the card.
       const refund = await refundChargeToCard(admin, {
@@ -313,13 +324,25 @@ async function dispatch(
       }
       return verdict(refund.ok ? "posted" : "failed", `wallet_topup_refunded:${refund.ok}`, 200);
     }
+    // A subscription's first charge (`rm-sub-`) or a renewal under a plan.
+    if (isSubscriptionCharge(data)) {
+      return handleSubscriptionEvent(admin, currentPaystackMode(), event, data);
+    }
     return verdict("ignored", "reference_not_ours", 200);
   }
 
   if (event === "charge.failed") {
     if (reference.startsWith(BOOKING_PREFIX)) return handleBookingChargeFailed(admin, data);
     if (reference.startsWith(PROMOTION_PREFIX)) return handlePromotionChargeFailed(admin, data);
+    if (reference.startsWith(DEPOSIT_PREFIX)) return handleDepositChargeFailed(admin, data);
+    // A subscription checkout whose card was declined: the checkout simply
+    // stays unpaid (the member can try again); nothing was granted.
+    if (reference.startsWith(SUBSCRIPTION_PREFIX)) return verdict("rejected", "subscription_charge_failed", 200);
     return verdict("ignored", "reference_not_ours", 200);
+  }
+
+  if (event.startsWith("subscription.") || event.startsWith("invoice.")) {
+    return handleSubscriptionEvent(admin, currentPaystackMode(), event, data);
   }
 
   // V-24: the processor's word that a refund reached the card (or did not).

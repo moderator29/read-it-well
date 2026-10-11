@@ -2,31 +2,32 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { REWARDS_MONEY_WORDS } from "@/components/app/referral/money-words";
-import { readMyRewards, rewardsSource, withdrawActions } from "@/lib/referral/rewards-read";
+import { readMyRewards, withdrawActions } from "@/lib/referral/rewards-read";
 import type { RewardsSnapshot } from "@/lib/referral/rewards";
 import { screenOf, signInHref } from "./screen";
 
 const SNAPSHOT: RewardsSnapshot = {
-  policy: { rewardPerReferralMinor: 1, monthlyCap: 1, withdrawMinimumMinor: 1 },
+  policy: { rewardPerReferralMinor: 1, monthlyCap: 1, withdrawMinimumMinor: 1, steps: [], reviewDays: null },
   programme: { state: "running" },
-  balance: { availableMinor: 0, pendingMinor: 0, lifetimeMinor: 0 },
+  balance: { availableMinor: 0, pendingMinor: 0, lifetimeMinor: 0, paidOutMinor: 0 },
   referrals: [],
   history: [],
   campaign: null,
   destination: null,
+  payoutsEnabled: false,
 };
 const WORDS = { notHeld: "a", qualify: "b", minimum: "c", feeFirst: "d", paidFrom: "e", notInvestment: "f" };
 
 /**
- * /rewards IS NOT LIVE, AND SAYS SO RATHER THAN DRAWING A ZERO BALANCE.
+ * /rewards READS THE REAL ENGINE (D85), AND NEVER DRAWS A ZERO IT DID NOT READ.
  *
- * The referral engine and its read do not exist (R-C3-1), and the money
- * sentences have landed in lib/money/copy.ts (C2). These tests are the ones to change,
- * deliberately, when either arrives.
+ * The source reads `my_rewards_summary`, `my_referral_progress`, the
+ * member's ledger and payouts (`rewards-snapshot.test.ts` holds how they are
+ * assembled). The quote-and-confirm flow has no provider behind it, so its
+ * actions stay null: the withdraw page uses `requestRewardsPayout` instead.
  */
-describe("the rewards routes today", () => {
-  it("have no source and no withdraw actions yet", async () => {
-    expect(await rewardsSource.read()).toEqual({ state: "not-live" });
+describe("the rewards routes", () => {
+  it("offer no fee quote the provider never gave", () => {
     expect(withdrawActions).toBeNull();
   });
 

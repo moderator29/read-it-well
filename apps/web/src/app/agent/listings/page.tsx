@@ -151,6 +151,7 @@ export default async function Page({
         duplicateCopy={t.frontDoor.duplicate}
         statusLabel={t.frontDoor.status.action}
         healthLabel={t.experienceFeatures.health.open}
+        promoteLabel={t.experienceFeatures.promotion.promote}
         closed={closed}
         closeCopy={t.landlord.close}
         ownerAsks={ownerAsks}

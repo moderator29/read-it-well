@@ -86,7 +86,11 @@ export const ADMIN_PRIMARY: AdminDestination[] = [
     icon: glyph("check-square"),
     label: "Verification",
     /* SCUML: the AML/CFT duties, one lane each. */
-    children: [{ key: "compliance", href: "/admin/compliance", icon: glyph("shield-lock"), label: "Compliance" }],
+    children: [
+      { key: "compliance", href: "/admin/compliance", icon: glyph("shield-lock"), label: "Compliance" },
+      /* VC1: staff review calls, reached from the case desks and from here. */
+      { key: "review-calls", href: "/admin/review-calls", icon: ui("video"), label: "Review calls" },
+    ],
   },
   {
     key: "money",
@@ -146,6 +150,8 @@ export const ADMIN_PRIMARY: AdminDestination[] = [
       { key: "alerts", href: "/admin/alerts", icon: ui("bell"), label: "Alerts", countKeys: ["alerts"], countLabel: "alerts open, waiting on a person" },
       { key: "audit", href: "/admin/audit", icon: ui("history"), label: "Audit log" },
       { key: "oversight", href: "/admin/oversight", icon: ui("user"), label: "Team oversight" },
+      /* Read-only checks of each provider key (Payluk, LiveKit, Apple push, Termii, MapTiler). */
+      { key: "providers", href: "/admin/operations/providers", icon: ui("key"), label: "Provider checks" },
     ],
   },
   {

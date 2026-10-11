@@ -145,7 +145,6 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/guides": "/",
   "/guides/[slug]": "/guides",
   "/email/preferences": "/",
-  "/join/[code]": "/",
   "/standards": "/",
   "/styleguide": "/",
   "/terms": "/",
@@ -261,12 +260,22 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/settings/invite/how-it-works": "/settings/invite",
   "/settings/invite/referrals": "/settings/invite",
   "/settings/invite/referrals/[id]": "/settings/invite/referrals",
-  /* D51, Round 3 C3: the Rewards Balance and its inner pages. Not linked from
-     member navigation until the rewards read is live (R-C3-1). */
+  /* D51, Round 3 C3: the Rewards Balance and its inner pages. Linked from the
+     member navigation (the Rewards row in `nav-model.ts`), the settings hub
+     and the invite hub; until the rewards read is live (R-C3-1) the page
+     draws the honest not-live state. */
   "/rewards": "/settings",
+  /* P6: Pro sits above Settings in the side navigation and returns there. */
+  "/pro": "/settings",
+  /* Where Paystack returns a member after paying for a plan. */
+  "/pro/confirm": "/pro",
   "/rewards/referrals": "/rewards",
   "/rewards/history": "/rewards",
   "/rewards/withdraw": "/rewards",
+  /* D76: the leaderboards sit beside Rewards in the Money group; the one
+     directory flips with the side and returns home. */
+  "/leaderboard": "/rewards",
+  "/directory": "/home",
   "/rent/pay/[inspectionId]": "/bookings",
   "/rent/share/[id]": "/agreements",
   "/tenancy/[id]": "/bookings",
@@ -282,9 +291,9 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
    * person sees on the web and changes the Android answer from "undeclared"
    * to a named destination.
    *
-   * `/price` has no inbound link anywhere in the product either. It is reached
-   * by address and by the share cards `lib/price-check/share-card.ts` builds,
-   * which point at `/price/area/[id]`.
+   * `/price` is a row in the member navigation (`nav-model.ts`, track L), and
+   * the share cards `lib/price-check/share-card.ts` builds point at
+   * `/price/area/[id]`.
    */
   "/price": "/home",
   "/price/area/[id]": "/price",
@@ -312,7 +321,7 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/messages/share/booking/[id]": "/bookings/[id]",
 
   /* --------------------------------------------------------------- money */
-  /* Track A: the wallet and escrow routes are retired (they redirect to
+  /* Track A: the escrow routes are retired (they redirect to
      /agreements in next.config.ts). The agreement list is where money now
      lives. */
   "/agreements": "/home",
@@ -322,13 +331,24 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/receipts": "/payments",
   "/refunds": "/payments",
   "/payouts": "/home",
+  /* ADR 0003: /wallet is the member balance the escrow partner holds. */
+  "/wallet": "/home",
+  /* D81: the Wallet's own screens, each one back to the overview. */
+  "/wallet/transactions": "/wallet",
+  "/wallet/settings": "/wallet",
+  "/wallet/add": "/wallet",
+  "/wallet/send": "/wallet",
+  "/wallet/withdraw": "/wallet",
   "/agreements/[id]": "/agreements",
+  "/agreements/[id]/fund": "/agreements/[id]",
+  "/agreements/[id]/held": "/agreements/[id]",
 
   /* -------------------------------------------------------------- social */
   /* As `/search` above: whichever home fits the reader. */
   "/around": "/home-or-landing",
   "/around/[slug]": "/around",
   "/around/settings": "/around",
+  "/around/people": "/around",
   "/around/new": "/around/settings",
   "/around/manage": "/around/settings",
   "/post/[id]": "/around",
@@ -339,6 +359,7 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/u/[handle]/edit": "/u/[handle]",
   "/u/[handle]/followers": "/u/[handle]",
   "/u/[handle]/following": "/u/[handle]",
+  "/u/[handle]/message": "/u/[handle]",
 
   /* ------------------------------------------------------------- account */
   "/assistant": "/home",
@@ -346,6 +367,9 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   /* D22: every notification's designed full view, reached by a route so back
      behaves and a push lands. Its way up is the list it belongs to. */
   "/notifications/[id]": "/notifications",
+  /* VC1: review call invitations, reached from their notification. */
+  "/calls/reviews": "/notifications",
+  "/calls/reviews/[id]": "/calls/reviews",
   "/profile": "/home",
   "/profile/application": "/profile",
   "/profile/setup": "/profile",
@@ -406,6 +430,7 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/admin/bookings/reservations": "/admin/bookings",
   "/admin/businesses": "/admin",
   "/admin/agreements": "/admin",
+  "/admin/agreements/settings": "/admin/agreements",
   /* C1 sweep: the five desks the rail files under Settings (nav.ts,
      ADMIN_SETTINGS) go back to Settings, the door they are opened from,
      not past it to the overview. */
@@ -440,6 +465,10 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/admin/people/[id]": "/admin/people",
   "/admin/supply": "/admin",
   "/admin/support": "/admin",
+  /* VC1: the review calls desk, and one review call. */
+  "/admin/operations/providers": "/admin/operations",
+  "/admin/review-calls": "/admin",
+  "/admin/review-calls/[id]": "/admin/review-calls",
   "/admin/switches": "/admin/settings",
 
   /* ---------------------------------------------------- the agent console */
@@ -458,8 +487,13 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/agent/listings/[listingId]/board": "/agent/listings",
   /* V-71: the Status kit, under the listing's workspace like its board. */
   "/agent/listings/[listingId]/status": "/agent/listings",
-  /* D60: a listing's promotion results. Not linked until Session 2's reads exist. */
+  /* D60: a listing's promotion results. Linked from the Promote action on a
+     live listing's row and from `/agent/promotion`; buying still says it is
+     not on sale (`PROMOTION_NOT_ON_SALE`). */
   "/agent/listings/[listingId]/promotion": "/agent/listings",
+  /* The door into promotion from the workspace rail and the dashboard: the
+     lister's live listings, each with its Promote action. */
+  "/agent/promotion": "/agent/dashboard",
   "/agent/list": "/agent/listings",
   "/agent/messages": "/agent/dashboard",
   /* The workspace's own frame round the consumer thread and bell pages, so
@@ -654,6 +688,8 @@ export const NON_NAVIGABLE: Readonly<Record<string, string>> = {
   "/gallery/today-hero": "a development harness for the workspace today hero (B-33), behind the preview flag like /gallery; not product.",
   "/gallery/brand-icons": "a development harness for the tiered brand objects on night and on paper (B-33), behind the preview flag like /gallery; not product.",
   "/api/cron/account-purge": "scheduled job, bearer token.",
+  "/api/calls/webhook": "media provider webhook (VC1), signed.",
+  "/api/cron/calls-sweep": "scheduled job, bearer token.",
   "/api/cron/canary": "scheduled job, bearer token.",
   "/api/cron/calendar-sync": "scheduled job, bearer token (C2, behind CALENDAR_SYNC_ENABLED).",
   "/api/calendar/feed": "C2: a room's calendar as iCal for another site to subscribe to, behind its secret token.",
@@ -663,6 +699,7 @@ export const NON_NAVIGABLE: Readonly<Record<string, string>> = {
   "/api/cron/email-outbox": "scheduled job, bearer token.",
   "/api/cron/hold-sweep": "scheduled job, bearer token.",
   "/api/cron/rent-share-refunds": "scheduled job, bearer token.",
+  "/api/cron/reservation-deposit-refunds": "scheduled job, bearer token (D75, table deposit refunds).",
   "/api/cron/inventory-drift": "scheduled job, bearer token.",
   "/api/cron/landlord-line": "scheduled job, bearer token.",
   "/api/cron/sanctions-lists": "scheduled job, bearer token.",
@@ -679,7 +716,8 @@ export const NON_NAVIGABLE: Readonly<Record<string, string>> = {
   "/api/email/unsubscribe": "RFC 8058 one-click unsubscribe (A12), POSTed by a mailbox provider with a signed token; a GET goes on to /email/preferences.",
   "/api/funnel": "the first-party funnel beacon (A6); answers 204, not a page.",
   "/api/auth/sms-hook": "Supabase Auth's Send SMS hook (A2), Standard Webhooks signature; delivers a phone code, not a page.",
-  "/join/[code]/start": "keeps an invite code in a cookie and goes on to sign-up (A5); a redirect, not a page.",
+  "/join/[code]": "an invite link: keeps the code in a cookie and goes on to the sign-up door, which shows the one onboarding first (A5, 7 October 2026); a redirect, not a page.",
+  "/join/[code]/start": "the old invite door's address, the same hand-off as /join/[code] (A5); a redirect, not a page.",
   "/api/documents/[id]": "a signed document stream, not a page.",
   "/api/landlord/inbound": "the SMS aggregator's inbound webhook, bearer token.",
   "/api/whatsapp/inbound": "Meta's WhatsApp webhook (V-96), signed with the app secret.",
@@ -687,6 +725,7 @@ export const NON_NAVIGABLE: Readonly<Record<string, string>> = {
   "/api/map/listings": "JSON read for the map.",
   "/api/paystack/reconcile": "processor reconciliation.",
   "/api/paystack/webhook": "processor webhook.",
+  "/api/payluk/webhook": "processor webhook.",
   "/api/push/drain": "scheduled job, bearer token.",
   "/api/push/key": "the public VAPID key as JSON.",
   "/api/push/register": "POST only, a subscription write.",

@@ -27,7 +27,12 @@
  * Money is integer kobo throughout.
  */
 
-/** The rates in force, from `money_policy` (D51). Never a constant in the client. */
+/**
+ * The terms in force (D51, D62, D85). Never a constant in the client: the
+ * reward, the monthly count, the steps and the review window come from the
+ * live campaign (`referral_campaigns`), the minimum from `referral_policy`,
+ * both through `my_rewards_summary()`.
+ */
 export type RewardsPolicy = {
   /** Kobo added for one referral that qualifies. */
   rewardPerReferralMinor: number;
@@ -35,6 +40,14 @@ export type RewardsPolicy = {
   monthlyCap: number;
   /** Kobo: the smallest withdrawal. */
   withdrawMinimumMinor: number;
+  /**
+   * What the invited person has to do for the referral to count: the live
+   * campaign's requirement keys in its order (`lib/referral/requirements.ts`
+   * says each in words). Empty when the read did not say.
+   */
+  steps: readonly string[];
+  /** Days a qualified reward waits in review before it is Available; null when the read did not say. */
+  reviewDays: number | null;
 };
 
 /**
@@ -49,25 +62,54 @@ export type RewardsBalance = {
   availableMinor: number;
   pendingMinor: number;
   lifetimeMinor: number;
+  /** Kobo paid out to the member's bank and confirmed by the provider. */
+  paidOutMinor: number;
 };
 
 /**
- * Where a referral stands, in the order a referral moves through them. Under
- * review is a person at Vallo looking before it qualifies; why is never said.
+ * WHERE ONE REFERRAL STANDS (D85), in the order a referral moves through
+ * them, as `public.my_referral_progress()` answers it:
+ *
+ *   signing_up    signed up with the link, with a step of signing up still
+ *                 to do (`waitingOn` says which)
+ *   counting      signed up fully and being counted, or waiting for the
+ *                 month's rewards to open again (`waitingOn`)
+ *   in_review     earned and frozen at its amount, inside the review window
+ *                 (`reviewUntil`), or being checked by a person at Vallo
+ *                 (`reviewUntil` null). Why is never said
+ *   earned        Available, on its way to the bank, or paid (`earnedState`)
+ *   not_eligible  will not earn, with a plain reason (`notEligibleReason`)
  */
-export const REFERRAL_STATUSES = ["joined", "pending", "under_review", "qualified"] as const;
-export type ReferralStatus = (typeof REFERRAL_STATUSES)[number];
+export const REFERRAL_STAGES = ["signing_up", "counting", "in_review", "earned", "not_eligible"] as const;
+export type ReferralStage = (typeof REFERRAL_STAGES)[number];
+
+export const REFERRAL_WAITING = ["email", "setup", "phone", "other_step", "rewards_paused", "monthly_limit"] as const;
+export type ReferralWaiting = (typeof REFERRAL_WAITING)[number];
+
+export const REFERRAL_EARNED_STATES = ["available", "on_its_way", "paid"] as const;
+export type ReferralEarnedState = (typeof REFERRAL_EARNED_STATES)[number];
+
+export const REFERRAL_NOT_ELIGIBLE = ["already_rewarded", "not_approved", "reversed"] as const;
+export type ReferralNotEligible = (typeof REFERRAL_NOT_ELIGIBLE)[number];
 
 /** One person this member invited. First name at most, as the invite door already allows. */
 export type ReferralRow = {
   id: string;
   /** Null when the person gave none. */
   firstName: string | null;
-  status: ReferralStatus;
-  /** YYYY-MM-DD, the day they joined with the code. */
+  stage: ReferralStage;
+  /** For signing_up and counting: what it waits on. Null otherwise, and while it is being counted. */
+  waitingOn: ReferralWaiting | null;
+  /** YYYY-MM-DD, the day they signed up with the link. */
   joinedOn: string;
   /** YYYY-MM-DD, the day it qualified, or null. */
   qualifiedOn: string | null;
+  /** YYYY-MM-DD, the end of the review window while one runs, else null. */
+  reviewUntil: string | null;
+  /** Kobo, frozen when it qualified; null before. */
+  rewardMinor: number | null;
+  earnedState: ReferralEarnedState | null;
+  notEligibleReason: ReferralNotEligible | null;
 };
 
 export const REWARDS_ENTRY_KINDS = ["referral", "bonus", "withdrawal", "reversal"] as const;
@@ -136,6 +178,11 @@ export type RewardsSnapshot = {
   history: RewardsEntry[];
   campaign: CampaignProgress | null;
   destination: PayoutDestination | null;
+  /**
+   * Whether withdrawals are open (`referral_policy.payouts_enabled`, a dated
+   * row). Off until Vallo's separate marketing-float account exists.
+   */
+  payoutsEnabled: boolean;
 };
 
 /**
@@ -230,10 +277,10 @@ export function nairaToKobo(plain: string): number | null {
   return whole * 100 + fraction;
 }
 
-/** Counts per status, for the referral list's summary. Every status present, zero when none. */
-export function countByStatus(rows: readonly ReferralRow[]): Record<ReferralStatus, number> {
-  const counts = { joined: 0, pending: 0, under_review: 0, qualified: 0 } satisfies Record<ReferralStatus, number>;
-  for (const row of rows) counts[row.status] += 1;
+/** Counts per stage, for the referral list's summary. Every stage present, zero when none. */
+export function countByStage(rows: readonly ReferralRow[]): Record<ReferralStage, number> {
+  const counts = { signing_up: 0, counting: 0, in_review: 0, earned: 0, not_eligible: 0 } satisfies Record<ReferralStage, number>;
+  for (const row of rows) counts[row.stage] += 1;
   return counts;
 }
 
@@ -309,15 +356,16 @@ export function inviteRewards(read: RewardsRead): InviteRewards {
 }
 
 /**
- * Whether the withdraw screen may offer the flow, and if not, which honest
- * state it draws instead. Order matters: a rail that is not open is said
- * first, because adding a bank account would not help.
+ * Whether the withdraw screen may offer the payout form, and if not, which
+ * honest state it draws instead. Order matters: withdrawals that are not open
+ * (`payouts_enabled` off) are said first, because nothing the member does
+ * would help; then the minimum. The bank account is asked for in the form and
+ * named by the bank, never typed (`requestRewardsPayout`).
  */
-export type WithdrawGate = "not-open" | "below-minimum" | "no-destination" | "open";
+export type WithdrawGate = "not-open" | "below-minimum" | "open";
 
-export function withdrawGate(snapshot: RewardsSnapshot, actionsExist: boolean): WithdrawGate {
-  if (!actionsExist) return "not-open";
+export function withdrawGate(snapshot: RewardsSnapshot): WithdrawGate {
+  if (!snapshot.payoutsEnabled) return "not-open";
   if (!canWithdraw(snapshot.balance, snapshot.policy)) return "below-minimum";
-  if (!snapshot.destination) return "no-destination";
   return "open";
 }

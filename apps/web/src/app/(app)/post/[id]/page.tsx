@@ -6,7 +6,6 @@ import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/app/PageHeader";
 import { resolveSession } from "@/lib/actions/session";
 import { getThread } from "@/lib/social/posts-queries";
-import { AroundFab } from "@/components/social/AroundFab";
 import { ThreadView } from "./ThreadView";
 import { SocialPaused } from "@/components/social/SocialPaused";
 import { isSocialEnabled } from "@/lib/social/flag";
@@ -100,7 +99,10 @@ export default async function PostPage({
         openReply={wantsReply}
         sheet={sheetWordsOf(t)}
       />
-      <AroundFab />
+      {/* No plus on a post's own page (clean spaces, ONE-PRODUCT-DECISIONS
+          recommendation 8): its one action is answering, and the pinned
+          "Post your reply" bar is that action. The bloom floated over the
+          bar's end and over the last reply's share. */}
     </div>
   );
 }

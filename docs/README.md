@@ -24,7 +24,8 @@ For setup, architecture and the repository layout, start with the [repository RE
 |---|---|
 | [ARCHITECTURE_DECISIONS.md](ARCHITECTURE_DECISIONS.md) | ADR-001 to ADR-014 in one file |
 | [adr/0003-a-licensed-provider-holds-the-money-vallo-records-it.md](adr/0003-a-licensed-provider-holds-the-money-vallo-records-it.md) | **Current.** A licensed provider holds the money; Vallo records it. Escrow, balances, deposits and withdrawals are built, Payluk holds the funds, Vallo never takes custody, and the custody naming guard stays (amends ADR 0002) |
-| [adr/0002-vallo-never-holds-customer-money.md](adr/0002-vallo-never-holds-customer-money.md) | Vallo never holds customer money (supersedes ADR 0001, amended by ADR 0003) |
+| [adr/0004-two-rails-direct-and-provider-held-escrow.md](adr/0004-two-rails-direct-and-provider-held-escrow.md) | **Current, subordinate to ADR 0003.** Which rail a payment takes: direct settlement by split for registered businesses, provider held escrow for individuals, chosen by data in `payment_rail_policy`. Renumbered from 0003 on 8 October, when two files had been written under that number |
+| [adr/0002-vallo-never-holds-customer-money.md](adr/0002-vallo-never-holds-customer-money.md) | Vallo never holds customer money (supersedes ADR 0001, amended by ADR 0003 and 0004) |
 | [adr/0001-held-payments-custody-purpose-and-the-float.md](adr/0001-held-payments-custody-purpose-and-the-float.md) | Superseded: held payments (escrow), kept as history |
 | [API_INVENTORY.md](API_INVENTORY.md) | The third-party integration plan |
 

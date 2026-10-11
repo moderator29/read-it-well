@@ -31,9 +31,14 @@ export type AttemptRefusal = { refused: true; message: string };
 /** The sentence for each reason payment is not available. Exported for tests. */
 export const PAYMENT_NOT_AVAILABLE: Record<string, string> = {
   no_agreement:
-    "Payment is not open yet. The agreement for this booking has to be confirmed by both of you and approved by Vallo first.",
+    "Payment is not open yet. The agreement for this booking has to be confirmed by both of you first.",
   agreement_not_approved:
-    "Payment opens once Vallo approves the agreement. You will get an email and a notification the moment it is approved.",
+    "Payment opens as soon as both of you confirm the agreement. If Vallo needs to check this deal first, you will get an email and a notification the moment it is done.",
+  /* D68d: a risk signal on the direct rail, or the incident switch. */
+  review_required:
+    "A person at Vallo is checking this deal before payment opens, because this payment goes straight to the lister. Nothing has been charged. You will get an email and a notification the moment it is done.",
+  not_approved:
+    "Payment opens as soon as both of you confirm the agreement. Nothing has been charged.",
   payee_not_set_up:
     "Payment cannot open yet because the owner or agent has not finished setting up where they are paid. They have been told; please try again once they have.",
   amount_mismatch:
@@ -114,6 +119,20 @@ export async function quoteSplit(
     !answer.agreement_id
   ) {
     return { refused: true, message: PAYMENT_NOT_AVAILABLE.amount_mismatch! };
+  }
+  /* D68d: the rail and the risk signals decide whether payment opens
+     (`agreement_payable_for`, the same rule the payment gate enforces). Asked
+     first so the member reads a sentence; a failed read is left to the gate. */
+  const payable = await admin.rpc("agreement_payable_for" as never, { p_agreement: answer.agreement_id } as never);
+  const payableStatus = (payable.data as { status?: string } | null)?.status;
+  if (!payable.error && payableStatus && payableStatus !== "payable") {
+    return {
+      refused: true,
+      message:
+        payableStatus === "review_required"
+          ? PAYMENT_NOT_AVAILABLE.review_required!
+          : (PAYMENT_NOT_AVAILABLE[payableStatus] ?? PAYMENT_NOT_AVAILABLE.agreement_not_approved!),
+    };
   }
   /* D51: the Guarantee is retired at guarantee_bps = 0. The reserve account is
      demanded only when the split actually has a reserve leg, so a missing

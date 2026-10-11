@@ -6,6 +6,8 @@ import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { ListingKind } from "@/lib/listings/types";
 import { shareHref, type SharedRef } from "./share";
+import { AreaMapTile } from "@/components/app/maps/AreaMapTile";
+import { areaPoint } from "@/components/app/search/mapGeo";
 
 /**
  * The card a listing or a booking becomes inside a chat.
@@ -158,33 +160,52 @@ export function ChatCard({ card, forwardable = true }: { card: ChatCardData; for
        the foot cannot disagree about it. */
     const stay = card.shareKind === "stay";
     const self: SharedRef = { kind: stay ? "stay" : "listing", id: card.id };
+    const point = areaPoint(card.city, card.area);
     return (
-      <article className={CARD} data-testid="chat-card-listing" aria-label={card.title}>
-        <Photo photo={card.photo} hue={card.hue} kind={card.listingKind} alt="" />
+      <article className={`${CARD} nf-chat-card--stack`} data-testid="chat-card-listing" aria-label={card.title}>
+        {/* THE SHARED LISTING IS HOME'S STACK CARD (the founder's travel-app
+            set, 7 October: "sharing a listing into a chat uses this card as
+            its preview"): the photograph tall, the facts on a frosted inset at
+            its foot beside a still map of the AREA (never the address), and
+            Forward as a smoked circle on the photograph. */}
+        <div className="nf-chat-card__stack">
+          <Photo photo={card.photo} hue={card.hue} kind={card.listingKind} alt="" />
+          {card.verified && (
+            <span className="nf-badge nf-badge--verified nf-chat-card__seal">
+              <UiIcon name="verified" size={12} />
+              Verified
+            </span>
+          )}
+          {forwardable && <Forward target={self} />}
+          <div className="nf-chat-card__inset" data-theme="dark">
+            <div className="nf-chat-card__words">
+              <p className="nf-chat-card__title">{card.title}</p>
+              <Stars rating={card.rating} />
+              <p className="nf-chat-card__place">
+                <UiIcon name="location" size={12} className="shrink-0" />
+                <span>{[card.area, card.city].filter(Boolean).join(", ")}</span>
+              </p>
+              <div className="nf-chat-card__features">
+                <span>{card.bedrooms} bed</span>
+                <span>{card.bathrooms} bath</span>
+              </div>
+              <p className="nf-chat-card__price-row">
+                <span className="nf-chat-card__price">{card.priceLabel}</span>
+                {card.periodLabel && <span className="nf-chat-card__unit">{card.periodLabel}</span>}
+              </p>
+            </div>
+            {point ? (
+              <AreaMapTile
+                lat={point.lat}
+                lng={point.lng}
+                zoom={13}
+                className="nf-chat-card__map"
+                label={`Map of ${card.area || card.city}. The pin shows the area, not the address.`}
+              />
+            ) : null}
+          </div>
+        </div>
         <div className="nf-chat-card__body">
-          <div className="nf-chat-card__head">
-            <p className="nf-chat-card__title">{card.title}</p>
-            {card.verified && (
-              <span className="nf-badge nf-badge--verified shrink-0">
-                <UiIcon name="verified" size={12} />
-                Verified
-              </span>
-            )}
-            {forwardable && <Forward target={self} />}
-          </div>
-          <Stars rating={card.rating} />
-          <p className="nf-chat-card__place">
-            <UiIcon name="location" size={16} className="shrink-0 text-[var(--nf-brand-secondary)]" />
-            <span>{[card.area, card.city].filter(Boolean).join(", ")}</span>
-          </p>
-          <div className="nf-chat-card__features mt-inline-tight">
-            <span>{card.bedrooms} bed</span>
-            <span>{card.bathrooms} bath</span>
-          </div>
-          <p className="nf-chat-card__price-row">
-            <span className="nf-chat-card__price">{card.priceLabel}</span>
-            {card.periodLabel && <span className="nf-chat-card__chip">{card.periodLabel}</span>}
-          </p>
           <div className="nf-chat-card__actions">
             <Link href={shareHref(self)} className="nf-btn nf-btn--primary nf-btn--sm">
               {stay ? "View stay" : "View listing"}

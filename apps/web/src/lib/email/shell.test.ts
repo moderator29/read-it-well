@@ -210,7 +210,7 @@ describe("every rendered email reads completely with images blocked", () => {
   it.each(CATALOGUE_HTML)("$name carries the lockup, at most one sized object, its row glyphs, and nothing else in a picture", ({ html }) => {
     const images = sortEmailImages(html);
     /*
-     * The Tier B object (`icons.ts`) names the message's family, so its alt
+     * The 3D object (`icons.ts`) names the message's family, so its alt
      * is that word: with images off a reader sees "Payment" or "Account" in
      * quiet type where it would be (north star 16.5, every image with alt).
      * The row glyphs sit beside a label that says the same thing, so they

@@ -292,7 +292,7 @@ one (the three deadline cases time out at 5 s), proving it catches the hang.
   seam; call-site migration remaining). `a24552d62`.
 - Generated types regenerated from live; six drift errors fixed; 19 money tables the
   stale types hid are now documented in `docs/schema/NAMES.md`. `b5760fe4c`.
-- **ADR-0003 drafted** (`docs/adr/0003-two-rails-provider-held-escrow.md`), status
+- **ADR-0003 drafted** (`docs/adr/0004-two-rails-direct-and-provider-held-escrow.md`), status
   proposed: Vallo still never holds money; Payluk may, on the escrow rail, after
   counsel's opinion, the cancellation decision and approved per-rail copy.
 - Housekeeping (7.18): dead `/wallet` revalidations removed; `MONEY_ARCHITECTURE.md`

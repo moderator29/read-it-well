@@ -154,7 +154,7 @@ describe("every message in the catalogue", () => {
   it.each(EVERY_MESSAGE)("$name carries the lockup and puts no other words inside an image", ({ message }) => {
     /*
      * The lockup on its navy tile, whose alt is the brand name and nothing
-     * more; at most one Tier B object, whose alt is its family word; and the
+     * more; at most one 3D object, whose alt is its family word; and the
      * row glyphs, which are decorative and say nothing (icons.ts). Any other
      * picture, or any of these with other alt text, is the signal that
      * somebody has put words in a picture.

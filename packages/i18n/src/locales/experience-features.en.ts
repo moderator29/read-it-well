@@ -91,14 +91,16 @@ export const experienceFeaturesEn = {
      * The invite link, in the three states of the rewards read (the same gate
      * as every rewards surface, `inviteRewards` in `lib/referral/rewards.ts`).
      *
-     * NOT LIVE: the bodies reuse `publicDoors.invite.rowSub` and `.noReward`,
-     * which are what `/settings/invite` says: no reward is attached (A5).
+     * NOT LIVE OR UNKNOWN: the link alone, its body `publicDoors.invite.rowSub`.
+     * Nothing is said about a reward either way. (The old "Nothing to earn,
+     * on purpose" panel is gone: the founder, 8 October 2026, a friend who
+     * signs up fully earns the member the live campaign's reward.)
      *
      * RUNNING: titles only. The bodies are the invite door's own claim about
      * what Vallo does for the person invited (`publicDoors.invite.doorBody`),
      * then Session 2's money sentences: `REWARDS_QUALIFY` filled from the
-     * read's policy, and `REWARDS_PENDING_THEN_AVAILABLE` with
-     * `REWARDS_MONTHLY_BUDGET` (D62's lifecycle, D64's pause).
+     * live campaign with what "signs up fully" means under it, and the review
+     * window with `REWARDS_MONTHLY_BUDGET` (D62's lifecycle, D64's pause).
      *
      * PAUSED: no first run; the route hands the member to the hub, which says
      * the pause and offers no invite (D64).
@@ -106,11 +108,10 @@ export const experienceFeaturesEn = {
     invite: {
       name: "invites",
       p1Title: "Your own invite link",
-      p2Title: "Nothing to earn, on purpose",
       action: "Get my link",
       running: {
         p1Title: "They get Vallo itself",
-        p2Title: "Earn when they qualify",
+        p2Title: "Earn for every friend who signs up fully",
         p3Title: "Pending, then Available",
       },
     },
@@ -322,6 +323,27 @@ export const experienceFeaturesEn = {
     /** The purchase section on the measurement screen. */
     purchase: {
       title: "Choose a tier",
+    },
+    /** The action on a live listing's row that opens its promotion screen. */
+    promote: "Promote",
+    /**
+     * `/agent/promotion`, the door into promotion from the workspace's rail and
+     * its dashboard: the lister's live listings, each with its Promote action.
+     * Frame words only; whether anything can be bought is the money sentence
+     * `PROMOTION_NOT_ON_SALE`, passed in from `lib/money/copy.ts`.
+     */
+    hub: {
+      title: "Promote your listings",
+      lede: "A promoted listing appears in a slot marked Promoted. Choose a live listing to see its own last thirty days and the four tiers.",
+      how: "How promotion works",
+      howSub: "What it buys, the four tiers, and what can be measured",
+      listLabel: "Your live listings",
+      emptyTitle: "No live listing to promote yet",
+      emptyBody: "Promotion is for a listing that is live. Publish one, then come back here.",
+      emptyAction: "Go to my listings",
+      unavailable: "Your listings could not be read just now. Nothing is lost; try again in a moment.",
+      /** The dashboard card's line under its title. */
+      dashboardSub: "See the tiers, and each live listing's own figures",
     },
   },
 

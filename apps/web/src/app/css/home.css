@@ -127,9 +127,6 @@
     align-items: center;
     gap: var(--nf-gap-inline);
   }
-  .nf-ai__lockup img {
-    filter: drop-shadow(0 0 10px var(--nf-glow-2));
-  }
   .nf-ai__word {
     display: block;
     width: 4.5rem;
@@ -341,6 +338,13 @@
     right: var(--nf-space-xs);
     top: var(--nf-space-xs);
     z-index: 1;
+  }
+  /* The 36px disc keeps its drawing; an invisible ring takes the target to
+     44, the floor (found by the 7 October sweep), as the card heart does. */
+  .nf-ai__result-save::after {
+    content: "";
+    position: absolute;
+    inset: -0.25rem;
   }
   .nf-ai__result-body {
     display: flex;
@@ -1015,8 +1019,11 @@
     gap: var(--nf-space-2xs);
     padding: var(--nf-space-sm) var(--nf-space-2xs);
     border-radius: var(--nf-radius-card, var(--nf-radius-lg));
-    border: var(--nf-border-width) solid var(--nf-card-border);
-    background: color-mix(in oklab, var(--nf-content-primary) 5%, var(--nf-surface-primary));
+    /* The platform container, the Profile list card's own (founder ruling,
+       7 October: the doors' card read brown-grey against the blue cards). */
+    border: var(--nf-border-width) solid var(--nf-platform-card-edge);
+    background: var(--nf-platform-card-fill);
+    box-shadow: var(--nf-platform-card-shadow);
   }
   .nf-home-doors[data-columns="2"] {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1216,6 +1223,24 @@
     font-weight: 600;
     color: var(--nf-content-link);
   }
+  /* ON A WIDE SCREEN THE ROW IS A SET, NOT A SCROLLER (premium pass, 7
+     October). At 1440 the seven plates sat at 104px each on the left half of
+     the page with the right half empty, which reads as unfinished. From `lg`
+     the row is seven equal columns across the content measure; on a phone it
+     stays the sideways scroller it was. */
+  @media (min-width: 64rem) {
+    .nf-space-types .nf-space-types__row {
+      display: grid;
+      grid-auto-columns: minmax(0, 1fr);
+      grid-auto-flow: column;
+      margin-inline: 0;
+      padding-inline: 0;
+      overflow: visible;
+    }
+    .nf-space-type {
+      width: 100%;
+    }
+  }
 
   /*
    * THE SECTIONS ARRIVE AS ONE ORGANISM (MOTION_SYSTEM "List stagger"): the
@@ -1266,5 +1291,244 @@
     .nf-home-door__object {
       transition: none;
     }
+  }
+}
+
+/* ============================================== FEATURED, AS A CARD STACK
+   `FeaturedStack.tsx`, to the founder's travel-app set (7 October). The front
+   card a tall photograph, the next and the previous peeking 12px past its
+   edges a step smaller and dimmer (depth by scale and opacity, reference 1),
+   smoked-glass circles on the photo, a frosted inset at its foot. The cards
+   are keyed, so when the front is thrown the next one rises into its place
+   on `land` (380ms); a drag writes the front card's transform directly and
+   nothing else moves. Reduced motion, Calm and Off change cards in place.
+
+   ITS OWN NAMESPACE, `nf-fstack` (7 October, the founder: "Featured stays is
+   broken"). It shipped as `nf-stack`, the name `SwipeStack` (Stays) already
+   used, and this file is global once loaded: its card rule (absolute,
+   inset 0) took the Stays deck's cards out of flow, the deck had no height of
+   its own, and every Stays featured card collapsed to a sliver. Guarded by
+   `stack-namespace.test.ts`. */
+@layer components {
+  .nf-fstack {
+    margin-top: var(--nf-space-md);
+  }
+  .nf-fstack__stage {
+    position: relative;
+    height: min(31rem, 128vw);
+    touch-action: pan-y;
+    user-select: none;
+  }
+  .nf-fstack__card {
+    position: absolute;
+    inset: 0 1.375rem;
+    overflow: hidden;
+    border: var(--nf-border-width) solid var(--nf-smoked-glass-edge);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-surface-raised);
+    box-shadow: var(--nf-card-shadow);
+    transition:
+      transform var(--nf-duration-slow) var(--nf-ease-entrance),
+      filter var(--nf-duration-slow) var(--nf-ease-entrance);
+  }
+  .nf-fstack__card[data-role="front"] {
+    z-index: 3;
+    cursor: grab;
+  }
+  /* Dimmed by light, not by transparency: a see-through card behind a
+     see-through card read as two photographs printed over each other. */
+  .nf-fstack__card[data-role="next"] {
+    z-index: 2;
+    filter: brightness(0.55);
+    transform: translateX(1.375rem) scale(0.93);
+  }
+  .nf-fstack__card[data-role="prev"] {
+    z-index: 1;
+    filter: brightness(0.4);
+    transform: translateX(-1.375rem) scale(0.93);
+  }
+  .nf-fstack__media {
+    position: absolute;
+    inset: 0;
+  }
+  .nf-fstack__media img {
+    -webkit-user-drag: none;
+  }
+  .nf-fstack__nophoto {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    translate: -50% -50%;
+    padding: var(--nf-space-3xs) var(--nf-space-xs);
+    border-radius: var(--nf-radius-xs);
+    background: var(--nf-smoked-glass-fill);
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-on-media-muted);
+  }
+  .nf-fstack__open-area {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+  }
+  .nf-fstack__open-area:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: -3px;
+  }
+  .nf-fstack__controls {
+    position: absolute;
+    inset-inline: var(--nf-space-sm);
+    top: var(--nf-space-sm);
+    z-index: 2;
+    display: flex;
+    justify-content: space-between;
+    pointer-events: none;
+  }
+  .nf-fstack__controls > * {
+    pointer-events: auto;
+  }
+  .nf-fstack .nf-fstack__circle {
+    display: grid;
+    place-items: center;
+    /* 44, the touch floor (it was 40; found by the 7 October sweep). */
+    width: 2.75rem;
+    height: 2.75rem;
+    border: var(--nf-border-width) solid var(--nf-smoked-glass-edge);
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-smoked-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    box-shadow: none;
+    color: var(--nf-content-on-media);
+  }
+  .nf-fstack__go {
+    position: relative;
+  }
+  .nf-fstack__go::after {
+    content: "";
+    position: absolute;
+    inset: -0.125rem;
+  }
+  .nf-fstack__inset {
+    position: absolute;
+    inset-inline: var(--nf-space-xs);
+    bottom: var(--nf-space-xs);
+    z-index: 2;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-sm);
+    border: var(--nf-border-width) solid var(--nf-smoked-glass-edge);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-smoked-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    color: var(--nf-content-on-media);
+    pointer-events: none;
+  }
+  .nf-fstack__words {
+    display: grid;
+    min-width: 0;
+    gap: var(--nf-space-3xs);
+  }
+  .nf-fstack__title {
+    display: -webkit-box;
+    overflow: hidden;
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    line-height: 1.25;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+  .nf-fstack__where,
+  .nf-fstack__rating {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: var(--nf-space-3xs);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-on-media-muted);
+  }
+  .nf-fstack__where span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .nf-fstack__rating > svg {
+    color: var(--nf-rating);
+  }
+  .nf-fstack__figure {
+    margin-top: var(--nf-space-3xs);
+    font-size: var(--nf-text-h4);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+  }
+  .nf-fstack__unit {
+    font-size: var(--nf-text-caption);
+    font-weight: 400;
+    color: var(--nf-content-on-media-muted);
+  }
+  .nf-fstack__map {
+    width: 4.25rem;
+    height: 4.25rem;
+    border: var(--nf-border-width) solid var(--nf-smoked-glass-edge);
+    border-radius: var(--nf-radius-control);
+  }
+  .nf-fstack__nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--nf-space-md);
+    margin-top: var(--nf-space-sm);
+  }
+  .nf-fstack__step {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-surface-raised);
+    color: var(--nf-content-primary);
+    box-shadow: var(--nf-glow-edge);
+  }
+  .nf-fstack__step:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  .nf-fstack__count {
+    min-width: 4rem;
+    text-align: center;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-fstack__credits {
+    margin-top: var(--nf-space-2xs);
+    text-align: end;
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-muted);
+  }
+  .nf-fstack__credits a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  @media (min-width: 40rem) {
+    .nf-fstack__stage {
+      max-width: 30rem;
+      margin-inline: auto;
+      height: 34rem;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-fstack__card {
+      transition: none;
+    }
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-fstack__card {
+    transition: none;
   }
 }

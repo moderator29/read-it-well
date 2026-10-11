@@ -13,6 +13,12 @@ import { lagosToday } from "@/lib/bookings/schema";
  * reads to price the stay and to build "Book now". It works before the page
  * has hydrated and with scripts off. The date controls are the browser's own;
  * the earliest check-in is today in Lagos.
+ *
+ * ONE DATES CARD, NOT TWO (7 October 2026). The page used to draw a "Check
+ * availability" card whose three fields were links to this form, and then this
+ * form under it: the same three facts twice, one above the other. The form is
+ * the availability card now. Its submit is a secondary, because the page's one
+ * primary is the anchored foot (`StayFoot`).
  */
 export function StayDatesForm({
   action,
@@ -20,12 +26,15 @@ export function StayDatesForm({
   checkOut,
   guests,
   copy,
+  note,
 }: {
   action: string;
   checkIn: string | undefined;
   checkOut: string | undefined;
   guests: number;
   copy: { title: string; checkIn: string; checkOut: string; guests: string; submit: string };
+  /** One quiet line under the submit, e.g. "Pick your dates to see the total." */
+  note?: string;
 }) {
   const today = lagosToday();
   return (
@@ -33,7 +42,7 @@ export function StayDatesForm({
       id="stay-dates"
       method="get"
       action={action}
-      className="nf-panel nf-panel--card mt-inline grid scroll-mt-28 gap-sm p-card"
+      className="nf-panel nf-panel--card grid scroll-mt-28 gap-sm p-card"
       data-testid="stay-dates-form"
     >
       <p className={TYPE.rowTitle}>{copy.title}</p>
@@ -59,9 +68,10 @@ export function StayDatesForm({
           className="nf-field"
         />
       </label>
-      <Button type="submit" variant="primary" full>
+      <Button type="submit" variant="secondary" full>
         {copy.submit}
       </Button>
+      {note ? <p className={`text-center ${TYPE.rowMeta}`}>{note}</p> : null}
     </form>
   );
 }

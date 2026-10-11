@@ -24,7 +24,7 @@ describe("the initial on an avatar", () => {
   it("is what the people-facing avatars use", () => {
     const files = [
       "app/(app)/u/page.tsx",
-      "components/social/profile/ProfileHeader.tsx",
+      "components/app/identity/IdentityHeader.tsx",
       "components/social/feed/StoryRing.tsx",
       "components/messages/VerifiedAvatar.tsx",
       /* The header avatar left the shell in Track M; the face in the drawer

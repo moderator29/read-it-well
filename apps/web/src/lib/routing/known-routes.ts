@@ -8,23 +8,24 @@
  * instead. `known-routes.test.ts` walks `src/app` and fails when a routable
  * directory is added or removed without this list following it. The
  * extra names are `next.config.ts` redirects (`/agents…` and `/trips`,
- * folded into Plans by V-76, and `/wallet` and `/escrow`, retired by Track A
- * on 25 September 2026 and sent to `/agreements`). `/support` was one until
+ * folded into Plans by V-76, and `/escrow`, retired by Track A
+ * on 25 September 2026 and sent to `/agreements`). `/wallet` was one too, until
+ * the member balance (Part B phase 6) became its page. `/support` was one until
  * it became a page of its own, the in-app help and support home.
  */
 export const KNOWN_TOP_SEGMENTS: ReadonlySet<string> = new Set([
-  "about", "admin", "agent", "agents", "agreements", "api", "areas", "around", "assistant", "auth", "bookings",
-  "cancellations", "careers", "check", "checkout", "contact", "delete-account", "disclaimer", "docs", "escrow",
+  "about", "admin", "agent", "agents", "agreements", "api", "areas", "around", "assistant", "auth", "bookings", "calls",
+  "cancellations", "careers", "check", "checkout", "contact", "delete-account", "directory", "disclaimer", "docs", "escrow",
   "email", "eula", "first-run", "for-agents", "for-hosts", "for-landlords", "forgot-password", "gallery", "guides", "help", "home", "home-or-landing", "host", "inspections",
-  "join", "landlord", "legal", "listing", "messages", "move-in-cost", "notifications", "offline", "open", "pay", "payments", "post",
-  "payouts", "preview", "price", "privacy", "profile", "r", "receipts", "record", "refunds", "rent", "reset-password", "restaurant", "rewards",
+  "join", "landlord", "leaderboard", "legal", "listing", "messages", "move-in-cost", "notifications", "offline", "open", "pay", "payments", "post",
+  "payouts", "preview", "price", "privacy", "pro", "profile", "r", "receipts", "record", "refunds", "rent", "reset-password", "restaurant", "rewards",
   "restaurants", "s", "safe", "safety", "saved", "search", "settings", "sign-in", "sign-up",
   "standards", "start", "stay", "stays", "stories", "styleguide", "support", "tenancy", "terms",
   "trips", "u", "verification", "wallet", "welcome",
 ]);
 
 /** The redirect sources in `next.config.ts`, which have no directory. */
-export const REDIRECT_ONLY_SEGMENTS: ReadonlySet<string> = new Set(["agents", "escrow", "trips", "wallet"]);
+export const REDIRECT_ONLY_SEGMENTS: ReadonlySet<string> = new Set(["agents", "escrow", "trips"]);
 
 /** Whether the first segment of `path` is one this app can answer at. */
 export function isKnownRoute(path: string): boolean {

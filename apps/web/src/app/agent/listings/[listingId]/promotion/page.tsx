@@ -23,9 +23,12 @@ export async function generateMetadata(): Promise<Metadata> {
  * `/agent/listings/<id>/promotion`: A LISTING'S PROMOTION RESULTS (D3, D60;
  * `VALLO_PROMOTION.md`, "The measurement surface"; F4's ten figures).
  *
- * NOT LINKED FROM ANYWHERE, ON PURPOSE (the rewards pattern). Promotion
- * cannot be sold until the company payment account exists (D38), and Session
- * 2's inventory and purchase do not exist. What this page CAN show is real:
+ * LINKED, AND SELLING NOTHING. It was linked from nowhere and the founder could
+ * not find it; it now opens from the Promote action on a live listing's row
+ * and from `/agent/promotion` (the rail's and the dashboard's door), both
+ * through `lib/promotion/links.ts`. Promotion still cannot be sold until the
+ * company payment account exists (D38), and Session 2's inventory and
+ * purchase do not exist, so buying says so. What this page CAN show is real:
  * the listing's own last thirty days, read through the lister's own client
  * (`readListingMeasurement`), labelled as what it did without promotion. A
  * figure the lister cannot read reads "No data" with its reason, never a

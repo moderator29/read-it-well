@@ -1,7 +1,7 @@
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { HostShell } from "@/components/host/HostShell";
-import { HostTablesBody } from "@/app/host/reservations/page";
+import { HostTablesBody } from "@/app/host/reservations/HostTablesBody";
 import { P3_TABLE_BOARD } from "../fixtures";
 
 /**

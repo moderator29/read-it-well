@@ -9,6 +9,8 @@ import type { PaymentMethod } from "@/lib/payments/methods";
 import { cryptoOfferForViewer } from "@/lib/crypto/offer";
 import { ResultScreen } from "@/components/app/ResultSheet";
 import { PageHeader } from "@/components/app/PageHeader";
+import { ButtonLink } from "@/components/ui/Button";
+import { PaidMoment } from "@/components/ui/SuccessMoment";
 import { Reveal } from "@/components/site/Reveal";
 import { PaymentReturn } from "@/app/(app)/checkout/[bookingId]/PaymentReturn";
 import { PayPanel } from "./PayPanel";
@@ -190,23 +192,25 @@ export default async function RentPayPage({
     return (
       <Shell subtitle={view.title}>
         {returning}
-        <ResultScreen
-          state="confirmed"
-          mark="shield-check"
-          verdict={c.rentIsPaid}
-          consequence={c.paidRent}
-          actions={[
-            { label: c.openMessages, href: "/messages", tone: "primary" },
-            { label: c.backToListing, href: `/listing/${view.listingId}`, tone: "quiet" },
-          ]}
-          footnote={
-            /* V-32: the landlord's answer to these figures, as a dated fact,
-               or nothing when no question was ever sent. Streams on its own. */
-            <Suspense fallback={null}>
-              <RentLandlordFact inspectionId={inspectionId} copy={getDictionary(locale).landlord.rentFact} locale={locale} />
-            </Suspense>
-          }
-        />
+        {/* The paid moment (D74 and references 4 and 7): the scalloped badge,
+            what happened in one plain sentence, the one action and a quiet
+            way back. Drawn only down `view.paid`; it decides nothing. */}
+        <PaidMoment title={c.rentIsPaid} line={c.paidRent} to={view.title} testId="rent-paid-moment" />
+        <div className="nf-receipt-actions">
+          <ButtonLink href="/messages" variant="primary" size="lg" full>
+            {c.openMessages}
+          </ButtonLink>
+          <ButtonLink href={`/listing/${view.listingId}`} variant="ghost" size="lg" full>
+            {c.backToListing}
+          </ButtonLink>
+        </div>
+        {/* V-32: the landlord's answer to these figures, as a dated fact,
+            or nothing when no question was ever sent. Streams on its own. */}
+        <div className="mt-block">
+          <Suspense fallback={null}>
+            <RentLandlordFact inspectionId={inspectionId} copy={getDictionary(locale).landlord.rentFact} locale={locale} />
+          </Suspense>
+        </div>
       </Shell>
     );
   }

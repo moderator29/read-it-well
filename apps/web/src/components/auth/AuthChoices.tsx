@@ -1,11 +1,11 @@
+import "@/app/css/auth.css";
 import Link from "next/link";
 import { withNext } from "@/lib/auth/next-link";
-import type { AuthCopy } from "./auth-copy";
+import type { Dictionary } from "@vallo/i18n/core";
 import type { ProviderId, ProviderState, SignInSurface } from "@/lib/auth/providers";
 import { continueWithEmail } from "@/lib/auth/actions";
 import { SocialDoors } from "./SocialDoors";
 import { AuthPillButton } from "./slate";
-import "@/app/css/auth.css";
 
 /**
  * The door, to the Slate references of 29 September
@@ -51,7 +51,7 @@ export function AuthChoices({
   surface = "web",
 }: {
   mode: "sign-in" | "sign-up";
-  t: AuthCopy;
+  t: Dictionary;
   providers: ProviderState[];
   /** Which surface the server rendered for. The redirect doors are drawn
       only on the website; inside a shell they cannot complete (STORE-03). */

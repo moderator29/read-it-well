@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import type { ArrivalAsksCopy } from "./welcome-copy";
+import type { Dictionary } from "@vallo/i18n/core";
 import { HEAR_ABOUT_OPTIONS } from "@/lib/auth/signup-options";
 import { rememberHearAbout } from "@/lib/auth/arrival-asks";
 import { updatePlace } from "@/lib/places/actions";
@@ -35,7 +35,7 @@ export function ArrivalAsks({
   askPlace,
   hearAbout: initialHearAbout,
 }: {
-  t: ArrivalAsksCopy;
+  t: Dictionary;
   states: StateOption[];
   /** False when the profile already holds a state. */
   askPlace: boolean;

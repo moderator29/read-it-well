@@ -4,6 +4,8 @@ import { AutoHideDock } from "./AutoHideDock";
 import { DockMore, type DockMoreItem } from "./DockMore";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import type { Side } from "@/lib/side.constants";
+import { CreateDock } from "./CreateDock";
+import { isFocusedRoute } from "./focused-route";
 
 /**
  * The bottom tab bar.
@@ -69,6 +71,13 @@ import type { Side } from "@/lib/side.constants";
  * said, the weight change still marks the active tab for sight, and the bar
  * gets the calm the reference has. If labels ever return, they return for
  * everyone, not only the active tab.
+ *
+ * AND THE CHOSEN TAB'S WORD WENT TOO (the founder, 7 October 2026: "When I
+ * click any icon it shows the text, like Home. Make it not show the text of
+ * the icon, just the icon, when clicked."). The pill that opened with the
+ * word is now one slot wide around the glyph alone, on both sides' docks; the
+ * pill, the brand ink and the solid twin carry the state, and the name stays
+ * in `aria-label`. Pinned by `app/css/dock-label.dom.test.tsx`.
  *
  * THE ACTIVE GLYPH CHANGES WEIGHT, not only colour. `UiIcon` carries a drawn
  * solid silhouette for each of these four, so the active destination reads as
@@ -168,6 +177,10 @@ export function isImmersiveRoute(pathname: string): boolean {
   return /^\/messages\/(?!new$)[^/]+$/.test(pathname);
 }
 
+/* The focused routes (/wallet and its screens, D81) step out of the dock too:
+   `isFocusedRoute` in focused-route.ts says which, for the shell and here. */
+export { isFocusedRoute };
+
 /**
  * The tab a route belongs to, or null when none does.
  *
@@ -193,7 +206,7 @@ export function isImmersiveRoute(pathname: string): boolean {
  * lie. The root is the tab, so the pill goes where the reader is.
  */
 export function tabRootFor(pathname: string): string | null {
-  if (isImmersiveRoute(pathname)) return null;
+  if (isImmersiveRoute(pathname) || isFocusedRoute(pathname)) return null;
   return (
     TAB_BAR_ROUTES.find(
       (route) => pathname === route || pathname.startsWith(`${route}/`),
@@ -372,14 +385,14 @@ export function MobileTabBar({
           icon: "calendar-booking",
         },
         { href: "/saved", label: t.nav.saved, icon: "heart" },
-        { href: "/assistant", label: t.nav.aiAssistant, icon: "sparkle" },
+        { href: "/assistant", label: t.nav.aiAssistant, icon: "bot" },
         { href: "/agreements", label: t.nav.agreements, icon: "document" },
         { href: "/price", label: t.priceCheck.title, icon: "price-tag" },
         { href: "/settings", label: t.nav.settings, icon: "settings-gear" },
         { href: "/support", label: t.nav.helpSupport, icon: "headset" },
       ]
     : [
-        { href: "/assistant", label: t.nav.aiAssistant, icon: "sparkle" },
+        { href: "/assistant", label: t.nav.aiAssistant, icon: "bot" },
         { href: "/price", label: t.priceCheck.title, icon: "price-tag" },
         { href: "/help", label: t.nav.helpSupport, icon: "headset" },
       ];
@@ -425,9 +438,20 @@ export function MobileTabBar({
             /* The centre slot: the round "+" (`CreateDock`), with no label
                under it; its accessible name is "Create". It sits in line
                with the other four, same height, same baseline. */
+            /* NEVER AN EMPTY CENTRE. A caller that passes no slot (the
+               feed and flip preview harnesses did, which is how a dock with
+               a hole where the "+" belongs was photographed and shown)
+               gets the real "+" for its side, not a gap. */
             return (
               <li key="switch" className="nf-tab nf-tab--switch">
-                {switchSlot}
+                {switchSlot ?? (
+                  <CreateDock
+                    t={t}
+                    side={side}
+                    socialOn={socialOn}
+                    listHref={side === "stays" ? "/profile/setup?side=stays" : "/profile/setup"}
+                  />
+                )}
               </li>
             );
           }
@@ -450,16 +474,15 @@ export function MobileTabBar({
               >
                 {/* The second ruling (B1, references 44 and 45): every dock
                     glyph is its SOLID CUTOUT twin, ink at rest and brand blue
-                    when chosen; the chosen tab opens into a pill with its
-                    word (shell-m.css, "SECOND RULING"). */}
-                {/* One body for the glyph and its word, so choosing a tab
-                    slides it on transform rather than re-laying the dock out
-                    (shell-m.css, "THE GLYPH AND ITS WORD, AS ONE BODY"). */}
+                    when chosen; the chosen tab sits in a pill around the
+                    glyph alone, with no word (7 October; the name is the
+                    link's `aria-label`). */}
                 <span className="nf-tab__body">
-                  <span className="nf-tab__icon">
-                    <UiIcon name={tab.icon} size="md" filled weight="bold" />
+                  <span className="nf-tab__icon" data-glyph={tab.icon}>
+                    {/* The search disc draws its lens inside a ring, so at the shared size it
+                        read smaller than its neighbours (founder, 9 October): one rung up. */}
+                    <UiIcon name={tab.icon} size={tab.icon === "search-disc" ? "lg" : "md"} filled weight="bold" />
                   </span>
-                  <span className="nf-tab__label">{tab.label}</span>
                 </span>
               </Link>
             </li>

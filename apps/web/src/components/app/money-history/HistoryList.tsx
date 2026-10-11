@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Locale } from "@vallo/i18n/core";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Amount } from "@/components/ui/Amount";
-import { StatusPill } from "@/components/ui/StatusPill";
+import { StatusWord } from "@/components/money/kit";
 import { IconPlate, ICON_PLATE_GLYPH } from "@/components/ui/IconPlate";
 import { panelClass } from "@/components/ui/Panel";
 import { formatMoneyTime } from "@/lib/money/dates";
@@ -131,11 +131,11 @@ function HistoryRow({ entry, locale, href }: { entry: HistoryEntry; locale: Loca
           <span aria-hidden="true">{signFor(entry.direction)} </span>
           <Amount minorUnits={entry.amountMinor} locale={locale} showFraction secondaryClassName="nf-history-kobo" />
         </span>
-        {/* At the pill's own 12px, the floor anywhere (north star section
-            5): this was forced down to 11px. */}
-        <StatusPill tone={status.tone} className="nf-history-badge">
+        {/* Reference 4's small status word under the amount (PAID,
+            PROCESSING), at 12px, the floor anywhere (north star section 5). */}
+        <StatusWord tone={status.tone} className="nf-history-badge">
           {status.label}
-        </StatusPill>
+        </StatusWord>
       </span>
     </>
   );

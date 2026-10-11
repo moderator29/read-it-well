@@ -12,6 +12,7 @@ import { CancellationTimeline } from "@/lib/trust/CancellationTimeline";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { panelClass } from "@/components/ui/Panel";
 import { CheckoutSummary } from "./CheckoutSummary";
+import { CheckoutPaidMoment } from "./CheckoutPaidMoment";
 import { ArrivalChargesLine } from "@/components/stays/ArrivalChargesLine";
 import { bookingChargeKind } from "@/lib/after-gate/is-rent-charge";
 import { HoldCountdown } from "./HoldCountdown";
@@ -189,7 +190,7 @@ export default async function CheckoutPage({
         confirmation follows. Not rendered while settling - a payment coming
         back from Paystack is past the point where a progress bar helps.
       */}
-      {!settling && (
+      {!settling && !view.paid && (
         <Reveal>
           <div className="mb-md">
             <SegmentedProgress
@@ -201,24 +202,22 @@ export default async function CheckoutPage({
         </Reveal>
       )}
 
-      <Reveal>
+      {/* Paid: the moment first, then the receipt (references 4 and 7), with
+          "Download receipt" and the quiet way back to the stays under it. */}
+      {view.paid ? (
+        <Reveal>
+          <CheckoutPaidMoment view={view} locale={locale} />
+        </Reveal>
+      ) : null}
+
+      <Reveal delay={view.paid ? 80 : 0}>
         {/* What is being bought, as one component the preview harness draws
             with fixture props and this route draws with the real read. */}
         {/* No stay terms on a rent charge, nor when that could not be read. */}
-        <CheckoutSummary view={view} locale={locale} tenancy={chargeKind !== "stay"} />
+        <CheckoutSummary view={view} locale={locale} tenancy={chargeKind !== "stay"} back={view.paid ? staysAction : undefined} />
       </Reveal>
 
-      {view.paid ? (
-        <Reveal delay={80} className="mt-md">
-          <ResultScreen
-            state="received"
-            mark="receipt-check"
-            verdict={c.stayPaidFor}
-            consequence={c.stayPaidBody.replace("{total}", view.totalDisplay)}
-            actions={[{ label: staysAction.label, href: staysAction.href, tone: "primary" }]}
-          />
-        </Reveal>
-      ) : view.status === "CANCELLED" ? (
+      {view.paid ? null : view.status === "CANCELLED" ? (
         <Reveal delay={80} className="mt-md">
           {/* EXPIRED, NOT FAILED, AND NOT A TICK. A cancellation is terminal
               and it is not a failure: nothing went wrong, a window closed.
@@ -249,6 +248,11 @@ export default async function CheckoutPage({
             */}
             {view.status === "PENDING" ? (
               <HoldCountdown expiresAt={view.holdExpiresAt} locale={locale} />
+            ) : view.status === "CONFIRMED" && view.instantPayBy && !view.paid ? (
+              /* D73: booked instantly at the published price. The room is
+                 held for a short window while the guest pays, and the sweep
+                 gives it back after, so here the clock is real. */
+              <HoldCountdown expiresAt={view.instantPayBy} locale={locale} />
             ) : view.status === "CONFIRMED" ? (
               /* Confirmed and still unpaid means the agent accepted a request to
                  book. There is no hold running out, so counting one down would

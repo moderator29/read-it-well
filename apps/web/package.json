@@ -1,6 +1,6 @@
 {
   "name": "@vallo/web",
-  "version": "0.1.1",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000",
@@ -40,6 +40,7 @@
     "@vallo/i18n": "*",
     "framer-motion": "^12.43.0",
     "leaflet": "^1.9.4",
+    "livekit-client": "2.22.3",
     "next": "^16.3.8",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",

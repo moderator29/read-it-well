@@ -28,14 +28,16 @@ const TOKENS = readFileSync(join(SRC, "..", "..", "..", "packages", "design-toke
 /** Hand-written offset shadows that may stay, per file: how many, and why. */
 const ALLOWED: Record<string, [number, string]> = {
   "app/admin/_review/review.css": [1, "glow: the review button's bloom in its own action colour (`--rv-btn`)"],
-  "app/css/auth.css": [1, "glow: the focused field's halo in the slate's own blue"],
+  "app/css/auth.css": [5, "the founder's restoration (7 October 2026): the login, sign-up and passcode screens back exactly as they were before the redesign: the focused field's halo and the slate's own glows, as drawn then"],
   "app/css/brand-glass.css": [1, "a night island's lift on its own artwork ink; on Paper a rung would resolve to the island's night value, so it waits for a Paper rung a dark scope can read"],
   "app/css/chips.css": [1, "glow: the lit pinned bar casts upward into the content above it (it stands on the bottom edge, as a sheet does)"],
   "app/css/chrome.css": [1, "glow: the legacy dock capsule's blue under-light"],
   "app/css/landing-rooms.css": [1, "glow: the landing stack's brand light"],
+  "app/css/landing-plasma.css": [4, "glows (P7, the Plasma pass): the white capsule's own light at rest and on hover, the deal story phone's brand under-light, and the close mark's brand bloom"],
   "app/css/landing.css": [2, "glow: the landing's lit primary, rest and hover (the view's one primary)"],
   "app/css/light.css": [9, "glows on Paper in brand ink (the lit chip, tiles, the profile ring and its contact, the hero chips) and the two night islands on Paper (home top, hero band), which wait for a Paper rung a dark scope can read"],
   "app/css/money-surface.css": [1, "glow: the processor's brand mark lit in its own blue"],
+  "app/css/money-wallet.css": [2, "glows (the founder's Wallet ruling, 8 October 2026): the wallet card's under-light in its own blue, and Add money's bloom in the action blue; both lifts otherwise read the elevation rungs"],
   "app/css/shell-m.css": [3, "glows: the side rail's sideways edge light, the dock plus's brand bloom and its rim"],
   "app/css/site.css": [2, "glow: the site's lit primary and its chip in brand ink"],
   /* PENDING: files that carry another agent's uncommitted work right now. */

@@ -9,12 +9,13 @@ import { ScrollToTop } from "@/components/site/ScrollToTop";
 import { LivingCanvas } from "@/components/site/LivingCanvas";
 import { ThemeSync } from "@/components/site/ThemeControl";
 import { ServiceWorkerRegistrar } from "@/components/app/ServiceWorkerRegistrar";
+import { VIEWER_HEADER, viewerMeta } from "@/lib/offline/viewer-stamp";
 import { NativeRuntime } from "@/components/app/NativeRuntime";
-import { StartupSequence } from "@/components/startup/StartupSequence";
-import { STARTUP_GATE_SCRIPT } from "@/components/startup/startup-script";
+import { STARTUP_GATE_SCRIPT, STARTUP_NATIVE_SCRIPT } from "@/components/startup/startup-script";
 import { ThresholdStage } from "@/components/motion/ThresholdStage";
 import { MOTION_COOKIE, motionAttributes, parseMotion } from "@/lib/motion/motion-pref";
 import "./globals.css";
+import "@/components/startup/startup.css";
 import { siteUrl } from "@/lib/site";
 import { CHROME_COLOUR } from "@/lib/theme/chrome";
 import { THEME_BOOT_SCRIPT, THEME_KEY, parseThemeChoice, serverTheme } from "@/lib/theme/theme";
@@ -304,6 +305,11 @@ export default async function RootLayout({
      writing `nonce="undefined"`, and no policy is being served on those paths
      either, so the two absences agree. */
   const nonce = (await headers()).get(NONCE_HEADER) ?? undefined;
+  /* Whose page this is, for the service worker that keeps it for offline
+     (`lib/offline/viewer-stamp.ts`): the copy in the head is the one the
+     Android app's worker can read. Null on every render the proxy did not
+     stamp, and then nothing is drawn. */
+  const offlineStamp = viewerMeta(await headers());
   /* The theme the person chose, from the cookie, so an explicit Light is
      rendered light by the server and never flashes dark. "system" renders
      dark here and the before-paint script below resolves it. */
@@ -323,6 +329,15 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <head>
+        {/*
+          THE NATIVE SPLASH GOES FIRST, AND THE BOOT TRACE STARTS (D68c, A.2).
+          The very first script in the document: it tells the native splash
+          to hide through the raw bridge, with no import and no frame waited
+          for, and starts the stage-by-stage trace a founder's device can
+          report back. Silent on the website. See components/startup.
+        */}
+        <script nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{ __html: STARTUP_NATIVE_SCRIPT }} />
+        {offlineStamp ? <meta name={VIEWER_HEADER} content={offlineStamp.viewer} data-path={offlineStamp.path} /> : null}
         {/*
           The face arrives with the stylesheet rather than after it. `crossorigin`
           is not optional even though these are our own files: a font is always
@@ -437,18 +452,18 @@ export default async function RootLayout({
           }}
         />
         {/*
-          THE SPLASH, DECIDED BEFORE PAINT (Track M, 25 September 2026).
+          THE OPENING, DECIDED BEFORE PAINT (D68c, 7 October 2026).
 
-          The app opening is the first threshold: the mark turns, the wordmark
-          assembles letter by letter, and a door opens on the page. It plays
-          once per browser session, which on the native shell is once per cold
-          start; under reduced motion, quietly: the still lockup and a 160ms
-          crossfade (MOTION_SYSTEM section 3). Never with data saving on,
-          never when the motion setting is Calm or Off or the splash is
-          switched off, and never on the console, the auth callback or a shared
-          link. The gate is STARTUP_GATE_SCRIPT, tested beside the sequence. It is
-          decided here, before the first frame, because deciding it after
-          hydration would show the page and then cover it.
+          The logo never appears by itself on app open. The opening is this
+          page arriving: the header and the dock resolving from frame one, the
+          content rising into them, about 1,500ms on the first open of the day
+          and about 400ms on a returning one, a tap anywhere settling it at
+          once. Once per browser session, which on the native shell is once per
+          cold start. Never under reduced motion, Calm, Off, the splash switch
+          or data saving (one settled frame), and never on the console, the
+          auth callback or a shared link. The gate and its controller are
+          STARTUP_GATE_SCRIPT, tested in components/startup. Decided here,
+          before the first frame, so nothing is shown and then changed.
         */}
         <script
           nonce={nonce}
@@ -516,11 +531,6 @@ export default async function RootLayout({
           {/* The one toast, the connection line and back to top. */}
           <DetailsHost />
         </ClientCopyProvider>
-        {/* THE STARTUP SEQUENCE (D31, MOTION_SYSTEM section 3): hidden
-            unless the before-paint script above said so, gone for good once
-            its door has opened. CSS, plus one inline script that only decides
-            when the door opens; see components/startup. */}
-        <StartupSequence nonce={nonce} />
         <ThresholdStage welcome={t.authFlow.welcomeThrough} />
       </body>
     </html>

@@ -63,6 +63,10 @@ import { OwnerAvailabilityLine, PropertyOffers } from "@/components/app/listing/
 import { ExactPlace } from "@/components/app/listing/ExactPlace";
 import { ListingCodeRow } from "@/components/app/listing/ListingCode";
 import { ListingMoveIn } from "@/components/app/listing/ListingMoveIn";
+import { SimilarListings } from "@/components/app/listing/SimilarListings";
+import { ListingMapPanel } from "@/components/app/listing/ListingMapPanel";
+import { areaPoint } from "@/components/app/search/mapGeo";
+import { airportFor, straightKm } from "@/lib/maps/landmarks";
 import { readPayeeRecords } from "@/lib/after-gate/payee";
 import { LastLetLine } from "@/components/app/listing/LastLetLine";
 import { ReplyTimeLine } from "@/components/app/listing/ReplyTimeLine";
@@ -762,7 +766,7 @@ export default async function ListingDetailPage({
      they are dated rows in "Why trust this space?" now, and what is left in
      this run is the listing's terms, which are not checks of anything. */
   if (listing.instantBook && isBookable) {
-    marks.push({ icon: "sparkle", label: L.instantBook });
+    marks.push({ icon: "calendar-check", label: L.instantBook });
   }
   if (listing.negotiable) marks.push({ icon: "chat-bubble", label: L.negotiable });
 
@@ -771,23 +775,28 @@ export default async function ListingDetailPage({
   /* The sections, in page order. The row carries the five a reader decides
      on (and reviews, which it always carried); the InnerNav lists them all. */
   const hasCost = isRental || isSale;
+  /* The Map tab's two facts we hold: the area's centroid (the search map's
+     own pin, never the address) and the city's airport. */
+  const mapPoint = areaPoint(listing.city, listing.area);
+  const airport = airportFor(listing.city);
+
   const sectionTabs = [
     { id: "overview", label: sx.sections.overview },
     ...(hasCost ? [{ id: "cost", label: sx.sections.costs }] : []),
     { id: "amenities", label: sx.sections.amenities },
     { id: "trust", label: sx.sections.trust },
-    { id: "location", label: sx.sections.location },
+    { id: "location", label: sx.map.tab },
     { id: "reviews", label: sx.sections.reviews },
   ];
   const sectionIndex: { id: string; label: string; icon: UiIconName }[] = [
     { id: "overview", label: sx.sections.overview, icon: "home" },
     ...(hasCost ? [{ id: "cost", label: sx.sections.costs, icon: "receipt" as UiIconName }] : []),
-    { id: "amenities", label: sx.sections.amenities, icon: "sparkle" },
+    { id: "amenities", label: sx.sections.amenities, icon: "circle-check" },
     { id: "trust", label: sx.sections.trust, icon: "shield-check" },
     ...(facts.length > 0 ? [{ id: "details", label: sx.sections.details, icon: "clipboard-list" as UiIconName }] : []),
     ...((listing.videos?.length ?? 0) > 0 ? [{ id: "walkthrough", label: sx.sections.walkthrough, icon: "circle-play" as UiIconName }] : []),
     ...(listing.photos.length > 1 ? [{ id: "photos", label: sx.sections.photos, icon: "picture" as UiIconName }] : []),
-    { id: "location", label: sx.sections.location, icon: "location" },
+    { id: "location", label: sx.map.tab, icon: "location" },
     { id: "agent", label: sx.sections.agent, icon: "user" },
     { id: "reviews", label: sx.sections.reviews, icon: "star" },
   ];
@@ -1131,7 +1140,17 @@ export default async function ListingDetailPage({
                     divided
                     className="scroll-mt-16"
                   >
-                    <ListingMoveIn listing={listing} locale={locale} t={t} records={await readPayeeRecords(listing.id)} />
+                    <ListingMoveIn
+                      listing={listing}
+                      locale={locale}
+                      t={t}
+                      records={await readPayeeRecords(listing.id)}
+                      actions={{
+                        ledgerHref: `/rent/move-in/${listing.id}`,
+                        messageHref,
+                        shareTitle: publicListingTitle(listing),
+                      }}
+                    />
                     {/* B8: the door to Price Check, drawn only where it would answer. */}
                     <PriceContextRow listing={listing} locale={locale} />
                     {/* V-38: what this flat was last let at through Vallo. Nothing when there is no such let. */}
@@ -1345,12 +1364,19 @@ export default async function ListingDetailPage({
                 )}
 
                 {/* ------------------------------------------- location */}
-                <Section id="location" title={t.catalogue.detail.location} divided className="scroll-mt-16">
-                  <div className="nf-detail-panel">
-                    <p className={`flex items-start gap-inline ${TYPE.body}`}>
-                      <UiIcon name="location" size={ICON.inline} className="mt-3xs shrink-0 text-[var(--nf-brand-secondary)]" />
-                      <span className="min-w-0">{where}</span>
-                    </p>
+                <Section id="location" title={sx.map.title} divided className="scroll-mt-16">
+                  {/* THE MAP TAB (the founder's travel-app set, 7 October): a
+                      still map of the AREA, getting there only where both ends
+                      are ours, Preview and Photo tour. ListingMapPanel. */}
+                  <ListingMapPanel
+                    where={where}
+                    area={listing.area || listing.city}
+                    point={mapPoint}
+                    airport={mapPoint && airport ? { name: airport.name, km: straightKm(mapPoint, airport.at) } : null}
+                    hasWalkthrough={(listing.videos?.length ?? 0) > 0}
+                    photoCount={listing.photos.length}
+                    copy={sx.map}
+                  />
                     {/*
                       TRAVEL TIME WAS REMOVED AND IT IS NOT COMING BACK AS A
                       STUB. It posted to `/api/travel-time`, a route that has
@@ -1364,7 +1390,6 @@ export default async function ListingDetailPage({
                       provider key, not a rejection fix. See the store research
                       file, A.3 fix 1.
                     */}
-                  </div>
                 </Section>
 
                 {/* ------------------------------------------ agent card */}
@@ -1424,6 +1449,22 @@ export default async function ListingDetailPage({
                     />
                   </Section>
                 </Reveal>
+
+                {/* More like this: the one card on the home shelf, real rows
+                    from the same market and area, streamed so it never holds
+                    the page, and absent when there is nothing to show. */}
+                {(isRental || isSale) && (
+                  <Suspense fallback={null}>
+                    <SimilarListings
+                      listing={listing}
+                      locale={locale}
+                      t={t}
+                      savedIds={new Set(savedListings.map((entry) => entry.listing.id))}
+                      title={sx.similar.title}
+                      seeAllLabel={sx.similar.seeAll}
+                    />
+                  </Suspense>
+                )}
 
                 {/* ------------------------------- the long tail, one tap */}
                 {/*

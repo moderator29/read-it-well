@@ -107,12 +107,12 @@ if (!email || !password) {
     const text = (s) => document.querySelector(s)?.textContent?.trim() ?? null;
     const emailRow = [...document.querySelectorAll(".nf-srow")].find((r) => /^\s*Email/.test(r.textContent ?? ""));
     return {
-      name: text(".nf-pf-name__text") ?? text(".nf-pf-name"),
-      handle: text(".nf-pf-handle"),
-      bio: text(".nf-pf-bio"),
-      badgeTier: document.querySelector(".nf-pf-name")?.getAttribute("data-badge-tier") ?? null,
+      name: text(".nf-social-name .truncate-none") ?? text(".nf-social-name"),
+      handle: text(".nf-social-handle"),
+      bio: text(".nf-social-bio"),
+      badgeTier: document.querySelector(".nf-social-name")?.getAttribute("data-badge-tier") ?? null,
       badgeDrawn: document.querySelectorAll('[data-testid="account-hero"] [data-tier]').length,
-      counts: [...document.querySelectorAll(".nf-pf-count")].map((e) => e.textContent?.replace(/\s+/g, " ").trim()),
+      counts: [...document.querySelectorAll(".nf-social-count")].map((e) => e.textContent?.replace(/\s+/g, " ").trim()),
       rows: [...document.querySelectorAll('[data-testid^="row-"][href]')].map((e) => ({
         href: e.getAttribute("href"),
         value: e.querySelector(".nf-pf-row__value")?.textContent?.trim() ?? null,

@@ -26,6 +26,9 @@ import { quickReplies } from "@/lib/enquiry/quick-replies";
 import { renterQuestions } from "@/lib/enquiry/renter-questions";
 import { loadListingsByIds } from "@/lib/listings/supabase-repository";
 import { StageControl } from "@/components/app/messages/StageControl";
+import { videoCallsOn } from "@/lib/calls/flags";
+import { readThreadCalls } from "@/lib/calls/thread-calls";
+import { callIdFromParam, callMarkerView } from "@/lib/calls/screen";
 
 /**
  * A single conversation thread.
@@ -142,10 +145,10 @@ export default async function ConversationPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ attach?: string | string[]; showme?: string | string[] }>;
+  searchParams: Promise<{ attach?: string | string[]; showme?: string | string[]; call?: string | string[] }>;
 }) {
   const { id } = await params;
-  const { attach, showme: showMeParam } = await searchParams;
+  const { attach, showme: showMeParam, call: callParam } = await searchParams;
   const session = await resolveSession();
 
   const inboxWords = getDictionary(await getLocale()).experienceInbox;
@@ -165,12 +168,15 @@ export default async function ConversationPage({
     if (!UUID_RE.test(id)) notFound();
     const locale = await getLocale();
     const t = getDictionary(locale);
-    const [thread, contextRead, role, read, unread] = await Promise.all([
+    const [thread, contextRead, role, read, unread, callsOn, threadCalls] = await Promise.all([
       loadThread(session.supabase, session.user, id),
       getThreadContext(id),
       viewerRole(session.supabase, session.user.id, id),
       readIds(session.supabase, id),
       readUnread(session.supabase, id, session.user.id),
+      /* VC1: whether to draw the call buttons, and which rows are calls. */
+      videoCallsOn(),
+      readThreadCalls(session.supabase, id),
     ]);
     if (!thread) notFound();
     /*
@@ -376,9 +382,15 @@ export default async function ConversationPage({
         accountCopy={t.trustVisible.account}
         scamCopy={t.memberKit.scam}
         dayKitCopy={t.memberKit.dayKit}
+        calls={{ copy: t.calls, enabled: callsOn }}
         messages={thread.messages.map((m): ThreadBubble => {
           const card = cards.get(m.id);
+          const callId = threadCalls.markers.get(m.id);
+          const callView = callId
+            ? callMarkerView({ body: m.body, mine: m.mine, snapshot: threadCalls.calls.get(callId) ?? null })
+            : null;
           return {
+            ...(callId && callView ? { call: { callId, view: callView } } : {}),
             id: m.id,
             mine: m.mine,
             body: m.body,
@@ -402,7 +414,15 @@ export default async function ConversationPage({
       <InboxEmpty
         title={inboxWords.threadPage.signedOutTitle}
         body={inboxWords.threadPage.signedOutBody}
-        action={{ href: withNext("/sign-in", `/messages/${encodeURIComponent(id)}`), label: inboxWords.inbox.signIn }}
+        action={{
+          /* A push tap for a call carries `?call=`; it survives the sign in,
+             so the call opens after auth (the call layer resolves it). */
+          href: withNext(
+            "/sign-in",
+            `/messages/${encodeURIComponent(id)}${callIdFromParam(callParam) ? `?call=${callIdFromParam(callParam)}` : ""}`,
+          ),
+          label: inboxWords.inbox.signIn,
+        }}
         secondary={{ href: "/search", label: inboxWords.inbox.explore }}
       />
     </div>

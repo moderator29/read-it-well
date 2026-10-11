@@ -67,7 +67,8 @@ describe("offlineAssetUrls", () => {
 
 describe("the version", () => {
   it("was bumped, so the activate step clears the caches keyed the old way", () => {
-    expect(sw.CACHE_VERSION).toBe("v4");
+    /* v5 (8 October 2026): visited pages kept per viewer, photographs and fonts. */
+    expect(sw.CACHE_VERSION).toBe("v5");
   });
 });
 

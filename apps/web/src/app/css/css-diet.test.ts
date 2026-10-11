@@ -51,7 +51,6 @@ describe("the global stylesheet (C12)", () => {
     "public-doors.css": [
       "(landing)/layout.tsx",
       "(site)/layout.tsx",
-      "join/[code]/layout.tsx",
       "email/preferences/layout.tsx",
       "(app)/settings/invite/InviteShare.tsx",
     ],
@@ -62,7 +61,7 @@ describe("the global stylesheet (C12)", () => {
       "../components/app/desk/RangeSelect.tsx",
     ],
     "stays.css": ["host/layout.tsx", "../components/app/stays/StayCategoryTiles.tsx"],
-    "map.css": ["../components/app/search/MapCanvas.tsx"],
+    "map.css": ["../components/app/search/MapCanvas.tsx", "../components/app/maps/AreaMapTile.tsx"],
     "feed-m.css": ["(app)/layout.tsx"],
     "side-flip.css": [
       "../components/app/AppRail.tsx",
@@ -72,7 +71,6 @@ describe("the global stylesheet (C12)", () => {
     ],
     "auth.css": [
       "(auth)/AuthFocal.tsx",
-      "(auth)/AuthGround.tsx",
       "(auth)/AuthMain.tsx",
       "(auth)/KeepPillInView.tsx",
       "(auth)/error.tsx",
@@ -89,7 +87,6 @@ describe("the global stylesheet (C12)", () => {
       "../components/auth/ForgotPasswordForm.tsx",
       "../components/auth/NativeAppleSignIn.tsx",
       "../components/auth/PasskeySignIn.tsx",
-      "../components/auth/ResendClockView.tsx",
       "../components/auth/ResetCodeForm.tsx",
       "../components/auth/ResetPasswordForm.tsx",
       "../components/auth/SignUpOptions.tsx",

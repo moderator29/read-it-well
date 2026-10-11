@@ -579,7 +579,7 @@ contain none of the objects below. **No numbered request has landed.** Nothing w
 |---|---|---|
 | R-1 | Yes, and verified | Section 0: `0bf5a642e` on Session 2's branch, and its test run here. Withdrawn |
 | R-2 | No | None of the six step labels nor the no-double-charge line is in `lib/money/copy.ts` on any of the three refs (searched for each label) |
-| R-3 | No | No `my_balance` in any migration or code on any ref. Nearest: ADR-0003 (`docs/adr/0003-two-rails-provider-held-escrow.md`, status proposed) on Session 2's branch, a design for a provider-held escrow rail, not a read |
+| R-3 | No | No `my_balance` in any migration or code on any ref. Nearest: ADR-0003 (`docs/adr/0004-two-rails-direct-and-provider-held-escrow.md`, status proposed) on Session 2's branch, a design for a provider-held escrow rail, not a read |
 | R-4 | No | No escrow read on any ref; here `/escrow/*` redirects to `/agreements` (`next.config.ts`). Session 2's response lists the escrow cancellation path as blocked on the founder (its Question 3) |
 | R-5 | No | No `withdrawal_quote` on any ref |
 | R-6 | No | No `my_payment_entry` on any ref. `lib/money/history.ts` here reads lists only (`readMyPayments`, `readMyEarnings`, the admin ledger) |

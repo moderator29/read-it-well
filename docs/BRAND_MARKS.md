@@ -8,6 +8,11 @@
 > file disagrees with it, this file is history. It is kept because code comments
 > cite it. Do not take icon, container, glow or motion direction from here.
 
+> **THE LOGO CHANGED ON 8 OCTOBER 2026 (D81, and D82 the same day: one colour
+> set in both themes). Read section 0 first.** Every
+> description below of the logo as a glass tile, five glass towers, a swoosh,
+> a keyed extraction or a re-toned "daylight twin" is history.
+
 > **Track A, 25 September 2026.** Vallo no longer holds customer money: the wallet, escrow and held payments are retired. Where this document describes them it describes the past; the current truth is [`docs/MONEY_ARCHITECTURE.md`](/docs/MONEY_ARCHITECTURE.md).
 
 **Rewritten 16 September 2026, and the thing it used to say is now wrong.**
@@ -25,6 +30,77 @@ arrived, under which names, and which one must not be used.
 
 Read `docs/archive/HANDOFF_03_FRONTEND.md` for the direction, `docs/ICON_SYSTEM.md` for
 the two tiers, and `docs/archive/FRONTEND_REVAMP.md` for the full replacement map.
+
+---
+
+## 0. The logo, from 8 October 2026 (D81)
+
+The founder supplied a new mark and wordmark
+(`docs/design/references/2026-10-08/logo-mark-new.png`,
+`logo-wordmark-new.png`): four towers, three blue and one orange, inside an
+orbit ring that sweeps from cyan to royal blue to orange; and VALLO in
+cyan-to-royal-blue letters with an orange triangle in the A and an orange
+sweep on the O. They replace every older mark and wordmark on the platform.
+
+**They are vectors now.** `scripts/brand/logo-art.mjs` redraws both from the
+references, in the references' own pixel coordinates, so the drawing can be
+laid over the render and checked shape for shape. No ground and no glow are
+baked in; a glow, where a surface wants one, is CSS and on dark only.
+
+**One colour set, never recoloured (D82, the founder, 8 October 2026).** "the
+logo im seeing it changing color on light mode ... make the logo and the text
+to be not change color should be same either on light mode or dark mode". So
+the mark and the wordmark are the founder's own colours (`COLOURS` in
+`logo-art.mjs`: cyan `#3FDCFF` to electric `#1C86FF` to royal `#1238C8`, the
+orange `#FFA04A` to `#FF8A3C` to `#F2561E`) on every ground and in both themes.
+The D81 day palette (deepened blues for paper) and reverse palette (white
+letters for the brand blue) are retired, and so is the founder's earlier rule
+of 29 September that put the light-theme `.nf-logo` on a navy pill with lights
+lapping its rim: D82 supersedes it. Nothing may recolour, filter or swap the
+logo per theme. Where the artwork's own blue would vanish (the brand-blue auth
+block and its focal ring) the lockup stands on a white plate
+(`--nf-logo-plate`), the same in both themes; the artwork itself never
+changes. `vallo-mark-light.*` and `vallo-wordmark-light.*` stay on disk only
+as byte-for-byte copies of the one artwork, so an old reference still draws it.
+
+**One build writes every file.** `node scripts/build-brand-logo.mjs` writes
+the SVGs, the transparent PNGs (`vallo-mark.png` 1024 wide,
+`vallo-wordmark.png` 1664 by 352), `vallo-logo.png` (the square lockup on
+navy), `vallo-icon.png` (the app icon), the favicon (a real 16, 32 and 48
+ICO), `public/pwa/icon-*.png`, `apple-touch-icon.png`, the maskable icon,
+`apps/web/assets/icon-*.png`, every Android `mipmap-*/ic_launcher*.png` (the
+adaptive foreground is now transparent), the iOS `AppIcon`, the older
+startup and sign-in cuts, the welcome coin's face (a solid navy disc with the
+logo's blue rim; it was the old glass coin with the old towers), the Android
+notification icon `drawable/ic_stat_vallo.xml` (the mark as a white
+silhouette; it was a door in an arch), and two generated modules:
+`apps/web/src/lib/brand/logo-geometry.ts` (the mark in parts, for
+`LogoMarkLive`) and `apps/web/src/lib/brand/og-logo.ts` (data URIs for the
+share cards Satori draws). Then `node scripts/build-email-lockup.mjs` (the
+email band) and `node scripts/build-og-image.mjs` (the default share card).
+`scripts/build-brand-marks.mjs` and `assets/brand-sheets/vallo-wordmark-source.png`
+(the extraction from the old glass tile) are deleted.
+
+**Drawing it in the app.** `Logo`, `LogoMark` and `LogoWordmark`
+(`design-system/brand/Logo.tsx`) render the one SVG each, in both themes.
+`LogoMarkLive` draws the mark inline so it can move: `reveal` (the towers rise
+out of the ring, the ring sweeps from its cyan tip to its orange end; the
+sign-out threshold) and `orbit` (a light runs round the ring; the landing's
+loading screen and the sign-in verifying panel). `app/css/logo-motion.css`
+holds the motion; reduced motion, data saving, Calm and Off draw it at rest.
+The launch image still carries no mark at all (D68c).
+
+**The sweep is a test.** `design-system/brand/logo-sweep.test.ts` fails if any
+file in the web app, the native projects, `assets/`, `packages/`, `scripts/`
+or the Supabase email templates is byte-for-byte one of the old logo files
+(by SHA-256, under any name), if the old path data appears in any source file,
+if a call site still declares the old 614 by 587 or 758 by 167 boxes, or if
+the shipped SVGs drift from `logo-art.mjs`. Since D82 it also fails if any
+logo SVG carries a colour outside the founder's set, if a kept twin differs
+from the one artwork, if source picks a logo file or class by theme, or if
+any stylesheet filters, recolours or theme-scopes a logo selector. The D81
+recolourings, the old glass coin face and the PWA install screenshots that
+showed the old glass mark are on its list of retired files.
 
 ---
 
@@ -307,7 +383,9 @@ anatomy is worth taking while its execution is everything this brand is not.
 
 ## 8. The logo in daylight, and the icon plate
 
-Added 29 September 2026.
+Added 29 September 2026. **The logo half of this section is history since
+8 October 2026: section 0 is the logo now.** The icon plate below still
+stands.
 
 > **Superseded the same day for the lockup.** The founder then asked for the
 > navy pill back, with a light "like snakes" running round its edge,

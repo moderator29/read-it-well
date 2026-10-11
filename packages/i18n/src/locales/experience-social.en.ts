@@ -135,6 +135,14 @@ export const experienceSocialEn = {
     noMatchBody: "Nobody matched that name or handle. Try a shorter piece of it, or the handle itself.",
     noneBody: "The first person to claim a handle appears here. Claim yours and yours is the first name anybody arriving reads.",
     everybody: "See everybody",
+    /* The live search on the Profile tab and /u (9 October 2026). */
+    findLabel: "Find people by @username",
+    findPlaceholder: "Find people by @username",
+    findSearching: "Searching",
+    findNone: "Nobody called {query}. Try the handle itself.",
+    findSeeAll: "See everyone matching {query}",
+    messageAction: "Message",
+    messageLabel: "Message {name}",
   },
   /**
    * `/u/[handle]/edit` and the two follow lists: the pages' own words, moved

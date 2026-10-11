@@ -121,6 +121,7 @@ export default async function Page({
           stage={stageFilter(stageParam)}
           deskCopy={t.frontDoor.desk}
           briefsLabel={t.frontDoor.briefs.deskFilter}
+          missedWords={{ VIDEO: t.calls.history.inboxMissedVideo, AUDIO: t.calls.history.inboxMissedVoice }}
         />
       ) : (
         /* The same state, hand-rolled a second time in one file with different

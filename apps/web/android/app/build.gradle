@@ -51,8 +51,8 @@ android {
          * release build, and `npm run sync:versions -- --check` in CI to fail
          * a build whose native versions no longer match the manifest.
          */
-        versionCode 101000
-        versionName "0.1.1"
+        versionCode 10000000
+        versionName "1.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -124,6 +124,8 @@ dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
     implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
+    // WebAuthn in the web view (MainActivity): Face Unlock and fingerprint for the passcode and the money lock.
+    implementation "androidx.webkit:webkit:$androidxWebkitVersion"
     implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
     implementation project(':capacitor-android')
     testImplementation "junit:junit:$junitVersion"
@@ -164,7 +166,7 @@ def fcmProblem = null
 def fcmJson = null
 
 if (!googleServicesFile.exists()) {
-    fcmProblem = "apps/web/android/app/google-services.json is missing. Download it from the Firebase console, project vallo-6f946, Project settings, Your apps, Android."
+    fcmProblem = "apps/web/android/app/google-services.json is missing. Download it from the Firebase console, project vallo-44059, Project settings, Your apps, Android."
 } else {
     try {
         fcmJson = new groovy.json.JsonSlurper().parse(googleServicesFile)
@@ -183,7 +185,7 @@ if (fcmProblem == null) {
 if (fcmProblem == null) {
     def key = fcmJson?.client?.getAt(0)?.api_key?.getAt(0)?.current_key
     if (key == null || key.toString().startsWith("PASTE_")) {
-        fcmProblem = "google-services.json still carries the placeholder API key. Replace 'current_key' with the Android API key from the Firebase console, project vallo-6f946. It is not a secret and it belongs in this repository."
+        fcmProblem = "google-services.json still carries the placeholder API key. Replace 'current_key' with the Android API key from the Firebase console, project vallo-44059. It is not a secret and it belongs in this repository."
     }
 }
 

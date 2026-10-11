@@ -114,6 +114,10 @@ export default async function ReviewPage({
         description:
           "Reviews are for stays that actually happened, so this one opens up once the agent accepts and the dates pass.",
       },
+      unpaid: {
+        title: "This stay was not paid for",
+        description: "Reviews are for stays that were paid for through Vallo and actually happened.",
+      },
       "not-finished": {
         title: "Your stay is not finished yet",
         description: `You can share a review from ${read.subject.checkOutDisplay}, once you have checked out. Enjoy the rest of it.`,

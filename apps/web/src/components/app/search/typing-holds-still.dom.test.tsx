@@ -2,7 +2,9 @@
  * TYPING NEVER MOVES THE PAGE (round 5 craft, "a search finds the right
  * place"), in Chromium, on the real results bar.
  *
- * Focusing the empty field offers the recent searches; typing closes them.
+ * Focusing the empty field offers the recent searches; typing turns the
+ * same panel into the command palette (the founder's command-search-palette,
+ * 7 October), whose first row is what Enter does.
  * Both used to happen in the page's flow, so the results jumped down as the
  * keyboard rose and back up on the first letter. Now the list floats under
  * the field and the results hold their place throughout; and with the
@@ -61,7 +63,7 @@ async function open(viewport?: { width: number; height: number }) {
 }
 
 describe.skipIf(!hasBrowser && !process.env.CI)("typing holds the page still", () => {
-  it("the results do not move when the recent searches open, or when typing closes them", async () => {
+  it("the results do not move when the recent searches open, or when typing turns them into the palette", async () => {
     const { page, close } = await open();
     try {
       const panel = page.getByTestId("recent-searches");
@@ -78,7 +80,8 @@ describe.skipIf(!hasBrowser && !process.env.CI)("typing holds the page still", (
       });
       expect(gap).toBeGreaterThanOrEqual(0);
       await page.keyboard.type("L");
-      await expect.poll(() => panel.isHidden()).toBe(true);
+      /* The panel stays, now the palette: the first row searches the words. */
+      await expect.poll(() => panel.locator(".nf-recent__row[data-active]").count()).toBe(1);
       expect(await resultsTop(page), "typing moves nothing").toBe(before);
       expect(await page.inputValue("#shelf-q")).toBe("L");
     } finally {

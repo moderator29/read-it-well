@@ -1,6 +1,6 @@
 import { getDictionary } from "@vallo/i18n";
 
-import { ListingCard } from "@/app/admin/listings/page";
+import { ListingCard } from "@/app/admin/listings/ListingCard";
 import { adminUi } from "@/app/admin/_components/ui";
 import { getLocale } from "@/lib/locale";
 import type { ListingReviewView } from "@/lib/admin/queries";

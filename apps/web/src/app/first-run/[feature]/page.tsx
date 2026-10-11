@@ -41,7 +41,7 @@ export async function generateMetadata({ params }: { params: Promise<{ feature: 
  * without it, or when it is not safe, both exits land on the feature's home.
  *
  * The invite's run reads the rewards read, the same gate as every rewards
- * surface (`inviteRewards`), and says what that state says: no reward while
+ * surface (`inviteRewards`), and says what that state says: the link alone while
  * it is not live, the reward from the read's policy while it runs. While it
  * is paused there is no run at all (D64): the member is handed straight on
  * to where they were going, which says the pause and offers no invite.

@@ -5,25 +5,26 @@ import { formatMoney, intlTag, type Locale } from "@vallo/i18n/core";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { readAgreement, UNNAMED_OWNER, UNNAMED_RENTER } from "@/lib/agreements/queries";
+import { readHeldPayment } from "@/lib/money/held-view";
+import { readAgreementRail } from "@/lib/money/fund-view";
 import { readChangesSinceConfirmed } from "@/lib/agreements/changes-read";
 import type { TermChange } from "@/lib/agreements/terms-diff";
 import { AgreementChanges, type WordedChange } from "@/components/app/agreements/AgreementChanges";
 import { AgreementVersions } from "@/components/app/agreements/AgreementVersions";
-import { AgreementHistory } from "@/components/app/agreements/AgreementHistory";
-import { AgreementTrackMotion } from "@/components/app/agreements/AgreementTrackMotion";
+import { AgreementHistory, eventLabel } from "@/components/app/agreements/AgreementHistory";
 import { readAgreementRecord } from "@/components/app/agreements/record-read";
 import { previousVersionDiff, versionRegister, type RecordEvent } from "@/components/app/agreements/version-register";
 import { termDay, termValue } from "@/components/app/agreements/term-words";
 import { PageHeader } from "@/components/app/PageHeader";
-import { HeroBand } from "@/components/ui/HeroBand";
+import { Tracker } from "@/components/ui/Tracker";
 import { DecisionCard } from "@/components/app/confirm/DecisionCard";
 import { ButtonLink } from "@/components/ui/Button";
 import { SuccessFromFlag } from "@/components/ui/SuccessFromFlag";
 import { readDone, type SuccessMomentId } from "@/lib/ui/success-moments";
 import { agreementArrival } from "@/lib/ui/arrival-moments";
 import { Section, TYPE } from "@/components/app/Screen";
-import { AGREEMENT_STATUS_LABEL, CLAIM_STATUS_LABEL } from "@/components/app/agreements/status";
-import { StatusTrack, type TrackStep } from "@/components/app/status/StatusTrack";
+import { CLAIM_STATUS_LABEL, STAY_TRACK_WORDS, agreementStatusLabel, agreementStatusTone } from "@/components/app/agreements/status";
+import type { TrackStep } from "@/components/app/status/StatusTrack";
 import { DocActions, DocHead, DocNote, DocRow, DocRows, DocState, DocumentSheet } from "@/components/app/money/DocumentSheet";
 import { PrintDocumentTile } from "@/components/app/money/PrintDocumentTile";
 import { agreementTrack, type AgreementStepKey } from "@/components/app/status/tracks";
@@ -104,7 +105,16 @@ export default async function AgreementPage({
     a.claimWindow !== null && now >= Date.parse(a.claimWindow.opens) && now < Date.parse(a.claimWindow.closes);
   const claimedApproved = a.claims.reduce((sum, c) => sum + (c.approvedMinor ?? 0), 0);
   const cap = Math.max(0, a.amountMinor - claimedApproved);
-  const payHref = a.kind === "rent" && a.inspectionId ? `/rent/pay/${a.inspectionId}` : a.bookingId ? `/checkout/${a.bookingId}` : null;
+  /* D77: a rental on the escrow rail is paid into escrow from the renter's balance, not by card. */
+  const rentRail = a.kind === "rent" && a.status === "approved" && a.role === "renter" ? await readAgreementRail(a.id) : null;
+  const payHref =
+    rentRail === "escrow"
+      ? `/agreements/${a.id}/fund`
+      : a.kind === "rent" && a.inspectionId
+        ? `/rent/pay/${a.inspectionId}`
+        : a.bookingId
+          ? `/checkout/${a.bookingId}`
+          : null;
   const guaranteeBps = num(a.terms, "guarantee_bps");
   /* A contribution was really taken only while the Guarantee ran (D51). */
   const legacyContribution = guaranteeBps !== null && guaranteeBps > 0;
@@ -133,6 +143,8 @@ export default async function AgreementPage({
   const words = t.experienceMoney.agreements;
   const pw = words.page;
   const LINES = termLines(t);
+  /* D68d step 8: a protected payment held by the provider has its own page. */
+  const held = a.kind === "rent" ? await readHeldPayment(a.id) : null;
   const [since, record] = await Promise.all([
     party && (a.status === "awaiting_parties" || a.status === "rejected") && !a.youConfirmedCurrent
       ? readChangesSinceConfirmed({
@@ -177,12 +189,31 @@ export default async function AgreementPage({
      agreement stands approved now (a later payment is its own moment; a
      send-back or a cancellation is not a payoff; staff reviewing the
      record are not being paid off). */
-  const steps = agreementSteps(a.status, a.events, pw.track, locale);
-  const approvedStep = steps.findIndex((step) => step.key === "approved");
-  const popAt =
-    party && a.status === "approved" && approvedStep >= 0 && steps[approvedStep]!.state === "done" && steps[approvedStep]!.when
-      ? approvedStep + 1
-      : null;
+  /* D73: a stay's agreement is never drawn as a staff review. */
+  const trackWords = a.kind === "rent" ? pw.track : { ...pw.track, ...STAY_TRACK_WORDS };
+  const steps = agreementSteps(a.status, a.events, trackWords, locale);
+  const statusWords = agreementStatusLabel(a.status, a.kind);
+
+  /* THE ONE TRACKER's two cells, from the record only. What happens next is
+     the first step still ahead; the reader's part is the one decision this
+     page holds for them, the payment that is theirs to make, or nothing. */
+  const nextStep = steps.find((step) => step.state === "upcoming");
+  const yourPart = !party
+    ? null
+    : awaitingYou
+      ? pw.confirmVersion.replace("{n}", String(a.termsVersion))
+      : a.status === "approved" && a.role === "renter" && payHref
+        ? agreementPayLabel(formatMoney(a.amountMinor, locale))
+        : "No action needed from you";
+  const sinceLine = lastEvent
+    ? `${eventLabel(lastEvent.action, a.kind)} · ${new Date(lastEvent.at).toLocaleString(intlTag[locale], {
+        day: "numeric",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: "Africa/Lagos",
+      })}`
+    : null;
 
   const arrival = agreementArrival(a, done);
   const moment: SuccessMomentId | null = arrival && !arrival.seenOnce ? arrival.moment : null;
@@ -206,27 +237,33 @@ export default async function AgreementPage({
         haptic={moment ? undefined : false}
       />
       <PageHeader title={pw.title} />
-      {/* Where it stands, on the shared status track (spec section 14): drawn
-          up, both confirmed, approved, paid, each dated from this agreement's
-          own events. Sent back or cancelled stops the track where it stood.
-          It opens the page on the hero band (plan item 21; spec section 16,
-          Q2: the agreement's live-status header), the property named above
-          the track with the kind and the status word under it. */}
-      <HeroBand
-        className="nf-status-band mt-inline"
+      {/* WHERE IT STANDS, as the one tracker (ONE-PRODUCT-DECISIONS,
+          recommendation 1; status-tracking-timeline.jpg): the status in
+          words, when it got there, what happens next and the reader's part,
+          then the dated moments from this agreement's own events. The
+          property and kind are the chip; the full record stays below. */}
+      <p className="nf-tracker-place mt-inline">
+        {a.listingTitle} · {a.kind === "rent" ? pw.rental : pw.stay}
+      </p>
+      <Tracker
+        className="mt-inline"
         label={pw.liveStatus}
-        title={a.listingTitle}
-        sub={
-          <>
-            {a.kind === "rent" ? pw.rental : pw.stay} ·{" "}
-            <span data-testid="agreement-status">{AGREEMENT_STATUS_LABEL[a.status] ?? a.status}</span>
-          </>
-        }
-      >
-        <AgreementTrackMotion popAt={popAt} seenKey={`agreement-approved-track:${a.id}`}>
-          <StatusTrack label={pw.progress} steps={steps} testId="agreement-track" />
-        </AgreementTrackMotion>
-      </HeroBand>
+        icon={a.kind === "rent" ? "key" : "bed"}
+        title={statusWords}
+        tone={agreementStatusTone(a.status)}
+        since={sinceLine}
+        cells={[
+          ...(nextStep && a.status !== "cancelled" && a.status !== "rejected" ? [{ label: "Next step", value: nextStep.label }] : []),
+          ...(yourPart ? [{ label: "Your part", value: yourPart }] : []),
+        ]}
+        steps={steps}
+        timelineLabel={pw.progress}
+        glyphs={{ drawn: "file-text", confirmed: "user-check", approved: "verified", paid: "wallet" }}
+        testId="agreement-track"
+      />
+      <span className="sr-only" data-testid="agreement-status">
+        {statusWords}
+      </span>
 
       {/* AWAITING YOU (plan item 22; spec section 14, reference 36). Drawn
           only when this reader is a party and has not confirmed the current
@@ -417,7 +454,15 @@ export default async function AgreementPage({
         </Section>
       ) : null}
 
-      {a.status === "approved" ? (
+      {held?.state === "ready" ? (
+        <Section title="Escrow payment">
+          <Link href={`/agreements/${a.id}/held`} className="nf-btn nf-btn--primary nf-btn--md nf-btn--full" data-testid="agreement-held">
+            See where your money is held
+          </Link>
+        </Section>
+      ) : null}
+
+      {a.status === "approved" && held?.state !== "ready" ? (
         <Section title={AGREEMENT_PAYMENT_OPEN_TITLE}>
           {a.role === "renter" && payHref ? (
             <Link href={payHref} className="nf-btn nf-btn--primary nf-btn--md nf-btn--full" data-testid="agreement-pay">
@@ -468,7 +513,7 @@ export default async function AgreementPage({
       ) : null}
 
       <Section title={words.historyTitle}>
-        <AgreementHistory events={history} names={names} locale={locale} copy={words} />
+        <AgreementHistory events={history} names={names} locale={locale} copy={words} kind={a.kind} />
       </Section>
 
       <p className={`${TYPE.rowMeta} mt-block`}>{OFF_PLATFORM_SENTENCE}</p>
@@ -476,7 +521,7 @@ export default async function AgreementPage({
   );
 }
 
-type TrackWords = Record<AgreementStepKey, string> & { sentBack: string; cancelled: string };
+type TrackWords = Record<AgreementStepKey, string> & { sentBack: string; cancelled: string; reviewing?: string };
 
 function agreementSteps(
   status: string,
@@ -491,7 +536,9 @@ function agreementSteps(
         ? status === "rejected"
           ? track.sentBack
           : track.cancelled
-        : track[step.key],
+        : step.key === "approved" && step.state === "current"
+          ? (track.reviewing ?? track.approved)
+          : track[step.key],
     when: step.at
       ? new Date(step.at).toLocaleString(intlTag[locale], {
           day: "numeric",

@@ -47,7 +47,7 @@ export function CommunityBand({
         <div className="flex flex-col gap-heading">
           <SectionHead id="nf-landing-community-title" eyebrow={c.overline} title={c.title} lede={c.body} />
           {figures.length > 0 && (
-            <ul className="nf-landing-figures">
+            <MotionReveal as="ul" stagger className="nf-landing-figures">
               {figures.map((f) => (
                 <li key={f.key} className="nf-landing-figure">
                   {/* The label above its figure (C6, the route sweep; north
@@ -62,13 +62,13 @@ export function CommunityBand({
                   </strong>
                 </li>
               ))}
-            </ul>
+            </MotionReveal>
           )}
-          <div className="nf-landing-thirdparty">
+          <MotionReveal className="nf-landing-thirdparty">
             <span className="nf-badge nf-badge--neutral nf-landing-tag">{c.thirdParty}</span>
             <p className="nf-landing-thirdparty__title">{c.thirdPartyTitle}</p>
             <p className="nf-landing-thirdparty__body">{c.thirdPartyBody}</p>
-          </div>
+          </MotionReveal>
         </div>
 
         <MotionReveal delay={80}>

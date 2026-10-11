@@ -53,7 +53,7 @@ export const THEME_BOOT_SCRIPT =
   /* A night door (`night-door.ts`, the same pattern, held equal by a test)
      is dark whatever was chosen: the root is painted night and marked, and
      the choice itself is kept. */
-  "var n=false;try{n=/^\\/(welcome|sign-up)(\\/|$)/.test(location.pathname)}catch(e){}if(n){l=false;d.dataset.door='night'}" +
+  "var n=false;try{n=/^\\/(sign-up)(\\/|$)/.test(location.pathname)}catch(e){}if(n){l=false;d.dataset.door='night'}" +
   "d.dataset.theme=l?'light':'dark';d.dataset.themeChoice=c;" +
   `var t=document.querySelector('meta[name=theme-color]');if(t)t.setAttribute('content',l?'${CHROME_COLOUR_LIGHT}':'${CHROME_COLOUR}')` +
   "}catch(e){}" +

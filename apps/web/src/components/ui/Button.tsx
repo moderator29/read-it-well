@@ -67,6 +67,14 @@ import { feedback } from "@/lib/ui/feedback";
  */
 export type ButtonVariant =
   | "primary"
+  /**
+   * THE ORANGE BUTTON (D81, 8 October 2026: "make use of orange in many places
+   * too ... use it more areas in buttons too"). The warm fill
+   * (`--nf-spark-fill`), a white 600 label at 16px or more. It is the SECOND
+   * action beside a blue primary, never the main one: blue leads, orange
+   * sparks, and a screen carries at most one.
+   */
+  | "spark"
   | "secondary"
   | "quiet"
   | "icon"
@@ -110,6 +118,7 @@ export type ButtonSize = "sm" | "md" | "lg";
 
 const VARIANT_CLASS: Record<ButtonVariant, string> = {
   primary: "nf-btn--primary",
+  spark: "nf-btn--spark",
   secondary: "nf-btn--glass",
   quiet: "nf-btn--quiet",
   icon: "nf-btn--surface nf-btn--icon",
@@ -272,6 +281,18 @@ function DoneCheck({ size }: { size: number }) {
       </svg>
     </span>
   );
+}
+
+/**
+ * THE LIGHT THAT CROSSES A FILLED BUTTON (D81, "Let's make this cinematic").
+ * On hover and on press a soft band of warm light sweeps once across the blue
+ * primary and the orange spark (`.nf-btn__sweep`, spark.css). Its own clipped
+ * layer, absolutely placed, so it is never a flex item and never moves the
+ * label; still under reduced motion, data saving, Calm and Off.
+ */
+function Sweep({ variant, iconOnly }: { variant: ButtonVariant; iconOnly?: boolean }) {
+  if (iconOnly || (variant !== "primary" && variant !== "spark")) return null;
+  return <span className="nf-btn__sweep" aria-hidden="true" />;
 }
 
 /** How long the morph takes to settle back to the rectangle (`base`). */
@@ -450,6 +471,7 @@ export const Button = forwardRef(function Button(
         onPointerDown?.(event);
       }}
     >
+      <Sweep variant={variant} iconOnly={iconOnly} />
       <Content
         loading={loading}
         done={done}
@@ -509,6 +531,7 @@ export const ButtonLink = forwardRef(function ButtonLink(
         onPointerDown?.(event);
       }}
     >
+      <Sweep variant={variant} iconOnly={iconOnly} />
       <Content
         loading={loading}
         done={done}

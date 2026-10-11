@@ -28,6 +28,41 @@ export const experienceDetailEn = {
   breakdown: {
     howRead: "How these figures are read",
     howReadHint: "Who keeps what, and the state's published limits",
+    /* True Cost as a bill (PREMIUM-STANDARD reference 8): three small
+       figures over the lines, and three equal actions under the total. */
+    stripLabel: "This bill at a glance",
+    stripRent: "Rent",
+    stripFees: "Fees",
+    stripBack: "Refundable",
+    actionsLabel: "What you can do with this breakdown",
+    ledger: "Ledger",
+    ledgerLabel: "Open the full move-in ledger",
+    share: "Share",
+    shareLabel: "Share this listing",
+    ask: "Ask",
+    askLabel: "Ask the lister about a cost",
+  },
+  /* The Map tab inside a listing (the travel-app set): a still map of the
+     area, "getting there" figures only where both ends are known, and the
+     Preview and Photo tour tiles. */
+  map: {
+    tab: "Map",
+    title: "Map and getting there",
+    areaOnly: "The pin shows the area, not the address. The exact place is shared once a viewing is confirmed.",
+    mapOf: "Map of {area}",
+    airport: "To {name}",
+    airportBasis: "In a straight line from {area}",
+    km: "km",
+    preview: "Preview",
+    previewHint: "Walkthrough video",
+    photoTour: "Photo tour",
+    photoTourHint: "{count} photographs",
+  },
+  /* The shelf at the foot of a listing: real listings like this one, from the
+     same catalogue search reads. Drawn only when there is at least one. */
+  similar: {
+    title: "More like this",
+    seeAll: "See all",
   },
   /* Power, water and the meter, as rows marked with the real objects. */
   utilities: {

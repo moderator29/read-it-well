@@ -76,6 +76,12 @@ export type InboxRow = {
    * earned. Absent never means "offline", it means "not known".
    */
   presence?: "online";
+  /**
+   * VC1: the newest message is a call this reader missed (read from the
+   * call marker's `call_id`, never from typed words). Drawn as a red
+   * missed-call line in place of the preview.
+   */
+  missedCall?: { kind: "AUDIO" | "VIDEO"; words: string };
 };
 
 const CONTEXT_GLYPH: Partial<Record<ThreadContextKind, UiIconName>> = {
@@ -187,7 +193,16 @@ function Row({
                   : "text-[var(--nf-content-secondary)]"
             }`}
           >
-            {typing ? words.typing : preview}
+            {typing ? (
+              words.typing
+            ) : row.missedCall ? (
+              <span className="inline-flex items-center gap-inline-tight text-[var(--nf-state-error)]" data-testid="inbox-missed-call">
+                <UiIcon name="phone-missed" size={16} filled />
+                {row.missedCall.words}
+              </span>
+            ) : (
+              preview
+            )}
           </span>
         </span>
 
@@ -324,14 +339,25 @@ export function Inbox({
     () => rows.map((r) => (r.id in archivedLocal ? { ...r, archived: archivedLocal[r.id] } : r)),
     [rows, archivedLocal],
   );
-  const onSide = useMemo(() => live.filter((r) => (r.side ?? "property") === side), [live, side]);
+  /* A chat with a person (9 October 2026) belongs to neither side: it shows
+     on both, so a message from somebody never hides behind the other tab. */
+  const onSide = useMemo(
+    () => live.filter((r) => r.contextKind === "direct" || (r.side ?? "property") === side),
+    [live, side],
+  );
   const requests = useMemo(() => onSide.filter((r) => inView(r, "requests")), [onSide]);
   const unreadTotal = rows.reduce((sum, r) => sum + r.unread, 0);
   /* How many CONVERSATIONS on this side wait on a reply, for the Unread chip. */
   const unreadThreads = useMemo(() => onSide.filter((r) => inView(r, "unread")).length, [onSide]);
   const unreadBySide = useMemo(() => {
     const out: Record<Side, number> = { property: 0, stays: 0 };
-    for (const r of live) if (!r.archived && r.unread > 0) out[r.side ?? "property"] += 1;
+    for (const r of live) {
+      if (r.archived || r.unread === 0) continue;
+      if (r.contextKind === "direct") {
+        out.property += 1;
+        out.stays += 1;
+      } else out[r.side ?? "property"] += 1;
+    }
     return out;
   }, [live]);
 

@@ -256,7 +256,7 @@ export function ListingGallery({
        * Once the shell stops welding its 64px header onto this route the same
        * rule puts the hero under the status bar with no further change here.
        */
-      className="nf-vt-morph relative -mx-gutter -mt-xl sm:-mt-2xl"
+      className="nf-gallery nf-vt-morph relative -mx-gutter -mt-xl sm:-mt-2xl"
     >
       <div
         ref={track}

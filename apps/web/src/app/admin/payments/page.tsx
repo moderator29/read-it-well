@@ -19,6 +19,7 @@ import { LiveRefresh } from "../_components/LiveRefresh";
 import { CalmNote, DeskHead, Panel, flatParams } from "../money/_desk/Desk";
 import { PaymentsCharts, PaymentsKpis, PaymentsTable } from "./PaymentsFlow";
 import { currentPaystack, describePaystackMode } from "@/lib/payments/paystack-mode";
+import { getSubscriptionsDesk, LIVE_SUBSCRIPTION_STATUSES } from "@/lib/admin/reads/subscriptions";
 import "../money/_desk/desk.css";
 
 /** Payment attempts per page. */
@@ -62,7 +63,7 @@ export default async function AdminPaymentsPage({
 
   const flat = flatParams(params);
   const acting = readActingForParams(params, "transaction");
-  const [read, lookup, flow] = await Promise.all([
+  const [read, lookup, flow, subs] = await Promise.all([
     getPaymentHealth(STALE_HOLD_MINUTES),
     term.length > 0 ? findAdminSubject(term) : Promise.resolve(null),
     getPaymentsDesk({
@@ -70,7 +71,57 @@ export default async function AdminPaymentsPage({
       page: readPage(params.page),
       pageSize: PAYMENTS_PAGE_SIZE,
     }),
+    getSubscriptionsDesk(),
   ]);
+  const s = t.subscriptions.admin;
+  /* Vallo Pro and Vallo Business, read only (lib/admin/reads/subscriptions.ts). */
+  const subscriptions = (
+    <ui.Section title={s.title} hint={s.hint}>
+      {subs.state !== "ok" ? (
+        <p className="nf-caption text-[var(--nf-content-muted)]" data-testid="admin-subscriptions-unavailable">
+          {s.unavailable}
+        </p>
+      ) : (
+        <>
+          <ui.StatRow>
+            {LIVE_SUBSCRIPTION_STATUSES.map((status) => (
+              <ui.Stat key={status} label={s.counts[status]} value={String(subs.data.counts[status])} tone="neutral" />
+            ))}
+          </ui.StatRow>
+          {subs.data.latest.length === 0 ? (
+            <p className="nf-caption mt-sm text-[var(--nf-content-muted)]">{s.none}</p>
+          ) : (
+            <Table caption={s.caption} density="compact">
+              <THead>
+                <TR>
+                  <TH>{s.plan}</TH>
+                  <TH>{s.status}</TH>
+                  <TH>{s.member}</TH>
+                  <TH>{s.mode}</TH>
+                  <TH>{s.ends}</TH>
+                  <TH>{s.started}</TH>
+                  <TH align="end">{s.amount}</TH>
+                </TR>
+              </THead>
+              <TBody>
+                {subs.data.latest.map((row) => (
+                  <TR key={row.id}>
+                    <TD className="font-semibold text-[var(--nf-content-primary)]">{row.planName}</TD>
+                    <TD>{s.statuses[row.status as keyof typeof s.statuses] ?? row.status}</TD>
+                    <TD className="[overflow-wrap:anywhere] [user-select:all]">{row.userId}</TD>
+                    <TD>{row.mode ?? s.trial}</TD>
+                    <TD>{row.endsAt ? ui.when(row.endsAt) : ""}</TD>
+                    <TD>{ui.when(row.createdAt)}</TD>
+                    <TD align="end">{row.amountMinor != null ? formatMoney(row.amountMinor, locale) : s.trial}</TD>
+                  </TR>
+                ))}
+              </TBody>
+            </Table>
+          )}
+        </>
+      )}
+    </ui.Section>
+  );
   const payments = flow.state === "ok" ? flow.data : null;
   /* Read-only: which Paystack account this deployment is talking to, so a
      sandbox deployment can never be mistaken for the live one. */
@@ -106,6 +157,7 @@ export default async function AdminPaymentsPage({
         <PaymentsKpis desk={payments} locale={locale} />
         <PaymentsCharts desk={payments} locale={locale} />
         <PaymentsTable desk={payments} params={flat} locale={locale} ui={ui} />
+        {subscriptions}
         <ui.QueueUnavailable />
       </div>
     );
@@ -216,6 +268,8 @@ export default async function AdminPaymentsPage({
       <PaymentsKpis desk={payments} locale={locale} />
       <PaymentsCharts desk={payments} locale={locale} />
       <PaymentsTable desk={payments} params={flat} locale={locale} ui={ui} />
+
+      {subscriptions}
 
       <LookupPanel
         term={term}

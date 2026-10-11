@@ -6,7 +6,6 @@ import { KpiTile } from "@/components/ui/KpiTile";
 import { ListGroup, ListRow } from "@/components/ui/ListGroup";
 import { IconPlate } from "@/components/ui/IconPlate";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { Gauge, type GaugeStage } from "@/components/ui/charts/Gauge";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { TodayHero } from "@/components/workspace/TodayHero";
 import type { HostToday, TodayAttention } from "./today";
@@ -54,6 +53,7 @@ export function HostTodayView({
   locale,
   sub,
   action,
+  figure,
   children,
 }: {
   today: HostToday;
@@ -63,6 +63,8 @@ export function HostTodayView({
   sub: string;
   /** The one primary action. */
   action: ReactNode;
+  /** The figure card (reference 5), drawn under the band. */
+  figure?: ReactNode;
   /** The rest of the page: the application in progress, the businesses. */
   children?: ReactNode;
 }) {
@@ -74,20 +76,6 @@ export function HostTodayView({
     month: "long",
     timeZone: "Africa/Lagos",
   }).format(new Date(`${today.day}T12:00:00Z`));
-
-  const stages: GaugeStage[] = today.stages.map((stage) => ({
-    key: stage.key,
-    label: d.host.stage[stage.key === "staying" ? "checkedIn" : stage.key],
-    count: stage.count,
-    tone:
-      stage.key === "requested"
-        ? "warning"
-        : stage.key === "confirmed"
-          ? "brand"
-          : stage.key === "staying"
-            ? "success"
-            : "neutral",
-  }));
 
   /* The oldest waiting item becomes the next action; the list carries the
      rest. With one item, the list is left out entirely. */
@@ -127,7 +115,11 @@ export function HostTodayView({
         ) : null}
       </HeroBand>
 
-      {shown.length > 0 || stages.length > 0 ? (
+      {figure}
+
+      {/* ONE LIST (clean spaces): what needs the host. The reservations by
+          status gauge lives on the reservations board, one tap away. */}
+      {shown.length > 0 ? (
         <div className="nf-desk-grid">
           {shown.length > 0 ? (
             <ListGroup
@@ -145,16 +137,6 @@ export function HostTodayView({
                 <AttentionRow key={item.key} item={item} t={t} tag={tag} />
               ))}
             </ListGroup>
-          ) : null}
-          {stages.length > 0 ? (
-            <section className="nf-list-section">
-              <div className="nf-list-section__head">
-                <h2 className="nf-section-label">{d.host.pipeline}</h2>
-              </div>
-              <div className="nf-desk-card">
-                <Gauge stages={stages} totalLabel={d.host.pipelineTotal} label={d.host.pipeline} tag={tag} />
-              </div>
-            </section>
           ) : null}
         </div>
       ) : null}

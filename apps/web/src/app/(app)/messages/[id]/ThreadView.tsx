@@ -59,6 +59,10 @@ import { AttachmentRow } from "@/components/app/messages/AttachmentRow";
 import { VoiceNote, type VoiceNoteData } from "@/components/app/messages/VoiceNote";
 import { dayHeading, dayStarts } from "@/components/app/threads/day";
 import { useInboxPart } from "@/components/app/threads/use-inbox-copy";
+import { CallButtons } from "@/components/calls/CallButtons";
+import { CallHistoryRow } from "@/components/calls/CallHistoryRow";
+import { placeCall } from "@/components/calls/place-call";
+import { callMarkerView, type CallMarkerView } from "@/lib/calls/screen";
 
 /**
  * The conversation thread, one component for both data sources.
@@ -114,6 +118,11 @@ export type ThreadBubble = {
   audio?: VoiceNoteData;
   /** A file that is not a photo, as a bordered row with a type glyph (W5-3). */
   file?: { url: string; name?: string | null; mime?: string | null; bytes?: number | null };
+  /**
+   * VC1: this row is a finished call's marker (`messages.call_id`), drawn as
+   * a compact call row rather than a bubble. The view is per reader.
+   */
+  call?: { callId: string; view: CallMarkerView };
 };
 
 export type ThreadViewProps = {
@@ -232,6 +241,12 @@ export type ThreadViewProps = {
    * `@vallo/i18n` index (398KB gzipped) in this route's first load.
    */
   inboxThreadCopy?: Dictionary["experienceInbox"]["thread"];
+  /**
+   * VC1: voice and video calls. Present only when the page found the
+   * `video_calls` switch on for a signed-in reader; absent draws no call
+   * buttons and no call-back controls (call markers still render as rows).
+   */
+  calls?: { copy: Dictionary["calls"]; enabled: boolean } | null;
 };
 
 const INSPECTIONS_KEY = "nf_inspections";
@@ -367,6 +382,7 @@ export function ThreadView({
   unread = null,
   nowMs,
   inboxThreadCopy,
+  calls = null,
 }: ThreadViewProps) {
   const [items, setItems] = useState<ThreadBubble[]>(messages);
   /* The messages the thread opened with. Only a message that arrives AFTER
@@ -495,6 +511,11 @@ export function ThreadView({
        my own send echoing first, so the row takes the optimistic bubble's
        place and key (same element, the arrival keeps playing); a message from
        my other device or the other side, which arrives like any new one. */
+    /* VC1: a finished call's marker arrives like any message; its call id
+       (not yet in the generated row type) makes it a call row. */
+    const callId = (row as { call_id?: unknown }).call_id;
+    const view =
+      typeof callId === "string" ? callMarkerView({ body: row.body, mine: row.sender_id === meId }) : null;
     setItems((prev) =>
       mergeEcho(prev, {
         id: row.id,
@@ -503,6 +524,7 @@ export function ThreadView({
         timeLabel: lagosTimeLabel(row.created_at),
         imageUrl: null,
         createdAt: row.created_at,
+        ...(view && typeof callId === "string" ? { call: { callId, view } } : {}),
       }),
     );
     if (row.sender_id !== meId) void markThreadRead({ conversationId });
@@ -777,6 +799,9 @@ export function ThreadView({
    * never show a check-in date, and neither face has to be told which it is.
    */
   const propertyFace = context?.kind === "listing" && listing !== null;
+  /* VC1: the line under the name on the call screens: the listing's title,
+     the stay or the table, never the generic "Direct message". */
+  const callContextLine = listing ? listing.title : context && context.kind !== "listing" ? contextLine : null;
   /* A stay or a table is kept by a venue: a business, so the guest sees an
      initials tile. The host's counterpart is the guest, a person. */
   const venueFace = role === "guest" && (context?.kind === "booking" || context?.kind === "reservation");
@@ -894,7 +919,18 @@ export function ThreadView({
             counterpart who has not given one, simply has one control on the
             right instead of two.
           */}
-          {counterpartPhone && (
+          {/* VC1: with calls open, the in-app voice and video buttons take
+              this place. The phone-number link stands down rather than draw
+              two handsets side by side that do different things. */}
+          {calls?.enabled && live ? (
+            <CallButtons
+              conversationId={conversationId}
+              name={counterpartName}
+              contextLine={callContextLine}
+              copy={calls.copy}
+            />
+          ) : null}
+          {counterpartPhone && !(calls?.enabled && live) && (
             <a
               href={`tel:${counterpartPhone}`}
               aria-label={`Call ${counterpartName}`}
@@ -1078,6 +1114,29 @@ export function ThreadView({
             scamCopy && !m.mine && role === "guest" && !m.card && !accountMessage
               ? run.map((p) => ({ p, ask: offPlatformAsk(p.body) })).find((x) => x.ask)
               : undefined;
+          /* VC1: a finished call is a compact system row, never a bubble. */
+          if (m.call && calls) {
+            const kind = m.call.view.kind;
+            return (
+              <Fragment key={bubbleKey(m)}>
+                {dayBreaks.has(index) && m.createdAt && (
+                  <DayDivider label={dayHeading(m.createdAt, locale, threadWords.day, nowMs)} />
+                )}
+                <div data-msg-id={m.id}>
+                  <CallHistoryRow
+                    view={m.call.view}
+                    timeLabel={m.timeLabel}
+                    copy={calls.copy}
+                    onCallBack={
+                      calls.enabled && live
+                        ? () => void placeCall({ conversationId, kind, context: { line: callContextLine } })
+                        : undefined
+                    }
+                  />
+                </div>
+              </Fragment>
+            );
+          }
           return (
             <Fragment key={bubbleKey(m)}>
             {dayBreaks.has(index) && m.createdAt && (

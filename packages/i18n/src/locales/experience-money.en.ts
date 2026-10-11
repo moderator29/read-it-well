@@ -135,6 +135,9 @@ export const experienceMoneyEn = {
         drawn: "Drawn up",
         confirmed: "Both confirmed",
         approved: "Vallo approved",
+        /* The same step while it is still the one in progress: it has not
+           been approved yet, so it must not say so (7 October 2026). */
+        reviewing: "Vallo is reviewing",
         paid: "Paid",
         sentBack: "Sent back by Vallo",
         cancelled: "Cancelled",

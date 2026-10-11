@@ -1,12 +1,11 @@
 "use client";
+import "@/app/css/auth.css";
 
 import { useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 
-import { Button } from "@/components/ui/Button";
 import { signInWithAppleIdToken } from "@/lib/auth/actions";
 import { useClientCopy } from "@/lib/i18n/client-copy";
-import "@/app/css/auth.css";
 
 /**
  * SIGN IN WITH APPLE INSIDE THE iOS SHELL (STORE-02).
@@ -132,34 +131,24 @@ export function NativeAppleSignIn({
 
   return (
     <div className={round ? "nf-slate-social-slot" : undefined}>
-      {round ? (
-        <button
-          type="button"
-          onClick={() => void start()}
-          disabled={busy}
-          data-testid="apple-native-sign-in"
-          aria-label={label}
-          title={label}
-          className="nf-slate-social"
-        >
-          <AppleMark />
-        </button>
-      ) : (
-        <Button
-          variant="glass"
-          size="lg"
-          full
-          onClick={() => void start()}
-          disabled={busy}
-          data-testid="apple-native-sign-in"
-          className="nf-slate-pill nf-slate-pill--quiet"
-        >
-          <AppleMark />
-          {label}
-        </Button>
-      )}
+      <button
+        type="button"
+        onClick={() => void start()}
+        disabled={busy}
+        data-testid="apple-native-sign-in"
+        aria-label={round ? label : undefined}
+        title={round ? label : undefined}
+        className={
+          round
+            ? "nf-slate-social"
+            : "nf-btn nf-btn--glass nf-btn--lg nf-btn--full nf-slate-pill nf-slate-pill--quiet"
+        }
+      >
+        <AppleMark />
+        {round ? null : label}
+      </button>
       {message ? (
-        <p role="alert" className="nf-auth__alert">
+        <p role="alert" className="nf-auth__notice mt-sm">
           {message}
         </p>
       ) : null}

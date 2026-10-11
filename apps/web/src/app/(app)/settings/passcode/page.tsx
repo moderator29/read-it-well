@@ -61,7 +61,7 @@ export default async function PasscodeSettingsPage() {
       />
       {state === "set" ? (
         <div className="mt-block">
-          <PasskeyIdleSetting hasPasskey={await passkeyUnlockOffered().catch(() => false)} />
+          <PasskeyIdleSetting hasPasskey={await passkeyUnlockOffered().catch(() => false)} copy={copy} />
         </div>
       ) : null}
     </div>

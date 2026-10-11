@@ -21,15 +21,15 @@ import { CreateBloom, type BloomArea, type ReviewableStay } from "./bloom/Create
  */
 export async function AroundFab({
   currentAreaId,
-  initialOpen = false,
+  compose = false,
 }: {
   /** Preselected when the bloom is opened from inside a place. */
   currentAreaId?: string;
   /**
-   * Open the bloom on arrival: the dock's Create sheet sends "Post to the
+   * Open the composer on arrival: the dock's Create sheet sends "Post to the
    * feed" here as `/around?compose=1` (`CreateDock`).
    */
-  initialOpen?: boolean;
+  compose?: boolean;
 }) {
   if (!(await isSocialEnabled())) return null;
 
@@ -67,7 +67,7 @@ export async function AroundFab({
         currentAreaId && areas.some((a) => a.id === currentAreaId) ? currentAreaId : undefined
       }
       reviewable={reviewable}
-      initialOpen={initialOpen}
+      initialCompose={compose}
     />
   );
 }

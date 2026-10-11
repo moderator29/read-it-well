@@ -98,8 +98,7 @@ export const SUCCESS_OBJECT: Readonly<Record<SuccessMomentId, Icon3DName>> = {
   rentPaid: "keys",
   sharePaid: "earnings",
   moveInPaid: "keys",
-  // Not "coin" (D29 bans coins): the receipt is on the page, so the matte clipboard.
-  cryptoPaid: "checklist",
+  cryptoPaid: "coin",
   inspectionRequested: "calendar-pending",
   inspectionBooked: "calendar-booked",
   inspectionReportSubmitted: "checklist",

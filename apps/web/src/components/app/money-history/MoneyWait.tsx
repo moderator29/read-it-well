@@ -190,27 +190,40 @@ export function HistoryListWait({ rows = 3 }: { rows?: number }) {
  * figure is a slab on its own line.
  */
 export function PayoutCardWait({ labels, total }: { labels: readonly string[]; total: string }) {
+  /* The payout bill as `PayoutList` draws it (reference 8): the head with
+     its status word, then the line items on the same card. */
   return (
-    <li className="nf-panel nf-panel--card">
-      <p className="nf-body font-semibold text-[var(--nf-content-primary)]">
-        <Line width="55%" />
-      </p>
-      <p className="nf-caption text-[var(--nf-content-muted)]">
-        <Line width="35%" />
-      </p>
-      <dl className="nf-maths mt-row">
+    <li className="nf-payout">
+      <div className="nf-payout__head">
+        <div className="min-w-0 flex-1">
+          <p className="nf-payout__title">
+            <Line width="55%" />
+          </p>
+          <p className="nf-payout__day">
+            <Line width="35%" />
+          </p>
+        </div>
+        <span className="nf-mword">
+          <Line width="3.5rem" />
+        </span>
+      </div>
+      <dl className="nf-maths nf-maths--bill nf-maths--inset">
         {labels.map((label) => (
           <div key={label} className="nf-maths__row">
             <dt>{label}</dt>
             <dd>
-              <Line width="6rem" />
+              <span className="nf-mfig nf-mfig--row">
+                <Line width="6rem" />
+              </span>
             </dd>
           </div>
         ))}
-        <div className="nf-maths__row nf-maths__row--total">
+        <div className="nf-maths__row nf-maths__row--total nf-maths__row--lit">
           <dt>{total}</dt>
           <dd>
-            <Line width="6.5rem" />
+            <span className="nf-mfig nf-mfig--row">
+              <Line width="6.5rem" />
+            </span>
           </dd>
         </div>
       </dl>

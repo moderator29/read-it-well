@@ -1,0 +1,168 @@
+/*
+ * THE WARM SPARK, USED MORE (D81, 8 October 2026). The founder: "also make
+ * use of orange in many places too in our platform and use it more areas in
+ * buttons too and animations too ... Let's make this cinematic".
+ *
+ * Blue still leads; orange is the second accent. Every colour here is a spark
+ * token (`--nf-spark`, `-ink`, `-soft`, and the fill family `-fill`,
+ * `-fill-solid`, `-on-fill`, `-glow`, tokens.css), answered for night and for
+ * paper, so no rule names a theme.
+ *
+ *   1. the spark button        `.nf-btn--spark` (buttons.css): the orange
+ *                              fill, a white 600 label at 16px, the second
+ *                              action beside a blue primary, never two on one
+ *                              screen
+ *   2. the light sweep         (buttons.css) one band of warm light crosses a
+ *                              filled button on hover and on press
+ *   3. the states that point   the dock's chosen tab, the segmented thumb, the
+ *                              count badges, the story ring's far end, the
+ *                              progress bar's leading edge, the pull to refresh
+ *                              arc, the success pulse, the section eyebrow
+ *   4. the waits               the skeleton's sweep carries a warm leading edge
+ *
+ * Motion is on the app's duration and ease tokens. Under reduced motion,
+ * data saving, Calm and Off nothing here moves; the colours stay.
+ *
+ * Some of the surfaces answered here are styled by route sheets that load
+ * after this global one (shell-m.css, feed-m.css), so those rules lead with
+ * `:root` to win at the next weight up rather than by load order.
+ */
+@layer components {
+  /* 1 and 2, the spark button and the light sweep, live in buttons.css with
+     the rest of the button system, so every harness that draws a Button
+     draws them too. */
+
+  /* -------------------------------------------- 3. the states that point */
+
+  /* The dock: a spark under the chosen glyph, inside the blue pill. A dot is a
+     shape, not a control (DESIGN_DIRECTION 1.4). */
+  :root .nf-tabbar :is(.nf-tab__link[aria-current="page"], .nf-tab__link[data-on])::after {
+    content: "";
+    position: absolute;
+    bottom: 0.125rem;
+    left: 50%;
+    width: 0.3125rem;
+    height: 0.3125rem;
+    margin-left: -0.15625rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-spark);
+    box-shadow: 0 0 6px color-mix(in oklab, var(--nf-spark) 70%, transparent);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    :root .nf-tabbar :is(.nf-tab__link[aria-current="page"], .nf-tab__link[data-on])::after {
+      animation: nf-spark-pop var(--nf-duration-slow) var(--nf-ease-spring) both;
+    }
+  }
+  @keyframes nf-spark-pop {
+    from {
+      opacity: 0;
+      transform: scale(0.2);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* The segmented control: the blue thumb carries a spark at its foot. */
+  .nf-segmented .nf-segmented__capsule::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 0.25rem;
+    width: 0.25rem;
+    height: 0.25rem;
+    margin-left: -0.125rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-spark);
+  }
+
+  /* Counts are the spark: an unread number is the warm thing on the screen,
+     the spark fill with its own dark ink (`--nf-spark-on`, 5:1 or better in
+     both themes), the way the cyan count drew its navy numeral. At the light
+     theme's badge weight (light.css, "STATUS BADGES") so paper keeps it. The
+     notifications page keeps its own section count. */
+  :root:is([data-theme]) .nf-count-badge:not(.nf-notif__count) {
+    --nf-badge-hue: var(--nf-spark);
+    --nf-badge-ink: var(--nf-spark-on);
+    background: var(--nf-spark);
+    color: var(--nf-spark-on);
+  }
+
+  /* The bell's unread dot (already the spark) breathes twice when it lands,
+     then rests. */
+  @media (prefers-reduced-motion: no-preference) {
+    .nf-app-header__dot {
+      animation: nf-spark-ping 1.4s var(--nf-ease-standard) 400ms 2 both;
+    }
+  }
+  @keyframes nf-spark-ping {
+    0% {
+      box-shadow: 0 0 0 0 color-mix(in oklab, var(--nf-spark) 60%, transparent);
+    }
+    100% {
+      box-shadow: 0 0 0 8px color-mix(in oklab, var(--nf-spark) 0%, transparent);
+    }
+  }
+
+  /* The story ring sweeps from blue to orange, as the logo's orbit does. */
+  :root .nf-story-ring {
+    --nf-ring-lit-end: var(--nf-spark);
+  }
+  :root .nf-story-ring__disc:not([style*="--nf-ring"]):not([data-seen="all"]) {
+    background:
+      linear-gradient(var(--nf-surface-canvas), var(--nf-surface-canvas)) padding-box,
+      linear-gradient(160deg, var(--nf-state-info) 0%, var(--nf-brand-primary) 52%, var(--nf-spark) 100%) border-box;
+  }
+
+  /* The progress bar's leading edge (the brand tone only). */
+  .nf-progress__fill[data-tone="brand"] {
+    box-shadow: inset -0.375rem 0 0 -0.0625rem var(--nf-spark);
+  }
+
+  /* The pull to refresh arc is the spark on its blue track. */
+  .nf-ptr__ring circle:not(.nf-ptr__track) {
+    stroke: var(--nf-spark);
+  }
+
+  /* The success moment's one outgoing ring is the spark. */
+  .nf-success__pulse {
+    border-color: var(--nf-spark);
+  }
+
+  /* The section eyebrow's hairline runs blue into orange, a little heavier. */
+  .nf-eyebrow::before,
+  .nf-sec-head--center .nf-eyebrow::after {
+    height: 2px;
+    background: linear-gradient(90deg, var(--nf-brand-primary), var(--nf-spark));
+  }
+  .nf-sec-head--center .nf-eyebrow::after {
+    background: linear-gradient(270deg, var(--nf-brand-primary), var(--nf-spark));
+  }
+
+  /* --------------------------------------------------------- 4. the waits */
+  /* The skeleton's band carries a warm leading edge as it sweeps. */
+  .nf-skeleton::after {
+    background: linear-gradient(
+      90deg,
+      transparent 19.2%,
+      var(--nf-skeleton-glint) 45.6%,
+      var(--nf-skeleton-peak) 54.4%,
+      color-mix(in oklab, var(--nf-spark) 16%, transparent) 66%,
+      transparent 80.8%
+    );
+  }
+}
+
+/* Data saving, Calm and Off: the colours stay, nothing moves. */
+:root:is([data-save-data="on"], [data-motion="calm"], [data-motion="off"]) .nf-app-header__dot,
+:root:is([data-save-data="on"], [data-motion="calm"], [data-motion="off"])
+  .nf-tabbar
+  :is(.nf-tab__link[aria-current="page"], .nf-tab__link[data-on])::after {
+  animation: none;
+}
+/* The light sweep (buttons.css) is not drawn at all under data saving, Calm
+   or Off. */
+:root:is([data-save-data="on"], [data-motion="calm"], [data-motion="off"]) .nf-btn__sweep {
+  display: none;
+}

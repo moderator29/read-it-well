@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { formatDate, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
@@ -17,6 +18,7 @@ import { IconPlate } from "@/components/ui/IconPlate";
 import { Gauge, type GaugeStage } from "@/components/ui/charts/Gauge";
 import { TodayHero } from "@/components/workspace/TodayHero";
 import { waitingOn } from "@/lib/inspections/types";
+import { PROMOTION_HUB_HREF } from "@/lib/promotion/links";
 import "@/app/css/site.css";
 
 /**
@@ -76,6 +78,7 @@ export function RealDashboard({
   displayName,
   numbers,
   inspections,
+  figure,
 }: {
   t: Dictionary;
   locale: Locale;
@@ -83,6 +86,8 @@ export function RealDashboard({
   numbers: AgentNumbers;
   /** What this person has been asked to show. See the header. */
   inspections: InspectionList;
+  /** The figure card (reference 5), drawn first under the band; the page reads its rows. */
+  figure?: ReactNode;
 }) {
   const a = t.agent.dashboard;
   const d = t.agentListings.dashboard;
@@ -210,6 +215,7 @@ export function RealDashboard({
       </HeroBand>
 
       <Stack>
+        {figure}
         {listedInspections.length > 0 || numbers.totalListings > 0 ? (
           <div className="nf-desk-grid">
             {listedInspections.length > 0 ? (
@@ -285,6 +291,25 @@ export function RealDashboard({
               />
             ))
           )}
+        </ListGroup>
+
+        {/* ---------------------------------------------------- promotion */}
+        {/* D60: paid promotion's door on the screen a lister lands on. It
+            opens `/agent/promotion` (the live listings, each with Promote);
+            it shows no figure and sells nothing, because buying is not open
+            until payments for promotion are live (`PROMOTION_NOT_ON_SALE`). */}
+        <ListGroup data-testid="dashboard-promotion">
+          <ListRow
+            href={PROMOTION_HUB_HREF}
+            leading={
+              <IconPlate size="sm" shape="round" tone="brand">
+                <UiIcon name="trending-up" size={20} />
+              </IconPlate>
+            }
+            title={t.experienceFeatures.promotion.hub.title}
+            sub={t.experienceFeatures.promotion.hub.dashboardSub}
+            chevron
+          />
         </ListGroup>
 
         {/* ------------------------------------------------------ actions */}

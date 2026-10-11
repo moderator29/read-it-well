@@ -103,7 +103,7 @@ export function FeaturesBoard({
         <PlanPaywall
           artefact={
             <div className="w-full max-w-xs">
-              <Credential face={{ material: "edge", eyebrow: "The plan's artefact", title: "Plan name", glyph: "sparkle" }} />
+              <Credential face={{ material: "edge", eyebrow: "The plan's artefact", title: "Plan name", glyph: "certificate" }} />
             </div>
           }
           promise="The promise, one line"

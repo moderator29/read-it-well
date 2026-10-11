@@ -163,11 +163,13 @@ export function Progress({
         {indeterminate ? null : (
           <span
             className={[
-              "block h-full rounded-[var(--nf-radius-pill)] transition-transform motion-reduce:transition-none",
+              "nf-progress__fill block h-full rounded-[var(--nf-radius-pill)] transition-transform motion-reduce:transition-none",
               glass ? "nf-progress__fill--lit" : "",
             ]
               .filter(Boolean)
               .join(" ")}
+            /* The brand fill's leading edge is the warm spark (D81, spark.css). */
+            data-tone={tone}
             style={{
               /* The fill is the track's width and slides in from the left: the
                  track's rounded clip draws the same bar a growing width drew,

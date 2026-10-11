@@ -1,15 +1,14 @@
 "use client";
+import "@/app/css/auth.css";
 
-import { useActionState, useRef } from "react";
+import { useActionState } from "react";
 import Link from "next/link";
-import type { AuthCopy } from "./auth-copy";
+import type { Dictionary } from "@vallo/i18n/core";
 import type { AuthFormState } from "@/lib/auth/form-state";
 import { requestPasswordReset } from "@/lib/auth/actions";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Field } from "./fields";
 import { AuthPillButton, AuthPillLink } from "./slate";
-import { useRefusalShake } from "./useRefusalShake";
-import "@/app/css/auth.css";
 
 const EMPTY: AuthFormState = { ok: false };
 
@@ -28,12 +27,9 @@ const EMPTY: AuthFormState = { ok: false };
  * it there invites somebody to hammer the button waiting for a different
  * answer they are never going to get.
  */
-export function ForgotPasswordForm({ t }: { t: AuthCopy }) {
+export function ForgotPasswordForm({ t }: { t: Dictionary }) {
   const [state, formAction, pending] = useActionState(requestPasswordReset, EMPTY);
   const sent = state.ok;
-  /* THE FORM ERROR: the refused field shakes once, its message beneath. */
-  const form = useRef<HTMLFormElement>(null);
-  useRefusalShake(form, state, !state.ok && (Object.keys(state.fieldErrors ?? {}).length > 0 || Boolean(state.message)));
 
   return (
     <div className="nf-auth__screen nf-slate-stagger">
@@ -56,7 +52,7 @@ export function ForgotPasswordForm({ t }: { t: AuthCopy }) {
           <p className="nf-auth__hint">{t.auth.resetNotArrived}</p>
         </>
       ) : (
-        <form ref={form} action={formAction} className="nf-auth__form nf-auth__form--fields nf-slate-stagger" noValidate>
+        <form action={formAction} className="nf-auth__form nf-auth__form--fields nf-slate-stagger" noValidate>
           <Field
             t={t}
             id="email"
@@ -71,7 +67,7 @@ export function ForgotPasswordForm({ t }: { t: AuthCopy }) {
           {state.message && (
             <p
               role="alert"
-              className="nf-auth__alert"
+              className="rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-warning)_35%,transparent)] bg-[var(--nf-state-warning-surface)] px-md py-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-warning)]"
             >
               {state.message}
             </p>

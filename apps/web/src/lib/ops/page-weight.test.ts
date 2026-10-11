@@ -23,8 +23,13 @@ describe("cold page weight", () => {
     }
   });
 
-  it("the wordmark asks the optimiser for its drawn size, not 1920 wide", () => {
+  it("the logo is a vector, so no optimiser ever serves it 1920 wide", () => {
+    /* OPS-10 asked the raster wordmark for its drawn size. Since D81 the
+       mark and the wordmark are SVG files, which `next/image` passes through
+       unoptimised: a few kilobytes at every size and density. */
     const logo = readFileSync("src/design-system/brand/Logo.tsx", "utf8");
-    expect(logo).toMatch(/sizes=\{`\$\{Math\.ceil\(\(wordSize \* 758\) \/ 167\)\}px`\}/);
+    expect(logo).toContain('"/brand/vallo-wordmark.svg"');
+    expect(logo).toContain('"/brand/vallo-mark.svg"');
+    expect(logo).not.toMatch(/vallo-(mark|wordmark)(-light)?[.]png/);
   });
 });
