@@ -502,6 +502,8 @@ export type ReplayedMessage = Pick<SentMessage, "id" | "conversationId" | "creat
 export async function sendMessage(input: {
   conversationId: string;
   body: string;
+  /** The message this one answers, in the same conversation (the database checks). */
+  replyToId?: string | null;
   /** V-40: the UUID minted when this was tapped; a replay answers with the first send. */
   tapKey?: string;
 }): Promise<ActionResult<SentMessage | ReplayedMessage>> {
@@ -541,6 +543,7 @@ async function sendMessageWork(
       conversation_id: parsed.data.conversationId,
       sender_id: session.user.id,
       body: parsed.data.body,
+      reply_to_id: parsed.data.replyToId ?? null,
     })
     .select("id, conversation_id, body, created_at")
     .single();

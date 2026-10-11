@@ -524,10 +524,12 @@ export async function loadThread(
   if (!conversation) return null;
   if (conversation.guest_id !== user.id && conversation.agent_id !== user.id) return null;
 
-  const [{ data: messages }, { data: myInspection }] = await Promise.all([
+  const [{ data: messagesRaw }, { data: myInspection }, { data: myHidden }] = await Promise.all([
     supabase
       .from("messages")
-      .select("id, sender_id, body, created_at, message_attachments(storage_path)")
+      .select(
+        "id, sender_id, body, created_at, reply_to_id, forwarded, deleted_for_everyone_at, message_attachments(storage_path)",
+      )
       .eq("conversation_id", conversationId)
       .order("created_at", { ascending: true })
       .limit(200),
@@ -537,7 +539,11 @@ export async function loadThread(
       .eq("conversation_id", conversationId)
       .eq("user_id", user.id)
       .maybeSingle(),
+    /* Delete for me: the messages this reader hid. Their own rows only (RLS). */
+    supabase.from("message_hidden").select("message_id").eq("user_id", user.id),
   ]);
+  const hiddenIds = new Set((myHidden ?? []).map((h) => h.message_id));
+  const messages = (messagesRaw ?? []).filter((m) => !hiddenIds.has(m.id));
 
   // Signed URLs for every attachment in one round trip; the storage policy
   // has already limited reads to conversation members.
@@ -589,13 +595,17 @@ export async function loadThread(
     inspected: Boolean(myInspection),
     messages: (messages ?? []).map((m) => {
       const path = m.message_attachments[0]?.storage_path;
+      const deleted = m.deleted_for_everyone_at !== null;
       return {
         id: m.id,
         mine: m.sender_id === user.id,
         body: m.body,
         timeLabel: lagosTimeLabel(m.created_at),
-        imageUrl: path ? (urlByPath.get(path) ?? null) : null,
+        imageUrl: deleted ? null : path ? (urlByPath.get(path) ?? null) : null,
         createdAt: m.created_at,
+        replyToId: m.reply_to_id ?? null,
+        forwarded: m.forwarded === true,
+        deleted,
       };
     }),
   };

@@ -31,6 +31,8 @@ import {
   SAFETY_EDUCATION_SEEN_KEY,
 } from "@/lib/messages/education";
 import { lagosTimeLabel } from "@/lib/messages/time";
+import { deleteMessage } from "@/lib/messages/message-actions";
+import { MessageMenu } from "@/components/app/messages/MessageMenu";
 import {
   useThreadRealtime,
   useThreadTyping,
@@ -105,6 +107,10 @@ export type ThreadBubble = {
   card?: ChatCardData;
   /** The row's timestamp, when known. Read by the account card's "checking" window. */
   createdAt?: string;
+  /** Deleted for everyone by the sender: the words and photos are gone for both sides. */
+  deleted?: boolean;
+  /** Forwarded from another conversation. Drawn as a small label above the words. */
+  forwarded?: boolean;
   /**
    * The message this one answers, by id (request W5-1: `messages.reply_to_id`).
    * Drawn as the quoted block above the bubble. Absent on every row today, so
@@ -285,7 +291,7 @@ function dimensionsOf(url: string): Promise<{ width?: number; height?: number }>
   });
 }
 
-type RetryPayload = { kind: "text"; body: string } | { kind: "image"; file: File };
+type RetryPayload = { kind: "text"; body: string; replyToId?: string | null } | { kind: "image"; file: File };
 
 /**
  * What the retry button is called, for somebody who cannot see which bubble it
@@ -385,6 +391,49 @@ export function ThreadView({
   calls = null,
 }: ThreadViewProps) {
   const [items, setItems] = useState<ThreadBubble[]>(messages);
+  /* The message being answered, set by Reply in the message menu. Cleared on send. */
+  const [replyTo, setReplyTo] = useState<ThreadBubble | null>(null);
+  /* The message whose menu is open (a long press on the bubble). */
+  const [actionMsg, setActionMsg] = useState<ThreadBubble | null>(null);
+  /* A short line for a refused or finished action, shown above the composer. */
+  const [actionNote, setActionNote] = useState<string | null>(null);
+  const pressTimer = useRef<number | null>(null);
+  const startPress = (m: ThreadBubble) => {
+    if (m.id.startsWith("local-")) return;
+    pressTimer.current = window.setTimeout(() => setActionMsg(m), 450);
+  };
+  const endPress = () => {
+    if (pressTimer.current !== null) window.clearTimeout(pressTimer.current);
+    pressTimer.current = null;
+  };
+  const menuReply = () => {
+    if (actionMsg) setReplyTo(actionMsg);
+    setActionMsg(null);
+  };
+  const menuCopy = async () => {
+    const text = actionMsg?.body ?? "";
+    setActionMsg(null);
+    if (text) await navigator.clipboard?.writeText(text).catch(() => undefined);
+  };
+  const menuDeleteForMe = async () => {
+    const target = actionMsg;
+    setActionMsg(null);
+    if (!target) return;
+    const result = await deleteMessage({ messageId: target.id, scope: "me" });
+    if (result.ok) setItems((prev) => prev.filter((x) => x.id !== target.id));
+    else setActionNote(result.error);
+  };
+  const menuDeleteForEveryone = async () => {
+    const target = actionMsg;
+    setActionMsg(null);
+    if (!target) return;
+    const result = await deleteMessage({ messageId: target.id, scope: "everyone" });
+    if (result.ok) {
+      setItems((prev) =>
+        prev.map((x) => (x.id === target.id ? { ...x, body: "", imageUrl: null, deleted: true } : x)),
+      );
+    } else setActionNote(result.error);
+  };
   /* The messages the thread opened with. Only a message that arrives AFTER
      this (sent or received while the thread is open) plays the arrival
      motion; the history the thread opened with is simply there, so opening a
@@ -565,9 +614,10 @@ export function ThreadView({
   const waitingKeys = useRef(new Map<string, string>());
 
   const runTextSend = useCallback(
-    async (tempId: string, body: string) => {
-      const done = await sendOrKeep("send_message", { conversationId, body }, (tapKey) =>
-        sendMessage({ conversationId, body, tapKey }),
+    async (tempId: string, body: string, replyToId: string | null = null) => {
+      const reply = replyToId ?? undefined;
+      const done = await sendOrKeep("send_message", { conversationId, body, replyToId: reply }, (tapKey) =>
+        sendMessage({ conversationId, body, replyToId: reply, tapKey }),
       );
       if (done.state === "kept") {
         waitingKeys.current.set(done.key, tempId);
@@ -690,7 +740,8 @@ export function ThreadView({
     }
     if (body) {
       const tempId = `local-${crypto.randomUUID()}`;
-      retryPayloads.current.set(tempId, { kind: "text", body });
+      const replyToId = replyTo && !replyTo.id.startsWith("local-") ? replyTo.id : null;
+      retryPayloads.current.set(tempId, { kind: "text", body, replyToId });
       setItems((prev) => [
         ...prev,
         {
@@ -701,9 +752,11 @@ export function ThreadView({
           imageUrl: null,
           state: "sending",
           createdAt: new Date().toISOString(),
+          replyToId,
         },
       ]);
-      void runTextSend(tempId, body);
+      setReplyTo(null);
+      void runTextSend(tempId, body, replyToId);
     }
   }, [draft, pendingFile, live, runTextSend, runImageSend]);
 
@@ -712,7 +765,7 @@ export function ThreadView({
       const payload = retryPayloads.current.get(tempId);
       if (!payload) return;
       setItems((prev) => prev.map((m) => (m.id === tempId ? { ...m, state: "sending" } : m)));
-      if (payload.kind === "text") void runTextSend(tempId, payload.body);
+      if (payload.kind === "text") void runTextSend(tempId, payload.body, payload.replyToId ?? null);
       else {
         const bubble = items.find((m) => m.id === tempId);
         void runImageSend(tempId, payload.file, bubble?.imageUrl ?? "");
@@ -1199,6 +1252,14 @@ export function ThreadView({
                   <ChatCard card={m.card} />
                 ) : (
                   <div
+                    onPointerDown={() => startPress(m)}
+                    onPointerUp={endPress}
+                    onPointerLeave={endPress}
+                    onPointerCancel={endPress}
+                    onContextMenu={(e) => {
+                      e.preventDefault();
+                      if (!m.id.startsWith("local-")) setActionMsg(m);
+                    }}
                     className={`nf-bubble ${
                       m.state === "failed"
                         ? "nf-bubble--failed"
@@ -1231,6 +1292,8 @@ export function ThreadView({
                         />
                       )
                     )}
+                    {m.forwarded ? <span className="nf-bubble__forwarded">Forwarded</span> : null}
+                    {m.deleted ? <p className="nf-bubble__deleted">This message was deleted</p> : null}
                     {m.audio ? <VoiceNote note={m.audio} mine={m.mine} copy={threadWords.voice} /> : null}
                     {m.file ? (
                       <AttachmentRow
@@ -1371,6 +1434,23 @@ export function ThreadView({
           </Button>
         </div>
       )}
+      {replyTo && (
+        <div className="nf-composer__reply" data-testid="composer-reply">
+          <p className="nf-body-sm text-[var(--nf-content-secondary)]">
+            <span className="font-semibold">{replyTo.mine ? "You" : counterpartName}</span>
+            {": "}
+            {replyTo.deleted ? "This message was deleted" : replyTo.body || "Photo"}
+          </p>
+          <Button variant="ghost" size="sm" aria-label="Cancel reply" onClick={() => setReplyTo(null)}>
+            Cancel
+          </Button>
+        </div>
+      )}
+      {actionNote && (
+        <p role="status" className="px-md pb-xs nf-body-sm text-[var(--nf-state-error)]">
+          {actionNote}
+        </p>
+      )}
       {quickReplies.length > 0 && (
         /* V-72: the tray. A tap adds the sentence to whatever is already typed. */
         <nav aria-label={quickRepliesTitle} className="px-md pb-xs" data-testid="quick-replies">
@@ -1432,6 +1512,17 @@ export function ThreadView({
           <UiIcon name="arrow-right" size={ICON.inline} className="-rotate-45" />
         </button>
       </form>
+      {actionMsg && (
+        <MessageMenu
+          canCopy={actionMsg.body.length > 0 && !actionMsg.deleted}
+          canDeleteEveryone={actionMsg.mine && !actionMsg.deleted}
+          onReply={menuReply}
+          onCopy={() => void menuCopy()}
+          onDeleteForMe={() => void menuDeleteForMe()}
+          onDeleteForEveryone={() => void menuDeleteForEveryone()}
+          onClose={() => setActionMsg(null)}
+        />
+      )}
     </div>
   );
 }

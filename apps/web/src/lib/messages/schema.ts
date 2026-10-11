@@ -42,6 +42,7 @@ export const sendMessageSchema = z.object({
     .trim()
     .min(1, "Type a message before sending.")
     .max(MAX_MESSAGE_LENGTH, "Keep messages under 2,000 characters."),
+  replyToId: z.uuid().nullable().optional(),
 });
 
 export type SendMessageInput = z.infer<typeof sendMessageSchema>;

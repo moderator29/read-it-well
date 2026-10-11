@@ -1610,3 +1610,71 @@
     border-radius: var(--nf-radius-control);
   }
 }
+
+/* THE MESSAGE MENU: a long press on a bubble opens it. A panel over a scrim,
+   one row per action, the destructive one in the error ink. */
+.nf-msg-menu__scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: color-mix(in srgb, var(--nf-surface-canvas) 40%, transparent);
+  border: 0;
+  cursor: default;
+}
+.nf-msg-menu {
+  position: fixed;
+  left: 50%;
+  bottom: var(--nf-space-md);
+  transform: translateX(-50%);
+  z-index: 51;
+  display: grid;
+  width: min(20rem, calc(100vw - 2 * var(--nf-space-md)));
+  padding: var(--nf-space-3xs);
+  border-radius: var(--nf-radius-lg);
+  background: var(--nf-surface-raised);
+  border: 1px solid var(--nf-border-subtle);
+  box-shadow: var(--nf-elevation-floating);
+}
+.nf-msg-menu__item {
+  min-height: 48px;
+  padding: 0 var(--nf-space-sm);
+  border: 0;
+  border-radius: var(--nf-radius-md);
+  background: transparent;
+  color: var(--nf-content-primary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.nf-msg-menu__item:hover,
+.nf-msg-menu__item:focus-visible {
+  background: var(--nf-surface-inset);
+}
+.nf-msg-menu__item--danger {
+  color: var(--nf-state-error);
+}
+.nf-bubble__deleted {
+  font-style: italic;
+  color: var(--nf-content-muted);
+}
+.nf-bubble__forwarded {
+  display: block;
+  font-size: var(--nf-text-overline);
+  color: var(--nf-content-muted);
+  margin-bottom: var(--nf-space-3xs);
+}
+.nf-composer__reply {
+  display: flex;
+  align-items: center;
+  gap: var(--nf-space-xs);
+  padding: var(--nf-space-2xs) var(--nf-space-md);
+  border-left: 3px solid var(--nf-brand-primary);
+  background: var(--nf-surface-inset);
+}
+.nf-composer__reply p {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
