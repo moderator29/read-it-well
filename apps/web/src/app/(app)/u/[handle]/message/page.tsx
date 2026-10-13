@@ -7,6 +7,7 @@ import { EmptyState } from "@/components/app/Screen";
 import { EmptyActions } from "@/components/app/EmptyActions";
 import { withNext } from "@/lib/auth/next-link";
 import { readDirectTarget } from "@/lib/messages/direct";
+import { FOLLOW_FIRST_COPY } from "@/lib/social/message-door";
 import { DirectFirstMessage } from "./DirectFirstMessage";
 
 export const dynamic = "force-dynamic";
@@ -50,6 +51,25 @@ export default async function MessagePersonPage({ params }: { params: Promise<{ 
   }
 
   const back = read.state === "unconfigured" ? "/u" : `/u/${read.handle}`;
+
+  /* The profile's own rule (`message-door.ts`): this person takes a new chat
+     only from somebody who follows them, so the way on is their profile, where
+     Follow is. */
+  if (read.state === "follow-first") {
+    const name = read.target.displayLabel;
+    return (
+      <div className="mx-auto max-w-2xl">
+        <PageHeader title={w.metaTitle} fallback={back} />
+        <EmptyState
+          icon="chat-duo"
+          title={FOLLOW_FIRST_COPY.title.replace("{name}", name)}
+          body={FOLLOW_FIRST_COPY.body}
+          action={<EmptyActions primary={{ label: w.back, href: back }} />}
+          data-testid="direct-follow-first"
+        />
+      </div>
+    );
+  }
 
   if (read.state === "signed-out") {
     return (

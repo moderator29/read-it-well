@@ -42,6 +42,8 @@ import { createClient } from "@/lib/supabase/server";
 import { badgeCopyOf } from "@/components/social/badges/badge-copy";
 import { readProfileBadges } from "@/components/social/profile/badges-read";
 import { isSocialEnabled } from "@/lib/social/flag";
+import { FOLLOW_TO_MESSAGE, messageDoor } from "@/lib/social/message-door";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /**
  * `/u/[handle]`: a person's page.
@@ -158,6 +160,11 @@ export default async function SocialProfilePage({
     const agentId = view.agentId;
     const isAgentPage = view.profile.isAgent && Boolean(agentId);
     const tabs = isAgentPage ? AGENT_TABS : MEMBER_TABS;
+    const door = messageDoor({
+      isOwner: view.isOwner,
+      contactPolicy: view.profile.contactPolicy,
+      viewerFollows: view.viewerFollows,
+    });
 
     const [posts, replies, media, activity, properties, reviews, stories, record, badges] =
       await Promise.all([
@@ -209,17 +216,27 @@ export default async function SocialProfilePage({
               />
             )
           }
-          /* How to reach them. Every other member can be written to from their
-             profile (founder, 9 October 2026): one chat per pair of people,
-             separate from the chats about a listing, which still start from
-             the listing. Signed out, the same link leads to a sign-in that
-             returns here. */
+          /* How to reach them (founder, 9 and 11 October 2026): one chat per
+             pair of people, separate from the chats about a listing, which
+             still start from the listing. `messageDoor` decides: never on your
+             own page; the button for anybody when they are open to anyone;
+             and when they ask first, the button only for a viewer who follows
+             them, and "Follow to message" for everybody else. Signed out, the
+             link leads to a sign-in that returns here. */
           message={
-            view.isOwner ? undefined : (
+            door === "message" ? (
               <ButtonLink href={`/u/${view.profile.handle}/message`} size="sm" variant="secondary" leadingIcon="messages" className="shrink-0">
                 {t.socialProfile.message}
               </ButtonLink>
-            )
+            ) : door === "follow-first" ? (
+              <span
+                className="inline-flex shrink-0 items-center gap-inline-tight nf-caption text-[var(--nf-content-muted)]"
+                data-testid="profile-follow-to-message"
+              >
+                <UiIcon name="messages" size={16} />
+                {FOLLOW_TO_MESSAGE}
+              </span>
+            ) : undefined
           }
           share={
             <ProfileShare
