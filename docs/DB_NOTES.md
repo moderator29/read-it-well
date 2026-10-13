@@ -40,3 +40,20 @@ drop function if exists private.tmp_probe5(uuid);
 drop function if exists private.tmp_probe6(uuid, uuid);
 drop function if exists private.tmp_probe7(timestamp with time zone);
 ```
+
+3. The old renter passport (V-100), retired in the app on 13 October 2026. Paste this only
+   AFTER the release has applied `pass01_passport_settings.sql`, because pass01 reads
+   `renter_passports` once to carry members' choices over to the new Vallo passport:
+
+```sql
+drop function if exists public.share_renter_passport(uuid, boolean);
+drop function if exists public.passport_shared_here(uuid);
+drop function if exists public.renter_passport_for_thread(uuid);
+drop function if exists public.set_renter_passport(boolean);
+drop function if exists public.my_renter_passport();
+drop function if exists private.passport_facts(uuid);
+drop table if exists public.passport_shares;
+drop table if exists public.renter_passports;
+```
+
+   Then regenerate `database.types.ts`. `public.record_vnin_check` stays: it is still called.
