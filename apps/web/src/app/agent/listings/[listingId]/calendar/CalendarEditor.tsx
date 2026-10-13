@@ -230,7 +230,7 @@ export function CalendarEditor({
       {/* The action bar only appears once a run is chosen, so the surface is
           quiet until there is something to do with it. */}
       {from && to && (
-        <div className="nf-panel nf-panel--card block sticky bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] mt-lg p-md">
+        <div className="nf-panel nf-panel--card block sticky bottom-[calc(var(--nf-tabbar-clearance)+var(--nf-space-xs))] mt-lg p-md lg:bottom-[calc(1rem+env(safe-area-inset-bottom,0px))]">
           <p className="text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
             {countOf(selectedCount, "nights", locale)} selected
           </p>

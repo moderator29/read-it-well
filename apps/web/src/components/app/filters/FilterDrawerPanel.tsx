@@ -11,8 +11,9 @@ import { PriceSpread } from "./PriceSpread";
 import { liveMatchCount, seeHomesLabel } from "./filter-count";
 import { priceFigures } from "@/lib/search/price-histogram";
 import type { Icon3DName } from "@/components/ui/icon-3d";
-import type { BrandIconProp } from "@/design-system/icons/BrandIcon";
+import { BrandIcon, type BrandIconProp } from "@/design-system/icons/BrandIcon";
 import { SPACE_OBJECT } from "@/components/app/home/space-types";
+import { BQ_OBJECT, SHAPE_OBJECT } from "./shape-objects";
 import { priceScale } from "@/lib/listings/price-bounds";
 import { hasBackupPower, rentMeansTenancy } from "@/lib/listings/filter";
 
@@ -220,8 +221,9 @@ const AMENITY_ICON: Record<string, UiIconName> = {
 
 /*
  * THE GLYPH FOR EACH ANSWER in the property type and space tiles (track J).
- * Every kind and every shape has one, from the UI glyph family only: these are
- * controls, and the glass objects are for subjects, not for choices.
+ * Every kind and every shape has one from the UI glyph family: the fallback
+ * under the realistic 3D objects (`SPACE_OBJECT`, `SHAPE_OBJECT`) the tiles
+ * draw first since 13 October 2026.
  */
 const KIND_ICON: Record<ListingKind | "all", UiIconName> = {
   all: "grid",
@@ -314,6 +316,7 @@ function Group({
 
 function SwitchRow({
   icon,
+  object,
   label,
   hint,
   checked,
@@ -321,6 +324,8 @@ function SwitchRow({
   testId,
 }: {
   icon: UiIconName;
+  /** A realistic 3D object drawn in the glyph's place (32px, fixed box). */
+  object?: BrandIconProp;
   label: string;
   hint?: string;
   checked: boolean;
@@ -330,7 +335,13 @@ function SwitchRow({
   return (
     <div className="nf-filters__switch">
       <span className="nf-filters__switch-label">
-        <UiIcon name={icon} size={ICON.inline} />
+        {object ? (
+          <span className="grid size-8 shrink-0 place-items-center" aria-hidden="true" data-object={object} data-host-plate>
+            <BrandIcon name={object} size={32} preferRender />
+          </span>
+        ) : (
+          <UiIcon name={icon} size={ICON.inline} />
+        )}
         <span className="min-w-0">
           {label}
           {hint && <span className="nf-filters__switch-hint">{hint}</span>}
@@ -922,6 +933,7 @@ export function FilterDrawerPanel({
                       value: shape,
                       label: unitCopy.shapes[shape],
                       icon: SHAPE_ICON[shape],
+                      object: SHAPE_OBJECT[shape],
                     }))}
                   />
                 )}
@@ -929,6 +941,7 @@ export function FilterDrawerPanel({
                   <div className="mt-sm divide-y divide-[var(--nf-panel-hair)]">
                     <SwitchRow
                       icon="key"
+                      object={BQ_OBJECT}
                       label={unitCopy.filterBq}
                       checked={draft.withBq}
                       testId="filter-bq"

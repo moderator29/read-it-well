@@ -164,6 +164,8 @@ export default async function Page({
       locale={locale}
       active="/agent/list"
       profile={agentProfileFrom(context.agent)}
+      /* The wizard's own step footer owns the bottom edge: no main dock under it. */
+      flow
     >
       <ListingWizard
         success={t.success}
