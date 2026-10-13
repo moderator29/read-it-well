@@ -68,11 +68,24 @@ const SHEETS = [
     file: "icon-sheet-6-transparent.png",
     mode: "alpha",
     matte: { step: 2, erode: 2, feather: 1 },
+    /* Boxes, not a 4 x 2 grid. The objects of the top row stand a little below
+       the half-height line of the sheet (their bases reach y 519 to 530, the
+       half is 512), so a grid cell cut the base of the hotel, the shortlet and
+       the map and the fork and knife of the restaurant (the founder, 13
+       October 2026: "Hotels, Restaurants and Local talk are cut off"). The
+       gap between the rows is clear from y 531 to y 604, so each box takes
+       its whole object and stops inside that gap. Columns are the old
+       quarters of the sheet; every object sits well inside its quarter. */
     layout: {
-      grid: {
-        cols: 4,
-        rows: 2,
-        names: ["hotel", "shortlet", "restaurant", "local-talks", "buy", "rent", "pay", "list"],
+      boxes: {
+        hotel: [0, 0, 383, 568],
+        shortlet: [384, 0, 767, 568],
+        restaurant: [768, 0, 1151, 568],
+        "local-talks": [1152, 0, 1535, 568],
+        buy: [0, 570, 383, 1023],
+        rent: [384, 570, 767, 1023],
+        pay: [768, 570, 1151, 1023],
+        list: [1152, 570, 1535, 1023],
       },
     },
   },
@@ -346,6 +359,50 @@ function isolate(px, cw, ch) {
 }
 
 /**
+ * Clear the sheet's faint haze. The renders carry a soft glow of near-zero
+ * alpha (3 to 30 of 255) in the ground around each object. It is invisible
+ * on white, but on the night glass and on the grey canvas it shows as a pale
+ * box behind the object. Any pixel of alpha at most `HAZE_MAX` that sits more
+ * than `HAZE_REACH` px from the object's solid body (alpha 200 or more) is
+ * cleared, colour and all, and so is any pixel of alpha 3 or less. The
+ * object's own antialiased rim lies inside the reach and is left alone.
+ */
+const HAZE_MAX = 32;
+const HAZE_REACH = 6;
+function clearHaze(px, w, h) {
+  const body = new Uint8Array(w * h);
+  for (let i = 0; i < w * h; i++) body[i] = px[i * 4 + 3] >= 200 ? 1 : 0;
+  // A square dilation by HAZE_REACH, as two passes of a running max.
+  const rowPass = new Uint8Array(w * h);
+  for (let y = 0; y < h; y++)
+    for (let x = 0; x < w; x++) {
+      let hit = 0;
+      for (let dx = -HAZE_REACH; dx <= HAZE_REACH && !hit; dx++) {
+        const nx = x + dx;
+        if (nx >= 0 && nx < w && body[y * w + nx]) hit = 1;
+      }
+      rowPass[y * w + x] = hit;
+    }
+  for (let y = 0; y < h; y++)
+    for (let x = 0; x < w; x++) {
+      let near = 0;
+      for (let dy = -HAZE_REACH; dy <= HAZE_REACH && !near; dy++) {
+        const ny = y + dy;
+        if (ny >= 0 && ny < h && rowPass[ny * w + x]) near = 1;
+      }
+      const i = (y * w + x) * 4;
+      const a = px[i + 3];
+      if (a > 0 && (a <= 3 || (!near && a <= HAZE_MAX))) {
+        px[i] = 0;
+        px[i + 1] = 0;
+        px[i + 2] = 0;
+        px[i + 3] = 0;
+      }
+    }
+  return px;
+}
+
+/**
  * Writes public/brand/3d/<name>.webp (128) and @2x.webp (256), and the
  * email PNGs public/brand/3d/email/<name>.png (128) and @2x.png (256).
  * `only` (a sheet file name, from the command line) limits the run.
@@ -358,7 +415,8 @@ async function icons(only) {
     const { data, info } = await sharp(join(SRC, sheet.file)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
     for (const c of cellsOf(sheet.layout, info.width, info.height)) {
       const px = cellPixels(data, info.width, c, sheet.mode, sheet.matte);
-      const { cell, minX, minY, bw, bh } = isolate(px, c.w, c.h);
+      const { cell: isolated, minX, minY, bw, bh } = isolate(px, c.w, c.h);
+      const cell = clearHaze(isolated, c.w, c.h);
       const side = Math.ceil(Math.max(bw, bh) / (1 - 2 * PAD));
       const padL = Math.floor((side - bw) / 2);
       const padT = Math.floor((side - bh) / 2);

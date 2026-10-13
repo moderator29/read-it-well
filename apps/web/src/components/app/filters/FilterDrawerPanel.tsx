@@ -11,6 +11,8 @@ import { PriceSpread } from "./PriceSpread";
 import { liveMatchCount, seeHomesLabel } from "./filter-count";
 import { priceFigures } from "@/lib/search/price-histogram";
 import type { Icon3DName } from "@/components/ui/icon-3d";
+import type { BrandIconProp } from "@/design-system/icons/BrandIcon";
+import { SPACE_OBJECT } from "@/components/app/home/space-types";
 import { priceScale } from "@/lib/listings/price-bounds";
 import { hasBackupPower, rentMeansTenancy } from "@/lib/listings/filter";
 
@@ -235,18 +237,16 @@ const KIND_ICON: Record<ListingKind | "all", UiIconName> = {
   restaurant: "utensils",
   experience: "ticket",
 };
-/** The founder's 3D object for the property types the sheets draw. */
+/** The founder's clay 3D object for the stay and food kinds the sheets draw. */
 const KIND_ART: Partial<Record<ListingKind, Icon3DName>> = {
   hotel: "hotel",
-  apartment: "apartment",
-  home: "home-verified",
   shortlet: "shortlet",
-  villa: "villa",
-  rental: "keys",
-  office: "city",
-  land: "land",
   restaurant: "restaurant",
 };
+/** The realistic 3D object for each property type: the "Spaces for you" set. */
+function kindObject(kind: ListingKind): BrandIconProp | undefined {
+  return (SPACE_OBJECT as Partial<Record<string, BrandIconProp>>)[kind];
+}
 const SHAPE_ICON: Record<UnitShape, UiIconName> = {
   self_contain: "door",
   room_parlour: "bed",
@@ -893,7 +893,7 @@ export function FilterDrawerPanel({
                   onToggle={pickKind}
                   options={[
                     { value: "all" as const, label: copy.all, icon: KIND_ICON.all },
-                    ...kindOptions.map((kind) => ({ value: kind, label: kindLabel(kind, kindCopy.kinds), icon: KIND_ICON[kind], art: KIND_ART[kind] })),
+                    ...kindOptions.map((kind) => ({ value: kind, label: kindLabel(kind, kindCopy.kinds), icon: KIND_ICON[kind], art: KIND_ART[kind], object: kindObject(kind) })),
                   ]}
                 />
               </Group>

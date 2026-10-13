@@ -229,6 +229,24 @@
       box-shadow var(--nf-duration-fast) var(--nf-ease-standard),
       background var(--nf-duration-fast) var(--nf-ease-standard);
   }
+  /* iOS WebKit sizes a date field by the widest date it can draw, inside the
+     field's own shadow value, and `width: 100%` does not lower that. Let the
+     value shrink with the field, so two dates sit side by side inside the page
+     gutter at 390 (13 October 2026). */
+  input[type="date"].nf-field {
+    display: block;
+    box-sizing: border-box;
+    max-width: 100%;
+    min-inline-size: 0;
+    min-block-size: 3.5rem;
+    text-align: start;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  input[type="date"].nf-field::-webkit-date-and-time-value {
+    min-width: 0;
+    text-align: start;
+  }
   .nf-field::placeholder {
     color: var(--nf-content-muted);
   }
