@@ -165,6 +165,9 @@ const PUBLIC_SEGMENTS = new Set([
   // omission: a stranger following a footer link got a sign-in wall.
   "disclaimer",
   "eula",
+  // The Host Agreement is read by a host before they have a host account, and
+  // the Terms link to it, so it is as open as the Terms (13 October 2026).
+  "host-agreement",
   "privacy",
   "safety",
   "standards",

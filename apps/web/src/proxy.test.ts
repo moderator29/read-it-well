@@ -240,6 +240,7 @@ const EXPECTED_PUBLIC = new Set([
   "/cancellations",
   "/disclaimer",
   "/eula",
+  "/host-agreement",
   "/privacy",
   "/safety",
   "/standards",
