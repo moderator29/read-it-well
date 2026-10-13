@@ -409,10 +409,17 @@
     -webkit-backdrop-filter: var(--nf-btn-glass-backdrop);
     backdrop-filter: var(--nf-btn-glass-backdrop);
     box-shadow: var(--nf-btn-glass-shadow);
+    /* Centred, and it wraps rather than being cut by the photograph on a
+       two-up card, where "No photographs yet" is wider than the frame
+       (locale-fit, every language). */
     top: 50%;
-    left: 50%;
-    translate: -50% -50%;
-    white-space: nowrap;
+    left: 0;
+    right: 0;
+    width: max-content;
+    max-width: calc(100% - var(--nf-space-sm));
+    margin-inline: auto;
+    translate: 0 -50%;
+    text-align: center;
   }
   .nf-pcard__note {
     position: absolute;
