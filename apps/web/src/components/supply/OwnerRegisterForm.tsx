@@ -21,6 +21,7 @@ import { submitSupplyRegistration } from "@/lib/supply/registration-actions";
 import { RegField, RegFieldGroup } from "./RegisterField";
 import { CalmPanel, RegisterDone, RegisterShell } from "./RegisterShell";
 import { RegistrationFiledSheet } from "./RegistrationFiledSheet";
+import { UploadCard, newBatchId, type UploadState } from "./UploadCard";
 
 /**
  * GOVERNING-03, THE OWNER FORM, AND IT IS THE ONE THAT MATTERS.
@@ -107,6 +108,10 @@ export function OwnerRegisterForm({
   const [lgaCode, setLgaCode] = useState("");
   const [area, setArea] = useState("");
   const [held, setHeld] = useState<OwnershipAnswer | null>(null);
+  /* The document itself, uploaded into the private bucket the moment it is
+     chosen. Optional: the answer can be filed now and the paper sent later. */
+  const [batchId] = useState(newBatchId);
+  const [proof, setProof] = useState<UploadState | null>(null);
 
   const [lgas, setLgas] = useState<ChoiceGroup[]>([]);
   const [lgaLoading, setLgaLoading] = useState(false);
@@ -207,6 +212,8 @@ export function OwnerRegisterForm({
         lgaCode,
         area: area.trim(),
         ownershipDocument: held,
+        /* A document goes only with an answer that names one. */
+        ownershipPath: held !== "none" ? (proof?.path ?? "") : "",
       });
       if (!result.ok) {
         setErrors(result.fieldErrors ?? {});
@@ -393,6 +400,25 @@ export function OwnerRegisterForm({
           */}
           {held === "none" ? (
             <CalmPanel title={own.proof.stillListTitle} body={own.proof.stillListBody} />
+          ) : null}
+          {/* THE PAPER ITSELF, for any answer that names one. Optional, as the
+              NIN is: the answer files without it. A reviewer opens it through
+              the audited document route, and approving it is what earns the
+              "Ownership seen" mark. */}
+          {held !== null && held !== "none" ? (
+            <div className="mt-group">
+              <UploadCard
+                t={t}
+                object="doc-home"
+                title={own.proof.uploadTitle}
+                body={own.proof.uploadBody}
+                slot="ownership"
+                batchId={batchId}
+                value={proof}
+                onChange={setProof}
+                {...(errors.ownershipPath ? { error: errors.ownershipPath } : {})}
+              />
+            </div>
           ) : null}
         </>
       ),

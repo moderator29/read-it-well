@@ -44,6 +44,8 @@ import { readProfileBadges } from "@/components/social/profile/badges-read";
 import { isSocialEnabled } from "@/lib/social/flag";
 import { readPublicRoleWords } from "@/lib/profile/role-facts";
 import { roleLine } from "@/lib/profile/role-line";
+import { ownershipSeenFor } from "@/lib/trust/ownership-seen";
+import { OwnershipSeenMark } from "@/components/trust/OwnershipSeenMark";
 
 /**
  * `/u/[handle]`: a person's page.
@@ -181,6 +183,8 @@ export default async function SocialProfilePage({
            and businesses say they are (`lib/profile/role-facts.ts`). */
         readPublicRoleWords(supabase, userId, view.profile.isAgent),
       ]);
+    /* "Ownership seen": a reviewer approved this owner's proof of ownership. */
+    const ownershipSeen = view.profile.isAgent ? await ownershipSeenFor(userId) : null;
 
     return (
       /* Room under the tabs' last line for the dock (`pb-4xl`): a short
@@ -249,6 +253,12 @@ export default async function SocialProfilePage({
             />
           }
         />
+
+        {ownershipSeen ? (
+          <p className="px-gutter pb-row">
+            <OwnershipSeenMark seenAt={ownershipSeen} label={t.supply.register.owner.proof.seenMark} />
+          </p>
+        ) : null}
 
         <ProfileTabs
           handle={view.profile.handle}

@@ -62,6 +62,8 @@ import {
   type Registration,
 } from "./registration";
 import { OPEN_STATUSES } from "../agent/open-application";
+import { otherSideMessage } from "../agent/role-lock";
+import { otherSideHeld } from "../agent/role-lock-read";
 
 export type RegistrationFiled = {
   /** The VL-AGT-##### the person quotes to support. */
@@ -92,6 +94,10 @@ const DOCUMENT_KINDS = {
   idPath: "identity",
   selfiePath: "selfie",
   letterPath: "association",
+  /* The owner's proof of ownership or of authority to let, filed against
+     the registration rather than a listing (pending migration
+     20261013120000 lets an ownership document name its application). */
+  ownershipPath: "ownership",
 } as const;
 
 export async function submitSupplyRegistration(
@@ -164,6 +170,12 @@ export async function submitSupplyRegistration(
       `You already have an application waiting, filed as ${open.reference}. Follow that one from your profile; a second would only queue behind it.`,
     );
   }
+
+  /* ONE ACCOUNT, ONE SIDE (`role-lock.ts`): an owner's account does not
+     become an agent's, nor the other way round. */
+  const wanted = value.role === "owner" ? "owner" : "agent";
+  const held = await otherSideHeld(supabase, user.id, wanted);
+  if (held) return fail(otherSideMessage(held));
 
   const row = rowFor(value, user.id, user.email ?? null);
 

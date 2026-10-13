@@ -57,6 +57,8 @@ import { ProofStrip } from "@/components/app/listing/ProofStrip";
 import { proofFactsOf, proofLines } from "@/lib/trust/proof-strip";
 import { doorHonestyLine, readDoorHonesty } from "@/lib/tenancy/door";
 import { readListingRecord } from "@/lib/trust/record-read";
+import { ownershipSeenForListing } from "@/lib/trust/ownership-seen";
+import { OwnershipSeenMark } from "@/components/trust/OwnershipSeenMark";
 import { ValloRecord } from "@/components/app/trust/ValloRecord";
 import { readListingCredentials } from "@/lib/trust/credentials-read";
 import { ListingMoveInBlock } from "@/components/app/listing/ListingMoveInBlock";
@@ -432,6 +434,9 @@ export default async function ListingDetailPage({
        rest rather than in series while the page renders. */
     isRental ? readRecentlyLet(listing.id) : Promise.resolve(null),
   ]);
+  /* "Ownership seen": a reviewer approved the owner's proof of ownership.
+     Only an owner's own listing can carry it; never an example. */
+  const ownershipSeen = listing.isDemo ? null : await ownershipSeenForListing(listing.id);
   /* V-59: "Moved in for the Vallo price", the one public number from the
      tenancy reviews. Null (and no line) on every example listing. */
   const doorLine = doorHonesty === null ? null : doorHonestyLine(doorHonesty, t.trustVisible.tenancy);
@@ -1427,6 +1432,11 @@ export default async function ListingDetailPage({
                       messageHref={messageHref}
                       name={listing.listerName ?? null}
                       listingRole={listing.listerRole ?? null}
+                    />
+                    <OwnershipSeenMark
+                      seenAt={ownershipSeen}
+                      label={t.supply.register.owner.proof.seenMark}
+                      className="mt-2xs"
                     />
                     {/* B7: the reply-time line, only when the record supports one. */}
                     <ReplyTimeLine listingId={listing.id} locale={locale} className="mt-2xs" />

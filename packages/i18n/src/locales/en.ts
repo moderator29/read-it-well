@@ -3799,6 +3799,7 @@ export const en = {
         business: "Business registration",
         selfie: "Photo of their face",
         association: "Letter from their principal",
+        ownership: "Proof of ownership",
       },
       termsAgreed: "Agreed to the platform terms",
       termsNotAgreed: "Not agreed",
@@ -5701,6 +5702,13 @@ export const en = {
       /* Shown instead of a setup form while an application is still open. */
       openTitle: "You already have an application waiting",
       openBody: "It is filed as {reference}. A second one would only queue behind it, so follow that one instead.",
+      /* One account, one side (lib/agent/role-lock.ts). */
+      otherSideTitle: "This account is already on the other side",
+      ownerNotAgent:
+        "This account is an owner's account. An agent works from a separate account, because the two workspaces are different. To work as an agent, sign up again with a different email address and register as an agent there.",
+      agentNotOwner:
+        "This account is an agent's account. An owner lists from a separate account, because the two workspaces are different. To list your own property, sign up again with a different email address and register as an owner there.",
+      backToProfile: "Back to your profile",
       backHome: "Back to home",
       reviewDays: "Usually two working days",
       reviewDaysFirm: "Usually three working days",
@@ -5741,8 +5749,15 @@ export const en = {
             governors_consent: "Governor's consent",
             survey_plan: "Survey plan",
             utility_bill: "Utility bill in your name",
+            letter_of_authority: "Letter of authority from the owner",
             none: "I have none of these",
           },
+          /* The mark a reviewer's approval of the document earns, on the
+             owner's profile and listings (components/trust/OwnershipSeenMark). */
+          seenMark: "Ownership seen",
+          uploadTitle: "Send a photo or scan of it",
+          uploadBody:
+            "Optional, and you can send it later. Only Vallo's reviewers open it. Once a reviewer has seen it, your profile and listings show \"Ownership seen\".",
           stillListTitle: "You can still list",
           stillListBody:
             "That is a normal answer in Nigeria and it does not stop you listing. Your listing goes live the same way; it just will not carry the ownership mark until you can show us something.",

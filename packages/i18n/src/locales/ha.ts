@@ -1254,7 +1254,13 @@ export const ha: Dictionary = withFallback({
     },
     status: {
       submittedTitle: "An aika bukata",
-      submittedBody: "Muna nazarin bukatar ka. Za a sanar da kai idan an amince.",
+      /* Machine-written 13 October 2026; needs a native reader. */
+      submittedBody: "Muna nazarin bukatar ka, kuma za mu sanar da kai da zarar an yanke shawara.",
+      draftBody: "Ba a aika wannan bukata ba tukuna.",
+      moreInfoBody: "Mai dubawa yana bukatar wani abu daga gare ka kafin ya yanke shawara. Bayaninsa da yadda za ka amsa suna ƙasa.",
+      approvedBody: "Wurin aikinka a buɗe yake, don haka za ka iya fara jerawa. Binciken shaidar ka mataki ne na daban, wanda za ka fara daga dashboard ɗinka.",
+      rejectedBody: "Ba a amince da wannan bukata ba. Bayanin mai dubawa ya faɗi dalili, kuma za ka iya sake nema.",
+      suspendedBody: "An dakatar da wannan asusun. Tuntuɓi tallafi da lambar bukatar ka, wani zai yi maka bayani.",
       status: "Matsayi",
       draft: "Daftari",
       pendingReview: "Ana Jiran Nazari",
@@ -1262,6 +1268,8 @@ export const ha: Dictionary = withFallback({
       moreInfo: "Ana Bukatar Karin Bayani",
       approved: "An amince",
       rejected: "An ki",
+      suspended: "An dakatar",
+      applyAgain: "Sake nema",
       submittedOn: "An aika a",
       applicationId: "ID bukata",
       reviewNote: "Kungiyar mu na nazarin bukatu cikin sa'o'i 24 zuwa 48.",
@@ -1272,14 +1280,17 @@ export const ha: Dictionary = withFallback({
         "Takardar neman ka da lambarta suna haɗe da asusunka, don haka dole mu san ko wanene kai kafin mu nuna su.",
       signIn: "Shiga",
       noneTitle: "Babu takardar neman a rubuce",
-      noneBody:
-        "Ba ka nemi zama wakili ba tukuna. Yana ɗaukar kusan minti goma, kuma kana buƙatar shaidar hoto ɗaya.",
-      startApplication: "Nemi zama wakili",
+      noneBody: "Ba ka nemi jera gida a Vallo ba tukuna. Faɗa mana ko kai ne mai gidan ko kana aiki a madadin mai gida; fom ɗin yana ɗaukar kusan minti goma.",
+      startApplication: "Fara bukata",
       unconfiguredTitle: "Ba za mu iya kaiwa ga takardar neman ka yanzu ba",
       unconfiguredBody:
         "Wannan daga gare mu ne, ba daga gare ka ba. Babu abin da ka aika da ya ɓace. Sake gwadawa nan da wasu mintuna.",
       reviewedOn: "An yanke shawara a",
       reviewerNote: "Abin da mai dubawa ya ce",
+      respond: {
+        attachBody: "Ba dole ba ne. Ƙara ɗaya idan tana amsa abin da mai dubawa ya tambaya.",
+        attachBusinessTitle: "Rajistar kasuwanci (takardar CAC)",
+      },
     },
     dashboard: {
       title: "Dashboard na Wakili",
@@ -2343,6 +2354,8 @@ export const ha: Dictionary = withFallback({
       submittedWhen: "An aika {when}",
       decidedWhen: "An yanke {when}.",
       sections: {
+        /* Machine-written 13 October 2026; needs a native reader. */
+        registration: "Abin da suka yi rajista a matsayi",
         personal: "1. Na kai",
         identity: "2. Shaida",
         business: "3. Kasuwanci",
@@ -2350,7 +2363,18 @@ export const ha: Dictionary = withFallback({
         payout: "5. Biya",
         review: "6. Nazari",
       },
+      roleNames: {
+        owner: "Mai gida",
+        agent: "Wakili",
+        firm: "Kamfani",
+      },
       fields: {
+        registeredAs: "An yi rajista a matsayin",
+        holds: "Abin da yake riƙe da shi kan gidan",
+        area: "Unguwa",
+        experience: "Lokacin aiki a matsayin wakili",
+        agencyFee: "Kuɗin wakili",
+        legalFee: "Kuɗin lauya",
         fullName: "Cikakken suna",
         phone: "Waya",
         email: "Imel",
@@ -2380,6 +2404,12 @@ export const ha: Dictionary = withFallback({
         idFront: "Shaida, gaba",
         idBack: "Shaida, baya",
         registration: "Rajistar CAC",
+        identity: "Shaida",
+        address: "Shaidar adireshi",
+        business: "Rajistar kasuwanci",
+        selfie: "Hoton fuskarsu",
+        association: "Wasiƙa daga shugabansu",
+        ownership: "Shaidar mallaka",
       },
       // NATIVE REVIEW: legal wording, "terms" of the platform.
       termsAgreed: "Ya yarda da sharuɗɗan dandalin",
@@ -3383,6 +3413,16 @@ export const ha: Dictionary = withFallback({
       uploading: "Ana lodawa",
       fileReady: "A shirye don aikawa",
       fileTooBig: "Fayil ɗin ya haura 8MB. Ka zabi ƙaramin hoto ko PDF.",
+      /* Machine-written 13 October 2026; needs a native reader. */
+      fileType: "Wannan fayil ba hoto ko PDF ba ne, don haka ba za a iya aika shi ba. Zaɓi JPG, PNG, HEIC ko PDF.",
+      fileLimit: "Hoto ko PDF, har zuwa {size}.",
+      photoLimit: "Hoto, har zuwa {size}.",
+      openTitle: "Kana da wata bukata da ke jira tuni",
+      openBody: "An shigar da ita a matsayin {reference}. Ta biyu za ta tsaya a bayanta ne kawai, don haka ka bi waccan.",
+      otherSideTitle: "Wannan asusun yana ɗaya gefen tuni",
+      ownerNotAgent: "Wannan asusun mai gida ne. Wakili yana aiki daga wani asusun daban, saboda wuraren aikin sun bambanta. Idan kana son yin aiki a matsayin wakili, ka sake yin rajista da wani adireshin imel daban, ka yi rajista a matsayin wakili a can.",
+      agentNotOwner: "Wannan asusun wakili ne. Mai gida yana jera gidansa daga wani asusun daban, saboda wuraren aikin sun bambanta. Idan kana son jera gidanka, ka sake yin rajista da wani adireshin imel daban, ka yi rajista a matsayin mai gida a can.",
+      backToProfile: "Koma bayananka",
       fileFailed: "Lodin bai yi nasara ba. Ka sake gwadawa.",
       signInFirst: "Ka shiga kafin ka loda, don a shigar da fayil ɗin cikin asusunka.",
       owner: {
@@ -3411,8 +3451,13 @@ export const ha: Dictionary = withFallback({
             governors_consent: "Amincewar Gwamna",
             survey_plan: "Tsarin awo",
             utility_bill: "Takardar biyan kuɗin hidima a sunanka",
+            letter_of_authority: "Wasiƙar izini daga mai gidan",
             none: "Ba ni da ko ɗaya daga cikin waɗannan",
           },
+          /* Machine-written 13 October 2026; needs a native reader. */
+          seenMark: "An ga shaidar mallaka",
+          uploadTitle: "Aika hoto ko sikanin takardar",
+          uploadBody: "Ba dole ba ne, kuma kana iya aikawa daga baya. Masu dubawa na Vallo kaɗai ke buɗe ta. Da zarar mai dubawa ya gan ta, bayananka da jerin gidajenka za su nuna \"An ga shaidar mallaka\".",
           stillListTitle: "Har yanzu kana iya jerawa",
           stillListBody:
             "Wannan amsa ce ta al'ada a Najeriya kuma ba ta hana ka jerawa. Jerinka zai fito kamar sauran; sai dai ba zai ɗauki alamar mallaka ba har sai ka nuna mana wani abu.",
@@ -3461,7 +3506,8 @@ export const ha: Dictionary = withFallback({
           title: "Kuɗinka, a fili",
           sub: "Saka abin da kake caji. Kowane abokin ciniki na ganin sa kafin ya kira ka.",
           agency: "Kuɗin wakilci",
-          agencyMeaning: "Abin da kake caji mai gidan.",
+          /* Machine-written 13 October 2026; needs a native reader. */
+          agencyMeaning: "Abin da ɗan haya ke biyan ka don nemo masa gida.",
           legal: "Kuɗin shari'a",
           legalMeaning: "Abin da kake caji don aikin shari'a.",
           less: "Ragewa",

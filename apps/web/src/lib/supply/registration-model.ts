@@ -130,6 +130,9 @@ export const OWNERSHIP_DOCUMENTS = [
   "governors_consent",
   "survey_plan",
   "utility_bill",
+  /* An owner's representative letting the place on their behalf holds no
+     title, only the owner's written authority to let it. */
+  "letter_of_authority",
 ] as const;
 
 export type OwnershipDocument = (typeof OWNERSHIP_DOCUMENTS)[number];
@@ -346,6 +349,7 @@ export const FIELD_STEP: Record<string, number> = {
   principalEmail: 1,
   letterPath: 1,
   ownershipDocument: 2,
+  ownershipPath: 2,
   agencyFeeBps: 2,
   legalFeeBps: 2,
   team: 2,

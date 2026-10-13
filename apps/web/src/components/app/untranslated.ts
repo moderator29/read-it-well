@@ -95,6 +95,9 @@ export const KYC_DOCUMENT_KIND_WORDS: Record<string, string> = {
      raw kind. */
   selfie: "Photo of their face",
   association: "Letter from their principal",
+  /* The owner's title document or letter of authority, filed with the owner
+     registration; approving it earns "Ownership seen". */
+  ownership: "Proof of ownership",
 };
 
 /**

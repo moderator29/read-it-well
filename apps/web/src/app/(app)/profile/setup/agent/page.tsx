@@ -7,6 +7,7 @@ import { forRegister } from "@/components/supply/supply-copy";
 import { OpenApplicationNotice } from "@/components/supply/OpenApplicationNotice";
 import { readMyApplication } from "@/lib/agent/application-status";
 import { isOpenApplication } from "@/lib/agent/open-application";
+import { myOtherSideHeld } from "@/lib/agent/role-lock-read";
 
 export const metadata: Metadata = {
   title: "Register as an agent",
@@ -30,11 +31,25 @@ export const metadata: Metadata = {
  */
 export default async function AgentRegistrationPage() {
   await requireSignedInPage("/profile/setup/agent");
-  const [locale, mine]: [Locale, Awaited<ReturnType<typeof readMyApplication>>] = await Promise.all([
-    getLocale(),
-    readMyApplication(),
-  ]);
+  const [locale, mine, otherSide]: [
+    Locale,
+    Awaited<ReturnType<typeof readMyApplication>>,
+    Awaited<ReturnType<typeof myOtherSideHeld>>,
+  ] = await Promise.all([getLocale(), readMyApplication(), myOtherSideHeld("agent")]);
   const t = getDictionary(locale);
+
+  /* One account, one side: an owner's account does not become an agent's. */
+  if (otherSide) {
+    const r = t.supply.register;
+    return (
+      <OpenApplicationNotice
+        heading={r.agent.title}
+        reference=""
+        copy={{ title: r.otherSideTitle, body: r.ownerNotAgent, action: r.backToProfile }}
+        href="/profile"
+      />
+    );
+  }
 
   /* An application still open is followed, not filed again. */
   if (mine.state === "found" && isOpenApplication(mine.application.status)) {

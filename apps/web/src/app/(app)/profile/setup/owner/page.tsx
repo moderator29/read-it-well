@@ -8,6 +8,7 @@ import { forOwner } from "@/components/supply/supply-copy";
 import { OpenApplicationNotice } from "@/components/supply/OpenApplicationNotice";
 import { readMyApplication } from "@/lib/agent/application-status";
 import { isOpenApplication } from "@/lib/agent/open-application";
+import { myOtherSideHeld } from "@/lib/agent/role-lock-read";
 
 export const metadata: Metadata = {
   title: "Register as an owner",
@@ -45,8 +46,26 @@ export const metadata: Metadata = {
  */
 export default async function OwnerRegistrationPage() {
   await requireSignedInPage("/profile/setup/owner");
-  const [locale, states, mine] = await Promise.all([getLocale(), listStates(), readMyApplication()]);
+  const [locale, states, mine, otherSide] = await Promise.all([
+    getLocale(),
+    listStates(),
+    readMyApplication(),
+    myOtherSideHeld("owner"),
+  ]);
   const t = getDictionary(locale);
+
+  /* One account, one side: an agent's account does not become an owner's. */
+  if (otherSide) {
+    const r = t.supply.register;
+    return (
+      <OpenApplicationNotice
+        heading={r.owner.title}
+        reference=""
+        copy={{ title: r.otherSideTitle, body: r.agentNotOwner, action: r.backToProfile }}
+        href="/profile"
+      />
+    );
+  }
 
   /* An application still open is followed, not filed again. */
   if (mine.state === "found" && isOpenApplication(mine.application.status)) {
