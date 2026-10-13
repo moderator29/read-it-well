@@ -38,6 +38,18 @@ const PRICES_NOT_MOVEMENTS = new Set([
   "move_in_quotes", // a frozen quote of the move-in total; the charge is in rent_payments
   "tenancy_renewal_offers", // the rent offered for a renewal, before any agreement or charge
   "deal_agreement_versions", // past terms of an agreement; the live row is deal_agreements
+  "entitlement_plans", // the price of a plan; what was charged is in member_subscriptions
+  "subscription_provider_plans", // the price a plan has at the provider
+  "listing_fee_acceptances", // a frozen quote of the listing fee a lister accepted
+  "listing_rate_acceptances", // a frozen commission rate a lister accepted, before any charge
+  "money_policy_commission_rates", // a cap in the money policy, not a movement
+  "money_policy_versions", // the minimum withdrawal in a policy version
+  "money_policy_withdrawal_bands", // the fee bands of a policy version
+  "referral_policy", // the reward and budget settings
+  "referral_campaigns", // a campaign's reward and per-member cap
+  "referral_budget_periods", // the monthly referral cap and what is committed against it
+  "referral_member_period_spend", // what one referrer has committed in a period, checked against the cap
+  "restaurant_deposit_rules", // the deposit a restaurant asks; what was charged is in reservation_deposits
 ]);
 
 /**
