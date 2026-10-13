@@ -9,6 +9,7 @@ import { RESTAURANT_DEPOSITS_FLAG } from "./deposits";
 import type { Database } from "../supabase/database.types";
 import type { ReservationStatus } from "./db";
 import { readBill, readSeating, type BillView, type SeatingView } from "./seating";
+import type { GuestRecord } from "./guest-record";
 
 /**
  * Read side of restaurant reservations.
@@ -68,6 +69,12 @@ export type HostReservationView = ReservationView & {
   guestName: string;
   /** True while the venue still has to answer. */
   awaitingAnswer: boolean;
+  /**
+   * RESTAURANT-06: how many past tables this diner kept and missed in the
+   * last 12 months, on a request still waiting for an answer. Absent for a
+   * first-time diner and whenever the read failed (`lib/reservations/guest-record.ts`).
+   */
+  guestRecord?: GuestRecord | null;
 };
 
 export type ReservationsRead<T> = T[] | null | "unavailable";
@@ -270,11 +277,29 @@ async function withDeposits(db: SupabaseClient, views: ReservationView[]): Promi
   }
 }
 
+/** How far back the host desk reads: the bill window plus the days a mark is still asked for. */
+export const HOST_DESK_LOOKBACK_DAYS = 30;
+/** The live part of the desk: the last three days (bills, marks), today and everything ahead. */
+const HOST_DESK_LIVE_FROM_MS = 3 * 24 * 3_600_000;
+const HOST_DESK_LIVE_LIMIT = 300;
+const HOST_DESK_EARLIER_LIMIT = 60;
+
 /**
- * The tables at the restaurants this person hosts, soonest first, for the
- * agent and Host consoles. The policies decide which restaurants are theirs;
- * the one thing this adds is the guest's display name, read from the public
- * profile projection.
+ * The tables at the restaurants this person hosts, for the host table desk.
+ * The policies decide which restaurants are theirs.
+ *
+ * TWO READS, BECAUSE ONE WAS WRONG. This used to be one read, oldest first,
+ * capped at 200 rows, with no lower bound: a venue past its 200th table saw
+ * the oldest 200 and never the new requests at all, which is the one row a
+ * desk exists to show. Now the live part (from three days ago onward, soonest
+ * first) and the recent past (the rest of the last 30 days, newest first) are
+ * read separately, each with its own cap, so history can never crowd out
+ * tonight.
+ *
+ * The guest's name is left as a plain word here. `profiles` is select-own, so
+ * a read through the caller's client returns no name for a guest; the board
+ * (`app/host/reservations/board.ts`) resolves names for the ids these reads
+ * hand back.
  */
 export async function getHostReservations(
   now: Date = new Date(),
@@ -283,37 +308,44 @@ export async function getHostReservations(
   if (session.state !== "signed-in") return null;
   const supabase = session.supabase;
 
-  const { data: rows, error } = await supabase
-    .from("reservations")
-    .select(COLUMNS)
-    .neq("guest_id", session.user.id)
-    .order("reserved_for", { ascending: true })
-    .limit(200);
-  await reportReadError("read.reservations.getHostReservations", error);
-  if (error || !rows) return "unavailable";
+  const liveFrom = new Date(now.getTime() - HOST_DESK_LIVE_FROM_MS).toISOString();
+  const earliest = new Date(now.getTime() - HOST_DESK_LOOKBACK_DAYS * 24 * 3_600_000).toISOString();
+  const [live, earlier] = await Promise.all([
+    supabase
+      .from("reservations")
+      .select(COLUMNS)
+      .neq("guest_id", session.user.id)
+      .gte("reserved_for", liveFrom)
+      .order("reserved_for", { ascending: true })
+      .limit(HOST_DESK_LIVE_LIMIT),
+    supabase
+      .from("reservations")
+      .select(COLUMNS)
+      .neq("guest_id", session.user.id)
+      .lt("reserved_for", liveFrom)
+      .gte("reserved_for", earliest)
+      .order("reserved_for", { ascending: false })
+      .limit(HOST_DESK_EARLIER_LIMIT),
+  ]);
+  await reportReadError("read.reservations.getHostReservations", live.error, earlier.error);
+  /* The live read is the desk; without it there is nothing honest to show.
+     A failed history read only leaves the Earlier list short. */
+  if (live.error || !live.data) return "unavailable";
+  const rows = [...live.data, ...(earlier.error ? [] : (earlier.data ?? []))];
   if (rows.length === 0) return [];
 
-  const guestIds = [...new Set(rows.map((r) => r.guest_id))];
-  const [venues, profilesRead] = await Promise.all([
-    readVenues(
-      supabase,
-      [...new Set(rows.map((r) => r.listing_id).filter((id): id is string => Boolean(id)))],
-      [...new Set(rows.map((r) => r.business_id).filter((id): id is string => Boolean(id)))],
-    ),
-    supabase.from("profiles").select("id, display_name").in("id", guestIds),
-  ]);
-  const names = new Map<string, string>();
-  for (const p of profilesRead.data ?? []) {
-    const name = (p.display_name ?? "").trim();
-    if (name.length > 0) names.set(p.id, name);
-  }
+  const venues = await readVenues(
+    supabase,
+    [...new Set(rows.map((r) => r.listing_id).filter((id): id is string => Boolean(id)))],
+    [...new Set(rows.map((r) => r.business_id).filter((id): id is string => Boolean(id)))],
+  );
 
   return withSeating(
     supabase as unknown as SupabaseClient,
     rows.map((row) => ({
       ...toView(row, venues, now),
       guestId: row.guest_id,
-      guestName: names.get(row.guest_id) ?? "A guest",
+      guestName: "A guest",
       awaitingAnswer: row.status === "PENDING" && Date.parse(row.reserved_for) > now.getTime(),
     })),
     null,

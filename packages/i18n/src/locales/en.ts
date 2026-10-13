@@ -6210,6 +6210,86 @@ export const en = {
     },
   },
 
+  /* The host table desk (`/host/reservations`, track/restaurant-desk):
+     today's figures, search, the day lists and every word on a table card.
+     Counted phrases are plural forms, read with `plural()`. */
+  tableDesk: {
+    today: "Today",
+    upcoming: "Upcoming",
+    earlier: "Earlier",
+    todayEmpty: "No tables today.",
+    upcomingEmpty: "Nothing booked after today yet.",
+    earlierEmpty: "Nothing in the last few weeks.",
+    figuresLabel: "Today at a glance",
+    figures: {
+      covers: "Covers expected",
+      coversSub: "across {tables}",
+      toConfirm: "To confirm",
+      toConfirmLater: { one: "1 more after today", other: "{count} more after today" },
+      toConfirmNoneLater: "None after today",
+      seated: "Seated",
+      done: "Done",
+      doneSub: "of {tables} booked",
+    },
+    tables: { one: "1 table", other: "{count} tables" },
+    dayCovers: "{tables}, {guests}",
+    search: {
+      label: "Search tables",
+      placeholder: "Guest, note, venue or party size",
+      none: "No table matches that search.",
+      clear: "Clear search",
+      results: { one: "1 table found", other: "{count} tables found" },
+    },
+    status: {
+      request: "Request",
+      confirmed: "Confirmed",
+      seated: "Seated",
+      noShow: "No-show",
+      disputed: "Disputed",
+      closed: "Declined or called off",
+      lapsed: "Not answered in time",
+    },
+    card: {
+      note: "Note from the guest",
+      confirm: "Confirm",
+      decline: "Decline",
+      confirmTitle: "Confirm {name}'s table?",
+      confirmTable: "Confirm table",
+    },
+    record: {
+      line: "Kept {kept}, missed {missed}, last 12 months",
+      keptOnly: "Kept {kept}, last 12 months",
+      missedOnly: "Missed {missed}, last 12 months",
+      tables: { one: "1 table", other: "{count} tables" },
+    },
+    seat: {
+      title: "A guest has arrived",
+      label: "Guest's check-in code",
+      hint: "The six digits the guest shows you. It marks the table as seated.",
+      submit: "Seat the table",
+      done: "Seated. Enjoy the service.",
+    },
+    outcome: {
+      ask: "How did this table go? Mark it once the time has passed.",
+      seated: "Seated",
+      noShow: "No-show",
+      markedSeated: "Marked as seated.",
+      markedNoShow: "Marked as a no-show. The guest is told.",
+    },
+    bill: {
+      label: "The total on the bill",
+      hint: "The guest can then pay it to you through Vallo.",
+      paid: "Bill of {amount} paid through Vallo.",
+      paying: "The guest is paying the bill of {amount}.",
+      check: "The guest entered a bill of {amount}. Is that right?",
+      confirm: "Confirm the bill",
+      sent: "Bill of {amount} sent. The guest can pay it now.",
+      send: "Send the bill",
+      sendInstead: "Send this amount instead",
+      failed: "That did not go through. Please try again.",
+    },
+  },
+
 };
 
 /**

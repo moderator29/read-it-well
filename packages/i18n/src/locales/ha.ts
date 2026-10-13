@@ -3653,4 +3653,83 @@ export const ha: Dictionary = withFallback({
     close: "Close",
   },
 
+  /* The host table desk (track/restaurant-desk). Machine-written, not read by
+     a native speaker yet; `dayCovers` is a pure template and falls back to
+     English on purpose. */
+  tableDesk: {
+    today: "Yau",
+    upcoming: "Masu zuwa",
+    earlier: "A baya",
+    todayEmpty: "Babu tebur yau.",
+    upcomingEmpty: "Babu wani ajiya bayan yau tukuna.",
+    earlierEmpty: "Babu komai a 'yan makonnin da suka wuce.",
+    figuresLabel: "Yau a taƙaice",
+    figures: {
+      covers: "Baƙin da ake jira",
+      coversSub: "a {tables}",
+      toConfirm: "Don tabbatarwa",
+      toConfirmLater: { one: "Ƙarin ɗaya bayan yau", other: "Ƙarin {count} bayan yau" },
+      toConfirmNoneLater: "Babu bayan yau",
+      seated: "An zaunar",
+      done: "An gama",
+      doneSub: "cikin {tables} da aka ajiye",
+    },
+    tables: { one: "tebur ɗaya", other: "tebura {count}" },
+    search: {
+      label: "Nemo tebura",
+      placeholder: "Baƙo, saƙo, wuri ko yawan mutane",
+      none: "Babu teburin da ya dace da wannan bincike.",
+      clear: "Share bincike",
+      results: { one: "An sami tebur ɗaya", other: "An sami tebura {count}" },
+    },
+    status: {
+      request: "Buƙata",
+      confirmed: "An tabbatar",
+      seated: "An zaunar",
+      noShow: "Bai zo ba",
+      disputed: "Ana jayayya",
+      closed: "An ƙi ko an soke",
+      lapsed: "Ba a amsa a kan lokaci ba",
+    },
+    card: {
+      note: "Saƙo daga baƙo",
+      confirm: "Tabbatar",
+      decline: "Ƙi",
+      confirmTitle: "Tabbatar da teburin {name}?",
+      confirmTable: "Tabbatar da tebur",
+    },
+    record: {
+      line: "Ya zo {kept}, bai zo ba {missed}, watanni 12 da suka wuce",
+      keptOnly: "Ya zo {kept}, watanni 12 da suka wuce",
+      missedOnly: "Bai zo ba {missed}, watanni 12 da suka wuce",
+      tables: { one: "tebur ɗaya", other: "tebura {count}" },
+    },
+    seat: {
+      title: "Baƙo ya iso",
+      label: "Lambar shigar baƙo",
+      hint: "Lambobi shida da baƙo ya nuna maka. Yana nuna an zaunar da teburin.",
+      submit: "Zaunar da teburin",
+      done: "An zaunar. Ku ji daɗin hidimar.",
+    },
+    outcome: {
+      ask: "Yaya teburin nan ya kasance? Yi masa alama bayan lokacinsa ya wuce.",
+      seated: "An zaunar",
+      noShow: "Bai zo ba",
+      markedSeated: "An yi alama cewa an zaunar.",
+      markedNoShow: "An yi alama cewa bai zo ba. An sanar da baƙon.",
+    },
+    bill: {
+      label: "Jimillar kuɗin lissafi",
+      hint: "Baƙon zai iya biyan ka ta Vallo daga baya.",
+      paid: "An biya kuɗin {amount} ta Vallo.",
+      paying: "Baƙon yana biyan kuɗin {amount}.",
+      check: "Baƙon ya shigar da kuɗin {amount}. Haka ne?",
+      confirm: "Tabbatar da lissafin",
+      sent: "An aika lissafin {amount}. Baƙon zai iya biya yanzu.",
+      send: "Aika lissafin",
+      sendInstead: "Aika wannan adadin maimakon haka",
+      failed: "Bai yi nasara ba. Da fatan a sake gwadawa.",
+    },
+  },
+
 } satisfies Translation, haDrafts);
