@@ -1,17 +1,21 @@
 import type { BrandIconName } from "@/design-system/icons/BrandIcon";
 import { SUPPORT_SENTENCE } from "@/lib/support-email";
 import { doorsSentence } from "@/lib/supply/roles";
+import { NO_INSPECTION_FEE, OFF_PLATFORM_SENTENCE, REFUND_ROUTE, WHO_PAYS_SENTENCE } from "@/lib/money/copy";
+import { FULL_REFUND_HOURS } from "@/lib/trust/cancellation";
 import {
-  DIRECT_RAIL_STANDING,
-  LEGACY_GUARANTEE_CLAIM,
-  NO_CUSTODY_SENTENCE,
-  NO_INSPECTION_FEE,
-  OFF_PLATFORM_SENTENCE,
-  PAYMENT_GATE_SENTENCE,
-  PAYOUT_ANSWER,
-  REFUND_ROUTE,
-  WHO_PAYS_SENTENCE,
-} from "@/lib/money/copy";
+  CARD_MEANS,
+  COMMISSION_FROM_SHARE,
+  ESCROW_MEANS,
+  ESCROW_OR_CARD,
+  HOTEL_COMMISSION_SENTENCE,
+  HOTEL_ROOM_BY_CARD,
+  PAY_INSIDE_VALLO,
+  PRICE_IS_THE_PRICE,
+  SALE_IS_ESCROW,
+  SEATED_TABLE_FEE,
+  VALLO_NEVER_HOLDS,
+} from "@/app/(site)/docs/facts";
 
 /**
  * The help centre's articles and trust links, in one module.
@@ -20,6 +24,12 @@ import {
  * cannot export, so the in-app support home (`app/(app)/support`) had no way
  * to search or feature them without a second copy. Both surfaces now read
  * this one list, so an answer corrected here is corrected on both.
+ *
+ * Rewritten by the docs track on 13 October 2026 to the founder's money rules
+ * (every payment inside Vallo; Escrow, the default, or card for rent and
+ * shortlets; a sale always escrow; a hotel room by card; Vallo never holds
+ * the money), which are written once in `app/(site)/docs/facts.ts`. Short
+ * answers; the long versions are the /docs chapters. No provider is named.
  */
 export type Faq = {
   category: string;
@@ -50,266 +60,122 @@ export const TRUST_LINKS: { href: string; icon: BrandIconName; title: string; bo
     href: "/cancellations",
     icon: "calendar-clock",
     title: "Cancellations",
-    body: "One refund schedule for every paid stay, with the windows written out.",
+    body: "The standard refund schedule for stays, with the windows written out.",
   },
 ];
 
 export const FAQS: Faq[] = [
-  /*
-   * WHAT VALLO IS FOR COMES FIRST, added 22 September when the platform's
-   * position changed. A help centre that explains every control and never
-   * says what the thing is for leaves the commonest question on the page
-   * unanswered, and this one is the question the founder's own co-founder
-   * asked: what does Vallo actually help me do.
-   *
-   * The answer states the position and nothing beyond it. It does NOT say a
-   * person can buy or rent direct from an owner today, because there is no
-   * owner listing in the catalogue yet; it says what happens where there is
-   * one, which is true now and stays true then.
-   */
+  // ----------------------------------------------------- property and stays
   {
     category: "Property and Stays",
     q: "What is Vallo actually for?",
-    a: "Vallo does not remove the agent. Vallo removes the runaround. The runaround is the part everybody in Nigeria recognises: agent fees stacked on agent fees, a chain of agents on one property, the same flat listed four times at four prices, and a total cost nobody will state until you have spent a Saturday in traffic. Agents hold most of the property offered in this market and their fee is theirs to charge. What Vallo is for is that you know who you are dealing with, what you will actually pay and whether the property is real, before you call anybody. Where an owner lists a property directly, you deal with the owner; where an agent lists it, you deal with the agent, and either way the costs are written down on the listing.",
+    a: "Vallo is a marketplace for property, stays and restaurants in Nigeria. Rent or buy a home, a shop, an office or land; book a hotel room, a shortlet or a serviced apartment; or book a table. Vallo does not remove the agent. It removes the runaround: you see who you are dealing with and what you will pay before you call anybody.",
   },
-  /*
-   * THE TWO SIDES COME NEXT, because until the content truth sweep of 19
-   * September this page answered as though Vallo sold property and nothing
-   * else, and the three questions a person actually arrives with on a
-   * two-sided product were nowhere on it: what the switch is, how paying for
-   * a stay differs from paying for a tenancy, and what Verified means when a
-   * row can also say Third party.
-   */
   {
     category: "Property and Stays",
     q: "What are the two sides, and what does switching do?",
-    a: "Vallo is one app with two faces. The Property side is renting, buying and selling: listings, agents, inspections and Plans, priced as a sale price or a yearly rent. Vallo Stays is the nightly side: hotels, apartments, guest houses, resorts, serviced apartments, shortlets and restaurant tables, priced per night against your dates. The switch sits at the foot of the side menu. Flipping it changes the vocabulary and the bottom bar and nothing else: same account, same profile, same inbox, same saved places. Plans is one dated list of what you have lined up on both sides.",
+    a: "Vallo has two sides on one account. Property is renting and buying, priced per year or as a sale price. Stays is hotels, shortlets, serviced apartments and restaurant tables, priced per night for your dates. The switch is at the foot of the menu. It changes the words and the bottom bar. Your profile, inbox, saved places and Plans stay the same.",
   },
   {
     category: "Property and Stays",
     q: "How is paying for a stay different from paying for a tenancy?",
-    a: "A stay is paid on Vallo before you arrive. You pick your dates, reserve, and the nights are held free for 48 hours while you decide; the breakdown shows the nightly rate, the nights and anything the host charges, added up. Once the host accepts, Vallo approves the booking and you pay by card or bank transfer. A tenancy is the other way round: you message the agent, you inspect the property in person, you submit the inspection report, and an agreement is drawn up that both of you confirm and Vallo approves. Only then do you pay, with the whole move-in total printed before you commit. There is no reserve button on a yearly rental for that reason. Both are paid inside Vallo and both leave a reference you can open later.",
+    a: `A hotel room is paid by card when you book. A shortlet is paid once the host accepts it. A tenancy comes after a viewing: you submit the inspection report, you and the lister confirm the agreement, and then you pay. ${ESCROW_OR_CARD} ${PAY_INSIDE_VALLO}`,
   },
   {
     category: "Property and Stays",
     q: "Does Vallo hold my money?",
-    /* The answer read NO_CUSTODY_SENTENCE and then said it again in a sentence
-       written here, naming a wallet (C6, the route sweep): the money sentence
-       is lib/money/copy.ts's alone. */
-    a: `No. ${NO_CUSTODY_SENTENCE} ${PAYMENT_GATE_SENTENCE}`,
-  },
-  {
-    category: "Payments and refunds",
-    q: "What stands behind my payment?",
-    a: `${DIRECT_RAIL_STANDING} The Vallo Guarantee has been retired, and no contribution is taken from a new payment. If you paid while it was running: ${LEGACY_GUARANTEE_CLAIM}`,
-  },
-  {
-    category: "Payments and refunds",
-    q: "Do I pay to inspect a property?",
-    a: `No. ${NO_INSPECTION_FEE} If anybody asks you for money to view a place, that is a private arrangement and not ours, and you can report it. ${OFF_PLATFORM_SENTENCE}`,
+    a: `No. ${VALLO_NEVER_HOLDS} ${ESCROW_MEANS} ${CARD_MEANS}`,
   },
   {
     category: "Property and Stays",
     q: "Do I have to pay for a restaurant table?",
-    a: "No. A table is a request, not a booking: you ask for a date, a time and a party size, and the restaurant confirms it or turns it down. No money moves on Vallo for a reservation and you pay the restaurant when you eat. Every reservation opens its own conversation, so running late is a message rather than a phone call. Cancel it at any hour, for nothing.",
+    a: "No. Booking a table is free and nothing is paid in advance. The restaurant confirms it or declines, and you pay your bill at the restaurant when you eat. Paying the bill through Vallo is not switched on yet.",
   },
   {
     category: "Property and Stays",
-    q: "What does Verified mean, and what does Third party mean?",
-    a: "They answer two different questions and they never overlap. Verified is about a person: somebody at Vallo checked the identification of the agent or host behind the listing before it went live, and higher levels mean we have also checked their address, their payout account, or met them. Third party is about fulfilment: it marks a stay that a partner confirms and delivers rather than us, and it names that partner. A row carrying the Third party tag is never dressed as first party and never wears the verified tick. No partner inventory is live today; the label exists so that the first one cannot arrive unlabelled.",
+    q: "What does Verified mean, and what is Ownership seen?",
+    a: "Verified means a person at Vallo checked the ID of the lister behind the listing. Ownership seen means a reviewer has seen the owner's own proof of ownership, on the date shown. Neither is a guarantee, and Ownership seen is not a title search: before you buy, have your own lawyer look at the title.",
   },
 
-  // ------------------------------------------------------------ booking
+  // ------------------------------------------------------------- booking
   {
     category: "Booking a stay",
     q: "How do I book a stay on Vallo?",
-    a: "Open Stays, type where you are going and set your check-in, your check-out and how many of you there are. Every price on the results page then becomes the total for those nights rather than a rate. Open one, reserve, and the nights are held for 48 hours for nothing while you decide. Pay by card or bank transfer once payment opens and the stay appears in Plans with its reference.",
+    a: `Open Stays and set where, your dates and your guests. Every price becomes the total for your nights. Open a place and see the full price, including any charge at the door, before you book. ${HOTEL_ROOM_BY_CARD} For a shortlet or serviced apartment, reserve: the nights are held for 48 hours at no cost while the host answers. The stay then appears in Plans.`,
   },
   {
     category: "Booking a stay",
     q: "How do I hold a table at a restaurant?",
-    a: "Open Restaurants, open the one you want, and ask for a date, a time and a party size. The time is read as Lagos time whatever your phone is set to. The restaurant confirms it or turns it down and you are told either way, the reservation opens its own conversation, and it sits with your stays in Plans at its hour.",
+    a: "Open Restaurants, pick one, and ask for a date, a time and a party size. Times are Lagos time. The restaurant confirms or declines and you are told either way. The booking opens its own conversation and sits in Plans with a check-in code to show when you arrive.",
   },
   {
     category: "Booking a stay",
     q: "Do I need an account to book?",
-    a: "Yes. Bookings, payments, messages and receipts all live in your account, so we need to know who a booking belongs to. Creating an account takes about a minute and is free.",
+    a: "Yes. Bookings, payments, messages and receipts belong to your account. Making one is free and takes about a minute.",
   },
   {
     category: "Booking a stay",
-    q: "Can I talk to the agent before I book?",
-    a: "Yes. Every listing has a message option, so you can ask about the area, power supply, water, parking or anything else before you commit. Keep the conversation on Vallo so there is a record if anything goes wrong.",
-  },
-  {
-    category: "Booking a stay",
-    q: "Can I request an inspection before paying for a long stay?",
-    a: "For longer stays we encourage exactly that. Request an inspection through the listing, view the property in person or on a video call, and only confirm the booking once you are satisfied. Never hand over cash at an inspection; all payment happens on the platform.",
-  },
-
-  // ----------------------------------------------------------- payments
-  {
-    category: "Payments and refunds",
-    q: "Do I pay the agent directly?",
-    a: `Never. You pay on Vallo, through the checkout screen, using a card or a bank transfer raised by the payment processor. Nobody on this platform has any reason to send you an account number, and if somebody does, report them. The owner's or agent's share is split off by the processor in the same payment and goes straight to their bank account. ${NO_CUSTODY_SENTENCE}`,
-  },
-  {
-    category: "Payments and refunds",
-    q: "What payment methods can I use?",
-    a: "You can pay in naira with Nigerian debit cards or by bank transfer. Paying in crypto is not switched on yet. When it is, it will appear as ‘Pay with crypto’ on the payment screen for people who have completed an identity check on Vallo: a licensed provider converts it and pays the owner or agent in naira, and Vallo never holds your crypto. The same methods work on both sides of the product, for a night or for a year. Prices are always shown in naira with no hidden conversion.",
-  },
-  {
-    category: "Payments and refunds",
-    q: "How do payments through Vallo work?",
-    a: "Payments run through licensed Nigerian payment processors and we never store your full card details. Every payment leaves a reference against your booking that both you and our support team can open, which is what makes a dispute solvable. Cash at an inspection, or a transfer to a stranger's account, leaves us nothing to work from.",
-  },
-  {
-    category: "Payments and refunds",
-    q: "How do refunds work?",
-    a: `One schedule applies to every stay on Vallo. Cancel more than 72 hours before check-in and you get everything back; inside that window you get half; once check-in day has started the stay is the agent's. If the agent cancels, or the property was not what was listed, you get everything back whenever it happens. ${REFUND_ROUTE}`,
-  },
-  {
-    category: "Payments and refunds",
-    q: "How long does a refund take to arrive?",
-    /* Track A: Vallo keeps no balance, so a refund goes back through the
-       processor to the card or account that paid. The processor's timing,
-       not ours, decides when the bank shows it. */
-    a: `${REFUND_ROUTE} Ask from the booking and the request is dated, and the booking shows where the refund is. If nothing has appeared after ten working days, contact support with your booking reference.`,
-  },
-
-  // ------------------------------------------------------------ listing
-  {
-    category: "Listing your property",
-    q: "Can I list a hotel, a guest house or a restaurant rather than a property?",
-    a: "Yes. The same application covers both sides. Once you are approved you publish from your agent workspace, and a place let by the night is run with the host tools: the calendar, the nights you close by hand, and the bookings that arrive against them. A restaurant is listed the same way and answers table requests from the same workspace.",
-  },
-  {
-    category: "Listing your property",
-    q: "How do I list my property on Vallo?",
-    /* "Agent dashboard" is not a Vallo word: the agent surface is the
-       agent workspace (PRODUCT.md section 7 retired "Agent Mode").
-       AND IT NO LONGER SENDS A LANDLORD TO BECOME AN AGENT. This answer
-       described the six step agent application as the only route in, which is
-       the exact reason this platform has one `agents` row in it: a man with one
-       flat in Bwari is not becoming an agent and never will be, and we were
-       showing him the door rather than the room. The three doors are named from
-       `SUPPLY_DOORS`, so renaming one changes this sentence too. */
-    a: `Add a workspace from your profile and pick the door that fits: ${doorsSentence()}. The owner form takes about five minutes and asks for your name, an ID and whatever you hold on the property, and there is an honest answer if you hold no document at all. Once you are through you publish from that workspace.`,
-  },
-  {
-    category: "Listing your property",
-    q: "Does it cost anything to list?",
-    a: `No. Listing is free: there is no fee to publish. ${WHO_PAYS_SENTENCE}`,
-  },
-  {
-    category: "Listing your property",
-    q: "When do agents get paid?",
-    a: PAYOUT_ANSWER,
-  },
-
-  // ------------------------------------------------------- verification
-  {
-    category: "Verification and trust",
-    q: "What does the verified badge on a listing mean?",
-    a: "It means the agent behind the listing passed identity verification with a government issued ID or NIN, and the listing details were checked before going live. Listings that fail our checks do not appear on Vallo at all.",
-  },
-  {
-    category: "Verification and trust",
-    q: "How are agents verified?",
-    a: "Every agent verifies their identity with their NIN or a government issued ID. Agents operating as a business also upload their business registration documents. Applications are reviewed by a person, not a script.",
-  },
-  {
-    category: "Verification and trust",
-    q: "How do I report a suspicious listing or user?",
-    /* This answer printed the fifteen characters {SUPPORT_EMAIL} to every
-       reader, because an earlier pass turned a template literal into a plain
-       string and nothing renders a placeholder as an error. */
-    a: `Use the report option on the listing, or ${SUPPORT_SENTENCE} with the listing link and what you saw. Reports are reviewed quickly, and listings under investigation can be hidden while we check.`,
-  },
-
-  // --------------------------------------------------- safety and money
-  {
-    category: "Verification and trust",
-    q: "Does Vallo charge any fees?",
-    a: `Not to a renter or a guest. ${WHO_PAYS_SENTENCE} The total you see before you commit is the agent's own number: the move-in total on a yearly tenancy, the nights and any cleaning charge on a shortlet, the asking price on a sale, a shop, an office or land. Nothing of ours sits on top of it. An agency fee or a caution fee can be a real part of what a landlord asks for, and when it is, it is named on the listing and counted into the move-in total. Anyone presenting an inspection fee, a holding fee or a platform fee as ours is lying, and you should report them.`,
-  },
-  {
-    category: "Verification and trust",
-    q: "Someone asked me to pay into a bank account. What do I do?",
-    a: "Stop, and report them. No Vallo staff member, agent or listing will ever give you an account number to pay into: every payment happens inside the platform. Use the report control on the listing, or the contact form, and include the account number and the messages. Reports about off-platform payment are answered within four hours.",
-  },
-  {
-    category: "Verification and trust",
-    q: "What if I have already sent money outside the platform?",
-    a: "Call your bank first and ask them to raise a dispute on the transfer, because a fast report is sometimes enough for them to place a lien on the receiving account. Then report it to us with the listing link, the account details and the messages. We cannot recover money that never came through Vallo, but we can remove the account and stop the same person reaching anybody else.",
-  },
-
-  // ------------------------------------------------------ using the app
-  /*
-   * Track M, 25 September 2026: the questions the new parts of the app raise.
-   * Each answer says only what the screen does today; the long versions are
-   * the docs chapters on getting around, Price Check and the assistant.
-   */
-  {
-    category: "Using the app",
-    q: "What is the round button at the end of the dock?",
-    a: "It opens a tray with the places you reach most: messages, plans, saved, the assistant, agreements, Price Check, settings and help. Everything in it is also in the menu.",
-  },
-  {
-    category: "Using the app",
-    q: "Can I switch between light and dark?",
-    a: "Yes. Under Settings, then Appearance, then Theme, choose Light, Dark or System. System follows your phone or computer. The choice is kept on this device.",
-  },
-  {
-    category: "Using the app",
-    q: "Can I make the app move less?",
-    a: "Yes. Under Settings, then Appearance, then Motion, choose Cinematic, Standard, Calm or Off. Calm keeps short fades only, with no splash, no doors and nothing that loops, and Off stops movement altogether. If your phone asks for less motion, Vallo always follows it.",
-  },
-  {
-    category: "Using the app",
-    q: "What is Price Check?",
-    a: "It tells you what similar properties near a place are currently advertised for on Vallo, from the listings published there, and how sure that answer is. When there are too few nearby listings to say anything useful it tells you so rather than guessing. It is not what anybody has paid, and it is not advice.",
-  },
-  {
-    category: "Using the app",
-    q: "What can the AI assistant do, and what will it not do?",
-    a: "It searches the same listings you do, puts a few side by side, explains what moving in really costs and tells you what residents have written about an area, in English, Yorùbá, Hausa or Igbo. It never invents a listing or a price, never says a land title is good, and never suggests paying outside Vallo.",
-  },
-  {
-    category: "Using the app",
-    q: "Can I message a hotel or a restaurant before I book?",
-    a: "Where the business takes messages, its page carries a message button. The conversation goes to the business itself and stays in your inbox with your other conversations.",
-  },
-
-  /*
-   * ADDED 13 OCTOBER 2026 from the founder's decisions
-   * (docs/DECISIONS_2026-10-13.md). Plain questions in the words people use.
-   * Every answer states only what is built; nothing promises a feature that
-   * is on another branch.
-   */
-  {
-    category: "Payments and refunds",
-    q: "Is Vallo free to use?",
-    a: "Yes. Making an account, searching, saving, messaging and asking to view a property are free, and listing a property is free. Vallo only charges when a deal is completed, and that fee is shown to the lister in naira. A renter or guest pays the price on the listing, with nothing added by Vallo. No one has to pay a monthly subscription.",
-  },
-  {
-    category: "Payments and refunds",
-    q: "What is the Pro plan, and do I have to pay for it?",
-    a: "The Pro plan is optional. You never need it to list, to book, to view a property or to get paid, and nothing is locked behind it.",
+    q: "Can I talk to the host or agent before I book?",
+    a: "Yes. Every listing has a message button. Ask about the area, the light, the water or parking before you commit, and keep the conversation on Vallo so there is a record.",
   },
   {
     category: "Booking a stay",
     q: "How do I cancel a booking?",
-    a: "Open the booking from Plans (or Trips on the Stays side) and choose cancel. What comes back to you depends on how long before check-in you cancel, and the refund schedule is written out on the Cancellations page. If the host cancels, or the place was materially not as listed, you get everything back. An unpaid hold can be let go at any time for nothing.",
+    a: "Open the booking from Plans. A booking you have not paid for can be let go at any time for nothing. For a paid stay, ask from the booking for it to be cancelled and refunded: a person at Vallo decides it by the cancellation policy on your booking. If the host cancels, or the place was not as listed, you get everything back.",
   },
   {
     category: "Booking a stay",
     q: "Will I see every cost before I book?",
-    a: "Yes. You see the total before you confirm, and any charge at the door (a caution deposit, power, cleaning, an extra guest or a visitor) is listed before you book. A host must not charge anything that is not listed on Vallo, and must not add a charge without a stated reason. If someone asks you for a charge that is not listed, do not pay it, and report it.",
+    a: `Yes. ${PRICE_IS_THE_PRICE} That includes a caution deposit, power, cleaning, an extra guest or a visitor. A host must not charge anything that is not listed on Vallo. If someone asks for a charge that is not listed, do not pay it, and report it.`,
   },
+
+  // ------------------------------------------------------------ payments
+  {
+    category: "Payments and refunds",
+    q: "Should I pay with Escrow or by card?",
+    a: `${ESCROW_OR_CARD} ${ESCROW_MEANS} ${CARD_MEANS} ${SALE_IS_ESCROW}`,
+  },
+  {
+    category: "Payments and refunds",
+    q: "Can I pay the owner, agent or host outside Vallo?",
+    a: `No. ${PAY_INSIDE_VALLO} Nobody on Vallo has a reason to send you an account number. If somebody asks you to pay outside Vallo, say no and report them.`,
+  },
+  {
+    category: "Payments and refunds",
+    q: "Do I pay to inspect a property?",
+    a: `No. ${NO_INSPECTION_FEE} If anybody asks you for money to view a place, that is not a Vallo charge, and you can report it. ${OFF_PLATFORM_SENTENCE}`,
+  },
+  {
+    category: "Payments and refunds",
+    q: "How do refunds work?",
+    a: `Every stay shows its cancellation policy before you book, and the refund follows the policy on your booking. Hotels, shortlets and serviced apartments run as a business pick Flexible, Moderate, Firm or Strict. A stay listed by an owner or agent follows the standard schedule: everything back more than ${FULL_REFUND_HOURS} hours before check-in, half inside that, and nothing once check-in day has started. If the host cancels, or the place was not as listed, you get everything back. ${REFUND_ROUTE}`,
+  },
+  {
+    category: "Payments and refunds",
+    q: "How long does a refund take to arrive?",
+    a: `Vallo starts a refund by the end of the fifth Nigerian business day after you ask. ${REFUND_ROUTE} The booking shows where your refund is. If nothing has arrived ten working days after it started, contact support with your booking reference.`,
+  },
+  {
+    category: "Payments and refunds",
+    q: "What payment methods can I use?",
+    a: "You pay in naira, inside Vallo. With Escrow, a licensed payment partner holds your payment until the deal is confirmed. With Pay by card, you pay on the payment partner's own page with a Nigerian card or a bank transfer it raises. Vallo never sees your full card number.",
+  },
+  {
+    category: "Payments and refunds",
+    q: "Is Vallo free to use?",
+    a: "Yes. Making an account, searching, saving, messaging and asking to view a property are free, and listing is free. Vallo only charges when a deal is completed, from the lister's or host's share. A renter or guest pays the listed price, with nothing added by Vallo. No one has to pay a monthly subscription.",
+  },
+  {
+    category: "Payments and refunds",
+    q: "What is the Pro plan, and do I have to pay for it?",
+    a: "The Pro plan is optional. You never need it to list, to book, to view a property or to get paid, and nothing you need is locked behind it.",
+  },
+
+  // ------------------------------------------------------------- viewings
   {
     category: "Viewings",
     q: "How do I book a viewing?",
-    a: "On a listing, pick a free slot and the viewing is booked at once. If no slot suits you, ask for a time: the lister confirms it, offers you another time, or declines, and you are told which. Times are Lagos time.",
+    a: "On a listing, pick a free slot and the viewing is booked at once. If no slot suits you, ask for a time: the lister confirms it, offers another time, or declines, and you are told which. Times are Lagos time.",
   },
   {
     category: "Viewings",
@@ -319,18 +185,20 @@ export const FAQS: Faq[] = [
   {
     category: "Viewings",
     q: "Will I be reminded about a viewing?",
-    a: "Yes. The renter and the lister are both reminded in the evening before (from 19:00 Lagos time) and again two hours before the viewing.",
+    a: "Yes. The renter and the lister are both reminded the evening before (from 19:00 Lagos time) and again two hours before the viewing.",
   },
   {
     category: "Viewings",
     q: "What if the renter or the lister does not turn up to a viewing?",
-    a: "Either side can report a no-show once the viewing time has come, and for up to 14 days after it. The person reported can dispute it within 48 hours, and if they do, a person at Vallo looks at both sides and decides.",
+    a: "Either side can report a no-show from the viewing time until 14 days after. The person reported can dispute it within 48 hours, and if they do, a person at Vallo looks at both sides and decides.",
   },
   {
     category: "Viewings",
     q: "How do I close a viewing after it happens?",
-    a: "Once the time has passed, either side can mark the viewing complete and say how it went: inspected, deal done or no deal.",
+    a: "Once the time has passed, either side can mark the viewing complete and say how it went: inspected, deal done or no deal. For a rental or a sale, you then submit the inspection report and confirm the agreement.",
   },
+
+  // ------------------------------------------------------------- messages
   {
     category: "Messages",
     q: "Can I delete a message I sent?",
@@ -347,19 +215,36 @@ export const FAQS: Faq[] = [
     a: "Messages from people you do not follow arrive as Requests, so a stranger cannot fill your inbox. They wait in their own tab until you open them.",
   },
   {
+    category: "Messages",
+    q: "Can I message a hotel or a restaurant before I book?",
+    a: "Where the business takes messages, its page has a message button. The conversation goes to the business itself and stays in your inbox.",
+  },
+
+  // ------------------------------------------------------ listing and hosting
+  {
+    category: "Listing your property",
+    q: "How do I list my property on Vallo?",
+    a: `Open Add a workspace from your profile and pick the one that fits: ${doorsSentence()}. The owner form takes about five minutes and asks for your name, an ID and whatever you hold on the property; there is an honest answer if you hold no document. Then post the listing from your workspace. Vallo reviews it before it goes up.`,
+  },
+  {
+    category: "Listing your property",
+    q: "Does it cost anything to list?",
+    a: `No. Listing is free. ${WHO_PAYS_SENTENCE} Before you publish, Vallo shows you what you will receive.`,
+  },
+  {
+    category: "Listing your property",
+    q: "When do owners, agents and hosts get paid?",
+    a: "Add a Nigerian bank account in your own name to your payout details first. With Pay by card, your share goes to that account when the payment clears. With Escrow, it is released when the deal is confirmed. Vallo's commission comes out of your share, and every payment shows on your earnings.",
+  },
+  {
     category: "Listing your property",
     q: "Is a listing reviewed before it is published?",
-    a: "Yes. Vallo reviews every listing before it is published. The reviewer can approve it, ask for more, or reject it with a reason. If it is sent back, you can edit it and send it again.",
+    a: "Yes. A person at Vallo reviews every listing. They approve it, ask for more, or reject it with a reason. If it is sent back, edit it and send it again.",
   },
   {
     category: "Listing your property",
     q: "Can I be both a landlord and an agent?",
-    a: "Not on one account. An account is either an owner (landlord) account or an agent account, never both. If you are both, you use two accounts.",
-  },
-  {
-    category: "Hosting",
-    q: "How do I set up a hotel, shortlet or restaurant?",
-    a: "Use the host wizard. You give your identity and business papers, and Vallo reviews them before you are published. If you are sent back, you edit the same application and send it again. You agree to the Terms, the Privacy Policy and the Host Agreement before you create a host account or publish.",
+    a: "Not on one account. An account is either an owner (landlord) account or an agent account, never both. If you are both, use two accounts.",
   },
   {
     category: "Listing your property",
@@ -367,31 +252,110 @@ export const FAQS: Faq[] = [
     a: "At least 3 photos or videos, and 5 is recommended. They go in one uploader. The first item is the cover and must be a photo. You can add up to 3 videos, each up to 100MB and 60 seconds, as MP4, MOV or WebM.",
   },
   {
+    category: "Listing your property",
+    q: "What does the Ownership seen mark mean, and how do I get it?",
+    a: "Upload the document you hold on the property when you set up as an owner: a Certificate of Occupancy, a deed of assignment, governor's consent, a survey plan, a utility bill or a letter of authority. When a reviewer approves it, Ownership seen shows with the date on your profile, your listings and search results. It means a reviewer saw your document; it is not a title search.",
+  },
+  {
+    category: "Hosting",
+    q: "How do I set up a hotel, shortlet or restaurant?",
+    a: "Use host setup. You give your identity and business papers, and Vallo reviews them before you are published. If you are sent back, you edit the same application and send it again. You agree to the Terms, the Privacy Policy and the Host Agreement before you publish.",
+  },
+  {
+    category: "Hosting",
+    q: "What does Vallo charge a hotel?",
+    a: `${HOTEL_COMMISSION_SENTENCE} Listing is free, and the guest pays exactly the price shown.`,
+  },
+  {
     category: "Hosting",
     q: "What cancellation policies can a host choose?",
-    a: "Flexible, Moderate, Firm or Strict. The refund rules of the one a host picks are shown to the guest before they book, and the refund follows them.",
+    a: "Flexible, Moderate, Firm or Strict. The guest sees the terms of the one a host picks before they book, and the refund follows them.",
   },
   {
     category: "Hosting",
     q: "What happens at a restaurant after I book a table?",
-    a: "Asking for a table is free and nothing is paid in advance. The restaurant confirms it, and you pay your bill at the restaurant. After the time the restaurant marks the table seated or a no-show, using your check-in code, and if it does not answer, Vallo asks you the next day whether you dined. Only diners whose table was seated can review.",
+    a: "Booking a table is free and nothing is paid in advance. The restaurant confirms it, and you pay your bill at the restaurant. After the time, the restaurant marks the table seated or a no-show, using your check-in code. If it does not answer, Vallo asks you the next day whether you dined. Only diners whose table was seated can review.",
+  },
+  {
+    category: "Hosting",
+    q: "What does Vallo charge a restaurant?",
+    a: `Listing is free, and booking is free for diners. Vallo bills the restaurant ${SEATED_TABLE_FEE} for each table seated from a Vallo booking, once a month. A no-show or a cancelled table costs nothing.`,
+  },
+
+  // ------------------------------------------------------- verification
+  {
+    category: "Verification and trust",
+    q: "What does the verified badge on a listing mean?",
+    a: "A person at Vallo checked the ID of the lister behind it, and the listing was reviewed before it went live. Listings that fail review do not appear on Vallo.",
+  },
+  {
+    category: "Verification and trust",
+    q: "How are agents verified?",
+    a: "Every agent gives their NIN or a government ID, proof of address and a bank account in their own name. A firm also gives its CAC registration. A person at Vallo reviews each application, and the verification ladder shows how far each lister has climbed.",
   },
   {
     category: "Verification and trust",
     q: "Does a badge mean a person cannot defraud me?",
-    a: "No. A badge shows what Vallo has confirmed or what a person has earned, such as a quick first reply. It is not a guarantee against fraud. Pay only inside Vallo, and only after you have seen the property.",
+    a: "No. A badge shows what Vallo has confirmed or what a person has earned. It is not a guarantee against fraud. Pay only inside Vallo, and only after you have seen the property.",
+  },
+  {
+    category: "Verification and trust",
+    q: "How do I report a suspicious listing or user?",
+    a: `Use the report option on the listing, or ${SUPPORT_SENTENCE} with the listing link and what you saw. A person reads every report, and a listing can be hidden while it is looked at.`,
+  },
+  {
+    category: "Verification and trust",
+    q: "Does Vallo charge any fees?",
+    a: `Not to a renter, buyer or guest. ${PRICE_IS_THE_PRICE} ${COMMISSION_FROM_SHARE} An agency or caution fee can be part of what a landlord asks for; when it is, it is named on the listing and counted into the move-in total. Anyone presenting an inspection fee, a holding fee or a platform fee as a Vallo charge is lying: report them.`,
+  },
+  {
+    category: "Verification and trust",
+    q: "Someone asked me to pay into a bank account. What do I do?",
+    a: "Stop, and report them. Nobody at Vallo, and no lister or host, will give you an account number to pay into: every payment for a deal happens inside Vallo. Report it from the listing or the contact form, with the account number and the messages. Reports about paying outside Vallo are answered within four hours.",
   },
   {
     category: "Verification and trust",
     q: "Why shouldn't I share an account number in chat?",
     a: "Because it is the commonest way people are cheated. Messages that look like account numbers are flagged to the Vallo team. Pay only through Vallo, never into an account someone sends you.",
   },
+  {
+    category: "Verification and trust",
+    q: "What if I have already sent money outside the platform?",
+    a: "Call your bank first and ask them to raise a dispute on the transfer; a fast report can let them hold the money in the receiving account. Then report it to Vallo with the listing link, the account details and the messages. Payments made outside Vallo are not covered and Vallo cannot recover them, but it can remove the account and stop the same person reaching anybody else.",
+  },
+
+  // ------------------------------------------------------ using the app
+  {
+    category: "Using the app",
+    q: "What is the round button at the end of the dock?",
+    a: "It opens a tray with the places you reach most: messages, plans, saved, the assistant, agreements, Price Check, settings and help. Everything in it is also in the menu.",
+  },
+  {
+    category: "Using the app",
+    q: "Can I switch between light and dark?",
+    a: "Yes. Under Settings, then Appearance, then Theme, choose Light, Dark or System. System follows your phone or computer. The choice is kept on this device.",
+  },
+  {
+    category: "Using the app",
+    q: "Can I make the app move less?",
+    a: "Yes. Under Settings, then Appearance, then Motion, choose Cinematic, Standard, Calm or Off. Calm keeps short fades only, and Off stops movement altogether. If your phone asks for less motion, Vallo follows it.",
+  },
+  {
+    category: "Using the app",
+    q: "What is Price Check?",
+    a: "It tells you what similar properties near a place are advertised for on Vallo, from the listings published there, and how sure that answer is. With too few nearby listings it says so rather than guessing. It is not what anybody has paid, and it is not advice.",
+  },
+  {
+    category: "Using the app",
+    q: "What can the AI assistant do, and what will it not do?",
+    a: "It searches the same listings you do, compares a few side by side, explains what moving in really costs, tells you what residents have written about an area, and points you to the right screen, in English, Yorùbá, Hausa or Igbo. It never acts without your approval: it cannot book, pay or send a message for you. It never invents a listing or a price, never says a land title is good, and never suggests paying outside Vallo.",
+  },
 
   // ---------------------------------------------------------- languages
   {
     category: "Languages and accessibility",
     q: "Which languages does Vallo work in?",
-    a: "English, Yorùbá, Hausa and Igbo. You can switch language at any time from the switcher in the header, and your choice is remembered on your device.",
+    a: "English, Yorùbá, Hausa and Igbo. Switch language at any time from the switcher in the header or in Settings, and your choice is remembered on your device.",
   },
   {
     category: "Languages and accessibility",

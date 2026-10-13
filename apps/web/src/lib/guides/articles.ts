@@ -1,6 +1,7 @@
 import { FULL_REFUND_HOURS } from "@/lib/trust/cancellation";
 import { FEE_RULES } from "@/lib/trust/fee-rules";
-import { DIRECT_RAIL_STANDING, NO_INSPECTION_FEE, PAYMENT_GATE_SENTENCE, REFUND_ROUTE } from "@/lib/money/copy";
+import { NO_INSPECTION_FEE, PAYMENT_GATE_SENTENCE, REFUND_ROUTE } from "@/lib/money/copy";
+import { ESCROW_OR_CARD, HOTEL_ROOM_BY_CARD, PAY_INSIDE_VALLO, PRICE_IS_THE_PRICE } from "@/app/(site)/docs/facts";
 import { bpsLabel } from "@/lib/site/move-in-calculator";
 import type { GuideSlug } from "./slugs";
 
@@ -70,7 +71,7 @@ const LAGOS_RULE = LAGOS
   ? `Vallo prints one published rule beside Lagos listings: an agency fee of at most ${bpsLabel(LAGOS.agencyMaxBps)} of a year's rent and a legal fee of at most ${bpsLabel(LAGOS.legalMaxBps)}, from the ${LAGOS.stateName} ${LAGOS.source}. Vallo does not cap anybody's fee; it prints the listing's own fees beside the rule so you can compare. Laws are amended, so ask a lawyer before you rely on any figure in a dispute.`
   : "";
 
-const REVIEWED = "2026-09-30";
+const REVIEWED = "2026-10-13";
 
 export const GUIDES: readonly Guide[] = [
   {
@@ -135,7 +136,7 @@ export const GUIDES: readonly Guide[] = [
           {
             tone: "vallo",
             title: "On Vallo",
-            callout: `${PAYMENT_GATE_SENTENCE} A Vallo receipt carries a code that anybody can look up at vallospaces.com/r.`,
+            callout: `${PAY_INSIDE_VALLO} ${PAYMENT_GATE_SENTENCE} A Vallo receipt carries a code that anybody can look up at vallospaces.com/r.`,
           },
         ],
       },
@@ -380,8 +381,8 @@ export const GUIDES: readonly Guide[] = [
         id: "booking",
         title: "Booking and paying",
         blocks: [
-          "You choose your dates and ask to book. Some hosts accept each request themselves; others let you book without waiting. Either way you pay on Vallo, through the checkout, never by transfer to a host's own account.",
-          { quote: "Either way you pay on Vallo, through the checkout, never by transfer to a host's own account." },
+          `You choose your dates and see the full price before you book. ${PRICE_IS_THE_PRICE} ${HOTEL_ROOM_BY_CARD} A shortlet host may accept each request themselves. ${ESCROW_OR_CARD} Either way you pay on Vallo, never by transfer to a host's own account.`,
+          { quote: "Either way you pay on Vallo, never by transfer to a host's own account." },
           "A restaurant table is a request, not a payment: you ask for a date, a time and a party size, the restaurant answers, and you pay the restaurant when you eat.",
         ],
       },
@@ -389,7 +390,7 @@ export const GUIDES: readonly Guide[] = [
         id: "cancel",
         title: "Cancelling",
         blocks: [
-          `Under the platform terms, cancel more than ${FULL_REFUND_HOURS} hours before check-in and everything you paid comes back. Inside the last ${FULL_REFUND_HOURS} hours, half comes back. Once check-in day has started, the stay is the host's. Each listing shows the terms that apply to it before you pay.`,
+          `Every stay shows its cancellation policy before you pay, and the refund follows the policy on your booking. Hotels, shortlets and serviced apartments run as a business pick Flexible, Moderate, Firm or Strict. A stay listed by an owner or agent follows the standard schedule: cancel more than ${FULL_REFUND_HOURS} hours before check-in and everything comes back, inside that half comes back, and once check-in day has started the stay is the host's.`,
           REFUND_ROUTE,
         ],
       },
@@ -398,7 +399,7 @@ export const GUIDES: readonly Guide[] = [
         title: "If the place is not what was listed",
         blocks: [
           "If you could not get in, or the place was not what was listed, do not cancel: report it from the booking, and a person at Vallo looks at it.",
-          { tone: "vallo", title: "What stands behind your payment", callout: DIRECT_RAIL_STANDING },
+          { tone: "vallo", title: "On Vallo", callout: "When you arrive, your booking asks whether the place is as listed. Answer no, with a reason and a photo, and a person at Vallo looks at it. A place that was not as listed is refunded in full." },
         ],
       },
       {
