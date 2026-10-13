@@ -22,7 +22,10 @@ export type InspectionState =
   | "PROPOSED"
   | "DECLINED"
   | "COMPLETED"
-  | "WITHDRAWN";
+  | "WITHDRAWN"
+  /* The agreed time came and one side says the other did not
+     (`inspection_no_shows` holds who said so, and the 48-hour dispute). */
+  | "NO_SHOW";
 
 /**
  * The states in which somebody still has to do something.
@@ -48,6 +51,7 @@ export const CLOSED_STATES: readonly InspectionState[] = [
   "DECLINED",
   "COMPLETED",
   "WITHDRAWN",
+  "NO_SHOW",
 ] as const;
 
 export function isClosed(state: InspectionState): boolean {
@@ -130,3 +134,20 @@ export type Inspection = {
    */
   outcome?: InspectionOutcome | null;
 };
+
+/**
+ * A no-show on an inspection, as one of its two parties reads it
+ * (`public.inspection_no_shows`, party-only under RLS). Present only on a
+ * NO_SHOW inspection.
+ */
+export type NoShow = {
+  /** This reader reported it; otherwise this reader is the one said to have stayed away. */
+  reportedByMe: boolean;
+  absentRole: "requester" | "lister";
+  reportedAt: string;
+  disputedAt: string | null;
+  resolution: "upheld" | "overturned" | null;
+};
+
+/** How long the party marked absent has to dispute it (the database holds the same 48 hours). */
+export const NO_SHOW_DISPUTE_MS = 48 * 60 * 60 * 1000;

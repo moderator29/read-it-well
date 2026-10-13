@@ -4,6 +4,7 @@ import { tx } from "@/app/admin/_components/shell-text";
 import { MeterBar } from "@/components/agent/charts/MeterBar";
 import type { InspectionActivity, InspectionState } from "@/lib/admin/reads/shapes";
 import { Badge, CalmNote, NotWired, Panel, PanelUnavailable, type BadgeTone } from "../_components/panels";
+import { NoShowDecide } from "./NoShowDecide";
 
 /**
  * Operations > In flight: the platform's processes that belong to people
@@ -22,9 +23,10 @@ const STATE_WORD: Record<InspectionState, { word: string; tone: BadgeTone; means
   COMPLETED: { word: "Completed", tone: "success", means: "held" },
   DECLINED: { word: "Declined", tone: "error", means: "the lister said no" },
   WITHDRAWN: { word: "Withdrawn", tone: "error", means: "the requester withdrew" },
+  NO_SHOW: { word: "No-show", tone: "error", means: "one side says the other did not come" },
 };
 
-const ORDER: InspectionState[] = ["REQUESTED", "PROPOSED", "CONFIRMED", "COMPLETED", "DECLINED", "WITHDRAWN"];
+const ORDER: InspectionState[] = ["REQUESTED", "PROPOSED", "CONFIRMED", "COMPLETED", "NO_SHOW", "DECLINED", "WITHDRAWN"];
 
 /* The outcome a completed viewing carries, in words: the row printed the
    column's own value ("deal_done") beside the time. */
@@ -106,6 +108,69 @@ export function InFlight({ locale, inspections }: { locale: Locale; inspections:
                     </span>
                   </span>
                   <Badge tone={STATE_WORD[row.state].tone}>{STATE_WORD[row.state].word}</Badge>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Panel>
+      </div>
+
+      {/* No-shows: the disputes waiting on a decision, and the people said
+          to have stayed away twice or more in 90 days (an overturned
+          report does not count). */}
+      <div className="nf-admin-grid nf-admin-grid--halves">
+        <Panel id="ops-no-show-disputes" title="Disputed no-shows">
+          {!inspections || !inspections.noShows ? (
+            <PanelUnavailable what="the no-shows" locale={locale} />
+          ) : inspections.noShows.disputes.length === 0 ? (
+            <CalmNote
+              title="No disputes waiting"
+              fills="A viewing marked as a no-show that the other side says they came to."
+            />
+          ) : (
+            <ul className="nf-admin-kinds" data-testid="ops-no-show-disputes">
+              {inspections.noShows.disputes.map((row) => (
+                <li key={row.inspectionId}>
+                  <span>
+                    {row.listingTitle ?? "A listing"}
+                    <span className="nf-admin-dt__sub">
+                      {row.absentRole === "requester" ? "Renter marked absent" : "Lister marked absent"} · disputed{" "}
+                      {formatDate(new Date(row.disputedAt), locale, {
+                        timeZone: "Africa/Lagos",
+                        day: "numeric",
+                        month: "short",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                      {row.disputeNote ? ` · "${row.disputeNote}"` : ""}
+                    </span>
+                  </span>
+                  <NoShowDecide inspectionId={row.inspectionId} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </Panel>
+        <Panel id="ops-no-show-repeats" title="Repeated no-shows">
+          {!inspections || !inspections.noShows ? (
+            <PanelUnavailable what="the no-shows" locale={locale} />
+          ) : inspections.noShows.repeats.length === 0 ? (
+            <CalmNote
+              title="Nobody reported twice"
+              fills="People marked as a no-show two or more times in 90 days, not counting a report taken off."
+            />
+          ) : (
+            <ul className="nf-admin-kinds" data-testid="ops-no-show-repeats">
+              {inspections.noShows.repeats.map((row) => (
+                <li key={row.userId}>
+                  <span>
+                    {row.name ?? "A member"}
+                    <span className="nf-admin-dt__sub">
+                      last{" "}
+                      {formatDate(new Date(row.lastAt), locale, { timeZone: "Africa/Lagos", day: "numeric", month: "short" })}
+                    </span>
+                  </span>
+                  <Badge tone="error">{`${formatNumber(row.count, locale)} no-shows`}</Badge>
                 </li>
               ))}
             </ul>

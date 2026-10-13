@@ -25,7 +25,10 @@ import {
   RESCHEDULE_WORDS,
   VIEWING_WORDS,
   WITHDRAW_WORDS,
+  NO_SHOW_WORDS,
+  noShowWords,
 } from "./viewing-words";
+import { reportNoShow } from "@/lib/inspections/no-show-actions";
 
 /**
  * INSPECTIONS, AS ROWS, WITH THE STATE VISIBLE ON BOTH SIDES.
@@ -53,6 +56,7 @@ const STATE_LABEL: Record<InspectionState, string> = {
   DECLINED: "Declined",
   COMPLETED: "Inspected",
   WITHDRAWN: "Withdrawn",
+  NO_SHOW: "No-show",
 };
 
 /** The same six states as the person who ASKED reads them. */
@@ -63,6 +67,7 @@ const STATE_LABEL_REQUESTER: Record<InspectionState, string> = {
   DECLINED: "Declined",
   COMPLETED: "Inspected",
   WITHDRAWN: "Withdrawn",
+  NO_SHOW: "No-show",
 };
 
 const STATE_TONE: Record<InspectionState, StatusTone> = {
@@ -72,6 +77,7 @@ const STATE_TONE: Record<InspectionState, StatusTone> = {
   DECLINED: "neutral",
   COMPLETED: "success",
   WITHDRAWN: "neutral",
+  NO_SHOW: "danger",
 };
 
 
@@ -160,7 +166,7 @@ function InspectionRow({
   /* The one sheet open over the row: a time to offer, or a final move asked
      before it is made (the same two sheets the card and the thread open). */
   const [sheet, setSheet] = useState<
-    null | "propose" | "reschedule" | "decline" | "cancelLister" | "withdraw" | "cancelRenter"
+    null | "propose" | "reschedule" | "decline" | "cancelLister" | "withdraw" | "cancelRenter" | "noShow"
   >(null);
   /* A second tap while the first is in flight is dropped, not sent twice. */
   const inFlight = useRef(false);
@@ -344,14 +350,19 @@ function InspectionRow({
       {inspection.state === "CONFIRMED" && (
         <div className={`flex flex-wrap items-center gap-xs ${CONTROL_INDENT}`}>
           {timeCome ? (
-            <Button
-              size="sm"
-              variant="secondary"
-              disabled={pending}
-              onClick={() => run(() => closeInspection({ id: inspection.id, state: "COMPLETED" }))}
-            >
-              {VIEWING_WORDS.markInspected}
-            </Button>
+            <>
+              <Button
+                size="sm"
+                variant="secondary"
+                disabled={pending}
+                onClick={() => run(() => closeInspection({ id: inspection.id, state: "COMPLETED" }))}
+              >
+                {VIEWING_WORDS.markInspected}
+              </Button>
+              <Button size="sm" variant="quiet" disabled={pending} onClick={() => setSheet("noShow")}>
+                {side === "lister" ? NO_SHOW_WORDS.markRenter : NO_SHOW_WORDS.markLister}
+              </Button>
+            </>
           ) : (
             <>
               {side === "lister" && (
@@ -431,6 +442,14 @@ function InspectionRow({
           onOpenChange={(next) => setSheet(next ? sheet : null)}
           words={sheet === "decline" ? DECLINE_WORDS : LISTER_CANCEL_WORDS}
           onConfirm={(note) => answerWith("DECLINED", null, note)}
+        />
+      )}
+      {sheet === "noShow" && (
+        <ViewingStepSheet
+          open
+          onOpenChange={(next) => setSheet(next ? sheet : null)}
+          words={noShowWords(side === "lister" ? "requester" : "lister")}
+          onConfirm={(note) => reportNoShow({ id: inspection.id, ...(note ? { note } : {}) }).then(settle)}
         />
       )}
       {(sheet === "withdraw" || sheet === "cancelRenter") && (

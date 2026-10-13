@@ -10,7 +10,7 @@ function aheadOfNow(): string {
   return new Date(Math.ceil(Date.now() / 3_600_000) * 3_600_000 + 3 * 86_400_000).toISOString();
 }
 
-const STATES: readonly InspectionState[] = ["REQUESTED", "CONFIRMED", "PROPOSED", "DECLINED", "COMPLETED", "WITHDRAWN"];
+const STATES: readonly InspectionState[] = ["REQUESTED", "CONFIRMED", "PROPOSED", "DECLINED", "COMPLETED", "WITHDRAWN", "NO_SHOW"];
 
 /**
  * The inspection surface on fixture props, shared by the two

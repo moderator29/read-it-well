@@ -4,7 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { resolveSession } from "../actions/session";
 import { callableNumbersFor } from "../security/counterpart-contact";
 import type { Database } from "../supabase/database.types";
-import { isOpen, type Inspection, type InspectionOutcome, type InspectionState } from "./types";
+import { isOpen, type Inspection, type InspectionOutcome, type InspectionState, type NoShow } from "./types";
 import { badgeTierFrom, type BadgeTier } from "./badge";
 
 /**
@@ -341,4 +341,44 @@ export async function readOpenInspectionForConversation(
   } catch {
     return null;
   }
+}
+
+/**
+ * The no-show record of each NO_SHOW inspection this reader is a party to,
+ * under their own RLS (`inspection_no_shows_select_party`). A failed read is
+ * an empty map: the card then says the state and offers no dispute, which is
+ * the safe way to be wrong.
+ */
+export async function readNoShowsFor(ids: string[]): Promise<Map<string, NoShow>> {
+  const out = new Map<string, NoShow>();
+  const wanted = [...new Set(ids)];
+  if (wanted.length === 0) return out;
+  const session = await resolveSession();
+  if (session.state !== "signed-in") return out;
+  try {
+    /* The table is newer than the generated types; the row is narrowed below. */
+    const { data } = await (session.supabase as unknown as SupabaseClient)
+      .from("inspection_no_shows")
+      .select("inspection_id, reported_by, absent_role, reported_at, disputed_at, resolution")
+      .in("inspection_id", wanted);
+    for (const row of (data ?? []) as {
+      inspection_id: string;
+      reported_by: string;
+      absent_role: "requester" | "lister";
+      reported_at: string;
+      disputed_at: string | null;
+      resolution: "upheld" | "overturned" | null;
+    }[]) {
+      out.set(row.inspection_id, {
+        reportedByMe: row.reported_by === session.user.id,
+        absentRole: row.absent_role,
+        reportedAt: row.reported_at,
+        disputedAt: row.disputed_at,
+        resolution: row.resolution,
+      });
+    }
+  } catch {
+    /* An empty map: see above. */
+  }
+  return out;
 }

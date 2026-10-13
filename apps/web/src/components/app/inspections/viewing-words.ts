@@ -75,6 +75,37 @@ export const WITHDRAW_WORDS: StepSheetWords = {
   keep: KEEP,
 };
 
+/** Saying the other side did not come: the renter, or the lister (or whoever they sent). */
+export function noShowWords(otherSide: "requester" | "lister"): StepSheetWords {
+  return {
+    title: otherSide === "requester" ? "The renter did not come?" : "Nobody came to show it?",
+    body:
+      (otherSide === "requester"
+        ? "They will be told you marked them as a no-show"
+        : "The lister will be told you marked them as a no-show") +
+      ", and they can dispute it within 48 hours. Vallo looks at every dispute.",
+    note: "What happened (optional)",
+    confirm: "Yes, mark as a no-show",
+    keep: KEEP,
+  };
+}
+
+export const DISPUTE_WORDS: StepSheetWords = {
+  title: "Dispute this no-show?",
+  body: "Tell Vallo you were there. Someone on the team will look at both sides and tell you both what they decide.",
+  note: "What happened (optional)",
+  confirm: "Send the dispute",
+  calm: true,
+  keep: KEEP,
+};
+
+export const NO_SHOW_WORDS = {
+  markRenter: "The renter did not come",
+  markLister: "Nobody came to show it",
+  badge: "No-show",
+  dispute: "Dispute this",
+} as const;
+
 export const RENTER_CANCEL_WORDS: StepSheetWords = {
   title: "Cancel this viewing?",
   body: "The lister will be told you are not coming. You can ask for another time from the listing.",

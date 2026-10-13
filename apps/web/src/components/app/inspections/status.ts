@@ -26,6 +26,7 @@ const OUTCOME_STATUS: Record<InspectionOutcome, string> = {
 const CLOSED: Partial<Record<InspectionState, { label: string; tone: BadgeTone }>> = {
   DECLINED: { label: "Declined", tone: "bad" },
   WITHDRAWN: { label: "Withdrawn", tone: "quiet" },
+  NO_SHOW: { label: "No-show", tone: "bad" },
 };
 
 export function statusFor(

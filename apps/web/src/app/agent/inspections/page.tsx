@@ -3,7 +3,7 @@ import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { AgentShell } from "@/components/agent/AgentShell";
 import { agentProfileFrom, getAgentContext } from "@/lib/agent/listings-queries";
-import { readInspectionsForLister } from "@/lib/inspections/queries";
+import { readInspectionsForLister, readNoShowsFor } from "@/lib/inspections/queries";
 import { InspectionHero, InspectionSheet } from "@/components/app/inspections/InspectionSheet";
 import { InspectionsLive } from "@/components/app/inspections/InspectionsLive";
 import { EmptyState, Section, Stack, TYPE } from "@/components/app/Screen";
@@ -74,13 +74,14 @@ export default async function AgentInspectionsPage() {
   const [list, session] = await Promise.all([readInspectionsForLister(), resolveSession()]);
   const userId = session.state === "signed-in" ? session.user.id : null;
   const { open, closed: settled } = groupInspections(tagSide(list.inspections, "lister"));
-  const [facts, reports, rentGate] = await Promise.all([
+  const [facts, reports, rentGate, noShows] = await Promise.all([
     readListingFacts(
       list.inspections.map((one) => one.listingId),
       locale,
     ),
     readReportsFor(list.inspections.map((one) => one.id)),
     readRentGateFor(list.inspections.map((one) => one.id)),
+    readNoShowsFor(list.inspections.filter((one) => one.state === "NO_SHOW").map((one) => one.id)),
   ]);
   const reportLive = reportStorageLive();
 
@@ -138,6 +139,7 @@ export default async function AgentInspectionsPage() {
       reportLive={reportLive}
       needPhotos={rentGate.needPhotos}
       agreement={rentGate.agreements.get(one.id) ?? null}
+      noShow={noShows.get(one.id) ?? null}
       locale={locale}
       open={one.id === expanded}
     />

@@ -45,6 +45,8 @@ export type StepSheetWords = {
   keep: string;
   /** A one-line reason field, when the move can carry one. */
   note?: string;
+  /** Not every move asked about destroys something: a dispute is a request. Rose when absent. */
+  calm?: boolean;
 };
 
 const FALLBACK = "That did not go through. Try again in a moment.";
@@ -195,7 +197,7 @@ export function ViewingStepSheet({
         <Refusal error={error} />
         <div className="mt-block flex flex-col gap-inline">
           <Button
-            variant="danger"
+            variant={words.calm ? "primary" : "danger"}
             full
             loading={busy}
             onClick={() => void call(() => onConfirm(note.trim()), () => onOpenChange(false))}

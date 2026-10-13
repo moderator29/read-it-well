@@ -18586,6 +18586,7 @@ export type Database = {
         | "DECLINED"
         | "COMPLETED"
         | "WITHDRAWN"
+        | "NO_SHOW"
       land_tenure:
         | "certificate_of_occupancy"
         | "governors_consent"
@@ -18962,6 +18963,7 @@ export const Constants = {
         "DECLINED",
         "COMPLETED",
         "WITHDRAWN",
+        "NO_SHOW",
       ],
       land_tenure: [
         "certificate_of_occupancy",
