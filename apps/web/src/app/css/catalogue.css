@@ -2915,6 +2915,15 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--nf-space-xs);
   }
+  /* Two across at phone width. Three cells of a 390px screen are about 100px
+     wide and 75px tall, which put the remove cross a thumb's width from the
+     move arrows under it: a tap meant to move a photo could delete it. Two
+     across leaves each control room for its touch target (below). */
+  @media (max-width: 39.99rem) {
+    .nf-lw-shots {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
   .nf-lw-shot {
     position: relative;
     aspect-ratio: 4 / 3;
@@ -2976,6 +2985,7 @@
     gap: var(--nf-space-3xs);
   }
   .nf-lw-shot__move {
+    position: relative;
     display: grid;
     place-items: center;
     width: 1.5rem;
@@ -2991,6 +3001,15 @@
   .nf-lw-shot__move:disabled {
     opacity: 0;
     pointer-events: none;
+  }
+  /* The cross and the arrows are drawn 24px and answer a 44px touch, which is
+     the wizard's own rule for every control. The ring is invisible and sits
+     on the control, so the photograph is not covered by anything drawn. */
+  .nf-lw-shot__drop::after,
+  .nf-lw-shot__move::after {
+    content: "";
+    position: absolute;
+    inset: -0.625rem;
   }
   .nf-lw-add {
     display: flex;
