@@ -2421,7 +2421,7 @@ export const en = {
          notified once it is approved" above the refusal. */
       draftBody: "This application has not been sent yet.",
       moreInfoBody: "The reviewer needs something from you before they can decide. Their note, and the way to answer it, are below.",
-      approvedBody: "Your workspace is open, so you can start listing. Getting verified is a separate step.",
+      approvedBody: "Your workspace is open, so you can start listing. The identity checks are a separate step, started from your dashboard.",
       rejectedBody: "This application was not approved. The reviewer's note says why, and you can apply again.",
       suspendedBody: "This account is suspended. Contact support with your reference and a person will explain.",
       status: "Status",
