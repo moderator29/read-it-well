@@ -80,7 +80,17 @@ import { PhotographedLine } from "@/components/app/listing/PhotographedLine";
 import { CautionRecordLine } from "@/components/app/listing/CautionRecordLine";
 import { ListingPurchase } from "@/components/app/listing/ListingPurchase";
 import { ListingSectionTabs } from "@/components/app/listing/ListingSectionTabs";
-import { ListingSpecChips, specChips } from "@/components/app/listing/ListingSpecChips";
+import { ListingSpecChips } from "@/components/app/listing/ListingSpecChips";
+import { specChips } from "@/components/app/listing/spec-chips";
+import { ListingSummaryCard } from "@/components/app/listing/ListingSummaryCard";
+import { ListingHighlights } from "@/components/app/listing/ListingHighlights";
+import { listingHighlights } from "@/components/app/listing/highlights";
+import { ListerCallButton } from "@/components/app/listing/ListerCallButton";
+import { readListerCard } from "@/lib/listings/lister-card-read";
+import { videoCallsOn } from "@/lib/calls/flags";
+import { findConversationForListing } from "@/lib/messages/actions";
+import { Money } from "@/components/ui/Money";
+import { StatusPill } from "@/components/ui/StatusPill";
 import { ListingPhotoGrid } from "@/components/app/listing/ListingPhotoGrid";
 import { listingMedia } from "@/components/app/listing/gallery-media";
 import { ListingUtilities } from "@/components/app/listing/ListingUtilities";
@@ -389,6 +399,7 @@ export default async function ListingDetailPage({
     access,
     recentlyLet,
     doorDeclared,
+    listerCard,
   ] = await Promise.all([
     // Written reviews for this listing. Public by policy for a PUBLISHED
     // listing, so this read works for a signed-out visitor too.
@@ -439,6 +450,9 @@ export default async function ListingDetailPage({
     /* V-57: what a nightly stay declared for the door, so the reserve panel
        states every cost before booking, as the hotel stay page does. */
     isBookable && !listing.isDemo ? readDeclaration({ listingId: listing.id }) : Promise.resolve(null),
+    /* The "Listed by" row: the lister's public profile (name, handle,
+       photograph, side) and their published badge (lister-card-read.ts). */
+    readListerCard(listing),
   ]);
   /* "Ownership seen": a reviewer approved the owner's proof of ownership.
      Only an owner's own listing can carry it; never an example. */
@@ -453,7 +467,7 @@ export default async function ListingDetailPage({
      summary function applies its own threshold. These three need the session,
      so they follow the reads above, together. */
   const neighboursOn = (isRental || isSale) && session.state === "signed-in" && neighboursFlag;
-  const [bookingConfirmed, neighbours, flooding] = await Promise.all([
+  const [bookingConfirmed, neighbours, flooding, callThread] = await Promise.all([
     session.state === "signed-in"
       ? hasConfirmedBooking(session.supabase, listing.id, session.user.id)
       : Promise.resolve(false),
@@ -463,6 +477,22 @@ export default async function ListingDetailPage({
     neighboursOn && session.state === "signed-in"
       ? readFlooding(session.supabase, listing.id)
       : Promise.resolve(undefined),
+    /* THE CALL BUTTON ON "LISTED BY", only where a call can really be placed:
+       the `video_calls` switch on, a signed-in reader, a real listing, and a
+       conversation about it that already exists (calls belong to a
+       conversation, VC1). The lookup starts nothing. Anything else is null,
+       and the card's call button opens the conversation instead. */
+    session.state === "signed-in" && !listing.isDemo && listerCard
+      ? (async () => {
+          try {
+            if (!(await videoCallsOn())) return null;
+            const found = await findConversationForListing({ listingId: listing.id });
+            return found.ok ? found.data.conversationId : null;
+          } catch {
+            return null;
+          }
+        })()
+      : Promise.resolve(null),
   ]);
 
   // An area is only worth naming when it says something the city does not.
@@ -594,12 +624,23 @@ export default async function ListingDetailPage({
      tells the reader when a space there does. */
   const areaName = listing.area || listing.city;
   const realSoonHref = `/search?q=${encodeURIComponent(areaName)}`;
+  /*
+   * SCHEDULE A VISIT (founder's reference, 13 October 2026). A home to rent
+   * or to buy has one primary action now: book a visit, at
+   * `/listing/[id]/visit`, the viewing flow. A viewing never takes money
+   * (HANDOFF section 2). The panel's own inspection request and the message
+   * path are still on the page, below. A stay keeps Check availability and
+   * its reserve flow; a table keeps the conversation; an example keeps the
+   * honest way out it always had.
+   */
+  const isVisit = !isExample && (isRental || isSale);
+  const visitHref = `/listing/${listing.id}/visit`;
   const stickyAction: StickyAction | null = isExample
     ? { label: sx.closed.action.replace("{area}", areaName), href: realSoonHref }
     : isBookable
       ? { label: t.catalogue.detail.checkAvailability, href: "#reserve" }
-      : isRental
-        ? { label: t.catalogue.detail.bookInspection, href: "#reserve" }
+      : isVisit
+        ? { label: t.catalogue.detail.scheduleVisit, href: visitHref }
         : { label: L.messageAgent, href: messageHref };
 
   const stickySecondary: StickyAction | null = isExample
@@ -621,7 +662,11 @@ export default async function ListingDetailPage({
       ? { label: L.messageAgent, href: messageHref }
       : isRental
         ? { label: t.catalogue.detail.calculateBreakdown, href: `/rent/move-in/${listing.id}` }
-        : null;
+        : isSale
+          ? /* The conversation was a sale's primary; with the visit taking
+               that place it stays on the bar as the quiet half. */
+            { label: L.messageAgent, href: messageHref }
+          : null;
 
   /*
    * THE SAME DISCLOSURE WAS ON THIS PAGE THREE TIMES.
@@ -653,7 +698,7 @@ export default async function ListingDetailPage({
   ) : isRestaurant ? (
     <div className="flex flex-col gap-md">
       <ReserveTable listingId={listing.id} messageHref={messageHref} success={t.success} />
-      <RestaurantPanel listing={listing} locale={locale} messageHref={messageHref} />
+      <RestaurantPanel listing={listing} locale={locale} messageHref={messageHref} t={t} />
     </div>
   ) : isRental || isSale ? (
     /*
@@ -837,6 +882,95 @@ export default async function ListingDetailPage({
    * `strict-dynamic` beside the nonce, so an inline block without one is a
    * report at best and a blocked element at worst.
    */
+  /*
+   * THE HEADLINE FIGURE, beside the title as the founder's reference draws it:
+   * the figure in full ink and what it buys in grey ("/year"). The rent on a
+   * tenancy (its move-in total leads the block under the card), the asking
+   * price on a sale with no unit, the rate on a stay. Glance notation through
+   * `formatMoney`'s own glance rule, so it never rounds a figure up, with the
+   * whole amount spoken for a screen reader. No figure, no headline: a listing
+   * that states no price is not drawn as free.
+   */
+  const unitWords = t.catalogue.card;
+  const period = listing.pricePeriod;
+  const headlineUnit = isSale
+    ? null
+    : period === "month"
+      ? unitWords.perMonth
+      : period === "quarter"
+        ? unitWords.perQuarter
+        : period === "night"
+          ? unitWords.night
+          : period === "guest"
+            ? unitWords.head
+            : period === "year" || isRental
+              ? unitWords.perYear
+              : unitWords.night;
+  const spokenPeriod = isSale
+    ? null
+    : period === "month" || period === "quarter" || period === "night"
+      ? period
+      : period === "guest"
+        ? "person"
+        : isRental || period === "year"
+          ? "year"
+          : "night";
+  const headline =
+    listing.priceMinor > 0 ? (
+      <p className="nf-detail-head__price" data-testid="detail-price">
+        <Money
+          minor={listing.priceMinor}
+          locale={locale}
+          currency={listing.currency}
+          mode="glance"
+          period={spokenPeriod}
+          className="nf-detail-head__figure"
+        />
+        {headlineUnit && <span className="nf-detail-head__unit">{headlineUnit}</span>}
+      </p>
+    ) : null;
+
+  /* The place as the reference writes it, "Ikoyi, Lagos": the area and the
+     city, or the city and its state when the area says nothing more. */
+  const placeLine =
+    listing.area && listing.area !== listing.city
+      ? `${listing.area}, ${listing.city}`
+      : `${listing.city}, ${stateLabel(listing.state, t.experienceLabels)}`;
+
+  /* "Listed by": the lister's public row, their published badge, and the two
+     round buttons. The call button is live only where a call can really be
+     placed (see `callThread` above); otherwise it opens the conversation. */
+  const listerWho =
+    listerCard?.name ??
+    (listerCard?.role ? t.socialProfile.roleLine[listerCard.role] : null) ??
+    t.catalogue.detail.theLister;
+  const callButton =
+    callThread && listerCard ? (
+      <ListerCallButton
+        conversationId={callThread}
+        name={listerWho}
+        contextLine={publicListingTitle(listing)}
+        copy={{
+          label: t.calls.buttons.voiceWith,
+          notEngagedTitle: t.calls.refusal.notEngagedTitle,
+          notEngagedBody: t.calls.refusal.notEngagedBody,
+          busy: t.calls.outgoing.busy,
+          dismiss: t.calls.refusal.dismiss,
+        }}
+      />
+    ) : undefined;
+  const listerCardNode = (
+    <ListingAgentCard
+      verified={listing.verified}
+      t={t}
+      messageHref={messageHref}
+      name={listing.listerName ?? null}
+      listingRole={listing.listerRole ?? null}
+      lister={listerCard}
+      call={callButton}
+    />
+  );
+
   const structuredData = listingStructuredData(listing, siteUrl());
   const nonce = (await headers()).get(NONCE_HEADER) ?? undefined;
 
@@ -848,7 +982,7 @@ export default async function ListingDetailPage({
       hue={listing.hue}
       kind={listing.kind}
     >
-      <div className="nf-cat-surface mx-auto max-w-5xl">
+      <div className="nf-cat-surface mx-auto max-w-6xl">
         {structuredData && (
           <script
             type="application/ld+json"
@@ -866,9 +1000,25 @@ export default async function ListingDetailPage({
         <RecordVisit glance={cardGlance(listing, locale, t.catalogue.card)} />
 
         {/* ------------------------------------------------------- 1. MEDIA */}
+        {/*
+          THE LISTING PAGE, TO THE FOUNDER'S REFERENCE (13 October 2026).
+
+          One calm page: the photograph edge to edge with the round back,
+          share and save over it (and "Watch video" when there is one), then
+          the status, the title with the price opposite it, the rating and the
+          place, the fact chips, the description, who listed it, the gallery,
+          and everything else this page has always carried, in the same order
+          of how many readers need it. From `lg` the photographs and the
+          details are the left column and a sticky summary card is the right:
+          the price, the lister and the one primary action.
+        */}
+        <div className="nf-detail-grid grid lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start lg:gap-2xl">
+          {/* --------------------------------------------- main column */}
+          <div className="min-w-0">
         <ListingGallery
           listingId={listing.id}
           floatingBack={false}
+          desktopInset
           title={listing.title}
           shareTitle={publicListingTitle(listing)}
           hue={listing.hue}
@@ -878,100 +1028,63 @@ export default async function ListingDetailPage({
           drawn={isModestExample(listing)}
           initialSaved={initialSaved}
           backFallback="/home"
-          mark={{
-            /* Rent and sale in the reader's language. Stays, dining and
-               experiences have no key yet: one added in English alone would
-               make the three incomplete locales worse, which
-               `locale-completeness.test.ts` refuses, so they arrive with
-               their translations. */
-            label: isSale
-              ? t.catalogue.card.forSale
-              : listingMarket === "tenancy"
-                ? t.catalogue.card.forRent
-                : market.label,
-            icon: market.icon,
-            verified: listing.verified,
-            verifiedLabel: t.common.verified,
-          }}
+          /* The market is no longer a mark on the photograph: it is the
+             status chip above the title, where the reference puts it. The
+             lister's published badge is on "Listed by". */
         />
 
-        {/*
-          The content sheet.
-
-          The content rides UP over the lower edge of the media on a large top
-          radius, so the two surfaces overlap instead of meeting at a seam. It
-          is glass because the platform's ground is a living ambient canvas
-          rather than a solid colour: an opaque panel here would blank the
-          artwork every other screen sits on, while glass lets the photograph
-          blur through the overlap and the canvas through everything below.
-
-          It is THE PAGE'S GROUND, not a card. Everything inside it is a section
-          grouped by heading and space. Nothing inside it draws its own border
-          except the booking panel, which is a discrete object rather than a
-          section, and which is the only raised surface on the screen.
-        */}
         {/*
           THE PAGE GROUND IS THE APP CANVAS, and it used to be a sheet.
 
           This was one `nf-glass--strong` panel wrapped around the entire
           body, which on the night canvas paints a washed lilac-grey slab
           behind every section: the founder photographed it and called it a
-          grey form. The renders put lit glass CARDS on the near-black navy
-          page, so the sheet is gone and each section carries its own card.
-          The first one overlaps the photograph's lower edge, which is where
-          the sheet's radius used to do that job.
+          grey form. The lead card overlaps the photograph's lower edge on a
+          phone and a tablet, which is where the sheet's radius used to do
+          that job; from `lg` it sits under the framed photograph.
         */}
-        <div className="relative z-10 -mt-xl sm:-mt-2xl">
-          <div className="grid gap-xl lg:grid-cols-[minmax(0,1fr)_21rem] lg:items-start">
-            {/* --------------------------------------------- main column */}
-            <div className="min-w-0">
+        <div className="relative z-10 -mt-xl sm:-mt-2xl lg:mt-lg">
               <Stack>
                 {/* ------------------------------- 2 to 5. THE LEAD BLOCK
-                    The founder's send-back renders: a lit glass card
-                    overlapping the photograph, holding the title, the place
-                    with its pin, the Move-in Total panel on a tenancy and
-                    the small amenity row. The market and the check are on
-                    the photograph above it, not repeated here. */}
+                    The reference's order: the status chip, the title with
+                    the price opposite, the rating (only with real reviews)
+                    and the place with its pin, then the fact chips. */}
                 <Section className={panelClass({ variant: "card", className: "nf-rise nf-detail-lead scroll-mt-16" })} id="overview">
-                  {/*
-                    THE MARKET AND THE CHECK ARE ON THE PHOTOGRAPH, not here.
-                    The render draws "For Rent" and "Verified" as pills at the
-                    hero's bottom left; they were a second row of chips above
-                    the title, which is the same fact stated twice and the
-                    thing the founder's send-back names first.
-                  */}
-                  <div className="flex flex-wrap items-center gap-xs empty:hidden">
-                    {/* A rating only with the reviews behind it; a count only
-                        when the record carries one. The stars are --nf-rating, the warm
-                        spark (spec section 18). */}
-                    {listing.rating > 0 && listing.reviewCount > 0 && (
-                      <span className="nf-numeric ml-auto flex shrink-0 items-center gap-xs">
-                        <UiIcon
-                          name="star"
-                          size={ICON.inline}
-                          filled
-                          className="text-[var(--nf-rating)]"
-                        />
-                        <span className="text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
-                          {formatRating(listing.rating, locale)}
-                        </span>
-                        <span className={TYPE.rowMeta}>
-                          {formatNumber(listing.reviewCount, locale)} {t.common.reviews}
-                        </span>
-                      </span>
-                    )}
+                  <div className="flex flex-wrap items-center gap-xs" data-testid="detail-status">
+                    <StatusPill tone={market.tone} icon={market.icon} size="sm">
+                      {/* Rent and sale in the reader's language. Stays, dining and
+                          experiences read their market word. */}
+                      {isSale
+                        ? t.catalogue.card.forSale
+                        : listingMarket === "tenancy"
+                          ? t.catalogue.card.forRent
+                          : market.label}
+                    </StatusPill>
                   </div>
 
-                  <h1 className="nf-h2 mt-row [overflow-wrap:anywhere]">{listing.title}</h1>
+                  <div className="nf-detail-head mt-sm">
+                    <h1 className="nf-detail-head__title nf-h2 [overflow-wrap:anywhere]">{listing.title}</h1>
+                    {headline}
+                  </div>
 
-                  <a
-                    href="#location"
-                    className={`nf-tap mt-inline-tight inline-flex max-w-full items-center gap-inline ${TYPE.body}`}
-                  >
-                    <UiIcon name="location" size={ICON.inline} className="shrink-0 text-[var(--nf-brand-secondary)]" />
-                    <span className="min-w-0">{where}</span>
-                    <UiIcon name="arrow-right" size={16} className="shrink-0 text-[var(--nf-brand-secondary)]" />
-                  </a>
+                  <p className="nf-detail-meta mt-xs">
+                    {/* A rating only with the reviews behind it; a count only
+                        when the record carries one. The stars are
+                        --nf-rating, the warm spark (spec section 18). */}
+                    {listing.rating > 0 && listing.reviewCount > 0 && (
+                      <a href="#reviews" className="nf-detail-meta__rating nf-tap" data-testid="detail-rating">
+                        <UiIcon name="star" size={16} filled className="text-[var(--nf-rating)]" />
+                        <span className="nf-numeric font-semibold text-[var(--nf-content-primary)]">
+                          {formatRating(listing.rating, locale)}
+                        </span>
+                        <span className="nf-numeric">({countOf(listing.reviewCount, "reviews", locale)})</span>
+                      </a>
+                    )}
+                    <a href="#location" className="nf-detail-meta__place nf-tap" data-testid="detail-place">
+                      <UiIcon name="location" size={16} className="shrink-0" />
+                      <span className="min-w-0">{placeLine}</span>
+                    </a>
+                  </p>
 
                   {/* The street address and exact pin, only for the lister,
                       staff, a confirmed viewing or a live agreement. */}
@@ -981,69 +1094,6 @@ export default async function ListingDetailPage({
                     </Suspense>
                   )}
 
-                  {/*
-                    THE MOVE-IN TOTAL LEADS ON A TENANCY, AS IT DOES ON THE CARD.
-
-                    This row used to print the yearly rent in the big figure and
-                    the move-in block sat three rows lower, so the page led with
-                    the number every competitor leads with and the card led with
-                    the one this product exists to print (PRODUCT.md section 5:
-                    "the card leads with the total move-in cost and the rent is
-                    the secondary line"). The founder read the two side by side
-                    and saw them disagree. On a tenancy the move-in block now
-                    takes this place, with the rent beneath the total inside it,
-                    and the rent headline is not drawn a second time. Every other
-                    market keeps its headline figure here.
-                  */}
-                  {isRental && !isSale && (
-                    <div className="mt-md" data-testid="detail-lead-move-in">
-                      <ListingMoveInBlock listing={listing} locale={locale} t={t} />
-                    </div>
-                  )}
-
-                  {/* V-69: ask for one clip before crossing Lagos. Behind the
-                      show_me flag; never on an example, which has nobody to
-                      film anything. */}
-                  {showMeOpen && isRental && !isSale && !listing.isDemo && (
-                    <div className="mt-sm" data-testid="detail-show-me">
-                      <ButtonLink
-                        href={`/messages/new?listing=${listing.id}&then=showme`}
-                        variant="secondary"
-                        className="w-full"
-                      >
-                        {t.shape.showMe.entry}
-                      </ButtonLink>
-                      <p className="nf-caption mt-2xs text-[var(--nf-content-muted)]">{t.shape.showMe.entryHint}</p>
-                    </div>
-                  )}
-
-                  {/* V-31: what the OWNER said about availability, or nothing.
-                      Streams on its own and never holds the page. */}
-                  {isRental && !isSale && (
-                    <Suspense fallback={null}>
-                      <OwnerAvailabilityLine listingId={listing.id} isDemo={listing.isDemo} copy={t.landlord.listing} />
-                    </Suspense>
-                  )}
-
-                  <div className="nf-detail-price-row mt-md">
-                    {listing.priceMinor > 0 && !(isRental && !isSale) && (
-                      <p className="nf-detail-price" data-testid="detail-price">
-                        <Amount
-                          minorUnits={listing.priceMinor}
-                          locale={locale}
-                          currency={listing.currency}
-                          secondaryClassName="text-[length:max(0.5em,0.75rem)] font-semibold opacity-70"
-                        />
-                        <span className="nf-detail-price__suffix">/ {perLabel.replace(/^per /, "")}</span>
-                      </p>
-                    )}
-                    {/* The "Verified listing" chip that stood here was the
-                        third statement of one check (the photograph's mark,
-                        this, the agent card) and the only one with no date.
-                        The check is said on the photograph and dated in
-                        "Why trust this space?" below. */}
-                  </div>
-
                   {/* How old it is (V-22). Never on an example, which
                       illustrates a flat that does not exist. */}
                   {listedLine && (
@@ -1052,16 +1102,14 @@ export default async function ListingDetailPage({
                     </p>
                   )}
 
-                  {/* The spec pairs live inside the Move-in panel's own box on
-                      a tenancy, exactly as the render draws them, so the
-                      scrolling chip row is only for the markets that have no
-                      such panel. It was drawn on both, and on a phone the
-                      second copy ran off the right edge. */}
-                  {!(isRental && !isSale) && (
-                    <div className="mt-md">
-                      <ListingSpecChips chips={specChips(listing, t, locale)} />
-                    </div>
-                  )}
+                  {/* The fact chips (beds, baths, size, then what the place
+                      carries), five at a time with "+N" for the rest. */}
+                  <div className="mt-md">
+                    <ListingSpecChips
+                      chips={specChips(listing, t, locale)}
+                      labels={{ more: t.catalogue.detail.allFacts, fewer: t.catalogue.detail.fewerFacts }}
+                    />
+                  </div>
 
                   {/* The listing's terms (Instant Book, a negotiable price): icon
                       and word, no container. Not checks, so never a tick. */}
@@ -1083,48 +1131,70 @@ export default async function ListingDetailPage({
                     </ul>
                   )}
 
-                  {/* The move-in total leads above the price row on a tenancy (see above). */}
-
-                  {/* The compound's answers (V-28); absent when none was given. */}
-                  {listing.compound && (
-                    <div className="mt-md">
-                      <ListingCompound compound={listing.compound} copy={t.shape.compound} />
-                    </div>
-                  )}
-
-                  {/* What the service charge covers, and Serviced only when
-                      the database derived it (V-68). */}
-                  {listing.service && (
-                    <div className="mt-md">
-                      <ListingService service={listing.service} copy={t.shape.service} />
-                    </div>
-                  )}
-
-                  {/* V-37: every offer on this property, side by side, each with
-                      its own move-in total. Nothing when there is one offer. */}
-                  {isRental && !isSale && (
-                    <Suspense fallback={null}>
-                      <PropertyOffers
-                        listingId={listing.id}
-                        isDemo={listing.isDemo}
-                        copy={t.landlord.offers}
-                        listingCopy={t.landlord.listing}
-                        locale={locale}
-                      />
-                    </Suspense>
-                  )}
-
-                  {listing.amenities.length > 0 && (
-                    <div className="mt-md">
-                      <ListingAmenityTiles
-                        amenities={listing.amenities}
-                        limit={5}
-                        moreHref="#amenities"
-                        moreLabel={t.catalogue.detail.more}
-                      />
-                    </div>
-                  )}
                 </Section>
+
+                {/* Two or three answered facts (light, backup hours, water,
+                    the stated move-in total), never an estimate: nothing at
+                    all when fewer than two were answered (highlights.ts). */}
+                <ListingHighlights
+                  items={listingHighlights(listing, t, locale, isRental && !isSale)}
+                  title={t.catalogue.detail.highlights}
+                />
+
+                {/* What the place carries, as the founder's "Property
+                    Detail" reference draws it: round monochrome plates
+                    with the word under each, five and "+N" to the full
+                    list below. Only the listing's own amenity codes. */}
+                {listing.amenities.length > 0 && (
+                  <div data-testid="lead-amenities">
+                    <ListingAmenityTiles
+                      variant="plates"
+                      amenities={listing.amenities}
+                      limit={5}
+                      moreHref="#amenities"
+                      moreLabel={t.catalogue.detail.more}
+                    />
+                  </div>
+                )}
+
+                {/*
+                  THE MOVE-IN TOTAL, DIRECTLY UNDER THE LEAD ON A TENANCY.
+
+                  The figure people actually shop on in this market (PRODUCT.md
+                  section 5). The rent per period is the headline beside the
+                  title, as the founder's reference draws it; this block is
+                  what the rent becomes at the door, with the breakdown one tap
+                  away. A sale and a stay have no such block.
+                */}
+                {isRental && !isSale && (
+                  <div className="flex flex-col gap-sm">
+                    <div data-testid="detail-lead-move-in">
+                      <ListingMoveInBlock listing={listing} locale={locale} t={t} />
+                    </div>
+                    {/* V-69: ask for one clip before crossing Lagos. Behind the
+                        show_me flag; never on an example, which has nobody to
+                        film anything. */}
+                    {showMeOpen && isRental && !isSale && !listing.isDemo && (
+                      <div data-testid="detail-show-me">
+                        <ButtonLink
+                          href={`/messages/new?listing=${listing.id}&then=showme`}
+                          variant="secondary"
+                          className="w-full"
+                        >
+                          {t.shape.showMe.entry}
+                        </ButtonLink>
+                        <p className="nf-caption mt-2xs text-[var(--nf-content-muted)]">{t.shape.showMe.entryHint}</p>
+                      </div>
+                    )}
+                    {/* V-31: what the OWNER said about availability, or nothing.
+                        Streams on its own and never holds the page. */}
+                    {isRental && !isSale && (
+                      <Suspense fallback={null}>
+                        <OwnerAvailabilityLine listingId={listing.id} isDemo={listing.isDemo} copy={t.landlord.listing} />
+                      </Suspense>
+                    )}
+                  </div>
+                )}
 
                 {/* The anchor row keeps its place (9E8B56ED) and gains the two
                     sections a reader decides on: what it costs and why to
@@ -1135,12 +1205,65 @@ export default async function ListingDetailPage({
                 />
 
                 {/* ---------------------------------------- the description */}
-                <div className="nf-detail-panel">
-                  <h2 className="nf-detail-panel__title">{t.catalogue.detail.description}</h2>
-                  <div className="mt-row">
-                    <ListingAbout paragraphs={aboutParagraphs} />
-                  </div>
-                </div>
+                <Section id="about" title={t.catalogue.detail.description} divided className="scroll-mt-16">
+                  <ListingAbout
+                    paragraphs={aboutParagraphs}
+                    labels={{ readMore: t.catalogue.detail.readMore, showLess: t.catalogue.detail.showLess }}
+                  />
+                </Section>
+
+                {/* ------------------------------------------- listed by */}
+                <Section id="agent" title={t.catalogue.detail.agent} divided className="scroll-mt-16">
+                    {/*
+                      THE LAST MILE OF TRACK G, AND IT IS ONE PROP.
+                      `listings.listing_role` has been live and not null on
+                      every row since Track G migration 3, and this card has
+                      mounted `ListerRoleLine` for it since the same week. The
+                      value simply never travelled: the read did not select the
+                      column. It does now, so "Listed by the owner" is on a
+                      screen rather than in a constant with a passing test.
+                      Absent draws no line, which is what this card drew before.
+
+                      AND THE NAME, WHICH IS THE OTHER HALF. Two of the three
+                      sentences carry `{name}` and the public read could not
+                      fill either one, so on all 64 live listings, every one of
+                      them `listing_role = 'agent'`, the line appeared on zero
+                      screens. `listing.listerName` comes from
+                      `public.listing_lister`, a published view of exactly two
+                      columns added by migration `20260923103838`. It carries a
+                      name and nothing else about the person.
+                    */}
+                  {listerCardNode}
+                  <OwnershipSeenMark
+                    seenAt={ownershipSeen}
+                    label={t.supply.register.owner.proof.seenMark}
+                    className="mt-2xs"
+                  />
+                  {/* B7: the reply-time line, only when the record supports one. */}
+                  <ReplyTimeLine listingId={listing.id} locale={locale} className="mt-2xs" />
+                  <ValloRecord record={record} t={t} locale={locale} className="mt-row" />
+                </Section>
+
+                {/* ------------------------------------------- the gallery */}
+                {/* A single photograph is already the hero; a strip of one
+                    states nothing, so it is not rendered below two. Videos
+                    are frames of it too, in the lister's order. */}
+                {media.length > 1 && (
+                  <Section id="photos" divided className="scroll-mt-16">
+                    <ListingPhotoGrid
+                      photos={listing.photos}
+                      media={media}
+                      hue={listing.hue}
+                      kind={listing.kind}
+                      title={listing.title}
+                      copy={{
+                        title: t.catalogue.detail.gallery,
+                        viewAll: t.catalogue.detail.viewAll,
+                        viewAllMedia: t.catalogue.detail.viewAllMedia,
+                      }}
+                    />
+                  </Section>
+                )}
 
                 {/* --------------------- 6. THE NIGERIAN NUMBER, ITEMISED */}
                 {/*
@@ -1229,6 +1352,40 @@ export default async function ListingDetailPage({
                     />
                   )}
                 </Section>
+
+                {/* The compound's answers, what the service charge covers, and
+                    every offer on this property: facts about the building,
+                    after what is inside it. Each draws nothing when unanswered. */}
+                {(listing.compound || listing.service) && (
+                  <Section divided>
+                    {/* The compound's answers (V-28); absent when none was given. */}
+                    {listing.compound && (
+                      <div className="mt-md first:mt-0">
+                        <ListingCompound compound={listing.compound} copy={t.shape.compound} />
+                      </div>
+                    )}
+                    {/* What the service charge covers, and Serviced only when
+                        the database derived it (V-68). */}
+                    {listing.service && (
+                      <div className="mt-md first:mt-0">
+                        <ListingService service={listing.service} copy={t.shape.service} />
+                      </div>
+                    )}
+                  </Section>
+                )}
+                {/* V-37: every offer on this property, side by side, each with
+                    its own move-in total. Nothing when there is one offer. */}
+                {isRental && !isSale && (
+                  <Suspense fallback={null}>
+                    <PropertyOffers
+                      listingId={listing.id}
+                      isDemo={listing.isDemo}
+                      copy={t.landlord.offers}
+                      listingCopy={t.landlord.listing}
+                      locale={locale}
+                    />
+                  </Suspense>
+                )}
 
                 {/* ------------------------- 7. LIGHT, WATER AND THE GATE */}
                 {(listing.utilities || neighbours.state !== "unavailable" || flooding !== undefined) && (
@@ -1343,36 +1500,17 @@ export default async function ListingDetailPage({
 
                 {/* ------------------------------ booking panel, mobile */}
                 {/*
-                  The anchor stays in the document at every width while only the
-                  panel inside it is dropped from `lg` up, so the pinned bar's
-                  Check availability always has a target to scroll to.
+                  The anchor stays in the document at every width. On a stay,
+                  a table and an example the panel itself is dropped from `lg`
+                  up, where it is the sticky side panel, so the pinned bar's
+                  Check availability always has a target to scroll to. On a
+                  home to rent or to buy the side panel is the summary card, so
+                  this panel (the term, the viewing slots, the inspection
+                  request) stays in the column at every width.
                 */}
                 <div id="reserve" className="scroll-mt-20">
-                  <div className="lg:hidden">{bookingPanel}</div>
+                  <div className={isVisit ? undefined : "lg:hidden"}>{bookingPanel}</div>
                 </div>
-
-                {/* ------------------------------------------ photo grid */}
-                {/* A single photograph is already the hero; a grid of one
-                    states nothing, so it is not rendered below two. */}
-                {/* Videos are slides of the gallery above and tiles of this
-                    grid, in the lister's order (founder, 13 October): there
-                    is no walkthrough section of their own any more. */}
-                {media.length > 1 && (
-                  <Reveal>
-                    {/* No section title: the grid carries its own "Photos"
-                        heading beside "Show all", and the page drew the word
-                        twice in a row (Track M tidy). */}
-                    <Section id="photos" divided className="scroll-mt-16">
-                      <ListingPhotoGrid
-                        photos={listing.photos}
-                        media={media}
-                        hue={listing.hue}
-                        kind={listing.kind}
-                        title={listing.title}
-                      />
-                    </Section>
-                  </Reveal>
-                )}
 
                 {/* ------------------------------------------- location */}
                 <Section id="location" title={sx.map.title} divided className="scroll-mt-16">
@@ -1402,46 +1540,6 @@ export default async function ListingDetailPage({
                       file, A.3 fix 1.
                     */}
                 </Section>
-
-                {/* ------------------------------------------ agent card */}
-                <Reveal>
-                  <Section id="agent" title={t.catalogue.detail.agent} divided className="scroll-mt-16">
-                    {/*
-                      THE LAST MILE OF TRACK G, AND IT IS ONE PROP.
-                      `listings.listing_role` has been live and not null on
-                      every row since Track G migration 3, and this card has
-                      mounted `ListerRoleLine` for it since the same week. The
-                      value simply never travelled: the read did not select the
-                      column. It does now, so "Listed by the owner" is on a
-                      screen rather than in a constant with a passing test.
-                      Absent draws no line, which is what this card drew before.
-
-                      AND THE NAME, WHICH IS THE OTHER HALF. Two of the three
-                      sentences carry `{name}` and the public read could not
-                      fill either one, so on all 64 live listings, every one of
-                      them `listing_role = 'agent'`, the line appeared on zero
-                      screens. `listing.listerName` comes from
-                      `public.listing_lister`, a published view of exactly two
-                      columns added by migration `20260923103838`. It carries a
-                      name and nothing else about the person.
-                    */}
-                    <ListingAgentCard
-                      verified={listing.verified}
-                      t={t}
-                      messageHref={messageHref}
-                      name={listing.listerName ?? null}
-                      listingRole={listing.listerRole ?? null}
-                    />
-                    <OwnershipSeenMark
-                      seenAt={ownershipSeen}
-                      label={t.supply.register.owner.proof.seenMark}
-                      className="mt-2xs"
-                    />
-                    {/* B7: the reply-time line, only when the record supports one. */}
-                    <ReplyTimeLine listingId={listing.id} locale={locale} className="mt-2xs" />
-                    <ValloRecord record={record} t={t} locale={locale} className="mt-row" />
-                  </Section>
-                </Reveal>
 
                 {/* --------------------------------------------- reviews */}
                 {/* The band renders nothing rather than inventing
@@ -1516,11 +1614,55 @@ export default async function ListingDetailPage({
                 </Section>
               </Stack>
             </div>
-
-            {/* ------------------------------- booking panel, desktop */}
-            <aside className="hidden lg:sticky lg:top-6 lg:block">{bookingPanel}</aside>
           </div>
-        </div>
+
+          {/* ------------------------------- the side panel, desktop */}
+            {/* A home to rent or to buy: the summary card (price, lister,
+                Schedule a visit). Everything else: the booking panel. */}
+            <aside className="hidden lg:sticky lg:top-6 lg:block">
+              {isVisit && stickyAction ? (
+                <ListingSummaryCard
+                  price={headline}
+                  note={
+                    isRental && (listing.moveInCostMinor ?? 0) > 0 ? (
+                      <a href="#cost" className="nf-tap nf-detail-summary__movein" data-testid="summary-move-in">
+                        <span>
+                          {listing.moveInCostStated === true
+                            ? t.catalogue.detail.moveInTotal
+                            : t.catalogue.detail.moveInFrom}
+                        </span>
+                        <Money
+                          minor={listing.moveInCostMinor ?? 0}
+                          locale={locale}
+                          currency={listing.currency}
+                          mode="glance"
+                          className="nf-numeric font-semibold text-[var(--nf-content-primary)]"
+                        />
+                      </a>
+                    ) : null
+                  }
+                  lister={listerCard ? (
+                    <ListingAgentCard
+                      verified={listing.verified}
+                      t={t}
+                      messageHref={messageHref}
+                      lister={listerCard}
+                      call={callButton}
+                      className="nf-lister--flat"
+                    />
+                  ) : null}
+                  action={{ label: stickyAction.label, href: stickyAction.href, icon: "calendar-booking" }}
+                  secondary={
+                    stickySecondary
+                      ? { ...stickySecondary, icon: isRental ? "document" : "chat-bubble" }
+                      : null
+                  }
+                />
+              ) : (
+                bookingPanel
+              )}
+            </aside>
+          </div>
 
         {/* The clearance the pinned bar needs is the bar's own measured
             height, and `ListingStickyBar` now ships its own spacer, so the
@@ -1542,6 +1684,7 @@ export default async function ListingDetailPage({
           moveInFromLabel={t.catalogue.detail.moveInFrom}
           secondaryShortLabel={t.catalogue.detail.breakdownShort}
           sidePanelFromLg
+          stackOnPhone={isVisit}
         />
       </div>
     </PhotoViewerProvider>
@@ -1578,10 +1721,14 @@ function RestaurantPanel({
   listing,
   locale,
   messageHref,
+  t,
 }: {
   listing: Listing;
   locale: Locale;
   messageHref: string;
+  /* Its three lines were English literals on every locale (listing page
+     upgrade, 13 October 2026); they read the dictionary now. */
+  t: ReturnType<typeof getDictionary>;
 }) {
   return (
     <div className="nf-panel nf-panel--card isolate p-lg">
@@ -1594,17 +1741,14 @@ function RestaurantPanel({
             className="nf-figure leading-none"
             secondaryClassName="text-[length:max(0.54em,0.75rem)] font-semibold opacity-60"
           />
-          <span className={`ml-2xs ${TYPE.body}`}>per head</span>
+          <span className={`ml-2xs ${TYPE.body}`}>{t.catalogue.card.head}</span>
         </p>
       )}
 
-      <p className={`mt-xs ${TYPE.body}`}>
-        Listed on Vallo by the person who runs it. Message them to ask about a
-        table, a large party or anything the page does not answer.
-      </p>
+      <p className={`mt-xs ${TYPE.body}`}>{t.catalogue.detail.restaurantLede}</p>
 
       <ButtonLink href={messageHref} variant="secondary" full className="mt-md">
-        Message
+        {t.catalogue.detail.message}
       </ButtonLink>
 
     </div>

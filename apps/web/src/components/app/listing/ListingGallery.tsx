@@ -56,7 +56,15 @@ export function ListingGallery({
   place,
   shareTitle,
   floatingBack = true,
+  desktopInset = false,
 }: {
+  /**
+   * From `lg`, the photograph sits in the page's left column as a rounded
+   * frame rather than running edge to edge, so the listing's sticky summary
+   * card can stand beside it (the listing page's two columns, 13 October
+   * 2026). Phones and tablets keep the full-bleed hero either way.
+   */
+  desktopInset?: boolean;
   /**
    * A back control that stays on screen after the photograph has scrolled
    * away. On by default; the property listing turns it off because its sticky
@@ -182,6 +190,28 @@ export function ListingGallery({
   }, []);
 
   /*
+   * "WATCH VIDEO" ON THE COVER (founder's reference, 13 October 2026).
+   *
+   * A listing with a walkthrough says so on the first thing anybody sees,
+   * not only once they have swiped to the video's slide. The pill on the cover
+   * jumps straight to the first video and plays it, in place, exactly as the
+   * slide's own pill does. It is drawn only while the slide on screen is not
+   * a video (that slide carries its own) and nothing is playing, so there is
+   * never more than one "Watch video" on screen.
+   */
+  const firstVideo = mixed ? mixed.findIndex((item) => item.kind === "video") : -1;
+  const watchFirst = useCallback(() => {
+    const el = track.current;
+    if (!el || firstVideo < 0) return;
+    /* Instant, not smooth: a smooth scroll passes through the slides between
+       and `onScroll` would name each one active on the way, which stops the
+       player the moment it starts. */
+    el.scrollTo({ left: firstVideo * el.clientWidth, behavior: "instant" });
+    setActive(firstVideo);
+    setPlaying(firstVideo);
+  }, [firstVideo]);
+
+  /*
      The listing's back control is the shared `BackControl`, on the photograph
      and again, fixed, once the photograph has scrolled away. A listing opened
      from Home, Saved, a thread or a booking goes back there; one opened cold
@@ -280,7 +310,9 @@ export function ListingGallery({
        * Once the shell stops welding its 64px header onto this route the same
        * rule puts the hero under the status bar with no further change here.
        */
-      className="nf-gallery nf-vt-morph relative -mx-gutter -mt-xl sm:-mt-2xl"
+      className={`nf-gallery nf-vt-morph relative -mx-gutter -mt-xl sm:-mt-2xl${
+        desktopInset ? " lg:mx-0 lg:mt-0 lg:overflow-hidden lg:rounded-[var(--nf-radius-xl)]" : ""
+      }`}
     >
       <div
         ref={track}
@@ -292,7 +324,9 @@ export function ListingGallery({
         tabIndex={0}
         role="group"
         aria-label={t.a11y.photoGallery.replace("{title}", title)}
-        className="nf-scroll-x flex aspect-[4/3] w-full snap-x snap-mandatory sm:aspect-[16/9] lg:aspect-[2/1]"
+        className={`nf-scroll-x flex aspect-[4/3] w-full snap-x snap-mandatory sm:aspect-[16/9] ${
+          desktopInset ? "lg:aspect-[3/2]" : "lg:aspect-[2/1]"
+        }`}
       >
         {panes.map((photo, i) => {
           const video = mixed?.[i]?.kind === "video" ? (mixed[i] as Extract<GalleryMedia, { kind: "video" }>) : null;
@@ -360,7 +394,7 @@ export function ListingGallery({
                 <button
                   type="button"
                   onClick={() => setPlaying(i)}
-                  aria-label="Watch video"
+                  aria-label={t.catalogue.card.watchVideo}
                   data-testid="gallery-watch"
                   className="nf-btn nf-gallery-watch absolute bottom-[5.25rem] right-3 z-10 sm:bottom-[5.75rem] sm:right-4"
                 >
@@ -369,7 +403,7 @@ export function ListingGallery({
                       <path d="M8 5v14l11-7z" fill="currentColor" />
                     </svg>
                   </span>
-                  <span>Watch video</span>
+                  <span>{t.catalogue.card.watchVideo}</span>
                   {video.durationSeconds ? (
                     <span className="nf-numeric opacity-80">{clockOf(video.durationSeconds)}</span>
                   ) : null}
@@ -380,6 +414,22 @@ export function ListingGallery({
           );
         })}
       </div>
+
+      {firstVideo >= 0 && playing === null && mixed?.[active]?.kind !== "video" && (
+        <button
+          type="button"
+          onClick={watchFirst}
+          data-testid="gallery-watch-cover"
+          className="nf-btn nf-gallery-watch absolute bottom-[5.25rem] right-3 z-10 sm:bottom-[5.75rem] sm:right-4"
+        >
+          <span className="nf-gallery-watch__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width={12} height={12} focusable="false">
+              <path d="M8 5v14l11-7z" fill="currentColor" />
+            </svg>
+          </span>
+          <span>{t.catalogue.card.watchVideo}</span>
+        </button>
+      )}
 
       {/* Scrims: the controls sit on light sky at the top and the counter on
           whatever the photograph does at the bottom. Both need their own. */}

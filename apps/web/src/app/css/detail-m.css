@@ -250,6 +250,20 @@
     box-shadow: none;
     color: var(--nf-content-on-media);
   }
+  /*
+   * THE GLYPH, AND NOT ONLY THE BUTTON (listing page upgrade, 13 October
+   * 2026). The hero's back, share, save and arrows carry `data-theme="light"`,
+   * and the token layer's UNLAYERED `:root[data-theme="light"]
+   * [data-theme="light"]` rule paints such an island's `color` in the paper
+   * ink, which outranks every layered rule on the button itself. So in light
+   * mode the glyphs were dark ink on the smoked fill above: four dark circles
+   * with nothing visible in them. The glyph takes the on-media ink itself,
+   * where that unlayered rule does not reach; a saved heart's own utility
+   * class still wins over this.
+   */
+  .nf-gallery .nf-icon-btn.nf-icon-btn--round svg {
+    color: var(--nf-content-on-media);
+  }
   .nf-gallery .nf-gallery-mark.nf-badge--verified {
     border: var(--nf-border-width) solid transparent;
     background: var(--nf-act-fill);
