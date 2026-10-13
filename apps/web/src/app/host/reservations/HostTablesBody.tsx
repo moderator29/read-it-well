@@ -4,6 +4,8 @@ import { ButtonLink } from "@/components/ui/Button";
 import { HostReservationsBoard } from "./ReservationsBoard";
 import { longDayLabel } from "./desk";
 import type { HostTableBoard } from "./board";
+import { DepositSettingsCard } from "./DepositSettingsCard";
+import type { DeskDeposits } from "@/lib/reservations/deposit-settings";
 
 /**
  * The desk, apart from its reads, so the whole screen can be drawn from
@@ -20,7 +22,17 @@ export function HostTablesBody({
   locale = "en",
   now = new Date(),
   billsOn = false,
+  deposits = null,
+  depositWords = getDictionary("en").tableDeposits.desk,
 }: {
+  /**
+   * D75: the restaurant's deposit settings, read on the server only while
+   * `restaurant_deposits` is on (`readDeskDeposits`); null draws no card and
+   * no deposit line, which is the desk exactly as it was.
+   */
+  deposits?: DeskDeposits | null;
+  /** `tableDeposits.desk` in the reader's language; English in the previews. */
+  depositWords?: Dictionary["tableDeposits"]["desk"];
   board: HostTableBoard | null;
   /** True when the read itself failed. A dropped read is not an empty venue. */
   unavailable?: boolean;
@@ -75,6 +87,11 @@ export function HostTablesBody({
             </ButtonLink>
           }
         />
+        {deposits ? (
+          <div className="mt-block">
+            <DepositSettingsCard deposits={deposits} words={depositWords} locale={locale} />
+          </div>
+        ) : null}
       </>
     );
   }
@@ -83,13 +100,21 @@ export function HostTablesBody({
     board.requests.length === 0 ? words.tablesNothingWaiting : countOf(board.requests.length, "requestsWaiting", locale);
 
   return (
-    <HostReservationsBoard
-      board={board}
-      words={desk}
-      locale={locale}
-      now={now.toISOString()}
-      billsOn={billsOn}
-      title={{ heading: words.screens.tables, line: waiting, date: longDayLabel(now) }}
-    />
+    <>
+      <HostReservationsBoard
+        board={board}
+        words={desk}
+        locale={locale}
+        now={now.toISOString()}
+        billsOn={billsOn}
+        title={{ heading: words.screens.tables, line: waiting, date: longDayLabel(now) }}
+        depositLines={deposits ? depositWords.line : null}
+      />
+      {deposits ? (
+        <div className="mt-block">
+          <DepositSettingsCard deposits={deposits} words={depositWords} locale={locale} />
+        </div>
+      ) : null}
+    </>
   );
 }

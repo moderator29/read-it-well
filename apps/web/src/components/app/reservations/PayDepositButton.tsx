@@ -2,20 +2,38 @@
 
 import { useState, useTransition } from "react";
 import { payReservationDeposit } from "@/lib/reservations/deposit-actions";
+import { Button } from "@/components/ui/Button";
 
 /**
- * D75: pay a restaurant's table deposit. Opens Paystack's hosted checkout; the
- * webhook, never this button, records it as paid. Presentation stays plain.
+ * D75: pay a restaurant's table deposit, by card. Opens Paystack's hosted
+ * checkout; the webhook and the return page (never this button) record it
+ * as paid. The words are the caller's, in the reader's language.
  */
-export function PayDepositButton({ reservationId, label }: { reservationId: string; label: string }) {
+export function PayDepositButton({
+  reservationId,
+  label,
+  pendingLabel,
+  size = "sm",
+  full = false,
+}: {
+  reservationId: string;
+  label: string;
+  /** Said while the payment page is being opened. Defaults to the label. */
+  pendingLabel?: string;
+  size?: "sm" | "md" | "lg";
+  full?: boolean;
+}) {
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
   return (
-    <span className="inline-flex flex-col gap-inline">
-      <button
+    <span className={`${full ? "flex w-full" : "inline-flex"} flex-col gap-inline`}>
+      <Button
         type="button"
-        className="nf-btn nf-btn--primary nf-btn--sm"
+        variant="primary"
+        size={size}
+        full={full}
         disabled={pending}
+        loading={pending}
         data-testid="trip-pay-deposit"
         onClick={() =>
           start(async () => {
@@ -29,10 +47,10 @@ export function PayDepositButton({ reservationId, label }: { reservationId: stri
           })
         }
       >
-        {label}
-      </button>
+        {pending ? (pendingLabel ?? label) : label}
+      </Button>
       {error && (
-        <span role="alert" className="nf-caption text-[var(--nf-state-danger)]">
+        <span role="alert" className="nf-caption text-[var(--nf-state-error)]">
           {error}
         </span>
       )}

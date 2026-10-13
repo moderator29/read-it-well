@@ -23,6 +23,7 @@ import { TYPE } from "@/components/app/Screen";
 import { countOf, plural, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { useClientLocale } from "@/lib/i18n/use-client-locale";
 import { useHostPageCopy } from "@/components/host/host-copy";
+import { venueDepositLine } from "@/lib/reservations/deposits";
 
 /**
  * The venue's table desk (`/host/reservations`).
@@ -60,7 +61,17 @@ const DIGITS = "en-NG";
 
 export type TableDeskWords = Dictionary["tableDesk"];
 
-type DeskContext = { words: TableDeskWords; locale: Locale; billsOn: boolean; multiVenue: boolean; now: Date };
+/** D75: the deposit line on a table, `tableDeposits.desk.line`; absent while deposits are off. */
+export type DeskDepositLines = Dictionary["tableDeposits"]["desk"]["line"];
+
+type DeskContext = {
+  words: TableDeskWords;
+  locale: Locale;
+  billsOn: boolean;
+  multiVenue: boolean;
+  now: Date;
+  depositLines: DeskDepositLines | null;
+};
 
 const Desk = createContext<DeskContext | null>(null);
 
@@ -100,8 +111,15 @@ function partyLabel(size: number, locale: Locale): string {
 export function Decision({
   table,
   labels,
+  confirmBlocked = false,
 }: {
   table: HostReservationView;
+  /**
+   * D75: the guest has not paid the deposit the restaurant's rule asks, so
+   * the database would refuse a confirmation (`reservation_deposit_before_confirm`).
+   * Confirm waits; Decline stays open. The card says why beside it.
+   */
+  confirmBlocked?: boolean;
   /** Words that replace the defaults, for a surface that says Confirm rather than Accept. */
   labels?: Partial<ReturnType<typeof useHostPageCopy>["tables"]>;
 }) {
@@ -136,7 +154,7 @@ export function Decision({
   return (
     <>
       <div className="mt-row flex flex-wrap gap-inline">
-        <Button variant="primary" disabled={pending} onClick={() => setAsking("CONFIRMED")}>
+        <Button variant="primary" disabled={pending || confirmBlocked} onClick={() => setAsking("CONFIRMED")}>
           {w.accept}
         </Button>
         <Button variant="secondary" disabled={pending} onClick={() => setAsking("CANCELLED")}>
@@ -414,8 +432,12 @@ function statusOf(table: DeskTable, words: TableDeskWords): { tone: StatusTone; 
 }
 
 function TableCard({ table, showDay = false }: { table: DeskTable; showDay?: boolean }) {
-  const { words, locale, multiVenue } = useDesk();
+  const { words, locale, multiVenue, depositLines } = useDesk();
   const host = useHostPageCopy().tables;
+  const deposit = depositLines && table.deposit
+    ? venueDepositLine(table.deposit, (minor) => formatMoney(minor, locale, "NGN"), depositLines)
+    : null;
+  const depositUnpaid = table.deposit?.status === "due" || table.deposit?.status === "pending";
   const { tone, word } = statusOf(table, words);
   const record = table.decidable ? guestRecordLine(table.guestRecord, words.record, locale) : null;
   const closed = table.status === "CANCELLED" || (table.status === "PENDING" && !table.decidable);
@@ -463,6 +485,17 @@ function TableCard({ table, showDay = false }: { table: DeskTable; showDay?: boo
         </p>
       )}
 
+      {deposit && (
+        <p
+          className={`mt-inline-tight flex items-center gap-inline-tight ${TYPE.caption}`}
+          data-testid="desk-deposit"
+          data-deposit={table.deposit?.status}
+        >
+          <UiIcon name="credit-card" size={16} aria-hidden />
+          {deposit}
+        </p>
+      )}
+
       {/* Never truncated. A note is where an allergy goes, and a shortened
           allergy is worse than no allergy at all. */}
       {table.note && (
@@ -488,6 +521,7 @@ function TableCard({ table, showDay = false }: { table: DeskTable; showDay?: boo
       {table.decidable && (
         <Decision
           table={table}
+          confirmBlocked={depositUnpaid}
           labels={{
             accept: words.card.confirm,
             decline: words.card.decline,
@@ -533,8 +567,11 @@ export function HostReservationsBoard({
   locale,
   billsOn = false,
   title,
+  depositLines = null,
 }: {
   board: HostTableBoard;
+  /** D75: the deposit line words, while `restaurant_deposits` is on; null draws no deposit line. */
+  depositLines?: DeskDepositLines | null;
   /** `tableDesk`, in the reader's language. */
   words: TableDeskWords;
   /** The instant the server rendered at, as ISO, so both sides cut the same Lagos day. */
@@ -555,7 +592,10 @@ export function HostReservationsBoard({
     () => new Set([...board.requests, ...board.upcoming, ...board.past].map((t) => t.listingTitle)).size > 1,
     [board],
   );
-  const context = useMemo(() => ({ words, locale, billsOn, multiVenue, now: at }), [words, locale, billsOn, multiVenue, at]);
+  const context = useMemo(
+    () => ({ words, locale, billsOn, multiVenue, now: at, depositLines }),
+    [words, locale, billsOn, multiVenue, at, depositLines],
+  );
   /* The code box is offered once seating is switched on (the reads carry a
      seating row) and a confirmed table exists to seat. */
   const seatable = [...board.upcoming, ...board.past].some(

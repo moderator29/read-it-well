@@ -10,6 +10,10 @@ import { lagosInstant, reserveSchema, reserveTarget, respondSchema, whyNotBookab
 import { countOf } from "@vallo/i18n/core";
 import { seatingRefusal } from "./seating";
 import { seatingMissing } from "./seating-missing";
+import { flagIsOn } from "../flags/read";
+import { getLocale } from "../locale";
+import { getDictionary } from "@vallo/i18n";
+import { RESTAURANT_DEPOSITS_FLAG } from "./deposits";
 
 /**
  * Asking a restaurant to hold a table, and the restaurant answering.
@@ -59,7 +63,55 @@ const EXAMPLE_RESTAURANT_MESSAGE =
 const REFUSED_MESSAGE = "That table could not be held. Check the date and time, and try again.";
 
 /** `conversationId` is optional so the existing form typing (reservation id and status) still fits. */
-type Reserved = { reservationId: string; status: "PENDING"; conversationId?: string | null };
+type Reserved = {
+  reservationId: string;
+  status: "PENDING";
+  conversationId?: string | null;
+  /**
+   * D75: the deposit the restaurant's rule asks of this table, read back
+   * from the database's own quote once the row exists (null: the table is
+   * free). The form then shows the one step left: pay it by card.
+   */
+  deposit?: ReservedDeposit | null;
+};
+
+export type ReservedDeposit = { amountMinor: number; refundUntil: string | null; refundUntilHours: number; perGuest: boolean };
+
+/**
+ * The quote for a table just asked for, under the guest's own session
+ * (`reservation_deposit_quote_for` answers the guest and the venue only).
+ * Only while `restaurant_deposits` is on and only for a business venue,
+ * which is the only kind a deposit rule can name. Any failure is no deposit:
+ * the database asks again when the guest pays, and the venue cannot confirm
+ * an unpaid one, so a missed quote here costs nobody anything.
+ */
+async function depositForNewTable(
+  db: { rpc: (fn: string, args: Record<string, unknown>) => PromiseLike<{ data: unknown; error: unknown }> },
+  reservationId: string,
+): Promise<ReservedDeposit | null> {
+  try {
+    if (!(await flagIsOn(RESTAURANT_DEPOSITS_FLAG))) return null;
+    const { data, error } = await db.rpc("reservation_deposit_quote_for", { p_reservation: reservationId });
+    const q = (data ?? {}) as {
+      status?: string;
+      amount_minor?: number;
+      refund_until?: string;
+      refund_until_hours?: number;
+      per_guest?: boolean;
+    };
+    if (error || q.status !== "ok") return null;
+    const amountMinor = Number(q.amount_minor);
+    if (!Number.isSafeInteger(amountMinor) || amountMinor <= 0) return null;
+    return {
+      amountMinor,
+      refundUntil: q.refund_until ?? null,
+      refundUntilHours: Number(q.refund_until_hours ?? 0),
+      perGuest: q.per_guest === true,
+    };
+  } catch {
+    return null;
+  }
+}
 
 /** "Fri 18 Sep, 19:30", on the Lagos clock, for the words in the thread. */
 function lagosLabel(iso: string): string {
@@ -199,9 +251,17 @@ export async function reserveTable(
     await db.from("reservations").update({ conversation_id: conversationId }).eq("id", data.id);
   }
 
+  const deposit =
+    target.kind === "business"
+      ? await depositForNewTable(
+          db as unknown as Parameters<typeof depositForNewTable>[0],
+          data.id,
+        )
+      : null;
+
   revalidatePath(target.kind === "business" ? `/restaurant/${target.id}` : `/listing/${target.id}`);
   revalidatePath("/bookings");
-  return ok({ reservationId: data.id, status: "PENDING", conversationId });
+  return ok({ reservationId: data.id, status: "PENDING", conversationId, ...(deposit ? { deposit } : {}) });
 }
 
 /**
@@ -238,6 +298,19 @@ export async function respondToReservation(
     .maybeSingle();
 
   if (error) {
+    /* D75: the venue tried to confirm a table whose deposit the guest has
+       not paid yet; `reservation_deposit_before_confirm` refuses it. Said
+       plainly, in the venue's language: it is the one refusal here that
+       tells them what to wait for. */
+    if (/reservation_deposit_unpaid/.test((error as { message?: string }).message ?? "")) {
+      let unpaid = getDictionary("en").tableDeposits.desk.unpaid;
+      try {
+        unpaid = getDictionary(await getLocale()).tableDeposits.desk.unpaid;
+      } catch {
+        // English, the reference language.
+      }
+      return fail(unpaid);
+    }
     return fail("That answer could not be saved. Try again.");
   }
   if (!data) {

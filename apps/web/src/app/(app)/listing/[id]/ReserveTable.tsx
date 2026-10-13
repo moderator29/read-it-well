@@ -11,6 +11,11 @@ import { successCopy, type SuccessWords } from "@/lib/ui/success-moments";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { slotsFor, type ServiceWindow } from "./table-windows";
 import { useClientMount } from "@/lib/ui/client-mount";
+import type { Dictionary, Locale } from "@vallo/i18n/core";
+import type { ReservedDeposit } from "@/lib/reservations/actions";
+import { lagosIso, matchDepositRule, type DepositRule, type DepositWindow } from "@/lib/reservations/deposit-rules";
+import { DepositSummary } from "@/components/app/reservations/DepositSummary";
+import { DepositStep } from "@/components/app/reservations/DepositStep";
 import "@/app/css/catalogue.css";
 
 /**
@@ -76,7 +81,21 @@ export function ReserveTable({
   windowCopy,
   title = "Book a table",
   formId,
+  deposit = null,
 }: {
+  /**
+   * D75 (track/restaurant-deposits): the venue's active deposit rules, when
+   * `restaurant_deposits` is on and a deposit can reach the venue (read on
+   * the server, `readVenueDeposit`). With them the form says, for the day,
+   * time and party picked, whether a deposit applies and how much, before
+   * the guest asks; without them the form is exactly the free form it was.
+   */
+  deposit?: {
+    rules: DepositRule[];
+    windows: DepositWindow[];
+    words: Dictionary["tableDeposits"]["guest"];
+    locale: Locale;
+  } | null;
   /**
    * The card's own heading. A page that already heads the section (a
    * restaurant's "Hold a table") passes null, so one card does not carry two
@@ -140,11 +159,37 @@ export function ReserveTable({
   const noteId = useId();
 
   const [state, formAction, pending] = useActionState<
-    ActionResult<{ reservationId: string; status: "PENDING" }> | null,
+    ActionResult<{ reservationId: string; status: "PENDING"; deposit?: ReservedDeposit | null }> | null,
     FormData
   >(reserveTable, null);
+  /* What the restaurant's rule asks of this party at this time, on the
+     screen, before anything is sent. The database quotes again once the
+     request exists, and that is the figure the guest pays. */
+  const preview = useMemo(
+    () =>
+      deposit && shownTime
+        ? matchDepositRule(deposit.rules, deposit.windows, party, lagosIso(date, shownTime))
+        : null,
+    [deposit, party, date, shownTime],
+  );
   /* The success sheet over the "Request sent" panel, once per request. */
   const [successClosed, setSuccessClosed] = useState(false);
+
+  if (state?.ok && state.data.deposit && deposit) {
+    /* THE ONE STEP LEFT. The request exists and the restaurant's rule asks a
+       deposit of it: the database's own quote, its refund rule, and the card
+       button. No success sheet over it: the request is not done until this
+       is paid, and the venue cannot confirm before. */
+    return (
+      <DepositStep
+        reservationId={state.data.reservationId}
+        due={state.data.deposit}
+        party={party}
+        words={deposit.words}
+        locale={deposit.locale}
+      />
+    );
+  }
 
   if (state?.ok) {
     /* "Table request sent", never "booked": nothing is held until the
@@ -340,6 +385,29 @@ export function ReserveTable({
           className="mt-2xs w-full nf-glass--well rounded-[var(--nf-radius-control)] border px-sm py-xs text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-primary)] placeholder:text-[var(--nf-content-muted)]"
         />
       </div>
+
+      {/* D75: a deposit, when this venue asks one of this party at this time;
+          otherwise one quiet line that the table is free. Only drawn for a
+          venue that sets deposits at all. */}
+      {deposit && slots.length > 0 ? (
+        <div className="mt-md" aria-live="polite">
+          {preview ? (
+            <DepositSummary
+              amountMinor={preview.amountMinor}
+              perGuest={preview.rule.perGuest}
+              ratePerGuestMinor={preview.rule.perGuest ? preview.rule.amountMinor : null}
+              refundUntilHours={preview.rule.refundUntilHours}
+              words={deposit.words}
+              locale={deposit.locale}
+              testId="deposit-preview"
+            />
+          ) : (
+            <p className="text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]" data-testid="deposit-free">
+              {deposit.words.free}
+            </p>
+          )}
+        </div>
+      ) : null}
 
       {state && !state.ok && (
         <p role="alert" className="mt-sm text-[length:var(--nf-text-caption)] text-[var(--nf-state-error)]">

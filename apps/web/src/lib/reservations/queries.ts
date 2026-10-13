@@ -52,7 +52,7 @@ export type ReservationView = {
    * restaurant's rule asks for `amountMinor`; otherwise the deposit's own
    * status (paid, applied, forfeited, refund_due, refunded, pending).
    */
-  deposit?: { status: string; amountMinor: number; refundUntil: string | null } | null;
+  deposit?: DepositView | null;
   /**
    * Founder decision D: the check-in code and how the table ended, the bill
    * paid through Vallo, and whether the diner reviewed it. Absent until
@@ -61,6 +61,19 @@ export type ReservationView = {
   seating?: SeatingView | null;
   bill?: BillView | null;
   reviewed?: boolean;
+};
+
+/**
+ * A table's deposit as the guest and the venue read it. `venueShareMinor` is
+ * the part that reaches the venue's bank (the deposit less Vallo's
+ * commission), once a charge exists; the quote for a deposit not yet opened
+ * carries it too.
+ */
+export type DepositView = {
+  status: string;
+  amountMinor: number;
+  refundUntil: string | null;
+  venueShareMinor?: number | null;
 };
 
 /** The host's view of the same row, with the guest named. */
@@ -185,7 +198,7 @@ export async function getMyReservations(now: Date = new Date()): Promise<Reserva
     session.user.id,
   );
   if (!(await flagIsOn(RESTAURANT_DEPOSITS_FLAG))) return views;
-  return withDeposits(supabase as unknown as SupabaseClient, views);
+  return withDeposits(supabase as unknown as SupabaseClient, views, now);
 }
 
 /**
@@ -237,41 +250,66 @@ async function withSeating<T extends ReservationView>(
 }
 
 /**
- * D75: each table's deposit, read under the guest's own RLS. The deposit
- * table and the quote function arrive with migration d75a; any failed read
- * leaves the views exactly as they were.
+ * D75: each table's deposit, read under the caller's own RLS: the guest's
+ * (`reservation_deposits_guest_read`) or the venue's (`_venue_read`, the
+ * payee). An open table with no deposit yet asks the database whether the
+ * restaurant's rule wants one (`reservation_deposit_quote_for`, which answers
+ * the guest or the owner and nobody else), all at once rather than one by
+ * one. Any failed read leaves the views exactly as they were.
  */
-async function withDeposits(db: SupabaseClient, views: ReservationView[]): Promise<ReservationView[]> {
+async function withDeposits<T extends ReservationView>(db: SupabaseClient, views: T[], now: Date = new Date()): Promise<T[]> {
+  if (views.length === 0) return views;
   try {
     const ids = views.map((v) => v.id);
     const { data, error } = await db
       .from("reservation_deposits")
-      .select("reservation_id, status, amount_minor, refund_until, created_at")
+      .select("reservation_id, status, amount_minor, lister_share_minor, refund_until, created_at")
       .in("reservation_id", ids)
       .order("created_at", { ascending: false });
     if (error) {
       await reportReadError("read.reservations.deposits", error);
       return views;
     }
-    const latest = new Map<string, { status: string; amountMinor: number; refundUntil: string | null }>();
-    for (const row of (data ?? []) as { reservation_id: string; status: string; amount_minor: number; refund_until: string | null }[]) {
+    const latest = new Map<string, DepositView>();
+    for (const row of (data ?? []) as {
+      reservation_id: string;
+      status: string;
+      amount_minor: number;
+      lister_share_minor: number | null;
+      refund_until: string | null;
+    }[]) {
       if (row.status === "failed" || row.status === "abandoned" || latest.has(row.reservation_id)) continue;
-      latest.set(row.reservation_id, { status: row.status, amountMinor: Number(row.amount_minor), refundUntil: row.refund_until });
+      latest.set(row.reservation_id, {
+        status: row.status,
+        amountMinor: Number(row.amount_minor),
+        refundUntil: row.refund_until,
+        venueShareMinor: row.lister_share_minor === null ? null : Number(row.lister_share_minor),
+      });
     }
-    const out: ReservationView[] = [];
-    for (const v of views) {
-      let deposit = latest.get(v.id) ?? null;
-      /* No deposit yet on an open table: does the restaurant's rule ask for one? */
-      if (!deposit && (v.status === "PENDING" || v.status === "CONFIRMED") && Date.parse(v.reservedFor) > Date.now()) {
+    /* No deposit yet on an open table: does the restaurant's rule ask for one? */
+    const open = views.filter(
+      (v) =>
+        !latest.has(v.id) &&
+        v.businessId !== null &&
+        (v.status === "PENDING" || v.status === "CONFIRMED") &&
+        Date.parse(v.reservedFor) > now.getTime(),
+    );
+    const quotes = await Promise.all(
+      open.map(async (v) => {
         const { data: q } = await db.rpc("reservation_deposit_quote_for", { p_reservation: v.id });
-        const quote = (q ?? {}) as { status?: string; amount_minor?: number; refund_until?: string };
-        if (quote.status === "ok") {
-          deposit = { status: "due", amountMinor: Number(quote.amount_minor), refundUntil: quote.refund_until ?? null };
-        }
-      }
-      out.push({ ...v, deposit });
+        return [v.id, (q ?? {}) as { status?: string; amount_minor?: number; refund_until?: string; lister_share_minor?: number }] as const;
+      }),
+    );
+    for (const [id, quote] of quotes) {
+      if (quote.status !== "ok") continue;
+      latest.set(id, {
+        status: "due",
+        amountMinor: Number(quote.amount_minor),
+        refundUntil: quote.refund_until ?? null,
+        venueShareMinor: Number.isFinite(Number(quote.lister_share_minor)) ? Number(quote.lister_share_minor) : null,
+      });
     }
-    return out;
+    return views.map((v) => ({ ...v, deposit: latest.get(v.id) ?? null }));
   } catch {
     return views;
   }
@@ -340,7 +378,7 @@ export async function getHostReservations(
     [...new Set(rows.map((r) => r.business_id).filter((id): id is string => Boolean(id)))],
   );
 
-  return withSeating(
+  const seated = await withSeating(
     supabase as unknown as SupabaseClient,
     rows.map((row) => ({
       ...toView(row, venues, now),
@@ -350,4 +388,8 @@ export async function getHostReservations(
     })),
     null,
   );
+  /* D75: the venue reads each table's deposit too, so a request whose
+     deposit is unpaid says so beside Confirm. Off, nothing is read. */
+  if (!(await flagIsOn(RESTAURANT_DEPOSITS_FLAG))) return seated;
+  return withDeposits(supabase as unknown as SupabaseClient, seated, now);
 }

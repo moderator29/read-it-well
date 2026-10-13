@@ -9,6 +9,7 @@ import { HostShell } from "@/components/host/HostShell";
 import { isPaystackConfigured } from "@/lib/payments/paystack";
 import { readHostTableBoard } from "./board";
 import { HostTablesBody } from "./HostTablesBody";
+import { readDeskDeposits } from "@/lib/reservations/deposit-settings";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: getDictionary(await getLocale()).experienceHost.screens.tables, robots: { index: false, follow: false } };
@@ -57,7 +58,9 @@ export default async function HostReservationsPage() {
   /* One instant for the whole render: the board's split, Lagos today and the
      client's own cut all agree on it. */
   const now = new Date();
-  const read = await readHostTableBoard(now);
+  /* D75: the deposit card, only while `restaurant_deposits` is on (read on
+     the server, failing closed); null leaves the desk as it was. */
+  const [read, deposits] = await Promise.all([readHostTableBoard(now), readDeskDeposits()]);
 
   return (
     <HostShell logoLabel={t.a11y.logoHome} fallback="/host" wide>
@@ -72,6 +75,8 @@ export default async function HostReservationsPage() {
         billsOn={isPaystackConfigured()}
         board={read.state === "ok" ? read.board : null}
         unavailable={read.state === "unavailable"}
+        deposits={deposits}
+        depositWords={t.tableDeposits.desk}
       />
     </HostShell>
   );
