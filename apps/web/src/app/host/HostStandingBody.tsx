@@ -172,6 +172,17 @@ export function HostStandingBody({
                                         makes Tailwind's `inline-block` also set `inline-size:
                                         var(--nf-gap-block)`, which drew "Contact us" in a 32px box
                                         (AccessScreen.tsx records the same collision). */}
+                                    {/* A refused or sent-back application is edited and sent
+                                        again on the same business, as on Airbnb and
+                                        Booking.com, so the way in is right here. */}
+                                    {(business.status === "REJECTED" || business.status === "MORE_INFO_REQUIRED") && (
+                                      <Link
+                                        href="/host/apply"
+                                        className="nf-tap mt-2xs block w-fit whitespace-nowrap font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+                                      >
+                                        {t.hostWorkspace.doors.openApplication}
+                                      </Link>
+                                    )}
                                     <Link
                                       href="/contact?topic=verification"
                                       className="nf-tap mt-2xs block w-fit whitespace-nowrap text-[var(--nf-content-link)] underline-offset-4 hover:underline"

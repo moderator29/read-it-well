@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { tableRuleLines } from "@/lib/host/cancellation-presets";
 import { isPropertyMarket, marketOf } from "@/lib/listings/market";
 import { notFound, redirect } from "next/navigation";
 import { getDictionary, type Locale } from "@vallo/i18n";
@@ -355,6 +356,14 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
       windows={detail ? detail.windows : null}
       messageHref={messageHref}
       isExample={venue.isExample}
+      tableRules={tableRuleLines(
+        {
+          holdMinutes: smallNumber(profile, "hold_minutes"),
+          cancelNoticeHours: smallNumber(profile, "cancel_notice_hours"),
+          sittingMinutes: smallNumber(profile, "sitting_minutes"),
+        },
+        locale,
+      )}
       areaPoint={
         /* A venue's point, rounded to about a kilometre: the Map tab draws
            the area. A catalogue listing carries no point here. */
@@ -372,4 +381,10 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
       }}
     />
   );
+}
+
+/** A whole number from a profile column the generated types may not carry yet. */
+function smallNumber(row: unknown, key: string): number | null {
+  const value = (row as Record<string, unknown> | null)?.[key];
+  return typeof value === "number" && Number.isInteger(value) ? value : null;
 }

@@ -1,7 +1,8 @@
 "use client";
 
 import { useHostCopy } from "@/components/host/host-copy";
-import { useState } from "react";
+import { differs, useGuard, useHeld } from "../wizard-memory";
+import { PolicyPicker } from "./PolicyPicker";
 import { Button } from "@/components/ui/Button";
 import { Switch } from "@/components/ui/Switch";
 import { addAccommodationDraft, syncPropertyRatesDraft } from "@/lib/host/actions";
@@ -13,7 +14,7 @@ import {
   mergeHouseRules,
   type HouseRuleId,
 } from "@/lib/host/stays-setup";
-import { StaysGlyph, StaysNote, StaysPlate, StaysTile, StaysTiles } from "./StaysParts";
+import { StaysGlyph, StaysNote } from "./StaysParts";
 import type { StaysStepProps } from "./types";
 
 /**
@@ -47,46 +48,55 @@ import type { StaysStepProps } from "./types";
 export function HouseRulesStep({
   draft,
   policies,
+  locale,
   pending,
-  run,
+  runAsync,
   setNotice,
   advance,
 }: StaysStepProps) {
   const hw = useHostCopy();
   const existing = draft.accommodation?.houseRules ?? "";
-  const [on, setOn] = useState<HouseRuleId[]>(() => {
-    const saved = houseRulesOn(existing);
-    return existing.trim().length > 0
-      ? saved
-      : HOUSE_RULES.filter((rule) => rule.onByDefault).map((rule) => rule.id);
-  });
-  const [checkIn, setCheckIn] = useState(draft.accommodation?.checkInFrom || "14:00");
-  const [checkOut, setCheckOut] = useState(draft.accommodation?.checkOutBy || "11:00");
-  const [policy, setPolicy] = useState(draft.accommodation?.cancellationPolicyId ?? "");
+  /* What is on record, and the form held in the wizard so Back keeps it. */
+  const savedForm = {
+    on:
+      existing.trim().length > 0
+        ? houseRulesOn(existing)
+        : HOUSE_RULES.filter((rule) => rule.onByDefault).map((rule) => rule.id),
+    checkIn: draft.accommodation?.checkInFrom || "14:00",
+    checkOut: draft.accommodation?.checkOutBy || "11:00",
+    policy: draft.accommodation?.cancellationPolicyId ?? "",
+  };
+  const [form, setForm] = useHeld("form", savedForm);
+  const { on, checkIn, checkOut, policy } = form;
+  const setOn = (update: (current: HouseRuleId[]) => HouseRuleId[]) =>
+    setForm((current) => ({ ...current, on: update(current.on) }));
+  const setCheckIn = (value: string) => setForm((current) => ({ ...current, checkIn: value }));
+  const setCheckOut = (value: string) => setForm((current) => ({ ...current, checkOut: value }));
+  const setPolicy = (value: string) => setForm((current) => ({ ...current, policy: value }));
 
   const times = halfHours();
 
   const save = () =>
-    run(
-      async () => {
-        const saved = await addAccommodationDraft({
-          name: draft.accommodation?.name ?? draft.name,
-          houseRules: mergeHouseRules(existing, on),
-          checkInFrom: checkIn,
-          checkOutBy: checkOut,
-          ...(policy ? { cancellationPolicyId: policy } : {}),
-        });
-        if (!saved.ok) return saved;
-        /* The policy and the place's nightly price make the one rate a guest
-           books. Without this no shortlet ever had a rate, and the
-           application could not be sent. */
-        return syncPropertyRatesDraft();
-      },
-      () => {
-        setNotice({ tone: "ok", text: "Your rules and cancellation are saved." });
-        advance();
-      },
-    );
+    runAsync(async () => {
+      const saved = await addAccommodationDraft({
+        name: draft.accommodation?.name ?? draft.name,
+        houseRules: mergeHouseRules(existing, on),
+        checkInFrom: checkIn,
+        checkOutBy: checkOut,
+        ...(policy ? { cancellationPolicyId: policy } : {}),
+      });
+      if (!saved.ok) return saved;
+      /* The policy and the place's nightly price make the one rate a guest
+         books. Without this no shortlet ever had a rate, and the application
+         could not be sent. */
+      return syncPropertyRatesDraft();
+    });
+  useGuard("form", differs(form, savedForm), save);
+  const saveAndGo = async () => {
+    if (!(await save())) return;
+    setNotice({ tone: "ok", text: "Your rules and cancellation are saved." });
+    advance();
+  };
 
   return (
     <>
@@ -159,40 +169,17 @@ export function HouseRulesStep({
         </div>
       </section>
 
-      {/*
-        THE REFUND SENTENCE IS UNDER THE GRID AND NOT INSIDE EACH TILE, which
-        is the one place this screen departs from `GOVERNING-11` screen two.
-        The render puts a short subtitle in every tile because its subtitles
-        are three words long. Ours are `cancellation_policies.summary`, real
-        sentences written for a guest, and three of them in three 100px columns
-        at 390 came back from the browser as nine lines of two-word wrapping
-        with a tick badge sitting on top of the first title. Refund terms are
-        the last text on this platform that may be squeezed, so the names are
-        the tiles and the chosen policy says its whole sentence under them.
-      */}
-      <StaysPlate
+      {/* THE PRESETS, Flexible to Strict, with each one's refund rules
+          printed in plain words from its own tiers: the words a guest reads
+          on the stay page and at checkout. */}
+      <PolicyPicker
+        policies={policies}
+        chosen={policy}
+        onChoose={setPolicy}
+        locale={locale}
         label={hw.steps.cancellationPolicy}
-        note={
-          policies.length === 0
-            ? "This estate publishes no cancellation policies yet, so there is nothing to choose from. A rate cannot be sold without one."
-            : (policies.find((option) => option.id === policy)?.summary ??
-              "Pick one. A rate cannot be sold without a cancellation policy.")
-        }
-      >
-        {policies.length > 0 && (
-          <StaysTiles label={hw.steps.cancellationPolicy} columns={Math.min(3, policies.length)}>
-            {policies.slice(0, 3).map((option) => (
-              <StaysTile
-                key={option.id}
-                title={option.name}
-                selected={policy === option.id}
-                onSelect={() => setPolicy(option.id)}
-                variant="text"
-              />
-            ))}
-          </StaysTiles>
-        )}
-      </StaysPlate>
+        disabled={pending}
+      />
 
       {/* A POLICY IS REQUIRED TO GO ON, as the plate above already says. The
           place's one rate is made from it, and a shortlet with no rate cannot
@@ -203,7 +190,7 @@ export function HouseRulesStep({
         size="lg"
         full
         trailingIcon="chevron-right"
-        onClick={save}
+        onClick={() => void saveAndGo()}
         loading={pending}
         disabled={pending || (policies.length > 0 && !policy)}
       >

@@ -74,6 +74,15 @@ function shortletDraft(photos: { id: string; url: string }[]) {
       terms: "2026-09-22T08:00:00Z",
       processing: "2026-09-22T08:00:00Z",
     },
+    /* V-57: all five charges at the door answered, which a stay now needs
+       before it is sent. */
+    arrivalCharges: {
+      caution: { none: true },
+      power: { none: true },
+      cleaning: { none: true },
+      extra_guest: { none: true },
+      visitor: { none: true },
+    } as const,
   };
 }
 

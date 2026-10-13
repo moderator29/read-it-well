@@ -1,8 +1,9 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useState, useTransition } from "react";
 import Link from "next/link";
-import { respondToReservation } from "@/lib/reservations/actions";
+import { useRouter } from "next/navigation";
+import { markReservationOutcome, respondToReservation } from "@/lib/reservations/actions";
 import type { ActionResult } from "@/lib/actions/envelope";
 import type { HostReservationView } from "@/lib/reservations/queries";
 import type { HostTableBoard } from "./board";
@@ -164,23 +165,84 @@ export function Decision({ table }: { table: HostReservationView }) {
   );
 }
 
+/**
+ * SEATED OR NOBODY CAME, recorded by the venue once a confirmed table's time
+ * has passed. Nothing is charged here: a table is free to ask for and the bill
+ * is paid at the restaurant. The mark is what Vallo bills a restaurant on, so
+ * it is one deliberate tap each, and it cannot be changed afterwards.
+ */
+function Outcome({ table }: { table: HostReservationView }) {
+  const [pending, start] = useTransition();
+  const [done, setDone] = useState<"COMPLETED" | "NO_SHOW" | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+  const mark = (outcome: "COMPLETED" | "NO_SHOW") =>
+    start(async () => {
+      setError(null);
+      const result = await markReservationOutcome({ reservationId: table.id, outcome });
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      setDone(outcome);
+      router.refresh();
+    });
+
+  if (done) {
+    return (
+      <p className={`mt-row ${TYPE.rowMeta}`} role="status">
+        {done === "COMPLETED" ? "Marked as seated." : "Marked as a no-show. The guest is told."}
+      </p>
+    );
+  }
+  return (
+    <div className="mt-row" data-testid="table-outcome">
+      <p className={TYPE.rowMeta}>How did this table go? Mark it once the time has passed.</p>
+      <div className="mt-inline flex flex-wrap gap-inline">
+        <Button variant="primary" size="sm" disabled={pending} loading={pending} onClick={() => mark("COMPLETED")}>
+          Seated
+        </Button>
+        <Button variant="secondary" size="sm" disabled={pending} onClick={() => mark("NO_SHOW")}>
+          No-show
+        </Button>
+      </div>
+      {error && (
+        <p role="alert" className={`mt-row ${TYPE.rowMeta} text-[var(--nf-state-error)]`}>
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
 function TableCard({
   table,
   decidable,
+  markable = false,
 }: {
   table: HostReservationView;
   decidable: boolean;
+  /** True on the past group: a confirmed table there has had its time. */
+  markable?: boolean;
 }) {
   const locale = useClientLocale();
   const w = useHostPageCopy().tables;
   const tone =
-    table.status === "CONFIRMED" ? "success" : table.status === "CANCELLED" ? "danger" : "warning";
+    table.status === "CONFIRMED" || table.status === "COMPLETED"
+      ? "success"
+      : table.status === "CANCELLED" || table.status === "NO_SHOW"
+        ? "danger"
+        : "warning";
   const word =
     table.status === "PENDING"
       ? w.statusWaiting
       : table.status === "CONFIRMED"
         ? w.statusAccepted
-        : w.statusClosed;
+        : table.status === "COMPLETED"
+          ? "Seated"
+          : table.status === "NO_SHOW"
+            ? "No-show"
+            : w.statusClosed;
 
   return (
     <li className="nf-panel nf-panel--card block p-card">
@@ -223,6 +285,7 @@ function TableCard({
       )}
 
       {decidable && <Decision table={table} />}
+      {markable && table.status === "CONFIRMED" && <Outcome table={table} />}
     </li>
   );
 }
@@ -232,11 +295,13 @@ function Group({
   empty,
   tables,
   decidable,
+  markable = false,
 }: {
   title: string;
   empty: string;
   tables: HostReservationView[];
   decidable: boolean;
+  markable?: boolean;
 }) {
   return (
     <section className="mt-block">
@@ -251,7 +316,7 @@ function Group({
       ) : (
         <ul className="mt-row flex flex-col gap-row">
           {tables.map((table) => (
-            <TableCard key={table.id} table={table} decidable={decidable} />
+            <TableCard key={table.id} table={table} decidable={decidable} markable={markable} />
           ))}
         </ul>
       )}
@@ -275,7 +340,7 @@ export function HostReservationsBoard({ board }: { board: HostTableBoard }) {
         tables={board.upcoming}
         decidable={false}
       />
-      <Group title={w.groupPast} empty={w.groupPastEmpty} tables={board.past} decidable={false} />
+      <Group title={w.groupPast} empty={w.groupPastEmpty} tables={board.past} decidable={false} markable />
     </>
   );
 }

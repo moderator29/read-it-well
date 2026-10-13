@@ -46,26 +46,34 @@ import "@/app/css/catalogue.css";
 export function FacilitiesPicker({
   accommodationId,
   chosen,
+  picked: heldPicked,
+  onPick,
 }: {
   accommodationId: string;
   /** The codes on record. */
   chosen: readonly string[];
+  /**
+   * The ticked codes, when the wizard holds them (so Back keeps them and the
+   * wizard can ask before they are lost). Left out, the picker holds its own.
+   */
+  picked?: readonly string[];
+  onPick?: (codes: string[]) => void;
 }) {
   const hw = useHostCopy();
   const locale = useClientLocale();
   const router = useRouter();
-  const [picked, setPicked] = useState<Set<string>>(() => new Set(chosen));
+  const [ownPicked, setOwnPicked] = useState<Set<string>>(() => new Set(chosen));
+  const picked = heldPicked ? new Set(heldPicked) : ownPicked;
   const [notice, setNotice] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
   const [pending, start] = useTransition();
 
   function toggle(code: string) {
     setNotice(null);
-    setPicked((current) => {
-      const next = new Set(current);
-      if (next.has(code)) next.delete(code);
-      else next.add(code);
-      return next;
-    });
+    const next = new Set(picked);
+    if (next.has(code)) next.delete(code);
+    else next.add(code);
+    if (onPick) onPick([...next]);
+    else setOwnPicked(next);
   }
 
   function save() {

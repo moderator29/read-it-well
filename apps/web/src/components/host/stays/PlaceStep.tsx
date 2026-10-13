@@ -1,7 +1,7 @@
 "use client";
 
 import { useHostCopy } from "@/components/host/host-copy";
-import { useState } from "react";
+import { differs, useGuard, useHeld } from "../wizard-memory";
 import { formatMoney } from "@vallo/i18n/core";
 import { Button } from "@/components/ui/Button";
 import { addAccommodationDraft, setShortletPlaceDraft, syncPropertyRatesDraft } from "@/lib/host/actions";
@@ -47,7 +47,7 @@ export function PlaceStep({
   locale,
   pending,
   fieldErrors,
-  run,
+  runAsync,
   setNotice,
   advance,
 }: StaysStepProps) {
@@ -69,19 +69,29 @@ export function PlaceStep({
     beds: saved && saved.beds > 0 ? saved.beds : 1,
   };
 
-  const [placeType, setPlaceType] = useState<PlaceTypeId | null>(
-    PLACE_TYPES.some((type) => type.id === unit?.category)
-      ? (unit?.category as PlaceTypeId)
-      : null,
-  );
-  const [name, setName] = useState(unit?.name ?? draft.accommodation?.name ?? draft.name ?? "");
-  const [bedrooms, setBedrooms] = useState(beds.bedrooms);
-  const [bedCount, setBedCount] = useState(beds.beds);
-  const [guests, setGuests] = useState(unit?.sleeps ?? 2);
-  const [naira, setNaira] = useState(unit ? String(Math.round(unit.baseRateMinor / 100)) : "");
+  /* What is on record, which the form starts from and "unsaved" is measured
+     against. The form itself is held in the wizard, so Back keeps it. */
+  const savedForm = {
+    placeType: PLACE_TYPES.some((type) => type.id === unit?.category) ? (unit?.category as PlaceTypeId) : null,
+    name: unit?.name ?? draft.accommodation?.name ?? draft.name ?? "",
+    bedrooms: beds.bedrooms,
+    bedCount: beds.beds,
+    guests: unit?.sleeps ?? 2,
+    naira: unit ? String(Math.round(unit.baseRateMinor / 100)) : "",
+  };
+  const [form, setForm] = useHeld("form", savedForm);
+  const { placeType, name, bedrooms, bedCount, guests, naira } = form;
+  const patch = (next: Partial<typeof savedForm>) => setForm((current) => ({ ...current, ...next }));
+  const setPlaceType = (value: PlaceTypeId) => patch({ placeType: value });
+  const setName = (value: string) => patch({ name: value });
+  const setBedrooms = (value: number) => patch({ bedrooms: value });
+  const setBedCount = (value: number) => patch({ bedCount: value });
+  const setGuests = (value: number) => patch({ guests: value });
+  const setNaira = (value: string) => patch({ naira: value });
 
   const typed = Number.parseFloat(naira.replace(/[^0-9.]/g, ""));
   const kobo = Number.isFinite(typed) && typed > 0 ? Math.round(typed * 100) : 0;
+  const complete = placeType !== null && name.trim().length >= 2 && kobo > 0;
 
   /*
    * THE PROPERTY IS CREATED HERE IF IT DOES NOT EXIST, because a unit hangs on
@@ -89,31 +99,36 @@ export function PlaceStep({
    * place is the property's name, which is the truthful reading: for a
    * shortlet the place IS the property.
    */
-  const save = () =>
-    run(
-      async () => {
-        const property = await addAccommodationDraft({ name });
-        if (!property.ok) return property;
-        const place = await setShortletPlaceDraft({
-          accommodationId: property.data.accommodationId,
-          placeType,
-          name,
-          bedrooms,
-          beds: bedCount,
-          maxGuests: guests,
-          nightlyRateMinor: kobo,
-        });
-        if (!place.ok) return place;
-        /* A booking is made against a rate, so the place's one rate follows
-           its price. It is written once a cancellation policy is on record,
-           on the next screen, and does nothing before that. */
-        return syncPropertyRatesDraft();
-      },
-      () => {
-        setNotice({ tone: "ok", text: "Your place is saved." });
-        advance();
-      },
-    );
+  const save = async () => {
+    if (!complete) {
+      setNotice({ tone: "error", text: "Pick what kind of place it is, name it and give a nightly price to save it." });
+      return false;
+    }
+    return runAsync(async () => {
+      const property = await addAccommodationDraft({ name });
+      if (!property.ok) return property;
+      const place = await setShortletPlaceDraft({
+        accommodationId: property.data.accommodationId,
+        placeType,
+        name,
+        bedrooms,
+        beds: bedCount,
+        maxGuests: guests,
+        nightlyRateMinor: kobo,
+      });
+      if (!place.ok) return place;
+      /* A booking is made against a rate, so the place's one rate follows
+         its price. It is written once a cancellation policy is on record,
+         on the next screen, and does nothing before that. */
+      return syncPropertyRatesDraft();
+    });
+  };
+  useGuard("form", differs(form, savedForm), save);
+  const saveAndGo = async () => {
+    if (!(await save())) return;
+    setNotice({ tone: "ok", text: "Your place is saved." });
+    advance();
+  };
 
   return (
     <>
@@ -205,7 +220,7 @@ export function PlaceStep({
         size="lg"
         full
         trailingIcon="chevron-right"
-        onClick={save}
+        onClick={() => void saveAndGo()}
         loading={pending}
         disabled={pending || placeType === null || name.trim().length < 2 || kobo <= 0}
       >

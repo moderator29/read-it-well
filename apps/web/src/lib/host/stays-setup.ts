@@ -420,7 +420,8 @@ export function coversFrom(inventory: TableInventory): number {
  *
  * Minutes rather than a label, because the only honest use of this number is
  * arithmetic on a booking, and a string that says "1 hour" cannot be added to a
- * time. Nothing consumes it yet, which is stated where it is drawn.
+ * time. Saved as `restaurant_profiles.sitting_minutes` and shown to a guest
+ * on the restaurant's page; the values are that column's CHECK.
  */
 export const SITTING_DURATIONS: readonly { minutes: number; label: string }[] = [
   { minutes: 60, label: "1 hour" },

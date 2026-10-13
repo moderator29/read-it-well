@@ -1,5 +1,6 @@
 import { STAYS_INSTANT_PAY_FLAG, flagIsOn } from "@/lib/flags/read";
 import type { Metadata } from "next";
+import { ArrivalChargesLine } from "@/components/stays/ArrivalChargesLine";
 import { redirect } from "next/navigation";
 import { listingById } from "@/lib/listings/listing-by-id";
 import { isPropertyMarket, marketOf } from "@/lib/listings/market";
@@ -235,6 +236,7 @@ export default async function StayDetailPage({
       saved={saved}
       signedIn={session.state === "signed-in"}
       instant={instant}
+      arrival={<ArrivalChargesLine listingId={null} accommodationId={detail.id} locale={locale} />}
     />
   );
 }

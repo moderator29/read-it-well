@@ -89,6 +89,12 @@ export const hostDraftSchema = (w: SchemaWords) => z.object({
   representativePhone: phone(w).optional(),
   /** The consents ticked on this save. Each becomes its own timestamp. */
   consents: z.array(z.enum(CONSENTS.map((consent) => consent.id))).optional(),
+  /**
+   * The consents unticked on this save. Each is removed and its withdrawal
+   * recorded with the moment, so the application cannot be sent until it is
+   * given again.
+   */
+  withdrawConsents: z.array(z.enum(CONSENTS.map((consent) => consent.id))).optional(),
   /** The two attestations, each stamped with the moment it was made. */
   hygieneAttested: z.boolean().optional(),
   licenceAttested: z.boolean().optional(),
@@ -183,6 +189,11 @@ export const restaurantProfileDraftSchema = (w: SchemaWords) => z.object({
   parking: z.boolean().optional(),
   powerBackup: z.boolean().optional(),
   outdoor: z.boolean().optional(),
+  /* The restaurant's own table rules, the values the CHECKs in
+     `20261013090200_...` accept. */
+  sittingMinutes: z.union([z.literal(60), z.literal(90), z.literal(120), z.literal(180)]).optional(),
+  holdMinutes: z.union([z.literal(10), z.literal(15), z.literal(20), z.literal(30)]).optional(),
+  cancelNoticeHours: z.union([z.literal(1), z.literal(2), z.literal(4), z.literal(24)]).optional(),
 });
 
 /* ---------------------------------------------------------- photographs */

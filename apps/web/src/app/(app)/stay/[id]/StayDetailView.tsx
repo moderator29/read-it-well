@@ -1,5 +1,7 @@
 import { countOf, formatMoney, formatNumber, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { Amount } from "@/components/ui/Amount";
+import type { ReactNode } from "react";
+import { refundLines, refundTiers } from "@/lib/host/cancellation-presets";
 import { formatMoneyDate } from "@/lib/money/dates";
 import { freeToCancelUntil, termsFromPolicyRules } from "@/lib/trust/cancellation";
 import { ReportSheet } from "@/components/app/ReportSheet";
@@ -100,7 +102,14 @@ export function StayDetailView({
   saved = false,
   signedIn,
   instant = false,
+  arrival = null,
 }: {
+  /**
+   * The charges at the door this stay has declared (V-57), drawn by the page
+   * with `ArrivalChargesLine`, so a guest reads them before they book, as
+   * Booking.com and Airbnb require. Null where there is nothing to draw.
+   */
+  arrival?: ReactNode;
   detail: StayDetail;
   nights: number | null;
   checkIn?: string;
@@ -511,6 +520,18 @@ export function StayDetailView({
                       content: (
                         <div>
                           <p className={`${TYPE.body} leading-relaxed`}>{detail.policy.summary}</p>
+                          {/* Each refund tier in plain words, from the tiers the
+                              refund is computed from, so the sentence and the
+                              money cannot disagree. */}
+                          {refundTiers(detail.policy.rules).length > 0 && (
+                            <ul className="mt-row grid gap-inline-tight" data-testid="stay-refund-lines">
+                              {refundLines(detail.policy, locale).map((line) => (
+                                <li key={line} className={TYPE.rowMeta}>
+                                  {line}
+                                </li>
+                              ))}
+                            </ul>
+                          )}
                           {detail.policy.freeUntilHours !== null && (
                             <p className={`mt-row flex items-start gap-inline-tight ${TYPE.rowMeta}`}>
                               <UiIcon name="verified" size={ICON.inline} className="mt-3xs shrink-0 text-[var(--nf-state-success)]" />
@@ -535,6 +556,8 @@ export function StayDetailView({
             ];
             return <Unfold items={items} headingLevel={2} data-testid="stay-more" />;
           })()}
+
+          {arrival ? <div className="py-md">{arrival}</div> : null}
 
           {signedIn !== undefined && (
             <div className="py-md" data-testid="stay-report">

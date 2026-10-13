@@ -24,25 +24,21 @@ const PHOTOS = [
   { id: "f2", url: "/brand/photos/living-room-day.jpg" },
 ];
 
+/* The four presets of `20261013090000_four_preset_cancellation_policies.sql`,
+   with their tiers, as the wizard reads them once that has run. */
 const POLICIES = [
-  {
-    id: "ef000000-0000-4000-8000-000000000001",
-    name: "Flexible",
-    summary: "Free cancellation until 24 hours before arrival.",
-    isFreeUntilHours: 24,
-  },
-  {
-    id: "ef000000-0000-4000-8000-000000000002",
-    name: "Moderate",
-    summary: "Free cancellation until 5 days before arrival.",
-    isFreeUntilHours: 120,
-  },
-  {
-    id: "ef000000-0000-4000-8000-000000000003",
-    name: "Strict",
-    summary: "Not refundable once booked.",
-    isFreeUntilHours: null,
-  },
+  { id: "ef100000-0000-4000-8000-000000000001", name: "Flexible", preset: "flexible", isFreeUntilHours: 24,
+    summary: "Full refund if you cancel at least 24 hours before check-in. No refund after that.",
+    rules: [{ hours_before: 24, refund_bps: 10000 }, { hours_before: 0, refund_bps: 0 }] },
+  { id: "ef100000-0000-4000-8000-000000000002", name: "Moderate", preset: "moderate", isFreeUntilHours: 120,
+    summary: "Full refund if you cancel at least 5 days before check-in. Half back after that.",
+    rules: [{ hours_before: 120, refund_bps: 10000 }, { hours_before: 0, refund_bps: 5000 }] },
+  { id: "ef100000-0000-4000-8000-000000000003", name: "Firm", preset: "firm", isFreeUntilHours: 720,
+    summary: "Full refund at least 30 days before check-in, half back at least 7 days before, no refund after that.",
+    rules: [{ hours_before: 720, refund_bps: 10000 }, { hours_before: 168, refund_bps: 5000 }, { hours_before: 0, refund_bps: 0 }] },
+  { id: "ef100000-0000-4000-8000-000000000004", name: "Strict", preset: "strict", isFreeUntilHours: null,
+    summary: "Half back if you cancel at least 7 days before check-in. No refund after that.",
+    rules: [{ hours_before: 168, refund_bps: 5000 }, { hours_before: 0, refund_bps: 0 }] },
 ];
 
 type HostKind = "hotel" | "shortlet" | "restaurant";
@@ -51,12 +47,12 @@ const DRAFTS: Record<HostKind, () => HostDraft> = {
   hotel: () =>
     hotelDraft({
       documents: { identity: true, registration: true },
-      accommodation: { ...hotelDraft().accommodation!, photos: PHOTOS },
+      accommodation: { ...hotelDraft().accommodation!, photos: PHOTOS, cancellationPolicyId: "ef100000-0000-4000-8000-000000000003" },
     }),
   shortlet: () =>
     shortletDraft({
       documents: { identity: true },
-      accommodation: { ...shortletDraft().accommodation!, photos: PHOTOS },
+      accommodation: { ...shortletDraft().accommodation!, photos: PHOTOS, cancellationPolicyId: "ef100000-0000-4000-8000-000000000002" },
     }),
   restaurant: () =>
     restaurantDraft({
@@ -113,19 +109,23 @@ export default async function PreviewHostSetup({
   }
 
   const sentBack = params.sent === "1";
+  const refused = params.refused === "1";
   const draft: HostDraft = sentBack
     ? { ...base, status: "MORE_INFO_REQUIRED", reviewNotes: SENT_BACK_NOTE }
-    : base;
+    : refused
+      ? { ...base, status: "REJECTED", reviewNotes: SENT_BACK_NOTE }
+      : base;
 
   return (
     <HostShell logoLabel={t.a11y.logoHome}>
       <HostWizard
-        key={`${type}-${step}-${sentBack ? "sent" : "draft"}`}
+        key={`${type}-${step}-${sentBack ? "sent" : refused ? "refused" : "draft"}`}
         initial={draft}
         userId={PERSON.id}
         policies={POLICIES}
         locale={locale}
         initialStep={step}
+        arrivalCopy={t.afterTheGate.arrival}
       />
     </HostShell>
   );

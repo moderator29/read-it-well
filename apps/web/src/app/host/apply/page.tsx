@@ -16,6 +16,12 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export const dynamic = "force-dynamic";
 
+/** The preset code of a policy row, a column the generated types may not carry yet. */
+function readPreset(row: unknown): string | null {
+  const value = (row as { preset?: unknown }).preset;
+  return typeof value === "string" ? value : null;
+}
+
 /**
  * /host/apply: the Host wizard.
  *
@@ -68,10 +74,11 @@ export default async function HostApplyPage({
     readMyHostDraft(),
     session.supabase
       .from("cancellation_policies")
-      /* `is_free_until_hours` is what `GOVERNING-10` screen three's "Free
-         cancellation" switch and its "Cancel up to" row are made of. Null
-         means never free. */
-      .select("id, name, summary, is_free_until_hours")
+      /* `*` so the preset code and its position come back once
+         `20261013090000_four_preset_cancellation_policies.sql` has run, and
+         nothing breaks before it has. `rules` are the refund tiers the
+         wizard prints in plain words. */
+      .select("*")
       .order("name")
       .limit(20),
   ]);
@@ -80,6 +87,8 @@ export default async function HostApplyPage({
     name: row.name,
     summary: row.summary,
     isFreeUntilHours: row.is_free_until_hours,
+    rules: row.rules,
+    preset: readPreset(row),
   }));
 
   /* An application whose contact and registration details could not be read
@@ -109,6 +118,7 @@ export default async function HostApplyPage({
         policies={policies}
         locale={locale}
         door={door}
+        arrivalCopy={t.afterTheGate.arrival}
       />
     </HostShell>
   );

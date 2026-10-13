@@ -71,6 +71,13 @@ function complete(over: Partial<HostDraft> = {}): HostDraft {
       terms: "2026-09-18T08:00:00Z",
       processing: "2026-09-18T08:00:00Z",
     },
+    arrivalCharges: {
+      caution: { minor: 5_000_000, per: "stay" },
+      power: { none: true },
+      cleaning: { none: true },
+      extra_guest: { none: true },
+      visitor: { none: true },
+    },
     ...over,
   };
 }
@@ -98,6 +105,7 @@ describe("stepsFor", () => {
       "room-types",
       "rates",
       "facilities",
+      "extra-charges",
       "payout",
       "consent",
       "review",
@@ -113,6 +121,7 @@ describe("stepsFor", () => {
       "place",
       "house-rules",
       "facilities",
+      "extra-charges",
       "payout",
       "consent",
       "review",
@@ -226,7 +235,7 @@ describe("missingFrom", () => {
       accommodation: null,
       roomTypeCount: 0,
       ratePlanCount: 0,
-      restaurant: { priceBand: 2, cuisineCount: 1, cuisines: ["nigerian"] },
+      restaurant: { priceBand: 2, cuisineCount: 1, cuisines: ["nigerian"], sittingMinutes: null, holdMinutes: null, cancelNoticeHours: null },
       serviceWindowCount: 1,
       hygieneAttestedAt: "2026-09-18T08:00:00Z",
     };
@@ -325,14 +334,20 @@ describe("mergeServerDraft", () => {
     expect(merged.hostType).toBe("business");
   });
 
-  it("only ever adds documents and the bank account, and leaves consents to the device", () => {
+  it("only ever adds documents and the bank account, and takes consents from the record", () => {
     const merged = mergeServerDraft(
-      local({ hasBankAccount: true, consents: {} }),
-      server({ hasBankAccount: false }),
+      local({ hasBankAccount: true, consents: { terms: "2026-10-12T09:00:00Z" } }),
+      server({ hasBankAccount: false, consents: {}, consentWithdrawals: [{ id: "terms", at: "2026-10-12T10:00:00Z" }] }),
     );
     expect(merged.documents).toEqual({ identity: true, registration: true });
     expect(merged.hasBankAccount).toBe(true);
+    /* A withdrawal is a write now, so the read is the truth. */
     expect(merged.consents).toEqual({});
+    expect(merged.consentWithdrawals).toHaveLength(1);
+  });
+
+  it("asks a stay for its charges at the door before it can be sent", () => {
+    expect(missingFrom(complete({ arrivalCharges: null }))).toEqual(["The charges at the door, all five answered"]);
   });
 
   it("changes nothing when the read came back empty, so a failed refresh cannot wipe the screen", () => {

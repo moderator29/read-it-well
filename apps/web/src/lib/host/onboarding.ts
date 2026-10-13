@@ -21,6 +21,7 @@
  */
 
 import type { Database } from "../supabase/database.types";
+import type { ArrivalCharges } from "../stays/arrival-charges";
 
 export type BusinessKind = Database["public"]["Enums"]["business_kind"];
 
@@ -173,6 +174,9 @@ export type HostStepId =
   | "house-rules"
   /* Shared by both accommodation branches: `GOVERNING-10` screen four. */
   | "facilities"
+  /* Both accommodation branches: every charge a guest could be asked for at
+     the door (V-57), which the publish gate requires. */
+  | "extra-charges"
   /* The restaurant's two, `GOVERNING-11` screens three and four. */
   | "restaurant"
   | "tables"
@@ -269,6 +273,11 @@ const STEPS: Record<HostStepId, HostStep> = {
     title: "Facilities and photos",
     hint: "Show guests what the property has to offer, and where it is.",
   },
+  "extra-charges": {
+    id: "extra-charges",
+    title: "Extra charges",
+    hint: "Anything a guest could be asked to pay when they arrive. Answer all five, an amount or none.",
+  },
   restaurant: {
     id: "restaurant",
     title: "Your restaurant",
@@ -322,7 +331,10 @@ export function stepsFor(hostType: HostType | null, kind: BusinessKind | null = 
       branchFor(kind) === "shortlet"
         ? ["place", "house-rules"]
         : ["hotel", "room-types", "rates"];
-    ids.push(...drawn, "facilities");
+    /* The charges at the door come last before the payout, so they are
+       answered before the application is sent: an approved stay cannot be
+       published until all five are (V-57). */
+    ids.push(...drawn, "facilities", "extra-charges");
   }
   if (hostType === "restaurant") ids.push("restaurant", "tables");
   ids.push("payout", "consent", "review");
@@ -543,6 +555,13 @@ export type HostDraft = {
     /* The cuisines themselves, which `GOVERNING-11` screen three draws as
        chips and which a count cannot express. */
     cuisines: string[];
+    /*
+     * The restaurant's own table rules. Null until set, and null on an estate
+     * where `20261013090200_...` has not run, where they cannot be kept.
+     */
+    sittingMinutes: number | null;
+    holdMinutes: number | null;
+    cancelNoticeHours: number | null;
   } | null;
   serviceWindowCount: number;
   /** SUP-17: photographs of the business itself (a restaurant's), on record. */
@@ -579,6 +598,13 @@ export type HostDraft = {
    * be able to read the question there.
    */
   reviewNotes: string | null;
+  /**
+   * The charges at the door, as last declared and complete, or null when the
+   * five have not all been answered. A stay is not sent without them (V-57).
+   */
+  arrivalCharges: ArrivalCharges | null;
+  /** Consents given and then withdrawn, newest last, for the record. */
+  consentWithdrawals: { id: ConsentId; at: string }[];
 };
 
 /** A draft with nothing in it, for a host who has not started. */
@@ -616,6 +642,8 @@ export function emptyHostDraft(): HostDraft {
     hasBankAccount: false,
     consents: {},
     reviewNotes: null,
+    arrivalCharges: null,
+    consentWithdrawals: [],
   };
 }
 
@@ -639,7 +667,8 @@ export function emptyHostDraft(): HostDraft {
  * registration, the representative) and the host type stay the device's,
  * because a keystroke made while a save was in flight is newer than the read
  * that save produced. Documents and the bank account only ever gain an entry.
- * Consents stay the device's: unticking one is not a write.
+ * Consents are the server's: ticking one records it and unticking one
+ * records its withdrawal.
  *
  * A READ THAT CAME BACK EMPTY CHANGES NOTHING. `readMyHostDraft` answers a
  * failed read with an empty draft, and adopting it would wipe the screen.
@@ -665,6 +694,11 @@ export function mergeServerDraft(local: HostDraft, server: HostDraft): HostDraft
     licenceAttestedAt: server.licenceAttestedAt,
     hasBankAccount: local.hasBankAccount || server.hasBankAccount,
     reviewNotes: server.reviewNotes,
+    arrivalCharges: server.arrivalCharges,
+    /* Every tick and every untick is now a write (a withdrawal is recorded),
+       so the read is the truth about consents too. */
+    consents: server.consents,
+    consentWithdrawals: server.consentWithdrawals,
   };
 }
 
@@ -715,6 +749,9 @@ export function missingFrom(draft: HostDraft): string[] {
     }
     if (draft.roomTypeCount === 0) missing.push("At least one room type");
     if (draft.ratePlanCount === 0) missing.push("A rate with a cancellation policy");
+    /* V-57: the publish gate refuses a stay whose charges at the door are not
+       all answered, so the application asks for them before it is sent. */
+    if (!draft.arrivalCharges) missing.push("The charges at the door, all five answered");
   } else {
     if (!draft.restaurant || draft.restaurant.priceBand === null) missing.push("A price band");
     if (draft.serviceWindowCount === 0) missing.push("At least one service window");

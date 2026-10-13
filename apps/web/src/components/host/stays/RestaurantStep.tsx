@@ -2,7 +2,15 @@
 
 import { useHostCopy } from "@/components/host/host-copy";
 import { Chip } from "@/components/ui/Chip";
-import { useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
+import { differs, useGuard, useHeld } from "../wizard-memory";
+import {
+  CANCEL_NOTICE_HOURS,
+  DEFAULT_CANCEL_NOTICE_HOURS,
+  DEFAULT_HOLD_MINUTES,
+  HOLD_MINUTES,
+  noticeWords,
+} from "@/lib/host/cancellation-presets";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
 import { setRestaurantProfileDraft } from "@/lib/host/actions";
@@ -37,12 +45,16 @@ import type { StaysStepProps } from "./types";
  * step where the address was actually asked for. It is the restaurant twin of
  * the same row on `GOVERNING-10` screen one.
  */
+/* The two table-rule plates' names, beside the rest of this screen's English. */
+const HOLD_LABEL = "Holding a late table";
+const NOTICE_LABEL = "Asking guests to cancel";
+
 export function RestaurantStep({
   draft,
   set,
   pending,
-  run,
-  saveText,
+  runAsync,
+  saveTextAsync,
   setNotice,
   goTo,
   advance,
@@ -56,8 +68,27 @@ export function RestaurantStep({
   extra?: ReactNode;
 }) {
   const hw = useHostCopy();
-  const [cuisines, setCuisines] = useState<string[]>(draft.restaurant?.cuisines ?? []);
-  const [band, setBand] = useState<number | null>(draft.restaurant?.priceBand ?? null);
+  /*
+   * HELD IN THE WIZARD, so Back keeps the chips and the tiles, and measured
+   * against what is on record so the wizard can ask before they are lost. The
+   * hold and the notice are the restaurant's own table rules: a table on
+   * Vallo is free to ask for, the restaurant confirms it when one is free and
+   * the bill is paid at the restaurant, so these are requests to the guest
+   * and never charges. Preset to the common answer (15 minutes, 2 hours).
+   */
+  const savedForm = {
+    cuisines: draft.restaurant?.cuisines ?? [],
+    band: draft.restaurant?.priceBand ?? null,
+    hold: draft.restaurant?.holdMinutes ?? DEFAULT_HOLD_MINUTES,
+    notice: draft.restaurant?.cancelNoticeHours ?? DEFAULT_CANCEL_NOTICE_HOURS,
+  };
+  const [form, setForm] = useHeld("form", savedForm);
+  const { cuisines, band, hold, notice } = form;
+  const setCuisines = (update: (current: string[]) => string[]) =>
+    setForm((current) => ({ ...current, cuisines: update(current.cuisines) }));
+  const setBand = (value: number) => setForm((current) => ({ ...current, band: value }));
+  const setHold = (value: number) => setForm((current) => ({ ...current, hold: value }));
+  const setNoticeHours = (value: number) => setForm((current) => ({ ...current, notice: value }));
 
   /* TWO LINES, AS DRAWN: the street, then where it is. The state joins the
      second line rather than taking a third, which is how the render writes
@@ -67,16 +98,32 @@ export function RestaurantStep({
     .map((line) => line.trim())
     .filter(Boolean);
 
-  const save = () =>
-    saveText({}, () =>
-      run(
-        () => setRestaurantProfileDraft({ cuisines, priceBand: band }),
-        () => {
-          setNotice({ tone: "ok", text: "Your restaurant is saved." });
-          advance();
-        },
-      ),
-    );
+  /* Kept as a promise of its own so the answer says whether the table rules
+     were kept: before `20261013090200_...` runs they cannot be. */
+  let rulesKept = true;
+  const saveProfile = () =>
+    runAsync(async () => {
+      const result = await setRestaurantProfileDraft({
+        cuisines,
+        priceBand: band,
+        holdMinutes: hold as 10 | 15 | 20 | 30,
+        cancelNoticeHours: notice as 1 | 2 | 4 | 24,
+      });
+      if (result.ok) rulesKept = result.data.rulesKept;
+      return result;
+    });
+  useGuard("form", differs(form, savedForm), saveProfile);
+  const saveAndGo = async () => {
+    if (!(await saveTextAsync())) return;
+    if (!(await saveProfile())) return;
+    setNotice({
+      tone: "ok",
+      text: rulesKept
+        ? "Your restaurant is saved."
+        : "Your restaurant is saved. The table hold and cancellation notice are not kept yet; they will be once this estate is updated.",
+    });
+    advance();
+  };
 
   return (
     <>
@@ -166,6 +213,44 @@ export function RestaurantStep({
         </p>
       </StaysPlate>
 
+      {/* THE RESTAURANT'S OWN RULES FOR A TABLE, in plain presets. Guests read
+          them before they ask for a table. */}
+      <StaysPlate label={HOLD_LABEL}>
+        <StaysTiles label={HOLD_LABEL} columns={4}>
+          {HOLD_MINUTES.map((minutes) => (
+            <StaysTile
+              key={minutes}
+              title={`${minutes} min`}
+              selected={hold === minutes}
+              onSelect={() => setHold(minutes)}
+              variant="band"
+            />
+          ))}
+        </StaysTiles>
+        <p className="nf-stays-plate__note">
+          A confirmed table is kept for {hold} minutes after the booked time, then you may give it away.
+        </p>
+      </StaysPlate>
+
+      <StaysPlate label={NOTICE_LABEL}>
+        <StaysTiles label={NOTICE_LABEL} columns={4}>
+          {CANCEL_NOTICE_HOURS.map((hours) => (
+            <StaysTile
+              key={hours}
+              title={hours === 24 ? "1 day" : `${hours} h`}
+              selected={notice === hours}
+              onSelect={() => setNoticeHours(hours)}
+              variant="band"
+            />
+          ))}
+        </StaysTiles>
+        <p className="nf-stays-plate__note">
+          Guests are asked to cancel at least {noticeWords(notice)} ahead. A table is free to book and
+          is never paid for in advance: the guest pays the bill at your restaurant, and you mark each
+          table seated or a no-show after its time.
+        </p>
+      </StaysPlate>
+
       {extra}
 
       {/* THE BAND IS ASKED FOR HERE AND REQUIRED HERE. The application cannot
@@ -176,7 +261,7 @@ export function RestaurantStep({
         size="lg"
         full
         trailingIcon="chevron-right"
-        onClick={save}
+        onClick={() => void saveAndGo()}
         loading={pending}
         disabled={pending || draft.name.trim().length < 2 || band === null}
       >

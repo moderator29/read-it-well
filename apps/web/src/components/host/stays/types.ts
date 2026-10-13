@@ -21,13 +21,31 @@ export type StaysStepProps = {
    * and that column is the only thing in this database that knows either.
    * Null means a policy is never free.
    */
-  policies: { id: string; name: string; summary: string; isFreeUntilHours: number | null }[];
+  policies: {
+    id: string;
+    name: string;
+    summary: string;
+    isFreeUntilHours: number | null;
+    /** The refund tiers, `[{hours_before, refund_bps}]`, printed in plain words. */
+    rules?: unknown;
+    /** flexible, moderate, firm or strict, when the policy is one of the presets. */
+    preset?: string | null;
+  }[];
   locale: Locale;
   pending: boolean;
   fieldErrors: Record<string, string>;
   run: (work: () => Promise<ActionResult<unknown>>, then?: (data: unknown) => void) => void;
+  /**
+   * `run`, awaitable: resolves true when the write succeeded and false when
+   * it was refused (the refusal is shown as `run` shows it). It is what a
+   * step's save is built on, so the same save serves its own Continue and
+   * the wizard's "Save and go back".
+   */
+  runAsync: (work: () => Promise<ActionResult<unknown>>) => Promise<boolean>;
   /** Save the typed business fields, optionally with extra keys. */
   saveText: (extra?: Record<string, unknown>, then?: () => void) => void;
+  /** `saveText`, awaitable: true when the business fields were saved. */
+  saveTextAsync: (extra?: Record<string, unknown>) => Promise<boolean>;
   setNotice: (notice: { tone: "ok" | "error"; text: string } | null) => void;
   /** Jump to another step, for a row whose chevron opens one. */
   goTo: (id: HostStepId) => void;
@@ -41,4 +59,10 @@ export type StaysStepProps = {
    * would let one happen without the other.
    */
   advance: () => void;
+  /**
+   * Move on WITHOUT saving: the wizard asks first if anything on the step is
+   * unsaved. For a Continue that is not itself a save (the rates screen,
+   * whose rates and policy save as they are set).
+   */
+  proceed: () => void;
 };
