@@ -304,7 +304,7 @@ export const FAQS: Faq[] = [
   {
     category: "Booking a stay",
     q: "Will I see every cost before I book?",
-    a: "Yes. You see the total before you confirm. A host must not charge anything that is not listed on Vallo, and must not add a charge without a stated reason. If someone asks you for a charge that is not listed, do not pay it, and report it.",
+    a: "Yes. You see the total before you confirm, and any charge at the door (a caution deposit, power, cleaning, an extra guest or a visitor) is listed before you book. A host must not charge anything that is not listed on Vallo, and must not add a charge without a stated reason. If someone asks you for a charge that is not listed, do not pay it, and report it.",
   },
   {
     category: "Viewings",
@@ -319,7 +319,12 @@ export const FAQS: Faq[] = [
   {
     category: "Viewings",
     q: "Will I be reminded about a viewing?",
-    a: "Yes. Both the renter and the lister are reminded in the evening before (from 19:00 Lagos time) and again two hours before the viewing.",
+    a: "Yes. The renter and the lister are both reminded in the evening before (from 19:00 Lagos time) and again two hours before the viewing.",
+  },
+  {
+    category: "Viewings",
+    q: "What if the renter or the lister does not turn up to a viewing?",
+    a: "Either side can report a no-show once the viewing time has come, and for up to 14 days after it. The person reported can dispute it within 48 hours, and if they do, a person at Vallo looks at both sides and decides.",
   },
   {
     category: "Viewings",
@@ -349,12 +354,27 @@ export const FAQS: Faq[] = [
   {
     category: "Listing your property",
     q: "Can I be both a landlord and an agent?",
-    a: "Not on one account. An owner (landlord) account and an agent account are separate accounts.",
+    a: "Not on one account. An account is either an owner (landlord) account or an agent account, never both. If you are both, you use two accounts.",
   },
   {
     category: "Hosting",
     q: "How do I set up a hotel, shortlet or restaurant?",
-    a: "Use the host wizard. You give your identity and business papers, and Vallo reviews them before you are published. If you are sent back, you edit the same application and send it again. You agree to the Terms and the Privacy Policy before you create a host account or publish.",
+    a: "Use the host wizard. You give your identity and business papers, and Vallo reviews them before you are published. If you are sent back, you edit the same application and send it again. You agree to the Terms, the Privacy Policy and the Host Agreement before you create a host account or publish.",
+  },
+  {
+    category: "Listing your property",
+    q: "How many photos and videos does a listing need?",
+    a: "At least 3 photos or videos, and 5 is recommended. They go in one uploader. The first item is the cover and must be a photo. You can add up to 3 videos, each up to 100MB and 60 seconds, as MP4, MOV or WebM.",
+  },
+  {
+    category: "Hosting",
+    q: "What cancellation policies can a host choose?",
+    a: "Flexible, Moderate, Firm or Strict. The refund rules of the one a host picks are shown to the guest before they book, and the refund follows them.",
+  },
+  {
+    category: "Hosting",
+    q: "What happens at a restaurant after I book a table?",
+    a: "Asking for a table is free and nothing is paid in advance. The restaurant confirms it, and you pay your bill at the restaurant. After the time the restaurant marks the table seated or a no-show, using your check-in code, and if it does not answer, Vallo asks you the next day whether you dined. Only diners whose table was seated can review.",
   },
   {
     category: "Verification and trust",

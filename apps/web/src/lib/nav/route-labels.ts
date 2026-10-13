@@ -142,6 +142,7 @@ const NAMES: Readonly<Record<string, string>> = {
   "/r/[code]": "the invitation",
   "/privacy": "Privacy",
   "/disclaimer": "the disclaimer",
+  "/host-agreement": "the Host Agreement",
   "/safety": "Safety",
   "/check": "the check",
   /* Recommendations A: the public doors. */
@@ -199,6 +200,7 @@ const NAMES: Readonly<Record<string, string>> = {
   "/admin/agreements/settings": "Risk settings",
   "/admin/staff": "Staff",
   "/admin/fees": "Fees",
+  "/admin/restaurant-fees": "Restaurant fees",
   "/admin/compliance": "Compliance",
   "/admin/payments": "Payments",
   "/admin/reference": "Reference",

@@ -56,6 +56,11 @@ const POLICY_PAGES: { href: string; title: string; text: string }[] = [
     text: "The refund schedule for a paid stay, with the windows written out. How to cancel a booking and what comes back to you.",
   },
   {
+    href: "/host-agreement",
+    title: "Host Agreement",
+    text: "The rules every host agrees to: only charge what is listed on Vallo, every charge states its reason, cancellation policies, and how restaurants are billed only for guests seated.",
+  },
+  {
     href: "/disclaimer",
     title: "Disclaimer",
     text: "What Vallo is not responsible for, and what a listing or a badge does not promise.",

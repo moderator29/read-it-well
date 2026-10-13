@@ -38,9 +38,11 @@ verification ladder behind the tick, is a signal about what Vallo has checked or
 what a person has earned. It is not a guarantee against fraud, a promise that a
 listing is as described, or a promise a deal will go well. The public statement
 is `/docs/badges-and-verification`, and the help answer "Does a badge mean a
-person cannot defraud me?". **NOT BUILT:** the landlord ownership badge decided
-on 13 October (upload an ownership document, get a small clean badge once Vallo
-has seen it); see [DECISIONS_2026-10-13.md](DECISIONS_2026-10-13.md).
+person cannot defraud me?". The landlord "Ownership seen" mark (upload an ownership document with the owner
+registration; the mark appears once Vallo has seen it) is built
+(`OwnershipSeenMark`, `OwnerRegisterForm`), but the upload needs two database
+constraints widened by the founder, so it is not described in the public docs
+yet; see [DECISIONS_2026-10-13.md](DECISIONS_2026-10-13.md).
 
 Everything below is the original 2026-07-30 design argument, unaltered. The
 principles in sections 1, 4 and 7 are the durable part.
