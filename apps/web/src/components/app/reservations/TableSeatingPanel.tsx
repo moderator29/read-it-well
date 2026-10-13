@@ -177,7 +177,7 @@ export function TableSeatingPanel({ table }: { table: ReservationView }) {
                 role="radio"
                 aria-checked={rating === n}
                 aria-label={`${n} of 5`}
-                className={`nf-btn nf-btn--sm ${rating >= n ? "nf-btn--primary" : "nf-btn--secondary"}`}
+                className={`nf-btn nf-btn--sm ${rating >= n ? "nf-btn--primary" : "nf-btn--glass"}`}
                 onClick={() => setRating(n)}
               >
                 {n}
