@@ -332,7 +332,7 @@ export const VIEWINGS: DocChapter = {
     },
     {
       id: "safety",
-      heading: "Staying safe at a viewing",
+      heading: "Taking care at a viewing",
       body: (
         <p>
           Keep the arrangement in the Vallo chat. {OFF_PLATFORM_SENTENCE} Never pay a fee to see a
@@ -459,7 +459,7 @@ export const BADGES_AND_VERIFICATION: DocChapter = {
         <>
           <p>
             Verification and badges are signals. The verification ladder says what Vallo has
-            checked about a lister, one rung at a time. A badge says something a person has
+            confirmed about a lister, one rung at a time. A badge says something a person has
             earned, such as replying quickly.
           </p>
           <p>
@@ -491,7 +491,7 @@ export const BADGES_AND_VERIFICATION: DocChapter = {
       heading: "Agent badges",
       body: (
         <ul role="list">
-          <li><strong>Verified agent.</strong> Identity and payout account checked and the application approved.</li>
+          <li><strong>Verified agent.</strong> Identity and payout account confirmed and the application approved.</li>
           <li><strong>First listing.</strong> The first listing was published.</li>
           <li><strong>Fast responder.</strong> A quick typical first reply across many conversations.</li>
           <li><strong>Ten stays.</strong> Ten bookings completed.</li>
@@ -506,7 +506,7 @@ export const BADGES_AND_VERIFICATION: DocChapter = {
       heading: "Member badges",
       body: (
         <ul role="list">
-          <li><strong>Verified member.</strong> Email and phone confirmed.</li>
+          <li><strong>Confirmed member.</strong> Email and phone confirmed.</li>
           <li><strong>First stay.</strong> A first completed booking.</li>
           <li><strong>Honest reviewer.</strong> Reviews written after real stays.</li>
           <li><strong>Neighbour</strong> and <strong>Local guide.</strong> Helpful contributions to a place on Around.</li>

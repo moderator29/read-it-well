@@ -39,6 +39,26 @@ The custody tables (`wallets`, `wallet_entries`, `wallet_pots`, `escrows`, `escr
 | `aml_ledger_observations` | each money movement as the AML monitor saw it, append-only. | `aml_observe` |
 | `threshold_events` | each movement, or linked set, that crossed a SCUML reporting threshold. | `aml_observe` |
 | `edd_reviews` | enhanced due diligence opened on a person, with the amount that set it off. | `edd_gate`, `risk_open_edd`, `flag_pep` |
+| `agreement_risk_settings` | **one row of staff-set thresholds for when an agreement is held for review**: `amount_threshold_minor` (a rent charge at or above it is held), the `check_*` switches (amount, first deal, fraud radar, payout name, recent change) and `recent_change_days`. It is a setting, not a movement of money. | `admin_update_risk_settings` |
+| `booking_refund_parts` | one refund taken back across every card that paid for a booking: the amount for each charge, the processor reference and where the processor refund stands. | `plan_booking_refund`, `record_refund_part`, `record_processor_refund_outcome` |
+| `chargebacks` | each chargeback a card issuer raises against a payment: its state, the amount, and how much has been recovered. | `chargeback_open`, `chargeback_move` |
+| `chargeback_events` | the append-only history of one chargeback, including the amount recovered at each step. | `chargeback_open` |
+| `funds_movements` | each deposit, withdrawal or transfer a member asked for or the provider reported, with the fees and VAT. Vallo's record of what the provider said, never a balance Vallo holds. Only the provider can complete a row. | `funds_movement_observe` |
+| `member_funds_reported` | the last balance the **provider** reported for a member, and when Vallo observed it. A cache, never computed by Vallo and never a balance Vallo owes. | the member money rail (balance read-back) |
+| `ledger_customer_funds` | pot 1 of 3: customer money at the provider, never Vallo's. Append-only; a correction is a new entry. | the money rail (append-only) |
+| `ledger_vallo_revenue` | pot 2 of 3: Vallo's own revenue (commission, withdrawal fees, promotion). Never VAT, never customer money. Append-only. | the money rail (append-only) |
+| `ledger_marketing_float` | pot 3 of 3: Vallo's marketing float that funds referral payouts. Append-only. | the money rail (append-only) |
+| `payluk_commission_sweeps` | each run that reads the Payluk balances and, when there is commission to move, withdraws it to the main account, with the outcome and the amounts. | the commission sweep job |
+| `provider_arrangements` | an arrangement between a member and a service provider, with the amount and the provider's fee, paid through the provider rail. | `provider_arrangement_open`, `provider_arrangement_observe`, `admin_pause_release`, `admin_resume_release` |
+| `provider_arrangement_milestones` | the staged amounts inside one provider arrangement and where each stands. | `provider_arrangement_open`, `provider_arrangement_observe` |
+| `reservation_deposits` | the deposit charged to hold a restaurant reservation: the amount, Vallo's commission and the restaurant's share. | `reservation_deposit_open`, `reservation_deposit_settle`, `reservation_deposit_close`, `reservation_deposit_refunded` |
+| `rewards_ledger` | the Rewards Balance, append-only: balance = sum of `amount_minor`. A reversal is a new negative entry. Not a wallet: Vallo owes this money, it does not hold the member's money. | `referral_reverse`, `referral_release_due`, `rewards_payout_open` |
+| `rewards_payouts` | each Rewards Balance payout, paid by a Paystack transfer from Vallo's marketing float. Paid only on provider confirmation; a timeout is unknown, never failed. | `rewards_payout_open`, `rewards_payout_settle`, `rewards_payout_claim_send`, `admin_rewards_payout_decide` |
+| `rewards_transfer_events` | what the provider told Vallo about a payout transfer, by webhook. Append-only; the same webhook twice is one row. | `rewards_payout_webhook` |
+| `referrals` | one row per referred member and the reward they earned, through its lifecycle from attributed to paid or reversed. | `referral_attribute`, `referral_try_qualify`, `referral_move`, `rewards_payout_open` |
+| `referral_budget_releases` | budget handed back by a reward that was reversed or rejected before payment; the only thing that may lower a committed total. Append-only. | `referral_release_budget` |
+| `member_subscriptions` | a member's trial or paid subscription to a plan, and the amount charged. | the `subscription_*` functions |
+| `subscription_events` | every subscription event received from Paystack and every move Vallo made. Unique per provider, mode and event key, so a redelivery is a no-op. | `subscription_log` |
 | `platform_revenue` | commission booked by the retired escrow flow. Historical only; nothing writes it now. | nothing since Track A |
 
 How a rent payment settles now:

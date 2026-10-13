@@ -1522,7 +1522,7 @@ export const ig: Dictionary = withFallback({
 
     photos: {
       intro:
-        "Tinye opekempe foto {min}, ruo {max}. Nke mbụ bụ foto mkpuchi, ya mere jiri foto sara mbara nke na-ere ebe ahụ malite.",
+        "Tinye opekempe foto ma ọ bụ vidiyo {min}; {recommended} na-eme ndepụta ka ike. Ruo foto {max} na vidiyo {videos} nke otu nkeji ma ọ bụ nke dị mkpụmkpụ. Nke mbụ bụ foto mkpuchi ma ọ ga-abụrịrị foto, ya mere jiri foto sara mbara nke na-ere ebe ahụ malite.",
       tooNarrow: "Foto ga-esara opekempe {width}px ka ha pụta ìhè n'ihu ngwaọrụ ọ bụla.",
       choose: "Họrọ foto",
       addMore: "Tinye foto ọzọ",

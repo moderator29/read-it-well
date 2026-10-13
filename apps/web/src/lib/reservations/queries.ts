@@ -201,6 +201,9 @@ async function withSeating<T extends ReservationView>(
         ? db.from("reservation_reviews").select("reservation_id").in("reservation_id", ids).eq("author_id", authorId)
         : Promise.resolve({ data: [] as { reservation_id: string }[], error: null }),
     ]);
+    await reportReadError("read.reservations.seatings", seatRead.error);
+    await reportReadError("read.reservations.bills", billRead.error);
+    await reportReadError("read.reservations.reviews", reviewRead.error);
     if (seatRead.error) return views;
     const seats = new Map<string, SeatingView>();
     for (const row of (seatRead.data ?? []) as unknown[]) {

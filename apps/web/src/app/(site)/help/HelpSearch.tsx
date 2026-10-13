@@ -3,6 +3,7 @@
 import { useEffect, useId, useMemo, useState } from "react";
 import { MotionReveal } from "@/components/motion/Reveal";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { countOf } from "@vallo/i18n/core";
 import { topicId } from "./topics";
 import { NoResults, SupportResults, SupportSearchField, useSupportSearch } from "@/components/site/support/SupportSearch";
 
@@ -92,7 +93,7 @@ export function HelpSearch({ faqs }: { faqs: Faq[] }) {
           ? `${faqs.length} answers, and the docs, guides and policies`
           : loading
             ? "Searching..."
-            : `${hits.length} ${hits.length === 1 ? "result" : "results"} across Help, Docs, Guides and policies`}
+            : `${countOf(hits.length, "results", "en")} across Help, Docs, Guides and policies`}
       </p>
 
       {searching ? (

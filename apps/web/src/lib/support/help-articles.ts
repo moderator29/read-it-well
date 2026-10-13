@@ -379,7 +379,7 @@ export const FAQS: Faq[] = [
   {
     category: "Verification and trust",
     q: "Does a badge mean a person cannot defraud me?",
-    a: "No. A badge shows what Vallo has checked or what a person has earned, such as a quick first reply. It is not a guarantee against fraud. Pay only inside Vallo, and only after you have seen the property.",
+    a: "No. A badge shows what Vallo has confirmed or what a person has earned, such as a quick first reply. It is not a guarantee against fraud. Pay only inside Vallo, and only after you have seen the property.",
   },
   {
     category: "Verification and trust",

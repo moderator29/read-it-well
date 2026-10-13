@@ -51,6 +51,8 @@ export const unitsEn = {
   windows: { one: "1 window", other: "{count} windows" },
   stars: { one: "1 star", other: "{count} stars" },
   photos: { one: "1 photo", other: "{count} photos" },
+  videos: { one: "1 video", other: "{count} videos" },
+  results: { one: "1 result", other: "{count} results" },
   cuisines: { one: "1 cuisine", other: "{count} cuisines" },
   reports: { one: "1 report", other: "{count} reports" },
   heldItems: { one: "1 held item", other: "{count} held items" },
