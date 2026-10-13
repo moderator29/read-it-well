@@ -38,6 +38,7 @@
 import type { EmailMessage } from "./messages";
 import {
   appUrl,
+  buttonHtml,
   clip,
   documentHtml,
   escapeHtml,
@@ -51,8 +52,8 @@ import {
   siteUrl,
   SUBJECT_MAX,
 } from "./render";
-import type { EmailKind } from "./icons";
-import { BRAND, BUTTON_GRADIENT, FONT_SANS, LEGAL_LINE, LIGHT, LINK, SIGN_OFF } from "./theme";
+import { EMAIL_SHOWS_OBJECT, type EmailKind } from "./icons";
+import { FONT_SANS, LEGAL_LINE, LIGHT, LINK, SIGN_OFF } from "./theme";
 
 /**
  * What somebody said they came here to do.
@@ -321,16 +322,8 @@ const VERSIONS: Record<SignupRole | "general", Version> = {
 
 /* ---------------------------------------------------------------- helpers */
 
-/** A theme hex as an rgba() string, so the bloom stays on the palette. */
 /** The whole of the welcome's words: the shared lines and every version. */
 export const WELCOME_COPY = { ...CHROME, versions: VERSIONS } as const;
-
-function rgba(hex: string, alpha: number): string {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return `rgba(${r},${g},${b},${alpha})`;
-}
 
 function href(link: Step["link"]): string {
   return appUrl(link.path) + (link.query ? `?${link.query}` : "");
@@ -379,8 +372,6 @@ const PHONE_STYLE = `
         .wm-hero  { padding: 22px 18px 18px !important; }
         .wm-value { padding: 16px 16px 16px 14px !important; }
         .wm-plate { width: 36px !important; padding-right: 10px !important; }
-        .wm-btn   { width: 100% !important; }
-        .wm-btn a { display: block !important; }
       }`;
 
 function valueCard(step: Step, index: number): string {
@@ -405,23 +396,7 @@ function valueCard(step: Step, index: number): string {
 }
 
 function litButton(label: string, url: string): string {
-  const safeUrl = escapeHtml(url);
-  const safeLabel = escapeHtml(label);
-  return `<!--[if mso]>
-                  <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${safeUrl}" style="height:52px;v-text-anchor:middle;width:240px;" arcsize="27%" strokecolor="${LINK}" strokeweight="1px" fillcolor="${BRAND}">
-                    <w:anchorlock/>
-                    <center style="color:#FFFFFF;font-family:'Segoe UI',Arial,sans-serif;font-size:16px;font-weight:600;">${safeLabel}</center>
-                  </v:roundrect>
-                  <![endif]-->
-                  <!--[if !mso]><!-->
-                  <table role="presentation" class="wm-btn" cellpadding="0" cellspacing="0" style="margin:6px 0 0;">
-                    <tr>
-                      <td align="center" bgcolor="${BRAND}" style="border-radius:14px;background-color:${BRAND};background-image:${BUTTON_GRADIENT};box-shadow:0 10px 24px -10px ${rgba(BRAND, 0.55)};">
-                        <a href="${safeUrl}" target="_blank" style="display:inline-block;padding:15px 36px 16px;${TEXT}font-size:16px;line-height:20px;font-weight:600;letter-spacing:-0.01em;color:#FFFFFF;text-decoration:none;border-radius:14px;">${safeLabel}&nbsp;&nbsp;&rarr;</a>
-                      </td>
-                    </tr>
-                  </table>
-                  <!--<![endif]-->`;
+  return buttonHtml(label, url, { arrow: true, margin: "6px 0 0" });
 }
 
 function renderHtml(version: Version, greetingLine: string, icon: EmailKind): string {
@@ -437,7 +412,7 @@ function renderHtml(version: Version, greetingLine: string, icon: EmailKind): st
   ).join("\n                        ");
   const hero = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;margin:0 0 26px;">
                   <tr>
-                    <td class="rm-panel wm-hero" bgcolor="${LIGHT.panel}" style="background-color:${LIGHT.panel};background-image:linear-gradient(160deg,${rgba(BRAND, 0.22)} 0%,${rgba(BRAND, 0)} 62%);border:1px solid ${LIGHT.edge};border-top:1px solid ${BRAND};border-radius:18px;padding:26px 24px 22px;">
+                    <td class="rm-panel wm-hero" bgcolor="${LIGHT.panel}" style="background-color:${LIGHT.panel};border:1px solid ${LIGHT.edge};border-radius:16px;padding:26px 24px 22px;">
                       <p class="rm-link" style="margin:0 0 12px;${TEXT}font-size:12px;line-height:16px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${LINK};">${escapeHtml(EYEBROW)}</p>
                       <h1 class="wm-h1" style="margin:0 0 14px;${TEXT}font-size:31px;line-height:1.18;font-weight:700;letter-spacing:-0.025em;color:${LIGHT.text};"><span class="rm-title" style="color:${LIGHT.text};">${escapeHtml(greetingLine)}</span><br /><span class="rm-link" style="color:${LINK};">${escapeHtml(HEADLINE_TWO)}</span></h1>
                       <p class="rm-body" style="margin:0 0 10px;${TEXT}font-size:17px;line-height:1.6;color:${LIGHT.body};">${escapeHtml(WHAT_VALLO_IS)}</p>
@@ -460,7 +435,7 @@ function renderHtml(version: Version, greetingLine: string, icon: EmailKind): st
     headExtra:
       "\n    <!--[if mso]><noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript><![endif]-->",
     extraStyle: PHONE_STYLE,
-    card: `${heroMarkHtml(icon)}
+    card: `${EMAIL_SHOWS_OBJECT ? heroMarkHtml(icon) : ""}
                 ${hero}
                 <p class="rm-body" style="margin:0 0 24px;${TEXT}font-size:16px;line-height:1.65;color:${LIGHT.body};">${escapeHtml(version.opening)}</p>
                 <p class="rm-muted" style="margin:0 0 12px;${TEXT}font-size:12px;line-height:16px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:${LIGHT.muted};">${escapeHtml(SECTION_LABEL)}</p>
@@ -531,7 +506,7 @@ function renderText(version: Version, greetingLine: string): string {
       wrap(FOOTER_REASON),
       `${FOOTER_LINK_LABEL}: ${appUrl("/settings/notifications")}`,
       "",
-      footerLinksText(),
+      footerLinksText({ skipSettings: true }),
       "",
       SIGN_OFF,
       LEGAL_LINE,

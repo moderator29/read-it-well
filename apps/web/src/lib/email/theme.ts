@@ -357,7 +357,7 @@ export const SIGN_OFF = "Vallo";
  * again silently. That assertion is the point: a duplicated fact with no test
  * between the copies is a fact that will be half updated.
  */
-export const LEGAL_LINE = "VALLO SPACES LTD (RC 9870413), Abuja, Nigeria";
+export const LEGAL_LINE = "VALLO SPACES LTD (RC 9870413), Plot 5, Zone 6, Dutse Alhaji, Bwari Area Council, FCT, Abuja, Nigeria";
 
 /**
  * WHAT THE DARK SCHEME MAKES OF EACH CLASS, in one table the style block and

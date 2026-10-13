@@ -163,6 +163,32 @@ decisions are sent.
 
 ---
 
+### 1c. The payment and stay emails (13 October 2026): written by pending migrations nt02, nt05 and nt06
+
+Five templates, built in `lib/email/lifecycle-messages.ts`, registered in
+`lib/notify/templates.ts`, written by the triggers and the existing member
+reminder sweep in `supabase/migrations/pending/nt0*.sql` (HELD until applied:
+apply them before this branch's code is deployed or after, in either case the
+drain only drops a row whose template the running code lacks). The map of every
+event and channel is `docs/NOTIFICATIONS_MAP.md`.
+
+| Template key | Builder | What writes the row | Dedupe key | `/settings` mute | State |
+|---|---|---|---|---|---|
+| `payment.host_received` | `paymentHostReceived` | a stay charge becoming SUCCESSFUL (`private.tell_payment_received`), to the host | `payment:host:<transaction id>` | none | HELD (nt02) |
+| `payment.rent_receipt` | `paymentRentReceipt` | a rent or flatmate-share charge becoming SUCCESSFUL, to the payer | `payment:rent:<transaction id>` | none | HELD (nt02) |
+| `stay.review_request` | `stayReviewRequest` | the member reminder sweep, the day after check-out, no review yet | `stay:review:<booking id>` | **Bookings** | HELD (nt05) |
+| `message.unread` | `unreadMessages` | the same sweep, a run of messages unread for two hours (not the first of a thread) | `unread:<conversation>:<recipient>:<first unread message>` | **Messages** | HELD (nt05) |
+| `booking.request_closed` | `bookingRequestClosed` | a booking moving PENDING to CANCELLED by somebody other than the guest, never paid, not rent | `booking:<booking id>:request_closed` | **Bookings** | HELD (nt06) |
+
+Every message, these and the older ones, now shares one layout (the lockup,
+one headline, a short paragraph, one flat brand-blue button, a quiet details
+panel, and a footer with notification settings, help, the two legal pages and
+the company line with its registered address). See the redesign note in
+`lib/email/render.ts`; the 3D object and the row glyphs are switched off by
+two flags in `lib/email/icons.ts` and can be switched back on there.
+
+---
+
 ## 2. The direct senders: a server action, a webhook or a route sends it there and then
 
 Twenty builders, for an event TypeScript can already see.

@@ -36,6 +36,20 @@ import type { Icon3DName } from "@/components/ui/icon-3d";
  * module) carry the same 3D marks from `public/brand/3d/email/`.
  */
 
+/**
+ * THE QUIET LAYOUT (13 October 2026, the email redesign). One layout for every
+ * message: the lockup, one headline, a short body, one button, a quiet details
+ * block and the footer. The two decorations below are switched OFF so the page
+ * has one thing to look at; the art, the mapping and the rendering code are all
+ * kept, so putting either back is changing one of these two flags and nothing
+ * else.
+ *
+ *   EMAIL_SHOWS_OBJECT      the founder's 3D object above the headline
+ *   EMAIL_SHOWS_ROW_GLYPHS  the 16px line glyph before a details row's label
+ */
+export const EMAIL_SHOWS_OBJECT = false;
+export const EMAIL_SHOWS_ROW_GLYPHS = false;
+
 /** Every 3D object an email carries. Each has a PNG pair on disk (icons.test.ts). */
 export const EMAIL_OBJECTS = [
   "envelope",
@@ -128,6 +142,12 @@ export type EmailKind =
   | "bookingCancelled"
   | "bookingRefunded"
   | "refundRequested"
+  | "bookingRequestClosed"
+  | "paymentHostReceived"
+  | "paymentRentReceipt"
+  | "stayReviewRequest"
+  // Messages
+  | "unreadMessages"
   // Tables
   | "reservationConfirmed"
   | "reservationCancelled"
@@ -244,6 +264,12 @@ export const EMAIL_PLAN: Readonly<Record<EmailKind, Plan>> = {
   /* Money coming back to somebody: the open hand with the naira coin. */
   bookingRefunded: p("payment", "earnings"),
   refundRequested: p("payment", "earnings"),
+  /* Money reaching a host: the open hand with the naira coin. */
+  bookingRequestClosed: p("stay", "calendar-pending"),
+  paymentHostReceived: p("payment", "earnings"),
+  paymentRentReceipt: p("payment", "pay"),
+  stayReviewRequest: p("stay", "calendar-booked"),
+  unreadMessages: p("message", "local-talks"),
 
   reservationConfirmed: p("table", "restaurant"),
   reservationCancelled: p("table", "restaurant"),
