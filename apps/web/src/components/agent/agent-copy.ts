@@ -35,11 +35,14 @@ export function forApply(t: Dictionary): ApplyCopy {
 /** The reply to a reviewer's request (`RespondToReview`), plus the two upload cards it draws. */
 export type RespondCopy = UploadCopy & {
   agent: { status: Pick<Dictionary["agent"]["status"], "respond"> };
+  /** Ruling 6: the Terms, Privacy Policy and pay-on-Vallo ticks on a resubmission. */
+  payChoice: Pick<Dictionary["payChoice"], "accept">;
 };
 
 export function forRespond(t: Dictionary): RespondCopy {
   return {
     agent: { status: { respond: t.agent.status.respond } },
     supply: { register: t.supply.register },
+    payChoice: { accept: t.payChoice.accept },
   };
 }

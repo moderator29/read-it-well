@@ -428,7 +428,8 @@ export default async function ConversationPage({
         accountCopy={t.trustVisible.account}
         scamCopy={t.memberKit.scam}
         dayKitCopy={t.memberKit.dayKit}
-        calls={{ copy: t.calls, enabled: callsOn }}
+        calls={{ copy: t.calls, enabled: callsOn, words: t.chatPolish.calls }}
+        viewerCopy={t.chatPolish.viewer}
         messages={thread.messages.map((m): ThreadBubble => {
           const card = cards.get(m.id);
           const callId = threadCalls.markers.get(m.id);

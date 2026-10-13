@@ -41,6 +41,7 @@ const AUTH_FLOW_KEYS = [
  *   trustVisible.report        the report sheet
  *   counts, reserve            the listing page's booking bar and panel
  *   uiCommon.around, .inbox    a post's place line, the inbox tabs
+ *   feedV2.card, .composer     a post card's words, the post and story composers
  *   authFlow (the keys below)  Apple sign-in, the auth error, the verify screens
  *   catalogue.card             the listing gallery's empty frame
  *   frontDoor.share            the listing page's share control
@@ -67,6 +68,7 @@ export type ClientCopy = {
   counts: Dictionary["counts"];
   reserve: Dictionary["reserve"];
   uiCommon: Pick<Dictionary["uiCommon"], "around" | "inbox">;
+  feedV2: Pick<Dictionary["feedV2"], "card" | "composer">;
   authFlow: Pick<Dictionary["authFlow"], (typeof AUTH_FLOW_KEYS)[number]>;
   catalogue: Pick<Dictionary["catalogue"], "card">;
   frontDoor: Pick<Dictionary["frontDoor"], "share">;
@@ -103,6 +105,7 @@ export function clientCopyOf(t: Dictionary): ClientCopy {
     counts: t.counts,
     reserve: t.reserve,
     uiCommon: { around: t.uiCommon.around, inbox: t.uiCommon.inbox },
+    feedV2: { card: t.feedV2.card, composer: t.feedV2.composer },
     authFlow: Object.fromEntries(
       AUTH_FLOW_KEYS.map((key) => [key, t.authFlow[key]])
     ) as ClientCopy["authFlow"],

@@ -22,6 +22,7 @@ import { CreateBloom, type BloomArea, type ReviewableStay } from "./bloom/Create
 export async function AroundFab({
   currentAreaId,
   compose = false,
+  you = null,
 }: {
   /** Preselected when the bloom is opened from inside a place. */
   currentAreaId?: string;
@@ -30,6 +31,8 @@ export async function AroundFab({
    * feed" here as `/around?compose=1` (`CreateDock`).
    */
   compose?: boolean;
+  /** Who is writing: the face and name the composer shows at its top. */
+  you?: { label: string; avatarUrl: string } | null;
 }) {
   if (!(await isSocialEnabled())) return null;
 
@@ -68,6 +71,7 @@ export async function AroundFab({
       }
       reviewable={reviewable}
       initialCompose={compose}
+      you={you}
     />
   );
 }

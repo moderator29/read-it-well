@@ -1,12 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { getDictionary } from "@vallo/i18n";
 import { fail, ok, type ActionResult } from "../actions/envelope";
 import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../actions/session";
 import { getLocale } from "../locale";
 import { pathsBelongTo, reviewResponseSchema } from "./application-respond-schema";
 import { documentToSupersede } from "./supersedes";
+import { ACCEPT_PAY_REQUIRED, ACCEPT_TERMS_REQUIRED, withWorkspaceAcceptance } from "../legal/workspace-acceptance";
 
 /**
  * SUP-05: answer a reviewer who sent the application back.
@@ -30,6 +32,9 @@ export async function respondToReview(input: unknown): Promise<ActionResult<{ re
     return fail(empty ? copy.needSomething : (parsed.error.issues[0]?.message ?? copy.failed));
   }
   const value = parsed.data;
+  /* Ruling 6: the two ticks, as on a first submission (the form asks first). */
+  if (!value.acceptTerms) return fail(ACCEPT_TERMS_REQUIRED);
+  if (!value.acceptPayOnVallo) return fail(ACCEPT_PAY_REQUIRED);
 
   const session = await resolveSession();
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
@@ -49,6 +54,14 @@ export async function respondToReview(input: unknown): Promise<ActionResult<{ re
     .maybeSingle();
   if (readError) return fail(copy.failed);
   if (!application || application.status !== "MORE_INFO_REQUIRED") return fail(copy.notWaiting);
+  /* The acceptance already on record (pending migration pov07 adds the
+     column; until the types are regenerated it is read untyped). */
+  const { data: consentRow } = await (supabase as unknown as SupabaseClient)
+    .from("agent_applications")
+    .select("consents")
+    .eq("id", application.id)
+    .maybeSingle();
+  const priorConsents = (consentRow as { consents?: unknown } | null)?.consents ?? null;
 
   if (value.documents.length > 0) {
     /* A document sent in answer to a refusal REPLACES the refused one, and
@@ -80,8 +93,10 @@ export async function respondToReview(input: unknown): Promise<ActionResult<{ re
     .from("agent_applications")
     .update({
       status: "SUBMITTED",
+      /* The acceptance is appended (the record is a history) with its versions and the moment. */
+      consents: withWorkspaceAcceptance(priorConsents, new Date().toISOString()),
       ...(value.answer.length > 0 ? { applicant_response: value.answer } : {}),
-    })
+    } as never)
     .eq("id", application.id)
     .eq("status", "MORE_INFO_REQUIRED")
     .select("id");

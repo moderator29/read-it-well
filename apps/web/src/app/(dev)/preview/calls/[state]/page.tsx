@@ -13,5 +13,5 @@ import { CALL_PREVIEW_STATES, type CallPreviewState } from "../fixtures";
 export default async function CallPreviewPage({ params }: { params: Promise<{ state: string }> }) {
   const { state } = await params;
   if (!(CALL_PREVIEW_STATES as readonly string[]).includes(state)) notFound();
-  return <CallsPreview state={state as CallPreviewState} copy={getDictionary("en").calls} />;
+  return <CallsPreview state={state as CallPreviewState} copy={getDictionary("en").calls} words={getDictionary("en").chatPolish.calls} />;
 }

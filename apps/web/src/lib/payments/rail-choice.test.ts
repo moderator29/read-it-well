@@ -82,6 +82,37 @@ describe("what the payment step draws, for every kind of deal", () => {
   });
 });
 
+describe("escrow appears only when the server reads it as working (protectedRailLive)", () => {
+  it("open: nothing changes", () => {
+    expect(readPayChoice(answer(), true)?.escrowPaused).toBeUndefined();
+    expect(payChoiceView(readPayChoice(answer(), true))).toMatchObject({ mode: "choose" });
+  });
+
+  it("paused on a rent or shortlet: card is offered instead, and stored when the payer continues", () => {
+    const choice = readPayChoice(answer(), false);
+    expect(choice).toMatchObject({ options: ["card"], defaultRail: "card", escrowPaused: true });
+    expect(payChoiceView(choice)).toEqual({ mode: "card_escrow_paused", selected: "card", canChoose: true });
+  });
+
+  it("paused, card already stored: the payer goes straight to the card checkout", () => {
+    expect(payChoiceView(readPayChoice(answer({ chosen: "card", rail: "card" }), false))).toMatchObject({
+      mode: "card_escrow_paused",
+      canChoose: false,
+    });
+  });
+
+  it("paused on a purchase: nothing can be paid, said plainly, no button", () => {
+    const view = payChoiceView(readPayChoice(answer({ options: ["escrow"] }), false));
+    expect(view).toEqual({ mode: "escrow_paused", selected: null, canChoose: false });
+  });
+
+  it("paused never touches a hotel room (card only)", () => {
+    const choice = readPayChoice(answer({ options: ["card"], default: "card", rail: "card" }), false);
+    expect(choice?.escrowPaused).toBeUndefined();
+    expect(payChoiceView(choice)).toMatchObject({ mode: "card_only" });
+  });
+});
+
 describe("where each rail goes next", () => {
   const ag = { id: "ag-1", kind: "stay", bookingId: "bk-1", inspectionId: null };
   it("escrow goes to the escrow step", () => {

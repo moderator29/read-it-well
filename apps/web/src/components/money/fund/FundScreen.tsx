@@ -26,6 +26,7 @@ export function FundScreen({
   locale,
   control,
   backHref,
+  fallback,
 }: {
   facts: FundFacts;
   model: Exclude<FundModel, { kind: "go_held" }>;
@@ -33,6 +34,11 @@ export function FundScreen({
   /** The swipe, offered only when the model is ready. */
   control: ReactNode;
   backHref: string;
+  /**
+   * The calm way out to card (founder instruction, 13 October 2026: nobody is
+   * stranded), drawn only where the page read that card is allowed here.
+   */
+  fallback?: ReactNode;
 }) {
   const money = (minor: number) => formatMoney(minor, locale, "NGN");
   const full = money(facts.amountMinor);
@@ -51,6 +57,7 @@ export function FundScreen({
       {model.kind === "closed" ? (
         <div className="nf-fund__closed" role="status">
           <p>{model.body}</p>
+          {fallback ?? null}
           <Link href={backHref} className="nf-fund__quiet nf-tap">
             Back to the agreement
           </Link>
@@ -128,6 +135,7 @@ export function FundScreen({
                 {model.balanceAction.label}
               </Link>
             ) : null}
+            {fallback ?? null}
             <Link href={backHref} className="nf-fund__quiet nf-tap">
               Back to the agreement
             </Link>

@@ -68,6 +68,11 @@ describe("choosePaymentRail", () => {
     expect(await choosePaymentRail({ agreementId: AG, choice: "card" })).toEqual({ ok: false, error: "unavailable" });
   });
 
+  it("says when the new rail sends the deal to a person first (pov04: never a dead end)", async () => {
+    seam.answer = { data: { status: "ok", choice: "card", review: true }, error: null };
+    expect(await choosePaymentRail({ agreementId: AG, choice: "card" })).toEqual({ ok: true, data: { choice: "card", review: true } });
+  });
+
   it("signed out is told so", async () => {
     seam.state = "signed-out";
     expect(await choosePaymentRail({ agreementId: AG, choice: "card" })).toEqual({ ok: false, error: "signed out" });

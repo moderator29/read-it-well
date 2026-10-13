@@ -45,6 +45,12 @@ describe("payluk merchant helpers", () => {
     expect(paylukMerchantConfig({ PAYLUK_SECRET_KEY: "sk_test_wrongslot" })).toBeNull();
     expect(paylukMerchantConfig({ PAYLUK_TEST_SECRET_KEY: "sk_test_a" })?.baseUrl).toBe("https://staging.api.payluk.ng");
     expect(paylukMerchantConfig({ PAYLUK_SECRET_KEY: "sk_live_a" })?.environment).toBe("production");
+    /* The live key only in production: a preview with both keys uses the test key. */
+    expect(paylukMerchantConfig({ PAYLUK_SECRET_KEY: "sk_live_a", VERCEL_ENV: "production" })?.environment).toBe("production");
+    expect(
+      paylukMerchantConfig({ PAYLUK_SECRET_KEY: "sk_live_a", PAYLUK_TEST_SECRET_KEY: "sk_test_a", VERCEL_ENV: "preview" })?.environment,
+    ).toBe("staging");
+    expect(paylukMerchantConfig({ PAYLUK_SECRET_KEY: "sk_live_a", VERCEL_ENV: "preview" })).toBeNull();
   });
   it("reads the RateLimit header", () => {
     expect(rateLimitRemaining("limit=10, remaining=3, reset=41")).toBe(3);

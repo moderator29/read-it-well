@@ -8,6 +8,7 @@ import { TYPE } from "@/components/app/Screen";
 import { UploadCard, newBatchId, type UploadState } from "@/components/supply/UploadCard";
 import { respondToReview } from "@/lib/agent/application-respond";
 import { RESPONSE_MAX_CHARS } from "@/lib/agent/application-respond-model";
+import { WorkspaceAcceptance } from "@/components/legal/WorkspaceAcceptance";
 
 /**
  * SUP-05: the way forward from "Needs more information".
@@ -30,6 +31,9 @@ export function RespondToReview({ t, business = false }: { t: RespondCopy; busin
   const [registration, setRegistration] = useState<UploadState | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [acceptPay, setAcceptPay] = useState(false);
+  const [askedTicks, setAskedTicks] = useState(false);
   const [pending, startTransition] = useTransition();
 
   if (sent) {
@@ -42,13 +46,19 @@ export function RespondToReview({ t, business = false }: { t: RespondCopy; busin
 
   function send() {
     setError(null);
+    /* Ruling 6: the resubmission records the Terms, the Privacy Policy and
+       the pay-on-Vallo statement, as the first submission did. */
+    if (!acceptTerms || !acceptPay) {
+      setAskedTicks(true);
+      return;
+    }
     const documents = [
       ...(identity ? [{ kind: "identity" as const, path: identity.path }] : []),
       ...(address ? [{ kind: "address" as const, path: address.path }] : []),
       ...(business && registration ? [{ kind: "business" as const, path: registration.path }] : []),
     ];
     startTransition(async () => {
-      const result = await respondToReview({ answer, documents });
+      const result = await respondToReview({ answer, documents, acceptTerms, acceptPayOnVallo: acceptPay });
       if (result.ok) setSent(true);
       else setError(result.error);
     });
@@ -104,6 +114,15 @@ export function RespondToReview({ t, business = false }: { t: RespondCopy; busin
           onChange={setRegistration}
         />
       ) : null}
+
+      <WorkspaceAcceptance
+        copy={t.payChoice}
+        terms={acceptTerms}
+        pay={acceptPay}
+        onTerms={setAcceptTerms}
+        onPay={setAcceptPay}
+        showError={askedTicks}
+      />
 
       {error ? (
         <p role="alert" className="text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-state-error)]">

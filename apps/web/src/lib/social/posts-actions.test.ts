@@ -12,6 +12,7 @@ const reads = vi.hoisted(() => ({
   getAreaFeed: vi.fn(),
   getEverywhereFeed: vi.fn(),
   getJoinedFeed: vi.fn(),
+  getFriendsFeed: vi.fn(),
   session: { state: "signed-in", user: { id: "user-1" } } as { state: string; user?: { id: string } },
 }));
 
@@ -20,6 +21,7 @@ vi.mock("./posts-queries", () => ({
   getAreaFeed: reads.getAreaFeed,
   getEverywhereFeed: reads.getEverywhereFeed,
   getJoinedFeed: reads.getJoinedFeed,
+  getFriendsFeed: reads.getFriendsFeed,
 }));
 vi.mock("./flag", () => ({ SOCIAL_OFF_MESSAGE: "off", isSocialEnabled: async () => true }));
 vi.mock("../actions/session", () => ({
@@ -40,6 +42,7 @@ beforeEach(() => {
   reads.getAreaFeed.mockReset().mockResolvedValue(PAGE);
   reads.getEverywhereFeed.mockReset().mockResolvedValue(PAGE);
   reads.getJoinedFeed.mockReset().mockResolvedValue(PAGE);
+  reads.getFriendsFeed.mockReset().mockResolvedValue(PAGE);
   reads.session = { state: "signed-in", user: { id: "user-1" } };
 });
 
@@ -95,6 +98,22 @@ describe("loadMoreFeed", () => {
     const { loadMoreFeed } = await import("./posts-actions");
     await loadMoreFeed("2026-09-18T12:00:00.000Z", { kind: "joined" });
     expect(reads.getJoinedFeed).toHaveBeenCalledWith("user-1", "2026-09-18T12:00:00.000Z");
+  });
+
+  it("pages the Friends timeline (the people you follow) as the signed-in viewer", async () => {
+    const { loadMoreFeed } = await import("./posts-actions");
+    const result = await loadMoreFeed("2026-09-18T12:00:00.000Z", { kind: "friends" });
+    expect(reads.getFriendsFeed).toHaveBeenCalledWith("user-1", "2026-09-18T12:00:00.000Z");
+    expect(reads.getJoinedFeed).not.toHaveBeenCalled();
+    expect(result.ok).toBe(true);
+  });
+
+  it("answers an ended page for Friends when nobody is signed in", async () => {
+    reads.session = { state: "signed-out" };
+    const { loadMoreFeed } = await import("./posts-actions");
+    const result = await loadMoreFeed("2026-09-18T12:00:00.000Z", { kind: "friends" });
+    expect(result).toEqual({ ok: true, data: { posts: [], cursor: null, ended: true } });
+    expect(reads.getFriendsFeed).not.toHaveBeenCalled();
   });
 
   it("answers an ended page for a joined timeline when nobody is signed in", async () => {

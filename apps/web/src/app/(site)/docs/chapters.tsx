@@ -39,8 +39,7 @@ import {
   CARD_MEANS,
   COMMISSION_FROM_SHARE,
   ESCROW_MEANS,
-  ESCROW_NOT_OPEN_YET,
-  ESCROW_OPEN,
+  ESCROW_PAUSED,
   ESCROW_OR_CARD,
   HOTEL_ROOM_BY_CARD,
   PAY_INSIDE_VALLO,
@@ -371,7 +370,7 @@ const PAYING_ON_VALLO: DocChapter = {
           <p>{ESCROW_MEANS}</p>
           <p>{RAIL_COPY.protected.refund}</p>
           <p>{SALE_IS_ESCROW}</p>
-          {ESCROW_OPEN ? null : <p>{ESCROW_NOT_OPEN_YET}</p>}
+          <p>{ESCROW_PAUSED}</p>
         </>
       ),
     },
@@ -959,7 +958,7 @@ const TROUBLESHOOTING: DocChapter = {
           <li>For rent or a sale, both of you must confirm the agreement first.</li>
           <li>For a shortlet that is a request, the host must accept first.</li>
           <li>The lister may not have added a payout account yet. Message them.</li>
-          {ESCROW_OPEN ? null : <li>{ESCROW_NOT_OPEN_YET}</li>}
+          <li>{ESCROW_PAUSED}</li>
         </ul>
       ),
     },

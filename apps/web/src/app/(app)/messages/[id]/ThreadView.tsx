@@ -70,6 +70,8 @@ import { dayHeading, dayStarts } from "@/components/app/threads/day";
 import { useInboxPart } from "@/components/app/threads/use-inbox-copy";
 import { CallButtons } from "@/components/calls/CallButtons";
 import { CallHistoryRow } from "@/components/calls/CallHistoryRow";
+import type { CallPillWords } from "@/components/calls/call-pill-words";
+import { MediaViewer, type ViewerCopy, type ViewerItem } from "@/components/app/messages/MediaViewer";
 import { placeCall } from "@/components/calls/place-call";
 import { callMarkerView, type CallMarkerView } from "@/lib/calls/screen";
 
@@ -284,7 +286,13 @@ export type ThreadViewProps = {
    * `video_calls` switch on for a signed-in reader; absent draws no call
    * buttons and no call-back controls (call markers still render as rows).
    */
-  calls?: { copy: Dictionary["calls"]; enabled: boolean } | null;
+  calls?: { copy: Dictionary["calls"]; enabled: boolean; words: CallPillWords } | null;
+  /**
+   * The full-screen viewer's words (`chatPolish.viewer`). Present: a tap on a
+   * photo (or a video) in a bubble opens it full screen, the thread's photos in
+   * order. Absent: the photos are pictures only, as they were.
+   */
+  viewerCopy?: ViewerCopy | null;
 };
 
 const INSPECTIONS_KEY = "nf_inspections";
@@ -446,6 +454,7 @@ export function ThreadView({
   nowMs,
   inboxThreadCopy,
   calls = null,
+  viewerCopy = null,
 }: ThreadViewProps) {
   const [items, setItems] = useState<ThreadBubble[]>(messages);
   /* The message being answered, set by Reply in the message menu or by a
@@ -508,6 +517,8 @@ export function ThreadView({
      where the reader came in until they leave. */
   const [unreadAnchor] = useState(unread);
   const [jumpedId, setJumpedId] = useState<string | null>(null);
+  /* The photo or video open full screen, by its id in the viewer's list. */
+  const [viewerId, setViewerId] = useState<string | null>(null);
   /*
    * THE ACCEPT CEREMONY (pitch 13). When an inspection is accepted in the
    * banner below, the header tints once through the existing
@@ -929,6 +940,33 @@ export function ThreadView({
     context?.kind === "booking" ? "bed" : context?.kind === "reservation" ? "calendar-clock" : "chat-bubble";
   const tags = roleTags(context, role);
   const bundles = bundlePhotos(items);
+  /* THE VIEWER'S LIST: every photo and video in the thread, in thread order, so
+     a swipe in the full-screen viewer moves on through the conversation. Each
+     carries who sent it and when, for the line at the top. A deleted message
+     has no photo to show. */
+  const mediaItems: ViewerItem[] = viewerCopy
+    ? items.flatMap((m): ViewerItem[] => {
+        if (m.deleted) return [];
+        const who = m.mine ? viewerCopy.you : counterpartName;
+        const day = m.createdAt ? dayHeading(m.createdAt, locale, threadWords.day, nowMs) : "";
+        const when = [day, m.timeLabel].filter(Boolean).join(", ");
+        const out: ViewerItem[] = [];
+        if (m.imageUrl) {
+          out.push({
+            id: m.id,
+            kind: "photo",
+            src: m.imageUrl,
+            alt: m.mine ? "Photo you attached" : `Photo from ${counterpartName}`,
+            name: who,
+            when,
+          });
+        }
+        if (m.file?.url && (m.file.mime ?? "").toLowerCase().startsWith("video/")) {
+          out.push({ id: `${m.id}:file`, kind: "video", src: m.file.url, alt: "", name: who, when });
+        }
+        return out;
+      })
+    : [];
   /*
    * THE STAY IS SAID ONCE.
    *
@@ -1291,8 +1329,9 @@ export function ThreadView({
                 <div data-msg-id={m.id}>
                   <CallHistoryRow
                     view={m.call.view}
+                    name={counterpartName}
                     timeLabel={m.timeLabel}
-                    copy={calls.copy}
+                    words={calls.words}
                     onCallBack={
                       calls.enabled && live
                         ? () => void placeCall({ conversationId, kind, context: { line: callContextLine } })
@@ -1384,12 +1423,24 @@ export function ThreadView({
                         photos={photos.map((p) => ({ id: p.id, url: p.imageUrl ?? "", size: p.imageSize ?? null }))}
                         alt={m.mine ? "Photo you attached" : `Photo from ${counterpartName}`}
                         locale={locale}
+                        onOpen={viewerCopy ? setViewerId : undefined}
+                        openLabel={viewerCopy?.openPhoto}
                       />
                     ) : null}
                     {m.forwarded ? <span className="nf-bubble__forwarded">Forwarded</span> : null}
                     {m.deleted ? <p className="nf-bubble__deleted">This message was deleted</p> : null}
                     {m.audio ? <VoiceNote note={m.audio} mine={m.mine} copy={threadWords.voice} /> : null}
-                    {m.file ? (
+                    {m.file && viewerCopy && (m.file.mime ?? "").toLowerCase().startsWith("video/") ? (
+                      <button
+                        type="button"
+                        className="nf-video-tile"
+                        onClick={() => setViewerId(`${m.id}:file`)}
+                        aria-label={`${viewerCopy.openVideo}. ${m.mine ? "Video you attached" : `Video from ${counterpartName}`}`}
+                        data-testid="video-tile"
+                      >
+                        <UiIcon name="circle-play" size={44} filled />
+                      </button>
+                    ) : m.file ? (
                       <AttachmentRow
                         url={m.file.url}
                         name={m.file.name}
@@ -1651,6 +1702,9 @@ export function ThreadView({
             setActionNote({ tone: "done", text: `Forwarded to ${target.name}.` });
           }}
         />
+      ) : null}
+      {viewerCopy && viewerId && mediaItems.some((x) => x.id === viewerId) ? (
+        <MediaViewer items={mediaItems} startId={viewerId} copy={viewerCopy} onClose={() => setViewerId(null)} />
       ) : null}
     </div>
   );

@@ -9,6 +9,8 @@ import { readFundPayment } from "@/lib/money/fund-view";
 import { fundModel } from "@/lib/money/fund-model";
 import { withNext } from "@/lib/auth/next-link";
 import { FundControl } from "./FundControl";
+import { SwitchToCard } from "./SwitchToCard";
+import { readAgreementPayChoice } from "@/lib/payments/rail-choice-read";
 
 /**
  * STEP 7, FUND (D77): the renter pays the agreed rent into escrow, from their
@@ -23,7 +25,17 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 export default async function FundPaymentPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   if (!UUID_RE.test(id)) notFound();
-  const [locale, read] = await Promise.all([getLocale(), readFundPayment(id)]);
+  const [locale, read, payChoice] = await Promise.all([getLocale(), readFundPayment(id), readAgreementPayChoice(id)]);
+  /* The way out to card, where the rules allow it (a purchase is escrow only;
+     a closed or finished agreement has nothing to switch). */
+  const cardAllowed =
+    payChoice !== null &&
+    payChoice.payer &&
+    payChoice.options.includes("card") &&
+    /* An escrow opened and never funded reads as a payment started; the
+       action withdraws it at the partner first, and says so calmly when the
+       money is moving or held instead. */
+    (payChoice.locked === null || payChoice.locked === "payment_started");
 
   if (read.state === "signed-out") {
     return (
@@ -57,6 +69,7 @@ export default async function FundPaymentPage({ params }: { params: Promise<{ id
         locale={locale}
         backHref={`/agreements/${id}`}
         control={<FundControl agreementId={id} amountLabel={formatMoney(read.facts.amountMinor, locale, "NGN")} />}
+        fallback={cardAllowed ? <SwitchToCard agreementId={id} /> : undefined}
       />
     </div>
   );

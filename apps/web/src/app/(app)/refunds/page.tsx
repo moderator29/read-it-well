@@ -9,6 +9,7 @@ import { ButtonLink } from "@/components/ui/Button";
 import { withNext } from "@/lib/auth/next-link";
 import { HistoryUnavailable } from "@/components/app/money-history/HistoryStates";
 import { RefundsView } from "@/components/money/RefundsView";
+import { protectedRailLive } from "@/lib/money/rail-live";
 
 export const metadata: Metadata = { title: "Refunds", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -30,7 +31,7 @@ export default async function RefundsPage({
 }) {
   const locale = await getLocale();
   const before = parseBefore((await searchParams).before);
-  const read = await readMyPayments(before);
+  const [read, protectedRailOpen] = await Promise.all([readMyPayments(before), protectedRailLive()]);
 
   return (
     <main className="nf-page nf-md nf-history">
@@ -51,7 +52,13 @@ export default async function RefundsPage({
           <HistoryUnavailable retryHref="/refunds" />
         </div>
       ) : (
-        <RefundsView entries={read.entries} nextBefore={read.nextBefore} before={before} locale={locale} />
+        <RefundsView
+          entries={read.entries}
+          nextBefore={read.nextBefore}
+          before={before}
+          locale={locale}
+          protectedRailOpen={protectedRailOpen}
+        />
       )}
     </main>
   );

@@ -336,3 +336,90 @@ export async function confirmMilestone(
   });
   return r.ok ? { ok: true, value: true } : r;
 }
+
+/* ------------------------------------------------- withdraw, dispute, resolve */
+
+/**
+ * `DELETE /v1/escrow/delete/{paymentToken}` as the seller (`customer-id`):
+ * withdraw an escrow nobody has funded, so the payer can pay by card instead
+ * and the escrow can never be funded for a deal that moved to card.
+ * Confirmed against api-reference_escrow_delete-escrow (vendored): allowed
+ * only while `AWAITING_PAYMENT` and only by the seller; `400 Action not
+ * allowed` otherwise (the escrow was funded, or is not the seller's). A
+ * refusal therefore means "not withdrawn" and the caller keeps the record.
+ */
+export async function withdrawArrangement(
+  ctx: PaylukContext,
+  sellerCustomerId: string,
+  paymentToken: string,
+): Promise<RailResult<true>> {
+  const r = await paylukRequest(ctx, {
+    method: "DELETE",
+    path: `/v1/escrow/delete/${encodeURIComponent(paymentToken)}`,
+    customerId: sellerCustomerId,
+    mutates: true,
+  });
+  return r.ok ? { ok: true, value: true } : r;
+}
+
+/**
+ * `POST /v1/escrow/submit-dispute/{paymentToken}` as the BUYER (`customer-id`),
+ * `multipart/form-data` with `message` (required) and an optional `file`.
+ * Confirmed against docs.payluk.ng/api-reference/disputes/submit-dispute.md
+ * (read 13 October 2026): the escrow must be `OPENED`; only the buyer opens a
+ * dispute; each side submits once; super-admin key; `400 Action not allowed`
+ * or `Buyer already submitted Dispute` otherwise. Returns the escrow, which
+ * then reads `OPENED / DISPUTED`. This is the only documented road from a
+ * funded escrow back to the payer (findings, question 3), so Vallo opens it
+ * for the payer once a person at Vallo has decided a refund.
+ */
+export async function openDispute(
+  ctx: PaylukContext,
+  buyerCustomerId: string,
+  paymentToken: string,
+  message: string,
+): Promise<RailResult<PaylukArrangement | null>> {
+  const text = message.trim().slice(0, 500);
+  if (!text) return fail("refused", null, "A dispute needs a message.");
+  const r = await paylukRequest(ctx, {
+    method: "POST",
+    path: `/v1/escrow/submit-dispute/${encodeURIComponent(paymentToken)}`,
+    customerId: buyerCustomerId,
+    form: { message: text },
+    mutates: true,
+  });
+  if (!r.ok) return r;
+  return { ok: true, value: parseArrangement(r.data) };
+}
+
+export type DisputeOutcome = "REFUNDED" | "COMPLETED";
+
+/**
+ * `POST /v1/escrow/dispute/resolve/{escrowId}` with NO `customer-id`,
+ * `multipart/form-data`: `resolution` (required text) and `status`
+ * (`COMPLETED` releases to the seller, `REFUNDED` returns the held amount to
+ * the buyer; `SPLIT` is not offered here). Confirmed against
+ * docs.payluk.ng/api-reference/disputes/resolve-dispute.md (read 13 October
+ * 2026): super-admin key; the escrow must belong to one of the merchant's
+ * customers; `400 No dispute found for this escrow` without a dispute,
+ * `400 Escrow already completed` once closed. The escrow fee is never
+ * refunded (the same page). The answer is the escrow; the webhook
+ * (`escrow.refunded` or `escrow.completed`) or a read-back records it.
+ */
+export async function resolveDispute(
+  ctx: PaylukContext,
+  arrangementId: string,
+  outcome: DisputeOutcome,
+  resolution: string,
+): Promise<RailResult<PaylukArrangement | null>> {
+  const text = resolution.trim().slice(0, 500);
+  if (!text) return fail("refused", null, "A resolution needs a note.");
+  const r = await paylukRequest(ctx, {
+    method: "POST",
+    path: `/v1/escrow/dispute/resolve/${encodeURIComponent(arrangementId)}`,
+    form: { resolution: text, status: outcome },
+    mutates: true,
+  });
+  if (!r.ok) return r;
+  return { ok: true, value: parseArrangement(r.data) };
+}

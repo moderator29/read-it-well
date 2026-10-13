@@ -120,9 +120,15 @@ export const BACKED_CLAIMS: readonly BackedClaim[] = [
   /* The protected rail (D50): "protected" names a payment a licensed
      partner holds in escrow until the payer confirms. Every such sentence
      lives in lib/money/copy.ts (RAIL_COPY.protected, PROTECTED_*, the money
-     centre's Protected figure) and is drawn only where railIsLive("protected")
-     is true (lib/money/rails.ts), which is false until ADR-0003 is accepted and
-     the merchant account is live; the dev previews that draw it are fixtures.
+     centre's Protected figure) and is drawn only where the server reads the
+     rail as working: protectedRailLive() in lib/money/rail-live.ts (13 October
+     2026, replacing the constant PROTECTED_RAIL_LIVE), which is true only
+     while a Payluk key is configured for the deployment (live key in
+     production only), PAYMENTS_KILL_PAYLUK is not set and payments_payluk_on
+     is on. "Held" is recorded only from the partner's own report (its signed
+     webhook or a read-back): provider_arrangement_observe refuses any state
+     but "asked" or "unknown" from Vallo itself. The dev previews that draw it
+     are fixtures.
      A9: the entry read `\bprotected payments?\b` unanchored, which backed
      "protected payment" in any sentence on any surface while the rail is not
      live. It now backs the three copy.ts sentences, whole, in copy.ts only. */
@@ -131,7 +137,7 @@ export const BACKED_CLAIMS: readonly BackedClaim[] = [
       /^Your payment is protected through Vallo's transaction infrastructure\.$|^Protected$|^Held in protected payments until each one's release condition is met\. Not yours to withdraw yet\.$/,
     onlyIn: MONEY_COPY_FILE,
     mechanism:
-      "the protected rail: funds held by the licensed provider's escrow until release (docs/payments/VALLO_FINANCIAL_LAYER.md), surfaces gated by PROTECTED_RAIL_LIVE in apps/web/src/lib/money/rails.ts (false until ADR-0003 is accepted and the merchant account is live)",
+      "the protected rail: funds held by the licensed provider's escrow until release (docs/payments/VALLO_FINANCIAL_LAYER.md); a payment reads as held only after the provider reports it (signed webhook or read-back, public.provider_arrangement_observe); surfaces gated on the server by protectedRailLive() in apps/web/src/lib/money/rail-live.ts (Payluk key configured for the deployment, PAYMENTS_KILL_PAYLUK not set, payments_payluk_on on)",
   },
   { phrase: /^; Secure$/, mechanism: "the Secure attribute of the theme cookie (lib/theme/theme-client.ts), an HTTP cookie flag, not copy" },
 

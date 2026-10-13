@@ -1054,6 +1054,7 @@ a fall is emerald. The line is alerts raised per day.
 | canary | Vercel Cron `*/5 * * * *` | every 5 min | 1 h | reads the published catalogue as the public role against the service role's count, and pages a person when it is refused, short or empty (`lib/ops/catalogue-canary.ts`) |
 | email-outbox | Vercel Cron `*/15 * * * *` | every 15 min | 2 h | sends the queued emails in `email_outbox` |
 | crypto-reconcile | Vercel Cron `3,18,33,48 * * * *` | every 15 min | 2 h | re-reads open crypto payments from the provider and applies any report the webhook missed; off until the crypto flag is on (`lib/crypto/reconcile.ts`) |
+| arrangements-reconcile | Vercel Cron `8,18,28,38,48,58 * * * *` | every 10 min | 2 h | re-reads escrow arrangements still waiting on the payment partner (preparing, unknown, payment processing, release asked, disputed), at most 3 a run, and records what the partner says; never gated by the escrow switch (`lib/money/provider-arrangements.ts`) |
 | hold-sweep | Vercel Cron `5 * * * *` | hourly at :05 | 3 h | releases booking holds past their window and closes stale card attempts |
 | rent-share-refunds | Vercel Cron `35 * * * *` | hourly at :35 | 2 h | asks Paystack for the card refunds of flatmate shares whose split was cancelled or fell short, and records each answer (`lib/cron/jobs/rent-share-refunds.ts`) |
 | paystack-reconcile | Vercel Cron `10 * * * *` | hourly at :10 | 3 h | matches Paystack charges to the ledger |
@@ -1112,7 +1113,7 @@ a fall is emerald. The line is alerts raised per day.
 | vallo_sweep_rent_splits | pg_cron `25 7 * * *` | daily 08:25 | | refunds the paid shares of a flatmate split still short on move-in day, or cancelled (V-86) |
 | vallo_threshold_reminders | pg_cron `5 * * * *` | hourly at :05 | | tells staff three days and one day before a threshold report to the NFIU is due (SCUML item 7) |
 
-20 Vercel Cron jobs and 40 pg_cron jobs in all. The numbers are derived,
+21 Vercel Cron jobs and 40 pg_cron jobs in all. The numbers are derived,
 not remembered: the Vercel list is `VERCEL_JOBS` in
 `lib/admin/reads/jobs.ts`, held equal to `vercel.json` by a test, and the
 database list is `PG_CRON_JOBS` in the same file, held equal by

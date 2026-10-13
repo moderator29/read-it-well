@@ -35,6 +35,12 @@ export type PayChoice = {
   payer: boolean;
   /** Why the choice can no longer move, or null while it can. */
   locked: string | null;
+  /**
+   * Present (true) only when the server read escrow as not working right now
+   * (`protectedRailLive()` false): escrow is then not offered, and a payer
+   * who may pay by card is offered card instead.
+   */
+  escrowPaused?: true;
 };
 
 function isRail(v: unknown): v is PayRail {
@@ -46,19 +52,26 @@ function isRail(v: unknown): v is PayRail {
  * shape we do not know). Null draws no choice card: the page falls back to
  * the payment it already offered.
  */
-export function readPayChoice(data: unknown): PayChoice | null {
+export function readPayChoice(data: unknown, escrowOpen = true): PayChoice | null {
   const row = (data ?? null) as Record<string, unknown> | null;
   if (!row || row.status !== "ok" || !Array.isArray(row.options)) return null;
   /* Escrow first, always: it is the recommended option and the default. */
-  const options = PAY_RAILS.filter((rail) => (row.options as unknown[]).includes(rail));
-  return {
-    options,
-    defaultRail: isRail(row.default) && options.includes(row.default) ? row.default : (options[0] ?? null),
+  const offered = PAY_RAILS.filter((rail) => (row.options as unknown[]).includes(rail));
+  const choice: PayChoice = {
+    options: offered,
+    defaultRail: isRail(row.default) && offered.includes(row.default) ? row.default : (offered[0] ?? null),
     chosen: isRail(row.chosen) ? row.chosen : null,
     rail: isRail(row.rail) ? row.rail : null,
     payer: row.payer === true,
     locked: typeof row.locked === "string" && row.locked.length > 0 ? row.locked : null,
   };
+  /* Escrow appears only when it can actually work. Where card is allowed it
+     is offered instead; a purchase (escrow only) says escrow is paused. */
+  if (!escrowOpen && offered.includes("escrow")) {
+    const options = offered.filter((rail) => rail !== "escrow");
+    return { ...choice, options, defaultRail: options[0] ?? null, escrowPaused: true };
+  }
+  return choice;
 }
 
 export type PayChoiceMode =
@@ -68,6 +81,10 @@ export type PayChoiceMode =
   | "escrow_only"
   /** A hotel room or a restaurant: card, said, not asked. */
   | "card_only"
+  /** Rent or shortlet while escrow is paused: card offered instead, and stored when the payer continues. */
+  | "card_escrow_paused"
+  /** A purchase while escrow is paused: nothing can be paid now, said plainly. */
+  | "escrow_paused"
   /** Nothing resolves: no card at all. */
   | "none";
 
@@ -81,6 +98,19 @@ export type PayChoiceView = {
 
 /** What the step draws for a choice. */
 export function payChoiceView(choice: PayChoice | null): PayChoiceView {
+  if (choice?.escrowPaused) {
+    if (choice.options.includes("card")) {
+      /* Card has to be STORED as the payer's choice before the card checkout
+         opens (the database still reads escrow as the default), unless it
+         already is. */
+      return {
+        mode: "card_escrow_paused",
+        selected: "card",
+        canChoose: choice.payer && choice.locked === null && choice.chosen !== "card",
+      };
+    }
+    return { mode: "escrow_paused", selected: null, canChoose: false };
+  }
   if (!choice || choice.options.length === 0) return { mode: "none", selected: null, canChoose: false };
   if (choice.options.length === 1) {
     const only = choice.options[0]!;

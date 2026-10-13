@@ -6,6 +6,9 @@ import type { Dictionary } from "@vallo/i18n/core";
 import { Button } from "@/components/ui/Button";
 import {
   PAY_CHOICE_CARD_REASON,
+  PAY_CHOICE_CARD_REVIEW,
+  PAY_CHOICE_ESCROW_PAUSED,
+  PAY_CHOICE_ESCROW_PAUSED_SALE,
   PAY_CHOICE_ESCROW_REASON,
   PAY_CHOICE_ROOM_ONLY,
   PAY_CHOICE_SALE_ONLY,
@@ -18,7 +21,7 @@ import "./pay-choice.css";
 
 export type PayChoiceAgreement = { id: string; kind: string; bookingId: string | null; inspectionId: string | null };
 
-type Choose = (input: { agreementId: string; choice: PayRail }) => Promise<ActionResult<{ choice: PayRail }>>;
+type Choose = (input: { agreementId: string; choice: PayRail }) => Promise<ActionResult<{ choice: PayRail; review?: boolean }>>;
 
 /**
  * THE PAYMENT STEP'S CHOICE (founder ruling 2, 13 October 2026).
@@ -41,6 +44,7 @@ export function PayChoiceCard({
   here,
   showContinue = true,
   choose = choosePaymentRail,
+  agreementStatus,
 }: {
   copy: Dictionary["payChoice"];
   choice: PayChoice | null;
@@ -50,10 +54,13 @@ export function PayChoiceCard({
   showContinue?: boolean;
   /** The server action; the preview harness passes a recorded one. */
   choose?: Choose;
+  /** The agreement's status, so a card choice waiting on a person is said. */
+  agreementStatus?: string;
 }) {
   const view = payChoiceView(choice);
   const [selected, setSelected] = useState<PayRail | null>(view.selected);
   const [error, setError] = useState<string | null>(null);
+  const [review, setReview] = useState(false);
   const [pending, startTransition] = useTransition();
   const router = useRouter();
   const titleId = useId();
@@ -81,17 +88,26 @@ export function PayChoiceCard({
         setError(code === "unavailable" && !(result.error in copy.refused) ? result.error : copy.refused[code]);
         return;
       }
+      /* The gate read the new rail and a person looks first: say so, and stay
+         here so the payer can go back to escrow (pov04, never a dead end). */
+      if (result.data.review) {
+        setReview(true);
+        router.refresh();
+        return;
+      }
       go(result.data.choice);
     });
   };
 
   const fixed = view.mode !== "choose";
   const options: { rail: PayRail; name: string; reason: string }[] =
-    view.mode === "escrow_only"
+    view.mode === "escrow_only" || view.mode === "escrow_paused"
       ? [{ rail: "escrow", name: copy.escrowOnlyTitle, reason: PAY_CHOICE_SALE_ONLY }]
       : view.mode === "card_only"
         ? [{ rail: "card", name: copy.cardOnlyTitle, reason: PAY_CHOICE_ROOM_ONLY }]
-        : [
+        : view.mode === "card_escrow_paused"
+          ? [{ rail: "card", name: copy.card, reason: PAY_CHOICE_CARD_REASON }]
+          : [
             { rail: "escrow", name: copy.escrow, reason: PAY_CHOICE_ESCROW_REASON },
             { rail: "card", name: copy.card, reason: PAY_CHOICE_CARD_REASON },
           ];
@@ -137,6 +153,21 @@ export function PayChoiceCard({
       </fieldset>
       {!fixed && !choice.payer ? <p className="nf-paychoice__note">{copy.notPayerNote}</p> : null}
       {!fixed && choice.payer && choice.locked ? <p className="nf-paychoice__note">{copy.lockedNote}</p> : null}
+      {view.mode === "card_escrow_paused" ? (
+        <p className="nf-paychoice__note" data-testid="pay-choice-escrow-paused">
+          {PAY_CHOICE_ESCROW_PAUSED}
+        </p>
+      ) : null}
+      {view.mode === "escrow_paused" ? (
+        <p className="nf-paychoice__note" data-testid="pay-choice-escrow-paused">
+          {PAY_CHOICE_ESCROW_PAUSED_SALE}
+        </p>
+      ) : null}
+      {review || (choice.payer && choice.chosen === "card" && agreementStatus === "in_review") ? (
+        <p className="nf-paychoice__note" role="status" data-testid="pay-choice-review">
+          {PAY_CHOICE_CARD_REVIEW}
+        </p>
+      ) : null}
       <p className="nf-paychoice__note" data-testid="pay-choice-inside">
         {PAY_ONLY_THROUGH_VALLO}
       </p>

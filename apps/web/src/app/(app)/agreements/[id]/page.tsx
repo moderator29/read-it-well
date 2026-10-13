@@ -152,7 +152,13 @@ export default async function AgreementPage({
      (a rental, or since ruling 2 a shortlet stay paid into escrow). */
   const held = await readHeldPayment(a.id);
   /* Ruling 2: the payment step's choice, escrow or card, for the payer. */
-  const payChoice = a.status === "approved" && party && held?.state !== "ready" ? await readAgreementPayChoice(a.id) : null;
+  /* A payer whose card choice is waiting on a person (pov04) still sees the
+     choice, so they can go back to escrow and pay now: never a dead end. */
+  const payChoice =
+    (a.status === "approved" || (a.status === "in_review" && a.role === "renter")) && party && held?.state !== "ready"
+      ? await readAgreementPayChoice(a.id)
+      : null;
+  const cardWaitsOnReview = a.status === "in_review" && payChoice !== null && payChoice.chosen === "card";
   const [since, record] = await Promise.all([
     party && (a.status === "awaiting_parties" || a.status === "rejected") && !a.youConfirmedCurrent
       ? readChangesSinceConfirmed({
@@ -470,7 +476,7 @@ export default async function AgreementPage({
         </Section>
       ) : null}
 
-      {a.status === "approved" && held?.state !== "ready" ? (
+      {(a.status === "approved" || cardWaitsOnReview) && held?.state !== "ready" ? (
         <Section title={AGREEMENT_PAYMENT_OPEN_TITLE}>
           {a.role === "renter" && payChoice ? (
             <PayChoiceCard
@@ -478,6 +484,7 @@ export default async function AgreementPage({
               choice={payChoice}
               agreement={{ id: a.id, kind: a.kind, bookingId: a.bookingId ?? null, inspectionId: a.inspectionId ?? null }}
               here={`/agreements/${a.id}`}
+              agreementStatus={a.status}
             />
           ) : a.role === "renter" && payHref ? (
             <Link href={payHref} className="nf-btn nf-btn--primary nf-btn--md nf-btn--full" data-testid="agreement-pay">
