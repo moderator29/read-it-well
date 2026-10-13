@@ -4,6 +4,9 @@ import { getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { AgentRegisterForm } from "@/components/supply/AgentRegisterForm";
 import { forRegister } from "@/components/supply/supply-copy";
+import { OpenApplicationNotice } from "@/components/supply/OpenApplicationNotice";
+import { readMyApplication } from "@/lib/agent/application-status";
+import { isOpenApplication } from "@/lib/agent/open-application";
 
 export const metadata: Metadata = {
   title: "Register as an agent",
@@ -27,8 +30,23 @@ export const metadata: Metadata = {
  */
 export default async function AgentRegistrationPage() {
   await requireSignedInPage("/profile/setup/agent");
-  const locale: Locale = await getLocale();
+  const [locale, mine]: [Locale, Awaited<ReturnType<typeof readMyApplication>>] = await Promise.all([
+    getLocale(),
+    readMyApplication(),
+  ]);
   const t = getDictionary(locale);
+
+  /* An application still open is followed, not filed again. */
+  if (mine.state === "found" && isOpenApplication(mine.application.status)) {
+    const r = t.supply.register;
+    return (
+      <OpenApplicationNotice
+        heading={r.agent.title}
+        reference={mine.application.reference}
+        copy={{ title: r.openTitle, body: r.openBody, action: r.trackIt }}
+      />
+    );
+  }
   /* No back arrow on the page: the form draws the screen's one way back on
      its title row. It steps back through the form, and from the first screen
      it leaves to this route's declared parent, `/profile/setup`

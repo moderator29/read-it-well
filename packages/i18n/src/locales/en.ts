@@ -5650,6 +5650,9 @@ export const en = {
       documentsMissed:
         "Your application is filed, but the files did not attach. Contact us with that reference and we will add them.",
       trackIt: "See how it stands",
+      /* Shown instead of a setup form while an application is still open. */
+      openTitle: "You already have an application waiting",
+      openBody: "It is filed as {reference}. A second one would only queue behind it, so follow that one instead.",
       backHome: "Back to home",
       reviewDays: "Usually two working days",
       reviewDaysFirm: "Usually three working days",
@@ -5740,7 +5743,10 @@ export const en = {
           title: "Your fees, in the open",
           sub: "Set what you charge. Every client sees it before they ever ring you.",
           agency: "Agency fee",
-          agencyMeaning: "What you charge the landlord.",
+          /* The tenant pays it: the live total below adds it to what a tenant
+             pays to move in. This read "What you charge the landlord", which
+             contradicted the total on the same screen. */
+          agencyMeaning: "What the tenant pays you for finding them the place.",
           legal: "Legal fee",
           legalMeaning: "What you charge for the legal work.",
           less: "Less",

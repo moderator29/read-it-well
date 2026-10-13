@@ -5,6 +5,9 @@ import { getLocale } from "@/lib/locale";
 import { listStates } from "@/lib/places/queries";
 import { OwnerRegisterForm } from "@/components/supply/OwnerRegisterForm";
 import { forOwner } from "@/components/supply/supply-copy";
+import { OpenApplicationNotice } from "@/components/supply/OpenApplicationNotice";
+import { readMyApplication } from "@/lib/agent/application-status";
+import { isOpenApplication } from "@/lib/agent/open-application";
 
 export const metadata: Metadata = {
   title: "Register as an owner",
@@ -42,8 +45,20 @@ export const metadata: Metadata = {
  */
 export default async function OwnerRegistrationPage() {
   await requireSignedInPage("/profile/setup/owner");
-  const [locale, states] = await Promise.all([getLocale(), listStates()]);
+  const [locale, states, mine] = await Promise.all([getLocale(), listStates(), readMyApplication()]);
   const t = getDictionary(locale);
+
+  /* An application still open is followed, not filed again. */
+  if (mine.state === "found" && isOpenApplication(mine.application.status)) {
+    const r = t.supply.register;
+    return (
+      <OpenApplicationNotice
+        heading={r.owner.title}
+        reference={mine.application.reference}
+        copy={{ title: r.openTitle, body: r.openBody, action: r.trackIt }}
+      />
+    );
+  }
 
   /* No back arrow on the page: the form draws the screen's one way back on
      its title row. It steps back through the form, and from the first screen
