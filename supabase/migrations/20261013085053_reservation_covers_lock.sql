@@ -1,11 +1,3 @@
--- DRAFT, not applied. Batch 1, RESTAURANT-01 (defect D-02).
--- Built from the live private.reservation_is_valid read on 13 October 2026.
--- The only change: one transaction-scoped advisory lock per restaurant and
--- Lagos day, taken before the covers are counted. Without it, two guests
--- asking for the last covers at the same instant both read the same sum
--- (READ COMMITTED) and both rows are written, so the window is oversold.
--- With it, the second insert waits for the first to commit, then counts
--- again and is refused if the room is gone.
 set lock_timeout = '5s';
 
 create or replace function private.reservation_is_valid()
