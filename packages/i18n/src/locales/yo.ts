@@ -1518,7 +1518,7 @@ export const yo: Dictionary = withFallback({
 
     photos: {
       intro:
-        "Fi ó kéré tán àwòrán {min} kún, dé {max}. Èyí àkọ́kọ́ ni ìbòjú, nítorí náà bẹ̀rẹ̀ pẹ̀lú àwòrán fífẹ̀ tó ń tà ibi náà.",
+        "Fi ó kéré tán àwòrán tàbí fídíò {min} kún; {recommended} máa ń mú àtòjọ lágbára sí i. Dé àwòrán {max} àti fídíò {videos} tí kò ju ìṣẹ́jú kan lọ. Èyí àkọ́kọ́ ni ìbòjú, ó sì gbọ́dọ̀ jẹ́ àwòrán, nítorí náà bẹ̀rẹ̀ pẹ̀lú àwòrán fífẹ̀ tó ń tà ibi náà.",
       tooNarrow: "Àwòrán gbọ́dọ̀ fẹ̀ tó {width}px kí ó lè hàn kedere lórí gbogbo ojú ẹ̀rọ.",
       choose: "Yan àwòrán",
       addMore: "Fi àwòrán kún",

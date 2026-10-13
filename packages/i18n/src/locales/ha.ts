@@ -1492,7 +1492,7 @@ export const ha: Dictionary = withFallback({
 
     photos: {
       intro:
-        "Ka ƙara aƙalla hotuna {min}, har zuwa {max}. Na farko shi ne hoton gaba, don haka ka fara da hoto mai faɗi da ke sayar da wurin.",
+        "Ka ƙara aƙalla hotuna ko bidiyo {min}; {recommended} sun fi ƙarfafa jeri. Har zuwa hotuna {max} da bidiyo {videos} na minti ɗaya ko ƙasa. Na farko shi ne hoton gaba, kuma dole ne ya zama hoto, don haka ka fara da hoto mai faɗi da ke sayar da wurin.",
       tooNarrow: "Hotuna dole su kai faɗin {width}px domin su bayyana sarai a kowace na'ura.",
       choose: "Zaɓi hotuna",
       addMore: "Ƙara ƙarin hotuna",
