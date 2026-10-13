@@ -255,7 +255,17 @@ const nextConfig: NextConfig = {
       { source: "/escrow/:path*", destination: "/agreements", permanent: false },
       { source: "/admin/escrow", destination: "/admin/agreements", permanent: false },
       { source: "/admin/escrow/:path*", destination: "/admin/agreements", permanent: false },
-      { source: "/docs/your-wallet", destination: "/docs/money-and-the-guarantee", permanent: false },
+      /*
+       * Retired docs chapters (the docs track, 13 October 2026). Each lands on
+       * the closest current chapter; `docs-links.dom.test.tsx` holds every retired
+       * slug to a redirect and every redirect to a live chapter. "Money and
+       * the guarantee" named the retired Vallo Guarantee, and "Booking and
+       * paying" mixed stays with tables and money; both were split into
+       * one-topic chapters.
+       */
+      { source: "/docs/your-wallet", destination: "/docs/paying-on-vallo", permanent: false },
+      { source: "/docs/money-and-the-guarantee", destination: "/docs/paying-on-vallo", permanent: false },
+      { source: "/docs/booking-and-paying", destination: "/docs/booking-a-stay", permanent: false },
     ];
   },
 

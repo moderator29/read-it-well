@@ -4,14 +4,14 @@ import { useId, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import type { DocChapterIndexEntry } from "./chapters";
+import { chaptersByGroup, type DocChapterIndexEntry } from "./chapters";
 
 /**
  * The chapter rail.
  *
  * It lives in the docs layout rather than on a page, so it survives navigation
  * between chapters and the reader keeps their place in the list instead of
- * watching a sidebar rebuild itself twelve times on the way through.
+ * watching a sidebar rebuild itself on every chapter.
  *
  * ONE list of links, drawn two ways.
  *
@@ -43,7 +43,7 @@ export function DocsSidebar({ items }: { items: DocChapterIndexEntry[] }) {
     <div className="lg:sticky lg:top-24 lg:w-[248px] lg:shrink-0 lg:self-start">
       {/*
         The phone opener, which the contents page itself does not get: that
-        page IS the list of chapters, so a control that unfolds the same twelve
+        page IS the list of chapters, so a control that unfolds the same
         titles above it is one tap to see what is already on screen.
       */}
       {!onContents && (
@@ -83,21 +83,35 @@ export function DocsSidebar({ items }: { items: DocChapterIndexEntry[] }) {
         <p className="nf-overline hidden px-row pb-inline text-[var(--nf-content-muted)] lg:block">
           Documentation
         </p>
-        <ol className="space-y-inline-tight rounded-[var(--nf-container-radius)] border border-[var(--nf-panel-edge)] bg-[image:var(--nf-panel-fill-card)] p-inline lg:border-0 lg:bg-none lg:bg-transparent lg:p-0">
-          <li>
-            <ChapterLink href="/docs" active={onContents} number={null} title="All chapters" />
-          </li>
-          {items.map((item) => (
-            <li key={item.slug}>
-              <ChapterLink
-                href={`/docs/${item.slug}`}
-                active={pathname === `/docs/${item.slug}`}
-                number={item.number}
-                title={item.title}
-              />
-            </li>
+        <div className="rounded-[var(--nf-container-radius)] border border-[var(--nf-panel-edge)] bg-[image:var(--nf-panel-fill-card)] p-inline lg:border-0 lg:bg-none lg:bg-transparent lg:p-0">
+          <ChapterLink href="/docs" active={onContents} number={null} title="All chapters" />
+          {/* The chapters in their groups (the docs track, 13 October 2026):
+              each group's name labels the list under it, so a screen
+              reader hears "Money, list, 3 items" and not a flat run of
+              every title. */}
+          {chaptersByGroup(items).map((group) => (
+            <div key={group.id} className="mt-group">
+              <p
+                id={`${panelId}-${group.id}`}
+                className="nf-overline px-inline pb-inline-tight text-[var(--nf-content-muted)]"
+              >
+                {group.label}
+              </p>
+              <ol aria-labelledby={`${panelId}-${group.id}`} className="space-y-inline-tight">
+                {group.items.map((item) => (
+                  <li key={item.slug}>
+                    <ChapterLink
+                      href={`/docs/${item.slug}`}
+                      active={pathname === `/docs/${item.slug}`}
+                      number={item.number}
+                      title={item.title}
+                    />
+                  </li>
+                ))}
+              </ol>
+            </div>
           ))}
-        </ol>
+        </div>
       </nav>
     </div>
   );

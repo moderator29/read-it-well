@@ -13,7 +13,7 @@ import { DocsSearch } from "@/components/site/support/SupportSearch";
  *
  * The rail is handed the index, not the chapters themselves. `CHAPTER_INDEX` is
  * plain data, so the client component that needs the current pathname carries
- * twelve titles into the browser and not the entire document.
+ * the titles into the browser and not the entire document.
  *
  * `min-w-0` on the content column is load bearing. A flex child defaults to
  * `min-width: auto`, so one wide code span or one long reference would push the
