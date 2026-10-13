@@ -12,7 +12,7 @@ import { readListingFacts } from "@/components/app/plans/inspection-facts";
 import { readRentGateFor, readReportsFor } from "@/lib/inspections/report-queries";
 import { reportStorageLive } from "@/lib/inspections/report-flag";
 import { ButtonLink } from "@/components/ui/Button";
-import { isOpen } from "@/lib/inspections/types";
+import { groupInspections, tagSide } from "@/components/app/inspections/grouping";
 import { SUPPLY_DOOR_HREF } from "@/components/agent/agent-doors";
 import { readMyListings } from "@/lib/agent/listings-queries";
 import { readMyViewingWindows } from "@/lib/viewings/queries";
@@ -36,15 +36,17 @@ export const metadata: Metadata = {
  * EVERY INSPECTION SOMEBODY HAS ASKED YOU FOR.
  *
  * The full list behind the dashboard's section. Two groups and only two: the
- * ones waiting on somebody, and the ones that are done. That split is the
- * whole information design of this screen - an agent opening it wants to know
- * what they are late on, and everything else is history.
+ * ones still live, and the closed ones. That split is the whole information
+ * design of this screen - an agent opening it wants to know what they are
+ * late on and what is booked, and everything else is history.
  *
- * The open group is not sorted by date. It is sorted by arrival, newest first,
- * which is what the read returns, because the question is "what have I not
- * answered" and not "what is soonest". An inspection on Saturday that has already
- * been confirmed needs nothing; one that came in an hour ago for next month
- * does.
+ * THE SPLIT IS PLANS' OWN (`groupInspections`). It used to be `isOpen`, which
+ * answers a narrower question (does somebody owe an answer), so a CONFIRMED
+ * viewing on Saturday sat under "Done" a week before anybody had seen the
+ * flat, with its gate code, its day kit and its report beneath that heading.
+ * Inside the open group the order is the order of attention: the requests
+ * waiting on this lister first, newest first, then what is booked, soonest
+ * first, then the offers waiting on the renter.
  */
 export default async function AgentInspectionsPage() {
   const locale = await getLocale();
@@ -71,8 +73,7 @@ export default async function AgentInspectionsPage() {
 
   const [list, session] = await Promise.all([readInspectionsForLister(), resolveSession()]);
   const userId = session.state === "signed-in" ? session.user.id : null;
-  const open = list.inspections.filter((one) => isOpen(one.state));
-  const settled = list.inspections.filter((one) => !isOpen(one.state));
+  const { open, closed: settled } = groupInspections(tagSide(list.inspections, "lister"));
   const [facts, reports, rentGate] = await Promise.all([
     readListingFacts(
       list.inspections.map((one) => one.listingId),
@@ -116,10 +117,31 @@ export default async function AgentInspectionsPage() {
     month: "short",
     timeZone: "Africa/Lagos",
   });
-  /* The first one waiting on somebody arrives expanded, as on /inspections;
-     failing that the first scheduled one, which is the render's own case. */
-  const expanded =
-    open[0]?.id ?? list.inspections.find((one) => one.state === "CONFIRMED")?.id ?? null;
+  /* The first open one arrives expanded, as on Plans: a request waiting on
+     this lister, failing that the soonest booked viewing (the render's own
+     case). */
+  const expanded = open[0]?.id ?? null;
+  /* One renderer for both groups, as on Plans. The day kit and "I feel
+     unsafe" are for whichever side of the viewing this is (B5, V-63), so the
+     lister's console carries them as Plans does. */
+  const sheet = (one: (typeof open)[number]) => (
+    <InspectionSheet
+      success={t.success}
+      gateCopy={t.platform.gate}
+      dayKit={t.memberKit.dayKit}
+      unsafe={t.trustVisible.unsafe}
+      key={one.id}
+      inspection={one}
+      side="lister"
+      facts={facts.get(one.listingId) ?? null}
+      report={reports.get(one.id) ?? null}
+      reportLive={reportLive}
+      needPhotos={rentGate.needPhotos}
+      agreement={rentGate.agreements.get(one.id) ?? null}
+      locale={locale}
+      open={one.id === expanded}
+    />
+  );
 
   return (
     <AgentShell
@@ -169,51 +191,14 @@ export default async function AgentInspectionsPage() {
         ) : (
           <Stack className="mt-lg">
             {open.length > 0 && (
-              <Section
-                title="Waiting on somebody"
-                description="These are the ones with a person on the other end of them."
-              >
-                <div className="nf-ix-list">
-                  {open.map((one) => (
-                    <InspectionSheet
-                      success={t.success}
-                      gateCopy={t.platform.gate}
-                      key={one.id}
-                      inspection={one}
-                      side="lister"
-                      facts={facts.get(one.listingId) ?? null}
-                      report={reports.get(one.id) ?? null}
-                      reportLive={reportLive}
-                      needPhotos={rentGate.needPhotos}
-                      agreement={rentGate.agreements.get(one.id) ?? null}
-                      locale={locale}
-                      open={one.id === expanded}
-                    />
-                  ))}
-                </div>
+              <Section title={t.inspectionsPage.openTitle} description={t.inspectionsPage.openDescription}>
+                <div className="nf-ix-list">{open.map(sheet)}</div>
               </Section>
             )}
 
             {settled.length > 0 && (
-              <Section title="Done" divided={open.length > 0}>
-                <div className="nf-ix-list">
-                  {settled.map((one) => (
-                    <InspectionSheet
-                      success={t.success}
-                      gateCopy={t.platform.gate}
-                      key={one.id}
-                      inspection={one}
-                      side="lister"
-                      facts={facts.get(one.listingId) ?? null}
-                      report={reports.get(one.id) ?? null}
-                      reportLive={reportLive}
-                      needPhotos={rentGate.needPhotos}
-                      agreement={rentGate.agreements.get(one.id) ?? null}
-                      locale={locale}
-                      open={one.id === expanded}
-                    />
-                  ))}
-                </div>
+              <Section title={t.inspectionsPage.closedTitle} divided={open.length > 0}>
+                <div className="nf-ix-list">{settled.map(sheet)}</div>
               </Section>
             )}
           </Stack>

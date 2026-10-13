@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { formatDate, type Locale } from "@vallo/i18n/core";
+import type { Locale } from "@vallo/i18n/core";
 import { useClientCopy } from "@/lib/i18n/client-copy";
+import { lagosWhen } from "@/components/app/threads/when";
 import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
 import { AuthGate } from "@/components/auth/AuthGate";
@@ -55,6 +56,10 @@ export function RequestInspection({
   const [error, setError] = useState<string | null>(null);
   const OUTBOX = useClientCopy().platform.outbox;
   const [pending, startTransition] = useTransition();
+  /* Two taps on Send inside one frame each minted a tap key, and each key
+     filed a request. One call at a time; the server refuses a second live
+     request for the same home as well. */
+  const inFlight = useRef(false);
   /* V-40: asked with no signal; kept, and sent when it returns. */
   const [kept, setKept] = useState(false);
   /*
@@ -96,11 +101,10 @@ export function RequestInspection({
   }
 
   if (existing) {
-    const shown = existing.slotAt ?? existing.requestedAt;
-    const date = new Date(shown);
-    const stamp = Number.isNaN(date.getTime())
-      ? ""
-      : formatDate(date, locale, { weekday: "short", day: "numeric", month: "short" });
+    /* The day AND the hour, on Lagos time, said as such: "on Sat 17 Oct"
+       alone left a renter to find the hour on another screen. */
+    const shown = lagosWhen(existing.slotAt ?? existing.requestedAt, locale);
+    const stamp = shown ? `${shown} (${LAGOS_TIME})` : "";
 
     return withSheet(
       <p className={`flex items-start gap-xs ${TYPE.rowMeta}`} data-testid="inspection-existing">
@@ -121,36 +125,42 @@ export function RequestInspection({
   }
 
   function submit() {
+    if (inFlight.current) return;
+    inFlight.current = true;
     setError(null);
     startTransition(async () => {
-      const fields = {
-        listingId,
-        when: lagosWallClockToIso(when) ?? when,
-        ...(note.trim() ? { note: note.trim() } : {}),
-      };
-      /* V-40: with no signal the request is kept and sent when it returns. */
-      const done = await sendOrKeep("request_inspection", fields, (tapKey) => requestInspection({ ...fields, tapKey }));
-      if (done.state === "kept") {
+      try {
+        const fields = {
+          listingId,
+          when: lagosWallClockToIso(when) ?? when,
+          ...(note.trim() ? { note: note.trim() } : {}),
+        };
+        /* V-40: with no signal the request is kept and sent when it returns. */
+        const done = await sendOrKeep("request_inspection", fields, (tapKey) => requestInspection({ ...fields, tapKey }));
+        if (done.state === "kept") {
+          setOpen(false);
+          setWhen("");
+          setNote("");
+          setKept(true);
+          return;
+        }
+        if (done.state === "not_kept") {
+          setError(OUTBOX.couldNotKeep);
+          return;
+        }
+        const result = done.result;
+        if (!result.ok) {
+          setError(result.error);
+          return;
+        }
         setOpen(false);
         setWhen("");
         setNote("");
-        setKept(true);
-        return;
+        setFiled(true);
+        router.refresh();
+      } finally {
+        inFlight.current = false;
       }
-      if (done.state === "not_kept") {
-        setError(OUTBOX.couldNotKeep);
-        return;
-      }
-      const result = done.result;
-      if (!result.ok) {
-        setError(result.error);
-        return;
-      }
-      setOpen(false);
-      setWhen("");
-      setNote("");
-      setFiled(true);
-      router.refresh();
     });
   }
 
@@ -245,3 +255,4 @@ const CONFIRMED_FOR = "Your inspection is confirmed for";
 const OFFERED_ANOTHER = "They have offered";
 const TRACK_IT = "Follow it on Inspections.";
 const TRACK_LABEL = "See your inspections";
+const LAGOS_TIME = "Lagos time";

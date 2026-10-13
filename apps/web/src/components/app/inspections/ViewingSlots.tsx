@@ -19,6 +19,10 @@ import { successCopy, type SuccessWords } from "@/lib/ui/success-moments";
 
 type Copy = Dictionary["frontDoor"]["viewings"];
 
+/* English, as every `frontDoor` string is today (front-door.en.ts has no
+   translations yet); it moves into `frontDoor.viewings` when they arrive. */
+const LAGOS_NOTE = "Times are Lagos time.";
+
 function when(iso: string, locale: Locale, withDay: boolean): string {
   return formatDate(new Date(iso), locale, {
     ...(withDay ? { weekday: "short", day: "numeric", month: "short" } : {}),
@@ -92,7 +96,11 @@ export function ViewingSlots({
   return (
     <section className="nf-panel nf-panel--card p-card-sm" data-testid="viewing-slots" aria-live="polite">
       <h2 className="nf-body font-semibold text-[var(--nf-content-primary)]">{copy.pickTitle}</h2>
-      <p className="mt-inline nf-caption text-[var(--nf-content-muted)]">{copy.pickNote}</p>
+      {/* The chips print bare hours, so whose clock they are on is said
+          once here: a renter abroad would otherwise read them as their own. */}
+      <p className="mt-inline nf-caption text-[var(--nf-content-muted)]">
+        {copy.pickNote} {LAGOS_NOTE}
+      </p>
       <nav aria-label={copy.pickTitle} className="mt-row">
         <ChipRow bleed={false}>
           {days.map((d) => (

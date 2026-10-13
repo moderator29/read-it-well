@@ -200,10 +200,13 @@ export async function getInspectionActivity(): Promise<Read<InspectionActivity>>
       ),
     );
     if (counts.some((c) => c === null)) return UNAVAILABLE;
+    /* Newest by when the request was MADE. `requested_at` is the time the
+       renter asked to view, so ordering by it put the furthest-off viewings
+       first under a panel titled "Newest requests". */
     const { data, error } = await db
       .from("inspection_requests")
       .select("id, state, requested_at, slot_at, outcome, listings ( title )")
-      .order("requested_at", { ascending: false })
+      .order("created_at", { ascending: false })
       .limit(8);
     if (error) return UNAVAILABLE;
     const byState = Object.fromEntries(INSPECTION_STATES.map((s, i) => [s, counts[i]!])) as InspectionActivity["byState"];
