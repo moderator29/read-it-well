@@ -97,11 +97,22 @@ export const ADMIN_PRIMARY: AdminDestination[] = [
     href: "/admin/money",
     icon: glyph("naira-square"),
     label: "Money",
-    countKeys: ["claims"],
-    countLabel: "Guarantee claims waiting on a decision",
+    /* Guarantee claims, plus referrals and payouts waiting on a person, so the
+       Money row shows every money decision without opening it first. */
+    countKeys: ["claims", "referrals", "payouts"],
+    countLabel: "Guarantee claims, referrals and payouts waiting on a decision",
     children: [
       { key: "payments", href: "/admin/payments", icon: ui("wallet"), label: "Payments" },
       { key: "fees", href: "/admin/fees", icon: ui("document"), label: "Fees" },
+      /* The referral desk: rewards owed, the monthly budget, and the referrals and payouts a person has to decide. */
+      {
+        key: "referrals",
+        href: "/admin/referrals",
+        icon: ui("hand-coins"),
+        label: "Referrals",
+        countKeys: ["referrals", "payouts"],
+        countLabel: "referrals and payouts waiting on a decision",
+      },
     ],
   },
   /* TRACK A: the escrow desk is retired (Vallo holds no money). Its place is

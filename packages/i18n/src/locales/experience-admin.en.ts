@@ -65,6 +65,7 @@ export const experienceAdminEn = {
     money: "The Guarantee reserve, cautions, refunds and reconciliation.",
     payments: "Every charge and what it settled to, with lookup.",
     fees: "The commission and listing fee in force, and their history.",
+    referrals: "Rewards owed, the monthly budget, and referrals and payouts waiting on a decision.",
     agreements: "Agreements held for review before payment opens.",
     bookings: "Stays and their payments, and refunds to the card.",
     reservations: "Restaurant reservations and their decisions.",

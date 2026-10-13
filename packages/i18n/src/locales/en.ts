@@ -68,6 +68,8 @@ import { onboardingMotionEn } from "./onboarding-motion.en";
 import { visitOpsEn } from "./visit-ops.en";
 /* The console desks that had a database function and no screen (13 October). */
 import { adminCoverageEn } from "./admin-coverage.en";
+/* The referral desk: the console's /admin/referrals (13 October). */
+import { referralDeskEn } from "./referral-desk.en";
 /* Get Started as four cards (reference 3, 7 October). */
 
 /**
@@ -6018,6 +6020,8 @@ export const en = {
   onboardingMotion: onboardingMotionEn,
 
   visitOps: visitOpsEn,
+
+  referralDesk: referralDeskEn,
 
 
   /*
