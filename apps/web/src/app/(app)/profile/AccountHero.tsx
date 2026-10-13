@@ -105,7 +105,7 @@ export function AccountHero({
   locale: Locale;
   /**
    * The credentials section (`IdentityCredentials`), built by the server
-   * page: the badge row and its earned moment, the renter passport and, for
+   * page: the badge row and its earned moment, the Vallo passport and, for
    * a lister, the Vallo Record. Drawn under the header's actions, as
    * somebody else's page draws theirs.
    */

@@ -63,19 +63,23 @@ describe("the old passport rules are gone from the copy", () => {
     for (const rule of OLD_RULES) expect(text).not.toMatch(rule);
   });
 
-  it("states the new model in the passport section of every language: members only, hide any line, never phone, email, ID, birth date or address", () => {
-    const english = getDictionary("en").trustVisible.passport;
-    expect(english.lede).toMatch(/on by default/i);
-    expect(english.lede).toMatch(/signed-in members/i);
-    expect(english.lede).toMatch(/hide any line/i);
-    expect(english.lede).toMatch(/phone number, email, ID numbers, date of birth and address are never on it/i);
+  it("states the new model in the passport copy of every language: members only, hide any line, never phone, email, ID, birth date or address", () => {
+    const english = getDictionary("en").passportV2;
+    expect(english.lede).toMatch(/every line is shown until you switch it off/i);
+    expect(english.wholeOnSub).toMatch(/signed-in members/i);
+    expect(english.linesNote).toMatch(/phone number, email, ID numbers, date of birth and address are never on it/i);
     for (const locale of ["yo", "ig", "ha"] as const) {
-      const copy = getDictionary(locale).trustVisible.passport;
+      const copy = getDictionary(locale).passportV2;
       /* Translated, not English left in place. */
       expect(copy.lede).not.toBe(english.lede);
+      expect(copy.linesNote).not.toBe(english.linesNote);
+      expect(copy.wholeOffSub).not.toBe(english.wholeOffSub);
       expect(copy.title).not.toBe(english.title);
-      expect(copy.preview).not.toBe(english.preview);
-      expect(copy.offNote).not.toBe(english.offNote);
+    }
+    /* The old passport's copy namespace is gone in every language. */
+    for (const locale of ["en", "yo", "ig", "ha"] as const) {
+      expect((getDictionary(locale).trustVisible as Record<string, unknown>).passport).toBeUndefined();
+      expect((getDictionary(locale).experienceAccount as Record<string, unknown>).passport).toBeUndefined();
     }
   });
 });

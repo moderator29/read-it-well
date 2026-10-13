@@ -56,7 +56,7 @@ export type SheetListing = {
 };
 
 /** The words the options sheet draws, handed down from the thread page. */
-export type ThreadSheetCopy = Pick<Dictionary["trustVisible"], "passport" | "unsafe">;
+export type ThreadSheetCopy = Pick<Dictionary["trustVisible"], "unsafe">;
 
 export function ThreadOptionsSheet({
   open,
@@ -106,8 +106,8 @@ export function ThreadOptionsSheet({
   meId?: string | null;
   /** V-63: the viewer is the lister on this listing thread. */
   unsafeAsLister?: boolean;
-  /** The passport switch's and the safety sheet's words, from the page's `t`:
-      required, so no caller can draw the safety controls without them. */
+  /** The safety sheet's words, from the page's `t`: required, so no caller
+      can draw the safety controls without them. */
   sheetCopy: ThreadSheetCopy;
 }) {
   const [confirmingBlock, setConfirmingBlock] = useState(false);

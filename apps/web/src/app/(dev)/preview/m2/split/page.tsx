@@ -31,7 +31,7 @@ export default async function PreviewSplit() {
         <InboxPane fixture={ROWS} currentId="preview/m2/split" />
         <div className="nf-msg-split__thread">
           <ThreadView
-            sheetCopy={{ passport: t.trustVisible.passport, unsafe: t.trustVisible.unsafe }}
+            sheetCopy={{ unsafe: t.trustVisible.unsafe }}
             live={false}
             conversationId={CONVERSATION_ID}
             meId={PERSON.id}

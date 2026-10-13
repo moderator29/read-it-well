@@ -9,8 +9,8 @@
  *
  * Every sentence below says only what the code can prove today. In particular
  * the referral lines promise no reward (none exists: `public.referral_codes`
- * records who brought whom and nothing else), and the passport lines are
- * about records Vallo wrote itself (`public.my_renter_passport`, the old credential).
+ * records who brought whom and nothing else). The passport's copy is
+ * `passportV2` in en.ts.
  */
 export const experienceAccountEn = {
   /* ------------------------------------------------------------ settings */
@@ -140,68 +140,6 @@ export const experienceAccountEn = {
       emptyTitle: "This list is not shown here",
       emptyBody: "Vallo records when somebody signs up with your code, but this page cannot show you who. Your code and link are all you need.",
       emptyAction: "Back to your code",
-    },
-  },
-
-  /* ------------------------------------------- the old passport credential (V-100) */
-  passport: {
-    credentialLabel: "Member passport",
-    on: "On",
-    off: "Off",
-    /** `{month}` is a month and year. */
-    credentialSince: "On Vallo since {month}",
-    factsLabel: "What it says",
-    factsLede: "Each line is something Vallo recorded itself, with the date where there is one.",
-    factsEmpty: "Nothing yet. As you rent, host and take part through Vallo, it fills itself in.",
-    shareLabel: "Sharing",
-    switchLabel: "Show my passport",
-    switchOnSub: "Signed-in members can open it",
-    switchOffSub: "Off. Nobody can open it.",
-    cardLabel: "What members see",
-    cardLede: "This is the whole of it. Nothing else is shown.",
-    cardShare: "Show it in this chat",
-    sheetTitle: "Show your passport",
-    sheetBody: "Posts your passport as a card in this chat. Signed-in members can also open it from your profile.",
-    sheetOpen: "Open a chat",
-    sheetOpenHint: "Choose the chat to show it in",
-    sheetTurnOff: "Turn it off",
-    sheetTurnOffHint: "Nobody can open it, and cards in chats stop opening",
-    /** Shown on the share sheet when "Turn it off" throws (a dropped request). */
-    sheetTurnOffFailed: "That did not go through. Your passport is still on.",
-    evidenceBack: "Back to your passport",
-    evidenceCheckedLabel: "How it was checked",
-    evidenceDateLabel: "Date",
-    evidenceCountLabel: "Recorded so far",
-    evidenceSeenLabel: "Where members see it",
-    evidenceSeen: "As one line on your passport, unless you hide it.",
-    evidenceNotFoundTitle: "That is not on your passport",
-    evidenceNotFoundBody: "A line only appears once Vallo has recorded something behind it. Your passport is one step back.",
-    facts: {
-      phone: {
-        title: "Phone confirmed",
-        checked: "Vallo sent a six-digit code to your mobile number and you entered it. The number itself is never shown to anybody.",
-        open: "Manage your phone",
-      },
-      identity: {
-        title: "Identity matched with NIMC",
-        checked: "Your virtual NIN was checked with NIMC. Vallo never stores your NIN.",
-        open: "Open verification",
-      },
-      attended: {
-        title: "Inspections attended",
-        checked: "An inspection counts when both phones recorded it at the gate: yours showing the code, and the lister's or their delegate's confirming they showed you the space. Your word alone never counts.",
-        open: "See your plans",
-      },
-      tenancies: {
-        title: "Tenancies paid through Vallo",
-        checked: "Counted from rent payments made through Vallo on bookings that are confirmed or completed.",
-        open: "See your payments",
-      },
-      since: {
-        title: "On Vallo since",
-        checked: "The day your account was created.",
-        open: "Open your account",
-      },
     },
   },
 

@@ -175,12 +175,6 @@ export const BACKED_CLAIMS: readonly BackedClaim[] = [
     mechanism:
       "private.identity_checked_at: the latest reviewed_at of an APPROVED identity row in agent_documents; app/(site)/check/CheckForm.tsx prints the sentence only when that date exists",
   },
-  /* experience-account.en.ts, the renter passport's identity fact. */
-  {
-    phrase: /\bvirtual NIN was checked with NIMC\b/i,
-    mechanism:
-      "public.record_vnin_check (lib/identity/actions.ts, lib/identity/vnin-check.ts) stamps nimc_matched_at on the V-100 renter passport (private.passport_facts). Since the Vallo passport (13 Oct 2026) no page draws this sentence: the evidence pages were removed and the copy stays in the catalogue unused until it is deleted",
-  },
   /* experience-account.en.ts, headings on the passport evidence page and the
      verification path. Each sits over a record, never instead of one. */
   {
