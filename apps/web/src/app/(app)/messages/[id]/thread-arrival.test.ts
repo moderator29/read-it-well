@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { adoptBubble, arrivalClass, bubbleKey, mergeEcho, type ArrivalBubble } from "./thread-arrival";
+import { adoptBubble, arrivalClass, attachCard, bubbleKey, mergeEcho, type ArrivalBubble } from "./thread-arrival";
 
 type Bubble = ArrivalBubble & {
   timeLabel: string;
@@ -118,5 +118,26 @@ describe("a sent message arrives once across adoption", () => {
       expect(theirs.map((m) => m.id)).toEqual(["local-1", "db-9"]);
       expect(arrivalClass(opened, theirs[1]!)).toBe(" nf-msg-in--theirs");
     });
+  });
+});
+
+describe("a card that arrives after its message (attachCard)", () => {
+  type Row = { id: string; body: string; card?: unknown };
+  const list: Row[] = [
+    { id: "m1", body: "hello" },
+    { id: "m2", body: "Shared a passport\n/passport/x" },
+  ];
+
+  it("sets the card on the bubble that is already there, and nothing else", () => {
+    const next = attachCard(list, "m2", { kind: "passport" });
+    expect(next.map((m) => m.id)).toEqual(["m1", "m2"]);
+    expect(next[1]!.card).toEqual({ kind: "passport" });
+    expect(next[0]).toBe(list[0]);
+  });
+
+  it("leaves the list alone when the bubble is not in it (deleted, or another thread)", () => {
+    const next = attachCard(list, "gone", { kind: "passport" });
+    expect(next).toEqual(list);
+    expect(next.some((m) => m.card)).toBe(false);
   });
 });

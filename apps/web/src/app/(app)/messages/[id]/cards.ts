@@ -3,7 +3,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { formatDate, formatMoney, getDictionary, type Locale } from "@vallo/i18n";
 import type { ChatCardData, ThreadCardData } from "@/components/app/messages/ChatCard";
-import { parseShare, type ParsedShare, type SharedRef } from "@/components/app/messages/share";
+import { cardRefFor, type ParsedShare, type SharedRef } from "@/components/app/messages/share";
 import { getListingRepository } from "@/lib/listings/repository";
 import { getStayDetail } from "@/lib/stays/queries";
 import { readPassportCard } from "@/lib/passport/passport-read";
@@ -225,12 +225,11 @@ export async function resolveCards(
   const refs = new Map<string, ParsedShare>();
   const wanted = new Map<string, string>();
   for (const message of messages) {
-    const ref = parseShare(message.body);
+    /* The same rule the open thread applies to a message arriving live
+       (`cardRefFor`): a passport card is the sender's own, and nothing else
+       draws as one. */
+    const ref = cardRefFor(message);
     if (!ref) continue;
-    /* A passport card is the SENDER'S own. A body that points at somebody
-       else's passport (typed, or forwarded) is not drawn as a card, so nobody
-       can post another member's passport as if they were showing it. */
-    if (ref.kind === "passport" && message.senderId !== ref.id) continue;
     const key = `${ref.kind}:${ref.id}`;
     refs.set(key, ref);
     wanted.set(message.id, key);

@@ -3,7 +3,8 @@
 import { initial } from "@/lib/text/initial";
 import Link from "next/link";
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
-import { adoptBubble, arrivalClass, bubbleKey, mergeEcho } from "./thread-arrival";
+import { adoptBubble, arrivalClass, attachCard, bubbleKey, mergeEcho } from "./thread-arrival";
+import { resolveLiveCard } from "./card-actions";
 import type { Dictionary, Locale } from "@vallo/i18n/core";
 import { ThreadContextBanner, type ThreadRole } from "@/components/app/threads/ThreadContextBanner";
 import { reservationLine } from "@/components/app/threads/ReservationFace";
@@ -19,7 +20,7 @@ import { RemoteImage } from "@/components/ui/RemoteImage";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ChatCard, type ThreadCardData } from "@/components/app/messages/ChatCard";
 import { bundlePhotos, isCaption, isPhotoOnly } from "@/components/app/messages/bundle";
-import { parseShare, shareHref, SHARE_LEAD } from "@/components/app/messages/share";
+import { cardRefFor, parseShare, shareHref, SHARE_LEAD } from "@/components/app/messages/share";
 import {
   attachImage,
   confirmInspection,
@@ -624,8 +625,9 @@ export function ThreadView({
   /* Realtime arrivals for the open thread. Own sends are deduped by id (the
      action result or an earlier event may have landed first); the other
      side's messages append and are immediately marked read, since the thread
-     is on screen. A share arriving live draws as its words and its path
-     until the next server render expands it, which is honest and opens. */
+     is on screen. A share arriving live first draws as its words and its
+     path, which is honest and opens, and becomes its card as soon as the
+     server has expanded it (below). */
   useThreadRealtime(live ? conversationId : null, (row: LiveMessageRow) => {
     /* One merge for every order (`mergeEcho`, thread-arrival.ts): the send
        result landed first, so the bubble is already here and stays as it is;
@@ -654,6 +656,19 @@ export function ThreadView({
       }),
     );
     if (row.sender_id !== meId) void markThreadRead({ conversationId });
+    /* A share arriving live (a listing, a stay, a booking or a member's own
+       passport) is expanded the way the page expands the ones it loads:
+       the same rule decides whether it is a card (`cardRefFor`), and the
+       server builds it (`resolveLiveCard`). Until it lands, and wherever it
+       does not resolve, the bubble stays its words and its path. */
+    if (cardRefFor({ body: row.body, senderId: row.sender_id })) {
+      void resolveLiveCard({ conversationId, messageId: row.id }).then((result) => {
+        if (result.ok && result.data.card) {
+          const card = result.data.card;
+          setItems((prev) => attachCard(prev, row.id, card));
+        }
+      });
+    }
   });
 
   /* The safety education moment: the first money-shaped draft in a session

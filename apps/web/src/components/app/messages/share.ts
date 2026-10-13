@@ -96,6 +96,25 @@ export function parseShare(body: string): ParsedShare | null {
   return { kind, id };
 }
 
+/**
+ * THE ONE RULE FOR "DOES THIS MESSAGE DRAW AS A CARD". The thread page uses it
+ * when it expands the messages it loaded (`messages/[id]/cards.ts`) and the
+ * open thread uses it when a message arrives over realtime
+ * (`ThreadView.tsx`), so a message turns into a card on the same terms
+ * whichever way it reached the screen.
+ *
+ * A listing, a stay or a booking card draws for whoever the share reaches. A
+ * passport card is the SENDER'S own: a body that points at somebody else's
+ * passport (typed, or forwarded) is words and a path, never a card, so nobody
+ * can post another member's passport as if they were showing it.
+ */
+export function cardRefFor(message: { body: string; senderId?: string | null }): ParsedShare | null {
+  const ref = parseShare(message.body);
+  if (!ref) return null;
+  if (ref.kind === "passport" && message.senderId !== ref.id) return null;
+  return ref;
+}
+
 /** What the inbox row says for a share, instead of printing a path. */
 export function sharePreview(body: string): string | null {
   const ref = parseShare(body);
