@@ -2473,7 +2473,6 @@ export const ig: Dictionary = withFallback({
       photoAlt: "{title}, foto {number}",
       checklistTitle: "Ndepụta nlele nnabata",
       checks: {
-        photoCount: "Foto anọ ma ọ bụ karịa",
         cover: "Edobere foto mkpuchi",
         titleCase: "Isiokwu nwere mkpụrụedemede ziri ezi",
         place: "Edekọrọ mpaghara na obodo",

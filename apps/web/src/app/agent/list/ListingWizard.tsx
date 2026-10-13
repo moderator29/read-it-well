@@ -19,8 +19,10 @@ import {
 import { fetchListerFeePolicy, recordListerFeeAcceptance } from "@/lib/money/lister-fee-actions";
 import {
   addPhoto,
+  addVideo,
   removePhoto,
-  reorderPhotos,
+  removeVideo,
+  reorderMedia,
   saveDraft,
   setAmenities,
   setListingAccess,
@@ -40,12 +42,18 @@ import {
   MAX_PHOTOS,
   MAX_PHOTO_BYTES,
   MAX_PHOTO_LABEL,
+  MAX_UPLOAD_BYTES,
+  MAX_UPLOAD_LABEL,
+  MAX_VIDEOS,
+  MAX_VIDEO_SECONDS,
+  MIN_MEDIA,
+  RECOMMENDED_MEDIA,
   PHOTO_MIME_TYPES,
+  VIDEO_MIME_TYPES,
   rejectUpload,
   MAX_SECURITY_PHONE,
   MAX_TITLE_LENGTH,
   MIN_DESCRIPTION_WORDS,
-  MIN_PHOTOS,
   MIN_PHOTO_WIDTH,
   MIN_TITLE_LENGTH,
   collapseSpaces,
@@ -81,7 +89,17 @@ import type { BrandIconName } from "@/design-system/icons/BrandIcon";
 import { Amount } from "@/components/ui/Amount";
 import { moveInLines } from "@/components/app/listing/move-in-lines";
 import { RemoteImage } from "@/components/ui/RemoteImage";
-import { VideoWalkthrough, type WalkthroughVideo } from "@/components/agent/VideoWalkthrough";
+import { canMove, mergeMedia, photoFirst } from "@/lib/listings/media-order";
+import {
+  looksLikeVideo,
+  posterFrame,
+  scrubVideoLocation,
+  videoDuration,
+  videoExtension,
+  videoMime,
+} from "@/lib/agent/video-prep";
+import { resumableUpload } from "@/lib/agent/resumable-upload";
+import { SUPABASE_URL } from "@/lib/supabase/env";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Quantity } from "@/components/ui/Quantity";
 import { ListingSentForReview } from "./ListingSentForReview";
@@ -281,6 +299,39 @@ type Values = {
 };
 
 type Photo = { id: string; path: string; url: string };
+
+/** A walkthrough on the listing; its url is signed (or local until the next read). */
+type Video = { id: string; url: string; posterUrl: string | null; durationSeconds: number | null };
+
+/**
+ * ONE ROW OF PHOTOS AND VIDEOS, the first of which (the cover) is a photo.
+ * Stored across two tables and read back with `mergeMedia`.
+ */
+type Media = ({ kind: "photo" } & Photo) | ({ kind: "video" } & Video);
+
+/** "0:42". */
+function clockOf(seconds: number): string {
+  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+}
+
+/** The row a stored draft opens on. */
+function mediaFrom(draft: WizardDraft | null): Media[] {
+  if (!draft) return [];
+  return mergeMedia(
+    draft.photos.map((photo, index) => ({ ...photo, position: photo.position ?? index })),
+    (draft.videos ?? []).map((video, index) => ({ ...video, position: video.position ?? index })),
+  ).map((entry) =>
+    entry.kind === "photo"
+      ? { kind: "photo" as const, id: entry.item.id, path: entry.item.path, url: entry.item.url }
+      : {
+          kind: "video" as const,
+          id: entry.item.id,
+          url: entry.item.url,
+          posterUrl: entry.item.posterUrl ?? null,
+          durationSeconds: entry.item.durationSeconds ?? null,
+        },
+  );
+}
 
 /** Keep an input numeric without fighting the caret. Empty stays empty. */
 function digitsOnly(raw: string, max: number): string {
@@ -1090,19 +1141,13 @@ export function ListingWizard({
   const [values, setValues] = useState<Values>(initial ? valuesFrom(initial) : EMPTY);
   /* The answer groups whose saved values could not be read (review 13). */
   const unread = useMemo(() => initial?.unread ?? [], [initial]);
-  const [photos, setPhotos] = useState<Photo[]>(initial?.photos ?? []);
+  /* The photos and videos, in the one order the lister arranged them. */
+  const [media, setMedia] = useState<Media[]>(() => mediaFrom(initial));
+  const photos = useMemo(() => media.filter((item): item is Media & { kind: "photo" } => item.kind === "photo"), [media]);
+  const videos = useMemo(() => media.filter((item): item is Media & { kind: "video" } => item.kind === "video"), [media]);
+  /** The video being uploaded now, for its progress line. */
+  const [videoProgress, setVideoProgress] = useState<{ name: string; percent: number } | null>(null);
   const [chosenAmenities, setChosenAmenities] = useState<string[]>(initial?.amenityCodes ?? []);
-  /* The walkthroughs already attached to this draft. Every layer behind them
-     was built weeks ago and had zero callers; `VideoWalkthrough` is the half a
-     human touches. */
-  const [videos, setVideos] = useState<WalkthroughVideo[]>(
-    (initial?.videos ?? []).map((video) => ({
-      id: video.id,
-      url: video.url,
-      posterUrl: video.posterUrl,
-      durationSeconds: video.durationSeconds,
-    })),
-  );
   const [listingId, setListingId] = useState<string | null>(initial?.id ?? null);
   /*
    * V-09: THE FIELDS A PASTED BROADCAST FILLED, until the agent touches them.
@@ -1373,7 +1418,8 @@ export function ListingWizard({
         unitShape: values.unit.shape === "" ? null : values.unit.shape,
         amenityCount: chosenAmenities.length,
         photoCount: photos.length,
-        hasCover: photos.length > 0,
+        videoCount: videos.length,
+        hasCover: media[0]?.kind === "photo",
         moveInStatedMinor: tenancy ? statedTotalMinor : null,
         moveInPartsMinor: tenancy ? [partsSumMinor] : [],
       }),
@@ -1387,6 +1433,8 @@ export function ListingWizard({
       saleMinor,
       chosenAmenities.length,
       photos.length,
+      videos.length,
+      media,
       statedTotalMinor,
       partsSumMinor,
     ],
@@ -1424,8 +1472,8 @@ export function ListingWizard({
       case "propertyType":
         return g.propertyType;
       case "photos":
-        return photos.length < MIN_PHOTOS
-          ? fill(g.photos, { min: MIN_PHOTOS, count: photos.length })
+        return media.length < MIN_MEDIA
+          ? fill(g.photos, { min: MIN_MEDIA, count: media.length })
           : g.cover;
       case "stateCode":
         return g.stateCode;
@@ -1990,10 +2038,24 @@ export function ListingWizard({
         if (again) retry.push(file);
       };
 
+      let videoCount = videos.length;
       for (const file of chosen) {
+        /* A VIDEO, mixed in with the photos in the one picker. */
+        if (looksLikeVideo(file)) {
+          if (videoCount >= MAX_VIDEOS) {
+            refuse(file, fill(copy.photos.videoCeiling, { max: MAX_VIDEOS }));
+            continue;
+          }
+          const added = await uploadVideo(file, id, supabase, refuse);
+          if (added) {
+            setMedia((prev) => [...prev, added]);
+            videoCount += 1;
+          }
+          continue;
+        }
         if (slot >= MAX_PHOTOS) {
-          problems.push(fill(copy.photos.ceiling, { max: MAX_PHOTOS }));
-          break;
+          refuse(file, fill(copy.photos.ceiling, { max: MAX_PHOTOS }));
+          continue;
         }
         const verdict = judgePhoto(file, looksLikeImage(file) ? await sizeOf(file) : null);
         if (verdict === "not-image") {
@@ -2024,8 +2086,8 @@ export function ListingWizard({
         /*
          * THE BUCKET'S OWN CEILING, CHECKED BEFORE THE BYTES LEAVE.
          *
-         * `MAX_UPLOAD_BYTES` is fifty megabytes and the `listing-photos`
-         * bucket is capped at ten, so a photograph between the two was
+         * `MAX_UPLOAD_BYTES` (a video's) is far above the `listing-photos`
+         * bucket's ten megabytes, so a photograph between the two was
          * uploaded in full on somebody's mobile data and then refused by
          * storage at the very end. The re-encode above usually lands well
          * under ten, which is exactly why this is measured on the RE-ENCODED
@@ -2085,7 +2147,7 @@ export function ListingWizard({
         }
 
         const url = supabase.storage.from("listing-photos").getPublicUrl(path).data.publicUrl;
-        setPhotos((prev) => [...prev, { id: attached.data.photoId, path, url }]);
+        setMedia((prev) => [...prev, { kind: "photo", id: attached.data.photoId, path, url }]);
         slot += 1;
       }
       setPhotoProblems(problems);
@@ -2096,80 +2158,195 @@ export function ListingWizard({
     }
   }
 
-  function orderPhotos(next: Photo[]) {
-    setPhotos(next);
-    if (!canPersist || !listingId) return;
-    const before = photos;
-    startTransition(async () => {
-      let result: Awaited<ReturnType<typeof reorderPhotos>>;
+  /**
+   * ONE VIDEO, from the picker to the listing: checked (type, size, length),
+   * its filmed location taken out, a still drawn from it, uploaded to the
+   * private `listing-videos` bucket under the lister's own folder (the photo
+   * rule: `<uid>/<listing>/<uuid>`), the still to the photo bucket, and both
+   * attached by `addVideo`, which reads the real size and type back from
+   * storage. Returns the row item, or null with the reason already said.
+   */
+  async function uploadVideo(
+    file: File,
+    id: string,
+    supabase: NonNullable<Awaited<ReturnType<typeof loadBrowserClient>>>,
+    refuse: (file: File, reason: string, again?: boolean) => void,
+  ): Promise<Media | null> {
+    const mime = videoMime(file);
+    if (file.type !== "" && !(VIDEO_MIME_TYPES as readonly string[]).includes(file.type)) {
+      refuse(file, copy.photos.notAnImage);
+      return null;
+    }
+    if (file.size > MAX_UPLOAD_BYTES) {
+      refuse(file, fill(copy.photos.videoTooBig, { max: MAX_UPLOAD_LABEL }));
+      return null;
+    }
+    const seconds = await videoDuration(file);
+    if (seconds === null) {
+      refuse(file, copy.photos.videoUnreadable);
+      return null;
+    }
+    if (seconds > MAX_VIDEO_SECONDS) {
+      refuse(file, fill(copy.photos.videoTooLong, { seconds: MAX_VIDEO_SECONDS }));
+      return null;
+    }
+
+    const scrubbed = await scrubVideoLocation(file);
+    const clean = new File([scrubbed], file.name, { type: mime });
+    const poster = await posterFrame(clean);
+
+    const { data: session } = await supabase.auth.getSession();
+    const token = session.session?.access_token;
+    if (!token) {
+      refuse(file, copy.photos.uploadSignedOut);
+      return null;
+    }
+
+    const path = `${userId}/${id}/${crypto.randomUUID()}.${videoExtension(file)}`;
+    setVideoProgress({ name: file.name, percent: 0 });
+    const result = await resumableUpload({
+      file: clean,
+      bucket: "listing-videos",
+      path,
+      supabaseUrl: SUPABASE_URL,
+      accessToken: token,
+      onProgress: (progress) =>
+        setVideoProgress({
+          name: file.name,
+          percent: progress.total > 0 ? Math.min(100, Math.round((progress.uploaded / progress.total) * 100)) : 0,
+        }),
+    });
+    setVideoProgress(null);
+    if (!result.ok) {
+      refuse(file, result.reason === "network" ? copy.photos.videoFailed : result.message, result.reason === "network");
+      return null;
+    }
+
+    /* The still is a nicety: without it the video still plays. */
+    let posterPath: string | undefined;
+    if (poster) {
+      const stillPath = `${userId}/${id}/${crypto.randomUUID()}.jpg`;
       try {
-        result = await reorderPhotos({
+        const upload = await supabase.storage
+          .from("listing-photos")
+          .upload(stillPath, poster, { contentType: "image/jpeg", upsert: false });
+        if (!upload.error) posterPath = stillPath;
+      } catch {
+        /* no still */
+      }
+    }
+
+    let attached: Awaited<ReturnType<typeof addVideo>>;
+    try {
+      attached = await addVideo({
+        listingId: id,
+        storagePath: result.path,
+        durationSeconds: seconds,
+        ...(posterPath ? { posterPath } : {}),
+      });
+    } catch {
+      void supabase.storage.from("listing-videos").remove([result.path]).catch(() => undefined);
+      if (posterPath) void supabase.storage.from("listing-photos").remove([posterPath]).catch(() => undefined);
+      refuse(file, copy.wizard.saveUnreached, true);
+      return null;
+    }
+    if (!attached.ok) {
+      refuse(file, attached.error);
+      return null;
+    }
+    return {
+      kind: "video",
+      id: attached.data.videoId,
+      url: URL.createObjectURL(clean),
+      posterUrl: posterPath ? supabase.storage.from("listing-photos").getPublicUrl(posterPath).data.publicUrl : null,
+      durationSeconds: seconds,
+    };
+  }
+
+  /**
+   * Put the row in a new order and store it: photos by rank, videos by place
+   * (`reorderMedia`). A refusal puts the row back as the listing holds it, or
+   * the cover on screen would not be the cover a renter sees.
+   */
+  function orderMedia(next: Media[]) {
+    const before = media;
+    setMedia(next);
+    if (!canPersist || !listingId) return;
+    startTransition(async () => {
+      let result: Awaited<ReturnType<typeof reorderMedia>>;
+      try {
+        result = await reorderMedia({
           listingId,
-          orderedIds: next.map((p) => p.id),
+          items: next.map((item) => ({ kind: item.kind, id: item.id })),
         });
       } catch {
-        setPhotos(before);
+        setMedia(before);
         setPhotoNotice(copy.wizard.saveUnreached);
         return;
       }
       if (!result.ok) {
-        /* The grid goes back to the order the listing actually holds, or
-           the cover on screen is not the cover a renter sees. */
-        setPhotos(before);
+        setMedia(before);
         setPhotoNotice(result.error);
         return;
       }
       setPhotoNotice(null);
-      // Adopt the ids the platform settled on: at the ten photo ceiling one row
-      // is rewritten, and holding a stale id would break the next reorder.
-      setPhotos((prev) =>
-        result.data.photos.map((photo) => ({
-          id: photo.id,
-          path: photo.path,
-          url: prev.find((p) => p.path === photo.path)?.url ?? "",
-        })),
+      /* Adopt the ids the platform settled on: at the ten photo ceiling one
+         photo row is rewritten, and a stale id would break the next move. */
+      setMedia((prev) =>
+        mergeMedia(
+          result.data.photos.map((photo) => ({
+            ...photo,
+            url: prev.find((item) => item.kind === "photo" && item.path === photo.path)?.url ?? "",
+          })),
+          result.data.videos.map((video) => ({ ...video })),
+        ).map((entry): Media => {
+          if (entry.kind === "photo") {
+            return { kind: "photo", id: entry.item.id, path: entry.item.path, url: entry.item.url };
+          }
+          const held = prev.find((item) => item.kind === "video" && item.id === entry.item.id);
+          return held ?? { kind: "video", id: entry.item.id, url: "", posterUrl: null, durationSeconds: null };
+        }),
       );
     });
   }
 
   /*
-   * Move one photograph one place, which is what the grid's two arrows do.
-   *
-   * It replaces `makeCover`, and it can do that because the cover IS the
-   * first photograph: walking one to the front makes it the cover, and the
-   * Cover mark on the grid says so while it moves. That is one control doing
-   * one thing instead of a "Make cover" button and a separate ordering that
-   * could disagree with each other.
+   * Move one item one place, which is what the grid's two arrows do. The
+   * cover IS the first item, and it has to be a photo, so a move that would
+   * put a video first is not offered (`canMove`).
    */
-  function movePhoto(from: number, to: number) {
-    if (to < 0 || to >= photos.length || from === to) return;
-    const next = photos.slice();
+  function moveMedia(from: number, to: number) {
+    if (!canMove(media, from, to)) return;
+    const next = media.slice();
     const [moved] = next.splice(from, 1);
     if (!moved) return;
     next.splice(to, 0, moved);
-    orderPhotos(next);
+    orderMedia(next);
   }
 
-  function dropPhoto(index: number) {
-    const chosen = photos[index];
+  function dropMedia(index: number) {
+    const chosen = media[index];
     if (!chosen) return;
-    const before = photos;
-    const next = photos.filter((_, i) => i !== index);
-    setPhotos(next);
+    const before = media;
+    /* Taking the cover off leaves the next photo as the cover, never a video. */
+    setMedia(photoFirst(media.filter((_, i) => i !== index)));
     if (!canPersist || !listingId) return;
     startTransition(async () => {
-      /* A refused removal put the photo back on screen nowhere: the grid
+      /* A refused removal put the item back on screen nowhere: the grid
          showed it gone while the listing still held it, and the count the
          submit gate reads disagreed with the one the lister saw. */
       let error: string | null = null;
       try {
-        const result = await removePhoto({ listingId, photoId: chosen.id });
+        const result =
+          chosen.kind === "photo"
+            ? await removePhoto({ listingId, photoId: chosen.id })
+            : await removeVideo({ listingId, videoId: chosen.id });
         if (!result.ok) error = result.error;
       } catch {
         error = copy.wizard.saveUnreached;
       }
       if (error) {
-        setPhotos(before);
+        setMedia(before);
         setPhotoNotice(error);
       }
     });
@@ -2847,14 +3024,20 @@ export function ListingWizard({
         {step === 1 && (
           <div className="space-y-group">
             <Note>
-              {fill(copy.photos.intro, { min: MIN_PHOTOS, max: MAX_PHOTOS })}{" "}
+              {fill(copy.photos.intro, {
+                min: MIN_MEDIA,
+                recommended: RECOMMENDED_MEDIA,
+                max: MAX_PHOTOS,
+                videos: MAX_VIDEOS,
+              })}{" "}
               {fill(copy.photos.tooNarrow, { width: MIN_PHOTO_WIDTH })}
             </Note>
 
             <input
               ref={fileInput}
               type="file"
-              accept="image/*"
+              /* Photos and videos in the one picker (founder, 12 October). */
+              accept={["image/*", ...VIDEO_MIME_TYPES].join(",")}
               multiple
               className="sr-only"
               onChange={(e) => void onFiles(e.target.files)}
@@ -2902,26 +3085,56 @@ export function ListingWizard({
               thing.
             */}
             <ul className="nf-lw-shots">
-              {photos.map((photo, index) => (
-                <li key={photo.id} className="nf-lw-shot" data-cover={index === 0 ? "" : undefined}>
-                  <RemoteImage
-                    src={photo.url}
-                    alt=""
-                    width={640}
-                    height={480}
-                    sizes="(max-width: 40rem) 33vw, 14rem"
-                    className="nf-lw-shot__img"
-                  />
+              {media.map((item, index) => (
+                <li
+                  key={`${item.kind}-${item.id}`}
+                  className="nf-lw-shot"
+                  data-cover={index === 0 ? "" : undefined}
+                  data-kind={item.kind}
+                >
+                  {item.kind === "photo" ? (
+                    <RemoteImage
+                      src={item.url}
+                      alt=""
+                      width={640}
+                      height={480}
+                      sizes="(max-width: 40rem) 50vw, 14rem"
+                      className="nf-lw-shot__img"
+                    />
+                  ) : (
+                    /* Muted and still: a poster when there is one, and nothing
+                       fetched until the lister presses play. */
+                    <video
+                      src={item.url}
+                      poster={item.posterUrl ?? undefined}
+                      preload={item.posterUrl ? "none" : "metadata"}
+                      muted
+                      playsInline
+                      controls={false}
+                      className="nf-lw-shot__img"
+                      aria-label={
+                        item.durationSeconds === null
+                          ? copy.photos.video
+                          : `${copy.photos.video}, ${clockOf(item.durationSeconds)}`
+                      }
+                    />
+                  )}
                   {index === 0 && <span className="nf-lw-shot__cover">{copy.photos.cover}</span>}
+                  {item.kind === "video" && (
+                    <span className="nf-lw-shot__kind" aria-hidden="true">
+                      <UiIcon name="circle-play" size={16} />
+                      {item.durationSeconds === null ? null : clockOf(item.durationSeconds)}
+                    </span>
+                  )}
                   <button
                     type="button"
                     className="nf-lw-shot__drop"
                     aria-label={copy.photos.remove}
-                    /* One photo change at a time: a second reorder sent while
-                       the first is still moving rows races it on the unique
+                    /* One change at a time: a second reorder sent while the
+                       first is still moving rows races it on the unique
                        position index, and at ten photos holds a stale id. */
                     disabled={pending || uploading}
-                    onClick={() => dropPhoto(index)}
+                    onClick={() => dropMedia(index)}
                   >
                     <UiIcon name="close" size={16} />
                   </button>
@@ -2930,8 +3143,8 @@ export function ListingWizard({
                       type="button"
                       className="nf-lw-shot__move"
                       aria-label={copy.drawn.photos.earlier}
-                      disabled={index === 0 || pending || uploading}
-                      onClick={() => movePhoto(index, index - 1)}
+                      disabled={!canMove(media, index, index - 1) || pending || uploading}
+                      onClick={() => moveMedia(index, index - 1)}
                     >
                       <UiIcon name="arrow-left" size={16} />
                     </button>
@@ -2939,15 +3152,15 @@ export function ListingWizard({
                       type="button"
                       className="nf-lw-shot__move"
                       aria-label={copy.drawn.photos.later}
-                      disabled={index === photos.length - 1 || pending || uploading}
-                      onClick={() => movePhoto(index, index + 1)}
+                      disabled={!canMove(media, index, index + 1) || pending || uploading}
+                      onClick={() => moveMedia(index, index + 1)}
                     >
                       <UiIcon name="arrow-right" size={16} />
                     </button>
                   </span>
                 </li>
               ))}
-              {photos.length < MAX_PHOTOS && (
+              {(photos.length < MAX_PHOTOS || videos.length < MAX_VIDEOS) && (
                 <li className="contents">
                   <button
                     type="button"
@@ -2993,28 +3206,21 @@ export function ListingWizard({
               />
             )}
 
-            <p className="nf-numeric text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
-              {fill(copy.photos.progress, { count: photos.length, min: MIN_PHOTOS })}
+            {videoProgress && (
+              <p className="nf-body-sm text-[var(--nf-content-secondary)]" role="status" data-testid="video-progress">
+                {fill(copy.photos.videoUploading, { name: videoProgress.name, percent: videoProgress.percent })}
+              </p>
+            )}
+
+            {/* The count, then the nudge from the minimum to the recommendation. */}
+            <p className="nf-numeric text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]" data-testid="media-count">
+              {fill(copy.photos.progress, { count: media.length, min: MIN_MEDIA })}
+              {media.length >= MIN_MEDIA && media.length < RECOMMENDED_MEDIA
+                ? ` ${fill(copy.photos.recommend, { more: RECOMMENDED_MEDIA - media.length })}`
+                : null}
             </p>
 
-            {photos.length === 0 && <Note>{copy.photos.empty}</Note>}
-
-            {/*
-              THE WALKTHROUGH, ON THE SAME STEP AS THE PHOTOGRAPHS.
-
-              GOVERNING-07 screen four puts it here, under the photo grid,
-              headed "Video walkthrough" with the calm explanatory line above
-              the clip. It belongs with the photographs because it is the same
-              decision a lister is making: what a stranger will see.
-            */}
-            <VideoWalkthrough
-              listingId={listingId}
-              userId={userId}
-              videos={videos}
-              onChange={setVideos}
-              canUpload={canPersist && userId !== null}
-              ensureListing={persist}
-            />
+            {media.length === 0 && <Note>{copy.photos.empty}</Note>}
           </div>
         )}
 
@@ -4013,11 +4219,20 @@ export function ListingWizard({
                   glyph: "picture" as UiIconName,
                   label: copy.drawn.checkOver.keys.photos,
                   value:
-                    photos.length === 0
+                    media.length === 0
                       ? null
-                      : photos.length === 1
-                        ? copy.workspace.photoCountOne
-                        : fill(copy.workspace.photoCount, { count: photos.length }),
+                      : [
+                          photos.length === 0
+                            ? null
+                            : photos.length === 1
+                              ? copy.workspace.photoCountOne
+                              : fill(copy.workspace.photoCount, { count: photos.length }),
+                          videos.length === 0
+                            ? null
+                            : `${videos.length} ${copy.photos.video.toLocaleLowerCase(locale)}${videos.length === 1 ? "" : "s"}`,
+                        ]
+                          .filter(Boolean)
+                          .join(", "),
                   step: STEP_KEYS.indexOf("photos"),
                 },
                 {
@@ -4152,7 +4367,7 @@ export function ListingWizard({
                     },
                     {
                       field: "photos",
-                      label: fill(copy.submit.checklist.photos, { min: MIN_PHOTOS }),
+                      label: fill(copy.submit.checklist.photos, { min: MIN_MEDIA }),
                     },
                     { field: "stateCode", label: copy.submit.checklist.stateCode },
                     { field: "city", label: copy.submit.checklist.city },

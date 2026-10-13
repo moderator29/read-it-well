@@ -2956,6 +2956,26 @@
     box-shadow: var(--nf-selected-shadow-inline);
     color: var(--nf-content-on-brand);
   }
+  /* A video in the row: a play mark and its length, where the Cover mark
+     sits on the first item (which is always a photo). */
+  .nf-lw-shot__kind {
+    position: absolute;
+    top: var(--nf-space-2xs);
+    inset-inline-start: var(--nf-space-2xs);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-3xs);
+    padding: 0.125rem var(--nf-space-2xs);
+    border-radius: var(--nf-radius-control);
+    font-size: var(--nf-text-overline);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-content-on-media);
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    background: var(--nf-btn-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-btn-glass-blur));
+    backdrop-filter: blur(var(--nf-btn-glass-blur));
+  }
   /* Bare, icon-only, drawn round: it stays round. */
   .nf-lw-shot__drop {
     position: absolute;

@@ -74,6 +74,7 @@ import {
   isTenancy,
   ratePeriodFor,
   removePhotoSchema,
+  reorderMediaSchema,
   reorderPhotosSchema,
   setAmenitiesSchema,
   submitRequirements,
@@ -83,6 +84,7 @@ import {
   type RentPeriod,
 } from "./listings-schema";
 import { dbLimitRefusal } from "@/lib/security/db-limit";
+import { storedPositions } from "../listings/media-order";
 
 const NOT_AGENT_MESSAGE =
   "Only approved agents can manage listings. Apply in two minutes.";
@@ -991,6 +993,81 @@ export async function reorderPhotos(input: {
 }
 
 /**
+ * Put a listing's photos and videos in one order, the first a photo (the
+ * cover). Photos take their rank among photos, which `applyOrder` writes
+ * without breaking the unique, 0..9 position; each video takes its place in
+ * the whole row (lib/listings/media-order.ts). Returns both lists as stored,
+ * because at ten photos one photo row is re-made with a new id.
+ */
+export async function reorderMedia(input: {
+  listingId: string;
+  items: { kind: "photo" | "video"; id: string }[];
+}): Promise<
+  ActionResult<{
+    photos: { id: string; path: string; position: number }[];
+    videos: { id: string; position: number }[];
+  }>
+> {
+  const gate = await requireAgent();
+  if (!gate.ok) return fail(gate.error);
+
+  const parsed = validate(reorderMediaSchema, input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+  const { listingId, items } = parsed.data;
+
+  const listing = await ownedListing(gate.supabase, gate.agentId, listingId);
+  if (!listing) return fail(NOT_FOUND_MESSAGE);
+  if (!EDITABLE.includes(listing.status)) return fail(LOCKED_MESSAGE);
+
+  const [photoRes, videoRes] = await Promise.all([
+    gate.supabase.from("listing_photos").select("id, storage_path").eq("listing_id", listingId),
+    gate.supabase.from("listing_videos").select("id").eq("listing_id", listingId),
+  ]);
+  if (photoRes.error || videoRes.error || !photoRes.data || !videoRes.data) return fail(PHOTO_FAILED_MESSAGE);
+
+  const photoPaths = new Map(photoRes.data.map((p) => [p.id, p.storage_path]));
+  const videoIds = new Set(videoRes.data.map((v) => v.id));
+  const { photos: photoOrder, videos: videoPlaces } = storedPositions(items);
+  const stale =
+    photoOrder.length !== photoPaths.size ||
+    videoPlaces.length !== videoIds.size ||
+    photoOrder.some((id) => !photoPaths.has(id)) ||
+    videoPlaces.some((video) => !videoIds.has(video.id));
+  if (stale) return fail("The order was out of date. Reload the page and try again.");
+
+  const moved = await applyOrder(
+    gate.supabase,
+    listingId,
+    photoOrder.map((id) => ({ id, path: photoPaths.get(id) ?? "" })),
+  );
+  if (!moved) return fail("We could not reorder the photos just now. Please try again.");
+
+  for (const video of videoPlaces) {
+    const { error } = await gate.supabase
+      .from("listing_videos")
+      .update({ position: video.position })
+      .eq("id", video.id)
+      .eq("listing_id", listingId);
+    if (error) return fail("We could not reorder the videos just now. Please try again.");
+  }
+
+  const [settledPhotos, settledVideos] = await Promise.all([
+    gate.supabase
+      .from("listing_photos")
+      .select("id, storage_path, position")
+      .eq("listing_id", listingId)
+      .order("position", { ascending: true }),
+    gate.supabase.from("listing_videos").select("id, position").eq("listing_id", listingId),
+  ]);
+
+  refreshAgentSurfaces();
+  return ok({
+    photos: (settledPhotos.data ?? []).map((p) => ({ id: p.id, path: p.storage_path, position: p.position })),
+    videos: (settledVideos.data ?? []).map((v) => ({ id: v.id, position: v.position })),
+  });
+}
+
+/**
  * Remove an uploaded walkthrough, and its still, when no row names them. The
  * same narrow rule as `discardUnattached`: only inside this listing's own
  * folder, and never an object a `listing_videos` or `listing_photos` row
@@ -1134,7 +1211,17 @@ export async function addVideo(input: {
     );
   }
 
-  const position = held.reduce((highest, row) => Math.max(highest, row.position + 1), 0);
+  /* A video's position is its place in the listing's whole row of photos
+     and videos (lib/listings/media-order.ts): a new one goes on the end. */
+  const { count: photoCount, error: photoCountError } = await gate.supabase
+    .from("listing_photos")
+    .select("id", { count: "exact", head: true })
+    .eq("listing_id", listingId);
+  if (photoCountError) return refuse(VIDEO_FAILED_MESSAGE);
+  const position = Math.max(
+    (photoCount ?? 0) + held.length,
+    held.reduce((highest, row) => Math.max(highest, row.position + 1), 0),
+  );
 
   const { data: created, error } = await gate.supabase
     .from("listing_videos")
@@ -1353,14 +1440,15 @@ export async function submitListing(input: {
     return fail(getDictionary(await getLocale()).frontDoor.broadcast.unconfirmedOnServer);
   }
 
-  const [photoRes, amenityRes, unitShape] = await Promise.all([
+  const [photoRes, videoRes, amenityRes, unitShape] = await Promise.all([
     gate.supabase.from("listing_photos").select("id, position").eq("listing_id", listingId),
+    gate.supabase.from("listing_videos").select("id").eq("listing_id", listingId),
     gate.supabase.from("listing_amenities").select("amenity_id").eq("listing_id", listingId),
     readUnitShape(gate.supabase, listingId),
   ]);
 
   /* Fail closed: a gate that could not read its own inputs does not pass. */
-  if (photoRes.error || amenityRes.error || unitShape === undefined) {
+  if (photoRes.error || videoRes.error || amenityRes.error || unitShape === undefined) {
     return fail("We could not check this listing just now. Nothing has changed. Please try again.");
   }
 
@@ -1384,6 +1472,8 @@ export async function submitListing(input: {
     unitShape,
     amenityCount: (amenityRes.data ?? []).length,
     photoCount: photos.length,
+    /* Walkthroughs count toward the media minimum (MIN_MEDIA) with the photos. */
+    videoCount: (videoRes.data ?? []).length,
     hasCover: photos.some((p) => p.position === 0),
     moveInStatedMinor: listing.total_move_in_cost_minor,
     moveInPartsMinor: [

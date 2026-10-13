@@ -411,18 +411,20 @@ function Utility({ icon, label, value }: { icon: UiIconName; label: string; valu
 
 function MediaStrip({ listing, copy }: { listing: ListingReviewView; copy: AdminCopy["listings"] }) {
   const photos = listing.photos;
-  const video = listing.videos[0] ?? null;
+  /* Every video, not the first: a listing holds up to three and they count
+     toward its media minimum, so the reviewer has to be able to watch each.
+     The second and third used to be folded into "+2" and never shown. */
+  const videos = listing.videos;
   const lead = photos[0] ?? null;
   const rest = photos.slice(1);
-  const extraVideos = listing.videos.length > 1 ? listing.videos.length - 1 : 0;
-  const overflow = rest.length + extraVideos > SMALL_TILES;
+  const overflow = rest.length > SMALL_TILES;
   const shown = rest.slice(0, overflow ? SMALL_TILES - 1 : SMALL_TILES);
-  const hidden = rest.length - shown.length + extraVideos;
+  const hidden = rest.length - shown.length;
 
-  if (!lead && !video) {
+  if (!lead && videos.length === 0) {
     return (
       <Panel>
-        <p className="nf-rv-msg">No photos or walkthrough were uploaded with this listing.</p>
+        <p className="nf-rv-msg">No photos or videos were uploaded with this listing.</p>
       </Panel>
     );
   }
@@ -431,7 +433,7 @@ function MediaStrip({ listing, copy }: { listing: ListingReviewView; copy: Admin
     <div className="nf-panel nf-rv-panel" style={{ padding: "var(--nf-space-sm)" }}>
       {/* Focusable: on a phone the strip scrolls sideways, and a keyboard must
           be able to scroll it (axe scrollable-region-focusable, C1 sweep). */}
-      <ul className="nf-rv-media" role="list" aria-label="Photos and walkthrough" tabIndex={0}>
+      <ul className="nf-rv-media" role="list" aria-label="Photos and videos" tabIndex={0}>
         {lead ? (
           <li className="nf-rv-media__lead">
             <RemoteImage
@@ -443,8 +445,8 @@ function MediaStrip({ listing, copy }: { listing: ListingReviewView; copy: Admin
             />
           </li>
         ) : null}
-        {video ? (
-          <li className="nf-rv-media__lead">
+        {videos.map((video, index) => (
+          <li key={`video-${index}`} className="nf-rv-media__lead" data-testid="rv-video">
             {video.url ? (
               /* A walkthrough of an empty flat carries no speech, so there is
                  no track to caption. preload none: a reviewer's line is not
@@ -455,7 +457,7 @@ function MediaStrip({ listing, copy }: { listing: ListingReviewView; copy: Admin
                 controls
                 preload="none"
                 playsInline
-                aria-label="Walkthrough video"
+                aria-label={`Video ${index + 1} of ${videos.length}${video.durationSeconds ? `, ${video.durationSeconds} seconds` : ""}`}
               />
             ) : (
               <div
@@ -466,12 +468,12 @@ function MediaStrip({ listing, copy }: { listing: ListingReviewView; copy: Admin
                   <UiIcon name="arrow-right" size={20} />
                 </span>
                 <span className="nf-rv-media__caption">
-                  This walkthrough could not be opened. The listing has one.
+                  This video could not be opened. The listing has it.
                 </span>
               </div>
             )}
           </li>
-        ) : null}
+        ))}
         {shown.map((photo, index) => (
           /* Keyed by place as well as address, so two photographs that share
              an address cannot drop one another from the strip. */

@@ -28,7 +28,6 @@ const LATE = [
   "components/app/agreements/AgreementControls.tsx",
   "components/app/tenancy/TenancyReportCard.tsx",
   "components/agent/ApplyWizard.tsx",
-  "components/agent/VideoWalkthrough.tsx",
   "app/agent/list/ListingWizard.tsx",
 ] as const;
 

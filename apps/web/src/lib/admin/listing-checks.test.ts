@@ -90,9 +90,18 @@ describe("the lines that judge the gate's facts fail where the gate fails", () =
     expect(qualityChecks(row({ description })).find((c) => c.label === CHECK_LABEL.description)?.detail).toBe("39 words");
   });
 
-  it("a flat with no bathroom, and three photos", () => {
+  it("a flat with no bathroom, and two photos", () => {
     expect(failing(row({ bathrooms: 0 }))).toEqual([CHECK_LABEL.rooms]);
-    expect(failing(row({ listing_photos: [0, 1, 2].map((position) => ({ position })) }))).toEqual([CHECK_LABEL.photoCount]);
+    expect(failing(row({ listing_photos: [0, 1].map((position) => ({ position })) }))).toEqual([CHECK_LABEL.photoCount]);
+  });
+
+  it("counts videos with the photos, as the gate does, and still wants a photo first", () => {
+    const twoAndAVideo = row({ listing_photos: [0, 1].map((position) => ({ position })), listing_videos: [{}] });
+    expect(failing(twoAndAVideo)).toEqual([]);
+    expect(submitRequirements({ ...subject(twoAndAVideo), videoCount: 1 }).map((u) => u.field)).toEqual([]);
+    const videosOnly = row({ listing_photos: [], listing_videos: [{}, {}, {}] });
+    expect(failing(videosOnly)).toEqual([CHECK_LABEL.cover]);
+    expect(submitRequirements({ ...subject(videosOnly), videoCount: 3 }).map((u) => u.field)).toEqual(["photos"]);
   });
 
   it("keeps the reviewer's own contact scan", () => {

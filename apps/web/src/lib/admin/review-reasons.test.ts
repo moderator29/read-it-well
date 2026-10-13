@@ -7,7 +7,7 @@ describe("listing review reason codes (C8)", () => {
     const b = composeReviewNote(["photos_unclear", "wrong_category"], "");
     expect(a).toBe(b);
     expect(a.split("\n")).toHaveLength(2);
-    expect(a.startsWith("- Add at least five")).toBe(true);
+    expect(a.startsWith("- Add at least three clear, well-lit photos or videos, and five")).toBe(true);
   });
   it("puts the reviewer's own note under the checklist", () => {
     expect(composeReviewNote(["photos_unclear"], "  The kitchen photo is sideways. ")).toBe(

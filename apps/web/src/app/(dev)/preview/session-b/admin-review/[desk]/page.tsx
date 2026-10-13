@@ -96,7 +96,7 @@ const LISTING: ListingReviewView = {
   reviewNotes: null,
   createdAt: new Date(Date.now() - 5 * 3_600_000).toISOString(),
   checks: [
-    { label: "Four photos or more", pass: true, detail: "9 uploaded" },
+    { label: "Three photos or videos", pass: true, detail: "9 photos and 1 video" },
     { label: "Cover photo set", pass: true, detail: "First photo is the cover" },
     { label: "Title of 8 to 80 characters", pass: true, detail: "Three Bedroom Flat in Lekki Phase One" },
     { label: "Area and city recorded", pass: true, detail: "Lekki, Lagos" },

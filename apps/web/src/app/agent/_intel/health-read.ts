@@ -60,6 +60,7 @@ type HealthRow = {
   ownership_verified_at: string | null;
   mandate_verified_at: string | null;
   listing_photos: { position: number }[] | null;
+  listing_videos?: { id: string }[] | null;
   listing_amenities: { amenity_id: string }[] | null;
 };
 
@@ -71,7 +72,7 @@ export async function readListingHealth(supabase: Db, agentId: string, listingId
     const { data, error } = await supabase
       .from("listings")
       .select(
-        "id, title, description, property_type, state_code, city, area, listing_intent, rent_amount_minor, rent_period, rate_minor, rate_period, sale_price_minor, tenure, bedrooms, bathrooms, status, is_demo, listing_role, published_at, physically_inspected_at, address_verified_at, ownership_verified_at, mandate_verified_at, listing_photos(position), listing_amenities(amenity_id)",
+        "id, title, description, property_type, state_code, city, area, listing_intent, rent_amount_minor, rent_period, rate_minor, rate_period, sale_price_minor, tenure, bedrooms, bathrooms, status, is_demo, listing_role, published_at, physically_inspected_at, address_verified_at, ownership_verified_at, mandate_verified_at, listing_photos(position), listing_videos(id), listing_amenities(amenity_id)",
       )
       .eq("id", listingId)
       .eq("agent_id", agentId)
@@ -116,6 +117,8 @@ export async function readListingHealth(supabase: Db, agentId: string, listingId
           bathrooms: row.bathrooms,
           amenityCount: row.listing_amenities?.length ?? 0,
           photoCount: photos.length,
+          /* Videos count toward the media minimum, as the submit gate counts them. */
+          videoCount: row.listing_videos?.length ?? 0,
           hasCover: photos.some((photo) => photo.position === 0),
         },
         status: row.status,

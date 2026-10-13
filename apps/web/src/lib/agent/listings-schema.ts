@@ -37,6 +37,7 @@ import {
   MAX_SECURITY_PHONE,
   MAX_TENANCY_MONTHS,
   MAX_TITLE_LENGTH,
+  MAX_VIDEOS,
   MAX_VIDEO_SECONDS,
   MIN_DRAFT_TITLE_LENGTH,
   MIN_YEAR_BUILT,
@@ -394,7 +395,7 @@ export const addVideoSchema = z.object({
   durationSeconds: optionalCount(
     1,
     MAX_VIDEO_SECONDS,
-    `A walkthrough can be up to ${MAX_VIDEO_SECONDS / 60} minutes.`,
+    `A video can be up to ${MAX_VIDEO_SECONDS} seconds long.`,
   ),
 });
 
@@ -414,6 +415,21 @@ export const reorderPhotosSchema = z.object({
     .array(uuid("We could not identify that photo."))
     .min(1, "There are no photos to reorder.")
     .max(MAX_PHOTOS, `A listing holds up to ${MAX_PHOTOS} photos.`),
+});
+
+/** The whole row of a listing's photos and videos, in the order to keep. */
+export const reorderMediaSchema = z.object({
+  listingId: uuid("We could not identify that listing."),
+  items: z
+    .array(
+      z.object({
+        kind: z.enum(["photo", "video"]),
+        id: uuid("We could not identify that photo or video."),
+      }),
+    )
+    .min(1, "There is nothing to reorder.")
+    .max(MAX_PHOTOS + MAX_VIDEOS, "A listing holds fewer items than that.")
+    .refine((items) => items[0]?.kind === "photo", "The first item is the cover, and a cover has to be a photo."),
 });
 
 export const setAmenitiesSchema = z.object({
