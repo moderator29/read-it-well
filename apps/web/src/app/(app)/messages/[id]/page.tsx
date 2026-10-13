@@ -402,6 +402,7 @@ export default async function ConversationPage({
             body: m.body,
             timeLabel: m.timeLabel,
             imageUrl: m.imageUrl,
+            imageSize: m.imageSize ?? null,
             read: read.has(m.id),
             ...(m.createdAt ? { createdAt: m.createdAt } : {}),
             ...(card ? { card } : {}),

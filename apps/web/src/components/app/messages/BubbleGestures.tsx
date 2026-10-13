@@ -28,9 +28,12 @@ import { SWIPE_REPLY_AT, lockAxis, swipeCommits, swipeTravel, type SwipeAxis, ty
  */
 
 const LONG_PRESS_MS = 450;
-/* A gesture that starts on a control that drags sideways itself (a voice
-   note's seek bar) belongs to that control. */
-const OWN_DRAG = "input, textarea, select, [role='slider']";
+/* A gesture that starts on a control that drags itself (a voice note's seek
+   bar) belongs to that control: no hold, no swipe. One that starts on a group
+   of photos that swipes sideways (`PhotoGroup`) scrolls the photos: it can
+   still be held for the menu, but it never sets a reply. */
+const OWN_CONTROL = "input, textarea, select, [role='slider']";
+const OWN_SWIPE = "[data-swipe-own]";
 
 type Gesture = { x: number; y: number; pointerId: number; axis: SwipeAxis; canSwipe: boolean };
 
@@ -67,14 +70,15 @@ export function BubbleGestures({
 
   const down = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (event.pointerType === "mouse" && event.button !== 0) return;
-    if (event.target instanceof Element && event.target.closest(OWN_DRAG)) return;
+    const from = event.target instanceof Element ? event.target : null;
+    if (from?.closest(OWN_CONTROL)) return;
     swiped.current = false;
     gesture.current = {
       x: event.clientX,
       y: event.clientY,
       pointerId: event.pointerId,
       axis: null,
-      canSwipe: Boolean(onSwipeReply) && event.pointerType !== "mouse",
+      canSwipe: Boolean(onSwipeReply) && event.pointerType !== "mouse" && !from?.closest(OWN_SWIPE),
     };
     stopPress();
     if (onLongPress) {

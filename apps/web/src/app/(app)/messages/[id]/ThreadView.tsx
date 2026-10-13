@@ -36,6 +36,7 @@ import { deleteMessage } from "@/lib/messages/message-actions";
 import { MessageMenu } from "@/components/app/messages/MessageMenu";
 import { ForwardSheet } from "@/components/app/messages/ForwardSheet";
 import { BubbleGestures } from "@/components/app/messages/BubbleGestures";
+import { PhotoGroup } from "@/components/app/messages/PhotoGroup";
 import { asSentence, canForward } from "@/components/app/messages/forward";
 import {
   useThreadRealtime,
@@ -100,6 +101,8 @@ export type ThreadBubble = {
   body: string;
   timeLabel: string;
   imageUrl: string | null;
+  /** The photo's pixel size when the row recorded it, so it is drawn at its proportions at once. */
+  imageSize?: { width: number; height: number } | null;
   /** `waiting`: tapped with no signal, kept in the outbox, sends by itself (V-40). */
   state?: "sending" | "failed" | "waiting";
   /**
@@ -1329,32 +1332,18 @@ export function ThreadView({
                         : m.mine
                           ? "nf-bubble--mine"
                           : "nf-bubble--theirs"
-                    }${m.state === "sending" ? " nf-bubble--sending" : ""}`}
+                    }${m.state === "sending" ? " nf-bubble--sending" : ""}${
+                      photos.length > 0 ? ` nf-bubble--media${words || share ? "" : " nf-bubble--photos"}` : ""
+                    }`}
                   >
-                    {photos.length > 1 ? (
-                      /* The bundle: three thumbnails and the count of the rest. */
-                      <div className="nf-photo-bundle" role="group" aria-label={`${photos.length} photos`}>
-                        {photos.slice(0, 3).map((p, i) => (
-                          <span key={p.id} className="nf-photo-bundle__cell">
-                            {/* Signed and object URLs cannot go through the optimiser. */}
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={p.imageUrl ?? ""} alt={m.mine ? "Photo you attached" : `Photo from ${counterpartName}`} />
-                            {i === 2 && photos.length > 3 && (
-                              <span className="nf-photo-bundle__more">+{photos.length - 3}</span>
-                            )}
-                          </span>
-                        ))}
-                      </div>
-                    ) : (
-                      photos[0]?.imageUrl && (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={photos[0].imageUrl}
-                          alt={m.mine ? "Photo you attached" : `Photo from ${counterpartName}`}
-                          className="nf-bubble__photo"
-                        />
-                      )
-                    )}
+                    {photos.length > 0 ? (
+                      /* One photo fills the bubble; more sit in a row at their
+                         own proportions, and past three the group swipes. */
+                      <PhotoGroup
+                        photos={photos.map((p) => ({ id: p.id, url: p.imageUrl ?? "", size: p.imageSize ?? null }))}
+                        alt={m.mine ? "Photo you attached" : `Photo from ${counterpartName}`}
+                      />
+                    ) : null}
                     {m.forwarded ? <span className="nf-bubble__forwarded">Forwarded</span> : null}
                     {m.deleted ? <p className="nf-bubble__deleted">This message was deleted</p> : null}
                     {m.audio ? <VoiceNote note={m.audio} mine={m.mine} copy={threadWords.voice} /> : null}
