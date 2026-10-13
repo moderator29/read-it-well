@@ -21,6 +21,8 @@
  * decision; it informs one.
  */
 
+import { countOf } from "@vallo/i18n/core";
+
 import {
   MAX_TITLE_LENGTH,
   MIN_DESCRIPTION_WORDS,
@@ -88,8 +90,8 @@ export function qualityChecks(row: ChecklistRow): QualityCheck[] {
       pass: photoCount + videoCount >= MIN_MEDIA,
       detail:
         videoCount > 0
-          ? `${countWord(photoCount, "photo")} and ${countWord(videoCount, "video")}`
-          : countWord(photoCount, "photo"),
+          ? `${countWord(photoCount, "photos")} and ${countWord(videoCount, "videos")}`
+          : countWord(photoCount, "photos"),
     },
     {
       label: CHECK_LABEL.cover,
@@ -147,7 +149,7 @@ export function qualityChecks(row: ChecklistRow): QualityCheck[] {
   ];
 }
 
-/** "1 photo", "3 photos". */
-function countWord(count: number, word: string): string {
-  return `${count} ${count === 1 ? word : `${word}s`}`;
+/** "1 photo", "3 photos", from the dictionary's counted phrases. */
+function countWord(count: number, noun: "photos" | "videos"): string {
+  return countOf(count, noun, "en");
 }

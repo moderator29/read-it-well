@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { formatDate, formatMoney, type Dictionary, type Locale } from "@vallo/i18n/core";
+import { countOf, formatDate, formatMoney, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { ShotList } from "@/components/agent/ShotList";
 import { fill } from "../_copy";
 import { loadBrowserClient } from "@/lib/supabase/load-client";
@@ -4229,7 +4229,7 @@ export function ListingWizard({
                               : fill(copy.workspace.photoCount, { count: photos.length }),
                           videos.length === 0
                             ? null
-                            : `${videos.length} ${copy.photos.video.toLocaleLowerCase(locale)}${videos.length === 1 ? "" : "s"}`,
+                            : countOf(videos.length, "videos", locale),
                         ]
                           .filter(Boolean)
                           .join(", "),
