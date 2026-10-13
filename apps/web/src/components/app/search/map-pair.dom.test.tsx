@@ -1,8 +1,9 @@
 /**
  * THE CHOSEN PIN AND ITS CARD, IN CHROMIUM (round 5 craft, "a search finds
  * the right place"): the chosen pin lifts, the card that docks for it rises
- * from the frame's foot at the browsing pace and wears the pin's selected
- * edge, a new choice lands a new card, and reduced motion keeps the arrival
+ * from the frame's foot at the browsing pace and is the shared compact space
+ * card (no edge of its own, the founder, 13 October 2026), a new choice
+ * lands a new card, and reduced motion keeps the arrival
  * as a 160ms fade with the pin still lifted. Computed styles and animations,
  * never a clock.
  *
@@ -53,7 +54,6 @@ const ENTRY = `
     }, [chosen]);
     return (
       <div style={{ position: "relative", height: 400 }}>
-        <span id="probe" style={{ borderStyle: "solid", borderWidth: 1, borderColor: "var(--nf-selected-edge)" }} />
         <button id="pin" type="button" className="nf-map-pin-drop" data-selected="true" style={{ position: "absolute", left: 100, top: 100 }}>
           N2.5m
         </button>
@@ -98,11 +98,17 @@ const declared = (page: Page, selector: string) =>
     return { name, duration: style.animationDuration, props: [...props].sort() };
   }, selector);
 
-const edges = (page: Page) =>
-  page.evaluate(() => ({
-    card: getComputedStyle(document.querySelector("[data-testid=map-dock] article")!).borderTopColor,
-    selected: getComputedStyle(document.getElementById("probe")!).borderTopColor,
-  }));
+/** The docked card is the shared compact space card: its photograph and its separate info panel, and no panel of the old glass kind. */
+const shape = (page: Page) =>
+  page.evaluate(() => {
+    const card = document.querySelector("[data-testid=map-dock] article");
+    return {
+      compact: card?.matches(".nf-sc.nf-sc--compact") ?? false,
+      photo: card?.querySelectorAll(":scope > .nf-sc__media").length ?? 0,
+      panel: card?.querySelectorAll(":scope > .nf-sc__info").length ?? 0,
+      glassPanel: card?.closest(".nf-panel") !== null,
+    };
+  });
 
 const pinLift = (page: Page) => page.evaluate(() => getComputedStyle(document.getElementById("pin")!).transform);
 
@@ -125,8 +131,7 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the chosen pin and its card", (
         duration: "0.24s",
         props: ["opacity", "transform"],
       });
-      const { card, selected } = await edges(page);
-      expect(card).toBe(selected);
+      expect(await shape(page)).toEqual({ compact: true, photo: 1, panel: 1, glassPanel: false });
       await page.waitForTimeout(500);
       expect(
         await page.evaluate(() => {
@@ -163,8 +168,7 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the chosen pin and its card", (
       });
       await page.waitForTimeout(50);
       expect(await pinLift(page)).toBe("matrix(1, 0, 0, 1, 0, -6)");
-      const { card, selected } = await edges(page);
-      expect(card).toBe(selected);
+      expect(await shape(page)).toEqual({ compact: true, photo: 1, panel: 1, glassPanel: false });
     } finally {
       await close();
     }

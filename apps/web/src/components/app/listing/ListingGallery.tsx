@@ -57,7 +57,18 @@ export function ListingGallery({
   shareTitle,
   floatingBack = true,
   desktopInset = false,
+  framed = false,
 }: {
+  /**
+   * THE SPACE CARD'S TOP (the founder, 13 October 2026). The photograph is
+   * inset inside the outer card the page draws around it (`.nf-sc-top`), with
+   * its own rounded corners and an even gap, instead of running to the phone's
+   * edges and under the lead card. The floating back, share and save, Watch
+   * video and the photo counter keep their places on the photograph, and the
+   * counter and the video pill drop to its foot because nothing overlaps it
+   * any more. Phones, tablets and desktops alike.
+   */
+  framed?: boolean;
   /**
    * From `lg`, the photograph sits in the page's left column as a rounded
    * frame rather than running edge to edge, so the listing's sticky summary
@@ -264,6 +275,13 @@ export function ListingGallery({
    */
   const [arrival] = useState(() => handoffFor(listingId));
   const [heroBackGone, setHeroBackGone] = useState(false);
+  /* Where the photograph's foot marks sit: clear of the lead card's overlap on
+     the full-bleed hero, at the foot of the inset photograph when framed. */
+  const counterAt = framed ? "bottom-3 right-3 sm:bottom-4 sm:right-4" : "bottom-12 right-3 sm:bottom-14 sm:right-4";
+  const watchAt = framed
+    ? "bottom-[3.75rem] right-3 sm:bottom-[4.25rem] sm:right-4"
+    : "bottom-[5.25rem] right-3 sm:bottom-[5.75rem] sm:right-4";
+  const dotsAt = framed ? "bottom-3 sm:bottom-4" : "bottom-13 sm:bottom-15";
   useEffect(() => {
     const node = heroBack.current;
     if (!floatingBack || !node || typeof IntersectionObserver === "undefined") return;
@@ -310,9 +328,13 @@ export function ListingGallery({
        * Once the shell stops welding its 64px header onto this route the same
        * rule puts the hero under the status bar with no further change here.
        */
-      className={`nf-gallery nf-vt-morph relative -mx-gutter -mt-xl sm:-mt-2xl${
-        desktopInset ? " lg:mx-0 lg:mt-0 lg:overflow-hidden lg:rounded-[var(--nf-radius-xl)]" : ""
-      }`}
+      className={
+        framed
+          ? "nf-gallery nf-gallery--framed nf-vt-morph relative"
+          : `nf-gallery nf-vt-morph relative -mx-gutter -mt-xl sm:-mt-2xl${
+              desktopInset ? " lg:mx-0 lg:mt-0 lg:overflow-hidden lg:rounded-[var(--nf-radius-xl)]" : ""
+            }`
+      }
     >
       <div
         ref={track}
@@ -324,8 +346,10 @@ export function ListingGallery({
         tabIndex={0}
         role="group"
         aria-label={t.a11y.photoGallery.replace("{title}", title)}
-        className={`nf-scroll-x flex aspect-[4/3] w-full snap-x snap-mandatory sm:aspect-[16/9] ${
-          desktopInset ? "lg:aspect-[3/2]" : "lg:aspect-[2/1]"
+        className={`nf-scroll-x flex w-full snap-x snap-mandatory ${
+          framed
+            ? "aspect-[3/2] sm:aspect-[16/10]"
+            : `aspect-[4/3] sm:aspect-[16/9] ${desktopInset ? "lg:aspect-[3/2]" : "lg:aspect-[2/1]"}`
         }`}
       >
         {panes.map((photo, i) => {
@@ -396,7 +420,7 @@ export function ListingGallery({
                   onClick={() => setPlaying(i)}
                   aria-label={t.catalogue.card.watchVideo}
                   data-testid="gallery-watch"
-                  className="nf-btn nf-gallery-watch absolute bottom-[5.25rem] right-3 z-10 sm:bottom-[5.75rem] sm:right-4"
+                  className={`nf-btn nf-gallery-watch absolute z-10 ${watchAt}`}
                 >
                   <span className="nf-gallery-watch__icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24" width={12} height={12} focusable="false">
@@ -420,7 +444,7 @@ export function ListingGallery({
           type="button"
           onClick={watchFirst}
           data-testid="gallery-watch-cover"
-          className="nf-btn nf-gallery-watch absolute bottom-[5.25rem] right-3 z-10 sm:bottom-[5.75rem] sm:right-4"
+          className={`nf-btn nf-gallery-watch absolute z-10 ${watchAt}`}
         >
           <span className="nf-gallery-watch__icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" width={12} height={12} focusable="false">
@@ -526,7 +550,7 @@ export function ListingGallery({
           data-testid="gallery-counter"
           /* `--nf-radius-sm`, the same 28px-plate ratio as the stand-in chip
              above it. See the note there. */
-          className="nf-numeric absolute bottom-12 right-3 z-10 rounded-[var(--nf-radius-xs)] nf-media-chip px-sm py-2xs font-semibold sm:bottom-14 sm:right-4"
+          className={`nf-numeric absolute z-10 rounded-[var(--nf-radius-xs)] nf-media-chip px-sm py-2xs font-semibold ${counterAt}`}
         >
           <UiIcon name="picture" size={16} className="mr-2xs inline-block align-[-2px]" />
           <span className="sr-only">{mixed ? "Slide " : "Photo "}</span>
@@ -570,7 +594,7 @@ export function ListingGallery({
             stand-in plates.
           */}
           <ul
-            className={`pointer-events-none absolute bottom-13 left-1/2 z-10 -translate-x-1/2 items-center gap-2xs sm:bottom-15 ${
+            className={`pointer-events-none absolute left-1/2 z-10 -translate-x-1/2 items-center gap-2xs ${dotsAt} ${
               count > 0 || standIn ? "hidden" : "flex"
             }`}
             aria-hidden="true"

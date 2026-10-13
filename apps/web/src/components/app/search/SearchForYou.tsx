@@ -118,7 +118,7 @@ export function SearchForYou({
                   listing={listing}
                   locale={locale}
                   t={t}
-                  layout="row"
+                  layout="compact"
                   brief
                   saved={saved.has(listing.id)}
                   ownershipSeen={seenMark(listing.id)}
@@ -146,7 +146,7 @@ export function SearchForYou({
                   listing={listing}
                   locale={locale}
                   t={t}
-                  layout="row"
+                  layout="compact"
                   brief
                   showAge
                   saved={saved.has(listing.id)}

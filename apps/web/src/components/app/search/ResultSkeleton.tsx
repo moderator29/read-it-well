@@ -1,5 +1,6 @@
 import { Skeleton } from "@/components/ui/Skeleton";
 import { panelClass } from "@/components/ui/Panel";
+import { SpaceCardSkeleton } from "@/components/ui/space-card/SpaceCardSkeleton";
 import "@/app/css/catalogue.css";
 import "./search-v2.css";
 
@@ -41,34 +42,13 @@ export function ResultCardSkeleton({ dense = true }: { dense?: boolean }) {
 }
 
 /**
- * THE ROW CARD'S SKELETON (search-map track): the one-per-row result card's
- * shape, in its order. The photograph's frame at 16:10, hatched, then the
- * separate panel: the title and the place on the left, the figure and its
- * period on the right, then the facts line.
+ * THE ROW CARD'S SKELETON: the space card in slabs (`SpaceCardSkeleton`), the
+ * one-per-row result card's own shape: the outer card, the photograph inset
+ * in it, then the separate panel with the title and the figure on one row and
+ * the place and the facts under them.
  */
 export function ResultRowSkeleton() {
-  return (
-    <div aria-hidden="true" className={panelClass({ variant: "card", className: "nf-rskel nf-rskel--row block overflow-hidden" })}>
-      <span className="nf-rskel__media" />
-      <div className="nf-pcard__panel">
-        <div className="nf-pcard__panel-top">
-          <div className="min-w-0 flex-1">
-            <Skeleton width="78%" height="1rem" radius="xs" />
-            <Skeleton className="mt-2xs" width="52%" height="0.75rem" radius="xs" />
-          </div>
-          <div className="flex shrink-0 flex-col items-end">
-            <Skeleton width="5.5rem" height="1.25rem" radius="sm" />
-            <Skeleton className="mt-2xs" width="3.5rem" height="0.625rem" radius="xs" />
-          </div>
-        </div>
-        <div className="flex gap-md">
-          <Skeleton width="3.5rem" height="0.75rem" radius="xs" />
-          <Skeleton width="3.5rem" height="0.75rem" radius="xs" />
-          <Skeleton width="3.5rem" height="0.75rem" radius="xs" />
-        </div>
-      </div>
-    </div>
-  );
+  return <SpaceCardSkeleton />;
 }
 
 /** The one-per-row list as it will draw: one across on a phone, two from a tablet. */

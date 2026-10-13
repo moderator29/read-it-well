@@ -201,7 +201,8 @@
    * the shared entrance under everybody else. The seventh card arrives with
    * the sixth. `--card-i` is written by the card, already capped at five.
    */
-  .nf-pcard.nf-card-in {
+  .nf-pcard.nf-card-in,
+  .nf-sc--live.nf-card-in {
     animation-name: nf-list-in;
     animation-delay: calc(var(--nf-splash-hold, 0s) + min(var(--card-i, 0), 5) * 40ms);
   }
@@ -228,17 +229,20 @@
    * changes after the page loaded, and for print, so no card is ever left
    * hidden.
    */
-  .nf-pcard[data-entry="pending"] {
+  .nf-pcard[data-entry="pending"],
+  .nf-sc--live[data-entry="pending"] {
     animation: none;
     opacity: 0;
     transform: translate3d(0, var(--nf-entry-float, 60px), 0);
   }
   /* A keyboard user who reaches a held card sees it at once. */
-  .nf-pcard[data-entry="pending"]:focus-within {
+  .nf-pcard[data-entry="pending"]:focus-within,
+  .nf-sc--live[data-entry="pending"]:focus-within {
     opacity: 1;
     transform: none;
   }
-  .nf-pcard[data-entry="in"] {
+  .nf-pcard[data-entry="in"],
+  .nf-sc--live[data-entry="in"] {
     animation: nf-scroll-in var(--nf-duration-entrance) var(--nf-ease-entrance) both;
     animation-delay: var(--nf-entry-delay, 0ms);
   }
@@ -253,7 +257,8 @@
     }
   }
   @media (prefers-reduced-motion: reduce), print {
-    .nf-pcard[data-entry] {
+    .nf-pcard[data-entry],
+    .nf-sc--live[data-entry] {
       animation: none;
       opacity: 1;
       transform: none;

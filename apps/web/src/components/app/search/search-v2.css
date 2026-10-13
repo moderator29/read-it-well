@@ -1,9 +1,10 @@
 /*
   Search, upgraded (track search-map, 13 October 2026), to the founder's
-  references in Vallo's own material: the one-per-row result card, the quick
-  chips, Best matches and New listings, the list beside a sticky map on a
-  desktop, the filter sheet's segmented market, price histogram and room
-  rows, and the map's photo pins, docked card and credit control.
+  references in Vallo's own material: the quick chips, Best matches and New
+  listings, the list beside a sticky map on a desktop, the filter sheet's
+  segmented market, price histogram and room rows, and the map's photo pins
+  and credit control. The result card and the docked card are the shared
+  space card's (`components/ui/space-card`, `app/css/space-card.css`).
 
   Layout and shape only. Every colour, radius, size and shadow is a token, and
   the glass is the existing classes' (`nf-panel`, `nf-btn--glass`,
@@ -14,183 +15,6 @@
 @layer theme, base, components, utilities;
 
 @layer components {
-  /* ================================================ the row result card */
-  .nf-pcard.nf-pcard--row {
-    padding: var(--nf-space-2xs);
-  }
-  .nf-pcard--row .nf-pcard__link {
-    gap: var(--nf-space-2xs);
-  }
-  .nf-pcard--row .nf-pcard__media {
-    margin: 0;
-    aspect-ratio: 16 / 10;
-    border-radius: calc(var(--nf-container-radius) - var(--nf-space-2xs));
-  }
-  .nf-pcard--row .nf-pcard__photonav {
-    top: var(--nf-space-2xs);
-    left: var(--nf-space-2xs);
-    right: var(--nf-space-2xs);
-    aspect-ratio: 16 / 10;
-  }
-  .nf-pcard--row .nf-pcard__controls {
-    top: calc(var(--nf-space-2xs) + var(--nf-space-xs));
-    right: calc(var(--nf-space-2xs) + var(--nf-space-xs));
-  }
-  /* The round heart of the reference: a paper disc with the brand heart, on
-     the photograph in both themes. It is a glyph-only control, so a circle. */
-  .nf-pcard.nf-pcard--row .nf-pcard__heart {
-    width: 2.5rem;
-    height: 2.5rem;
-    border-radius: var(--nf-radius-circle);
-    border-color: transparent;
-    background: var(--nf-surface-on-paper);
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    box-shadow: var(--nf-elevation-raised);
-    color: var(--nf-brand-primary);
-  }
-  .nf-pcard.nf-pcard--row .nf-pcard__heart[aria-pressed="true"] {
-    color: var(--nf-brand-primary);
-  }
-
-  /* The market chip and the Verified mark, top left on the photograph. */
-  .nf-pcard__chips {
-    position: absolute;
-    z-index: 2;
-    top: var(--nf-space-xs);
-    left: var(--nf-space-xs);
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--nf-space-2xs);
-    max-width: calc(100% - 4rem);
-    pointer-events: none;
-  }
-  /* A lettered plate, so a rounded rectangle on the small rung (the ratio,
-     not the name: 6px on a 26px plate is 0.23). Paper in both themes, as the
-     reference's "Rental". */
-  .nf-pcard__chip {
-    display: inline-flex;
-    align-items: center;
-    min-height: 1.625rem;
-    padding: 0 var(--nf-space-xs);
-    border-radius: var(--nf-radius-xs);
-    background: var(--nf-surface-on-paper);
-    color: var(--nf-content-on-paper);
-    font-size: var(--nf-text-caption);
-    font-weight: 600;
-    line-height: 1;
-    box-shadow: var(--nf-elevation-raised);
-  }
-  .nf-pcard__chip-mark {
-    min-height: 1.625rem;
-    padding: 0 var(--nf-space-xs);
-    border-radius: var(--nf-radius-xs);
-    font-size: var(--nf-text-caption);
-  }
-
-  /* The separate panel under the photograph. */
-  .nf-pcard__panel {
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-    gap: var(--nf-space-xs);
-    padding: var(--nf-space-sm) var(--nf-space-sm) var(--nf-space-sm) var(--nf-space-md);
-    border: var(--nf-border-width) solid var(--nf-panel-hair);
-    border-radius: calc(var(--nf-container-radius) - var(--nf-space-2xs));
-    background: var(--nf-glass-well-fill);
-  }
-  .nf-pcard__panel-top {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: var(--nf-space-sm);
-  }
-  .nf-pcard--row .nf-pcard__title {
-    -webkit-line-clamp: 2;
-    font-size: var(--nf-text-body);
-    line-height: 1.3;
-  }
-  .nf-pcard--row .nf-pcard__where {
-    margin-top: var(--nf-space-3xs);
-    font-size: var(--nf-text-caption);
-    color: var(--nf-content-muted);
-  }
-  .nf-pcard__row-price {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    flex-shrink: 0;
-    max-width: 52%;
-    text-align: right;
-  }
-  .nf-pcard__row-figure {
-    font-size: var(--nf-text-body-lg);
-    font-weight: 700;
-    font-variant-numeric: tabular-nums;
-    letter-spacing: -0.01em;
-    line-height: 1.2;
-    white-space: nowrap;
-    color: var(--nf-content-primary);
-  }
-  .nf-pcard__row-from {
-    font-size: var(--nf-text-caption);
-    font-weight: 600;
-    color: var(--nf-content-muted);
-  }
-  .nf-pcard__row-per {
-    font-size: var(--nf-text-overline);
-    font-weight: 400;
-    line-height: 1.3;
-    color: var(--nf-content-muted);
-  }
-  .nf-pcard__row-per--ask {
-    font-size: var(--nf-text-caption);
-    font-weight: 600;
-    color: var(--nf-content-secondary);
-  }
-  /* Beds, baths and the floor area on one line, each with its glyph. */
-  .nf-pcard__specs {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--nf-space-2xs) var(--nf-space-md);
-    font-size: var(--nf-text-caption);
-    line-height: 1.2;
-    color: var(--nf-content-secondary);
-  }
-  .nf-pcard__specs .nf-pcard__fact {
-    gap: var(--nf-space-2xs);
-  }
-  .nf-pcard__specs .nf-pcard__fact > svg {
-    color: var(--nf-brand-secondary);
-  }
-  /* Message agent under the panel, on the card's own inset. */
-  .nf-pcard--row .nf-pcard__action {
-    padding: var(--nf-space-2xs) 0 0;
-  }
-  /* Why it is a best match: a real signal, in words, in the link ink. */
-  .nf-pcard__reason {
-    display: flex;
-    align-items: center;
-    gap: var(--nf-space-2xs);
-    font-size: var(--nf-text-caption);
-    font-weight: 600;
-    line-height: 1.3;
-    color: var(--nf-content-link);
-  }
-
-  /* The row card's skeleton: the same inset, frame and panel. */
-  .nf-rskel.nf-rskel--row {
-    display: flex;
-    flex-direction: column;
-    gap: var(--nf-space-2xs);
-    padding: var(--nf-space-2xs);
-  }
-  .nf-rskel--row .nf-rskel__media {
-    margin: 0;
-    aspect-ratio: 16 / 10;
-  }
-
   /* ========================================================= the shelf */
   /* The reference's search box: one well holding the field, the filters and
      the order, so the words get the width the phone has. The field and the
@@ -284,13 +108,14 @@
     font-size: var(--nf-text-caption);
     color: var(--nf-content-muted);
   }
+  /* A sideways rail of compact space cards, the width home's rows give them. */
   .nf-sx-rail {
     display: grid;
     grid-auto-flow: column;
-    grid-auto-columns: min(84%, 21rem);
+    grid-auto-columns: min(76%, 17rem);
     gap: var(--nf-space-sm);
     margin-inline: calc(var(--nf-pad-shell) * -1);
-    padding: var(--nf-space-3xs) var(--nf-pad-shell) var(--nf-space-sm);
+    padding: var(--nf-space-3xs) var(--nf-pad-shell) var(--nf-space-md);
     overflow-x: auto;
     overscroll-behavior-x: contain;
     scroll-snap-type: x mandatory;
@@ -304,9 +129,9 @@
     scroll-snap-align: start;
     min-width: 0;
   }
-  @media (min-width: 64rem) {
-    .nf-search-split .nf-sx-rail {
-      grid-auto-columns: min(46%, 21rem);
+  @media (min-width: 40rem) {
+    .nf-sx-rail {
+      grid-auto-columns: 18rem;
     }
   }
 
@@ -591,33 +416,56 @@
     color: var(--nf-brand-primary);
   }
 
-  /* The docked card, to the reference: the photograph with the open arrow,
-     then the place, the figure and the facts. */
-  .nf-map-dock__photo {
+  /* The docked card is the compact space card: the photograph a map dock's
+     height, the title and the figure on one row as the reference draws them,
+     and the controls over the photograph's corners. */
+  .nf-map-dock__card {
+    --nf-sc-gap: 0.375rem;
     position: relative;
-    height: 8.5rem;
-    overflow: hidden;
-    border-radius: calc(var(--nf-container-radius) - var(--nf-space-2xs));
-    background: var(--nf-media-ground-to);
+    max-width: 24rem;
+    margin-inline: auto;
+    touch-action: pan-y;
   }
-  .nf-map-dock__actions {
+  .nf-map-dock .nf-sc--compact .nf-sc__media {
+    aspect-ratio: auto;
+    height: 8.5rem;
+  }
+  .nf-map-dock .nf-sc--compact .nf-sc__head {
+    flex-direction: row;
+    gap: var(--nf-space-sm);
+  }
+  .nf-map-dock .nf-sc--compact .nf-sc__title {
+    flex: 1 1 auto;
+  }
+  .nf-map-dock .nf-sc--compact .nf-sc__price {
+    text-align: end;
+  }
+  .nf-map-dock .nf-sc--compact .nf-sc__amount,
+  .nf-map-dock .nf-sc--compact .nf-sc__unit {
+    display: block;
+  }
+  .nf-map-dock .nf-sc--compact .nf-sc__unit {
+    margin-inline-start: 0;
+    margin-top: var(--nf-space-3xs);
+  }
+  .nf-map-dock__open {
     position: absolute;
     top: var(--nf-space-xs);
     right: var(--nf-space-xs);
     z-index: 2;
-    display: flex;
-    gap: var(--nf-space-2xs);
+    pointer-events: none;
   }
-  .nf-map-dock__body {
-    display: flex;
-    flex-direction: column;
-    gap: var(--nf-space-2xs);
-    padding: var(--nf-space-sm) var(--nf-space-sm) var(--nf-space-xs);
+  .nf-map-dock__close {
+    position: absolute;
+    top: calc(var(--nf-sc-gap) + var(--nf-space-xs));
+    left: calc(var(--nf-sc-gap) + var(--nf-space-xs));
+    z-index: 3;
   }
-  .nf-map-dock__line {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: var(--nf-space-sm);
+  .nf-map-dock__verified {
+    justify-self: start;
+  }
+  .nf-map-dock__note {
+    margin-top: var(--nf-space-xs);
+    text-align: center;
   }
 }

@@ -22,7 +22,7 @@ import type { ListerCard } from "@/components/app/listing/lister-card";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { Money } from "@/components/ui/Money";
 import { RENTAL } from "../../../f3/fixtures";
-import { panelClass } from "@/components/ui/Panel";
+import "@/app/css/space-card.css";
 import { SweepFrame } from "../Frame";
 
 /**
@@ -80,10 +80,11 @@ export default async function SweepListing() {
         <div className="nf-cat-surface mx-auto max-w-6xl">
           <div className="nf-detail-grid grid lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start lg:gap-2xl">
             <div className="min-w-0">
+              <div className="nf-sc nf-sc-top" data-testid="detail-top">
               <ListingGallery
                 listingId={listing.id}
                 floatingBack={false}
-                desktopInset
+                framed
                 title={listing.title}
                 hue={listing.hue}
                 kind={listing.kind}
@@ -91,9 +92,7 @@ export default async function SweepListing() {
                 media={media}
                 backFallback="/preview/session-b/sweep-home/search"
               />
-              <div className="relative z-10 -mt-xl sm:-mt-2xl lg:mt-lg">
-                <Stack>
-                  <Section className={panelClass({ variant: "card", className: "nf-rise nf-detail-lead scroll-mt-16" })} id="overview">
+                  <Section className="nf-sc-top__panel nf-rise nf-detail-lead scroll-mt-16" id="overview">
                     <div className="flex flex-wrap items-center gap-xs" data-testid="detail-status">
                       <StatusPill tone="brand" icon="key" size="sm">
                         {t.catalogue.card.forRent}
@@ -124,6 +123,10 @@ export default async function SweepListing() {
                     </div>
                   </Section>
 
+              </div>
+
+              <div className="mt-section-tight">
+                <Stack>
                   <ListingHighlights items={listingHighlights(listing, t, locale, true)} title={d.highlights} />
                   <div data-testid="lead-amenities">
                     <ListingAmenityTiles variant="plates" amenities={listing.amenities} limit={5} moreHref="#amenities" moreLabel={d.more} />
