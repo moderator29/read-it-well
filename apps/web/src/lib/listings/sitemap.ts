@@ -108,6 +108,12 @@ export function buildSitemap(
    * listing, so the "no inventory address" rule below still holds.
    */
   areaPages: readonly { path: string; lastModified?: string | null }[] = [],
+  /**
+   * The public docs chapters (`/docs/<slug>`), from `app/(site)/docs/slugs.ts`,
+   * which a test holds equal to the chapters. Each is
+   * written in all four languages like the pages above.
+   */
+  docSlugs: readonly string[] = [],
 ): MetadataRoute.Sitemap {
   const base = origin.replace(/\/+$/, "");
   /* A10: every public page in all four languages, each entry naming the
@@ -127,6 +133,15 @@ export function buildSitemap(
         };
       }),
     ),
+    ...docSlugs
+      .filter((slug) => /^[a-z0-9-]+$/.test(slug))
+      .flatMap((slug) =>
+        LOCALES.map((locale) => ({
+          url: `${base}${localizedPath(`/docs/${slug}`, locale)}`,
+          changeFrequency: "monthly" as const,
+          ...languages(`/docs/${slug}`),
+        })),
+      ),
     ...areaPages
       .filter((page) => /^\/areas\/[a-z0-9-]+\/[a-z0-9-]+$/.test(page.path))
       .map((page) => ({
