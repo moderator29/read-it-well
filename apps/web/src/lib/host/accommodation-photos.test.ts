@@ -3,6 +3,7 @@ import { getDictionary } from "@vallo/i18n";
 
 import { accommodationPhotoIdSchema, accommodationPhotoSchema } from "./schema";
 import { documentPathBelongsTo, emptyHostDraft, missingFrom } from "./onboarding";
+import { HOST_AGREEMENT_VERSION } from "../legal/versions";
 import { nextPhotoPosition } from "./photos";
 
 /* The field messages the server action builds the schema from, in English. */
@@ -74,6 +75,7 @@ function shortletDraft(photos: { id: string; url: string }[]) {
       terms: "2026-09-22T08:00:00Z",
       processing: "2026-09-22T08:00:00Z",
     },
+    hostAgreementVersion: HOST_AGREEMENT_VERSION,
     /* V-57: all five charges at the door answered, which a stay now needs
        before it is sent. */
     arrivalCharges: {

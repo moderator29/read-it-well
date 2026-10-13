@@ -22,6 +22,7 @@
 
 import type { Database } from "../supabase/database.types";
 import type { ArrivalCharges } from "../stays/arrival-charges";
+import { HOST_AGREEMENT_VERSION } from "../legal/versions";
 
 export type BusinessKind = Database["public"]["Enums"]["business_kind"];
 
@@ -605,6 +606,12 @@ export type HostDraft = {
   arrivalCharges: ArrivalCharges | null;
   /** Consents given and then withdrawn, newest last, for the record. */
   consentWithdrawals: { id: ConsentId; at: string }[];
+  /**
+   * The Host Agreement version this host agreed to (with the Terms and the
+   * Privacy policy, `consents.agreements`), or null. Agreed before the
+   * business is created; a business on an older version is asked again.
+   */
+  hostAgreementVersion: string | null;
 };
 
 /** A draft with nothing in it, for a host who has not started. */
@@ -644,6 +651,7 @@ export function emptyHostDraft(): HostDraft {
     reviewNotes: null,
     arrivalCharges: null,
     consentWithdrawals: [],
+    hostAgreementVersion: null,
   };
 }
 
@@ -699,6 +707,7 @@ export function mergeServerDraft(local: HostDraft, server: HostDraft): HostDraft
        so the read is the truth about consents too. */
     consents: server.consents,
     consentWithdrawals: server.consentWithdrawals,
+    hostAgreementVersion: server.hostAgreementVersion,
   };
 }
 
@@ -761,6 +770,12 @@ export function missingFrom(draft: HostDraft): string[] {
   }
 
   if (!draft.hasBankAccount) missing.push("A bank account for payouts");
+
+  /* Founder decision B: the Terms, the Privacy policy and the Host Agreement,
+     agreed with their versions, before anything is sent or published. */
+  if (draft.hostAgreementVersion !== HOST_AGREEMENT_VERSION) {
+    missing.push("Your agreement to the Terms, the Privacy policy and the Host Agreement");
+  }
 
   for (const consent of CONSENTS) {
     if (!draft.consents[consent.id]) missing.push(consent.label);

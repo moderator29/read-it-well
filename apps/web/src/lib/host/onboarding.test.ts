@@ -12,6 +12,7 @@ import {
   stepsFor,
   type HostDraft,
 } from "./onboarding";
+import { HOST_AGREEMENT_VERSION } from "../legal/versions";
 
 /**
  * The host wizard's model, pinned.
@@ -71,6 +72,7 @@ function complete(over: Partial<HostDraft> = {}): HostDraft {
       terms: "2026-09-18T08:00:00Z",
       processing: "2026-09-18T08:00:00Z",
     },
+    hostAgreementVersion: HOST_AGREEMENT_VERSION,
     arrivalCharges: {
       caution: { minor: 5_000_000, per: "stay" },
       power: { none: true },

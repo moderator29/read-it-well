@@ -95,6 +95,12 @@ export const hostDraftSchema = (w: SchemaWords) => z.object({
    * given again.
    */
   withdrawConsents: z.array(z.enum(CONSENTS.map((consent) => consent.id))).optional(),
+  /**
+   * The host agreeing, on this save, to the Terms, the Privacy policy and the
+   * Host Agreement. Recorded with the moment and each version; required on
+   * the save that creates the business.
+   */
+  agreeToHostTerms: z.literal(true).optional(),
   /** The two attestations, each stamped with the moment it was made. */
   hygieneAttested: z.boolean().optional(),
   licenceAttested: z.boolean().optional(),

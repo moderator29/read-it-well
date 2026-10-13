@@ -63,6 +63,7 @@ import {
   shortletPlaceDraftSchema,
 } from "./schema";
 import { SHORTLET_RATE_NAME, bedsArray, placeTypeUnavailable } from "./stays-setup";
+import { HOST_AGREEMENT_VERSION, PRIVACY_VERSION, TERMS_VERSION } from "../legal/versions";
 import { countOf } from "@vallo/i18n/core";
 import { fill, hostRefusals } from "./refusals";
 
@@ -214,7 +215,23 @@ export async function saveHostDraft(input: unknown): Promise<ActionResult<HostDr
     for (const id of withdrawn) delete consents[id];
     consents.withdrawals = [...history, ...withdrawn.map((id) => ({ id, at: now }))];
   }
-  const consentsChanged = Boolean(data.consents) || withdrawn.length > 0;
+  /*
+   * THE HOST'S AGREEMENT (founder decision B): the Terms, the Privacy policy
+   * and the Host Agreement, each with its version and the moment, appended to
+   * `consents.agreements`. Agreeing to the Terms and Privacy policy here is
+   * also the wizard's "terms" consent, so it is stamped too.
+   */
+  if (data.agreeToHostTerms) {
+    const record = Array.isArray(consents.agreements) ? consents.agreements : [];
+    consents.agreements = [
+      ...record,
+      { document: "terms", version: TERMS_VERSION, at: now },
+      { document: "privacy", version: PRIVACY_VERSION, at: now },
+      { document: "host_agreement", version: HOST_AGREEMENT_VERSION, at: now },
+    ];
+    consents.terms = now;
+  }
+  const consentsChanged = Boolean(data.consents) || withdrawn.length > 0 || Boolean(data.agreeToHostTerms);
 
   const fields = {
     ...(data.hostType ? { host_type: data.hostType } : {}),
@@ -262,8 +279,16 @@ export async function saveHostDraft(input: unknown): Promise<ActionResult<HostDr
     return ok({ businessId: existing.id, status: existing.status });
   }
 
-  // First save. A row needs a name and a kind, which are step one and step
-  // two's answers; without them there is nothing honest to create yet.
+  // First save. Nothing is created for a host who has not agreed to the
+  // Terms, the Privacy policy and the Host Agreement (founder decision B).
+  if (!data.agreeToHostTerms) {
+    return fail("Agree to the Terms of service, the Privacy policy and the Host Agreement first, then continue.", {
+      agreeToHostTerms: "Tick this to continue.",
+    });
+  }
+
+  // A row needs a name and a kind, which are step one and step two's
+  // answers; without them there is nothing honest to create yet.
   const name = (data.name ?? "").trim();
   if (name.length < 2) {
     const w = await words();

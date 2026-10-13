@@ -58,6 +58,7 @@ import { RoomTypesStep } from "./stays/RoomTypesStep";
 import { StaysHead } from "./stays/StaysParts";
 import { TablesStep } from "./stays/TablesStep";
 import { Icon3D } from "@/components/ui/Icon3D";
+import { HOST_AGREEMENT_VERSION } from "@/lib/legal/versions";
 
 /**
  * THE HOST WIZARD, ON `lib/host`.
@@ -282,6 +283,14 @@ export function HostWizard({
   /* What the server holds of the typed fields: what "unsaved" is measured
      against, and what Discard puts back. */
   const [savedText, setSavedText] = useState<SavedText>(() => pickText(initial));
+  /*
+   * THE HOST'S AGREEMENT, ticked on the business step (founder decision B).
+   * Nothing is created for a host who has not agreed to the Terms, the Privacy
+   * policy and the Host Agreement; the tick rides on the save that creates
+   * the business and is recorded there with each version.
+   */
+  const [agreeNow, setAgreeNow] = useState(false);
+  const agreed = draft.hostAgreementVersion === HOST_AGREEMENT_VERSION;
   if (seenInitial !== initial) {
     setSeenInitial(initial);
     setDraft((current) => mergeServerDraft(current, initial));
@@ -417,6 +426,7 @@ export function HostWizard({
       let saved: { businessId: string; status: string } | null = null;
       const done = await runAsync(async () => {
         const result = await saveHostDraft({
+          ...(agreeNow && !agreed ? { agreeToHostTerms: true } : {}),
           ...(draft.hostType ? { hostType: draft.hostType } : {}),
           ...(draft.kind ? { kind: draft.kind } : {}),
           name: draft.name,
@@ -448,7 +458,7 @@ export function HostWizard({
       }
       return done;
     },
-    [draft, runAsync],
+    [draft, runAsync, agreeNow, agreed],
   );
 
   const saveText = useCallback(
@@ -602,7 +612,7 @@ export function HostWizard({
       case "host-type":
         return draft.hostType !== null && draft.kind !== null;
       case "business":
-        return BUSINESS_SECTIONS.every((section) =>
+        return (agreed || agreeNow) && BUSINESS_SECTIONS.every((section) =>
           section.fields.every(
             (field) => field.optional || (draft[field.name as TextKeys] ?? "").trim().length > 0,
           ),
@@ -775,6 +785,9 @@ export function HostWizard({
           runAsync={runAsync}
           saveTextAsync={saveTextAsync}
           arrivalCopy={arrivalCopy}
+          agreed={agreed}
+          agreeNow={agreeNow}
+          onAgree={setAgreeNow}
           goTo={(id) => {
             const index = steps.findIndex((s) => s.id === id);
             if (index >= 0) jumpTo(index);
@@ -846,6 +859,10 @@ type StepProps = {
   runAsync: (work: () => Promise<ActionResult<unknown>>) => Promise<boolean>;
   saveTextAsync: (extra?: Record<string, unknown>) => Promise<boolean>;
   arrivalCopy?: Dictionary["afterTheGate"]["arrival"];
+  /** The host's agreement: already on record, or ticked on this visit. */
+  agreed: boolean;
+  agreeNow: boolean;
+  onAgree: (next: boolean) => void;
   /** The hotel's stated total, held by the wizard. See its declaration. */
   expectedRooms: number;
   onExpectedRooms(next: number): void;
@@ -875,7 +892,12 @@ function StepBody(props: StepProps) {
     case "host-type":
       return <HostTypeStep {...props} />;
     case "business":
-      return <BusinessStep {...props} />;
+      return (
+        <>
+          <BusinessStep {...props} />
+          <HostAgreementTick agreed={props.agreed} agreeNow={props.agreeNow} onAgree={props.onAgree} />
+        </>
+      );
     case "registration":
       return <RegistrationStep {...props} />;
     case "representative":
@@ -981,6 +1003,55 @@ function HostTypeStep({ draft, set }: StepProps) {
         </div>
       )}
     </>
+  );
+}
+
+/**
+ * THE TERMS, THE PRIVACY POLICY AND THE HOST AGREEMENT, agreed before the
+ * business is created. Each opens in a new tab; the tick is recorded with the
+ * moment and the three versions on the save that creates the business.
+ */
+function HostAgreementTick({
+  agreed,
+  agreeNow,
+  onAgree,
+}: {
+  agreed: boolean;
+  agreeNow: boolean;
+  onAgree: (next: boolean) => void;
+}) {
+  return (
+    <section className="nf-panel nf-panel--card block nf-host-group" data-testid="host-agreement">
+      {agreed ? (
+        <p className="nf-host-group__note">
+          You agreed to the Terms of service, the Privacy policy and the Host Agreement.
+        </p>
+      ) : (
+        <label className="flex items-start gap-sm">
+          <input
+            type="checkbox"
+            className="mt-3xs h-5 w-5 shrink-0"
+            checked={agreeNow}
+            onChange={(event) => onAgree(event.target.checked)}
+          />
+          <span className={TYPE.body}>
+            I agree to the{" "}
+            <Link href="/terms" target="_blank" className="text-[var(--nf-content-link)] underline">
+              Terms of service
+            </Link>
+            , the{" "}
+            <Link href="/privacy" target="_blank" className="text-[var(--nf-content-link)] underline">
+              Privacy policy
+            </Link>{" "}
+            and the{" "}
+            <Link href="/host-agreement" target="_blank" className="text-[var(--nf-content-link)] underline">
+              Host Agreement
+            </Link>
+            . In short: I only charge guests what is listed on Vallo, with a reason for every charge.
+          </span>
+        </label>
+      )}
+    </section>
   );
 }
 

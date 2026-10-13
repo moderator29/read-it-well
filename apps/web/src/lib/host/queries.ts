@@ -37,6 +37,7 @@ import { businessPhotoUrl } from "../stays/business-photos";
 import { MAX_BUSINESS_PHOTOS } from "./photos";
 import { bedsTotal } from "./stays-setup";
 import { readArrivalCharges } from "../stays/arrival-charges";
+import { readHostAgreementVersion } from "./agreement";
 import {
   BUSINESS_TIER_NAME,
   asBusinessTier,
@@ -407,6 +408,7 @@ async function loadMyHostDraft(): Promise<HostDraft> {
       reviewNotes: business.review_notes ?? null,
       arrivalCharges,
       consentWithdrawals: readConsentWithdrawals(business.consents),
+      hostAgreementVersion: readHostAgreementVersion(business.consents),
     };
   } catch (error) {
     if (error instanceof PrivateFieldsUnavailable) throw error;
