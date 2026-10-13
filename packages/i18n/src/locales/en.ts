@@ -66,6 +66,8 @@ import { detailsEn } from "./details.en";
 import { onboardingMotionEn } from "./onboarding-motion.en";
 /* Visit ops: the lister's and the console's visit calendars (13 October). */
 import { visitOpsEn } from "./visit-ops.en";
+/* The referral desk: the console's /admin/referrals (13 October). */
+import { referralDeskEn } from "./referral-desk.en";
 /* Get Started as four cards (reference 3, 7 October). */
 
 /**
@@ -6016,6 +6018,8 @@ export const en = {
   onboardingMotion: onboardingMotionEn,
 
   visitOps: visitOpsEn,
+
+  referralDesk: referralDeskEn,
 
 
   /*

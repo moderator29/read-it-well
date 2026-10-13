@@ -984,6 +984,39 @@ say what will fill them. Until the pending migration
 `visit_reminders_both_sides.sql` is applied, the detail says the reminders
 cannot be read from the console yet (the ledger has no admin read policy).
 
+### 11.2 Referrals (Money > Referrals, `/admin/referrals`)
+
+13 October 2026. The desk over the referral admin functions built on 6 October
+(`admin_referral_liability`, `_budget_set`, `_decide`, `_clusters`,
+`_cluster_exposure`, `_graph`, `admin_rewards_payout_decide`). **Who:**
+`admin` or `super_admin` only (`requireAdmin()`; anybody else gets the 404):
+the functions check `is_staff()` from the caller's own session and are not
+granted to the service role, so a staff scope cannot use them. The rail badge
+(on the desk and on Money) is `referrals + payouts` waiting on a decision.
+
+| Part | What it shows or does | Source |
+|---|---|---|
+| Top row | Rewards owed (the ledger total, said to be a debt and not money held), budget committed against the month's cap with the set-budget control (confirm sheet, reason of 12+ characters, this month or next), referrals by outcome (qualified, pending, reversed) | `admin_referral_liability`, `referral_programme_status`, counts of `referrals` by status |
+| Live campaign | The live campaign's reward, per-member cap, review period and what an invited person must do (`signup-80-phone`: confirm their phone number, accept the terms and set a first name); earlier and draft campaigns below | `referral_campaigns` |
+| Review queue | Referrals with status `under_review`: who invited whom, reward, risk score and reasons in words, why it was sent, the inviter's group score and exposure; Approve or Reject with a required reason (8+ characters) | `referrals`, `admin_referral_cluster_exposure`, `admin_referral_decide` |
+| Fraud view | Groups ranked by naira exposure with the signals their invited people share (browser and network masked), and a left to right graph of who invited whom (plain SVG, loop lines dashed, every invitation also listed) | `admin_referral_cluster_exposure`, `admin_referral_clusters`, `admin_referral_graph` |
+| Payouts | Payouts `under_review`: Release or Refuse with a reason; payouts with the payout partner, and a never-sent decision once one has been open a day | `rewards_payouts`, `admin_rewards_payout_decide` |
+
+**How rewards are paid.** Paystack, the payout partner, sends each payout from
+Vallo's own marketing funds to the member's bank account; Vallo holds nobody's
+money, and a payout counts as paid only when Paystack's signed webhook confirms
+it. Release puts a payout back in the partner's send queue; it does not call the
+partner. There is no separate hold action: a payout waiting in the queue is held
+and nothing is sent while it waits.
+
+**Reads.** The queue tables (`referrals`, `rewards_payouts`,
+`referral_campaigns`, `referral_budget_periods`) are readable by `service_role`
+alone, so the lists are read on the service client after `requireAdmin()`
+passes in the same function (`lib/admin/reads/referrals.ts`), selecting only
+what the desk shows: display names, the bank-returned account name and last four
+digits, no email, phone, recipient code or network address. An unreadable read
+is drawn as unreadable, never as zero.
+
 ## 12. Payments
 
 **Route:** `/admin/payments`. **Who:** `admin` or `super_admin`.

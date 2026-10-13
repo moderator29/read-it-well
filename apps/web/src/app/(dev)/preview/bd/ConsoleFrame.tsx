@@ -16,7 +16,7 @@ import { PERSON } from "../_fixtures/people";
  * Never the proof of a write; only the proof of the look.
  */
 
-const COUNTS = { listings: 18, applications: 5, reports: 3, tickets: 3, flags: 6, moderation: 2, alerts: 4 };
+const COUNTS = { listings: 18, applications: 5, reports: 3, tickets: 3, flags: 6, moderation: 2, alerts: 4, referrals: 3, payouts: 2 };
 
 export function ConsoleFrame({ t, children }: { t: Dictionary; children: ReactNode }) {
   return (

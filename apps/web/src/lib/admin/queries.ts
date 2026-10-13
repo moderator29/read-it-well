@@ -7,6 +7,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "../supabase/admin";
 import { Constants, type Database } from "../supabase/database.types";
 import { documentMedia, type DocumentMedia } from "./documents";
+import { countReferralWork } from "./reads/referrals";
 import { requireAdmin, requireConsole } from "./guard";
 import type { StaffScope } from "./guard";
 import { qualityChecks, type QualityCheck } from "./listing-checks";
@@ -60,7 +61,12 @@ async function adminClient(scope?: StaffScope): Promise<SupabaseClient<Database>
  * a staff member who has acknowledged the handbook reads on the service role
  * too, but only the queues their scopes open (`may`).
  */
-async function queueReach(): Promise<{ db: SupabaseClient<Database>; may: (scope: StaffScope) => boolean } | null> {
+async function queueReach(): Promise<{
+  db: SupabaseClient<Database>;
+  may: (scope: StaffScope) => boolean;
+  /** An admin or super admin, as opposed to a scoped staff member. The referral desk is the first queue only an admin counts. */
+  isAdmin: boolean;
+} | null> {
   const access = await requireAdmin();
   const console = access.state === "admin" ? null : await requireConsole();
   let may: (scope: StaffScope) => boolean;
@@ -70,7 +76,7 @@ async function queueReach(): Promise<{ db: SupabaseClient<Database>; may: (scope
     may = (scope) => held.has(scope);
   } else return null;
   try {
-    return { db: createAdminClient(), may };
+    return { db: createAdminClient(), may, isAdmin: access.state === "admin" };
   } catch {
     return null;
   }
@@ -95,6 +101,10 @@ export type QueueCounts = {
   agreements: number;
   /** Track A: Guarantee claims waiting for a decision. */
   claims: number;
+  /** The referral desk: referrals sent to a person (status under_review). Admins only. */
+  referrals: number;
+  /** The referral desk: reward payouts sent to a person (status under_review). Admins only. */
+  payouts: number;
 };
 
 /**
@@ -136,7 +146,7 @@ export const getQueueCounts = cache(async (): Promise<AdminRead<QueueCounts>> =>
      of saying "unavailable" because one count was not theirs. */
   const reach = await queueReach();
   if (!reach) return UNAVAILABLE;
-  const { db: admin, may } = reach;
+  const { db: admin, may, isAdmin } = reach;
   const none = Promise.resolve({ count: 0 });
 
   try {
@@ -154,6 +164,7 @@ export const getQueueCounts = cache(async (): Promise<AdminRead<QueueCounts>> =>
       heldEvents,
       agreements,
       claims,
+      referralWork,
     ] = await Promise.all([
       !may("moderation") ? none : admin.from("message_flags").select("id", { count: "exact", head: true }).eq("status", "open"),
       !may("operations") ? none : admin.from("risk_alerts").select("id", { count: "exact", head: true }).eq("status", "open"),
@@ -187,6 +198,8 @@ export const getQueueCounts = cache(async (): Promise<AdminRead<QueueCounts>> =>
       !may("moderation") ? none : admin.from("events").select("id", { count: "exact", head: true }).eq("status", "HELD"),
       !may("agreements") ? none : admin.from("deal_agreements").select("id", { count: "exact", head: true }).eq("status", "in_review"),
       !may("guarantee") ? none : admin.from("guarantee_claims").select("id", { count: "exact", head: true }).eq("status", "submitted"),
+      /* The referral desk's two queues. The deciding functions need an admin role, so a scoped staff member counts zero. */
+      !isAdmin ? Promise.resolve(null) : countReferralWork(admin),
     ]);
 
     return {
@@ -206,6 +219,9 @@ export const getQueueCounts = cache(async (): Promise<AdminRead<QueueCounts>> =>
           (heldEvents.count ?? 0),
         agreements: agreements.count ?? 0,
         claims: claims.count ?? 0,
+        /* An unreadable referral count is 0 on the badge, never a number made up; the desk itself says when it cannot read. */
+        referrals: referralWork?.referrals ?? 0,
+        payouts: referralWork?.payouts ?? 0,
       },
     };
   } catch {
