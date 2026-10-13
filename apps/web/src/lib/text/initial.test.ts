@@ -25,7 +25,8 @@ describe("the initial on an avatar", () => {
     const files = [
       "app/(app)/u/page.tsx",
       "components/app/identity/IdentityHeader.tsx",
-      "components/social/feed/StoryRing.tsx",
+      /* The ring row moved its tiles into StoryRingItem (Feed v2), which draws the letter. */
+      "components/social/story/StoryRingItem.tsx",
       "components/messages/VerifiedAvatar.tsx",
       /* The header avatar left the shell in Track M; the face in the drawer
          head is the shell's one avatar now. */
