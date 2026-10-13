@@ -105,8 +105,8 @@ export function IconTiles<T extends string>({
             className="nf-icon-tile-option"
           >
             {option.object ? (
-              <span className="grid size-12 place-items-center" aria-hidden="true" data-object={option.object} data-host-plate>
-                <BrandIcon name={option.object} size={48} preferRender />
+              <span className="grid size-16 place-items-center" aria-hidden="true" data-object={option.object} data-host-plate>
+                <BrandIcon name={option.object} size={64} preferRender />
               </span>
             ) : option.art ? (
               <span className="grid size-10 place-items-center" aria-hidden="true" data-art={option.art}>
