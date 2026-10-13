@@ -1,19 +1,20 @@
 import type { ComponentPropsWithoutRef, ElementType, ReactNode } from "react";
 
 /**
- * THE HERO BAND: the light theme's one signature moment, a navy block at the
- * top of a screen that opens a world or carries a headline number
- * (`docs/design/CLEAN_UNIFIED_DIRECTION.md` section 16, Q2 as the founder
- * widened it on 29 September 2026).
+ * THE HERO BAND: the block at the top of a screen that opens a world or
+ * carries a headline number (`docs/design/CLEAN_UNIFIED_DIRECTION.md`
+ * section 16, Q2).
  *
- * The material is `.nf-hero-band` (`app/css/controls.css` for the night,
- * `app/css/light.css` for paper). It is always a night island
- * (`data-theme="dark"`), so everything inside it takes the night palette:
- * white type, mist sub-lines, and the brand blue only on the one action it
- * holds (a primary `Button`). In light it is the navy block on the warm
- * canvas; at night it is a raised night surface on the card hairline. The
- * same radius and inner spacing everywhere; no glass, no photograph behind
- * it (a screen whose hero is a photograph keeps its own).
+ * The material is `.nf-hero-band` (`app/css/controls.css` and
+ * `brand-glass.css` for the night, `app/css/light.css` for paper). It takes
+ * the page's own palette: at night a raised night surface under the navy
+ * glass bloom; by day a white card on the warm paper with a whisper of brand
+ * in its corner. It was a night island in both themes, a navy block the
+ * height of Home's top on a light page, and the founder found that blue on
+ * white too heavy (October 2026): the brand blue is kept for the one action
+ * it holds and for what is chosen. The same radius and inner spacing
+ * everywhere; no photograph behind it (a hero that is a photograph keeps its
+ * own night).
  *
  * Where it goes: Home, the host and agent workspace home (the KPI row sits
  * on it), the profile and trust hero, money and earnings summaries, the
@@ -61,7 +62,7 @@ export function HeroBand<E extends ElementType = "section">({
   const Tag: ElementType = as ?? "section";
   const hasHead = label != null || title != null || sub != null || action != null;
   return (
-    <Tag {...rest} data-theme="dark" className={["nf-hero-band", className ?? ""].filter(Boolean).join(" ")}>
+    <Tag {...rest} className={["nf-hero-band", className ?? ""].filter(Boolean).join(" ")}>
       {hasHead ? (
         <div className="nf-hero-band__head">
           <div className="nf-hero-band__text">

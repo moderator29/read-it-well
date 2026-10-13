@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { Children, type ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { formatNumber, type Locale } from "@vallo/i18n/core";
@@ -19,13 +19,26 @@ import "./identity.css";
  * `/profile` drew `AccountHero` on the `nf-pf-*` band and `/u/[handle]` drew
  * `ProfileHeader` on the `nf-profile-*` island, with two cover heights, two
  * avatar sizes, two count formats and two sets of controls. Both now render
- * this, so a person looks the same wherever they are shown:
+ * this, so a person looks the same wherever they are shown, whoever they are
+ * (a renter, a landlord, an agent, a hotel):
  *
- *   cover band   the photograph, or the villa plate; one control each corner
- *   the island   face, name with its one tier mark, handle, bio, place and
- *                joined, then the three counts as figures
+ *   cover band   the photograph, or the villa plate; Back in the top left
+ *                corner and one control in the top right
+ *   the card     the face beside the name with its one tier mark, the ONE
+ *                role line (`lib/profile/role-line.ts`) and the handle; then,
+ *                across the card, the short bio, place and joined, and the
+ *                three counts as figures
  *   one row      MINE: the edit controls. THEIRS: follow and message.
- *   below        whatever the page adds: trust, badges, chips (children)
+ *   below        whatever the page adds: chips, then the credentials section
+ *                (children)
+ *
+ * THE COVER IS THE ONLY NIGHT IN IT. The photograph carries
+ * `data-theme="dark"`, so the corner glyphs and the scrim keep their night
+ * inks over any picture. The card, the actions and everything under them
+ * take the page's own palette: a white card on the warm paper by day, the
+ * navy glass at night. The whole header used to be a night island in both
+ * themes, which painted a navy block the length of the screen on a light
+ * page (the founder, October 2026: the blue on white was too heavy).
  *
  * It is a server-safe component (no hooks), so the client account page and
  * the server public page can both render it. The parts that differ by state
@@ -51,8 +64,10 @@ export function IdentityHeader({
   pronouns,
   bio,
   badgeTier = null,
+  roleLine,
   role,
   coverUrl,
+  coverPlate = COVER_PLATE,
   avatarUrl,
   avatar,
   place,
@@ -69,14 +84,18 @@ export function IdentityHeader({
   name: string;
   /** The claimed handle, without the @. Null when the account has none yet. */
   handle: string | null;
-  /** What the handle line says when there is no handle (an account's email). */
+  /** What the handle line says when there is no handle. Omitted, there is no line. */
   handleLine?: string;
   pronouns?: string;
   bio?: string;
   badgeTier?: BadgeTier | null;
-  /** A role mark beside the name (a moderator's place). */
+  /** The one line under the name: what the person is on Vallo, already worded. */
+  roleLine?: string;
+  /** A role mark on the role line (a moderator's place). */
   role?: ReactNode;
   coverUrl?: string;
+  /** The photograph shown when nobody has set a cover. */
+  coverPlate?: string;
   avatarUrl?: string;
   /** Replaces the static face: the account page passes its photo picker. */
   avatar?: ReactNode;
@@ -92,6 +111,7 @@ export function IdentityHeader({
   children?: ReactNode;
 }) {
   const monogram = initial(name || handle || "");
+  const handleText = handle ? `@${handle}` : handleLine;
 
   /* One count format for both states: tabular, counting up once on first
      view below ten thousand, and a compact 12.4K above it (a figure that is
@@ -99,15 +119,16 @@ export function IdentityHeader({
   const figure = (value: number) => (
     <Figure value={value >= 10_000 ? formatNumber(value, locale, COMPACT) : value} locale={locale} count={value < 10_000} />
   );
+  const showCounts = Boolean(counts && handle);
+  const showAbout = Boolean(bio || place || joined || showCounts);
 
   return (
     <header
       className="nf-profile-top nf-identity"
-      data-theme="dark"
       data-identity-state={state}
       data-testid={testId ?? "identity-header"}
     >
-      <div className="nf-social-cover nf-social-cover--profile">
+      <div className="nf-social-cover nf-social-cover--profile" data-theme="dark">
         {coverUrl ? (
           <RemoteImage
             src={coverUrl}
@@ -120,7 +141,7 @@ export function IdentityHeader({
           />
         ) : (
           <Image
-            src={COVER_PLATE}
+            src={coverPlate}
             alt=""
             fill
             priority
@@ -147,62 +168,84 @@ export function IdentityHeader({
         )}
 
         <div className="nf-profile-text">
-          <div className="nf-social-nameline">
-            <h1 className="nf-social-name" data-badge-tier={badgeTier ?? "none"}>
-              <span className="truncate-none">{name}</span>
-              {badgeTier && badgeTier !== "none" ? <TierBadge tier={badgeTier} size={18} className="nf-social-verified" /> : null}
-            </h1>
-            {role}
-          </div>
-          <p className="nf-social-handle" data-testid="profile-handle-line">
-            {handle ? `@${handle}` : handleLine}
-            {pronouns ? (
-              <>
-                <span className="nf-social-handle__dot" aria-hidden="true">
-                  ·
-                </span>
-                <span data-testid="profile-pronouns">{pronouns}</span>
-              </>
-            ) : null}
-          </p>
-          {bio ? <p className="nf-social-bio">{bio}</p> : null}
-          {place || joined ? (
-            <div className="nf-social-meta" data-testid="profile-meta">
-              {place ? (
-                <span>
-                  <UiIcon name="location" size={16} />
-                  {place}
-                </span>
+          {/* THE BADGE BESIDE THE NAME: `TierBadge`, the one renderer, fed
+              the published `person_badge` tier; it draws nothing for none. */}
+          <h1 className="nf-social-name" data-badge-tier={badgeTier ?? "none"}>
+            <span className="truncate-none">{name}</span>
+            {badgeTier && badgeTier !== "none" ? <TierBadge tier={badgeTier} size={18} className="nf-social-verified" /> : null}
+          </h1>
+          {roleLine || role ? (
+            <div className="nf-identity__roles">
+              {roleLine ? (
+                <p className="nf-identity__role" data-testid="profile-role-line">
+                  {roleLine}
+                </p>
               ) : null}
-              {joined ? (
-                <span>
-                  <UiIcon name="calendar-booking" size={16} />
-                  {joined}
-                </span>
-              ) : null}
+              {role}
             </div>
           ) : null}
-          {counts && handle ? (
-            <div className="nf-social-counts" data-testid="profile-counts">
-              <Link href={`/u/${handle}/followers`} className="nf-social-count">
-                <span className="nf-social-count__value nf-numeric">{figure(counts.followers)}</span>
-                <span className="nf-social-count__label">{counts.labels.followers}</span>
-              </Link>
-              <span className="nf-social-count__rule" aria-hidden="true" />
-              <Link href={`/u/${handle}/following`} className="nf-social-count">
-                <span className="nf-social-count__value nf-numeric">{figure(counts.following)}</span>
-                <span className="nf-social-count__label">{counts.labels.following}</span>
-              </Link>
-              <span className="nf-social-count__rule" aria-hidden="true" />
-              {/* Posts is a number, not a door: the Posts tab below is that
-                  list, so this is a span with no hit area it cannot honour. */}
-              <span className="nf-social-count nf-social-count--static">
-                <span className="nf-social-count__value nf-numeric">{figure(counts.posts)}</span>
-                <span className="nf-social-count__label">{counts.labels.posts}</span>
-              </span>
-            </div>
+          {handleText || pronouns ? (
+            <p className="nf-social-handle" data-testid="profile-handle-line">
+              {handleText}
+              {pronouns ? (
+                <>
+                  {handleText ? (
+                    <span className="nf-social-handle__dot" aria-hidden="true">
+                      ·
+                    </span>
+                  ) : null}
+                  <span data-testid="profile-pronouns">{pronouns}</span>
+                </>
+              ) : null}
+            </p>
           ) : null}
         </div>
+
+        {showAbout ? (
+          /* Across the whole card, under the face: a bio beside an 80px
+             face at 390 wrapped to eight lines in a 220px column. It keeps
+             the text column's own type (`.nf-profile-text`) for the bio, the
+             meta line and the counts. */
+          <div className="nf-profile-text nf-identity__about">
+            {bio ? <p className="nf-social-bio">{bio}</p> : null}
+            {place || joined ? (
+              <div className="nf-social-meta" data-testid="profile-meta">
+                {place ? (
+                  <span>
+                    <UiIcon name="location" size={16} />
+                    {place}
+                  </span>
+                ) : null}
+                {joined ? (
+                  <span>
+                    <UiIcon name="calendar-booking" size={16} />
+                    {joined}
+                  </span>
+                ) : null}
+              </div>
+            ) : null}
+            {counts && handle ? (
+              <div className="nf-social-counts" data-testid="profile-counts">
+                <Link href={`/u/${handle}/followers`} className="nf-social-count">
+                  <span className="nf-social-count__value nf-numeric">{figure(counts.followers)}</span>
+                  <span className="nf-social-count__label">{counts.labels.followers}</span>
+                </Link>
+                <span className="nf-social-count__rule" aria-hidden="true" />
+                <Link href={`/u/${handle}/following`} className="nf-social-count">
+                  <span className="nf-social-count__value nf-numeric">{figure(counts.following)}</span>
+                  <span className="nf-social-count__label">{counts.labels.following}</span>
+                </Link>
+                <span className="nf-social-count__rule" aria-hidden="true" />
+                {/* Posts is a number, not a door: the Posts tab below is that
+                    list, so this is a span with no hit area it cannot honour. */}
+                <span className="nf-social-count nf-social-count--static">
+                  <span className="nf-social-count__value nf-numeric">{figure(counts.posts)}</span>
+                  <span className="nf-social-count__label">{counts.labels.posts}</span>
+                </span>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
       </div>
 
       {actions ? (
@@ -213,5 +256,34 @@ export function IdentityHeader({
 
       {children}
     </header>
+  );
+}
+
+/**
+ * THE CREDENTIALS SECTION under a person's header, on both profiles: what
+ * vouches for them (their badges, their Vallo Record, an agent's reviews, and
+ * on your own page your renter passport), under one quiet label. A section
+ * with nothing in it draws nothing, label included, so a person with no
+ * credentials yet is not shown an empty box.
+ */
+export function IdentityCredentials({
+  label,
+  testId = "profile-credentials",
+  children,
+}: {
+  label: string;
+  testId?: string;
+  children: ReactNode;
+}) {
+  /* `toArray` drops null, undefined and booleans, so a caller passes `null`
+     for a part it has nothing for (the house rule `SettingsGroup` keeps). */
+  if (Children.toArray(children).length === 0) return null;
+  return (
+    <section className="nf-identity__cred" aria-label={label} data-testid={testId}>
+      <h2 className="nf-sgroup__label" aria-hidden="true">
+        {label}
+      </h2>
+      <div className="nf-identity__cred-body">{children}</div>
+    </section>
   );
 }

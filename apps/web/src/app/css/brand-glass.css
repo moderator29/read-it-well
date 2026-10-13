@@ -122,10 +122,16 @@
       0 0 28px -12px color-mix(in oklab, var(--nf-glow-ink) 40%, transparent),
       0 18px 36px -24px color-mix(in oklab, var(--nf-surface-artwork) 70%, transparent);
   }
-  :root[data-theme="light"] .nf-hero-band[data-theme="dark"] {
-    border: 1px solid var(--nf-navy-glass-edge);
-    background: var(--nf-navy-glass-fill);
-    box-shadow: var(--nf-navy-glass-lift);
+  /* By day the band is no longer navy (the founder, October 2026: the blue
+     on white was too heavy). It is the paper card: white, the raised rung,
+     no edge, and a whisper of brand blooming in its upper corner, so it
+     still reads as the screen's opening block without a block of blue. */
+  :root[data-theme="light"] .nf-hero-band:not(:where([data-theme="dark"] *)) {
+    border-color: transparent;
+    background:
+      radial-gradient(110% 70% at 0% 0%, var(--nf-brand-tint-1), transparent 70%),
+      var(--nf-surface-primary);
+    box-shadow: var(--nf-elevation-raised);
   }
   /* Night: the band keeps its own raised surface, with the same bloom and
      the same luminous edge, so the two themes read as one family. */

@@ -17,16 +17,16 @@ import { ButtonLink } from "@/components/ui/Button";
 import type { BadgeTier } from "./belongings";
 import { useClientCopy } from "@/lib/i18n/client-copy";
 import { IdentityHeader } from "@/components/app/identity/IdentityHeader";
+import { BackChevron } from "@/components/social/profile/BackChevron";
 
 /**
  * THE TOP OF YOUR OWN PROFILE, BUILT TO `50E032EA`.
  *
  * Measured off the render (a 658px screen inside the frame, so one CSS pixel at
  * 390 is 1.687 image pixels; every number is in the ledger, section 1): a dusk
- * photograph across the top that fades into the page, a rounded-square glass
- * back control at the upper left and a settings gear at the upper right riding
- * on it (here the gear joins the app header's row and back is dropped; see
- * the note at the gear), then the person. An 88px ROUND face on a lit blue ring (the
+ * photograph across the top that fades into the page, a back control at the
+ * upper left and a settings gear at the upper right riding on it (both the
+ * bare glyph the public profile's corners wear), then the person. An 88px ROUND face on a lit blue ring (the
  * render puts a small tick on it too; the founder asked for one mark, beside
  * the name, on 25 September 2026), and beside it the name with its tick, the handle,
  * one line of bio, and Followers and Following split by a hairline.
@@ -80,8 +80,9 @@ export function AccountHero({
   avatarUrl,
   identity,
   badgeTier = null,
+  roleLine,
   locale,
-  badges = null,
+  credentials = null,
   postsLabel = "Posts",
 }: {
   userId: string;
@@ -92,16 +93,23 @@ export function AccountHero({
   identity: HeroIdentity | null;
   /** From `public.person_badge`, the one source. Null means no badge. */
   badgeTier?: BadgeTier;
+  /** The one line under the name (`lib/profile/role-line.ts`), worded by the server page. */
+  roleLine?: string;
   /**
    * Place and member-since. Accepted for the callers that still pass it; the
-   * render draws neither in the header, so both now live in the account rows
-   * under the belongings, where nothing is lost.
+   * header draws neither: the place is a row under the belongings and the
+   * joining month is in the credentials section, where nothing is lost.
    */
   metaLine?: { place: string; joined: string };
   /** The locale, NOT a formatter: a function cannot cross into a client component. */
   locale: Locale;
-  /** The badge row and the earned moment, built by the server page. Absent when there are none. */
-  badges?: React.ReactNode;
+  /**
+   * The credentials section (`IdentityCredentials`), built by the server
+   * page: the badge row and its earned moment, the renter passport and, for
+   * a lister, the Vallo Record. Drawn under the header's actions, as
+   * somebody else's page draws theirs.
+   */
+  credentials?: React.ReactNode;
   /** The word under the posts count, in the reader's language (`socialProfile.posts`). */
   postsLabel?: string;
 }) {
@@ -218,9 +226,11 @@ export function AccountHero({
       testId="account-hero"
       name={shownName}
       handle={identity?.handle ?? null}
-      handleLine={email}
+      /* No handle, no handle line: the email it used to print there is the
+         Email row under the belongings, so the page said it twice. */
       bio={identity?.bio || undefined}
       badgeTier={badgeTier}
+      roleLine={roleLine}
       coverUrl={cover || undefined}
       avatar={
         /* MINE: the face is the photo picker. Same disc, same ring as
@@ -256,16 +266,21 @@ export function AccountHero({
           : null
       }
       locale={locale}
-      /* One control on the cover: the gear, top right. `/profile` is a dock
-         destination, so there is no back here; the dock is the way off it. */
+      /* The cover's two corners, as on somebody else's page: Back at the top
+         left (the founder, October 2026: the profile had no way back) and the
+         gear at the top right, both the bare glyph on the photograph. Back
+         takes the shared decision (`docs/BACK_NAVIGATION.md`): the screen the
+         person came from when that is safe, otherwise `/profile`'s declared
+         parent, the home of their side. */
+      topStart={<BackChevron fallback="/home" />}
       topEnd={
         <Link
           href="/settings"
-          className="nf-icon-btn nf-icon-btn--round"
+          className="nf-social-round nf-btn--glass"
           aria-label={COPY.settings}
           data-testid="account-settings-button"
         >
-          <UiIcon name="settings-gear" size="md" />
+          <UiIcon name="settings-gear" size={20} />
         </Link>
       }
       actions={
@@ -281,12 +296,12 @@ export function AccountHero({
       }
     >
       {!identity ? <p className="nf-pf-claim__note">{COPY.claimHandleNote}</p> : null}
-      {badges}
       {error && (
         <p role="alert" className="nf-pf-error">
           {error}
         </p>
       )}
+      {credentials}
       {/* The cover's picker opens from the "Cover photo" row under the
           belongings (`COVER_INPUT_ID`), not from a third control here. */}
       <input

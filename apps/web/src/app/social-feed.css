@@ -4378,10 +4378,15 @@
    * 4:3, the place as a chip, and an action row in two groups. The air is the
    * premium: 18 at the sides, 14 between the parts.
    */
+  /* ON THE APP'S OWN SCALE (October 2026): the card corner every other
+     card wears (`--nf-radius-card`), the card padding the rest of the app
+     steps through (`--nf-pad-card`, 16 on a phone and 20 from a tablet),
+     and the group gap between cards. It was a 22px corner, 18 and 16 typed
+     as pixels and a 14px gap, the one card family off the scale. */
   .nf-panel.nf-post {
-    --nf-feed-pad: 18px;
-    padding: 16px var(--nf-feed-pad) 6px;
-    border-radius: var(--nf-radius-xl);
+    --nf-feed-pad: var(--nf-pad-card);
+    padding: var(--nf-space-md) var(--nf-feed-pad) var(--nf-space-2xs);
+    border-radius: var(--nf-radius-card);
     background: var(--nf-panel-fill-card);
     border-color: var(--nf-panel-edges);
     box-shadow:
@@ -4389,14 +4394,14 @@
       var(--nf-panel-glow);
   }
   .nf-feed-page {
-    --nf-feed-gap: 14px;
+    --nf-feed-gap: var(--nf-space-sm);
   }
 
   /* The author line: face, name over handle and time, the menu. */
   .nf-post__head {
     grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
-    column-gap: 12px;
+    column-gap: var(--nf-space-sm);
   }
   .nf-post__face {
     position: relative;
@@ -4509,11 +4514,13 @@
   /* THE PHOTOGRAPH LEADS. One picture is a 4:3 plate, the proportion a
      listing photograph is taken in, with a soft corner and a hairline so it
      sits in the card. Two to four stay the sideways rail. */
+  /* A step inside the card's own corner (`--nf-radius-md` in an 18px
+     card), so the picture's corner nests in the card's. */
   .nf-post__media {
     position: relative;
-    margin-block-start: 14px;
+    margin-block-start: var(--nf-space-sm);
     border: 1px solid var(--nf-panel-hair);
-    border-radius: var(--nf-radius-lg);
+    border-radius: var(--nf-radius-md);
     box-shadow: none;
   }
   .nf-post__media--1 img {
@@ -4524,7 +4531,7 @@
     border-radius: 0;
   }
   .nf-post__media--rail .nf-post__rail-track img {
-    border-radius: var(--nf-radius-lg);
+    border-radius: var(--nf-radius-md);
   }
   /* The post opens on a tap of the card, so the card says so to a pointer. */
   .nf-post--pressable {

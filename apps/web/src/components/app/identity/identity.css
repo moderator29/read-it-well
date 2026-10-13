@@ -78,5 +78,138 @@
       padding: 1.25rem var(--nf-space-lg);
     }
   }
+
+  /* ------------------------------------------------------------------
+   * THE CARD'S ANATOMY, ONE FOR EVERY KIND OF PERSON (October 2026): the
+   * face beside the name, the role line and the handle; then, across the
+   * card, the bio, place and joined, and the counts. The name is the one
+   * heading, so the role line is a quiet second line in the secondary ink
+   * and never the brand blue, which this page keeps for what can be pressed
+   * and for what is chosen.
+   * ------------------------------------------------------------------ */
+  .nf-identity .nf-profile-text .nf-social-name {
+    font-size: var(--nf-text-h4);
+    letter-spacing: -0.02em;
+  }
+  .nf-identity__roles {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--nf-space-2xs) var(--nf-space-xs);
+    margin-block-start: var(--nf-space-2xs);
+  }
+  .nf-identity__role {
+    margin: 0;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--nf-content-secondary);
+  }
+  .nf-identity .nf-profile-text .nf-social-handle {
+    margin-block-start: var(--nf-space-3xs);
+    font-size: var(--nf-text-caption);
+  }
+  .nf-identity .nf-identity__about {
+    grid-column: 1 / -1;
+    margin-block-start: var(--nf-space-sm);
+  }
+  .nf-identity .nf-identity__about > :first-child {
+    margin-block-start: 0;
+  }
+  .nf-identity .nf-identity__about .nf-social-bio {
+    line-height: 1.5;
+    color: var(--nf-content-secondary);
+  }
+  /* The counts close the card on a hairline of their own, so the three
+     figures read as the card's foot rather than as more of the bio. */
+  .nf-identity .nf-identity__about .nf-social-counts {
+    margin-block-start: var(--nf-space-sm);
+    padding-block-start: var(--nf-space-sm);
+    border-block-start: var(--nf-border-width) solid var(--nf-divider);
+  }
+
+  /* The ring's seam is the card's own fill: the night canvas inside the navy
+     glass, and white inside the white card on paper (it was the warm canvas,
+     a grey collar round the face on a white card). */
+  :root[data-theme="light"] .nf-identity .nf-profile-avatar {
+    --nf-avatar-seam: var(--nf-surface-primary);
+    /* The photo picker's mark on your own face cuts out of the same white. */
+    --nf-pf-band: var(--nf-surface-primary);
+  }
+
+  /* ------------------------------------------------------------------
+   * THE CREDENTIALS SECTION (`IdentityCredentials`): the settings groups'
+   * own quiet label, then each credential as its own card, on the group gap.
+   * ------------------------------------------------------------------ */
+  .nf-identity__cred {
+    margin-block-start: var(--nf-space-lg);
+  }
+  .nf-identity__cred-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-gap-group);
+  }
+  /* The gap is the only space between credentials: each part's own top
+     margin (the badge row's, the chips', a card's) is for where it stood
+     before it moved in here. */
+  .nf-identity__cred .nf-identity__cred-body > * {
+    margin-block-start: 0;
+  }
+  /* From a tablet up the cover is a rounded picture inside the column, the
+     width of everything under it, rather than bleeding past the cards by the
+     shell's gutter on either side. */
+  @media (min-width: 640px) {
+    .nf-identity .nf-social-cover {
+      margin-inline: 0;
+      border-radius: var(--nf-radius-xl);
+    }
+    /* The card laps the cover's foot a step inside its edges, on both
+       profiles (the public one already drew it so). */
+    .nf-identity .nf-profile-identity.nf-island {
+      margin-inline: var(--nf-space-md);
+    }
+  }
+
+  /* ------------------------------------------------------------------
+   * D79, THE COVER'S CORNERS (founder, 7 October): Back at the top left, and
+   * Share (theirs) or the gear (mine) at the top right, with no plate around
+   * them, small and high on the cover. Each stays a 44px target; what goes
+   * is the glass disc and the word. A soft shadow under the glyph keeps it
+   * legible on a bright cover and on a dark one. Here rather than in the
+   * public profile's partial, so both profiles draw the same two corners.
+   * ------------------------------------------------------------------ */
+  .nf-identity .nf-social-float {
+    top: calc(var(--nf-social-bar) + 2px);
+    gap: 0;
+  }
+  .nf-identity .nf-social-float--start {
+    inset-inline-start: 6px;
+  }
+  .nf-identity .nf-social-float--end {
+    inset-inline-end: 6px;
+  }
+  .nf-identity .nf-social-float .nf-social-round {
+    inline-size: 44px;
+    block-size: 44px;
+    padding: 0;
+    border-color: transparent;
+    background: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: none;
+    color: var(--nf-content-on-media);
+    filter: drop-shadow(0 1px 4px var(--nf-overlay-media));
+  }
+  .nf-identity .nf-social-float .nf-social-round::after {
+    content: none;
+  }
+  @media (min-width: 768px) {
+    .nf-identity .nf-social-float--start {
+      inset-inline-start: 1rem;
+    }
+    .nf-identity .nf-social-float--end {
+      inset-inline-end: 1rem;
+    }
+  }
 }
 

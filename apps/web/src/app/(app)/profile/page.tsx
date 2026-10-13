@@ -17,7 +17,7 @@ import { getAgentContext } from "@/lib/agent/listings-queries";
 import { getMode } from "@/lib/mode";
 import { RoleSwitcher } from "@/components/roles/RoleSwitcher";
 import { VerifyPrompt } from "@/components/roles/VerifyPrompt";
-import { roleStateFrom, type AgentFacts, type RoleState } from "@/components/roles/roles";
+import { needsVerification, roleStateFrom, type AgentFacts, type RoleState } from "@/components/roles/roles";
 import { resolveWorkspaces } from "@/lib/supply/workspaces-queries";
 import { loadBelongings, loadOwnBadgeTier } from "./belongings-queries";
 import { createClient } from "@/lib/supabase/server";
@@ -26,6 +26,13 @@ import { BadgeRow } from "@/components/social/badges/BadgeRow";
 import { BadgeEarnedHost } from "@/components/social/badges/BadgeEarnedHost";
 import { badgeCopyOf } from "@/components/social/badges/badge-copy";
 import { readProfileBadges } from "@/components/social/profile/badges-read";
+import { IdentityCredentials } from "@/components/app/identity/IdentityHeader";
+import { ValloRecord } from "@/components/app/trust/ValloRecord";
+import { readUserRecord } from "@/lib/trust/record-read";
+import { readMyPassport } from "@/lib/trust/passport-read";
+import { readOwnRoleWords } from "@/lib/profile/role-facts";
+import { roleLine } from "@/lib/profile/role-line";
+import { PassportRows } from "./PassportRows";
 import { switchParamTarget, switchRoleLine } from "./belongings";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -136,11 +143,24 @@ export default async function ProfilePage({
    * other.
    */
   const shareUrl = identity ? `${siteUrl().replace(/\/+$/, "")}/u/${identity.handle}` : undefined;
-  const [posts, badges] = await Promise.all([
+  /*
+   * And what the header and the credentials section say about the person,
+   * all independent, so all at once: the role line under the name (their
+   * approved agents row and the businesses they publish), their renter
+   * passport, and, for a lister, their Vallo Record. Each answers null or
+   * nothing on a failure and then draws nothing; none of them guesses.
+   */
+  const signedIn = account.state === "signed-in";
+  const userId = signedIn ? account.profile.userId : null;
+  const client = signedIn ? await createClient() : null;
+  const [posts, badges, roleWords, passport, record] = await Promise.all([
     social.state === "claimed" ? getProfileFeed(social.userId) : Promise.resolve([]),
-    account.state === "signed-in"
-      ? createClient().then((client) => readProfileBadges(client, account.profile.userId, locale))
+    client && userId ? readProfileBadges(client, userId, locale) : Promise.resolve(null),
+    client && userId
+      ? readOwnRoleWords(client, userId, agentContext.state === "agent" ? agentContext.agent : null)
       : Promise.resolve(null),
+    signedIn ? readMyPassport() : Promise.resolve(null),
+    userId && agentContext.state === "agent" ? readUserRecord(userId) : Promise.resolve(null),
   ]);
   const copy = {
     bookings: t.nav.bookings,
@@ -232,25 +252,37 @@ export default async function ProfilePage({
             : null
         }
         badgeTier={badgeTier}
+        roleLine={roleWords ? roleLine(roleWords, t.socialProfile.roleLine) : undefined}
         locale={locale}
         postsLabel={t.socialProfile.posts}
-        badges={
-          badges && badges.length > 0 ? (
-            <>
-              <BadgeRow
-                badges={badges}
-                isOwner
-                copy={badgeCopyOf(t)}
-                shareUrl={shareUrl}
-              />
-              <BadgeEarnedHost
-                viewerId={profile.userId}
-                badges={badges}
-                copy={badgeCopyOf(t)}
-                shareUrl={shareUrl}
-              />
-            </>
-          ) : null
+        credentials={
+          /*
+            THE PASSPORT AND CREDENTIALS, one section under the person, in the
+            order somebody vouching for them would read: where a seller's or
+            an agent's verification stands (the calm prompt, for somebody who
+            has applied and is not yet verified; a renter or buyer is never
+            asked), the badges they hold, their renter passport with what it
+            says, and a lister's Vallo Record.
+          */
+          <IdentityCredentials label={t.socialProfile.passportAndCredentials}>
+            {rolesView.roles.filter(needsVerification).map((role) => (
+              <VerifyPrompt key={role.id} role={role} />
+            ))}
+            {badges && badges.length > 0 ? (
+              <>
+                <BadgeRow badges={badges} isOwner copy={badgeCopyOf(t)} shareUrl={shareUrl} />
+                <BadgeEarnedHost viewerId={profile.userId} badges={badges} copy={badgeCopyOf(t)} shareUrl={shareUrl} />
+              </>
+            ) : null}
+            <PassportRows
+              passport={passport}
+              copy={t.experienceAccount.passport}
+              memberSinceLabel={t.socialProfile.accountPage.memberSince}
+              memberSince={monthAndYear(profile.memberSince, locale)}
+              locale={locale}
+            />
+            {record ? <ValloRecord record={record} t={t} locale={locale} /> : null}
+          </IdentityCredentials>
         }
       />
 
@@ -269,16 +301,6 @@ export default async function ProfilePage({
           }}
         />
       </div>
-
-      {/*
-        The calm verification prompt, under the person rather than above the
-        cover: the cover runs up behind the app header and nothing may sit on
-        top of it. Renders for a seller or an agent who has applied and not
-        been verified, and for nobody else. A renter or buyer is never asked.
-      */}
-      {rolesView.roles.map((role) => (
-        <VerifyPrompt key={role.id} role={role} className="nf-pf-verify" />
-      ))}
 
       <AccountBody
         counts={profile.counts}
@@ -305,7 +327,6 @@ export default async function ProfilePage({
           under it names only what this account actually holds.
         */
         switchLine={switchRoleLine(held.workspaces, t.socialProfile.accountPage)}
-        memberSince={monthAndYear(profile.memberSince, locale)}
       />
     </div>
   );

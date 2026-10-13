@@ -11,6 +11,41 @@ import { FEED_POSTS } from "../../f4/fixtures";
 import { BadgeRow } from "@/components/social/badges/BadgeRow";
 import { badgeCopyOf } from "@/components/social/badges/badge-copy";
 import type { ProfileBadge } from "@/components/social/badges/badge-model";
+import { IdentityCredentials } from "@/components/app/identity/IdentityHeader";
+import { ValloRecord } from "@/components/app/trust/ValloRecord";
+import { PassportRows } from "@/app/(app)/profile/PassportRows";
+import { roleLine, roleWords } from "@/lib/profile/role-line";
+import type { MyPassport } from "@/lib/trust/passport-read";
+import type { RecordRow } from "@/lib/trust/record";
+
+/* A renter passport and a Vallo Record, as fixtures (fictional, never shipped). */
+const FIXTURE_PASSPORT: MyPassport = {
+  enabled: true,
+  sharedIn: 2,
+  facts: {
+    phoneConfirmed: true,
+    nimcMatchedAt: "2026-09-12T10:00:00.000Z",
+    inspectionsAttended: 3,
+    tenancies: 1,
+    memberSince: "2026-09-01T10:00:00.000Z",
+  },
+};
+const FIXTURE_RECORD: RecordRow = {
+  recordCode: "VR-7KQ2-M4",
+  displayName: PERSON.name,
+  since: "2026-03-04T09:00:00.000Z",
+  stoppedAt: null,
+  replyMedianMinutes: 42,
+  replied: 38,
+  answeredInDay: 36,
+  enquiries: 40,
+  described: 12,
+  describedOf: 12,
+  lets: 6,
+  kept: 9,
+  keptOf: 10,
+  stopped: false,
+};
 
 /*
  * `?v=badges`: the full state with a badge row. The codes, names and objects
@@ -52,6 +87,8 @@ const FIXTURE_BADGES: ProfileBadge[] = CATALOGUE_BADGES.map(([code, name, object
  *   ?v=loading    the profile's loading skeleton
  *   ?v=setup      the add-a-workspace chooser at /profile/setup
  *   ?v=badges     the full state with a badge row from the real catalogue
+ *   ?v=renter     a renter: no supply account, no tier, no Record
+ *   ?v=host       somebody running a hotel and a shortlet
  * The full and values states carry a gold badge tier (a fixture, standing in
  * for what `person_badge` would publish for an approved agent).
  */
@@ -67,6 +104,16 @@ export function ProfileHarness({ v = "full" }: { v?: string }) {
     );
   }
   const claimed = v !== "nohandle";
+  /* Who the fixture is, for the role line: an approved agent by default, a
+     renter with no supply account, or somebody running a hotel and a
+     shortlet. Each is a fixture standing in for the rows `role-facts.ts`
+     reads. A renter holds no published tier: gold is a checked lister's. */
+  const words =
+    v === "renter"
+      ? roleWords({ listers: [], businesses: [] })
+      : v === "host"
+        ? roleWords({ listers: [], businesses: ["hotel", "shortlet_operator"] })
+        : roleWords({ listers: ["agent"], businesses: [] });
   return (
     <div className="nf-pf">
       <AccountHero
@@ -82,15 +129,26 @@ export function ProfileHarness({ v = "full" }: { v?: string }) {
                 followerCount: 12400,
                 followingCount: 482,
                 postCount: 3,
-                isAgent: true,
+                isAgent: v !== "renter" && v !== "host",
                 bio: PERSON.bio,
               }
             : null
         }
-        badgeTier={claimed ? "gold" : null}
+        badgeTier={claimed && v !== "renter" ? "gold" : null}
+        roleLine={roleLine(words, t.socialProfile.roleLine)}
         locale="en"
-        badges={
-          v === "badges" ? <BadgeRow badges={FIXTURE_BADGES} isOwner copy={badgeCopyOf(t)} /> : null
+        credentials={
+          <IdentityCredentials label={t.socialProfile.passportAndCredentials}>
+            {v === "badges" ? <BadgeRow badges={FIXTURE_BADGES} isOwner copy={badgeCopyOf(t)} /> : null}
+            <PassportRows
+              passport={FIXTURE_PASSPORT}
+              copy={t.experienceAccount.passport}
+              memberSinceLabel={t.socialProfile.accountPage.memberSince}
+              memberSince="September 2026"
+              locale="en"
+            />
+            {v === "renter" || v === "host" ? null : <ValloRecord record={FIXTURE_RECORD} t={t} locale="en" />}
+          </IdentityCredentials>
         }
       />
       <AccountBody
