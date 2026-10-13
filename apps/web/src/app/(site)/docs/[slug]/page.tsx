@@ -4,7 +4,7 @@ import { breadcrumbLd } from "@/lib/site/structured-data";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { CHAPTER_INDEX, chapterBySlug, chapterNeighbours } from "../chapters";
+import { CHAPTER_INDEX, DOC_GROUPS, chapterBySlug, chapterNeighbours } from "../chapters";
 import { OnThisPage } from "../OnThisPage";
 import "@/components/site/guides/docs-type.css";
 import { DepthWords } from "@/components/motion/DepthWords";
@@ -16,7 +16,7 @@ import { SITE_CARD } from "@/lib/site/site-card";
 /**
  * One chapter.
  *
- * The twelve slugs are known at build time, so they are generated rather than
+ * The slugs are known at build time, so they are generated rather than
  * rendered on demand, and anything else is a genuine 404 instead of an empty
  * page with a heading on it.
  *
@@ -89,7 +89,8 @@ export default async function DocChapterPage({
           </IconPlate>
           <div className="min-w-0">
             <span className="nf-numeric block text-[length:var(--nf-text-label)] font-semibold tracking-[var(--nf-tracking-label)] text-[var(--nf-content-muted)] uppercase">
-              Chapter {chapter.number} of {CHAPTER_INDEX.length}
+              {DOC_GROUPS.find((group) => group.id === chapter.group)?.label ?? "Documentation"}, chapter{" "}
+              {chapter.number} of {CHAPTER_INDEX.length}
             </span>
             {/* The title arrives word by word out of depth (Track M). */}
             <h1 className="nf-h1 nf-doc-title mt-inline-tight">

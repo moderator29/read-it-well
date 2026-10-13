@@ -4,60 +4,78 @@ import { formatMoney } from "@vallo/i18n/core";
 import type { BrandIconName } from "@/design-system/icons/BrandIcon";
 import { SUPPORT_HREF, SUPPORT_LABEL } from "@/lib/support-email";
 import { FULL_REFUND_HOURS } from "@/lib/trust/cancellation";
-import { VERIFICATION_ORDER } from "@/lib/trust/verification";
 import { MAX_MOVE_KOBO, MIN_MOVE_KOBO } from "@/lib/money/amount";
-import { railIsLive } from "@/lib/money/rails";
 import {
-  DIRECT_RAIL_STANDING,
   HELD_MONEY_NOT_US,
-  NO_CUSTODY_SENTENCE,
   NO_INSPECTION_FEE,
   NO_PAYMENT_BALANCE,
   OFF_PLATFORM_SENTENCE,
-  PAYMENT_GATE_SENTENCE,
-  PAYOUT_ANSWER,
-  PRIVATE_FEE_NOTE,
+  RAIL_COPY,
   REFUND_NO_BALANCE,
   REFUND_ROUTE,
   REWARDS_BALANCE_SEPARATE,
-  WHO_PAYS_SENTENCE,
 } from "@/lib/money/copy";
-import { MAX_BLOCK_NIGHTS } from "@/lib/agent/calendar-model";
-import { MAX_DAYS_AHEAD, MAX_PARTY } from "@/lib/reservations/schema";
-import { EDIT_WINDOW_MINUTES, POST_MAX, POST_MEDIA_MAX } from "@/lib/social/posts-model";
-import { MODERATOR_CAN, MODERATOR_CANNOT } from "@/lib/social/areas-model";
 import { REPORT_CATEGORY_COPY, REPORT_CATEGORY_ORDER } from "@/lib/reports/schema";
-import { SUPPLY_DOOR_HREF, doorsSentence } from "@/lib/supply/roles";
-import { AI_ASSISTANT, GETTING_AROUND, LISTING_ON_VALLO, MESSAGING_A_BUSINESS, PRICE_CHECK } from "./chapters-more";
+import { AI_ASSISTANT, AROUND, GETTING_AROUND, LISTING_ON_VALLO, MESSAGES, PRICE_CHECK } from "./chapters-more";
 import {
   BADGES_AND_VERIFICATION,
   HOSTING,
-  MESSAGE_TOOLS,
   QUICK_START,
+  RESTAURANTS,
   VIEWINGS,
   WHAT_VALLO_COSTS,
 } from "./chapters-guide";
+import {
+  ACCOUNT_AND_WORKSPACES,
+  AGREEMENTS_AND_PAYING,
+  BOOKING_A_STAY,
+  FINDING_A_PLACE,
+  FOR_AGENTS,
+  FOR_OWNERS,
+  REVIEWS,
+  UNDERSTANDING_A_LISTING,
+} from "./chapters-people";
+import {
+  CARD_MEANS,
+  COMMISSION_FROM_SHARE,
+  ESCROW_MEANS,
+  ESCROW_NOT_OPEN_YET,
+  ESCROW_OPEN,
+  ESCROW_OR_CARD,
+  HOTEL_ROOM_BY_CARD,
+  PAY_INSIDE_VALLO,
+  PRICE_IS_THE_PRICE,
+  SALE_IS_ESCROW,
+  VALLO_NEVER_HOLDS,
+  VIEWINGS_AND_LISTING_FREE,
+} from "./facts";
 import { DocsFlow } from "./DocsFlow";
 
 /**
  * The documentation, as data.
  *
- * Every chapter, every heading and every paragraph lives in this one array, so
+ * Every chapter, every heading and every paragraph lives in these modules, so
  * the sidebar, the table of contents, the "on this page" rail, the prev and
- * next links and the pages themselves are all reading the same list. A
- * documentation site whose navigation is written separately from its content is
- * a site that will tell somebody a chapter exists and then hand them a 404.
+ * next links, the help search and the pages themselves read the same list. A
+ * documentation site whose navigation is written separately from its content
+ * is a site that will tell somebody a chapter exists and then hand them a 404.
  *
- * Numbers that already exist in the product are IMPORTED rather than typed out:
- * the payment bounds, the refund window, the verification ladder, the
- * report categories, the post limits and what a place moderator may do. If any
- * of those change, this document changes with them in the same commit. A
- * figure typed into prose is a figure that starts lying the first time somebody
- * edits the code beside it.
+ * THE HOUSE STYLE (13 October 2026, the docs track). One topic per chapter.
+ * Headings say the task ("Book a viewing", not "Viewings, and how they
+ * work"). Short plain sentences. Every chapter that describes a process ends
+ * with what happens next. No internal names: no table, function, flag or
+ * provider a member would not see.
  *
- * Nothing here describes a feature that does not exist. Every screen named is a
- * real route, every rule stated is enforced somewhere in `apps/web/src/lib` or
- * in a migration under `supabase/migrations`.
+ * Numbers that already exist in the product are IMPORTED rather than typed
+ * out. The founder's money rules are written once, in `facts.ts`.
+ *
+ * Nothing here describes a feature that does not exist. Every screen named is
+ * a real route, and every rule stated is enforced in `apps/web/src/lib` or in
+ * a migration under `supabase/migrations`. A rule decided but not yet built
+ * is described as the rule, never as a screen.
+ *
+ * A retired chapter is removed here AND given a redirect in `next.config.ts`
+ * to the closest current chapter (`docs-links.dom.test.tsx` holds both).
  */
 
 export type DocSection = {
@@ -67,2573 +85,1003 @@ export type DocSection = {
   body: ReactNode;
 };
 
+/** The groups the chapters sit in, in reading order. */
+export const DOC_GROUPS = [
+  { id: "start", label: "Start here" },
+  { id: "renting", label: "Renting and buying" },
+  { id: "stays", label: "Stays and restaurants" },
+  { id: "money", label: "Money" },
+  { id: "listing", label: "Listing and hosting" },
+  { id: "tools", label: "Messages and tools" },
+  { id: "trust", label: "Trust and privacy" },
+] as const;
+
+export type DocGroupId = (typeof DOC_GROUPS)[number]["id"];
+
 export type DocChapter = {
   slug: string;
-  /** Its place in the reading order, 1 upwards. */
+  /** Its place in the reading order, 1 upwards. Set from the order below. */
   number: number;
   title: string;
-  /** One line, used on the card, in the sidebar tooltip and as the meta description. */
+  /** One line, used on the card, in the sidebar and as the meta description. */
   summary: string;
   icon: BrandIconName;
+  /** The sidebar group. Set from the order below. */
+  group?: DocGroupId;
   sections: DocSection[];
 };
 
 /** How a link inside the prose is drawn. One class, every chapter. */
 const A = "font-semibold text-[var(--nf-content-link)] hover:underline";
 
-/** Whether the held (escrow) route is open; chapter 6 says which, from the same switch. */
-const HELD_ROUTE_OPEN = railIsLive("protected");
-
 const MIN_MOVE = formatMoney(MIN_MOVE_KOBO);
 const MAX_MOVE = formatMoney(MAX_MOVE_KOBO);
 
-const WRITTEN: DocChapter[] = [
-  /* ------------------------------------------------------------------ 1 */
-  {
-    slug: "what-vallo-is",
-    number: 1,
-    title: "What Vallo is, and who it is for",
-    summary:
-      "Rent, buy or stay across Nigeria without the runaround. One app with two sides, Property and Vallo Stays, one account, and Vallo never holds your money.",
-    icon: "house-sparkle",
-    sections: [
-      {
-        id: "the-short-version",
-        heading: "The short version",
-        body: (
-          <>
-            <p>
-              <strong>
-                Vallo does not remove the agent. Vallo removes the runaround.
-              </strong>{" "}
-              The runaround is the part of finding a place in Nigeria that nobody
-              defends: agent fees stacked on agent fees, a chain of agents on one
-              property, the same flat listed four times at four prices, and a total
-              cost nobody will state until you have spent a Saturday in traffic.
-              Agents hold most of the property offered in this market and their fee
-              is theirs to charge. What this platform is for is that you know who you
-              are dealing with, what you will actually pay and whether the property is
-              real, before you call anybody.
-            </p>
-            <p>
-              It has two sides. <strong>Property</strong> is renting, buying and
-              selling across Nigeria: annual rentals, homes, villas, shops, offices
-              and land, listed by people a person here approved, with inspections before
-              any money moves. <strong>Vallo Stays</strong> is the nightly side:
-              hotels, apartments, guest houses, resorts, serviced apartments,
-              shortlets and restaurant tables. One account carries both, along with
-              your agreements, your bookings, your messages and your conversations about
-              the areas you live in.
-            </p>
-            <p>
-              It is built for how renting and staying actually works here. That means
-              three questions come before the price: is there light, is there water,
-              and will the gate let you in. Those are structured facts on a listing,
-              not a tick box called Backup Power, and you can filter on them.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "the-two-sides",
-        heading: "The two sides, and the switch",
-        body: (
-          <>
-            <p>
-              Vallo is one app wearing two faces, because renting a flat for a year
-              and booking a room for a night are not the same errand and should not
-              share one set of controls.
-            </p>
-            <ul role="list">
-              <li>
-                <strong>The Property side.</strong>{" "}
-                <Link href="/search" className={A}>
-                  Search
-                </Link>{" "}
-                and{" "}
-                <Link href="/search?market=rent" className={A}>
-                  Rent
-                </Link>
-                , listings, agents, inspections and{" "}
-                <Link href="/bookings?side=property&from=property" className={A}>
-                  Plans
-                </Link>
-                . Prices are a sale price or a yearly rent with the move-in total
-                printed under it.
-              </li>
-              <li>
-                <strong>Vallo Stays.</strong>{" "}
-                <Link href="/stays" className={A}>
-                  Stays
-                </Link>
-                , its dated search,{" "}
-                <Link href="/restaurants" className={A}>
-                  Restaurants
-                </Link>{" "}
-                and{" "}
-                <Link href="/bookings?side=stays&from=stays" className={A}>
-                  Plans
-                </Link>
-                . Prices are per night, against dates and a party size.
-              </li>
-            </ul>
-            <p>
-              <strong>Switching costs nothing and changes nothing you own.</strong> The
-              switch sits at the foot of the side drawer, and flipping it changes the
-              vocabulary and the bottom bar, not your account: the same profile, the
-              same agreements, the same inbox and the same saved places.
-              Plans is one dated list of everything you have lined up on both sides:
-              inspections, move-ins, stays and tables, in the order they happen.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "what-you-can-do",
-        heading: "What you can do here",
-        body: (
+/* ------------------------------------------------------------ what it is */
+
+const WHAT_VALLO_IS: DocChapter = {
+  slug: "what-vallo-is",
+  number: 0,
+  title: "What Vallo is",
+  summary:
+    "A marketplace for homes, property, stays and restaurant tables across Nigeria. One account, two sides, and the rules that apply everywhere.",
+  icon: "house-sparkle",
+  sections: [
+    {
+      id: "the-short-version",
+      heading: "The short version",
+      body: (
+        <>
+          <p>
+            Vallo is a marketplace for property, stays and restaurants in Nigeria. You can rent or
+            buy a home, a shop, an office or land. You can book a hotel room, a shortlet or a
+            serviced apartment. You can book a table at a restaurant.
+          </p>
+          <p>
+            Owners, agents, firms, hotels, shortlet hosts and restaurants list on Vallo. A person at
+            Vallo reviews each of them, and each listing, before it goes up.
+          </p>
+          <p>
+            Vallo does not remove the agent. It removes the runaround: you see who you are dealing
+            with and what you will pay before you call anybody.
+          </p>
+        </>
+      ),
+    },
+    {
+      id: "the-two-sides",
+      heading: "Switch between Property and Stays",
+      body: (
+        <>
+          <p>The app has two sides. One account works on both.</p>
           <ul role="list">
             <li>
-              <strong>Find somewhere.</strong> Search by city or area, filter by budget,
-              rooms, guests, amenities, power and water, then look at the results as a
-              list or on a map.
-            </li>
-            <li>
-              <strong>Book a stay.</strong> Search with your dates and your party,
-              hold the nights, see the whole price in naira before you commit, and
-              pay by card or bank transfer once the host accepts and Vallo approves.
-            </li>
-            <li>
-              <strong>Hold a table.</strong> Ask a restaurant for a date, a time and
-              a party size. The restaurant answers, the reservation opens its own
-              conversation, and no money moves for a table.
-            </li>
-            <li>
-              <strong>Pay on Vallo, without Vallo holding your money.</strong> Inspect,
-              submit the report, confirm the agreement, and pay once Vallo approves it.
-              The owner&rsquo;s or agent&rsquo;s share settles straight to them, and the
-              price you pay is the price on the listing.
-            </li>
-            <li>
-              <strong>Talk to the agent.</strong> Ask about the road, the generator or
-              the landlord before you commit anything, inside the platform where the
-              conversation is on record.
-            </li>
-            <li>
-              <strong>Ask the assistant.</strong> Ask for what you want in English,
-              Yorùbá, Hausa or Igbo and get real listings back, never invented ones.
-            </li>
-            <li>
-              <strong>Join your place.</strong> Around is a layer of places rather than
-              strangers: your local government, your estate, your campus, and what
-              people there are saying today.
-            </li>
-            <li>
-              {/* An owner listing their own flat does not "apply as an agent",
-                  and telling them they do is how the supply side stayed empty. */}
-              <strong>List a property.</strong> Own it or act for somebody who does,
-              publish, manage a calendar and get paid.
-            </li>
-          </ul>
-        ),
-      },
-      {
-        id: "who-it-is-for",
-        heading: "Who it is for",
-        body: (
-          <>
-            <p>
-              <strong>Guests, tenants and buyers.</strong> Someone looking for two
-              nights in Lekki, a year in Yaba, a shop front in Onitsha or a plot of
-              land in Epe. Each market works the way that market works, and the
-              product says so: an annual tenancy is message the agent, inspect the
-              property, then pay, and there is no Reserve button on a rental, by
-              design.
-            </p>
-            <p>
-              <strong>Agents.</strong> Independent agents, estate managers and property
-              owners who want their stock in front of people without paying to be there.
-              One word for all of them, whether what they list is a room for a weekend,
-              a flat for a year, a shop, an office or a plot of land.
-            </p>
-            <p>
-              <strong>People who live somewhere.</strong> You do not have to be booking
-              anything to use Around. It is worth opening on a Tuesday to find out
-              whether the light is on in your area.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "no-fees",
-        heading: "What Vallo takes from a payment",
-        body: (
-          <>
-            <p>
-              Vallo takes no fee from a renter or a guest: not to look, not to book and
-              not to pay. There is no service fee, no booking fee and no listing fee.
-            </p>
-            <p>{WHO_PAYS_SENTENCE}</p>
-            <p>
-              What a total is made of depends on the market, and in every one of them
-              it is the agent&rsquo;s number and nothing of ours on top of it. On a
-              shortlet or a hotel room it is the nights multiplied by the rate, plus a
-              cleaning charge where the agent sets one. On a yearly tenancy it is the
-              move-in total, which is the rent and every other sum payable before you
-              get the keys, printed as one figure. On a sale, on land, and on a shop or
-              an office, the price on the listing is the asking price, and what is
-              finally paid is agreed between you and the agent. Vallo adds nothing to
-              any of them.
-            </p>
-            <p>
-              Vallo is free to use and free to list on. It charges only when a deal is
-              completed, and that fee comes out of the lister&rsquo;s share, never as
-              something added to what you pay. If a card processor charges for moving
-              money, that is named as the processor charge, because it is theirs. See{" "}
-              <Link href="/docs/what-vallo-costs" className={A}>
-                What Vallo costs
-              </Link>
-              .
-            </p>
-            <p>
-              So if anybody presents an agency fee, an inspection fee, a holding fee or
-              a caution fee as a Vallo charge, they are lying to you. Read{" "}
-              <Link href="/docs/trust-and-safety" className={A}>
-                Trust and safety
-              </Link>{" "}
-              and report them.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "how-it-is-laid-out",
-        heading: "How the product is laid out",
-        body: (
-          <>
-            <p>Three surfaces, one account.</p>
-            <ul role="list">
-              <li>
-                <strong>The platform.</strong> Home, Search, Stays, Restaurants,
-                Around, Saved, Plans, Agreements, Inbox, Notifications, the
-                assistant, your profile and Settings.
-              </li>
-              <li>
-                <strong>The agent workspace.</strong> A separate workspace at{" "}
-                <code>/agent</code> for listings, the calendar, bookings, earnings,
-                reviews and verification. You switch into it once your application is
-                approved.
-              </li>
-              <li>
-                <strong>The public site.</strong> The pages you are reading now, plus{" "}
-                <Link href="/help" className={A}>
-                  the help centre
-                </Link>
-                ,{" "}
-                <Link href="/safety" className={A}>
-                  safety
-                </Link>
-                ,{" "}
-                <Link href="/standards" className={A}>
-                  standards
-                </Link>{" "}
-                and{" "}
-                <Link href="/cancellations" className={A}>
-                  cancellations
-                </Link>
-                .
-              </li>
-            </ul>
-            <p>
-              The product works in English, Yorùbá, Hausa and Igbo, and the switcher is
-              in the header on every public page and in Settings inside the platform.
-              Dark is the default theme and stays dark unless you choose otherwise in
-              Settings, whatever your phone is set to.
-            </p>
-          </>
-        ),
-      },
-    ],
-  },
-
-  /* ------------------------------------------------------------------ 2 */
-  {
-    slug: "getting-started",
-    number: 2,
-    title: "Getting started",
-    summary:
-      "Creating an account, signing in and getting back in, and filling in the profile the rest of the product reads.",
-    icon: "user-check",
-    sections: [
-      {
-        id: "creating-an-account",
-        heading: "Creating an account",
-        body: (
-          <>
-            <p>
-              Go to{" "}
-              <Link href="/sign-up" className={A}>
-                Sign up
-              </Link>
-              . You are offered the ways in that are actually switched on, and nothing
-              else: a button for a provider that is not connected would send you to an
-              error page, so it is not shown.
-            </p>
-            <ul role="list">
-              <li>
-                <strong>Email and password.</strong> Your name, email and a password.
-                We send a confirmation email; open it and the account is live.
-              </li>
-              <li>
-                <strong>Google.</strong> One tap, and you come back signed in. Apple is
-                wired the same way and appears when it is enabled.
-              </li>
-            </ul>
-            <p>
-              An account is free and takes about a minute. You need one to book, to hold
-              money, to message an agent and to post in a place, because all four of
-              those have to belong to somebody.
-            </p>
-            <p>You must be at least 18 to hold an account.</p>
-          </>
-        ),
-      },
-      {
-        id: "signing-in",
-        heading: "Signing in, and getting back in",
-        body: (
-          <>
-            <p>
-              <Link href="/sign-in" className={A}>
-                Sign in
-              </Link>{" "}
-              takes the same two routes. If you signed up with Google, keep using
-              Google: it is the same account either way, keyed on your email address.
-            </p>
-            <p>
-              Forgotten your password? Use{" "}
-              <Link href="/forgot-password" className={A}>
-                Forgot password
-              </Link>{" "}
-              and we email a reset link. A link that has expired or has already been
-              used says so in plain words on the sign-in screen rather than dropping you
-              on an empty form.
-            </p>
-            <p>
-              If you tap something that needs an account while signed out, you are sent
-              to sign in with a line saying why, and back to where you were going once
-              you are in.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "your-profile",
-        heading: "Your profile",
-        body: (
-          <>
-            <p>
-              <Link href="/profile" className={A}>
-                Your account
-              </Link>{" "}
-              is where your details live and where everything you have on the platform
-              is linked from: bookings, agreements, saved places, reviews, inbox and
-              notifications.
-            </p>
-            <ul role="list">
-              <li>
-                <strong>Your details.</strong> First name, surname, a nickname if you
-                want one, phone number and a photograph.
-              </li>
-              <li>
-                <strong>Where you are.</strong> A state and a local government, chosen
-                from the real list of 36 states, the Federal Capital Territory and all
-                774 local governments. This is what lets Around open the right door for
-                you.
-              </li>
-              <li>
-                <strong>What you do.</strong> An occupation, from a fixed list.
-              </li>
-              <li>
-                <strong>What you came for.</strong> Interests, set in{" "}
-                <Link href="/settings/interests" className={A}>
-                  Settings
-                </Link>
-                , which shape what Home puts in front of you.
-              </li>
-            </ul>
-          </>
-        ),
-      },
-      {
-        id: "your-handle",
-        heading: "Your handle and your public page",
-        body: (
-          <>
-            <p>
-              A handle is your address on Vallo. Claim one and your public page lives at{" "}
-              <code>/u/your-handle</code>: your name, your area, any standing you have
-              earned, your occupation and home town only if you switch each one on
-              under Privacy, and tabs for what you have posted, replied to and shared. An agent gets a Properties tab and a Reviews tab instead.
-            </p>
-            <p>
-              Handles are lowercase letters, digits and underscores, three to twenty
-              characters, starting with a letter. A handle nobody has taken is not a
-              dead page: it says the address is free and offers it to you.
-            </p>
-            <p>
-              What appears there is your choice. Settings has a switch called Hide my
-              activity that keeps your reviews and recent stays off the public page.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "settings",
-        heading: "Settings worth knowing about",
-        body: (
-          <>
-            <ul role="list">
-              <li>
-                <strong>Appearance.</strong> Dark or light. Dark is the default and the
-                phone does not override it.
-              </li>
-              <li>
-                <strong>Language.</strong> English, Yorùbá, Hausa or Igbo, remembered on
-                your device.
-              </li>
-              <li>
-                <strong>Notifications.</strong> Four switches: bookings, messages,
-                payments and agreements, and ideas and offers. Marketing is off until you turn it on.
-              </li>
-              <li>
-                <strong>Privacy.</strong> Hide my activity, and Data saver for lighter
-                images on a slow connection.
-              </li>
-              <li>
-                <strong>Security.</strong> Change your password and sign out.
-              </li>
-              <li>
-                <strong>Your data.</strong> Ask for a copy, or delete the account. See{" "}
-                <Link href="/docs/your-data-and-your-rights" className={A}>
-                  Your data and your rights
-                </Link>
-                .
-              </li>
-            </ul>
-            <p>
-              Preferences kept on your device stay on your device. Account preferences
-              are stored against your row and protected with row level security, so only
-              you can read or change them.
-            </p>
-          </>
-        ),
-      },
-    ],
-  },
-
-  /* ------------------------------------------------------------------ 3 */
-  {
-    slug: "finding-a-place",
-    number: 3,
-    title: "Finding a place",
-    summary:
-      "Property search with its filters including power and water, stay search against dates and guests, the map, saving a shortlist, and sharing a search by its link.",
-    icon: "home-search",
-    sections: [
-      {
-        id: "searching",
-        heading: "Searching",
-        body: (
-          <>
-            <p>
-              Search lives at{" "}
+              <strong>Property.</strong>{" "}
               <Link href="/search" className={A}>
-                /search
+                Search
               </Link>{" "}
-              and is reachable from the field on Home and from the bottom bar. Type a
-              city, an area or the kind of place you want.
-            </p>
-            <p>
-              The category tiles across the top narrow the catalogue to one kind:
-              hotels, apartments, homes, shortlets, villas, restaurants, rentals,
-              shops, offices or land. The result count speaks the category&apos;s own
-              language, so land counts in plots rather than results.
-            </p>
-            <p>
-              Sorting is Recommended, Top rated, Price low to high, or Price high to low.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "searching-stays",
-        heading: "Searching stays, which asks for dates",
-        body: (
-          <>
-            <p>
-              The Stays side has its own search, because a room is priced against
-              nights and a party rather than against a year.{" "}
+              homes to rent or buy, shops, offices and land. A rent is priced per year, with the
+              move-in total shown under it.
+            </li>
+            <li>
+              <strong>Stays.</strong>{" "}
               <Link href="/stays" className={A}>
                 Stays
               </Link>{" "}
-              is the shelf; the field on it opens{" "}
-              <Link href="/stays/search" className={A}>
-                the dated search
-              </Link>
-              , which asks for three things.
-            </p>
-            <ul role="list">
-              <li>
-                <strong>Where.</strong> A city, an area or a landmark.
-              </li>
-              <li>
-                <strong>Check in and check out.</strong> Leave them empty and you see
-                the shelf; fill them and every price on the page becomes the total
-                for those nights rather than a nightly rate.
-              </li>
-              <li>
-                <strong>Guests.</strong> Adults and children. A place that cannot
-                sleep your party is not offered to you.
-              </li>
-            </ul>
-            <p>
-              The category tiles narrow it to hotels, shortlets, serviced apartments,
-              resorts or guest houses. Restaurants are not stays and have their own
-              shelf at{" "}
+              and{" "}
               <Link href="/restaurants" className={A}>
                 Restaurants
               </Link>
-              , where a table is asked for rather than booked.
-            </p>
-            <p>
-              Every stay search keeps its whole state in the address bar, exactly as
-              the property search does, so a link you send opens on what you were
-              looking at, dates and all.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "filters",
-        heading: "The filters",
-        body: (
-          <>
-            <p>Open Filters and set as many as you want. The drawer counts what you have switched on.</p>
-            <ul role="list">
-              <li>
-                <strong>Budget.</strong> A minimum, a maximum, or both, typed in whole
-                naira. Type them the wrong way round and they are swapped rather than
-                returning nothing.
-              </li>
-              <li>
-                <strong>Bedrooms and bathrooms.</strong> A minimum of each.
-              </li>
-              <li>
-                <strong>Guests.</strong> The party the place must take.
-              </li>
-              <li>
-                <strong>Amenities.</strong> Wi-Fi, air conditioning, TV, kitchen,
-                parking, swimming pool, gym, security, lift, furnished, balcony, garden,
-                laundry, backup power, running water, hot shower, breakfast, workspace.
-                Every one you tick must be present.
-              </li>
-              <li>
-                <strong>Instant book.</strong> Only places you can book without waiting
-                for the agent to accept.
-              </li>
-              <li>
-                <strong>Verified only.</strong> Only listings that carry the verified
-                badge. See{" "}
-                <Link href="/docs/understanding-a-listing" className={A}>
-                  Understanding a listing
-                </Link>
-                .
-              </li>
-            </ul>
-          </>
-        ),
-      },
-      {
-        id: "power-and-water",
-        heading: "Light and water, which nobody else filters on",
-        body: (
-          <>
-            <p>
-              These two are the reason search here is different, and they behave
-              differently from each other on purpose.
-            </p>
-            <p>
-              <strong>Power is a requirement, so the filters combine with AND.</strong>{" "}
-              There are two of them: <em>Backup power</em>, meaning the agent has a
-              generator, an inverter or solar, and <em>Band A</em>, meaning the address
-              sits on a Band A feeder. A place can have both, so asking for both means
-              both.
-            </p>
-            <p>
-              <strong>Water is a source, so the filters combine with OR.</strong> Treated
-              mains, borehole, pumped storage, tanker delivery. Water comes from one
-              place, so ticking borehole and treated mains means either will do. As an
-              AND it would match nothing at all, every single time, which is a trap
-              rather than a filter.
-            </p>
-            <p>
-              An agent who has not answered is not counted as a yes. Silence about the
-              light is shown as silence, and the filter leaves that listing out.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "the-map",
-        heading: "The map",
-        body: (
-          <>
-            <p>
-              Switch between List and Map with the toggle beside the sort control. The
-              map draws the same results your filters produced, priced in naira on each
-              pin, with nearby pins clustered until you zoom in. Tap a pin to open the
-              card, tap the card to open the listing.
-            </p>
-            <p>
-              The map follows your theme, so it is dark at night and paper in daylight,
-              and the view you last chose is remembered for your next search.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "saving",
-        heading: "Saving a shortlist",
-        body: (
-          <>
-            <p>
-              Tap the heart on any card or listing to save it.{" "}
-              <Link href="/saved" className={A}>
-                Saved
-              </Link>{" "}
-              is your shortlist, newest first, with the same cards search uses so a place
-              looks the same wherever you meet it.
-            </p>
-            <p>
-              Hearts work before you sign in: they are kept on your device and carried
-              onto your account the moment you do, so nothing you tapped is quietly
-              dropped. Unsaving offers an undo.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "sharing-a-search",
-        heading: "Sharing a search",
-        body: (
-          <>
-            <p>
-              The address bar is the search. Every control writes to it and nothing else,
-              so a filtered hunt can be copied to a friend on WhatsApp, opened on a
-              laptop, bookmarked, and walked backwards with the browser back button.
-            </p>
-            <p>
-              The parameters read as English:{" "}
-              <code>?q=lekki&amp;type=shortlet&amp;power=backup&amp;water=borehole</code>{" "}
-              is a shortlet in Lekki with backup power and a borehole. An address with
-              rubbish in it renders the unfiltered page rather than an error.
-            </p>
-          </>
-        ),
-      },
-    ],
-  },
-
-  /* ------------------------------------------------------------------ 4 */
-  {
-    slug: "understanding-a-listing",
-    number: 4,
-    title: "Understanding a listing",
-    summary:
-      "The badges, where the listings come from, what the light and water rows really say, and how the gate details reach you.",
-    icon: "listing-review",
-    sections: [
-      {
-        id: "the-page",
-        heading: "What is on the page",
-        body: (
-          <>
-            <p>
-              A listing opens with its photographs, then the title, the area and city, the
-              price, and the rows that matter: rooms, guests, amenities, light and water,
-              the gate, the agent, the reviews and the map.
-            </p>
-            <p>
-              Tap any photograph to open the viewer and go through the set full screen.
-              Everything below is written by the agent and checked before the listing
-              goes live.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "badges",
-        heading: "What the badges mean",
-        body: (
-          <ul role="list">
-            <li>
-              <strong>Verified.</strong> The agent behind this listing passed identity
-              verification and the listing itself was reviewed before publishing. It is
-              the strongest thing a listing can say about itself here.
-            </li>
-            <li>
-              <strong>Instant.</strong> You can book without waiting for the agent to
-              accept. Without it, the agent has to accept your request first.
+              . A stay is priced per night, for your dates and your party.
             </li>
           </ul>
-        ),
-      },
-      {
-        /* This section once compared first-party listings with partner stock,
-           and a bullet above it described a "Powered by Google" badge. The
-           partner feeds are deleted (`lib/listings/types.ts`: "THERE IS NO
-           PARTNER SHAPE HERE ANY MORE"), so the section now says what replaced
-           them. The id is kept because anchor ids are stable and people link
-           to headings. */
-        id: "verified-vs-partner",
-        heading: "Where the listings come from",
-        body: (
-          <>
-            <p>
-              Every real listing on Vallo was listed on Vallo, by a real person who
-              applied and was approved, and every example says it is one. Nothing is imported from an outside feed,
-              nothing is scraped, and no third party fills the catalogue for us.
-            </p>
-            <p>
-              That is the ground the rest of the trust stands on. The verified badge can
-              mean something because a person here checked the ID of the agent who earns it:
-              somebody to message, somebody to inspect the property with, and somebody
-              accountable if it is not as described.
-            </p>
-            <p>
-              If you only want listings that have passed those checks, use the{" "}
-              <em>Verified only</em> filter in search.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "light",
-        heading: "Light",
-        body: (
-          <>
-            <p>
-              Power is two separate facts, because one number cannot hold both. Band A
-              with no backup and rarely on with a generator running all day are opposite
-              places, and a single tick box would flatten them into the same claim.
-            </p>
-            <p>
-              <strong>What the grid gives this address.</strong> One of: Band A, twenty
-              hours a day or more. Mostly on, light most of the day with gaps. Patchy, on
-              and off through the day. Rarely on, a few hours at best. No grid supply,
-              nothing from the distribution company.
-            </p>
-            <p>
-              <strong>What the agent does about it.</strong> No backup, a generator, an
-              inverter, solar, or a generator and inverter together. Where there is a
-              backup, the agent states how many hours a day it actually runs, which is
-              the number that decides whether the place is livable in a bad week.
-            </p>
-            <p>
-              The row also says whether the unit is on a prepaid meter, which decides
-              whether you can be asked to buy units.
-            </p>
-            <p>
-              <strong>Unanswered is shown as unanswered.</strong> An agent who has not said
-              whether there is light does not get silence read as good news. Where the
-              answer is missing, the listing says so and points you at the one control
-              that gets a real answer: message the agent.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "water",
-        heading: "Water",
-        body: (
-          <>
-            <p>One closed list, because four spellings of borehole cannot be filtered on:</p>
-            <ul role="list">
-              <li>
-                <strong>Treated mains.</strong> Running water from the mains.
-              </li>
-              <li>
-                <strong>Borehole.</strong> The property has its own.
-              </li>
-              <li>
-                <strong>Pumped storage.</strong> A tank filled and pumped through.
-              </li>
-              <li>
-                <strong>Tanker delivery.</strong> Water is bought in and stored.
-              </li>
-              <li>
-                <strong>No running water.</strong> Water is fetched.
-              </li>
-            </ul>
-            <p>
-              These are genuinely different daily experiences, and everybody here knows
-              which one they are looking at.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "the-gate",
-        heading: "Getting through the gate",
-        body: (
-          <>
-            <p>
-              Estate name, gate directions, the security post number and any access code
-              are the difference between arriving and standing outside at eleven at
-              night. They are also exactly the details that must never be public.
-            </p>
-            <p>
-              So they are not on the listing. A published listing is readable by the whole
-              internet, and a gate code stored on it would be a gate code published. They
-              live in their own place with their own rule: the agent can see them, an
-              administrator can see them, and a guest holding a confirmed booking on that
-              listing can see them. Nobody else, ever.
-            </p>
-            <p>
-              Before you book, the page tells you the estate has a gate and that the
-              details arrive when the booking is confirmed. The moment it is confirmed,
-              the real details appear on the same listing and on your booking. A listing
-              with no gate does not show the block at all.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "rent-listings",
-        heading: "Rental listings work differently",
-        body: (
-          <>
-            <p>
-              An annual tenancy is not lodging, so there is no Reserve button on one. The
-              path is message the agent, inspect the property, then pay, and every step
-              stays inside the platform, where there is a record of it.
-            </p>
-            <p>
-              The rent market is{" "}
-              <Link href="/search?market=rent" className={A}>
-                search, set to Rent
-              </Link>
-              . Never hand over cash at an inspection, and never pay into an account
-              number somebody sends you. Read{" "}
-              <Link href="/docs/trust-and-safety" className={A}>
-                Trust and safety
-              </Link>{" "}
-              before you go and look at anything.
-            </p>
-          </>
-        ),
-      },
-    ],
-  },
-
-  /* ------------------------------------------------------------------ 5 */
-  {
-    slug: "booking-and-paying",
-    number: 5,
-    title: "Booking and paying",
-    summary:
-      "The stays journey end to end: reserving holds your dates, the breakdown shows everything, Vallo approves it, you pay by card or bank transfer, and it lands in Trips. Restaurant tables too.",
-    icon: "calendar-check",
-    sections: [
-      {
-        id: "reserve-and-hold",
-        heading: "Reserve, and what the hold does",
-        body: (
-          <>
-            <DocsFlow
-              label="Booking a stay"
-              steps={[
-                { object: "calendar-grid", label: "Pick your dates" },
-                { object: "calendar-clock", label: "Reserve and hold" },
-                { object: "seal-check", label: "Accepted and approved" },
-                { object: "payment-sent", label: "Pay" },
-                { object: "luggage-check", label: "In your Trips" },
-              ]}
-            />
-
-            <p>
-              Pick your dates and your party, then tap Reserve. That writes a pending
-              booking and holds those nights on the calendar so nobody else can take them
-              while you decide.
-            </p>
-            <p>
-              <strong>The hold lasts 48 hours and costs nothing.</strong> Nothing has
-              been taken from you, no card has been touched, and you can let it go at any
-              hour for nothing. If you do nothing, the hold releases itself and the
-              nights reopen, without touching a night the agent had closed by hand.
-            </p>
-            <p>
-              If somebody pays for those exact nights a moment before you, the database
-              refuses the overlap and you are told the dates were just taken. Two people
-              cannot hold the same night here.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "who-is-arriving",
-        heading: "Who is arriving",
-        body: (
           <p>
-            The person paying is often not the person staying: a sister in London pays for
-            a cousin flying into Lagos. You can name the guest who will arrive, with their
-            phone number, and that is what the agent and the gate get. Leave it blank and
-            the booking is yours.
-          </p>
-        ),
-      },
-      {
-        id: "the-rules-that-refuse",
-        heading: "Why a reservation is sometimes refused",
-        body: (
-          <ul role="list">
-            <li>
-              <strong>Minimum stay.</strong> If the agent takes bookings of three nights or
-              more, a two-night request is refused, and the message names the number so
-              you know which way to move.
-            </li>
-            <li>
-              <strong>Party size.</strong> A place that takes four guests refuses a party
-              of eight, on the same principle, at the moment you reserve rather than at
-              the gate.
-            </li>
-            <li>
-              <strong>Dates already taken.</strong> Pick different dates.
-            </li>
-          </ul>
-        ),
-      },
-      {
-        id: "the-price-breakdown",
-        heading: "The price breakdown",
-        body: (
-          <>
-            <p>
-              Checkout is the nightly side of the marketplace: a shortlet, a hotel room
-              or anything else let by the night. A yearly tenancy is settled on its own
-              terms with the agent, and a sale or a lease is negotiated, so neither
-              passes through this screen. What follows is what the nightly path shows
-              you, in naira:
-            </p>
-            <ul role="list">
-              <li>
-                <strong>The rate multiplied by the nights.</strong> Written out, so you
-                can check the arithmetic.
-              </li>
-              <li>
-                <strong>Cleaning</strong>, only when the agent charges for it.
-              </li>
-              <li>
-                <strong>The total.</strong> Nothing hidden inside it.
-              </li>
-            </ul>
-            <p>
-              On a yearly tenancy the equivalent figure is the move-in total, printed on
-              the listing before you ever message anybody: the rent plus caution,
-              agency, legal and anything else payable before the keys change hands. It
-              exists for the same reason this breakdown does, which is that the number
-              people actually have to find is the only number worth advertising.
-            </p>
-            <p>
-              There is no platform line, because the platform takes nothing. The amount
-              you are charged is the amount stored on the booking, worked out from the
-              price on the listing at the moment you reserved. It is never taken from
-              your browser, so it cannot be edited on the way through, and the price
-              cannot move under you between reserving and paying.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "paying",
-        heading: "Paying by card or bank transfer",
-        body: (
-          <>
-            <p>
-              <strong>Card.</strong> You are taken to a hosted checkout run by a licensed
-              Nigerian payment processor, where you pay with a Nigerian debit card or a
-              bank transfer the processor raises. We never see or store your full card
-              number. Your booking carries a payment reference from the moment you start,
-              so support can trace it if anything goes wrong.
-            </p>
-            <p>
-              <strong>Split at the moment you pay.</strong> {NO_CUSTODY_SENTENCE} When the
-              processor confirms the payment, the booking is confirmed, the nights are
-              closed and the split is recorded, all in one database transaction. It either
-              all happens or none of it does. Payment opens only once the host has
-              accepted and Vallo has approved the booking.
-            </p>
-            <p>
-              Tap twice on a bad connection and you are not charged twice. Each attempt
-              carries a key, and a retry replays the first answer instead of taking your
-              money again.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "instant-and-requests",
-        heading: "Instant book against a request",
-        body: (
-          <>
-            <p>
-              A listing marked <em>Instant</em> is payable straight away. Everything else
-              is a request: you reserve, the agent sees it in their bookings console, and
-              they accept or decline.
-            </p>
-            <p>
-              Once an agent accepts, the stay is payable. Open it from{" "}
-              <Link href="/bookings" className={A}>
-                Bookings
-              </Link>{" "}
-              and pay by card or bank transfer exactly as above, once Vallo approves it. A stay an agent has accepted is
-              not paid until you pay it, and the product says so plainly rather than
-              telling you it is settled when the agent has received nothing.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "confirmation",
-        heading: "Confirmation",
-        body: (
-          <>
-            <p>Once the payment settles:</p>
-            <ul role="list">
-              <li>The booking moves to confirmed and the nights are closed for good.</li>
-              <li>
-                The gate details unlock on the listing and on your booking: estate,
-                directions, security number, any access code.
-              </li>
-              <li>You get a notification, and an email with the booking on it.</li>
-              <li>The agent is told somebody is coming, and who.</li>
-            </ul>
-            <p>
-              Everything after that lives under{" "}
-              <Link href="/bookings" className={A}>
-                Bookings
-              </Link>
-              : the dates, the address, the price you paid and the reference.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "cancelling",
-        heading: "Cancelling, and what comes back",
-        body: (
-          <>
-            <p>
-              One schedule governs every stay on the platform, and it is written out at{" "}
-              <Link href="/cancellations" className={A}>
-                Cancellations
-              </Link>
-              .
-            </p>
-            <ul role="list">
-              <li>
-                <strong>More than {FULL_REFUND_HOURS} hours before check-in:</strong>{" "}
-                everything back.
-              </li>
-              <li>
-                <strong>Inside that window:</strong> half back. The other half stays with
-                the agent, whose nights are now very hard to re-let.
-              </li>
-              <li>
-                <strong>From check-in day onwards:</strong> the stay is the agent&apos;s.
-              </li>
-            </ul>
-            <p>
-              If the agent cancels, or the property was materially not what was listed, you
-              get everything back whenever it happens. {REFUND_ROUTE}
-            </p>
-            <p>
-              An unpaid hold is different again: let it go whenever you like, for nothing.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "trips",
-        heading: "Where a stay lives afterwards: Trips",
-        body: (
-          <>
-            <p>
-              On the Stays side the same list is called{" "}
-              <Link href="/bookings?side=stays&from=stays" className={A}>
-                Trips
-              </Link>
-              , and it is arranged by date rather than by status: what is happening
-              today sits in the middle with a rule running through it, what is coming
-              is above, and everything finished is one tap below.
-            </p>
-            <p>
-              A held table sits on that same spine, at its hour, beside the nights.
-              An inspection does not: an inspection is not a trip, so it stays on{" "}
-              <Link href="/bookings" className={A}>
-                Bookings
-              </Link>{" "}
-              on the Property side. Both lists are the same account looked at from
-              the two sides, so nothing is in one and missing from the other except
-              by that rule.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "holding-a-table",
-        heading: "Holding a table at a restaurant",
-        body: (
-          <>
-            <p>
-              A table is not a booking and it is worth saying plainly:{" "}
-              <strong>no money moves for a reservation</strong>. You ask, the
-              restaurant answers, and you pay the restaurant when you eat.
-            </p>
-            <ol role="list">
-              <li>
-                <strong>Find it.</strong>{" "}
-                <Link href="/restaurants" className={A}>
-                  Restaurants
-                </Link>{" "}
-                is the shelf; open one and you get its hours, its area and its
-                reservation panel.
-              </li>
-              <li>
-                <strong>Ask.</strong> A date, a time and a party size. The time is
-                read as Lagos time whatever your phone is set to, because somebody
-                choosing Friday at seven means seven in the evening where the food
-                is. A date in the past is refused, and so is anything more than{" "}
-                {MAX_DAYS_AHEAD} days ahead or a party larger than {MAX_PARTY}: above
-                that a table is an event, and the answer is a conversation.
-              </li>
-              <li>
-                <strong>Wait for the answer.</strong> The reservation opens pending
-                and the restaurant confirms it or turns it down. You are notified
-                either way.
-              </li>
-              <li>
-                <strong>Talk.</strong> Every reservation opens its own conversation in{" "}
-                <Link href="/messages" className={A}>
-                  your inbox
-                </Link>
-                , so running twenty minutes late is a message rather than a phone
-                call nobody can find later.
-              </li>
-              <li>
-                <strong>Cancel.</strong> From the reservation, at any hour, for
-                nothing. The cancellation schedule governs paid stays and has nothing
-                to say about a table, because nothing was taken.
-              </li>
-            </ol>
-          </>
-        ),
-      },
-      {
-        id: "after-the-stay",
-        heading: "After the stay",
-        body: (
-          <p>
-            When a stay is finished you can review it: a rating and what it was actually
-            like. The agent can reply once, publicly. Reviews are attached to real
-            completed bookings, which is why the ratings on this platform are worth
-            reading.
-          </p>
-        ),
-      },
-    ],
-  },
-
-  /* ------------------------------------------------------------------ 6 */
-  /* Track A, 25 September 2026: this chapter was "Your wallet". Vallo no
-     longer holds anybody's money, so there is no wallet to describe. It now
-     explains how a payment is split, the agreement and approval gate, where a
-     refund goes, and what stands behind a payment (the Vallo Guarantee was
-     retired by D51; the slug is kept so old links still open). Every sentence
-     about money is read from `lib/money/copy.ts`. */
-  {
-    slug: "money-and-the-guarantee",
-    number: 6,
-    title: "Money and agreements",
-    summary:
-      "How money moves on Vallo: a direct payment split at the moment you pay, a held payment for rent, Vallo's fee, why Vallo never holds your money, the agreement both sides confirm, where a refund goes, and what stands behind a payment.",
-    icon: "shield-lock",
-    sections: [
-      /* HOW MONEY MOVES ON VALLO (the founder, 7 October 2026). The landing
-         hero's one-line promise ("Vallo never holds your money. When you pay,
-         it goes through regulated payment partners straight to the owner or
-         agent.") left the front page; it is said here instead, in full and
-         per route. Each sentence is true to the code: the direct route is the
-         live rail (`lib/money/rails.ts`, LIVE_RAIL), split by Paystack in the
-         same transaction; the held route is built and switched off
-         (PROTECTED_RAIL_LIVE, docs/payments/VALLO_FINANCIAL_LAYER.md section
-         5), and a payment the rail policy sends to it is refused rather than
-         opened as a direct one (`lib/payments/router.ts`, the escrow gate).
-         The held route's partner is not named: members are told who holds
-         the money by role, as `lib/money/copy.ts` does outside a receipt.
-         `HELD_ROUTE_OPEN` turns the "not open yet" lines into the open ones
-         the day the rail goes live, with no other edit. The ids `never-held`
-         and `the-split` are kept so old links still land. */
-      {
-        id: "never-held",
-        heading: "How money moves on Vallo",
-        body: (
-          <>
-            <p>
-              Vallo is where you find a place, agree the terms and pay for it. It is not
-              where your money is kept. A payment on Vallo moves on one of two routes, and
-              on neither of them does it pass through an account of Vallo&rsquo;s:
-            </p>
-            <ul>
-              <li>
-                <strong>A direct payment</strong> is divided by Paystack at the moment you
-                pay, and the owner&rsquo;s or business&rsquo;s share settles to their own bank
-                account.
-              </li>
-              <li>
-                <strong>A held payment</strong>, made for rent agreements, waits with a
-                licensed payment partner until you confirm the move-in.
-                {HELD_ROUTE_OPEN ? null : " This route is not open yet."}
-              </li>
-            </ul>
-            <p>
-              On both routes Vallo&rsquo;s fee is taken from the owner&rsquo;s or
-              agent&rsquo;s share, never added to what you pay. The sections below take each
-              route in turn.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "the-split",
-        heading: "Paying directly",
-        body: (
-          <>
-            <DocsFlow
-              label="How one payment divides"
-              steps={[
-                { object: "payment-sent", label: "You pay" },
-                { object: "transfer-arrow", label: "Paystack" },
-                {
-                  object: "bank-column",
-                  label: "Divided in one transaction",
-                  branch: [
-                    { object: "bank-column", label: "Their bank account" },
-                    { object: "seal-check", label: "Vallo's platform fee" },
-                  ],
-                },
-              ]}
-            />
-
-            <p>
-              Fixed-price bookings, such as a stay, are paid directly. Card details are
-              entered on Paystack&rsquo;s own checkout page, never on Vallo.
-            </p>
-            <p>
-              Paystack divides that one payment in the same transaction. The owner&rsquo;s or
-              business&rsquo;s share goes to the bank account on their payout details, and
-              Vallo&rsquo;s platform fee is the other part. The parts always add up exactly
-              to what you paid, and the database refuses a payment record where they do
-              not. Paystack then pays the share into that bank account on its normal
-              settlement schedule. At no point does the money sit with Vallo.
-            </p>
-            <p>
-              Where crypto payment is offered, Yellow Card converts it to naira first and the
-              naira is split the same way. Vallo never holds crypto and never gives you a
-              crypto address of its own.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "held-payments",
-        heading: "Payments held until you confirm",
-        body: (
-          <>
-            <DocsFlow
-              label="How a held payment moves"
-              steps={[
-                { object: "payment-sent", label: "You pay the agreed rent" },
-                { object: "doc-lock", label: "Held by a licensed partner" },
-                { object: "keys-handover", label: "You confirm the move-in" },
-                { object: "bank-column", label: "Released to the owner or agent" },
-              ]}
-            />
-
-            <p>
-              Rent agreements have a second route, made for a large sum paid before the keys
-              change hands. On it, your payment goes into escrow with a licensed payment
-              partner. It is not paid to Vallo, and it is not yet paid to the owner or agent.
-            </p>
-            <p>
-              The partner keeps it until you confirm the move-in, or until the release
-              condition written into the agreement is met. Only then is it released to the
-              owner or agent. If the payment does not go ahead, it goes back to you from the
-              partner, once the cancellation is agreed or decided.
-            </p>
-            <p>
-              You pay exactly the agreed rent. The partner&rsquo;s fee comes out of the
-              owner&rsquo;s or agent&rsquo;s share, as Vallo&rsquo;s does.
-            </p>
-            {HELD_ROUTE_OPEN ? (
-              <p>
-                When an agreement uses this route, its page says so and takes you to the
-                payment step.
-              </p>
-            ) : (
-              <p>
-                This route is built and is not open yet; it opens once the partner account is
-                live, and this page will say so. A payment meant for it is never sent as a
-                direct payment instead: until the route opens, that payment does not open
-                either.
-              </p>
-            )}
-          </>
-        ),
-      },
-      {
-        id: "the-fee",
-        heading: "Vallo's fee",
-        body: (
-          <>
-            <p>{WHO_PAYS_SENTENCE}</p>
-            <p>
-              On a direct payment the fee is one part of the same split, so it is never
-              taken later from money the owner or business has already received.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "what-vallo-never-does",
-        heading: "What Vallo never does",
-        body: (
-          <>
-            <p>
-              Vallo never holds a member&rsquo;s money, on either route. It does not keep
-              your rent, your booking or a refund in an account of its own, and it never
-              asks you to pay into one.
-            </p>
-            {/* "Vallo keeps no balance in your name ... nothing to withdraw"
-                was untrue beside the Rewards Balance (D51); the narrower true
-                thing is lib/money/copy.ts's (A9). */}
-            <p>
-              {NO_PAYMENT_BALANCE} {REWARDS_BALANCE_SEPARATE} {HELD_MONEY_NOT_US}
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "the-gate",
-        heading: "Before payment opens",
-        body: (
-          <>
-            <DocsFlow
-              label="Before payment opens"
-              steps={[
-                { object: "doc-home", label: "Inspection report" },
-                { object: "contract-sign", label: "Both of you confirm" },
-                { object: "seal-check", label: "Vallo approves" },
-                { object: "payment-sent", label: "Payment opens" },
-              ]}
-            />
-
-            <p>{PAYMENT_GATE_SENTENCE}</p>
-            <p>
-              For a rental: you inspect the property and submit the inspection report, eight
-              items with photographs. An agreement is drawn up from the listing&rsquo;s own
-              figures and your report, with the move-in date and the day the keys are
-              handed over. You and the owner or agent each confirm the same version; if
-              anything changes, the version moves and both of you confirm again. An agent
-              confirming for an owner confirms that they hold the owner&rsquo;s mandate.
-            </p>
-            <p>
-              For a stay: the host accepts your booking, which draws up the agreement from
-              the booking itself.
-            </p>
-            <p>
-              Then a person at Vallo reviews it and approves it, or sends it back with a
-              reason. Both of you are told by email and in the app the moment it is decided,
-              and every decision is logged. Your agreements live under{" "}
-              <Link href="/agreements" className={A}>
-                Agreements
-              </Link>
-              .
-            </p>
-            <p>
-              <strong>{NO_INSPECTION_FEE}</strong> {PRIVATE_FEE_NOTE}
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "refunds",
-        heading: "Where a refund goes",
-        body: (
-          <p>
-            {REFUND_ROUTE} {REFUND_NO_BALANCE} The booking shows its refund and where it stands.
-          </p>
-        ),
-      },
-      {
-        id: "what-stands-behind",
-        heading: "What stands behind a payment",
-        body: (
-          <>
-            <p>{DIRECT_RAIL_STANDING}</p>
-            <p>
-              If you could not get in, or the place was not what the agreement says, report
-              it from the booking or the agreement. A person at Vallo compares it with the
-              inspection report and the agreement. Anything arranged or paid outside Vallo
-              is outside what Vallo can act on.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "for-listers",
-        heading: "If you are being paid",
-        body: (
-          <>
-            <p>{PAYOUT_ANSWER}</p>
-            <p>
-              Add your bank account under payout details before anybody can pay you. The
-              platform fee comes out of your share and is shown to you in naira, beside
-              what you receive.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "references",
-        heading: "References",
-        body: (
-          <p>
-            Every payment and every refund carries a reference that is unique, enforced by
-            the database rather than checked in passing. It is the thing to quote to
-            support, and it is what makes a payment traceable rather than merely recorded.
-            The smallest single payment is {MIN_MOVE} and the largest is {MAX_MOVE}.
-          </p>
-        ),
-      },
-      {
-        id: "off-platform",
-        heading: "Off the platform",
-        body: (
-          <p>
-            {OFF_PLATFORM_SENTENCE} The{" "}
-            <Link href="/disclaimer" className={A}>
-              Disclaimer
+            The switch is at the foot of the menu. It changes the words and the bottom bar. Your
+            profile, inbox, saved places and{" "}
+            <Link href="/bookings" className={A}>
+              Plans
             </Link>{" "}
-            says exactly what that covers.
+            stay the same.
           </p>
-        ),
-      },
-    ],
-  },
-
-  /* ------------------------------------------------------------------ 7 */
-  {
-    slug: "messages-and-notifications",
-    number: 7,
-    title: "Messages and notifications",
-    summary:
-      "Talking to an agent safely, confirming an inspection in the thread, and deciding what reaches you.",
-    icon: "chat-duo",
-    sections: [
-      {
-        id: "the-inbox",
-        heading: "The inbox",
-        body: (
-          <>
-            <p>
-              <Link href="/messages" className={A}>
-                Your inbox
-              </Link>{" "}
-              holds every conversation you are part of, with unread state, a search field
-              and a way to hold people you have never spoken to apart from people you
-              have. New messages arrive without a refresh.
-            </p>
-            <p>
-              You start a conversation from a listing. Every approved listing has a
-              message control, so you can ask about the road, the light, the water, the
-              parking or the landlord before you commit to anything.
-            </p>
-          </>
-        ),
-      },
-      MESSAGING_A_BUSINESS,
-      MESSAGE_TOOLS,
-      {
-        id: "keep-it-here",
-        heading: "Keep it on the platform",
-        body: (
-          <>
-            <p>
-              A conversation held here is a record. A conversation moved to WhatsApp is
-              somebody&apos;s word against somebody else&apos;s.
-            </p>
-            <p>
-              The first time a message you are typing drifts towards money, the composer
-              shows one line and then gets out of the way:{" "}
-              <em>
-                for your safety, keep every chat and payment inside Vallo. Deals made
-                outside the platform are not protected by us. Pay only after you have
-                inspected the property.
-              </em>
-            </p>
-            <p>
-              Ten-digit account numbers and payment wording in a thread are flagged
-              automatically to the Vallo team. Nobody reads your conversations for
-              entertainment, but an account number being passed around is the single
-              clearest signal of the fraud this platform exists to keep out.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "inspections",
-        heading: "Confirming an inspection",
-        body: (
-          <>
-            <DocsFlow
-              label="An inspection"
-              steps={[
-                { object: "chat-duo", label: "Message the lister" },
-                { object: "calendar-check", label: "Agree a time" },
-                { object: "inspect-ring", label: "See it in person" },
-                { object: "doc-review", label: "Submit the report" },
-              ]}
-              caption={NO_INSPECTION_FEE}
-            />
-
-          <p>
-            After you have seen a property, confirm the inspection from inside the thread.
-            It records that you went, that it matched, and when. For a longer let that
-            confirmation is the step that should come before any money moves, and having
-            it on record is what makes a later dispute solvable.
-          </p>
-          </>
-        ),
-      },
-      {
-        id: "notifications",
-        heading: "Notifications",
-        body: (
-          <>
-            <p>
-              <Link href="/notifications" className={A}>
-                Notifications
-              </Link>{" "}
-              is your record of what happened: booking requests, confirmations and
-              changes, new messages, money in and money out, and activity on what you
-              posted in Around. They are grouped by day, arrive live, and you can mark the
-              lot read in one tap.
-            </p>
-            <p>
-              Each one goes somewhere. Tapping a booking notification opens that booking,
-              not a list.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "choosing-what-reaches-you",
-        heading: "Choosing what reaches you",
-        body: (
-          <>
-            <p>
-              Settings has four switches: <strong>Bookings</strong>,{" "}
-              <strong>Messages</strong>, <strong>Payments and agreements</strong> and{" "}
-              <strong>Ideas and offers</strong>. Marketing is off until you turn it on,
-              and every marketing email carries a way out.
-            </p>
-            <p>
-              Those switches govern email. Anything that puts money at risk still appears
-              in the app, whatever you have switched off, because a silent warning is not
-              a warning.
-            </p>
-          </>
-        ),
-      },
-    ],
-  },
-
-  /* ------------------------------------------------------------------ 8 */
-  {
-    slug: "around",
-    number: 8,
-    title: "Around: places, posts and people",
-    summary:
-      "You do not follow strangers here, you enter a place: your local government, your estate, your campus.",
-    icon: "map-spot",
-    sections: [
-      {
-        id: "the-idea",
-        heading: "The idea",
-        body: (
-          <>
-            <p>
-              <Link href="/around" className={A}>
-                Around
-              </Link>{" "}
-              inverts the usual arrangement. You do not build a following, you walk into a
-              place: the local government you live in, the estate behind your gate, the
-              campus you study on. What people there are saying today is the feed.
-            </p>
-            <p>
-              It exists for the questions a Nigerian day is actually governed by. Is there
-              light in Gwarinpa. Is the road at Ikorodu passable this morning. Has the
-              tanker come. Those are worth opening the app for on a day you are not
-              booking anything.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "the-geography",
-        heading: "The geography is real",
-        body: (
-          <>
-            <p>
-              Nigeria is here as 36 states plus the Federal Capital Territory, and all 774
-              local governments behind them. Every one of those is a door: a place that
-              either already has people in it, or is waiting for the first person to open
-              it.
-            </p>
-            <p>
-              A place can also sit inside a local government rather than being one. Lekki
-              Phase 1 inside Eti-Osa, a university inside Lagos Mainland. Those are
-              proposed by people who live there and reviewed before they open.
-            </p>
-            <p>Every place is one of four kinds, and the kind changes nothing but the label:</p>
-            <ul role="list">
-              <li>
-                <strong>City.</strong> A whole city, like Abuja.
-              </li>
-              <li>
-                <strong>Area.</strong> A neighbourhood people name in conversation, like
-                Yaba or Gwagwalada.
-              </li>
-              <li>
-                <strong>Estate.</strong> One gated estate, where the gate and the
-                generator are shared.
-              </li>
-              <li>
-                <strong>Campus.</strong> A university or polytechnic and the streets
-                around it.
-              </li>
-            </ul>
-          </>
-        ),
-      },
-      {
-        id: "joining",
-        heading: "Joining a place",
-        body: (
-          <>
-            <p>
-              Open{" "}
-              <Link href="/around/manage" className={A}>
-                the directory
-              </Link>
-              , find your state, then your local government, and join. You can be in as
-              many places as you actually have something to do with, and leave any of them
-              at any time.
-            </p>
-            <p>
-              If the place you want has nobody in it yet, you open it. That writes the
-              first entries and you are standing in it. If what you want is smaller than a
-              local government, propose it from{" "}
-              <Link href="/around/new" className={A}>
-                the new place screen
-              </Link>{" "}
-              and a person reviews it.
-            </p>
-            <p>
-              Reading does not need an account. Signed out, or signed in with nothing
-              joined yet, the feed shows the busiest open places under a line saying
-              plainly that these are not yours yet, and one control that goes and picks
-              them.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "posting",
-        heading: "Posting",
-        body: (
-          <>
-            <p>Two things you can write, and the difference is what you want back:</p>
-            <ul role="list">
-              <li>
-                <strong>Say something.</strong> Anything worth knowing about the place.
-              </li>
-              <li>
-                <strong>Ask a question.</strong> Something you want an answer to. People
-                who know the area see it.
-              </li>
-            </ul>
-            <p>
-              Up to {POST_MAX.toLocaleString("en-NG")} characters and up to{" "}
-              {POST_MEDIA_MAX} pictures. Pictures are resized on your phone before they
-              are uploaded, so posting on a slow connection is not a punishment. You have{" "}
-              {EDIT_WINDOW_MINUTES} minutes to fix a post after you write it, and you can
-              take your own post down whenever you like.
-            </p>
-            <p>
-              People reply, mark what is useful, and repost into the places they are in.
-              Replies are one level deep on purpose, so a thread stays readable on a phone.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "stories",
-        heading: "Stories",
-        body: (
-          <p>
-            A story is a longer piece with a picture, a headline and a standfirst: a place
-            written about rather than a line said in passing. It is not ephemeral. Nothing
-            counts down twenty-four hours and nothing expires it, because the whole point
-            is that it is still there next month when the next person is deciding whether
-            to move to that street. Stories carry their own comments and their own likes.
-          </p>
-        ),
-      },
-      {
-        id: "listings-in-a-place",
-        heading: "Listings speak in their own place",
-        body: (
-          <p>
-            When an agent publishes a property, it is announced once in the place it is
-            actually in, and once only. A finished stay by a verified agent speaks there
-            too. That is how a room stays alive without anybody inventing anything: the
-            real activity of the platform surfaces where it happened.
-          </p>
-        ),
-      },
-      {
-        id: "moderators",
-        heading: "Moderators",
-        body: (
-          <>
-            <p>
-              A place can have moderators, who are members of that place and not Vallo
-              staff. The word administrator is deliberately not used for them anywhere you
-              can see it, because they are not one.
-            </p>
-            <p>A moderator can:</p>
-            <ul role="list">
-              {MODERATOR_CAN.map((line) => (
-                <li key={line}>{line}</li>
-              ))}
-            </ul>
-            <p>A moderator cannot:</p>
-            <ul role="list">
-              {MODERATOR_CANNOT.map((line) => (
-                <li key={line}>{line}</li>
-              ))}
-            </ul>
-            <p>
-              You can apply to moderate a place you are in, and withdraw the application
-              at any time.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "people",
-        heading: "People",
-        body: (
-          <p>
-            You can follow somebody whose posts you find useful, and they can follow you.
-            You can block or mute an account, and you can report a post or a profile. What
-            you see is a place first and people second, which is the opposite of how most
-            of this works elsewhere and is the reason Around is worth having.
-          </p>
-        ),
-      },
-    ],
-  },
-
-  /* ------------------------------------------------------------------ 9 */
-  {
-    slug: "for-agents",
-    number: 9,
-    title: "For agents",
-    summary:
-      "Applying, the verification ladder, listing a property, the calendar, accepting bookings and getting paid.",
-    icon: "keys-home",
-    sections: [
-      {
-        id: "what-it-costs",
-        heading: "What it costs",
-        body: (
-          <p>
-            Listing is free, and no one has to pay a monthly subscription. Vallo charges
-            only when a deal is completed, and that fee is shown to you in naira. The Pro
-            plan is optional and never required. The payment processor&rsquo;s own charge
-            for moving money is named as theirs. See{" "}
-            <Link href="/docs/what-vallo-costs" className={A}>
-              What Vallo costs
+        </>
+      ),
+    },
+    {
+      id: "the-rules",
+      heading: "The rules that apply everywhere",
+      body: (
+        <ul role="list">
+          <li>Vallo is free to use. {VIEWINGS_AND_LISTING_FREE}</li>
+          <li>{PRICE_IS_THE_PRICE}</li>
+          <li>{COMMISSION_FROM_SHARE}</li>
+          <li>{PAY_INSIDE_VALLO}</li>
+          <li>{VALLO_NEVER_HOLDS}</li>
+        </ul>
+      ),
+    },
+    {
+      id: "who-it-is-for",
+      heading: "Who it is for",
+      body: (
+        <ul role="list">
+          <li>
+            <strong>Renters, buyers and guests.</strong> Start with{" "}
+            <Link href="/docs/finding-a-place" className={A}>
+              Search, filters and the map
             </Link>
             .
-          </p>
-        ),
-      },
-      {
-        id: "applying",
-        heading: "Applying",
-        body: (
-          <>
-            {/* THE DOOR IS THE CHOOSER AND NOT AN AGENT'S JOB TITLE. Three
-                doors go into the supply side now, the owner's first, and this
-                chapter used to describe the six step agent application as the
-                only way in. The three titles come from `SUPPLY_DOORS`, so this
-                paragraph cannot drift from the screen it describes. */}
-            <p>
-              Start at{" "}
-              <Link href={SUPPLY_DOOR_HREF} className={A}>
+          </li>
+          <li>
+            <strong>Owners and landlords.</strong> Read{" "}
+            <Link href="/docs/for-owners" className={A}>
+              For owners and landlords
+            </Link>
+            .
+          </li>
+          <li>
+            <strong>Agents and firms.</strong> Read{" "}
+            <Link href="/docs/for-agents" className={A}>
+              For agents and firms
+            </Link>
+            .
+          </li>
+          <li>
+            <strong>Hotels, shortlets and serviced apartments.</strong> Read{" "}
+            <Link href="/docs/hosting" className={A}>
+              Hosting a hotel or shortlet
+            </Link>
+            .
+          </li>
+          <li>
+            <strong>Restaurants.</strong> Read{" "}
+            <Link href="/docs/restaurants" className={A}>
+              Restaurants and tables
+            </Link>
+            .
+          </li>
+        </ul>
+      ),
+    },
+    {
+      id: "how-it-is-laid-out",
+      heading: "Find your way around",
+      body: (
+        <>
+          <ul role="list">
+            <li>
+              <strong>The app.</strong> Home, Search, Stays, Restaurants, Saved, Plans, Agreements,
+              Messages, the assistant, your profile and Settings.
+            </li>
+            <li>
+              <strong>Your workspace.</strong> Where you list, host or answer enquiries, once you
+              add one. See{" "}
+              <Link href="/docs/getting-started#workspaces" className={A}>
                 Add a workspace
-              </Link>{" "}
-              and pick the door that fits: {doorsSentence()}. The owner form is four
-              short screens. The agent form asks for more, because more can go wrong
-              when somebody acts for another person. Your progress saves as you
-              go, so you can put it down and come back. Applying as an agent, the six
-              steps are:
-            </p>
-            <ol role="list">
-              <li>
-                <strong>Personal details.</strong> Name and phone number.
-              </li>
-              <li>
-                <strong>Identity.</strong> Your NIN or a government issued ID.
-              </li>
-              <li>
-                <strong>Business and location.</strong> Whether you operate as an
-                individual or a registered business, and where you are.
-              </li>
-              <li>
-                <strong>Documents.</strong> A photograph or scan of the identification,
-                plus business registration if you are a business. Documents are required:
-                an application with no identity document cannot be verified by anybody.
-              </li>
-              <li>
-                <strong>Payout account.</strong> The Nigerian bank account your share of
-                every payment settles to, at the moment it is paid.
-                We ask the bank whose account it is and store the name the bank gave, not
-                the one typed into the form.
-              </li>
-              <li>
-                <strong>Review.</strong> Check it and submit.
-              </li>
-            </ol>
-            <p>
-              Your documents go straight into a private store that only you and a reviewer
-              can reach, and the reviewer opens them through short-lived links rather than
-              downloading them. You get a reference, and you can follow the application at{" "}
-              <Link href="/agents/status" className={A}>
-                its status page
-              </Link>
-              . A person reviews it, not a script.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "verification",
-        heading: "The verification ladder",
-        body: (
-          <>
-            <p>
-              Approval gets you listing. Verification is a ladder of four rungs on top of
-              it, climbed in order, and each one says something specific to a guest:
-            </p>
-            <ol role="list">
-              {VERIFICATION_ORDER.map((rung) => (
-                <li key={rung.kind}>
-                  <strong>{rung.label}.</strong> {rung.meaning} Checked against:{" "}
-                  {rung.evidence.charAt(0).toLowerCase()}
-                  {rung.evidence.slice(1)}
-                </li>
-              ))}
-            </ol>
-            <p>
-              A rung only counts with every rung below it passed, so nobody is promoted by
-              a site visit alone. You can see where you stand at{" "}
-              <Link href="/agent/verification" className={A}>
-                Verification
-              </Link>{" "}
-              in the agent workspace.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "listing-a-property",
-        heading: "Listing a property",
-        body: (
-          <>
-            <p>
-              <Link href="/agent/list" className={A}>
-                List a property
-              </Link>{" "}
-              walks you through it: what kind of place it is, where it is, how many rooms
-              and how many guests it takes, photographs, amenities, and the price with any
-              cleaning charge and any minimum stay.
-            </p>
-            <p>
-              <strong>Answer the light and water questions.</strong> They take a minute
-              and they are the reason a guest picks your listing over the one beside it.
-              Say what the grid gives the address, what your backup is and how many hours a
-              day it runs, where the water comes from, and whether the unit is on a
-              prepaid meter. An unanswered question is shown to the guest as unanswered,
-              which is worse for you than a modest honest answer.
-            </p>
-            <p>
-              <strong>Fill in the gate details.</strong> Estate name, how to find the
-              gate, the security post number and any access code. These are never public.
-              They are released to a guest only once their booking is confirmed, which is
-              why they can be specific enough to be useful.
-            </p>
-            {/* This paragraph used to say a listing could be marked instant
-                book. The wizard no longer offers that control (see the note in
-                `app/agent/list/ListingWizard.tsx`), so the claim is removed
-                rather than softened. */}
-            <p>
-              A published listing is announced once in the place it sits in, so the
-              people who live in that area see it.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "calendar",
-        heading: "Managing your calendar",
-        body: (
-          <>
-            <p>
-              Each listing has a calendar. Close nights you are not letting, up to{" "}
-              {MAX_BLOCK_NIGHTS} nights in one action, and reopen them the same way.
-            </p>
-            <p>
-              Nights held by a guest reservation and nights you closed by hand are
-              different things, and the platform keeps them apart. When an unpaid hold
-              expires, it reopens only the nights it took, and never a night you had
-              closed yourself.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "bookings",
-        heading: "Accepting bookings",
-        body: (
-          <>
-            <p>
-              <Link href="/agent/bookings" className={A}>
-                Bookings
-              </Link>{" "}
-              is your queue: who is coming, when, for how many nights, and for how much.
-              Where a listing is not instant book, you accept or decline the request from
-              here.
-            </p>
-            <p>
-              Accepting a request does not mean you have been paid. It makes the stay
-              payable, and the guest pays it. The status on the booking says which of
-              those two things has happened, so you are never told a stay is settled when
-              no money has arrived.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "earnings",
-        heading: "Earnings",
-        body: (
-          <>
-            <p>
-              <Link href="/agent/earnings" className={A}>
-                Earnings
-              </Link>{" "}
-              reads the ledger, month by month: what was paid in total, your share, what
-              the processor charged, and how many stays settled. It projects nothing and
-              annualises nothing. If no money has moved, it says zero.
-            </p>
-            <p>
-              The platform share on every one of those rows is zero. Payouts go to the
-              Nigerian account you added during your application, which you can change in{" "}
-              <Link href="/agent/settings" className={A}>
-                Agent settings
               </Link>
               .
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "reviews-and-messages",
-        heading: "Reviews and enquiries",
-        body: (
-          <p>
-            Guests review a stay after it finishes, and you can reply once, publicly, from{" "}
-            <Link href="/agent/reviews" className={A}>
-              Reviews
-            </Link>
-            . Enquiries about your listings arrive in{" "}
-            <Link href="/agent/messages" className={A}>
-              your agent inbox
-            </Link>
-            . Answering quickly and honestly, especially about the light and the road, is
-            what makes the difference here.
-          </p>
-        ),
-      },
-    ],
-  },
-
-  /* ------------------------------------------------------------------ 10 */
-  {
-    slug: "trust-and-safety",
-    number: 10,
-    title: "Trust and safety",
-    summary:
-      "What verification proves, why every payment stays on the platform, how to report, and how support answers.",
-    icon: "shield-check",
-    sections: [
-      {
-        id: "what-verification-proves",
-        heading: "What verification proves, and what it does not",
-        body: (
-          <>
-            <p>
-              A verified listing means a real person with government identification stands
-              behind it, we have seen that identification, and the listing was reviewed
-              before it went live. Higher rungs mean we also know where they are, that
-              their payout account is genuinely theirs, and in the top case that somebody
-              from Vallo has met them or stood in one of their properties.
-            </p>
-            <p>
-              It does not mean the mattress is comfortable. Read the reviews for that.
-            </p>
-            <p>
-              Every real listing here was put up by a person we approved, and every
-              example says it is one. There is no outside inventory on Vallo at all,
-              which is the only reason the badge can carry any weight.
-            </p>
-            <p>
-              <strong>Verified and Third party are different words and they never
-              overlap.</strong> Verified is about a person: somebody at Vallo checked
-              who is behind the listing. Third party is about fulfilment: it marks a
-              stay that a partner confirms and delivers rather than us, and it says
-              who that partner is. A row carrying the Third party tag is never dressed
-              as first party and never wears the verified tick, on either side of the
-              product. There is no partner inventory live today; the label exists so
-              that the first one cannot arrive unlabelled.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "pay-on-the-platform",
-        heading: "Pay on the platform. Always",
-        body: (
-          <>
-            <p>
-              Every payment happens inside Vallo: on the checkout screen, by card or by a
-              bank transfer the processor raises. That is what leaves
-              a reference against your booking that both you and support can open, which
-              is the thing that makes a dispute solvable.
-            </p>
-            <p>
-              <strong>Nobody here has any reason to send you an account number.</strong>{" "}
-              Not an agent, not support, not anybody wearing our name. If somebody does,
-              that is the moment to stop and report them.
-            </p>
-            <p>
-              There is no holding fee, no inspection fee, no agency fee and no caution fee
-              payable to Vallo. Anybody presenting
-              one as ours is lying.
-            </p>
-            <p>
-              At an inspection: go in daylight where you can, tell somebody where you are
-              going, and never hand over cash. Confirm the inspection in the message
-              thread afterwards so there is a record of what you saw and when.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "reporting",
-        heading: "How to report",
-        body: (
-          <>
-            <p>
-              Every listing, profile and post has a report control. It asks one question,
-              and the answers are short and concrete on purpose:
-            </p>
-            <ul role="list">
-              {REPORT_CATEGORY_ORDER.map((code) => (
-                <li key={code}>
-                  <strong>{REPORT_CATEGORY_COPY[code].label}.</strong>{" "}
-                  {REPORT_CATEGORY_COPY[code].hint}
-                </li>
-              ))}
-            </ul>
-            <p>
-              Add what you saw in your own words, and include the link. Reports about
-              somebody asking for payment outside the platform go to the front of the
-              queue.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "what-happens-next",
-        heading: "What happens to a report",
-        body: (
-          <>
-            <p>
-              It lands in a queue a person works through. Serious reports can hide a
-              listing while it is checked, because leaving a suspected scam visible while
-              somebody reads the ticket is not a neutral act.
-            </p>
-            <p>
-              An account can be stopped. A stop is not silent: the person is told, in
-              words, what happened and what they can do about it, and a stop can be
-              lifted. Every action a reviewer takes is written to a record that can only
-              be added to, never edited or removed.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "already-sent-money",
-        heading: "If you have already sent money outside the platform",
-        body: (
-          <>
-            <p>
-              Call your bank first and ask them to raise a dispute on the transfer. A fast
-              report is sometimes enough for them to place a lien on the receiving account.
-            </p>
-            <p>
-              Then report it to us with the listing link, the account details and the
-              messages. We cannot recover money that never came through Vallo. We can
-              remove the account and stop the same person reaching anybody else, which is
-              worth doing immediately.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "support",
-        heading: "How support works",
-        body: (
-          <>
-            <p>
-              <Link href="/contact" className={A}>
-                The contact form
-              </Link>{" "}
-              opens a real ticket against your account. A person reads it, and their reply
-              reaches you as a notification, so nothing goes into a mailbox nobody
-              watches. You can also write to{" "}
-              <a href={SUPPORT_HREF} className={A}>
-                {SUPPORT_LABEL}
-              </a>
-              .
-            </p>
-            <p>
-              A person replies within one business day. Reports about payment outside the
-              platform are answered within four hours. Write in English, Yorùbá, Hausa or
-              Igbo and you get a reply in the language you used.
-            </p>
-            <p>
-              There is also a support assistant in the help centre and in Settings for the
-              questions that have a written answer already.
-            </p>
-          </>
-        ),
-      },
-    ],
-  },
-
-  /* ------------------------------------------------------------------ 11 */
-  {
-    slug: "your-data-and-your-rights",
-    number: 11,
-    title: "Your data and your rights",
-    summary:
-      "What we hold, how it is protected, the rights the NDPA gives you, and how to delete your account for good.",
-    icon: "doc-lock",
-    sections: [
-      {
-        id: "what-we-hold",
-        heading: "What we hold",
-        body: (
-          <>
-            <ul role="list">
-              <li>
-                <strong>Account data.</strong> Your name, email, phone number, language,
-                and your password stored only as a hash.
-              </li>
-              <li>
-                <strong>Booking data.</strong> What you looked at, what you booked, the
-                dates, the guests, your messages with agents, and your reviews.
-              </li>
-              <li>
-                <strong>Payment data.</strong> References, amounts, how each payment
-                was split, refunds, agreements and any claims. Card details are handled by licensed Nigerian payment
-                processors and we never hold your full card number.
-              </li>
-              <li>
-                <strong>Agent verification data</strong>, if you apply: your NIN or
-                government ID, business registration where it applies, and your payout
-                account.
-              </li>
-              <li>
-                <strong>Technical data.</strong> Device, browser, IP address and how you
-                move through the product, used to keep it working and secure.
-              </li>
-            </ul>
-            <p>
-              The full document is the{" "}
-              <Link href="/privacy" className={A}>
-                privacy policy
+            </li>
+            <li>
+              <strong>Help.</strong> These docs, the{" "}
+              <Link href="/help" className={A}>
+                help centre
               </Link>
-              . This chapter is the plain-language version of it.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "how-it-is-protected",
-        heading: "How it is protected",
-        body: (
-          <>
-            <p>
-              Every table in the database has row level security switched on. That is not
-              a setting in the application that a bug could skip past: the database itself
-              refuses to hand your rows to anybody who is not you. Your agreements, your
-              bookings, your messages and your settings are all reached that way.
-            </p>
-            <p>
-              Gate details are the sharpest example. They are readable by the agent, by an
-              administrator, and by a guest holding a confirmed booking on that listing,
-              and by nobody else, and the rule is enforced by the database rather than by a
-              screen deciding what to draw.
-            </p>
-            <p>
-              Data is encrypted in transit, passwords are hashed, agent documents live in a
-              private store reached through short-lived links, and payments run through
-              licensed providers.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "your-rights",
-        heading: "Your rights under the NDPA",
-        body: (
-          <>
-            <p>
-              The Nigeria Data Protection Act 2023 gives you rights over your personal
-              data, and they are real rights you can exercise here:
-            </p>
-            <ul role="list">
-              <li>Ask for a copy of what we hold about you.</li>
-              <li>Ask us to correct anything inaccurate or incomplete.</li>
-              <li>Ask us to delete what we have no lawful reason to keep.</li>
-              <li>Object to, or ask us to restrict, certain processing.</li>
-              <li>Ask for your data in a portable format.</li>
-              <li>Withdraw consent where the processing rests on consent.</li>
-            </ul>
-            <p>
-              To exercise any of them, write to us through{" "}
-              <a href={SUPPORT_HREF} className={A}>
-                {SUPPORT_LABEL}
-              </a>{" "}
-              with Privacy as the subject. We answer within the timelines the NDPA sets. If
-              our answer does not satisfy you, you can complain to the Nigeria Data
-              Protection Commission.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "controls",
-        heading: "The controls you already have",
-        body: (
-          <ul role="list">
-            <li>
-              <strong>Hide my activity</strong> keeps your reviews and recent stays off
-              your public page.
-            </li>
-            <li>
-              <strong>Notification switches</strong> decide what email reaches you.
-              Marketing is off until you turn it on.
-            </li>
-            <li>
-              <strong>Data saver</strong> serves lighter images, which matters on a
-              metered connection.
-            </li>
-            <li>
-              <strong>Language and appearance</strong> are yours and are remembered.
+              , the{" "}
+              <Link href="/safety" className={A}>
+                safety centre
+              </Link>{" "}
+              and the{" "}
+              <Link href="/terms" className={A}>
+                Terms
+              </Link>
+              . Where these docs and a policy differ, the policy governs.
             </li>
           </ul>
-        ),
-      },
-      {
-        id: "deleting",
-        heading: "Deleting your account",
-        body: (
-          <>
-            <p>
-              Settings, then Account, then Delete account. You are asked to type{" "}
-              <code>DELETE MY ACCOUNT</code> exactly, in capitals, because this cannot be
-              undone.
-            </p>
-            <p>
-              It is a real deletion. Your sign-in is removed, you are signed out
-              everywhere, and your profile, your posts, your places and everything else
-              keyed to you goes with it. Nothing is left behind as a hidden row waiting to
-              be reactivated, and the platform is deliberately built so that no counter, no
-              record and no cascade anywhere can block a person from leaving.
-            </p>
-            <p>
-              Two honest exceptions. Financial records connected to money that actually
-              moved are kept for as long as Nigerian financial and tax rules require, and
-              content somebody else has already replied to may remain as a marker showing
-              it was removed, so a conversation does not become unreadable. Neither one
-              carries your identity.
-            </p>
-            <p>
-              If deletion cannot complete for a technical reason, you are told plainly and
-              given a way to have it done by hand. You are never shown a confirmation for
-              something that did not happen.
-            </p>
-          </>
-        ),
-      },
-    ],
-  },
+          <p>Vallo works in English, Yorùbá, Hausa and Igbo. Change the language in Settings.</p>
+        </>
+      ),
+    },
+  ],
+};
 
-  /* ------------------------------------------------------------------ 12 */
-  {
-    slug: "troubleshooting",
-    number: 12,
-    title: "Troubleshooting",
-    summary:
-      "The things that go wrong, what they mean, and what to do about each one.",
-    icon: "support-chat",
-    sections: [
-      {
-        id: "cannot-sign-in",
-        heading: "I cannot sign in",
-        body: (
-          <>
-            <p>
-              <strong>The link expired or was already used.</strong> Email links are
-              single use. Ask for a new one from{" "}
-              <Link href="/sign-in" className={A}>
-                Sign in
-              </Link>{" "}
-              or{" "}
-              <Link href="/forgot-password" className={A}>
-                Forgot password
-              </Link>
-              .
-            </p>
-            <p>
-              <strong>I signed up with Google and the password does not work.</strong>{" "}
-              There is no password on that account. Use the Google button.
-            </p>
-            <p>
-              <strong>The Google button is not there.</strong> A provider is only offered
-              when it is connected, because a button that leads to an error page is worse
-              than an absent one. Use email in the meantime.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "dates-taken",
-        heading: "Those dates were just taken",
-        body: (
-          <p>
-            Somebody reserved or paid for the same nights a moment before you. Nothing has
-            been charged. Pick different dates, or open the listing calendar to see what is
-            actually free. The database refuses overlapping stays outright, which is why
-            this can never turn into two people arriving at one door.
-          </p>
-        ),
-      },
-      {
-        id: "minimum-stay",
-        heading: "It says the stay is too short, or the party too large",
-        body: (
-          <p>
-            The agent sets a minimum stay and a maximum number of guests. The message names
-            the number you need to meet, so add the nights or lower the party. If neither
-            works, search again with the guest filter set and you will only be shown places
-            that take your party.
-          </p>
-        ),
-      },
-      {
-        id: "payment-trouble",
-        heading: "My payment did not go through",
-        body: (
-          <>
-            <p>
-              <strong>The card was refused.</strong> Nothing was taken and your dates are
-              still held. Try again, or try another card or a bank transfer.
-            </p>
-            <p>
-              <strong>Money left my account and the booking still says unpaid.</strong>{" "}
-              Open the booking again first: the settlement often lands a moment after you
-              return. If it still says unpaid, contact support with the payment reference
-              from the booking or from your bank. A reference is unique, so it can be traced.
-            </p>
-            <p>
-              <strong>I tapped pay twice.</strong> You were not charged twice. A repeated
-              attempt replays the first answer rather than taking money again.
-            </p>
-            <p>
-              <strong>Card payment is not offered.</strong> Then it is not connected yet,
-              and the screen says so rather than failing at the last step. Your booking is
-              untouched and your dates are still held.
-            </p>
-          </>
-        ),
-      },
-      {
-        id: "refund-missing",
-        heading: "My refund has not arrived",
-        body: (
-          <p>
-            {REFUND_ROUTE} The booking shows the refund and where it stands. If nothing has
-            reached your bank after ten working days, contact support with the booking
-            reference.
-          </p>
-        ),
-      },
-      {
-        id: "no-gate-details",
-        heading: "The gate details are not showing",
-        body: (
-          <p>
-            They appear only once your booking is confirmed, and confirmed means paid or
-            accepted and settled. Until then the listing tells you the estate has a gate
-            and that the details arrive on confirmation. If your booking is confirmed and
-            they are still not there, the agent has not filled them in: message them, and
-            report the listing if you get no answer.
-          </p>
-        ),
-      },
-      {
-        id: "listing-problems",
-        heading: "The place is not what was listed",
-        body: (
-          <p>
-            Report it before or at check-in, from the listing itself, and choose{" "}
-            <em>{REPORT_CATEGORY_COPY.not_as_described.label}</em>. Take photographs. A
-            property that is materially not what was listed is a full refund whenever it
-            happens, but the report has to exist for that to be actionable.
-          </p>
-        ),
-      },
-      {
-        id: "around-paused",
-        heading: "Around says it is paused",
-        body: (
-          <p>
-            Around has a switch, and it is off while something is being fixed. Nothing you
-            posted is gone and nothing you joined is lost. Everything else on the platform,
-            including booking and paying, carries on working.
-          </p>
-        ),
-      },
-      {
-        id: "offline",
-        heading: "Nothing is loading",
-        body: (
-          <p>
-            Vallo installs as an app and keeps working on a bad connection, with an
-            honest offline screen rather than a blank one. If a page shows an error, the
-            back control follows your real history rather than guessing, so you will not be
-            thrown to the top of the product. If it persists, tell us what you were doing
-            through{" "}
-            <Link href="/contact" className={A}>
-              the contact form
-            </Link>
-            .
-          </p>
-        ),
-      },
-      {
-        id: "still-stuck",
-        heading: "Still stuck",
-        body: (
-          <p>
-            The{" "}
-            <Link href="/help" className={A}>
-              help centre
-            </Link>{" "}
-            is searchable and answers most of it. Beyond that,{" "}
-            <Link href="/contact" className={A}>
-              contact support
-            </Link>{" "}
-            and a person replies within one business day. Include a reference where you
-            have one: it is the fastest way to get a real answer instead of a
-            conversation.
-          </p>
-        ),
-      },
-    ],
-  },
-];
+/* ------------------------------------------------------- paying on Vallo */
 
 /*
- * THE READING ORDER (Track M, the docs pass). The chapters above were written
- * first; the ones the platform grew into since (`chapters-more.tsx`) slot in
- * where a reader needs them, and the numbers are assigned from this order,
- * so adding a chapter can never leave two chapters sharing a number.
+ * HOW PAYING WORKS (replaces "Money and agreements", whose slug named the
+ * retired Vallo Guarantee; `/docs/money-and-the-guarantee` and the older
+ * `/docs/your-wallet` redirect here). The founder's rules of 13 October 2026:
+ * every payment inside Vallo; Escrow (the default) or card for rent and
+ * shortlets; a sale always escrow; a hotel room by card at once; Vallo never
+ * holds the money. The ids `never-held`, `the-gate`, `the-fee`, `refunds`,
+ * `for-listers`, `references` and `off-platform` are kept from the old
+ * chapter so its links still land on the right heading.
  */
-function after(list: DocChapter[], slug: string, ...more: DocChapter[]): DocChapter[] {
-  const at = list.findIndex((chapter) => chapter.slug === slug);
-  return at === -1 ? [...list, ...more] : [...list.slice(0, at + 1), ...more, ...list.slice(at + 1)];
-}
-
-export const CHAPTERS: DocChapter[] = after(
-  after(
-    after(
-      after(
-        after(after(WRITTEN, "getting-started", GETTING_AROUND), "understanding-a-listing", PRICE_CHECK, AI_ASSISTANT),
-        "around",
-        LISTING_ON_VALLO,
+const PAYING_ON_VALLO: DocChapter = {
+  slug: "paying-on-vallo",
+  number: 0,
+  title: "How paying works",
+  summary:
+    "Every payment happens inside Vallo. Escrow or card for rent and shortlets, escrow for a sale, card for a hotel room, and Vallo never holds the money.",
+  icon: "shield-lock",
+  sections: [
+    {
+      id: "pay-inside",
+      heading: "Pay inside Vallo, every time",
+      body: (
+        <>
+          <p>
+            <strong>{PAY_INSIDE_VALLO}</strong>
+          </p>
+          <p>
+            A payment made in Vallo leaves a reference on your booking or agreement. That reference is
+            what support works from if something goes wrong. A transfer to somebody&rsquo;s own
+            account leaves nothing to work from.
+          </p>
+          <p>
+            Nobody on Vallo has a reason to send you an account number. If somebody does, stop and{" "}
+            <Link href="/docs/trust-and-safety#reporting" className={A}>
+              report them
+            </Link>
+            .
+          </p>
+        </>
       ),
-      "what-vallo-is",
-      QUICK_START,
-      WHAT_VALLO_COSTS,
-    ),
-    "finding-a-place",
-    VIEWINGS,
-  ),
-  "for-agents",
-  HOSTING,
-  BADGES_AND_VERIFICATION,
+    },
+    {
+      id: "which-way",
+      heading: "See how each kind of deal is paid",
+      body: (
+        <ul role="list">
+          <li>
+            <strong>Rent.</strong> Escrow, selected for you, or Pay by card.
+          </li>
+          <li>
+            <strong>Shortlets and serviced apartments.</strong> Escrow, selected for you, or Pay by
+            card.
+          </li>
+          <li>
+            <strong>A sale.</strong> Escrow only.
+          </li>
+          <li>
+            <strong>A hotel room.</strong> By card, when you book, at the price shown.
+          </li>
+          <li>
+            <strong>A restaurant table.</strong> Free to book. You pay your bill at the restaurant.
+          </li>
+          <li>
+            <strong>A viewing.</strong> Never any money.
+          </li>
+        </ul>
+      ),
+    },
+    {
+      id: "escrow",
+      heading: "Pay with Escrow",
+      body: (
+        <>
+          <DocsFlow
+            label="How an escrow payment moves"
+            steps={[
+              { object: "payment-sent", label: "You pay" },
+              { object: "doc-lock", label: "A licensed partner holds it" },
+              { object: "keys-handover", label: "The deal is confirmed" },
+              { object: "bank-column", label: "Released to them" },
+            ]}
+          />
+          <p>{ESCROW_OR_CARD}</p>
+          <p>{ESCROW_MEANS}</p>
+          <p>{RAIL_COPY.protected.refund}</p>
+          <p>{SALE_IS_ESCROW}</p>
+          {ESCROW_OPEN ? null : <p>{ESCROW_NOT_OPEN_YET}</p>}
+        </>
+      ),
+    },
+    {
+      id: "card",
+      heading: "Pay by card",
+      body: (
+        <>
+          <p>{CARD_MEANS}</p>
+          <p>
+            You enter your card on the payment partner&rsquo;s own page, never on Vallo. Vallo never
+            sees your full card number.
+          </p>
+          <p>{HOTEL_ROOM_BY_CARD}</p>
+          <p>
+            Tap Pay twice on a bad connection and you are charged once. A repeated attempt picks up the
+            first one.
+          </p>
+        </>
+      ),
+    },
+    {
+      id: "the-gate",
+      heading: "Know when payment opens",
+      body: (
+        <>
+          <ul role="list">
+            <li>
+              <strong>Rent or a sale.</strong> After the viewing, the inspection report and the
+              agreement. See{" "}
+              <Link href="/docs/agreements-and-paying" className={A}>
+                From viewing to keys
+              </Link>
+              .
+            </li>
+            <li>
+              <strong>A shortlet.</strong> When the host accepts your booking, or at once when the
+              listing is marked <strong>Instant book</strong>.
+            </li>
+            <li>
+              <strong>A hotel room.</strong> At once, when you book.
+            </li>
+          </ul>
+          <p>
+            A card payment for an unusually large deal, or one where something changed recently, may wait
+            for a person at Vallo to look first. You are told by email and in the app when it opens.
+          </p>
+        </>
+      ),
+    },
+    {
+      id: "never-held",
+      heading: "Who holds the money",
+      body: (
+        <>
+          <p>
+            <strong>{VALLO_NEVER_HOLDS}</strong> Vallo records each payment and shows you where it
+            stands.
+          </p>
+          {/* "Vallo keeps no balance in your name ... nothing to withdraw"
+              was untrue beside the Rewards Balance (D51); the narrower true
+              thing is lib/money/copy.ts's (A9, no-payment-balance.test.ts). */}
+          <p>
+            {NO_PAYMENT_BALANCE} {REWARDS_BALANCE_SEPARATE} {HELD_MONEY_NOT_US}
+          </p>
+        </>
+      ),
+    },
+    {
+      id: "the-fee",
+      heading: "What you pay, and what Vallo takes",
+      body: (
+        <>
+          <p>{PRICE_IS_THE_PRICE}</p>
+          <p>{COMMISSION_FROM_SHARE}</p>
+          <p>
+            See{" "}
+            <Link href="/docs/what-vallo-costs" className={A}>
+              What Vallo costs
+            </Link>{" "}
+            for every fee.
+          </p>
+        </>
+      ),
+    },
+    {
+      id: "refunds",
+      heading: "Where a refund goes",
+      body: (
+        <p>
+          {REFUND_ROUTE} {REFUND_NO_BALANCE} For when you get money back, see{" "}
+          <Link href="/docs/refunds-and-cancellations" className={A}>
+            Cancellations and refunds
+          </Link>
+          .
+        </p>
+      ),
+    },
+    {
+      id: "for-listers",
+      heading: "Get paid as an owner, agent or host",
+      body: (
+        <ul role="list">
+          <li>Add a Nigerian bank account in your own name before anybody can pay you.</li>
+          <li>Before you publish, Vallo shows you what you will receive after its commission.</li>
+          <li>With Pay by card, your share goes to your bank account when the payment clears.</li>
+          <li>With Escrow, your share is released when the deal is confirmed.</li>
+          <li>Every payment and every refund appears on your earnings, line by line.</li>
+        </ul>
+      ),
+    },
+    {
+      id: "references",
+      heading: "Find a payment reference",
+      body: (
+        <p>
+          Every payment and every refund has its own reference. Open it from the booking or the
+          agreement, and quote it to support. One payment can be from {MIN_MOVE} to {MAX_MOVE}.
+        </p>
+      ),
+    },
+    {
+      id: "off-platform",
+      heading: "If someone asks you to pay outside Vallo",
+      body: (
+        <>
+          <p>
+            {OFF_PLATFORM_SENTENCE} Payments made outside Vallo are not covered.
+          </p>
+          <p>
+            Say no, and report it. If you have already paid, read{" "}
+            <Link href="/docs/trust-and-safety#already-sent-money" className={A}>
+              If you already sent money
+            </Link>
+            .
+          </p>
+        </>
+      ),
+    },
+  ],
+};
+
+/* -------------------------------------------------- refunds and cancelling */
+
+const REFUNDS: DocChapter = {
+  slug: "refunds-and-cancellations",
+  number: 0,
+  title: "Cancellations and refunds",
+  summary:
+    "How to cancel a stay, a table or a viewing, which cancellation policy applies, how to ask for a refund and when it reaches you.",
+  icon: "calendar-clock",
+  sections: [
+    {
+      id: "before-you-pay",
+      heading: "Cancel before you pay",
+      body: (
+        <p>
+          A booking you have not paid for costs nothing to cancel. Let it go from{" "}
+          <Link href="/bookings" className={A}>
+            Plans
+          </Link>{" "}
+          at any time. The nights open again for somebody else.
+        </p>
+      ),
+    },
+    {
+      id: "which-policy",
+      heading: "Check which cancellation policy applies",
+      body: (
+        <>
+          <p>
+            Every stay shows its cancellation policy before you book, and again at checkout. The
+            policy is fixed on your booking when you pay, so it cannot change afterwards.
+          </p>
+          <p>
+            <strong>Hotels, shortlets and serviced apartments run as a business</strong> pick one of
+            four policies:
+          </p>
+          <ul role="list">
+            <li>
+              <strong>Flexible.</strong> Cancel at least 24 hours before check-in for a full refund.
+              After that, no refund.
+            </li>
+            <li>
+              <strong>Moderate.</strong> Cancel at least 5 days before check-in for a full refund.
+              After that, half back.
+            </li>
+            <li>
+              <strong>Firm.</strong> Cancel at least 30 days before check-in for a full refund, or at
+              least 7 days before for half back. After that, no refund.
+            </li>
+            <li>
+              <strong>Strict.</strong> Cancel at least 7 days before check-in for half back. After
+              that, no refund.
+            </li>
+          </ul>
+          <p>
+            <strong>A stay listed by an owner or agent</strong> follows Vallo&rsquo;s standard
+            schedule: full refund more than {FULL_REFUND_HOURS} hours before check-in, half back
+            inside {FULL_REFUND_HOURS} hours, and none once check-in day has started. The full
+            schedule is on the{" "}
+            <Link href="/cancellations" className={A}>
+              Cancellations
+            </Link>{" "}
+            page.
+          </p>
+        </>
+      ),
+    },
+    {
+      id: "ask-for-a-refund",
+      heading: "Ask for a refund on a paid stay",
+      body: (
+        <ol role="list">
+          <li>Open the booking from Plans.</li>
+          <li>Ask for the booking to be cancelled and refunded.</li>
+          <li>A person at Vallo decides it by the policy on your booking, and tells you the amount.</li>
+          <li>The refund is started by the end of the fifth Nigerian business day after you asked.</li>
+          <li>{REFUND_ROUTE}</li>
+        </ol>
+      ),
+    },
+    {
+      id: "host-cancels",
+      heading: "If the host cancels, or the place is not as listed",
+      body: (
+        <>
+          <p>
+            If the host cancels, you get everything back, whenever it happens. The policy does not
+            apply to a cancellation you did not choose.
+          </p>
+          <p>
+            If you cannot get in, or the place is not what was listed, do not cancel. Report it from
+            the booking on the day, with photos. When you arrive, your booking asks you{" "}
+            <em>Is it as listed?</em> from check-in time until three hours after. Answer no, give a
+            reason and add a photo. A person at Vallo looks at it, and a place that was not as listed
+            is refunded in full.
+          </p>
+        </>
+      ),
+    },
+    {
+      id: "escrow-refunds",
+      heading: "Get back a payment held in escrow",
+      body: <p>{RAIL_COPY.protected.refund}</p>,
+    },
+    {
+      id: "tables-and-viewings",
+      heading: "Cancel a table or a viewing",
+      body: (
+        <p>
+          Nothing is paid for a table or a viewing, so there is nothing to refund. Cancel a table from
+          the reservation, and a viewing from Plans. A restaurant may ask for some notice; its page
+          says how much.
+        </p>
+      ),
+    },
+    {
+      id: "refund-missing",
+      heading: "If your refund has not arrived",
+      body: (
+        <p>
+          The booking shows where the refund is. If your bank shows nothing ten working days after it
+          was started,{" "}
+          <Link href="/contact" className={A}>
+            contact support
+          </Link>{" "}
+          with the booking reference.
+        </p>
+      ),
+    },
+  ],
+};
+
+/* ---------------------------------------------------------- trust, safety */
+
+const TRUST_AND_SAFETY: DocChapter = {
+  slug: "trust-and-safety",
+  number: 0,
+  title: "Avoiding scams and reporting",
+  summary:
+    "The few habits that keep you out of trouble, how to report a listing, a person or a post, and what happens after you do.",
+  icon: "support-shield",
+  sections: [
+    {
+      id: "pay-on-the-platform",
+      heading: "Keep the deal on Vallo",
+      body: (
+        <ul role="list">
+          <li>{PAY_INSIDE_VALLO}</li>
+          <li>Keep messages on Vallo. A chat here is a record; a chat elsewhere is your word against theirs.</li>
+          <li>
+            Never send money to an account number someone gives you. Messages that look like account
+            numbers are flagged to the Vallo team.
+          </li>
+          <li>
+            {NO_INSPECTION_FEE} There is no holding fee or platform fee to pay anyone. Anybody presenting
+            one as a Vallo charge is lying.
+          </li>
+        </ul>
+      ),
+    },
+    {
+      id: "at-a-viewing",
+      heading: "Go to a viewing well prepared",
+      body: (
+        <ul role="list">
+          <li>Go in daylight if you can, and tell somebody where you are going.</li>
+          <li>Never hand over cash.</li>
+          <li>Close the viewing on Vallo afterwards, so there is a record of what you saw and when.</li>
+          <li>For a purchase, have your own lawyer look at the title before any money moves.</li>
+        </ul>
+      ),
+    },
+    {
+      id: "reporting",
+      heading: "Report a listing, a person or a post",
+      body: (
+        <>
+          <p>Every listing, profile and post has a report option. Pick the reason that fits:</p>
+          <ul role="list">
+            {REPORT_CATEGORY_ORDER.map((code) => (
+              <li key={code}>
+                <strong>{REPORT_CATEGORY_COPY[code].label}.</strong> {REPORT_CATEGORY_COPY[code].hint}
+              </li>
+            ))}
+          </ul>
+          <p>
+            Add what you saw in your own words. Reports about paying outside Vallo go to the front of
+            the queue.
+          </p>
+        </>
+      ),
+    },
+    {
+      id: "what-happens-next",
+      heading: "What happens after you report",
+      body: (
+        <ol role="list">
+          <li>A person at Vallo reads it.</li>
+          <li>A serious report can hide the listing while it is checked.</li>
+          <li>An account can be stopped. The person is told why and what they can do about it.</li>
+          <li>Every action is written to a record that cannot be edited or removed.</li>
+        </ol>
+      ),
+    },
+    {
+      id: "already-sent-money",
+      heading: "If you already sent money outside Vallo",
+      body: (
+        <ol role="list">
+          <li>
+            Call your bank first. Ask them to raise a dispute on the transfer. A fast report can let
+            them hold the money in the receiving account.
+          </li>
+          <li>Report it to Vallo with the listing link, the account details and the messages.</li>
+          <li>
+            Vallo cannot recover money that never came through Vallo. It can remove the account and
+            stop the same person reaching anybody else.
+          </li>
+        </ol>
+      ),
+    },
+    {
+      id: "support",
+      heading: "Contact support",
+      body: (
+        <>
+          <p>
+            Use{" "}
+            <Link href="/contact" className={A}>
+              the contact form
+            </Link>{" "}
+            or{" "}
+            <a href={SUPPORT_HREF} className={A}>
+              {SUPPORT_LABEL}
+            </a>
+            . It opens a ticket on your account, a person reads it, and the reply reaches you as a
+            notification.
+          </p>
+          <p>
+            A person replies within one business day. Reports about payment outside the platform are
+            answered within four hours. Write in English, Yorùbá, Hausa or Igbo, and the reply comes in
+            the same language.
+          </p>
+        </>
+      ),
+    },
+  ],
+};
+
+/* --------------------------------------------------------------- privacy */
+
+const YOUR_DATA: DocChapter = {
+  slug: "your-data-and-your-rights",
+  number: 0,
+  title: "Privacy and your data",
+  summary:
+    "What Vallo holds about you, who can see it, the rights the NDPA gives you, and how to delete your account.",
+  icon: "doc-lock",
+  sections: [
+    {
+      id: "what-we-hold",
+      heading: "What Vallo holds",
+      body: (
+        <>
+          <ul role="list">
+            <li>
+              <strong>Your account.</strong> Name, email, phone number, language, and your password
+              stored only as a hash.
+            </li>
+            <li>
+              <strong>What you do.</strong> Searches, saves, bookings, viewings, messages and reviews.
+            </li>
+            <li>
+              <strong>Payments.</strong> References, amounts, refunds and agreements. Your card is
+              handled by a licensed payment partner, and Vallo never holds your full card number.
+            </li>
+            <li>
+              <strong>If you list or host.</strong> Your ID or NIN, business papers where they apply,
+              any ownership document, and your payout account.
+            </li>
+            <li>
+              <strong>Technical data.</strong> Device, browser and IP address, used to keep it working
+              and secure.
+            </li>
+          </ul>
+          <p>
+            The full document is the{" "}
+            <Link href="/privacy" className={A}>
+              Privacy Policy
+            </Link>
+            . This page is the plain version. Where they differ, the policy governs.
+          </p>
+        </>
+      ),
+    },
+    {
+      id: "how-it-is-protected",
+      heading: "Who can see what",
+      body: (
+        <ul role="list">
+          <li>
+            Your bookings, agreements, messages and settings are protected with row level security, so
+            the database hands them only to you and to the people on the same deal.
+          </li>
+          <li>
+            Gate details for a stay are shown only to the host, to Vallo staff, and to a guest with a
+            confirmed booking.
+          </li>
+          <li>ID and ownership documents sit in a private store that only you and a reviewer can open.</li>
+          <li>Data is encrypted in transit, and passwords are stored only as a hash.</li>
+        </ul>
+      ),
+    },
+    {
+      id: "your-rights",
+      heading: "Use your rights under the NDPA",
+      body: (
+        <>
+          <p>The Nigeria Data Protection Act 2023 lets you:</p>
+          <ul role="list">
+            <li>ask for a copy of what Vallo holds about you;</li>
+            <li>ask for anything wrong to be corrected;</li>
+            <li>ask for data Vallo has no lawful reason to keep to be deleted;</li>
+            <li>object to, or ask to limit, some processing;</li>
+            <li>ask for your data in a portable format;</li>
+            <li>withdraw consent where processing rests on it.</li>
+          </ul>
+          <p>
+            Write through{" "}
+            <a href={SUPPORT_HREF} className={A}>
+              {SUPPORT_LABEL}
+            </a>{" "}
+            with Privacy as the subject. If the answer does not satisfy you, you can complain to the
+            Nigeria Data Protection Commission.
+          </p>
+        </>
+      ),
+    },
+    {
+      id: "controls",
+      heading: "Change what others see",
+      body: (
+        <ul role="list">
+          <li>
+            <strong>Hide my activity</strong> keeps your reviews and recent stays off your public page.
+          </li>
+          <li>
+            <strong>Notification switches</strong> decide which emails reach you. Marketing is off
+            until you turn it on.
+          </li>
+          <li>
+            <strong>Data saver</strong> loads lighter images on a slow or metered connection.
+          </li>
+        </ul>
+      ),
+    },
+    {
+      id: "deleting",
+      heading: "Delete your account",
+      body: (
+        <>
+          <ol role="list">
+            <li>Go to Settings, then Account, then Delete account.</li>
+            <li>
+              Type <code>DELETE MY ACCOUNT</code> exactly, in capitals.
+            </li>
+            <li>You are signed out everywhere, and your profile, posts and places go with it.</li>
+          </ol>
+          <p>
+            Two exceptions. Records of money that moved are kept as long as Nigerian financial and tax
+            rules require. A post somebody replied to may stay as a marker that it was removed. Neither
+            carries your identity. If deletion cannot finish, you are told, and given a way to have it
+            done by hand.
+          </p>
+        </>
+      ),
+    },
+  ],
+};
+
+/* ------------------------------------------------------- troubleshooting */
+
+const TROUBLESHOOTING: DocChapter = {
+  slug: "troubleshooting",
+  number: 0,
+  title: "Troubleshooting",
+  summary: "The things that go wrong, what they mean, and what to do about each one.",
+  icon: "support-chat",
+  sections: [
+    {
+      id: "cannot-sign-in",
+      heading: "I cannot sign in",
+      body: (
+        <ul role="list">
+          <li>
+            <strong>The link expired or was used.</strong> Email links work once. Ask for a new one
+            from{" "}
+            <Link href="/sign-in" className={A}>
+              Sign in
+            </Link>{" "}
+            or{" "}
+            <Link href="/forgot-password" className={A}>
+              Forgot password
+            </Link>
+            .
+          </li>
+          <li>
+            <strong>I signed up with Google.</strong> That account has no password. Use the Google
+            button.
+          </li>
+          <li>
+            <strong>The Google button is missing.</strong> It only shows when it is connected. Use email
+            meanwhile.
+          </li>
+        </ul>
+      ),
+    },
+    {
+      id: "dates-taken",
+      heading: "Those dates were just taken",
+      body: (
+        <p>
+          Somebody booked the same nights a moment before you. Nothing was charged. Pick other dates.
+          Two people can never hold the same night.
+        </p>
+      ),
+    },
+    {
+      id: "minimum-stay",
+      heading: "The stay is too short, or the party too large",
+      body: (
+        <p>
+          The host sets a minimum stay and a maximum party. The message names the number. Add nights or
+          lower the party, or search again with the guest filter set.
+        </p>
+      ),
+    },
+    {
+      id: "payment-will-not-open",
+      heading: "Payment will not open",
+      body: (
+        <ul role="list">
+          <li>For rent or a sale, both of you must confirm the agreement first.</li>
+          <li>For a shortlet that is a request, the host must accept first.</li>
+          <li>The lister may not have added a payout account yet. Message them.</li>
+          {ESCROW_OPEN ? null : <li>{ESCROW_NOT_OPEN_YET}</li>}
+        </ul>
+      ),
+    },
+    {
+      id: "payment-trouble",
+      heading: "My payment did not go through",
+      body: (
+        <ul role="list">
+          <li>
+            <strong>The card was refused.</strong> Nothing was taken. Try again or use another card.
+          </li>
+          <li>
+            <strong>Money left my account but the booking says unpaid.</strong> Open the booking again;
+            the payment can land a moment later. If it still says unpaid, contact support with the
+            reference.
+          </li>
+          <li>
+            <strong>I tapped Pay twice.</strong> You were charged once.
+          </li>
+        </ul>
+      ),
+    },
+    {
+      id: "refund-missing",
+      heading: "My refund has not arrived",
+      body: (
+        <p>
+          {REFUND_ROUTE} If nothing has arrived after ten working days, contact support with the booking
+          reference.
+        </p>
+      ),
+    },
+    {
+      id: "no-gate-details",
+      heading: "The gate details are not showing",
+      body: (
+        <p>
+          They appear once your booking is confirmed. If it is confirmed and they are still missing, the
+          host has not filled them in. Message the host, and report the listing if nobody answers.
+        </p>
+      ),
+    },
+    {
+      id: "listing-problems",
+      heading: "The place is not what was listed",
+      body: (
+        <p>
+          Report it from the booking on the day and choose{" "}
+          <em>{REPORT_CATEGORY_COPY.not_as_described.label}</em>. Take photos. See{" "}
+          <Link href="/docs/refunds-and-cancellations#host-cancels" className={A}>
+            If the place is not as listed
+          </Link>
+          .
+        </p>
+      ),
+    },
+    {
+      id: "around-paused",
+      heading: "Around says it is paused",
+      body: (
+        <p>
+          Around is switched off while something is fixed. Nothing you posted or joined is lost, and the
+          rest of Vallo keeps working.
+        </p>
+      ),
+    },
+    {
+      id: "offline",
+      heading: "Nothing is loading",
+      body: (
+        <p>
+          Vallo keeps working on a weak connection and shows an offline screen when there is none. If an
+          error stays, tell us what you were doing through{" "}
+          <Link href="/contact" className={A}>
+            the contact form
+          </Link>
+          .
+        </p>
+      ),
+    },
+    {
+      id: "still-stuck",
+      heading: "Still stuck",
+      body: (
+        <p>
+          Search the{" "}
+          <Link href="/help" className={A}>
+            help centre
+          </Link>
+          , or{" "}
+          <Link href="/contact" className={A}>
+            contact support
+          </Link>
+          . A person replies within one business day. Include a reference if you have one.
+        </p>
+      ),
+    },
+  ],
+};
+
+/* ------------------------------------------------------- the reading order */
+
+/**
+ * THE READING ORDER, by group. The numbers and the groups are assigned from
+ * this list, so adding a chapter can never leave two chapters sharing a
+ * number, and a chapter cannot sit outside a group.
+ */
+const ORDER: readonly { group: DocGroupId; chapters: DocChapter[] }[] = [
+  { group: "start", chapters: [WHAT_VALLO_IS, QUICK_START, ACCOUNT_AND_WORKSPACES, GETTING_AROUND] },
+  {
+    group: "renting",
+    chapters: [FINDING_A_PLACE, UNDERSTANDING_A_LISTING, VIEWINGS, AGREEMENTS_AND_PAYING, PRICE_CHECK],
+  },
+  { group: "stays", chapters: [BOOKING_A_STAY, RESTAURANTS] },
+  { group: "money", chapters: [WHAT_VALLO_COSTS, PAYING_ON_VALLO, REFUNDS] },
+  { group: "listing", chapters: [LISTING_ON_VALLO, FOR_OWNERS, FOR_AGENTS, HOSTING] },
+  { group: "tools", chapters: [MESSAGES, AI_ASSISTANT, AROUND] },
+  { group: "trust", chapters: [BADGES_AND_VERIFICATION, REVIEWS, TRUST_AND_SAFETY, YOUR_DATA, TROUBLESHOOTING] },
+];
+
+export const CHAPTERS: DocChapter[] = ORDER.flatMap(({ group, chapters }) =>
+  chapters.map((chapter) => ({ ...chapter, group })),
 ).map((chapter, index) => ({ ...chapter, number: index + 1 }));
 
 /* ------------------------------------------------------------------ index */
@@ -2643,8 +1091,7 @@ export const CHAPTERS: DocChapter[] = after(
  *
  * This is what crosses into the client sidebar, as props. Importing `CHAPTERS`
  * itself from a client component would pull every paragraph of the whole
- * document into the browser bundle, which is a documentation site that costs a
- * megabyte to open a single chapter.
+ * document into the browser bundle.
  */
 export type DocChapterIndexEntry = {
   slug: string;
@@ -2652,6 +1099,7 @@ export type DocChapterIndexEntry = {
   title: string;
   summary: string;
   icon: BrandIconName;
+  group: DocGroupId;
 };
 
 export const CHAPTER_INDEX: DocChapterIndexEntry[] = CHAPTERS.map((chapter) => ({
@@ -2660,7 +1108,19 @@ export const CHAPTER_INDEX: DocChapterIndexEntry[] = CHAPTERS.map((chapter) => (
   title: chapter.title,
   summary: chapter.summary,
   icon: chapter.icon,
+  group: chapter.group ?? "start",
 }));
+
+/** The groups with their chapters, in reading order, for the index and the sidebar. */
+export function chaptersByGroup<T extends { group: DocGroupId }>(
+  items: readonly T[],
+): { id: DocGroupId; label: string; items: T[] }[] {
+  return DOC_GROUPS.map((group) => ({
+    id: group.id,
+    label: group.label,
+    items: items.filter((item) => item.group === group.id),
+  })).filter((group) => group.items.length > 0);
+}
 
 /** One chapter by its slug, or undefined so the route can answer with notFound. */
 export function chapterBySlug(slug: string): DocChapter | undefined {

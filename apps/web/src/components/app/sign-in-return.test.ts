@@ -29,7 +29,7 @@ const ALLOWED: { path: RegExp; why: string }[] = [
   { path: /^components\/site\/SiteHeader\.tsx$/, why: "the site header's plain Sign in, on every public page: nothing to come back to" },
   { path: /^components\/site\/MobileMenu\.tsx$/, why: "the same header door, in the phone menu" },
   { path: /^components\/site\/landing\/FinalCta\.tsx$/, why: "the landing's closing door, the header's Sign in again" },
-  { path: /^app\/\(site\)\/docs\/chapters\.tsx$/, why: "the documentation naming the sign-in page in its prose" },
+  { path: /^app\/\(site\)\/docs\/chapters(-[a-z]+)?\.tsx$/, why: "the documentation naming the sign-in page in its prose (the chapters are split across chapters*.tsx)" },
   { path: /^app\/s\/\[token\]\/DoorViews\.tsx$/, why: "a share link that is gone or never existed: nothing to return to" },
   { path: /^app\/\(dev\)\//, why: "previews and fixtures, never served to members" },
 ];

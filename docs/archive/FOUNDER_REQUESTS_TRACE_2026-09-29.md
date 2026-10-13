@@ -1,3 +1,5 @@
+> Archived 13 October 2026: a dated status report from the end of September, superseded by `docs/SESSION-1-RESPONSE.md` and `docs/DECISIONS_2026-10-13.md`. Kept as history; it does not describe the platform today.
+
 # Founder requests trace, 29 September 2026
 
 Every request, bug and design instruction the founder gave in this session, plus every issue the agents found and left open. Each one is checked against the current tree. Agents' reports were not taken on trust.
@@ -9,7 +11,7 @@ Every request, bug and design instruction the founder gave in this session, plus
   - 17 more founder messages that arrived mid-turn as `queued_command` attachments.
   - 11 image batches, in `/root/.claude/uploads/1f6b951d-…/`.
 - **Reference images.** `docs/design/references/2026-09-29/` refs 01–24, and its README.
-- **Audit docs.** `docs/HANDOFF_2026-09-29.md`, `docs/E2E_AUDIT_2026-09-29.md`, `docs/SUCCESS_MOMENTS.md`, `docs/PASSCODE.md`, `docs/ICON_SYSTEM.md` and `docs/BRAND_MARKS.md`.
+- **Audit docs.** `docs/HANDOFF_2026-09-29.md`, `docs/archive/E2E_AUDIT_2026-09-29.md`, `docs/SUCCESS_MOMENTS.md`, `docs/PASSCODE.md`, `docs/ICON_SYSTEM.md` and `docs/BRAND_MARKS.md`.
 - **Verification screenshots.** Taken at 390px in light and dark, in `/tmp/claude-0/-home-user-read-it-well/1f6b951d-e7a6-5422-90c7-ea17c43968d4/scratchpad/trace/`, called `trace/` below. Each is named `<screen>-390-<theme>.png`.
 - **Earlier screenshots.** `scratchpad/e2e/` holds the E2E audit's.
 
@@ -118,7 +120,7 @@ The latest founder message wins wherever two conflict.
 | 79 | 09-29 00:06 | Public repo: run full CI on main and fix any regressions | DONE | main green; database probes 54/54 once the secret was added |
 | 80 | 23:40 | KYC: the founder tests after merge | FOUNDER ACTION | |
 | 81 | 01:12, 01:37, 01:40, 04:30 | Process: keep agents running, re-audit twice before commit, auto-resume at 03:20 UTC, CI for all | DONE | `docs/HANDOFF_2026-09-29.md`; WIP snapshots; the send_later resume |
-| 82 | 04:50 | "audit all end to end… let me see the sign in and sign up… icons bold" | DONE | `docs/E2E_AUDIT_2026-09-29.md`; screenshots sent; `trace/signin-*`, `trace/signup-*` |
+| 82 | 04:50 | "audit all end to end… let me see the sign in and sign up… icons bold" | DONE | `docs/archive/E2E_AUDIT_2026-09-29.md`; screenshots sent; `trace/signin-*`, `trace/signup-*` |
 | 83 | 09:52 | This trace | DONE | this file |
 
 ## C. Issues the agents found and left open
@@ -258,5 +260,5 @@ Checked against the tree at the head of PR #74 (`233b77a6`). "Merged" means it i
 | D-19 | Get started only on the first sign-up or first visit | DONE, merged (PR #73) | `app/welcome/plan.ts` and its test |
 | D-20 | Navy band in light mode on more areas | DONE, in PR #74: workspace home, money summaries, Home, landing | `components/ui/HeroBand.tsx` |
 | D-21 | Landing capsules like ref 39 (header and eyebrow), with the moving edge; touchable, draggable cards like ref 40; a final CTA like ref 41; landing clean and strong | DONE, in PR #74 | `components/site/**`, `.nf-edge-lap` / `EdgeLap` |
-| D-22 | A wide sweep, then 3 agents deep for 50 more recommendations, reported and not built | IN PROGRESS | `docs/recs/` (A 17, B 17, C 16), `docs/INTEGRATION_QA_2026-09-30.md` |
+| D-22 | A wide sweep, then 3 agents deep for 50 more recommendations, reported and not built | IN PROGRESS | `docs/recs/` (A 17, B 17, C 16), `docs/archive/INTEGRATION_QA_2026-09-30.md` |
 | D-23 | Push everything to main | IN PROGRESS: #71, #72 and #73 merged; #74 open with CI running | |
