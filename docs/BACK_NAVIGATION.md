@@ -117,7 +117,10 @@ There is one component, `apps/web/src/components/ui/BackControl.tsx`.
 `BackButton`, `PageHeader`, `BackChevron`, the listing gallery (hero and
 floating), the listing section tabs, the thread, the assistant, the inspection
 sheet, the register shell, KYC, the host wizard, sign-up step two, list a
-property and the welcome slides all draw it.
+property and the welcome slides all draw it. Since October 2026 so do the
+signed-in profile's cover (it had none), the Wallet header (a hand-drawn
+link that always pushed a fixed address) and the restricted staff console
+(it had none).
 
 - 44 by 44 CSS px, drawn as the element's real size (not a pseudo-element
   target). The pill form is 44 tall.
