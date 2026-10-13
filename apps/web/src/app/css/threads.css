@@ -192,6 +192,14 @@
     color: var(--nf-content-muted);
     text-align: center;
   }
+  /* "On Vallo since October 2026", small and quiet, tucked under the safety
+     line rather than a whole row gap below it (founder, 11 October 2026). */
+  .nf-thread__since {
+    margin-top: calc(var(--nf-space-3xs) - var(--nf-gap-row));
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-muted);
+    text-align: center;
+  }
 
   /* ---------------------------------------------------------- a message */
 

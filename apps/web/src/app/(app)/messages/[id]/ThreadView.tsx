@@ -238,6 +238,13 @@ export type ThreadViewProps = {
   personLine?: { key: string; text: string }[];
   personLabel?: string;
   /**
+   * "On Vallo since October 2026": when the other person joined, already
+   * worded (`trustVisible.person.memberSince`). Drawn small under the line
+   * that keeps chats and payments inside Vallo (founder, 11 October 2026),
+   * and so left out of the person line. Absent or null draws nothing.
+   */
+  sinceLine?: string | null;
+  /**
    * V-34: the other party's Vallo Record when they are a lister, already
    * worded and gated at five. Empty draws nothing.
    */
@@ -420,6 +427,7 @@ export function ThreadView({
   sheetCopy,
   personLine = [],
   personLabel,
+  sinceLine = null,
   recordLine = [],
   recordLabel,
   passportLine = [],
@@ -1180,6 +1188,14 @@ export function ThreadView({
           <UiIcon name="verified" size={16} />
           Keep every chat and payment inside Vallo
         </p>
+        {sinceLine ? (
+          /* Whose date it is, for a screen reader; the line itself is the
+             founder's own words and says nothing more. */
+          <p className="nf-thread__since" data-testid="thread-since">
+            <span className="sr-only">{counterpartName}: </span>
+            {sinceLine}
+          </p>
+        ) : null}
 
         {/*
           * A THREAD NOBODY HAS SPOKEN IN DREW NOTHING AT ALL.

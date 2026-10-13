@@ -273,8 +273,12 @@ export default async function ConversationPage({
       listingThread && role === "host"
         ? passportLines(passportRead, t.trustVisible.passport, locale).filter((l) => l.key !== "since")
         : [];
-    /* "On Vallo since" is already on the person line, so the Record's copy of
-       it is not drawn twice. No row, no line. */
+    /* "On Vallo since" is drawn once, small, under the line that keeps chats
+       and payments inside Vallo (founder, 11 October 2026): taken out of the
+       person line, and the Record's copy of it is not drawn either. No row,
+       no line. */
+    const sinceLine = counterpartFactsLine.find((fact) => fact.key === "since")?.text ?? null;
+    const personLine = counterpartFactsLine.filter((fact) => fact.key !== "since");
     const counterpartRecordLine = recordLines(recordRead, t.trustVisible.record, locale).filter(
       (line) => line.key !== "since",
     );
@@ -362,7 +366,8 @@ export default async function ConversationPage({
         quickRepliesTitle={desk ? t.frontDoor.desk.quickTitle : t.memberKit.questions.title}
         openAttach={(Array.isArray(attach) ? attach[0] : attach) === "1"}
         accountMoment={accountMoment}
-        personLine={counterpartFactsLine}
+        personLine={personLine}
+        sinceLine={sinceLine}
         recordLine={counterpartRecordLine}
         passportLine={passportLine}
         passportShare={passportShare}
