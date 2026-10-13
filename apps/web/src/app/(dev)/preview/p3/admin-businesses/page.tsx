@@ -108,6 +108,13 @@ export default async function PreviewAdminBusinesses() {
             <ul className="nf-queue-list">
               <BusinessCard row={P3_BUSINESS} ui={ui} />
               <BusinessCard row={P3_BUSINESS_APPROVED} ui={ui} />
+              {/* The third state: the reviewer reading their own business,
+                  which is drawn with every control withheld. */}
+              <BusinessCard
+                row={{ ...P3_BUSINESS, id: `${P3_BUSINESS.id}-own` }}
+                ui={ui}
+                viewerId={P3_BUSINESS.ownerId}
+              />
             </ul>
           </div>
           <ConsoleFooter note={t.admin.console.auditNote} />
