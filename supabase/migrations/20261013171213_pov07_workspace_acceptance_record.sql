@@ -1,4 +1,4 @@
--- DRAFT, not applied. PAY ON VALLO 7 of 8. Apply BEFORE the app on
+-- Applied 13 October 2026. PAY ON VALLO 7 of 8. Apply BEFORE the app on
 -- track/pay-on-vallo is deployed: its registration actions write this column.
 -- Ruling 6: every workspace application and setup records, before submit,
 -- that the person read and accepts the Terms of Service and the Privacy

@@ -1,4 +1,4 @@
--- DRAFT, not applied. VALLO PASSPORT 2 of 2. Apply after pass01.
+-- Applied 13 October 2026. VALLO PASSPORT 2 of 2. Apply after pass01.
 --
 -- The read model behind the Vallo passport: one private assembler and three
 -- doors. Based on the LIVE definitions read on 13 October 2026:

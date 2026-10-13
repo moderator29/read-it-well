@@ -1,18 +1,24 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { BUSINESS_KINDS } from "@/lib/profile/role-line";
 import { PASSPORT_LINES } from "./model";
 
 /**
- * THE DRAFT MIGRATIONS, HELD TO THE APP. The two files in
- * `supabase/migrations/pending/` are applied by the lead after review; until
- * then this is what keeps the SQL and the code from drifting apart. What the
- * SQL DOES (hidden lines null, blocks, off, signed out) is held by the probes
- * in `supabase/tests/probes-pending/`, run against the database when applied.
+ * THE PASSPORT MIGRATIONS, HELD TO THE APP. pass01 and pass02 were applied to
+ * the live database on 13 October 2026 and recorded as
+ * `supabase/migrations/<version>_pass0N_*.sql`; this keeps the SQL and the code
+ * from drifting apart. What the SQL DOES (hidden lines null, blocks, off,
+ * signed out) is held by the probes in `supabase/tests/probes/`.
  */
 const REPO = join(__dirname, "../../../../..");
-const sql = (name: string) => readFileSync(join(REPO, "supabase/migrations/pending", name), "utf8");
+const MIGRATIONS = join(REPO, "supabase/migrations");
+/** The recorded file for a migration name: `<14-digit version>_<name>`. */
+const sql = (name: string) => {
+  const file = readdirSync(MIGRATIONS).find((f) => /^\d{14}_/.test(f) && f.slice(15) === name);
+  if (!file) throw new Error(`${name} is not recorded in supabase/migrations`);
+  return readFileSync(join(MIGRATIONS, file), "utf8");
+};
 const SETTINGS = sql("pass01_passport_settings.sql");
 const READ = sql("pass02_vallo_passport_read.sql");
 
@@ -39,7 +45,7 @@ describe("the drafts are additive", () => {
       ["pass01-passport-settings.sql", "pass01-passport-settings"],
       ["pass02-vallo-passport-read.sql", "pass02-vallo-passport-read"],
     ] as const) {
-      const path = join(REPO, "supabase/tests/probes-pending", file);
+      const path = join(REPO, "supabase/tests/probes", file);
       expect(existsSync(path)).toBe(true);
       const probe = readFileSync(path, "utf8");
       expect(probe).toContain(`raise exception 'PROBE_OK ${id}'`);

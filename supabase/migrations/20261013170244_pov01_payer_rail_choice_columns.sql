@@ -1,4 +1,4 @@
--- DRAFT, not applied. PAY ON VALLO 1 of 8 (founder rulings, 13 October 2026).
+-- Applied 13 October 2026. PAY ON VALLO 1 of 8 (founder rulings, 13 October 2026).
 -- Ruling 2: the PAYER picks, at payment time, escrow (the default) or card,
 -- on a rent or a shortlet. The choice is stored on the agreement, and a rail
 -- policy row now says whether its payer may choose.

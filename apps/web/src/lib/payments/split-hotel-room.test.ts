@@ -6,7 +6,7 @@ vi.mock("server-only", () => ({}));
  * Founder ruling 3 (13 October 2026): Vallo's commission on a hotel room is
  * 10 percent (1,000 bps) of the charge, taken from the hotel's share, never
  * added to the guest's price. The database computes it
- * (`private.b3_commission_for_booking`, pending pov06, probe pov06) and
+ * (`private.b3_commission_for_booking`, pov06 applied 13 October 2026, probe pov06) and
  * `payment_split_for_booking` returns the split; the app opens the charge
  * only when the three parts add up to the booking's own total to the kobo.
  */

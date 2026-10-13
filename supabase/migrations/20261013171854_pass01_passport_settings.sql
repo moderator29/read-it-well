@@ -1,4 +1,4 @@
--- DRAFT, not applied. VALLO PASSPORT 1 of 2. Apply BEFORE the app on
+-- Applied 13 October 2026. VALLO PASSPORT 1 of 2. Apply BEFORE the app on
 -- track/passport is deployed: the owner's page and the chat menu read and write
 -- this table. Apply pass02 straight after (it reads this table).
 --

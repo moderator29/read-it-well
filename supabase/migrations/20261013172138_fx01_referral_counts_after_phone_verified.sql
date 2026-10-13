@@ -1,4 +1,4 @@
--- DRAFT, not applied. FIXES BUNDLE 7 of 7 (13 October 2026): an invited person
+-- Applied 13 October 2026. FIXES BUNDLE 7 of 7 (13 October 2026): an invited person
 -- counts only after they verify their phone number.
 --
 -- THE RULING. The founder, 13 October 2026: an invited person counts only

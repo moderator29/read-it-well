@@ -22,7 +22,7 @@ function fakeDb(tables: Record<string, Record<string, unknown>>, rpc?: (args: un
       }),
     }),
     rpc: async (fn: string, args: unknown) => {
-      /* The database's own answer (pending migration pov04) is not applied in
+      /* The database's own answer (migration pov04) is not present in
          these fixtures, so the router reads the policy as it did before; the
          applied path is pinned in router-choice.test.ts. */
       if (fn === "payment_rail_for_booking") return { data: null, error: { code: "PGRST202", message: "Could not find the function" } };

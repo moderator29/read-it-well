@@ -1,4 +1,4 @@
--- DRAFT, not applied. NOTIFICATIONS 5 of 6. Needs nt01. Apply BEFORE the app of
+-- Applied 13 October 2026. NOTIFICATIONS 5 of 6. Needs nt01. Apply BEFORE the app of
 -- track/notifications is deployed: it writes two email templates
 -- (stay.review_request, message.unread) that the new code builds.
 --

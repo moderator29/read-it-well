@@ -1,4 +1,4 @@
--- DRAFT, not applied. PAY ON VALLO 5 of 8. Needs pov03 and pov04.
+-- Applied 13 October 2026. PAY ON VALLO 5 of 8. Needs pov03 and pov04.
 -- Ruling 2 puts a shortlet stay on escrow by default, so the protected
 -- payment, built for rentals, has to carry a stay too, and the hold sweep
 -- has to leave money the partner holds alone. Every object here is named for

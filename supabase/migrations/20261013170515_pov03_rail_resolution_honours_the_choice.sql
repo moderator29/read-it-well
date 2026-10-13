@@ -1,4 +1,4 @@
--- DRAFT, not applied. PAY ON VALLO 3 of 8. Needs pov01 and pov02.
+-- Applied 13 October 2026. PAY ON VALLO 3 of 8. Needs pov01 and pov02.
 -- The database decides the rail from the policy AND the payer's choice
 -- (founder rulings, 13 October 2026):
 --

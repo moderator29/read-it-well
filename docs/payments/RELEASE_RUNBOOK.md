@@ -5,7 +5,8 @@ work". The pending SQL for it (`pov01` to `pov08`) and the pending SQL for the
 notification gaps (`nt01` to `nt06`, see `docs/NOTIFICATIONS_MAP.md`) are
 released together, in the order of section 1. The escrow work is on branch
 `track/escrow-live`; the notice work and this combined runbook are on
-`track/notice-release`. Nothing is applied to the live database and nothing is
+`track/notice-release`. `pov01` to `pov07` and `nt01` to `nt06` were applied to
+the live database on 13 October 2026 (section 1); `pov08` is not, and nothing is
 on `main` until the founder says "push to main". The lead runs these steps;
 each one says how to check it and how to undo it.
 
@@ -97,12 +98,56 @@ definition checks showed nothing had persisted):
 
 | Step | What | When |
 | --- | --- | --- |
-| 1 | Apply `pov01` to `pov07`, in order, one at a time, with the check after each | Before the app deploy |
-| 2 | Apply `nt01` to `nt06`, in order, one at a time, with the check after each | After step 1, immediately before the deploy |
-| 3 | Deploy `track/notice-release` to production (after "push to main") | Straight after step 2 |
+| 1 | Apply `pov01` to `pov07`, in order, one at a time, with the check after each | **Done 13 October 2026** (versions below) |
+| 2 | Apply `nt01` to `nt06`, in order, one at a time, with the check after each | **Done 13 October 2026** (versions below) |
+| 3 | Deploy `track/notice-release` to production (after "push to main") | Next: as soon as possible, see the note below |
 | 4 | Apply `pov08` | Only after step 3 is serving traffic |
 | 5 | Set the Payluk keys and the webhook, keep escrow closed | After step 3 |
 | 6 | Smoke tests, then open escrow | After step 5 |
+
+Applied on 13 October 2026, through the Supabase connector, each file
+unchanged (the recorded statement's md5 matched the file), each followed by its
+check in section 2 (all returned what is written) and its probe (all PROBE_OK,
+except pov06's, see below). Recorded in `supabase/migrations/APPLIED.txt`;
+probes moved to `supabase/tests/probes/`.
+
+| File | Version |
+| --- | --- |
+| `pov01_payer_rail_choice_columns` | 20261013170244 |
+| `pov02_rent_and_shortlet_policy_rows` | 20261013170400 |
+| `pov03_rail_resolution_honours_the_choice` | 20261013170515 |
+| `pov04_payer_rail_choice_rpcs` | 20261013170707 |
+| `pov05_escrow_for_shortlet_stays` | 20261013170856 |
+| `pov06_hotel_room_commission` | 20261013171019 |
+| `pov07_workspace_acceptance_record` | 20261013171213 |
+| `nt01_notice_helpers` | 20261013171244 |
+| `nt02_payment_and_protected_payment_notices` | 20261013171342 |
+| `nt03_referral_notices` | 20261013171442 |
+| `nt04_account_agreement_and_listing_notices` | 20261013171536 |
+| `nt05_stay_reminders_and_unread_message_email` | 20261013171652 |
+| `nt06_booking_request_closed_email` | 20261013171807 |
+
+The Vallo passport files (`pass01` 20261013171854, `pass02` 20261013172017)
+and `fx01` (20261013172138) were applied the same day; they are not part of
+this runbook.
+
+Still pending: only `pov08` (step 4), which must wait for the new app because
+the old app does not record the pay-on-Vallo statement. Then the keys (step 5),
+the smoke tests and opening escrow (step 6).
+
+pov06 went through `apply_migration` without stalling. Its probe did not: the
+probe runs a `delete` and a `truncate` against the rates table to prove they
+are refused, and the connector timed out on it (nothing persisted; the rates
+table still holds the one 1,000 bps row). The probe is in
+`supabase/tests/probes/` and runs in the `db-probes` CI job; to run it by hand,
+paste it in the SQL editor.
+
+The notice files are live while production still runs the old app (step 3 is
+not done). The old email drain does not know the five new templates and
+discards such a row for good. On 13 October 2026, a few minutes after nt05, one
+`message.unread` row was already PENDING. Deploy soon; if the deploy is held,
+run `rollback/nt_notice_triggers_off.sql` and
+`rollback/nt05_send_member_reminders.sql` as written below.
 
 Why this order:
 
@@ -136,8 +181,9 @@ Why this order:
   (`select count(*) from cron.job`).
 
 Tooling note: `pov06` contains the trigger events that some SQL connectors
-stall on (it guards the rates table against removal). Apply it from the
-Supabase SQL editor, not through an agent connector.
+stall on (it guards the rates table against removal). On 13 October 2026 it
+went through `apply_migration` without a stall; its probe (a real `delete` and
+`truncate`) did stall, so that probe is run from the SQL editor or CI.
 
 ## 2. Each migration: apply, check, undo
 

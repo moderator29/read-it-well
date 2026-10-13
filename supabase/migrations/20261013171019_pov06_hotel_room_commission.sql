@@ -1,4 +1,4 @@
--- DRAFT, not applied. PAY ON VALLO 6 of 8. Independent of pov01 to pov05.
+-- Applied 13 October 2026. PAY ON VALLO 6 of 8. Independent of pov01 to pov05.
 -- Ruling 3: Vallo's commission on a hotel room is 10 percent (1,000 basis
 -- points) of the charge, taken from the hotel's share, never added to the
 -- guest's price, and only on a paid booking. "A hotel room" is a room type

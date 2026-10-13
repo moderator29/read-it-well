@@ -1,4 +1,4 @@
--- DRAFT, not applied. PAY ON VALLO 2 of 8. Needs pov01.
+-- Applied 13 October 2026. PAY ON VALLO 2 of 8. Needs pov01.
 -- Ruling 2: on a rent or a shortlet the payer picks escrow (the default,
 -- recommended) or card. A sale is always escrow. Hotels and restaurants keep
 -- their own rows (card).

@@ -147,7 +147,7 @@ describe("the push catalogue", () => {
         "NGN 25,000.00 for Lekki Loft is being returned to the card or account you paid with. Banks usually show it within 5 to 10 working days.",
       ],
       /* 13 October 2026: the notices written by migrations nt02 to nt05, as the
-         probes in supabase/tests/probes-pending read them back. */
+         probes in supabase/tests/probes read them back. */
       ["Payment received", "Lekki Loft: NGN 300,000.00 is paid. Your booking is confirmed."],
       [
         "Payment received",

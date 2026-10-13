@@ -1,4 +1,4 @@
--- DRAFT, not applied. PAY ON VALLO 4 of 8. Needs pov03.
+-- Applied 13 October 2026. PAY ON VALLO 4 of 8. Needs pov03.
 -- The payer's choice, as members reach it, and one payment per deal:
 --
 --   public.payment_rail_options(agreement)  a party reads what may be picked,

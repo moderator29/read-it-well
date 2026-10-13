@@ -1,4 +1,4 @@
--- DRAFT, not applied. NOTIFICATIONS 2 of 6. Needs nt01. Apply BEFORE the app
+-- Applied 13 October 2026. NOTIFICATIONS 2 of 6. Needs nt01. Apply BEFORE the app
 -- of track/notifications is deployed: the two new email templates
 -- (payment.host_received, payment.rent_receipt) are written here and built
 -- there; a row the running code does not know is discarded by the drain for good.

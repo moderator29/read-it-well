@@ -187,7 +187,7 @@ export const BACKED_CLAIMS: readonly BackedClaim[] = [
   {
     phrase: /^identity checked by a person at vallo\.$/i,
     mechanism:
-      "the passport's verification line is public.person_badge (private.badge_tier_for) returned by public.passport_read (supabase/migrations/pending/pass02_vallo_passport_read.sql); 'gold' needs agent_badges.verified or businesses.verified, derived from rungs a named member of staff passed on the KYC desk (agent_verification_checks); an owner can hide the line but cannot set it, and 'Member' (none) makes no claim",
+      "the passport's verification line is public.person_badge (private.badge_tier_for) returned by public.passport_read (supabase/migrations/20261013172017_pass02_vallo_passport_read.sql); 'gold' needs agent_badges.verified or businesses.verified, derived from rungs a named member of staff passed on the KYC desk (agent_verification_checks); an owner can hide the line but cannot set it, and 'Member' (none) makes no claim",
   },
   /* front-door.en.ts briefs (V-95). */
   {

@@ -4,13 +4,13 @@ import { getDictionary } from "@vallo/i18n";
 
 /*
  * Founder ruling 2 (13 October 2026), as the payment step reads the
- * database's answer (`public.payment_rail_options`, pending pov04):
+ * database's answer (`public.payment_rail_options`, pov04, applied 13 October 2026):
  *   rent, shortlet  escrow and card, escrow preselected
  *   sale            escrow only
  *   hotel room      card only
  *   restaurant      card only
  * The rail itself is decided in the database and pinned by the probes in
- * supabase/tests/probes-pending/pov03 and pov04; this pins the reading.
+ * supabase/tests/probes/pov03 and pov04; this pins the reading.
  */
 
 const answer = (over: Record<string, unknown> = {}) => ({

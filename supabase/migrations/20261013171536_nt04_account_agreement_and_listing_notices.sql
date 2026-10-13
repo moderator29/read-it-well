@@ -1,4 +1,4 @@
--- DRAFT, not applied. NOTIFICATIONS 4 of 6. Needs nt01.
+-- Applied 13 October 2026. NOTIFICATIONS 4 of 6. Needs nt01.
 --
 -- Five small gaps, each one event that changed something a person cares about
 -- and told them nothing in the app:

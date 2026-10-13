@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 /**
  * THE PASSPORT'S READS, with the database stubbed. What the database function
  * itself refuses (blocks, off, hidden lines) is held by the probe
- * `supabase/tests/probes-pending/pass02-vallo-passport-read.sql`; what is held
+ * `supabase/tests/probes/pass02-vallo-passport-read.sql`; what is held
  * here is that the app asks nothing when nobody is signed in, shows nothing
  * the function did not return, and turns every refusal into one state.
  */

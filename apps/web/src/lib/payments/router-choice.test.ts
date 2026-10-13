@@ -7,7 +7,7 @@ const { railForBooking, readBookingRail, isMissingFunction, railGate, RAIL_REFUS
 
 /*
  * Founder ruling 2 (13 October 2026): the app reads the database's own rail
- * for a booking (`public.payment_rail_for_booking`, pending pov04), which
+ * for a booking (`public.payment_rail_for_booking`, pov04, applied 13 October 2026), which
  * applies the policy and the payer's choice exactly as the payment gate does.
  */
 

@@ -1,4 +1,4 @@
--- DRAFT, not applied. NOTIFICATIONS 6. Needs nt01 (not required, but apply in
+-- Applied 13 October 2026. NOTIFICATIONS 6. Needs nt01 (not required, but apply in
 -- order). Apply BEFORE the app of track/notifications is deployed: the new
 -- template (booking.request_closed) is built there, and the drain discards a row
 -- whose template the running code does not know.

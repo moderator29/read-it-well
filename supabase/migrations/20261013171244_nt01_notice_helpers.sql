@@ -1,4 +1,4 @@
--- DRAFT, not applied. NOTIFICATIONS 1 of 6 (track/notifications, 13 Oct 2026).
+-- Applied 13 October 2026. NOTIFICATIONS 1 of 6 (track/notifications, 13 Oct 2026).
 -- Apply FIRST: nt02 to nt05 call private.notify_once.
 --
 -- The one helper every new notice goes through, so a notice is told once.
