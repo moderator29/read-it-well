@@ -175,7 +175,7 @@ export const FAQS: Faq[] = [
   {
     category: "Viewings",
     q: "How do I book a viewing?",
-    a: "On a listing, pick a free slot and the viewing is booked at once. If no slot suits you, ask for a time: the lister confirms it, offers another time, or declines, and you are told which. Times are Lagos time.",
+    a: "On a rental or a sale, tap Schedule a visit. Choose an in-person visit or a video visit, pick a day and time, add a note if you like, check it and send. If the lister has opened viewing times, the one you pick is booked at once. If not, suggest a time: the lister confirms it, offers another time, or declines. Times are Lagos time. The visit's own page shows where it stands, and lets you add it to your calendar, join a video visit from 10 minutes before, change the time or cancel.",
   },
   {
     category: "Viewings",

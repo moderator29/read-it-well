@@ -412,9 +412,10 @@ export const UNDERSTANDING_A_LISTING: DocChapter = {
       heading: "Schedule a visit",
       body: (
         <p>
-          On a rental or a sale, the main button is Schedule a visit. A visit never takes money. See{" "}
-          <Link href="/docs/viewings" className={A}>
-            Viewings
+          On a rental or a sale, the main button is Schedule a visit. Choose in person or video, pick an
+          open time or suggest one, and send. A visit never takes money. See{" "}
+          <Link href="/docs/viewings#two-ways" className={A}>
+            Schedule a visit
           </Link>
           .
         </p>
@@ -572,7 +573,7 @@ export const AGREEMENTS_AND_PAYING: DocChapter = {
       heading: "1. View the place",
       body: (
         <p>
-          Book a free viewing slot, or ask for a time. See{" "}
+          Tap Schedule a visit on the listing, in person or by video. See{" "}
           <Link href="/docs/viewings" className={A}>
             Viewings
           </Link>

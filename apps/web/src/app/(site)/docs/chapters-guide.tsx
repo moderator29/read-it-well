@@ -51,7 +51,7 @@ export const QUICK_START: DocChapter = {
               and filter. Light, water and the gate are filters, not small print.
             </li>
             <li>Message the lister with any question.</li>
-            <li>Book a free viewing slot, or ask for a time.</li>
+            <li>Tap Schedule a visit, in person or by video. It is free.</li>
             <li>Decide, confirm the agreement, and pay inside Vallo.</li>
           </ol>
           <p>
@@ -287,7 +287,7 @@ export const VIEWINGS: DocChapter = {
   number: 0,
   title: "Viewings",
   summary:
-    "See a property before any money moves: book a free slot or ask for a time, get reminders, change your plans, close the viewing, and what to do if someone does not come.",
+    "See a property before any money moves: schedule a visit in person or by video, follow where it stands, get reminders, change the time or cancel, close the visit, and what to do if someone does not come.",
   icon: "calendar-clock",
   sections: [
     {
@@ -302,28 +302,70 @@ export const VIEWINGS: DocChapter = {
     },
     {
       id: "two-ways",
-      heading: "Book a viewing",
+      heading: "Schedule a visit",
       body: (
         <>
           <DocsFlow
-            label="Getting a viewing"
+            label="Scheduling a visit"
             steps={[
-              { object: "calendar-check", label: "Pick a free slot" },
-              { object: "home-check", label: "Booked at once" },
+              { object: "home-search", label: "Choose the visit type" },
+              { object: "calendar-grid", label: "Pick a day and time" },
+              { object: "doc-review", label: "Check it" },
+              { object: "calendar-check", label: "Send or book" },
             ]}
           />
+          <ol role="list">
+            <li>On a rental or a sale, tap <strong>Schedule a visit</strong>.</li>
+            <li>
+              Choose <strong>In-person visit</strong> or <strong>Video visit</strong>, a live video call
+              from the property. Video is offered only while calls are switched on.
+            </li>
+            <li>
+              Pick a day, then a time: morning, afternoon or evening. All times are Lagos time.
+              <ul role="list">
+                <li>
+                  <strong>The lister has opened viewing times.</strong> You see only the real open times.
+                  The one you pick is booked as soon as you confirm.
+                </li>
+                <li>
+                  <strong>The lister has none.</strong> Suggest a time, at least two hours from now. The
+                  lister confirms it, offers another time, or declines.
+                </li>
+              </ul>
+            </li>
+            <li>Add a note or a question for the lister, if you like.</li>
+            <li>Check the date, the time and the visit type, then send the request or book the time.</li>
+          </ol>
+        </>
+      ),
+    },
+    {
+      id: "status",
+      heading: "Follow your visit",
+      body: (
+        <>
+          <p>After you send it, the visit has its own page. It shows where it really stands:</p>
           <ul role="list">
             <li>
-              <strong>Pick a free slot.</strong> Where the lister has published viewing times, the free
-              ones are on the listing. Tap one and the viewing is booked at once.
+              <strong>Request sent.</strong> Waiting for the lister. Nothing is booked yet.
             </li>
             <li>
-              <strong>Ask for a time.</strong> If no slot suits you, ask for the time you want. The
-              lister confirms it, offers another time, or declines, and you are told which. Take an
-              offered time in one tap.
+              <strong>Visit confirmed.</strong> The lister is expecting you.
+            </li>
+            <li>
+              <strong>A new time was offered.</strong> Accept it in one tap, or cancel the request.
+            </li>
+            <li>
+              <strong>Request declined</strong> or <strong>Visit cancelled.</strong> Ask for another time
+              from the same page.
             </li>
           </ul>
-          <p>All times are Lagos time.</p>
+          <p>
+            <strong>What happens next</strong> is listed on the same page: the lister confirms, the
+            reminders, the visit, then your decision. Once the visit is confirmed, use{" "}
+            <strong>Add to calendar</strong>. For a video visit, <strong>Join video visit</strong> opens
+            10 minutes before the time. Your visits are also in Plans.
+          </p>
         </>
       ),
     },
@@ -333,18 +375,27 @@ export const VIEWINGS: DocChapter = {
       body: (
         <p>
           The renter and the lister are both reminded twice: the evening before, from 19:00 Lagos time,
-          and again two hours before the viewing.
+          and again on the day, two hours before the visit.
         </p>
       ),
     },
     {
       id: "changing",
-      heading: "Change or cancel a viewing",
+      heading: "Change the time or cancel",
       body: (
-        <p>
-          A renter can withdraw a request or cancel a booked viewing, and the lister is told. A lister can
-          offer another time or cancel, and can say why. The chat stays open either way.
-        </p>
+        <>
+          <ul role="list">
+            <li>
+              <strong>Change time.</strong> Your current request is cancelled first and the lister is
+              told. Then you pick a new time.
+            </li>
+            <li>
+              <strong>Cancel.</strong> Cancel a request or a confirmed visit from its page. The lister is
+              told, and you can ask again from the listing.
+            </li>
+          </ul>
+          <p>A lister can offer another time or cancel, and can say why. The chat stays open either way.</p>
+        </>
       ),
     },
     {
