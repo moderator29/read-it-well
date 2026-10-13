@@ -57,6 +57,10 @@ describe("two-tier object map", () => {
   /* CHANGED 7 October 2026 (the founder: no glass anywhere). This spec used to
      assert `/brand/glass/<name>.png` and material "glass" for every name; it
      now asserts the opposite, and that the solid file is on disk. */
+  it("the object list has not moved", () => {
+    expect(glassNames().length).toBe(144);
+  });
+
   it("every glass name draws a solid object that exists on disk, never glass", () => {
     const glass = glassNames();
     expect(glass.length).toBeGreaterThan(100);
