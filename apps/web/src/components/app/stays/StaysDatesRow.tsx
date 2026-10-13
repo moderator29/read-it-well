@@ -29,21 +29,24 @@ export function StaysDatesRow({
   copy: { checkIn: string; checkOut: string; guests: string; submit: string };
 }) {
   return (
-    <form method="get" action="/stays/search" className="mt-md grid grid-cols-2 gap-sm sm:grid-cols-4 sm:items-end" data-testid="stays-dates-row">
+    <form method="get" action="/stays/search" className="mt-md grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-sm sm:grid-cols-4 sm:items-end" data-testid="stays-dates-row">
       {carried.map(([name, value]) => (
         <input key={`${name}=${value}`} type="hidden" name={name} value={value} />
       ))}
-      <label className="grid gap-3xs">
+      {/* `min-w-0` on each label: a grid item will not shrink below its content,
+          and a date input's content is the widest date the browser can draw, so
+          at 390 the check-out field ran past the page gutter (13 October 2026). */}
+      <label className="grid min-w-0 gap-3xs">
         <span className={TYPE.rowMeta}>{copy.checkIn}</span>
-        <input type="date" name="in" required min={today} defaultValue={checkIn} className="nf-field" />
+        <input type="date" name="in" required min={today} defaultValue={checkIn} className="nf-field min-w-0 max-w-full" />
       </label>
-      <label className="grid gap-3xs">
+      <label className="grid min-w-0 gap-3xs">
         <span className={TYPE.rowMeta}>{copy.checkOut}</span>
-        <input type="date" name="out" required min={today} defaultValue={checkOut} className="nf-field" />
+        <input type="date" name="out" required min={today} defaultValue={checkOut} className="nf-field min-w-0 max-w-full" />
       </label>
-      <label className="grid gap-3xs">
+      <label className="grid min-w-0 gap-3xs">
         <span className={TYPE.rowMeta}>{copy.guests}</span>
-        <input type="number" name="guests" inputMode="numeric" min={1} max={30} defaultValue={guests ?? 2} className="nf-field" />
+        <input type="number" name="guests" inputMode="numeric" min={1} max={30} defaultValue={guests ?? 2} className="nf-field min-w-0 max-w-full" />
       </label>
       {/* The whole row on a phone: at 390 the button had half of it, and
           "Show prices for these dates" ran out of both sides, clipped. It may

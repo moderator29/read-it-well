@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { BrandIcon, type BrandIconProp } from "@/design-system/icons/BrandIcon";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import type { PropertyType } from "@/lib/interests/property-types";
-import { orderSpaceTypes, type SpaceTypeKey } from "./space-types";
+import { orderSpaceTypes, SPACE_OBJECT, type SpaceTypeKey } from "./space-types";
 import "@/app/css/home.css";
 
 /**
@@ -27,16 +27,6 @@ import "@/app/css/home.css";
  * Every door is a filter on `/search?type=`, the one vocabulary the catalogue
  * is filed under, so a tap lands on the real shelf for that type.
  */
-const SPACE_OBJECT: Record<SpaceTypeKey, BrandIconProp> = {
-  rental: "midrise-block",
-  apartment: "apartment-block",
-  home: "family-house-gate",
-  villa: "villa-pool",
-  land: "land-plot",
-  shop: "retail-shop",
-  office: "office-tower",
-};
-
 export function SpaceTypeRow({
   interests,
   copy,

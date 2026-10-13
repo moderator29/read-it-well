@@ -1,3 +1,4 @@
+import type { BrandIconProp } from "@/design-system/icons/BrandIcon";
 import type { PropertyType } from "@/lib/interests/property-types";
 
 /*
@@ -19,3 +20,19 @@ export function orderSpaceTypes(interests: readonly PropertyType[]): { type: Spa
   return [...mine.map((type) => ({ type, mine: true })), ...rest.map((type) => ({ type, mine: false }))];
 }
 
+
+/**
+ * The one realistic 3D object for each property type: the set "Spaces for you"
+ * draws on the home, and the set the Property type tiles of the filter sheet
+ * draw, so a type looks the same wherever it appears (the founder, 13 October
+ * 2026). All Tier A renders, one size, one family.
+ */
+export const SPACE_OBJECT: Record<SpaceTypeKey, BrandIconProp> = {
+  rental: "midrise-block",
+  apartment: "apartment-block",
+  home: "family-house-gate",
+  villa: "villa-pool",
+  land: "land-plot",
+  shop: "retail-shop",
+  office: "office-tower",
+};
