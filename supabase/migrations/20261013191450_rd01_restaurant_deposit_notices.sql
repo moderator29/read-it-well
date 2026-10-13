@@ -1,4 +1,4 @@
--- DRAFT, not applied. RESTAURANT DEPOSITS 1 of 1 (track/restaurant-deposits, 13 Oct 2026).
+-- Applied 13 October 2026. RESTAURANT DEPOSITS 1 of 1 (track/restaurant-deposits, 13 Oct 2026).
 -- Apply BEFORE the founder switches feature_flags.restaurant_deposits on.
 --
 -- THE RULING. Founder, 13 October 2026: table deposits ON. Booking a table
