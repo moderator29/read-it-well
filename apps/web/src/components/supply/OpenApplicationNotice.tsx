@@ -17,11 +17,14 @@ export function OpenApplicationNotice({
   heading,
   reference,
   copy,
+  href = "/profile/application",
 }: {
   /** The form's own name, "Register as an owner", so the back control and the title say where this is. */
   heading: string;
   reference: string;
   copy: { title: string; body: string; action: string };
+  /** Where the one action goes. The other-side notice sends the person back to their profile. */
+  href?: string;
 }) {
   return (
     <div className="mx-auto max-w-2xl">
@@ -31,7 +34,7 @@ export function OpenApplicationNotice({
         title={copy.title}
         body={copy.body.replace("{reference}", reference)}
         action={
-          <ButtonLink href="/profile/application" variant="primary" size="lg">
+          <ButtonLink href={href} variant="primary" size="lg">
             {copy.action}
           </ButtonLink>
         }

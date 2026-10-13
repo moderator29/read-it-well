@@ -41,6 +41,7 @@ import type { Database } from "../supabase/database.types";
 /* ONE VOCABULARY, READ HERE TOO. The three doors narrow onto the two person
    values in exactly one place and this is a caller of it, not a second copy. */
 import { personRoleFrom } from "../supply/roles";
+import { sideOf } from "../agent/role-lock";
 import { CLOSED_LISTING_MESSAGE, isClosedListingRefusal } from "../landlord/closed";
 import { isRateAgreementRefusal } from "../pricing/rate-agreement";
 import { withDone } from "../ui/success-moments";
@@ -401,6 +402,24 @@ export async function reviewAgentApplication(input: {
         ? "This application has not been submitted yet, so there is nothing to decide."
         : "This application has already been decided. Refresh the queue to see the current state.",
     );
+  }
+
+  /* ONE ACCOUNT, ONE SIDE (`lib/agent/role-lock.ts`). Approval never
+     overwrites a live agents row, so approving an agent application on an
+     owner's account said "approved" while the role stayed owner. It is
+     refused before anything is written, and the reviewer is told why. */
+  if (decision === "approve") {
+    const { data: existing } = await access.supabase
+      .from("agents")
+      .select("role")
+      .eq("user_id", application.user_id)
+      .maybeSingle();
+    const held = (existing as { role?: string | null } | null)?.role ?? null;
+    if (held !== null && sideOf(held) !== sideOf(application.supply_role)) {
+      return fail(
+        `This account is already ${sideOf(held) === "owner" ? "an owner's" : "an agent's"} account, and one account holds one side. Refuse this application with that reason; the person can apply from a separate account.`,
+      );
+    }
   }
 
   const nextStatus =

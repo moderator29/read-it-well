@@ -68,6 +68,8 @@ export type ApplicationResult = {
 
 import { DOCUMENT_KINDS, STORED_DOCUMENT_KIND, type DocumentKind } from "./application-document-kinds";
 import { OPEN_STATUSES } from "./open-application";
+import { otherSideMessage } from "./role-lock";
+import { otherSideHeld } from "./role-lock-read";
 
 type UploadedDocument = { kind: DocumentKind; path: string };
 
@@ -230,6 +232,11 @@ export async function submitAgentApplication(
         "Follow that one from your profile; a second would only queue behind it.",
     };
   }
+
+  /* The professional application makes an agent: an owner's account cannot
+     file it (`role-lock.ts`). */
+  const held = await otherSideHeld(supabase, user.id, "agent");
+  if (held) return { ok: false, message: otherSideMessage(held) };
 
   // Resolve the state name from the form to its canonical code.
   const stateName = get("state");

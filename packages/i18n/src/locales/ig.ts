@@ -1282,7 +1282,13 @@ export const ig: Dictionary = withFallback({
     },
     status: {
       submittedTitle: "Ezigala arịrịọ",
-      submittedBody: "Anyị na-enyocha arịrịọ gị. A ga-agwa gị mgbe akwadoro ya.",
+      /* Machine-written 13 October 2026; needs a native reader. */
+      submittedBody: "Anyị na-enyocha arịrịọ gị, anyị ga-agwakwa gị ozugbo e kpebiri ya.",
+      draftBody: "Ezigabeghị arịrịọ a.",
+      moreInfoBody: "Onye nyocha chọrọ ihe n'aka gị tupu o kpebie. Ihe o dere na otu ị ga-esi zaa ya dị n'okpuru.",
+      approvedBody: "Ebe ọrụ gị emeghela, ya mere ị nwere ike ịmalite idepụta. Nyocha njirimara bụ nzọụkwụ dị iche, nke ị ga-amalite site na dashboard gị.",
+      rejectedBody: "Akwadoghị arịrịọ a. Ihe onye nyocha dere kọwara ihe kpatara ya, ị nwekwara ike itinye arịrịọ ọzọ.",
+      suspendedBody: "Akwụsịla akaụntụ a. Kpọtụrụ ndị nkwado jiri nọmba arịrịọ gị, mmadụ ga-akọwara gị.",
       status: "Ọnọdụ",
       draft: "Akwụkwọ mbụ",
       pendingReview: "Na-echere Nyocha",
@@ -1290,6 +1296,8 @@ export const ig: Dictionary = withFallback({
       moreInfo: "Achọrọ Ozi Ọzọ",
       approved: "Akwadoro",
       rejected: "Ajụrụ",
+      suspended: "Akwụsịla ya",
+      applyAgain: "Tinye arịrịọ ọzọ",
       submittedOn: "Ezigara na",
       applicationId: "ID arịrịọ",
       reviewNote: "Ndị otu anyị na-enyocha arịrịọ n'ime awa 24 ruo 48.",
@@ -1300,14 +1308,17 @@ export const ig: Dictionary = withFallback({
         "Arịrịọ gị na nọmba ya jikọtara na akaụntụ gị, yabụ anyị ga-amara onye ị bụ tupu anyị egosi ha.",
       signIn: "Banye",
       noneTitle: "Enweghị arịrịọ edeturu",
-      noneBody:
-        "Ị tinyebeghị arịrịọ ịbụ onye nnọchi. Ọ na-ewe ihe dịka nkeji iri, ị ga-achọkwa otu njirimara foto.",
-      startApplication: "Tinye arịrịọ ịbụ onye nnọchi",
+      noneBody: "Ị tinyebeghị arịrịọ idepụta ụlọ na Vallo. Gwa anyị ma ị bụ onye nwe ụlọ ma ọ bụ na ị na-arụ ọrụ n'aha onye nwe ụlọ; fọm ahụ na-ewe ihe dị ka nkeji iri.",
+      startApplication: "Malite arịrịọ",
       unconfiguredTitle: "Anyị enweghị ike iru arịrịọ gị ugbu a",
       unconfiguredBody:
         "Nke a si n'akụkụ anyị, ọ bụghị nke gị. Ọ dịghị ihe i zigara furu efu. Nwaa ọzọ n'ime nkeji ole na ole.",
       reviewedOn: "Kpebiri na",
       reviewerNote: "Ihe onye nyocha kwuru",
+      respond: {
+        attachBody: "Ọ bụghị iwu. Tinye otu ma ọ bụrụ na ọ zara ihe onye nyocha jụrụ.",
+        attachBusinessTitle: "Ndebanye aha azụmahịa (akwụkwọ CAC)",
+      },
     },
     dashboard: {
       title: "Dashboard Onye Nnọchi",
@@ -2373,6 +2384,8 @@ export const ig: Dictionary = withFallback({
       submittedWhen: "Ezigara {when}",
       decidedWhen: "Ekpebiri {when}.",
       sections: {
+        /* Machine-written 13 October 2026; needs a native reader. */
+        registration: "Ihe ha debanyere aha dị ka",
         personal: "1. Nke onwe",
         identity: "2. Njirimara",
         business: "3. Azụmahịa",
@@ -2380,7 +2393,18 @@ export const ig: Dictionary = withFallback({
         payout: "5. Ụgwọ",
         review: "6. Nyocha",
       },
+      roleNames: {
+        owner: "Onye nwe ụlọ",
+        agent: "Onye nnọchi",
+        firm: "Ụlọ ọrụ",
+      },
       fields: {
+        registeredAs: "Debanyere aha dị ka",
+        holds: "Ihe o ji maka ụlọ ahụ",
+        area: "Mpaghara",
+        experience: "Oge ọ rụrụ dị ka onye nnọchi",
+        agencyFee: "Ụgwọ onye nnọchi",
+        legalFee: "Ụgwọ ọka iwu",
         fullName: "Aha zuru ezu",
         phone: "Ekwentị",
         email: "Email",
@@ -2410,6 +2434,12 @@ export const ig: Dictionary = withFallback({
         idFront: "Njirimara, ihu",
         idBack: "Njirimara, azụ",
         registration: "Ndebanye aha CAC",
+        identity: "Njirimara",
+        address: "Akaebe adreesị",
+        business: "Ndebanye aha azụmahịa",
+        selfie: "Foto ihu ha",
+        association: "Akwụkwọ sitere n'aka onye isi ha",
+        ownership: "Akaebe nwe ụlọ",
       },
       // NATIVE REVIEW: legal wording, "terms" of the platform.
       termsAgreed: "O kwenyere na usoro ikpo okwu",
@@ -3411,6 +3441,16 @@ export const ig: Dictionary = withFallback({
       uploading: "Na-ebulite",
       fileReady: "Njikere izipu",
       fileTooBig: "Faịlụ ahụ karịrị 8MB. Biko họrọ foto ma ọ bụ PDF dị obere.",
+      /* Machine-written 13 October 2026; needs a native reader. */
+      fileType: "Faịlụ ahụ abụghị foto ma ọ bụ PDF, ya mere enweghị ike iziga ya. Họrọ JPG, PNG, HEIC ma ọ bụ PDF.",
+      fileLimit: "Foto ma ọ bụ PDF, ruo {size}.",
+      photoLimit: "Foto, ruo {size}.",
+      openTitle: "Ị nweela arịrịọ na-eche",
+      openBody: "Edebere ya dị ka {reference}. Nke abụọ ga-eguzo n'azụ ya naanị, ya mere soro nke ahụ.",
+      otherSideTitle: "Akaụntụ a nọlarị n'akụkụ nke ọzọ",
+      ownerNotAgent: "Akaụntụ a bụ nke onye nwe ụlọ. Onye nnọchi na-arụ ọrụ site n'akaụntụ dị iche, n'ihi na ebe ọrụ abụọ ahụ dị iche. Ọ bụrụ na ịchọrọ ịrụ ọrụ dị ka onye nnọchi, debanye aha ọzọ jiri adreesị email dị iche, ma debanye aha dị ka onye nnọchi n'ebe ahụ.",
+      agentNotOwner: "Akaụntụ a bụ nke onye nnọchi. Onye nwe ụlọ na-edepụta ụlọ ya site n'akaụntụ dị iche, n'ihi na ebe ọrụ abụọ ahụ dị iche. Ọ bụrụ na ịchọrọ idepụta ụlọ nke gị, debanye aha ọzọ jiri adreesị email dị iche, ma debanye aha dị ka onye nwe ụlọ n'ebe ahụ.",
+      backToProfile: "Laghachi na profaịlụ gị",
       fileFailed: "Nbulite ahụ agaghị. Biko nwaa ọzọ.",
       signInFirst: "Biko banye tupu ị bulite, ka edebe faịlụ ahụ n'akaụntụ gị.",
       owner: {
@@ -3439,8 +3479,13 @@ export const ig: Dictionary = withFallback({
             governors_consent: "Nkwenye Gọvanọ",
             survey_plan: "Atụmatụ nyocha ala",
             utility_bill: "Akwụkwọ ụgwọ ọrụ n'aha gị",
+            letter_of_authority: "Akwụkwọ ikike sitere n'aka onye nwe ụlọ",
             none: "Enweghị m nke ọ bụla n'ime ndị a",
           },
+          /* Machine-written 13 October 2026; needs a native reader. */
+          seenMark: "Ahụla akaebe nwe ụlọ",
+          uploadTitle: "Ziga foto ma ọ bụ nyocha ya",
+          uploadBody: "Ọ bụghị iwu, ị nwekwara ike iziga ya ma emechaa. Ọ bụ naanị ndị nyocha Vallo na-emepe ya. Ozugbo onye nyocha hụrụ ya, profaịlụ gị na ndepụta gị ga-egosi \"Ahụla akaebe nwe ụlọ\".",
           stillListTitle: "Ị ka nwere ike idepụta",
           stillListBody:
             "Nke ahụ bụ azịza nkịtị na Naịjirịa, ọ naghịkwa egbochi gị idepụta. Ndepụta gị ga-apụta otu ụzọ ahụ; naanị na ọ gaghị ebu akara nwe ụlọ ruo mgbe i gosiri anyị ihe.",
@@ -3489,7 +3534,8 @@ export const ig: Dictionary = withFallback({
           title: "Ụgwọ gị, n'ihu ọha",
           sub: "Debe ihe ị na-ana. Onye ahịa ọ bụla na-ahụ ya tupu ọ kpọọ gị.",
           agency: "Ụgwọ nnọchi",
-          agencyMeaning: "Ihe ị na-ana onye nwe ụlọ.",
+          /* Machine-written 13 October 2026; needs a native reader. */
+          agencyMeaning: "Ihe onye mgbazinye ụlọ na-akwụ gị maka ịchọtara ya ụlọ.",
           legal: "Ụgwọ iwu",
           legalMeaning: "Ihe ị na-ana maka ọrụ iwu.",
           less: "Belata",

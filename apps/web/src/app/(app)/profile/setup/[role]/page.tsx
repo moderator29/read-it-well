@@ -10,6 +10,7 @@ import { PageHeader } from "@/components/app/PageHeader";
 import { OpenApplicationNotice } from "@/components/supply/OpenApplicationNotice";
 import { readMyApplication } from "@/lib/agent/application-status";
 import { isOpenApplication } from "@/lib/agent/open-application";
+import { myOtherSideHeld } from "@/lib/agent/role-lock-read";
 
 export const metadata: Metadata = {
   title: "Set up your profile",
@@ -64,9 +65,26 @@ export default async function ProfileSetupPage({
   if (!isSetupRole(role)) notFound();
   await requireSignedInPage(`/profile/setup/${role}`);
 
-  const [locale, mine] = await Promise.all([getLocale(), readMyApplication()]);
+  const [locale, mine, otherSide] = await Promise.all([
+    getLocale(),
+    readMyApplication(),
+    myOtherSideHeld("agent"),
+  ]);
   const t = getDictionary(locale);
   const copy = ROLE_COPY[role];
+
+  /* The professional application makes an agent: not from an owner's account. */
+  if (otherSide) {
+    const r = t.supply.register;
+    return (
+      <OpenApplicationNotice
+        heading={copy.setup.title}
+        reference=""
+        copy={{ title: r.otherSideTitle, body: r.ownerNotAgent, action: r.backToProfile }}
+        href="/profile"
+      />
+    );
+  }
 
   /* An application still open is followed, not filed again. */
   if (mine.state === "found" && isOpenApplication(mine.application.status)) {

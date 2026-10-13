@@ -128,6 +128,19 @@ describe("submitSupplyRegistration", () => {
     expect(writes()).toEqual([]);
   });
 
+  it("files an owner's proof of ownership against the registration, not a listing", async () => {
+    const result = await submitSupplyRegistration({
+      ...OWNER,
+      ownershipDocument: "letter_of_authority",
+      ownershipPath: `${USER}/batch/ownership-1.pdf`,
+    });
+    expect(result.ok).toBe(true);
+    const documents = writes().find((c) => c.table === "agent_documents");
+    expect(documents?.payload).toEqual([
+      { application_id: "app-1", uploader_id: USER, kind: "ownership", storage_path: `${USER}/batch/ownership-1.pdf` },
+    ]);
+  });
+
   it("files an agent's documents against the new application", async () => {
     const result = await submitSupplyRegistration(AGENT);
     expect(result.ok).toBe(true);

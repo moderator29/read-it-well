@@ -65,6 +65,9 @@ export const ownerRegistrationSchema = z.object({
   ownershipDocument: z.enum(OWNERSHIP_ANSWERS, {
     message: "Choose what you hold, or choose that you hold none of these.",
   }),
+  /** The document itself, already uploaded into the private bucket. Optional:
+      an owner may file the answer now and the paper later. */
+  ownershipPath: trimmed.max(400).optional().or(z.literal("")),
 });
 
 export const agentRegistrationSchema = z.object({

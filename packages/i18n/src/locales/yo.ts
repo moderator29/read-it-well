@@ -1280,7 +1280,13 @@ export const yo: Dictionary = withFallback({
     },
     status: {
       submittedTitle: "A ti fi ìbéèrè ránṣẹ́",
-      submittedBody: "À ń ṣàyẹ̀wò ìbéèrè rẹ. A ó sọ fún ọ nígbà tí a bá fọwọ́sí i.",
+      /* Machine-written 13 October 2026; needs a native reader. */
+      submittedBody: "À ń ṣàyẹ̀wò ìbéèrè rẹ, a ó sì sọ fún ọ ní kété tí a bá ṣe ìpinnu.",
+      draftBody: "A kò tíì fi ìbéèrè yìí ránṣẹ́.",
+      moreInfoBody: "Olùṣàyẹ̀wò nílò nǹkan kan láti ọ̀dọ̀ rẹ kí ó tó ṣe ìpinnu. Ohun tí ó kọ àti bí o ṣe lè dáhùn wà nísàlẹ̀.",
+      approvedBody: "Ibi iṣẹ́ rẹ ti ṣí, nítorí náà o lè bẹ̀rẹ̀ sí ṣàtòjọ. Àyẹ̀wò ìdánimọ̀ jẹ́ ìgbésẹ̀ ọ̀tọ̀, tí o lè bẹ̀rẹ̀ láti dashboard rẹ.",
+      rejectedBody: "A kò fọwọ́sí ìbéèrè yìí. Ohun tí olùṣàyẹ̀wò kọ sọ ìdí rẹ̀, o sì lè tún béèrè.",
+      suspendedBody: "A ti dá àkáǹtì yìí dúró. Kàn sí ìrànlọ́wọ́ pẹ̀lú nọ́ńbà ìbéèrè rẹ, ẹnìkan yóò sì ṣàlàyé fún ọ.",
       status: "Ipò",
       draft: "Àkọ̀wé",
       pendingReview: "Ń dúró de Àtúnyẹ̀wò",
@@ -1288,6 +1294,8 @@ export const yo: Dictionary = withFallback({
       moreInfo: "A Nílò Ìwífún Síwájú",
       approved: "Tí fọwọ́sí",
       rejected: "Tí kọ̀",
+      suspended: "A ti dá a dúró",
+      applyAgain: "Tún béèrè",
       submittedOn: "Fi ránṣẹ́ ní",
       applicationId: "ID ìbéèrè",
       reviewNote: "Ẹgbẹ́ wa máa ń ṣàyẹ̀wò àwọn ìbéèrè láàrin wákàtí 24 sí 48.",
@@ -1298,14 +1306,17 @@ export const yo: Dictionary = withFallback({
         "Ìbéèrè rẹ àti nọ́mbà rẹ̀ so mọ́ àkántì rẹ, nítorí náà a gbọ́dọ̀ mọ ẹni tí o jẹ́ kí a tó fi wọ́n hàn.",
       signIn: "Wọlé",
       noneTitle: "Kò sí ìbéèrè kankan",
-      noneBody:
-        "O kò tí ì bẹ̀rẹ̀ ìbéèrè láti di aṣojú. Ó máa gba nǹkan bí ìṣẹ́jú mẹ́wàá, o sì nílò ìwé ìdánimọ̀ kan.",
-      startApplication: "Bẹ̀rẹ̀ ìbéèrè aṣojú",
+      noneBody: "O kò tíì béèrè láti ṣàtòjọ ilé lórí Vallo. Sọ fún wa bóyá ìwọ ni onílé tàbí o ń ṣiṣẹ́ fún onílé; fọ́ọ̀mù náà gba nǹkan bí ìṣẹ́jú mẹ́wàá.",
+      startApplication: "Bẹ̀rẹ̀ ìbéèrè",
       unconfiguredTitle: "A kò lè dé ọ̀dọ̀ ìbéèrè rẹ báyìí",
       unconfiguredBody:
         "Ọ̀dọ̀ wa ni ìṣòro yìí ti wá, kì í ṣe ọ̀dọ̀ rẹ. Kò sí ohun tí o ti fi ránṣẹ́ tí ó sọnù. Gbìyànjú lẹ́ẹ̀kan sí i láàrin ìṣẹ́jú díẹ̀.",
       reviewedOn: "Ìpinnu ní",
       reviewerNote: "Ohun tí olùyẹ̀wò sọ",
+      respond: {
+        attachBody: "Kò pọn dandan. Fi ọ̀kan kún un tí ó bá dáhùn ohun tí olùṣàyẹ̀wò béèrè.",
+        attachBusinessTitle: "Ìforúkọsílẹ̀ iṣẹ́ (ìwé CAC)",
+      },
     },
     dashboard: {
       title: "Pátákó Aṣojú",
@@ -2376,6 +2387,8 @@ export const yo: Dictionary = withFallback({
       submittedWhen: "A fi ránṣẹ́ {when}",
       decidedWhen: "A pinnu {when}.",
       sections: {
+        /* Machine-written 13 October 2026; needs a native reader. */
+        registration: "Ohun tí wọ́n forúkọsílẹ̀ bí",
         personal: "1. Ara-ẹni",
         identity: "2. Ìdánimọ̀",
         business: "3. Ilé-iṣẹ́",
@@ -2383,7 +2396,18 @@ export const yo: Dictionary = withFallback({
         payout: "5. Owó ìsanwó",
         review: "6. Àtúnyẹ̀wò",
       },
+      roleNames: {
+        owner: "Onílé",
+        agent: "Aṣojú",
+        firm: "Ilé-iṣẹ́",
+      },
       fields: {
+        registeredAs: "Forúkọsílẹ̀ bí",
+        holds: "Ohun tí ó ní lórí ilé náà",
+        area: "Àdúgbò",
+        experience: "Àkókò gẹ́gẹ́ bí aṣojú",
+        agencyFee: "Owó aṣojú",
+        legalFee: "Owó agbẹjọ́rò",
         fullName: "Orúkọ kíkún",
         phone: "Fóònù",
         email: "Ímeèlì",
@@ -2413,6 +2437,12 @@ export const yo: Dictionary = withFallback({
         idFront: "Ìwé ìdánimọ̀, iwájú",
         idBack: "Ìwé ìdánimọ̀, ẹ̀yìn",
         registration: "Ìforúkọsílẹ̀ CAC",
+        identity: "Ìdánimọ̀",
+        address: "Ẹ̀rí àdírẹ́sì",
+        business: "Ìforúkọsílẹ̀ iṣẹ́",
+        selfie: "Àwòrán ojú wọn",
+        association: "Lẹ́tà láti ọ̀dọ̀ ọ̀gá wọn",
+        ownership: "Ẹ̀rí onílé",
       },
       // NATIVE REVIEW: legal wording, "terms" of the platform.
       termsAgreed: "Ó gba àdéhùn pátákó",
@@ -3425,6 +3455,16 @@ export const yo: Dictionary = withFallback({
       uploading: "Ń gbé sókè",
       fileReady: "Ó ṣetán láti fi ránṣẹ́",
       fileTooBig: "Fáìlì náà ju 8MB lọ. Jọ̀wọ́ yan àwòrán tàbí PDF kékeré.",
+      /* Machine-written 13 October 2026; needs a native reader. */
+      fileType: "Fáìlì náà kì í ṣe àwòrán tàbí PDF, nítorí náà a kò lè fi ránṣẹ́. Yan JPG, PNG, HEIC tàbí PDF.",
+      fileLimit: "Àwòrán tàbí PDF, dé {size}.",
+      photoLimit: "Àwòrán, dé {size}.",
+      openTitle: "O ti ní ìbéèrè kan tí ń dúró",
+      openBody: "A fi {reference} forúkọ rẹ̀ sílẹ̀. Ìkejì yóò kàn dúró lẹ́yìn rẹ̀, nítorí náà tẹ̀lé ìyẹn.",
+      otherSideTitle: "Àkáǹtì yìí ti wà ní ẹ̀gbẹ́ kejì",
+      ownerNotAgent: "Àkáǹtì yìí jẹ́ ti onílé. Aṣojú ń ṣiṣẹ́ láti àkáǹtì ọ̀tọ̀, nítorí ibi iṣẹ́ méjèèjì yàtọ̀. Tí o bá fẹ́ ṣiṣẹ́ gẹ́gẹ́ bí aṣojú, forúkọsílẹ̀ lẹ́ẹ̀kan sí i pẹ̀lú àdírẹ́sì ímeèlì mìíràn, kí o sì forúkọsílẹ̀ gẹ́gẹ́ bí aṣojú níbẹ̀.",
+      agentNotOwner: "Àkáǹtì yìí jẹ́ ti aṣojú. Onílé ń ṣàtòjọ ilé rẹ̀ láti àkáǹtì ọ̀tọ̀, nítorí ibi iṣẹ́ méjèèjì yàtọ̀. Tí o bá fẹ́ ṣàtòjọ ilé tìrẹ, forúkọsílẹ̀ lẹ́ẹ̀kan sí i pẹ̀lú àdírẹ́sì ímeèlì mìíràn, kí o sì forúkọsílẹ̀ gẹ́gẹ́ bí onílé níbẹ̀.",
+      backToProfile: "Padà sí àkọsílẹ̀ rẹ",
       fileFailed: "Ìgbésókè náà kò yọrí sí rere. Jọ̀wọ́ gbìyànjú lẹ́ẹ̀kan sí i.",
       signInFirst: "Jọ̀wọ́ wọlé kí o tó gbé e sókè, kí fáìlì náà lè wọ àkàǹtì rẹ.",
       owner: {
@@ -3453,8 +3493,13 @@ export const yo: Dictionary = withFallback({
             governors_consent: "Ìgbàniláàyè Gómìnà",
             survey_plan: "Àwòrán ìwọ̀n ilẹ̀",
             utility_bill: "Ìwé owó iṣẹ́ ìlú ní orúkọ rẹ",
+            letter_of_authority: "Lẹ́tà àṣẹ láti ọ̀dọ̀ onílé",
             none: "Mi ò ní èyíkéyìí nínú wọn",
           },
+          /* Machine-written 13 October 2026; needs a native reader. */
+          seenMark: "A ti rí ẹ̀rí onílé",
+          uploadTitle: "Fi àwòrán tàbí ẹ̀dà rẹ̀ ránṣẹ́",
+          uploadBody: "Kò pọn dandan, o sì lè fi ránṣẹ́ nígbà míì. Àwọn olùṣàyẹ̀wò Vallo nìkan ló ń ṣí i. Ní kété tí olùṣàyẹ̀wò bá ti rí i, àkọsílẹ̀ rẹ àti àwọn ilé tí o ṣàtòjọ yóò fi \"A ti rí ẹ̀rí onílé\" hàn.",
           stillListTitle: "O ṣì lè ṣàtòjọ",
           stillListBody:
             "Ìdáhùn yẹn wọ́pọ̀ ní Nàìjíríà, kò sì dá ọ dúró láti ṣàtòjọ. Àtòjọ rẹ yóò jáde bákan náà; kìkì pé kò ní gbé àmì ìní ilé títí tí o fi lè fi nǹkan hàn wá.",
@@ -3503,7 +3548,8 @@ export const yo: Dictionary = withFallback({
           title: "Owó rẹ, ní gbangba",
           sub: "Fi ohun tí o ń gbà sí i. Gbogbo oníbàárà ni ó ń rí i kí wọ́n tó pè ọ́.",
           agency: "Owó aṣojú",
-          agencyMeaning: "Ohun tí o ń gbà lọ́wọ́ onílé.",
+          /* Machine-written 13 October 2026; needs a native reader. */
+          agencyMeaning: "Ohun tí ayálégbé ń san fún ọ fún wíwá ilé fún un.",
           legal: "Owó agbẹ́jọ́rò",
           legalMeaning: "Ohun tí o ń gbà fún iṣẹ́ òfin.",
           less: "Dín kù",
