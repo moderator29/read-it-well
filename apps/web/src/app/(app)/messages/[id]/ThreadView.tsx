@@ -34,6 +34,8 @@ import {
 import { lagosTimeLabel } from "@/lib/messages/time";
 import { deleteMessage } from "@/lib/messages/message-actions";
 import { MessageMenu } from "@/components/app/messages/MessageMenu";
+import { ForwardSheet } from "@/components/app/messages/ForwardSheet";
+import { asSentence, canForward } from "@/components/app/messages/forward";
 import {
   useThreadRealtime,
   useThreadTyping,
@@ -430,8 +432,16 @@ export function ThreadView({
   const [replyTo, setReplyTo] = useState<ThreadBubble | null>(null);
   /* The message whose menu is open (a long press on the bubble). */
   const [actionMsg, setActionMsg] = useState<ThreadBubble | null>(null);
-  /* A short line for a refused or finished action, shown above the composer. */
-  const [actionNote, setActionNote] = useState<string | null>(null);
+  /* The message being forwarded: the chooser is open over the thread. */
+  const [forwarding, setForwarding] = useState<ThreadBubble | null>(null);
+  /* A short line for a refused or finished action, shown above the composer.
+     A refusal stays until the next action; a confirmation clears itself. */
+  const [actionNote, setActionNote] = useState<{ tone: "error" | "done"; text: string } | null>(null);
+  useEffect(() => {
+    if (actionNote?.tone !== "done") return;
+    const timer = window.setTimeout(() => setActionNote(null), 4000);
+    return () => window.clearTimeout(timer);
+  }, [actionNote]);
   const pressTimer = useRef<number | null>(null);
   const startPress = (m: ThreadBubble) => {
     if (m.id.startsWith("local-")) return;
@@ -445,6 +455,10 @@ export function ThreadView({
     if (actionMsg) setReplyTo(actionMsg);
     setActionMsg(null);
   };
+  const menuForward = () => {
+    if (actionMsg) setForwarding(actionMsg);
+    setActionMsg(null);
+  };
   const menuCopy = async () => {
     const text = actionMsg?.body ?? "";
     setActionMsg(null);
@@ -456,7 +470,7 @@ export function ThreadView({
     if (!target) return;
     const result = await deleteMessage({ messageId: target.id, scope: "me" });
     if (result.ok) setItems((prev) => prev.filter((x) => x.id !== target.id));
-    else setActionNote(result.error);
+    else setActionNote({ tone: "error", text: asSentence(result.error) });
   };
   const menuDeleteForEveryone = async () => {
     const target = actionMsg;
@@ -467,7 +481,7 @@ export function ThreadView({
       setItems((prev) =>
         prev.map((x) => (x.id === target.id ? { ...x, body: "", imageUrl: null, deleted: true } : x)),
       );
-    } else setActionNote(result.error);
+    } else setActionNote({ tone: "error", text: asSentence(result.error) });
   };
   /* The messages the thread opened with. Only a message that arrives AFTER
      this (sent or received while the thread is open) plays the arrival
@@ -1503,8 +1517,14 @@ export function ThreadView({
         </div>
       )}
       {actionNote && (
-        <p role="status" className="px-md pb-xs nf-body-sm text-[var(--nf-state-error)]">
-          {actionNote}
+        <p
+          role={actionNote.tone === "error" ? "alert" : "status"}
+          className={`px-md pb-xs nf-body-sm ${
+            actionNote.tone === "error" ? "text-[var(--nf-state-error)]" : "text-[var(--nf-content-secondary)]"
+          }`}
+          data-testid="thread-action-note"
+        >
+          {actionNote.text}
         </p>
       )}
       {quickReplies.length > 0 && (
@@ -1572,13 +1592,27 @@ export function ThreadView({
         <MessageMenu
           canCopy={actionMsg.body.length > 0 && !actionMsg.deleted}
           canDeleteEveryone={actionMsg.mine && !actionMsg.deleted}
+          canForward={live && canForward(actionMsg)}
           onReply={menuReply}
+          onForward={menuForward}
           onCopy={() => void menuCopy()}
           onDeleteForMe={() => void menuDeleteForMe()}
           onDeleteForEveryone={() => void menuDeleteForEveryone()}
           onClose={() => setActionMsg(null)}
         />
       )}
+      {live ? (
+        <ForwardSheet
+          open={forwarding !== null}
+          messageId={forwarding?.id ?? null}
+          fromConversationId={conversationId}
+          onClose={() => setForwarding(null)}
+          onForwarded={(target) => {
+            setForwarding(null);
+            setActionNote({ tone: "done", text: `Forwarded to ${target.name}.` });
+          }}
+        />
+      ) : null}
     </div>
   );
 }

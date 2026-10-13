@@ -6,12 +6,15 @@
  * the ones that apply to it:
  *
  *   Reply                 always, on a message that has been sent
+ *   Forward               a sent message with words; never a photo (the
+ *                         database refuses one). It opens the chooser of
+ *                         conversations (`ForwardSheet`)
  *   Copy                  when the message has words
  *   Delete for me         always, on your side only
  *   Delete for everyone   only on your own messages; the window is decided by
  *                         the database, and a refused delete says why
  *
- * Forward is a separate step (a chooser of conversations), not drawn here yet.
+ * A swipe on the bubble is the other way to Reply (`BubbleGestures`).
  */
 
 import { useEffect } from "react";
@@ -19,7 +22,10 @@ import { useEffect } from "react";
 export type MessageMenuProps = {
   canCopy: boolean;
   canDeleteEveryone: boolean;
+  /** Draws Forward. False for a photo, a deleted message or one still sending. */
+  canForward?: boolean;
   onReply: () => void;
+  onForward?: () => void;
   onCopy: () => void;
   onDeleteForMe: () => void;
   onDeleteForEveryone: () => void;
@@ -29,7 +35,9 @@ export type MessageMenuProps = {
 export function MessageMenu({
   canCopy,
   canDeleteEveryone,
+  canForward = false,
   onReply,
+  onForward,
   onCopy,
   onDeleteForMe,
   onDeleteForEveryone,
@@ -50,6 +58,11 @@ export function MessageMenu({
         <button type="button" role="menuitem" className="nf-msg-menu__item" onClick={onReply}>
           Reply
         </button>
+        {canForward && onForward ? (
+          <button type="button" role="menuitem" className="nf-msg-menu__item" onClick={onForward}>
+            Forward
+          </button>
+        ) : null}
         {canCopy ? (
           <button type="button" role="menuitem" className="nf-msg-menu__item" onClick={onCopy}>
             Copy
