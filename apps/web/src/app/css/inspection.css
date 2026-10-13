@@ -325,6 +325,13 @@
   .nf-ix-fact__badge {
     margin-top: var(--nf-space-2xs);
   }
+  /* "Lagos time" under the hour: whose clock it is, a step quieter than the
+     hour itself. Its own line, so the date cell (sized to its content) is
+     never widened past its label and the name beside it keeps its room. */
+  .nf-ix-fact__zone {
+    display: block;
+    color: var(--nf-content-muted);
+  }
   /* The number, visible under the name (R-C) and itself the tel: link, with
      a 44px target drawn by padding and negative margin. */
   .nf-ix-fact__phone {
@@ -702,6 +709,12 @@
     display: flex;
     flex-wrap: wrap;
     gap: var(--nf-space-xs);
+  }
+  /* A booked viewing's quiet changes (move it, call it off): small, centred
+     under the report's own two buttons and their hint, never competing with
+     them for the one lit primary. */
+  .nf-ix-actions__row--change {
+    justify-content: center;
   }
   /* Add Photos and Submit are the shared lit primary and glass secondary.
      Only their size is this surface's: the render's 56 and 50 render px
