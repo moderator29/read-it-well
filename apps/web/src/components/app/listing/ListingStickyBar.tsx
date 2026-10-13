@@ -75,6 +75,7 @@ export function ListingStickyBar({
   moveInFromLabel,
   secondaryShortLabel,
   sidePanelFromLg = false,
+  stackOnPhone = false,
 }: {
   variant: "stay" | "rental" | "partner";
   priceMinor: number;
@@ -122,6 +123,13 @@ export function ListingStickyBar({
    * pinned twin under it (and the bar no longer runs under the side rail).
    */
   sidePanelFromLg?: boolean;
+  /**
+   * THE PRIMARY TAKES THE WHOLE WIDTH ON A PHONE (founder's reference, 13
+   * October 2026: "Schedule a visit", brand blue, full width). The figure and
+   * the quiet second action share the first row and the primary has the
+   * second to itself, under 40rem; from 40rem the three sit on one row.
+   */
+  stackOnPhone?: boolean;
 }) {
   // Only a stay has a date picker to read from; the hook is optional so the
   // same bar renders on rental and partner pages with no provider above it.
@@ -207,7 +215,7 @@ export function ListingStickyBar({
       <div
         ref={footRef}
         data-testid="listing-sticky-bar"
-        className="nf-detail-foot"
+        className={stackOnPhone ? "nf-detail-foot nf-detail-foot--stacked" : "nf-detail-foot"}
       >
         <p className="nf-detail-foot__lead">
           {amount > 0 ? (

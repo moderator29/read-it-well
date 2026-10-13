@@ -92,7 +92,8 @@ describe.skipIf(!hasBrowser && !process.env.CI)("locale fit: listing detail, res
         import { Section, Stack } from "@/components/app/Screen";
         import { ListingPurchase } from "@/components/app/listing/ListingPurchase";
         import { ListingTenure } from "@/components/app/listing/ListingTenure";
-        import { ListingSpecChips, specChips } from "@/components/app/listing/ListingSpecChips";
+        import { ListingSpecChips } from "@/components/app/listing/ListingSpecChips";
+        import { specChips } from "@/components/app/listing/spec-chips";
         import { ListingAmenities } from "@/components/app/listing/ListingAmenities";
         import { ListingUtilities } from "@/components/app/listing/ListingUtilities";
         import { ListingCodeRow } from "@/components/app/listing/ListingCode";
