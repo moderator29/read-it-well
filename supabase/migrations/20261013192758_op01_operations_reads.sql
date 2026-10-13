@@ -1,4 +1,4 @@
--- DRAFT, not applied. OP01: the seven Operations panels that said "not readable
+-- Applied 13 October 2026. OP01: the seven Operations panels that said "not readable
 -- by an admin yet" get one staff read function each.
 --
 -- WHY: account_deletion_requests, business_transfers, email_outbox and

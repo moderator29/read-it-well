@@ -19,8 +19,8 @@ import {
 } from "./ops-panels-model";
 
 const ROOT = join(__dirname, "../../../../../..");
-const DRAFT = readFileSync(join(ROOT, "supabase/migrations/pending/op01_operations_reads.sql"), "utf8");
-const PROBE = readFileSync(join(ROOT, "supabase/tests/probes-pending/op01-operations-reads.sql"), "utf8");
+const DRAFT = readFileSync(join(ROOT, "supabase/migrations/20261013192758_op01_operations_reads.sql"), "utf8");
+const PROBE = readFileSync(join(ROOT, "supabase/tests/probes/op01-operations-reads.sql"), "utf8");
 
 describe("a missing function keeps the old panels", () => {
   it("reads PostgREST's and Postgres's no-such-function answers as missing", () => {
