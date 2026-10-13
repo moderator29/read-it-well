@@ -716,7 +716,10 @@ export function ApplyWizard({ t, role }: { t: ApplyCopy; role?: SetupRole }) {
         </div>
       </form>
 
-      <p className="mt-sm text-center text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">{a.draftSaved}</p>
+      {/* Once filed, the draft is deleted (above), so "draft saved" would be false. */}
+      {state.ok ? null : (
+        <p className="mt-sm text-center text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">{a.draftSaved}</p>
+      )}
     </div>
   );
 }

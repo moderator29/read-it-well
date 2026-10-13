@@ -37,17 +37,22 @@ async function ownDocumentState(): Promise<
   if (session.state !== "signed-in") return { state: "none" };
   const { data, error } = await session.supabase
     .from("agent_documents")
-    .select("kind, review_status, rejection_reason, uploaded_at")
+    .select("id, kind, review_status, rejection_reason, supersedes_id, uploaded_at")
     .eq("uploader_id", session.user.id)
     .in("kind", ["identity", "address"])
     .order("uploaded_at", { ascending: false })
     .limit(20);
   if (error || !data || data.length === 0) return { state: "none" };
-  const latest = new Map<string, { review_status: string; rejection_reason: string | null }>();
-  for (const row of data as { kind: string; review_status: string; rejection_reason: string | null }[]) {
-    if (!latest.has(row.kind)) latest.set(row.kind, row);
-  }
-  const rows = [...latest.values()];
+  /* EVERY CURRENT DOCUMENT, NOT THE NEWEST OF EACH KIND. The professional
+     application files both sides of an ID as two identity rows in one
+     statement, so "the newest identity row" was whichever the database
+     returned first, and a refused front could hide behind an approved back.
+     A row a later row supersedes is history (lib/agent/supersedes.ts). */
+  type DocRow = { id: string; kind: string; review_status: string; rejection_reason: string | null; supersedes_id: string | null };
+  const all = data as DocRow[];
+  const replaced = new Set(all.map((row) => row.supersedes_id).filter(Boolean));
+  const rows = all.filter((row) => !replaced.has(row.id));
+  const latest = new Set(rows.map((row) => row.kind));
   const rejected = rows.find((row) => row.review_status === "rejected");
   if (rejected) return { state: "rejected", reason: rejected.rejection_reason };
   if (rows.some((row) => row.review_status === "pending")) return { state: "pending" };

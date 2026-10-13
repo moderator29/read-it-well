@@ -352,11 +352,26 @@ export const FIELD_STEP: Record<string, number> = {
 };
 
 /** The earliest screen carrying any of these refusals, for the walk back. */
-export function earliestStep(fieldErrors: Record<string, string> | undefined): number | null {
+/**
+ * Where a field sits on one form when it is not where `FIELD_STEP` puts it.
+ * The owner asks for the NIN on screen one, beside the name; the agent asks
+ * on screen two. Walking an owner's NIN refusal back to screen two left the
+ * person on a screen without the field and without the message.
+ */
+export const ROLE_FIELD_STEP: Partial<Record<RegisterRole, Record<string, number>>> = {
+  owner: { nin: 0 },
+};
+
+export function earliestStep(
+  fieldErrors: Record<string, string> | undefined,
+  role?: RegisterRole,
+): number | null {
   if (!fieldErrors) return null;
+  const own = role ? (ROLE_FIELD_STEP[role] ?? {}) : {};
   let earliest: number | null = null;
   for (const key of Object.keys(fieldErrors)) {
-    const step = FIELD_STEP[key.split(".")[0] ?? ""];
+    const field = key.split(".")[0] ?? "";
+    const step = own[field] ?? FIELD_STEP[field];
     if (step === undefined) continue;
     if (earliest === null || step < earliest) earliest = step;
   }
