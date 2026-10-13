@@ -373,10 +373,15 @@ export const VIEWINGS: DocChapter = {
       id: "reminders",
       heading: "Get reminders",
       body: (
-        <p>
-          The renter and the lister are both reminded twice: the evening before, from 19:00 Lagos time,
-          and again on the day, two hours before the visit.
-        </p>
+        <>
+          <p>The renter and the lister are both reminded three times, in Lagos time:</p>
+          <ul role="list">
+            <li>the evening before, at 19:00;</li>
+            <li>on the morning of the visit, at 08:00;</li>
+            <li>two hours before the visit.</li>
+          </ul>
+          <p>Each reminder says whether the visit is in person or by video.</p>
+        </>
       ),
     },
     {
@@ -430,16 +435,35 @@ export const VIEWINGS: DocChapter = {
     },
     {
       id: "for-listers",
-      heading: "Set your viewing times as a lister",
+      heading: "Manage visits as a lister",
       body: (
-        <p>
-          Publish the days and hours you can show each place. Renters then book a free slot without
-          waiting for you. Agents set them in{" "}
-          <Link href="/agent/inspections" className={A}>
-            Viewings
-          </Link>
-          .
-        </p>
+        <>
+          <p>
+            Open{" "}
+            <Link href="/agent/inspections" className={A}>
+              Inspections
+            </Link>{" "}
+            in your workspace.
+          </p>
+          <ul role="list">
+            <li>
+              <strong>At a glance:</strong> visits today, in the next 7 days, and how many need your
+              answer.
+            </li>
+            <li>
+              <strong>Needs your answer:</strong> open a request to confirm it, offer another time, or
+              decline.
+            </li>
+            <li>
+              <strong>Visit calendar:</strong> a week or a month view, with each visit on the day it is
+              for. Filter by state: requested, proposed, confirmed, done, missed, declined or withdrawn.
+            </li>
+            <li>
+              <strong>When you can show:</strong> beside the calendar, set the days and hours you can show
+              each place. Renters then book a free slot without waiting for you.
+            </li>
+          </ul>
+        </>
       ),
     },
     {
@@ -710,6 +734,7 @@ export const RESTAURANTS: DocChapter = {
           <li>The restaurant confirms the table or declines, and you are told.</li>
           <li>The booking opens its own conversation, so running late is a message.</li>
           <li>It sits in Plans at its time, with a check-in code.</li>
+          <li>Vallo reminds you the evening before and two hours before.</li>
           <li>Show the code when you arrive. The restaurant marks your table seated.</li>
           <li>
             If the restaurant does not answer, Vallo asks you the next day whether you dined. If you and
@@ -757,11 +782,17 @@ export const RESTAURANTS: DocChapter = {
             </li>
             <li>Set your hours, how many people each sitting can take, and your house rules.</li>
             <li>
-              Answer requests in{" "}
+              Open{" "}
               <Link href="/host/reservations" className={A}>
                 Reservations
               </Link>
-              : confirm when you have a table, or decline.
+              . Today at a glance shows covers expected, tables to confirm, seated and done. Tables are
+              listed by day (today, upcoming, earlier), and you can search by guest, note, venue or party
+              size.
+            </li>
+            <li>
+              On each request, confirm when you have a table, or decline. A line shows how many tables the
+              guest kept and missed across Vallo in the last 12 months, counts only; a first-time guest shows none.
             </li>
             <li>
               After the time, mark the table seated (type the diner&rsquo;s six-digit code, or tap

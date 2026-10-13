@@ -185,7 +185,7 @@ export const FAQS: Faq[] = [
   {
     category: "Viewings",
     q: "Will I be reminded about a viewing?",
-    a: "Yes. The renter and the lister are both reminded the evening before (from 19:00 Lagos time) and again two hours before the viewing.",
+    a: "Yes. The renter and the lister are both reminded three times, in Lagos time: the evening before at 19:00, at 08:00 on the day, and two hours before. Each reminder says whether the visit is in person or by video.",
   },
   {
     category: "Viewings",
@@ -274,7 +274,7 @@ export const FAQS: Faq[] = [
   {
     category: "Hosting",
     q: "What happens at a restaurant after I book a table?",
-    a: "Booking a table is free and nothing is paid in advance. The restaurant confirms it, and you pay your bill at the restaurant. After the time, the restaurant marks the table seated or a no-show, using your check-in code. If it does not answer, Vallo asks you the next day whether you dined. Only diners whose table was seated can review.",
+    a: "Booking a table is free and nothing is paid in advance. The restaurant confirms it, Vallo reminds you the evening before and two hours before, and you pay your bill at the restaurant. After the time, the restaurant marks the table seated or a no-show, using your check-in code. If it does not answer, Vallo asks you the next day whether you dined. Only diners whose table was seated can review.",
   },
   {
     category: "Hosting",

@@ -60,6 +60,14 @@ The chapters now sit in seven groups (Start here, Renting and buying, Stays and 
 | `SESSION-1-RESPONSE.md` | D-10 open | Marked fixed |
 | `GAP_AUDIT_2026-09-30.md`, `E2E_SIGNED_IN_2026-09-29.md`, `MIGRATION_REVIEW_2026-09-30.md`, `E2E_AUDIT_2026-09-29.md`, `INTEGRATION_QA_2026-09-30.md`, `FOUNDER_REQUESTS_TRACE_2026-09-29.md` | retired: dated September status reports, superseded by the 13 October audit | Moved to `docs/archive/` with a one-line note at the top |
 
+## Merged during this pass, and documented
+
+- Listing page upgrade (`d17da76e`): `/docs/understanding-a-listing`.
+- Schedule a visit (`45bf26e7`, visit mode `1ea3f4d6`): `/docs/viewings#two-ways` and `#status`, help "How do I book a viewing?".
+- Lister visit calendar on `/agent/inspections`, and visit reminders at 19:00, 08:00 and two hours before, each naming in person or video (`1f4da15b`; the morning stage read live in `private.send_viewing_reminders`): `/docs/viewings#reminders` and `#for-listers`, `/docs/for-agents#viewing-times`, `/docs/for-owners#viewings`.
+- Restaurant desk on `/host/reservations` (`21d52822`; `reservation_guest_records` and the `vallo_send_reservation_reminders` job read live): `/docs/restaurants#for-restaurants` and `#what-happens-next`.
+- The staff Visits page (`/admin/bookings/visits`, read only) is staff only and is not in the public docs; see `docs/ADMIN_CONSOLE.md`.
+
 ## Could not confirm, or left for others
 
 - The escrow or card choice screen (PAY-01) and workspace Terms acceptance (PAY-02) are not built; the docs state them as rules and claim no screen.

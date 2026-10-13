@@ -957,9 +957,10 @@ export const FOR_OWNERS: DocChapter = {
       body: (
         <p>
           Publish the times you can show the place, so renters book a free slot at once. Answer other
-          requests by confirming, offering another time or declining. See{" "}
-          <Link href="/docs/viewings" className={A}>
-            Viewings
+          requests by confirming, offering another time or declining, and see every visit on your visit
+          calendar. See{" "}
+          <Link href="/docs/viewings#for-listers" className={A}>
+            Manage visits as a lister
           </Link>
           . {NO_INSPECTION_FEE}
         </p>
@@ -1067,16 +1068,20 @@ export const FOR_AGENTS: DocChapter = {
     },
     {
       id: "viewing-times",
-      heading: "Publish your viewing times",
+      heading: "Publish viewing times and manage visits",
       body: (
         <p>
           In{" "}
           <Link href="/agent/inspections" className={A}>
-            Viewings
+            Inspections
           </Link>
-          , set the times you can show each place. Renters book a free slot at once, and you see the
-          day&rsquo;s viewings in order, as a route. Answer other requests by confirming, offering
-          another time or declining.
+          , set the times you can show each place, so renters book a free slot at once. Your visit
+          calendar shows today, the next 7 days and the requests that need your answer, by week or by
+          month, with filters. A day&rsquo;s viewings can be laid out in order, as a route. See{" "}
+          <Link href="/docs/viewings#for-listers" className={A}>
+            Manage visits as a lister
+          </Link>
+          .
         </p>
       ),
     },
