@@ -153,11 +153,10 @@ exists for.
 - **The 49 daylight contrast failures.** A whole-harness sweep on the day of the
   decision measured 60 below the floor in light, on 5,264 text-bearing leaves
   across 136 routes. That number is now about a theme that does not ship.
-- **`scripts/design/paper/`.** The two daylight tools that still say something
-  true, `model-vs-chromium.mjs` and `measure-object-ground.mjs`, kept because
-  `model-vs-chromium.mjs` establishes that compositing these PNGs offline is a
-  model of what Chromium paints, mean 1.41 of 255, which is a fact about the
-  artwork's alpha key and the licence for any future offline measurement.
+- **The two daylight measuring tools.** Kept at the time because they showed
+  that compositing these PNGs offline is a model of what Chromium paints, mean
+  1.41 of 255. Removed on 13 October 2026 with the glass PNGs they read; the
+  finding stands as recorded here.
 
 ## 4. What was deliberately left, and why
 

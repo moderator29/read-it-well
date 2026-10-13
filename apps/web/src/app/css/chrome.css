@@ -372,8 +372,8 @@
      * `--nf-brand-edge-soft`, AND THE NUMBER COMES OFF THE REFERENCE.
      *
      * `founder/GOVERNING-home-markets-target.png` is the only image that
-     * draws this dock, and `scripts/design/sample-reference.mjs --chrome`
-     * reads its top border at `#012E78`. Ours measured `#003C94` on a
+     * draws this dock, and its pixels read its top border at `#012E78`
+     * (the image is since removed; the reading stands). Ours measured `#003C94` on a
      * production build: the same hue and about a quarter brighter.
      *
      * Working it back through the mix: the ground is `#000612` and the glow
@@ -618,8 +618,8 @@
    * THE ACTIVE GLYPH IS THE BRAND, NOT A LIGHTENED VERSION OF IT.
    *
    * MATCHED AGAINST `dock: the active slot ink` #0257FD in
-   * `founder/GOVERNING-home-markets-target.png`, read with
-   * `node scripts/design/sample-reference.mjs --chrome`. Ours measured
+   * `founder/GOVERNING-home-markets-target.png`, read off its pixels (the
+   * image is since removed; the reading stands). Ours measured
    * #5DA0FF on a production server, rgb(93 160 255) against rgb(2 87 253):
    * ninety-one out on red, seventy-three on green and two on blue, which is
    * not a hue error at all, it is the ink washed towards white. A vertical

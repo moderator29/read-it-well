@@ -24,8 +24,7 @@ import { FEED_PLACES, FEED_POSTS, FEED_STORIES, REVIEWABLE } from "./fixtures";
  *   ?state=following-empty  Following for somebody in no place
  *   ?reviewable=0        the Review picker's honest empty sheet
  *
- * The sheets, menus and the composer open from the page by a tap, which is
- * what `scripts/design/session-b-shots/feed.mjs` does.
+ * The sheets, menus and the composer open from the page by a tap.
  *
  * INSIDE THE REAL SHELL (the independent audit, 23 September): the page is
  * wrapped in `AppShell` exactly as `(app)/layout.tsx` wraps `/around`, with the

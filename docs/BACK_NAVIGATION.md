@@ -100,6 +100,30 @@ Android goes through `lib/nav/in-page-step.ts`:
   (`use-sheet-history.ts`). Android's back dispatches Escape to the top overlay.
   Neither changes the page.
 
+### Unsaved changes
+
+The host wizard asks before anything unsaved is lost: Save and go back,
+Discard, or Stay. Its own Back, a step jump, a link, a reload and closing the
+tab were always asked about. Since 13 October 2026 the browser's Back button
+(and the Android Chrome back gesture) is too:
+
+- While something is unsaved, `useBackGuard` (`lib/ui/use-back-guard.ts`)
+  pushes one entry at the same address, stamped `nfUnsaved`. Browser Back
+  takes it off instead of leaving, and the wizard asks.
+- Stay pushes the guard again. Save and go back, and Discard, leave through
+  the wizard's own `useBack`, which steps over every entry at this address.
+- The leave waits until the prompt's own sheet entry is off history
+  (`whenSheetsClosed` in `use-sheet-history.ts`). Walking back while that
+  entry was still on top landed one screen too far back in Chromium.
+- The guard is found by its Navigation API key, because a router refresh
+  (every save) wipes custom history state. Browsers without the Navigation
+  API get no guard; everything else is still asked about.
+- With nothing unsaved the guard stays where it is, and a Back that takes it
+  off goes on back at once, so no press is wasted.
+- Not inside the native shell: Android's hardware back has its own handler.
+
+Tested in Chromium by `apps/web/src/lib/ui/use-back-guard.test.ts`.
+
 ### Android hardware back
 
 `lib/native/back-button.ts`, in this order:

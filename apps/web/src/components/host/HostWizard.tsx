@@ -5,6 +5,8 @@ import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useBack } from "@/lib/nav/use-back";
+import { useBackGuard } from "@/lib/ui/use-back-guard";
+import { whenSheetsClosed } from "@/lib/ui/use-sheet-history";
 import { countOf, type Locale } from "@vallo/i18n/core";
 import { useScopedCopy } from "@/lib/i18n/copy-scope";
 import { useMoneyStepUp } from "@/components/app/money/MoneyStepUp";
@@ -191,6 +193,8 @@ function pickText(draft: HostDraft): SavedText {
 /** Where the person is trying to go when the wizard asks about unsaved changes. */
 type Leave =
   | { kind: "back" }
+  /* The browser's own Back (or the Android Chrome gesture): out of the wizard. */
+  | { kind: "history" }
   | { kind: "jump"; index: number }
   | { kind: "link"; href: string };
 
@@ -493,6 +497,9 @@ export function HostWizard({
    * when the step (or a typed field) has anything not yet saved: Save and go
    * back, Discard, or Stay. A browser leaving the page gets the browser's own
    * prompt (`beforeunload`), which is the only one a page may show there.
+   * The browser's Back button gets this prompt too: `useBackGuard` holds one
+   * history entry while anything is unsaved, so Back takes that entry off
+   * and the wizard asks (docs/BACK_NAVIGATION.md, "Unsaved changes").
    */
   const textDirty = draft.businessId
     ? differs(pickText(draft), savedText)
@@ -515,10 +522,12 @@ export function HostWizard({
       }
       return;
     }
-    if (at === 0) {
+    if (target.kind === "history" || at === 0) {
       /* Leave the way the person came in (the Create sheet, the host
-         landing), not by stacking a second `/host` on top. */
-      leave();
+         landing), not by stacking a second `/host` on top. Only once the
+         prompt's own history entry is off: walking back while it is still
+         on top landed one screen too far back. */
+      whenSheetsClosed(leave);
       return;
     }
     setAt((i) => Math.max(0, i - 1));
@@ -530,6 +539,11 @@ export function HostWizard({
   };
   const back = () => attempt({ kind: "back" });
   const jumpTo = (index: number) => attempt({ kind: "jump", index });
+  /* The browser's Back, which only reaches here while something is unsaved. */
+  useBackGuard(isDirty(), () => {
+    setNotice(null);
+    setLeaving({ kind: "history" });
+  });
 
   const discardAndGo = () => {
     const target = leaving;
@@ -674,7 +688,7 @@ export function HostWizard({
             </p>
           )}
           <Button variant="primary" size="lg" full loading={savingLeave} disabled={savingLeave} onClick={() => void saveAndGo()}>
-            {leaving?.kind === "back" ? "Save and go back" : "Save and go"}
+            {leaving?.kind === "back" || leaving?.kind === "history" ? "Save and go back" : "Save and go"}
           </Button>
           <Button variant="secondary" size="lg" full disabled={savingLeave} onClick={discardAndGo}>
             Discard

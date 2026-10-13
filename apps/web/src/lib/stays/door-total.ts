@@ -9,6 +9,8 @@
  * advance and is listed, never added. Integer kobo, pure, client-safe.
  */
 
+import { declaredCharges, type ArrivalCharges, type ArrivalKey, type ArrivalUnit } from "./arrival-charges";
+
 export type DoorCharge = {
   key: string;
   label: string;
@@ -39,4 +41,26 @@ export function doorLines(charges: readonly DoorCharge[], nights: number, guests
 /** The price and every countable door charge, in kobo. */
 export function allInMinor(priceMinor: number, lines: readonly DoorLine[]): number {
   return lines.reduce((total, line) => total + (line.forStayMinor ?? 0), priceMinor);
+}
+
+/** The words a declared charge is drawn with: each key's name and each unit. */
+export type DoorChargeWords = {
+  keys: Record<ArrivalKey, string>;
+  units: Record<ArrivalUnit, string>;
+};
+
+/**
+ * A complete declaration as the charges a guest reads, named in their
+ * language; "none" answers are left out. The one mapping every surface uses,
+ * so the stay page, the listing page and checkout name a charge the same way.
+ */
+export function toDoorCharges(declaration: ArrivalCharges | null | undefined, words: DoorChargeWords): DoorCharge[] {
+  if (!declaration) return [];
+  return declaredCharges(declaration).map((charge) => ({
+    key: charge.key,
+    label: words.keys[charge.key],
+    minor: charge.minor,
+    per: charge.per,
+    perLabel: words.units[charge.per],
+  }));
 }

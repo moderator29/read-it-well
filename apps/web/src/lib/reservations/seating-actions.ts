@@ -33,6 +33,7 @@ import {
   verifyTransaction,
 } from "../payments/paystack";
 import { assertProviderEnabled, openCheckout, paystackSeam } from "../payments/providers";
+import { isBillReference } from "../payments/references";
 import { getAdminClient } from "@/lib/supabase/service";
 import {
   PAY_BILL_NOT_AVAILABLE,
@@ -49,7 +50,6 @@ type Rpc = {
 };
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const BILL_REFERENCE = /^rm-bill-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 type Answer = { status?: string } & Record<string, unknown>;
 
@@ -203,7 +203,7 @@ export async function payTableBill(billId: string): Promise<ActionResult<BillChe
   const shareMinor = Number(opened.restaurant_share_minor);
   const subaccount = typeof opened.payee_subaccount_code === "string" ? opened.payee_subaccount_code : "";
   if (
-    !BILL_REFERENCE.test(reference) ||
+    !isBillReference(reference) ||
     !Number.isSafeInteger(amountMinor) ||
     amountMinor <= 0 ||
     !Number.isSafeInteger(shareMinor) ||
@@ -252,7 +252,7 @@ export async function payTableBill(billId: string): Promise<ActionResult<BillChe
 export async function confirmTableBillReturn(reference: string): Promise<ActionResult<{ paid: boolean }>> {
   const session = await resolveSession();
   if (session.state !== "signed-in") return fail(SIGNED_OUT_MESSAGE);
-  if (!BILL_REFERENCE.test(reference ?? "")) return fail(seatingRefusal("not_found"));
+  if (!isBillReference(reference ?? "")) return fail(seatingRefusal("not_found"));
   if (!isPaystackConfigured()) return fail(PAY_BILL_NOT_AVAILABLE);
   const admin = getAdminClient();
   if (!admin) return fail(PAY_BILL_NOT_AVAILABLE);

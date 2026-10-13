@@ -89,9 +89,21 @@ export const CRYPTO_PREFIX = "rm-yc-";
  * through `reservation_deposit_settle`, never `settle_booking_charge`.
  */
 export const DEPOSIT_PREFIX = "rm-dep-";
+/**
+ * A restaurant bill paid through Vallo (`public.restaurant_bills`), minted by
+ * `restaurant_bill_open`. Settled through `restaurant_bill_settle`, by the
+ * webhook or the diner's return, whichever arrives first.
+ */
+export const BILL_PREFIX = "rm-bill-";
 
 const REFERENCE_UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** True for a restaurant bill reference the database minted (shape-checked). */
+export function isBillReference(value: string): boolean {
+  if (!value.startsWith(BILL_PREFIX)) return false;
+  return REFERENCE_UUID_RE.test(value.slice(BILL_PREFIX.length));
+}
 
 /** A fresh reference for one payment attempt against a booking. */
 export function bookingReference(): string {

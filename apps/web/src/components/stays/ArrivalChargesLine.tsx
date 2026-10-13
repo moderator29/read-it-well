@@ -1,6 +1,8 @@
 import { formatMoney, getDictionary, type Locale } from "@vallo/i18n";
 import { declaredCharges } from "@/lib/stays/arrival-charges";
 import { readBookingSnapshot, readDeclaration } from "@/lib/stays/arrival-queries";
+import { toDoorCharges } from "@/lib/stays/door-total";
+import { DoorTotal } from "./DoorTotal";
 
 /**
  * V-57. "At the door": what this stay's host declared a guest can be asked
@@ -9,12 +11,17 @@ import { readBookingSnapshot, readDeclaration } from "@/lib/stays/arrival-querie
  * Given a booking that has been paid, it shows what was declared at payment,
  * not whatever the host has declared since. Callers render it only for a
  * stay: never on a rent charge.
+ *
+ * Given the stay itself (checkout), each charge is worked out for its nights
+ * and party and the all-in figure is drawn under them (`DoorTotal`), so the
+ * guest reads the whole cost on the screen where they pay.
  */
 export async function ArrivalChargesLine({
   listingId,
   accommodationId,
   bookingId,
   locale,
+  stay,
 }: {
   /** A listing stay's listing, or null for a hotel room. */
   listingId: string | null;
@@ -22,6 +29,8 @@ export async function ArrivalChargesLine({
   accommodationId?: string | null;
   bookingId?: string;
   locale: Locale;
+  /** The nights, the party and what is paid through Vallo, in kobo, for the all-in figure. */
+  stay?: { nights: number; guests: number; priceMinor: number };
 }) {
   const copy = getDictionary(locale).afterTheGate.arrival;
   const snapshot = bookingId ? await readBookingSnapshot(bookingId) : null;
@@ -31,6 +40,21 @@ export async function ArrivalChargesLine({
     : await readDeclaration(listingId ? { listingId } : { accommodationId: accommodationId ?? undefined });
   if (declaration === undefined) return null;
   const owed = declaration ? declaredCharges(declaration) : [];
+  if (stay && owed.length > 0) {
+    return (
+      <div data-testid="arrival-charges-line">
+        <DoorTotal
+          charges={toDoorCharges(declaration, copy)}
+          nights={stay.nights}
+          guests={stay.guests}
+          priceMinor={stay.priceMinor}
+          locale={locale}
+          copy={copy}
+          note={copy.guestOnly}
+        />
+      </div>
+    );
+  }
   return (
     <section className="nf-panel nf-panel--card block p-md" data-testid="arrival-charges-line" aria-label={copy.guestHeading}>
       <h2 className="nf-h4">{copy.guestHeading}</h2>

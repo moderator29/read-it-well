@@ -626,6 +626,32 @@ export const ha: Dictionary = withFallback({
     rulesLink: "Ƙa'idodin Al'umma",
   },
 
+  /* The sign-in screen's notices. Machine draft, 13 October 2026: needs a
+     native Hausa speaker's review. */
+  authFlow: {
+    notices: {
+      "link-expired": "Wannan mahaɗin ya ƙare ko an riga an yi amfani da shi. Shiga a ƙasa, ko ka nemi sabon mahaɗi.",
+      "link-invalid": "Wannan mahaɗin bai cika ba. Shiga a ƙasa kuma zai yi aiki kamar yadda ya saba.",
+      unconfigured: "Ba za mu iya isa ga asusu yanzu ba. Babu abin da ka rubuta da ya ɓace.",
+      "signed-out": "Ka fita. Shiga duk lokacin da ka shirya.",
+      "sign-in-required": "Shiga don buɗe wannan. Ba ya ɗaukar lokaci, kuma sabon asusu kyauta ne.",
+      "catalogue-paced":
+        "Ka buɗe shafuka da yawa cikin ƴan mintuna. Shiga don ci gaba da dubawa, ko ka dawo bayan ƴan mintuna.",
+      "passcode-reset": "Shiga da kalmar sirrinka, sannan ka zaɓi sabuwar lambar sirri.",
+      "passcode-locked":
+        "An shigar da lambar sirrinka ba daidai ba sau da yawa, don haka an fitar da kai. Shiga, sannan ka zaɓi sabuwar lambar sirri.",
+    },
+  },
+
+  /* The public agent check's warning. Machine draft, 13 October 2026. */
+  publicDoors: {
+    warning: {
+      share: "Raba wannan gargaɗin",
+      text: "Wannan lambar ba ta wakilin Vallo mai rajista ba ce. Duba kowane wakili a {url}",
+      note: "Saƙon bai ƙunshi lambar da ka duba ba.",
+    },
+  },
+
   auth: {
     welcomeBack: "Barka da dawowa",
     signInToContinue: "Shiga don ci gaba",
@@ -809,6 +835,15 @@ export const ha: Dictionary = withFallback({
 },
 
   settings: {
+    /* SEC-15's notice of a move to another email address. Machine draft, 13 October 2026. */
+    addressMove: {
+      title: "Buƙatar mayar da asusunka zuwa wani adireshin imel",
+      body: "Ƙungiyar tallafinmu ta buɗe buƙatar mayar da wannan asusun zuwa {address}. Ba zai kammala ba kafin {when}.",
+      afterNotice: "awanni 72 bayan mun aika imel zuwa wannan adireshin game da shi",
+      ifYou: "Idan kai ne ka nemi wannan, babu abin da za ka yi.",
+      cancel: "Ba ni ba ne, soke shi",
+      cancelled: "An soke shi. Asusunka yana nan a wannan adireshin.",
+    },
     /** The settings home to `7F96BE6C`: the headline, the profile row, the hub rows. */
     hub: {
       lede: "Sarrafa asusunka, zaɓinka da hanyoyin biyan kuɗi.",
@@ -1498,12 +1533,22 @@ export const ha: Dictionary = withFallback({
       addMore: "Ƙara ƙarin hotuna",
       uploading: "Ana lodawa",
       progress: "{count} cikin {min} da ake buƙata",
-      empty: "Babu hoto tukuna. Hasken rana, faɗin hoto da ɗaki mai tsafta suna yin aikin.",
+      empty: "Babu hoto ko bidiyo tukuna. Hasken rana, faɗin hoto da ɗaki mai tsafta suna yin aikin.",
+      recommend: "Ƙara {more} don jeri mai ƙarfi.",
       cover: "Hoton gaba",
       makeCover: "Mai da shi hoton gaba",
       remove: "Cire",
       ceiling: "Jeri ɗaya yana ɗaukar hotuna {max} kacal.",
-      notAnImage: "Hotuna dole su zama fayilolin hoto, misali JPG ko PNG.",
+      notAnImage: "Ƙara hotuna (misali JPG ko PNG) ko bidiyo (MP4, MOV ko WebM).",
+      /* The video gate's notices. Machine draft, 13 October 2026. */
+      video: "Bidiyo",
+      videoTooLong: "Bidiyo zai iya kai tsawon daƙiƙa {seconds}. Yanke wannan, sannan ka sake ƙara shi.",
+      videoTooBig: "Wannan bidiyon ya wuce {max}. Ɗauki gajeren bidiyo, ko ka fitar da shi a ƙaramin inganci.",
+      videoUnreadable: "Ba a iya buɗe wannan bidiyon ba. Gwada sake fitar da shi a matsayin MP4.",
+      videoCeiling: "Jeri ɗaya yana ɗaukar bidiyo {max} kacal.",
+      videoFailed: "Wannan bidiyon bai gama lodawa ba. Da fatan za a sake gwadawa.",
+      videoUploading: "Ana loda {name}, {percent}%",
+      retry: "Sake gwadawa",
       notPrepared:
         "Ba mu iya shirya wannan hoton lafiya ba, don haka ba a loda shi ba. Ka gwada wani hoto.",
       uploadFailed: "Wannan hoton bai gama lodawa ba. Don Allah ka sake gwadawa.",

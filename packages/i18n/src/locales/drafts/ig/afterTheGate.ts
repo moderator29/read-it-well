@@ -280,6 +280,11 @@ export const afterTheGateIg = {
     reportSubmit: "Kọọ ya",
     reportSent: "Akọọla. Ndị enyemaka nwere ya ya na ndebe gị.",
     publishNeeds: "Buru ụzọ kwuo ụgwọ n'ọnụ ụzọ (ise niile, ego ma ọ bụ enweghị), wee bipụta.",
+    perLine: "{amount} kwa {per}",
+    returned: "A ga-eweghachi ya dịka iwu e dere si",
+    asUsed: "Dịka e jiri ya",
+    allIn: "Ihe niile maka ọnọdụ a",
+    allInNote: "Ọnụahịa ahụ na ụgwọ ọ bụla onye nnabata dere. A gaghị arịọ ihe ọzọ n'ọnụ ụzọ.",
   },
   shots: {
     heading: "Kwuo ihe foto ọ bụla na-egosi",

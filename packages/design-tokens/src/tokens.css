@@ -102,11 +102,12 @@
    * `--nf-electric-300`, AND IT IS THE ONE VALUE IN THIS FILE THAT WAS
    * MEASURED RATHER THAN CHOSEN.
    *
-   * The founder put the built landing beside
-   * `docs/design/references/GOVERNING-landing-desktop-hero.png` and said the
+   * The founder put the built landing beside the governing landing hero
+   * reference and said the
    * blue was wrong: hotter, wider and more saturated than the reference. He
-   * was right, and eyeballing it again was never going to settle it, so
-   * `scripts/design/sample-reference.mjs` reads the reference PNG itself.
+   * was right, and eyeballing it again was never going to settle it, so the
+   * reference PNG was sampled pixel by pixel (the reference images and their
+   * sampler were removed on 13 October 2026; the readings below stand).
    *
    * The primary button in that image samples `#0167FE` at the left end of its
    * gradient and `#006DFE` at the right, which is one colour rather than a
@@ -1601,8 +1602,8 @@
    * corrected once against the ledger's own first reading.
    *
    * The founder's ruling is that the primary blue control is lit in every
-   * reference and ours is flat. Ledger section 13 has the full measurement and
-   * the instrument is `scripts/design/measure-glow.mjs`, so none of this has
+   * reference and ours is flat. Ledger section 13 has the full measurement,
+   * read off the reference pixels rather than guessed, so none of this has
    * to be re-guessed.
    *
    * THE FILL IS A SPECULAR CURVE, NOT A RAMP: light, deep, light again, a
@@ -1777,9 +1778,9 @@
   /*
    * THE SCALE CAME DOWN, AND THE MEASUREMENT IS WHY.
    *
-   * `scripts/design/sample-reference.mjs` walks outward from the primary
-   * button's right edge in the governing reference, five pixels at a time,
-   * and prints what is there. The light is gone by twenty pixels:
+   * Walking outward from the primary button's right edge in the governing
+   * reference, five pixels at a time, read what is there. The light is gone
+   * by twenty pixels:
    *
    *     x=360  #0380FB   on the button
    *     x=365  #43489D
@@ -2108,9 +2109,8 @@
    * tokens are the answer to it.
    *
    * EVERY VALUE HERE IS A PIXEL SOMEBODY MEASURED, NOT A COLOUR SOMEBODY
-   * CHOSE. Each one names the `scripts/design/sample-reference.mjs --chrome`
-   * sample it came from, so a disagreement is settled by re-running the
-   * sampler rather than by argument. Nothing in this block touches
+   * CHOSE. Each one names the reference sample it came from, so a
+   * disagreement is settled by the recorded reading rather than by argument. Nothing in this block touches
    * `--nf-brand-edge`, `--nf-brand-primary` or the `--nf-electric-*` family:
    * the accent family was corrected by pure hue rotation onto the measured
    * 215.2 degrees at `2274ad0` and is settled.
