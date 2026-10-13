@@ -246,9 +246,16 @@ const STEPS: Record<StepId, Step> = {
  * than they are going to get, and it never pads the count with a step somebody
  * is not going to be asked.
  */
-export function stepsFor(business: boolean | null): Step[] {
-  const ids: StepId[] = ["identity-document", "address-document", "business-question"];
-  if (business === true) ids.push("business-details");
+export function stepsFor(business: boolean | null, askBusiness = true): Step[] {
+  const ids: StepId[] = ["identity-document", "address-document"];
+  /* `askBusiness` is false when the answers could not be filed: the business
+     details live on the application, and an application that is submitted,
+     under review or decided cannot be edited by its applicant, so the eight
+     fields were collected, shown back on the review step, and dropped. */
+  if (askBusiness) {
+    ids.push("business-question");
+    if (business === true) ids.push("business-details");
+  }
   ids.push("consent", "review");
   return ids.map((id) => STEPS[id]);
 }
@@ -303,10 +310,11 @@ export const BUSINESS_SECTIONS: readonly BusinessSection[] = [
     key: "contact",
     heading: "Contact",
     note: "How a client, and how we, reach the business.",
+    /* No website field. It was asked, printed on the review step and then
+       dropped, because `agent_applications` has no column for it. */
     fields: [
       { name: "businessPhone", label: "Business phone", type: "tel" },
       { name: "businessEmail", label: "Business email", type: "email" },
-      { name: "website", label: "Website or social page", type: "url", optional: true },
     ],
   },
   {

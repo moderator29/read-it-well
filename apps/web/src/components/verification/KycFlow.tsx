@@ -64,6 +64,7 @@ export function KycFlow({
   submit,
   success,
   copy,
+  askBusiness = true,
 }: {
   /** The flow's words, from the server page. */
   copy: KycCopy;
@@ -74,6 +75,13 @@ export function KycFlow({
    * genuinely stored and queued for review.
    */
   submit: (submission: KycSubmission) => Promise<KycSubmitResult>;
+  /**
+   * Whether the business question is asked at all. The page turns it off
+   * when the person's application can no longer take the answers (submitted,
+   * under review or decided), because `submitVerification` could only drop
+   * them. See `stepsFor`.
+   */
+  askBusiness?: boolean;
 }) {
   const [at, setAt] = useState(0);
   const [business, setBusiness] = useState<boolean | null>(null);
@@ -93,7 +101,7 @@ export function KycFlow({
   const [failure, setFailure] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
 
-  const steps = stepsFor(business);
+  const steps = stepsFor(business, askBusiness);
   const step = steps[Math.min(at, steps.length - 1)]!;
   const submission: KycSubmission = { documents, business: business === true, businessDetails, consents };
 
@@ -370,7 +378,7 @@ export function KycFlow({
             <ul className="nf-panel nf-panel--card block divide-y divide-[var(--nf-divider)] p-0">
               <ReviewRow label={copy.identityRow} value={documents.identity?.name ?? copy.missing} />
               <ReviewRow label={copy.addressRow} value={documents.address?.name ?? copy.missing} />
-              <ReviewRow label={copy.businessRow} value={business ? copy.yes : copy.no} />
+              {askBusiness ? <ReviewRow label={copy.businessRow} value={business ? copy.yes : copy.no} /> : null}
               {business &&
                 BUSINESS_SECTIONS.flatMap((s) => s.fields).map((field) => (
                   <ReviewRow

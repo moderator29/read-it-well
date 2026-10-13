@@ -19,6 +19,7 @@ import {
   type KycStatusView,
 } from "@/components/verification/KycStatus";
 import { resolveSession } from "@/lib/actions/session";
+import { readMyApplication } from "@/lib/agent/application-status";
 import { submitVerification } from "./actions";
 
 /**
@@ -107,7 +108,23 @@ export default async function VerificationPage({
         merchantCode={merchantCode}
       />
     ) : null;
-  const [ladder, documents] = await Promise.all([getOwnLadder(context), ownDocumentState()]);
+  const [ladder, documents, mine] = await Promise.all([
+    getOwnLadder(context),
+    ownDocumentState(),
+    readMyApplication(),
+  ]);
+  /* THE BUSINESS QUESTION IS ASKED ONLY WHERE THE ANSWERS CAN BE FILED.
+     `submitVerification` writes the business details onto the application,
+     and an applicant can change their application only while it is a draft
+     or sent back to them (`agent_applications_update_own`). With no
+     application it opens one carrying them. Anything else (submitted, under
+     review, approved, refused) took eight answers, printed them on the
+     review step and dropped them, and an approved agent is who this page
+     mostly serves. */
+  const askBusiness =
+    mine.state !== "found" ||
+    mine.application.status === "DRAFT" ||
+    mine.application.status === "MORE_INFO_REQUIRED";
   /* THE PATH (W6, reference 7110): four rungs, each naming what is actually
      checked, built only from the reviewers' own decisions and the documents'
      own review state. See `components/verification/verification-path.ts`. */
@@ -307,7 +324,7 @@ export default async function VerificationPage({
         )}
         {pep}
         {vnin}
-        <KycFlow submit={submitVerification} success={getDictionary(locale).success} copy={t.experienceAccount.kyc} />
+        <KycFlow submit={submitVerification} success={getDictionary(locale).success} copy={t.experienceAccount.kyc} askBusiness={askBusiness} />
       </div>
     );
   }
@@ -345,7 +362,7 @@ export default async function VerificationPage({
           <div className="mb-block">{path}</div>
           {pep}
           {vnin}
-          <KycFlow submit={submitVerification} success={getDictionary(locale).success} copy={t.experienceAccount.kyc} />
+          <KycFlow submit={submitVerification} success={getDictionary(locale).success} copy={t.experienceAccount.kyc} askBusiness={askBusiness} />
         </>
       )}
     </div>
