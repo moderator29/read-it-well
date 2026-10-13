@@ -1,4 +1,4 @@
--- DRAFT, NOT APPLIED. The owner's proof of ownership, the "Ownership seen"
+-- PENDING (constraints only; the functions and the trigger are applied). The owner's proof of ownership, the "Ownership seen"
 -- mark it earns, and one supply side per account. Founder decisions of
 -- 13 October 2026.
 --
@@ -43,6 +43,8 @@
 -- owner with an APPROVED owner application, insert an agent application:
 -- expect 42501; the same insert on a fresh account succeeds.
 
+-- THE TWO CONSTRAINTS BELOW ARE THE ONLY PART NOT YET APPLIED. Run them in the dashboard SQL editor.
+
 begin;
 
 alter table public.agent_documents
@@ -71,100 +73,5 @@ alter table public.agent_applications
         'none'
       )
     );
-
-create or replace function public.ownership_seen_at(p_user uuid)
-returns timestamptz
-language sql
-stable
-security definer
-set search_path to ''
-as $$
-  select max(d.reviewed_at)
-    from public.agent_documents d
-   where d.uploader_id = p_user
-     and d.kind = 'ownership'
-     and d.listing_id is null
-     and d.review_status = 'approved'
-     and not exists (select 1 from public.agent_documents s where s.supersedes_id = d.id)
-     and exists (select 1 from public.agents a where a.user_id = p_user and a.role::text = 'owner');
-$$;
-
-comment on function public.ownership_seen_at(uuid) is
-  'When a reviewer approved this owner''s current proof of ownership filed with their registration, or null. Draws the "Ownership seen" mark. Leaks no document, only a date.';
-
-revoke all on function public.ownership_seen_at(uuid) from public;
-grant execute on function public.ownership_seen_at(uuid) to anon, authenticated;
-
-/* The same date for a listing's lister, so the listing page need not know
-   the lister's account id, which no public read carries. A listing listed by
-   an agent never shows it: the mark is the owner's own. */
-create or replace function public.listing_ownership_seen_at(p_listing uuid)
-returns timestamptz
-language sql
-stable
-security definer
-set search_path to ''
-as $$
-  select public.ownership_seen_at(a.user_id)
-    from public.listings l
-    join public.agents a on a.id = l.agent_id
-   where l.id = p_listing
-     and l.status::text = 'PUBLISHED'
-     and a.role::text = 'owner';
-$$;
-
-revoke all on function public.listing_ownership_seen_at(uuid) from public;
-grant execute on function public.listing_ownership_seen_at(uuid) to anon, authenticated;
-
-create or replace function private.one_side_per_account()
-returns trigger
-language plpgsql
-security definer
-set search_path to ''
-as $function$
-declare
-  uid uuid := auth.uid();
-  wanted text := case when new.supply_role = 'owner' then 'owner' else 'agent' end;
-  held text;
-begin
-  if current_user not in ('authenticated', 'anon') then
-    return new;
-  end if;
-  if uid is not null
-     and (private.has_role(uid, 'admin'::public.app_role)
-          or private.has_role(uid, 'super_admin'::public.app_role)) then
-    return new;
-  end if;
-
-  select case when a.role::text = 'owner' then 'owner' else 'agent' end
-    into held
-    from public.agents a
-   where a.user_id = new.user_id;
-
-  if held is null then
-    select case when x.supply_role = 'owner' then 'owner' else 'agent' end
-      into held
-      from public.agent_applications x
-     where x.user_id = new.user_id
-       and x.id <> new.id
-       and x.status in ('SUBMITTED', 'UNDER_REVIEW', 'MORE_INFO_REQUIRED', 'APPROVED')
-       and (case when x.supply_role = 'owner' then 'owner' else 'agent' end) <> wanted
-     limit 1;
-  end if;
-
-  if held is not null and held <> wanted then
-    raise exception 'This account is already % account. One account holds one side; apply from a separate account.',
-      case when held = 'owner' then 'an owner''s' else 'an agent''s' end
-      using errcode = '42501';
-  end if;
-  return new;
-end;
-$function$;
-
-revoke all on function private.one_side_per_account() from public, anon, authenticated;
-
-create or replace trigger agent_applications_02_one_side_per_account
-  before insert on public.agent_applications
-  for each row execute function private.one_side_per_account();
 
 commit;

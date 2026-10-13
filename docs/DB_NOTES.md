@@ -40,3 +40,42 @@ select 'drop function ' || p.oid::regprocedure || ';' as stmt
 ```
 
 Run the statements it prints.
+
+## 3. Owner proof of ownership: two constraints (run once, needed for the ownership upload)
+
+The ownership document upload and the "Ownership seen" badge are built and the supporting
+functions are live, but two CHECK constraints must be widened first. Until then an owner's
+ownership document cannot attach and the "Letter of authority" answer is refused.
+
+```sql
+begin;
+
+alter table public.agent_documents
+  drop constraint if exists agent_documents_property_kinds_name_a_listing;
+alter table public.agent_documents
+  add constraint agent_documents_property_kinds_name_a_listing
+    check (
+      kind not in ('ownership', 'mandate')
+      or listing_id is not null
+      or (kind = 'ownership' and application_id is not null)
+    );
+
+alter table public.agent_applications
+  drop constraint if exists agent_applications_ownership_document_known;
+alter table public.agent_applications
+  add constraint agent_applications_ownership_document_known
+    check (
+      ownership_document is null
+      or ownership_document in (
+        'certificate_of_occupancy',
+        'deed_of_assignment',
+        'governors_consent',
+        'survey_plan',
+        'utility_bill',
+        'letter_of_authority',
+        'none'
+      )
+    );
+
+commit;
+```
