@@ -3103,6 +3103,8 @@ export const ig: Dictionary = withFallback({
       theLister: "onye depụtara ya",
       allFacts: "Gosi nkọwa niile",
       fewerFacts: "Gosi nkọwa ole na ole",
+      highlights: "Isi ihe",
+      hoursADay: "{hours} kwa ụbọchị",
       verifiedBeforeLive: "Onye na Vallo lere akwụkwọ njirimara ha anya tupu ndepụta a apụta.",
       managesListing: "Ọ na-elekọta ndepụta a na Vallo",
       restaurantLede: "Onye na-arụ ebe a depụtara ya na Vallo. Zigara ha ozi ka ị jụọ maka tebụl, otu buru ibu ma ọ bụ ihe ọ bụla peeji a azaghị.",

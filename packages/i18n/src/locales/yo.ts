@@ -3117,6 +3117,8 @@ export const yo: Dictionary = withFallback({
       theLister: "ẹni tó kọ ọ́ sílẹ̀",
       allFacts: "Fi gbogbo àlàyé hàn",
       fewerFacts: "Fi àlàyé díẹ̀ hàn",
+      highlights: "Àwọn kókó",
+      hoursADay: "{hours} lójúmọ́",
       verifiedBeforeLive: "Ẹnìkan ní Vallo ṣàyẹ̀wò ìdánimọ̀ wọn kí àkọsílẹ̀ yìí tó jáde.",
       managesListing: "Ó ń bójútó àkọsílẹ̀ yìí lórí Vallo",
       restaurantLede: "Ẹni tó ń ṣiṣẹ́ ibí ló kọ ọ́ sílẹ̀ lórí Vallo. Fi ìránṣẹ́ ránṣẹ́ sí wọn láti béèrè nípa tábìlì, àwùjọ ńlá tàbí ohunkóhun tí ojú-ìwé yìí kò dáhùn.",

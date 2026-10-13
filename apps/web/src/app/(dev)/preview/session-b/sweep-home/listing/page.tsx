@@ -13,6 +13,8 @@ import { ListingStickyBar } from "@/components/app/listing/ListingStickyBar";
 import { ListingSpecChips } from "@/components/app/listing/ListingSpecChips";
 import { ListingPhotoGrid } from "@/components/app/listing/ListingPhotoGrid";
 import { ListingSummaryCard } from "@/components/app/listing/ListingSummaryCard";
+import { ListingHighlights } from "@/components/app/listing/ListingHighlights";
+import { listingHighlights } from "@/components/app/listing/highlights";
 import { PhotoViewerProvider } from "@/components/app/listing/PhotoViewer";
 import { specChips } from "@/components/app/listing/spec-chips";
 import { listingMedia } from "@/components/app/listing/gallery-media";
@@ -56,6 +58,7 @@ export default async function SweepListing() {
     reviewCount: 12,
     furnished: "fully_furnished" as const,
     floor: 1,
+    utilities: { powerGrid: "BAND_A" as const, powerBackup: "GENERATOR_INVERTER" as const, powerBackupHours: 6, waterSupply: "BOREHOLE" as const, hasEstateAccess: true },
     videos: [{ url: "/brand/photos/villa-pool-terrace.jpg", posterUrl: "/brand/photos/villa-pool-terrace.jpg", durationSeconds: 42, position: 2 }],
   };
   const media = listingMedia(listing.photos, listing.videos);
@@ -75,7 +78,7 @@ export default async function SweepListing() {
     <SweepFrame route="/listing/fixture">
       <PhotoViewerProvider title={listing.title} photos={listing.photos} media={media} hue={listing.hue} kind={listing.kind}>
         <div className="nf-cat-surface mx-auto max-w-6xl">
-          <div className="grid lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start lg:gap-2xl">
+          <div className="nf-detail-grid grid lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start lg:gap-2xl">
             <div className="min-w-0">
               <ListingGallery
                 listingId={listing.id}
@@ -120,6 +123,11 @@ export default async function SweepListing() {
                       />
                     </div>
                   </Section>
+
+                  <ListingHighlights items={listingHighlights(listing, t, locale, true)} title={d.highlights} />
+                  <div data-testid="lead-amenities">
+                    <ListingAmenityTiles variant="plates" amenities={listing.amenities} limit={5} moreHref="#amenities" moreLabel={d.more} />
+                  </div>
 
                   <div data-testid="detail-lead-move-in">
                     <ListingMoveInBlock listing={listing} locale={locale} t={t} />

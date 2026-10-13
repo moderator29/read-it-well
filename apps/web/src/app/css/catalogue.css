@@ -2146,6 +2146,122 @@
       var(--nf-elevation-floating);
   }
 
+  /* THE AMENITY ROW (founder's "Property Detail" reference): round monochrome
+     plates with the word under each, five and a "+N", equal columns. */
+  /* One row: five columns on a phone (four plates and "+N"), six from 30rem
+     (five and "+N"). Six squeezed onto a phone ran "Swimming pool" into its
+     neighbour; the fifth plate waits for the room instead. */
+  .nf-amenity-plates {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: var(--nf-space-xs);
+  }
+  .nf-amenity-plate.nf-amenity-plate--wide {
+    display: none;
+  }
+  @media (min-width: 30rem) {
+    .nf-amenity-plates {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+    .nf-amenity-plates .nf-amenity-plate--wide {
+      display: flex;
+    }
+    .nf-amenity-plates .nf-amenity-plate--narrow {
+      display: none;
+    }
+  }
+  .nf-amenity-plate,
+  .nf-amenity-plate__more {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: center;
+    color: var(--nf-content-secondary);
+    text-decoration: none;
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+  .nf-amenity-plate__more:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+    border-radius: var(--nf-radius-sm);
+  }
+  .nf-amenity-plate .nf-plate {
+    font-size: var(--nf-text-caption);
+    font-weight: 700;
+  }
+
+  /* THE HIGHLIGHTS STRIP: the one brand-blue card on the page, the primary
+     action's own fill, two or three answered facts across it. */
+  .nf-highlights {
+    padding: var(--nf-space-md);
+    border-radius: var(--nf-container-radius);
+    background: var(--nf-act-fill);
+    box-shadow: var(--nf-act-shadow);
+    color: var(--nf-act-on);
+  }
+  .nf-highlights__title {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 700;
+    text-align: center;
+  }
+  .nf-highlights__row {
+    display: grid;
+    grid-auto-columns: minmax(0, 1fr);
+    grid-auto-flow: column;
+    gap: var(--nf-space-sm);
+    margin-top: var(--nf-space-sm);
+  }
+  .nf-highlights__item {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--nf-space-3xs);
+    text-align: center;
+  }
+  .nf-highlights__plate {
+    display: grid;
+    width: 2.5rem;
+    height: 2.5rem;
+    margin-bottom: var(--nf-space-3xs);
+    place-items: center;
+    border-radius: var(--nf-radius-circle);
+    background: color-mix(in oklab, var(--nf-act-on) 18%, transparent);
+  }
+  .nf-highlights__value {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 700;
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
+  }
+  .nf-highlights__label {
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    line-height: 1.2;
+    opacity: 0.85;
+  }
+
+  /* In the two-column page the section tabs run the width of their own
+     column: bled to the page gutter they reached into the side rail. */
+  @media (min-width: 64rem) {
+    .nf-detail-grid .nf-detail-tabs {
+      margin-inline: 0;
+      padding-inline: 0;
+    }
+    /* The move-in figure steps with the viewport (detail-m.css), and in the
+       two-column page its column is about half the viewport, so at 1280 the
+       full figure ran to the card's edge. It steps with the column instead. */
+    .nf-detail-grid .nf-movein-hero .nf-summary__figure {
+      font-size: min(var(--nf-text-figure-xl), 4.5vw);
+    }
+  }
+
   /* THE FOOT, STACKED ON A PHONE: the figure and the quiet half on the first
      row, "Schedule a visit" across the whole of the second, as the reference
      draws it. From 40rem the three share one row again. */

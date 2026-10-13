@@ -12,6 +12,8 @@
  *   Fact chips   five show; "+N" opens the rest and closes them again.
  *   Sticky CTA   "Schedule a visit" links to /listing/<id>/visit and spans
  *                the phone's width under the figure.
+ *   Amenities    round plates, five and "+N" to the full list, no two
+ *                labels running into each other in a phone's lead card.
  */
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { BROWSER_TEST_TIMEOUT, closeBrowser, hasBrowser, mountInBrowser, warmBrowser } from "@/lib/testing/mount-in-browser";
@@ -32,6 +34,7 @@ const entry = `
   import { ListerCallButton } from "@/components/app/listing/ListerCallButton";
   import { ListingAbout } from "@/components/app/listing/ListingAbout";
   import { ListingSpecChips } from "@/components/app/listing/ListingSpecChips";
+  import { ListingAmenityTiles } from "@/components/app/listing/ListingAmenityTiles";
   import { ListingStickyBar } from "@/components/app/listing/ListingStickyBar";
   import { specChips } from "@/components/app/listing/spec-chips";
   import { RENTAL } from "@/app/(dev)/preview/f3/fixtures";
@@ -77,6 +80,9 @@ const entry = `
       </section>
       <section style={{ marginTop: 24 }}>
         <ListingSpecChips chips={specChips(listing, t, "en")} labels={{ more: d.allFacts, fewer: d.fewerFacts }} />
+      </section>
+      <section style={{ marginTop: 24, width: 326 }} data-testid="plates-host">
+        <ListingAmenityTiles variant="plates" amenities={listing.amenities} limit={5} moreHref="#amenities" moreLabel={d.more} />
       </section>
       <ListingStickyBar
         variant="rental"
@@ -201,6 +207,38 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the listing page's new pieces a
       /* No chip breaks a word across lines and none runs off the phone. */
       const overflow = await row.evaluate((el) => el.scrollWidth > el.clientWidth + 1);
       expect(overflow).toBe(false);
+    } finally {
+      await close();
+    }
+  });
+
+  it("the amenity row is one row: four plates and +N on a phone, five from 30rem, with room for every word", async () => {
+    const { page, close } = await mountInBrowser({ entry, css: await appCss() });
+    try {
+      const row = page.getByTestId("amenity-plates");
+      const visiblePlates = row.locator("[data-amenity]:visible");
+      expect(await visiblePlates.count()).toBe(4);
+      const more = row.locator("[data-testid=amenity-plates-more]:visible");
+      expect(await more.count()).toBe(1);
+      expect(await more.getAttribute("href")).toBe("#amenities");
+      /* Seven amenities: four shown, so "+3", and the name says it. */
+      expect(await more.getAttribute("aria-label")).toBe("+3 More");
+      /* One row, and no label runs into its neighbour. */
+      const boxes = await row.locator("li:visible").evaluateAll((els) =>
+        els.map((el) => {
+          const label = el.querySelector(":scope > span:last-child, :scope > a > span:last-child")!;
+          const r = label.getBoundingClientRect();
+          return { left: r.left, right: r.right, top: Math.round(el.getBoundingClientRect().top) };
+        }),
+      );
+      expect(new Set(boxes.map((b) => b.top)).size).toBe(1);
+      for (let i = 1; i < boxes.length; i += 1) expect(boxes[i]!.left).toBeGreaterThanOrEqual(boxes[i - 1]!.right - 0.5);
+
+      /* From 30rem the fifth plate joins and "+N" is one smaller. */
+      await page.setViewportSize({ width: 600, height: 844 });
+      await page.getByTestId("plates-host").evaluate((el) => ((el as HTMLElement).style.width = "520px"));
+      expect(await visiblePlates.count()).toBe(5);
+      expect(await row.locator("[data-testid=amenity-plates-more]:visible").getAttribute("aria-label")).toBe("+2 More");
     } finally {
       await close();
     }

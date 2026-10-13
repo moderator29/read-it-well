@@ -5141,6 +5141,8 @@ export const en = {
       theLister: "the lister",
       allFacts: "Show all details",
       fewerFacts: "Show fewer details",
+      highlights: "Highlights",
+      hoursADay: "{hours} a day",
       verifiedBeforeLive: "A person at Vallo checked their ID before this listing went live.",
       managesListing: "Manages this listing on Vallo",
       restaurantLede: "Listed on Vallo by the person who runs it. Message them to ask about a table, a large party or anything the page does not answer.",

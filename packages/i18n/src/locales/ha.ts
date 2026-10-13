@@ -3074,6 +3074,8 @@ export const ha: Dictionary = withFallback({
       theLister: "wanda ya saka shi",
       allFacts: "Nuna duk bayanai",
       fewerFacts: "Nuna ƙananan bayanai",
+      highlights: "Muhimman abubuwa",
+      hoursADay: "{hours} a rana",
       verifiedBeforeLive: "Wani a Vallo ya duba katin shaidarsu kafin wannan jeri ya fito.",
       managesListing: "Yana kula da wannan jeri a Vallo",
       restaurantLede: "Mai gudanar da wurin ne ya saka shi a Vallo. Aika musu saƙo don tambaya game da tebur, babban rukuni ko duk abin da shafin bai amsa ba.",

@@ -38,11 +38,15 @@ export function specChips(listing: Listing, t: Dictionary, locale: Locale): Spec
       label: `${formatNumber(listing.sizeSqm, locale)} ${t.catalogue.card.sqm}`,
     });
   }
-  if (listing.parkingSpaces !== undefined && listing.parkingSpaces > 0) {
+  /* Said once: when the amenity row under the chips already carries parking
+     or backup power (the lister ticked it), the chip would be the same fact
+     twice in one card. */
+  const ticked = new Set(listing.amenities);
+  if (listing.parkingSpaces !== undefined && listing.parkingSpaces > 0 && !ticked.has("parking")) {
     chips.push({ key: "parking", icon: "parking", label: copy.parking });
   }
   const backup = listing.utilities?.powerBackup;
-  if (backup && backup !== "NONE") {
+  if (backup && backup !== "NONE" && !ticked.has("generator")) {
     chips.push({ key: "power", icon: "bolt", label: copy.generator });
   }
   if (listing.maxGuests !== undefined && listing.maxGuests > 0 && listing.pricePeriod === "night") {

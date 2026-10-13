@@ -64,6 +64,12 @@ describe("specChips: only what the lister stated", () => {
     expect(specChips({ ...bare, maxGuests: 4, pricePeriod: "night" }, t, "en").map((c) => c.key)).toEqual(["guests"]);
   });
 
+  it("does not repeat parking or backup power the amenity row already carries", () => {
+    const stated = { ...bare, parkingSpaces: 2, utilities: { powerBackup: "GENERATOR" as const, hasEstateAccess: false } };
+    expect(specChips({ ...stated, amenities: [] }, t, "en").map((c) => c.key)).toEqual(["parking", "power"]);
+    expect(specChips({ ...stated, amenities: ["parking", "generator"] }, t, "en")).toEqual([]);
+  });
+
   it("works for a sale", () => {
     expect(specChips(SALE, t, "en").length).toBeGreaterThan(0);
   });

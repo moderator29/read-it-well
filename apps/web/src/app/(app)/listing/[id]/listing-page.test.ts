@@ -106,6 +106,11 @@ describe("only real facts", () => {
     expect(page).toContain("findConversationForListing({ listingId: listing.id })");
   });
 
+  it("builds the highlights and the amenity row from the listing's own fields", () => {
+    expect(page).toContain("listingHighlights(listing, t, locale, isRental && !isSale)");
+    expect(page).toMatch(/<ListingAmenityTiles\s+variant="plates"\s+amenities=\{listing\.amenities\}\s+limit=\{5\}/);
+  });
+
   it("never offers a call on an example listing or to a signed-out reader", () => {
     expect(page).toContain('session.state === "signed-in" && !listing.isDemo && listerCard');
   });

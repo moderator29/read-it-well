@@ -81,6 +81,8 @@ import { ListingSectionTabs } from "@/components/app/listing/ListingSectionTabs"
 import { ListingSpecChips } from "@/components/app/listing/ListingSpecChips";
 import { specChips } from "@/components/app/listing/spec-chips";
 import { ListingSummaryCard } from "@/components/app/listing/ListingSummaryCard";
+import { ListingHighlights } from "@/components/app/listing/ListingHighlights";
+import { listingHighlights } from "@/components/app/listing/highlights";
 import { ListerCallButton } from "@/components/app/listing/ListerCallButton";
 import { readListerCard } from "@/lib/listings/lister-card-read";
 import { videoCallsOn } from "@/lib/calls/flags";
@@ -1002,7 +1004,7 @@ export default async function ListingDetailPage({
           details are the left column and a sticky summary card is the right:
           the price, the lister and the one primary action.
         */}
-        <div className="grid lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start lg:gap-2xl">
+        <div className="nf-detail-grid grid lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start lg:gap-2xl">
           {/* --------------------------------------------- main column */}
           <div className="min-w-0">
         <ListingGallery
@@ -1120,7 +1122,32 @@ export default async function ListingDetailPage({
                         ))}
                     </ul>
                   )}
+
                 </Section>
+
+                {/* Two or three answered facts (light, backup hours, water,
+                    the stated move-in total), never an estimate: nothing at
+                    all when fewer than two were answered (highlights.ts). */}
+                <ListingHighlights
+                  items={listingHighlights(listing, t, locale, isRental && !isSale)}
+                  title={t.catalogue.detail.highlights}
+                />
+
+                {/* What the place carries, as the founder's "Property
+                    Detail" reference draws it: round monochrome plates
+                    with the word under each, five and "+N" to the full
+                    list below. Only the listing's own amenity codes. */}
+                {listing.amenities.length > 0 && (
+                  <div data-testid="lead-amenities">
+                    <ListingAmenityTiles
+                      variant="plates"
+                      amenities={listing.amenities}
+                      limit={5}
+                      moreHref="#amenities"
+                      moreLabel={t.catalogue.detail.more}
+                    />
+                  </div>
+                )}
 
                 {/*
                   THE MOVE-IN TOTAL, DIRECTLY UNDER THE LEAD ON A TENANCY.
