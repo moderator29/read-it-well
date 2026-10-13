@@ -6351,6 +6351,54 @@ export const en = {
     },
   },
 
+  /**
+   * Chat hints (apps/web/src/lib/messages/hints.ts): the one small card and the quick
+   * reply chips above a renter's composer in a listing thread. A chip only fills
+   * the composer with `text`; nothing is sent until the person presses send.
+   */
+  chatHints: {
+    label: "You may want to ask",
+    region: "Suggested questions",
+    dismiss: "Dismiss this suggestion",
+    gaps: {
+      power: {
+        line: "Ask about electricity and backup power",
+        chip: "Ask about power",
+        text: "Hello, how many hours of electricity does the property usually get in a day, and is there a generator or inverter? Thank you.",
+      },
+      water: {
+        line: "Ask about the water supply",
+        chip: "Ask about water",
+        text: "Hello, where does the water come from, and is there a borehole or a tank? Thank you.",
+      },
+      moveIn: {
+        line: "Ask for the full cost to move in",
+        chip: "Ask about charges",
+        text: "Hello, could you list everything I would pay to move in, such as caution, agency, legal and service charges, with the total? Thank you.",
+      },
+      buyCosts: {
+        line: "Ask for the full cost to buy",
+        chip: "Ask about costs",
+        text: "Hello, could you list every cost on top of the asking price, such as agency, legal and registration fees, with the total? Thank you.",
+      },
+      parking: {
+        line: "Ask about parking",
+        chip: "Ask about parking",
+        text: "Hello, is there parking at the property, and is it inside the compound? Thank you.",
+      },
+      rules: {
+        line: "Ask about pets and house rules",
+        chip: "Ask about rules",
+        text: "Hello, are pets allowed, and are there any house rules I should know about? Thank you.",
+      },
+    },
+    visit: {
+      label: "You can book a visit",
+      line: "Pick a day and time that suits you. A viewing never takes money.",
+      chip: "Schedule a visit",
+    },
+  },
+
 };
 
 /**

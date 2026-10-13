@@ -56,6 +56,8 @@ import { AccountMomentCard } from "@/components/app/messages/AccountMomentCard";
 import { accountNumbersIn, isAccountMoment } from "@/lib/messages/account-moment";
 import { offPlatformAsk } from "@/lib/messages/off-platform-ask";
 import { ScamShield } from "@/components/app/messages/ScamShield";
+import { ChatHints, type ChatHintsData } from "@/components/app/messages/ChatHints";
+import { addQuestion } from "@/lib/enquiry/renter-questions";
 import { feedback } from "@/lib/ui/feedback";
 import type { AccountCheckView } from "@/lib/messages/account-check";
 import type { ChargeOffer } from "@/lib/messages/charge-offer";
@@ -217,6 +219,11 @@ export type ThreadViewProps = {
    */
   quickReplies?: { key: string; label: string; text: string }[];
   quickRepliesTitle?: string;
+  /**
+   * The renter's hint card and chips (`lib/messages/hints.ts`), already worked
+   * out by the page from the listing's own gaps. Absent draws nothing.
+   */
+  chatHints?: { data: ChatHintsData; copy: Dictionary["chatHints"] } | null;
   /**
    * V-04, THE ACCOUNT-NUMBER MOMENT. The stored check per message from the
    * other side (only the receiver's RLS can read one) and the real charge on
@@ -420,6 +427,7 @@ export function ThreadView({
   stageSlot = null,
   quickReplies = [],
   quickRepliesTitle = "",
+  chatHints = null,
   accountMoment = null,
   accountCopy,
   scamCopy,
@@ -1550,6 +1558,14 @@ export function ThreadView({
           </ChipRow>
         </nav>
       )}
+      {chatHints && quickReplies.length === 0 && role === "guest" && context?.kind === "listing" ? (
+        <ChatHints
+          conversationId={conversationId}
+          data={chatHints.data}
+          copy={chatHints.copy}
+          onFill={(text) => onDraftChange(addQuestion(draft, text))}
+        />
+      ) : null}
       <form
         onSubmit={(e) => {
           e.preventDefault();
