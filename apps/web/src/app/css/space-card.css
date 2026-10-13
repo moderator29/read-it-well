@@ -76,12 +76,20 @@
     font-size: var(--nf-text-overline);
     color: var(--nf-content-secondary);
   }
-  /* The small white pill, top left. */
-  .nf-sc__status {
+  /* The small white pill, top left, and any mark beside it. */
+  .nf-sc__marks {
     position: absolute;
     top: var(--nf-space-sm);
     left: var(--nf-space-sm);
     z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    max-width: calc(100% - 4.75rem);
+    pointer-events: none;
+  }
+  .nf-sc__status {
     padding: var(--nf-space-2xs) var(--nf-space-sm);
     border-radius: var(--nf-radius-pill);
     background: var(--nf-content-on-media);
@@ -89,7 +97,22 @@
     font-size: var(--nf-text-caption);
     font-weight: 600;
     line-height: 1.2;
-    pointer-events: none;
+  }
+  /* A mark beside the pill ("Verified") is the same white pill, its glyph in
+     the verified colour. */
+  .nf-sc__marks .nf-sc__mark {
+    padding: var(--nf-space-2xs) var(--nf-space-sm);
+    border: 0;
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-content-on-media);
+    box-shadow: none;
+    color: var(--nf-ink-on-photo);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    line-height: 1.2;
+  }
+  .nf-sc__marks .nf-sc__mark > svg {
+    color: var(--nf-status-verified);
   }
   /* The dots, centred near the foot. */
   .nf-sc__dots {
@@ -141,6 +164,87 @@
     background: var(--nf-content-on-media);
     color: var(--nf-ink-on-photo);
     box-shadow: var(--nf-elevation-raised);
+  }
+
+  /* A caller's small control on the photo, left of the heart: the same white
+     disc, smaller. Its own button sets its size; this paints it. */
+  .nf-sc__tools {
+    position: absolute;
+    top: calc(var(--nf-sc-gap) + var(--nf-space-xs));
+    right: calc(var(--nf-sc-gap) + var(--nf-space-xs) + 2.75rem + var(--nf-space-2xs));
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    height: 2.75rem;
+  }
+  .nf-sc .nf-sc__tools > button {
+    border: 0;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-content-on-media);
+    color: var(--nf-ink-on-photo);
+    box-shadow: var(--nf-elevation-raised);
+  }
+
+  /* The pointer's way to the next photograph, shown while the card is hovered
+     or focused and never on touch, where the swipe is the gesture. */
+  .nf-sc__nav {
+    display: none;
+  }
+  @media (hover: hover) {
+    .nf-sc__nav {
+      position: absolute;
+      inset-inline: var(--nf-space-xs);
+      top: 50%;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      translate: 0 -50%;
+      pointer-events: none;
+    }
+  }
+  .nf-sc__arrow {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    border: 0;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-content-on-media);
+    color: var(--nf-ink-on-photo);
+    box-shadow: var(--nf-elevation-raised);
+    opacity: 0;
+    pointer-events: auto;
+    cursor: pointer;
+    transition: opacity var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  /* Drawn 32, tapped 44: an invisible square centred on it. */
+  .nf-sc__arrow::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    translate: -50% -50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+  }
+  .nf-sc__arrow:disabled {
+    visibility: hidden;
+  }
+  .nf-sc:hover .nf-sc__arrow,
+  .nf-sc__arrow:focus-visible {
+    opacity: 1;
+  }
+  .nf-sc__arrow:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-sc__arrow {
+      transition: none;
+    }
   }
 
   /* ------------------------------------------------------------ the panel */
@@ -273,6 +377,39 @@
     line-clamp: 2;
   }
 
+  /* "On request" stands where the figure would, in words and never a zero. */
+  .nf-sc__ask {
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--nf-content-secondary);
+  }
+  /* The quiet lines a caller adds under the facts (how old it is, a trust
+     mark, a commute). */
+  .nf-sc__sub {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: var(--nf-space-2xs);
+    min-width: 0;
+    font-size: var(--nf-text-caption);
+    line-height: 1.3;
+    color: var(--nf-content-muted);
+  }
+  .nf-sc__sub > svg {
+    margin-top: 0.0625rem;
+  }
+  /* An action under the panel, on the card's own inset. */
+  .nf-sc__action {
+    position: relative;
+    z-index: 1;
+  }
+  /* A long label wraps inside the button and the button grows a line. */
+  .nf-sc__action .nf-btn {
+    white-space: normal;
+    text-align: center;
+  }
+
   /* -------------------------------------------------------------- compact */
   /* The same shape, smaller: a fixed width in a sideways row or a map dock. */
   .nf-sc--compact {
@@ -318,6 +455,44 @@
   .nf-feature-row:has(.nf-sc) {
     padding-block-end: var(--nf-space-md);
     margin-block-end: calc(-1 * var(--nf-space-sm));
+  }
+
+  /* ------------------------------------------------------- the listing top */
+  /* The listing page's top is the same card: the gallery's hero is the inset
+     photograph (its corners are the card's radius minus the gap, and it clips
+     its own slow zoom to them), and the lead block is the separate rounded
+     panel under it. The panel keeps the page's card padding because it holds
+     the status, the title, the price, the rating, the place and the fact chips. */
+  .nf-sc-top > .nf-gallery--framed {
+    overflow: hidden;
+    border-radius: var(--nf-sc-inner);
+  }
+  .nf-sc-top__panel {
+    min-width: 0;
+    border-radius: var(--nf-sc-inner);
+    background: color-mix(in oklab, var(--nf-brand-primary) 5%, var(--nf-surface-canvas));
+  }
+
+  /* ---------------------------------------------------------- a live list */
+  /* The search's cards press where the thumb lands (`lib/motion/press-start`),
+     hold into a menu (`details.css`) and arrive with the list's stagger
+     (`list-views.css`, `results-motion.css`). Home's cards stay still. */
+  .nf-sc--live {
+    -webkit-touch-callout: none;
+    transition: scale var(--nf-duration-press) var(--nf-ease-press);
+  }
+  .nf-sc--live:active,
+  .nf-sc--live[data-pressed]:not([data-long-press]) {
+    scale: var(--nf-press-scale-lg);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-sc--live {
+      transition: none;
+    }
+    .nf-sc--live:active,
+    .nf-sc--live[data-pressed] {
+      scale: none;
+    }
   }
 
   /* --------------------------------------------------------------- loading */

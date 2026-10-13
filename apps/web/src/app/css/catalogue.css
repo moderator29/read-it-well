@@ -2503,35 +2503,9 @@
     height: 2rem;
     flex-shrink: 0;
   }
-  /* The stay card body: name and place left, the nightly figure right, the
-     amenity chips under both. */
-  .nf-stay-card__head {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: var(--nf-space-sm);
-  }
-  /* One price line (plan item 17): 17/600 tabular in the ink. */
-  .nf-stay-card__price {
-    flex-shrink: 0;
-    text-align: right;
-    font-family: var(--nf-font-sans);
-    font-size: 1.0625rem;
-    font-weight: 600;
-    font-variant-numeric: tabular-nums;
-    letter-spacing: -0.01em;
-    line-height: 1.2;
-    white-space: nowrap;
-    color: var(--nf-content-primary);
-  }
-  .nf-stay-card__per {
-    display: block;
-    font-family: var(--nf-font-sans);
-    font-size: var(--nf-text-overline);
-    font-weight: 400;
-    letter-spacing: 0;
-    color: var(--nf-content-muted);
-  }
+  /* The stay card's rating line and amenity chips, in the space card's info
+     panel (`StayCard`); its name, place and nightly figure are the space
+     card's own. */
   .nf-stay-card__rating {
     display: inline-flex;
     align-items: center;
@@ -3587,8 +3561,8 @@
    Verified mark and the "No photographs yet" word. One card design, so this
    is home's shelves, search, saved and More like this at once. The Example
    mark keeps its cyan outline: that disclosure is ruled never to look like
-   anything else. The map's floating card takes the same smoke. Metal and
-   smoke do not change with the lights, so none of this is themed. */
+   anything else. Metal and smoke do not change with the lights, so none of
+   this is themed. */
 @layer components {
   .nf-pcard .nf-pcard__heart,
   .nf-pcard .nf-pcard__photobtn,
@@ -3606,22 +3580,15 @@
   .nf-pcard .nf-pcard__mark.nf-pcard__mark--verified > svg {
     color: var(--nf-status-verified);
   }
-  .nf-map-dock .nf-map-dock__card.nf-panel {
-    border-color: var(--nf-platform-card-edge);
-    background: var(--nf-platform-card-fill);
-    -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
-    backdrop-filter: blur(var(--nf-smoked-glass-blur));
-  }
   @media (prefers-reduced-transparency: reduce) {
-    .nf-pcard :is(.nf-pcard__heart, .nf-pcard__photobtn, .nf-pcard__nophoto, .nf-pcard__mark--verified),
-    .nf-map-dock .nf-map-dock__card.nf-panel {
+    .nf-pcard :is(.nf-pcard__heart, .nf-pcard__photobtn, .nf-pcard__nophoto, .nf-pcard__mark--verified) {
       background: var(--nf-smoked-glass-fill);
       -webkit-backdrop-filter: none;
       backdrop-filter: none;
     }
   }
   :root[data-transparency="reduced"]
-    :is(.nf-pcard .nf-pcard__heart, .nf-pcard .nf-pcard__photobtn, .nf-pcard .nf-pcard__nophoto, .nf-pcard .nf-pcard__mark--verified, .nf-map-dock .nf-map-dock__card.nf-panel) {
+    :is(.nf-pcard .nf-pcard__heart, .nf-pcard .nf-pcard__photobtn, .nf-pcard .nf-pcard__nophoto, .nf-pcard .nf-pcard__mark--verified) {
     background: var(--nf-smoked-glass-fill);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;

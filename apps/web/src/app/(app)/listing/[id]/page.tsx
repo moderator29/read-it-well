@@ -7,7 +7,6 @@ import { readOpenInspectionFor } from "@/lib/inspections/queries";
 import { ViewingSlots } from "@/components/app/inspections/ViewingSlots";
 import { Suspense } from "react";
 import { marketOf, type ListingMarket } from "@/lib/listings/market";
-import { panelClass } from "@/components/ui/Panel";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { NONCE_HEADER } from "@/lib/security/csp";
@@ -125,6 +124,7 @@ import {
 } from "@/lib/money/copy";
 import { FactGrid, ICON, Section, Stack, TYPE, type Fact } from "@/components/app/Screen";
 import "@/app/css/catalogue.css";
+import "@/app/css/space-card.css";
 
 /**
  * Listing detail.
@@ -1016,10 +1016,18 @@ export default async function ListingDetailPage({
         <div className="nf-detail-grid grid lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start lg:gap-2xl">
           {/* --------------------------------------------- main column */}
           <div className="min-w-0">
+        {/*
+          THE SPACE CARD'S TOP (the founder, 13 October 2026): one large soft
+          rounded card holding the photograph, inset with an even gap and its
+          own corners, and under it a SEPARATE rounded panel with the status,
+          the title and the price. The floating back, share and save, Watch
+          video and the photo counter stay on the photograph.
+        */}
+        <div className="nf-sc nf-sc-top" data-testid="detail-top">
         <ListingGallery
           listingId={listing.id}
           floatingBack={false}
-          desktopInset
+          framed
           title={listing.title}
           shareTitle={publicListingTitle(listing)}
           hue={listing.hue}
@@ -1034,23 +1042,11 @@ export default async function ListingDetailPage({
              lister's published badge is on "Listed by". */
         />
 
-        {/*
-          THE PAGE GROUND IS THE APP CANVAS, and it used to be a sheet.
-
-          This was one `nf-glass--strong` panel wrapped around the entire
-          body, which on the night canvas paints a washed lilac-grey slab
-          behind every section: the founder photographed it and called it a
-          grey form. The lead card overlaps the photograph's lower edge on a
-          phone and a tablet, which is where the sheet's radius used to do
-          that job; from `lg` it sits under the framed photograph.
-        */}
-        <div className="relative z-10 -mt-xl sm:-mt-2xl lg:mt-lg">
-              <Stack>
                 {/* ------------------------------- 2 to 5. THE LEAD BLOCK
                     The reference's order: the status chip, the title with
                     the price opposite, the rating (only with real reviews)
                     and the place with its pin, then the fact chips. */}
-                <Section className={panelClass({ variant: "card", className: "nf-rise nf-detail-lead scroll-mt-16" })} id="overview">
+                <Section className="nf-sc-top__panel nf-rise nf-detail-lead scroll-mt-16" id="overview">
                   <div className="flex flex-wrap items-center gap-xs" data-testid="detail-status">
                     <StatusPill tone={market.tone} icon={market.icon} size="sm">
                       {/* Rent and sale in the reader's language. Stays, dining and
@@ -1134,6 +1130,15 @@ export default async function ListingDetailPage({
 
                 </Section>
 
+        </div>
+
+        {/*
+          THE PAGE GROUND IS THE APP CANVAS, and it used to be a sheet. The
+          lead is now the card's own panel, so the sections below start on the
+          ground, one rhythm apart.
+        */}
+        <div className="mt-section-tight">
+              <Stack>
                 {/* Two or three answered facts (light, backup hours, water,
                     the stated move-in total), never an estimate: nothing at
                     all when fewer than two were answered (highlights.ts). */}

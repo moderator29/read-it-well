@@ -1,8 +1,8 @@
 @layer theme, base, components, utilities;
 
 /*
- * THE STAYS CARD'S OWN REFINEMENTS, scoped to `.nf-stay-card` so the Property
- * side's `ListingCard` (which shares the `nf-pcard` anatomy) is untouched.
+ * THE STAYS CARD'S OWN REFINEMENTS, scoped to `.nf-stay-card` so the other
+ * space cards are untouched.
  *
  * "No photographs yet" used to sit in the dead centre of the stand-in scene,
  * where it read as an error stamped across a photograph. It is a caption about
@@ -11,7 +11,7 @@
  * the heart on the top right.
  */
 @layer components {
-  .nf-stay-card .nf-pcard__nophoto {
+  .nf-stay-card .nf-sc__nophoto {
     top: auto;
     left: auto;
     right: var(--nf-space-xs);

@@ -54,13 +54,13 @@ import {
 } from "@/lib/listings/upfront";
 import { unitLine } from "@/lib/listings/unit-shape";
 import { ProofStrip } from "@/components/app/listing/ProofStrip";
-import { CardPhotos } from "@/components/app/search/CardPhotos";
+import { CardPhotos, CARD_PHOTO_MAX } from "@/components/app/search/CardPhotos";
 import { proofFactsOf, proofLines } from "@/lib/trust/proof-strip";
 import { CardMenu, useCardMenu } from "@/components/app/listing/CardMenu";
 import { OwnershipSeenMark } from "@/components/trust/OwnershipSeenMark";
+import { SpaceCard } from "@/components/ui/space-card/SpaceCard";
 import "@/app/css/catalogue.css";
 import "@/app/css/list-views.css";
-import "./search/search-v2.css";
 
 /**
  * The property card, to the results image (3EB3E2A9).
@@ -146,22 +146,25 @@ export function ListingCard({
    * THE SHAPE OF THE CARD.
    *
    * `tile` is the card every shelf has drawn: the photograph over a column of
-   * words, two across on a phone. `row` is the search result card of the
-   * founder's references (13 October 2026): one card per row at full width, a
-   * big rounded photograph carrying the market chip and the round heart, and
-   * a separate rounded panel under it with the title and place on the left,
-   * the figure and its period on the right, and the beds, baths and floor
-   * area on one line. Same listing, same facts, same controls (save, the card
-   * menu, the photo swipe, Message agent, the trust marks); only the
-   * arrangement differs, so nothing a tile shows is lost on a row.
+   * words, two across on a phone. `row` and `compact` are the SPACE CARD
+   * (`components/ui/space-card`, the founder's container, 13 October 2026):
+   * one large soft rounded card, the photograph inset in it with the market
+   * pill and the round heart on it, then a separate rounded panel with the
+   * title and place on the left, the figure and its period on the right and
+   * the beds, baths and floor area on one line. `row` is one card per row at
+   * full width (the search list); `compact` is the same shape at the width
+   * of a sideways rail (Best matches, New listings). Same listing, same
+   * facts, same controls (save, the card menu, the photo swipe and arrows,
+   * Message agent, the trust marks); only the arrangement differs, so nothing
+   * a tile shows is lost on a row.
    */
-  layout?: "tile" | "row";
+  layout?: "tile" | "row" | "compact";
   /**
    * Why this card is in Best matches, in words (`lib/search/best-matches.ts`).
-   * Always a real signal the person gave; never a score. Drawn on a row only.
+   * Always a real signal the person gave; never a score. Drawn on a space card only.
    */
   reason?: { text: string; icon: UiIconName } | null;
-  /** Draw "Listed 3 days ago" on a row (the New listings shelf). */
+  /** Draw "Listed 3 days ago" on a space card (the New listings shelf). */
   showAge?: boolean;
   /**
    * "Ownership seen": the date a reviewer approved the owner's proof, read for
@@ -333,7 +336,7 @@ export function ListingCard({
    * view transition on that page. Named on tap, it is only ever one card.
    */
   const mediaRef = useRef<HTMLDivElement>(null);
-  const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+  const openFrom = (event: React.MouseEvent<HTMLAnchorElement>, media: HTMLElement | null) => {
     if (
       event.defaultPrevented ||
       event.button !== 0 ||
@@ -344,7 +347,6 @@ export function ListingCard({
     ) {
       return;
     }
-    const media = mediaRef.current;
     /* B4: the listing opens in one frame. The facts this card already
        printed, and the photo it already drew, go to the listing's loading
        shell (lib/listings/handoff.ts), which paints them at once. */
@@ -358,6 +360,8 @@ export function ListingCard({
        at a ceiling, if the navigation was refused). */
     startPhotoMorph(listing.id, media);
   };
+  const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) =>
+    openFrom(event, mediaRef.current);
 
   /*
    * THE PRESS STARTS WHEN THE THUMB LANDS (round 5). `:active` alone waited
@@ -500,56 +504,37 @@ export function ListingCard({
   const detail = !brief;
   /* With the shape line drawn, the beds live in it ("2 bed flat"); the other
      facts stay (batch 4 review). */
-  const factRow = shapeLine
-    ? ranked.filter((fact) => fact.key !== "beds")
-    : ranked;
+  const factRow =
+    shapeLine && detail && layout === "tile"
+      ? ranked.filter((fact) => fact.key !== "beds")
+      : ranked;
   const shown = factRow.slice(0, factLimit);
   const spilled = factRow.slice(factLimit, 3);
 
   /* Hidden on this phone from the card menu; a saved listing never hides. */
   if (menu.hidden && !save.saved) return null;
 
-  const isRow = layout === "row";
-  const photoSizes = isRow
-    ? "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 34vw"
-    : wide
-      ? "(max-width: 640px) 100vw, 50vw"
-      : "(max-width: 640px) 50vw, 25vw";
-
   /*
-   * THE ROW CARD'S PANEL (layout "row"). Title and place on the left, the
-   * figure on the right with what it covers beneath it, then one line of
-   * facts. Every word on it is a field of this listing or a word from the
-   * dictionary: no figure is drawn that the lister did not state, no fact is
-   * drawn that is zero, and the reason line is drawn only when the page found
-   * a real one.
+   * THE SPACE CARD (layout "row" and "compact"). Every word on it is a field
+   * of this listing or a word from the dictionary: no figure is drawn that the
+   * lister did not state, no fact is drawn that is zero, and the reason line
+   * is drawn only when the page found a real one. The shape is the shared
+   * `SpaceCard`'s; this only maps the listing and the card's controls to it.
    */
-  const rowFigure =
-    price.lead === "moveIn" ? (
-      <>
-        <span className="nf-pcard__row-figure">
-          {price.approximate && <span className="nf-pcard__row-from">from </span>}
-          <CountUpMoney
-            minorUnits={price.minor}
-            locale={locale}
-            currency={listing.currency}
-            glance
-            eager={countsOnArrival}
-          >
-            <Amount
-              minorUnits={price.minor}
-              locale={locale}
-              currency={listing.currency}
-              glance
-              secondaryClassName={fractionClass(price.minor, "text-[length:max(0.6em,0.75rem)] font-semibold opacity-70")}
-            />
-          </CountUpMoney>
-        </span>
-        <span className="nf-pcard__row-per">{copy.moveIn}</span>
-      </>
-    ) : price.lead === "headline" ? (
-      <>
-        <span className="nf-pcard__row-figure">
+  if (layout !== "tile") {
+    const sizes =
+      layout === "compact"
+        ? "(max-width: 640px) 72vw, 18rem"
+        : "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 34vw";
+    const amount =
+      price.lead === "moveIn" ? (
+        <CountUpMoney
+          minorUnits={price.minor}
+          locale={locale}
+          currency={listing.currency}
+          glance
+          eager={countsOnArrival}
+        >
           <Amount
             minorUnits={price.minor}
             locale={locale}
@@ -557,79 +542,167 @@ export function ListingCard({
             glance
             secondaryClassName={fractionClass(price.minor, "text-[length:max(0.6em,0.75rem)] font-semibold opacity-70")}
           />
-        </span>
-        {suffix && <span className="nf-pcard__row-per">{suffix}</span>}
-      </>
-    ) : (
-      <span className="nf-pcard__row-per nf-pcard__row-per--ask">{t.common.priceOnRequest}</span>
-    );
+        </CountUpMoney>
+      ) : price.lead === "headline" ? (
+        <Amount
+          minorUnits={price.minor}
+          locale={locale}
+          currency={listing.currency}
+          glance
+          secondaryClassName={fractionClass(price.minor, "text-[length:max(0.6em,0.75rem)] font-semibold opacity-70")}
+        />
+      ) : (
+        <span className="nf-sc__ask">{t.common.priceOnRequest}</span>
+      );
+    const unit = price.lead === "moveIn" ? copy.moveIn : price.lead === "headline" ? suffix : "";
 
-  const rowPanel = (
-    <div className="nf-pcard__panel" data-testid="card-panel">
-      <div className="nf-pcard__panel-top">
-        <div className="min-w-0">
-          <h3 className="nf-pcard__title" title={listing.title}>
-            {listing.title}
-          </h3>
-          <p className="nf-pcard__where">
-            <UiIcon name="location" size={12} className="mt-3xs" />
-            <span>{where}</span>
-          </p>
-        </div>
-        <p className="nf-pcard__row-price" data-testid="card-price">
-          {rowFigure}
-        </p>
-      </div>
-      {shown.length > 0 && (
-        <ul className="nf-pcard__specs" data-testid="card-facts">
-          {shown.map((fact) => (
-            <li key={fact.key} className="nf-pcard__fact">
-              <UiIcon name={fact.icon} size={16} />
-              <span className={fact.numeric ? "nf-numeric" : undefined}>{fact.label}</span>
-            </li>
-          ))}
-          {spilled.length > 0 && (
-            <li
-              className="nf-pcard__fact nf-pcard__fact--more"
-              title={spilled.map((fact) => fact.label).join(", ")}
-              data-testid="card-facts-more"
-            >
-              <span aria-hidden="true">+{spilled.length}</span>
-              <span className="sr-only">{spilled.map((fact) => fact.label).join(", ")}</span>
-            </li>
-          )}
-        </ul>
-      )}
-      {reason && (
-        <p className="nf-pcard__reason" data-testid="card-reason">
-          <UiIcon name={reason.icon} size={12} className="shrink-0" />
-          <span>{reason.text}</span>
-        </p>
-      )}
-      {showAge && ageText && (
-        <p className="nf-pcard__sub nf-pcard__age" data-testid="card-listed-age" suppressHydrationWarning>
-          {isNew && (
-            <span className="nf-badge nf-badge--spark nf-pcard__new" title={t.shape.listed.newMarkLabel}>
-              <span aria-hidden="true">{t.shape.listed.newMark}</span>
-              <span className="sr-only">{t.shape.listed.newMarkLabel}. </span>
+    return (
+      <SpaceCard
+        href={href}
+        title={listing.title}
+        place={where}
+        variant={layout === "compact" ? "compact" : "card"}
+        photos={listing.photos.slice(0, CARD_PHOTO_MAX)}
+        photoSizes={sizes}
+        photoLabel={t.homeV2.photoOf}
+        arrows={{ previous: `Previous photo of ${listing.title}`, next: `Next photo of ${listing.title}` }}
+        fallback={
+          <>
+            <MediaFrame
+              hue={listing.hue}
+              index={index ?? 0}
+              kind={listing.kind}
+              drawn={isModestExample(listing)}
+              sizes={sizes}
+              priority={eager}
+            />
+            <span className="nf-sc__nophoto">{copy.noPhotos}</span>
+          </>
+        }
+        status={market}
+        marks={
+          /* Verified beside the market, on a checked row that is not an
+             example: the same rule as the tile's mark (D24). */
+          listing.verified && !listing.isDemo ? (
+            <span className="nf-badge nf-badge--verified nf-sc__mark">
+              <UiIcon name="verified" size={12} />
+              {t.common.verified}
             </span>
-          )}
-          {ageText}
-        </p>
-      )}
-      {ownershipSeen && !listing.isDemo && (
-        <p className="nf-pcard__sub">
-          <OwnershipSeenMark seenAt={ownershipSeen.seenAt} label={ownershipSeen.label} />
-        </p>
-      )}
-      {commute && (
-        <p className="nf-pcard__sub inline-flex items-start gap-inline-tight" data-testid="card-commute">
-          <UiIcon name="history" size={12} className="mt-3xs shrink-0" />
-          <span className="break-words">{commute}</span>
-        </p>
-      )}
-    </div>
-  );
+          ) : null
+        }
+        heart={
+          <>
+            <SaveButton
+              saved={save.saved}
+              pending={save.pending}
+              onToggle={() => {
+                setHeartPop(true);
+                save.toggle();
+              }}
+              title={listing.title}
+              className={heartPop ? "nf-heart-pop" : undefined}
+            />
+            {save.note && (
+              <p
+                role="status"
+                className={`nf-pcard__note ${save.note.tone === "error" ? "text-[var(--nf-state-error)]" : ""}`}
+              >
+                {save.note.text}
+              </p>
+            )}
+          </>
+        }
+        tools={intent !== undefined && tunableKind ? <IntentTune type={tunableKind} t={t} interests={intent} /> : null}
+        price={{
+          amount,
+          unit: unit || null,
+          from: price.lead === "moveIn" && price.approximate ? t.homeV2.priceFrom : null,
+        }}
+        facts={shown.map((fact) => fact.label)}
+        reason={reason?.text ?? null}
+        reasonIcon={reason?.icon}
+        extra={
+          <>
+            {showAge && ageText && (
+              <p className="nf-sc__sub" data-testid="card-listed-age" suppressHydrationWarning>
+                {isNew && (
+                  <span className="nf-badge nf-badge--spark nf-pcard__new" title={t.shape.listed.newMarkLabel}>
+                    <span aria-hidden="true">{t.shape.listed.newMark}</span>
+                    <span className="sr-only">{t.shape.listed.newMarkLabel}. </span>
+                  </span>
+                )}
+                {ageText}
+              </p>
+            )}
+            {ownershipSeen && !listing.isDemo && (
+              <p className="nf-sc__sub">
+                <OwnershipSeenMark seenAt={ownershipSeen.seenAt} label={ownershipSeen.label} />
+              </p>
+            )}
+            {commute && (
+              <p className="nf-sc__sub" data-testid="card-commute">
+                <UiIcon name="history" size={12} className="shrink-0" />
+                <span className="break-words">{commute}</span>
+              </p>
+            )}
+          </>
+        }
+        footer={
+          messageHref ? (
+            <div className="nf-sc__action">
+              <ButtonLink
+                href={messageHref}
+                variant="secondary"
+                size="sm"
+                full
+                leadingIcon="chat-bubble"
+                data-testid="card-message-agent"
+              >
+                {t.shape.card.messageAgent}
+              </ButtonLink>
+            </div>
+          ) : null
+        }
+        testIds={{ panel: "card-panel", price: "card-price", facts: "card-facts", reason: "card-reason", status: "card-market" }}
+        mediaId={listing.id}
+        eager={eager}
+        onOpen={openFrom}
+        rootRef={cardRef}
+        rootProps={{
+          ...menu.press.handlers,
+          "data-long-press": menu.press.holding ? "holding" : undefined,
+          "data-testid": "listing-card",
+          style: cardStyle,
+        }}
+        linkProps={{
+          prefetch: warmed ? true : undefined,
+          onPointerDown: pressCard,
+          onPointerEnter: warm,
+          onFocus: warm,
+        }}
+        className={`nf-sc--live${index !== undefined ? " nf-card-in" : ""}`}
+      >
+        <CardMenu
+          open={menu.open}
+          onOpenChange={menu.setOpen}
+          listingId={listing.id}
+          title={listing.title}
+          thumb={photo}
+          saved={save.saved}
+          onToggleSave={() => {
+            setHeartPop(true);
+            save.toggle();
+          }}
+          mint={menu.mint}
+          shareable={shareable}
+        />
+      </SpaceCard>
+    );
+  }
+
+  const photoSizes = wide
+    ? "(max-width: 640px) 100vw, 50vw"
+    : "(max-width: 640px) 50vw, 25vw";
 
   return (
     <article
@@ -638,7 +711,7 @@ export function ListingCard({
       data-long-press={menu.press.holding ? "holding" : undefined}
       className={panelClass({
         variant: "card",
-        className: `nf-pcard group ${wide ? "nf-pcard--wide" : ""} ${isRow ? "nf-pcard--row" : ""} ${
+        className: `nf-pcard group ${wide ? "nf-pcard--wide" : ""} ${
           index !== undefined ? "nf-card-in" : ""
         }`,
       })}
@@ -742,35 +815,15 @@ export function ListingCard({
             already refuse both at once; this is the card refusing it too, so a
             mapper regression can never print a tick on an invented flat.
           */}
-          {isRow ? (
-            /* The row card's marks: the market as a small chip, as the
-               reference's "Rental", and Verified beside it on a checked row
-               that is not an example, the same rule as the tile's mark. */
-            <span className="nf-pcard__chips">
-              <span className="nf-pcard__chip" data-market={marketKey} data-testid="card-market">
-                {market}
-              </span>
-              {listing.verified && !listing.isDemo && (
-                <span className="nf-badge nf-badge--verified nf-pcard__chip-mark">
-                  <UiIcon name="verified" size={12} />
-                  {t.common.verified}
-                </span>
-              )}
+          {listing.verified && !listing.isDemo && (
+            <span className="nf-badge nf-badge--verified nf-pcard__mark nf-pcard__mark--verified">
+              <UiIcon name="verified" size={12} />
+              {t.common.verified}
             </span>
-          ) : (
-            listing.verified && !listing.isDemo && (
-              <span className="nf-badge nf-badge--verified nf-pcard__mark nf-pcard__mark--verified">
-                <UiIcon name="verified" size={12} />
-                {t.common.verified}
-              </span>
-            )
           )}
           {!photo && <span className="nf-pcard__nophoto">{copy.noPhotos}</span>}
         </div>
 
-        {isRow ? (
-          rowPanel
-        ) : (
         <div className="nf-pcard__body">
           {/* The market as a word above the title (plan item 17): one badge on
               the photograph at most (Verified or Example), never three. */}
@@ -1058,7 +1111,6 @@ export function ListingCard({
             </p>
           )}
         </div>
-        )}
       </Link>
       {messageHref && (
         <div className="nf-pcard__action">

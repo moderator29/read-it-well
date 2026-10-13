@@ -208,11 +208,11 @@
   /*
    * THE CHOSEN PLACE'S CARD (MapDock), round 5 craft. It is the chosen pin's
    * other half: it rises from the frame's foot, the edge it docks to, 12px on
-   * `land` at the base rung, and wears the chosen pin's edge ink, so pin and
-   * card read as one object. Keyed per place, so a new choice lands a new
-   * card. Transform and opacity only, on the wrapper: the card's own
-   * transform belongs to the swipe that dismisses it. `backwards`, like the
-   * pins, so nothing is held on the wrapper once it has landed.
+   * `land` at the base rung, so pin and card read as one object. Keyed per
+   * place, so a new choice lands a new card. Transform and opacity only, on
+   * the wrapper: the card's own transform belongs to the swipe that dismisses
+   * it. `backwards`, like the pins, so nothing is held on the wrapper once it
+   * has landed.
    */
   .nf-map-dock {
     animation: nf-map-dock-in var(--nf-duration-base) var(--nf-ease-entrance) backwards;
@@ -226,11 +226,6 @@
       opacity: 1;
       transform: none;
     }
-  }
-  /* Four classes: the night glass (brand-glass.css) paints every panel's
-     edge at three, and this edge is the point of the card. */
-  .nf-map-dock > .nf-map-dock__card.nf-panel.nf-panel--card {
-    border-color: var(--nf-selected-edge);
   }
   /* Reduced motion keeps the arrival as opacity alone, 160ms, opted in over
      the 0.01ms floor (animation.css, `--nf-reduced-duration`): without it a

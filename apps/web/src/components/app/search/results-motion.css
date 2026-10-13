@@ -25,15 +25,18 @@
  */
 @layer components {
   /* The first screenful on arrival, and every newcomer after: the base rung. */
-  .nf-results-fade .nf-pcard.nf-card-in {
+  .nf-results-fade .nf-pcard.nf-card-in,
+  .nf-results-fade .nf-sc--live.nf-card-in {
     animation-duration: var(--nf-duration-base);
   }
   /* A newcomer's place in the stagger is its place among the NEW cards. */
-  .nf-results-fade li[data-arrived] .nf-pcard.nf-card-in {
+  .nf-results-fade li[data-arrived] .nf-pcard.nf-card-in,
+  .nf-results-fade li[data-arrived] .nf-sc--live.nf-card-in {
     animation-delay: calc(min(var(--nf-arrive-i, 0), 5) * 40ms);
   }
   /* A survivor never re-enters, wherever the scroll entry had it. */
-  .nf-results-fade li[data-stayed] .nf-pcard {
+  .nf-results-fade li[data-stayed] .nf-pcard,
+  .nf-results-fade li[data-stayed] .nf-sc--live {
     animation: none;
     opacity: 1;
     transform: none;
@@ -52,7 +55,8 @@
      every animation to 0.01ms unless the element opts in, which
      `--nf-reduced-duration` does (it replaced a layered `!important`). */
   @media (prefers-reduced-motion: reduce) {
-    .nf-results-fade li[data-arrived] .nf-pcard.nf-card-in {
+    .nf-results-fade li[data-arrived] .nf-pcard.nf-card-in,
+    .nf-results-fade li[data-arrived] .nf-sc--live.nf-card-in {
       animation: nf-results-new 160ms var(--nf-ease-standard) both;
       --nf-reduced-duration: 160ms;
     }
