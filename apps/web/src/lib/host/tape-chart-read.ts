@@ -48,10 +48,18 @@ const STAY_LIMIT = 500;
 
 export type StayMarksRead = { state: "ok"; events: StayEvents } | { state: "missing" } | { state: "error" };
 
+/**
+ * This Lagos month's settled payments at the host's own places, summed from
+ * the split written on each transaction when the money moved
+ * (`my_earnings_history`): never estimated, never a rate applied here. After
+ * refunds, in kobo.
+ */
 export type HotelRevenue = {
-  /** What guests paid this Lagos month, after refunds, in kobo. */
+  /** What guests paid. */
   grossMinor: number;
-  /** What reached the host's bank after fees, in kobo. */
+  /** What Vallo took from the hotel's share. */
+  commissionMinor: number;
+  /** What the hotel receives: the charge less Vallo's share (and any reserve a payment made before the Guarantee was retired set aside). */
   shareMinor: number;
   payments: number;
 };
@@ -165,7 +173,7 @@ async function readRevenue(today: string, accommodationIds: string[]): Promise<H
   if (read.state !== "ok" || !read.complete) return null;
   const lines = statementLines(read.entries, month);
   const bookingIds = [...new Set(lines.map((l) => l.bookingId).filter((id): id is string => Boolean(id)))];
-  if (bookingIds.length === 0) return { grossMinor: 0, shareMinor: 0, payments: 0 };
+  if (bookingIds.length === 0) return { grossMinor: 0, commissionMinor: 0, shareMinor: 0, payments: 0 };
   const session = await resolveSession();
   if (session.state !== "signed-in") return null;
   const { data, error } = await session.supabase
@@ -178,7 +186,12 @@ async function readRevenue(today: string, accommodationIds: string[]): Promise<H
   if (error || !data) return null;
   const mine = new Set(data.map((row) => row.id as string));
   const totals = statementTotals(lines.filter((l) => l.bookingId !== null && mine.has(l.bookingId)));
-  return { grossMinor: totals.grossMinor, shareMinor: totals.shareMinor, payments: totals.payments };
+  return {
+    grossMinor: totals.grossMinor,
+    commissionMinor: totals.commissionMinor,
+    shareMinor: totals.shareMinor,
+    payments: totals.payments,
+  };
 }
 
 export async function readHotelDesk(now: Date = new Date()): Promise<HotelDeskRead> {

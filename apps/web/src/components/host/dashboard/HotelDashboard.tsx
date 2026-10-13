@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getDictionary, type Locale } from "@vallo/i18n";
 import type { HotelDeskRead } from "@/lib/host/tape-chart-read";
 import { buildHotelModel } from "@/lib/host/front-desk-model";
+import { hotelFeeSentence } from "@/lib/host/hotel-fee";
 import { HotelSummary } from "./HotelSummary";
 import { FrontDeskPanel } from "./FrontDeskPanel";
 import { TapeChart } from "@/components/host/tape-chart/TapeChart";
@@ -40,6 +41,11 @@ export function HotelDashboard({
   return (
     <div className="nf-dash" data-testid={`hotel-dashboard-${variant}`}>
       <HotelSummary desk={desk} chart={chart} revenue={read.revenue} words={words.hotel} locale={locale} />
+      {variant === "home" ? (
+        <p className="nf-dash__lede" data-testid="hotel-fee">
+          {hotelFeeSentence()}
+        </p>
+      ) : null}
       <FrontDeskPanel
         desk={desk}
         marks={read.marks.state}

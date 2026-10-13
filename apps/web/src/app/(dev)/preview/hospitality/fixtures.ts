@@ -107,13 +107,13 @@ export function hotelRead(options: { marks?: "ok" | "missing" | "error"; revenue
     inventory: inventory(rows),
     stays: rows,
     marks: m === "ok" ? { state: "ok", events: EVENTS } : { state: m },
-    revenue: options.revenue === false ? null : { grossMinor: 482_000_000, shareMinor: 457_900_000, payments: 21 },
+    revenue: options.revenue === false ? null : { grossMinor: 482_000_000, commissionMinor: 48_200_000, shareMinor: 433_800_000, payments: 21 },
     truncated: false,
   };
 }
 
 export function emptyHotelRead(): Extract<HotelDeskRead, { state: "ok" }> {
-  return { state: "ok", today: TODAY, roomTypes: [], inventory: [], stays: [], marks: { state: "ok", events: new Map() }, revenue: { grossMinor: 0, shareMinor: 0, payments: 0 }, truncated: false };
+  return { state: "ok", today: TODAY, roomTypes: [], inventory: [], stays: [], marks: { state: "ok", events: new Map() }, revenue: { grossMinor: 0, commissionMinor: 0, shareMinor: 0, payments: 0 }, truncated: false };
 }
 
 const at = (lagos: string) => new Date(`${lagos}+01:00`).toISOString();

@@ -15,6 +15,7 @@ import { RoomRequestAnswer } from "./RoomRequestAnswer";
 import { DecideClock } from "@/components/host/DecideClock";
 import { requestNow, roomDeadline } from "@/lib/host/decide";
 import { HOST_ROOM_BOOKING_PAYMENT } from "@/lib/money/copy";
+import { hotelFeeSentence } from "@/lib/host/hotel-fee";
 import "@/components/host/dashboard/dashboard.css";
 import "../host-desk.css";
 
@@ -68,6 +69,10 @@ export default async function HostRoomBookingsPage() {
           <h1 className="nf-h2">{words.title}</h1>
           <p className={`mt-xs max-w-2xl ${TYPE.body}`}>
             {words.lede} {HOST_ROOM_BOOKING_PAYMENT}
+          </p>
+          {/* Vallo's fee on a paid room, said plainly where the host reads their bookings. */}
+          <p className={`mt-xs max-w-2xl ${TYPE.body}`} data-testid="hotel-fee">
+            {hotelFeeSentence()}
           </p>
         </div>
 

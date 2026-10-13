@@ -84,13 +84,13 @@ export function HotelSummary({
             icon="banknote"
             label={words.revenue}
             className="nf-dash__tile--money"
-            figure={<Amount minorUnits={revenue.grossMinor} locale={locale} />}
+            figure={<Amount minorUnits={revenue.shareMinor} locale={locale} />}
             sub={
-              revenue.payments === 0 && revenue.grossMinor === 0 ? (
-                words.revenueNone
-              ) : (
-                words.revenueShare.replace("{amount}", formatMoney(revenue.shareMinor, locale))
-              )
+              revenue.payments === 0 && revenue.grossMinor === 0
+                ? words.revenueNone
+                : words.revenueShare
+                    .replace("{paid}", formatMoney(revenue.grossMinor, locale))
+                    .replace("{fee}", formatMoney(revenue.commissionMinor, locale))
             }
           />
         )}

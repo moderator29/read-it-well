@@ -53,7 +53,12 @@ describe("the hotel dashboard", () => {
     }
     /* 7 of the 21 rooms are held tonight; the month's payments are named in naira. */
     expect(page).toContain("7 of 21 rooms booked");
-    expect(page).toContain("4,820,000");
+    /* The card is what the hotel received, from the settled split: the charge
+       less Vallo's share, with both named under it. */
+    expect(page).toContain(t.hostDash.hotel.revenue);
+    expect(page).toContain("4,338,000");
+    expect(page).toContain("4,820,000 paid by guests");
+    expect(page).toContain("482,000 to Vallo");
   });
 
   it("draws the three front desk lists, each row with its one button", () => {
@@ -104,6 +109,9 @@ describe("the hotel dashboard", () => {
   it("is the same cards and desk on the home, with a door to the calendar instead of the chart", () => {
     const home = hotel("home");
     expect(home).toContain('data-testid="open-calendar"');
+    /* Vallo's fee on a paid room, said plainly under the cards. */
+    expect(home).toContain('data-testid="hotel-fee"');
+    expect(home).toContain("taken from your share");
     expect(home).not.toContain('data-testid="tape-chart"');
     /* Four rows a list at most on the home. */
     expect(home.match(/data-testid="front-desk-row"/g)?.length).toBeLessThanOrEqual(12);
