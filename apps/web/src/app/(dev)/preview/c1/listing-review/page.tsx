@@ -92,7 +92,7 @@ const LISTING: ListingReviewView = {
   checks: [
     { label: "Four photos or more", pass: false, detail: "0 photos" },
     { label: "Cover photo set", pass: false, detail: "No cover" },
-    { label: "Title in title case", pass: true, detail: "Reads as a title" },
+    { label: "Title of 8 to 80 characters", pass: true, detail: "Two Bedroom Flat, Herbert Macaulay Way, Yaba" },
     { label: "Area and city recorded", pass: true, detail: "Yaba, Lagos" },
     { label: "Price recorded in naira", pass: true, detail: "Asking price stated" },
     { label: "Title deed stated", pass: true, detail: "Certificate of occupancy" },

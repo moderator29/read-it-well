@@ -3806,7 +3806,11 @@ export const en = {
       checks: {
         photoCount: "Four photos or more",
         cover: "Cover photo set",
+        /* No longer a line on the checklist (lib/admin/listing-checks.ts): it
+           was a rule nobody asked of the lister. Kept while the other locales
+           still carry it. */
         titleCase: "Title in title case",
+        titleLength: "Title of 8 to 80 characters",
         place: "Area and city recorded",
         price: "Price recorded in naira",
         rooms: "Bedrooms and bathrooms recorded",

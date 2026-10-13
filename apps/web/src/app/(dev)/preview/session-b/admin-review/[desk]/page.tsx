@@ -98,7 +98,7 @@ const LISTING: ListingReviewView = {
   checks: [
     { label: "Four photos or more", pass: true, detail: "9 uploaded" },
     { label: "Cover photo set", pass: true, detail: "First photo is the cover" },
-    { label: "Title in title case", pass: true, detail: "Three Bedroom Flat in Lekki Phase One" },
+    { label: "Title of 8 to 80 characters", pass: true, detail: "Three Bedroom Flat in Lekki Phase One" },
     { label: "Area and city recorded", pass: true, detail: "Lekki, Lagos" },
     { label: "Price recorded in naira", pass: true, detail: "per year" },
     { label: "Bedrooms and bathrooms recorded", pass: true, detail: "3 bedrooms, 3 bathrooms" },

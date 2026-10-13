@@ -1,5 +1,6 @@
 import { countOf, formatMoney, type Locale } from "@vallo/i18n/core";
 import type { ListingReviewView } from "@/lib/admin/queries";
+import { CHECK_LABEL } from "@/lib/admin/listing-checks";
 import { ListingDecision } from "../_components/AdminActions";
 import { fill, type AdminCommon, type AdminCopy } from "../_components/copy";
 import type { AdminUi } from "../_components/ui";
@@ -48,15 +49,17 @@ export const FURNISHING_LABEL = labelsOf(FURNISHING_CHOICES);
  * outside this surface's scope.
  */
 export const CHECK_KEYS: Record<string, keyof AdminCopy["listings"]["checks"]> = {
-  "Four photos or more": "photoCount",
-  "Cover photo set": "cover",
-  "Title in title case": "titleCase",
-  "Area and city recorded": "place",
-  "Price recorded in naira": "price",
-  "Bedrooms and bathrooms recorded": "rooms",
-  "Amenities chosen": "amenities",
-  "Description of 40 words or more": "description",
-  "No contact or payment details in the text": "clean",
+  [CHECK_LABEL.photoCount]: "photoCount",
+  [CHECK_LABEL.cover]: "cover",
+  /* The title line is the submit gate's length rule now, not title case,
+     which nobody asked of the lister (lib/admin/listing-checks.ts). */
+  [CHECK_LABEL.titleLength]: "titleLength",
+  [CHECK_LABEL.place]: "place",
+  [CHECK_LABEL.price]: "price",
+  [CHECK_LABEL.rooms]: "rooms",
+  [CHECK_LABEL.amenities]: "amenities",
+  [CHECK_LABEL.description]: "description",
+  [CHECK_LABEL.clean]: "clean",
 };
 
 /**

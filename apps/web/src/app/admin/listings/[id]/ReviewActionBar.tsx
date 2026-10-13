@@ -10,6 +10,9 @@ import "../../_components/admin-material.css";
 
 type Decision = "approve" | "publish" | "request_changes" | "reject";
 
+/** The shortest rejection reason `reviewListing` accepts. */
+const REJECT_REASON_MIN = 8;
+
 /**
  * The action bar under the listing, C1D98B3C panel 2: a reason field and
  * Approve, Ask for more and Reject.
@@ -23,10 +26,13 @@ type Decision = "approve" | "publish" | "request_changes" | "reject";
  * WHAT THE RENDER DOES NOT DRAW AND THIS KEEPS. Approve and publish are two
  * separate acts (approve passes the checklist; publish puts the listing in
  * public search), so once a listing is approved the first button reads
- * Publish. Ask for more sends the lister the reason word for word, so it stays
- * disabled until a reason is written, which the server also refuses without.
- * Reject is the one decision a lister cannot undo by editing, so it asks to
- * be pressed a second time within a few seconds.
+ * Publish. Ask for more and Reject both send the lister the reason word for
+ * word, so each stays disabled until there is a reason the server will take
+ * (any for Ask for more, eight characters or a reason chip for Reject; the
+ * server refuses either without one). Reject closes this round of review, the
+ * lister has to edit and send it again, so it asks to be pressed a second time
+ * within a few seconds. A listing sent back for changes is with the lister, so
+ * it cannot be approved from here until they send it back.
  *
  * After a decision the next listing in the reviewer's queue loads, or the
  * queue itself when this was the last one.
@@ -63,6 +69,13 @@ export function ReviewActionBar({
   const reason = notes.trim();
   /* What the lister will read when sending back or rejecting. */
   const composed = composeReviewNote(codes, notes);
+  /* The server's own floor for a rejection (`reviewListing`): a reason of at
+     least eight characters. The button waited for nothing and the refusal
+     arrived after the second press. */
+  const canReject = composed.trim().length >= REJECT_REASON_MIN;
+  /* With the lister for changes: the server will not approve it until they
+     send it back, so the button does not offer to. */
+  const withLister = status === "MORE_INFO_REQUIRED";
 
   const run = (decision: Decision) => {
     setError(null);
@@ -147,7 +160,8 @@ export function ReviewActionBar({
           size="sm"
           leadingIcon="verified"
           data-desk-approve
-          disabled={pending}
+          disabled={pending || withLister}
+          title={withLister ? "With the lister for changes. Approve it once they send it back." : undefined}
           onClick={() => run(approving)}
         >
           {approving === "publish" ? "Publish" : "Approve"}
@@ -169,7 +183,8 @@ export function ReviewActionBar({
           size="sm"
           leadingIcon="close"
           data-desk-decline
-          disabled={pending}
+          disabled={pending || !canReject}
+          title={canReject ? undefined : "Pick a reason or write why it is rejected first"}
           aria-describedby={armed ? "rv-reject-confirm" : undefined}
           onClick={onReject}
         >
@@ -177,6 +192,11 @@ export function ReviewActionBar({
         </Button>
       </div>
       <div aria-live="polite">
+        {withLister ? (
+          <p className="nf-rv-msg" data-testid="rv-with-lister">
+            Sent back for changes and with the lister. You can update the note or reject it; approve it once they send it back.
+          </p>
+        ) : null}
         {armed ? (
           <p id="rv-reject-confirm" className="nf-rv-msg">
             Rejecting tells the lister it did not pass. Press Reject again to confirm.
