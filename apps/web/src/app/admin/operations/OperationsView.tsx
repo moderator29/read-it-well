@@ -5,7 +5,9 @@ import { actionLabel, entityTypeLabel } from "@/lib/admin/audit-filter";
 import type { AlertView } from "@/lib/admin/queries";
 import { AreaTimeChart } from "@/components/agent/charts/AreaTimeChart";
 import { isQaAccount, type AlertTrend, type InspectionActivity, type JobHealth, type NotificationActivity, type PersonTier, type PushActivity } from "@/lib/admin/reads/shapes";
-import { EmailOutboxPanel, PushActivityPanels } from "./PushActivityPanels";
+import { PushActivityPanels } from "./PushActivityPanels";
+import { EmailOutboxPanel } from "./OpsReadPanels";
+import { inFlightWaiting, outboxWaiting, type OpsRead, type OpsReads } from "@/lib/admin/reads/ops-panels-model";
 import { InFlight } from "./InFlight";
 import { StorePanel } from "./StorePanel";
 import type { StoreRun } from "@/lib/store/run";
@@ -71,6 +73,8 @@ export type OperationsProps = {
   inspections?: InspectionActivity | null;
   /** V-52: the store readiness checks, run live on the Store tab only. */
   store?: StoreRun | null;
+  /** The staff reads of the pending Operations draft; each is `missing` until it is applied. */
+  ops?: OpsReads;
 };
 
 function stamp(iso: string | null, locale: Locale): string {
@@ -146,8 +150,8 @@ export function OperationsView(props: OperationsProps) {
     { key: "jobs", label: c.tabJobs },
     { key: "alerts", label: c.tabAlerts, count: props.trend?.openNow },
     { key: "audit", label: c.tabAudit },
-    { key: "notifications", label: c.tabNotifications },
-    { key: "inflight", label: c.tabInFlight },
+    { key: "notifications", label: c.tabNotifications, count: outboxWaiting(props.ops) || undefined },
+    { key: "inflight", label: c.tabInFlight, count: inFlightWaiting(props.ops) || undefined },
     { key: "store", label: getDictionary(locale).frontDoor.store.tab },
   ].map((t) => ({
     ...t,
@@ -189,12 +193,16 @@ export function OperationsView(props: OperationsProps) {
           <>
             <PushActivityPanels push={props.push ?? null} locale={locale} />
             <div className="nf-admin-grid nf-admin-grid--halves">
-              <NotificationsPanel activity={props.notifications} locale={locale} />
-              <EmailOutboxPanel locale={locale} />
+              <NotificationsPanel activity={props.notifications} read={props.ops?.notifications} locale={locale} />
+              <EmailOutboxPanel
+                read={props.ops?.outbox}
+                locale={locale}
+                missing={<NotWired title={tx(locale, "opsNotReadableByAnAdmin")} what={tx(locale, "opsEmailOutboxWhat")} request={tx(locale, "opsEmailOutboxRequest")} />}
+              />
             </div>
           </>
         )}
-        {props.tab === "inflight" && <InFlight locale={locale} inspections={props.inspections ?? null} />}
+        {props.tab === "inflight" && <InFlight locale={locale} inspections={props.inspections ?? null} ops={props.ops} />}
         {props.tab === "store" && <StorePanel run={props.store ?? null} locale={locale} />}
       </div>
 
@@ -402,10 +410,13 @@ function AuditPanel({ audit, activity, locale, now, tiers }: OperationsProps) {
   );
 }
 
-function NotificationsPanel({ activity, locale }: { activity: NotificationActivity | null; locale: Locale }) {
+function NotificationsPanel({ activity: given, read, locale }: { activity: NotificationActivity | null; read?: OpsRead<NotificationActivity>; locale: Locale }) {
+  const activity = given ?? (read?.state === "ok" ? read.data : null);
   return (
     <Panel id="ops-notifications" title={tx(locale, "opsNotificationsSent")}>
-      {!activity ? (
+      {!activity && read?.state === "unavailable" ? (
+        <PanelUnavailable what={tx(locale, "opsNotificationsSent")} locale={locale} />
+      ) : !activity ? (
         <NotWired
           title={tx(locale, "opsNotReadableByAnAdmin")}
           what={tx(locale, "opsEveryNotificationThePlatformSends")}

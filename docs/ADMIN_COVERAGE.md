@@ -29,7 +29,7 @@ Badges added: Record retention (accounts past retention), Restaurant fees (dispu
 | `staff_chargebacks`, `chargeback_open`, `chargeback_move` | `/admin/chargebacks` is another track's. |
 | `admin_referral_*`, `admin_rewards_payout_decide` | `/admin/referrals` is another track's. `admin_rewards_payout_decide` (release, refuse or fail an under-review rewards payout) is not in the list handed to that track: confirm it is on their page. |
 | `closed_listing_count`, `closed_listing_reasons` | Not called by name; the same reads are done through `readClosedReasons` and the listings queue. No missing screen. |
-| Operations panels "not readable by an admin yet": account deletions, business transfers, database jobs, reconciliation watch, notifications sent, email outbox; held event decisions (AR-10) | No admin-readable backend exists (tables closed by row security, no staff function). Each needs a new read function first. |
+| Operations panels "not readable by an admin yet": account deletions, business transfers, database jobs, reconciliation watch, notifications sent, email outbox; held event decisions (AR-10) | Built, waiting on SQL. The panels read `staff_ops_account_deletions`, `staff_ops_business_transfers`, `staff_ops_database_jobs`, `staff_ops_reconciliation`, `staff_ops_notifications`, `staff_ops_email_outbox` and `staff_ops_held_events` from the draft `supabase/migrations/pending/op01_operations_reads.sql` (probe `supabase/tests/probes-pending/op01-operations-reads.sql`). Until it is applied each panel detects the missing function and keeps its "not readable by an admin yet" note. Deciding a held event is still not built (request AR-10); only the held list and any recorded decisions are read. |
 
 ## Findings
 
