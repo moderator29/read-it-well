@@ -13,6 +13,7 @@ import { PhotoFrame } from "./PhotoFrame";
 import { aimPhotoMorph } from "@/lib/motion/photo-morph";
 import { handoffFor } from "@/lib/listings/handoff";
 import { usePhotoViewer } from "./PhotoViewer";
+import { clockOf, type GalleryMedia } from "./gallery-media";
 import "@/app/css/catalogue.css";
 import "@/app/css/list-views.css";
 
@@ -45,6 +46,7 @@ export function ListingGallery({
   hue,
   kind,
   photos,
+  media,
   plates = [],
   drawn = false,
   initialSaved = false,
@@ -88,6 +90,13 @@ export function ListingGallery({
   kind: ListingKind;
   /** Photo URLs, best first. May be empty. */
   photos: string[];
+  /**
+   * Photos AND videos, in the lister's order, cover first (`gallery-media.ts`).
+   * Optional: without it the gallery is the photo gallery it always was, which
+   * is what the stay and restaurant pages pass. A video slide shows its still
+   * and a "Watch video" button, and plays in place when that is pressed.
+   */
+  media?: GalleryMedia[];
   initialSaved?: boolean;
   /** Where back goes when this page was opened directly. */
   backFallback?: string;
@@ -122,9 +131,24 @@ export function ListingGallery({
 
   // One pane per photo; the stand-in plates when there is no photography
   // yet, and one honest drawn pane when there is neither.
-  const standIn = photos.length === 0 && plates.length > 0;
-  const panes: (string | null)[] = photos.length > 0 ? photos : standIn ? plates : [null];
-  const count = photos.length;
+  const mixed = media && media.length > 0 ? media : null;
+  const standIn = !mixed && photos.length === 0 && plates.length > 0;
+  /* What each pane paints: a photo, or a video's still (null draws the frame). */
+  const panes: (string | null)[] = mixed
+    ? mixed.map((item) => (item.kind === "photo" ? item.src : item.poster))
+    : photos.length > 0
+      ? photos
+      : standIn
+        ? plates
+        : [null];
+  const count = mixed ? mixed.length : photos.length;
+  /* The one video playing, if any. Only ever the slide on screen: swiping
+     away unmounts its player, which stops it (and its sound). The file is
+     fetched only from the moment "Watch video" is pressed. */
+  const [playing, setPlaying] = useState<number | null>(null);
+  useEffect(() => {
+    if (playing !== null && playing !== active) setPlaying(null);
+  }, [active, playing]);
 
   const onScroll = useCallback(() => {
     const el = track.current;
@@ -270,10 +294,13 @@ export function ListingGallery({
         aria-label={t.a11y.photoGallery.replace("{title}", title)}
         className="nf-scroll-x flex aspect-[4/3] w-full snap-x snap-mandatory sm:aspect-[16/9] lg:aspect-[2/1]"
       >
-        {panes.map((photo, i) => (
+        {panes.map((photo, i) => {
+          const video = mixed?.[i]?.kind === "video" ? (mixed[i] as Extract<GalleryMedia, { kind: "video" }>) : null;
+          return (
           <div
-            key={photo ?? `pane-${i}`}
+            key={`${i}-${photo ?? "pane"}`}
             className="relative h-full w-full shrink-0 snap-center snap-always overflow-hidden"
+            data-kind={video ? "video" : undefined}
           >
             <PhotoFrame hue={hue} index={i} kind={kind} drawn={drawn} />
             {i === 0 && arrival?.drawn && photo && !broken[i] && (
@@ -296,7 +323,7 @@ export function ListingGallery({
               scroll track keeps a plain div as its snap child and the hit area
               still covers the whole frame.
             */}
-            {photo && viewer && (
+            {photo && viewer && !video && (
               <button
                 type="button"
                 onClick={(event) => viewer.open(i, event.currentTarget.getBoundingClientRect(), { follow: show })}
@@ -305,8 +332,53 @@ export function ListingGallery({
                 className="absolute inset-0 z-[1] cursor-zoom-in"
               />
             )}
+            {video && playing === i && (
+              /* Muted until the viewer unmutes, with its controls, and never
+                 on its own: it starts only because "Watch video" was pressed. */
+              <video
+                src={video.src}
+                poster={video.poster ?? undefined}
+                controls
+                autoPlay
+                muted
+                playsInline
+                preload="auto"
+                aria-label={`${title}, video${video.durationSeconds ? `, ${clockOf(video.durationSeconds)}` : ""}`}
+                data-testid="gallery-video"
+                className="absolute inset-0 z-[3] h-full w-full bg-[var(--nf-overlay-media-deep)] object-contain"
+              />
+            )}
+            {video && playing !== i && (
+              <>
+                {/* The still is a target too, for a thumb; the button below
+                    is the one a keyboard and a screen reader reach. */}
+                <div
+                  aria-hidden="true"
+                  onClick={() => setPlaying(i)}
+                  className="absolute inset-0 z-[1] cursor-pointer"
+                />
+                <button
+                  type="button"
+                  onClick={() => setPlaying(i)}
+                  aria-label="Watch video"
+                  data-testid="gallery-watch"
+                  className="nf-btn nf-gallery-watch absolute bottom-[5.25rem] right-3 z-10 sm:bottom-[5.75rem] sm:right-4"
+                >
+                  <span className="nf-gallery-watch__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width={12} height={12} focusable="false">
+                      <path d="M8 5v14l11-7z" fill="currentColor" />
+                    </svg>
+                  </span>
+                  <span>Watch video</span>
+                  {video.durationSeconds ? (
+                    <span className="nf-numeric opacity-80">{clockOf(video.durationSeconds)}</span>
+                  ) : null}
+                </button>
+              </>
+            )}
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Scrims: the controls sit on light sky at the top and the counter on
@@ -397,7 +469,9 @@ export function ListingGallery({
           {t.catalogue.card.noPhotos}
         </p>
       )}
-      {count > 0 && (
+      {/* Off while a video plays: it sat on the player's mute and full-screen
+          controls, and the sound is the first thing a viewer reaches for. */}
+      {count > 0 && playing === null && (
         <p
           data-testid="gallery-counter"
           /* `--nf-radius-sm`, the same 28px-plate ratio as the stand-in chip
@@ -405,7 +479,7 @@ export function ListingGallery({
           className="nf-numeric absolute bottom-12 right-3 z-10 rounded-[var(--nf-radius-xs)] nf-media-chip px-sm py-2xs font-semibold sm:bottom-14 sm:right-4"
         >
           <UiIcon name="picture" size={16} className="mr-2xs inline-block align-[-2px]" />
-          <span className="sr-only">Photo </span>
+          <span className="sr-only">{mixed ? "Slide " : "Photo "}</span>
           {Math.min(active + 1, count)}/{count}
         </p>
       )}
@@ -417,7 +491,7 @@ export function ListingGallery({
             type="button"
             onClick={() => go(active - 1)}
             disabled={active === 0}
-            aria-label="Previous photo"
+            aria-label={mixed ? "Previous slide" : "Previous photo"}
             data-theme="light"
             className="absolute left-3 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 place-items-center nf-icon-btn nf-icon-btn--round disabled:opacity-0 sm:grid"
           >
@@ -427,7 +501,7 @@ export function ListingGallery({
             type="button"
             onClick={() => go(active + 1)}
             disabled={active === panes.length - 1}
-            aria-label="Next photo"
+            aria-label={mixed ? "Next slide" : "Next photo"}
             data-theme="light"
             className="absolute right-3 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 place-items-center nf-icon-btn nf-icon-btn--round disabled:opacity-0 sm:grid"
           >
@@ -453,7 +527,7 @@ export function ListingGallery({
           >
             {panes.map((photo, i) => (
               <li
-                key={photo ?? `dot-${i}`}
+                key={`${i}-${photo ?? "dot"}`}
                 /* The colour eases; the width steps. A width that animates is
                    a layout every frame (CRAFT-PRINCIPLES 2.2). */
                 className={`h-1.5 rounded-full transition-colors duration-[var(--nf-duration-fast)] motion-reduce:transition-none ${

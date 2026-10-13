@@ -1497,6 +1497,37 @@
   .nf-media-chip--caption {
     font-size: var(--nf-text-caption);
   }
+
+  /*
+   * "WATCH VIDEO", ON A VIDEO SLIDE OF THE LISTING GALLERY (founder, 13
+   * October): a dark, see-through capsule at the photograph's bottom right
+   * holding a filled play circle and the words. It is a real button, so it
+   * takes the button's capsule (the one control allowed one) and its 44px
+   * reach; the ink and the ground are the on-media tokens, which hold in both
+   * themes because the hero is a night island either way.
+   */
+  .nf-btn.nf-gallery-watch {
+    min-height: 2.75rem;
+    padding-inline: var(--nf-space-sm) var(--nf-space-md);
+    gap: var(--nf-space-2xs);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-on-media);
+    background: var(--nf-overlay-media-strong);
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    border-radius: var(--nf-radius-button);
+    -webkit-backdrop-filter: blur(var(--nf-btn-glass-blur));
+    backdrop-filter: blur(var(--nf-btn-glass-blur));
+  }
+  .nf-gallery-watch__icon {
+    display: grid;
+    place-items: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-content-on-media);
+    color: var(--nf-overlay-media-strong);
+  }
   .nf-media-chip--lg {
     font-size: var(--nf-text-body-lg);
   }
