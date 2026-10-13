@@ -4105,4 +4105,52 @@ export const ig: Dictionary = withFallback({
       openDesk: "Mepee ibe tebụl",
     },
   },
+  /**
+   * Chat hints (apps/web/src/lib/messages/hints.ts): the one small card and the quick
+   * reply chips above a renter's composer in a listing thread. A chip only fills
+   * the composer with `text`; nothing is sent until the person presses send.
+   */
+  chatHints: {
+    label: "Ọ ga-adị mma ịjụ",
+    region: "Ajụjụ e tụrụ aro",
+    dismiss: "Mechie aro a",
+    gaps: {
+      power: {
+        line: "Jụọ gbasara ọkụ na ọkụ nkwado",
+        chip: "Jụọ gbasara ọkụ",
+        text: "Ndewo, awa ole ka ọkụ na-adịkarị n'ụlọ a kwa ụbọchị, ọ nwekwara jeneretọ ma ọ bụ inverter? Daalụ.",
+      },
+      water: {
+        line: "Jụọ gbasara ebe mmiri si",
+        chip: "Jụọ gbasara mmiri",
+        text: "Ndewo, ebee ka mmiri si abịa, ọ nwekwara olulu mmiri (borehole) ma ọ bụ tank? Daalụ.",
+      },
+      moveIn: {
+        line: "Jụọ ngụkọta ego a ga-akwụ tupu ịbanye",
+        chip: "Jụọ gbasara ụgwọ",
+        text: "Ndewo, biko depụta ihe niile m ga-akwụ tupu m banye, dịka caution, ụgwọ onye nnọchiteanya, ụgwọ ọkàiwu na ụgwọ ọrụ, yana ngụkọta ha. Daalụ.",
+      },
+      buyCosts: {
+        line: "Jụọ ngụkọta ego a ga-akwụ iji zụta",
+        chip: "Jụọ gbasara ego",
+        text: "Ndewo, biko depụta ụgwọ ọ bụla ọzọ gafere ọnụahịa a rịọrọ, dịka ụgwọ onye nnọchiteanya, ụgwọ ọkàiwu na ụgwọ ndebanye aha, yana ngụkọta ha. Daalụ.",
+      },
+      parking: {
+        line: "Jụọ gbasara ebe ịdọba ụgbọala",
+        chip: "Jụọ gbasara ebe ndọba",
+        text: "Ndewo, ebe ịdọba ụgbọala ọ dị n'ụlọ a, ọ dịkwa n'ime ọgbà? Daalụ.",
+      },
+      rules: {
+        line: "Jụọ gbasara anụ ụlọ na iwu ụlọ",
+        chip: "Jụọ gbasara iwu",
+        text: "Ndewo, a na-anabata anụ ụlọ, ọ nwekwara iwu ụlọ ọ bụla m kwesịrị ịmara? Daalụ.",
+      },
+    },
+    visit: {
+      label: "I nwere ike ịhazi nleta",
+      line: "Họrọ ụbọchị na oge dabara gị. Nleta anaghị ewe ego.",
+      chip: "Hazie nleta",
+    },
+  },
+
 } satisfies Translation, igDrafts);

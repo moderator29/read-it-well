@@ -4122,4 +4122,52 @@ export const yo: Dictionary = withFallback({
       openDesk: "Ṣí ojú-ìwé tábìlì",
     },
   },
+  /**
+   * Chat hints (apps/web/src/lib/messages/hints.ts): the one small card and the quick
+   * reply chips above a renter's composer in a listing thread. A chip only fills
+   * the composer with `text`; nothing is sent until the person presses send.
+   */
+  chatHints: {
+    label: "O lè fẹ́ béèrè",
+    region: "Àwọn ìbéèrè tí a dábàá",
+    dismiss: "Ti àbá yìí",
+    gaps: {
+      power: {
+        line: "Béèrè nípa iná àti iná àfikún",
+        chip: "Béèrè nípa iná",
+        text: "Ẹ n lẹ́, wákàtí mélòó ni iná máa ń wà níbí lójoojúmọ́, ǹjẹ́ jẹnẹ́rétọ̀ tàbí inverter wà? Ẹ ṣé.",
+      },
+      water: {
+        line: "Béèrè nípa orísun omi",
+        chip: "Béèrè nípa omi",
+        text: "Ẹ n lẹ́, níbo ni omi ti ń wá, ǹjẹ́ borehole tàbí tanki omi wà? Ẹ ṣé.",
+      },
+      moveIn: {
+        line: "Béèrè iye owó tí a máa san kí a tó wọlé",
+        chip: "Béèrè nípa owó",
+        text: "Ẹ n lẹ́, ẹ jọ̀wọ́ ṣe àkójọ gbogbo owó tí èmi yóò san kí n tó wọlé, bíi caution, owó aṣojú, owó òfin àti owó iṣẹ́, pẹ̀lú àpapọ̀ rẹ̀. Ẹ ṣé.",
+      },
+      buyCosts: {
+        line: "Béèrè gbogbo owó tí a máa san láti rà á",
+        chip: "Béèrè nípa iye owó",
+        text: "Ẹ n lẹ́, ẹ jọ̀wọ́ ṣe àkójọ gbogbo owó mìíràn lé orí iye tí ẹ ń tà á, bíi owó aṣojú, owó òfin àti owó ìforúkọsílẹ̀, pẹ̀lú àpapọ̀ rẹ̀. Ẹ ṣé.",
+      },
+      parking: {
+        line: "Béèrè nípa ibùdó ọkọ̀",
+        chip: "Béèrè nípa ibùdó ọkọ̀",
+        text: "Ẹ n lẹ́, ǹjẹ́ ibùdó ọkọ̀ wà níbí, ǹjẹ́ ó wà nínú àgbàlá? Ẹ ṣé.",
+      },
+      rules: {
+        line: "Béèrè nípa ẹranko ọ̀sìn àti ìlànà ilé",
+        chip: "Béèrè nípa ìlànà",
+        text: "Ẹ n lẹ́, ǹjẹ́ a gbà láàyè láti tọ́jú ẹranko ọ̀sìn, ǹjẹ́ ìlànà ilé kankan wà tí ó yẹ kí n mọ̀? Ẹ ṣé.",
+      },
+    },
+    visit: {
+      label: "O lè ṣètò ìbẹ̀wò",
+      line: "Yan ọjọ́ àti àkókò tó rọ̀ ọ́ lọ́rùn. Ìbẹ̀wò kì í gba owó.",
+      chip: "Ṣètò ìbẹ̀wò",
+    },
+  },
+
 } satisfies Translation, yoDrafts);

@@ -4076,4 +4076,52 @@ export const ha: Dictionary = withFallback({
       openDesk: "Buɗe shafin tebura",
     },
   },
+  /**
+   * Chat hints (apps/web/src/lib/messages/hints.ts): the one small card and the quick
+   * reply chips above a renter's composer in a listing thread. A chip only fills
+   * the composer with `text`; nothing is sent until the person presses send.
+   */
+  chatHints: {
+    label: "Wataƙila kana so ka tambaya",
+    region: "Tambayoyin da aka ba da shawara",
+    dismiss: "Rufe wannan shawarar",
+    gaps: {
+      power: {
+        line: "Tambaya game da wuta da madadin wuta",
+        chip: "Tambayi game da wuta",
+        text: "Sannu, awa nawa ake samun wutar lantarki a wurin a kullum, kuma akwai janareta ko inverter? Na gode.",
+      },
+      water: {
+        line: "Tambaya game da samun ruwa",
+        chip: "Tambayi game da ruwa",
+        text: "Sannu, daga ina ruwan yake zuwa, kuma akwai burtsatse (borehole) ko tanki? Na gode.",
+      },
+      moveIn: {
+        line: "Tambayi cikakken kuɗin shiga",
+        chip: "Tambayi game da kuɗi",
+        text: "Sannu, don Allah ka jera duk abin da zan biya kafin in shiga, kamar caution, kuɗin wakili, kuɗin lauya da kuɗin hidima, tare da jimillar. Na gode.",
+      },
+      buyCosts: {
+        line: "Tambayi cikakken kuɗin saye",
+        chip: "Tambayi game da kuɗin saye",
+        text: "Sannu, don Allah ka jera duk wani kuɗi baya ga farashin da ake nema, kamar kuɗin wakili, kuɗin lauya da kuɗin rajista, tare da jimillar. Na gode.",
+      },
+      parking: {
+        line: "Tambaya game da wurin ajiye mota",
+        chip: "Tambayi game da mota",
+        text: "Sannu, akwai wurin ajiye mota a wurin, kuma yana cikin gidan ne? Na gode.",
+      },
+      rules: {
+        line: "Tambaya game da dabbobi da dokokin gida",
+        chip: "Tambayi game da dokoki",
+        text: "Sannu, ana yarda da dabbobin gida, kuma akwai wasu dokokin gida da ya kamata in sani? Na gode.",
+      },
+    },
+    visit: {
+      label: "Za ka iya tsara ziyara",
+      line: "Zaɓi rana da lokacin da ya dace da kai. Ziyara ba ta ɗaukar kuɗi.",
+      chip: "Tsara ziyara",
+    },
+  },
+
 } satisfies Translation, haDrafts);

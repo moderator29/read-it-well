@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ShowMePanel } from "@/components/app/messages/ShowMePanel";
 import { readShowMe } from "@/lib/messages/show-me-queries";
+import { readChatHintGaps } from "@/lib/messages/hints-read";
 import { notFound } from "next/navigation";
 import { withNext } from "@/lib/auth/next-link";
 import { getDictionary } from "@vallo/i18n";
@@ -215,6 +216,7 @@ export default async function ConversationPage({
       recordRead,
       accountMoment,
       showMe,
+      chatHintGaps,
     ] = await Promise.all([
       /* The shared listings and bookings, expanded into cards for this reader. */
       resolveCards(session.supabase, thread.messages, locale),
@@ -270,6 +272,13 @@ export default async function ConversationPage({
         : null,
       /* V-69: a listing thread's clip asks, when the flag is open. */
       listingThread ? readShowMe(session.supabase, id) : null,
+      /* The renter's hint card and chips: the gaps in this listing's own data.
+         Null for anybody else, and for a stay, a table or a failed read. */
+      readChatHintGaps(session.supabase, {
+        contextKind: context.kind,
+        role,
+        listingId: thread.listing?.id ?? null,
+      }),
     ]);
     const passportLine =
       listingThread && role === "host"
@@ -378,6 +387,18 @@ export default async function ConversationPage({
               : []
         }
         quickRepliesTitle={desk ? t.frontDoor.desk.quickTitle : t.memberKit.questions.title}
+        chatHints={
+          chatHintGaps && thread.listing
+            ? {
+                data: {
+                  gaps: chatHintGaps,
+                  visitOpen: inspection !== null && inspection !== undefined,
+                  visitHref: `/listing/${thread.listing.id}/visit`,
+                },
+                copy: t.chatHints,
+              }
+            : null
+        }
         openAttach={(Array.isArray(attach) ? attach[0] : attach) === "1"}
         accountMoment={accountMoment}
         personLine={personLine}

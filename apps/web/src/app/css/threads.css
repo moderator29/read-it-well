@@ -1865,3 +1865,45 @@
   position: sticky;
   bottom: 0;
 }
+
+/*
+ * CHAT HINTS (`components/app/messages/ChatHints.tsx`): the one small card
+ * above a renter's composer. A quiet brand tint with a brand accent on the
+ * leading edge, never a warning colour: it is a suggestion, and the payment
+ * warnings above it keep their own look. Tokens only, so light and dark both
+ * come from the ladder.
+ */
+@layer components {
+  .nf-chat-hint {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    padding: var(--nf-space-2xs) var(--nf-space-2xs) var(--nf-space-2xs) var(--nf-space-sm);
+    border-radius: var(--nf-radius-card-sm);
+    border: var(--nf-border-width) solid var(--nf-border-subtle);
+    border-inline-start: 3px solid var(--nf-brand-quiet);
+    background: var(--nf-brand-tint-1);
+    color: var(--nf-content-secondary);
+  }
+  .nf-chat-hint__icon {
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    color: var(--nf-brand-quiet);
+  }
+  .nf-chat-hint__body {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: grid;
+  }
+  .nf-chat-hint__label {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-chat-hint__line {
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+  }
+}
