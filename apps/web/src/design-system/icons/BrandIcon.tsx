@@ -88,8 +88,7 @@ import { brandArtwork, type TieredObjectName } from "./object-assets";
  * FORTY ONE OF THESE ARE CROPPED FROM THE REFERENCE RENDERS, not sliced from
  * a sheet, on the direction's ruling that a glass object a governing render
  * uses and the sheets lack is cropped, keyed and filed under a name. They are
- * `RENDER_CROPS` in `scripts/icon-manifest.mjs`, which records the render and
- * the region each came from, and `docs/ICON_SYSTEM.md` lists them. Two things
+ * recorded in `docs/ICON_SYSTEM.md`, which lists them. Two things
  * to know at a call site. They are single objects with no light twin, so in
  * daylight they take the navy chip like the other 80. And they are NOT all
  * drawn at the same size: the wallet and the hotel are around 200 pixels at

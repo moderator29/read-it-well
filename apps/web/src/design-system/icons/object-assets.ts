@@ -23,8 +23,8 @@ import { GLASS_TO_SOLID } from "./glass-to-solid";
  * withheld object is not listed here, and the table in
  * `docs/design/assets-raw/2026-10-06/slice-report.json` says why.
  *
- * The files are produced by `scripts/slice-tiered-sheets.mjs` from the founder's
- * sheets; do not edit them by hand. Every file is a transparent webp at 1x and
+ * The files were cut from the founder's sheets by a one-off script that has
+ * since been removed; do not edit them by hand. Every file is a transparent webp at 1x and
  * `@2x`, on a square canvas: 128 and 256 for tier B and for the tier A buildings
  * (their source is only 160 to 290px wide, so 256 is as large as is honest), 160
  * and 320 for the tier A infrastructure, and 384 and 768 for the two scenes.
