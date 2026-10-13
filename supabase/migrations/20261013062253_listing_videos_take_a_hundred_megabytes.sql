@@ -1,4 +1,4 @@
--- PENDING: not applied. For the founder to apply (track listing, round 2).
+-- Applied 13 October 2026 (track listing, round 2).
 --
 -- WHAT: the `listing-videos` bucket's size ceiling goes from 50MB to 100MB.
 -- WHY: the founder's rule for listing videos (12 October 2026) is up to
