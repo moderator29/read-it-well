@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
-import { resolveSession } from "@/lib/actions/session";
+import { resolveSessionClaims } from "@/lib/actions/session";
 import { signedOutStart } from "@/lib/catalogue/public-access";
 import { FIRST_RUN_COOKIE, isFirstRunSeen } from "@/components/app/welcome/first-run-seen";
 
@@ -37,6 +37,17 @@ import { FIRST_RUN_COOKIE, isFirstRunSeen } from "@/components/app/welcome/first
  * cost a signed-out cold start one to three seconds of native splash for an
  * answer that could only be "signed out". Only a request that carries the
  * cookie pays for the round trip, still under the deadline.
+ *
+ * AND WITH A COOKIE, NO GOTRUE ROUND TRIP EITHER (13 October 2026, the
+ * startup track). This route only chooses where to send somebody, and
+ * `/home` passes back through `proxy.ts`'s own gate on the very next request,
+ * so it needs to know whether the access token is a real one, not to ask
+ * GoTrue about it. `resolveSessionClaims()` verifies the token's signature
+ * and expiry locally against the project's published keys (what PostgREST
+ * itself does, and what the proxy has just done for this same request after
+ * refreshing the token), where `resolveSession()` made an HTTPS round trip to
+ * GoTrue before the first redirect of every signed-in cold start. The
+ * deadline stays: a cold instance still fetches those keys once.
  */
 const OPEN_TIMEOUT_MS = 3000;
 
@@ -53,7 +64,7 @@ async function signedInWithDeadline(): Promise<boolean> {
     timer = setTimeout(() => resolve("timeout"), OPEN_TIMEOUT_MS);
   });
   try {
-    const outcome = await Promise.race([resolveSession(), timeout]);
+    const outcome = await Promise.race([resolveSessionClaims(), timeout]);
     /* The cookie is there (checked above), so the guess is "signed in". */
     if (outcome === "timeout") return true;
     return outcome.state === "signed-in";
