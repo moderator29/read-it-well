@@ -10,7 +10,6 @@ import {
   NO_INSPECTION_FEE,
   NO_PAYMENT_BALANCE,
   OFF_PLATFORM_SENTENCE,
-  PAYMENT_GATE_SENTENCE,
   RAIL_COPY,
   REFUND_NO_BALANCE,
   REFUND_ROUTE,
@@ -416,7 +415,10 @@ const PAYING_ON_VALLO: DocChapter = {
               <strong>A hotel room.</strong> At once, when you book.
             </li>
           </ul>
-          <p>{PAYMENT_GATE_SENTENCE}</p>
+          <p>
+            A card payment for an unusually large deal, or one where something changed recently, may wait
+            for a person at Vallo to look first. You are told by email and in the app when it opens.
+          </p>
         </>
       ),
     },
