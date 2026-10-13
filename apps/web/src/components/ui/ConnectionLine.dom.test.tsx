@@ -143,6 +143,34 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the connection line", () => {
     }
   });
 
+  it("a guard about to lock (a tab never unlocked) also leaves the refresh to the unlock; an unlocked tab refreshes", async () => {
+    const guardedOpen = `
+      import { mount } from "@/lib/testing/browser-root";
+      import { ConnectionLine } from "@/components/ui/ConnectionLine";
+      mount(<main><div className="contents" data-passcode-guarded=""><h1>Guarded</h1></div><ConnectionLine /></main>);
+    `;
+    const fresh = await mountInBrowser({ entry: guardedOpen, css: CSS, init: INSTANT_DOCUMENT });
+    try {
+      await fresh.page.waitForTimeout(300);
+      expect(await refreshCalls(fresh.page)).toBe(0);
+    } finally {
+      await fresh.close();
+    }
+    const unlocked = await mountInBrowser({
+      entry: guardedOpen,
+      css: CSS,
+      init: INSTANT_DOCUMENT + `sessionStorage.setItem("vallo.passcode.tab", "1");`,
+    });
+    try {
+      await unlocked.page.waitForFunction(
+        () => ((window as unknown as { __router?: { calls: unknown[][] } }).__router?.calls ?? []).some(([name]) => name === "refresh"),
+      );
+      expect(await refreshCalls(unlocked.page)).toBe(1);
+    } finally {
+      await unlocked.close();
+    }
+  });
+
   it("the words are short, plain and free of em dashes", () => {
     for (const line of [copy.offline, copy.kept, copy.back]) {
       expect(line.length).toBeLessThan(60);

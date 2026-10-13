@@ -115,11 +115,21 @@ export function servedFromKeptCopy(): boolean {
  */
 export function heldByPasscode(): boolean {
   try {
-    return typeof document !== "undefined" && document.querySelector("[data-passcode-guarded][inert]") !== null;
+    if (typeof document === "undefined") return false;
+    const guarded = document.querySelector("[data-passcode-guarded]");
+    if (!guarded) return false;
+    if (guarded.hasAttribute("inert")) return true;
+    /* About to lock: a guard on a tab that was never unlocked locks in its
+       first effect, and that lock may not be on the page yet when this is
+       asked (the same mark `lib/passcode/tab.ts` reads). */
+    return window.sessionStorage.getItem(PASSCODE_TAB_KEY) !== "1";
   } catch {
     return false;
   }
 }
+
+/* `TAB_KEY` in `lib/passcode/tab.ts`, the guard's "this tab was unlocked". */
+const PASSCODE_TAB_KEY = "vallo.passcode.tab";
 
 /** Call `listener` when the worker has kept a fresh copy of the page on screen. Returns the unsubscribe. */
 export function onFreshCopy(listener: () => void): () => void {

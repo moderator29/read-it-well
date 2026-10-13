@@ -88,9 +88,10 @@ export function KeepWarm({
     scheduleRef.current?.();
   }, [tabs, current]);
 
+  /* Only for a member: a guest's tab tap is never held (`shouldHold`). */
   useEffect(() => {
-    watchArrivals();
-  }, []);
+    if (enabled) watchArrivals();
+  }, [enabled]);
 
   useEffect(() => {
     if (!enabled || process.env.NODE_ENV !== "production") return;
