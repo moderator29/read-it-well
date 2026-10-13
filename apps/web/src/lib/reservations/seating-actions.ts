@@ -262,7 +262,7 @@ export async function confirmTableBillReturn(reference: string): Promise<ActionR
   try {
     verified = await verifyTransaction(reference);
   } catch {
-    return fail("We could not check the payment yet. It is safe to look again in a minute.");
+    return fail("We could not check the payment yet. You can try again in a minute.");
   }
   if (verified.status === "failed" || verified.status === "abandoned" || verified.status === "reversed") {
     await db.rpc("restaurant_bill_reopen", { p_reference: reference });
@@ -275,7 +275,7 @@ export async function confirmTableBillReturn(reference: string): Promise<ActionR
     p_amount_minor: verified.amountMinor,
     p_currency: verified.currency,
   });
-  if (error) return fail("We could not record the payment yet. It is safe to look again in a minute.");
+  if (error) return fail("We could not record the payment yet. You can try again in a minute.");
   const outcome = (data as { outcome?: string } | null)?.outcome;
   touch();
   return ok({ paid: outcome === "settled" || outcome === "duplicate" });
