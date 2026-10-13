@@ -175,6 +175,20 @@ describe("overrideChargebackHold", () => {
     }
   });
 
+  it("overrides one Guarantee claim the same way (migration fm02)", async () => {
+    answers.admin_chargeback_hold_override = { status: "ok", override_id: "o-2" };
+    const result = await overrideChargebackHold({ kind: "guarantee_claim", subjectId: SUBJECT, reason: "Damage proven, recovery plan agreed" });
+    expect(result).toEqual({ ok: true, data: null });
+    expect(calls.find((c) => c.fn === "admin_chargeback_hold_override")).toMatchObject({
+      client: "user",
+      args: { p_kind: "guarantee_claim", p_subject: SUBJECT },
+    });
+    answers.admin_chargeback_hold_override = { status: "not_found" };
+    const gone = await overrideChargebackHold({ kind: "guarantee_claim", subjectId: SUBJECT, reason: "Damage proven, recovery plan agreed" });
+    expect(gone.ok).toBe(false);
+    if (!gone.ok) expect(gone.error).toMatch(/Guarantee claim/);
+  });
+
   it("is finance's alone", async () => {
     access = { state: "forbidden" };
     const result = await overrideChargebackHold({ kind: "arrangement", subjectId: SUBJECT, reason: "Recovery plan agreed with the lister" });

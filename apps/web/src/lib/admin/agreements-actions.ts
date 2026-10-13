@@ -2,7 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { getDictionary } from "@vallo/i18n";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
+import { getLocale } from "../locale";
 import { parseNairaToKobo } from "../money/amount";
 import { adminRefusal, requireAdmin } from "./guard";
 import { recordAlert } from "../alerts";
@@ -215,6 +217,15 @@ const CLAIM_WORDS: Record<string, string> = {
   not_approved: "Only an approved claim can be marked paid.",
 };
 
+/**
+ * The payout rule's refusal (migration fm02): the claimant owes a lost card
+ * chargeback, so approving or marking paid answers `chargeback_hold` until
+ * finance overrides that one claim on /admin/chargebacks/<id>.
+ */
+async function claimHeldWords(): Promise<{ approve: string; markPaid: string }> {
+  return getDictionary(await getLocale()).chargebacks.override.claimHeld;
+}
+
 export async function decideClaim(input: {
   claimId: string;
   decision: "approve" | "reject";
@@ -253,6 +264,7 @@ export async function decideClaim(input: {
       `At most ${naira(answer.cap_minor)} can be paid on this claim: the claim asked ${naira(answer.requested_minor)}, the booking has ${naira(answer.booking_left_minor)} left to claim against, and the Guarantee reserve holds ${naira(answer.reserve_minor)}.`,
     );
   }
+  if (status === "chargeback_hold") return fail((await claimHeldWords()).approve);
   if (status !== "ok") return fail(CLAIM_WORDS[status] ?? "That decision could not be recorded.");
   revalidatePath("/admin/money");
   return ok(null);
@@ -269,6 +281,7 @@ export async function markClaimPaid(input: { claimId: string; reference: string 
   } as never);
   if (error) return fail("That could not be recorded. Nothing changed. Try again.");
   const status = String((data as Record<string, unknown> | null)?.status ?? "");
+  if (status === "chargeback_hold") return fail((await claimHeldWords()).markPaid);
   if (status !== "ok") return fail(CLAIM_WORDS[status] ?? "That could not be recorded.");
   revalidatePath("/admin/money");
   return ok(null);

@@ -110,10 +110,11 @@ export function outstandingMinor(row: Pick<ChargebackBase, "state" | "recoverySt
 /**
  * A payment the payout rule is holding for this lister (migration cbh01): a
  * Payluk escrow payment Vallo would release to them, or a Rewards Balance
- * payout Vallo would send them. Finance overrides one at a time.
+ * payout Vallo would send them, or (migration fm02) a Vallo Guarantee claim
+ * a person would pay them by bank transfer. Finance overrides one at a time.
  */
 export type HeldSubject = {
-  kind: "arrangement" | "rewards_payout";
+  kind: "arrangement" | "rewards_payout" | "guarantee_claim";
   id: string;
   reference: string;
   amountMinor: number;
@@ -125,12 +126,28 @@ export type HeldSubject = {
 /** Escrow statuses with money still held for the lister, and payout statuses not yet sent. */
 export const HELD_ARRANGEMENT_STATUSES = ["protected", "release_requested", "disputed"] as const;
 export const HELD_PAYOUT_STATUSES = ["under_review", "processing"] as const;
+/** Guarantee claims not yet paid: to decide, or approved and waiting for the transfer. */
+export const HELD_CLAIM_STATUSES = ["submitted", "approved"] as const;
+
+/**
+ * A Guarantee claim row (id, status, requested_minor, approved_minor) as a
+ * held subject's raw shape: a claim has no processor reference, so the claim
+ * id is its reference, and what is held is the approved amount once there is
+ * one, or what the claim asks for until then.
+ */
+export function claimAsHeldRow(raw: unknown): unknown {
+  if (!raw || typeof raw !== "object") return null;
+  const r = raw as Record<string, unknown>;
+  const approved = r.approved_minor === null || r.approved_minor === undefined ? null : Number(r.approved_minor);
+  return { id: r.id, reference: r.id, status: r.status, amount_minor: approved ?? r.requested_minor };
+}
 
 /** Rows read on the service client, shaped; anything malformed is dropped. */
 export function heldSubjectsFrom(
   arrangements: unknown[],
   payouts: unknown[],
   overriddenIds: ReadonlySet<string>,
+  claims: unknown[] = [],
 ): HeldSubject[] {
   const shape = (kind: HeldSubject["kind"], raw: unknown): HeldSubject | null => {
     if (!raw || typeof raw !== "object") return null;
@@ -143,6 +160,7 @@ export function heldSubjectsFrom(
   return [
     ...arrangements.map((r) => shape("arrangement", r)),
     ...payouts.map((r) => shape("rewards_payout", r)),
+    ...claims.map((r) => shape("guarantee_claim", claimAsHeldRow(r))),
   ].filter((x): x is HeldSubject => x !== null);
 }
 

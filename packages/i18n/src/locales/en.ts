@@ -7088,7 +7088,7 @@ export const en = {
       afterTitle: "What happens next",
       afterApplied: "It comes off your bill when you dine.",
       afterRefund: "Cancel in time, or if the restaurant declines, and it comes back to your card.",
-      afterKept: "A late cancellation or a no-show and the restaurant keeps it.",
+      afterKept: "A late cancellation or a no-show and the restaurant keeps it. If a no-show is overturned because you were there, it comes back to your card.",
     },
     receipt: {
       kind: "Receipt",
@@ -7150,7 +7150,7 @@ export const en = {
       someTimes: "Only the times I pick",
       noWindows: "Publish your opening hours to pick times. Until then a deposit applies at every time.",
       refund: "Free cancellation",
-      refundHint: "A guest who cancels in time gets it all back. Later, or a no-show, and it is yours. If you decline or cancel, it goes back to the guest.",
+      refundHint: "A guest who cancels in time gets it all back. Later, or a no-show, and it is yours. If you decline or cancel, or a no-show is overturned, it goes back to the guest.",
       refundUntilTable: "Until the table time",
       refundHours: "{hours} before",
       save: "Save deposit settings",

@@ -23,7 +23,10 @@ import type { AdminClient } from "@/lib/supabase/service";
  *
  * `sendDueDepositRefunds` is the hourly retry and the path for refunds the
  * restaurant's cancellation rule decided inside the database (a guest who
- * cancelled in time, a venue that cancelled), which cannot call Paystack.
+ * cancelled in time, a venue that cancelled), or that Vallo decided when a
+ * no-show was overturned to seated (outcome_reason 'no_show_overturned',
+ * migration fm01), which cannot call Paystack. A deposit was split at the
+ * charge, and its refund is the same whole-charge refund either way.
  */
 
 export type DepositVerdict = { outcome: MoneyOutcome; reason: string; httpStatus: number; amountMinor?: number | null };
