@@ -87,6 +87,14 @@ export const experienceAdminEn = {
     staff: "Who holds staff access, and to which desks.",
     handbook: "The staff handbook and your own role.",
     help: "Help and support for the people who run the console.",
+    /* Admin coverage (13 October 2026): the desks that had no way in. */
+    "agreement-settings": "The review threshold, the signals and the incident switch.",
+    "restaurant-fees": "Fees owed on seated tables, and the disputes about them.",
+    "blocked-terms": "The words the safety scan holds, flags or refuses.",
+    "weight-withheld": "Reviews and reports that do not count, and clearing a stamp.",
+    "call-usage": "Video and audio calls: volume, connect rate and minutes.",
+    retention: "Money records past their retention date, and the typed-confirmation tool.",
+    "field-speed": "How fast the app is on the phones people actually use.",
   },
   /** The console's mobile shell. */
   shell: {

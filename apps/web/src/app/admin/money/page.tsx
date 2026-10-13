@@ -19,6 +19,8 @@ import { ReconciliationPanel } from "./_desk/Reconciliation";
 import { RefundClock } from "./RefundClock";
 import { GuaranteeClaims } from "./GuaranteeDesk";
 import { CautionRulings } from "./CautionDesk";
+import { LedgerBooks } from "./LedgerBooks";
+import { readLedgerBooks } from "@/lib/admin/desk-reads/ledger-books";
 import { readCautionDesk } from "@/lib/admin/reads/caution-desk";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import "./_desk/desk.css";
@@ -73,7 +75,7 @@ export default async function AdminMoneyPage({
     );
   }
 
-  const [guarantee, refunds, runs, rent, clock, caution] = await Promise.all([
+  const [guarantee, refunds, runs, rent, clock, caution, ledger] = await Promise.all([
     // The reserve's figures decide on auth.uid(), so they are asked as the operator.
     readGuaranteeDesk(access.supabase, access.userClient),
     getRefundConsole(query),
@@ -81,6 +83,8 @@ export default async function AdminMoneyPage({
     getRentCharges(),
     readRefundClockBoard(locale),
     readCautionDesk(access.userClient as unknown as SupabaseClient, access.supabase as unknown as SupabaseClient),
+    // A service-role view: read on the server, behind the same finance door.
+    readLedgerBooks(),
   ]);
 
   const x = t.experienceAdmin;
@@ -90,6 +94,7 @@ export default async function AdminMoneyPage({
     { id: "caution", label: x.sections.cautions, icon: "key" as const },
     { id: "refunds", label: x.sections.refunds, icon: "wallet" as const },
     { id: "reconciliation", label: x.sections.reconciliation, icon: "history" as const },
+    { id: "ledger", label: t.adminCoverage.ledger.title, icon: "document" as const },
     ...(rent.state === "ok" ? [{ id: "rent", label: x.sections.tenancy, icon: "document" as const }] : []),
     { id: "refund-clock", label: x.sections.refundClock, icon: "calendar-booking" as const },
     { id: "history", label: x.sections.history, icon: "feed" as const },
@@ -161,6 +166,8 @@ export default async function AdminMoneyPage({
           locale={locale}
         />
       </section>
+
+      <LedgerBooks read={ledger} locale={locale} />
 
       {rent.state === "ok" ? (
         <Panel title="Tenancy charges" id="rent" className="nf-admin-anchor">

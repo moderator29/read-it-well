@@ -108,7 +108,10 @@ describe("the console map", () => {
     expect(isActiveHref("/admin", "/admin")).toBe(true);
     expect(isActiveHref("/admin/listings/abc", "/admin")).toBe(false);
     expect(currentDestination("/admin/audit")?.label).toBe("Audit log");
-    expect(currentDestination("/admin/bookings/reservations")?.label).toBe("Bookings");
+    /* Reservations is a desk of its own on the rail now (admin coverage), under
+       Bookings, which stays lit while it is open. */
+    expect(currentDestination("/admin/bookings/reservations")?.label).toBe("Reservations");
+    expect(isSectionActive("/admin/bookings/reservations", ADMIN_PRIMARY.find((d) => d.key === "bookings")!)).toBe(true);
   });
 });
 

@@ -28,23 +28,11 @@ export type PaletteDesk = {
 
 /**
  * Desks that exist and are not rows of the rail, so a person can still jump to
- * them by name. Reservations are decided from the Bookings desk; nothing else
- * links to them by name.
+ * them by name. Empty today: reservations and restaurant fees became children
+ * of Bookings (admin coverage, 13 October 2026), so every desk is on the map.
+ * A desk added here must also be reachable from a page, never only from here.
  */
-const EXTRA_DESKS: readonly AdminDestination[] = [
-  {
-    key: "reservations",
-    href: "/admin/bookings/reservations",
-    icon: { tier: "ui", name: "calendar-booking" },
-    label: "Reservations",
-  },
-  {
-    key: "restaurant-fees",
-    href: "/admin/restaurant-fees",
-    icon: { tier: "ui", name: "calendar-booking" },
-    label: "Restaurant fees",
-  },
-];
+const EXTRA_DESKS: readonly AdminDestination[] = [];
 
 export function deskIndex({
   shell,

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getDictionary } from "@vallo/i18n";
+import { formatDate, formatMoney, getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { AgentShell } from "@/components/agent/AgentShell";
 import { ButtonLink } from "@/components/ui/Button";
@@ -11,6 +11,8 @@ import { agentProfileFrom, getAgentContext, readMyListings } from "@/lib/agent/l
 import { PROMOTION_NOT_ON_SALE } from "@/lib/money/copy";
 import { PROMOTION_HUB_HREF, canPromote, promotionHref } from "@/lib/promotion/links";
 import { firstRunPath } from "@/components/app/feature-onboarding/first-runs";
+import { readMyPromotionPurchases } from "@/lib/promotion/my-purchases-read";
+import { purchasePhase } from "@/lib/promotion/my-purchases";
 import { ListingPitch } from "../list/ListingPitch";
 
 export const dynamic = "force-dynamic";
@@ -55,8 +57,13 @@ export default async function PromotionHubPage() {
     );
   }
 
-  const listings = await readMyListings(context.supabase, context.agent.id);
+  const [listings, purchases] = await Promise.all([
+    readMyListings(context.supabase, context.agent.id),
+    // What this lister has already paid for, from their own rows only.
+    readMyPromotionPurchases(context.supabase),
+  ]);
   const live = (listings ?? []).filter(canPromote);
+  const now = Date.now();
   const howHref = `${firstRunPath("promotion")}?next=${encodeURIComponent(PROMOTION_HUB_HREF)}`;
 
   return (
@@ -106,6 +113,42 @@ export default async function PromotionHubPage() {
             ))}
           </ListGroup>
         )}
+
+        {purchases === null ? (
+          <p className="nf-body-sm text-[var(--nf-content-secondary)]" role="status">
+            {t.adminCoverage.promotionPurchases.unavailable}
+          </p>
+        ) : purchases.length > 0 ? (
+          <ListGroup label={t.adminCoverage.promotionPurchases.title} labelAs="h2">
+            {purchases.map((purchase) => {
+              const pp = t.adminCoverage.promotionPurchases;
+              const phase = purchasePhase(purchase, now);
+              const day = (iso: string) =>
+                formatDate(new Date(iso), locale, { timeZone: "Africa/Lagos", day: "numeric", month: "short", year: "numeric" });
+              const title = (listings ?? []).find((l) => l.id === purchase.listingId)?.title ?? pp.listing;
+              const statusWords = pp.status as Record<string, string | undefined>;
+              return (
+                <ListRow
+                  key={purchase.id}
+                  title={<span className="line-clamp-2 [overflow-wrap:anywhere]">{title}</span>}
+                  sub={[
+                    p.tiers[purchase.tier].name,
+                    purchase.startsAt && purchase.endsAt
+                      ? pp.runsRange.replace("{from}", day(purchase.startsAt)).replace("{to}", day(purchase.endsAt))
+                      : pp.notStarted,
+                  ].join(" · ")}
+                  value={formatMoney(purchase.amountMinor, locale, purchase.currency)}
+                  status={
+                    <span className="nf-caption">
+                      {phase === "running" ? pp.running : phase === "finished" ? pp.finished : (statusWords[purchase.status] ?? purchase.status)}
+                    </span>
+                  }
+                  data-testid="promotion-purchase"
+                />
+              );
+            })}
+          </ListGroup>
+        ) : null}
 
         <ListGroup>
           <ListRow
