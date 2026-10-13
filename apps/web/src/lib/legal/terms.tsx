@@ -344,6 +344,14 @@ export const TERMS_SECTIONS: { title: string; body: React.ReactNode }[] = [
           property. Every listing is reviewed by a person before it is published.
         </li>
         <li>
+          <strong>No hidden charges.</strong> A lister or host must not charge a guest
+          or renter anything that is not listed on {COMPANY_TRADING_NAME}, and must not
+          add a charge without a stated reason. Every cost, including any charge payable
+          at the door, must be listed before the booking is confirmed so that the guest
+          sees the full total first. A charge that breaks this rule can lead to the
+          listing being removed or the account being stopped, and you can report it.
+        </li>
+        <li>
           Where a listing states a title, such as a certificate of occupancy or a deed
           of assignment, that is what the seller claims.{" "}
           <strong>It is not a statement that anybody has checked it.</strong> Have a
