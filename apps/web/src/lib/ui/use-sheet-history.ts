@@ -51,6 +51,39 @@ export function readSheetMarker(state: unknown): string | null {
   return ids.length > 0 ? ids[ids.length - 1]! : null;
 }
 
+/**
+ * Run `fn` once no sheet's entry is on top of history: at once when none is,
+ * otherwise after the pop that takes the last one off.
+ *
+ * FOR A HISTORY WALK STARTED AS A SHEET CLOSES. The take-back below runs a
+ * tick after the close; a `history.go(-n)` started in the same handler is
+ * still in flight then, the top is still the sheet's entry, and the take-back
+ * stacks one more step on the walk. In Chromium that landed one screen too far
+ * back (the host wizard's "Discard" from its first step). Waiting for the
+ * take-back first makes it one walk from a known place. A sheet whose entry
+ * never comes off (its marker wiped by a router refresh) is waited for at
+ * most `timeoutMs`.
+ */
+export function whenSheetsClosed(fn: () => void, timeoutMs = 1000): void {
+  if (typeof window === "undefined" || readSheetIds(window.history.state).length === 0) {
+    fn();
+    return;
+  }
+  let done = false;
+  const finish = () => {
+    if (done) return;
+    done = true;
+    window.removeEventListener("popstate", onPop);
+    window.clearTimeout(timer);
+    fn();
+  };
+  const onPop = () => {
+    if (readSheetIds(window.history.state).length === 0) finish();
+  };
+  window.addEventListener("popstate", onPop);
+  const timer = window.setTimeout(finish, timeoutMs);
+}
+
 /** Take-backs deferred by a cleanup, so a StrictMode re-open can cancel them. */
 const pendingTakeBack = new Map<string, number>();
 
