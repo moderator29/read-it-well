@@ -39,7 +39,7 @@ export const experienceLandingEn = {
       ecosystem: { tab: "Ecosystem" },
     },
     /** Over the example credential: what a lister would see, and nothing more. */
-    passportShown: "Shown only in the conversations the renter chooses",
+    passportShown: "Only signed-in members can open it",
     /** Over the example desk. */
     deskLabel: "What a desk looks like",
     /** The example conversation's caption is `landingRooms.ai.caption`. */
@@ -110,7 +110,7 @@ export const experienceLandingEn = {
         move: {
           label: "Move in",
           title: "Move in, with the record.",
-          body: "The agreement, the receipt and every message stay on your record, and the tenancy joins your Space Passport.",
+          body: "The agreement, the receipt and every message stay on your record, and the rental is counted on your Vallo passport.",
         },
       },
       /** The small product words on each step's fragment. */
@@ -128,15 +128,15 @@ export const experienceLandingEn = {
         youPaid: "You paid",
         receipt: "Receipt",
         kept: "Kept on your record",
-        passport: "Added to your Space Passport",
+        passport: "Counted on your Vallo passport",
       },
     },
     trust: {
       overline: "The trust layer",
       title: "What stands behind every deal.",
       passport: {
-        name: "Space Passport",
-        body: "A record Vallo keeps itself: your phone, your identity, the inspections you attended and the rent you paid through Vallo. Shown only in the conversations you choose.",
+        name: "Vallo passport",
+        body: "A record Vallo keeps itself: your role, the day you joined, your verification level, completed rentals and stays, reviews and reply time. Every line is on until you hide it, and only signed-in members can open it. Never your phone, email, ID, date of birth or address.",
       },
       money: {
         title: "Where your money goes",

@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { getDictionary } from "@vallo/i18n";
 
-import { passportFrom, passportLines, sharedInLine } from "./passport";
+import { passportFrom, passportLines } from "./passport";
 
 const copy = getDictionary("en").trustVisible.passport;
 
@@ -32,12 +32,6 @@ describe("the renter passport (V-100)", () => {
     expect(passportLines(facts, copy, "en")).toEqual([]);
     expect(passportFrom([])).toBeNull();
     expect(passportLines(null, copy, "en")).toEqual([]);
-  });
-
-  it("counts where it is shown", () => {
-    expect(sharedInLine(0, copy)).toBe(copy.sharedInNone);
-    expect(sharedInLine(1, copy)).toBe("Shown in 1 conversation.");
-    expect(sharedInLine(3, copy)).toBe("Shown in 3 conversations.");
   });
 
   it("never offers a line for a missed inspection, a reference or an employer", () => {

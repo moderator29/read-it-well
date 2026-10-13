@@ -1,20 +1,21 @@
 import Link from "next/link";
 import type { Dictionary, Locale } from "@vallo/i18n/core";
 import { LogoMark } from "@/design-system/brand/Logo";
-import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 import { MotionReveal } from "@/components/motion/Reveal";
 import { GOVERNING_SENTENCE } from "@/lib/money/copy";
 import { CheckCard } from "./CheckCard";
+import { examplePassportLines } from "./example-passport";
 
 /**
  * THE TRUST LAYER (P7, 7 October 2026): what stands behind every deal, three
  * things and each one real.
  *
- *   - THE SPACE PASSPORT, drawn as the page's one platinum object
+ *   - THE VALLO PASSPORT, drawn as the page's one platinum object
  *     (PREMIUM-STANDARD, "one material: platinum", one per screen). It is an
- *     example credential and says so: the five lines a passport can hold are
- *     the passport's own fact names (`experienceAccount.passport.facts`),
- *     and the counts beside two of them are an illustration, never a person.
+ *     example credential and says so: its lines are the passport's own, worded
+ *     by the function the real one is worded with (`example-passport.ts`),
+ *     and they are an illustration, never a person.
  *   - CHECK BEFORE YOU PAY, the working field (`CheckCard`): paste a number
  *     or a VA- code and the answer is drawn in place, with no account.
  *   - WHERE YOUR MONEY GOES, the founder's governing sentence verbatim
@@ -25,14 +26,10 @@ import { CheckCard } from "./CheckCard";
  */
 export function TrustLayer({ t, locale }: { t: Dictionary; locale: Locale }) {
   const tr = t.experienceLanding.plasma.trust;
-  const pass = t.experienceAccount.passport;
+  const pass = t.passportV2;
   const ui = t.landingRooms.stack.ui;
-  const facts: { icon: UiIconName; label: string; value?: string }[] = [
-    { icon: "phone", label: pass.facts.phone.title },
-    { icon: "id-card", label: pass.facts.identity.title },
-    { icon: "calendar-check", label: pass.facts.attended.title, value: "3" },
-    { icon: "receipt", label: pass.facts.tenancies.title, value: "1" },
-  ];
+  /* The Vallo passport's own example lines (`example-passport.ts`). */
+  const facts = examplePassportLines(t, locale);
   return (
     <section className="nf-pl-trust" data-chapter="trust" aria-labelledby="nf-pl-trust-title">
       <div className="nf-shell">
@@ -51,23 +48,21 @@ export function TrustLayer({ t, locale }: { t: Dictionary; locale: Locale }) {
                 <span className="nf-pl-platinum__mark">
                   <LogoMark size={22} />
                 </span>
-                <span className="nf-pl-platinum__kind">{pass.credentialLabel}</span>
+                <span className="nf-pl-platinum__kind">{pass.documentKind}</span>
                 <span className="nf-pl-platinum__example">{ui.example}</span>
               </div>
               <ul className="nf-pl-platinum__facts">
                 {facts.map((fact) => (
-                  <li key={fact.label}>
+                  <li key={fact.key}>
                     <UiIcon name={fact.icon} size={16} />
                     <span>{fact.label}</span>
-                    <span className="nf-pl-platinum__value nf-numeric">
-                      {fact.value ?? <UiIcon name="check" size={16} />}
-                    </span>
+                    <span className="nf-pl-platinum__value nf-numeric">{fact.value}</span>
                   </li>
                 ))}
               </ul>
               <p className="nf-pl-platinum__foot">
                 <UiIcon name="lock" size={12} />
-                {pass.switchOnSub}
+                {pass.wholeOnSub}
               </p>
             </div>
             <div className="nf-pl-trust__words">

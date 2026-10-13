@@ -70,9 +70,3 @@ export function passportLines(facts: PassportFacts | null, copy: Copy, locale: L
   }
   return out;
 }
-
-/** "Shown in 3 conversations", or the none line. */
-export function sharedInLine(count: number, copy: Copy): string {
-  if (count <= 0) return copy.sharedInNone;
-  return count === 1 ? copy.sharedInOne : copy.sharedIn.replace("{count}", String(count));
-}

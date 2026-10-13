@@ -108,3 +108,20 @@ export function mergeEcho<
   }
   return [...prev, echo];
 }
+
+/**
+ * A card that arrived after its message did. A share that reaches the open
+ * thread over realtime is appended as its words and path at once (nothing on
+ * the client can read what it points at), then the server expands it
+ * (`card-actions.ts`) and the card is set on the bubble that is already
+ * there, by id. The bubble keeps its place, its key and its arrival, and a
+ * bubble that has gone (deleted, or not in this list) is left alone.
+ */
+export function attachCard<T extends { id: string; card?: unknown }, C>(
+  prev: readonly T[],
+  id: string,
+  card: C,
+): T[] {
+  if (!prev.some((m) => m.id === id)) return [...prev];
+  return prev.map((m) => (m.id === id ? { ...m, card } : m));
+}

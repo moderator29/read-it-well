@@ -102,7 +102,7 @@ export function LandingBody({
           Platform    the operating system for physical spaces, six layers
                       (trust, discover, intelligence, transactions, operations,
                       ecosystem), one at a time, each with a moment drawn from
-                      the product's own components and a Space Passport
+                      the product's own components and a Vallo passport
           Journey     find, inspect, agree, move in
           Categories  eight kinds of place, then the cities on the drawn map
           Community   who it is for, real figures only, the Third party label,
@@ -138,7 +138,7 @@ export function LandingBody({
           Story       find, verify, agree, pay, move in: five cards stacking
                       on scroll, a product fragment breaking out of a phone
                       on each, the founder's 3D object for each step
-          Trust       the Space Passport as the page's one platinum object,
+          Trust       the Vallo passport as the page's one platinum object,
                       the agent check that works in place, and where the
                       money goes in the founder's own sentence
           AI          the assistant room, kept: it is a 3D room that earns

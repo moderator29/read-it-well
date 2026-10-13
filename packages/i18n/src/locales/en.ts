@@ -830,7 +830,7 @@ export const en = {
     },
     /* The section under the header that holds what vouches for a person:
        their badges, their Vallo Record, an agent's reviews and, on your own
-       page, your renter passport. */
+       page, your Vallo passport. */
     credentials: "Credentials",
     passportAndCredentials: "Passport and credentials",
     /** The passport row's line when it is off, and the way into it. */

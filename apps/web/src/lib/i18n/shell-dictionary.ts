@@ -26,9 +26,11 @@ export type ShellDictionary = Pick<Dictionary, "a11y" | "common" | "nav" | "side
   /** The navigation's own new lines (the Payments and Invite rows). */
   experienceShell: Pick<
     Dictionary["experienceShell"],
-    "navPayments" | "navInvite" | "navMoneyLabel" | "navBalance" | "navReceipts" | "navPayouts" | "navRefunds" | "navLeaderboard" | "navPassport"
+    "navPayments" | "navInvite" | "navMoneyLabel" | "navBalance" | "navReceipts" | "navPayouts" | "navRefunds" | "navLeaderboard"
     | "navDocsLabel" | "navDocsTerms" | "navDocsPrivacy" | "navDocsSafety" | "navDocsHelp" | "navDocsDocs"
   >;
+  /** The passport row's label is the passport's own name, so the row and the page cannot drift. */
+  passportV2: Pick<Dictionary["passportV2"], "navLabel">;
   /** The Rewards row's label is the Rewards page's own title, so the two cannot drift. */
   experienceRewards: Pick<Dictionary["experienceRewards"], "title">;
   /** The Create sheet's top-level options and their short lines (the "+" at the dock's right end). */
@@ -80,7 +82,6 @@ export function shellDictionary(t: Dictionary): ShellDictionary {
     experienceShell: {
       navPayments: t.experienceShell.navPayments,
       navInvite: t.experienceShell.navInvite,
-      navPassport: t.experienceShell.navPassport,
       navDocsLabel: t.experienceShell.navDocsLabel,
       navDocsTerms: t.experienceShell.navDocsTerms,
       navDocsPrivacy: t.experienceShell.navDocsPrivacy,
@@ -94,6 +95,7 @@ export function shellDictionary(t: Dictionary): ShellDictionary {
       navRefunds: t.experienceShell.navRefunds,
       navLeaderboard: t.experienceShell.navLeaderboard,
     },
+    passportV2: { navLabel: t.passportV2.navLabel },
     experienceRewards: { title: t.experienceRewards.title },
     homeV2: Object.fromEntries(CREATE_KEYS.map((key) => [key, t.homeV2[key]])) as ShellDictionary["homeV2"],
   };

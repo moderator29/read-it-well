@@ -109,7 +109,7 @@ export const experienceInboxEn = {
       conversation: "conversation",
       space: "space",
       verification: "verification",
-      passport: "Space Passport",
+      passport: "Vallo passport",
       ticket: "support ticket",
       post: "post",
       profile: "profile",

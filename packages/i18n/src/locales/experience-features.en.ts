@@ -117,23 +117,6 @@ export const experienceFeaturesEn = {
     },
 
     /**
-     * The renter passport. True per `lib/trust/passport.ts` (the lines are a
-     * confirmed phone, an identity match, inspections attended, tenancies paid
-     * and the month joined) and the page's own lede: off unless turned on,
-     * shown only in chosen conversations, no lister may ask for it. The third
-     * body reuses `trustVisible.passport.offNote`.
-     */
-    passport: {
-      name: "your renter passport",
-      p1Title: "What Vallo saw, not what you claim",
-      p1Body: "It holds only what Vallo itself recorded: a confirmed phone, inspections you attended, tenancies you paid through Vallo.",
-      p2Title: "Off until you turn it on",
-      p2Body: "Nobody sees it until you show it in a conversation you choose, and no lister may ask you for it.",
-      p3Title: "Take it back at any time",
-      action: "Open my passport",
-    },
-
-    /**
      * Agent analytics. True per `lib/agent/analytics-queries.ts`: every read
      * is the agent's own, under their own account; nothing is estimated; views
      * and saves are not counted, so no view figure exists.
