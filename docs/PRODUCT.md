@@ -54,7 +54,7 @@ like any other. What does not survive is anybody else's inventory.
 | **Rent** | Annual tenancy. Message the agent, inspect the property, then pay. **No Reserve button, ever.** | `rent_amount_minor` per `rent_period`, plus the full move-in breakdown |
 | **Buy and sell** | A property offered for sale, enquiry and inspection, then a transaction. **SCHEMA BUILT, UI NOT BUILT.** `listings` now carries `listing_intent`, `sale_price_minor`, `tenure`, `sale_status`, `year_built` and `size_sqm`. No screen renders any of it and there is no Buy in the navigation | `sale_price_minor`, with `price_negotiable` |
 | **Stay** | Nightly lodging: hotel, apartment, shortlet, villa, home. Reserve, hold, pay | `rate_minor` per `rate_period` |
-| **Eat** | A restaurant lists itself. A guest requests a table, the venue accepts or declines | Free to request. Per seated guest billing to the restaurant is decided (13 October 2026) and NOT BUILT. Card deposits (D75) exist behind a flag that is off |
+| **Eat** | A restaurant lists itself. A guest requests a table, the venue accepts or declines | Free to request. A fixed fee per seated table is billed to the restaurant (decided and built 13 October 2026; the amount is 1,000 naira per table). Card deposits (D75) exist behind a flag that is off |
 | **Around** | The social layer. Places, posts, stories, people, the assistant answering in comments | Free |
 | **Agreements and the Guarantee** | Both sides confirm the agreement, Vallo approves it, then payment opens. The Guarantee reserve stands behind rentals and stays | Split at payment; the reserve is an append-only ledger. No wallet |
 

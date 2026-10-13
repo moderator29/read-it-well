@@ -227,7 +227,7 @@ const BILL_HINT = "The guest pays it here through Vallo, straight to your bank a
 /**
  * THE GUEST ARRIVED (founder decision D). The guest shows a six-digit code;
  * typing it here marks their table as seated, which is what Vallo bills on
- * (1,000 naira per seated guest, at the end of the month). Booking stays free
+ * (1,000 naira per seated table, at the end of the month). Booking stays free
  * for the guest.
  */
 function SeatByCode() {

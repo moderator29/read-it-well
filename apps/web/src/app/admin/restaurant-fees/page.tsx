@@ -20,7 +20,7 @@ const ANSWER_WORDS: Record<string, string> = {
 };
 
 /**
- * Founder decision D: restaurants list for free and pay per seated guest.
+ * Founder decision D: restaurants list for free and pay per seated table.
  * This desk shows, per restaurant per month, the seated tables and guests and
  * what is owed, the bills paid through Vallo, and the disagreements a person
  * has to decide. Nothing here charges anybody; the invoice is sent by hand.
@@ -35,7 +35,7 @@ export default async function RestaurantFeesPage() {
   const header = (
     <ui.QueueHeader
       title="Restaurant fees"
-      lede="Seated guests per restaurant per month and what each owes. Booking a table is free for diners; restaurants pay per seated guest."
+      lede="Seated tables per restaurant per month and what each owes. Booking a table is free for diners; restaurants pay per seated table."
       {...(read.state === "ok" ? { count: read.disputes.length } : {})}
     />
   );
@@ -46,7 +46,7 @@ export default async function RestaurantFeesPage() {
         {header}
         <ui.QueueEmpty
           title="Not switched on yet"
-          body="Seated guests are counted once the restaurant seating migration (20261013100000) is applied. Nothing is owed until then."
+          body="Seated tables are counted once the restaurant seating migration is applied. Nothing is owed until then."
           everHadRows={false}
         />
       </div>
@@ -65,7 +65,7 @@ export default async function RestaurantFeesPage() {
     <div className="nf-console">
       {header}
       <p className="nf-caption mb-block">
-        {money(read.feeMinor)} per seated guest.{" "}
+        {money(read.feeMinor)} per seated table.{" "}
         {read.commissionBps === null
           ? "Paying the bill through Vallo is not available yet: the commission on paid bills has not been set."
           : `Commission on bills paid through Vallo: ${(read.commissionBps / 100).toFixed(2)}%.`}
@@ -101,8 +101,8 @@ export default async function RestaurantFeesPage() {
 
       {read.rows.length === 0 ? (
         <ui.QueueEmpty
-          title="No seated guests yet"
-          body="A restaurant's seated guests appear here as soon as a table is marked seated."
+          title="No seated tables yet"
+          body="A restaurant's seated tables appear here as soon as a table is marked seated."
           everHadRows={false}
         />
       ) : (

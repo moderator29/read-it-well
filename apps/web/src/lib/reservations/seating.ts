@@ -14,7 +14,7 @@
  * refused.
  */
 
-/** The founder's number: 1,000 naira per seated guest, in kobo. The database row wins. */
+/** The founder's number: 1,000 naira per seated table, in kobo. The database row wins. */
 export const SEATED_FEE_MINOR_DEFAULT = 100_000;
 
 /** Seated is offered from three hours before the time, like the database. */

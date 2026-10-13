@@ -8,7 +8,7 @@ import { SEATED_FEE_MINOR_DEFAULT } from "../reservations/seating";
 /**
  * WHAT EACH RESTAURANT OWES (founder decision D).
  *
- * Restaurants list for free and pay a flat fee per seated guest, billed at
+ * Restaurants list for free and pay a flat fee per seated table, billed at
  * the end of the month. `public.restaurant_seated_fees` (pending migration
  * 20261013100000) counts the seated tables and guests per restaurant per
  * Lagos month, the fee owed, and the bills paid through Vallo with their

@@ -324,13 +324,14 @@ export const TERMS_SECTIONS: { title: string; body: React.ReactNode }[] = [
       <ul>
         <li>
           <strong>
-            Listing is free and {COMPANY_TRADING_NAME} charges no fee today to look, to
-            save, to message, to enquire, to inspect or to list.
+            Listing is free, and {COMPANY_TRADING_NAME} charges renters and guests nothing:
+            no fee to look, to book or to pay, and nothing added to the price on the
+            listing.
           </strong>{" "}
-          When a payment is made to you through the platform, between 1 and 2 percent of
-          it goes to the Vallo Guarantee reserve (section 14) out of your share, and the
-          exact percentage is shown on the agreement before anybody pays. Our commission
-          is zero today.
+          {COMPANY_TRADING_NAME} charges a fee only when a deal is completed. When a payment
+          is made through the platform, the platform fee comes out of your share as the
+          lister, and it is shown to you in naira before you agree. A restaurant pays a
+          fixed fee for each table that is seated; the diner pays nothing extra to book.
         </li>
         <li>
           If that ever changes, the rate will be shown before the action that incurs it,

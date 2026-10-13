@@ -26,7 +26,7 @@
  * together. A date rather than a number so a stored row says which text was on
  * screen without anybody keeping a separate table of what version meant what.
  */
-export const TERMS_VERSION = "2026-09-25";
+export const TERMS_VERSION = "2026-10-13";
 
 /**
  * The privacy notice moves with them today and has its own constant anyway,
@@ -36,6 +36,9 @@ export const TERMS_VERSION = "2026-09-25";
 /* 2026-09-24 (STORE-08 / SEC-13 / STORE-07): processors named, location,
    push tokens, device records, AI and crash data described, the analytics
    claim removed, the deletion section brought to the purge that now runs. */
+/* 2026-10-13: section 6 states the fee position in the product's own words (free to list, nothing added for
+   renters and guests, the platform fee comes out of the lister's share only on a completed deal, a fixed fee per
+   seated restaurant table) and the Host Agreement applies to hosts. */
 /* 2026-09-25 (Track A/B): no wallet or balance is held; payment data now
    describes split settlement, agreements and Guarantee claims. */
 export const PRIVACY_VERSION = "2026-09-25";
