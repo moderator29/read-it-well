@@ -258,7 +258,7 @@ const overrideSchema = z.object({
 });
 
 /**
- * THE PAYOUT RULE'S ONE EXCEPTION (draft cbh01): finance lets ONE held escrow
+ * THE PAYOUT RULE'S ONE EXCEPTION (migration cbh01): finance lets ONE held escrow
  * payment or ONE Rewards Balance payout go while the lister still owes a lost
  * chargeback. `public.admin_chargeback_hold_override` checks the finance
  * scope on a proved session, refuses the staffer's own hold, records the

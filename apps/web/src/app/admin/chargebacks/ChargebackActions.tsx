@@ -6,12 +6,13 @@ import { formatMoney, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { Button, ButtonLink, type ButtonVariant } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { addChargebackNote, moveChargeback, openChargeback } from "@/lib/admin/chargeback-actions";
+import { addChargebackNote, moveChargeback, openChargeback, overrideChargebackHold } from "@/lib/admin/chargeback-actions";
 import {
   CHARGEBACK_PROVIDERS,
   REASON_MAX,
   REASON_MIN,
   type ChargebackState,
+  type HeldSubject,
   type MoveOffer,
   type RecoveryState,
 } from "@/lib/admin/reads/chargebacks-model";
@@ -80,6 +81,143 @@ function ReasonField({ copy, value, onChange, label }: { copy: DeskCopy; value: 
         {copy.reasonHint}
       </span>
     </label>
+  );
+}
+
+/* --------------------------------------------------------------- override */
+
+type OverrideCopy = Dictionary["chargebacks"]["override"];
+
+/**
+ * What the payout rule is holding for this lister, each with its own
+ * Override (migration cbh01): a confirm sheet, a required reason, and
+ * `overrideChargebackHold`, which the database checks for finance, refuses
+ * for the staffer's own hold and writes to the audit log.
+ */
+export function HeldPayments({
+  held,
+  copy,
+  deskCopy,
+  locale,
+  currency,
+}: {
+  held: HeldSubject[] | null;
+  copy: OverrideCopy;
+  deskCopy: DeskCopy;
+  locale: Locale;
+  currency: string;
+}) {
+  const [open, setOpen] = useState<HeldSubject | null>(null);
+  const statuses = copy.statuses as Record<string, string>;
+  if (held === null) return <p className="nf-cb-note">{copy.unreadable}</p>;
+  return (
+    <div data-testid="chargeback-held">
+      <p className="nf-caption mt-0 leading-relaxed text-[var(--nf-content-secondary)]">{copy.lede}</p>
+      {held.length === 0 ? (
+        <p className="nf-caption mt-sm text-[var(--nf-content-muted)]" data-testid="chargeback-held-empty">
+          {copy.empty}
+        </p>
+      ) : (
+        <ul className="nf-cb-held">
+          {held.map((item) => (
+            <li key={`${item.kind}:${item.id}`} className="nf-cb-held__row" data-kind={item.kind}>
+              <div className="min-w-0">
+                <p className="nf-cb-held__head">
+                  {copy.kinds[item.kind]} · {formatMoney(item.amountMinor, locale, currency)}
+                </p>
+                <p className="nf-cb-held__meta">
+                  <span className="font-mono">{item.reference.slice(0, 18)}</span> · {statuses[item.status] ?? item.status}
+                </p>
+              </div>
+              {item.overridden ? (
+                <span className="nf-cb-held__done">
+                  <UiIcon name="circle-check" size={16} className="text-[var(--nf-state-success)]" />
+                  {copy.overridden}
+                </span>
+              ) : (
+                <Button variant="secondary" size="sm" onClick={() => setOpen(item)} data-override={item.id}>
+                  {copy.button}
+                </Button>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+      {open ? (
+        <OverrideSheet item={open} copy={copy} deskCopy={deskCopy} locale={locale} currency={currency} onClose={() => setOpen(null)} />
+      ) : null}
+    </div>
+  );
+}
+
+function OverrideSheet({
+  item,
+  copy,
+  deskCopy,
+  locale,
+  currency,
+  onClose,
+}: {
+  item: HeldSubject;
+  copy: OverrideCopy;
+  deskCopy: DeskCopy;
+  locale: Locale;
+  currency: string;
+  onClose: () => void;
+}) {
+  const router = useRouter();
+  const [reason, setReason] = useState("");
+  const [result, setResult] = useState<ActionResult<unknown> | null>(null);
+  const [pending, startTransition] = useTransition();
+  const succeeded = Boolean(result?.ok);
+  const blocked = reason.trim().length < REASON_MIN;
+  const submit = () =>
+    startTransition(async () => {
+      const outcome = await overrideChargebackHold({ kind: item.kind, subjectId: item.id, reason: reason.trim() });
+      setResult(outcome);
+      if (outcome.ok) router.refresh();
+    });
+  return (
+    <Sheet
+      open
+      onOpenChange={(next) => {
+        if (!next) onClose();
+      }}
+      title={copy.sheetTitle}
+      hideTitle={succeeded}
+      testId="chargeback-override-sheet"
+      footer={
+        succeeded ? (
+          <Button variant="primary" full onClick={onClose}>
+            {deskCopy.done}
+          </Button>
+        ) : (
+          <div className="grid gap-sm">
+            <Button variant="primary" full onClick={submit} disabled={blocked} loading={pending}>
+              {copy.confirm}
+            </Button>
+            <Button variant="secondary" full onClick={onClose}>
+              {deskCopy.notNow}
+            </Button>
+          </div>
+        )
+      }
+    >
+      {succeeded ? (
+        <Done title={copy.doneTitle} body={copy.doneBody} />
+      ) : (
+        <>
+          <p className="text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+            {copy.sheetBody
+              .replace("{kind}", copy.kinds[item.kind].toLowerCase())
+              .replace("{reference}", item.reference.slice(0, 18))
+              .replace("{amount}", formatMoney(item.amountMinor, locale, currency))}
+          </p>
+          <ReasonField copy={{ ...deskCopy, reasonHint: copy.reasonHint }} value={reason} onChange={setReason} label={copy.reasonLabel} />
+          <Refusal result={result} />
+        </>
+      )}
+    </Sheet>
   );
 }
 

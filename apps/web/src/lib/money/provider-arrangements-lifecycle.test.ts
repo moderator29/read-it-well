@@ -88,7 +88,7 @@ function fakeDb() {
         };
         return { data: row.status === args.p_to_status ? "same" : "changed", error: null };
       }
-      /* The payout rule (draft cbh01): nobody here holds a lost chargeback. */
+      /* The payout rule (migration cbh01): nobody here holds a lost chargeback. */
       if (name === "chargeback_release_gate") return { data: { status: "clear" }, error: null };
       return { data: null, error: { message: "unknown rpc" } };
     },

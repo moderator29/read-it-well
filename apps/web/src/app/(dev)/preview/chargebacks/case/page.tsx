@@ -23,7 +23,7 @@ export default async function PreviewChargebackCase({
   const detail = params.case === "open" ? OPEN_DETAIL : LOST_DETAIL;
   return (
     <ConsoleFrame t={t}>
-      <ChargebackCase detail={detail} now={NOW} copy={t.chargebacks.desk} locale={locale} />
+      <ChargebackCase detail={detail} now={NOW} copy={t.chargebacks.desk} overrideCopy={t.chargebacks.override} locale={locale} />
     </ConsoleFrame>
   );
 }

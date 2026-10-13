@@ -11,11 +11,16 @@ import {
   countChargebacks,
   entryFromAudit,
   entryFromEvent,
+  HELD_ARRANGEMENT_STATUSES,
+  HELD_PAYOUT_STATUSES,
+  heldSubjectsFrom,
+  holdsPayouts,
   isMissingFunction,
   isUndecided,
   type ChargebackBase,
   type ChargebackCounts,
   type ChargebackRow,
+  type HeldSubject,
   type TimelineEntry,
 } from "./chargebacks-model";
 
@@ -158,7 +163,49 @@ export type ChargebackDetail = {
   timelineSource: "events" | "audit";
   /** The draft note function exists (it lands with the timeline read). */
   notesOpen: boolean;
+  /** While the payout rule holds the lister: what it is holding, or null when that could not be read. */
+  held: HeldSubject[] | null;
 };
+
+/**
+ * What the payout rule is holding for this lister right now: escrow payments
+ * still held for them and Rewards payouts not yet sent. Read on the service
+ * client only after `staff_chargebacks` admitted the caller as finance. An
+ * override is known from its own audit row (`chargeback.hold_overridden`):
+ * the overrides table is closed to every app role.
+ */
+async function readHeld(service: Db, listerId: string): Promise<HeldSubject[] | null> {
+  const loose = service as unknown as SupabaseClient;
+  const [arr, pay] = await Promise.all([
+    loose
+      .from("provider_arrangements")
+      .select("id, reference, amount_minor, status")
+      .eq("seller_user_id", listerId)
+      .in("status", [...HELD_ARRANGEMENT_STATUSES])
+      .order("created_at", { ascending: false })
+      .limit(50),
+    loose
+      .from("rewards_payouts")
+      .select("id, reference, amount_minor, status")
+      .eq("member_id", listerId)
+      .in("status", [...HELD_PAYOUT_STATUSES])
+      .order("created_at", { ascending: false })
+      .limit(50),
+  ]);
+  if (arr.error || pay.error) return null;
+  const ids = [...(arr.data ?? []), ...(pay.data ?? [])].map((r) => (r as { id: string }).id);
+  let overridden = new Set<string>();
+  if (ids.length > 0) {
+    const { data, error } = await loose
+      .from("audit_log")
+      .select("entity_id")
+      .eq("action", "chargeback.hold_overridden")
+      .in("entity_id", ids);
+    if (error) return null;
+    overridden = new Set((data ?? []).map((r) => String((r as { entity_id: string }).entity_id)));
+  }
+  return heldSubjectsFrom(arr.data ?? [], pay.data ?? [], overridden);
+}
 
 async function readTimeline(door: Door, row: ChargebackBase): Promise<{ entries: TimelineEntry[]; source: "events" | "audit" }> {
   const { data, error } = await (door.user as unknown as Rpc).rpc("staff_chargeback_events", { p_chargeback: row.id });
@@ -188,12 +235,18 @@ export async function getChargebackDetail(id: string): Promise<Read<ChargebackDe
     if (!base) return UNAVAILABLE;
     const found = base.find((row) => row.id === id);
     if (!found) return { state: "ok", data: null };
-    const [[row], timeline] = await Promise.all([decorate(door.service, [found]), readTimeline(door, found)]);
+    const [[row], timeline, held] = await Promise.all([
+      decorate(door.service, [found]),
+      readTimeline(door, found),
+      holdsPayouts(found) && found.listerId && !found.listerUnattributed
+        ? readHeld(door.service, found.listerId).catch(() => null)
+        : Promise.resolve([] as HeldSubject[]),
+    ]);
     const names = await namesFor(door.service, timeline.entries.map((e) => e.actorId));
     const entries = timeline.entries.map((e) => ({ ...e, actorName: e.actorId ? (names.get(e.actorId) ?? null) : null }));
     return {
       state: "ok",
-      data: { row: row!, timeline: entries, timelineSource: timeline.source, notesOpen: timeline.source === "events" },
+      data: { row: row!, timeline: entries, timelineSource: timeline.source, notesOpen: timeline.source === "events", held },
     };
   } catch {
     return UNAVAILABLE;
