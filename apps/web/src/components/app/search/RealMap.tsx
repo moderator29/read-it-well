@@ -43,9 +43,25 @@ const KIND_LABEL: Record<ListingKind, string> = {
   land: "Land",
 };
 
+/*
+ * WHAT THE FIGURE COVERS, FROM THE LISTING'S OWN PERIOD (search-map track).
+ * This read `pricePeriod === "year" ? "year" : "night"`, so a monthly or
+ * quarterly rent was printed "/ night" on the docked card and a house for
+ * sale was priced by the night. The period column states the cycle; a sale
+ * has none.
+ */
 function periodFor(listing: Listing): MapListing["period"] {
   if (listing.kind === "restaurant" || listing.kind === "experience") return "guest";
-  return listing.pricePeriod === "year" ? "year" : "night";
+  if (listing.intent === "sale") return "sale";
+  switch (listing.pricePeriod) {
+    case "year":
+    case "month":
+    case "quarter":
+    case "guest":
+      return listing.pricePeriod;
+    default:
+      return "night";
+  }
 }
 
 /**
@@ -64,7 +80,10 @@ export async function RealMap({
   active,
   listings,
   listHref,
+  fill = false,
 }: {
+  /** Fill the parent's height: the desktop list's sticky map. */
+  fill?: boolean;
   pins: CityPin[];
   active?: string;
   /** The same results as a list, where a place with no pin is still drawn (Session 3, W2). */
@@ -107,6 +126,9 @@ export async function RealMap({
       reviewCount: listing.reviewCount,
       ...(listing.photos[0] ? { photo: listing.photos[0] } : {}),
       hue: listing.hue,
+      ...(listing.bedrooms > 0 ? { bedrooms: listing.bedrooms } : {}),
+      ...(listing.bathrooms > 0 ? { bathrooms: listing.bathrooms } : {}),
+      ...(listing.sizeSqm !== undefined && listing.sizeSqm > 0 ? { sizeSqm: listing.sizeSqm } : {}),
       verified: listing.verified,
       isDemo: listing.isDemo,
       drawn: isModestExample(listing),
@@ -135,6 +157,7 @@ export async function RealMap({
 
   return (
     <MapCanvas
+      fill={fill}
       unplaced={unplaced}
       {...(listHref ? { listHref } : {})}
       listings={mapListings}
@@ -144,8 +167,13 @@ export async function RealMap({
       copy={{
         night: t.common.night,
         year: t.common.year,
-        guest: "guest",
+        guest: t.experienceLabels.periodShort.guest,
+        month: t.catalogue.card.perMonth,
+        quarter: t.catalogue.card.perQuarter,
+        sqm: t.catalogue.card.sqm,
         verified: t.common.verified,
+        about: t.searchV2.map.about,
+        credits: t.searchV2.map.credits,
         noPinOne: dm.noPinOne,
         noPinMany: dm.noPinMany,
         noPinList: dm.noPinList,

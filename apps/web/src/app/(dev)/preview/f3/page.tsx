@@ -3,6 +3,9 @@ import Link from "next/link";
 const PAGES = [
   "search",
   "search?filters=open",
+  "search-map",
+  "search-map?filters=open",
+  "search-map?view=map",
   "listing",
   "listing/sale",
   "move-in",

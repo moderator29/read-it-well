@@ -3731,5 +3731,22 @@ export const ha: Dictionary = withFallback({
       failed: "Bai yi nasara ba. Da fatan a sake gwadawa.",
     },
   },
+  searchV2: {
+    placeholder: "Bincika ko bayyana gidanka",
+    quick: {
+      forYou: "Domin kai",
+      nearMe: "Kusa da ni",
+      newListed: "Sababbi",
+    },
+    sections: {
+      bestMatches: "Mafi dacewa",
+      newListings: "Sababbin gidaje",
+      allHomes: "Duk gidaje",
+    },
+    filters: {
+      forRent: "Na haya",
+      forSale: "Na sayarwa",
+    },
+  },
 
 } satisfies Translation, haDrafts);

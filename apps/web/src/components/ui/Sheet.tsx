@@ -101,6 +101,7 @@ export function Sheet({
   closeLabel,
   reset,
   apply,
+  headAction,
   fullPage = false,
   sideOnWide = false,
   card = false,
@@ -136,6 +137,14 @@ export function Sheet({
    */
   initialFocus?: RefObject<HTMLElement | null>;
   footer?: ReactNode;
+  /**
+   * A control at the right of the header row, with `closeLabel`: the filter
+   * sheet's Reset, to the founder's reference (search-map, 13 October 2026).
+   * When it is given, the close moves to the left and the title sits in the
+   * middle, the order that reference draws; without it the header is as
+   * every other sheet has it.
+   */
+  headAction?: ReactNode;
   /**
    * The whole screen rather than a sheet over part of it, for the dialogs that
    * are designed as a page: a long searchable picker, the filters, a report
@@ -277,7 +286,7 @@ export function Sheet({
    * `prevOpen` above); while leaving, it draws those instead of the cleared
    * ones. It is inert by then, so nothing held can be pressed.
    */
-  const live = { title, children, footer, reset, apply };
+  const live = { title, children, footer, reset, apply, headAction };
   const [held, setHeld] = useState(live);
   if (
     open &&
@@ -285,7 +294,8 @@ export function Sheet({
       held.children !== children ||
       held.footer !== footer ||
       held.reset !== reset ||
-      held.apply !== apply)
+      held.apply !== apply ||
+      held.headAction !== headAction)
   ) {
     setHeld(live);
   }
@@ -576,7 +586,29 @@ export function Sheet({
             aria-hidden="true"
           />
         )}
-        {closeLabel ? (
+        {closeLabel && face.headAction ? (
+          <div className="nf-sheet__head px-gutter">
+            <button
+              type="button"
+              aria-label={closeLabel}
+              onClick={() => onOpenChange(false)}
+              className="nf-icon-btn nf-icon-btn--round"
+            >
+              <UiIcon name="close" size={20} />
+            </button>
+            <h2
+              id={titleId}
+              className={
+                hideTitle
+                  ? "sr-only"
+                  : "min-w-0 flex-1 truncate text-center text-[length:var(--nf-text-body-lg)] font-semibold tracking-tight text-[var(--nf-content-primary)]"
+              }
+            >
+              {face.title}
+            </h2>
+            {face.headAction}
+          </div>
+        ) : closeLabel ? (
           <div className="nf-sheet__head px-gutter">
             <h2
               id={titleId}

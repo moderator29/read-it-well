@@ -48,6 +48,12 @@ export type FilterDrawerProps = {
   noFloodLabel?: { label: string; hint: string };
   /** V-12: the sentence under the "Lowest fees on top of rent" order. */
   feesBasis?: string;
+  /**
+   * The upgraded sheet's words (search-map, 13 October 2026): the segmented
+   * market, the price fields, "Minimum count" and "See 12 homes". Optional so
+   * a caller that has not passed them keeps the words the sheet always drew.
+   */
+  searchCopy?: Dictionary["searchV2"]["filters"];
 };
 
 /* The body and its prefetch name the same module, so the bundler makes one

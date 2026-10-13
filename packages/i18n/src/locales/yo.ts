@@ -3774,5 +3774,22 @@ export const yo: Dictionary = withFallback({
       failed: "Kò lọ. Jọ̀ọ́ gbìyànjú lẹ́ẹ̀kan sí i.",
     },
   },
+  searchV2: {
+    placeholder: "Wá tàbí ṣàpèjúwe ilé rẹ",
+    quick: {
+      forYou: "Fún ọ",
+      nearMe: "Nítòsí mi",
+      newListed: "Tuntun",
+    },
+    sections: {
+      bestMatches: "Àwọn tó bá ọ mu jù",
+      newListings: "Àwọn ilé tuntun",
+      allHomes: "Gbogbo ilé",
+    },
+    filters: {
+      forRent: "Fún ìyálò",
+      forSale: "Fún títà",
+    },
+  },
 
 } satisfies Translation, yoDrafts);

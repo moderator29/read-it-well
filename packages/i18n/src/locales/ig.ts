@@ -3760,5 +3760,22 @@ export const ig: Dictionary = withFallback({
       failed: "O megheghị. Biko nwaa ọzọ.",
     },
   },
+  searchV2: {
+    placeholder: "Chọọ ma ọ bụ kọwaa ụlọ gị",
+    quick: {
+      forYou: "Maka gị",
+      nearMe: "Nso m",
+      newListed: "Ọhụrụ",
+    },
+    sections: {
+      bestMatches: "Ndị kacha dabara",
+      newListings: "Ụlọ ọhụrụ",
+      allHomes: "Ụlọ niile",
+    },
+    filters: {
+      forRent: "Maka mgbazinye",
+      forSale: "Maka ire",
+    },
+  },
 
 } satisfies Translation, igDrafts);

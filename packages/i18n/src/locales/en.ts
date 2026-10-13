@@ -6293,6 +6293,63 @@ export const en = {
       failed: "That did not go through. Please try again.",
     },
   },
+  /**
+   * Search, upgraded (track search-map, 13 October 2026): the one-per-row
+   * result card, the quick chips under the bar, Best matches and New
+   * listings, the filter sheet's market, price and room rows, and the map's
+   * photo pins, docked card and credit control. Every reason line names a
+   * real signal the person gave: a saved search, a saved home, what they
+   * said they came for, or a place they opened. Nothing here is a score.
+   */
+  searchV2: {
+    placeholder: "Search or describe your home",
+    sort: "Sort",
+    sortCurrent: "Sort, now {sort}",
+    quick: {
+      label: "Quick picks",
+      forYou: "For you",
+      nearMe: "Near me",
+      newListed: "New listed",
+      locating: "Finding your location",
+      denied: "Location is off for this site. Turn it on in your browser settings to search near you.",
+      failed: "Your location could not be found. Try again.",
+      unavailable: "This browser does not share location, so we cannot search near you.",
+    },
+    sections: {
+      bestMatches: "Best matches",
+      bestMatchesHint: "From your saved searches, saved homes, what you came for and the places you opened.",
+      newListings: "New listings",
+      allHomes: "All homes",
+    },
+    reasons: {
+      areaBudget: "In {area}, under your budget",
+      areaSaved: "In {area}, like your saved search",
+      budget: "Under your saved budget",
+      saved: "Matches your saved search",
+      nearSaved: "In {area}, near a home you saved",
+      recent: "In {area}, where you have been looking",
+      kind: "{kind}, what you came for",
+    },
+    filters: {
+      market: "Market",
+      forRent: "For rent",
+      forSale: "For sale",
+      shortlet: "Shortlet",
+      shortletNote: "Shortlets are stays, so they open on the Stays search with your words kept.",
+      price: "Price",
+      minBudget: "Min budget",
+      maxBudget: "Max budget",
+      minimumCount: "Minimum count",
+      seeHomes: "See {homes}",
+      seeNone: "No homes match yet",
+      seeShortlets: "See shortlets",
+    },
+    map: {
+      about: "About this map",
+      credits: "Map data",
+      aside: "Map of these homes",
+    },
+  },
 
 };
 
