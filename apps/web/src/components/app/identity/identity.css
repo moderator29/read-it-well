@@ -155,8 +155,17 @@
   .nf-identity__cred .nf-identity__cred-body > * {
     margin-block-start: 0;
   }
+  /* From a tablet up the cover is a rounded picture inside the column, the
+     width of everything under it, rather than bleeding past the cards by the
+     shell's gutter on either side. */
   @media (min-width: 640px) {
-    .nf-identity__cred {
+    .nf-identity .nf-social-cover {
+      margin-inline: 0;
+      border-radius: var(--nf-radius-xl);
+    }
+    /* The card laps the cover's foot a step inside its edges, on both
+       profiles (the public one already drew it so). */
+    .nf-identity .nf-profile-identity.nf-island {
       margin-inline: var(--nf-space-md);
     }
   }
