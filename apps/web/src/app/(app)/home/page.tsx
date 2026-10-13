@@ -18,6 +18,12 @@ import { getSavedListings } from "@/lib/saved/queries";
 import type { Listing } from "@/lib/listings/types";
 import type { HomeLeadFigure } from "@/components/app/home/HomeFigure";
 import { PROPERTY_SPACE_TYPES, type SpaceTypeKey } from "@/components/app/home/space-types";
+import { BestMatchesStream, NewListingsStream } from "@/components/app/home/HomeStreams";
+import { HomeListSkeleton } from "@/components/app/home/HomeLists";
+
+/** How many places Premium draws, and how many more Featured listings adds under it. */
+const PREMIUM_SHOWN = 6;
+const FEATURED_MORE = 6;
 
 export const metadata: Metadata = {
   title: "Home",
@@ -148,7 +154,10 @@ export default async function HomePage() {
     return isPropertyMarket(marketOf(listing));
   });
   const ordered = orderByStatedIntent(pooled, stated);
-  const listings = ordered.slice(0, 6);
+  const listings = ordered.slice(0, PREMIUM_SHOWN);
+  /* FEATURED LISTINGS: the same ranked pool, the places after the Premium
+     carousel's six, so no place is drawn twice one under the other. */
+  const featuredMore = ordered.slice(PREMIUM_SHOWN, PREMIUM_SHOWN + FEATURED_MORE);
   const intentApplied = stated.length > 0 && listings.some((listing) => (stated as readonly string[]).includes(listing.kind));
 
   /*
@@ -208,6 +217,34 @@ export default async function HomePage() {
       lead={lead}
       interests={tuning.interests}
       intentApplied={intentApplied}
+      featuredMore={featuredMore}
+      /* BEST MATCHES: for a signed-in person only, built from what they said
+         and kept (their stated kinds, saved searches, saved places). A guest
+         has said and kept nothing, so a guest sees Premium, Featured and New.
+         Streamed behind a skeleton in the list's own shape. */
+      bestMatches={
+        overview.signedIn ? (
+          <Suspense
+            fallback={<HomeListSkeleton shape="tiles" title={t.homeV2.bestTitle} label={t.homeV2.loadingBest} />}
+          >
+            <BestMatchesStream
+              t={t}
+              locale={locale}
+              interests={tuning.interests}
+              pool={ordered}
+              saved={savedEntries.map((entry) => entry.listing)}
+              onScreen={new Set([...listings, ...featuredMore].map((listing) => listing.id))}
+            />
+          </Suspense>
+        ) : null
+      }
+      newListings={
+        <Suspense
+          fallback={<HomeListSkeleton shape="rows" title={t.homeV2.newTitle} label={t.homeV2.loadingNew} />}
+        >
+          <NewListingsStream t={t} locale={locale} />
+        </Suspense>
+      }
       upNext={
         /* Streamed, so its three reads never hold up the first paint; it
            draws nothing when there is nothing next (plan item 15). */
