@@ -1,4 +1,4 @@
--- DRAFT, NOT APPLIED. Two fixes to the verification ladder, found while
+-- Applied 13 October 2026 (part 1 of 2). Two fixes to the verification ladder, found while
 -- walking the landlord, agent and professional applications.
 --
 -- 1. A RESUBMITTED DOCUMENT COULD NEVER PASS ITS RUNG.
@@ -20,28 +20,8 @@
 --    supersedes chain on every resubmission path
 --    (apps/web/src/lib/agent/supersedes.ts).
 --
--- 2. NOBODY RECORDS A CHECK ON THEIR OWN LADDER.
---
---    The application (`agent_applications_01_no_self_review`), every listing
---    and every document (`review_kyc_document`'s own_document branch) refuse
---    their own reviewer. `agent_verification_checks` had no such guard, so a
---    member of staff who is also an agent could pass their own rungs from
---    /admin/agents and raise the tier guests read. The console action now
---    refuses it (apps/web/src/lib/admin/verification-actions.ts); this holds
---    the same rule on the write itself, whoever the caller is. Automated
---    checks (the payout name match, the vNIN check) record with a null
---    decider and are not affected.
---
--- No signature, column or grant changes. CREATE OR REPLACE keeps the
--- function's existing privileges; the trigger is created with CREATE OR
--- REPLACE so the file carries no DROP.
---
--- PROBE AFTER APPLYING, as the real roles: (a) reject an identity document,
--- file a replacement whose supersedes_id names it, approve the replacement as
--- a different reviewer, and expect the identity rung 'passed'; (b) as an
--- admin who has an agents row, upsert a 'passed' rung on that row and expect
--- 42501; (c) the same upsert on somebody else's row must succeed.
 
+set lock_timeout = '5s';
 create or replace function private.review_kyc_document(acting_admin uuid, p_document uuid, p_approve boolean, p_reason text)
  returns jsonb
  language plpgsql
@@ -135,53 +115,3 @@ begin
   return jsonb_build_object('status', 'ok', 'document_id', doc.id, 'approved', p_approve);
 end;
 $function$;
-
-create or replace function private.refuse_self_check()
-returns trigger
-language plpgsql
-security definer
-set search_path to ''
-as $function$
-declare
-  subject uuid;
-begin
-  -- An automated check records no decider, and a row whose decider and time
-  -- are unchanged is not a new decision.
-  if new.decided_by is null then
-    return new;
-  end if;
-  if tg_op = 'UPDATE'
-     and new.decided_by is not distinct from old.decided_by
-     and new.decided_at is not distinct from old.decided_at then
-    return new;
-  end if;
-  select a.user_id into subject from public.agents a where a.id = new.agent_id;
-  if subject is not null and subject = new.decided_by then
-    raise exception 'Nobody records a check on their own verification. Leave it for another reviewer.'
-      using errcode = '42501';
-  end if;
-  return new;
-end;
-$function$;
-
-revoke all on function private.refuse_self_check() from public, anon, authenticated;
-
-create or replace trigger agent_verification_checks_01_no_self_check
-  before insert or update on public.agent_verification_checks
-  for each row execute function private.refuse_self_check();
-
--- Read-back: refuse to finish if either change is not in place.
-do $check$
-begin
-  if position('supersedes_id' in pg_get_functiondef('private.review_kyc_document(uuid, uuid, boolean, text)'::regprocedure)) = 0 then
-    raise exception 'review_kyc_document still counts superseded documents';
-  end if;
-  if not exists (
-    select 1 from pg_trigger
-     where tgrelid = 'public.agent_verification_checks'::regclass
-       and tgname = 'agent_verification_checks_01_no_self_check'
-  ) then
-    raise exception 'the self-check trigger is missing';
-  end if;
-end;
-$check$;
