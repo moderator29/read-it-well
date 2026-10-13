@@ -5,6 +5,8 @@ import { MeterBar } from "@/components/agent/charts/MeterBar";
 import type { InspectionActivity, InspectionState } from "@/lib/admin/reads/shapes";
 import { Badge, CalmNote, NotWired, Panel, PanelLink, PanelUnavailable, type BadgeTone } from "../_components/panels";
 import { NoShowDecide } from "./NoShowDecide";
+import type { OpsReads } from "@/lib/admin/reads/ops-panels-model";
+import { DbJobsPanel, DeletionsPanel, HeldEventsPanel, ReconPanel, TransfersPanel } from "./OpsReadPanels";
 
 /**
  * Operations > In flight: the platform's processes that belong to people
@@ -36,7 +38,7 @@ const OUTCOME_WORD: Record<string, string> = {
   no_deal: "no deal",
 };
 
-export function InFlight({ locale, inspections }: { locale: Locale; inspections: InspectionActivity | null }) {
+export function InFlight({ locale, inspections, ops }: { locale: Locale; inspections: InspectionActivity | null; ops?: Partial<OpsReads> }) {
   const c = getDictionary(locale).admin.shell.operations;
   return (
     <div className="nf-admin-stack">
@@ -183,34 +185,60 @@ export function InFlight({ locale, inspections }: { locale: Locale; inspections:
       </div>
 
       <div className="nf-admin-grid nf-admin-grid--halves">
-        <Panel id="ops-deletions" title={c.accountDeletions}>
-          <NotWired
-            title={tx(locale, "inflightNotReadableByAnAdmin")}
-            what={tx(locale, "inflightPeopleWhoAskedToClose")}
-            request={tx(locale, "inflightOnlyTheAccountHolderMay")}
-          />
-        </Panel>
-        <Panel id="ops-transfers" title={c.businessTransfers}>
-          <NotWired
-            title={tx(locale, "inflightNotReadableByAnAdmin")}
-            what={tx(locale, "inflightBusinessesOfferedFromOneOwner")}
-            request={tx(locale, "inflightOnlyTheTwoPartiesMay")}
-          />
-        </Panel>
-        <Panel id="ops-db-jobs" title={tx(locale, "inflightDatabaseJobsOneByOne")}>
-          <NotWired
-            what={tx(locale, "inflightEachOfTheDatabaseJobs")
-              .replace("{count}", String(PG_CRON_JOBS.length))
-              .replace("{names}", PG_CRON_JOBS.map((j) => j.name).join(", "))}
-            request={tx(locale, "inflightTheDatabaseDoesNotExpose")}
-          />
-        </Panel>
-        <Panel id="ops-recon" title={tx(locale, "inflightMoneyReconciliationWatch")}>
-          <NotWired
-            what={tx(locale, "inflightTheMoneyReconcileSLast")}
-            request={tx(locale, "inflightThatWatchIsNotReadable")}
-          />
-        </Panel>
+        <DeletionsPanel
+          read={ops?.deletions}
+          title={c.accountDeletions}
+          locale={locale}
+          missing={
+            <NotWired
+              title={tx(locale, "inflightNotReadableByAnAdmin")}
+              what={tx(locale, "inflightPeopleWhoAskedToClose")}
+              request={tx(locale, "inflightOnlyTheAccountHolderMay")}
+            />
+          }
+        />
+        <TransfersPanel
+          read={ops?.transfers}
+          title={c.businessTransfers}
+          locale={locale}
+          missing={
+            <NotWired
+              title={tx(locale, "inflightNotReadableByAnAdmin")}
+              what={tx(locale, "inflightBusinessesOfferedFromOneOwner")}
+              request={tx(locale, "inflightOnlyTheTwoPartiesMay")}
+            />
+          }
+        />
+        <DbJobsPanel
+          read={ops?.dbJobs}
+          title={tx(locale, "inflightDatabaseJobsOneByOne")}
+          locale={locale}
+          missing={
+            <NotWired
+              what={tx(locale, "inflightEachOfTheDatabaseJobs")
+                .replace("{count}", String(PG_CRON_JOBS.length))
+                .replace("{names}", PG_CRON_JOBS.map((j) => j.name).join(", "))}
+              request={tx(locale, "inflightTheDatabaseDoesNotExpose")}
+            />
+          }
+        />
+        <ReconPanel
+          read={ops?.recon}
+          title={tx(locale, "inflightMoneyReconciliationWatch")}
+          locale={locale}
+          missing={<NotWired what={tx(locale, "inflightTheMoneyReconcileSLast")} request={tx(locale, "inflightThatWatchIsNotReadable")} />}
+        />
+        <HeldEventsPanel
+          read={ops?.held}
+          locale={locale}
+          missing={
+            <NotWired
+              title={tx(locale, "inflightNotReadableByAnAdmin")}
+              what="Events the safety scan held, and the decisions taken on them."
+              request="Needs the staff read in the pending Operations reads draft; deciding a held event is request AR-10."
+            />
+          }
+        />
       </div>
     </div>
   );

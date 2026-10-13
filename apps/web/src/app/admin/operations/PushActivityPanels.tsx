@@ -11,7 +11,7 @@ import {
   type PushOutcome,
   type PushQueueState,
 } from "@/lib/admin/reads/shapes";
-import { Badge, CalmNote, NotWired, Panel, PanelUnavailable, type BadgeTone } from "../_components/panels";
+import { Badge, CalmNote, Panel, PanelUnavailable, type BadgeTone } from "../_components/panels";
 
 /**
  * Operations > Notifications, the push half (third closing audit):
@@ -166,13 +166,5 @@ export function PushActivityPanels({ push, locale }: { push: PushActivity | null
         </Panel>
       </div>
     </>
-  );
-}
-
-export function EmailOutboxPanel({ locale }: { locale: Locale }) {
-  return (
-    <Panel id="ops-email-outbox" title={tx(locale, "opsEmailOutbox")}>
-      <NotWired title={tx(locale, "opsNotReadableByAnAdmin")} what={tx(locale, "opsEmailOutboxWhat")} request={tx(locale, "opsEmailOutboxRequest")} />
-    </Panel>
   );
 }
