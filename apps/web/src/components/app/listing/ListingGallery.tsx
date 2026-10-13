@@ -469,7 +469,9 @@ export function ListingGallery({
           {t.catalogue.card.noPhotos}
         </p>
       )}
-      {count > 0 && (
+      {/* Off while a video plays: it sat on the player's mute and full-screen
+          controls, and the sound is the first thing a viewer reaches for. */}
+      {count > 0 && playing === null && (
         <p
           data-testid="gallery-counter"
           /* `--nf-radius-sm`, the same 28px-plate ratio as the stand-in chip
@@ -489,7 +491,7 @@ export function ListingGallery({
             type="button"
             onClick={() => go(active - 1)}
             disabled={active === 0}
-            aria-label="Previous photo"
+            aria-label={mixed ? "Previous slide" : "Previous photo"}
             data-theme="light"
             className="absolute left-3 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 place-items-center nf-icon-btn nf-icon-btn--round disabled:opacity-0 sm:grid"
           >
@@ -499,7 +501,7 @@ export function ListingGallery({
             type="button"
             onClick={() => go(active + 1)}
             disabled={active === panes.length - 1}
-            aria-label="Next photo"
+            aria-label={mixed ? "Next slide" : "Next photo"}
             data-theme="light"
             className="absolute right-3 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 place-items-center nf-icon-btn nf-icon-btn--round disabled:opacity-0 sm:grid"
           >

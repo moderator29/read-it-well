@@ -38,5 +38,7 @@ export function listingMedia(
 
 /** "0:42". */
 export function clockOf(seconds: number): string {
-  return `${Math.floor(seconds / 60)}:${String(Math.round(seconds) % 60).padStart(2, "0")}`;
+  /* Rounded once, first: 59.6 seconds is "1:00", never "0:00". */
+  const whole = Math.max(0, Math.round(seconds));
+  return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, "0")}`;
 }
