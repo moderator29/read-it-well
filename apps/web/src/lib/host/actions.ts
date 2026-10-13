@@ -40,7 +40,7 @@ import {
 } from "../actions/session";
 import type { Database } from "../supabase/database.types";
 import { SCRUB_REFUSED_MESSAGE, scrubPublicPhoto } from "../images/scrub";
-import { documentPathBelongsTo, missingFrom, type HostType } from "./onboarding";
+import { branchFor, documentPathBelongsTo, missingFrom, type HostType } from "./onboarding";
 import { HOST_PHOTO_BUCKET, MAX_BUSINESS_PHOTOS, nextPhotoPosition } from "./photos";
 import { MAX_NIGHTS_IN_ONE_ACT, nightsBetween } from "../stays/inventory";
 import { readMyHostDraft } from "./queries";
@@ -62,7 +62,7 @@ import {
   serviceWindowDraftSchema,
   shortletPlaceDraftSchema,
 } from "./schema";
-import { bedsArray, placeTypeUnavailable } from "./stays-setup";
+import { SHORTLET_RATE_NAME, bedsArray, placeTypeUnavailable } from "./stays-setup";
 import { countOf } from "@vallo/i18n/core";
 import { fill, hostRefusals } from "./refusals";
 
@@ -1217,6 +1217,89 @@ export async function setShortletPlaceDraft(
 
   refreshHostSurfaces();
   return ok({ roomTypeId: written.data.id });
+}
+
+/**
+ * THE PROPERTY'S CANCELLATION POLICY ON EVERY RATE IT SELLS, AND THE
+ * SHORTLET'S ONE RATE.
+ *
+ * A booking is made against a `rate_plans` row and reads ITS price and ITS
+ * cancellation policy. Two things went wrong because of that:
+ *
+ *  - A SHORTLET COULD NEVER BE SENT. Its two screens ask for a nightly price
+ *    (`room_types.base_rate_minor`) and a policy (`accommodations.
+ *    cancellation_policy_id`), and nothing anywhere wrote a rate plan, while
+ *    `missingFrom` refuses "A rate with a cancellation policy" and the publish
+ *    gate refuses a property with no room carrying a rate. Every shortlet
+ *    application stopped at the review step with a requirement no step could
+ *    meet. The rate is written here from the host's own two answers: room
+ *    only, at the nightly price they typed, on the policy they chose.
+ *  - A HOTEL'S RATES KEPT THE POLICY THEY WERE BORN WITH. The rates screen
+ *    says the policy is the property's and applies to every room, and a rate
+ *    added before a policy was chosen was given the first policy on the list.
+ *    Choosing or changing the property's policy now puts it on every rate.
+ *
+ * Only while the application is editable (`editableBusiness`), so nothing on
+ * the shelf or under a booking moves. With no policy chosen yet it does
+ * nothing and says so with a zero, because the screens call it after every
+ * save that could change either answer.
+ */
+export async function syncPropertyRatesDraft(): Promise<ActionResult<{ rates: number }>> {
+  const guarded = await editableBusiness();
+  if (!guarded.ok) return guarded.result;
+  const session = await resolveSession();
+  if (session.state !== "signed-in") return fail(SIGNED_OUT_MESSAGE);
+
+  const [{ data: business, error: businessError }, { data: property, error: propertyError }] =
+    await Promise.all([
+      session.supabase.from("businesses").select("kind").eq("id", guarded.businessId).maybeSingle(),
+      session.supabase
+        .from("accommodations")
+        .select("id, cancellation_policy_id, room_types(id, created_at, base_rate_minor, rate_plans(id, name))")
+        .eq("business_id", guarded.businessId)
+        .order("created_at", { ascending: true })
+        .limit(1)
+        .maybeSingle(),
+    ]);
+  if (businessError || propertyError || !business) return fail((await words()).serviceDown);
+  if (!property || !property.cancellation_policy_id) return ok({ rates: 0 });
+  const policyId = property.cancellation_policy_id;
+  const rooms = [...property.room_types].sort((a, b) => a.created_at.localeCompare(b.created_at));
+
+  const existing = rooms.flatMap((room) => room.rate_plans.map((plan) => plan.id));
+  if (existing.length > 0) {
+    const { error } = await session.supabase
+      .from("rate_plans")
+      .update({ cancellation_policy_id: policyId })
+      .in("id", existing);
+    if (error) {
+      if (error.code === "42501") return fail((await words()).notYours);
+      return fail((await words()).serviceDown);
+    }
+  }
+
+  let written = existing.length;
+  const unit = rooms[0];
+  if (branchFor(business.kind) === "shortlet" && unit) {
+    const { error } = await session.supabase.from("rate_plans").upsert(
+      {
+        room_type_id: unit.id,
+        name: SHORTLET_RATE_NAME,
+        meal_plan: "room_only",
+        cancellation_policy_id: policyId,
+        rate_minor: unit.base_rate_minor,
+      },
+      { onConflict: "room_type_id,name" },
+    );
+    if (error) {
+      if (error.code === "42501") return fail((await words()).notYours);
+      return fail((await words()).serviceDown);
+    }
+    if (!unit.rate_plans.some((plan) => plan.name === SHORTLET_RATE_NAME)) written += 1;
+  }
+
+  refreshHostSurfaces();
+  return ok({ rates: written });
 }
 
 /**

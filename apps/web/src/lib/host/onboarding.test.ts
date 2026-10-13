@@ -5,6 +5,7 @@ import {
   DOCUMENT_SPECS,
   documentPathBelongsTo,
   emptyHostDraft,
+  mergeServerDraft,
   missingFrom,
   progressLabel,
   rejectFile,
@@ -273,5 +274,79 @@ describe("rejectFile", () => {
     expect(rejectFile({ type: "image/jpeg", size: 1024 })).toBeNull();
     expect(rejectFile({ type: "image/gif", size: 1024 })).toContain("JPG, PNG, WEBP, HEIC or PDF");
     expect(rejectFile({ type: "image/jpeg", size: 9 * 1024 * 1024 })).toContain("8MB");
+  });
+});
+
+describe("mergeServerDraft", () => {
+  /* The wizard's own copy, as it stood before a save: the business row exists
+     and the person is typing, but nothing below the business is on record. */
+  const local = (over: Partial<HostDraft> = {}): HostDraft => ({
+    ...emptyHostDraft(),
+    businessId: "biz-1",
+    status: "DRAFT",
+    hostType: "business",
+    kind: "hotel",
+    name: "Eko Suites typed after the save",
+    phone: "+2348031234567",
+    documents: { identity: true },
+    ...over,
+  });
+  /* What `router.refresh()` brings back once the property and a room are saved. */
+  const server = (over: Partial<HostDraft> = {}): HostDraft =>
+    complete({
+      businessId: "biz-1",
+      status: "DRAFT",
+      hostType: "business",
+      kind: "hotel",
+      name: "Eko Suites",
+      documents: { registration: true },
+      hygieneAttestedAt: "2026-10-12T09:00:00Z",
+      businessPhotoCount: 1,
+      businessPhotos: [{ id: "bp1", url: "/brand/photos/dining-01.jpg" }],
+      reviewNotes: "The CAC certificate is blurry, please upload it again.",
+      ...over,
+    });
+
+  it("takes what only the server writes: the property, its rooms and rates, photographs, attestations and the note", () => {
+    const merged = mergeServerDraft(local(), server());
+    expect(merged.accommodation?.id).toBe("a");
+    expect(merged.roomTypes.map((room) => room.id)).toEqual(["rt1"]);
+    expect(merged.roomTypeCount).toBe(1);
+    expect(merged.ratePlanCount).toBe(1);
+    expect(merged.businessPhotos).toHaveLength(1);
+    expect(merged.hygieneAttestedAt).toBe("2026-10-12T09:00:00Z");
+    expect(merged.reviewNotes).toContain("blurry");
+    expect(missingFrom(merged)).not.toContain("At least one room type");
+  });
+
+  it("keeps the words the person is typing, which are newer than the read", () => {
+    const merged = mergeServerDraft(local(), server());
+    expect(merged.name).toBe("Eko Suites typed after the save");
+    expect(merged.hostType).toBe("business");
+  });
+
+  it("only ever adds documents and the bank account, and leaves consents to the device", () => {
+    const merged = mergeServerDraft(
+      local({ hasBankAccount: true, consents: {} }),
+      server({ hasBankAccount: false }),
+    );
+    expect(merged.documents).toEqual({ identity: true, registration: true });
+    expect(merged.hasBankAccount).toBe(true);
+    expect(merged.consents).toEqual({});
+  });
+
+  it("changes nothing when the read came back empty, so a failed refresh cannot wipe the screen", () => {
+    const before = local({ roomTypeCount: 2 });
+    expect(mergeServerDraft(before, emptyHostDraft())).toBe(before);
+  });
+
+  it("changes nothing when the read is somebody else's application", () => {
+    const before = local();
+    expect(mergeServerDraft(before, server({ businessId: "biz-2" }))).toBe(before);
+  });
+
+  it("adopts the business id the first save created", () => {
+    const merged = mergeServerDraft(local({ businessId: null }), server());
+    expect(merged.businessId).toBe("biz-1");
   });
 });

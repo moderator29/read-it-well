@@ -2,7 +2,7 @@
 
 import { useHostCopy } from "@/components/host/host-copy";
 import { Chip } from "@/components/ui/Chip";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
 import { setRestaurantProfileDraft } from "@/lib/host/actions";
@@ -46,7 +46,15 @@ export function RestaurantStep({
   setNotice,
   goTo,
   advance,
-}: StaysStepProps) {
+  extra,
+}: StaysStepProps & {
+  /**
+   * What the wizard adds to this screen above its Continue: the venue's
+   * photographs and the health permit attestation, both of which the
+   * application needs before it can be sent.
+   */
+  extra?: ReactNode;
+}) {
   const hw = useHostCopy();
   const [cuisines, setCuisines] = useState<string[]>(draft.restaurant?.cuisines ?? []);
   const [band, setBand] = useState<number | null>(draft.restaurant?.priceBand ?? null);
@@ -153,11 +161,16 @@ export function RestaurantStep({
         </StaysTiles>
         <p className="nf-stays-plate__note">
           {band === null
-            ? "Four bands, cheapest to dearest. A band is not a price and none is printed anywhere."
+            ? "Pick one to go on. Four bands, cheapest to dearest. A band is not a price and none is printed anywhere."
             : (PRICE_BANDS.find((option) => option.value === band)?.meaning ?? "")}
         </p>
       </StaysPlate>
 
+      {extra}
+
+      {/* THE BAND IS ASKED FOR HERE AND REQUIRED HERE. The application cannot
+          be sent without one (`missingFrom`), and letting Continue past an
+          unanswered tile only moved the refusal to the last screen. */}
       <Button
         variant="primary"
         size="lg"
@@ -165,7 +178,7 @@ export function RestaurantStep({
         trailingIcon="chevron-right"
         onClick={save}
         loading={pending}
-        disabled={pending || draft.name.trim().length < 2}
+        disabled={pending || draft.name.trim().length < 2 || band === null}
       >
         Continue
       </Button>

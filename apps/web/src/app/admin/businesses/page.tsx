@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
+import { resolveSession } from "@/lib/actions/session";
 import { BUSINESS_STATUSES, getBusinessQueue } from "@/lib/admin/business-queries";
 import { QUEUE_PAGE_SIZE } from "@/lib/admin/queue-filter";
 import { adminUi, type AdminUi } from "../_components/ui";
@@ -87,6 +88,11 @@ export default async function AdminBusinessesPage({
   const params = await searchParams;
   const query = readQueueQuery(params);
   const narrowed = queueNarrowed(query);
+  /* Who is reading, so a reviewer's own business is drawn without the
+     controls the actions would refuse them (`isOwnBusiness`). The session is
+     read once per request. */
+  const session = await resolveSession();
+  const viewerId = session.state === "signed-in" ? session.user.id : null;
   const queue = await getBusinessQueue({
     ...(query.q ? { q: query.q } : {}),
     ...(query.status ? { status: query.status } : {}),
@@ -131,7 +137,7 @@ export default async function AdminBusinessesPage({
       ) : (
         <ul className="nf-queue-list">
           {rows.map((row) => (
-            <BusinessCard key={row.id} row={row} ui={ui} />
+            <BusinessCard key={row.id} row={row} ui={ui} viewerId={viewerId} />
           ))}
         </ul>
       )}

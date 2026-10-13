@@ -33,6 +33,8 @@ import {
 } from "./onboarding";
 import type { Database } from "../supabase/database.types";
 import { accommodationPhotoUrl } from "../stays/photos";
+import { businessPhotoUrl } from "../stays/business-photos";
+import { MAX_BUSINESS_PHOTOS } from "./photos";
 import { bedsTotal } from "./stays-setup";
 import {
   BUSINESS_TIER_NAME,
@@ -217,11 +219,15 @@ async function loadMyHostDraft(): Promise<HostDraft> {
         .eq("user_id", session.user.id)
         .is("deleted_at", null)
         .limit(1),
-      /* SUP-17: a restaurant is submitted with a photograph, as a property is. */
+      /* SUP-17: a restaurant is submitted with a photograph, as a property is.
+         The rows rather than a count, cover first, so the restaurant's step
+         can draw and manage them. */
       session.supabase
         .from("business_photos")
-        .select("id", { count: "exact", head: true })
-        .eq("business_id", business.id),
+        .select("id, storage_path, position")
+        .eq("business_id", business.id)
+        .order("position", { ascending: true })
+        .limit(MAX_BUSINESS_PHOTOS),
     ]);
 
     const accommodation = accommodations.data?.[0] ?? null;
@@ -246,6 +252,10 @@ async function loadMyHostDraft(): Promise<HostDraft> {
           "*, rate_plans(id, name, meal_plan, rate_minor)",
         )
         .eq("accommodation_id", accommodation.id)
+        /* Oldest first: the shortlet's place is the first room type
+           (`setShortletPlaceDraft` writes onto the oldest), and a hotel's list
+           should not reshuffle between two visits to the same step. */
+        .order("created_at", { ascending: true })
         .limit(50);
       roomTypeCount = rows?.length ?? 0;
       ratePlanCount = (rows ?? []).reduce((total, row) => total + row.rate_plans.length, 0);
@@ -329,7 +339,11 @@ async function loadMyHostDraft(): Promise<HostDraft> {
           }
         : null,
       serviceWindowCount: windows.data?.length ?? 0,
-      businessPhotoCount: businessPhotos.count ?? 0,
+      businessPhotoCount: businessPhotos.data?.length ?? 0,
+      businessPhotos: (businessPhotos.data ?? []).map((photo) => ({
+        id: photo.id,
+        url: businessPhotoUrl(photo.storage_path),
+      })),
       serviceWindows: (windows.data ?? []).map((row) => ({
         id: row.id,
         weekday: row.weekday,
@@ -342,6 +356,7 @@ async function loadMyHostDraft(): Promise<HostDraft> {
       licenceAttestedAt: business.licence_attested_at,
       hasBankAccount: (bankAccounts.data?.length ?? 0) > 0,
       consents: readConsents(business.consents as Parameters<typeof readConsents>[0]),
+      reviewNotes: business.review_notes ?? null,
     };
   } catch (error) {
     if (error instanceof PrivateFieldsUnavailable) throw error;

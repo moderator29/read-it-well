@@ -2,6 +2,7 @@ import { RemoteImage } from "@/components/ui/RemoteImage";
 import { countOf } from "@vallo/i18n";
 import { BUSINESS_RUNGS, type BusinessQueueRow } from "@/lib/admin/business-queries";
 import { BUSINESS_LADDER, BUSINESS_TIER_NAME, asBusinessTier } from "@/lib/admin/business-ladder";
+import { decisionsOffered, isOwnBusiness } from "@/lib/admin/business-decision";
 import type { AdminUi } from "../_components/ui";
 import { BusinessReviewDecision, PublishControl, RungDecision } from "./BusinessDecisions";
 import { ReviewCallAction } from "@/components/calls/admin/ReviewCallAction";
@@ -93,12 +94,34 @@ function restaurantChecks(row: BusinessQueueRow): { blocking: Check[]; thin: Che
 }
 
 /** One application, in full. Exported so the preview harness can draw it. */
-export function BusinessCard({ row, ui }: { row: BusinessQueueRow; ui: AdminUi }) {
+export function BusinessCard({
+  row,
+  ui,
+  viewerId = null,
+}: {
+  row: BusinessQueueRow;
+  ui: AdminUi;
+  /**
+   * The reviewer looking at the card. On their own business every control is
+   * withheld and the card says why: the actions refuse it too, and a button
+   * that can only be refused is not a control.
+   */
+  viewerId?: string | null;
+}) {
   const isRestaurant = row.kind === "restaurant";
   const checks = restaurantChecks(row);
   const blocked = checks.blocking.filter((check) => !check.pass).length;
-  const decidable = row.status !== "PUBLISHED" && row.status !== "REJECTED";
-  const publishable = isRestaurant && row.status === "APPROVED";
+  const own = viewerId !== null && isOwnBusiness(row.ownerId, viewerId);
+  /* The hands the server would accept for this state, so a suspended or a
+     draft business is not offered a decision, and an approved one is not
+     offered Approve a second time. */
+  const offered = own ? [] : decisionsOffered(row.status);
+  const decidable = offered.length > 0;
+  const publishable = !own && isRestaurant && row.status === "APPROVED";
+  /* A property goes live only under an approved business, and the action
+     says so; the control used to be drawn on every draft property, under a
+     business nobody had read, to be refused when pressed. */
+  const propertiesPublishable = !own && (row.status === "APPROVED" || row.status === "PUBLISHED");
   const hasIdentityDocument = row.documents.some((doc) => doc.kind === "identity");
   const tier = asBusinessTier(row.verificationTier);
   const decided = new Map(row.rungs.map((rung) => [rung.rung, rung]));
@@ -209,7 +232,7 @@ export function BusinessCard({ row, ui }: { row: BusinessQueueRow; ui: AdminUi }
                   ))}
                 </ul>
               )}
-              {property.status === "APPROVED" || property.status === "DRAFT" ? (
+              {propertiesPublishable && (property.status === "APPROVED" || property.status === "DRAFT") ? (
                 <PublishControl
                   target={{ kind: "property", accommodationId: property.id }}
                   label={property.name}
@@ -339,17 +362,19 @@ export function BusinessCard({ row, ui }: { row: BusinessQueueRow; ui: AdminUi }
                     {already.note ? ` · ${already.note}` : ""}
                   </p>
                 )}
-                <RungDecision
-                  businessId={row.id}
-                  rung={rung}
-                  label={label}
-                  evidenced={rung !== "identity" || hasIdentityDocument}
-                  missingEvidence={
-                    rung === "identity"
-                      ? "No identity document is on file, so there is nothing to check a person against. This rung is what the verified mark is derived from, and it cannot be recorded on nothing."
-                      : undefined
-                  }
-                />
+                {own ? null : (
+                  <RungDecision
+                    businessId={row.id}
+                    rung={rung}
+                    label={label}
+                    evidenced={rung !== "identity" || hasIdentityDocument}
+                    missingEvidence={
+                      rung === "identity"
+                        ? "No identity document is on file, so there is nothing to check a person against. This rung is what the verified mark is derived from, and it cannot be recorded on nothing."
+                        : undefined
+                    }
+                  />
+                )}
               </div>
             );
           })}
@@ -360,17 +385,28 @@ export function BusinessCard({ row, ui }: { row: BusinessQueueRow; ui: AdminUi }
         <PublishControl target={{ kind: "restaurant", businessId: row.id }} label={row.name} />
       )}
 
-      {decidable ? (
+      {own ? (
+        <p className="nf-caption mt-group" role="note" data-testid="business-own">
+          This business is yours, so another reviewer decides it, records its checks and puts it on
+          the shelf. Every decision is in the audit log.
+        </p>
+      ) : decidable ? (
         <>
-          <BusinessReviewDecision businessId={row.id} name={row.name} />
+          <BusinessReviewDecision businessId={row.id} name={row.name} offered={offered} />
           {/* VC1: a review call with the owner (KYC scope, both switches on). */}
           <ReviewCallAction caseKind="business_verification" caseId={row.id} />
         </>
       ) : (
         <p className="nf-overline mt-group">
           {row.status === "PUBLISHED"
-            ? "Live, and taking tables."
-            : "Closed."}{" "}
+            ? isRestaurant
+              ? "Live, and taking tables."
+              : "Live, and open to guests."
+            : row.status === "SUSPENDED"
+              ? "Suspended. A review decision does not lift a suspension."
+              : row.status === "DRAFT"
+                ? "Still a draft. Nothing has been sent to review."
+                : "Closed."}{" "}
           Every decision is in the audit log.
         </p>
       )}

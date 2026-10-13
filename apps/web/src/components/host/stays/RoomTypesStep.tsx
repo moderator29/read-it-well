@@ -67,13 +67,19 @@ export function RoomTypesStep({
     run(
       async () => {
         /* A room hangs on a property. Creating it here means a hotelier who
-           came straight to this screen is not sent back for a name. */
-        const property = await addAccommodationDraft({
-          name: draft.accommodation?.name ?? draft.name,
-        });
-        if (!property.ok) return property;
+           came straight to this screen is not sent back for a name. A
+           property already on record is used as it is: this used to save it
+           again under `draft.accommodation?.name ?? draft.name`, and while the
+           wizard's copy of the draft was stale that wrote the BUSINESS name
+           over the hotel name typed one screen earlier. */
+        let accommodationId = draft.accommodation?.id ?? null;
+        if (!accommodationId) {
+          const property = await addAccommodationDraft({ name: draft.name });
+          if (!property.ok) return property;
+          accommodationId = property.data.accommodationId;
+        }
         return addRoomTypeDraft({
-          accommodationId: property.data.accommodationId,
+          accommodationId,
           name,
           category: kind,
           sleeps,

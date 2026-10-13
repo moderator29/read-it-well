@@ -4,7 +4,7 @@ import { useHostCopy } from "@/components/host/host-copy";
 import { useState } from "react";
 import { formatMoney } from "@vallo/i18n/core";
 import { Button } from "@/components/ui/Button";
-import { addAccommodationDraft, setShortletPlaceDraft } from "@/lib/host/actions";
+import { addAccommodationDraft, setShortletPlaceDraft, syncPropertyRatesDraft } from "@/lib/host/actions";
 import { PLACE_TYPES, type PlaceTypeId } from "@/lib/host/stays-setup";
 import { StaysCountRow, StaysNote, StaysPlate, StaysTile, StaysTiles } from "./StaysParts";
 import type { StaysStepProps } from "./types";
@@ -94,7 +94,7 @@ export function PlaceStep({
       async () => {
         const property = await addAccommodationDraft({ name });
         if (!property.ok) return property;
-        return setShortletPlaceDraft({
+        const place = await setShortletPlaceDraft({
           accommodationId: property.data.accommodationId,
           placeType,
           name,
@@ -103,6 +103,11 @@ export function PlaceStep({
           maxGuests: guests,
           nightlyRateMinor: kobo,
         });
+        if (!place.ok) return place;
+        /* A booking is made against a rate, so the place's one rate follows
+           its price. It is written once a cancellation policy is on record,
+           on the next screen, and does nothing before that. */
+        return syncPropertyRatesDraft();
       },
       () => {
         setNotice({ tone: "ok", text: "Your place is saved." });

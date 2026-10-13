@@ -1,6 +1,6 @@
 "use client";
 
-import { useHostCopy } from "@/components/host/host-copy";
+import { useHostCopy, useHostPageCopy } from "@/components/host/host-copy";
 import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -26,6 +26,7 @@ import {
   HOST_TYPES,
   branchFor,
   hostsAccommodation,
+  mergeServerDraft,
   missingFrom,
   progressLabel,
   stepsFor,
@@ -41,6 +42,7 @@ import {
   listBanks,
   resolveBankAccount,
 } from "@/lib/payments/bank-accounts-actions";
+import { BusinessPhotoManager } from "./BusinessPhotoManager";
 import { HostDocumentUploader } from "./HostDocumentUploader";
 import { FacilitiesStep } from "./stays/FacilitiesStep";
 import { HotelStep } from "./stays/HotelStep";
@@ -218,6 +220,22 @@ export function HostWizard({
    */
   const [expectedRooms, setExpectedRooms] = useState(1);
 
+  /*
+   * EVERY SAVE ENDS IN `router.refresh()`, WHICH HANDS THIS COMPONENT A NEW
+   * `initial`. The state above is seeded from the first one only, so without
+   * this the screen went on drawing the draft from before the save: a room
+   * type saved and no Continue, a property saved and "save the property
+   * first", a photograph uploaded and nothing shown. `mergeServerDraft` says
+   * which half of the draft is the server's and which is still the device's.
+   * Adjusted during render rather than in an effect, as `wasSubmitted` below
+   * is, so no frame is drawn from the stale copy.
+   */
+  const [seenInitial, setSeenInitial] = useState(initial);
+  if (seenInitial !== initial) {
+    setSeenInitial(initial);
+    setDraft((current) => mergeServerDraft(current, initial));
+  }
+
   /* The device's copy of the typed fields, merged UNDER the server's: a
      field the server holds is the truth, a field it does not is what was
      typed before the last save failed. */
@@ -256,6 +274,7 @@ export function HostWizard({
   }
   /* The page's CopyScope carries these (W13): no client dictionary read. */
   const successWords = useScopedCopy("success");
+  const hostPage = useHostPageCopy();
   /* The progress path's words: the same ones the agent's listing wizard uses
      (`experienceFeatures.wizard`). */
   const pathWords = useScopedCopy("featuresWizard");
@@ -442,6 +461,29 @@ export function HostWizard({
         onBack={back}
       />
 
+      {/* SENT BACK BY A REVIEWER. The host page says "open the application to
+          answer", so the question has to be here, on every step, in the
+          reviewer's own words. Before this the wizard never mentioned it. */}
+      {draft.status === "MORE_INFO_REQUIRED" && (
+        <section
+          className="nf-panel nf-panel--card block nf-host-group mt-md"
+          role="status"
+          data-testid="host-sent-back"
+        >
+          {/* The host page's own words for this state and this note, so the
+              two screens say the same thing. */}
+          <h2 className="nf-host-group__title">{hostPage.businessStatus.MORE_INFO_REQUIRED}</h2>
+          <p className="nf-host-group__note whitespace-pre-wrap">
+            {draft.reviewNotes
+              ? hostPage.home.reviewerWrote.replace("{note}", draft.reviewNotes)
+              : hostPage.home.noReason}
+          </p>
+          <p className="mt-2xs nf-caption">
+            Change what they asked for, then send it again from the last step.
+          </p>
+        </section>
+      )}
+
       {/* THE PROGRESS PATH (reference 7110), the same one the agent's listing
           wizard carries: every step on one path, done ones a tap away, folded
           under the head so the step stays the subject. It shows the steps this
@@ -609,11 +651,19 @@ function StepBody(props: StepProps) {
     case "facilities":
       return <FacilitiesStep {...props} />;
     case "restaurant":
+      /* The photographs and the health permit sit ABOVE the step's Continue:
+         both are on `missingFrom`'s list, and the permit used to be drawn
+         under the button, where a host who pressed Continue never saw it. */
       return (
-        <>
-          <RestaurantStep {...props} />
-          <HygieneAttestation {...props} />
-        </>
+        <RestaurantStep
+          {...props}
+          extra={
+            <>
+              <VenuePhotos {...props} />
+              <HygieneAttestation {...props} />
+            </>
+          }
+        />
       );
     case "tables":
       return <TablesStep {...props} />;
@@ -833,6 +883,23 @@ function RepresentativeStep({ draft, set, userId, fieldErrors }: StepProps) {
  * the week removing. It sits under "Your restaurant", which is the screen
  * about the venue rather than the screen about its week.
  */
+/**
+ * THE RESTAURANT'S PHOTOGRAPHS, ON ITS OWN STEP.
+ *
+ * `missingFrom` refuses to send a restaurant with no photograph (SUP-17), and
+ * nothing in the wizard could upload one: the review step listed "At least one
+ * photo of the restaurant" with no way to meet it short of finding
+ * `/host/photos` by accident. The manager is the one `/host/photos` draws, on
+ * the business spine, and `addBusinessPhoto` gates on ownership rather than on
+ * the application being editable, so the photographs can also arrive later.
+ */
+function VenuePhotos({ draft, userId }: StepProps) {
+  if (!draft.businessId) return null;
+  return (
+    <BusinessPhotoManager businessId={draft.businessId} userId={userId} photos={draft.businessPhotos} />
+  );
+}
+
 function HygieneAttestation({ draft, pending, saveText }: StepProps) {
   return (
     <section className="nf-stays-plate">
@@ -1007,6 +1074,7 @@ function ConsentStep({ draft, pending, saveText, set }: StepProps) {
 
 function ReviewStep({ draft, pending, run, goTo, set, locale }: StepProps) {
   const hw = useHostCopy();
+  const hostPage = useHostPageCopy();
   const missing = missingFrom(draft);
   const send = () =>
     run(
@@ -1041,6 +1109,17 @@ function ReviewStep({ draft, pending, run, goTo, set, locale }: StepProps) {
           ) : (
             <Fact label={hw.wizard.review.service} value={draft.serviceWindowCount > 0 ? countOf(draft.serviceWindowCount, "windows", locale) : ""} onEdit={() => goTo("tables")} />
           )}
+          {/* The photographs are a requirement on both spines and live on a
+              different step from the property's name, so they get their own
+              row and their own way back to where they are added. */}
+          <Fact
+            label={hostPage.businessDoors.photos}
+            value={(() => {
+              const count = accommodation ? (draft.accommodation?.photos.length ?? 0) : draft.businessPhotoCount;
+              return count > 0 ? countOf(count, "photos", locale) : "";
+            })()}
+            onEdit={() => goTo(accommodation ? "facilities" : "restaurant")}
+          />
           <Fact label={hw.wizard.review.payouts} value={draft.hasBankAccount ? "Bank account on record" : ""} onEdit={() => goTo("payout")} />
         </dl>
       </section>

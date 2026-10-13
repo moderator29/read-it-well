@@ -42,6 +42,7 @@ import type { Database } from "../supabase/database.types";
 import { writeAudit, type AuditDetail } from "./audit";
 import { BUSINESS_LADDER, BUSINESS_TIER_NAME, asBusinessTier } from "./business-ladder";
 import { BUSINESS_RUNGS } from "./business-queries";
+import { SELF_REVIEW_REFUSAL, decisionRefusal, isOwnBusiness } from "./business-decision";
 import { adminRefusal, requireAdmin } from "./guard";
 import { nightsToOpen } from "../stays/inventory";
 
@@ -81,6 +82,11 @@ type BusinessRow = {
   source: Database["public"]["Enums"]["source_kind"];
 };
 
+/* What a decision that changed nothing says: somebody else decided it, or the
+   host sent it again, between the reviewer opening the card and pressing. */
+const MOVED =
+  "This application changed while it was open. Nothing was changed; refresh the queue to see where it stands now.";
+
 function refreshConsole(): void {
   revalidatePath("/admin/businesses");
   revalidatePath("/admin");
@@ -90,7 +96,8 @@ function refreshConsole(): void {
 async function announce(
   actorId: string,
   business: BusinessRow,
-  notice: { title: string; body: string } | null,
+  /** `href` is where the notification opens; the host page when it is left out. */
+  notice: { title: string; body: string; href?: string } | null,
   audit: { action: string; detail: AuditDetail },
 ): Promise<void> {
   try {
@@ -101,7 +108,7 @@ async function announce(
         kind: "listing",
         title: notice.title,
         body: notice.body,
-        href: "/host",
+        href: notice.href ?? "/host",
       });
     }
     await writeAudit(admin, {
@@ -133,40 +140,57 @@ async function decide(
 
   const { data: business, error: readError } = await access.supabase
     .from("businesses")
-    .select("id, name, status, owner_id, source")
+    .select("id, name, kind, status, owner_id, source")
     .eq("id", businessId)
     .maybeSingle();
   if (readError) return fail(SERVICE_DOWN);
   if (!business) return fail(GONE);
 
-  if (business.status === "DRAFT") {
-    return fail("This application is still a draft, so there is nothing to review yet.");
-  }
-  if (business.status === "PUBLISHED" && decision !== "reject") {
-    return fail("This business is already live. Refresh the queue to see the current state.");
-  }
+  if (isOwnBusiness(business.owner_id, access.user.id)) return fail(SELF_REVIEW_REFUSAL);
+  const refusal = decisionRefusal(business.status, decision);
+  if (refusal) return fail(refusal);
 
   const nextStatus: ListingStatus =
     decision === "approve" ? "APPROVED" : decision === "reject" ? "REJECTED" : "MORE_INFO_REQUIRED";
 
+  /* ON THE STATUS JUST READ, and counted. Without the second `eq` a reviewer
+     deciding a card that another reviewer (or the host, resubmitting) had
+     moved since it was drawn wrote over that decision, and the owner was
+     told about a decision that no longer described their business. */
   const now = new Date().toISOString();
-  const { error: updateError } = await access.supabase
+  const { error: updateError, count } = await access.supabase
     .from("businesses")
-    .update({
-      status: nextStatus,
-      reviewer_id: access.user.id,
-      reviewed_at: now,
-      review_notes: note,
-    })
-    .eq("id", business.id);
+    .update(
+      {
+        status: nextStatus,
+        reviewer_id: access.user.id,
+        reviewed_at: now,
+        review_notes: note,
+      },
+      { count: "exact" },
+    )
+    .eq("id", business.id)
+    .eq("status", business.status);
   if (updateError) return fail(SERVICE_DOWN);
+  if (count === 0) return fail(MOVED);
 
+  /* What happens next differs by spine, so the approval says it. A
+     restaurant goes on the shelf from this desk; a stay goes on from its
+     property, which also needs the host's charges at the door (V-57) before
+     it can be published. This used to tell every host, restaurants included,
+     to "add or finish a property". */
   const notice =
     decision === "approve"
-      ? {
-          title: "Your business is approved",
-          body: `${business.name} passed review. Add or finish a property and we will put it in front of guests.`,
-        }
+      ? business.kind === "restaurant"
+        ? {
+            title: "Your business is approved",
+            body: `${business.name} passed review. We put it in front of guests next, and tell you when it is live.`,
+          }
+        : {
+            title: "Your business is approved",
+            body: `${business.name} passed review. Before it goes live, answer the charges at the door if you have not already, and we tell you when guests can find it.`,
+            href: `/host/arrival?business=${business.id}`,
+          }
       : decision === "reject"
         ? {
             title: "Your application was not approved",
@@ -175,6 +199,9 @@ async function decide(
         : {
             title: "We need something more",
             body: note ?? `${business.name} needs a change before it can go live.`,
+            /* Straight to where it is answered: the application now prints the
+               reviewer's note at the top of every step. */
+            href: "/host/apply",
           };
 
   await announce(access.user.id, business as BusinessRow, notice, {
@@ -255,6 +282,7 @@ export async function publishAccommodation(input: {
   if (!property || !property.businesses) return fail(GONE);
 
   const business = property.businesses;
+  if (isOwnBusiness(business.owner_id, access.user.id)) return fail(SELF_REVIEW_REFUSAL);
   if (business.status !== "APPROVED" && business.status !== "PUBLISHED") {
     return fail("Approve the business first, then publish its property.");
   }
@@ -505,6 +533,7 @@ export async function publishRestaurant(input: {
   const [business] = await withBusinessPrivate(access.supabase, [publicRow], ["phone"] as const).catch(() => [null]);
   if (!business) return fail(SERVICE_DOWN);
 
+  if (isOwnBusiness(business.owner_id, access.user.id)) return fail(SELF_REVIEW_REFUSAL);
   if (business.kind !== "restaurant") {
     return fail(
       "This is not a restaurant. A stay goes live from its property, which carries the pin and the rooms.",
@@ -618,6 +647,10 @@ export async function recordBusinessRung(input: {
     () => [null],
   );
   if (!business) return fail(SERVICE_DOWN);
+  /* The identity rung is the verified mark, so passing your own is lighting
+     your own badge. Failing your own is refused too: it is still a decision
+     about a business you own. */
+  if (isOwnBusiness(business.owner_id, access.user.id)) return fail(SELF_REVIEW_REFUSAL);
   if (business.source !== "first_party") {
     return fail("Only a first-party business carries a verification ladder, so this one has no tier to set. Nothing was changed.");
   }

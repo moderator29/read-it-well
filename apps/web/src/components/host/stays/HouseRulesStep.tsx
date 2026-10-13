@@ -4,7 +4,7 @@ import { useHostCopy } from "@/components/host/host-copy";
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Switch } from "@/components/ui/Switch";
-import { addAccommodationDraft } from "@/lib/host/actions";
+import { addAccommodationDraft, syncPropertyRatesDraft } from "@/lib/host/actions";
 import {
   HOUSE_RULES,
   clockLabel,
@@ -68,14 +68,20 @@ export function HouseRulesStep({
 
   const save = () =>
     run(
-      () =>
-        addAccommodationDraft({
+      async () => {
+        const saved = await addAccommodationDraft({
           name: draft.accommodation?.name ?? draft.name,
           houseRules: mergeHouseRules(existing, on),
           checkInFrom: checkIn,
           checkOutBy: checkOut,
           ...(policy ? { cancellationPolicyId: policy } : {}),
-        }),
+        });
+        if (!saved.ok) return saved;
+        /* The policy and the place's nightly price make the one rate a guest
+           books. Without this no shortlet ever had a rate, and the
+           application could not be sent. */
+        return syncPropertyRatesDraft();
+      },
       () => {
         setNotice({ tone: "ok", text: "Your rules and cancellation are saved." });
         advance();
@@ -188,6 +194,10 @@ export function HouseRulesStep({
         )}
       </StaysPlate>
 
+      {/* A POLICY IS REQUIRED TO GO ON, as the plate above already says. The
+          place's one rate is made from it, and a shortlet with no rate cannot
+          be sent. Where the estate publishes none there is nothing to pick,
+          so the host is not held here by a question nobody can answer. */}
       <Button
         variant="primary"
         size="lg"
@@ -195,7 +205,7 @@ export function HouseRulesStep({
         trailingIcon="chevron-right"
         onClick={save}
         loading={pending}
-        disabled={pending}
+        disabled={pending || (policies.length > 0 && !policy)}
       >
         Continue
       </Button>

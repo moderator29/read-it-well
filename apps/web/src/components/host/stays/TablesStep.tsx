@@ -12,6 +12,7 @@ import {
   clockLabel,
   closingTimes,
   coversFrom,
+  daysClosingBeforeOpening,
   halfHours,
   windowLabel,
   type TableInventory,
@@ -85,6 +86,10 @@ export function TablesStep({ draft, pending, run, setNotice, advance, locale }: 
   const savedCovers = draft.serviceWindows[0]?.covers ?? 0;
   const sending = covers > 0 ? covers : savedCovers;
   const openDays = days.filter((day) => day.on);
+  /* A day that closes at or before it opens is refused by the database, and
+     the refusal used to come back as one sentence that named no day. It is
+     named here, before anything is sent. */
+  const backwards = daysClosingBeforeOpening(days);
 
   const save = () =>
     run(
@@ -119,9 +124,12 @@ export function TablesStep({ draft, pending, run, setNotice, advance, locale }: 
                   <span className="nf-stays-day__name">{day.label}</span>
                   <button
                     type="button"
-                    className="nf-stays-day__hours text-left"
+                    className={`nf-stays-day__hours text-left${
+                      backwards.includes(row) ? " text-[var(--nf-state-error)]" : ""
+                    }`}
                     disabled={!row.on || pending}
                     aria-expanded={open}
+                    aria-invalid={backwards.includes(row) ? true : undefined}
                     onClick={() => setEditing(open ? null : day.weekday)}
                   >
                     {row.on ? windowLabel(row.opens, row.closes) : "Closed"}
@@ -188,6 +196,12 @@ export function TablesStep({ draft, pending, run, setNotice, advance, locale }: 
           Tap a day&rsquo;s hours to change them. A day that is off is a day nobody can book. A
           service stays inside one day, so a kitchen that runs to midnight closes at 11:59 PM.
         </p>
+        {backwards.length > 0 ? (
+          <p className="nf-stays-plate__note text-[var(--nf-state-error)]" role="alert">
+            {backwards.map((day) => day.label).join(", ")}: the closing time is not after the opening
+            time. Set it later, or switch the day off.
+          </p>
+        ) : null}
       </StaysPlate>
 
       <StaysPlate label={hw.steps.tableInventory}>
@@ -246,7 +260,7 @@ export function TablesStep({ draft, pending, run, setNotice, advance, locale }: 
         trailingIcon="chevron-right"
         onClick={save}
         loading={pending}
-        disabled={pending || openDays.length === 0 || sending <= 0}
+        disabled={pending || openDays.length === 0 || sending <= 0 || backwards.length > 0}
       >
         Continue
       </Button>

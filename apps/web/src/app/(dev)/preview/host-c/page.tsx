@@ -1,7 +1,8 @@
 import Link from "next/link";
 
-/* The host build team's deck for C1, C3, C4 and C9 (30 September 2026). */
-const PAGES = ["calendar", "decide", "reviews", "statement"];
+/* The host build team's deck for C1, C3, C4 and C9 (30 September 2026), and
+   the set-up flow for a hotel, a shortlet and a restaurant. */
+const PAGES = ["calendar", "decide", "reviews", "statement", "setup"];
 
 export default function PreviewHostCIndex() {
   return (
