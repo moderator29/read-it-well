@@ -13,15 +13,21 @@ import { RESPONSE_MAX_CHARS } from "@/lib/agent/application-respond-model";
  * SUP-05: the way forward from "Needs more information".
  *
  * An answer in words, an identity document and a proof of address (each
- * optional, but not all three empty), sent back to the reviewer in one step. The reviewer's note is shown above this on the status page, so the
+ * optional, but not all of them empty), sent back to the reviewer in one step. The reviewer's note is shown above this on the status page, so the
  * question and the answer sit together.
+ *
+ * A BUSINESS ALSO GETS A SLOT FOR ITS REGISTRATION. The commonest thing a
+ * reviewer asks a business for is the CAC certificate, and with only an
+ * identity and an address slot the applicant could send it only mislabelled
+ * as one of those, or not at all.
  */
-export function RespondToReview({ t }: { t: RespondCopy }) {
+export function RespondToReview({ t, business = false }: { t: RespondCopy; business?: boolean }) {
   const copy = t.agent.status.respond;
   const [batchId] = useState(newBatchId);
   const [answer, setAnswer] = useState("");
   const [identity, setIdentity] = useState<UploadState | null>(null);
   const [address, setAddress] = useState<UploadState | null>(null);
+  const [registration, setRegistration] = useState<UploadState | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -39,6 +45,7 @@ export function RespondToReview({ t }: { t: RespondCopy }) {
     const documents = [
       ...(identity ? [{ kind: "identity" as const, path: identity.path }] : []),
       ...(address ? [{ kind: "address" as const, path: address.path }] : []),
+      ...(business && registration ? [{ kind: "business" as const, path: registration.path }] : []),
     ];
     startTransition(async () => {
       const result = await respondToReview({ answer, documents });
@@ -85,6 +92,18 @@ export function RespondToReview({ t }: { t: RespondCopy }) {
         value={address}
         onChange={setAddress}
       />
+      {business ? (
+        <UploadCard
+          t={t}
+          object="doc-shield"
+          title={copy.attachBusinessTitle}
+          body={copy.attachBody}
+          slot="response-business"
+          batchId={batchId}
+          value={registration}
+          onChange={setRegistration}
+        />
+      ) : null}
 
       {error ? (
         <p role="alert" className="text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-state-error)]">

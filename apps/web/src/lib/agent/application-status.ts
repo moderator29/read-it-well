@@ -30,6 +30,10 @@ export type ApplicationView = {
   reviewedAt: string | null;
   /** What the reviewer wrote, when they wrote anything. */
   reviewNotes: string | null;
+  /** `individual` or `business`: a business can be asked for its CAC papers. */
+  type: "individual" | "business";
+  /** Which registration form filed it (owner, agent, firm), or null for the older six step form. */
+  supplyRole: string | null;
 };
 
 export type ApplicationStatusState =
@@ -47,7 +51,7 @@ export async function readMyApplication(): Promise<ApplicationStatusState> {
   try {
     const { data, error } = await session.supabase
       .from("agent_applications")
-      .select("reference, status, submitted_at, reviewed_at, review_notes")
+      .select("reference, status, submitted_at, reviewed_at, review_notes, type, supply_role")
       .eq("user_id", session.user.id)
       .order("created_at", { ascending: false })
       .limit(1)
@@ -68,6 +72,8 @@ export async function readMyApplication(): Promise<ApplicationStatusState> {
         submittedAt: data.submitted_at,
         reviewedAt: data.reviewed_at,
         reviewNotes: data.review_notes,
+        type: data.type,
+        supplyRole: data.supply_role,
       },
     };
   } catch {

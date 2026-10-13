@@ -2415,7 +2415,15 @@ export const en = {
     },
     status: {
       submittedTitle: "Application submitted",
-      submittedBody: "We are reviewing your application. You will be notified once it is approved.",
+      submittedBody: "We are reviewing your application, and we will tell you the moment it is decided.",
+      /* The line under the heading, one per state. `submittedBody` used to be
+         the line for every state, so a refused applicant read "you will be
+         notified once it is approved" above the refusal. */
+      draftBody: "This application has not been sent yet.",
+      moreInfoBody: "The reviewer needs something from you before they can decide. Their note, and the way to answer it, are below.",
+      approvedBody: "Your workspace is open, so you can start listing. Getting verified is a separate step.",
+      rejectedBody: "This application was not approved. The reviewer's note says why, and you can apply again.",
+      suspendedBody: "This account is suspended. Contact support with your reference and a person will explain.",
       status: "Status",
       draft: "Draft",
       pendingReview: "Pending review",
@@ -2423,6 +2431,8 @@ export const en = {
       moreInfo: "More information required",
       approved: "Approved",
       rejected: "Rejected",
+      suspended: "Suspended",
+      applyAgain: "Apply again",
       submittedOn: "Submitted on",
       applicationId: "Application ID",
       reviewNote: "Our team typically reviews applications within 24 to 48 hours.",
@@ -2434,8 +2444,8 @@ export const en = {
       signIn: "Sign in",
       noneTitle: "No application on file",
       noneBody:
-        "You have not applied to become an agent yet. It takes about ten minutes and you need one photo ID.",
-      startApplication: "Apply to become an agent",
+        "You have not applied to list on Vallo yet. Say whether you own the property or act for an owner; the form takes about ten minutes.",
+      startApplication: "Start an application",
       unconfiguredTitle: "We cannot reach your application right now",
       unconfiguredBody:
         "This is on our side, not yours. Nothing you have submitted is lost. Try again in a few minutes.",
@@ -2448,6 +2458,7 @@ export const en = {
         answerHint: "Up to 2,000 characters.",
         attachIdentityTitle: "An identity document",
         attachAddressTitle: "Proof of address",
+        attachBusinessTitle: "Business registration (CAC certificate)",
         attachBody: "Optional. Add one when it answers what the reviewer asked for.",
         send: "Send it back",
         sending: "Sending",

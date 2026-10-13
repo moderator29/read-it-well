@@ -158,7 +158,7 @@ export function UploadCard({
           <UiIcon name={lineGlyphFor(object)} size={20} />
         </IconPlate>
         <span className="min-w-0 flex-1 text-left">
-          <span className={`block ${TYPE.rowTitle}`}>{title}</span>
+          <span id={`${inputId}-title`} className={`block ${TYPE.rowTitle}`}>{title}</span>
           <span className={`mt-inline-tight block ${TYPE.rowMeta}`}>{body}</span>
         </span>
         <UiIcon
@@ -178,6 +178,11 @@ export function UploadCard({
         type="file"
         accept={accept}
         className="sr-only"
+        /* Named by the card's own title, as DocumentUploader's input is
+           (DOC-20): unnamed, a screen reader announced an unlabelled file
+           picker on the step that proves who somebody is. */
+        aria-labelledby={`${inputId}-title`}
+        aria-describedby={`${inputId}-state`}
         onChange={(event) => {
           const chosen = event.target.files?.[0];
           /* Cleared at once. A file input fires no change event when the same
