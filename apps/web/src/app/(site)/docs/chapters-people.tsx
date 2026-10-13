@@ -329,17 +329,94 @@ export const UNDERSTANDING_A_LISTING: DocChapter = {
   number: 0,
   title: "Reading a listing",
   summary:
-    "What is on a listing page, the move-in total, the marks beside the lister, light and water, the gate, and example listings.",
+    "What is on a listing page: the move-in total, highlights, amenities, the gallery, who listed it and how to reach them, light and water, and the gate.",
   icon: "listing-review",
   sections: [
     {
       id: "the-page",
       heading: "What is on the page",
       body: (
+        <ol role="list">
+          <li>The cover photo, with Watch video where the lister added a video.</li>
+          <li>The title, the area and the price, with the move-in total on a rental.</li>
+          <li>The key facts: rooms, bathrooms, size and more. Tap Show all details for the rest.</li>
+          <li>Highlights, the description, amenities, light and water.</li>
+          <li>Listed by: who put the listing up.</li>
+          <li>The gallery, reviews and the map.</li>
+        </ol>
+      ),
+    },
+    {
+      id: "highlights",
+      heading: "Read the highlights",
+      body: (
         <p>
-          Photos and videos first. Tap one to see the set full screen, or Watch video where the lister
-          added one. Then the title, the area, the price, the rooms, amenities, light and water, the
-          lister, reviews and the map.
+          The highlights card shows up to three facts the lister gave: the power supply, the backup and
+          its hours, the water, or the move-in total. Nothing in it is estimated or guessed. A fact the
+          lister did not answer is left out, and with fewer than two facts there is no card.
+        </p>
+      ),
+    },
+    {
+      id: "amenities",
+      heading: "Check the amenities",
+      body: (
+        <p>
+          Each amenity the lister ticked has its own tile, such as Wi-Fi, parking, security or a
+          generator. If something you need is not there, message the lister and ask before you view.
+        </p>
+      ),
+    },
+    {
+      id: "gallery",
+      heading: "See every photo and video",
+      body: (
+        <p>
+          The gallery strip shows the first few. Tap View all to open every photo and video full screen,
+          in order.
+        </p>
+      ),
+    },
+    {
+      id: "listed-by",
+      heading: "See who listed it",
+      body: (
+        <>
+          <p>
+            The Listed by card shows the lister&rsquo;s name and photo, and one word for who they are:{" "}
+            <strong>Landlord</strong>, <strong>Agent</strong> or <strong>Agency</strong>. Where they have a
+            public profile, tap the name to open it.
+          </p>
+          <ul role="list">
+            <li>
+              Their badge is the one they have earned on Vallo. An example listing never carries one.
+            </li>
+            <li>
+              Under the name, it says either that a person at Vallo checked their ID before the listing
+              went live, or that they manage this listing on Vallo.
+            </li>
+            <li>
+              <strong>Message</strong> opens a chat about this listing.
+            </li>
+            <li>
+              <strong>Call</strong> rings the lister only inside a chat you already have about this
+              listing, and only where calls are switched on. Otherwise, message them first to arrange a
+              call.
+            </li>
+          </ul>
+        </>
+      ),
+    },
+    {
+      id: "schedule-a-visit",
+      heading: "Schedule a visit",
+      body: (
+        <p>
+          On a rental or a sale, the main button is Schedule a visit. A visit never takes money. See{" "}
+          <Link href="/docs/viewings" className={A}>
+            Viewings
+          </Link>
+          .
         </p>
       ),
     },
