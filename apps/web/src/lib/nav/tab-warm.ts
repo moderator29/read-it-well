@@ -163,9 +163,8 @@ export function waitForArrival(path: string, maxMs: number, since: number): Prom
       waiters.set(path, set);
     }
     const bucket = set;
-    let timer: ReturnType<typeof setTimeout> | undefined;
     const finish = (arrived: boolean) => {
-      if (timer !== undefined) clearTimeout(timer);
+      clearTimeout(timer);
       bucket.delete(wake);
       if (bucket.size === 0) waiters.delete(path);
       if (!arrived) consecutiveTimeouts += 1;
@@ -173,7 +172,8 @@ export function waitForArrival(path: string, maxMs: number, since: number): Prom
     };
     const wake = () => finish(true);
     bucket.add(wake);
-    timer = setTimeout(() => finish(false), maxMs);
+    /* Assigned before either caller of `finish` can run. */
+    const timer = setTimeout(() => finish(false), maxMs);
   });
 }
 

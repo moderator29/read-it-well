@@ -59,7 +59,6 @@ export function ConnectionLine() {
 
   useEffect(() => {
     refreshingRef.current = refreshing;
-    if (!refreshing) setPhase((p) => (p === "slow" ? "online" : p));
   }, [refreshing]);
 
   useEffect(() => {
@@ -81,7 +80,12 @@ export function ConnectionLine() {
     const online = () => {
       clear();
       refreshIfStale();
-      setPhase((was) => (was === "offline" || was === "kept" || was === "slow" ? "back" : was));
+      setPhase((was) => {
+        if (was === "offline" || was === "kept") return "back";
+        /* A slow refresh still going is a wait that just ended; one that landed was already over. */
+        if (was === "slow") return refreshingRef.current ? "back" : "online";
+        return was;
+      });
       timers.current.push(
         window.setTimeout(() => setPhase((p) => (p === "back" ? "leaving" : p)), BACK_MS),
         window.setTimeout(() => setPhase((p) => (p === "leaving" ? "online" : p)), BACK_MS + EXIT_MS),
@@ -124,7 +128,8 @@ export function ConnectionLine() {
     };
   }, [router]);
 
-  if (phase === "online") return null;
+  /* A slow refresh that has since landed is simply online again. */
+  if (phase === "online" || (phase === "slow" && !refreshing)) return null;
   const back = phase === "back" || phase === "leaving";
   const keptLine = phase === "kept" || phase === "slow";
   return (
