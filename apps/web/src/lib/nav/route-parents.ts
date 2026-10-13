@@ -317,6 +317,8 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/checkout/[bookingId]": "/bookings/[bookingId]",
   /* One crypto payment, opened from its notification or email. */
   "/pay/crypto/[reference]": "/bookings",
+  /* One table deposit: the Paystack return, every deposit notice, the receipt. */
+  "/pay/deposit/[reservationId]": "/bookings",
 
   /* ------------------------------------------------------------- messages */
   "/messages": "/home",

@@ -50,6 +50,7 @@ const NAMES: Readonly<Record<string, string>> = {
   "/restaurant/[id]": "the restaurant",
   "/bookings": "Plans",
   "/bookings/[bookingId]": "the booking",
+  "/pay/deposit/[reservationId]": "the table deposit",
   "/messages": "Messages",
   "/messages/[id]": "the conversation",
   "/agreements": "Agreements",

@@ -5,8 +5,6 @@ import type { JobVerdict } from "../../bookings/lifecycle";
 import type { AdminClient } from "../rpc";
 import { isPaystackConfigured } from "../../payments/paystack";
 import { sendDueDepositRefunds } from "../../reservations/deposit-settlement";
-import { RESTAURANT_DEPOSITS_FLAG } from "../../reservations/deposits";
-import { flagIsOn } from "../../flags/read";
 
 /**
  * D75. Hourly: send every table deposit refund the restaurant's rule decided
@@ -14,14 +12,17 @@ import { flagIsOn } from "../../flags/read";
  * not be applied) back to the card, once each (the refund claim). And close
  * checkouts nobody paid within two hours as abandoned; a late payment on one
  * still settles, or goes back to the card.
+ *
+ * NOT GATED ON THE SWITCH (track/restaurant-deposits). It used to skip
+ * whenever `restaurant_deposits` was off, from the days the table did not
+ * exist yet. The table is live now, and the skip meant this: deposits taken
+ * while the switch was on, then a guest cancels in time after it is turned
+ * off, and the refund the rule decided is never sent. The switch stops new
+ * deposits being asked for and opened (the database and the actions check
+ * it); money already taken always goes back when it is owed. With nothing
+ * due this reads one empty index and returns.
  */
 export async function reservationDepositRefunds(admin: AdminClient): Promise<JobVerdict> {
-  /* Off means off: with the switch off (and before its migration is applied,
-     when `reservation_deposits` does not exist) the hourly run would read a
-     missing table and raise an alert every hour. Nothing to do, say so. */
-  if (!(await flagIsOn(RESTAURANT_DEPOSITS_FLAG))) {
-    return { outcome: "ok", counts: { due: 0 }, detail: { skipped: "restaurant_deposits_off" }, alert: null };
-  }
   const db = admin as unknown as SupabaseClient;
   const cutoff = new Date(Date.now() - 2 * 3_600_000).toISOString();
   await db

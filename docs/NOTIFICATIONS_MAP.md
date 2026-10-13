@@ -143,6 +143,7 @@ the reason. **By design**: deliberately silent.
 | Did you dine? (unmarked after 24 hours) | the diner | yes | yes | no | "Did you dine at <venue>?" | Done |
 | How was your meal? | the diner | **new** | yes | no | "How was your meal?" `/bookings?side=stays`, two hours after being seated, for 7 days, no open dispute, no review yet | **Filled** (nt05) |
 | Deposit paid, bill paid | diner; restaurant | yes | yes | no | "Deposit paid", "Bill paid" (both off while the flags are off) | Done |
+| Table deposit going back, refunded, kept | diner; restaurant | yes | yes | no | "Deposit coming back" / "Deposit going back", "Deposit refunded", "Deposit kept" / "Deposit kept by you" (trigger on reservation_deposits, notify_once, Bookings switch) | Pending: rd01 |
 
 ## 7. Listings
 

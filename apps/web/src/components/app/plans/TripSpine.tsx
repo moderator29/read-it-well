@@ -13,7 +13,7 @@ import type { ReservationView } from "@/lib/reservations/queries";
 import { CancelBookingControl } from "@/components/app/bookings/CancelBookingSheet";
 import { restaurantPlate } from "@/components/app/stays/restaurant-plates";
 import { buildTripSpine, type TripEntry } from "./trip-spine";
-import { depositLine } from "@/lib/reservations/deposits";
+import { depositLine, depositPayable } from "@/lib/reservations/deposits";
 import { PayDepositButton } from "@/components/app/reservations/PayDepositButton";
 import { TableSeatingPanel } from "@/components/app/reservations/TableSeatingPanel";
 
@@ -53,7 +53,7 @@ type TripItem = TripEntry & {
      confirms against. Only a stay has one; a table will carry its own. */
   booking: BookingView | null;
   /* D75: a table's deposit, in words, and whether it can be paid now. */
-  deposit?: { line: string; payable: boolean } | null;
+  deposit?: { line: string; payable: boolean; payLabel: string; openLabel: string; href: string } | null;
   /* Founder decision D: the table itself, for its check-in code, the
      "Did you dine?" question, the bill and the review. */
   table?: ReservationView | null;
@@ -149,8 +149,14 @@ export function TripSpine({
               reservation.deposit,
               (minor) => formatMoney(minor, locale, "NGN"),
               (iso) => tableWhen(iso),
+              t.tableDeposits.status,
             ) ?? "",
-          payable: reservation.deposit.status === "due" || reservation.deposit.status === "pending",
+          payable: depositPayable(reservation.deposit.status) && reservation.cancellable,
+          payLabel: t.tableDeposits.status.pay,
+          openLabel: t.tableDeposits.status.open,
+          /* The deposit's own page: the amount, the refund rule, and the
+             receipt once it is paid. */
+          href: `/pay/deposit/${reservation.id}`,
         }
       : null,
   }));
@@ -326,7 +332,16 @@ function SpineRow({
       {item.deposit && item.deposit.line && !muted && (
         <div className="mt-inline grid gap-inline pl-[calc(var(--nf-plate-size-lg)+var(--spacing-md))]" data-testid="trip-deposit">
           <span className={`block ${TYPE.rowMeta}`}>{item.deposit.line}</span>
-          {item.deposit.payable && <PayDepositButton reservationId={item.id} label="Pay deposit" />}
+          <span className="flex flex-wrap items-center gap-md">
+            {item.deposit.payable && <PayDepositButton reservationId={item.id} label={item.deposit.payLabel} />}
+            <Link
+              href={item.deposit.href}
+              className="text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+              data-testid="trip-deposit-open"
+            >
+              {item.deposit.openLabel}
+            </Link>
+          </span>
         </div>
       )}
       {item.table && (

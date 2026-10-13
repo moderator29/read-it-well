@@ -45,7 +45,7 @@ export function ReleaseControl({
         }}
       />
       {error && (
-        <p role="alert" className="nf-caption text-[var(--nf-state-danger)]">
+        <p role="alert" className="nf-caption text-[var(--nf-state-error)]">
           {error}
         </p>
       )}
