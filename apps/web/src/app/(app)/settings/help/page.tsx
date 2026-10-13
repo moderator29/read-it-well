@@ -51,6 +51,7 @@ export default async function HelpSettingsPage() {
                 label={t.settings.about.help}
                 sub={t.settings.about.helpSub}
               />
+              <RowLink href="/docs" icon="file-text" label={t.settings.about.docs} sub={t.settings.about.docsSub} />
               <RowLink href="/terms" icon="grid" label={t.settings.about.terms} />
               <RowLink href="/privacy" icon="verified" label={t.settings.about.privacy} />
               <RowLink href="/disclaimer" icon="shield-stop" label={t.settings.about.disclaimer} />

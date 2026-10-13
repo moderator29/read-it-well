@@ -38,4 +38,5 @@ export const experienceShellEn = {
   navDocsPrivacy: "Privacy",
   navDocsSafety: "Safety",
   navDocsHelp: "Help",
+  navDocsDocs: "Docs",
 };

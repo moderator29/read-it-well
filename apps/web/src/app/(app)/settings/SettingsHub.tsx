@@ -337,6 +337,13 @@ export function SettingsHub({
           sub={hub.helpSub}
           testId="hub-help"
         />
+        <RowLink
+          href="/docs"
+          glyph={<HubGlyph name="document" />}
+          label={about.docs}
+          sub={about.docsSub}
+          testId="hub-docs"
+        />
         <RowLink href="/terms" glyph={<HubGlyph name="document" />} label={about.terms} testId="hub-terms" />
         <RowLink href="/privacy" glyph={<HubGlyph name="eye-off" />} label={about.privacy} testId="hub-privacy-policy" />
         <RowLink href="/disclaimer" glyph={<HubGlyph name="info" />} label={about.disclaimer} testId="hub-disclaimer" />

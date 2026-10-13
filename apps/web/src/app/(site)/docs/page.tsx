@@ -48,11 +48,14 @@ export default async function DocsHomePage() {
         </p>
         {first && (
           <div className="mt-heading flex flex-wrap gap-row">
-            <ButtonLink href={`/docs/${first.slug}`} variant="primary">
+            <ButtonLink href="/docs/quick-start" variant="primary">
+              Quick start
+            </ButtonLink>
+            <ButtonLink href={`/docs/${first.slug}`} variant="secondary">
               Start at the beginning
             </ButtonLink>
             <ButtonLink href="/help" variant="secondary">
-              Search the help centre
+              Help centre
             </ButtonLink>
           </div>
         )}
@@ -90,6 +93,12 @@ export default async function DocsHomePage() {
               icon: "headset",
               title: "Help centre",
               line: "The same answers, searchable, plus a way to reach a person.",
+            },
+            {
+              href: "/guides",
+              icon: "file-text",
+              title: "Guides",
+              line: "Plain answers for renters and guests: scams, move-in costs, renting in Lagos and Abuja.",
             },
             {
               href: "/cancellations",

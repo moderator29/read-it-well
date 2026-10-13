@@ -27,7 +27,7 @@ export type ShellDictionary = Pick<Dictionary, "a11y" | "common" | "nav" | "side
   experienceShell: Pick<
     Dictionary["experienceShell"],
     "navPayments" | "navInvite" | "navMoneyLabel" | "navBalance" | "navReceipts" | "navPayouts" | "navRefunds" | "navLeaderboard" | "navPassport"
-    | "navDocsLabel" | "navDocsTerms" | "navDocsPrivacy" | "navDocsSafety" | "navDocsHelp"
+    | "navDocsLabel" | "navDocsTerms" | "navDocsPrivacy" | "navDocsSafety" | "navDocsHelp" | "navDocsDocs"
   >;
   /** The Rewards row's label is the Rewards page's own title, so the two cannot drift. */
   experienceRewards: Pick<Dictionary["experienceRewards"], "title">;
@@ -70,6 +70,7 @@ export function shellDictionary(t: Dictionary): ShellDictionary {
       navDocsPrivacy: t.experienceShell.navDocsPrivacy,
       navDocsSafety: t.experienceShell.navDocsSafety,
       navDocsHelp: t.experienceShell.navDocsHelp,
+      navDocsDocs: t.experienceShell.navDocsDocs,
       navMoneyLabel: t.experienceShell.navMoneyLabel,
       navBalance: t.experienceShell.navBalance,
       navReceipts: t.experienceShell.navReceipts,

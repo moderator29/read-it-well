@@ -68,6 +68,10 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
         <Link href="/privacy">{t.safety.privacyLink}</Link>
         {" · "}
         <Link href="/eula">{t.safety.rulesLink}</Link>
+        {" · "}
+        <Link href="/help">{t.safety.helpLink}</Link>
+        {" · "}
+        <Link href="/docs">{t.safety.docsLink}</Link>
       </p>
     </AuthMain>
   );

@@ -1,6 +1,7 @@
 import { CHAPTER_INDEX } from "./chapters";
 import { DocsSidebar } from "./DocsSidebar";
 import { SiteHead } from "@/components/site/SiteHead";
+import { DocsSearch } from "@/components/site/support/SupportSearch";
 
 /**
  * The documentation frame.
@@ -32,6 +33,7 @@ export default function DocsLayout({ children }: Readonly<{ children: React.Reac
         heading="p"
       />
       <div className="nf-shell pb-section">
+        <DocsSearch />
         <div className="mx-auto flex max-w-6xl flex-col gap-heading lg:flex-row lg:items-start lg:gap-block">
           <DocsSidebar items={CHAPTER_INDEX} />
           <div className="min-w-0 flex-1">{children}</div>

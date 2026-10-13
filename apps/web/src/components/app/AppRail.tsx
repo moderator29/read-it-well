@@ -347,6 +347,7 @@ export function AppRail({
             <Link href="/privacy" onClick={onNavigate}>{t.experienceShell.navDocsPrivacy}</Link>
             <Link href="/safety" onClick={onNavigate}>{t.experienceShell.navDocsSafety}</Link>
             <Link href="/help" onClick={onNavigate}>{t.experienceShell.navDocsHelp}</Link>
+            <Link href="/docs" onClick={onNavigate}>{t.experienceShell.navDocsDocs}</Link>
           </nav>
         )}
       </div>
