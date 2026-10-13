@@ -8,6 +8,11 @@ import { TYPE } from "@/components/app/Screen";
 import { loadBrowserClient } from "@/lib/supabase/load-client";
 import { IconPlate } from "@/components/ui/IconPlate";
 import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
+import {
+  MAX_FILE_LABEL,
+  documentExtension,
+  rejectFileIssue,
+} from "@/components/verification/kyc";
 
 /**
  * ONE OF THE BIG UPLOAD CARDS ON `GOVERNING-04` SCREEN TWO AND `GOVERNING-05`
@@ -30,15 +35,15 @@ import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
  * holding, by the name the person's own device gave it, and nothing else.
  */
 
+/*
+ * THE LIMITS ARE THE BUCKET'S, READ FROM ONE PLACE. `agent-documents` refuses
+ * anything over 8MB and anything outside its type allowlist
+ * (20260809051809), and `kyc.ts` states exactly that. This card used to allow
+ * 10MB, so a 9MB photo passed here, was refused by storage, and the card said
+ * "try again" about a file that could never go through. The size and the type
+ * are now checked here first, against the same rule the bucket applies.
+ */
 const DOCUMENT_BUCKET = "agent-documents";
-const MAX_DOCUMENT_BYTES = 10 * 1024 * 1024;
-
-/** The file extension to store under, from the type rather than the name. */
-function extensionFor(file: File): string {
-  if (file.type === "application/pdf") return "pdf";
-  if (file.type === "image/png") return "png";
-  return "jpg";
-}
 
 /** A stable folder per form session, so retries do not scatter objects. */
 export function newBatchId(): string {
@@ -88,8 +93,9 @@ export function UploadCard({
     if (!file) return;
     setFailure(null);
 
-    if (file.size > MAX_DOCUMENT_BYTES) {
-      setFailure(copy.fileTooBig);
+    const refusal = rejectFileIssue(file);
+    if (refusal) {
+      setFailure(refusal === "size" ? copy.fileTooBig : copy.fileType);
       return;
     }
 
@@ -110,7 +116,7 @@ export function UploadCard({
       /* A new path for every file chosen, never an overwrite (SEC-12): a filed
          document is fixed, so re-choosing is a new object and the submit files
          whichever path is current. */
-      const path = `${user.id}/${batchId}/${slot}-${crypto.randomUUID()}.${extensionFor(file)}`;
+      const path = `${user.id}/${batchId}/${slot}-${crypto.randomUUID()}.${documentExtension(file.type)}`;
       const upload = await supabase.storage
         .from(DOCUMENT_BUCKET)
         .upload(path, file, { contentType: file.type, upsert: false });
@@ -132,6 +138,12 @@ export function UploadCard({
   }
 
   const state = busy ? copy.uploading : value ? copy.fileReady : null;
+  /* What the slot takes, said before anything is chosen rather than only in
+     the refusal after a failed upload on metered data. */
+  const limit = (accept.includes("application/pdf") ? copy.fileLimit : copy.photoLimit).replace(
+    "{size}",
+    MAX_FILE_LABEL,
+  );
 
   return (
     <div>
@@ -166,7 +178,14 @@ export function UploadCard({
         type="file"
         accept={accept}
         className="sr-only"
-        onChange={(event) => void take(event.target.files?.[0])}
+        onChange={(event) => {
+          const chosen = event.target.files?.[0];
+          /* Cleared at once. A file input fires no change event when the same
+             file is chosen again, so after a failed upload the only retry this
+             card offers, choosing the file again, did nothing at all. */
+          event.target.value = "";
+          void take(chosen);
+        }}
       />
 
       {/*
@@ -176,7 +195,7 @@ export function UploadCard({
         cannot see the tick gets exactly the same news.
       */}
       <p id={`${inputId}-state`} className={`mt-xs ${TYPE.rowMeta}`} aria-live="polite">
-        {state ? `${state}${value ? `: ${value.fileName}` : ""}` : copy.addFile}
+        {state ? `${state}${value ? `: ${value.fileName}` : ""}` : `${copy.addFile}. ${limit}`}
       </p>
 
       {failure || error ? (

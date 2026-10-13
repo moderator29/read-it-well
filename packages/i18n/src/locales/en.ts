@@ -2405,7 +2405,7 @@ export const en = {
         idBack: "ID card, back",
         registration: "Business registration",
         upload: "Upload",
-        chooseFile: "Choose a file, PNG or JPG or PDF, up to 10MB",
+        chooseFile: "Choose a file, PNG or JPG or PDF, up to 8MB",
       },
       review: {
         title: "Review and submit",
@@ -2448,7 +2448,7 @@ export const en = {
         answerHint: "Up to 2,000 characters.",
         attachIdentityTitle: "An identity document",
         attachAddressTitle: "Proof of address",
-        attachBody: "Optional. A photo or a PDF, up to 10 MB.",
+        attachBody: "Optional. Add one when it answers what the reviewer asked for.",
         send: "Send it back",
         sending: "Sending",
         sent: "Sent back. It is with the reviewer again.",
@@ -5623,7 +5623,11 @@ export const en = {
       replaceFile: "Choose a different file",
       uploading: "Uploading",
       fileReady: "Ready to send",
-      fileTooBig: "That file is over 10MB. Please choose a smaller photo or PDF.",
+      fileTooBig: "That file is over 8MB. Please choose a smaller photo or PDF.",
+      fileType: "That file is not a photo or a PDF, so it cannot be sent. Choose a JPG, PNG, HEIC or PDF.",
+      /* `{size}` is the bucket's ceiling, "8MB" (components/verification/kyc.ts). */
+      fileLimit: "A photo or a PDF, up to {size}.",
+      photoLimit: "A photo, up to {size}.",
       fileFailed: "That upload did not go through. Please try again.",
       signInFirst: "Please sign in before uploading, so the file is filed to your account.",
       owner: {

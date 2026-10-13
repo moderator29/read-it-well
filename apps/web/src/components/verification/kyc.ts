@@ -144,6 +144,30 @@ export function lagosToday(now: Date = new Date()): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Lagos" }).format(now);
 }
 
+/**
+ * The extension a document is stored under, from its type rather than its
+ * name. The reviewer's viewer (`lib/admin/documents.ts`) decides how to draw
+ * a file from this extension, so a HEIC or WebP photo filed as `.jpg` would be
+ * served with the wrong type and fail to open. Every uploader into the
+ * private document bucket names its objects through this one function.
+ */
+export function documentExtension(type: string): string {
+  switch (type) {
+    case "application/pdf":
+      return "pdf";
+    case "image/png":
+      return "png";
+    case "image/webp":
+      return "webp";
+    case "image/heic":
+      return "heic";
+    case "image/heif":
+      return "heif";
+    default:
+      return "jpg";
+  }
+}
+
 /** Why a chosen file cannot be used, as a code the screen words. */
 export function rejectFileIssue(file: { type: string; size: number }): "type" | "size" | null {
   if (!(ACCEPTED_MIME as readonly string[]).includes(file.type)) return "type";

@@ -1270,7 +1270,7 @@ export const yo: Dictionary = withFallback({
         idBack: "Káàdì ìdánimọ̀, ẹ̀yìn",
         registration: "Ìforúkọsílẹ̀ ilé-iṣẹ́",
         upload: "Gbé sókè",
-        chooseFile: "Yan fáìlì, PNG tàbí JPG tàbí PDF, dé 10MB",
+        chooseFile: "Yan fáìlì, PNG tàbí JPG tàbí PDF, dé 8MB",
       },
       review: {
         title: "Àtúnyẹ̀wò kí o sì fi ránṣẹ́",
@@ -3425,7 +3425,7 @@ export const yo: Dictionary = withFallback({
       replaceFile: "Yan fáìlì mìíràn",
       uploading: "Ń gbé sókè",
       fileReady: "Ó ṣetán láti fi ránṣẹ́",
-      fileTooBig: "Fáìlì náà ju 10MB lọ. Jọ̀wọ́ yan àwòrán tàbí PDF kékeré.",
+      fileTooBig: "Fáìlì náà ju 8MB lọ. Jọ̀wọ́ yan àwòrán tàbí PDF kékeré.",
       fileFailed: "Ìgbésókè náà kò yọrí sí rere. Jọ̀wọ́ gbìyànjú lẹ́ẹ̀kan sí i.",
       signInFirst: "Jọ̀wọ́ wọlé kí o tó gbé e sókè, kí fáìlì náà lè wọ àkàǹtì rẹ.",
       owner: {
