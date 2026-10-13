@@ -98,8 +98,7 @@ For setup, architecture and the repository layout, start with the [repository RE
 | [design/component-library-source/](design/component-library-source/) | The founder's nine components as he supplied them, one file per component, with a README on what is wrong with each. Reference material: it sits outside every gate in this repository and none of it compiles |
 | [sessions/ROUND-3-2026-10-06.md](sessions/ROUND-3-2026-10-06.md) | **Four audits run against the branches rather than the response files.** 93 of 213 routes untouched, the 24 point checklist run on 14, the rail router and provider seam unwired, and forty more recommendations |
 | [sessions/ROUND-2-2026-10-06.md](sessions/ROUND-2-2026-10-06.md) | **What each session actually built, measured against the tree rather than its own report**, what is missing, and thirty numbered recommendations split across the three sessions. Read it before continuing any session's work |
-| [sessions/VALLO-BUILD-HANDOFF.md](sessions/VALLO-BUILD-HANDOFF.md) | **The current handoff, 7 October 2026. One session, both halves: the premium experience upgrade and the money rail that was never built.** It replaced the three separate session briefs, which were deleted because splitting the work three ways is what let the money rail fall through |
-| [sessions/SESSION-PROMPT.md](sessions/SESSION-PROMPT.md) | The prompt that starts that session |
+| [../HANDOFF.md](../HANDOFF.md) | **The only handoff.** Who the founder is and how the founder works, the product rules, the company facts, how work is done here, and what is open. Read it first |
 | [sessions/founder-corpus/](sessions/founder-corpus/README.md) | Every prompt the founder has written, in his own words, deduplicated, nothing cut. 14 files |
 | [../component-reference/](../component-reference/README.md) | Eight motion components the founder pasted in as the finish he wants, plus the five shadcn registry components he named. Reference only, outside the build |
 
