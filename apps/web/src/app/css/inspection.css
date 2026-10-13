@@ -737,10 +737,12 @@
     color: color-mix(in oklab, var(--nf-brand-secondary) 70%, transparent);
     box-shadow: var(--nf-panel-rim);
   }
-  /* Add Photos while photos wait on I1b: the render draws it lit, so it keeps
-     the shared lit material and is only not pressable; the line under it
-     says why. */
-  .nf-ix .nf-ix-cta:disabled {
+  /* Add Photos while a photo is uploading: the render draws it lit, so it
+     keeps the shared lit material and is only not pressable. Only the
+     PRIMARY: before a time is agreed the component draws it secondary on
+     purpose (one glow per screen, beside Confirm), and this rule used to
+     repaint that disabled secondary lit as well. */
+  .nf-ix .nf-ix-cta.nf-btn--primary:disabled {
     opacity: 0.9;
     cursor: not-allowed;
     background: var(--nf-btn-lit-fill);

@@ -19,6 +19,7 @@ export default async function SessionBInspectionPreview({
     rental?: string;
     submitted?: string;
     agreement?: string;
+    ahead?: string;
   }>;
 }) {
   const params = await searchParams;
