@@ -121,6 +121,7 @@ import {
   LISTING_RENTAL_ABOUT,
   LISTING_SALE_ABOUT,
   LISTING_STAY_PAY_AFTER,
+  PAY_ONLY_THROUGH_VALLO,
 } from "@/lib/money/copy";
 import { FactGrid, ICON, Section, Stack, TYPE, type Fact } from "@/components/app/Screen";
 import "@/app/css/catalogue.css";
@@ -1510,6 +1511,7 @@ export default async function ListingDetailPage({
                 */}
                 <div id="reserve" className="scroll-mt-20">
                   <div className={isVisit ? undefined : "lg:hidden"}>{bookingPanel}</div>
+                  {isVisit || isBookable ? <p className="nf-caption mt-inline text-[var(--nf-content-muted)]" data-testid="listing-pay-inside">{PAY_ONLY_THROUGH_VALLO}</p> : null}
                 </div>
 
                 {/* ------------------------------------------- location */}

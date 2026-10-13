@@ -16,13 +16,16 @@ import { createAdminClient } from "../supabase/admin";
  * the answer is written into `transactions.rail` and `rail_policy_id` at
  * insert, fixed by trigger thereafter.
  *
- * THE ESCROW GATE (`railGate`). The escrow rail is not built: there is no
- * Payluk adapter and `payments_payluk_on` is off. A payment the policy sends
- * to escrow is therefore REFUSED, never opened on the direct rail instead,
- * because a direct Paystack split settles the lister at the moment of charge
- * and the hold the policy promised would silently not exist. Only when a
- * Payluk adapter that can hold is registered AND its switch is on does an
- * escrow answer pass, and even then only to a caller that opens on Payluk.
+ * THE ESCROW GATE (`railGate`). A payment the policy sends to escrow is
+ * REFUSED on every direct (card) path, never opened on the direct rail
+ * instead, because a direct Paystack split settles the lister at the moment
+ * of charge and the hold the policy promised would silently not exist. An
+ * escrow payment opens only on the escrow path (`lib/money/fund-actions.ts`).
+ *
+ * THE PAYER'S CHOICE (founder ruling 2, 13 October 2026). On a rent or a
+ * shortlet the payer picks escrow (the default) or card
+ * (`lib/payments/rail-choice.ts`); the database applies the choice
+ * (`private.rail_for_booking`), and `railForBooking` reads that answer.
  */
 
 export type PropertyType =
@@ -32,7 +35,14 @@ export type ListingIntent = "rent" | "sale";
 export type ListerKind = "individual" | "business";
 
 export type RailAnswer =
-  | { state: "resolved"; rail: "escrow" | "direct"; milestones: boolean; policyId: string }
+  | {
+      state: "resolved";
+      rail: "escrow" | "direct";
+      milestones: boolean;
+      policyId: string;
+      /** Founder ruling 2 (13 October 2026): the policy lets the payer pick escrow or card here. */
+      payerMayChoose?: boolean;
+    }
   | { state: "unresolved" }
   | { state: "unavailable" };
 
@@ -188,12 +198,51 @@ export async function railInputsForBooking(client: unknown, bookingId: string): 
   }
 }
 
-/** The rail a booking's payment opens on, as the policy says today. */
+/**
+ * The rail a booking's payment opens on: the database's own answer
+ * (`public.payment_rail_for_booking`, pending migration pov04), which applies
+ * the policy AND the payer's choice exactly as the payment gate does, so the
+ * app and the gate cannot disagree. Until that migration is applied the
+ * function does not exist and the policy is read as before
+ * (`railInputsForBooking` + `resolve_payment_rail`); any other failure is
+ * unavailable, never a guess.
+ */
 export async function railForBooking(client: unknown, bookingId: string): Promise<RailAnswer> {
+  try {
+    const { data, error } = await (client as Rpc).rpc("payment_rail_for_booking", { p_booking: bookingId });
+    if (!error) return readBookingRail(data);
+    if (!isMissingFunction(error)) return { state: "unavailable" };
+  } catch {
+    return { state: "unavailable" };
+  }
   const inputs = await railInputsForBooking(client, bookingId);
   if (inputs === "error") return { state: "unavailable" };
   if (!inputs) return { state: "unresolved" };
   return resolveRail(inputs, client);
+}
+
+/** PostgREST's answer for a function the database does not have (yet). */
+export function isMissingFunction(error: unknown): boolean {
+  const e = (error ?? {}) as { code?: unknown; message?: unknown };
+  return e.code === "PGRST202" || e.code === "42883";
+}
+
+/** Pure: `payment_rail_for_booking`'s answer, read fail-closed. */
+export function readBookingRail(data: unknown): RailAnswer {
+  const row = (Array.isArray(data) ? data[0] : data) as
+    | { rail?: unknown; policy_id?: unknown; milestones?: unknown; payer_may_choose?: unknown }
+    | null
+    | undefined;
+  if (!row || (row.rail !== "escrow" && row.rail !== "direct") || typeof row.policy_id !== "string") {
+    return { state: "unresolved" };
+  }
+  return {
+    state: "resolved",
+    rail: row.rail,
+    milestones: row.milestones === true,
+    policyId: row.policy_id,
+    payerMayChoose: row.payer_may_choose === true,
+  };
 }
 
 /** The sentences a member reads when the rail stops a payment. Exported for tests. */
@@ -203,6 +252,9 @@ export const RAIL_REFUSAL = {
   unavailable: "Payment is temporarily unavailable. Nothing has been charged. Please try again in a few minutes.",
   escrow_not_live:
     "Payment for this kind of listing is not open on Vallo yet. Nothing has been charged, and your booking is kept as it is.",
+  /* Ruling 2: the payer may pay by card here, and escrow (the default) is what is chosen now. */
+  escrow_chosen:
+    "This payment is set to escrow. Nothing has been charged. To pay by card instead, choose Pay by card where you pay.",
 } as const;
 
 export type RailRefusalReason = keyof typeof RAIL_REFUSAL;
@@ -221,6 +273,9 @@ export type RailDecision =
 export function railGate(answer: RailAnswer, opensOn: "direct" | "escrow", escrowLive: boolean): RailDecision {
   if (answer.state === "unavailable") return { open: false, reason: "unavailable", message: RAIL_REFUSAL.unavailable };
   if (answer.state === "unresolved") return { open: false, reason: "unresolved", message: RAIL_REFUSAL.unresolved };
+  if (answer.rail === "escrow" && opensOn !== "escrow" && answer.payerMayChoose === true) {
+    return { open: false, reason: "escrow_chosen", message: RAIL_REFUSAL.escrow_chosen };
+  }
   if (answer.rail === "escrow" && (!escrowLive || opensOn !== "escrow")) {
     return { open: false, reason: "escrow_not_live", message: RAIL_REFUSAL.escrow_not_live };
   }

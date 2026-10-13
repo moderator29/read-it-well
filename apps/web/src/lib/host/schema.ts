@@ -101,6 +101,12 @@ export const hostDraftSchema = (w: SchemaWords) => z.object({
    * the save that creates the business.
    */
   agreeToHostTerms: z.literal(true).optional(),
+  /**
+   * Ruling 6 (13 October 2026): "Every payment for a deal I make on Vallo
+   * happens inside Vallo.", recorded with its version and the moment beside
+   * the Host Agreement. Required before the application is sent.
+   */
+  agreeToPayOnVallo: z.literal(true).optional(),
   /** The two attestations, each stamped with the moment it was made. */
   hygieneAttested: z.boolean().optional(),
   licenceAttested: z.boolean().optional(),

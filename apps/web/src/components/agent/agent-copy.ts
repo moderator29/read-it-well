@@ -20,12 +20,15 @@ export type ApplyCopy = {
     moments: Pick<Dictionary["success"]["moments"], "agentApplied">;
     continue: Dictionary["success"]["continue"];
   };
+  /* Ruling 6 (13 October 2026): the two ticks before the application is sent. */
+  payChoice: Pick<Dictionary["payChoice"], "accept">;
 };
 
 export function forApply(t: Dictionary): ApplyCopy {
   return {
     agent: { apply: t.agent.apply },
     success: { moments: { agentApplied: t.success.moments.agentApplied }, continue: t.success.continue },
+    payChoice: { accept: t.payChoice.accept },
   };
 }
 

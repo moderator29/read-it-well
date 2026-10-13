@@ -23,6 +23,7 @@ import { submitSupplyRegistration } from "@/lib/supply/registration-actions";
 import { RegField, RegFieldGroup } from "./RegisterField";
 import { CalmPanel, RegisterDone, RegisterShell } from "./RegisterShell";
 import { RegistrationFiledSheet } from "./RegistrationFiledSheet";
+import { WorkspaceAcceptance } from "@/components/legal/WorkspaceAcceptance";
 import { UploadCard, newBatchId, type UploadState } from "./UploadCard";
 
 /**
@@ -104,6 +105,9 @@ export function AgentRegisterForm({
     attached: boolean;
   } | null>(null);
   const [pending, startTransition] = useTransition();
+  /* Ruling 6 (13 October 2026): the two ticks before this is sent. */
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [acceptPay, setAcceptPay] = useState(false);
 
   /* Naira in, kobo out, rounded once, at the boundary and nowhere else. */
   const rentMinor = useMemo(() => {
@@ -147,6 +151,8 @@ export function AgentRegisterForm({
      * missing document costs something, and it says so there in full. What the
      * screen does NOT do is pretend a slot is filled when it is not.
      */
+    /* The last screen waits for the two ticks (ruling 6). */
+    if (step === 2) return !acceptTerms || !acceptPay;
     return false;
   }
 
@@ -168,6 +174,8 @@ export function AgentRegisterForm({
         legalFeeBps,
         idPath: idDoc?.path ?? "",
         selfiePath: selfie?.path ?? "",
+        acceptTerms,
+        acceptPayOnVallo: acceptPay,
       });
       if (!result.ok) {
         setErrors(result.fieldErrors ?? {});
@@ -419,6 +427,17 @@ export function AgentRegisterForm({
       }}
     >
       {screen.body}
+      {step === 2 ? (
+        <WorkspaceAcceptance
+          className="mt-md"
+          copy={t.payChoice}
+          terms={acceptTerms}
+          pay={acceptPay}
+          onTerms={setAcceptTerms}
+          onPay={setAcceptPay}
+          showError={Boolean(errors.acceptTerms || errors.acceptPayOnVallo)}
+        />
+      ) : null}
     </RegisterShell>
   );
 }

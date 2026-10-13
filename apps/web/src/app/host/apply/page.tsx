@@ -119,6 +119,7 @@ export default async function HostApplyPage({
         locale={locale}
         door={door}
         arrivalCopy={t.afterTheGate.arrival}
+        acceptCopy={{ accept: t.payChoice.accept }}
       />
     </HostShell>
   );

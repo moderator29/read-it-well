@@ -78,6 +78,8 @@ describe("I have none of these", () => {
       stateCode: "LA",
       lgaCode: "LA-ETI",
       area: "Lekki Phase 1",
+      acceptTerms: true,
+      acceptPayOnVallo: true,
     };
     const withDocument = ownerRegistrationSchema.safeParse({
       ...base,
@@ -182,6 +184,8 @@ describe("the agent and firm schemas", () => {
       experience: "1_2",
       agencyFeeBps: null,
       legalFeeBps: null,
+      acceptTerms: true,
+      acceptPayOnVallo: true,
     });
     expect(parsed.success).toBe(true);
   });
@@ -213,6 +217,8 @@ describe("the agent and firm schemas", () => {
       associationProof: "principal",
       principalEmail: "principal@acmeproperties.test",
       team: [],
+      acceptTerms: true,
+      acceptPayOnVallo: true,
     });
     expect(parsed.success).toBe(true);
   });
@@ -225,6 +231,8 @@ describe("the agent and firm schemas", () => {
       rcNumber: "RC 1234567",
       officeAddress: "1 Admiralty Way, Lekki",
       team: [],
+      acceptTerms: true,
+      acceptPayOnVallo: true,
     };
     expect(
       firmRegistrationRefined.safeParse({ ...base, associationProof: "principal" }).success,

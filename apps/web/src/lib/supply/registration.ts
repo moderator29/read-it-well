@@ -11,6 +11,7 @@
 
 import { z } from "zod";
 import { normalisePhone } from "@/lib/phone";
+import { ACCEPT_PAY_REQUIRED, ACCEPT_TERMS_REQUIRED } from "@/lib/legal/workspace-acceptance";
 import {
   ASSOCIATION_PROOFS,
   EXPERIENCE_BANDS,
@@ -46,6 +47,16 @@ const nin = trimmed
   .optional()
   .or(z.literal(""));
 
+/*
+ * Ruling 6 (13 October 2026): every registration is sent with both ticks, the
+ * Terms of Service and the Privacy Policy, and that every payment for a deal
+ * happens inside Vallo. The action records them (`workspace-acceptance.ts`).
+ */
+const acceptance = {
+  acceptTerms: z.literal(true, { message: ACCEPT_TERMS_REQUIRED }),
+  acceptPayOnVallo: z.literal(true, { message: ACCEPT_PAY_REQUIRED }),
+};
+
 const feeBps = z
   .number()
   .int("A fee is a whole number of basis points.")
@@ -68,6 +79,7 @@ export const ownerRegistrationSchema = z.object({
   /** The document itself, already uploaded into the private bucket. Optional:
       an owner may file the answer now and the paper later. */
   ownershipPath: trimmed.max(400).optional().or(z.literal("")),
+  ...acceptance,
 });
 
 export const agentRegistrationSchema = z.object({
@@ -81,6 +93,7 @@ export const agentRegistrationSchema = z.object({
   /** Storage paths, already uploaded by the browser into the private bucket. */
   idPath: trimmed.max(400).optional().or(z.literal("")),
   selfiePath: trimmed.max(400).optional().or(z.literal("")),
+  ...acceptance,
 });
 
 export const firmRegistrationSchema = z.object({
@@ -113,6 +126,7 @@ export const firmRegistrationSchema = z.object({
     )
     .max(MAX_DECLARED_TEAM, "That is more colleagues than one application can carry.")
     .default([]),
+  ...acceptance,
 });
 
 /**

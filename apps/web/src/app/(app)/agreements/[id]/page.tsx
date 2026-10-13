@@ -7,6 +7,8 @@ import { getLocale } from "@/lib/locale";
 import { readAgreement, UNNAMED_OWNER, UNNAMED_RENTER } from "@/lib/agreements/queries";
 import { readHeldPayment } from "@/lib/money/held-view";
 import { readAgreementRail } from "@/lib/money/fund-view";
+import { readAgreementPayChoice } from "@/lib/payments/rail-choice-read";
+import { PayChoiceCard } from "@/components/money/pay-choice/PayChoiceCard";
 import { readChangesSinceConfirmed } from "@/lib/agreements/changes-read";
 import type { TermChange } from "@/lib/agreements/terms-diff";
 import { AgreementChanges, type WordedChange } from "@/components/app/agreements/AgreementChanges";
@@ -40,6 +42,7 @@ import {
   NO_CUSTODY_SENTENCE,
   NO_INSPECTION_FEE,
   OFF_PLATFORM_SENTENCE,
+  PAY_ONLY_THROUGH_VALLO,
 } from "@/lib/money/copy";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -105,10 +108,12 @@ export default async function AgreementPage({
     a.claimWindow !== null && now >= Date.parse(a.claimWindow.opens) && now < Date.parse(a.claimWindow.closes);
   const claimedApproved = a.claims.reduce((sum, c) => sum + (c.approvedMinor ?? 0), 0);
   const cap = Math.max(0, a.amountMinor - claimedApproved);
-  /* D77: a rental on the escrow rail is paid into escrow from the renter's balance, not by card. */
-  const rentRail = a.kind === "rent" && a.status === "approved" && a.role === "renter" ? await readAgreementRail(a.id) : null;
+  /* D77 and ruling 2 (13 October 2026): a deal on the escrow rail (a rental,
+     or a shortlet stay whose payer kept escrow) is paid into escrow, not by
+     card. The rail is the database's, with the payer's choice applied. */
+  const payRail = a.status === "approved" && a.role === "renter" ? await readAgreementRail(a.id) : null;
   const payHref =
-    rentRail === "escrow"
+    payRail === "escrow"
       ? `/agreements/${a.id}/fund`
       : a.kind === "rent" && a.inspectionId
         ? `/rent/pay/${a.inspectionId}`
@@ -143,8 +148,11 @@ export default async function AgreementPage({
   const words = t.experienceMoney.agreements;
   const pw = words.page;
   const LINES = termLines(t);
-  /* D68d step 8: a protected payment held by the provider has its own page. */
-  const held = a.kind === "rent" ? await readHeldPayment(a.id) : null;
+  /* D68d step 8: a protected payment held by the provider has its own page
+     (a rental, or since ruling 2 a shortlet stay paid into escrow). */
+  const held = await readHeldPayment(a.id);
+  /* Ruling 2: the payment step's choice, escrow or card, for the payer. */
+  const payChoice = a.status === "approved" && party && held?.state !== "ready" ? await readAgreementPayChoice(a.id) : null;
   const [since, record] = await Promise.all([
     party && (a.status === "awaiting_parties" || a.status === "rejected") && !a.youConfirmedCurrent
       ? readChangesSinceConfirmed({
@@ -464,7 +472,14 @@ export default async function AgreementPage({
 
       {a.status === "approved" && held?.state !== "ready" ? (
         <Section title={AGREEMENT_PAYMENT_OPEN_TITLE}>
-          {a.role === "renter" && payHref ? (
+          {a.role === "renter" && payChoice ? (
+            <PayChoiceCard
+              copy={t.payChoice}
+              choice={payChoice}
+              agreement={{ id: a.id, kind: a.kind, bookingId: a.bookingId ?? null, inspectionId: a.inspectionId ?? null }}
+              here={`/agreements/${a.id}`}
+            />
+          ) : a.role === "renter" && payHref ? (
             <Link href={payHref} className="nf-btn nf-btn--primary nf-btn--md nf-btn--full" data-testid="agreement-pay">
               {agreementPayLabel(formatMoney(a.amountMinor, locale))}
             </Link>
@@ -473,6 +488,11 @@ export default async function AgreementPage({
               {agreementOwnerApproved(a.kind)}
             </p>
           ) : null}
+          {payChoice && a.role === "renter" ? null : (
+            <p className={`${TYPE.rowMeta} mt-inline`} data-testid="agreement-pay-inside">
+              {PAY_ONLY_THROUGH_VALLO}
+            </p>
+          )}
           {party ? <CancelAgreement agreementId={a.id} /> : null}
         </Section>
       ) : null}

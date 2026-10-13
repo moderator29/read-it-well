@@ -37,10 +37,12 @@ export type UploadCopy = {
  */
 export type RegisterCopy = UploadCopy & {
   success: Dictionary["success"];
+  /* Ruling 6 (13 October 2026): the two ticks before a registration is sent. */
+  payChoice: Pick<Dictionary["payChoice"], "accept">;
 };
 
 export function forRegister(t: Dictionary): RegisterCopy {
-  return { supply: { register: t.supply.register }, success: t.success };
+  return { supply: { register: t.supply.register }, success: t.success, payChoice: { accept: t.payChoice.accept } };
 }
 
 /** The owner's registration: the same, plus the pickers on screen two. */

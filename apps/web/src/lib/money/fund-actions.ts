@@ -47,11 +47,24 @@ export async function fundEscrowPayment(input: { agreementId: string }): Promise
   const held = `/agreements/${agreementId}/held`;
 
   try {
-    /* The renter only, on an approved rental the gate says is payable on escrow. */
-    const { data: agRow } = await db.from("deal_agreements").select("renter_id, kind, status, listing_id").eq("id", agreementId).maybeSingle();
-    const ag = agRow as { renter_id: string; kind: string; status: string; listing_id: string | null } | null;
+    /* The payer only, on an approved rental, or (ruling 2, 13 October 2026) a
+       stay at a listing, that the gate says is payable on escrow. A hotel
+       room is card only. */
+    const { data: agRow } = await db
+      .from("deal_agreements")
+      .select("renter_id, kind, status, listing_id, accommodation_id")
+      .eq("id", agreementId)
+      .maybeSingle();
+    const ag = agRow as {
+      renter_id: string;
+      kind: string;
+      status: string;
+      listing_id: string | null;
+      accommodation_id: string | null;
+    } | null;
     if (!ag || ag.renter_id !== session.user.id) return fail(FUND_REFUSED.not_found!);
-    if (ag.kind !== "rent" || ag.status !== "approved") return fail(FUND_REFUSED.not_payable!);
+    const listingStay = ag.kind === "stay" && ag.listing_id !== null && !ag.accommodation_id;
+    if ((ag.kind !== "rent" && !listingStay) || ag.status !== "approved") return fail(FUND_REFUSED.not_payable!);
     const gate = await session.supabase.rpc("agreement_payable_for" as never, { p_agreement: agreementId } as never);
     const answer = (gate.data as { status?: string; rail?: string } | null) ?? null;
     if (gate.error || !answer) return fail(FUND_REFUSED.unavailable!);
@@ -77,11 +90,12 @@ export async function fundEscrowPayment(input: { agreementId: string }): Promise
     if (arrangement && PAST_FUNDING.has(arrangement.status)) return ok({ next: held, confirming: false });
 
     if (!arrangement || arrangement.status !== "awaiting_payment") {
-      let title = "Rent";
+      const word = listingStay ? "Stay" : "Rent";
+      let title = word;
       if (ag.listing_id) {
         const { data: l } = await db.from("listings").select("title").eq("id", ag.listing_id).maybeSingle();
         const t = (l as { title?: string } | null)?.title;
-        if (t) title = `Rent: ${t}`.slice(0, 120);
+        if (t) title = `${word}: ${t}`.slice(0, 120);
       }
       const opened = await openArrangement(deps, { agreementId, kind: "standard", purpose: title });
       if (opened.outcome === "refused") return fail(refusal(opened.reason));

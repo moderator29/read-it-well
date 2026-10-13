@@ -64,6 +64,7 @@ import {
 import { OPEN_STATUSES } from "../agent/open-application";
 import { otherSideMessage } from "../agent/role-lock";
 import { otherSideHeld } from "../agent/role-lock-read";
+import { withWorkspaceAcceptance } from "../legal/workspace-acceptance";
 
 export type RegistrationFiled = {
   /** The VL-AGT-##### the person quotes to support. */
@@ -265,14 +266,19 @@ function rowFor(
   userId: string,
   email: string | null,
 ): ApplicationInsert {
+  const now = new Date().toISOString();
   const base = {
     user_id: userId,
     email,
     status: "SUBMITTED" as const,
     supply_role: value.role,
     agree_terms: true,
-    submitted_at: new Date().toISOString(),
-  };
+    submitted_at: now,
+    /* Ruling 6: the two ticks the schema demanded, recorded with each version
+       and the moment, as the host publish step records its agreement
+       (`agent_applications.consents`, pending migration pov07). */
+    consents: withWorkspaceAcceptance(null, now),
+  } as ApplicationInsert & { consents: Record<string, unknown> };
 
   if (value.role === "owner") {
     return {

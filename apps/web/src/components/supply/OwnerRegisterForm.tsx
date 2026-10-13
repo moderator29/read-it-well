@@ -21,6 +21,7 @@ import { submitSupplyRegistration } from "@/lib/supply/registration-actions";
 import { RegField, RegFieldGroup } from "./RegisterField";
 import { CalmPanel, RegisterDone, RegisterShell } from "./RegisterShell";
 import { RegistrationFiledSheet } from "./RegistrationFiledSheet";
+import { WorkspaceAcceptance } from "@/components/legal/WorkspaceAcceptance";
 import { UploadCard, newBatchId, type UploadState } from "./UploadCard";
 
 /**
@@ -125,6 +126,9 @@ export function OwnerRegisterForm({
     attached: boolean;
   } | null>(null);
   const [pending, startTransition] = useTransition();
+  /* Ruling 6 (13 October 2026): the two ticks before this is sent. */
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [acceptPay, setAcceptPay] = useState(false);
 
   const loadLgas = useCallback(async (code: string) => {
     if (code === "" || loadedState.current === code) return;
@@ -191,7 +195,7 @@ export function OwnerRegisterForm({
   function blocked(): boolean {
     if (step === 0) return fullName.trim().length < 2 || phone.trim() === "";
     if (step === 1) return stateCode === "" || lgaCode === "";
-    if (step === 2) return held === null;
+    if (step === 2) return held === null || !acceptTerms || !acceptPay;
     return false;
   }
 
@@ -214,6 +218,8 @@ export function OwnerRegisterForm({
         ownershipDocument: held,
         /* A document goes only with an answer that names one. */
         ownershipPath: held !== "none" ? (proof?.path ?? "") : "",
+        acceptTerms,
+        acceptPayOnVallo: acceptPay,
       });
       if (!result.ok) {
         setErrors(result.fieldErrors ?? {});
@@ -447,6 +453,17 @@ export function OwnerRegisterForm({
       }}
     >
       {screen.body}
+      {step === 2 ? (
+        <WorkspaceAcceptance
+          className="mt-md"
+          copy={t.payChoice}
+          terms={acceptTerms}
+          pay={acceptPay}
+          onTerms={setAcceptTerms}
+          onPay={setAcceptPay}
+          showError={Boolean(errors.acceptTerms || errors.acceptPayOnVallo)}
+        />
+      ) : null}
     </RegisterShell>
   );
 }

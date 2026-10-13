@@ -24,7 +24,7 @@ export async function readFundPayment(agreementId: string): Promise<FundRead> {
   try {
     const { data: agRow, error } = await db
       .from("deal_agreements")
-      .select("id, kind, status, renter_id, owner_id, amount_minor, listing_id, terms")
+      .select("id, kind, status, renter_id, owner_id, amount_minor, listing_id, accommodation_id, terms")
       .eq("id", agreementId)
       .maybeSingle();
     if (error) return { state: "unavailable" };
@@ -36,6 +36,7 @@ export async function readFundPayment(agreementId: string): Promise<FundRead> {
       owner_id: string;
       amount_minor: number;
       listing_id: string | null;
+      accommodation_id: string | null;
       terms: Record<string, unknown> | null;
     };
     const viewerIsRenter = ag.renter_id === session.user.id;
@@ -63,6 +64,7 @@ export async function readFundPayment(agreementId: string): Promise<FundRead> {
       facts: {
         viewerIsRenter,
         kind: ag.kind,
+        listingStay: ag.kind === "stay" && ag.listing_id !== null && !ag.accommodation_id,
         agreementStatus: ag.status,
         payable: typeof gate?.status === "string" ? gate.status : null,
         rail,
@@ -72,7 +74,13 @@ export async function readFundPayment(agreementId: string): Promise<FundRead> {
         placeTitle: (listing.data as { title?: string } | null)?.title || "Your home",
         counterpartName:
           (counterpart.data as { display_name?: string | null } | null)?.display_name || (viewerIsRenter ? "The lister" : "The renter"),
-        moveIn: typeof ag.terms?.move_in === "string" ? (ag.terms.move_in as string) : null,
+        /* A stay's escrow is bounded by its check-in, a rental's by its move-in. */
+        moveIn:
+          typeof ag.terms?.move_in === "string"
+            ? (ag.terms.move_in as string)
+            : typeof ag.terms?.check_in === "string"
+              ? (ag.terms.check_in as string)
+              : null,
         balance,
       },
     };

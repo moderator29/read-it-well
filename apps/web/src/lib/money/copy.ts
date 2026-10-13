@@ -1064,4 +1064,51 @@ export const FUND_REFUSED: Record<string, string> = {
   move_in_unreadable: "The agreement has no move-in date Payluk can hold it against. Ask the lister to add one.",
   provider_refused: "Payluk did not take the payment. Check that your balance covers it; nothing has moved.",
   unavailable: "That could not be done just now. Nothing has been taken; try again in a moment.",
+  /* pov05: the payer chose card, so this deal is never also held. */
+  not_escrow: "This payment is set to Pay by card, not escrow. Nothing has been taken. Go back to choose escrow.",
 };
+
+/* A stay at a listing paid into escrow (ruling 2, 13 October 2026): the same
+   steps, in a guest's words. */
+export const FUND_STEPS_STAY: readonly { title: string; body: string }[] = [
+  { title: "You pay it in", body: "The price of the stay, and nothing more." },
+  { title: "Payluk holds it", body: "The host can see it is there, and cannot touch it." },
+  { title: "You confirm your check-in", body: "Only your swipe releases it to the host." },
+];
+
+/* -------------------------------------------------------------------------- */
+/* PAY ON VALLO (founder rulings, 13 October 2026)                            */
+/* -------------------------------------------------------------------------- */
+/*
+ * Every payment for a deal happens inside Vallo, and Vallo never holds it.
+ * On a rent or a shortlet the payer picks, at the payment step, escrow (the
+ * default) or card (`lib/payments/rail-choice.ts`); a sale is escrow only; a
+ * hotel room is card only. The option labels are in `payChoice` in
+ * `@vallo/i18n`; the sentences about where the money goes are here.
+ */
+
+/** The one calm line where people decide: the listing, a chat about money, the agreement before payment. */
+export const PAY_ONLY_THROUGH_VALLO = "Pay only through Vallo. Payments made outside Vallo are not covered.";
+
+/** Under "Escrow" on the payment step: who holds it, and until when. */
+export const PAY_CHOICE_ESCROW_REASON =
+  "A licensed partner holds your money until you confirm the deal, then pays the lister. Vallo never holds it.";
+
+/** Under "Pay by card" on the payment step: where it goes, and when. */
+export const PAY_CHOICE_CARD_REASON =
+  "Your card is charged now, and the lister's share goes straight to their bank account in the same payment.";
+
+/** A purchase: escrow is the only way, said rather than asked. */
+export const PAY_CHOICE_SALE_ONLY =
+  "A purchase is always paid into escrow, so the money moves only when the deal is confirmed.";
+
+/** A hotel room: card at the price shown, said rather than asked. */
+export const PAY_CHOICE_ROOM_ONLY = "A hotel room is paid by card at the price shown, with nothing added.";
+
+/**
+ * For a hotel (ruling 3): Vallo's fee on a paid room, from the hotel's share.
+ * `percentText` is formatted from the rate (`bpsAsPercentText`), never typed.
+ */
+export function hotelRoomFeeSentence(percentText: string): string {
+  return `When a guest pays for a room, Vallo's fee is ${percentText} of the charge, taken from your share. The guest pays the price you set, with nothing added, and there is no fee on a booking that is not paid.`;
+}
