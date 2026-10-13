@@ -3840,7 +3840,7 @@
   /* The dock is `lg:hidden` (1024 and up it is in the tree but not drawn),
      so the rule stops at the same edge. */
   @media (max-width: 1023.98px) {
-    :root:has(.nf-tab--switch) .nf-bloom:not([data-open]) {
+    :root:has(.nf-dock-create) .nf-bloom:not([data-open]) {
       display: none;
     }
   }

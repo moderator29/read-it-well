@@ -6,8 +6,9 @@ import { describe, expect, it } from "vitest";
  * The navigation upgraded in place (Session 3, Stage 2; north star sections
  * 6 and 15.5). The dock and the rail keep their slots and structure; these
  * pin the upgrade: the Island material, the spring, 12px/600 labels, cyan
- * counts, the 52px centre turning a quarter into its own close, the current
- * row's bar-and-tint (never a glow) and the collapsed 72px rail.
+ * counts, the round "+" at the right end turning a quarter into its own
+ * close (it was the capsule's centre until the 13 October 2026 swap), the
+ * current row's bar-and-tint (never a glow) and the collapsed 72px rail.
  */
 const APP = join(__dirname, "../../app");
 const css = readFileSync(join(APP, "css/nav-island.css"), "utf8");
@@ -15,6 +16,8 @@ const globals = readFileSync(join(APP, "globals.css"), "utf8");
 const rail = readFileSync(join(__dirname, "AppRail.tsx"), "utf8");
 const tree = readFileSync(join(__dirname, "NavTree.tsx"), "utf8");
 const dock = readFileSync(join(__dirname, "CreateDock.tsx"), "utf8");
+const bar = readFileSync(join(__dirname, "MobileTabBar.tsx"), "utf8");
+const shell = readFileSync(join(APP, "css/shell-m.css"), "utf8");
 
 const rule = (selector: string) => {
   const at = css.indexOf(`${selector} {`);
@@ -50,10 +53,30 @@ describe("the dock", () => {
     expect(label).toContain("font-weight: 600");
   });
 
-  it("draws a 52px centre that turns a quarter into its own close", () => {
-    expect(rule(".nf-dock-plus")).toMatch(/width: 3\.25rem;\s*height: 3\.25rem;/);
-    expect(css).toMatch(/\[aria-expanded="true"\] \.nf-dock-plus \{\s*transform: rotate\(90deg\);/);
+  it("draws the round \"+\" at the right end, 60px, that turns a quarter into its own close", () => {
+    /* It fills the round button, which is `--nf-dock-round` (60px; 52px under 380px). */
+    expect(rule(".nf-dock-plus")).toMatch(/width: var\(--nf-dock-round, 3\.75rem\);\s*height: var\(--nf-dock-round, 3\.75rem\);/);
+    expect(shell).toMatch(/\.nf-dockrow \{\s*--nf-dock-round: 3\.75rem;/);
+    expect(shell).toMatch(/max-width: 379\.98px\) \{\s*\.nf-dockrow \{\s*--nf-dock-round: 3\.25rem;/);
+    expect(css).toMatch(/\.nf-dock-create\[aria-expanded="true"\] \.nf-dock-plus \{\s*transform: rotate\(90deg\);/);
     expect(dock).toContain("nf-dock-plus__glyph--close");
+    expect(dock).toContain('className="nf-dock-create"');
+  });
+
+  it("keeps the menu in the capsule's centre slot and opens its tray centred above the capsule", () => {
+    /* The swap (13 October 2026): the menu is a slot of the capsule... */
+    expect(bar).toMatch(/<li key="menu" className="nf-tab nf-tab--switch">\s*<DockMore/);
+    /* ...and the "+" is the control after the capsule, in the round slot. */
+    expect(bar.indexOf("</ul>")).toBeLessThan(bar.indexOf('className="nf-dockcreate"'));
+    /* Nothing in the slot is a positioned box, so the tray anchors to the capsule. */
+    expect(shell).toMatch(/\.nf-tabbar \.nf-tab--switch \{\s*position: static;/);
+    expect(shell).toMatch(/\.nf-dockmore \{\s*position: static;/);
+    /* Centred on the capsule, never leaving the dock row, never wider than 24rem. */
+    expect(shell).toContain("--nf-tray-w: min(24rem, var(--nf-tray-row));");
+    expect(shell).toMatch(/left: clamp\(\s*calc\(var\(--nf-tray-w\) \/ 2\),\s*50%,/);
+    expect(shell).toContain("translate: -50% 0;");
+    /* A blur nested in the capsule's blur sees nothing, so the tray draws none. */
+    expect(css).toMatch(/\.nf-dockmore__tray \{\s*-webkit-backdrop-filter: none;\s*backdrop-filter: none;/);
   });
 
   it("counts in cyan, never red or orange", () => {

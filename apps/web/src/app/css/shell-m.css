@@ -381,24 +381,14 @@
 
   /* ----------------------------------------------- the sixth slot and tray */
 
+  /* The menu lives in the capsule's centre slot now (see "THE DOCK SWAP", at
+     the foot of this file, for its container, its tray and the "+"). */
   .nf-dockmore {
-    position: relative;
-    flex: none;
-  }
-  .nf-dockmore__button {
-    position: relative;
-    width: 3.5rem;
-    height: 3.5rem;
-  }
-  .nf-dockmore__button[data-lit] {
-    color: var(--nf-brand-primary);
-  }
-  .nf-dockmore[data-open] .nf-dockmore__button {
-    background: var(--nf-brand-primary);
-    color: var(--nf-content-on-brand);
-    box-shadow:
-      var(--nf-glow-edge),
-      0 0 22px -4px var(--nf-glow-3);
+    position: static;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
   }
   .nf-dockmore__icon {
     position: absolute;
@@ -423,18 +413,18 @@
   }
 
   /*
-   * THE TRAY rises out of the sixth slot: anchored to the right edge of the
-   * dock row and opening upward from the button, so the eye follows the
-   * finger. Four across, icon over word, each tile at least 64px tall.
+   * THE TRAY rises out of the menu: it opens upward from the capsule, centred
+   * above it (13 October 2026; it opened from the bottom right while the menu
+   * was the round button at the right end), so the eye follows the finger.
+   * Four across, icon over word, each tile at least 64px tall. Its anchor and
+   * width are in "THE DOCK SWAP" at the foot of this file.
    */
   .nf-dockmore__tray {
     position: absolute;
-    right: 0;
     bottom: calc(100% + var(--nf-space-sm));
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: var(--nf-space-2xs);
-    width: min(calc(100vw - 2rem), 24rem);
     padding: var(--nf-space-sm);
     border-radius: var(--nf-radius-2xl);
     border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-content-primary) 12%, transparent);
@@ -444,7 +434,7 @@
     box-shadow:
       inset 0 1px 0 var(--nf-glass-rim-thin),
       var(--nf-elevation-dialog);
-    transform-origin: calc(100% - 1.75rem) 100%;
+    transform-origin: 50% 100%;
     animation: nf-m-tray var(--nf-duration-slow) var(--nf-ease-spring) both;
   }
   .nf-dockmore__tray[hidden] {
@@ -813,12 +803,12 @@
   }
 
   /*
-   * THE CENTRE "+": BIGGER, AND A LIGHT RUNS ROUND ITS RIM (the founder,
-   * 29 September 2026: "a bit bigger, clean and premium, glowing, with the
-   * same moving snake edge light" as the logo pill).
+   * THE "+", AT THE RIGHT END SINCE 13 OCTOBER 2026 (it stood in the capsule's
+   * centre until the founder's swap with the menu): BIGGER, AND A LIGHT RUNS
+   * ROUND ITS RIM (the founder, 29 September 2026: "a bit bigger, clean and
+   * premium, glowing, with the same moving snake edge light" as the logo pill).
    *
-   * 50px, and it was 44: still inside the 56px tab, so the capsule does not
-   * grow, and the whole fifth of the row stays the target. The rim light is
+   * The disc fills the round button (`.nf-dock-create`, 60px). The rim light is
    * the retired logo pill's (D82): a conic of two short arcs turned by the registered
    * angle `--nf-logo-lap` on the `nf-logo-lap` keyframes, both declared once
    * in light.css ("THE LOGO") and not repeated here. The keyframes are not
@@ -826,12 +816,22 @@
    * saving, and the Calm or Off motion setting the lap stops and the rim is
    * a steady glow instead (below).
    */
-  .nf-tab__link--create {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
+  .nf-dock-create {
+    position: relative;
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: var(--nf-dock-round, 3.75rem);
+    height: var(--nf-dock-round, 3.75rem);
     padding: 0;
+    border: 0;
+    border-radius: var(--nf-radius-circle);
+    background: none;
+    cursor: pointer;
+  }
+  .nf-dock-create .nf-dock-plus {
+    width: 100%;
+    height: 100%;
   }
   .nf-dock-plus {
     position: relative;
@@ -890,17 +890,17 @@
      */
     animation: nf-logo-lap 5s linear 2 both;
   }
-  .nf-tab__link--create:active .nf-dock-plus {
-    transform: scale(0.9);
+  .nf-dock-create:active .nf-dock-plus {
+    transform: scale(0.94);
     box-shadow:
       inset 0 1px 0 color-mix(in oklab, var(--nf-content-on-brand) 30%, transparent),
       0 0 0 3px color-mix(in oklab, var(--nf-brand-primary) 22%, transparent),
       0 2px 8px -4px var(--nf-glow-3);
   }
-  .nf-tab__link--create:focus-visible {
+  .nf-dock-create:focus-visible {
     outline: none;
   }
-  .nf-tab__link--create:focus-visible .nf-dock-plus {
+  .nf-dock-create:focus-visible .nf-dock-plus {
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
     outline-offset: 3px;
   }
@@ -922,17 +922,11 @@
     background: color-mix(in oklab, var(--nf-content-on-brand) 45%, transparent);
   }
 
-  /* The round More button: the capsule's glass, the glyph at full ink. */
+  /* The round glass island (`.nf-dock-island`) has no user left: the menu moved
+     into the capsule and the right end is the brand "+". Its rules stay in
+     chrome.css, edge-m.css and light.css until a sweep takes them out. */
   .nf-dock-island {
     color: var(--nf-content-primary);
-  }
-  .nf-dockmore[data-open] .nf-dockmore__button {
-    border-color: color-mix(in oklab, var(--nf-container-ink) 62%, transparent);
-    background: linear-gradient(
-      180deg,
-      color-mix(in oklab, var(--nf-container-ink) 58%, var(--nf-surface-canvas)) 0%,
-      color-mix(in oklab, var(--nf-container-ink) 34%, var(--nf-surface-canvas)) 100%
-    );
   }
 
   /* THE TRAY: the same glass, a clean grid of line glyphs. */
@@ -987,8 +981,8 @@
     .nf-tabbar .nf-tab__link {
       transition: none;
     }
-    .nf-tab__link--create:active .nf-dock-plus,
-    .nf-tab__link--create[aria-expanded="true"] .nf-dock-plus {
+    .nf-dock-create:active .nf-dock-plus,
+    .nf-dock-create[aria-expanded="true"] .nf-dock-plus {
       transform: none;
     }
   }
@@ -997,7 +991,7 @@
   :root:is([data-motion="calm"], [data-motion="off"]) .nf-tabbar .nf-tab__link {
     transition: none;
   }
-  :root:is([data-motion="calm"], [data-motion="off"]) :is(.nf-tab__link--create:active, .nf-tab__link--create[aria-expanded="true"]) .nf-dock-plus {
+  :root:is([data-motion="calm"], [data-motion="off"]) :is(.nf-dock-create:active, .nf-dock-create[aria-expanded="true"]) .nf-dock-plus {
     transform: none;
   }
 }
@@ -1142,20 +1136,6 @@
 
   .nf-tabbar .nf-tab__link:active {
     transform: scale(0.94);
-  }
-
-  /* The round More button: the capsule's height. */
-  .nf-dockmore__button {
-    width: 3.5rem;
-    height: 3.5rem;
-  }
-
-  /* Narrow phones (under 380): a smaller More button. */
-  @media (max-width: 379.98px) {
-    .nf-dockmore__button {
-      width: 3rem;
-      height: 3rem;
-    }
   }
 
   /* THE UNREAD COUNT on the More button (see DockMore). */
@@ -1359,15 +1339,127 @@
   .nf-tabbar .nf-tab__link {
     height: 3.75rem;
   }
-  .nf-dockmore__button,
-  .nf-dock-island {
-    width: 3.75rem;
-    height: 3.75rem;
+}
+
+/*
+ * THE DOCK SWAP (the founder, 13 October 2026): THE MENU IS IN THE CAPSULE'S
+ * CENTRE, THE "+" IS THE ROUND BUTTON AT THE RIGHT END.
+ *
+ *  - THE MENU in the centre slot: the grid glyph sits in line with Home,
+ *    Search, Feed and Profile, on the same baseline, inside a round container
+ *    (the container the centre slot has always had, so it still reads as the
+ *    special one): the dock's own tint with a brand ring and a faint bloom at
+ *    rest, solid brand blue with the close mark while the tray is open, and
+ *    the brand ink on the ring when the route is one of the tray's
+ *    destinations (`data-lit`). 52px, the slot's own width, so the travelling
+ *    pill's arithmetic (one slot per tab, the centre one included) is
+ *    untouched, and the unread count rides its corner.
+ *  - THE TRAY opens centred above the capsule. Its anchor is the capsule (the
+ *    nearest positioned box: `.nf-tabbar` is `position: relative` and
+ *    `container-type` gives it layout containment), its width is 24rem or the
+ *    whole dock row (the capsule, the gap and the round button), whichever is
+ *    smaller, and its centre is the capsule's centre, clamped so the tray
+ *    never leaves the row on a phone. At 390px it is the row's full width.
+ *  - THE "+" at the right end: 60px, brand blue, its glow and its running rim
+ *    (above), opening the Create sheet. 52px under 380px.
+ * The row's width arithmetic reads `--nf-dock-round`, so the button and the
+ * tray cannot disagree about it.
+ */
+@layer components {
+  .nf-dockrow {
+    --nf-dock-round: 3.75rem;
   }
   @media (max-width: 379.98px) {
-    .nf-dockmore__button {
-      width: 3.25rem;
-      height: 3.25rem;
+    .nf-dockrow {
+      --nf-dock-round: 3.25rem;
     }
+  }
+  .nf-dockcreate {
+    display: flex;
+    flex: none;
+    align-items: center;
+  }
+
+  /* The slot holds the menu; nothing in it is a positioned box, so the tray
+     anchors to the capsule. */
+  .nf-tabbar .nf-tab--switch {
+    position: static;
+    flex: 0 0 3.25rem;
+    min-width: 3.25rem;
+  }
+
+  .nf-dockmore__button {
+    position: relative;
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 3.25rem;
+    height: 3.25rem;
+    padding: 0;
+    border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-brand-primary) 46%, transparent);
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-dock-pill);
+    color: var(--nf-dock-glyph);
+    cursor: pointer;
+    box-shadow:
+      inset 0 1px 0 color-mix(in oklab, var(--nf-content-primary) 10%, transparent),
+      0 0 14px -6px var(--nf-glow-3);
+    transition:
+      transform var(--nf-duration-press) var(--nf-ease-press),
+      color var(--nf-duration-fast) var(--nf-ease-standard),
+      background-color var(--nf-duration-fast) var(--nf-ease-standard),
+      border-color var(--nf-duration-fast) var(--nf-ease-standard),
+      box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-dockmore__button:active {
+    transform: scale(0.94);
+  }
+  .nf-dockmore__button:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  /* On a destination in the tray: the ring and the glyph take the brand ink. */
+  .nf-dockmore__button[data-lit] {
+    border-color: var(--nf-dock-ink-on, var(--nf-brand-quiet));
+    color: var(--nf-dock-ink-on, var(--nf-brand-quiet));
+  }
+  /* Open: solid brand blue, the close mark in the on-brand ink. */
+  .nf-dockmore[data-open] .nf-dockmore__button {
+    border-color: var(--nf-brand-primary);
+    background: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+    box-shadow:
+      inset 0 1px 0 color-mix(in oklab, var(--nf-content-on-brand) 36%, transparent),
+      0 0 18px -4px var(--nf-glow-4);
+  }
+
+  /* The tray: centred above the capsule. `--nf-tray-row` is the whole dock
+     row's width in the capsule's own terms (the capsule, the gap, the "+"). */
+  .nf-dockmore__tray {
+    --nf-tray-row: calc(100% + var(--nf-dock-round, 3.75rem) + var(--nf-space-md));
+    --nf-tray-w: min(24rem, var(--nf-tray-row));
+    right: auto;
+    left: clamp(
+      calc(var(--nf-tray-w) / 2),
+      50%,
+      calc(var(--nf-tray-row) - var(--nf-tray-w) / 2)
+    );
+    width: var(--nf-tray-w);
+    translate: -50% 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-dockmore__button {
+      transition: none;
+    }
+    .nf-dockmore__button:active {
+      transform: none;
+    }
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-dockmore__button {
+    transition: none;
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-dockmore__button:active {
+    transform: none;
   }
 }

@@ -31,7 +31,20 @@ export type ShellDictionary = Pick<Dictionary, "a11y" | "common" | "nav" | "side
   >;
   /** The Rewards row's label is the Rewards page's own title, so the two cannot drift. */
   experienceRewards: Pick<Dictionary["experienceRewards"], "title">;
+  /** The Create sheet's top-level options and their short lines (the "+" at the dock's right end). */
+  homeV2: Pick<Dictionary["homeV2"], (typeof CREATE_KEYS)[number]>;
 };
+
+const CREATE_KEYS = [
+  "createStory",
+  "createStorySub",
+  "createPost",
+  "createPostSub",
+  "createList",
+  "createListSub",
+  "createStay",
+  "createStaySub",
+] as const;
 
 /** The workspace switcher's lines. */
 const SUPPLY_KEYS = [
@@ -79,6 +92,7 @@ export function shellDictionary(t: Dictionary): ShellDictionary {
       navLeaderboard: t.experienceShell.navLeaderboard,
     },
     experienceRewards: { title: t.experienceRewards.title },
+    homeV2: Object.fromEntries(CREATE_KEYS.map((key) => [key, t.homeV2[key]])) as ShellDictionary["homeV2"],
   };
   cache.set(t, shell);
   return shell;

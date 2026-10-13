@@ -218,15 +218,30 @@
       inset 0 -1px 0 color-mix(in oklab, var(--nf-brand-primary) 5%, transparent),
       var(--nf-dock-drop);
   }
-  /* The tray's words: brand blue. The round More button's glyph is the
-     tabs' resting blue (F-h), full brand when lit or open. */
+  /* The tray's words: brand blue. The menu's glyph in the capsule is the
+     tabs' resting blue (F-h), full brand when lit or open. The tray is solid
+     white by day (it stands inside the capsule, so it draws no blur): its
+     fills are the capsule's own at full strength. */
   :root[data-theme="light"] .nf-dockmore__label:not(:where([data-theme="dark"] *)) {
     color: var(--nf-brand-primary);
+  }
+  :root[data-theme="light"] .nf-dockmore__tray:not(:where([data-theme="dark"] *)) {
+    --nf-dock-fill-top: var(--nf-surface-primary);
+    --nf-dock-fill-foot: color-mix(in oklab, var(--nf-brand-primary) 2%, var(--nf-surface-primary));
+    /* A hairline, so the solid white tray has a sharp edge on the warm page. */
+    border-color: color-mix(in oklab, var(--nf-brand-primary) 14%, transparent);
   }
   :root[data-theme="light"] .nf-dock-island:not(:where([data-theme="dark"] *)) {
     color: var(--nf-dock-glyph);
   }
+  /* The menu's container by day: a whisper of brand on the white capsule, a
+     brand ring, no bloom (a glow on white reads as a haze). */
+  :root[data-theme="light"] .nf-dockmore__button:not(:where([data-theme="dark"] *)) {
+    border-color: color-mix(in oklab, var(--nf-brand-primary) 30%, transparent);
+    box-shadow: none;
+  }
   :root[data-theme="light"] .nf-dockmore__button[data-lit]:not(:where([data-theme="dark"] *)) {
+    border-color: var(--nf-brand-primary);
     color: var(--nf-brand-primary);
   }
   /* F-h: the header's bare menu glyph and the workspace bar's panel toggle
@@ -243,15 +258,13 @@
   :root[data-theme="light"] :is(.nf-tabbar, .nf-dock-island):not(:where([data-theme="dark"] *))::before {
     display: none;
   }
-  /* The round More button, open: it stays white, its close mark blue, with
-     a brand ring so the open state is still seen. */
+  /* The menu, open: solid brand blue with the close mark in the on-brand ink,
+     and a soft brand drop rather than a night bloom. */
   :root[data-theme="light"] .nf-dockmore[data-open] .nf-dockmore__button:not(:where([data-theme="dark"] *)) {
-    border-color: color-mix(in oklab, var(--nf-brand-primary) 45%, transparent);
-    background: var(--nf-surface-primary);
-    color: var(--nf-brand-primary-strong);
-    box-shadow:
-      0 0 0 3px color-mix(in oklab, var(--nf-brand-primary) 14%, transparent),
-      var(--nf-dock-drop);
+    border-color: var(--nf-brand-primary);
+    background: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+    box-shadow: 0 6px 14px -6px color-mix(in oklab, var(--nf-brand-primary) 70%, transparent);
   }
   /* The tray's glyph tiles: a whisper of brand on white, the glyph blue. */
   :root[data-theme="light"] .nf-dockmore__glyph:not(:where([data-theme="dark"] *)) {

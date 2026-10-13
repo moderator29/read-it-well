@@ -6210,6 +6210,42 @@ export const en = {
     },
   },
 
+  /* Home, version two (13 October 2026): the section names, the real reason
+     line under a best match, the empty states, the loading labels and the map
+     credit control. Every reason is read from the person's own signals. */
+  homeV2: {
+    premiumTitle: "Premium listings",
+    featuredTitle: "Featured listings",
+    bestTitle: "Best matches",
+    newTitle: "New listings",
+    reasonSearch: "Matches your saved search: {label}",
+    reasonInterest: "You said you came for {kind}",
+    reasonSaved: "Like places you saved in {area}",
+    bestEmptyTitle: "Tell us what you are looking for",
+    bestEmptyBody:
+      "Best matches come from what you said you came for, your saved searches and the places you save. Add one and they show up here.",
+    bestEmptyAction: "Choose what you came for",
+    bestEmptySearch: "Save a search",
+    bestNoneTitle: "No matches yet",
+    bestNoneBody: "Nothing listed right now fits what you told us. This row updates as new listings are published.",
+    newEmptyTitle: "No new listings yet",
+    newEmptyBody: "New listings appear here the day they are published, newest first.",
+    loadingFeatured: "Loading featured listings",
+    loadingBest: "Loading your best matches",
+    loadingNew: "Loading new listings",
+    photoOf: "Photo {at} of {count}",
+    priceFrom: "from",
+    createStory: "Post to story",
+    createStorySub: "Share a moment from a place",
+    createPost: "Post to feed",
+    createPostSub: "Say something about a place you know",
+    createList: "List a property",
+    createListSub: "Rent it out or sell it",
+    createStay: "Create a stay listing",
+    createStaySub: "A room or a whole place for guests",
+    mapCredits: "Map credits",
+  },
+
 };
 
 /**
