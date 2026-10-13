@@ -6,7 +6,7 @@ import { ROUTE_FAILURE_LIMITS, countRouteFailure } from "@/lib/security/money-li
 import { recordAlert } from "@/lib/alerts";
 import { decidePaymentEvent } from "@/lib/money/balance-events";
 import { adminDb, observe, type Db } from "@/lib/money/member-wallet";
-import { applyArrangementWebhook, arrangementsLive } from "@/lib/money/provider-arrangements";
+import { applyArrangementWebhook, arrangementsRecordable } from "@/lib/money/provider-arrangements";
 import { paylukContext } from "@/lib/payments/providers/payluk";
 import { lagosToday } from "@/lib/bookings/schema";
 
@@ -130,11 +130,14 @@ export async function POST(request: Request): Promise<NextResponse> {
     return answer({ received: true, ignored: "environment_mismatch" });
   }
   if (event.family === "escrow") {
-    /* D73 Part B (phases 11 and 12): with the arrangement flows built and
-       `payments_payluk_on` on (D77), escrow.* moves Vallo's record of the
-       protected payment; otherwise it is recorded and parked, as before. */
+    /* D73 Part B (phases 11 and 12): escrow.* moves Vallo's record of the
+       protected payment whenever a key is configured. Recording is never
+       gated by `payments_payluk_on` or PAYMENTS_KILL_PAYLUK (kill-switch.ts:
+       money already held must still be recorded); before 13 October 2026 it
+       was, so an event during an outage was parked as ignored and never
+       retried. */
     const ctx = paylukContext();
-    if (!ctx || !(await arrangementsLive(db))) {
+    if (!ctx || !arrangementsRecordable()) {
       await finish("ignored", "escrow_flows_not_built");
       return answer({ received: true, ignored: event.family });
     }

@@ -36,8 +36,12 @@ import {
   createStandardArrangement,
   findArrangement,
   fundArrangement,
+  openDispute,
   parseArrangement,
   readArrangement,
+  resolveDispute,
+  withdrawArrangement,
+  type DisputeOutcome,
   type PaylukArrangement,
 } from "../payments/providers/payluk-arrangements";
 import type { RailFailure } from "../payments/provider";
@@ -98,6 +102,17 @@ export async function arrangementsLive(db: Db, env: Readonly<Record<string, stri
   return !error && (data as { enabled?: boolean } | null)?.enabled === true;
 }
 
+/**
+ * Whether the partner's reports can be RECORDED: a key for this deployment,
+ * nothing else. Recording is never gated by the switch or the outage stop
+ * (kill-switch.ts: "never gate verify, webhooks or reconciliation: money
+ * already taken must still be recorded"), so an `escrow.*` webhook or a
+ * read-back during an outage still lands on Vallo's record.
+ */
+export function arrangementsRecordable(env: Readonly<Record<string, string | undefined>> = process.env): boolean {
+  return PAYLUK_ESCROW_FLOWS_BUILT && paylukMerchantConfig(env) !== null;
+}
+
 async function loadRow(db: Db, column: "id" | "provider_arrangement_id" | "reference", value: string): Promise<ArrangementRow | null> {
   const { data, error } = await db.from("provider_arrangements").select(ROW).eq(column, value).maybeSingle();
   if (error || !data) return null;
@@ -152,7 +167,31 @@ async function observeProvider(
 ): Promise<ObserveVerdict | "unmapped"> {
   const to = valloStateFor(seen.state, seen.status);
   if (!to) return "unmapped";
-  return observe(deps, row, to, source, seen, { eventKey });
+  const verdict = await observe(deps, row, to, source, seen, { eventKey });
+  if (verdict === "changed" && to === "refunded") await unwindStayAfterRefund(deps, row);
+  return verdict;
+}
+
+/**
+ * The partner has returned a stay's money to the payer (a dispute Vallo
+ * resolved as REFUNDED): the stay and its agreement are cancelled through the
+ * database's explicit unwind (`public.partner_hold_unwind_cancel`, pending
+ * migration pov05), which refuses while the partner still holds anything.
+ * A rental has no booking to cancel here. Best effort: a failure raises an
+ * alert for a person, and never undoes the refund already recorded.
+ */
+async function unwindStayAfterRefund(deps: ArrangementDeps, row: ArrangementRow): Promise<void> {
+  const { data } = await deps.db.from("deal_agreements").select("booking_id").eq("id", row.agreement_id).maybeSingle();
+  const bookingId = (data as { booking_id?: string | null } | null)?.booking_id ?? null;
+  if (!bookingId) return;
+  const { data: answer, error } = await deps.db.rpc("partner_hold_unwind_cancel", {
+    p_booking: bookingId,
+    p_note: "Cancelled after the payment partner returned the money to the guest.",
+  });
+  const status = String(answer ?? "");
+  if (error || !["ok", "already_cancelled", "not_open"].includes(status)) {
+    await deps.alert("arrangement.unwind_after_refund_failed", { arrangement_id: row.id, booking_id: bookingId, status: status || "error" });
+  }
 }
 
 /* ------------------------------------------------------------------ open */
@@ -383,4 +422,167 @@ export async function applyArrangementWebhook(deps: ArrangementDeps, data: unkno
   }
   if (!row) return "unknown_arrangement";
   return observeProvider(deps, row, seen, "provider_webhook", eventKey);
+}
+
+/* --------------------------------------------------- withdraw for card */
+
+export type WithdrawOutcome =
+  | { outcome: "withdrawn" | "nothing_to_withdraw" }
+  | { outcome: "refused"; reason: "not_found" | "moving" | "held" | "provider_refused" | "unknown" | "switched_off" | "store" };
+
+/**
+ * The payer moves from escrow to card before paying (founder instruction:
+ * nobody is stranded). An arrangement opened at the partner and never funded
+ * is withdrawn there first (`withdrawArrangement`, seller only, while
+ * `AWAITING_PAYMENT`), so it can never be funded for a deal that is now on
+ * card; only then is Vallo's record closed as cancelled, from the partner's
+ * own answer. Anything that may be moving or is held is never withdrawn here:
+ * the money's position is the partner's to report.
+ */
+export async function withdrawForCard(deps: ArrangementDeps, agreementId: string, actorUserId: string): Promise<WithdrawOutcome> {
+  const { data, error } = await deps.db
+    .from("provider_arrangements")
+    .select(ROW)
+    .eq("agreement_id", agreementId)
+    .not("status", "in", "(failed,cancelled,refunded)")
+    .maybeSingle();
+  if (error) return { outcome: "refused", reason: "store" };
+  if (!data) return { outcome: "nothing_to_withdraw" };
+  const row = { ...(data as ArrangementRow), amount_minor: Number((data as ArrangementRow).amount_minor) };
+  if (row.buyer_user_id !== actorUserId) return { outcome: "refused", reason: "not_found" };
+  if (["protected", "release_requested", "released", "disputed", "split"].includes(row.status)) {
+    return { outcome: "refused", reason: "held" };
+  }
+  if (row.status !== "awaiting_payment" || !row.provider_payment_token) return { outcome: "refused", reason: "moving" };
+  /* Withdrawing is a write at the partner: it needs the key, but not the
+     switch, so a payer is never stranded on escrow while escrow is paused. */
+  if (!arrangementsRecordable()) return { outcome: "refused", reason: "switched_off" };
+  const done = await withdrawArrangement(deps.ctx, row.seller_customer_id, row.provider_payment_token);
+  if (!done.ok) {
+    if (done.kind === "unknown") {
+      await deps.alert("arrangement.withdraw_unknown", { arrangement_id: row.id, reference: row.reference });
+      return { outcome: "refused", reason: "unknown" };
+    }
+    /* Refused (funded meanwhile, or not the seller's) or never sent: read it
+       back so Vallo's record follows the partner. */
+    await resolveArrangement(deps, row);
+    return { outcome: "refused", reason: "provider_refused" };
+  }
+  const verdict = await observe(deps, row, "cancelled", "provider_response", null, {
+    detail: { why: "payer_moved_to_card", actor: actorUserId },
+  });
+  if (verdict !== "changed" && verdict !== "same") return { outcome: "refused", reason: "store" };
+  return { outcome: "withdrawn" };
+}
+
+/* ----------------------------------------------------- staff resolution */
+
+export type ResolveOutcome =
+  | { outcome: "submitted"; to: "refunded" | "released" }
+  | { outcome: "refused"; reason: "not_found" | "not_held" | "provider_refused" | "unknown" | "switched_off" | "store" };
+
+/**
+ * A person at Vallo decides a held payment: back to the payer (REFUNDED) or
+ * on to the lister (COMPLETED). The partner documents one road only (findings,
+ * question 3): the buyer opens a dispute, then the merchant resolves it.
+ * Vallo opens the dispute for the payer (their `customer-id`, which the
+ * merchant key may act for) and resolves it at once. Nothing is recorded as
+ * refunded or released here: the partner's `escrow.refunded` or
+ * `escrow.completed` webhook, or a read-back, does that; the answers of the
+ * two calls are observed as provider responses on the way.
+ */
+export async function staffResolve(
+  deps: ArrangementDeps,
+  arrangementId: string,
+  outcome: DisputeOutcome,
+  note: string,
+  staffUserId: string,
+): Promise<ResolveOutcome> {
+  if (!arrangementsRecordable()) return { outcome: "refused", reason: "switched_off" };
+  const row = await loadRow(deps.db, "id", arrangementId);
+  if (!row || !row.provider_arrangement_id || !row.provider_payment_token) return { outcome: "refused", reason: "not_found" };
+  if (!["protected", "release_requested", "disputed"].includes(row.status)) return { outcome: "refused", reason: "not_held" };
+
+  if (row.status !== "disputed") {
+    const opened = await openDispute(
+      deps.ctx,
+      row.buyer_customer_id,
+      row.provider_payment_token,
+      `Opened by Vallo for the payer: ${note}`.slice(0, 500),
+    );
+    if (!opened.ok) {
+      if (opened.kind === "unknown") {
+        await deps.alert("arrangement.dispute_unknown", { arrangement_id: row.id, reference: row.reference, staff: staffUserId });
+        return { outcome: "refused", reason: "unknown" };
+      }
+      /* "Buyer already submitted Dispute" is fine: the resolve below needs one. */
+      if (!/already submitted/i.test(opened.detail)) return { outcome: "refused", reason: "provider_refused" };
+    } else if (opened.value) {
+      await observeProvider(deps, row, opened.value, "provider_response");
+    }
+  }
+
+  const resolved = await resolveDispute(deps.ctx, row.provider_arrangement_id, outcome, note);
+  if (!resolved.ok) {
+    if (resolved.kind === "unknown") {
+      await deps.alert("arrangement.resolve_unknown", { arrangement_id: row.id, reference: row.reference, staff: staffUserId });
+      return { outcome: "refused", reason: "unknown" };
+    }
+    return { outcome: "refused", reason: "provider_refused" };
+  }
+  const fresh = (await loadRow(deps.db, "id", row.id)) ?? row;
+  if (resolved.value) await observeProvider(deps, fresh, resolved.value, "provider_response");
+  await deps.db.from("audit_log").insert({
+    actor_id: staffUserId,
+    action: outcome === "REFUNDED" ? "arrangement.refund_decided" : "arrangement.release_decided",
+    entity_type: "provider_arrangement",
+    entity_id: row.id,
+    metadata: { reference: row.reference, agreement_id: row.agreement_id, amount_minor: row.amount_minor, note: note.slice(0, 500) },
+  });
+  return { outcome: "submitted", to: outcome === "REFUNDED" ? "refunded" : "released" };
+}
+
+/* ------------------------------------------------------- reconciliation */
+
+/** States in which Vallo waits on the partner's word. */
+export const RECONCILE_STATUSES = ["preparing", "unknown", "payment_processing", "release_requested", "disputed"] as const;
+
+export type ReconcileSummary = { read: number; moved: number; skipped: number; failed: number };
+
+/**
+ * Read back every arrangement still waiting on the partner, oldest
+ * observation first, at most `limit` per run (the key allows 10 requests a
+ * minute across everything, so the budget is small on purpose). The webhook
+ * is the fast path; this catches what it missed (webhooks are best effort,
+ * unordered, and have no failure event on the escrow stream). Recording only:
+ * never gated by the switch.
+ */
+export async function reconcileArrangements(deps: ArrangementDeps, limit = 3): Promise<ReconcileSummary> {
+  const summary: ReconcileSummary = { read: 0, moved: 0, skipped: 0, failed: 0 };
+  if (!arrangementsRecordable()) return summary;
+  /* A create is given two minutes to answer before it is read back. */
+  const settled = new Date(Date.now() - 2 * 60_000).toISOString();
+  const { data, error } = await deps.db
+    .from("provider_arrangements")
+    .select(ROW)
+    .in("status", [...RECONCILE_STATUSES])
+    .lt("updated_at", settled)
+    .order("status_observed_at", { ascending: true, nullsFirst: true })
+    .limit(Math.max(1, Math.min(limit, 5)));
+  if (error || !data) {
+    summary.failed += 1;
+    return summary;
+  }
+  for (const raw of data as ArrangementRow[]) {
+    const row = { ...raw, amount_minor: Number(raw.amount_minor) };
+    summary.read += 1;
+    try {
+      const after = await resolveArrangement(deps, row);
+      if (after !== row.status) summary.moved += 1;
+      else summary.skipped += 1;
+    } catch {
+      summary.failed += 1;
+    }
+  }
+  return summary;
 }

@@ -1049,7 +1049,7 @@ export const FUND_CLOSED = {
   direct: "This deal is paid by card through Paystack, not into escrow.",
   not_approved: "Payment opens once both of you have confirmed the agreement.",
   review_required: "A person at Vallo is looking at this deal before payment opens. Nothing has been taken.",
-  not_live: "Escrow payments open soon. Nothing has been taken.",
+  not_live: "Escrow is paused right now. Nothing has been taken.",
   balance_unreadable: "Wallet could not be read just now. Nothing has been taken; refresh to try again.",
 } as const;
 /** The server's refusals, as the renter reads them. */
@@ -1104,6 +1104,37 @@ export const PAY_CHOICE_SALE_ONLY =
 
 /** A hotel room: card at the price shown, said rather than asked. */
 export const PAY_CHOICE_ROOM_ONLY = "A hotel room is paid by card at the price shown, with nothing added.";
+
+/**
+ * Escrow cannot be used right now (the server reads `protectedRailLive()` as
+ * false: the partner is switched off or unreachable). A rent or shortlet
+ * payer is offered card instead; nothing is charged until they pay.
+ */
+export const PAY_CHOICE_ESCROW_PAUSED =
+  "Escrow is paused right now, so you can pay by card instead. Nothing has been charged.";
+
+/** The same moment on a purchase, where escrow is the only way. */
+export const PAY_CHOICE_ESCROW_PAUSED_SALE =
+  "Escrow is paused right now, and a purchase is only paid into escrow. Nothing has been charged. Try again later.";
+
+/** The payer moved a system-approved deal to card and a risk check asks a person first (pov04). */
+export const PAY_CHOICE_CARD_REVIEW =
+  "A person at Vallo looks at this deal before a card payment opens. Nothing has been charged. You can switch back to escrow and pay now.";
+
+/* The calm fallback from the escrow step to card (founder instruction,
+   13 October 2026: nobody is stranded). */
+export const SWITCH_TO_CARD_LABEL = "Pay by card instead";
+export const SWITCH_TO_CARD_LEAD =
+  "If escrow is not working for you, you can pay this by card. The lister's share goes straight to their bank account.";
+export const SWITCH_TO_CARD_REFUSED: Record<string, string> = {
+  card_not_allowed: "This payment can only go through escrow. Nothing has been charged.",
+  held: "Your money is already with the payment partner, so this is paid. Open the payment to see where it is.",
+  moving: "Your escrow payment is still being confirmed by the payment partner. Nothing is charged twice; check back in a few minutes.",
+  provider_refused: "The payment partner did not let us close the escrow payment, so it may have been paid. Open the payment to see where it is.",
+  unknown: "We could not confirm the escrow payment was closed. Nothing is charged twice; check back in a few minutes.",
+  locked: "A payment for this deal is already moving, so it cannot change now. Nothing is charged twice.",
+  unavailable: "That could not be done just now. Nothing has been charged; try again in a moment.",
+};
 
 /**
  * For a hotel (ruling 3): Vallo's fee on a paid room, from the hotel's share.

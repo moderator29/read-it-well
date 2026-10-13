@@ -9,9 +9,13 @@ Founder directive, 25 September 2026 (Track A). This page is the current truth. 
 >   a deal happens inside Vallo; for rent and shortlets the payer picks Escrow
 >   (the default) or Pay by card; a sale is always escrow; a hotel room is paid
 >   by card at once; the commission comes from the host's or lister's share.
->   The escrow route is not open yet (`PROTECTED_RAIL_LIVE = false`,
->   `rentals_protected_pay` off), so the rail policy's escrow answers are
->   refused rather than opened as card payments.
+>   Whether escrow is open is now read on the server, never a constant:
+>   `protectedRailLive()` (`lib/money/rail-live.ts`) is true only when the
+>   partner key for this deployment is set, `PAYMENTS_KILL_PAYLUK` is not on
+>   and `payments_payluk_on` is on (the one switch the database also reads,
+>   through `private.rentals_protected_pay_on`, since D77). While it reads false the payer is offered
+>   card where the rules allow it, a sale says escrow is paused, and nothing is
+>   taken. Release steps: `docs/payments/RELEASE_RUNBOOK.md`.
 > - **The Guarantee is retired**: `money_policy.guarantee_bps` is 0 live, so
 >   the reserve leg in the table below carries nothing on a new payment.
 > - **Commission**: `fee_rates` commission is 0 basis points live. The hotel
@@ -78,7 +82,7 @@ Payment opens only after an agreement is approved. The database enforces this wi
 
 **Pay on Vallo (founder rulings of 13 October 2026; drafts `pending/pov01` to `pov08`, not yet applied).** Every payment for a deal happens inside Vallo, and Vallo never holds it.
 - **The payer picks the rail.** On a rent or a shortlet the payer chooses at the payment step between Escrow (preselected, recommended: a licensed partner holds the money until the deal is confirmed) and Pay by card (split by the processor straight to the lister's account). A sale is escrow only. A hotel room is card only. Restaurant bills stay card only and off. The choice is stored on `deal_agreements.payer_rail_choice` by `public.payment_rail_choose` (the payer only, only while nothing is paid or moving), the rent rows of `payment_rail_policy` carry `payer_may_choose`, and `private.rail_for_booking` and `private.rail_for_agreement` apply it, so the gate (`agreement_payable`), the card trigger (`transactions_01_rail_at_open`) and the escrow trigger read the same rail. A nightly shortlet no longer takes the hotel row. The app reads the same answer (`payment_rail_for_booking`, `lib/payments/rail-choice.ts`, the card `components/money/pay-choice/PayChoiceCard.tsx`).
-- **Escrow for a shortlet stay.** `provider_arrangement_open` takes a stay at a listing; money the partner holds counts as paid for the trip details (`private.booking_is_paid`), and the hold sweep cannot cancel such a stay (`bookings_00_escrow_keeps_the_stay`).
+- **Escrow for a shortlet stay.** `provider_arrangement_open` takes a stay at a listing; money the partner holds counts as paid for the trip details (`private.booking_is_paid`), and no sweep or plain cancel can drop a stay whose money the partner holds or is still moving (`bookings_00_partner_hold_keeps_the_stay`): the hold sweep marks itself (`vallo.hold_sweep`, set only by `private.release_stale_booking_holds` and `public.expire_booking_holds`), staff refunds unwind explicitly (`public.refund_and_cancel_booking`, `public.partner_hold_unwind_cancel` once the partner reports the money refunded), and an unfunded arrangement is cancelled with its stay after a two hour grace. A card charge that lands while the partner holds the deal is refunded, never applied (`settle_booking_charge` reason `partner_holds_payment`), and a deal funded both ways raises a high alert. The partner's state is recorded only from the partner (signed webhook, or the ten-minute `arrangements-reconcile` cron that verifies each open arrangement).
 - **Hotel rooms: 10 percent.** `public.scoped_commission_rates` (`hotel_room`, 1,000 bps, dated, append-only) feeds `private.b3_commission_for_booking` for a room booking, so `payment_split_for_booking` takes Vallo's share from the hotel's; the guest's price is unchanged and the three parts still add up exactly. Every other commission is as it was.
 - **Workspace acceptance.** Every owner, agent and firm registration, the professional application and the host setup record the Terms, the Privacy Policy and "Every payment for a deal I make on Vallo happens inside Vallo." in `consents.agreements` (`lib/legal/workspace-acceptance.ts`); the server actions refuse without them, and `pov08` refuses in the database (apply it after the app is live).
 

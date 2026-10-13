@@ -162,7 +162,12 @@ export default async function CheckoutPage({
   ]);
   /* Escrow (the default, or the payer's pick) is paid on the escrow step, so
      the card panel is drawn only when card is the rail. */
-  const escrowChosen = payChoice !== null && payChoice.options.length > 1 && payChoice.rail === "escrow";
+  const escrowChosen =
+    payChoice !== null &&
+    ((payChoice.options.length > 1 && payChoice.rail === "escrow") ||
+      /* Escrow paused (protectedRailLive false): card is offered instead, and
+         the card panel opens once the payer has stored card as their choice. */
+      (payChoice.escrowPaused === true && payChoice.chosen !== "card"));
   const savedCards: PaymentMethod[] = cardsRead.ok ? cardsRead.data : [];
   const savedCardKey = crypto.randomUUID();
   const chargeSavedCard = chargeSavedCardFor.bind(null, bookingId, savedCardKey);
@@ -353,7 +358,7 @@ export default async function CheckoutPage({
                 choice={payChoice}
                 agreement={{ id: view.agreement.id, kind: chargeKind === "stay" ? "stay" : "rent", bookingId: view.bookingId, inspectionId: null }}
                 here={`/checkout/${bookingId}`}
-                showContinue={payChoice.options.length > 1}
+                showContinue={payChoice.options.length > 1 || (payChoice.escrowPaused === true && payChoice.chosen !== "card")}
               />
             </div>
           ) : null}

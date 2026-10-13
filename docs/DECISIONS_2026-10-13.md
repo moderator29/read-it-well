@@ -35,7 +35,7 @@ merged" at the end.
 | 18 | Safety: never pay outside Vallo, never share account numbers in chat (flagged) | BUILT | `/docs/trust-and-safety`, `/safety` |
 | 19 | The company is VALLO SPACES LTD (RC 9870413); the product is Vallo. RentMe and NaijaFinds never appear in anything new | BUILT (`lib/legal/company.ts`) | Terms, Privacy |
 | 20 | Every payment for a deal happens inside Vallo. Never pay outside Vallo; a payment made outside Vallo is not covered | BUILT as a rule (`OFF_PLATFORM_SENTENCE`, account numbers flagged in chat); recording rent paid outside Vallo (LANDLORD-01) was dropped | `/docs/paying-on-vallo#pay-inside`, `/docs/trust-and-safety` |
-| 21 | For rent and shortlets the payer picks Escrow (selected by default, held by a licensed partner until the deal is confirmed) or Pay by card. A sale is always escrow | NOT BUILT (PAY-01). The rail policy sends rent, sale and shortlets to escrow, which the router refuses while `PROTECTED_RAIL_LIVE` is false; the docs say so in one conditional line (`ESCROW_NOT_OPEN_YET`) | `/docs/paying-on-vallo`, stated as the rule, no screen claimed |
+| 21 | For rent and shortlets the payer picks Escrow (selected by default, held by a licensed partner until the deal is confirmed) or Pay by card. A sale is always escrow | BUILT on `track/escrow-live`, not yet released. The choice card (`PayChoiceCard`), `payment_rail_choose` (pending `pov01` to `pov04`), the escrow step with a switch to card while nothing is paid, and the partner calls (create, pay, confirm, withdraw, dispute, resolve). Escrow shows only when `protectedRailLive()` reads it as working on the server; the docs carry one sentence for when it is paused (`ESCROW_PAUSED`). Release: `docs/payments/RELEASE_RUNBOOK.md` | `/docs/paying-on-vallo` |
 | 22 | A hotel room is paid by card when booked, at the shown price. Vallo's commission on a hotel room is 10 percent, from the hotel's share, never added to the guest's price | PARTLY. Instant card payment for rooms is live (`room_bookings`, `stays_instant_pay` on). The 10 percent rate goes live with the payments track; the docs state it from one constant (`HOTEL_COMMISSION_PERCENT` in `app/(site)/docs/facts.ts`) | `/docs/what-vallo-costs#hotels`, `/docs/hosting#getting-paid` |
 | 23 | Every workspace application and setup accepts the Terms and Privacy Policy and the rule that every payment happens inside Vallo | NOT BUILT (PAY-02); hosts already tick the Terms, Privacy Policy and Host Agreement | `/docs/getting-started#workspaces`, stated as the rule |
 
@@ -103,7 +103,8 @@ merged" at the end.
 
 - Paying a restaurant bill through Vallo (off until the commission is set).
 - The escrow or card choice at checkout (PAY-01): add the screen to
-  `/docs/paying-on-vallo` when it merges, and drop `ESCROW_NOT_OPEN_YET`.
+  `/docs/paying-on-vallo` when `track/escrow-live` merges (`ESCROW_NOT_OPEN_YET`
+  is already replaced by the paused sentence `ESCROW_PAUSED`).
 - Workspace Terms and Privacy acceptance (PAY-02): name the screen in
   `/docs/getting-started#workspaces` when it merges.
 - The hotel commission: point `HOTEL_COMMISSION_PERCENT` at the money policy

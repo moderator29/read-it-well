@@ -5,6 +5,11 @@ import { z } from "zod";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { parseNairaToKobo } from "../money/amount";
 import { adminRefusal, requireAdmin } from "./guard";
+import { recordAlert } from "../alerts";
+import { lagosToday } from "../bookings/schema";
+import { adminDb } from "../money/member-wallet";
+import { staffResolve } from "../money/provider-arrangements";
+import { paylukContext } from "../payments/providers/payluk";
 import { KillSwitchInput, RiskSettingsInput, settingsAnswer, settingsRpcArgs } from "./risk-settings";
 
 /**
@@ -130,6 +135,70 @@ export async function resumeRelease(input: { arrangementId: string }): Promise<A
   if (status !== "ok") return fail(PAUSE_WORDS[status] ?? "The release could not be resumed.");
   revalidatePath("/admin/agreements");
   return ok(null);
+}
+
+/*
+ * A held payment decided by a person (founder instruction, 13 October 2026:
+ * refund or dispute). The partner documents one road from a held payment:
+ * the payer's dispute, resolved by the merchant. `staffResolve` opens it for
+ * the payer and resolves it at once; the partner's webhook (or a read-back)
+ * then records refunded or released, and a refunded stay is cancelled
+ * through the database's explicit unwind. Nothing is recorded as moved here.
+ */
+const RESOLVE_WORDS: Record<string, string> = {
+  switched_off: "The payment partner is not configured here, so nothing can be asked of it.",
+  not_found: "That payment no longer exists, or the partner has not reported it yet.",
+  not_held: "That payment is not held right now; there is nothing to decide.",
+  provider_refused: "The payment partner refused. Nothing moved; read its record before trying again.",
+  unknown: "The payment partner did not answer. Do not try again until its record says what happened.",
+  own_payment: "You are a party to this payment, so somebody else has to decide it.",
+  store: "That could not be recorded. Nothing moved. Try again.",
+};
+
+export async function resolveHeldPayment(input: {
+  arrangementId: string;
+  outcome: "refund" | "release";
+  note: string;
+}): Promise<ActionResult<{ to: "refunded" | "released" }>> {
+  const access = await requireAdmin("agreements");
+  if (access.state !== "admin") return fail(adminRefusal(access));
+  const parsed = validate(
+    z.object({
+      arrangementId: uuid,
+      outcome: z.enum(["refund", "release"]),
+      note: z.string().trim().min(10, "Say why in at least ten characters. Both parties read it.").max(500),
+    }),
+    input,
+  );
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+  const db = adminDb();
+  const ctx = paylukContext();
+  if (!db || !ctx) return fail(RESOLVE_WORDS.switched_off!);
+  const { data: party } = await db
+    .from("provider_arrangements")
+    .select("buyer_user_id, seller_user_id")
+    .eq("id", parsed.data.arrangementId)
+    .maybeSingle();
+  const parties = party as { buyer_user_id: string; seller_user_id: string } | null;
+  if (!parties) return fail(RESOLVE_WORDS.not_found!);
+  if (parties.buyer_user_id === access.user.id || parties.seller_user_id === access.user.id) return fail(RESOLVE_WORDS.own_payment!);
+  const outcome = await staffResolve(
+    {
+      db,
+      ctx,
+      todayLagos: lagosToday,
+      alert: async (kind, detail) => {
+        await recordAlert({ kind, severity: "critical", detail });
+      },
+    },
+    parsed.data.arrangementId,
+    parsed.data.outcome === "refund" ? "REFUNDED" : "COMPLETED",
+    parsed.data.note,
+    access.user.id,
+  );
+  revalidatePath("/admin/agreements");
+  if (outcome.outcome === "submitted") return ok({ to: outcome.to });
+  return fail(RESOLVE_WORDS[outcome.reason] ?? RESOLVE_WORDS.store!);
 }
 
 const CLAIM_WORDS: Record<string, string> = {

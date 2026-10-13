@@ -63,7 +63,10 @@ export async function fundEscrowPayment(input: { agreementId: string }): Promise
       accommodation_id: string | null;
     } | null;
     if (!ag || ag.renter_id !== session.user.id) return fail(FUND_REFUSED.not_found!);
-    const listingStay = ag.kind === "stay" && ag.listing_id !== null && !ag.accommodation_id;
+    /* A rent or a stay; which stays may be held is the rail's answer below
+       (a shortlet listing or a shortlet operator's room, never a hotel's
+       room: pov03), so it is not guessed from the columns here. */
+    const listingStay = ag.kind === "stay";
     if ((ag.kind !== "rent" && !listingStay) || ag.status !== "approved") return fail(FUND_REFUSED.not_payable!);
     const gate = await session.supabase.rpc("agreement_payable_for" as never, { p_agreement: agreementId } as never);
     const answer = (gate.data as { status?: string; rail?: string } | null) ?? null;
@@ -96,6 +99,10 @@ export async function fundEscrowPayment(input: { agreementId: string }): Promise
         const { data: l } = await db.from("listings").select("title").eq("id", ag.listing_id).maybeSingle();
         const t = (l as { title?: string } | null)?.title;
         if (t) title = `${word}: ${t}`.slice(0, 120);
+      } else if (ag.accommodation_id) {
+        const { data: acc } = await db.from("accommodations").select("name").eq("id", ag.accommodation_id).maybeSingle();
+        const n = (acc as { name?: string } | null)?.name;
+        if (n) title = `${word}: ${n}`.slice(0, 120);
       }
       const opened = await openArrangement(deps, { agreementId, kind: "standard", purpose: title });
       if (opened.outcome === "refused") return fail(refusal(opened.reason));

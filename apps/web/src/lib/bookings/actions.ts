@@ -459,7 +459,7 @@ export async function cancel(
   }
   /* Ruling 2 (13 October 2026): a shortlet stay may be paid into escrow. Money
      the partner holds is not unwound by a plain cancel (the database refuses
-     it, `bookings_00_escrow_keeps_the_stay`), so the guest is told what to do
+     it, `bookings_00_partner_hold_keeps_the_stay`), so the guest is told what to do
      instead of reading a failed save. Read under the guest's own RLS. */
   const { data: heldAgreements } = await session.supabase
     .from("deal_agreements")
@@ -470,11 +470,19 @@ export async function cancel(
   if (heldAgreementId) {
     const { data: held } = await (session.supabase as unknown as SupabaseClient)
       .from("provider_arrangements")
-      .select("id")
+      .select("id, status")
       .eq("agreement_id", heldAgreementId)
-      .in("status", ["payment_processing", "protected", "release_requested", "released", "disputed", "split"])
+      .in("status", ["preparing", "unknown", "payment_processing", "protected", "release_requested", "released", "disputed", "split"])
       .limit(1);
-    if ((held?.length ?? 0) > 0) {
+    const heldStatus = (held as { status: string }[] | null)?.[0]?.status ?? null;
+    /* The database refuses the same (pov05, `bookings_00_partner_hold_keeps_the_stay`):
+       a stay is never cancelled while the partner may be taking its money. */
+    if (heldStatus === "preparing" || heldStatus === "unknown" || heldStatus === "payment_processing") {
+      return fail(
+        "Your escrow payment is still being confirmed by the payment partner, so this stay cannot be cancelled yet. Nothing is charged twice; check back in a few minutes.",
+      );
+    }
+    if (heldStatus !== null) {
       return fail(
         "This stay is paid into escrow, so it cannot be cancelled here. Open the agreement to see where your money is held, or contact support and we will sort it out with you.",
       );

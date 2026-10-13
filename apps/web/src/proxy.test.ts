@@ -324,6 +324,8 @@ const EXPECTED_PUBLIC = new Set([
   "/api/cron/risk-classes",
   /* Crypto payments read back from the provider, behind the cron bearer. */
   "/api/cron/crypto-reconcile",
+  /* Escrow arrangements read back from the payment partner, behind the cron bearer. */
+  "/api/cron/arrangements-reconcile",
   "/api/cron/saved-search-alerts",
   "/api/cron/store-readiness",
   "/api/cron/new-match-alerts",

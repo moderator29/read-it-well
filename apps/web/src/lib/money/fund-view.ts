@@ -64,7 +64,10 @@ export async function readFundPayment(agreementId: string): Promise<FundRead> {
       facts: {
         viewerIsRenter,
         kind: ag.kind,
-        listingStay: ag.kind === "stay" && ag.listing_id !== null && !ag.accommodation_id,
+        /* Any stay may reach this screen; whether it is held is the rail's
+           answer (`rail` below): a shortlet listing or a shortlet operator's
+           room on escrow, a hotel's room never (pov03). */
+        listingStay: ag.kind === "stay",
         agreementStatus: ag.status,
         payable: typeof gate?.status === "string" ? gate.status : null,
         rail,
