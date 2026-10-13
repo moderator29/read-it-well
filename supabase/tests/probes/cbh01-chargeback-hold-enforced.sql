@@ -166,5 +166,5 @@ begin
     raise exception 'PROBE_FAIL cbh01: grants';
   end if;
 
-  raise exception 'TEST_RESULT cbh01 ok';
+  raise exception 'PROBE_OK cbh01-chargeback-hold-enforced';
 end $$;

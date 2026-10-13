@@ -97,5 +97,5 @@ begin
     raise exception 'PROBE_FAIL rd01 4: an applied deposit was announced';
   end if;
 
-  raise exception 'TEST_RESULT rd01 ok: refund_due, refunded and forfeited told once to each side; switch honoured; replays silent';
+  raise exception 'PROBE_OK rd01-restaurant-deposit-notices: refund_due, refunded and forfeited told once to each side; switch honoured; replays silent';
 end $$;

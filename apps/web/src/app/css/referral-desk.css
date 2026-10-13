@@ -187,7 +187,7 @@
     width: 0.5rem;
     height: 0.5rem;
     margin-top: 0.3rem;
-    border-radius: 2px;
+    border-radius: var(--nf-radius-xs);
     background: var(--nf-brand-primary);
   }
   .nf-rdesk-earlier {
@@ -395,7 +395,7 @@
   }
   .nf-rgraph__line {
     fill: var(--nf-content-secondary);
-    font-size: 11px;
+    font-size: 12px;
   }
   .nf-rgraph__node--focus .nf-rgraph__name,
   .nf-rgraph__node--focus .nf-rgraph__line {
@@ -436,12 +436,12 @@
   .nf-rgraph-legend i[data-focus] {
     height: 0.75rem;
     border: 0;
-    border-radius: 3px;
+    border-radius: var(--nf-radius-xs);
     background: var(--nf-brand-primary);
   }
   .nf-rgraph-legend i[data-risk] {
     height: 0.75rem;
     border: 2px solid var(--nf-state-warning-accent);
-    border-radius: 3px;
+    border-radius: var(--nf-radius-xs);
   }
 }

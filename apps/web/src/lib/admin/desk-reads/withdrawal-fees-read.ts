@@ -2,6 +2,7 @@ import "server-only";
 
 import { requireAdmin } from "../guard";
 import { nairaToMinor, parseQuote, parseSchedule, type WithdrawalQuote, type WithdrawalSchedule } from "./withdrawal-fees";
+import { reportReadFault } from "@/lib/observability/read-error";
 
 export type WithdrawalFeesRead =
   | { state: "ok"; schedule: WithdrawalSchedule; quote: { asked: string; minor: number | null; answer: WithdrawalQuote } | null }
@@ -37,6 +38,7 @@ export async function readWithdrawalFees(asked: string | null): Promise<Withdraw
       .order("effective_from", { ascending: false })
       .limit(1);
     const row = Array.isArray(versions.data) ? (versions.data[0] as Record<string, unknown> | undefined) : undefined;
+    await reportReadFault("read.admin.withdrawal_policy", versions.error);
     if (versions.error || !row || typeof row["id"] !== "number") return { state: "unavailable" };
     const bands = await db
       .from("money_policy_withdrawal_bands")
@@ -44,12 +46,14 @@ export async function readWithdrawalFees(asked: string | null): Promise<Withdraw
       .eq("policy_version_id", row["id"])
       .order("from_minor", { ascending: true });
     const schedule = parseSchedule(row, Array.isArray(bands.data) ? (bands.data as Record<string, unknown>[]) : null);
+    await reportReadFault("read.admin.withdrawal_bands", bands.error);
     if (bands.error || !schedule) return { state: "unavailable" };
 
     if (!asked || asked.trim() === "") return { state: "ok", schedule, quote: null };
     const minor = nairaToMinor(asked);
     if (minor === null) return { state: "ok", schedule, quote: { asked, minor: null, answer: { status: "bad" } } };
     const { data, error } = await db.rpc("withdrawal_fee_quote", { p_amount_minor: minor });
+    await reportReadFault("read.admin.withdrawal_quote", error);
     return {
       state: "ok",
       schedule,

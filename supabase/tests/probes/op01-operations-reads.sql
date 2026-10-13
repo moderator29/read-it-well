@@ -162,6 +162,6 @@ begin
     raise exception 'PROBE_FAIL op01-operations-reads 4: % of 7 functions are definer, pinned and granted correctly', n;
   end if;
 
-  raise exception 'TEST_RESULT op01-operations-reads all checks passed (rolled back)';
+  raise exception 'PROBE_OK op01-operations-reads';
 end;
 $$;

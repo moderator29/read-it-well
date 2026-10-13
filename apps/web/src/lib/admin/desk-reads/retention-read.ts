@@ -2,6 +2,7 @@ import "server-only";
 
 import { requireAdmin } from "../guard";
 import { parseRetentionPreview, type RetentionPreview } from "./retention";
+import { reportReadFault } from "@/lib/observability/read-error";
 
 export type RetentionRead =
   | { state: "ok"; preview: RetentionPreview; canDestroy: boolean }
@@ -27,6 +28,7 @@ export async function readRetention(): Promise<RetentionRead> {
   if (access.state !== "admin") return { state: "forbidden" };
   try {
     const { data, error } = await (access.userClient as unknown as Rpc).rpc("staff_money_retention_preview");
+    await reportReadFault("read.admin.retention", error);
     if (error) {
       if (isMissingFunction(error)) return { state: "not_installed" };
       return error.code === "42501" ? { state: "forbidden" } : { state: "unavailable" };

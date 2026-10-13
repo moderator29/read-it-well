@@ -80,7 +80,7 @@ export function WithdrawalFees({ read, locale }: { read: WithdrawalFeesRead; loc
               defaultValue={quote?.asked ?? ""}
             />
           </div>
-          <button type="submit" className="nf-btn nf-btn--secondary">
+          <button type="submit" className="nf-btn nf-btn--surface">
             {c.quoteButton}
           </button>
         </form>

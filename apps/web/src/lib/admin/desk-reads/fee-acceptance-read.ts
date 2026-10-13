@@ -2,6 +2,7 @@ import "server-only";
 
 import { requireAdmin } from "../guard";
 import { parseFeeAcceptance, type FeeAcceptance } from "./fee-acceptance";
+import { reportReadFault } from "@/lib/observability/read-error";
 
 export type FeeAcceptanceRead =
   | { state: "ok"; acceptance: FeeAcceptance | null }
@@ -23,6 +24,7 @@ export async function readFeeAcceptance(listingId: string): Promise<FeeAcceptanc
   if (access.state !== "admin") return { state: "forbidden" };
   try {
     const { data, error } = await (access.supabase as unknown as Rpc).rpc("current_fee_acceptance", { p_listing: listingId });
+    await reportReadFault("read.admin.fee_acceptance", error);
     if (error) return { state: "unavailable" };
     const parsed = parseFeeAcceptance(data);
     return parsed === "unreadable" ? { state: "unavailable" } : { state: "ok", acceptance: parsed };

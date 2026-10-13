@@ -126,6 +126,6 @@ begin
   end if;
   reset role;
 
-  raise exception 'TEST_RESULT ac01-money-retention-tool all checks passed (rolled back); request=%', req;
+  raise exception 'PROBE_OK ac01-money-retention-tool (request=%)', req;
 end;
 $$;

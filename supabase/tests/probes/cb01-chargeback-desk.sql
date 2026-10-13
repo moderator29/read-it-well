@@ -141,6 +141,6 @@ begin
     raise exception 'PROBE_FAIL cb01: grants';
   end if;
 
-  raise exception 'PROBE_OK cb01';
+  raise exception 'PROBE_OK cb01-chargeback-desk';
 end
 $$;
