@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { formatDate, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Chip, ChipRow } from "@/components/ui/Chip";
@@ -57,6 +57,7 @@ export function ViewingSlots({
   const [error, setError] = useState<string | null>(null);
   const [booked, setBooked] = useState<{ at: string; id: string } | null>(null);
   const [pending, start] = useTransition();
+  const inFlight = useRef(false);
   /* Booked is CONFIRMED on the server (V-94), so it is a success, not a request. */
   const [celebrate, setCelebrate] = useState(false);
   const current = days.find((d) => d.day === day) ?? days[0];
@@ -139,15 +140,23 @@ export function ViewingSlots({
             full
             loading={pending}
             onClick={() => {
+              /* A second tap inside one frame booked twice and came back
+                 "you already have a viewing" under a booking that worked. */
+              if (inFlight.current) return;
+              inFlight.current = true;
               setError(null);
               start(async () => {
-                const result = await bookViewingSlot({ listingId, slotAt: chosen, note });
-                if (!result.ok) {
-                  setError(result.error);
-                  return;
+                try {
+                  const result = await bookViewingSlot({ listingId, slotAt: chosen, note });
+                  if (!result.ok) {
+                    setError(result.error);
+                    return;
+                  }
+                  setBooked({ at: chosen, id: result.data.id });
+                  setCelebrate(true);
+                } finally {
+                  inFlight.current = false;
                 }
-                setBooked({ at: chosen, id: result.data.id });
-                setCelebrate(true);
               });
             }}
           >

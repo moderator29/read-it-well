@@ -112,7 +112,9 @@ export function RealDashboard({
   const needsYou =
     inspections.readFailed && numbers.unreadMessages === null
       ? null
-      : openInspections.length + (numbers.unreadMessages ?? 0);
+      : /* Only the requests waiting on this lister: an offered time waits on
+           the renter, so it is not something that "needs you". */
+        openInspections.filter((one) => waitingOn(one.state) === "lister").length + (numbers.unreadMessages ?? 0);
 
   const k = t.desk.agent;
   const tag = locale === "en" ? "en-NG" : locale;
