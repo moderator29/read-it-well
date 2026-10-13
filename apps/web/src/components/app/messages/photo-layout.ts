@@ -55,9 +55,11 @@ export function photoLayout(ratios: readonly (number | null)[]): PhotoLayout {
   const gaps = Math.max(0, row.length - 1) * PHOTO_GAP_PX;
   return {
     /* As wide as the row would be at the tallest height, never wider than the
-       cap; the column's own width caps it again in the stylesheet. No
-       percentage here, so the bubble's width never depends on itself. */
-    width: `min(${PHOTO_MAX_WIDTH_REM}rem, calc(${PHOTO_MAX_HEIGHT_REM}rem * ${round(sum)} + ${gaps}px))`,
+       cap, and never wider than the bubble column: `100cqw` is the column
+       itself (`.nf-msg__stack--media` is a size container). No percentage
+       here, so the bubble's width never depends on itself, and its smallest
+       width is never more than the column, so it cannot spill past it. */
+    width: `min(100cqw, ${PHOTO_MAX_WIDTH_REM}rem, calc(${PHOTO_MAX_HEIGHT_REM}rem * ${round(sum)} + ${gaps}px))`,
     cells: known.map((ratio) => ({
       basis: `calc((100% - ${gaps}px) * ${round(ratio / sum)})`,
       ratio: round(ratio),

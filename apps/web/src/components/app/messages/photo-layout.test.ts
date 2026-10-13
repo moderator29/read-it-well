@@ -15,7 +15,7 @@ describe("photos at their own proportions", () => {
   it("lets one photo fill the bubble at its own shape, capped by the tallest height", () => {
     const tall = photoLayout([0.75]);
     expect(tall.cells).toEqual([{ basis: "calc((100% - 0px) * 1)", ratio: 0.75 }]);
-    expect(tall.width).toBe("min(25rem, calc(22rem * 0.75 + 0px))");
+    expect(tall.width).toBe("min(100cqw, 25rem, calc(22rem * 0.75 + 0px))");
     expect(tall.pages).toBe(1);
   });
 

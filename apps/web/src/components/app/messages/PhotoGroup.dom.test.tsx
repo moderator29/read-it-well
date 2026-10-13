@@ -52,19 +52,20 @@ const entry = `
   const P = ${JSON.stringify(P)};
   const NINE = ${JSON.stringify(NINE)};
   window.__replied = 0;
-  function Bubble({ photos, mine, testId }) {
+  function Bubble({ photos, mine, testId, caption }) {
     return (
       <div data-testid={testId} className={"nf-msg" + (mine ? " nf-msg--mine" : "")}>
         <span className="nf-msg__avatar">A</span>
-        <div className="nf-msg__stack">
+        <div className="nf-msg__stack nf-msg__stack--media">
           {!mine ? <p className="nf-msg__meta"><span className="nf-msg__sender">A long display name here</span><span>10:42</span></p> : null}
           <BubbleGestures
             side={mine ? "mine" : "theirs"}
-            className={"nf-bubble " + (mine ? "nf-bubble--mine" : "nf-bubble--theirs") + " nf-bubble--media nf-bubble--photos"}
+            className={"nf-bubble " + (mine ? "nf-bubble--mine" : "nf-bubble--theirs") + " nf-bubble--media" + (caption ? "" : " nf-bubble--photos")}
             onLongPress={() => {}}
             onSwipeReply={() => { window.__replied += 1; }}
           >
             <PhotoGroup photos={photos} alt="Photo you attached" />
+            {caption ? <p className="nf-bubble__body">{caption}</p> : null}
             <p className="nf-bubble__foot"><span>10:42</span></p>
           </BubbleGestures>
         </div>
@@ -78,6 +79,7 @@ const entry = `
         <Bubble testId="single-wide" photos={[P.wide]} mine />
         <Bubble testId="three" photos={[P.wide, P.tall, P.square]} />
         <Bubble testId="nine" photos={NINE} mine />
+        <Bubble testId="captioned" photos={[P.tall, P.square]} mine caption="Here are more photos of the apartment. The yearly rent is two million eight hundred thousand naira, paid inside Vallo." />
       </div>
     </div>,
   );
@@ -99,6 +101,8 @@ const measure = (page: Page, testId: string) =>
     const strip = row.querySelector<HTMLElement>(".nf-photo-group__strip")!;
     return {
       bubble: box(row.querySelector(".nf-bubble")!),
+      row: box(row),
+      group: box(row.querySelector(".nf-photo-group")!),
       strip: { ...box(strip), client: strip.clientWidth, scroll: strip.scrollWidth },
       cells: Array.from(row.querySelectorAll(".nf-photo-group__cell"), box),
       natural: Array.from(row.querySelectorAll("img"), (img) => img.naturalWidth / img.naturalHeight),
@@ -122,6 +126,22 @@ describe.skipIf(!hasBrowser && !process.env.CI)("photos in a bubble", () => {
         expect(cell!.h, id).toBeLessThanOrEqual(352.5);
         expect(m.dots, id).toBe(0);
       }
+    } finally {
+      await close();
+    }
+  });
+
+  it("keeps every photo bubble inside its row, and a caption wraps to the photos' width", async () => {
+    const { page, close } = await mountInBrowser({ entry, css: CSS });
+    try {
+      await settle(page);
+      for (const id of ["single-tall", "single-wide", "three", "nine", "captioned"]) {
+        const m = await measure(page, id);
+        expect(m.bubble.x, id).toBeGreaterThanOrEqual(m.row.x - 0.5);
+        expect(m.bubble.x + m.bubble.w, id).toBeLessThanOrEqual(m.row.x + m.row.w + 0.5);
+      }
+      const c = await measure(page, "captioned");
+      expect(Math.abs(c.bubble.w - c.group.w)).toBeLessThanOrEqual(2.5);
     } finally {
       await close();
     }

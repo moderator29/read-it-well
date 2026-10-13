@@ -1306,7 +1306,11 @@ export function ThreadView({
                 <BubbleHead name={counterpartName} photoUrl={counterpartAvatarUrl} />
               )}
 
-              <div className={`nf-msg__stack${wide ? " nf-msg__stack--wide" : ""}`}>
+              <div
+                className={`nf-msg__stack${wide ? " nf-msg__stack--wide" : ""}${
+                  !wide && photos.length > 0 ? " nf-msg__stack--media" : ""
+                }`}
+              >
                 {!m.mine && !continues && (
                   <p className="nf-msg__meta">
                     <span className="nf-msg__sender">{counterpartName}</span>

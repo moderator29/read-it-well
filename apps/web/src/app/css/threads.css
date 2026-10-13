@@ -1587,7 +1587,17 @@
     padding: 0;
     overflow: hidden;
   }
+  /* The column of a photo message has a set width and is the size container
+     the photos measure themselves against (`100cqw` in photo-layout.ts), so
+     a group is never wider than the column and never spills past it. */
+  .nf-msg__stack--media {
+    width: 84%;
+    container-type: inline-size;
+  }
+  /* The caption wraps to the photos' width rather than widening the bubble
+     past them: it adds nothing to the bubble's own width. */
   .nf-bubble--media > .nf-bubble__body {
+    contain: inline-size;
     padding: var(--nf-space-xs) var(--nf-space-sm) 0;
   }
   .nf-bubble--media > .nf-bubble__foot {
