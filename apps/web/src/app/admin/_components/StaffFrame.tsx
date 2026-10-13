@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { BackButton } from "@/components/site/BackButton";
 import { STAFF_SCOPE_LABEL, type StaffAccess, type StaffScope } from "@/lib/admin/guard";
 import { JOB_DESCRIPTIONS } from "@/lib/admin/staff-positions";
 
@@ -38,10 +39,19 @@ export function StaffFrame({ staff, name, children }: { staff: StaffAccess; name
   return (
     <div className="nf-console nf-staff-frame" data-testid="staff-console">
       <header className="nf-panel nf-panel--card block p-card">
-        <p className="nf-caption text-[var(--nf-content-secondary)]">
-          Vallo console · {staff.position ? JOB_DESCRIPTIONS[staff.position].title : "staff"}
-        </p>
-        <p className="font-semibold">{name}</p>
+        {/* The way back, as the operator's console bar draws it: every desk
+            goes to `/admin` and a record to its desk (`route-parents.ts`).
+            This frame had none, so a staff member on a desk had only the
+            desk buttons below and the browser. */}
+        <div className="flex items-center gap-sm">
+          <BackButton fallback="/admin" surface="round" />
+          <div className="min-w-0">
+            <p className="nf-caption text-[var(--nf-content-secondary)]">
+              Vallo console · {staff.position ? JOB_DESCRIPTIONS[staff.position].title : "staff"}
+            </p>
+            <p className="font-semibold">{name}</p>
+          </div>
+        </div>
         <nav aria-label="Your desks" className="mt-inline">
           <ul className="flex flex-wrap gap-xs">
             <li>

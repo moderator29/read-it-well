@@ -78,5 +78,47 @@
       padding: 1.25rem var(--nf-space-lg);
     }
   }
+
+  /* ------------------------------------------------------------------
+   * D79, THE COVER'S CORNERS (founder, 7 October): Back at the top left, and
+   * Share (theirs) or the gear (mine) at the top right, with no plate around
+   * them, small and high on the cover. Each stays a 44px target; what goes
+   * is the glass disc and the word. A soft shadow under the glyph keeps it
+   * legible on a bright cover and on a dark one. Here rather than in the
+   * public profile's partial, so both profiles draw the same two corners.
+   * ------------------------------------------------------------------ */
+  .nf-identity .nf-social-float {
+    top: calc(var(--nf-social-bar) + 2px);
+    gap: 0;
+  }
+  .nf-identity .nf-social-float--start {
+    inset-inline-start: 6px;
+  }
+  .nf-identity .nf-social-float--end {
+    inset-inline-end: 6px;
+  }
+  .nf-identity .nf-social-float .nf-social-round {
+    inline-size: 44px;
+    block-size: 44px;
+    padding: 0;
+    border-color: transparent;
+    background: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: none;
+    color: var(--nf-content-on-media);
+    filter: drop-shadow(0 1px 4px var(--nf-overlay-media));
+  }
+  .nf-identity .nf-social-float .nf-social-round::after {
+    content: none;
+  }
+  @media (min-width: 768px) {
+    .nf-identity .nf-social-float--start {
+      inset-inline-start: 1rem;
+    }
+    .nf-identity .nf-social-float--end {
+      inset-inline-end: 1rem;
+    }
+  }
 }
 

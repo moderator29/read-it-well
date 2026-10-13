@@ -86,7 +86,9 @@ export function RegisterShell({
   return (
     <div className="mx-auto max-w-2xl">
       <div className="mb-heading flex items-center gap-md">
-        <BackControl onBack={onBack} label={backLabel} />
+        {/* The round control every page header draws (`PageHeader`), so the
+            setup forms under `/profile` read as the same family of screens. */}
+        <BackControl onBack={onBack} label={backLabel} surface="round" />
         <h1 className={`min-w-0 flex-1 ${TYPE.rowTitle}`}>{formTitle}</h1>
         {/* THE PROGRESS RING WITH A COUNT (reference 2), in the corner where
             the governing frames draw their round object: how many of the

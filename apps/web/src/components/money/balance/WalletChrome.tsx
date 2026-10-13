@@ -1,7 +1,8 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { ACTION_LABEL, WALLET_BACK, WALLET_SETTINGS_TITLE, WALLET_TABS } from "@/lib/money/balance-copy";
+import { BackControl } from "@/components/ui/BackControl";
+import { ACTION_LABEL, WALLET_SETTINGS_TITLE, WALLET_TABS } from "@/lib/money/balance-copy";
 
 /**
  * THE WALLET'S OWN CHROME (D81; the founder's governing reference, the
@@ -33,12 +34,19 @@ export const WALLET_LINKS: WalletLinks = {
   withdraw: "/wallet/withdraw",
 };
 
+/**
+ * The arrow is the shared `BackControl`, so it decides as every other back
+ * does (`docs/BACK_NAVIGATION.md`): the screen the person came from when that
+ * is safe, otherwise the declared parent (`/home` for the Overview, `/wallet`
+ * for each Wallet screen), replacing rather than pushing. `back` is only the
+ * answer for an address with no declared parent, such as the preview
+ * harness's. A pushed link here left the screen just left behind the parent,
+ * so the browser's own back walked straight into it again.
+ */
 export function WalletHeader({ title, back, settings, end }: { title: string; back: string; settings?: string | null; end?: ReactNode }) {
   return (
     <header className="nf-mw-head" data-testid="wallet-header">
-      <Link href={back} className="nf-mw-head__btn nf-mw-head__btn--back" aria-label={WALLET_BACK} data-testid="wallet-back">
-        <UiIcon name="arrow-left" size={22} />
-      </Link>
+      <BackControl fallback={back} className="nf-mw-head__btn nf-mw-head__btn--back" data-testid="wallet-back" />
       <h1 className="nf-mw-head__title">{title}</h1>
       {end}
       {settings ? (

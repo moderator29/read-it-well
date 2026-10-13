@@ -162,45 +162,8 @@
     letter-spacing: -0.01em;
   }
 
-  /* ------------------------------------------------------------------
-   * D79, THE COVER'S CORNERS (founder, 7 October): Back and Share with no
-   * plate around them, smaller, and higher on the cover. Each stays a 44px
-   * target; what goes is the glass disc and the word. A soft shadow under the
-   * glyph keeps it legible on a bright cover and on a dark one.
-   * ------------------------------------------------------------------ */
-  .nf-identity .nf-social-float {
-    top: calc(var(--nf-social-bar) + 2px);
-    gap: 0;
-  }
-  .nf-identity .nf-social-float--start {
-    inset-inline-start: 6px;
-  }
-  .nf-identity .nf-social-float--end {
-    inset-inline-end: 6px;
-  }
-  .nf-identity .nf-social-float .nf-social-round {
-    inline-size: 44px;
-    block-size: 44px;
-    padding: 0;
-    border-color: transparent;
-    background: none;
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    box-shadow: none;
-    color: var(--nf-content-on-media);
-    filter: drop-shadow(0 1px 4px var(--nf-overlay-media));
-  }
-  .nf-identity .nf-social-float .nf-social-round::after {
-    content: none;
-  }
-  @media (min-width: 768px) {
-    .nf-identity .nf-social-float--start {
-      inset-inline-start: 1rem;
-    }
-    .nf-identity .nf-social-float--end {
-      inset-inline-end: 1rem;
-    }
-  }
+  /* The cover's corners (D79) live with the header in `identity.css`, so
+     `/profile`, which never loads this partial, wears the same two. */
 
   /* The overflow trigger beside Follow takes the same compact rung, 36 drawn
      and 44 to the finger. */

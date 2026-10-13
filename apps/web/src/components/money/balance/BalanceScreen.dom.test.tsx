@@ -4,7 +4,23 @@ import type { MovementView } from "@/lib/money/member-wallet";
 import type { BalanceFigures } from "@/lib/money/funds";
 import { ACTIVITY_EMPTY, HELD_BY, MOVE_COPY, NOT_CONNECTED_FIGURE, NOT_CONNECTED_LINE, WALLET_TOOL_GROUPS } from "@/lib/money/balance-copy";
 
-vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh() {}, push() {} }) }));
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ refresh() {}, push() {}, back() {}, replace() {} }),
+  usePathname: () => "/wallet",
+}));
+/* The header's back is the shared `BackControl`, which reads the words the
+   root layout provides; these screens are rendered bare here, so the English
+   copy stands in for the provider. */
+vi.mock("@/lib/i18n/client-copy", async () => {
+  const { getDictionary } = await import("@vallo/i18n");
+  const { clientCopyOf } = await import("@/lib/i18n/client-copy-of");
+  const copy = clientCopyOf(getDictionary("en"));
+  return {
+    ClientCopyProvider: ({ children }: { children: React.ReactNode }) => children,
+    useClientCopy: () => copy,
+    useClientCopyOptional: () => copy,
+  };
+});
 vi.mock("@/lib/money/member-wallet-actions", () => ({
   balanceMovementStatus: vi.fn(),
   cancelBalanceMovement: vi.fn(),
@@ -120,6 +136,14 @@ describe("the Wallet overview (D81)", () => {
 
   it("calls itself a wallet, never a balance, in what a member reads", () => {
     expect(text(render(true))).not.toMatch(/\bbalance\b/i);
+  });
+
+  it("goes back through the shared back control, named for where it goes, not a hand-drawn link", () => {
+    const html = render(true);
+    expect(html).toContain("data-nav-back");
+    expect(html).toContain('data-back-destination="/home"');
+    expect(html).toContain('aria-label="Back to Home"');
+    expect(html).not.toMatch(/<a[^>]*data-testid="wallet-back"/);
   });
 });
 
