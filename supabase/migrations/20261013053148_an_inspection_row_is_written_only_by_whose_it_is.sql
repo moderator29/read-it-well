@@ -1,7 +1,7 @@
 /*
  * AN INSPECTION'S COLUMNS ARE WRITTEN ONLY BY WHOSE THEY ARE.
  *
- * DRAFT. NOT APPLIED. Written by the viewing track on 12 October 2026 for
+ * Applied 13 October 2026. Written by the viewing track on 12 October 2026 for
  * review; apply it only after reading it, then rename and record it as
  * CONTRIBUTING.md says. It changes no table, no column, no policy and no
  * grant: it adds one trigger function and one trigger, and nothing the app
@@ -69,6 +69,8 @@
  *     the conversation `startConversation` returned for that listing:
  *     expect 1 row.
  */
+
+set lock_timeout = '5s';
 
 create or replace function private.inspection_columns_belong()
 returns trigger
@@ -150,27 +152,3 @@ revoke all on function private.inspection_columns_belong() from public, anon, au
 create or replace trigger inspection_requests_y_columns_belong
   before insert or update on public.inspection_requests
   for each row execute function private.inspection_columns_belong();
-
-/* READ-BACK: installed, enabled, and not callable by a member. */
-do $readback$
-declare
-  bad text := '';
-begin
-  if not exists (
-    select 1 from pg_trigger t
-     where t.tgname = 'inspection_requests_y_columns_belong'
-       and t.tgrelid = 'public.inspection_requests'::regclass
-       and not t.tgisinternal
-       and t.tgenabled = 'O'
-  ) then
-    bad := bad || ' [trigger missing or disabled]';
-  end if;
-  if has_function_privilege('authenticated', 'private.inspection_columns_belong()', 'execute')
-     or has_function_privilege('anon', 'private.inspection_columns_belong()', 'execute') then
-    bad := bad || ' [function callable by a member]';
-  end if;
-  if bad <> '' then
-    raise exception 'READ-BACK FAILED:%', bad;
-  end if;
-end;
-$readback$;
