@@ -74,9 +74,7 @@
     ".next-*/types/**/*.ts",
     ".next-*/dev/types/**/*.ts",
     ".next-catalogue/types/**/*.ts",
-    ".next-catalogue/dev/types/**/*.ts",
-    "../../../../../../../../dev/shm/next-fx/types/**/*.ts",
-    "../../../../../../../../dev/shm/next-fx/dev/types/**/*.ts"
+    ".next-catalogue/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",
