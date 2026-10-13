@@ -58,7 +58,21 @@ Written 13 October 2026. This is the only handoff in the repository. Read it fir
 
 ## 6. Open items
 
-- **Seyi to do:** allow notifications on the iPhone and report the enrolment step (the push token table is empty); rotate every credential pasted in chat (QA passwords, the APNs key, Firebase service-account keys, the old vallo-44059 key); watch Apple and Play reviews; time a repeat app launch on a phone (target under 0.5 seconds; the first launch after install still waits for the network); run the optional statements in `docs/DB_NOTES.md`; connect Paystack for restaurants.
-- **Lawyer:** Terms section 14 still carries the retired Guarantee wording; the Host Agreement text was written by engineering; the co-founders agreement is out for review. After signing, file the share transfers at CAC.
-- **Next engineering:** native-speaker review of the Hausa, Igbo and Yoruba strings written by agents; check the landmark pins on a map; sign-in with a real account to test the new flows end to end (agents tested with fixtures only); push token and call ringing on iPhone; ownership document upload needs a live trial.
-- **Known gaps:** a landlord with no published listing shows as "Agent" on others' view of them (needs the agent type exposed); the Hausa, Igbo and Yoruba text is machine-written; restaurant deposits (flag off) conflict with "free table booking" if ever enabled.
+### Founder and lawyer (not engineering)
+
+- **Seyi:** allow notifications on the iPhone and report the enrolment step (the push token table is empty); rotate every credential pasted in chat (QA passwords, the APNs key, Firebase service-account keys, the old vallo-44059 key); watch the Apple and Play reviews; time a repeat app launch on a phone (target under 0.5 seconds; the first launch after install still waits for the network); run the optional statements in `docs/DB_NOTES.md`; connect Paystack for restaurants; decide whether to set an "Ignored Build Step" marker in Vercel so a push to main can skip a deploy.
+- **Lawyer:** Terms section 14 still carries the retired Guarantee wording; the Host Agreement text was written by engineering; the co-founders agreement is out for review (after signing, file the share transfers at CAC).
+
+### Work for the next session, in priority order
+
+1. **Test the new flows signed in.** Agents tested with fixtures and preview pages only. In an environment where `npm ci` installs `livekit-client` and the signed-in app runs, walk these end to end with a test account: post a house with photos and videos, request and book a viewing and report a no-show, host setup for a hotel, shortlet and restaurant, a restaurant reservation to seated and a review, the owner and agent applications, and messaging (reply, forward, swipe, photo groups).
+2. **Restaurant bill payment.** The code and tables exist and the commission is set (2 percent). Still to do: add restaurant bills to the Paystack webhook (today a bill is confirmed when the diner returns from Paystack), create each restaurant's payout subaccount, then test in Paystack test mode. Keep it off until that passes.
+3. **All-in total at checkout.** The docs say every charge at the door is shown before booking. Confirm the stay checkout screen draws the full total with every door charge, and fix it if it does not.
+4. **Browser Back in the host wizard.** The unsaved-changes prompt covers the Back button, step jumps, links and closing the tab, but not the browser's own Back button (popstate).
+5. **Small gaps from the agents.** The "Ownership seen" badge shows on the profile and listing page, not on search cards. A landlord with no published listing shows as "Agent" on other people's view (expose the agent type, with a migration). `start_direct_conversation` does not check the contact policy in the database (only the app does).
+6. **Terms cleanup after the lawyer.** Remove the retired Guarantee sections and the related help copy, then bump the Terms version.
+7. **Translations.** A native speaker should review the Hausa, Igbo and Yoruba strings that agents wrote; several new notices are English only.
+8. **Check the data.** Landmark pins are approximate: check them on a map. Seed or confirm real test listings with video so the gallery can be tried on a phone.
+9. **Native speed (only if needed).** If the first launch after install must also be instant, an Android native shell is needed (Capacitor gives its bridge only to the `server.url` site), plus a new iOS and Android build. Repeat launches are already served from saved screens (service worker v6).
+10. **Repo hygiene.** `scripts/design/` holds old screenshot and measuring scripts whose inputs were deleted: remove them and the comments that name them. The git history is 2.7 GB because of old uploads: rewriting it is possible but is Seyi's call.
+- **Known conflicts to keep in mind:** restaurant deposits (D75, flag off) contradict "free table booking" if ever turned on.
