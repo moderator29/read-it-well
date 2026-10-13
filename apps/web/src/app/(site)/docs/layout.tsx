@@ -29,7 +29,7 @@ export default function DocsLayout({ children }: Readonly<{ children: React.Reac
         plate="bg-blue-wave"
         icon="listing-review"
         chip="Documentation"
-        title="How Vallo works, in full"
+        title="Vallo docs"
         heading="p"
       />
       <div className="nf-shell pb-section">
