@@ -37,7 +37,7 @@ function mount(answers: Record<string, Answer>) {
       let op: "select" | "insert" | "update" = "select";
       const chain: Record<string, unknown> = {};
       const settle = (): Answer => answers[`${table}:${op}`] ?? { data: null, error: null };
-      for (const method of ["select", "eq"]) chain[method] = () => chain;
+      for (const method of ["select", "eq", "in", "limit"]) chain[method] = () => chain;
       chain["insert"] = () => {
         op = "insert";
         writes.push(`${table}:insert`);

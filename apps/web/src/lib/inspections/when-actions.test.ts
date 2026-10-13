@@ -25,7 +25,7 @@ function mount(answers: Record<string, Answer>) {
       let op = "select";
       const chain: Record<string, unknown> = {};
       const settle = (): Answer => answers[`${table}:${op}`] ?? { data: null, error: null };
-      for (const m of ["select", "eq"]) chain[m] = () => chain;
+      for (const m of ["select", "eq", "in", "limit"]) chain[m] = () => chain;
       for (const m of ["insert", "update"]) {
         chain[m] = (payload: Record<string, unknown>) => {
           op = m;
@@ -65,9 +65,11 @@ describe("inspection times on the server", () => {
   it("stores a zone-less counter-offer as Lagos time", async () => {
     const { payloads } = mount({
       "inspection_requests:select": {
-        data: { id: REQUEST, listing_id: LISTING, requested_at: lagosInput(2).iso, state: "REQUESTED" },
+        data: { id: REQUEST, listing_id: LISTING, lister_id: USER, requested_at: lagosInput(2).iso, state: "REQUESTED" },
         error: null,
       },
+      /* The write answers with the row it moved, as `.select("id")` does. */
+      "inspection_requests:update": { data: [{ id: REQUEST }], error: null },
     });
     const t = lagosInput(4, "10", "00");
     const result = await answerInspection({ id: REQUEST, state: "PROPOSED", when: t.local });
@@ -78,7 +80,13 @@ describe("inspection times on the server", () => {
   it("refuses to confirm a requested time that has passed", async () => {
     const { payloads } = mount({
       "inspection_requests:select": {
-        data: { id: REQUEST, listing_id: LISTING, requested_at: new Date(Date.now() - 3_600_000).toISOString(), state: "REQUESTED" },
+        data: {
+          id: REQUEST,
+          listing_id: LISTING,
+          lister_id: USER,
+          requested_at: new Date(Date.now() - 3_600_000).toISOString(),
+          state: "REQUESTED",
+        },
         error: null,
       },
     });
