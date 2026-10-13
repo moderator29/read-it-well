@@ -156,6 +156,35 @@ const STEP_KEYS = [
   "submit",
 ] as const satisfies readonly (keyof WizardCopy["wizard"]["steps"])[];
 
+/**
+ * The step that owns a field the submit gate can name, so the checklist's
+ * Edit lands on the box that fixes it. Anything the gate grows later, and
+ * every rooms field, belongs to the first step.
+ */
+function stepOfGateField(field: string): number {
+  switch (field) {
+    case "photos":
+      return STEP_KEYS.indexOf("photos");
+    case "stateCode":
+    case "city":
+    case "area":
+      return STEP_KEYS.indexOf("location");
+    case "amenities":
+      return STEP_KEYS.indexOf("amenities");
+    case "price":
+    case "rent":
+    case "rentPeriod":
+    case "rate":
+    case "ratePeriod":
+    case "salePrice":
+    case "tenure":
+    case "totalMoveIn":
+      return STEP_KEYS.indexOf("pricing");
+    default:
+      return STEP_KEYS.indexOf("basics");
+  }
+}
+
 /** Display order of the type cards, which is not the schema's storage order. */
 /**
  * Display order of the type cards, which is not the schema's storage order.
@@ -253,16 +282,14 @@ type Values = {
 
 type Photo = { id: string; path: string; url: string };
 
-/** How a rent cycle reads beside a figure, in the one place that prints both. */
-const PERIOD_WORD: Record<RentPeriod, string> = {
-  month: "per month",
-  quarter: "per quarter",
-  year: "per year",
-};
-
 /** Keep an input numeric without fighting the caret. Empty stays empty. */
 function digitsOnly(raw: string, max: number): string {
   return raw.replace(/[^0-9]/g, "").slice(0, max);
+}
+
+/** A box as the save sends it: what was typed, or null for a box left empty. */
+function cleared(raw: string): string | null {
+  return raw.trim() === "" ? null : raw;
 }
 
 const EMPTY: Values = {
@@ -1056,6 +1083,8 @@ export function ListingWizard({
      moved yet. Both change in the same render as the step, so the step being
      left never animates, and the first paint is still (lister-publish.css). */
   const [travel, setTravel] = useState<{ dir: "forward" | "back"; moved: boolean }>({ dir: "forward", moved: false });
+  /** The step an Edit came from, while the lister is on an earlier one. */
+  const [returnTo, setReturnTo] = useState<number | null>(null);
   const railRef = useRef<HTMLDivElement | null>(null);
   const cardRef = useRef<HTMLDivElement | null>(null);
   const [values, setValues] = useState<Values>(initial ? valuesFrom(initial) : EMPTY);
@@ -1125,6 +1154,8 @@ export function ListingWizard({
   const [photoNotice, setPhotoNotice] = useState<string | null>(null);
   /** One line per file the last pick refused, naming the file. */
   const [photoProblems, setPhotoProblems] = useState<string[]>([]);
+  /** The files the last pick could not upload for a reason a second try can fix. */
+  const [retryFiles, setRetryFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   /* STORE-04: the shell's own camera, when the running binary carries it. */
   const [nativeCamera, setNativeCamera] = useState(false);
@@ -1310,13 +1341,16 @@ export function ListingWizard({
   const preference = tenantPreference(`${values.title} ${values.description}`);
   const stepNames = STEP_KEYS.map((key) => copy.wizard.steps[key]);
   const amenityNames = copy.amenities.names as Record<string, string | undefined>;
+  /* The words after the headline figure, from the dictionary's own period
+     table. A tenancy printed "per year" whatever cycle the rent was quoted
+     in, so a monthly rent read on the preview card as a yearly one. */
   const pricePeriod = forSale
-    ? "asking price"
+    ? copy.pricing.period.sale
     : tenancy
-      ? copy.pricing.perYear
+      ? copy.pricing.period[values.rentPeriod]
       : perHead
-        ? "per head"
-        : copy.pricing.perNight;
+        ? copy.pricing.period.guest
+        : copy.pricing.period.night;
 
   const unmet = useMemo(
     () =>
@@ -1568,6 +1602,8 @@ export function ListingWizard({
   };
 
   const unconfirmedMoney = BROADCAST_MONEY_KEYS.filter((key) => fromMessage.has(key));
+  /** Whether Send for review is held, and so whether the last step reads "ready". */
+  const sendBlocked = unmet.length > 0 || unconfirmedMoney.length > 0 || marksUnread || feeHolds;
 
   /* --------------------------------------------------------------- saving */
 
@@ -1594,54 +1630,56 @@ export function ListingWizard({
       /* V-09: the unconfirmed set goes to the server in the same save. */
       broadcastUnconfirmed: marksUnread ? undefined : [...fromMessage],
       title: values.title,
-      description: values.description,
+      /* EVERY BOX THE LISTER EMPTIED IS SENT AS NULL, which the action reads as
+         "clear the column". An empty box used to be left out of the save, and
+         the server keeps what it is not sent, so a deleted fee, address or
+         count stayed on the listing that went to review and came back here on
+         the next visit. Undefined is now only ever "not this save's business". */
+      description: cleared(values.description),
       propertyType: values.propertyType,
-      stateCode: values.stateCode,
-      city: values.city,
-      area: values.area,
-      address: values.address,
-      landmark: values.landmark,
+      stateCode: values.stateCode === "" ? null : values.stateCode,
+      city: cleared(values.city),
+      area: cleared(values.area),
+      address: cleared(values.address),
+      landmark: cleared(values.landmark),
       bedrooms: values.bedrooms,
       bathrooms: values.bathrooms,
-      toilets: values.toilets === "" ? undefined : values.toilets,
-      parkingSpaces: values.parkingSpaces === "" ? undefined : values.parkingSpaces,
-      floor: values.floor === "" ? undefined : values.floor,
-      totalFloors: values.totalFloors === "" ? undefined : values.totalFloors,
-      sizeSqm: values.sizeSqm === "" ? undefined : values.sizeSqm,
+      toilets: cleared(values.toilets),
+      parkingSpaces: cleared(values.parkingSpaces),
+      floor: cleared(values.floor),
+      totalFloors: cleared(values.totalFloors),
+      sizeSqm: cleared(values.sizeSqm),
       intent: values.intent,
-      rentNaira: values.rentNaira === "" ? undefined : values.rentNaira,
+      rentNaira: cleared(values.rentNaira),
       rentPeriod: values.rentPeriod,
       rentNegotiable: values.rentNegotiable,
-      cautionDepositNaira:
-        values.cautionDepositNaira === "" ? undefined : values.cautionDepositNaira,
-      serviceChargeNaira:
-        values.serviceChargeNaira === "" ? undefined : values.serviceChargeNaira,
+      cautionDepositNaira: cleared(values.cautionDepositNaira),
+      serviceChargeNaira: cleared(values.serviceChargeNaira),
       serviceChargePeriod: values.serviceChargePeriod,
-      agencyFeeNaira: values.agencyFeeNaira === "" ? undefined : values.agencyFeeNaira,
-      legalFeeNaira: values.legalFeeNaira === "" ? undefined : values.legalFeeNaira,
-      agreementFeeNaira: values.agreementFeeNaira === "" ? undefined : values.agreementFeeNaira,
-      totalMoveInNaira: values.totalMoveInNaira === "" ? undefined : values.totalMoveInNaira,
-      minimumTenancyMonths:
-        values.minimumTenancyMonths === "" ? undefined : values.minimumTenancyMonths,
-      availableFrom: values.availableFrom === "" ? undefined : values.availableFrom,
-      furnished: values.furnished === "" ? undefined : values.furnished,
-      rateNaira: values.rateNaira === "" ? undefined : values.rateNaira,
-      salePriceNaira: values.salePriceNaira === "" ? undefined : values.salePriceNaira,
-      saleAgencyFeeNaira: values.saleAgencyFeeNaira === "" ? undefined : values.saleAgencyFeeNaira,
-      saleLegalFeeNaira: values.saleLegalFeeNaira === "" ? undefined : values.saleLegalFeeNaira,
-      governorsConsentFeeNaira: values.governorsConsentFeeNaira === "" ? undefined : values.governorsConsentFeeNaira,
-      stampDutyNaira: values.stampDutyNaira === "" ? undefined : values.stampDutyNaira,
-      surveyRegistrationFeeNaira: values.surveyRegistrationFeeNaira === "" ? undefined : values.surveyRegistrationFeeNaira,
-      totalPurchaseNaira: values.totalPurchaseNaira === "" ? undefined : values.totalPurchaseNaira,
+      agencyFeeNaira: cleared(values.agencyFeeNaira),
+      legalFeeNaira: cleared(values.legalFeeNaira),
+      agreementFeeNaira: cleared(values.agreementFeeNaira),
+      totalMoveInNaira: cleared(values.totalMoveInNaira),
+      minimumTenancyMonths: cleared(values.minimumTenancyMonths),
+      availableFrom: cleared(values.availableFrom),
+      furnished: values.furnished === "" ? null : values.furnished,
+      rateNaira: cleared(values.rateNaira),
+      salePriceNaira: cleared(values.salePriceNaira),
+      saleAgencyFeeNaira: cleared(values.saleAgencyFeeNaira),
+      saleLegalFeeNaira: cleared(values.saleLegalFeeNaira),
+      governorsConsentFeeNaira: cleared(values.governorsConsentFeeNaira),
+      stampDutyNaira: cleared(values.stampDutyNaira),
+      surveyRegistrationFeeNaira: cleared(values.surveyRegistrationFeeNaira),
+      totalPurchaseNaira: cleared(values.totalPurchaseNaira),
       priceNegotiable: values.priceNegotiable,
-      tenure: values.tenure === "" ? undefined : values.tenure,
+      tenure: values.tenure === "" ? null : values.tenure,
       saleStatus: values.saleStatus,
-      yearBuilt: values.yearBuilt === "" ? undefined : values.yearBuilt,
-      condition: values.condition === "" ? undefined : values.condition,
-      powerGrid: values.powerGrid === "" ? undefined : values.powerGrid,
-      powerBackup: values.powerBackup === "" ? undefined : values.powerBackup,
-      powerBackupHours: values.powerBackupHours === "" ? undefined : values.powerBackupHours,
-      waterSupply: values.waterSupply === "" ? undefined : values.waterSupply,
+      yearBuilt: cleared(values.yearBuilt),
+      condition: values.condition === "" ? null : values.condition,
+      powerGrid: values.powerGrid === "" ? null : values.powerGrid,
+      powerBackup: values.powerBackup === "" ? null : values.powerBackup,
+      powerBackupHours: cleared(values.powerBackupHours),
+      waterSupply: values.waterSupply === "" ? null : values.waterSupply,
       prepaidMeter: values.prepaidMeter,
       /* A group whose saved answers could not be read, and which the lister
          has not touched, is left out: sending its empty form would write
@@ -1756,7 +1794,21 @@ export function ListingWizard({
       }
       setTravel({ dir: target < step ? "back" : "forward", moved: true });
       setStep(target);
+      /* Arriving at (or past) the step an Edit came from ends the way back. */
+      setReturnTo((prev) => (prev !== null && target >= prev ? null : prev));
     });
+  }
+
+  /**
+   * An Edit on the last two steps: go to the step that owns the fact, and
+   * remember where the lister came from, so one tap brings them back to it
+   * (`returnTo`, drawn under the step's title) instead of Next through every
+   * step in between, each one a save.
+   */
+  function editStep(target: number) {
+    if (pending || target < 0 || target >= step) return;
+    setReturnTo(step);
+    go(target);
   }
 
   /* The new step is put in view BEFORE it paints, and only when the rail has
@@ -1882,8 +1934,11 @@ export function ListingWizard({
 
   async function onFiles(files: FileList | readonly File[] | null) {
     if (!files || files.length === 0) return;
+    /* Copied now: a FileList is live and the input is emptied below. */
+    const chosen = Array.from(files);
     setPhotoNotice(null);
     setPhotoProblems([]);
+    setRetryFiles([]);
 
     if (!canPersist || !userId) {
       setPhotoNotice(copy.photos.needsKeys);
@@ -1894,7 +1949,15 @@ export function ListingWizard({
     try {
       const id = listingId ?? (await persist());
       if (!id) {
-        setPhotoNotice(copy.photos.needsTitle);
+        /* No listing to attach to. With a title that is because the save did
+           not reach the server, which a second try can fix; without one, the
+           title is what is missing. */
+        if (values.title.trim().length >= 2) {
+          setPhotoNotice(copy.wizard.saveUnreached);
+          setRetryFiles(chosen);
+        } else {
+          setPhotoNotice(copy.photos.needsTitle);
+        }
         return;
       }
 
@@ -1904,6 +1967,7 @@ export function ListingWizard({
       const supabase = await loadBrowserClient();
       if (!supabase) {
         setPhotoNotice(copy.photos.uploadFailed);
+        setRetryFiles(chosen);
         return;
       }
       let slot = photos.length;
@@ -1911,11 +1975,22 @@ export function ListingWizard({
        * ONE LINE PER REFUSED FILE. A single notice was overwritten by every
        * later file, so choosing six photos with two bad ones showed at most
        * the last refusal, without saying which photo it was about.
+       *
+       * AND THE ONES A SECOND TRY CAN FIX ARE KEPT. A dropped connection on
+       * the upload or on the attach is not a problem with the photo, so those
+       * files are held for "Try again" rather than sent back to the gallery
+       * to be found and chosen a second time. A refusal about the photo itself
+       * (too small, wrong type, too big) is not kept: trying it again changes
+       * nothing.
        */
       const problems: string[] = [];
-      const refuse = (file: File, reason: string) => problems.push(fileLine(file.name, reason));
+      const retry: File[] = [];
+      const refuse = (file: File, reason: string, again = false) => {
+        problems.push(fileLine(file.name, reason));
+        if (again) retry.push(file);
+      };
 
-      for (const file of Array.from(files)) {
+      for (const file of chosen) {
         if (slot >= MAX_PHOTOS) {
           problems.push(fill(copy.photos.ceiling, { max: MAX_PHOTOS }));
           break;
@@ -1979,15 +2054,13 @@ export function ListingWizard({
           uploadError = { message: "network" };
         }
         if (uploadError) {
-          refuse(
-            file,
-            uploadErrorText(uploadError, {
-              tooBig: fill(copy.photos.uploadTooBig, { max: MAX_PHOTO_LABEL }),
-              wrongType: copy.photos.uploadWrongType,
-              signedOut: copy.photos.uploadSignedOut,
-              failed: copy.photos.uploadFailed,
-            }),
-          );
+          const reason = uploadErrorText(uploadError, {
+            tooBig: fill(copy.photos.uploadTooBig, { max: MAX_PHOTO_LABEL }),
+            wrongType: copy.photos.uploadWrongType,
+            signedOut: copy.photos.uploadSignedOut,
+            failed: copy.photos.uploadFailed,
+          });
+          refuse(file, reason, reason === copy.photos.uploadFailed);
           continue;
         }
 
@@ -1995,7 +2068,15 @@ export function ListingWizard({
         try {
           attached = await addPhoto({ listingId: id, storagePath: path, position: slot });
         } catch {
-          refuse(file, copy.wizard.saveUnreached);
+          /* The attach never reached the server, so nothing there removes the
+             object it would have named. It is in this lister's own folder of
+             a public bucket, so it goes now, best effort, rather than staying
+             downloadable for ever under a path no row points at. */
+          void supabase.storage
+            .from("listing-photos")
+            .remove([path])
+            .catch(() => undefined);
+          refuse(file, copy.wizard.saveUnreached, true);
           continue;
         }
         if (!attached.ok) {
@@ -2008,6 +2089,7 @@ export function ListingWizard({
         slot += 1;
       }
       setPhotoProblems(problems);
+      setRetryFiles(retry);
     } finally {
       setUploading(false);
       if (fileInput.current) fileInput.current.value = "";
@@ -2407,6 +2489,22 @@ export function ListingWizard({
         art={sent ? undefined : stepKey && STEP_ART[stepKey]}
       />
 
+      {/* The way back to the step an Edit came from (see `editStep`). */}
+      {returnTo !== null && step < returnTo && !sent && (
+        <div className="mt-group">
+          <Button
+            variant="secondary"
+            size="sm"
+            arrow
+            onClick={() => go(returnTo)}
+            disabled={pending}
+            data-testid="wizard-return"
+          >
+            {fill(copy.wizard.returnTo, { step: stepNames[returnTo] ?? "" })}
+          </Button>
+        </div>
+      )}
+
       {!canPersist && (
         <div className="mt-group">
           <Note>{copy.wizard.unconfiguredNotice}</Note>
@@ -2560,7 +2658,8 @@ export function ListingWizard({
             <div>
               <span className="nf-label">
                 {copy.drawn.rooms.title}
-                {mark("bedrooms", "bathrooms", "toilets", "parkingSpaces")}
+                {/* Furnishing included: its only control is in this group now. */}
+                {mark("bedrooms", "bathrooms", "toilets", "parkingSpaces", "furnished")}
               </span>
               <div className="nf-lw-facts">
                 <FactRow
@@ -2771,6 +2870,19 @@ export function ListingWizard({
                   ))}
                 </span>
               </Note>
+            )}
+            {/* The same files again, for the failures a second try can fix. */}
+            {retryFiles.length > 0 && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => void onFiles(retryFiles)}
+                disabled={uploading}
+                loading={uploading}
+                data-testid="photo-retry"
+              >
+                {copy.photos.retry}
+              </Button>
             )}
 
             {/*
@@ -3010,10 +3122,10 @@ export function ListingWizard({
         {step === 4 && (
           <div className="space-y-heading">
             <Note>
-              Is there light, is there water, and will they let a guest through
-              the gate. These are the first three questions every guest here
-              asks, and answering them honestly wins bookings from the listings
-              that do not.
+              Is there light, is there water, and how does somebody get through
+              the gate? These are the first questions anyone asks here, whether
+              they are renting, buying or staying a night, and honest answers
+              win you the enquiries that listings without them lose.
             </Note>
 
             {/*
@@ -3498,7 +3610,7 @@ export function ListingWizard({
                   error={fieldErrors.rent ?? fieldErrors.rentNaira}
                   hint={
                     rentMinor > 0
-                      ? `${formatMoney(rentMinor, locale)} ${PERIOD_WORD[values.rentPeriod]}`
+                      ? `${formatMoney(rentMinor, locale)} ${copy.pricing.period[values.rentPeriod]}`
                       : copy.pricing.priceHint
                   }
                 >
@@ -3672,7 +3784,10 @@ export function ListingWizard({
                         inputMode="decimal"
                         value={values.totalMoveInNaira}
                         onChange={(e) => set("totalMoveInNaira", e.target.value)}
-                        placeholder="7,000,000"
+                        /* The parts' own sum, never an example: the example
+                           (7,000,000) was a total above the parts, which the
+                           gate refuses. */
+                        placeholder={partsSumMinor > 0 ? formatMoney(partsSumMinor, locale) : undefined}
                       />
                     </Field>
                   </div>
@@ -3720,7 +3835,9 @@ export function ListingWizard({
                   )}
                 </div>
 
-                <div className="grid grid-cols-2 gap-row">
+                {/* Bottom aligned: at phone width the first label wraps to two
+                    lines and pushed its box below its neighbour's. */}
+                <div className="grid grid-cols-2 items-end gap-row">
                   <Field
                     label="Shortest tenancy, in months"
                     error={fieldErrors.minimumTenancyMonths}
@@ -3745,20 +3862,9 @@ export function ListingWizard({
                   </Field>
                 </div>
 
-                <Field fromMessage={mark("furnished")} label="Furnishing">
-                  <select
-                    className="nf-field"
-                    value={values.furnished}
-                    onChange={(e) => set("furnished", e.target.value as Furnishing | "")}
-                  >
-                    <option value="">Not stated</option>
-                    {FURNISHING_CHOICES.map((c) => (
-                      <option key={c.value} value={c.value}>
-                        {c.label}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
+                {/* Furnishing is asked once, with the rooms on the first step.
+                    It was asked here too, a second control for the same
+                    answer, with its own wording for "not stated". */}
 
                 <p className="text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
                   {copy.pricing.rentalNote}
@@ -3790,24 +3896,22 @@ export function ListingWizard({
               </Field>
             )}
 
-            <Field
-              label="Available from"
-              hint="Shown on the listing so nobody asks."
-              error={fieldErrors.availableFrom}
-            >
-              {shortStay || forSale ? (
+            {/* A tenancy asks for the date beside its shortest term, above; a
+                second "Available from" row here only said "Set above". */}
+            {(shortStay || forSale) && (
+              <Field
+                label="Available from"
+                hint="Shown on the listing so nobody asks."
+                error={fieldErrors.availableFrom}
+              >
                 <input
                   className="nf-field"
                   type="date"
                   value={values.availableFrom}
                   onChange={(e) => set("availableFrom", e.target.value)}
                 />
-              ) : (
-                <span className="block text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
-                  Set above, with the tenancy terms.
-                </span>
-              )}
-            </Field>
+              </Field>
+            )}
           </div>
         )}
 
@@ -3850,18 +3954,21 @@ export function ListingWizard({
                   value: copy.propertyTypes[values.propertyType]?.label,
                   step: 0,
                 },
+                /* Both counts are always answered (the steppers start at one),
+                   so a zero is the lister's answer, a studio or a plot, and
+                   prints as 0 rather than as "Not set". */
                 {
                   key: "bedrooms",
                   glyph: "bed" as UiIconName,
                   label: copy.drawn.checkOver.keys.bedrooms,
-                  value: values.bedrooms > 0 ? String(values.bedrooms) : null,
+                  value: String(values.bedrooms),
                   step: 0,
                 },
                 {
                   key: "bathrooms",
                   glyph: "bath" as UiIconName,
                   label: copy.drawn.checkOver.keys.bathrooms,
-                  value: values.bathrooms > 0 ? String(values.bathrooms) : null,
+                  value: String(values.bathrooms),
                   step: 0,
                 },
                 {
@@ -3889,12 +3996,66 @@ export function ListingWizard({
                   value: values.floor === "" ? null : values.floor,
                   step: 0,
                 },
+                /* Condition is asked on the first step (it moved there from
+                   the sale branch of the price step); Edit sent the lister to
+                   the price step, where it is not. */
                 {
                   key: "condition",
                   glyph: "verified" as UiIconName,
                   label: copy.drawn.checkOver.keys.condition,
                   value: CONDITION_CHOICES.find((c) => c.value === values.condition)?.label ?? null,
-                  step: 5,
+                  step: 0,
+                },
+                /* The rows for the steps the table did not cover, so every
+                   fact on the card above is one Edit away. */
+                {
+                  key: "photos",
+                  glyph: "picture" as UiIconName,
+                  label: copy.drawn.checkOver.keys.photos,
+                  value:
+                    photos.length === 0
+                      ? null
+                      : photos.length === 1
+                        ? copy.workspace.photoCountOne
+                        : fill(copy.workspace.photoCount, { count: photos.length }),
+                  step: STEP_KEYS.indexOf("photos"),
+                },
+                {
+                  key: "location",
+                  glyph: "location" as UiIconName,
+                  label: copy.drawn.checkOver.keys.location,
+                  value: [values.area, values.city, stateName].filter(Boolean).join(", ") || null,
+                  step: STEP_KEYS.indexOf("location"),
+                },
+                {
+                  key: "amenities",
+                  glyph: "circle-check" as UiIconName,
+                  label: copy.drawn.checkOver.keys.amenities,
+                  value:
+                    chosenAmenities.length === 0
+                      ? null
+                      : fill(copy.drawn.checkOver.amenitiesCount, { count: chosenAmenities.length }),
+                  step: STEP_KEYS.indexOf("amenities"),
+                },
+                {
+                  key: "utilities",
+                  glyph: "bolt" as UiIconName,
+                  label: copy.drawn.checkOver.keys.utilities,
+                  value:
+                    [
+                      POWER_GRID_CHOICES.find((c) => c.value === values.powerGrid)?.label,
+                      WATER_SUPPLY_CHOICES.find((c) => c.value === values.waterSupply)?.label,
+                    ]
+                      .filter(Boolean)
+                      .join(", ") || null,
+                  step: STEP_KEYS.indexOf("utilities"),
+                },
+                {
+                  key: "price",
+                  glyph: "coins" as UiIconName,
+                  label: copy.drawn.checkOver.keys.price,
+                  value: price ? `${price} ${pricePeriod}` : null,
+                  step: STEP_KEYS.indexOf("pricing"),
                 },
                 {
                   key: "availability",
@@ -3907,7 +4068,7 @@ export function ListingWizard({
                   value: availableFromDate
                     ? formatDate(availableFromDate, locale)
                     : copy.drawn.checkOver.availableNow,
-                  step: 5,
+                  step: STEP_KEYS.indexOf("pricing"),
                 },
               ].map((row) => (
                 <div key={row.key} className="nf-lw-detail">
@@ -3925,7 +4086,7 @@ export function ListingWizard({
                   <Button
                     variant="quiet"
                     size="sm"
-                    onClick={() => go(row.step)}
+                    onClick={() => editStep(row.step)}
                     aria-label={`${copy.drawn.checkOver.edit}: ${row.label}`}
                   >
                     {copy.drawn.checkOver.edit}
@@ -3965,7 +4126,9 @@ export function ListingWizard({
               />
             ) : (
               <div className="nf-lw-publish__send mt-heading">
-                <h2 className="nf-h3">{copy.submit.title}</h2>
+                <h2 className="nf-h3" data-testid="send-title">
+                  {sendBlocked ? copy.submit.notReadyTitle : copy.submit.title}
+                </h2>
                 <p className="nf-body-sm mt-inline leading-relaxed text-[var(--nf-content-secondary)]">
                   {copy.submit.body}
                 </p>
@@ -3998,9 +4161,20 @@ export function ListingWizard({
                     {
                       field: "price",
                       covers: ["rent", "rentPeriod", "rate", "ratePeriod", "salePrice", "tenure"],
-                      label: rental
-                        ? copy.submit.checklist.priceYear
-                        : copy.submit.checklist.priceNight,
+                      /* Named for the market the listing is in. It read
+                         "Price per night" on a sale and on a restaurant, and
+                         "Yearly rent" on a plot for sale or a monthly let. The
+                         dictionary has the yearly and nightly wordings; the
+                         rest read in English, as the price step's do. */
+                      label: forSale
+                        ? "Asking price and title deed"
+                        : tenancy
+                          ? values.rentPeriod === "year"
+                            ? copy.submit.checklist.priceYear
+                            : "Rent and how often it is paid"
+                          : perHead
+                            ? "Price per head"
+                            : copy.submit.checklist.priceNight,
                     },
                     {
                       field: "bathrooms",
@@ -4012,8 +4186,18 @@ export function ListingWizard({
                       : []),
                   ]).map((item) => {
                     const problem = unmet.find((u) => (item.covers ?? [item.field]).includes(u.field));
+                    /* A met line and an open one differ by shape and by words,
+                       not by colour alone: a tick, or a mark with the reason
+                       under it and an Edit that goes to the step that fixes
+                       it. Every line used to carry the same shield, told apart
+                       only by its tint, and none of them led anywhere. */
                     return (
-                      <li key={item.field} className="flex items-start gap-row">
+                      <li
+                        key={item.field}
+                        className="flex items-start gap-row"
+                        data-testid={`send-check-${item.field}`}
+                        data-met={problem ? undefined : ""}
+                      >
                         <span
                           className="mt-inline-tight grid h-5 w-5 shrink-0 place-items-center rounded-full"
                           style={{
@@ -4022,10 +4206,11 @@ export function ListingWizard({
                               : "var(--nf-state-success-surface)",
                             color: problem ? "var(--nf-state-warning)" : "var(--nf-state-success)",
                           }}
+                          aria-hidden="true"
                         >
-                          <UiIcon name="verified" size={12} />
+                          <UiIcon name={problem ? "info" : "check"} size={12} />
                         </span>
-                        <span className="min-w-0 leading-snug">
+                        <span className="min-w-0 flex-1 leading-snug">
                           <span className="block text-[length:var(--nf-text-body-sm)] font-semibold">{item.label}</span>
                           {problem && (
                             <span className="block text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
@@ -4033,6 +4218,18 @@ export function ListingWizard({
                             </span>
                           )}
                         </span>
+                        {problem && (
+                          <Button
+                            variant="quiet"
+                            size="sm"
+                            className="shrink-0"
+                            onClick={() => editStep(stepOfGateField(problem.field))}
+                            disabled={pending}
+                            aria-label={`${copy.drawn.checkOver.edit}: ${item.label}`}
+                          >
+                            {copy.drawn.checkOver.edit}
+                          </Button>
+                        )}
                       </li>
                     );
                   })}
@@ -4082,7 +4279,7 @@ export function ListingWizard({
                   full
                   className="mt-heading"
                   onClick={send}
-                  disabled={unmet.length > 0 || unconfirmedMoney.length > 0 || marksUnread || feeHolds}
+                  disabled={sendBlocked}
                   data-testid="listing-send"
                   loading={pending}
                 >

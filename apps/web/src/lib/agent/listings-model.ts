@@ -80,6 +80,20 @@ export const MIN_DRAFT_TITLE_LENGTH = 2;
 /** One hundred million naira, in kobo. Above this is a typing accident. */
 export const MAX_PRICE_KOBO = 100_000_000_00;
 
+/**
+ * The ceiling on the SALE side: the asking price, the total to buy and the
+ * costs on top of them. Fifty billion naira, in kobo.
+ *
+ * The one ceiling above was written for a rent and was applied to a sale too,
+ * so an asking price over a hundred million naira could not even be saved as
+ * a draft ("That amount looks too high"), while the wizard's own placeholder
+ * suggested 180,000,000 and a Lagos house routinely sells for several times
+ * that. Agency and legal fees on a sale are a percentage of it, so they share
+ * this ceiling rather than the rent's. The figure is still a guard against a
+ * slipped key, and where exactly it sits is the founder's call.
+ */
+export const MAX_SALE_PRICE_KOBO = 50_000_000_000_00;
+
 /* ------------------------------------------------------------------ media
 
    The upload ceilings, stated once and enforced in three places.
@@ -506,8 +520,31 @@ export function koboToNairaInput(minor: number | null | undefined): string {
   return kobo === 0 ? String(naira) : `${naira}.${String(kobo).padStart(2, "0")}`;
 }
 
+/**
+ * A FEE as the text its input should show when a draft is restored.
+ *
+ * Not `koboToNairaInput`, which reads zero as "nothing typed": right for a
+ * rent or a price, where zero is never an answer, and wrong for a fee, where a
+ * stated zero is the answer "no agency fee". Restoring that zero as an empty
+ * box turned "No agency fee" into "Not declared" on the lister's own screen,
+ * and the next save sent the empty box back as a clear.
+ */
+export function feeToNairaInput(minor: number | null | undefined): string {
+  if (minor === null || minor === undefined || !Number.isFinite(minor) || minor < 0) return "";
+  return minor === 0 ? "0" : koboToNairaInput(minor);
+}
+
 export const emptyToUndefined = (value: unknown) =>
   value === "" || value === null ? undefined : value;
+
+/**
+ * For the draft fields a lister can take back: an empty string still means
+ * "not sent, leave the column as it is", and null now means "cleared, empty
+ * the column". `emptyToUndefined` folds both into the first, which is why a
+ * fee, an address or a count the lister deleted came back on the next visit
+ * and stayed on the stored listing.
+ */
+export const blankToUndefined = (value: unknown) => (value === "" ? undefined : value);
 
 /**
  * Everything the gate needs to judge a listing, whether the values are sitting

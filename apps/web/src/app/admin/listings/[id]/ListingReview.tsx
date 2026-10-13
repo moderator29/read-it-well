@@ -473,7 +473,9 @@ function MediaStrip({ listing, copy }: { listing: ListingReviewView; copy: Admin
           </li>
         ) : null}
         {shown.map((photo, index) => (
-          <li key={photo}>
+          /* Keyed by place as well as address, so two photographs that share
+             an address cannot drop one another from the strip. */
+          <li key={`${index}-${photo}`}>
             <RemoteImage
               src={photo}
               alt={copy.photoAlt.replace("{title}", listing.title).replace("{number}", String(index + 2))}

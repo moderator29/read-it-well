@@ -150,11 +150,25 @@ export function VideoWalkthrough({
 
     setState({ phase: "attaching" });
     const duration = await durationOf(file);
-    const attached = await addVideo({
-      listingId: id,
-      storagePath: result.path,
-      ...(duration === null ? {} : { durationSeconds: duration }),
-    });
+    /* The attach is a server action and can throw on a dropped connection.
+       Uncaught, the panel stayed on "attaching" for good and the uploaded
+       file was left with no row naming it. */
+    let attached: Awaited<ReturnType<typeof addVideo>>;
+    try {
+      attached = await addVideo({
+        listingId: id,
+        storagePath: result.path,
+        ...(duration === null ? {} : { durationSeconds: duration }),
+      });
+    } catch {
+      setState({ phase: "idle" });
+      void supabase.storage
+        .from("listing-videos")
+        .remove([result.path])
+        .catch(() => undefined);
+      setNotice("We could not reach Vallo to attach the walkthrough. Check your connection and choose it again.");
+      return;
+    }
     setState({ phase: "idle" });
 
     if (!attached.ok) {
@@ -179,7 +193,13 @@ export function VideoWalkthrough({
   const drop = async (video: WalkthroughVideo) => {
     if (!listingId) return;
     setNotice(null);
-    const removed = await removeVideo({ listingId, videoId: video.id });
+    let removed: Awaited<ReturnType<typeof removeVideo>>;
+    try {
+      removed = await removeVideo({ listingId, videoId: video.id });
+    } catch {
+      setNotice("We could not reach Vallo to remove the walkthrough. It is still on the listing. Try again.");
+      return;
+    }
     if (!removed.ok) {
       setNotice(removed.error);
       return;

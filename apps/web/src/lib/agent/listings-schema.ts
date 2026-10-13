@@ -33,6 +33,7 @@ import {
   MAX_GATE_DIRECTIONS,
   MAX_PHOTOS,
   MAX_PRICE_KOBO,
+  MAX_SALE_PRICE_KOBO,
   MAX_SECURITY_PHONE,
   MAX_TENANCY_MONTHS,
   MAX_TITLE_LENGTH,
@@ -45,6 +46,7 @@ import {
   STATE_CODE_SET,
   WATER_SUPPLY_VALUES,
   YEAR_BUILT_LOOKAHEAD,
+  blankToUndefined,
   collapseSpaces,
   emptyToUndefined,
   parseNairaToKobo,
@@ -67,20 +69,52 @@ const optionalCount = (min: number, max: number, message: string) =>
     z.number(message).int(message).min(min, message).max(max, message).optional(),
   );
 
-const optionalNaira = (message: string) =>
+/* ------------------------------------------------- clearable draft fields
+ *
+ * The draft's optional fields, in a form a lister can TAKE BACK. Absent, or an
+ * empty string, still leaves the column exactly as it was, which is the
+ * forgiving-draft rule; null empties it, and null is what the wizard sends for
+ * a box the lister cleared. Before these, both meant "leave it", so a deleted
+ * agency fee, street address or toilet count stayed on the stored listing,
+ * came back on the next visit, and went to review and to the public page as
+ * if the lister had never removed it.
+ */
+
+const clearableText = (max: number, tooLong: string) =>
   z.preprocess(
-    emptyToUndefined,
+    blankToUndefined,
+    z.string().max(max, tooLong).transform(collapseSpaces).nullable().optional(),
+  );
+
+const clearableCount = (min: number, max: number, message: string) =>
+  z.preprocess(
+    (value) => {
+      const cleared = blankToUndefined(value);
+      if (cleared === undefined || cleared === null) return cleared;
+      return typeof cleared === "string" ? Number(cleared) : cleared;
+    },
+    z.number(message).int(message).min(min, message).max(max, message).nullable().optional(),
+  );
+
+/**
+ * Naira text in, integer kobo out, under a ceiling. A rent and its fees use
+ * `MAX_PRICE_KOBO`; the sale side uses `MAX_SALE_PRICE_KOBO` (see its note).
+ */
+const clearableNaira = (message: string, ceiling: number = MAX_PRICE_KOBO) =>
+  z.preprocess(
+    blankToUndefined,
     z
       .union([z.string(), z.number()])
+      .nullable()
       .optional()
       .transform((raw, ctx) => {
-        if (raw === undefined) return undefined;
+        if (raw === undefined || raw === null) return raw;
         const kobo = parseNairaToKobo(String(raw));
         if (kobo === null) {
           ctx.addIssue({ code: "custom", message });
           return z.NEVER;
         }
-        if (kobo > MAX_PRICE_KOBO) {
+        if (kobo > ceiling) {
           ctx.addIssue({
             code: "custom",
             message: "That amount looks too high. Check the figure and try again.",
@@ -98,14 +132,15 @@ const optionalNaira = (message: string) =>
  * is the only field in the wizard that may carry a fraction. It is still not
  * money and never becomes money.
  */
-const optionalDecimal = (message: string) =>
+const clearableDecimal = (message: string) =>
   z.preprocess(
-    emptyToUndefined,
+    blankToUndefined,
     z
       .union([z.string(), z.number()])
+      .nullable()
       .optional()
       .transform((raw, ctx) => {
-        if (raw === undefined) return undefined;
+        if (raw === undefined || raw === null) return raw;
         const value = Number(String(raw).replace(/,/g, "").trim());
         if (!Number.isFinite(value) || value <= 0 || value > 10_000_000) {
           ctx.addIssue({ code: "custom", message });
@@ -117,14 +152,15 @@ const optionalDecimal = (message: string) =>
   );
 
 /** An ISO calendar date, the shape both `<input type="date">` and Postgres use. */
-const optionalDate = (message: string) =>
+const clearableDate = (message: string) =>
   z.preprocess(
-    emptyToUndefined,
+    blankToUndefined,
     z
       .string()
       .trim()
       .regex(/^\d{4}-\d{2}-\d{2}$/, message)
       .refine((value) => !Number.isNaN(Date.parse(`${value}T00:00:00Z`)), message)
+      .nullable()
       .optional(),
   );
 
@@ -148,27 +184,29 @@ export const draftInputSchema = z.object({
         .min(MIN_DRAFT_TITLE_LENGTH, "Give your listing a title so we can save it.")
         .max(MAX_TITLE_LENGTH, `Keep the title under ${MAX_TITLE_LENGTH} characters.`),
     ),
-  description: optionalText(4000, "Keep the description under 4000 characters."),
+  description: clearableText(4000, "Keep the description under 4000 characters."),
   propertyType: z.preprocess(emptyToUndefined, z.enum(PROPERTY_TYPE_VALUES).optional()),
   stateCode: z.preprocess(
-    emptyToUndefined,
+    blankToUndefined,
     z
       .string()
       .transform((value) => value.trim().toUpperCase())
       .refine((value) => STATE_CODE_SET.has(value), "Choose a state from the list.")
+      .nullable()
       .optional(),
   ),
-  city: optionalText(80, "Keep the city under 80 characters."),
-  area: optionalText(80, "Keep the area under 80 characters."),
-  address: optionalText(200, "Keep the address under 200 characters."),
-  landmark: optionalText(120, "Keep the landmark under 120 characters."),
+  city: clearableText(80, "Keep the city under 80 characters."),
+  area: clearableText(80, "Keep the area under 80 characters."),
+  address: clearableText(200, "Keep the address under 200 characters."),
+  landmark: clearableText(120, "Keep the landmark under 120 characters."),
+  /* Never null: both columns are NOT NULL, and the wizard always sends a count. */
   bedrooms: optionalCount(0, 20, "Bedrooms can be 0 to 20."),
   bathrooms: optionalCount(0, 20, "Bathrooms can be 0 to 20."),
-  toilets: optionalCount(0, 20, "Toilets can be 0 to 20."),
-  parkingSpaces: optionalCount(0, 50, "Parking spaces can be 0 to 50."),
-  floor: optionalCount(-5, MAX_FLOORS, `The floor can be -5 to ${MAX_FLOORS}.`),
-  totalFloors: optionalCount(1, MAX_FLOORS, `A building has 1 to ${MAX_FLOORS} floors.`),
-  sizeSqm: optionalDecimal("Enter the size in square metres, for example 120."),
+  toilets: clearableCount(0, 20, "Toilets can be 0 to 20."),
+  parkingSpaces: clearableCount(0, 50, "Parking spaces can be 0 to 50."),
+  floor: clearableCount(-5, MAX_FLOORS, `The floor can be -5 to ${MAX_FLOORS}.`),
+  totalFloors: clearableCount(1, MAX_FLOORS, `A building has 1 to ${MAX_FLOORS} floors.`),
+  sizeSqm: clearableDecimal("Enter the size in square metres, for example 120."),
 
   /* ------------------------------------------------------------- intent
      The first question, and the one every money field below depends on. A
@@ -181,32 +219,36 @@ export const draftInputSchema = z.object({
      before the keys change hands. Every fee is optional because agents
      genuinely quote different subsets, and an unstated fee is rendered as
      unstated rather than as zero. */
-  rentNaira: optionalNaira("Enter the rent in naira, for example 4,500,000."),
+  rentNaira: clearableNaira("Enter the rent in naira, for example 4,500,000."),
   rentPeriod: z.preprocess(emptyToUndefined, z.enum(RENT_PERIOD_VALUES).optional()),
   rentNegotiable: z.preprocess(emptyToUndefined, z.boolean().optional()),
-  cautionDepositNaira: optionalNaira("Enter the caution deposit in naira."),
-  serviceChargeNaira: optionalNaira("Enter the service charge in naira."),
+  cautionDepositNaira: clearableNaira("Enter the caution deposit in naira."),
+  serviceChargeNaira: clearableNaira("Enter the service charge in naira."),
   serviceChargePeriod: z.preprocess(emptyToUndefined, z.enum(RENT_PERIOD_VALUES).optional()),
-  agencyFeeNaira: optionalNaira("Enter the agency fee in naira."),
-  legalFeeNaira: optionalNaira("Enter the legal fee in naira."),
-  agreementFeeNaira: optionalNaira("Enter the agreement fee in naira."),
-  totalMoveInNaira: optionalNaira("Enter the total move-in cost in naira."),
-  minimumTenancyMonths: optionalCount(
+  agencyFeeNaira: clearableNaira("Enter the agency fee in naira."),
+  legalFeeNaira: clearableNaira("Enter the legal fee in naira."),
+  agreementFeeNaira: clearableNaira("Enter the agreement fee in naira."),
+  totalMoveInNaira: clearableNaira("Enter the total move-in cost in naira."),
+  minimumTenancyMonths: clearableCount(
     1,
     MAX_TENANCY_MONTHS,
     `The shortest tenancy can be 1 to ${MAX_TENANCY_MONTHS} months.`,
   ),
-  availableFrom: optionalDate("Enter the date as YYYY-MM-DD."),
-  furnished: z.preprocess(emptyToUndefined, z.enum(FURNISHING_VALUES).optional()),
+  availableFrom: clearableDate("Enter the date as YYYY-MM-DD."),
+  furnished: z.preprocess(blankToUndefined, z.enum(FURNISHING_VALUES).nullable().optional()),
 
   /* --------------------------------------------------------- to let, nightly
      A shortlet, a hotel room, a restaurant table. One figure and the cycle it
-     is quoted in, which the category decides rather than the lister. */
-  rateNaira: optionalNaira("Enter the rate in naira, for example 85,000."),
+     is quoted in, which the category decides rather than the lister. Null
+     clears the figure; the column is NOT NULL, so the action stores a zero. */
+  rateNaira: clearableNaira("Enter the rate in naira, for example 85,000."),
   ratePeriod: z.preprocess(emptyToUndefined, z.enum(RATE_PERIOD_VALUES).optional()),
 
   /* -------------------------------------------------------------- for sale */
-  salePriceNaira: optionalNaira("Enter the asking price in naira, for example 180,000,000."),
+  salePriceNaira: clearableNaira(
+    "Enter the asking price in naira, for example 180,000,000.",
+    MAX_SALE_PRICE_KOBO,
+  ),
   priceNegotiable: z.preprocess(emptyToUndefined, z.boolean().optional()),
 
   /* WHAT A BUYER ACTUALLY PAYS. The sale side's twin of the move-in model,
@@ -215,32 +257,38 @@ export const draftInputSchema = z.object({
      hundred million by the time the deed is signed. Every field is optional
      because sellers quote different subsets, and an unstated cost renders as
      unstated and never as zero. */
-  saleAgencyFeeNaira: optionalNaira("Enter the agency fee in naira."),
-  saleLegalFeeNaira: optionalNaira("Enter the legal fee in naira."),
-  governorsConsentFeeNaira: optionalNaira("Enter the Governor's consent fee in naira."),
-  stampDutyNaira: optionalNaira("Enter the stamp duty in naira."),
-  surveyRegistrationFeeNaira: optionalNaira("Enter the survey and registration fee in naira."),
-  totalPurchaseNaira: optionalNaira("Enter the total cost to buy in naira."),
-  tenure: z.preprocess(emptyToUndefined, z.enum(LAND_TENURE_VALUES).optional()),
+  saleAgencyFeeNaira: clearableNaira("Enter the agency fee in naira.", MAX_SALE_PRICE_KOBO),
+  saleLegalFeeNaira: clearableNaira("Enter the legal fee in naira.", MAX_SALE_PRICE_KOBO),
+  governorsConsentFeeNaira: clearableNaira(
+    "Enter the Governor's consent fee in naira.",
+    MAX_SALE_PRICE_KOBO,
+  ),
+  stampDutyNaira: clearableNaira("Enter the stamp duty in naira.", MAX_SALE_PRICE_KOBO),
+  surveyRegistrationFeeNaira: clearableNaira(
+    "Enter the survey and registration fee in naira.",
+    MAX_SALE_PRICE_KOBO,
+  ),
+  totalPurchaseNaira: clearableNaira("Enter the total cost to buy in naira.", MAX_SALE_PRICE_KOBO),
+  tenure: z.preprocess(blankToUndefined, z.enum(LAND_TENURE_VALUES).nullable().optional()),
   saleStatus: z.preprocess(emptyToUndefined, z.enum(SALE_STATUS_VALUES).optional()),
-  yearBuilt: optionalCount(
+  yearBuilt: clearableCount(
     MIN_YEAR_BUILT,
     new Date().getUTCFullYear() + YEAR_BUILT_LOOKAHEAD,
     `The year built can be ${MIN_YEAR_BUILT} to ${new Date().getUTCFullYear() + YEAR_BUILT_LOOKAHEAD}.`,
   ),
-  condition: z.preprocess(emptyToUndefined, z.enum(BUILD_CONDITION_VALUES).optional()),
+  condition: z.preprocess(blankToUndefined, z.enum(BUILD_CONDITION_VALUES).nullable().optional()),
 
   /* Light and water. Undefined means the host has not answered yet and the
-     column is left exactly as it was; the listing page renders unanswered as
-     unanswered, never as good news. */
-  powerGrid: z.preprocess(emptyToUndefined, z.enum(POWER_GRID_VALUES).optional()),
-  powerBackup: z.preprocess(emptyToUndefined, z.enum(POWER_BACKUP_VALUES).optional()),
-  powerBackupHours: optionalCount(
+     column is left exactly as it was; null is an answer taken back. The
+     listing page renders unanswered as unanswered, never as good news. */
+  powerGrid: z.preprocess(blankToUndefined, z.enum(POWER_GRID_VALUES).nullable().optional()),
+  powerBackup: z.preprocess(blankToUndefined, z.enum(POWER_BACKUP_VALUES).nullable().optional()),
+  powerBackupHours: clearableCount(
     0,
     MAX_BACKUP_HOURS,
     `Backup hours can be 0 to ${MAX_BACKUP_HOURS}.`,
   ),
-  waterSupply: z.preprocess(emptyToUndefined, z.enum(WATER_SUPPLY_VALUES).optional()),
+  waterSupply: z.preprocess(blankToUndefined, z.enum(WATER_SUPPLY_VALUES).nullable().optional()),
   prepaidMeter: z.preprocess(emptyToUndefined, z.boolean().optional()),
   /**
    * V-09: the wizard fields a pasted broadcast filled and the lister has not
@@ -272,6 +320,17 @@ export const draftInputSchema = z.object({
 
   /* V-41. The lister's flooding answer; null clears, undefined leaves alone. */
   flooding: z.enum(FLOODING).nullable().optional(),
+}).superRefine((value, ctx) => {
+  /* `listings_floor_within_building`: a sixth floor in a five floor building
+     is refused by the database, which reached the lister as "We could not save
+     this listing" with nothing pointing at the two boxes. */
+  if (typeof value.floor === "number" && typeof value.totalFloors === "number" && value.floor > value.totalFloors) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["floor"],
+      message: `The floor is above the top of the building. It has ${value.totalFloors} floors.`,
+    });
+  }
 });
 
 export type DraftInput = z.input<typeof draftInputSchema>;

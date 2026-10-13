@@ -9,6 +9,7 @@ import { Constants, type Database } from "../supabase/database.types";
 import { documentMedia, type DocumentMedia } from "./documents";
 import { requireAdmin, requireConsole } from "./guard";
 import type { StaffScope } from "./guard";
+import { qualityChecks, type QualityCheck } from "./listing-checks";
 import {
   lagosDayEnd,
   lagosDayStart,
@@ -19,7 +20,6 @@ import {
   type AdminQueueFilter,
 } from "./queue-filter";
 import {
-  PERIOD_SUFFIX,
   headlinePeriod,
   headlinePrice,
   moveInParts,
@@ -851,7 +851,7 @@ export async function getAgentApplications(
 
 /** ----------------------------------------------------------------- listings */
 
-export type QualityCheck = { label: string; pass: boolean; detail: string };
+export type { QualityCheck } from "./listing-checks";
 
 export type ListingReviewView = {
   id: string;
@@ -1018,97 +1018,8 @@ type ListingRow = {
   } | null;
 };
 
-const SMALL_WORDS = new Set([
-  "a", "an", "and", "at", "by", "for", "in", "of", "on", "or", "the", "to", "with",
-]);
-
-/** Does the title read as title case, ignoring the small words style allows? */
-function isTitleCase(title: string): boolean {
-  const words = title.trim().split(/\s+/).filter(Boolean);
-  if (words.length === 0) return false;
-  return words.every((word, index) => {
-    const first = word[0];
-    if (!first) return false;
-    if (index > 0 && SMALL_WORDS.has(word.toLowerCase())) return true;
-    return first === first.toUpperCase();
-  });
-}
-
-const CONTACT_PATTERN = /\d{10}|(?:payment|transfer|pay me|account number|acct|bank)/i;
-
-/**
- * The admission checklist from HYBRID_INVENTORY section 5, computed rather than
- * recited: the reviewer sees which lines the submission actually passes before
- * they decide. Nothing here blocks a decision; it informs one.
- */
-function qualityChecks(row: ListingRow): QualityCheck[] {
-  const photoCount = row.listing_photos.length;
-  const hasCover = row.listing_photos.some((photo) => photo.position === 0);
-  const words = (row.description ?? "").trim().split(/\s+/).filter(Boolean).length;
-  const text = `${row.title} ${row.description ?? ""}`;
-
-  return [
-    {
-      label: "Four photos or more",
-      pass: photoCount >= 4,
-      detail: `${photoCount} uploaded`,
-    },
-    {
-      label: "Cover photo set",
-      pass: hasCover,
-      detail: hasCover ? "First photo is the cover" : "No photo in the cover position",
-    },
-    {
-      label: "Title in title case",
-      pass: isTitleCase(row.title),
-      detail: row.title,
-    },
-    {
-      label: "Area and city recorded",
-      pass: Boolean(row.area) && Boolean(row.city),
-      detail: [row.area, row.city].filter(Boolean).join(", ") || "Not given",
-    },
-    {
-      /* Three markets, one line. A sale passes on an asking price, a tenancy on
-         a rent, a shortlet on a nightly rate, and the detail says which of the
-         three the reviewer is looking at so they can tell a 4.5m yearly rent
-         from a 4.5m asking price at a glance. */
-      label: row.listing_intent === "sale" ? "Asking price recorded" : "Price recorded in naira",
-      pass: headlinePrice(row).minor > 0,
-      detail: PERIOD_SUFFIX[headlinePeriod(headlinePrice(row))],
-    },
-    {
-      label: "Title deed stated",
-      pass: row.listing_intent !== "sale" || row.tenure !== null,
-      detail:
-        row.listing_intent !== "sale"
-          ? "Not asked of a listing to let"
-          : (row.tenure ?? "Not stated"),
-    },
-    {
-      label: "Bedrooms and bathrooms recorded",
-      pass: row.bathrooms > 0,
-      detail: `${row.bedrooms} bedrooms, ${row.bathrooms} bathrooms`,
-    },
-    {
-      label: "Amenities chosen",
-      pass: row.listing_amenities.length > 0,
-      detail: `${row.listing_amenities.length} selected`,
-    },
-    {
-      label: "Description of 40 words or more",
-      pass: words >= 40,
-      detail: `${words} words`,
-    },
-    {
-      label: "No contact or payment details in the text",
-      pass: !CONTACT_PATTERN.test(text),
-      detail: CONTACT_PATTERN.test(text)
-        ? "The trust scanner matched something in the title or description"
-        : "Clean",
-    },
-  ];
-}
+/* The admission checklist lives in `./listing-checks`, measured the way the
+   lister's own submit gate measured the submission. */
 
 function photoUrl(admin: SupabaseClient<Database>, path: string): string {
   if (path.startsWith("http://") || path.startsWith("https://")) return path;

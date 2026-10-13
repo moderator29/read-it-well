@@ -43,7 +43,10 @@ export function lockedSentence(status: ListingStatus): string {
     case "SUBMITTED":
     case "UNDER_REVIEW":
       return "This listing is with our review team, so it cannot be changed while they look at it. We will let you know as soon as it is decided.";
+    /* Approved is not live: publishing is the review team's next step, and
+       this sentence used to tell the lister their listing was in search. */
     case "APPROVED":
+      return "This listing passed review and our team puts it live next; there is nothing for you to do. To change it first, take it down from My listings: it returns to your drafts and goes back for review when you send it.";
     case "PUBLISHED":
       return "This listing is live. To change it, take it down from My listings: it returns to your drafts, you edit it there and send it back for review.";
     case "SUSPENDED":

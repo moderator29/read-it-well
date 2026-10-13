@@ -2539,7 +2539,7 @@ export const en = {
       /* The sentence under each step's title. One line, plain, and it says
          what the step is for rather than selling it. */
       subtitles: {
-        basics: "Tell us the type of property, what you want to list it as, and the rooms inside it.",
+        basics: "Tell us the type of property, describe it, and count the rooms inside it.",
         photos: "Add clear photos of the property and a short video walkthrough.",
         location: "Tell us the exact location of the property.",
         amenities: "Select all the amenities available at the property.",
@@ -2590,6 +2590,8 @@ export const en = {
         edit: "Edit",
         notSet: "Not set",
         availableNow: "Available now",
+        /* "3 chosen", beside Amenities in the details table. */
+        amenitiesCount: "{count} chosen",
         keys: {
           propertyType: "Property type",
           bedrooms: "Bedrooms",
@@ -2599,6 +2601,13 @@ export const en = {
           floor: "Floor",
           condition: "Condition",
           availability: "Availability",
+          /* The rows that make the table cover every step, so a wrong figure
+             anywhere is one Edit away rather than a walk back by hand. */
+          photos: "Photos",
+          location: "Location",
+          amenities: "Amenities",
+          utilities: "Light and water",
+          price: "Price",
         },
       },
       /* `GOVERNING-08` screen four. */
@@ -2638,6 +2647,9 @@ export const en = {
       next: "Next",
       back: "Back",
       myListings: "My listings",
+      /* After an Edit on the last two steps: one tap back to where the lister
+         was, rather than Next through every step in between. */
+      returnTo: "Back to {step}",
     },
 
     basics: {
@@ -2646,7 +2658,7 @@ export const en = {
       titlePlaceholder: "Bright 2 bedroom flat in Lekki Phase 1",
       propertyTypeLabel: "Property type",
       rentalNote:
-        "Rentals are the yearly market: you set the rent per year, guests message you, inspect the property, then pay. There is no nightly booking on a rental.",
+        "Rentals are let on a tenancy: you set the rent and how often it is paid, people message you, inspect the property, then pay. There is no nightly booking on a rental.",
       descriptionLabel: "Description",
       descriptionHint: "{words} of {min} words. Describe the rooms, the area and what is nearby.",
       descriptionPlaceholder:
@@ -2696,6 +2708,9 @@ export const en = {
       notPrepared:
         "We could not prepare that photo safely, so it was not uploaded. Try a different photo.",
       uploadFailed: "That photo did not finish uploading. Please try it again.",
+      /* Under the list of photos that did not upload for a reason a second try
+         can fix (the connection, the session): sends the same files again. */
+      retry: "Try again",
       /* The photo gate's refusals, one per cause, each naming what to do. */
       heicUndecodable:
         "This photo is in the HEIC format, which this browser cannot open. On an iPhone, set Camera, Formats to Most Compatible. On Android, turn off High efficiency pictures in the camera's settings. Or share the photo as a JPEG, then add it again.",
@@ -2774,7 +2789,7 @@ export const en = {
       instantTitle: "Instant book",
       instantBody: "Guests book without waiting for you to confirm.",
       rentalNote:
-        "Rentals are priced per year. Guests message you inside Vallo, inspect the property, then pay. For your safety, keep every chat and payment inside Vallo.",
+        "Rent is quoted per year, per quarter or per month. People message you inside Vallo, inspect the property, then pay. For your safety, keep every chat and payment inside Vallo.",
     },
 
     guestView: {
@@ -2791,6 +2806,9 @@ export const en = {
 
     submit: {
       title: "Ready to send for review",
+      /* The same heading while a line of the checklist below is still open:
+         "Ready" over a list of what is missing contradicted itself. */
+      notReadyTitle: "A few things before you send",
       body:
         "We check every listing by hand before it reaches guests. Clear that checklist and it goes straight into the queue.",
       action: "Send for review",
@@ -2806,7 +2824,9 @@ export const en = {
         amenities: "Amenities",
         priceNight: "Price per night",
         priceYear: "Yearly rent",
-        rooms: "Rooms and guests",
+        /* Guests are not asked any more; the row stands for the bedrooms, the
+           bathrooms and the shape of the home. */
+        rooms: "Rooms",
       },
       needsTitle: "Add a title on step one first, then we can send this listing for review.",
       needsKeys:
@@ -3786,7 +3806,11 @@ export const en = {
       checks: {
         photoCount: "Four photos or more",
         cover: "Cover photo set",
+        /* No longer a line on the checklist (lib/admin/listing-checks.ts): it
+           was a rule nobody asked of the lister. Kept while the other locales
+           still carry it. */
         titleCase: "Title in title case",
+        titleLength: "Title of 8 to 80 characters",
         place: "Area and city recorded",
         price: "Price recorded in naira",
         rooms: "Bedrooms and bathrooms recorded",

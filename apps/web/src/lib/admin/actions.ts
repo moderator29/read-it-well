@@ -646,6 +646,21 @@ async function publishedReference(
 
 /** ----------------------------------------------------------------- listings */
 
+/**
+ * A reviewer's note as the one line of a notification, under the listing it
+ * is about. The note used to be the whole body, so a lister with three
+ * listings read "Add at least five clear photos" and could not tell which
+ * one; the reason codes' checklist dashes are folded into one sentence run.
+ */
+function reviewNoticeLine(title: string, notes: string): string {
+  const flat = notes
+    .split("\n")
+    .map((line) => line.replace(/^\s*-\s*/, "").trim())
+    .filter(Boolean)
+    .join(" ");
+  return `${title}: ${flat}`;
+}
+
 export async function reviewListing(input: {
   listingId: string;
   decision: "approve" | "publish" | "reject" | "request_changes";
@@ -689,12 +704,34 @@ export async function reviewListing(input: {
   if (readError) return fail(SERVICE_DOWN);
   if (!listing) return fail(GONE);
 
-  /* Nobody reviews their own listing, whatever their access. */
-  if (listing.agents?.user_id && listing.agents.user_id === access.user.id) {
+  /* Nobody reviews their own listing, whatever their access. The rule used to
+     be skipped when the lister could not be read, which is the one case it
+     cannot vouch for, so a lister nobody can name is not decided at all. */
+  const listerUserId = listing.agents?.user_id ?? null;
+  if (!listerUserId) {
+    return fail("We could not confirm who listed this, so nothing was decided. Refresh and try again.");
+  }
+  if (listerUserId === access.user.id) {
     return fail("You cannot review your own listing. Leave it for another reviewer.");
   }
   if (listing.status === "DRAFT") {
     return fail("This listing is still a draft, so there is nothing to review yet.");
+  }
+  /* WHICH DECISIONS EACH STATUS TAKES. A rejected listing and one sent back
+     for changes are with the lister, who can be editing them at this moment
+     (both are editable); approving either passed a version nobody had sent,
+     and the desk's page already offered no decision on a rejected one. They
+     come back here when the lister sends them again. An approved listing is
+     published or sent back, not approved a second time, which wrote a second
+     audit row and told the lister twice. */
+  if (listing.status === "REJECTED") {
+    return fail("This listing was rejected and is with the lister. It comes back here when they send it again.");
+  }
+  if (decision === "approve" && listing.status === "MORE_INFO_REQUIRED") {
+    return fail("This listing is with the lister for changes. Approve it once they send it back.");
+  }
+  if (decision === "approve" && listing.status === "APPROVED") {
+    return fail("This listing is already approved. Publish it, or send it back to the lister.");
   }
   if (decision === "publish" && listing.status !== "APPROVED") {
     return fail("Approve this listing first, then publish it.");
@@ -752,7 +789,7 @@ export async function reviewListing(input: {
 
   try {
     const admin = createAdminClient();
-    const ownerId = listing.agents?.user_id ?? null;
+    const ownerId = listerUserId;
 
     if (ownerId) {
       /*
@@ -793,11 +830,15 @@ export async function reviewListing(input: {
             : decision === "reject"
               ? {
                   title: "Listing not approved",
-                  body: notes ?? `${listing.title} did not pass review. Open it to read the note.`,
+                  body: notes
+                    ? reviewNoticeLine(listing.title, notes)
+                    : `${listing.title} did not pass review. Open it to read the note.`,
                 }
               : {
                   title: "Listing needs changes",
-                  body: notes ?? `${listing.title} needs a change before it can go live.`,
+                  body: notes
+                    ? reviewNoticeLine(listing.title, notes)
+                    : `${listing.title} needs a change before it can go live.`,
                 };
 
       /*
