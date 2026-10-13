@@ -70,7 +70,7 @@
   .nf-tabbar {
     view-transition-name: nf-chrome-tabbar;
   }
-  .nf-dock-island {
+  .nf-dock-create {
     view-transition-name: nf-chrome-island;
   }
   .nf-nav--rail {
@@ -79,7 +79,7 @@
   .nf-app-header,
   .nf-site-nav,
   .nf-tabbar,
-  .nf-dock-island,
+  .nf-dock-create,
   .nf-nav--rail {
     view-transition-class: nf-chrome;
   }

@@ -48,6 +48,15 @@
     border-color: transparent;
     box-shadow: var(--nf-tier-island-shadow);
   }
+  /* The tray stands INSIDE the capsule, which is a backdrop-filter box of its
+     own, and a blur nested in a blur sees only the capsule's own (empty)
+     backdrop: it blurs nothing and costs a layer. So the tray draws no blur
+     and a solid fill instead (its fills are opaque; light.css makes the day
+     one opaque too), which is also the sharper edge. */
+  .nf-dockmore__tray {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
 
   /* -------------------------------------------- the pill, on the spring */
   /*
@@ -84,17 +93,18 @@
     font-weight: 600;
   }
 
-  /* ------------------------------------------------- the centre action */
+  /* ------------------------------------------------- the "+" at the right end */
   /*
-   * 52px, and it was 50: the slot is 52 (`.nf-tab--switch`), so the disc now
-   * fills it. It keeps its brand fill, its rim and its glow (one of the two
-   * glows the north star permits besides the view's primary), and gains the
-   * one thing reference 39 shows that it lacked: a soft ambient shadow under
-   * it, so it reads as lifted rather than merely coloured (15.5).
+   * 60px since the swap of 13 October 2026 (it was the 52px centre of the
+   * capsule; it now fills the round button at the right end,
+   * `.nf-dock-create`, 60px, 52px under 380px). It keeps its brand fill, its
+   * rim and its glow (one of the two glows the north star permits besides the
+   * view's primary), and the soft ambient shadow under it that reads as
+   * lifted rather than merely coloured (15.5).
    */
   .nf-dock-plus {
-    width: 3.25rem;
-    height: 3.25rem;
+    width: var(--nf-dock-round, 3.75rem);
+    height: var(--nf-dock-round, 3.75rem);
     box-shadow:
       inset 0 1px 0 color-mix(in oklab, var(--nf-content-on-brand) 42%, transparent),
       0 0 18px -2px color-mix(in oklab, var(--nf-glow-ink) 60%, transparent),
@@ -113,7 +123,7 @@
      sheet opens and the one mark crossfades into the other. A plus turned
      45 degrees was a close by accident of geometry; this is a close by
      intent, and the quarter turn is what the north star specifies. */
-  .nf-tab__link--create[aria-expanded="true"] .nf-dock-plus {
+  .nf-dock-create[aria-expanded="true"] .nf-dock-plus {
     transform: rotate(90deg);
   }
   .nf-dock-plus__glyph {
@@ -130,10 +140,10 @@
     stroke-width: 2.6;
   }
   .nf-dock-plus__glyph--close,
-  .nf-tab__link--create[aria-expanded="true"] .nf-dock-plus__glyph--open {
+  .nf-dock-create[aria-expanded="true"] .nf-dock-plus__glyph--open {
     opacity: 0;
   }
-  .nf-tab__link--create[aria-expanded="true"] .nf-dock-plus__glyph--close {
+  .nf-dock-create[aria-expanded="true"] .nf-dock-plus__glyph--close {
     opacity: 1;
   }
 
@@ -299,23 +309,61 @@
 }
 
 /*
- * THE CREATE SHEET: THREE PLAIN OPTIONS (handoff A.6, the founder: "it should
- * just have the normal 3 options"). No plate, no subtitle, no chevron: the
- * word is the whole row, set at one confident size on the row's 56px rhythm,
- * divided by the list's own hairline. The press is the shared row press
- * (press-motion.css), so nothing here animates.
+ * THE CREATE SHEET. It was three plain options (handoff A.6, the founder: "it
+ * should just have the normal 3 options": no plate, no subtitle, no chevron);
+ * on 13 October 2026 the founder asked for the three clear options with a
+ * clean icon and a short line each (`CreateDock.tsx`), which is what is drawn
+ * here. The press is the shared row press (press-motion.css), so nothing here
+ * animates.
  */
 @layer components {
+  /*
+   * THE CREATE SHEET'S ROWS (13 October 2026): a clean monochrome icon in a
+   * quiet tile, one line, and a short line under it. The three options at the
+   * top are the sheet's own; the booking row under them is the quieter one it
+   * always had.
+   */
   .nf-create-sheet__option {
     display: flex;
     align-items: center;
+    gap: var(--nf-space-sm);
     width: 100%;
-    min-height: 3.5rem;
-    padding-inline: var(--nf-space-sm);
+    min-height: 4rem;
+    padding: var(--nf-space-xs) var(--nf-space-sm);
+    text-align: start;
+  }
+  .nf-create-sheet__icon {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--nf-radius-control);
+    background: color-mix(in oklab, var(--nf-brand-primary) 10%, transparent);
+    color: var(--nf-content-link);
+  }
+  .nf-create-sheet__text {
+    display: grid;
+    min-width: 0;
+    gap: var(--nf-space-3xs);
+  }
+  .nf-create-sheet__title {
     font-size: var(--nf-text-body-lg);
     font-weight: 600;
     letter-spacing: -0.005em;
+    line-height: 1.25;
     color: var(--nf-content-primary);
-    text-align: start;
+  }
+  .nf-create-sheet__sub {
+    font-size: var(--nf-text-caption);
+    line-height: 1.3;
+    color: var(--nf-content-muted);
+  }
+  .nf-create-sheet__option--quiet .nf-create-sheet__icon {
+    background: color-mix(in oklab, var(--nf-content-primary) 7%, transparent);
+    color: var(--nf-content-secondary);
+  }
+  .nf-create-sheet__option--quiet .nf-create-sheet__title {
+    color: var(--nf-content-secondary);
   }
 }

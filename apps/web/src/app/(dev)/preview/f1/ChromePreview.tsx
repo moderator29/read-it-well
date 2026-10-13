@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import type { Dictionary } from "@vallo/i18n/core";
 import { AppShell } from "@/components/app/AppShell";
 import type { Side } from "@/lib/side.constants";
@@ -30,6 +31,7 @@ export function ChromePreview({
   signedIn = true,
   workspaces = [],
   currentProfile = { kind: "personal" },
+  children,
 }: {
   t: Dictionary;
   route: string;
@@ -48,6 +50,8 @@ export function ChromePreview({
    */
   workspaces?: Workspace[];
   currentProfile?: ProfileSelection;
+  /** The screen to photograph under the chrome; the plain stand-in cards when absent. */
+  children?: ReactNode;
 }) {
   return (
     <AppShell
@@ -62,6 +66,7 @@ export function ChromePreview({
       currentProfile={currentProfile}
       preview={{ route, drawer }}
     >
+      {children ?? (
       <div className="flex flex-col gap-md">
         <h1 className="nf-h2">{t.nav.home}</h1>
         {["Lekki Phase 1, Lagos", "Ikoyi, Lagos", "Maitama, Abuja"].map((where) => (
@@ -74,6 +79,7 @@ export function ChromePreview({
           </article>
         ))}
       </div>
+      )}
     </AppShell>
   );
 }

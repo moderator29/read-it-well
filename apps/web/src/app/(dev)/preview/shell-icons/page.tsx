@@ -32,7 +32,7 @@ export default async function ShellIconsPreview({
         side={side}
         active={active}
         signedIn
-        switchSlot={<CreateDock t={t} listHref="/profile/setup" signedIn />}
+        createSlot={<CreateDock t={t} listHref="/profile/setup" signedIn />}
       />
     </main>
   );

@@ -27,7 +27,7 @@ export default function DockPreview() {
         unreadNotifications={3}
         unreadConversationsPreview={2}
         signedIn
-        switchSlot={<CreateDock t={t} listHref="/profile/setup" signedIn />}
+        createSlot={<CreateDock t={t} listHref="/profile/setup" signedIn />}
       />
     </main>
   );

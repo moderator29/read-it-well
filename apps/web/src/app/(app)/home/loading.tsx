@@ -2,6 +2,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { LoadingShell } from "@/components/app/ScreenSkeleton";
 import { panelClass } from "@/components/ui/Panel";
 import { iconPlateClass } from "@/components/ui/IconPlate";
+import { HomeListSkeleton } from "@/components/app/home/HomeLists";
 import "@/app/css/home.css";
 
 /**
@@ -16,7 +17,9 @@ import "@/app/css/home.css";
  * the screen's own, in its order and on its own materials (the platform
  * sweep, 23 September): the greeting, the location chip and the hero on the
  * shared panel, the four category plates on the shared icon plate, then the
- * featured row at `ListingCard`'s proportions on the panel card. A skeleton
+ * premium stack, then the Featured listings' one-per-row cards (13 October
+ * 2026; Best matches and New listings stream behind their own skeletons once
+ * the page is up, see `HomeStreams`). A skeleton
  * that does not match its screen teaches the eye the wrong shape and then
  * corrects it.
  */
@@ -54,6 +57,8 @@ export default function LoadingHome() {
           </div>
         </div>
       </div>
+
+      <HomeListSkeleton shape="rows" />
     </LoadingShell>
   );
 }

@@ -1,36 +1,38 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
 import { useCallback, useRef, useState } from "react";
 import { formatRating, type Locale } from "@vallo/i18n/core";
 import type { Listing } from "@/lib/listings/types";
 import { hrefForListing, marketFactsOf } from "@/lib/listings/href";
-import { cardPrice } from "@/components/app/listing-card-model";
-import { cardGlance } from "@/lib/listings/card-glance";
+import { cardGlance, placeOf } from "@/lib/listings/card-glance";
 import { drawnSrcIn, handOff } from "@/lib/listings/handoff";
 import { startPhotoMorph } from "@/lib/motion/photo-morph";
 import { motionQuiet } from "@/lib/motion/gate";
 import { MediaFrame } from "@/components/app/MediaFrame";
 import { Money } from "@/components/ui/Money";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { SpaceCard } from "@/components/ui/space-card/SpaceCard";
 import { SaveButton, useSaveControl } from "@/components/app/SaveControl";
-import { AreaMapTile, MapCredits } from "@/components/app/maps/AreaMapTile";
+import { AreaMapTile } from "@/components/app/maps/AreaMapTile";
+import { MapCreditsInfo } from "@/components/app/maps/MapCreditsInfo";
 import { areaPoint } from "@/components/app/search/mapGeo";
-import "@/app/css/catalogue.css";
+import { chipOf, factsOf, priceOf, type HomeCardCopy } from "@/components/app/home/home-card-copy";
 import "@/app/css/home.css";
 
 /**
- * FEATURED LISTINGS AS A CARD STACK (the founder's travel-app set, 7 October:
- * "Popular with trailgoers"; MOTION_SYSTEM section 2b).
+ * PREMIUM LISTINGS AS A CARD STACK (the founder's travel-app set, 7 October:
+ * "Popular with trailgoers"; MOTION_SYSTEM section 2b). Each slide is the
+ * space card (13 October 2026, `components/ui/space-card`).
  *
- * One tall photograph at a time, the next and the previous peeking behind it
- * at both edges. On the photograph: a heart circle at the top left and an
- * open-arrow circle at the top right, both smoked glass; at its foot a frosted
- * inset with the name, the area, a star rating ONLY where the listing has real
- * reviews (no example ever has one), the key figure in the one money language
- * (the amount in ink, the unit grey), and a small still map of the AREA with
- * its pin (`AreaMapTile`; never the address).
+ * One card at a time, the next and the previous peeking behind it at both
+ * edges. Each slide is the shared card shape: the outer card, the inset
+ * photograph with its status pill and round heart, and the separate info panel
+ * with the name, the area, the key figure in the one money language (the
+ * amount in ink, the unit under it), the beds, baths and size and a star
+ * rating ONLY where the listing has real reviews (no example ever has one). A
+ * small still map of the AREA, with its pin, sits on the photograph's bottom
+ * right (`AreaMapTile`; never the address), and the round "i" on it reveals
+ * the map data credit (MapLibre's compact pattern).
  *
  * ONE FOCAL ACTION AT A TIME. A drag moves only the front card; let go past a
  * third of its width, or with a flick, and it is thrown the way it was going
@@ -40,6 +42,8 @@ import "@/app/css/home.css";
  * (the same morph the catalogue card starts). The arrows under the stack, the
  * keyboard's left and right, and a screen reader's buttons do the same as a
  * swipe. Reduced motion, Calm and Off change the card without the throw.
+ * A slide carries ONE photograph here, so a sideways drag is always the
+ * stack's and never a gallery's.
  *
  * Real rows only: the shelf home already chose, in its order.
  */
@@ -48,34 +52,16 @@ export type FeaturedStackCopy = {
   position: string;
   previous: string;
   next: string;
-  open: string;
-  moveIn: string;
-  periodShort: Record<"month" | "quarter" | "year" | "night" | "guest", string>;
   reviews: string;
   mapOf: string;
-  noPhotos: string;
-  cardCopy: Parameters<typeof cardGlance>[2];
+  /** The accessible name of the round "i" on the map that reveals the map data credit. */
+  mapCredits: string;
+  /** The words the shared card prints (market pill, price units, facts). */
+  card: HomeCardCopy;
 };
 
 const THROW_FRACTION = 0.3;
 const FLICK = 0.5; /* px per ms */
-
-function Figure({ listing, locale, copy }: { listing: Listing; locale: Locale; copy: FeaturedStackCopy }) {
-  const price = cardPrice(listing);
-  if (price.lead === "none") return null;
-  const unit =
-    price.lead === "moveIn"
-      ? copy.moveIn
-      : price.period === "sale"
-        ? null
-        : copy.periodShort[price.period as keyof FeaturedStackCopy["periodShort"]];
-  return (
-    <p className="nf-fstack__figure nf-numeric">
-      <Money minor={price.minor} locale={locale} currency={listing.currency} mode="glance" />
-      {unit ? <span className="nf-fstack__unit"> {unit}</span> : null}
-    </p>
-  );
-}
 
 function StackCard({
   listing,
@@ -97,102 +83,71 @@ function StackCard({
   onOpen: (event: React.MouseEvent<HTMLAnchorElement>, media: HTMLElement | null) => void;
 }) {
   const save = useSaveControl(listing.id);
-  const media = useRef<HTMLDivElement>(null);
   const href = hrefForListing(listing.kind, listing.id, marketFactsOf(listing));
   const photo = listing.photos[0];
-  const where = listing.area && listing.area !== listing.city ? `${listing.area}, ${listing.city}` : listing.area || listing.city;
   const point = areaPoint(listing.city, listing.area);
   const rated = !listing.isDemo && listing.reviewCount > 0 && listing.rating > 0;
   const front = role === "front";
+  const price = priceOf(listing, copy.card);
 
   return (
-    <article
+    <div
       className="nf-fstack__card"
       data-role={role}
+      role="group"
       aria-hidden={front ? undefined : true}
       inert={front ? undefined : true}
       aria-roledescription="slide"
       aria-label={copy.position.replace("{at}", String(at + 1)).replace("{count}", String(count))}
     >
-      <div ref={media} className="nf-fstack__media nf-vt-morph" data-morph-id={listing.id} data-theme="dark">
-        <MediaFrame hue={listing.hue} kind={listing.kind} sizes="(max-width: 640px) 90vw, 420px" priority={eager && !photo} />
-        {photo ? (
-          <Image
-            src={photo}
-            alt=""
-            fill
-            sizes="(max-width: 640px) 90vw, 420px"
-            className="object-cover"
-            draggable={false}
-            {...(eager ? ({ loading: "eager", fetchPriority: "high" } as const) : {})}
-          />
-        ) : (
-          <span className="nf-fstack__nophoto">{copy.noPhotos}</span>
-        )}
-      </div>
-
-      {/* The whole card opens the listing; the two controls sit outside it,
-          because a link may not hold a button. */}
-      <Link
+      <SpaceCard
         href={href}
-        className="nf-fstack__open-area"
-        aria-label={copy.open.replace("{title}", listing.title)}
-        onClick={(event) => onOpen(event, media.current)}
-        draggable={false}
-        tabIndex={front ? 0 : -1}
+        title={listing.title}
+        place={placeOf(listing)}
+        photos={photo ? [photo] : []}
+        photoSizes="(max-width: 640px) 90vw, 420px"
+        fallback={
+          <>
+            <MediaFrame hue={listing.hue} kind={listing.kind} sizes="(max-width: 640px) 90vw, 420px" priority={eager && !photo} />
+            <span className="nf-sc__nophoto">{copy.card.noPhotos}</span>
+          </>
+        }
+        status={chipOf(listing, copy.card)}
+        heart={<SaveButton saved={save.saved} pending={save.pending} onToggle={save.toggle} title={listing.title} />}
+        price={
+          price
+            ? {
+                amount: <Money minor={price.minor} locale={locale} currency={listing.currency} mode="glance" />,
+                unit: price.unit,
+                from: price.from ? copy.card.from : null,
+              }
+            : null
+        }
+        facts={factsOf(listing, copy.card, locale)}
+        rating={rated ? `${formatRating(listing.rating, locale)} (${listing.reviewCount} ${copy.reviews})` : null}
+        overlay={
+          point ? (
+            /* The map data credit is a licence requirement and stays
+               reachable: a round "i" on the map reveals it (MapLibre's
+               compact pattern), in place of the credit line that used to sit
+               under the stack. */
+            <span className="nf-fstack__mapbox">
+              <AreaMapTile
+                lat={point.lat}
+                lng={point.lng}
+                zoom={13}
+                className="nf-fstack__map"
+                label={copy.mapOf.replace("{area}", listing.area || listing.city)}
+              />
+              <MapCreditsInfo label={copy.mapCredits} />
+            </span>
+          ) : null
+        }
+        mediaId={listing.id}
+        eager={eager}
+        onOpen={onOpen}
       />
-
-      <div className="nf-fstack__controls" data-theme="dark">
-        <SaveButton
-          saved={save.saved}
-          pending={save.pending}
-          onToggle={save.toggle}
-          title={listing.title}
-          surface="media"
-          className="nf-fstack__circle"
-        />
-        <Link
-          href={href}
-          className="nf-fstack__circle nf-fstack__go"
-          aria-label={copy.open.replace("{title}", listing.title)}
-          onClick={(event) => onOpen(event, media.current)}
-          tabIndex={front ? 0 : -1}
-          draggable={false}
-        >
-          <UiIcon name="arrow-right" size={16} />
-        </Link>
-      </div>
-
-      <div className="nf-fstack__inset" data-theme="dark">
-        <div className="nf-fstack__words">
-          <h3 className="nf-fstack__title">{listing.title}</h3>
-          <p className="nf-fstack__where">
-            <UiIcon name="location" size={12} />
-            <span>{where}</span>
-          </p>
-          {rated ? (
-            <p className="nf-fstack__rating nf-numeric">
-              <UiIcon name="star" size={12} filled />
-              {formatRating(listing.rating, locale)}
-              <span className="nf-fstack__unit">
-                {" "}
-                ({listing.reviewCount} {copy.reviews})
-              </span>
-            </p>
-          ) : null}
-          <Figure listing={listing} locale={locale} copy={copy} />
-        </div>
-        {point ? (
-          <AreaMapTile
-            lat={point.lat}
-            lng={point.lng}
-            zoom={13}
-            className="nf-fstack__map"
-            label={copy.mapOf.replace("{area}", listing.area || listing.city)}
-          />
-        ) : null}
-      </div>
-    </article>
+    </div>
   );
 }
 
@@ -306,7 +261,7 @@ export function FeaturedStack({
     if (!listing) return;
     /* The card becomes the page: the same hand-off and photo morph the
        catalogue card starts, so the gallery picks the photograph up. */
-    handOff(cardGlance(listing, locale, copy.cardCopy), drawnSrcIn(media, listing.photos[0]));
+    handOff(cardGlance(listing, locale, copy.card.cardCopy), drawnSrcIn(media, listing.photos[0]));
     if (!media || motionQuiet()) return;
     startPhotoMorph(listing.id, media);
   };
@@ -379,9 +334,6 @@ export function FeaturedStack({
           </button>
         </div>
       ) : null}
-      <p className="nf-fstack__credits">
-        <MapCredits />
-      </p>
     </section>
   );
 }

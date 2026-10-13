@@ -1,0 +1,357 @@
+/*
+ * THE SPACE CARD (`components/ui/space-card/SpaceCard.tsx`, the founder,
+ * 13 October 2026): one container shape for every listing that is shown.
+ *
+ *   OUTER CARD  one large soft rounded container, 28px at 390px. No hard
+ *               border and no glow ring: by day a white card on the page's
+ *               tinted ground with a very soft shadow, at night a raised navy
+ *               surface with a hairline.
+ *   PHOTO       inset with an even gap, its radius the card's minus the gap.
+ *   INFO PANEL  a separate rounded block under the photo with the same gap.
+ *
+ * Tokens only (no raw colour), weights 400, 600 and 700. The status pill and
+ * the heart are white with the photo-ink on any photograph in either theme
+ * (`--nf-content-on-media`, `--nf-ink-on-photo`): they sit on a picture, not
+ * on the page, so they do not follow the theme. No glass of its own.
+ */
+@layer components {
+  .nf-sc {
+    --nf-sc-gap: 0.5rem;
+    --nf-sc-radius: var(--nf-radius-island);
+    --nf-sc-inner: max(var(--nf-radius-xs), calc(var(--nf-sc-radius) - var(--nf-sc-gap)));
+    --nf-sc-edge: var(--nf-card-border);
+    position: relative;
+    display: grid;
+    gap: var(--nf-sc-gap);
+    min-width: 0;
+    padding: var(--nf-sc-gap);
+    border: var(--nf-border-width) solid var(--nf-sc-edge);
+    border-radius: var(--nf-sc-radius);
+    background: var(--nf-surface-elevated);
+    box-shadow: var(--nf-card-shadow);
+  }
+  /* By day the card has no edge at all: the soft shadow separates it. */
+  :root[data-theme="light"] .nf-sc:not(:where([data-theme="dark"] *)) {
+    --nf-sc-edge: transparent;
+  }
+
+  /* ------------------------------------------------------------ the photo */
+  .nf-sc__media {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 16 / 10;
+    border-radius: var(--nf-sc-inner);
+    background: var(--nf-surface-raised);
+  }
+  .nf-sc__gallery {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+  .nf-sc__gallery::-webkit-scrollbar {
+    display: none;
+  }
+  .nf-sc__slide {
+    position: relative;
+    display: block;
+    flex: 0 0 100%;
+    scroll-snap-align: start;
+    -webkit-user-drag: none;
+  }
+  .nf-sc__slide img {
+    -webkit-user-drag: none;
+  }
+  .nf-sc__nophoto {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    translate: -50% -50%;
+    padding: var(--nf-space-3xs) var(--nf-space-xs);
+    border-radius: var(--nf-radius-xs);
+    background: var(--nf-surface-elevated);
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-secondary);
+  }
+  /* The small white pill, top left. */
+  .nf-sc__status {
+    position: absolute;
+    top: var(--nf-space-sm);
+    left: var(--nf-space-sm);
+    z-index: 1;
+    padding: var(--nf-space-2xs) var(--nf-space-sm);
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-content-on-media);
+    color: var(--nf-ink-on-photo);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    line-height: 1.2;
+    pointer-events: none;
+  }
+  /* The dots, centred near the foot. */
+  .nf-sc__dots {
+    position: absolute;
+    bottom: var(--nf-space-sm);
+    left: 50%;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    translate: -50% 0;
+    pointer-events: none;
+  }
+  .nf-sc__dot {
+    width: 0.375rem;
+    height: 0.375rem;
+    border-radius: var(--nf-radius-circle);
+    background: color-mix(in oklab, var(--nf-content-on-media) 60%, transparent);
+  }
+  .nf-sc__dot[data-on] {
+    width: 1rem;
+    border-radius: var(--nf-radius-xs);
+    background: var(--nf-content-on-media);
+  }
+  /* Something small on the photo's bottom right (a map tile). */
+  .nf-sc__overlay {
+    position: absolute;
+    right: var(--nf-space-sm);
+    bottom: var(--nf-space-sm);
+    z-index: 2;
+  }
+
+  /* The save heart: a round white 44px button over the photo's corner. It is
+     the caller's control; this only places and paints it. */
+  .nf-sc__heart {
+    position: absolute;
+    top: calc(var(--nf-sc-gap) + var(--nf-space-xs));
+    right: calc(var(--nf-sc-gap) + var(--nf-space-xs));
+    z-index: 3;
+  }
+  .nf-sc .nf-sc__heart > button {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+    border: 0;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-content-on-media);
+    color: var(--nf-ink-on-photo);
+    box-shadow: var(--nf-elevation-raised);
+  }
+
+  /* ------------------------------------------------------------ the panel */
+  .nf-sc__info {
+    position: relative;
+    display: grid;
+    gap: var(--nf-space-2xs);
+    min-width: 0;
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    border-radius: var(--nf-sc-inner);
+    background: color-mix(in oklab, var(--nf-brand-primary) 5%, var(--nf-surface-canvas));
+  }
+  .nf-sc__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--nf-space-md);
+    min-width: 0;
+  }
+  .nf-sc__title {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--nf-content-primary);
+  }
+  /* The title is the card's one link; its box stretches over the info panel
+     so the whole panel taps, and the heart is never inside it. */
+  .nf-sc__link {
+    color: inherit;
+    text-decoration: none;
+  }
+  .nf-sc__link::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: var(--nf-sc-inner);
+  }
+  .nf-sc__link:focus-visible {
+    outline: none;
+  }
+  .nf-sc__link:focus-visible::after {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  .nf-sc__price {
+    flex: none;
+    text-align: end;
+  }
+  .nf-sc__amount {
+    display: block;
+    font-size: var(--nf-text-h4);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.15;
+    color: var(--nf-content-primary);
+  }
+  .nf-sc__from {
+    font-size: var(--nf-text-caption);
+    font-weight: 400;
+    color: var(--nf-content-muted);
+  }
+  .nf-sc__unit {
+    display: block;
+    margin-top: var(--nf-space-3xs);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-sc__place,
+  .nf-sc__facts {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-sc__place span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .nf-sc__facts {
+    flex-wrap: wrap;
+    row-gap: 0;
+  }
+  .nf-sc__facts > svg {
+    flex: none;
+  }
+  .nf-sc__fact {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-3xs);
+    white-space: nowrap;
+  }
+  .nf-sc__fact + .nf-sc__fact::before {
+    content: "";
+    width: var(--nf-border-width);
+    height: 0.75rem;
+    margin-inline-end: var(--nf-space-2xs);
+    background: var(--nf-divider);
+  }
+  .nf-sc__rating > svg {
+    color: var(--nf-rating);
+  }
+  /* The one line a REAL reason earns, in the brand blue with its small icon. */
+  .nf-sc__reason {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nf-space-2xs);
+    margin-top: var(--nf-space-3xs);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--nf-content-link);
+  }
+  .nf-sc__reason > svg {
+    flex: none;
+    margin-top: 0.0625rem;
+  }
+  .nf-sc__reason span {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+
+  /* -------------------------------------------------------------- compact */
+  /* The same shape, smaller: a fixed width in a sideways row or a map dock. */
+  .nf-sc--compact {
+    --nf-sc-gap: 0.375rem;
+    --nf-sc-radius: var(--nf-radius-xl);
+  }
+  .nf-sc--compact .nf-sc__media {
+    aspect-ratio: 3 / 2;
+  }
+  .nf-sc--compact .nf-sc__info {
+    padding: var(--nf-space-xs) var(--nf-space-sm);
+  }
+  /* A narrow card gives the title its own line, and the price under it with
+     its unit beside it, so neither is cut to a few letters. */
+  .nf-sc--compact .nf-sc__head {
+    flex-direction: column;
+    gap: var(--nf-space-3xs);
+  }
+  .nf-sc--compact .nf-sc__title {
+    flex: none;
+    max-width: 100%;
+    font-size: var(--nf-text-body-sm);
+  }
+  .nf-sc--compact .nf-sc__price {
+    text-align: start;
+  }
+  .nf-sc--compact .nf-sc__amount {
+    display: inline;
+    font-size: var(--nf-text-body);
+  }
+  .nf-sc--compact .nf-sc__unit {
+    display: inline;
+    margin-top: 0;
+    margin-inline-start: var(--nf-space-2xs);
+  }
+  .nf-sc--compact .nf-sc__heart {
+    top: calc(var(--nf-sc-gap) + var(--nf-space-2xs));
+    right: calc(var(--nf-sc-gap) + var(--nf-space-2xs));
+  }
+
+  /* A sideways row of cards keeps room under them for the card's soft shadow,
+     which its scroller would otherwise clip. */
+  .nf-feature-row:has(.nf-sc) {
+    padding-block-end: var(--nf-space-md);
+    margin-block-end: calc(-1 * var(--nf-space-sm));
+  }
+
+  /* --------------------------------------------------------------- loading */
+  .nf-sc--skeleton .nf-sc__media {
+    background: none;
+  }
+  .nf-sc--skeleton .nf-sc__info {
+    gap: var(--nf-space-xs);
+  }
+
+  /* ----------------------------------------------------------------- grid */
+  /* One per row on a phone, two across from a tablet, three from the rail's
+     breakpoint. `data-phone-cap="4"` shows the first four on a phone, so a
+     long list stays a scroll and not a wall. */
+  .nf-sc-grid {
+    display: grid;
+    gap: var(--nf-space-md);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  @media (max-width: 39.99rem) {
+    .nf-sc-grid[data-phone-cap="4"] > :nth-child(n + 5) {
+      display: none;
+    }
+  }
+  @media (min-width: 40rem) {
+    .nf-sc-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 64rem) {
+    .nf-sc-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+}

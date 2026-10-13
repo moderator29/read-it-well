@@ -1313,20 +1313,22 @@
   .nf-fstack {
     margin-top: var(--nf-space-md);
   }
+  /* The slides share one grid cell, so the stage is as tall as the tallest
+     slide (the space card sets its own height) and the cards behind sit on
+     the same footing, scaled and dimmed. The slide is only a wrapper: the
+     space card draws the container (`space-card.css`). */
   .nf-fstack__stage {
     position: relative;
-    height: min(31rem, 128vw);
+    display: grid;
+    justify-items: center;
     touch-action: pan-y;
     user-select: none;
   }
   .nf-fstack__card {
-    position: absolute;
-    inset: 0 1.375rem;
-    overflow: hidden;
-    border: var(--nf-border-width) solid var(--nf-smoked-glass-edge);
-    border-radius: var(--nf-radius-card);
-    background: var(--nf-surface-raised);
-    box-shadow: var(--nf-card-shadow);
+    grid-area: 1 / 1;
+    width: calc(100% - 2.75rem);
+    min-width: 0;
+    border-radius: var(--nf-sc-radius, var(--nf-radius-2xl));
     transition:
       transform var(--nf-duration-slow) var(--nf-ease-entrance),
       filter var(--nf-duration-slow) var(--nf-ease-entrance);
@@ -1347,135 +1349,19 @@
     filter: brightness(0.4);
     transform: translateX(-1.375rem) scale(0.93);
   }
-  .nf-fstack__media {
-    position: absolute;
-    inset: 0;
+  /* By day the slides behind are white cards: dimmed less, so they read as
+     cards peeking and not as grey slabs. */
+  :root[data-theme="light"] .nf-fstack__card[data-role="next"] {
+    filter: brightness(0.9);
   }
-  .nf-fstack__media img {
-    -webkit-user-drag: none;
-  }
-  .nf-fstack__nophoto {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    translate: -50% -50%;
-    padding: var(--nf-space-3xs) var(--nf-space-xs);
-    border-radius: var(--nf-radius-xs);
-    background: var(--nf-smoked-glass-fill);
-    font-size: var(--nf-text-overline);
-    color: var(--nf-content-on-media-muted);
-  }
-  .nf-fstack__open-area {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    border-radius: inherit;
-  }
-  .nf-fstack__open-area:focus-visible {
-    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
-    outline-offset: -3px;
-  }
-  .nf-fstack__controls {
-    position: absolute;
-    inset-inline: var(--nf-space-sm);
-    top: var(--nf-space-sm);
-    z-index: 2;
-    display: flex;
-    justify-content: space-between;
-    pointer-events: none;
-  }
-  .nf-fstack__controls > * {
-    pointer-events: auto;
-  }
-  .nf-fstack .nf-fstack__circle {
-    display: grid;
-    place-items: center;
-    /* 44, the touch floor (it was 40; found by the 7 October sweep). */
-    width: 2.75rem;
-    height: 2.75rem;
-    border: var(--nf-border-width) solid var(--nf-smoked-glass-edge);
-    border-radius: var(--nf-radius-circle);
-    background: var(--nf-smoked-glass-fill);
-    -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
-    backdrop-filter: blur(var(--nf-smoked-glass-blur));
-    box-shadow: none;
-    color: var(--nf-content-on-media);
-  }
-  .nf-fstack__go {
-    position: relative;
-  }
-  .nf-fstack__go::after {
-    content: "";
-    position: absolute;
-    inset: -0.125rem;
-  }
-  .nf-fstack__inset {
-    position: absolute;
-    inset-inline: var(--nf-space-xs);
-    bottom: var(--nf-space-xs);
-    z-index: 2;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: end;
-    gap: var(--nf-space-sm);
-    padding: var(--nf-space-sm);
-    border: var(--nf-border-width) solid var(--nf-smoked-glass-edge);
-    border-radius: var(--nf-radius-card);
-    background: var(--nf-smoked-glass-fill);
-    -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
-    backdrop-filter: blur(var(--nf-smoked-glass-blur));
-    color: var(--nf-content-on-media);
-    pointer-events: none;
-  }
-  .nf-fstack__words {
-    display: grid;
-    min-width: 0;
-    gap: var(--nf-space-3xs);
-  }
-  .nf-fstack__title {
-    display: -webkit-box;
-    overflow: hidden;
-    font-size: var(--nf-text-body);
-    font-weight: 600;
-    line-height: 1.25;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-  }
-  .nf-fstack__where,
-  .nf-fstack__rating {
-    display: flex;
-    min-width: 0;
-    align-items: center;
-    gap: var(--nf-space-3xs);
-    font-size: var(--nf-text-caption);
-    color: var(--nf-content-on-media-muted);
-  }
-  .nf-fstack__where span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .nf-fstack__rating > svg {
-    color: var(--nf-rating);
-  }
-  .nf-fstack__figure {
-    margin-top: var(--nf-space-3xs);
-    font-size: var(--nf-text-h4);
-    font-weight: 700;
-    font-variant-numeric: tabular-nums;
-    line-height: 1.1;
-  }
-  .nf-fstack__unit {
-    font-size: var(--nf-text-caption);
-    font-weight: 400;
-    color: var(--nf-content-on-media-muted);
+  :root[data-theme="light"] .nf-fstack__card[data-role="prev"] {
+    filter: brightness(0.82);
   }
   .nf-fstack__map {
     width: 4.25rem;
     height: 4.25rem;
-    border: var(--nf-border-width) solid var(--nf-smoked-glass-edge);
-    border-radius: var(--nf-radius-control);
+    border: var(--nf-border-width) solid var(--nf-content-on-media);
+    border-radius: var(--nf-radius-md);
   }
   .nf-fstack__nav {
     display: flex;
@@ -1505,13 +1391,69 @@
     font-size: var(--nf-text-caption);
     color: var(--nf-content-muted);
   }
-  .nf-fstack__credits {
-    margin-top: var(--nf-space-2xs);
-    text-align: end;
-    font-size: var(--nf-text-overline);
-    color: var(--nf-content-muted);
+  /*
+   * THE MAP CREDIT IS A ROUND "i" ON THE MAP (13 October 2026). The credit
+   * line that sat under the stack is gone; the licence credit is one tap away
+   * (`MapCreditsInfo`, MapLibre's compact pattern). The mini map's box carries
+   * the control: a 20px disc in the corner with a 44px target, and the credit
+   * opening above the map, on the photograph, inside the card.
+   */
+  .nf-fstack__mapbox {
+    position: relative;
+    display: block;
+    width: 4.25rem;
+    height: 4.25rem;
   }
-  .nf-fstack__credits a {
+  .nf-fstack .nf-mapinfo {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  .nf-fstack .nf-mapinfo__btn {
+    position: absolute;
+    right: var(--nf-space-3xs);
+    bottom: var(--nf-space-3xs);
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    padding: 0;
+    border: 0;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-smoked-glass-fill);
+    color: var(--nf-content-on-media);
+    pointer-events: auto;
+  }
+  /* The 44px target around the small disc. */
+  .nf-fstack .nf-mapinfo__btn::after {
+    content: "";
+    position: absolute;
+    inset: -0.75rem;
+  }
+  .nf-fstack .nf-mapinfo__btn:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  .nf-fstack .nf-mapinfo__panel {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + var(--nf-space-xs));
+    z-index: 3;
+    padding: var(--nf-space-2xs) var(--nf-space-sm);
+    border: var(--nf-border-width) solid var(--nf-smoked-glass-edge);
+    border-radius: var(--nf-radius-sm);
+    background: var(--nf-surface-elevated);
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-overline);
+    line-height: 1.4;
+    white-space: nowrap;
+    pointer-events: auto;
+  }
+  .nf-fstack .nf-mapinfo__panel[hidden] {
+    display: none;
+  }
+  .nf-fstack .nf-mapinfo__panel a {
     color: inherit;
     text-decoration: underline;
     text-underline-offset: 2px;
@@ -1520,7 +1462,6 @@
     .nf-fstack__stage {
       max-width: 30rem;
       margin-inline: auto;
-      height: 34rem;
     }
   }
   @media (prefers-reduced-motion: reduce) {
@@ -1530,5 +1471,39 @@
   }
   :root:is([data-motion="calm"], [data-motion="off"]) .nf-fstack__card {
     transition: none;
+  }
+}
+
+/*
+ * THE EMPTY PANEL under a home list (13 October 2026): what is missing and the
+ * door that fills it. The cards themselves are the space card
+ * (`space-card.css`); only the empty state is drawn here.
+ */
+@layer components {
+  .nf-hempty {
+    display: grid;
+    gap: var(--nf-space-xs);
+    padding: var(--nf-space-md);
+    border: var(--nf-border-width) solid var(--nf-card-border);
+    border-radius: var(--nf-radius-xl);
+    background: var(--nf-surface-elevated);
+    box-shadow: var(--nf-card-shadow);
+  }
+  .nf-hempty__title {
+    font-size: var(--nf-text-h4);
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--nf-content-primary);
+  }
+  .nf-hempty__body {
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+  }
+  .nf-hempty__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--nf-space-sm) var(--nf-space-md);
+    margin-top: var(--nf-space-2xs);
   }
 }

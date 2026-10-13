@@ -12,14 +12,24 @@ export type DockMoreItem = { href: string; label: string; icon: UiIconName };
 const MESSAGES_HREF = "/messages";
 
 /**
- * THE SIXTH SLOT AND THE SUB-NAV IT OPENS (Track M, 25 September 2026).
+ * THE DOCK'S MENU AND THE SUB-NAV IT OPENS (Track M, 25 September 2026; moved
+ * into the capsule's centre slot on 13 October 2026).
  *
- * The founder chose the pump.fun bottom bar: a floating capsule with a round
- * button standing apart beside it, and asked for "a sub nav in bottom to make
- * it the 6 icon on bottom nav". The capsule keeps its five slots; this is the
- * sixth, and it opens a tray that rises out of the dock with the destinations
- * that used to be reachable only through the drawer: Messages, Plans, Saved,
- * the Assistant, Agreements, Price Check, Settings and Help.
+ * The founder chose the pump.fun bottom bar and asked for "a sub nav in bottom
+ * to make it the 6 icon on bottom nav". It opens a tray that rises out of the
+ * dock with the destinations that used to be reachable only through the
+ * drawer: Messages, Plans, Saved, the Assistant, Agreements, Price Check,
+ * Settings and Help.
+ *
+ * THE SWAP (the founder, 13 October 2026). It stood as a round button at the
+ * right end of the dock; it now sits IN the capsule, in the centre slot, in
+ * line with the other four and in the round container the centre slot has
+ * always had so it still reads as the special one, and the "+" took its old
+ * place at the right end. The tray opens centred above the capsule (shell-m.css,
+ * "THE DOCK SWAP"). It stays a plain disclosure inside the capsule: the tray is
+ * a child of this component's root, which holds the button and the tray, so
+ * the overlay's Escape, Tab handling, tap-outside and the Android back button
+ * all see one panel.
  *
  * It is a disclosure, not a menu: the tray is a list of ordinary links, so
  * Tab walks it and a screen reader reads it as navigation. Escape, a tap
@@ -140,7 +150,7 @@ export function DockMore({
         aria-controls={trayId}
         aria-label={buttonLabel}
         onClick={() => setOpenOn(open ? null : active)}
-        className="nf-dock-island nf-dockmore__button"
+        className="nf-dockmore__button"
         data-lit={activeItem ? true : undefined}
       >
         <span className="nf-dockmore__icon nf-dockmore__icon--grid" aria-hidden="true">

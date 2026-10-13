@@ -30,7 +30,7 @@ const DOCK_IMPORTS = `
 
 const dock = (active: string, side: "property" | "stays", signedIn: boolean) => `
   <MobileTabBar t={shellDictionary(t)} side="${side}" active="${active}" signedIn={${signedIn}}
-    switchSlot={<CreateDock t={shellDictionary(t)} listHref="/profile/setup" isHost={false} signedIn={${signedIn}} />} />`;
+    createSlot={<CreateDock t={shellDictionary(t)} listHref="/profile/setup" isHost={false} signedIn={${signedIn}} />} />`;
 
 describe.skipIf(!hasBrowser && !process.env.CI)("locale fit: the dock and the cards at 390px", () => {
   for (const [active, side] of [

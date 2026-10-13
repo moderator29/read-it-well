@@ -12,6 +12,8 @@ import { HomeHero } from "@/components/app/home/HomeHero";
 import { LookedAtRecently } from "@/components/app/home/LookedAtRecently";
 import { HomeFigure, type HomeLeadFigure } from "@/components/app/home/HomeFigure";
 import { SpaceTypeRow } from "@/components/app/home/SpaceTypeRow";
+import { FeaturedListings } from "@/components/app/home/HomeLists";
+import { homeCardCopyOf } from "@/components/app/home/home-card-copy";
 import { DiscoveryEmpty } from "@/components/app/search/DiscoveryEmpty";
 import type { PropertyType } from "@/lib/interests/property-types";
 import { HeroBand } from "@/components/ui/HeroBand";
@@ -88,6 +90,9 @@ export function HomeScreen({
   lead = null,
   interests = [],
   intentApplied = false,
+  featuredMore = [],
+  bestMatches = null,
+  newListings = null,
 }: {
   t: Dictionary;
   locale: Locale;
@@ -117,6 +122,19 @@ export function HomeScreen({
   interests?: readonly PropertyType[];
   /** True when the featured shelf was ordered by `interests`, so it says so. */
   intentApplied?: boolean;
+  /**
+   * "Featured listings": more of the ranked shelf, one card per row, under the
+   * Premium carousel. Empty draws nothing.
+   */
+  featuredMore?: Listing[];
+  /**
+   * "Best matches": the route's streamed row (`BestMatchesStream`), for a
+   * signed-in reader only. Null for a guest, who sees Premium, Featured and
+   * New listings.
+   */
+  bestMatches?: ReactNode;
+  /** "New listings": the route's streamed list, newest published first. */
+  newListings?: ReactNode;
 }) {
   const greeting = t.experienceDiscover.home.greeting[overview.daypart];
   const name = overview.firstName || (overview.signedIn ? t.experienceDiscover.home.there : "");
@@ -315,7 +333,7 @@ export function HomeScreen({
 
       {/* ------------------------------------------- 3. featured properties */}
       <FeaturedBand
-        title={copy.featured}
+        title={t.homeV2.premiumTitle}
         seeAllHref="/search"
         seeAllLabel={t.common.seeAll}
         count={listings.length}
@@ -333,20 +351,10 @@ export function HomeScreen({
               position: t.experienceDiscover.stack.position,
               previous: t.experienceDiscover.stack.previous,
               next: t.experienceDiscover.stack.next,
-              open: t.experienceDiscover.stack.open,
-              moveIn: t.catalogue.card.moveIn,
-              periodShort: t.experienceLabels.periodShort,
               reviews: t.experienceDiscover.stack.reviews,
               mapOf: t.experienceDiscover.stack.mapOf,
-              noPhotos: t.catalogue.card.noPhotos,
-              cardCopy: {
-                moveIn: t.catalogue.card.moveIn,
-                perYear: t.catalogue.card.perYear,
-                perMonth: t.catalogue.card.perMonth,
-                perQuarter: t.catalogue.card.perQuarter,
-                night: t.catalogue.card.night,
-                head: t.catalogue.card.head,
-              },
+              mapCredits: t.homeV2.mapCredits,
+              card: homeCardCopyOf(t),
             }}
           />
         }
@@ -386,6 +394,11 @@ export function HomeScreen({
         {/* The stack above is the body; the band no longer draws a row. */}
         {null}
       </FeaturedBand>
+
+      {/* ----------------- featured listings, best matches, new listings */}
+      <FeaturedListings listings={featuredMore} t={t} locale={locale} />
+      {bestMatches}
+      {newListings}
     </div>
   );
 }

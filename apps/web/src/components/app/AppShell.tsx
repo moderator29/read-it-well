@@ -225,6 +225,7 @@ export function AppShell({
         t={t}
         side={effectiveSide}
         isHost={isHost}
+        signedIn={signedIn}
         socialOn={socialOn}
         listHref={isAgent ? "/agent/list" : effectiveSide === "stays" ? "/profile/setup?side=stays" : "/profile/setup"}
       />
@@ -501,7 +502,7 @@ export function AppShell({
           active={active}
           unreadNotifications={unreadNotifications}
           signedIn={signedIn}
-          switchSlot={createControl}
+          createSlot={createControl}
           socialOn={socialOn}
           prefetchFull={hydrated && !isDataSaver()}
         />

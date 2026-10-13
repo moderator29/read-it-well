@@ -28,7 +28,7 @@ const IMPORTS = `
 
 const dock = (active: string, side: "property" | "stays") => `
   <MobileTabBar t={shellDictionary(t)} side="${side}" active="${active}" signedIn
-    switchSlot={<CreateDock t={shellDictionary(t)} listHref="/profile/setup" isHost={false} signedIn />} />`;
+    createSlot={<CreateDock t={shellDictionary(t)} listHref="/profile/setup" isHost={false} signedIn />} />`;
 
 type TabReading = { label: string | null; current: boolean; text: string; w: number; h: number; pill: string };
 
