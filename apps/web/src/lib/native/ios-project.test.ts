@@ -11,7 +11,8 @@ import { VIDEO_MIME_TYPES } from "@/lib/agent/listings-model";
 const root = fileURLToPath(new URL("../../../", import.meta.url));
 const plist = readFileSync(`${root}ios/App/App/Info.plist`, "utf8").replace(/<!--[\s\S]*?-->/g, "");
 const pbxproj = readFileSync(`${root}ios/App/App.xcodeproj/project.pbxproj`, "utf8");
-const walkthrough = readFileSync(`${root}src/components/agent/VideoWalkthrough.tsx`, "utf8");
+/* The listing wizard takes photos and videos in one picker. */
+const walkthrough = readFileSync(`${root}src/app/agent/list/ListingWizard.tsx`, "utf8");
 
 function plistString(key: string): string | null {
   const match = plist.match(new RegExp(`<key>${key}</key>\\s*<string>([^<]*)</string>`));
@@ -20,7 +21,7 @@ function plistString(key: string): string | null {
 
 describe("STORE-P2-03: a video picker needs a microphone string and an honest camera string", () => {
   it("the walkthrough upload does accept video, which is why this matters", () => {
-    expect(walkthrough).toContain("accept={VIDEO_MIME_TYPES.join");
+    expect(walkthrough).toContain(`accept={["image/*", ...VIDEO_MIME_TYPES].join(",")}`);
     expect(VIDEO_MIME_TYPES.some((type) => type.startsWith("video/"))).toBe(true);
   });
 

@@ -57,8 +57,21 @@ export type {
 
 /* ------------------------------------------------------------- constants */
 
-/** Minimum photos before a listing may be submitted. */
-export const MIN_PHOTOS = 4;
+/**
+ * THE MEDIA A LISTING NEEDS: photos and walkthrough videos, counted together.
+ *
+ * Three items before it may be sent for review, the first of which (the
+ * cover) is a photo; five is what the wizard recommends. The lister's
+ * checklist, `submitListing` and the reviewer's admission checklist all read
+ * these two numbers, so the three can never ask for different counts (the
+ * reviewer's reason asked for five while the gate asked for four).
+ */
+export const MIN_MEDIA = 3;
+
+export const RECOMMENDED_MEDIA = 5;
+
+/** Kept for the callers that still name photos; it is the media minimum. */
+export const MIN_PHOTOS = MIN_MEDIA;
 
 /** The database allows positions 0 to 9, so ten photos per listing. */
 export const MAX_PHOTOS = 10;
@@ -113,12 +126,15 @@ export const MAX_SALE_PRICE_KOBO = 50_000_000_000_00;
         the object's real size and type back from storage rather than trusting
         what it was told.
 
-   Fifty megabytes for a video is the owner's number. It is roughly a minute of
-   1080p phone video, which is what a walkthrough actually is.
+   A hundred megabytes and sixty seconds for a video are the owner's numbers
+   (12 October): a minute of 1080p phone video, which is what a walkthrough is.
    -------------------------------------------------------------------------- */
 
 /**
- * The ceiling on a WALKTHROUGH. Fifty megabytes, roughly a minute of 1080p.
+ * The ceiling on a WALKTHROUGH. A hundred megabytes, a minute of 1080p. The
+ * `listing-videos` bucket is raised to match by the pending migration
+ * `20261012120000_listing_videos_take_a_hundred_megabytes.sql`; until it is
+ * applied, storage still refuses a video over fifty and says so.
  *
  * It was the ceiling on a photograph too, and that was wrong: the
  * `listing-photos` bucket is capped at ten megabytes
@@ -128,9 +144,9 @@ export const MAX_SALE_PRICE_KOBO = 50_000_000_000_00;
  * the end. The three-layer rule above is only worth anything when the three
  * layers agree, and these two did not.
  */
-export const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
+export const MAX_UPLOAD_BYTES = 100 * 1024 * 1024;
 
-export const MAX_UPLOAD_LABEL = "50MB";
+export const MAX_UPLOAD_LABEL = "100MB";
 
 /** The ceiling on a PHOTOGRAPH, matching the bucket exactly. Ten megabytes. */
 export const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
@@ -152,8 +168,12 @@ export const VIDEO_MIME_TYPES = ["video/mp4", "video/quicktime", "video/webm"] a
 /** Walkthroughs per listing. The database counts them under a lock too. */
 export const MAX_VIDEOS = 3;
 
-/** The longest walkthrough the table will hold, in seconds. */
-export const MAX_VIDEO_SECONDS = 1800;
+/**
+ * The longest walkthrough a lister may attach, in seconds. The table itself
+ * holds up to 1800 (`listing_videos_duration_sane`); a minute is the owner's
+ * rule, measured in the browser and checked again by `addVideo`.
+ */
+export const MAX_VIDEO_SECONDS = 60;
 
 /**
  * Why a chosen file cannot be used, in words, before anything is uploaded.
@@ -577,6 +597,8 @@ export type SubmitSubject = {
   unitShape?: string | null | undefined;
   amenityCount: number;
   photoCount: number;
+  /** Walkthrough videos; they count toward `MIN_MEDIA` with the photos. */
+  videoCount?: number;
   /** True when a photo sits at position 0, which is the cover. */
   hasCover: boolean;
   /**
@@ -624,15 +646,16 @@ export function submitRequirements(subject: SubmitSubject): GateRequirement[] {
     unmet.push({ field: "propertyType", message: "Choose what kind of property this is." });
   }
 
-  if (subject.photoCount < MIN_PHOTOS) {
+  const mediaCount = subject.photoCount + (subject.videoCount ?? 0);
+  if (mediaCount < MIN_MEDIA) {
     unmet.push({
       field: "photos",
-      message: `Add at least ${MIN_PHOTOS} photos. You have ${subject.photoCount}.`,
+      message: `Add at least ${MIN_MEDIA} photos or videos. You have ${mediaCount}.`,
     });
-  } else if (!subject.hasCover) {
+  } else if (subject.photoCount === 0 || !subject.hasCover) {
     unmet.push({
       field: "photos",
-      message: "Choose which photo leads the listing. The first one is the cover.",
+      message: "Put a photo first. The first item is the cover, and a cover has to be a photo.",
     });
   }
 

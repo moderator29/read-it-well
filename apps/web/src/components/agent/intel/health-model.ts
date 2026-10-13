@@ -144,7 +144,7 @@ export function listingHealth(facts: HealthFacts): ListingHealth {
   const photos: HealthRow = {
     key: "photos",
     state: unmet.has("photos") ? "missing" : "present",
-    count: facts.gate.photoCount,
+    count: facts.gate.photoCount + (facts.gate.videoCount ?? 0),
     min: MIN_PHOTOS,
     hasCover: facts.gate.hasCover,
   };
@@ -185,9 +185,9 @@ export function listingHealth(facts: HealthFacts): ListingHealth {
   if (unmet.has("photos")) {
     recommendations.push({
       key: "photos",
-      more: Math.max(0, MIN_PHOTOS - facts.gate.photoCount),
+      more: Math.max(0, MIN_PHOTOS - facts.gate.photoCount - (facts.gate.videoCount ?? 0)),
       min: MIN_PHOTOS,
-      noCover: facts.gate.photoCount >= MIN_PHOTOS && !facts.gate.hasCover,
+      noCover: facts.gate.photoCount + (facts.gate.videoCount ?? 0) >= MIN_PHOTOS && !facts.gate.hasCover,
     });
   }
   if (verification.state === "missing") {

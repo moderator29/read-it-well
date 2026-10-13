@@ -90,7 +90,7 @@ const LISTING: ListingReviewView = {
   reviewNotes: "Photographs were re-taken after the first pass. Utilities check out.",
   createdAt: "2026-09-17T18:00:00.000Z",
   checks: [
-    { label: "Four photos or more", pass: false, detail: "0 photos" },
+    { label: "Three photos or videos", pass: false, detail: "0 photos and 1 video" },
     { label: "Cover photo set", pass: false, detail: "No cover" },
     { label: "Title of 8 to 80 characters", pass: true, detail: "Two Bedroom Flat, Herbert Macaulay Way, Yaba" },
     { label: "Area and city recorded", pass: true, detail: "Yaba, Lagos" },

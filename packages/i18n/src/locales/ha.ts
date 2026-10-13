@@ -2443,7 +2443,6 @@ export const ha: Dictionary = withFallback({
       photoAlt: "{title}, hoto {number}",
       checklistTitle: "Jerin dubawar shiga",
       checks: {
-        photoCount: "Hotuna huɗu ko fiye",
         cover: "An sa hoton gaba",
         titleCase: "Take da manyan haruffa daidai",
         place: "An rubuta yanki da birni",

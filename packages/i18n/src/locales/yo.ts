@@ -2478,7 +2478,6 @@ export const yo: Dictionary = withFallback({
       photoAlt: "{title}, àwòrán {number}",
       checklistTitle: "Àtòjọ ìyẹ̀wò ìgbàwọlé",
       checks: {
-        photoCount: "Àwòrán mẹ́rin tàbí jù bẹ́ẹ̀ lọ",
         cover: "A ti yan àwòrán ìbòjú",
         titleCase: "Àkọlé ní lẹ́tà tí ó tọ́",
         place: "A kọ àdúgbò àti ìlú sílẹ̀",

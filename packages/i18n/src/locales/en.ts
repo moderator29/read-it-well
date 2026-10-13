@@ -2528,7 +2528,7 @@ export const en = {
        */
       titles: {
         basics: "What are you listing?",
-        photos: "Photos and a walkthrough",
+        photos: "Photos and videos",
         location: "Where is it?",
         amenities: "What else is there?",
         utilities: "Light and water",
@@ -2540,7 +2540,7 @@ export const en = {
          what the step is for rather than selling it. */
       subtitles: {
         basics: "Tell us the type of property, describe it, and count the rooms inside it.",
-        photos: "Add clear photos of the property and a short video walkthrough.",
+        photos: "Add clear photos and short videos of the property, in the order you want them seen.",
         location: "Tell us the exact location of the property.",
         amenities: "Select all the amenities available at the property.",
         utilities: "Tell us about the power supply, the backup and the water at the property.",
@@ -2618,9 +2618,9 @@ export const en = {
         three: "You get a notification once it is live.",
       },
       photos: {
-        add: "Add photos",
-        earlier: "Move this photo earlier",
-        later: "Move this photo later",
+        add: "Add photos or videos",
+        earlier: "Move this item earlier",
+        later: "Move this item later",
       },
     },
 
@@ -2691,7 +2691,7 @@ export const en = {
 
     photos: {
       intro:
-        "Add at least {min} photos, up to {max}. The first one is the cover, so lead with the wide shot that sells the place.",
+        "Add at least {min} photos or videos; {recommended} make a stronger listing. Up to {max} photos and {videos} videos of a minute or less. The first item is the cover and has to be a photo, so lead with the wide shot that sells the place.",
       tooNarrow: "Photos need at least {width}px on their longest side so they look sharp on every screen.",
       choose: "Choose photos",
       /* STORE-04: the app's own camera, shown only inside the native app. */
@@ -2699,12 +2699,22 @@ export const en = {
       addMore: "Add more photos",
       uploading: "Uploading",
       progress: "{count} of {min} needed",
-      empty: "No photos yet. Daylight, wide angles and a tidy room do most of the work.",
+      empty: "No photos or videos yet. Daylight, wide angles and a tidy room do most of the work.",
+      /* Under the count once the minimum is met and before the recommendation. */
+      recommend: "Add {more} more for a stronger listing.",
       cover: "Cover",
       makeCover: "Make cover",
       remove: "Remove",
       ceiling: "A listing holds up to {max} photos.",
-      notAnImage: "Photos need to be image files, for example JPG or PNG.",
+      notAnImage: "Add photos (for example JPG or PNG) or videos (MP4, MOV or WebM).",
+      /* The video gate's refusals, one per cause, each naming what to do. */
+      video: "Video",
+      videoTooLong: "Videos can be up to {seconds} seconds long. Trim this one, then add it again.",
+      videoTooBig: "That video is over {max}. Record a shorter clip, or export it at a lower resolution.",
+      videoUnreadable: "This video could not be opened. Try exporting it again as an MP4.",
+      videoCeiling: "A listing holds up to {max} videos.",
+      videoFailed: "That video did not finish uploading. Please try it again.",
+      videoUploading: "Uploading {name}, {percent}%",
       notPrepared:
         "We could not prepare that photo safely, so it was not uploaded. Try a different photo.",
       uploadFailed: "That photo did not finish uploading. Please try it again.",
@@ -2817,7 +2827,7 @@ export const en = {
       checklist: {
         title: "Title",
         description: "Description of {min} words or more",
-        photos: "{min} photos or more, cover first",
+        photos: "{min} photos or videos, a photo first",
         stateCode: "State",
         city: "City",
         area: "Area",
@@ -2843,8 +2853,8 @@ export const en = {
       titleLong: "Shorten the title to {max} characters or fewer.",
       description: "Describe the property in at least {min} words. You have {count} so far.",
       propertyType: "Choose what kind of property this is.",
-      photos: "Add at least {min} photos. You have {count}.",
-      cover: "Choose which photo leads the listing. The first one is the cover.",
+      photos: "Add at least {min} photos or videos. You have {count}.",
+      cover: "Put a photo first. The first item is the cover, and a cover has to be a photo.",
       stateCode: "Choose the state the property is in.",
       city: "Enter the city, for example Lagos.",
       area: "Enter the area, for example Lekki Phase 1.",
@@ -3804,7 +3814,7 @@ export const en = {
       photoAlt: "{title}, photo {number}",
       checklistTitle: "Admission checklist",
       checks: {
-        photoCount: "Four photos or more",
+        photoCount: "Three photos or videos",
         cover: "Cover photo set",
         /* No longer a line on the checklist (lib/admin/listing-checks.ts): it
            was a rule nobody asked of the lister. Kept while the other locales

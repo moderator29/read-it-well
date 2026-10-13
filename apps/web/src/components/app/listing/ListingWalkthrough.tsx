@@ -42,7 +42,10 @@ export function ListingWalkthrough({
             src={video.url}
             poster={video.posterUrl ?? undefined}
             controls
-            preload="metadata"
+            /* Lazy: with a still to show, nothing of the video is fetched
+               until play is pressed; without one, only its first frame. It
+               never plays on its own, so it never makes a sound unasked. */
+            preload={video.posterUrl ? "none" : "metadata"}
             playsInline
             aria-label={`Walkthrough of ${title}`}
             className="aspect-video w-full rounded-[var(--nf-container-radius)] bg-[var(--nf-surface-inset)] object-cover"

@@ -24,7 +24,7 @@
 import {
   MAX_TITLE_LENGTH,
   MIN_DESCRIPTION_WORDS,
-  MIN_PHOTOS,
+  MIN_MEDIA,
   MIN_TITLE_LENGTH,
   STATE_CODE_SET,
   collapseSpaces,
@@ -46,12 +46,14 @@ export type ChecklistRow = PriceColumns & {
   bedrooms: number;
   bathrooms: number;
   listing_photos: readonly { position: number }[];
+  /** Walkthroughs count toward the media minimum with the photos. */
+  listing_videos?: readonly unknown[];
   listing_amenities: readonly unknown[];
 };
 
 /** The English label of each line, which `CHECK_KEYS` matches to its translation. */
 export const CHECK_LABEL = {
-  photoCount: "Four photos or more",
+  photoCount: "Three photos or videos",
   cover: "Cover photo set",
   titleLength: `Title of ${MIN_TITLE_LENGTH} to ${MAX_TITLE_LENGTH} characters`,
   place: "Area and city recorded",
@@ -68,6 +70,7 @@ const CONTACT_PATTERN = /\d{10}|(?:payment|transfer|pay me|account number|acct|b
 
 export function qualityChecks(row: ChecklistRow): QualityCheck[] {
   const photoCount = row.listing_photos.length;
+  const videoCount = row.listing_videos?.length ?? 0;
   const hasCover = row.listing_photos.some((photo) => photo.position === 0);
   const words = countWords(row.description);
   const text = `${row.title} ${row.description ?? ""}`;
@@ -82,13 +85,16 @@ export function qualityChecks(row: ChecklistRow): QualityCheck[] {
   return [
     {
       label: CHECK_LABEL.photoCount,
-      pass: photoCount >= MIN_PHOTOS,
-      detail: `${photoCount} uploaded`,
+      pass: photoCount + videoCount >= MIN_MEDIA,
+      detail:
+        videoCount > 0
+          ? `${countWord(photoCount, "photo")} and ${countWord(videoCount, "video")}`
+          : countWord(photoCount, "photo"),
     },
     {
       label: CHECK_LABEL.cover,
-      pass: hasCover,
-      detail: hasCover ? "First photo is the cover" : "No photo in the cover position",
+      pass: photoCount > 0 && hasCover,
+      detail: hasCover ? "A photo is first, as the cover" : "No photo in the cover position",
     },
     {
       label: CHECK_LABEL.titleLength,
@@ -139,4 +145,9 @@ export function qualityChecks(row: ChecklistRow): QualityCheck[] {
         : "Clean",
     },
   ];
+}
+
+/** "1 photo", "3 photos". */
+function countWord(count: number, word: string): string {
+  return `${count} ${count === 1 ? word : `${word}s`}`;
 }
