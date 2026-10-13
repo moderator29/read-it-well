@@ -8,17 +8,14 @@ import { WholePrefetchLink } from "@/components/app/WholePrefetchLink";
 import { KeepWarm } from "@/components/app/KeepWarm";
 import { usePathname, useSearchParams } from "next/navigation";
 import { AppRail } from "./AppRail";
-import { MobileTabBar, isFocusedRoute, isImmersiveRoute, showsTabBar } from "./MobileTabBar";
+import { isFocusedRoute, isImmersiveRoute, showsTabBar } from "./MobileTabBar";
+import { ShellDock } from "./ShellDock";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { AuthGateProvider, SignedOutActions } from "@/components/auth/AuthGate";
 import { sideOfPath, sideOfPlansQuery, type Side } from "@/lib/side.constants";
 import { SideFlip } from "./flip/SideFlip";
-import { CreateDock } from "./CreateDock";
 import { SideSync } from "./SideSync";
-import { useHydrated } from "@/components/motion/useInView";
-import { isDataSaver } from "@/lib/ui/data-saver";
 import { isDetailPath } from "@/lib/side.constants";
-import { ProfileSwitcher, type ProfileSwitcherCopy } from "@/components/supply/ProfileSwitcher";
 import type { ProfileSelection, Workspace } from "@/lib/supply/workspaces";
 
 /**
@@ -142,10 +139,6 @@ export function AppShell({
   const searchParams = useSearchParams();
   const activeType = searchParams.get("type");
   const [drawer, setDrawer] = useState(preview?.drawer ?? false);
-  /* The dock prefetches its tabs whole once the page is live, and never under
-     data saving (Track M performance; see MobileTabBar's prefetchFull). */
-  const hydrated = useHydrated();
-
   const effectiveSide: Side = sideOfPath(active) ?? sideOfPlansQuery(active, searchParams) ?? side;
   const immersive = isImmersiveRoute(active);
   const edgeToEdge = /^\/(listing|stay|restaurant)\/[^/]+$/.test(active);
@@ -173,65 +166,6 @@ export function AppShell({
   const closeDrawer = useCallback(() => setDrawer(false), []);
   const openDrawer = useCallback(() => setDrawer(true), []);
 
-  /*
-   * THE WORKSPACE SHEET, MOUNTED ONCE, AND THE DOCK'S "+".
-   *
-   * The workspace switch was the dock's centre control; since 29 September
-   * the centre is the "+" (`CreateDock`) and the switch is its Create sheet's
-   * last row, which opens this sheet by the named event, as the profile's
-   * Switch role row does. The sheet is still built HERE rather than inside
-   * `MobileTabBar` because it needs the account's own workspace list, which
-   * the shell has already resolved once, and the dock is a server component
-   * that has no business fetching one.
-   *
-   * The copy is assembled from the dictionary rather than written inline,
-   * because this is new copy and new copy is going to be edited.
-   */
-  const switchCopy: ProfileSwitcherCopy = {
-    title: t.supply.switchTitle,
-    personal: t.supply.personal,
-    personalMeaning: t.supply.personalMeaning,
-    addTitle: t.supply.addTitle,
-    addMeaning: t.supply.addMeaning,
-    current: t.supply.current,
-    empty: t.supply.empty,
-    triggerLabel: t.supply.switchTrigger,
-    short: t.shape.workspace.short,
-    kinds: t.supply.kinds,
-    standings: t.supply.standings,
-  };
-
-  const switchControl = (
-    <ProfileSwitcher
-      t={t}
-      copy={switchCopy}
-      workspaces={workspaces}
-      current={currentProfile}
-      side={effectiveSide}
-      avatarUrl={avatarUrl}
-      /* The chooser is side dependent: three property doors or three stays
-         doors, which is the founder's ruling for Track O on both sides. */
-      addHref={effectiveSide === "stays" ? "/profile/setup?side=stays" : "/profile/setup"}
-      /* No trigger of its own any more: the dock's centre is the "+" (the
-         founder, 29 September 2026), and its sheet's Switch workspace row,
-         like the profile's Switch role row, opens this one by the named
-         event. The sheet stays mounted here, next to the list it needs. */
-      renderTrigger={() => null}
-    />
-  );
-  const createControl = (
-    <>
-      <CreateDock
-        t={t}
-        side={effectiveSide}
-        isHost={isHost}
-        signedIn={signedIn}
-        socialOn={socialOn}
-        listHref={isAgent ? "/agent/list" : effectiveSide === "stays" ? "/profile/setup?side=stays" : "/profile/setup"}
-      />
-      {switchControl}
-    </>
-  );
   useOverlay({ open: drawer, onClose: closeDrawer, panelRef: drawerPanel });
   /* F-15: the drawer also closes on a swipe back towards the left edge. */
   const drawerSwipe = useSwipeToClose(closeDrawer);
@@ -496,15 +430,18 @@ export function AppShell({
       </main>
 
       {!immersive && showsTabBar(active) && (
-        <MobileTabBar
+        <ShellDock
           t={t}
           side={effectiveSide}
           active={active}
           unreadNotifications={unreadNotifications}
           signedIn={signedIn}
-          createSlot={createControl}
+          isAgent={isAgent}
+          isHost={isHost}
           socialOn={socialOn}
-          prefetchFull={hydrated && !isDataSaver()}
+          workspaces={workspaces}
+          currentProfile={currentProfile}
+          avatarUrl={avatarUrl}
         />
       )}
     </div>

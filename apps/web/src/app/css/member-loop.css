@@ -89,6 +89,37 @@
 
   /* ---------------------------------------- B2: looked at recently */
 
+  /*
+   * THE SLOT THE ROW FILLS (13 October 2026, layout stability). The row reads
+   * the phone's own memory, so the server cannot draw it; it used to arrive
+   * after hydration and push Home down (0.098 of layout shift at 7.5 s on Fast
+   * 3G). The server now draws this empty slot, and a head script marks the
+   * root `data-recent-listings` when the phone remembers anything
+   * (`lib/search/recent-flag.ts`): the slot then holds the row's height open
+   * from the first frame, and the row fills it. No memory, no slot. Once the
+   * row has filled, the slot is just its box; a phone whose memory turns out
+   * empty collapses it (`data-empty`, only once hydrated).
+   * The reserved heights are the row's measured height with its top margin
+   * (317px at 390 and 328px from 768, whatever the titles say, because the
+   * card clamps them); each is held a few pixels under, so a late row only
+   * ever grows into the space and never leaves a gap.
+   */
+  .nf-lookback-slot {
+    display: none;
+  }
+  .nf-lookback-slot[data-filled] {
+    display: flow-root;
+  }
+  :root[data-recent-listings] .nf-lookback-slot:not([data-filled]):not([data-empty]) {
+    display: flow-root;
+    min-height: 19.75rem;
+  }
+  @media (min-width: 48rem) {
+    :root[data-recent-listings] .nf-lookback-slot:not([data-filled]):not([data-empty]) {
+      min-height: 20.25rem;
+    }
+  }
+
   .nf-lookback__head {
     display: flex;
     align-items: center;

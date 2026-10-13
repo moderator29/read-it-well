@@ -100,7 +100,7 @@ export default async function PreviewChatPolish({ searchParams }: { searchParams
         context={{ kind: "direct" }}
         threadCopy={t.threads}
         locale="en"
-        sinceLine="On Vallo since October 2026"
+        sinceLine="On Vallo since 9 October 2026"
         calls={{ copy: t.calls, enabled: false, words: t.chatPolish.calls }}
         viewerCopy={t.chatPolish.viewer}
       />

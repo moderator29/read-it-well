@@ -1,3 +1,4 @@
+import { joinDate } from "@/lib/format/join-date";
 import { getDictionary } from "@vallo/i18n";
 import { ProfileHeader } from "@/components/social/profile/ProfileHeader";
 import { roleLine, roleWords } from "@/lib/profile/role-line";
@@ -65,7 +66,7 @@ export default function PublicProfilePreview() {
           reviewCount: 28,
           averageRating: 4.8,
         }}
-        joinedLabel="March 2025"
+        joinedLabel={joinDate("2026-10-09T10:00:00Z", "en")}
         /* The role line their published listings would give a checked
            agent (`role-facts.ts`), as a fixture. */
         roleLine={roleLine(roleWords({ listers: ["agent"], businesses: [] }), t.socialProfile.roleLine)}

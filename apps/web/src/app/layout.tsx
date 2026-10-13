@@ -20,6 +20,7 @@ import { siteUrl } from "@/lib/site";
 import { CHROME_COLOUR } from "@/lib/theme/chrome";
 import { THEME_BOOT_SCRIPT, THEME_KEY, parseThemeChoice, serverTheme } from "@/lib/theme/theme";
 import { ITERATION_QUIET_SCRIPT } from "@/lib/motion/iteration-quiet";
+import { RECENT_FLAG_SCRIPT } from "@/lib/search/recent-flag";
 import { ClientCopyProvider } from "@/lib/i18n/client-copy";
 import { clientCopyOf } from "@/lib/i18n/client-copy-of";
 import { SuccessFlagHost } from "@/components/ui/SuccessFlagHost";
@@ -416,6 +417,14 @@ export default async function RootLayout({
           nonce={nonce}
           suppressHydrationWarning
           dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }}
+        />
+        {/* Whether this phone remembers any opened listing, before paint, so
+            Home holds the Recently viewed row's height open instead of jumping
+            when it hydrates (`lib/search/recent-flag.ts`). */}
+        <script
+          nonce={nonce}
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{ __html: RECENT_FLAG_SCRIPT }}
         />
         <script
           nonce={nonce}

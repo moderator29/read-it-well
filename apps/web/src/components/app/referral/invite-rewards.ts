@@ -37,14 +37,21 @@ export type InviteRewardLine = {
   body: string;
 };
 
-/** The qualify sentence, filled from the policy, then what signing up fully means. */
-export function qualifySentence(policy: RewardsPolicy, locale: Locale): string {
+/**
+ * The qualify sentence, filled from the policy, then what signing up fully
+ * means, then (when the caller passes it) the founder's plain rule of 13
+ * October 2026: "Your invite counts once they verify their phone number."
+ * (`fixesV2.referral.countsOnPhone`). The rule is stated whatever the live
+ * campaign's own steps list, so a member reads it before they invite anybody.
+ */
+export function qualifySentence(policy: RewardsPolicy, locale: Locale, phoneLine?: string): string {
   const earn = fill(REWARDS_QUALIFY, {
     reward: money(policy.rewardPerReferralMinor, locale),
     cap: new Intl.NumberFormat(intlTag[locale]).format(policy.monthlyCap),
   });
   const fully = signedUpFullySentence(policy.steps ?? []);
-  return fully ? `${earn} ${fully}` : earn;
+  const sentence = fully ? `${earn} ${fully}` : earn;
+  return phoneLine ? `${sentence} ${phoneLine}` : sentence;
 }
 
 /** When a reward becomes Available: the campaign's window when the read gives it. */
@@ -62,7 +69,7 @@ export function runningInviteLines(policy: RewardsPolicy, t: Dictionary, locale:
       key: "earn",
       icon: "hand-coins",
       title: fill(c.earnTitleAmount, { amount: money(policy.rewardPerReferralMinor, locale) }),
-      body: qualifySentence(policy, locale),
+      body: qualifySentence(policy, locale, t.fixesV2.referral.countsOnPhone),
     },
     { key: "pending", icon: "hourglass", title: c.pendingTitle, body: pendingSentence(policy, locale) },
     { key: "budget", icon: "calendar-clock", title: c.budgetTitle, body: REWARDS_MONTHLY_BUDGET },

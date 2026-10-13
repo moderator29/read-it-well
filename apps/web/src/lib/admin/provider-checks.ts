@@ -4,6 +4,7 @@ import { paylukMerchantConfig, readMerchantBalance } from "@/lib/payouts/payluk-
 import { getCallProvider, callProviderConfigured } from "@/lib/calls/provider";
 import { apnsProviderToken } from "@/lib/push/transport/apns";
 import { TERMII_DEFAULT_BASE } from "@/lib/phone-otp/termii";
+import { readSenderIdPage, senderIdVerdict, type SenderIdRow } from "./termii-sender-ids";
 
 /**
  * PROVIDER CHECKS (the founder, 8 October 2026: "trigger deployment and test
@@ -18,12 +19,19 @@ import { TERMII_DEFAULT_BASE } from "@/lib/phone-otp/termii";
  *   - LiveKit: create an empty throwaway room, read its participants, delete
  *     it. Proves the URL, the key and the secret against the real server.
  *   - Apple push: sign the provider token with the .p8 (no network).
- *   - Termii: GET /api/get-balance (reads the account, sends nothing).
+ *   - Termii: GET /api/get-balance (reads the account, sends nothing), and
+ *     GET /api/sender-id (the sender IDs on the account, with their status).
  *   - MapTiler: fetch the style with the public key and the site's referer.
  * No key, secret or token is ever returned: only names, outcomes and codes.
  */
 
-export type CheckOutcome = { name: string; ok: boolean; detail: string };
+export type CheckOutcome = {
+  name: string;
+  ok: boolean;
+  detail: string;
+  /** The Termii sender IDs on the account, when this check lists them. */
+  senders?: SenderIdRow[];
+};
 
 const TIMEOUT = 15_000;
 
@@ -88,6 +96,52 @@ async function termiiCheck(): Promise<CheckOutcome> {
   }
 }
 
+/** The most pages of sender IDs read: fifteen a page, so this is far past any real account. */
+const SENDER_PAGES_MAX = 5;
+
+/**
+ * THE SENDER IDS ON THE TERMII ACCOUNT, with their status, and whether the one
+ * in TERMII_SENDER_ID is an approved one (the founder, 13 October 2026).
+ * Read-only: `GET /api/sender-id`, the same key the balance check uses. The
+ * key is in the request's query, as Termii requires, and is never returned,
+ * printed or put in an error: every failure below is worded without the URL.
+ */
+export async function termiiSenderIdsCheck(
+  env: Record<string, string | undefined> = process.env,
+  fetcher: (url: string, init: RequestInit) => Promise<Response> = (url, init) => fetch(url, init),
+): Promise<CheckOutcome> {
+  const name = "Termii sender IDs";
+  const key = (env.TERMII_API_KEY ?? "").trim();
+  if (!key) return { name, ok: false, detail: "TERMII_API_KEY not set, so the account's sender IDs cannot be read." };
+  const configured = (env.TERMII_SENDER_ID ?? "").trim();
+  const rows: SenderIdRow[] = [];
+  try {
+    for (let page = 1; page <= SENDER_PAGES_MAX; page += 1) {
+      const res = await fetcher(`${TERMII_DEFAULT_BASE}/api/sender-id?api_key=${encodeURIComponent(key)}&page=${page}`, {
+        signal: AbortSignal.timeout(TIMEOUT),
+      });
+      if (res.status !== 200) return { name, ok: false, detail: `Termii answered HTTP ${res.status} when asked for the sender IDs.` };
+      const read = readSenderIdPage(await res.json().catch(() => null));
+      rows.push(...read.rows);
+      if (page >= read.pages || read.rows.length === 0) break;
+    }
+  } catch {
+    return { name, ok: false, detail: "No answer from Termii (network or timeout) when asked for the sender IDs." };
+  }
+  if (rows.length === 0) {
+    return {
+      name,
+      ok: false,
+      detail: configured
+        ? `The account lists no sender IDs at all. TERMII_SENDER_ID is ${configured}; add it in the Termii dashboard under Sender ID.`
+        : "The account lists no sender IDs, and TERMII_SENDER_ID is not set. Add one in the Termii dashboard under Sender ID.",
+      senders: [],
+    };
+  }
+  const verdict = senderIdVerdict(configured, rows);
+  return { name, ok: verdict.ok, detail: verdict.line, senders: rows };
+}
+
 async function mapTilerCheck(): Promise<CheckOutcome> {
   const name = "MapTiler (maps)";
   const key = (process.env.NEXT_PUBLIC_MAPTILER_KEY ?? "").trim();
@@ -112,6 +166,7 @@ export async function runProviderChecks(): Promise<CheckOutcome[]> {
     liveKitCheck(),
     Promise.resolve(apnsCheck()),
     termiiCheck(),
+    termiiSenderIdsCheck(),
     mapTilerCheck(),
   ]);
 }

@@ -4380,5 +4380,14 @@ export const ha: Dictionary = withFallback({
       action: "Buɗe fasfo na",
     },
   },
+  fixesV2: {
+    referral: {
+      countsOnPhone: "Za a ƙidaya gayyatarka da zarar wanda ka gayyata ya tabbatar da lambar wayarsa.",
+    },
+    offline: {
+      title: "Ba ka kan layi",
+      body: "Vallo ba ta iya samun hanyar sadarwa a yanzu. Wannan allon zai sake budewa da kansa idan ka dawo kan layi.",
+    },
+  },
 
 } satisfies Translation, haDrafts);

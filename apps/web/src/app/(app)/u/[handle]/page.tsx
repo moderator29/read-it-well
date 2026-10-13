@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { sheetWordsOf } from "@/components/social/sheet-words";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
@@ -34,8 +35,9 @@ import {
   getAgentProperties,
   getAgentReviews,
   getProfileMediaGrid,
-  monthYear,
 } from "@/lib/social/profile-tabs-queries";
+import { OWN_PROFILE_HREF } from "@/lib/social/own-profile";
+import { joinDate } from "@/lib/format/join-date";
 import { listStories } from "@/lib/social/stories-queries";
 import { SocialPaused } from "@/components/social/SocialPaused";
 import { createClient } from "@/lib/supabase/server";
@@ -156,6 +158,22 @@ export default async function SocialProfilePage({
   const [view, query] = await Promise.all([loadPublicProfile(raw), searchParams]);
 
   if (view.state === "found") {
+    /*
+     * MY OWN ADDRESS IS MY OWN PROFILE (the founder, 13 October 2026). Tapping
+     * my own avatar or name anywhere (a post, a story, a reply, a people list,
+     * a chat) opened this page as if I were somebody else: the public view of
+     * me, with the header of a stranger. There are a hundred places that link
+     * to `/u/<handle>`, and one of them forgetting the rule would bring the
+     * bug back, so the rule lives HERE, once, at the address every one of them
+     * points at: when the signed-in reader IS this person, the page is
+     * `/profile`, their own. Nothing else is read first, so no work is done
+     * for a page that will not be drawn. A reader who is not the owner sees
+     * exactly what they saw before. `loadPublicProfile` decides ownership on
+     * the server from the session, so a typed handle cannot claim it. The
+     * owner's edit, followers and following pages are their own routes and
+     * stay where they are.
+     */
+    if (view.isOwner) redirect(OWN_PROFILE_HREF);
     const userId = view.profile.userId;
 
     /* An agent's own tabs need an `agents` row, and `agents` is select-own plus
@@ -224,7 +242,7 @@ export default async function SocialProfilePage({
           place={view.place}
           published={view.published}
           trust={view.trust}
-          joinedLabel={monthYear(view.profile.claimedAt, locale)}
+          joinedLabel={joinDate(view.profile.claimedAt, locale)}
           badges={badges}
           badgeCopy={badgeCopyOf(t)}
           shareUrl={`${siteUrl().replace(/\/+$/, "")}/u/${view.profile.handle}`}

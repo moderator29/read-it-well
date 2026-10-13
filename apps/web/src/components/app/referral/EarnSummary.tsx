@@ -19,7 +19,18 @@ type Copy = Dictionary["experienceRewards"];
  * sentences are `lib/money/copy.ts`'s. Drawn only while the programme runs
  * (the caller decides): a paused month never invites under a reward. Server-safe.
  */
-export function EarnCard({ snapshot, copy, locale }: { snapshot: RewardsSnapshot; copy: Copy; locale: Locale }) {
+export function EarnCard({
+  snapshot,
+  copy,
+  locale,
+  phoneLine,
+}: {
+  snapshot: RewardsSnapshot;
+  copy: Copy;
+  locale: Locale;
+  /** `fixesV2.referral.countsOnPhone`: the invited person counts once they verify their phone. */
+  phoneLine?: string;
+}) {
   const { policy } = snapshot;
   return (
     <Panel variant="card" className="nf-rewards-earn" data-testid="rewards-earn">
@@ -27,7 +38,7 @@ export function EarnCard({ snapshot, copy, locale }: { snapshot: RewardsSnapshot
       <h2 className="nf-rewards-earn__headline" data-testid="rewards-earn-headline">
         {fill(copy.earn.headline, { amount: money(policy.rewardPerReferralMinor, locale) })}
       </h2>
-      <p className="nf-rewards-earn__body">{qualifySentence(policy, locale)}</p>
+      <p className="nf-rewards-earn__body">{qualifySentence(policy, locale, phoneLine)}</p>
       <p className="nf-rewards-earn__body">{pendingSentence(policy, locale)}</p>
     </Panel>
   );

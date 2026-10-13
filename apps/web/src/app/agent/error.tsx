@@ -1,6 +1,8 @@
 "use client";
 
 import { useErrorReport } from "@/lib/observability/use-error-report";
+import { useClientCopy } from "@/lib/i18n/client-copy";
+import { useOfflineBoundary } from "@/lib/offline/use-offline";
 import { ResultScreen } from "@/components/app/ResultSheet";
 
 /**
@@ -28,6 +30,26 @@ export default function AgentError({
   reset: () => void;
 }) {
   const reference = useErrorReport(error, "client.agent_boundary", "[vallo] agent route error");
+
+  const copy = useClientCopy();
+  /* No signal is not a fault: the same calm words as the app's boundary, and
+     the segment loads itself again when the signal returns. */
+  const offline = useOfflineBoundary(reset);
+  if (offline) {
+    return (
+      <main id="main" className="flex min-h-dvh flex-col items-center justify-center px-gutter py-section">
+        <ResultScreen
+          state="pending"
+          verdict={copy.fixesV2.offline.title}
+          consequence={copy.fixesV2.offline.body}
+          actions={[
+            { label: copy.authFlow.tryAgain, onClick: reset, tone: "primary" },
+            { label: "Back to dashboard", href: "/agent/dashboard", tone: "quiet" },
+          ]}
+        />
+      </main>
+    );
+  }
 
   return (
     <main

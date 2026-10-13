@@ -4426,5 +4426,14 @@ export const yo: Dictionary = withFallback({
       action: "Ṣí ìwé ìrìnnà mi",
     },
   },
+  fixesV2: {
+    referral: {
+      countsOnPhone: "A óò ka ìpè rẹ nígbà tí ẹni tí o pè bá jẹ́rìí sí nọ́mbà fóònù rẹ̀.",
+    },
+    offline: {
+      title: "O kò sí lórí ayélujára",
+      body: "Vallo kò lè dé orí nẹ́tíwọ́kì báyìí. Ojú-ìwé yìí yóò tún kún fúnra rẹ̀ nígbà tí o bá padà sórí ayélujára.",
+    },
+  },
 
 } satisfies Translation, yoDrafts);

@@ -245,6 +245,17 @@
   .nf-host__body--wide {
     max-width: 76rem;
   }
+  /* The main dock is drawn below 1024px (`WorkspaceDock`); the body clears it by
+     the one token the consumer shell uses. From 1024px the dock is not drawn
+     and the sidebar carries the navigation, so the body keeps its own foot. */
+  .nf-host__body.nf-host__body--docked {
+    padding-bottom: calc(var(--nf-space-md) + var(--nf-tabbar-clearance));
+  }
+  @media (min-width: 64rem) {
+    .nf-host__body.nf-host__body--docked {
+      padding-bottom: calc(var(--nf-space-2xl) + env(safe-area-inset-bottom));
+    }
+  }
   .nf-host--immersive .nf-host__col {
     min-height: 0;
   }
