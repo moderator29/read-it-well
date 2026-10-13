@@ -3696,4 +3696,83 @@ export const yo: Dictionary = withFallback({
     close: "Close",
   },
 
+  /* The host table desk (track/restaurant-desk). Machine-written, not read by
+     a native speaker yet; `dayCovers` is a pure template and falls back to
+     English on purpose. */
+  tableDesk: {
+    today: "Òní",
+    upcoming: "Èyí tó ń bọ̀",
+    earlier: "Ṣáájú",
+    todayEmpty: "Kò sí tábìlì kankan lónìí.",
+    upcomingEmpty: "Kò tíì sí ìfipamọ́ kankan lẹ́yìn òní.",
+    earlierEmpty: "Kò sí nǹkan kan ní ọ̀sẹ̀ díẹ̀ sẹ́yìn.",
+    figuresLabel: "Òní ní ṣókí",
+    figures: {
+      covers: "Àwọn àlejò tí a ń retí",
+      coversSub: "ní {tables}",
+      toConfirm: "Láti fìdí múlẹ̀",
+      toConfirmLater: { other: "{count} sí i lẹ́yìn òní" },
+      toConfirmNoneLater: "Kò sí lẹ́yìn òní",
+      seated: "Ti jókòó",
+      done: "Ti parí",
+      doneSub: "nínú {tables} tí a fi pamọ́",
+    },
+    tables: { other: "tábìlì {count}" },
+    search: {
+      label: "Wá tábìlì",
+      placeholder: "Àlejò, àkọsílẹ̀, ibi tàbí iye ènìyàn",
+      none: "Kò sí tábìlì tó bá ìwádìí yẹn mu.",
+      clear: "Pa ìwádìí rẹ́",
+      results: { other: "A rí tábìlì {count}" },
+    },
+    status: {
+      request: "Ìbéèrè",
+      confirmed: "A ti fìdí rẹ̀ múlẹ̀",
+      seated: "Ti jókòó",
+      noShow: "Kò wá",
+      disputed: "Àríyànjiyàn",
+      closed: "A kọ̀ ọ́ tàbí wọ́n fagi lé e",
+      lapsed: "A kò dáhùn lásìkò",
+    },
+    card: {
+      note: "Àkọsílẹ̀ láti ọ̀dọ̀ àlejò",
+      confirm: "Fìdí múlẹ̀",
+      decline: "Kọ̀ ọ́",
+      confirmTitle: "Fìdí tábìlì {name} múlẹ̀?",
+      confirmTable: "Fìdí tábìlì múlẹ̀",
+    },
+    record: {
+      line: "Ó wá sí {kept}, kò wá sí {missed}, oṣù 12 sẹ́yìn",
+      keptOnly: "Ó wá sí {kept}, oṣù 12 sẹ́yìn",
+      missedOnly: "Kò wá sí {missed}, oṣù 12 sẹ́yìn",
+      tables: { other: "tábìlì {count}" },
+    },
+    seat: {
+      title: "Àlejò kan ti dé",
+      label: "Kóòdù ìwọlé àlejò",
+      hint: "Nọ́mbà mẹ́fà tí àlejò fi hàn ọ́. Ó sàmì sí tábìlì náà pé wọ́n ti jókòó.",
+      submit: "Fi wọ́n jókòó",
+      done: "Wọ́n ti jókòó. Ẹ gbádùn iṣẹ́ náà.",
+    },
+    outcome: {
+      ask: "Báwo ni tábìlì yìí ṣe lọ? Sàmì sí i nígbà tí àkókò rẹ̀ bá ti kọjá.",
+      seated: "Ti jókòó",
+      noShow: "Kò wá",
+      markedSeated: "A ti sàmì sí i pé wọ́n jókòó.",
+      markedNoShow: "A ti sàmì sí i pé kò wá. A ti sọ fún àlejò náà.",
+    },
+    bill: {
+      label: "Àpapọ̀ owó lórí ìwé owó",
+      hint: "Àlejò lè san án fún ọ nípasẹ̀ Vallo lẹ́yìn náà.",
+      paid: "Owó {amount} ti san nípasẹ̀ Vallo.",
+      paying: "Àlejò ń san owó {amount}.",
+      check: "Àlejò kọ owó {amount} sílẹ̀. Ṣé ó tọ́?",
+      confirm: "Fìdí owó náà múlẹ̀",
+      sent: "A ti fi owó {amount} ránṣẹ́. Àlejò lè san án báyìí.",
+      send: "Fi ìwé owó ránṣẹ́",
+      sendInstead: "Fi iye yìí ránṣẹ́ dípò",
+      failed: "Kò lọ. Jọ̀ọ́ gbìyànjú lẹ́ẹ̀kan sí i.",
+    },
+  },
+
 } satisfies Translation, yoDrafts);

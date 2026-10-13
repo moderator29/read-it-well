@@ -26,13 +26,18 @@ import type { HostReservationView } from "@/lib/reservations/queries";
 /* `vi.mock` is hoisted above every import, so the two doubles are created in a
    hoisted block as well rather than as module constants the factories would
    reach before they exist. */
-const { getHostReservations, createAdminClient } = vi.hoisted(() => ({
+const { getHostReservations, createAdminClient, resolveSession, reportReadError, rpc } = vi.hoisted(() => ({
   getHostReservations: vi.fn(),
   createAdminClient: vi.fn(),
+  resolveSession: vi.fn(),
+  reportReadError: vi.fn(),
+  rpc: vi.fn(),
 }));
 
 vi.mock("@/lib/reservations/queries", () => ({ getHostReservations }));
 vi.mock("@/lib/supabase/admin", () => ({ createAdminClient }));
+vi.mock("@/lib/actions/session", () => ({ resolveSession }));
+vi.mock("@/lib/observability/read-error", () => ({ reportReadError }));
 
 import { readHostTableBoard } from "./board";
 
@@ -71,6 +76,9 @@ function adminAnswering(profiles: { id: string; display_name: string | null }[])
 beforeEach(() => {
   vi.clearAllMocks();
   adminAnswering([]);
+  /* The caller's own session, for the guest record read (RESTAURANT-06). */
+  rpc.mockResolvedValue({ data: [], error: null });
+  resolveSession.mockResolvedValue({ state: "signed-in", supabase: { rpc } });
 });
 
 describe("readHostTableBoard", () => {
@@ -86,6 +94,7 @@ describe("readHostTableBoard", () => {
     getHostReservations.mockResolvedValueOnce([]);
     const read = await readHostTableBoard(NOW);
     expect(read).toEqual({ state: "ok", board: { requests: [], upcoming: [], past: [], total: 0 } });
+    expect(rpc).not.toHaveBeenCalled();
   });
 
   it("puts a request still ahead in the decision queue and one whose moment has gone in the past", async () => {
@@ -163,5 +172,53 @@ describe("readHostTableBoard", () => {
     const read = await readHostTableBoard(NOW);
     if (read.state !== "ok") throw new Error("expected a board");
     expect(read.board.past.map((table) => table.id)).toEqual(["newer", "older"]);
+  });
+
+  describe("the guest record on a request (RESTAURANT-06)", () => {
+    const A = "11111111-1111-4111-8111-111111111111";
+    const B = "22222222-2222-4222-8222-222222222222";
+    const C = "33333333-3333-4333-8333-333333333333";
+    const D = "44444444-4444-4444-8444-444444444444";
+
+    it("asks once, on the caller's own session, for the requests still ahead and nothing else", async () => {
+      rpc.mockResolvedValueOnce({ data: [{ reservation_id: A, kept: 4, missed: 1 }], error: null });
+      getHostReservations.mockResolvedValueOnce([
+        row({ id: A }),
+        row({ id: B, guestId: "g-2" }),
+        row({ id: C, status: "CONFIRMED", awaitingAnswer: false }),
+        row({ id: D, reservedFor: new Date(NOW.getTime() - HOUR).toISOString() }),
+      ]);
+
+      const read = await readHostTableBoard(NOW);
+      if (read.state !== "ok") throw new Error("expected a board");
+      expect(rpc).toHaveBeenCalledTimes(1);
+      expect(rpc).toHaveBeenCalledWith("reservation_guest_records", { p_reservations: [A, B] });
+      const byId = new Map([...read.board.requests, ...read.board.upcoming, ...read.board.past].map((t) => [t.id, t]));
+      expect(byId.get(A)?.guestRecord).toEqual({ kept: 4, missed: 1 });
+      /* A first-time diner comes back with no record, so the card says nothing. */
+      expect(byId.get(B)?.guestRecord).toBeNull();
+      expect(byId.get(C)?.guestRecord).toBeNull();
+      expect(byId.get(D)?.guestRecord).toBeNull();
+    });
+
+    it("shows no line, and still draws the board, when the read fails", async () => {
+      rpc.mockResolvedValueOnce({ data: null, error: { code: "PGRST202", message: "no such function" } });
+      getHostReservations.mockResolvedValueOnce([row({ id: A })]);
+
+      const read = await readHostTableBoard(NOW);
+      if (read.state !== "ok") throw new Error("expected a board");
+      expect(read.board.requests[0]?.guestRecord).toBeNull();
+      expect(reportReadError).toHaveBeenCalledWith("read.reservations.guestRecords", expect.anything());
+    });
+
+    it("shows no line when the session cannot be read", async () => {
+      resolveSession.mockRejectedValueOnce(new Error("no cookies in this environment"));
+      getHostReservations.mockResolvedValueOnce([row({ id: A })]);
+
+      const read = await readHostTableBoard(NOW);
+      if (read.state !== "ok") throw new Error("expected a board");
+      expect(read.board.requests[0]?.guestRecord).toBeNull();
+      expect(rpc).not.toHaveBeenCalled();
+    });
   });
 });

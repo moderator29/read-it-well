@@ -6,19 +6,21 @@ import { agentProfileFrom, getAgentContext } from "@/lib/agent/listings-queries"
 import { readInspectionsForLister, readNoShowsFor } from "@/lib/inspections/queries";
 import { InspectionHero, InspectionSheet } from "@/components/app/inspections/InspectionSheet";
 import { InspectionsLive } from "@/components/app/inspections/InspectionsLive";
-import { EmptyState, Section, Stack, TYPE } from "@/components/app/Screen";
+import { EmptyState, TYPE } from "@/components/app/Screen";
 import { resolveSession } from "@/lib/actions/session";
 import { readListingFacts } from "@/components/app/plans/inspection-facts";
 import { readRentGateFor, readReportsFor } from "@/lib/inspections/report-queries";
 import { reportStorageLive } from "@/lib/inspections/report-flag";
 import { ButtonLink } from "@/components/ui/Button";
-import { groupInspections, tagSide } from "@/components/app/inspections/grouping";
+import { tagSide } from "@/components/app/inspections/grouping";
 import { SUPPLY_DOOR_HREF } from "@/components/agent/agent-doors";
 import { readMyListings } from "@/lib/agent/listings-queries";
 import { readMyViewingWindows } from "@/lib/viewings/queries";
 import { lagosDay, nextStop, routeFor } from "@/lib/viewings/route";
 import { ViewingWindows } from "@/components/agent/ViewingWindows";
 import { SaturdayRoute } from "@/components/agent/SaturdayRoute";
+import { VisitCalendar, type CalendarRow } from "@/components/agent/visit-calendar/VisitCalendar";
+import { readVisitModes } from "@/lib/visit-calendar/lister-queries";
 import { formatDate } from "@vallo/i18n";
 
 /** Lagos today, from the clock, once per request (V-94). */
@@ -27,26 +29,34 @@ function lagosToday(): { day: string; now: number } {
   return { day: lagosDay(now), now };
 }
 
+/**
+ * The most rows `readInspectionsForLister` returns (`HOME_LIMIT` in
+ * `lib/inspections/queries.ts`, open ones first). At the cap the page says it
+ * is showing the most recent ones rather than implying it is the whole diary.
+ */
+const LIST_CAP = 20;
+
 export const metadata: Metadata = {
   title: "Inspections",
   robots: { index: false, follow: false },
 };
 
 /**
- * EVERY INSPECTION SOMEBODY HAS ASKED YOU FOR.
+ * EVERY VISIT SOMEBODY HAS ASKED YOU FOR, AS A CALENDAR (13 October 2026).
  *
- * The full list behind the dashboard's section. Two groups and only two: the
- * ones still live, and the closed ones. That split is the whole information
- * design of this screen - an agent opening it wants to know what they are
- * late on and what is booked, and everything else is history.
+ * The page used to be two lists (open, closed). It is now the lister's visit
+ * calendar (`VisitCalendar`): Today, Next 7 days and Needs your answer at the
+ * top, the requests waiting on this lister as rows, then a week strip or a
+ * month grid with each day's visits listed (time, renter, listing, visit
+ * mode, state), filtered by state. A tap opens the SAME inspection sheet the
+ * lists drew, with confirm, propose a time, decline and the day kit; the
+ * sheets are built here exactly as before and handed in by id.
  *
- * THE SPLIT IS PLANS' OWN (`groupInspections`). It used to be `isOpen`, which
- * answers a narrower question (does somebody owe an answer), so a CONFIRMED
- * viewing on Saturday sat under "Done" a week before anybody had seen the
- * flat, with its gate code, its day kit and its report beneath that heading.
- * Inside the open group the order is the order of attention: the requests
- * waiting on this lister first, newest first, then what is booked, soonest
- * first, then the offers waiting on the renter.
+ * Beside the calendar (below it on a phone): the viewing windows a lister
+ * sets to say when they can show, and the day's route (V-94).
+ *
+ * A visit sits on the Lagos day it is for: the agreed time, or the asked
+ * time until one is agreed (`lib/visit-calendar/model.ts`).
  */
 export default async function AgentInspectionsPage() {
   const locale = await getLocale();
@@ -73,15 +83,17 @@ export default async function AgentInspectionsPage() {
 
   const [list, session] = await Promise.all([readInspectionsForLister(), resolveSession()]);
   const userId = session.state === "signed-in" ? session.user.id : null;
-  const { open, closed: settled } = groupInspections(tagSide(list.inspections, "lister"));
-  const [facts, reports, rentGate, noShows] = await Promise.all([
+  const sided = tagSide(list.inspections, "lister");
+  const ids = list.inspections.map((one) => one.id);
+  const [facts, reports, rentGate, noShows, modes] = await Promise.all([
     readListingFacts(
       list.inspections.map((one) => one.listingId),
       locale,
     ),
-    readReportsFor(list.inspections.map((one) => one.id)),
-    readRentGateFor(list.inspections.map((one) => one.id)),
+    readReportsFor(ids),
+    readRentGateFor(ids),
     readNoShowsFor(list.inspections.filter((one) => one.state === "NO_SHOW").map((one) => one.id)),
+    readVisitModes(ids),
   ]);
   const reportLive = reportStorageLive();
 
@@ -118,32 +130,79 @@ export default async function AgentInspectionsPage() {
     month: "short",
     timeZone: "Africa/Lagos",
   });
-  /* The first open one arrives expanded, as on Plans: a request waiting on
-     this lister, failing that the soonest booked viewing (the render's own
-     case). */
-  const expanded = open[0]?.id ?? null;
-  /* One renderer for both groups, as on Plans. The day kit and "I feel
-     unsafe" are for whichever side of the viewing this is (B5, V-63), so the
-     lister's console carries them as Plans does. */
-  const sheet = (one: (typeof open)[number]) => (
-    <InspectionSheet
-      success={t.success}
-      gateCopy={t.platform.gate}
-      dayKit={t.memberKit.dayKit}
-      unsafe={t.trustVisible.unsafe}
-      key={one.id}
-      inspection={one}
-      side="lister"
-      facts={facts.get(one.listingId) ?? null}
-      report={reports.get(one.id) ?? null}
-      reportLive={reportLive}
-      needPhotos={rentGate.needPhotos}
-      agreement={rentGate.agreements.get(one.id) ?? null}
-      noShow={noShows.get(one.id) ?? null}
-      locale={locale}
-      open={one.id === expanded}
-    />
+
+  /* The existing sheet, one per visit, opened on arrival because it is drawn
+     inside the calendar's sheet only when that visit is tapped. The day kit
+     and "I feel unsafe" are for whichever side of the viewing this is (B5,
+     V-63), so the lister's console carries them as Plans does. */
+  const sheets = Object.fromEntries(
+    sided.map((one) => [
+      one.id,
+      <InspectionSheet
+        success={t.success}
+        gateCopy={t.platform.gate}
+        dayKit={t.memberKit.dayKit}
+        unsafe={t.trustVisible.unsafe}
+        key={one.id}
+        inspection={one}
+        side="lister"
+        facts={facts.get(one.listingId) ?? null}
+        report={reports.get(one.id) ?? null}
+        reportLive={reportLive}
+        needPhotos={rentGate.needPhotos}
+        agreement={rentGate.agreements.get(one.id) ?? null}
+        noShow={noShows.get(one.id) ?? null}
+        locale={locale}
+        open
+      />,
+    ]),
   );
+  const rows: CalendarRow[] = list.inspections.map((one) => ({
+    id: one.id,
+    at: one.slotAt ?? one.requestedAt,
+    asked: one.slotAt === null,
+    state: one.state,
+    mode: modes?.get(one.id) ?? null,
+    listingTitle: one.listingTitle,
+    personName: one.counterpartName,
+  }));
+
+  const c = t.visitOps.calendar;
+  const aside = (
+    <>
+      <ViewingWindows windows={windows} homes={homes} copy={t.frontDoor.viewings} locale={locale} className="" />
+      <SaturdayRoute
+        dayLabel={routeLabel}
+        route={route}
+        next={routeDay === clock.day ? nextStop(route, clock.now) : null}
+        copy={t.frontDoor.viewings}
+        locale={locale}
+        className=""
+      />
+    </>
+  );
+
+  /* The wallet's rule, applied here: an empty calendar and an unreadable one
+     look identical and mean opposite things, so a failed read says so. */
+  const notice = list.readFailed ? (
+    <p className={`nf-vcal-card ${TYPE.body}`} role="status">
+      {c.readFailed}
+    </p>
+  ) : list.inspections.length === 0 ? (
+    <div className="nf-vcal-card">
+      <EmptyState
+        icon="calendar-check"
+        art="checklist"
+        title={c.noneTitle}
+        body={c.noneBody}
+        action={
+          <ButtonLink href="/agent/listings" variant="primary" size="lg">
+            {c.noneAction}
+          </ButtonLink>
+        }
+      />
+    </div>
+  ) : null;
 
   return (
     <AgentShell
@@ -161,50 +220,20 @@ export default async function AgentInspectionsPage() {
         />
         <InspectionsLive userId={userId} />
 
-        {/* V-94: the day as a route, and the windows renters book into. */}
-        <SaturdayRoute
-          dayLabel={routeLabel}
-          route={route}
-          next={routeDay === clock.day ? nextStop(route, clock.now) : null}
-          copy={t.frontDoor.viewings}
+        <VisitCalendar
+          rows={rows}
+          sheets={sheets}
+          today={clock.day}
+          copy={t.visitOps}
           locale={locale}
+          aside={aside}
+          notice={notice}
+          footnote={
+            list.inspections.length >= LIST_CAP
+              ? c.shownCap.replace("{count}", String(list.inspections.length))
+              : null
+          }
         />
-        <ViewingWindows windows={windows} homes={homes} copy={t.frontDoor.viewings} />
-
-        {list.readFailed ? (
-          /* The wallet's rule, applied here: an empty list and an unreadable
-             one look identical and mean opposite things. */
-          <p className={`mt-xl ${TYPE.body}`} role="status">
-            We could not load your inspections just now, so this is not showing you an empty
-            list that might not be true. Nothing has been lost. Try again in a moment.
-          </p>
-        ) : list.inspections.length === 0 ? (
-          <EmptyState
-            icon="calendar-check"
-            art="checklist"
-            title="No inspection requests yet"
-            body="When somebody requests an inspection from one of your listings it lands here, and you can confirm it, offer another time, or say no."
-            action={
-              <ButtonLink href="/agent/listings" variant="primary" size="lg">
-                Your properties
-              </ButtonLink>
-            }
-          />
-        ) : (
-          <Stack className="mt-lg">
-            {open.length > 0 && (
-              <Section title={t.inspectionsPage.openTitle} description={t.inspectionsPage.openDescription}>
-                <div className="nf-ix-list">{open.map(sheet)}</div>
-              </Section>
-            )}
-
-            {settled.length > 0 && (
-              <Section title={t.inspectionsPage.closedTitle} divided={open.length > 0}>
-                <div className="nf-ix-list">{settled.map(sheet)}</div>
-              </Section>
-            )}
-          </Stack>
-        )}
       </div>
     </AgentShell>
   );

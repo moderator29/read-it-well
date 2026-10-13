@@ -441,6 +441,7 @@ flow: its exits replace it, and it is never returned to through history.
 | `/admin/bookings` | `/admin` |  |
 | `/admin/bookings/[bookingId]` | `/admin/bookings` |  |
 | `/admin/bookings/reservations` | `/admin/bookings` |  |
+| `/admin/bookings/visits` | `/admin/bookings` |  |
 | `/admin/businesses` | `/admin` |  |
 | `/admin/agreements` | `/admin` |  |
 | `/admin/examples` | `/admin` |  |

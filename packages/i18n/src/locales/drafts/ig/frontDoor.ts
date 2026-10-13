@@ -602,7 +602,7 @@ export const frontDoorIg = {
     windowsTitle: "Oge ileta ụlọ",
     windowsNote: "Tọọ oge ị na-egosi ụlọ. Ndị na-achọ mgbazinye na-edobe oge n'ime oge ahụ, ụbọchị gị na-aghọkwa ụzọ njem.",
     windowsEmpty: "Enwebeghị oge ileta ụlọ. Ndị na-achọ mgbazinye ka nwere ike ịrịọ oge, ị na-azakwa nke ọ bụla.",
-    windowLine: "Kwa {day}, {starts} ruo {ends}, oge nkeji {minutes}, ụlọ {count}",
+    windowLine: "Kwa {day}, {starts} ruo {ends}, oge nkeji {minutes}, {homes}",
     addWindow: "Tinye oge",
     weekday: "Ụbọchị",
     starts: "Site na",

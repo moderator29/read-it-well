@@ -22,6 +22,7 @@ export function SaturdayRoute({
   next,
   copy,
   locale,
+  className = "mt-lg",
 }: {
   dayLabel: string;
   route: RouteLeg[];
@@ -29,6 +30,8 @@ export function SaturdayRoute({
   next: RouteLeg | null;
   copy: Copy;
   locale: Locale;
+  /** Spacing from the block above; the calendar's side column sets its own. */
+  className?: string;
 }) {
   const [said, setSaid] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -36,7 +39,7 @@ export function SaturdayRoute({
   const time = (iso: string) => formatDate(new Date(iso), locale, { hour: "2-digit", minute: "2-digit", timeZone: "Africa/Lagos" });
 
   return (
-    <section className="nf-panel nf-panel--card mt-lg p-card-sm" aria-labelledby="route-title" data-testid="viewing-route">
+    <section className={`nf-panel nf-panel--card p-card-sm ${className}`} aria-labelledby="route-title" data-testid="viewing-route">
       <h2 id="route-title" className="nf-h4 text-[var(--nf-content-primary)]">
         {copy.routeTitle.replace("{day}", dayLabel)}
       </h2>

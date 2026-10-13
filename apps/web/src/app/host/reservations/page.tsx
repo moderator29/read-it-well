@@ -6,6 +6,7 @@ import { authHref, returnHref } from "@/components/auth/auth-intent";
 import { EmptyState } from "@/components/app/Screen";
 import { ButtonLink } from "@/components/ui/Button";
 import { HostShell } from "@/components/host/HostShell";
+import { isPaystackConfigured } from "@/lib/payments/paystack";
 import { readHostTableBoard } from "./board";
 import { HostTablesBody } from "./HostTablesBody";
 
@@ -53,14 +54,22 @@ export default async function HostReservationsPage() {
     );
   }
 
-  const read = await readHostTableBoard();
+  /* One instant for the whole render: the board's split, Lagos today and the
+     client's own cut all agree on it. */
+  const now = new Date();
+  const read = await readHostTableBoard(now);
 
   return (
-    <HostShell logoLabel={t.a11y.logoHome} fallback="/host">
+    <HostShell logoLabel={t.a11y.logoHome} fallback="/host" wide>
       <HostTablesBody
         copy={t.hostWorkspace}
         words={t.experienceHost}
+        desk={t.tableDesk}
         locale={locale}
+        now={now}
+        /* A bill is entered on the desk only when the guest could then pay it
+           through Vallo; until Paystack is configured they pay the venue. */
+        billsOn={isPaystackConfigured()}
         board={read.state === "ok" ? read.board : null}
         unavailable={read.state === "unavailable"}
       />

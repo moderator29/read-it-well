@@ -3682,4 +3682,83 @@ export const ig: Dictionary = withFallback({
     close: "Close",
   },
 
+  /* The host table desk (track/restaurant-desk). Machine-written, not read by
+     a native speaker yet; `dayCovers` is a pure template and falls back to
+     English on purpose. */
+  tableDesk: {
+    today: "Taa",
+    upcoming: "Ndị na-abịa",
+    earlier: "Na mbụ",
+    todayEmpty: "Enweghị tebụl taa.",
+    upcomingEmpty: "Ọ dịbeghị ihe edebere mgbe taa gachara.",
+    earlierEmpty: "Ọ dịghị ihe n'izu ole na ole gara aga.",
+    figuresLabel: "Taa na nchịkọta",
+    figures: {
+      covers: "Ndị ọbịa a na-atụ anya",
+      coversSub: "n'ime {tables}",
+      toConfirm: "Ịkwado",
+      toConfirmLater: { other: "{count} ọzọ mgbe taa gachara" },
+      toConfirmNoneLater: "Ọ dịghị mgbe taa gachara",
+      seated: "Anọdụla ala",
+      done: "Emechaala",
+      doneSub: "n'ime {tables} edebere",
+    },
+    tables: { other: "tebụl {count}" },
+    search: {
+      label: "Chọọ tebụl",
+      placeholder: "Ọbịa, ndetu, ebe ma ọ bụ ọnụ ọgụgụ ndị mmadụ",
+      none: "Ọ dịghị tebụl dabara na nchọta ahụ.",
+      clear: "Kpochapụ nchọta",
+      results: { other: "Achọtara tebụl {count}" },
+    },
+    status: {
+      request: "Arịrịọ",
+      confirmed: "Akwadoro",
+      seated: "Anọdụla ala",
+      noShow: "Abịaghị",
+      disputed: "Esemokwu",
+      closed: "Ajụrụ ma ọ bụ kagbuo ya",
+      lapsed: "A zaghị n'oge",
+    },
+    card: {
+      note: "Ndetu sitere n'aka ọbịa",
+      confirm: "Kwado",
+      decline: "Jụ",
+      confirmTitle: "Kwado tebụl {name}?",
+      confirmTable: "Kwado tebụl",
+    },
+    record: {
+      line: "Bịara {kept}, abịaghị {missed}, ọnwa 12 gara aga",
+      keptOnly: "Bịara {kept}, ọnwa 12 gara aga",
+      missedOnly: "Abịaghị {missed}, ọnwa 12 gara aga",
+      tables: { other: "tebụl {count}" },
+    },
+    seat: {
+      title: "Ọbịa abịala",
+      label: "Koodu nbanye ọbịa",
+      hint: "Ọnụọgụ isii ọbịa ahụ gosiri gị. Ọ na-akara tebụl ahụ dị ka anọdụla ala.",
+      submit: "Mee ka ha nọdụ ala",
+      done: "Anọdụla ala. Nwee ọṅụ n'ọrụ ahụ.",
+    },
+    outcome: {
+      ask: "Kedu ka tebụl a si gaa? Kaa ya akara ozugbo oge ya gafere.",
+      seated: "Anọdụla ala",
+      noShow: "Abịaghị",
+      markedSeated: "Akaala ya akara dị ka anọdụla ala.",
+      markedNoShow: "Akaala ya akara dị ka abịaghị. A gwala ọbịa ahụ.",
+    },
+    bill: {
+      label: "Ngụkọta ego na akwụkwọ ụgwọ",
+      hint: "Ọbịa ahụ nwere ike ịkwụ gị ya site na Vallo.",
+      paid: "Akwụọla ụgwọ {amount} site na Vallo.",
+      paying: "Ọbịa ahụ na-akwụ ụgwọ {amount}.",
+      check: "Ọbịa ahụ debere ụgwọ {amount}. Ọ ziri ezi?",
+      confirm: "Kwado ụgwọ ahụ",
+      sent: "Ezigala ụgwọ {amount}. Ọbịa ahụ nwere ike ịkwụ ya ugbu a.",
+      send: "Zipu ụgwọ ahụ",
+      sendInstead: "Zipu ego a kama",
+      failed: "O megheghị. Biko nwaa ọzọ.",
+    },
+  },
+
 } satisfies Translation, igDrafts);
