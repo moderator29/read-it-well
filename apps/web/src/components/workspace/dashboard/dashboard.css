@@ -1,0 +1,497 @@
+@layer theme, base, components, utilities;
+
+/*
+ * THE WORKSPACE DASHBOARDS (owner and agent). Tokens only.
+ *
+ * One layout language for both: a band of four stat tiles that scrolls
+ * sideways on a phone (and only that does), then cards stacked in the order
+ * the person must act on them, which on a desk at 1280px become the grid in
+ * `.wsd-grid--owner` and `.wsd-grid--agent`. The DOM order IS the phone
+ * order; the desk grid only places the same cards in areas.
+ */
+@layer components {
+  /* ------------------------------------------------------------ the band */
+  .wsd-band {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(10.25rem, 44%);
+    gap: var(--nf-space-sm);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    /* The tiles bleed to the screen edge on a phone so the scroll reads as a row, not a clipped box. */
+    margin-inline: calc(var(--nf-space-md) * -1);
+    padding-inline: var(--nf-space-md);
+    padding-block: var(--nf-space-3xs);
+  }
+  .wsd-band::-webkit-scrollbar {
+    display: none;
+  }
+  .wsd-band > * {
+    scroll-snap-align: start;
+  }
+  @media (min-width: 48rem) {
+    .wsd-band {
+      grid-auto-flow: row;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-auto-columns: auto;
+      overflow: visible;
+      margin-inline: 0;
+      padding-inline: 0;
+    }
+  }
+
+  .wsd-tile {
+    display: grid;
+    align-content: start;
+    gap: var(--nf-space-3xs);
+    min-inline-size: 0;
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    border: var(--nf-border-width) solid var(--nf-border-subtle);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-surface-raised);
+    box-shadow: var(--nf-elevation-raised);
+    color: inherit;
+    text-decoration: none;
+  }
+  a.wsd-tile:hover {
+    border-color: var(--nf-border-brand);
+  }
+  .wsd-tile__head {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    color: var(--nf-content-secondary);
+    font-size: var(--nf-text-caption);
+  }
+  .wsd-tile__label {
+    flex: 1;
+    min-inline-size: 0;
+    font-weight: 600;
+    overflow-wrap: break-word;
+  }
+  .wsd-tile__door {
+    color: var(--nf-content-muted);
+    flex: none;
+  }
+  .wsd-tile__figure {
+    font-family: var(--nf-font-numeric);
+    font-size: var(--nf-text-figure);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-content-primary);
+    overflow-wrap: anywhere;
+  }
+  .wsd-tile__sub {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .wsd-tile--attention {
+    border-color: var(--nf-state-warning);
+  }
+
+  /* ------------------------------------------------------------- layout */
+  .wsd-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--nf-space-md);
+    align-items: start;
+  }
+  @media (min-width: 64rem) {
+    .wsd-grid {
+      gap: var(--nf-space-lg);
+    }
+    .wsd-grid--owner {
+      grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+      grid-template-areas:
+        "lease lease"
+        "rent units"
+        "trend due"
+        "up prop";
+    }
+    .wsd-grid--agent {
+      grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+      grid-template-areas:
+        "feat rem"
+        "chart cal"
+        "con cal";
+    }
+    .wsd-area-lease { grid-area: lease; }
+    .wsd-area-rent { grid-area: rent; }
+    .wsd-area-units { grid-area: units; }
+    .wsd-area-trend { grid-area: trend; }
+    .wsd-area-due { grid-area: due; }
+    .wsd-area-up { grid-area: up; }
+    .wsd-area-prop { grid-area: prop; }
+    .wsd-area-feat { grid-area: feat; }
+    .wsd-area-rem { grid-area: rem; }
+    .wsd-area-chart { grid-area: chart; }
+    .wsd-area-cal { grid-area: cal; }
+    .wsd-area-con { grid-area: con; }
+  }
+
+  .wsd-card {
+    display: grid;
+    gap: var(--nf-space-sm);
+    min-inline-size: 0;
+    padding: var(--nf-space-md);
+    border: var(--nf-border-width) solid var(--nf-tier-card-edge);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-surface-primary);
+    box-shadow: var(--nf-card-shadow);
+  }
+  .wsd-card__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--nf-space-sm);
+  }
+  .wsd-card__title {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+  }
+  .wsd-card__action {
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-link);
+    text-decoration: none;
+  }
+  .wsd-note {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .wsd-big {
+    font-family: var(--nf-font-numeric);
+    font-size: var(--nf-text-figure);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-content-primary);
+  }
+
+  /* A card with nothing to show says so in words. It never draws a chart. */
+  .wsd-empty {
+    display: grid;
+    justify-items: start;
+    gap: var(--nf-space-2xs);
+    padding-block: var(--nf-space-xs);
+  }
+  .wsd-empty__title {
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .wsd-empty__body {
+    max-inline-size: 44ch;
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-muted);
+  }
+
+  /* ------------------------------------------------- the lease highlight */
+  .wsd-lease {
+    display: grid;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-md);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-brand-tint-1);
+  }
+  .wsd-lease__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-space-sm);
+    color: inherit;
+    text-decoration: none;
+  }
+  .wsd-lease__title {
+    font-weight: 700;
+    color: var(--nf-content-primary);
+  }
+  .wsd-lease__sub {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+  }
+
+  /* ------------------------------------------------------------- donut */
+  .wsd-donut {
+    display: grid;
+    gap: var(--nf-space-md);
+    justify-items: center;
+  }
+  @media (min-width: 30rem) {
+    .wsd-donut {
+      grid-template-columns: auto minmax(0, 1fr);
+      justify-items: stretch;
+      align-items: center;
+    }
+  }
+  .wsd-donut__ring {
+    position: relative;
+    inline-size: 9rem;
+    block-size: 9rem;
+  }
+  .wsd-donut__svg {
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+    transform: rotate(-90deg);
+  }
+  .wsd-donut__track {
+    fill: none;
+    stroke: var(--nf-chart-track);
+    stroke-width: 14;
+  }
+  .wsd-donut__arc {
+    fill: none;
+    stroke-width: 14;
+    stroke-linecap: butt;
+  }
+  .wsd-donut__arc--let { stroke: var(--nf-brand-primary); }
+  .wsd-donut__arc--vacant { stroke: var(--nf-brand-secondary); opacity: 0.55; }
+  .wsd-donut__arc--other { stroke: var(--nf-content-subtle); opacity: 0.6; }
+  .wsd-donut__centre {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-content: center;
+    text-align: center;
+  }
+  .wsd-donut__legend {
+    display: grid;
+    gap: var(--nf-space-xs);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .wsd-donut__item {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+  }
+  .wsd-donut__swatch {
+    flex: none;
+    inline-size: 0.625rem;
+    block-size: 0.625rem;
+    border-radius: var(--nf-radius-circle);
+  }
+  .wsd-donut__swatch--let { background: var(--nf-brand-primary); }
+  .wsd-donut__swatch--vacant { background: var(--nf-brand-secondary); opacity: 0.55; }
+  .wsd-donut__swatch--other { background: var(--nf-content-subtle); opacity: 0.6; }
+  .wsd-donut__count {
+    margin-inline-start: auto;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-content-primary);
+  }
+
+  /* ---------------------------------------------------------- the lists */
+  .wsd-list {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .wsd-row {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    min-block-size: 3rem;
+    padding-block: var(--nf-space-xs);
+    border-block-start: 1px solid var(--nf-divider);
+    color: inherit;
+    text-decoration: none;
+  }
+  .wsd-list > li:first-child > .wsd-row,
+  .wsd-list > .wsd-row:first-child {
+    border-block-start: 0;
+  }
+  .wsd-row__body {
+    flex: 1;
+    min-inline-size: 0;
+  }
+  .wsd-row__title {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+    overflow-wrap: anywhere;
+  }
+  .wsd-row__sub {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+    overflow-wrap: anywhere;
+  }
+  .wsd-row__end {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    color: var(--nf-content-muted);
+  }
+  .wsd-subhead {
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--nf-content-muted);
+    margin-block-start: var(--nf-space-xs);
+  }
+  .wsd-count {
+    flex: none;
+    min-inline-size: 1.75rem;
+    padding: var(--nf-space-3xs) var(--nf-space-xs);
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-brand-tint-2);
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-caption);
+    font-weight: 700;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+  .wsd-count--warn {
+    background: var(--nf-state-warning-surface);
+  }
+  .wsd-call {
+    display: inline-grid;
+    place-items: center;
+    inline-size: 2.5rem;
+    block-size: 2.5rem;
+    border-radius: var(--nf-radius-circle);
+    border: var(--nf-border-width) solid var(--nf-border-default);
+    color: var(--nf-brand-primary);
+    background: transparent;
+  }
+  .wsd-avatar {
+    flex: none;
+    inline-size: 2.5rem;
+    block-size: 2.5rem;
+    border-radius: var(--nf-radius-circle);
+    object-fit: cover;
+    background: var(--nf-brand-tint-2);
+  }
+
+  /* ----------------------------------------------------- featured listing */
+  .wsd-feat {
+    display: grid;
+    gap: var(--nf-space-md);
+  }
+  @media (min-width: 40rem) {
+    .wsd-feat {
+      grid-template-columns: minmax(0, 11rem) minmax(0, 1fr);
+    }
+  }
+  .wsd-feat__photo {
+    inline-size: 100%;
+    aspect-ratio: 4 / 3;
+    border-radius: var(--nf-radius-card-sm);
+    object-fit: cover;
+    background: var(--nf-brand-tint-2);
+  }
+  .wsd-feat__photo--none {
+    display: grid;
+    place-items: center;
+    color: var(--nf-content-subtle);
+  }
+  .wsd-feat__stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--nf-space-sm);
+    margin: 0;
+  }
+  .wsd-stat dt {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .wsd-stat dd {
+    margin: 0;
+    font-family: var(--nf-font-numeric);
+    font-size: var(--nf-text-h3);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-content-primary);
+  }
+  .wsd-stat small {
+    display: block;
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-muted);
+  }
+
+  /* ------------------------------------------------------------ calendar */
+  .wsd-cal {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: var(--nf-space-3xs);
+    text-align: center;
+  }
+  .wsd-cal__dow {
+    padding-block: var(--nf-space-3xs);
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    color: var(--nf-content-muted);
+  }
+  .wsd-cal__day {
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-block-size: 2.25rem;
+    border-radius: var(--nf-radius-sm);
+    font-size: var(--nf-text-body-sm);
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-content-primary);
+    text-decoration: none;
+  }
+  .wsd-cal__day--blank {
+    pointer-events: none;
+  }
+  .wsd-cal__day--today {
+    background: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+    font-weight: 700;
+  }
+  .wsd-cal__day--has:not(.wsd-cal__day--today) {
+    background: var(--nf-brand-tint-1);
+    font-weight: 600;
+  }
+  .wsd-cal__dot {
+    position: absolute;
+    inset-block-end: 0.25rem;
+    inline-size: 0.3125rem;
+    block-size: 0.3125rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-brand-primary);
+  }
+  .wsd-cal__day--today .wsd-cal__dot {
+    background: var(--nf-content-on-brand);
+  }
+
+  /* ----------------------------------------------- follow-up on the stage */
+  .wsd-followup {
+    display: grid;
+    gap: var(--nf-space-xs);
+    margin-block-start: var(--nf-space-sm);
+    padding-block-start: var(--nf-space-sm);
+    border-block-start: 1px solid var(--nf-divider);
+  }
+  .wsd-followup__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-space-sm);
+  }
+  .wsd-followup__form {
+    display: grid;
+    gap: var(--nf-space-xs);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .wsd-band {
+      scroll-behavior: auto;
+    }
+  }
+}

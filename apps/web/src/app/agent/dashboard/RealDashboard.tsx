@@ -19,6 +19,8 @@ import { Gauge, type GaugeStage } from "@/components/ui/charts/Gauge";
 import { TodayHero } from "@/components/workspace/TodayHero";
 import { waitingOn } from "@/lib/inspections/types";
 import { PROMOTION_HUB_HREF } from "@/lib/promotion/links";
+import { lagosDay, type OwnerView } from "@/lib/workspace/dashboard-model";
+import { AgentBand, AgentBody, OwnerBand, OwnerBody, type AgentDash } from "@/components/workspace/dashboard/Sections";
 import "@/app/css/site.css";
 
 /**
@@ -79,6 +81,8 @@ export function RealDashboard({
   numbers,
   inspections,
   figure,
+  workspace,
+  now,
 }: {
   t: Dictionary;
   locale: Locale;
@@ -88,6 +92,18 @@ export function RealDashboard({
   inspections: InspectionList;
   /** The figure card (reference 5), drawn first under the band; the page reads its rows. */
   figure?: ReactNode;
+  /**
+   * WHICH SIDE THIS ACCOUNT HOLDS (`agents.role`), AND WHAT THAT SIDE'S CARDS
+   * ARE. One account holds one side, so the dashboard is one component with
+   * two sets of cards: an owner sees units, rent paid through Vallo, leases
+   * ending and agreements waiting; an agent sees the pipeline, reminders,
+   * visits and contacts. Absent (the old callers), neither set is drawn.
+   */
+  workspace?:
+    | { role: "owner"; view: OwnerView; places: ReadonlyMap<string, string> }
+    | { role: "agent"; dash: AgentDash };
+  /** The request's moment, read once by the page. */
+  now?: Date;
 }) {
   const a = t.agent.dashboard;
   const d = t.agentListings.dashboard;
@@ -191,6 +207,14 @@ export function RealDashboard({
               : null
           }
         />
+        {/* The workspace dashboards' band: four tiles for the side this
+            account holds. The old four-count row stays for a caller that does
+            not say which side (nothing now does). */}
+        {workspace?.role === "owner" ? (
+          <OwnerBand view={workspace.view} t={t} locale={locale} tag={tag} />
+        ) : workspace?.role === "agent" ? (
+          <AgentBand dash={workspace.dash} now={now ?? new Date()} t={t} tag={tag} />
+        ) : (
         <div className="nf-desk-kpis">
           <KpiTile label={k.kpi.live} icon="house" value={numbers.liveListings} href="/agent/listings" tag={tag} />
           {inspections.readFailed ? null : (
@@ -214,11 +238,20 @@ export function RealDashboard({
             />
           ) : null}
         </div>
+        )}
       </HeroBand>
 
       <Stack>
-        {figure}
-        {listedInspections.length > 0 || numbers.totalListings > 0 ? (
+        {/* The side's cards first (what needs action, then the figures), then
+            the sections every account shares. The owner's units ring replaces
+            the listing-status gauge, which says less about a rental. */}
+        {workspace?.role === "owner" ? (
+          <OwnerBody view={workspace.view} places={workspace.places} t={t} locale={locale} />
+        ) : workspace?.role === "agent" ? (
+          <AgentBody dash={workspace.dash} now={now ?? new Date()} today={lagosDay(now ?? new Date())} t={t} locale={locale} />
+        ) : null}
+        {workspace?.role === "owner" ? null : figure}
+        {listedInspections.length > 0 || (workspace?.role !== "owner" && numbers.totalListings > 0) ? (
           <div className="nf-desk-grid">
             {listedInspections.length > 0 ? (
               <section className="nf-list-section">
@@ -231,7 +264,7 @@ export function RealDashboard({
                 <InspectionRows inspections={listedInspections.slice(0, 4)} side="lister" locale={locale} />
               </section>
             ) : null}
-            {numbers.totalListings > 0 ? (
+            {workspace?.role === "owner" ? null : numbers.totalListings > 0 ? (
               <section className="nf-list-section">
                 <div className="nf-list-section__head">
                   <h2 className="nf-section-label">{k.pipeline}</h2>
@@ -247,7 +280,7 @@ export function RealDashboard({
               <p className={TYPE.body}>{d.noListings}</p>
             )}
           </div>
-        ) : (
+        ) : workspace?.role === "owner" ? null : (
           <p className={TYPE.body}>{d.noListings}</p>
         )}
 
