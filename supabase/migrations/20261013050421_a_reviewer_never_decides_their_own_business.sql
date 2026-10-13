@@ -1,30 +1,5 @@
--- PENDING, NOT APPLIED. A reviewer never decides their own business, their
--- own property, or a verification rung on their own business.
---
--- WHY. `private.refuse_self_review` (20260929093746, public-repo hardening
--- round 1) refuses a reviewer deciding their own listing or agent
--- application, on the write itself, whoever the caller is. The host spine was
--- never added to it, and `private.guard_owner_write` lets any admin through
--- untouched. So an admin who also owns a hotel, a shortlet or a restaurant
--- could approve their own application (`businesses.reviewer_id`), publish
--- their own property (`accommodations.reviewer_id`) and pass their own
--- identity rung (`business_verification_checks.reviewer_id`), which is the
--- one write that lights the verified mark. The app refuses all four in
--- `apps/web/src/lib/admin/business-actions.ts`; this is the database's half,
--- so a desk or a script that forgets to ask cannot do it either.
---
--- WHAT IT CHANGES. One trigger function and three triggers. No column, grant
--- or policy changes, and rows decided before it is applied are left alone.
--- It contains no DROP: the triggers are created with CREATE OR REPLACE.
---
--- WHAT COUNTS AS A DECISION, as in `private.refuse_self_review`: the moment a
--- reviewer's id or decision time is written. Status alone moving (an owner
--- resubmitting, a purge clearing a reviewer) is not a decision.
---
--- PROBE AFTER APPLYING, as the real role: an admin who owns a business
--- updating its `reviewer_id` to themselves must fail with 42501, and the
--- same admin deciding a business somebody else owns must succeed.
-
+-- Applied 13 October 2026. A reviewer never decides their own business, their own property, or a verification rung on their own business.
+set lock_timeout = '5s';
 create or replace function private.refuse_self_review_host()
 returns trigger
 language plpgsql
@@ -67,7 +42,6 @@ end;
 $function$;
 
 revoke all on function private.refuse_self_review_host() from public, anon, authenticated;
-
 create or replace trigger businesses_01_no_self_review
   before update of reviewer_id, reviewed_at on public.businesses
   for each row execute function private.refuse_self_review_host();
