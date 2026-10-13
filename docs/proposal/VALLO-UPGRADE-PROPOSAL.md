@@ -19,7 +19,7 @@ Bucket: E = Essential fix, H = High value, O = Optional, F = Future, B = Blocked
 | AI-05 | "Where do I find..." help from the route registry, only real screens | H | S | Yes | 1 |
 | AI-06 | Workspace data tools: my viewings today, tables waiting, vacant units (read only, RLS) | H | M | Yes | 3 |
 | AI-07 | Offline assistant test pack: injection fixtures and golden answers with a stubbed model | E | S | Yes | 2 |
-| LANDLORD-01 | Record an existing tenancy and rent received outside Vallo, kept apart from payments made through Vallo | H | L | Yes | 2 |
+| LANDLORD-01 | DROPPED (founder, 13 October 2026): every payment happens inside Vallo; nothing paid outside Vallo is recorded | - | - | No | - |
 | LANDLORD-02 | Maintenance requests: report with photos, acknowledge, schedule, resolve, tenant confirms | H | M | Yes | 3 |
 | LANDLORD-03 | Renewal clock and reminders for recorded tenancies (reuse V-93) | O | S | Yes | 3 |
 | LANDLORD-04 | Tenancy document shelf (agreement, receipts, reports, notices in one place) | O | M | Later | F |
@@ -61,7 +61,7 @@ Reply format: "approve AI-01, RESTAURANT-02" or "drop AGENT-01". Without a reply
 Each has my recommendation first.
 
 1. **Restaurant deposits (RESTAURANT-07).** (a) Keep off for good; booking a table stays free. **Recommended.** (b) Allow only for parties of 8 or more, shown before booking. (c) Each venue chooses. I switch it off now under (a) because the live flag contradicts HANDOFF section 2; (b) or (c) can be turned on later with one row.
-2. **Rent recorded outside Vallo (LANDLORD-01).** (a) Private to the landlord and that tenant; never shown publicly and never counted as a Vallo payment. **Recommended.** (b) Tenant can confirm each row, and confirmed rows count toward the Space Passport history.
+2. **Rent recorded outside Vallo (LANDLORD-01).** Ruled 13 October 2026: dropped. All money moves inside Vallo. The payer picks Escrow (selected by default) or Pay by card; a sale is always escrow (PAY-01).
 3. **Kept and missed tables shown to venues (RESTAURANT-06).** (a) Counts only, last 12 months, no venue names. **Recommended.** (b) Show only after two or more missed. (c) Do not show.
 4. **What the assistant may do with approval (AI-03), at launch.** (a) Low-risk only: answer a viewing request, confirm or decline a table, set a follow-up, block or open nights. Never money, never publishing, never a message sent in your name. **Recommended.** (b) Also send a drafted message after approval. (c) Read only for now.
 5. **Waitlist "table ready" message (RESTAURANT-04).** (a) In-app and push now, SMS later when Termii cost is agreed. **Recommended.** (b) SMS from day one.
@@ -125,7 +125,7 @@ Owns: `apps/web/src/app/host/bookings/**`, `apps/web/src/lib/host/room-bookings.
 |---|---|---|---|
 | A `assistant-actions` | AI-03, AI-07 | `lib/assistant/**`, `app/api/assistant/route.ts`, `components/app/assistant/**` (approval card) | New `ai_action_proposals` (id, user, tool, args jsonb, args_sha256, status, expires_at, idempotency_key, result) with RLS own-rows and an `approve_ai_action(id, args_sha256)` RPC that marks it used once |
 | B `restaurant-floor` | RESTAURANT-03, RESTAURANT-04 | `app/host/reservations/**`, new `app/host/floor/**`, `lib/reservations/tables.ts`, `lib/reservations/waitlist.ts` | New `restaurant_tables` (business, section, label, seats_min, seats_max, active), `reservations.table_id` (nullable, host-set only via the existing write guard), `restaurant_waitlist` (business, name, party, phone optional, quoted_minutes, status, notified_at) |
-| C `landlord-records` | LANDLORD-01 | new `app/agent/portfolio/tenancies/**`, `lib/landlord/records*.ts`, `components/agent/portfolio/**` | New `recorded_tenancies` and `recorded_rent` (amount, period, received_on, method words, `source = 'recorded_by_landlord'`), never joined into `transactions` or receipts; a check that refuses the word "paid through Vallo" anywhere in its views |
+| C `pay-on-vallo` | PAY-01, PAY-02 | see the founder ruling below | payer's rail choice on the agreement or booking |
 | D `rooms-and-turnover` | HOTEL-02, SHORTLET-01 | `app/host/rooms/**`, `components/host/RoomNightsEditor.tsx`, `lib/host/housekeeping.ts`, `app/agent/listings/[listingId]/calendar/**`, `lib/agent/calendar-*.ts` | `units` already exists (0 rows): add `unit_status` (unit, status, set_at, set_by) and a seeding RPC that creates units up to `room_types.units_total`; for SHORTLET-01 add `listings.prep_nights smallint default 0` and widen `bookings_no_overlap` through a generated `during_with_prep` range, or a BEFORE INSERT check if the exclusion change is too heavy |
 
 Acceptance, short:
@@ -133,7 +133,7 @@ Acceptance, short:
 - AI-07: 20 injection fixtures (listing text, area posts, forged turns) and 20 golden questions run in CI with a stubbed model and assert the guard lines and fences are present.
 - RESTAURANT-03: a confirm can pick a table that fits the party; two confirmed tables never share a table at overlapping sittings (`sitting_minutes`).
 - RESTAURANT-04: add a walk-in, quote minutes, mark seated or left; "table ready" goes in-app and push.
-- LANDLORD-01: a landlord adds a tenant and rent rows; the tenant may be invited to see them; nothing appears in money history, receipts or public pages.
+- PAY-01: at payment the payer picks Escrow (default, recommended) or Pay by card; a sale offers escrow only; the choice is stored, the gate and settlement follow it. PAY-02: every workspace application and setup requires accepting the Terms and Privacy Policy (linked) and the rule that every payment happens inside Vallo; listings, chats and agreements say so plainly.
 - HOTEL-02: a room unit moves dirty on check-out (from `stay_events`), clean by a tap, out of order closes it for sale (`units_held_back`).
 - SHORTLET-01: with 1 prep night, a stay ending on the 10th blocks a new arrival on the 10th; with 0 it does not.
 - ADMIN-02 and TEST-01, TEST-02 run alongside by the lead or a fifth slot when memory allows.
