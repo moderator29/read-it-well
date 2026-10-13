@@ -52,6 +52,7 @@ const THE_SENTENCES_THAT_SHIPPED = [
 const TRUE_SENTENCES = [
   "Verified",
   "Verified agent",
+  "Verified owner",
   "Verified only",
   "Identity verified",
   "The verified tick appears only once a person here has checked your ID, so it means something to guests.",

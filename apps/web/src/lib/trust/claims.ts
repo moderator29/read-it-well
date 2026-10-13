@@ -74,9 +74,9 @@ const SUPPLY_CHECKS = "supply verification rows written from the admin supply de
 
 export const BACKED_CLAIMS: readonly BackedClaim[] = [
   /* The verified mark and the words around it. */
-  { phrase: /^(?:a )?verified(?: vallo)?(?: agent| host| account| listing)?(?: only)?\.?$/i, mechanism: AGENT_KYC },
+  { phrase: /^(?:a )?verified(?: vallo)?(?: agent| owner| host| account| listing)?(?: only)?\.?$/i, mechanism: AGENT_KYC },
   { phrase: /\b(?:identity|address|payout|fully) verified\b/i, mechanism: AGENT_KYC },
-  { phrase: /\bverified (?:tick|mark|badge|agent|host|listing|person|stays? by)\b/i, mechanism: AGENT_KYC },
+  { phrase: /\bverified (?:tick|mark|badge|agent|owner|host|listing|person|stays? by)\b/i, mechanism: AGENT_KYC },
   { phrase: /\bverified(?: is about a person| and third party| means)\b/i, mechanism: AGENT_KYC },
   { phrase: /\b(?:what (?:does )?verified mean|how are agents verified|you are verified|verified:\s*\$\{)/i, mechanism: AGENT_KYC },
   { phrase: /\bcannot be verified yet\b/i, mechanism: AGENT_KYC },
