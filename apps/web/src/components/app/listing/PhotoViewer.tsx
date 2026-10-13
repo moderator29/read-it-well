@@ -18,6 +18,7 @@ import { useOverlay } from "@/lib/ui/use-overlay";
 import { readSheetMarker } from "@/lib/ui/use-sheet-history";
 import type { ListingKind } from "@/lib/listings/types";
 import { PhotoFrame } from "./PhotoFrame";
+import { clockOf, photosAsMedia, type GalleryMedia } from "./gallery-media";
 import { useClientMount } from "@/lib/ui/client-mount";
 import { useMotionGate } from "@/components/motion/useMotionGate";
 import "@/app/css/catalogue.css";
@@ -82,6 +83,7 @@ export function usePhotoViewer(): ViewerApi | null {
 export function PhotoViewerProvider({
   title,
   photos,
+  media,
   hue,
   kind,
   children,
@@ -89,6 +91,11 @@ export function PhotoViewerProvider({
   title: string;
   /** Photo URLs, best first. */
   photos: string[];
+  /**
+   * Photos and videos in the lister's order (`gallery-media.ts`). Optional:
+   * without it the viewer shows `photos`, as it always has.
+   */
+  media?: GalleryMedia[];
   hue: number;
   /**
    * Which market this is, so the frame drawn behind a missing photograph is a
@@ -98,6 +105,7 @@ export function PhotoViewerProvider({
   kind: ListingKind;
   children: ReactNode;
 }) {
+  const items = useMemo(() => (media && media.length > 0 ? media : photosAsMedia(photos)), [media, photos]);
   const [index, setIndex] = useState<number | null>(null);
   const [origin, setOrigin] = useState<DOMRect | null>(null);
   const [foldBack, setFoldBack] = useState(true);
@@ -106,14 +114,14 @@ export function PhotoViewerProvider({
   const api = useMemo<ViewerApi>(
     () => ({
       open(next: number, from?: DOMRect | null, options?: ViewerOptions) {
-        if (photos.length === 0) return;
+        if (items.length === 0) return;
         setOrigin(from ?? null);
         setFoldBack(options?.foldBack !== false);
         setFollow(options?.follow ? { to: options.follow } : null);
-        setIndex(Math.max(0, Math.min(photos.length - 1, next)));
+        setIndex(Math.max(0, Math.min(items.length - 1, next)));
       },
     }),
-    [photos.length],
+    [items.length],
   );
 
   return (
@@ -122,7 +130,7 @@ export function PhotoViewerProvider({
       {index !== null && (
         <Lightbox
           title={title}
-          photos={photos}
+          items={items}
           hue={hue}
           kind={kind}
           startIndex={index}
@@ -140,7 +148,7 @@ const FOCUSABLE = 'button:not([disabled]),[tabindex]:not([tabindex="-1"])';
 
 function Lightbox({
   title,
-  photos,
+  items,
   hue,
   kind,
   startIndex,
@@ -150,7 +158,7 @@ function Lightbox({
   onClose,
 }: {
   title: string;
-  photos: string[];
+  items: GalleryMedia[];
   hue: number;
   kind: ListingKind;
   startIndex: number;
@@ -511,17 +519,40 @@ function Lightbox({
         onScroll={onScroll}
         className="nf-scroll-x nf-photo-viewer__track flex h-full w-full snap-x snap-mandatory"
       >
-        {photos.map((photo, i) => (
+        {items.map((item, i) => (
           <div
-            key={`${photo}-${i}`}
+            key={`${item.src}-${i}`}
             className="relative h-full w-full shrink-0 snap-center snap-always overflow-hidden"
           >
-            {broken[i] ? (
+            {item.kind === "video" ? (
+              /* A video opens PLAYING (it was asked for), muted until the
+                 viewer unmutes, with its controls. Only the slide on screen
+                 holds a player: swiping away unmounts it, which stops it,
+                 and the others show their still. */
+              i === active ? (
+                <video
+                  src={item.src}
+                  poster={item.poster ?? undefined}
+                  controls
+                  autoPlay
+                  muted
+                  playsInline
+                  preload="auto"
+                  aria-label={`${title}, video ${i + 1} of ${items.length}${item.durationSeconds ? `, ${clockOf(item.durationSeconds)}` : ""}`}
+                  data-testid="lightbox-video"
+                  className="h-full w-full object-contain"
+                />
+              ) : item.poster ? (
+                <Image src={item.poster} alt="" fill sizes="100vw" className="object-contain" />
+              ) : (
+                <PhotoFrame hue={hue} index={i} kind={kind} />
+              )
+            ) : broken[i] ? (
               <PhotoFrame hue={hue} index={i} kind={kind} />
             ) : (
               <Image
-                src={photo}
-                alt={`${title}, photo ${i + 1} of ${photos.length}`}
+                src={item.src}
+                alt={`${title}, photo ${i + 1} of ${items.length}`}
                 fill
                 sizes="100vw"
                 onError={() => setBroken((prev) => ({ ...prev, [i]: true }))}
@@ -547,11 +578,11 @@ function Lightbox({
         </Button>
         <p className="nf-numeric pointer-events-none rounded-[var(--nf-radius-xs)] nf-media-chip nf-media-chip--caption px-sm py-xs font-semibold">
           <span className="sr-only">Photo </span>
-          {active + 1} / {photos.length}
+          {active + 1} / {items.length}
         </p>
       </div>
 
-      {photos.length > 1 && (
+      {items.length > 1 && (
         <>
           <Button
             variant="glass"
@@ -569,7 +600,7 @@ function Lightbox({
             size="sm"
             iconOnly
             onClick={() => go(active + 1)}
-            disabled={active === photos.length - 1}
+            disabled={active === items.length - 1}
             aria-label="Next photo"
             className="absolute right-3 top-1/2 hidden h-11 w-11 -translate-y-1/2 place-items-center text-[var(--nf-content-on-media)] disabled:opacity-0 sm:grid"
           >

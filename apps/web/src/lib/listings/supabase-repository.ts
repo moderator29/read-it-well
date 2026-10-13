@@ -749,6 +749,7 @@ export function mapRow(
                that shows a frame and asks you to tap is the right shape here. */
             posterUrl: v.poster_path ? photoUrl(v.poster_path) : null,
             durationSeconds: v.duration_seconds,
+            position: v.position,
           };
     })
     .filter((v): v is NonNullable<typeof v> => v !== null);

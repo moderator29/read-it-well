@@ -89,7 +89,8 @@ export function ListingMapPanel({
       {hasWalkthrough || photoCount > 0 ? (
         <div className="nf-lmap__media">
           {hasWalkthrough ? (
-            <a href="#walkthrough" className="nf-lmap__tile nf-tap">
+            /* Videos are slides of the gallery now, so the preview goes to the top. */
+            <a href="#overview" className="nf-lmap__tile nf-tap">
               <span className="nf-lmap__tile-glyph" aria-hidden="true">
                 <UiIcon name="circle-play" size={20} />
               </span>

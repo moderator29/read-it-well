@@ -925,7 +925,7 @@ export type ListingReviewView = {
    * a public URL. The signing is batched for the whole queue in one storage
    * call, the same shape the agent document read already uses.
    */
-  videos: { url: string | null; posterUrl: string | null; durationSeconds: number | null }[];
+  videos: { url: string | null; posterUrl: string | null; durationSeconds: number | null; position?: number }[];
   /**
    * WHAT THE LISTER ACTUALLY ANSWERED ABOUT LIGHT AND WATER.
    *
@@ -1106,6 +1106,7 @@ function toListingView(
          and keeps working after the video URL expires. */
       posterUrl: video.poster_path ? photoUrl(admin, video.poster_path) : null,
       durationSeconds: video.duration_seconds,
+      position: video.position,
     }));
 
   const access = row.listing_access;

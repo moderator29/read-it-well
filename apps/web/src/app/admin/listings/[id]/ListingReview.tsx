@@ -22,6 +22,7 @@ import {
   WATER_LABEL,
 } from "../ListingCard";
 import { placeLine, priceLine } from "../rows";
+import { mergeMedia } from "@/lib/listings/media-order";
 
 /**
  * The listing under review, C1D98B3C panel 2, with the flow of
@@ -410,18 +411,21 @@ function Utility({ icon, label, value }: { icon: UiIconName; label: string; valu
 }
 
 function MediaStrip({ listing, copy }: { listing: ListingReviewView; copy: AdminCopy["listings"] }) {
-  const photos = listing.photos;
-  /* Every video, not the first: a listing holds up to three and they count
-     toward its media minimum, so the reviewer has to be able to watch each.
-     The second and third used to be folded into "+2" and never shown. */
-  const videos = listing.videos;
-  const lead = photos[0] ?? null;
-  const rest = photos.slice(1);
-  const overflow = rest.length > SMALL_TILES;
-  const shown = rest.slice(0, overflow ? SMALL_TILES - 1 : SMALL_TILES);
-  const hidden = rest.length - shown.length;
+  /* ONE ROW, IN THE LISTER'S ORDER (founder, 13 October): the photos and the
+     videos as the renter will swipe through them, cover first, rather than
+     the photos with the videos set beside them. Every video plays here; a
+     reviewer approving a video has to be able to watch it. */
+  const row = mergeMedia(
+    listing.photos.map((src, position) => ({ src, position })),
+    listing.videos.map((video, index) => ({ ...video, position: video.position ?? index + 1 })),
+  );
+  const videoCount = listing.videos.length;
+  let photoNumber = 0;
+  let videoNumber = 0;
+  let smallPhotos = 0;
+  let hidden = 0;
 
-  if (!lead && videos.length === 0) {
+  if (row.length === 0) {
     return (
       <Panel>
         <p className="nf-rv-msg">No photos or videos were uploaded with this listing.</p>
@@ -434,60 +438,60 @@ function MediaStrip({ listing, copy }: { listing: ListingReviewView; copy: Admin
       {/* Focusable: on a phone the strip scrolls sideways, and a keyboard must
           be able to scroll it (axe scrollable-region-focusable, C1 sweep). */}
       <ul className="nf-rv-media" role="list" aria-label="Photos and videos" tabIndex={0}>
-        {lead ? (
-          <li className="nf-rv-media__lead">
-            <RemoteImage
-              src={lead}
-              alt={copy.photoAlt.replace("{title}", listing.title).replace("{number}", "1")}
-              width={320}
-              height={200}
-              sizes="(min-width: 900px) 22vw, 50vw"
-            />
-          </li>
-        ) : null}
-        {videos.map((video, index) => (
-          <li key={`video-${index}`} className="nf-rv-media__lead" data-testid="rv-video">
-            {video.url ? (
-              /* A walkthrough of an empty flat carries no speech, so there is
-                 no track to caption. preload none: a reviewer's line is not
-                 spent on a video nobody pressed play on. */
-              <video
-                src={video.url}
-                poster={video.posterUrl ?? undefined}
-                controls
-                preload="none"
-                playsInline
-                aria-label={`Video ${index + 1} of ${videos.length}${video.durationSeconds ? `, ${video.durationSeconds} seconds` : ""}`}
-              />
-            ) : (
-              <div
-                className="nf-rv-media__video-off"
-                style={video.posterUrl ? { backgroundImage: `url(${video.posterUrl})` } : undefined}
-              >
-                <span className="nf-rv-media__play" aria-hidden="true">
-                  <UiIcon name="arrow-right" size={20} />
-                </span>
-                <span className="nf-rv-media__caption">
-                  This video could not be opened. The listing has it.
-                </span>
-              </div>
-            )}
-          </li>
-        ))}
-        {shown.map((photo, index) => (
-          /* Keyed by place as well as address, so two photographs that share
-             an address cannot drop one another from the strip. */
-          <li key={`${index}-${photo}`}>
-            <RemoteImage
-              src={photo}
-              alt={copy.photoAlt.replace("{title}", listing.title).replace("{number}", String(index + 2))}
-              width={160}
-              height={128}
-              sizes="120px"
-              loading="lazy"
-            />
-          </li>
-        ))}
+        {row.map((entry, index) => {
+          if (entry.kind === "video") {
+            videoNumber += 1;
+            const video = entry.item;
+            return (
+              <li key={`video-${index}`} className="nf-rv-media__lead" data-testid="rv-video">
+                {video.url ? (
+                  /* A walkthrough of an empty flat carries no speech, so there
+                     is no track to caption. preload none: a reviewer's line is
+                     not spent on a video nobody pressed play on. */
+                  <video
+                    src={video.url}
+                    poster={video.posterUrl ?? undefined}
+                    controls
+                    preload="none"
+                    playsInline
+                    aria-label={`Video ${videoNumber} of ${videoCount}${video.durationSeconds ? `, ${video.durationSeconds} seconds` : ""}`}
+                  />
+                ) : (
+                  <div
+                    className="nf-rv-media__video-off"
+                    style={video.posterUrl ? { backgroundImage: `url(${video.posterUrl})` } : undefined}
+                  >
+                    <span className="nf-rv-media__play" aria-hidden="true">
+                      <UiIcon name="arrow-right" size={20} />
+                    </span>
+                    <span className="nf-rv-media__caption">This video could not be opened. The listing has it.</span>
+                  </div>
+                )}
+              </li>
+            );
+          }
+          photoNumber += 1;
+          const alt = copy.photoAlt.replace("{title}", listing.title).replace("{number}", String(photoNumber));
+          if (index === 0) {
+            return (
+              <li key={`photo-${index}`} className="nf-rv-media__lead">
+                <RemoteImage src={entry.item.src} alt={alt} width={320} height={200} sizes="(min-width: 900px) 22vw, 50vw" />
+              </li>
+            );
+          }
+          smallPhotos += 1;
+          if (smallPhotos > SMALL_TILES) {
+            hidden += 1;
+            return null;
+          }
+          return (
+            /* Keyed by place as well as address, so two photographs that share
+               an address cannot drop one another from the strip. */
+            <li key={`photo-${index}`}>
+              <RemoteImage src={entry.item.src} alt={alt} width={160} height={128} sizes="120px" loading="lazy" />
+            </li>
+          );
+        })}
         {hidden > 0 ? (
           <li className="nf-rv-media__more" aria-label={`${hidden} more not shown`}>
             +{hidden}

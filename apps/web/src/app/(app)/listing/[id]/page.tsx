@@ -80,7 +80,7 @@ import { ListingPurchase } from "@/components/app/listing/ListingPurchase";
 import { ListingSectionTabs } from "@/components/app/listing/ListingSectionTabs";
 import { ListingSpecChips, specChips } from "@/components/app/listing/ListingSpecChips";
 import { ListingPhotoGrid } from "@/components/app/listing/ListingPhotoGrid";
-import { ListingWalkthrough } from "@/components/app/listing/ListingWalkthrough";
+import { listingMedia } from "@/components/app/listing/gallery-media";
 import { ListingUtilities } from "@/components/app/listing/ListingUtilities";
 import { ListingTenure } from "@/components/app/listing/ListingTenure";
 import { readListingAccess } from "@/lib/listings/access-queries";
@@ -800,14 +800,16 @@ export default async function ListingDetailPage({
     { id: "location", label: sx.map.tab },
     { id: "reviews", label: sx.sections.reviews },
   ];
+  /* The gallery, the viewer and the grid share one row: photos and videos in
+     the order the lister arranged, cover first (gallery-media.ts). */
+  const media = listingMedia(listing.photos, listing.videos);
   const sectionIndex: { id: string; label: string; icon: UiIconName }[] = [
     { id: "overview", label: sx.sections.overview, icon: "home" },
     ...(hasCost ? [{ id: "cost", label: sx.sections.costs, icon: "receipt" as UiIconName }] : []),
     { id: "amenities", label: sx.sections.amenities, icon: "circle-check" },
     { id: "trust", label: sx.sections.trust, icon: "shield-check" },
     ...(facts.length > 0 ? [{ id: "details", label: sx.sections.details, icon: "clipboard-list" as UiIconName }] : []),
-    ...((listing.videos?.length ?? 0) > 0 ? [{ id: "walkthrough", label: sx.sections.walkthrough, icon: "circle-play" as UiIconName }] : []),
-    ...(listing.photos.length > 1 ? [{ id: "photos", label: sx.sections.photos, icon: "picture" as UiIconName }] : []),
+    ...(media.length > 1 ? [{ id: "photos", label: sx.sections.photos, icon: "picture" as UiIconName }] : []),
     { id: "location", label: sx.map.tab, icon: "location" },
     { id: "agent", label: sx.sections.agent, icon: "user" },
     { id: "reviews", label: sx.sections.reviews, icon: "star" },
@@ -834,6 +836,7 @@ export default async function ListingDetailPage({
     <PhotoViewerProvider
       title={listing.title}
       photos={listing.photos}
+      media={media}
       hue={listing.hue}
       kind={listing.kind}
     >
@@ -863,6 +866,7 @@ export default async function ListingDetailPage({
           hue={listing.hue}
           kind={listing.kind}
           photos={listing.photos}
+          media={media}
           drawn={isModestExample(listing)}
           initialSaved={initialSaved}
           backFallback="/home"
@@ -1342,24 +1346,10 @@ export default async function ListingDetailPage({
                 {/* ------------------------------------------ photo grid */}
                 {/* A single photograph is already the hero; a grid of one
                     states nothing, so it is not rendered below two. */}
-                {/* ---------------------------------------- walkthrough */}
-                {/*
-                  ABOVE THE PHOTOGRAPHS, DELIBERATELY. A walk through a
-                  property is the one piece of evidence on this page that is
-                  genuinely hard to fake, which in a market where photographs
-                  are routinely of a different flat makes it worth more than
-                  all of them. It is also the thing the approval email has been
-                  advertising to listers while no renter could watch one.
-                */}
-                {(listing.videos?.length ?? 0) > 0 && (
-                  <Reveal>
-                    <Section id="walkthrough" title={L.walkthroughTitle} divided className="scroll-mt-16">
-                      <ListingWalkthrough videos={listing.videos ?? []} title={listing.title} />
-                    </Section>
-                  </Reveal>
-                )}
-
-                {listing.photos.length > 1 && (
+                {/* Videos are slides of the gallery above and tiles of this
+                    grid, in the lister's order (founder, 13 October): there
+                    is no walkthrough section of their own any more. */}
+                {media.length > 1 && (
                   <Reveal>
                     {/* No section title: the grid carries its own "Photos"
                         heading beside "Show all", and the page drew the word
@@ -1367,6 +1357,7 @@ export default async function ListingDetailPage({
                     <Section id="photos" divided className="scroll-mt-16">
                       <ListingPhotoGrid
                         photos={listing.photos}
+                        media={media}
                         hue={listing.hue}
                         kind={listing.kind}
                         title={listing.title}
