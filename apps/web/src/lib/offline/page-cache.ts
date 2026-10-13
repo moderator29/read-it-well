@@ -13,9 +13,11 @@
  *                      previous account's screens. Either hand alone is
  *                      enough; both run because a sign-out is the one moment
  *                      that must not depend on a worker being awake.
- *   - `servedFromKeptCopy` whether this document came from the phone rather
- *                      than the network (the worker marks it with a
- *                      Server-Timing entry), so the connection line can say so.
+ *   - `keptCopyKind`   whether this document came from the phone rather than
+ *                      the network, and which way: at once ("instant", the
+ *                      network refreshing it behind) or because the network
+ *                      failed or dawdled ("kept"). The worker marks it with a
+ *                      Server-Timing entry and a `data-vallo-kept` attribute.
  *   - `onFreshCopy`    the worker found the network after all and kept a
  *                      fresh copy: the page refreshes itself in place.
  *
@@ -58,13 +60,62 @@ export async function forgetKeptPages(): Promise<void> {
   }
 }
 
+/**
+ * The attribute the worker writes on a kept copy's `<html>` (13 October
+ * 2026), so the page knows it is the phone's copy even where Server-Timing
+ * cannot be read (Safari before 16.4), and before any script has run: the
+ * passcode stylesheet keys off it (`app/css/passcode.css`).
+ */
+export const KEPT_MARK_ATTRIBUTE = "data-vallo-kept";
+
+/**
+ * How this document reached the screen, when it came from the phone:
+ *
+ *   - "instant": answered at once while the network refreshes it behind the
+ *     screen. Nothing is wrong, so nothing is said; the page refreshes itself
+ *     in place as soon as it runs (`ConnectionLine`).
+ *   - "kept": answered because the network failed or was too slow to wait
+ *     for. The connection line says so.
+ *
+ * Null for a document the network answered.
+ */
+export type KeptCopyKind = "instant" | "kept";
+
+export function keptCopyKind(): KeptCopyKind | null {
+  try {
+    if (typeof performance !== "undefined" && typeof performance.getEntriesByType === "function") {
+      const [entry] = performance.getEntriesByType("navigation") as PerformanceNavigationTiming[];
+      const timing = (entry?.serverTiming ?? []).find((item) => item.name === KEPT_TIMING_NAME);
+      if (timing) return timing.description === "instant" ? "instant" : "kept";
+    }
+  } catch {
+    /* Fall through to the mark. */
+  }
+  try {
+    /* No timing to read: the mark alone says it is the phone's copy, and
+       which way it came is unknown, so it is treated as the slow answer. */
+    if (typeof document !== "undefined" && document.documentElement.hasAttribute(KEPT_MARK_ATTRIBUTE)) return "kept";
+  } catch {
+    /* No document. */
+  }
+  return null;
+}
+
 /** Whether this document was answered from the phone rather than the network. */
 export function servedFromKeptCopy(): boolean {
+  return keptCopyKind() !== null;
+}
+
+/**
+ * Whether the passcode guard is holding the page behind its lock right now
+ * (`PasscodeGuard` marks its wrapper `data-passcode-guarded` and makes it
+ * inert while locked). A refresh then waits: unlocking re-renders the route
+ * from the server anyway, and a refresh under the lock could swap the lock
+ * screen out from under a half-typed code.
+ */
+export function heldByPasscode(): boolean {
   try {
-    if (typeof performance === "undefined" || typeof performance.getEntriesByType !== "function") return false;
-    const [entry] = performance.getEntriesByType("navigation") as PerformanceNavigationTiming[];
-    const timings = entry?.serverTiming ?? [];
-    return timings.some((timing) => timing.name === KEPT_TIMING_NAME);
+    return typeof document !== "undefined" && document.querySelector("[data-passcode-guarded][inert]") !== null;
   } catch {
     return false;
   }
