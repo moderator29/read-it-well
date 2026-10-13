@@ -8,14 +8,20 @@
  *      October 2026: an app that shows a full-screen "no connection" card
  *      instead of the screen you were just on is not how Instagram, WhatsApp
  *      or Airbnb behave). Every page a member opens is kept on this phone,
- *      for that member only, and answers again when the network is down or
- *      too slow to wait for. See THE PAGES below.
+ *      for that member only. Since 13 October 2026 (the startup track: "open
+ *      instantly, show the last screen while it refreshes") a kept page
+ *      answers AT ONCE, and the network refreshes it behind the screen; it
+ *      also answers when the network is down or too slow. See THE PAGES and
+ *      NAVIGATIONS below.
  *   2. Keep a tiny offline shell so a page that was never opened here, asked
  *      for with no network, shows one calm Vallo screen instead of the
- *      browser's dinosaur.
- *   3. Stop the phone paying twice for bytes that never change (the hashed
- *      Next build output, the brand artwork, the fonts and the listing
- *      photographs the optimiser has already sized for this phone).
+ *      browser's dinosaur. The shell refreshes itself in the background
+ *      (stale while revalidate, at most every SHELL_REFRESH_MS).
+ *   3. Stop the phone paying twice for bytes that never change. The hashed
+ *      Next build output and the versioned fonts are cache first: once on
+ *      the phone they are never asked for again. The brand artwork and icons
+ *      are stale while revalidate, and the listing photographs the optimiser
+ *      has already sized for this phone are cache first.
  *   4. Turn a push into a notification, and a tap on that notification into
  *      the right screen. See THE PUSH HALF at the foot of this file.
  *
@@ -73,8 +79,11 @@
    code and its script chunks were precached, and when the asset cache key
    stopped including the deployment id. v4 (V-53) when notifications gained
    buttons. v5 (8 October 2026) when visited pages began opening offline, per
-   viewer, and listing photographs and fonts joined the kept assets. */
-const CACHE_VERSION = "v5";
+   viewer, and listing photographs and fonts joined the kept assets. v6 (13
+   October 2026) when a kept page began answering at once, carrying the
+   `data-vallo-kept` mark and a note of whether its assets are all on the
+   phone, and the hashed build output went cache first. */
+const CACHE_VERSION = "v6";
 const SHELL_CACHE = `vallo-shell-${CACHE_VERSION}`;
 const ASSET_CACHE = `vallo-assets-${CACHE_VERSION}`;
 const IMAGE_CACHE = `vallo-images-${CACHE_VERSION}`;
@@ -149,17 +158,98 @@ const NEVER_KEEP_PAGE_SEGMENTS = new Set([
 /* Prefixes whose bytes are immutable or effectively so, and therefore worth keeping. */
 const CACHEABLE_ASSET_PREFIXES = ["/_next/static/", "/brand/", "/icons/", "/pwa/", "/fonts/"];
 
+/*
+ * THE BYTES THAT CAN NEVER CHANGE AT THEIR ADDRESS, answered cache first with
+ * no second download. Every `/_next/static/` file name carries a hash of its
+ * content (or the build id), and Next serves them `immutable` for a year; the
+ * fonts are versioned by name (`next.config.ts` serves `/fonts/*.woff2`
+ * `immutable` too, and `public/fonts/README.md` says why). Stale while
+ * revalidate used to fetch every chunk again in the background on every use:
+ * on a 3G link that is the whole JavaScript bundle downloaded twice, the
+ * second time competing with the page being drawn.
+ */
+function isImmutableAssetPath(pathname) {
+  if (pathname.startsWith("/_next/static/")) return true;
+  return pathname.startsWith("/fonts/") && pathname.endsWith(".woff2");
+}
+
 /* A single pathological entry must not swallow the origin's storage quota. */
 const MAX_CACHEABLE_BYTES = 5 * 1024 * 1024;
 
 /*
- * HOW LONG A NAVIGATION WAITS FOR THE NETWORK BEFORE THE KEPT COPY ANSWERS.
+ * HOW LONG A NAVIGATION WAITS FOR THE NETWORK BEFORE THE KEPT COPY ANSWERS,
+ * on the paths that still wait (see NAVIGATIONS: a reload, Save-Data, a copy
+ * that is too old or not whole, a second load moments after an instant one).
  * Only when there IS a kept copy: with nothing to show instead, the page waits
  * for the network as long as the browser does. The network keeps going in the
  * background and the fresh copy replaces the kept one (the page is told, and
  * refreshes itself quietly; `ConnectionLine`).
  */
 const NAVIGATION_TIMEOUT_MS = 3000;
+
+/*
+ * THE INSTANT ANSWER'S LIMITS. A kept page answers at once only while it is
+ * younger than this. Older than that, the network is asked first, as above.
+ * Forty-eight hours covers "I opened it yesterday" and keeps a copy from a
+ * build several deploys old off the screen. The founder may move it.
+ */
+const INSTANT_MAX_AGE_MS = 48 * 60 * 60 * 1000;
+
+/*
+ * A SECOND DOCUMENT LOAD SOON AFTER AN INSTANT ANSWER GOES TO THE NETWORK.
+ * Inside the app a tap is a data fetch, not a document load, so two document
+ * loads within seconds mean a reload, or the router asking for a full load
+ * because the kept page came from an older build. Answering that from the same
+ * copy again could loop; the network answers it instead.
+ */
+const INSTANT_COOLDOWN_MS = 15 * 1000;
+
+/* The offline shell is fetched again in the background at most this often. */
+const SHELL_REFRESH_MS = 6 * 60 * 60 * 1000;
+
+/*
+ * THE MARK A KEPT DOCUMENT CARRIES ON ITS ROOT ELEMENT, written into the copy
+ * when it is kept. The page reads it before any script that could ask the
+ * network (`lib/offline/page-cache.ts`), and the stylesheet uses it to keep a
+ * member's page under the passcode out of sight until the passcode guard has
+ * decided (`app/css/passcode.css`). The root layout's `<html>` carries
+ * `suppressHydrationWarning`, so an extra attribute there is not a mismatch.
+ */
+const KEPT_MARK_ATTRIBUTE = "data-vallo-kept";
+
+/* Whether every script and stylesheet a kept page draws with was on the phone
+   when it was kept: only such a page may answer at once. */
+const WHOLE_HEADER = "x-vallo-whole";
+
+/*
+ * PAGES THE SERVER DRAWS TWO WAYS BY A COOKIE, and the cookie that decides.
+ * `/welcome` shows the slides, or only the sign-in and sign-up choice for a
+ * device that saw them in the last half hour (`vallo_first_run`, written by
+ * the page itself, so not httpOnly). A copy kept one way must not answer at
+ * once when the cookie now says the other, or the screen would open on the
+ * slides and jump to the choice. The worker reads the cookie with the Cookie
+ * Store API; where that is missing, such a page never answers at once.
+ */
+const COOKIE_VARIANT_PAGES = { "/welcome": "vallo_first_run" };
+const VARIANT_HEADER = "x-vallo-variant";
+
+/*
+ * The variant of a page right now: "" for a page drawn one way only, the
+ * cookie's value ("-" when absent) for a variant page, or null when the cookie
+ * cannot be read here.
+ */
+async function pageVariant(pathname) {
+  const name = Object.prototype.hasOwnProperty.call(COOKIE_VARIANT_PAGES, pathname) ? COOKIE_VARIANT_PAGES[pathname] : null;
+  if (!name) return "";
+  try {
+    const store = self.cookieStore;
+    if (!store || typeof store.get !== "function") return null;
+    const cookie = await store.get(name);
+    return cookie && typeof cookie.value === "string" && cookie.value ? cookie.value : "-";
+  } catch {
+    return null;
+  }
+}
 
 /* How many pages and photographs one phone keeps, oldest out first. */
 const MAX_PAGES_PER_VIEWER = 60;
@@ -173,8 +263,12 @@ const VIEWER_HEADER = "x-vallo-viewer";
 const VIEWER_PATTERN = /^(anon|[a-f0-9]{16,64})$/;
 
 /* What a page served from this phone says about itself, for `ConnectionLine`
-   (read through `performance.getEntriesByType("navigation")[0].serverTiming`). */
+   (read through `performance.getEntriesByType("navigation")[0].serverTiming`).
+   "kept" is the slow or offline answer, which the line names; "instant" is
+   the answer given at once while the network refreshes it, which the line
+   keeps quiet about unless the refresh is slow. */
 const FROM_CACHE_TIMING = 'vallo-kept;desc="kept"';
+const INSTANT_TIMING = 'vallo-kept;desc="instant"';
 
 /* Where the shell's own start (`/open`, and `/` for the shell) lands offline,
    in order: the first of these this viewer has kept. */
@@ -290,6 +384,21 @@ function metaStamp(html) {
   const viewer = content ? content[1].trim().toLowerCase() : "";
   if (!VIEWER_PATTERN.test(viewer) || !path) return null;
   return { viewer, path: path[1].replace(/&amp;/g, "&") };
+}
+
+/*
+ * The copy's root element, marked as kept (KEPT_MARK_ATTRIBUTE). Only the
+ * first `<html` tag is touched, and a copy that already carries the mark is
+ * left as it is.
+ */
+function withKeptMark(html) {
+  if (typeof html !== "string") return html;
+  const at = html.search(/<html[\s>]/i);
+  if (at < 0) return html;
+  const tagEnd = html.indexOf(">", at);
+  const tag = tagEnd < 0 ? html.slice(at) : html.slice(at, tagEnd);
+  if (tag.indexOf(KEPT_MARK_ATTRIBUTE) !== -1) return html;
+  return `${html.slice(0, at + 5)} ${KEPT_MARK_ATTRIBUTE}=""${html.slice(at + 5)}`;
 }
 
 /* The viewer a response NAMES, kept or not: enough to notice a change of account. */
@@ -409,6 +518,21 @@ async function keepDocumentAssets(html, frugal) {
   );
 }
 
+/* Whether every one of these assets is on the phone. */
+async function assetsAllKept(paths) {
+  try {
+    const assets = await caches.open(ASSET_CACHE);
+    for (const path of paths) {
+      const key = assetCacheKey(new URL(path, self.location.origin));
+      if (!key) return false;
+      if (!(await assets.match(key))) return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function precacheOfflineAssets(shell) {
   try {
     const response = await shell.match(OFFLINE_URL);
@@ -416,6 +540,73 @@ async function precacheOfflineAssets(shell) {
     await keepDocumentAssets(await response.clone().text());
   } catch {
     /* A missing stylesheet costs styling, never correctness. */
+  }
+}
+
+/*
+ * WHEN THE SHELL WAS LAST FETCHED AGAIN. In memory while this worker lives,
+ * and in the META cache across restarts. The install writes it, so the clock
+ * starts with the copy the install fetched.
+ */
+const SHELL_STAMP_KEY = "/__vallo/shell-refreshed";
+let shellRefreshedAt;
+
+async function readShellStamp() {
+  if (shellRefreshedAt !== undefined) return shellRefreshedAt;
+  try {
+    const meta = await caches.open(META_CACHE);
+    const stored = await meta.match(SHELL_STAMP_KEY);
+    shellRefreshedAt = stored ? Number(await stored.text()) || 0 : 0;
+  } catch {
+    shellRefreshedAt = 0;
+  }
+  return shellRefreshedAt;
+}
+
+async function writeShellStamp(at) {
+  shellRefreshedAt = at;
+  try {
+    const meta = await caches.open(META_CACHE);
+    await meta.put(SHELL_STAMP_KEY, new Response(String(at)));
+  } catch {
+    /* Unrecorded: the next navigation simply checks again. */
+  }
+}
+
+/*
+ * THE SHELL, STALE WHILE REVALIDATE. The offline screen answers from the phone
+ * as always; once the network has just answered a navigation, and at most
+ * every SHELL_REFRESH_MS, the shell is fetched again behind it, with the
+ * chunks it draws with. So the offline screen follows the deploys (its styles
+ * and its gate code) instead of staying the copy this worker installed. Never
+ * under Save-Data, and a failed fetch keeps the copy there was.
+ */
+async function refreshShellIfDue(frugal) {
+  if (frugal) return;
+  const now = Date.now();
+  const last = await readShellStamp();
+  if (!last) {
+    /* No record yet (a worker installed before this rule): start the clock. */
+    await writeShellStamp(now);
+    return;
+  }
+  if (now - last < SHELL_REFRESH_MS) return;
+  await writeShellStamp(now);
+  try {
+    const shell = await caches.open(SHELL_CACHE);
+    await Promise.all(
+      SHELL_ASSETS.map(async (path) => {
+        try {
+          const response = await fetch(path, { cache: "no-cache" });
+          if (response && response.ok && response.status === 200 && !response.redirected) await shell.put(path, response);
+        } catch {
+          /* This one keeps its old copy. */
+        }
+      }),
+    );
+    await precacheOfflineAssets(shell);
+  } catch {
+    /* The old shell stays. */
   }
 }
 
@@ -550,21 +741,31 @@ async function keepPage(url, response) {
   if (!viewer || !isKeepablePagePath(url.pathname)) return false;
   if (meta && meta.path !== url.pathname) return false;
   try {
+    /* The chunks this page draws with, so it can be drawn again offline,
+       kept BEFORE the page so the copy can say whether it is whole: only a
+       whole copy may answer at once (`mayAnswerInstantly`). */
+    const assetPaths = offlineAssetUrls(body);
+    await keepDocumentAssets(body, saveDataRequested(null));
+    const whole = assetPaths.length > 0 && (await assetsAllKept(assetPaths));
+    const headers = keptHeaders(response.headers, viewer);
+    if (whole) headers.set(WHOLE_HEADER, "1");
+    /* Which way a two-way page was drawn; unknown leaves it unable to answer at once. */
+    const variant = await pageVariant(url.pathname);
+    if (variant) headers.set(VARIANT_HEADER, variant);
     const cache = await caches.open(pageCacheName(viewer));
     const key = pageCacheKey(url);
     /* Delete first so a re-kept page moves to the back of the queue. */
     await cache.delete(key);
-    await cache.put(key, new Response(body, { status: 200, headers: keptHeaders(response.headers, viewer) }));
+    await cache.put(key, new Response(withKeptMark(body), { status: 200, headers }));
     await trim(cache, MAX_PAGES_PER_VIEWER);
-    /* The chunks this page draws with, so it can be drawn again offline. */
-    await keepDocumentAssets(body, saveDataRequested(null));
     return true;
   } catch {
     return false;
   }
 }
 
-/* The kept copy of a page for the current viewer, or undefined. */
+/* The kept copy of a page for the current viewer, with the key it was kept
+   under (a start path is answered by another page's copy), or undefined. */
 async function keptPage(url) {
   if (!isKeepablePagePath(url.pathname) && !isStartPath(url.pathname) && url.pathname !== "/") return undefined;
   const viewer = await readViewer();
@@ -581,7 +782,7 @@ async function keptPage(url) {
         : [pageCacheKey(url)];
     for (const key of candidates) {
       const hit = await cache.match(key, { ignoreVary: true, ignoreSearch: false });
-      if (hit) return hit;
+      if (hit) return { response: hit, key };
     }
   } catch {
     /* Fall through to the network or the offline screen. */
@@ -589,11 +790,14 @@ async function keptPage(url) {
   return undefined;
 }
 
-/* A kept page, marked so the page can tell it is showing what was seen last. */
-function markKept(response) {
+/* A kept page, marked so the page can tell it is showing what was seen last,
+   and which way it came: `timing` is FROM_CACHE_TIMING or INSTANT_TIMING. */
+function markKept(response, timing) {
   const headers = new Headers(response.headers);
-  headers.set("server-timing", FROM_CACHE_TIMING);
+  headers.set("server-timing", timing || FROM_CACHE_TIMING);
   headers.set("cache-control", "no-store");
+  headers.delete(WHOLE_HEADER);
+  headers.delete(VARIANT_HEADER);
   return new Response(response.body, { status: 200, statusText: "OK", headers });
 }
 
@@ -623,6 +827,8 @@ self.addEventListener("install", (event) => {
         const cache = await caches.open(SHELL_CACHE);
         await cache.addAll(SHELL_ASSETS);
         await precacheOfflineAssets(cache);
+        /* The shell's refresh clock starts with this copy. */
+        await writeShellStamp(Date.now());
       } catch {
         /*
          * A failed precache must not wedge the install. The worker simply has
@@ -651,6 +857,21 @@ self.addEventListener("activate", (event) => {
           )
           .map((name) => caches.delete(name)),
       );
+      /*
+       * NAVIGATION PRELOAD. A browser stops an idle worker after about thirty
+       * seconds, so on nearly every open the worker has to start before it
+       * can answer, and without preload the request for the page waited for
+       * that start. With it, the browser sends the request while the worker
+       * wakes (`networkAnswer`). Feature detected: a browser without it is
+       * unchanged.
+       */
+      try {
+        if (self.registration && self.registration.navigationPreload) {
+          await self.registration.navigationPreload.enable();
+        }
+      } catch {
+        /* Not offered here: the worker fetches the page itself. */
+      }
       await self.clients.claim();
     })(),
   );
@@ -670,12 +891,80 @@ async function offlineFallback() {
 }
 
 /*
- * NAVIGATIONS: THE NETWORK FIRST, THE KEPT COPY WHEN THE NETWORK FAILS OR
- * DAWDLES.
+ * THE NETWORK'S ANSWER TO A NAVIGATION. With navigation preload on (see the
+ * activate step), the browser sent the request while this worker was waking,
+ * so the answer never waits for the worker to start. Without it, or when the
+ * preload was refused, the worker asks itself.
+ */
+function networkAnswer(event) {
+  return (async () => {
+    try {
+      const preloaded = await event.preloadResponse;
+      if (preloaded) return preloaded;
+    } catch {
+      /* A refused preload: ask once more below. */
+    }
+    return fetch(event.request);
+  })();
+}
+
+/* A redirect the browser would follow: the page refreshing itself follows it too. */
+function isRedirectAnswer(response) {
+  if (!response) return false;
+  if (response.type === "opaqueredirect") return true;
+  return response.status >= 300 && response.status < 400;
+}
+
+/* Whether the person asked for the network outright (a reload). */
+function askedForNetwork(request) {
+  try {
+    const mode = request.cache;
+    return mode === "reload" || mode === "no-cache" || mode === "no-store";
+  } catch {
+    return false;
+  }
+}
+
+/* When this worker last answered a navigation at once (INSTANT_COOLDOWN_MS). */
+let lastInstantAt = 0;
+
+/*
+ * Whether a kept copy may answer before the network does. Only a whole copy
+ * (every script and stylesheet it needs is on the phone, so it draws and
+ * becomes interactive with no signal), younger than INSTANT_MAX_AGE_MS, not
+ * on a reload, not under Save-Data (the refresh behind it is a second
+ * download, which is exactly what Save-Data asks us not to spend), and not
+ * moments after the last instant answer.
+ */
+async function mayAnswerInstantly(request, kept, now, pathname) {
+  if (askedForNetwork(request)) return false;
+  if (saveDataRequested(request)) return false;
+  if (now - lastInstantAt < INSTANT_COOLDOWN_MS) return false;
+  const headers = kept.headers;
+  if (headers.get(WHOLE_HEADER) !== "1") return false;
+  const keptAt = Number(headers.get("x-vallo-kept-at") || "0");
+  if (!keptAt || keptAt > now + 60 * 1000) return false;
+  if (now - keptAt > INSTANT_MAX_AGE_MS) return false;
+  /* A two-way page answers at once only when it was kept the way it would be drawn now. */
+  const variant = await pageVariant(pathname);
+  if (variant === null) return false;
+  return variant === "" || headers.get(VARIANT_HEADER) === variant;
+}
+
+/*
+ * NAVIGATIONS: THE PHONE'S COPY AT ONCE WHERE IT MAY, THE NETWORK BEHIND IT.
  *
- *   - With a kept copy: the network has NAVIGATION_TIMEOUT_MS. If it answers,
- *     that answer is shown and kept. If it fails or is slower, the kept copy
- *     is shown at once, and the network carries on in the background; when it
+ *   - The network always starts at once (preload), and whatever it answers
+ *     is kept for next time.
+ *   - The shell's start (`/open`, which only ever redirects) with a page kept
+ *     for this viewer: a redirect to that page at once, so the address and the
+ *     page agree and the start costs no round trip.
+ *   - A kept copy that `mayAnswerInstantly`: shown at once, marked "instant".
+ *     The page refreshes itself in place as soon as it is running
+ *     (`ConnectionLine`), and is told again when the fresh copy is kept.
+ *   - Any other kept copy: the network has NAVIGATION_TIMEOUT_MS. If it
+ *     answers, that answer is shown and kept. If it fails or is slower, the
+ *     kept copy is shown, marked "kept", and the network carries on; when it
  *     lands, the fresh copy is kept and the page is told (`vallo:page-fresh`),
  *     and it refreshes itself in place.
  *   - With no kept copy: the network as long as it takes, and the offline
@@ -684,21 +973,46 @@ async function offlineFallback() {
 function handleNavigation(event) {
   const request = event.request;
   const url = new URL(request.url);
+  const key = pageCacheKey(url);
 
   /* Which answer the page got, so a fresh copy that lands after the kept one
      was shown can tell the page to refresh itself. */
   let settled = "pending";
 
+  /* This document is already on its way, so the page's own announcement of
+     the visit (`vallo:visited`) need not fetch it a second time. */
+  lastWarmed.set(key, Date.now());
+
   /* The network starts at once, beside the cache read, and the copy is kept
      in the background: the page gets its answer as it streams, never after
      the whole document has been read for keeping. */
-  const network = fetch(request);
+  /*
+   * The page on screen is the phone's copy, so it hears that the network has
+   * answered. A redirect counts (the session ended, say: the refresh follows
+   * it); an error page does not, and the copy stays on screen. Asked from both
+   * sides, because either can finish first: the network may have answered
+   * and been kept before the decision to show the copy was taken.
+   */
+  let worthTelling = false;
+  let told = false;
+  const tell = async () => {
+    if (told || !worthTelling || (settled !== "kept" && settled !== "instant")) return;
+    told = true;
+    await announceFresh(url);
+  };
+
+  /* The network's answer once it is in, untouched (the copy kept below is a clone). */
+  let reply = null;
+  const network = networkAnswer(event);
   const keeping = network
     .then(async (response) => {
+      reply = response;
       const fresh = await keepPage(url, response.clone());
       /* Just kept: the page's own announcement need not fetch it again. */
-      if (fresh) lastWarmed.set(pageCacheKey(url), Date.now());
-      if (fresh && settled === "kept") await announceFresh(url);
+      if (fresh) lastWarmed.set(key, Date.now());
+      worthTelling = fresh || response.ok || isRedirectAnswer(response);
+      await tell();
+      if (response.ok) await refreshShellIfDue(saveDataRequested(request));
     })
     .catch(() => undefined);
   event.waitUntil(keeping);
@@ -717,6 +1031,24 @@ function handleNavigation(event) {
       }
     }
 
+    if (kept.key !== key && isStartPath(url.pathname)) {
+      settled = "redirected";
+      return Response.redirect(kept.key, 302);
+    }
+
+    const now = Date.now();
+    if (kept.key === key && (await mayAnswerInstantly(request, kept.response, now, url.pathname))) {
+      /* The network was quicker than the cache after all: show the fresh page. */
+      if (reply && reply.ok && !reply.redirected) {
+        settled = "network";
+        return reply;
+      }
+      settled = "instant";
+      lastInstantAt = now;
+      event.waitUntil(tell());
+      return markKept(kept.response, INSTANT_TIMING);
+    }
+
     let timer;
     const timeout = new Promise((resolve) => {
       timer = setTimeout(() => resolve("timeout"), NAVIGATION_TIMEOUT_MS);
@@ -729,14 +1061,39 @@ function handleNavigation(event) {
       return outcome;
     }
     settled = "kept";
-    return markKept(kept);
+    event.waitUntil(tell());
+    return markKept(kept.response, FROM_CACHE_TIMING);
   })();
 }
 
 /*
- * Static assets: stale while revalidate. The cached copy answers immediately,
- * a background fetch refreshes it for next time. Under Save-Data the cached
- * copy answers with no background fetch at all.
+ * The hashed build output and the versioned fonts (`isImmutableAssetPath`):
+ * cache first, and never fetched again once on the phone. A miss is fetched,
+ * kept, and answered.
+ */
+async function handleImmutable(event, key) {
+  const cache = await caches.open(ASSET_CACHE);
+  const cached = await cache.match(key);
+  if (cached) return cached;
+  try {
+    const response = await fetch(event.request);
+    if (isStorableResponse(response)) {
+      const stored = cache.put(key, response.clone()).catch(() => {
+        /* Quota or a rejected key. The asset is still answered. */
+      });
+      if (typeof event.waitUntil === "function") event.waitUntil(stored);
+    }
+    return response;
+  } catch {
+    return new Response("", { status: 504, statusText: "Offline" });
+  }
+}
+
+/*
+ * The other kept assets (brand artwork, icons): stale while revalidate. The
+ * cached copy answers immediately, a background fetch refreshes it for next
+ * time. Under Save-Data the cached copy answers with no background fetch at
+ * all.
  */
 async function handleAsset(request, key) {
   const cache = await caches.open(ASSET_CACHE);
@@ -819,7 +1176,7 @@ self.addEventListener("fetch", (event) => {
   if (isCacheableAssetPath(url.pathname)) {
     const key = assetCacheKey(url);
     if (key) {
-      event.respondWith(handleAsset(request, key));
+      event.respondWith(isImmutableAssetPath(url.pathname) ? handleImmutable(event, key) : handleAsset(request, key));
       return;
     }
   }

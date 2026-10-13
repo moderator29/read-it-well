@@ -1,6 +1,6 @@
 import type { ShellDictionary } from "@/lib/i18n/shell-dictionary";
-import Link from "next/link";
 import { AutoHideDock } from "./AutoHideDock";
+import { HoldTabLink } from "./HoldTabLink";
 import { DockMore, type DockMoreItem } from "./DockMore";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import type { Side } from "@/lib/side.constants";
@@ -459,7 +459,9 @@ export function MobileTabBar({
           const isProfile = index === slots.length - 1;
           return (
             <li key={tab.href} className="nf-tab">
-              <Link
+              {/* The startup track: a tab whose copy is still on its way keeps
+                  the current screen up until it lands (HoldTabLink). */}
+              <HoldTabLink
                 href={tab.href}
                 prefetch={prefetchFull}
                 aria-current={isActive ? "page" : undefined}
@@ -484,7 +486,7 @@ export function MobileTabBar({
                     <UiIcon name={tab.icon} size={tab.icon === "search-disc" ? "lg" : "md"} filled weight="bold" />
                   </span>
                 </span>
-              </Link>
+              </HoldTabLink>
             </li>
           );
         })}

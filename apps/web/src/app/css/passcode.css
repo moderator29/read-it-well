@@ -737,3 +737,22 @@
     color: var(--nf-content-primary);
   }
 }
+
+/*
+  A COPY THE PHONE KEPT, BEFORE THE GUARD HAS DECIDED (13 October 2026, the
+  startup track). The service worker opens the last screen at once from the
+  phone (`public/sw.js`), and marks that copy `data-vallo-kept` on the root.
+  The copy was rendered while the session was unlocked, so a member's page
+  under the passcode guard stays out of sight until `PasscodeGuard` has
+  decided (`data-guard-ready` on the root), and stays out of sight while it is
+  locked. A page the network answered carries no mark and is untouched, and
+  so is every page with no guard (signed out, the public site).
+
+  Unlayered on purpose, so no layered rule can bring the page back early.
+  `visibility` because the wrapper is `display: contents`, which draws no box
+  of its own; the children inherit it.
+*/
+html[data-vallo-kept]:not([data-guard-ready]) [data-passcode-guarded],
+html[data-vallo-kept] [data-passcode-guarded][inert] {
+  visibility: hidden;
+}

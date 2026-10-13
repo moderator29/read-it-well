@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useOverlay } from "@/lib/ui/use-overlay";
 import { useSwipeToClose } from "@/lib/ui/use-swipe-to-close";
 import { WholePrefetchLink } from "@/components/app/WholePrefetchLink";
+import { KeepWarm } from "@/components/app/KeepWarm";
 import { usePathname, useSearchParams } from "next/navigation";
 import { AppRail } from "./AppRail";
 import { MobileTabBar, isFocusedRoute, isImmersiveRoute, showsTabBar } from "./MobileTabBar";
@@ -285,6 +286,9 @@ export function AppShell({
     <AuthGateProvider signedIn={signedIn}>
     <SideFlip side={effectiveSide} t={t}>
     <SideSync side={effectiveSide} persist={!isDetailPath(active)} />
+    {/* The startup track: the main tabs fetched ahead when idle and on return,
+        and the screen refreshed in place after time away (KeepWarm). */}
+    <KeepWarm side={effectiveSide} socialOn={socialOn} current={pathname ?? ""} enabled={signedIn && !preview} />
     <div className="nf-app-shell flex min-h-dvh" data-side={effectiveSide}>
       <AppRail
         t={t}

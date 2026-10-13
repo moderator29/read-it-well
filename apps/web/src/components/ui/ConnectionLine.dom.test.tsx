@@ -35,6 +35,24 @@ const KEPT_DOCUMENT = `
     type === "navigation" ? [{ serverTiming: [{ name: "vallo-kept", description: "kept", duration: 0 }] }] : original(type);
 `;
 
+/* The mark on a page the worker answered AT ONCE (13 October 2026). */
+const INSTANT_DOCUMENT = `
+  const original = performance.getEntriesByType.bind(performance);
+  performance.getEntriesByType = (type) =>
+    type === "navigation" ? [{ serverTiming: [{ name: "vallo-kept", description: "instant", duration: 0 }] }] : original(type);
+`;
+
+const OFFLINE_FROM_THE_START = `Object.defineProperty(Navigator.prototype, "onLine", { configurable: true, get: () => false });`;
+
+const refreshCalls = (page: import("playwright-core").Page) =>
+  page.evaluate(() => ((window as unknown as { __router?: { calls: unknown[][] } }).__router?.calls ?? []).filter(([name]) => name === "refresh").length);
+
+const behindTheLock = `
+  import { mount } from "@/lib/testing/browser-root";
+  import { ConnectionLine } from "@/components/ui/ConnectionLine";
+  mount(<main><div className="contents" data-passcode-guarded="" inert><h1>Behind the lock</h1></div><ConnectionLine /></main>);
+`;
+
 describe.skipIf(!hasBrowser && !process.env.CI)("the connection line", () => {
   it("says nothing while the page came from the network and the phone is online", async () => {
     const { page, close } = await mountInBrowser({ entry, css: CSS });
@@ -80,6 +98,76 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the connection line", () => {
       expect(calls.filter(([name]) => name === "refresh")).toHaveLength(1);
     } finally {
       await close();
+    }
+  });
+
+  it("a page answered at once from the phone says nothing and refreshes itself in place straight away", async () => {
+    const { page, close } = await mountInBrowser({ entry, css: CSS, init: INSTANT_DOCUMENT });
+    try {
+      await page.waitForFunction(
+        () => ((window as unknown as { __router?: { calls: unknown[][] } }).__router?.calls ?? []).some(([name]) => name === "refresh"),
+      );
+      expect(await refreshCalls(page)).toBe(1);
+      expect(await page.getByTestId("connection-line").count()).toBe(0);
+      /* The worker's word that its own copy is fresh does not refresh twice. */
+      await page.evaluate(() => navigator.serviceWorker?.dispatchEvent?.(new MessageEvent("message", { data: { type: "vallo:page-fresh", path: location.pathname } })));
+      expect(await refreshCalls(page)).toBe(1);
+    } finally {
+      await close();
+    }
+  });
+
+  it("a page answered at once with no signal says it is offline, and refreshes when the signal returns", async () => {
+    const { page, close } = await mountInBrowser({ entry, css: CSS, init: INSTANT_DOCUMENT + OFFLINE_FROM_THE_START });
+    try {
+      const line = page.getByTestId("connection-line");
+      await line.waitFor();
+      expect(await line.getAttribute("data-state")).toBe("offline");
+      expect(await refreshCalls(page)).toBe(0);
+      await page.evaluate(() => window.dispatchEvent(new Event("online")));
+      await page.waitForFunction(() => document.querySelector("[data-testid=connection-line]")?.getAttribute("data-state") === "back");
+      expect(await refreshCalls(page)).toBe(1);
+    } finally {
+      await close();
+    }
+  });
+
+  it("behind the passcode lock, a page answered at once leaves the refresh to the unlock", async () => {
+    const { page, close } = await mountInBrowser({ entry: behindTheLock, css: CSS, init: INSTANT_DOCUMENT });
+    try {
+      await page.waitForTimeout(300);
+      expect(await refreshCalls(page)).toBe(0);
+      expect(await page.getByTestId("connection-line").count()).toBe(0);
+    } finally {
+      await close();
+    }
+  });
+
+  it("a guard about to lock (a tab never unlocked) also leaves the refresh to the unlock; an unlocked tab refreshes", async () => {
+    const guardedOpen = `
+      import { mount } from "@/lib/testing/browser-root";
+      import { ConnectionLine } from "@/components/ui/ConnectionLine";
+      mount(<main><div className="contents" data-passcode-guarded=""><h1>Guarded</h1></div><ConnectionLine /></main>);
+    `;
+    const fresh = await mountInBrowser({ entry: guardedOpen, css: CSS, init: INSTANT_DOCUMENT });
+    try {
+      await fresh.page.waitForTimeout(300);
+      expect(await refreshCalls(fresh.page)).toBe(0);
+    } finally {
+      await fresh.close();
+    }
+    const unlocked = await mountInBrowser({
+      entry: guardedOpen,
+      css: CSS,
+      init: INSTANT_DOCUMENT + `sessionStorage.setItem("vallo.passcode.tab", "1");`,
+    });
+    try {
+      await unlocked.page.waitForFunction(
+        () => ((window as unknown as { __router?: { calls: unknown[][] } }).__router?.calls ?? []).some(([name]) => name === "refresh"),
+      );
+      expect(await refreshCalls(unlocked.page)).toBe(1);
+    } finally {
+      await unlocked.close();
     }
   });
 

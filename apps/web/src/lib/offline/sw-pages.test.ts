@@ -21,6 +21,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
  *   served    offline, the kept copy, marked; slow, the kept copy after the
  *             timeout, the fresh one kept behind it and the page told; never
  *             another viewer's copy; a page never opened, the offline screen
+ *   instant   (13 October 2026) a whole, recent copy answers at once and the
+ *             network refreshes it behind; never on a reload, under
+ *             Save-Data, for an old or partial copy, or right after another
+ *             instant answer; the shell's start redirects to the kept page
  *   left alone POSTs, API GETs and other origins: no respondWith at all
  *   forgotten a different viewer on any document; `vallo:forget` on sign-out
  */
@@ -89,17 +93,34 @@ class FakeCacheStorage {
 
 type Net = (url: string, init?: { headers?: Record<string, string> }) => Promise<Response>;
 
-function html(viewer: string | null, options: { body?: string; status?: number; type?: string; meta?: { viewer: string; path: string } } = {}) {
+/* The two hashed files every "whole" test page draws with. */
+const ASSETS = ["/_next/static/chunks/app-a1.js", "/_next/static/css/app-b2.css"];
+
+function html(
+  viewer: string | null,
+  options: { body?: string; status?: number; type?: string; meta?: { viewer: string; path: string }; assets?: readonly string[] } = {},
+) {
   const headers: Record<string, string> = { "content-type": options.type ?? "text/html; charset=utf-8", "content-security-policy": "script-src 'nonce-abc'" };
   if (viewer) headers["x-vallo-viewer"] = viewer;
   const meta = options.meta ? `<meta name="x-vallo-viewer" content="${options.meta.viewer}" data-path="${options.meta.path}"/>` : "";
-  return new Response(`<!doctype html><html><head>${meta}</head><body>${options.body ?? "page"}</body></html>`, {
+  const links = (options.assets ?? [])
+    .map((path) => (path.endsWith(".css") ? `<link rel="stylesheet" href="${path}"/>` : `<script src="${path}" async></script>`))
+    .join("");
+  return new Response(`<!doctype html><html lang="en"><head>${meta}${links}</head><body>${options.body ?? "page"}</body></html>`, {
     status: options.status ?? 200,
     headers,
   });
 }
 
-function load(options: { saveData?: boolean } = {}) {
+/* A network that answers hashed files as the build output and every other address with `page()`. */
+function withAssets(page: () => Response): (url: string) => Promise<Response> {
+  return async (url) =>
+    url.includes("/_next/static/")
+      ? new Response("bytes", { headers: { "content-type": url.endsWith(".css") ? "text/css" : "application/javascript" } })
+      : page();
+}
+
+function load(options: { saveData?: boolean; cookies?: Map<string, string> } = {}) {
   const caches = new FakeCacheStorage();
   const listeners = new Map<string, (event: unknown) => void>();
   const posted: Array<{ to: string; message: unknown }> = [];
@@ -113,6 +134,10 @@ function load(options: { saveData?: boolean } = {}) {
     location: { origin: ORIGIN },
     navigator: { connection: options.saveData ? { saveData: true } : {} },
     registration: {},
+    /* The Cookie Store API, where a test gives the worker one. */
+    ...(options.cookies
+      ? { cookieStore: { get: async (name: string) => (options.cookies!.has(name) ? { name, value: options.cookies!.get(name) } : null) } }
+      : {}),
     clients: {
       claim: async () => undefined,
       matchAll: async () => [{ url: `${ORIGIN}/home`, postMessage: (message: unknown) => posted.push({ to: "/home", message }) }],
@@ -126,12 +151,17 @@ function load(options: { saveData?: boolean } = {}) {
   new Function("self", "caches", "fetch", SOURCE)(self, caches, fetchStub);
 
   /** Dispatch a fetch event; resolves with what was answered (or null when the worker left it alone) and waits for the background work. */
-  async function request(path: string, init: { mode?: string; method?: string; headers?: Record<string, string> } = {}) {
+  async function request(
+    path: string,
+    init: { mode?: string; method?: string; headers?: Record<string, string>; cache?: string; preload?: () => Response } = {},
+  ) {
     const url = new URL(path, ORIGIN).href;
     let answered: Promise<Response> | null = null;
     const waits: Promise<unknown>[] = [];
     listeners.get("fetch")!({
-      request: { url, method: init.method ?? "GET", mode: init.mode ?? "navigate", headers: new Headers(init.headers ?? {}) },
+      request: { url, method: init.method ?? "GET", mode: init.mode ?? "navigate", cache: init.cache ?? "default", headers: new Headers(init.headers ?? {}) },
+      /* Navigation preload: what the browser fetched while the worker woke, or nothing. */
+      preloadResponse: init.preload ? Promise.resolve(init.preload()) : undefined,
       respondWith: (p: Promise<Response>) => {
         answered = Promise.resolve(p);
       },
@@ -149,7 +179,7 @@ function load(options: { saveData?: boolean } = {}) {
     await Promise.all(waits);
   }
 
-  const pages = (viewer: string) => caches.stores.get(`vallo-pages-v5-${viewer}`);
+  const pages = (viewer: string) => caches.stores.get(`vallo-pages-v6-${viewer}`);
   const keptPaths = (viewer: string) => [...(pages(viewer)?.entries.keys() ?? [])].map((k) => new URL(k).pathname + new URL(k).search);
 
   return {
@@ -226,7 +256,7 @@ describe("which pages may be kept at all", () => {
   ])("never keeps %s", (path) => expect(pure.isKeepablePagePath(path)).toBe(false));
 
   it("was bumped, so the activate step clears caches the old worker wrote", () => {
-    expect(pure.CACHE_VERSION).toBe("v5");
+    expect(pure.CACHE_VERSION).toBe("v6");
   });
 });
 
@@ -242,7 +272,7 @@ describe("keeping a page", () => {
     });
     expect(response?.status).toBe(200);
     expect(sw.keptPaths(ALICE)).toEqual(["/home"]);
-    const kept = await sw.caches.stores.get(`vallo-pages-v5-${ALICE}`)!.match(`${ORIGIN}/home`);
+    const kept = await sw.caches.stores.get(`vallo-pages-v6-${ALICE}`)!.match(`${ORIGIN}/home`);
     expect(await kept!.text()).toContain("alice home");
     expect(kept!.headers.get("content-security-policy")).toBe("script-src 'nonce-abc'");
     expect(kept!.headers.get("content-encoding")).toBeNull();
@@ -288,6 +318,34 @@ describe("keeping a page", () => {
     expect(sw.keptPaths(ALICE)).toEqual([]);
     expect(sw.keptPaths(BOB)).toEqual([]);
   });
+
+  it("marks the copy's root element as kept, once, so the page can tell before any script asks the network", async () => {
+    const sw = load();
+    await sw.visit("/home", () => html(ALICE, { body: "alice home" }));
+    const kept = await sw.caches.stores.get(`vallo-pages-v6-${ALICE}`)!.match(`${ORIGIN}/home`);
+    const text = await kept!.text();
+    expect(text).toContain('<html data-vallo-kept="" lang="en">');
+    expect(text.match(/data-vallo-kept/g)).toHaveLength(1);
+  });
+
+  it("notes whether every script and stylesheet the page draws with is on the phone", async () => {
+    const sw = load();
+    sw.setNetwork(withAssets(() => html(ALICE, { assets: ASSETS })));
+    const whole = await sw.request("/home");
+    await whole.response!.text();
+    await whole.settled();
+    const keptWhole = await sw.caches.stores.get(`vallo-pages-v6-${ALICE}`)!.match(`${ORIGIN}/home`);
+    expect(keptWhole!.headers.get("x-vallo-whole")).toBe("1");
+    expect(await sw.caches.stores.get("vallo-assets-v6")!.match(`${ORIGIN}${ASSETS[0]}`)).toBeTruthy();
+
+    /* A chunk the network refuses leaves the copy partial. */
+    sw.setNetwork(async (url) => (url.includes("/_next/static/") ? new Response("gone", { status: 404 }) : html(ALICE, { assets: ["/_next/static/chunks/missing-c3.js"] })));
+    const partial = await sw.request("/search");
+    await partial.response!.text();
+    await partial.settled();
+    const keptPartial = await sw.caches.stores.get(`vallo-pages-v6-${ALICE}`)!.match(`${ORIGIN}/search`);
+    expect(keptPartial!.headers.get("x-vallo-whole")).toBeNull();
+  });
 });
 
 /* ------------------------------------------------------------- answering */
@@ -306,7 +364,7 @@ describe("answering a navigation", () => {
 
   it("offline, a page never opened here gets the small offline screen", async () => {
     const sw = load();
-    await sw.caches.open("vallo-shell-v5").then((c) => c.addAll(["/offline"]));
+    await sw.caches.open("vallo-shell-v6").then((c) => c.addAll(["/offline"]));
     await sw.visit("/home", () => html(ALICE));
     sw.setNetwork(async () => {
       throw new TypeError("offline");
@@ -317,7 +375,7 @@ describe("answering a navigation", () => {
 
   it("offline, a money page is never answered from a copy", async () => {
     const sw = load();
-    await sw.caches.open("vallo-shell-v5").then((c) => c.addAll(["/offline"]));
+    await sw.caches.open("vallo-shell-v6").then((c) => c.addAll(["/offline"]));
     await sw.visit("/wallet", () => html(ALICE, { body: "balance 5,000" }));
     sw.setNetwork(async () => {
       throw new TypeError("offline");
@@ -326,13 +384,16 @@ describe("answering a navigation", () => {
     expect(await response!.text()).not.toContain("balance");
   });
 
-  it("offline, the shell's start opens the viewer's kept home", async () => {
+  it("offline, the shell's start opens the viewer's kept home, by a redirect so the address is the page's", async () => {
     const sw = load();
     await sw.visit("/home", () => html(ALICE, { body: "alice home" }));
     sw.setNetwork(async () => {
       throw new TypeError("offline");
     });
-    const { response } = await sw.request("/open");
+    const start = await sw.request("/open");
+    expect(start.response!.status).toBe(302);
+    expect(start.response!.headers.get("location")).toBe(`${ORIGIN}/home`);
+    const { response } = await sw.request("/home");
     expect(await response!.text()).toContain("alice home");
   });
 
@@ -344,7 +405,7 @@ describe("answering a navigation", () => {
     expect(await response!.text()).toContain("new");
     expect(response!.headers.get("server-timing")).toBeNull();
     await settled();
-    const kept = await sw.caches.stores.get(`vallo-pages-v5-${ALICE}`)!.match(`${ORIGIN}/home`);
+    const kept = await sw.caches.stores.get(`vallo-pages-v6-${ALICE}`)!.match(`${ORIGIN}/home`);
     expect(await kept!.text()).toContain("new");
   });
 
@@ -362,7 +423,7 @@ describe("answering a navigation", () => {
     vi.useRealTimers();
     release(html(ALICE, { body: "fresh" }));
     await settled();
-    const kept = await sw.caches.stores.get(`vallo-pages-v5-${ALICE}`)!.match(`${ORIGIN}/home`);
+    const kept = await sw.caches.stores.get(`vallo-pages-v6-${ALICE}`)!.match(`${ORIGIN}/home`);
     expect(await kept!.text()).toContain("fresh");
     expect(sw.posted).toContainEqual({ to: "/home", message: { type: "vallo:page-fresh", path: "/home" } });
   });
@@ -381,6 +442,275 @@ describe("answering a navigation", () => {
   });
 });
 
+/* ------------------------------------------------------- answering at once */
+
+describe("answering at once from the phone (the startup track)", () => {
+  /** Visit a page online with its hashed files, so the copy is whole. */
+  async function keepWhole(sw: ReturnType<typeof load>, path: string, body: string) {
+    sw.setNetwork(withAssets(() => html(ALICE, { body, assets: ASSETS })));
+    const { response, settled } = await sw.request(path);
+    await response!.text();
+    await settled();
+  }
+
+  it("a whole, recent copy answers at once, marked instant, and the network refreshes it behind the screen", async () => {
+    const sw = load();
+    await keepWhole(sw, "/home", "old");
+    let release: (r: Response) => void = () => undefined;
+    sw.setNetwork(() => new Promise<Response>((resolve) => (release = resolve)));
+    /* No timer is advanced: the answer does not wait for the network at all. */
+    const { response, settled } = await sw.request("/home");
+    expect(await response!.text()).toContain("old");
+    expect(response!.headers.get("server-timing")).toBe('vallo-kept;desc="instant"');
+    expect(response!.headers.get("x-vallo-whole")).toBeNull();
+    release(html(ALICE, { body: "fresh", assets: ASSETS }));
+    await settled();
+    const kept = await sw.caches.stores.get(`vallo-pages-v6-${ALICE}`)!.match(`${ORIGIN}/home`);
+    expect(await kept!.text()).toContain("fresh");
+    expect(sw.posted).toContainEqual({ to: "/home", message: { type: "vallo:page-fresh", path: "/home" } });
+  });
+
+  it("shows the network's page when it answered before the phone's copy was even read", async () => {
+    const sw = load();
+    await keepWhole(sw, "/home", "old");
+    sw.setNetwork(withAssets(() => html(ALICE, { body: "fresh already", assets: ASSETS })));
+    const { response, settled } = await sw.request("/home");
+    expect(await response!.text()).toContain("fresh already");
+    expect(response!.headers.get("server-timing")).toBeNull();
+    await settled();
+    expect(sw.posted).toEqual([]);
+  });
+
+  it("uses the browser's navigation preload rather than fetching the page a second time", async () => {
+    const sw = load();
+    sw.setNetwork(async () => {
+      throw new Error("the worker should not fetch a preloaded page");
+    });
+    const { response, settled } = await sw.request("/search", { preload: () => html(ALICE, { body: "preloaded results" }) });
+    expect(await response!.text()).toContain("preloaded results");
+    await settled();
+    expect(sw.fetched.filter((f) => f.url.endsWith("/search"))).toEqual([]);
+    expect(sw.keptPaths(ALICE)).toEqual(["/search"]);
+  });
+
+  it("tells the page when the session has ended behind an instant answer, so its refresh follows the redirect", async () => {
+    const sw = load();
+    await keepWhole(sw, "/home", "old");
+    sw.setNetwork(async () => new Response(null, { status: 307, headers: { location: "/sign-in" } }));
+    const { response, settled } = await sw.request("/home");
+    expect(await response!.text()).toContain("old");
+    await settled();
+    expect(sw.posted).toContainEqual({ to: "/home", message: { type: "vallo:page-fresh", path: "/home" } });
+  });
+
+  it("keeps the copy on screen, untold, when the network answers an error page", async () => {
+    const sw = load();
+    await keepWhole(sw, "/home", "old");
+    sw.setNetwork(async () => html(ALICE, { status: 502, body: "bad gateway" }));
+    const { response, settled } = await sw.request("/home");
+    expect(await response!.text()).toContain("old");
+    await settled();
+    expect(sw.posted).toEqual([]);
+  });
+
+  it("a reload asks the network first", async () => {
+    const sw = load();
+    await keepWhole(sw, "/home", "old");
+    sw.setNetwork(withAssets(() => html(ALICE, { body: "new" })));
+    const { response } = await sw.request("/home", { cache: "no-cache" });
+    expect(await response!.text()).toContain("new");
+  });
+
+  it("under Save-Data, asks the network first (the refresh behind an instant answer is a second download)", async () => {
+    const sw = load();
+    await keepWhole(sw, "/home", "old");
+    sw.setNetwork(withAssets(() => html(ALICE, { body: "new" })));
+    const { response } = await sw.request("/home", { headers: { "save-data": "on" } });
+    expect(await response!.text()).toContain("new");
+  });
+
+  it("a partial copy (a chunk not on the phone) asks the network first", async () => {
+    const sw = load();
+    await sw.visit("/home", () => html(ALICE, { body: "old" }));
+    sw.setNetwork(async () => html(ALICE, { body: "new" }));
+    const { response } = await sw.request("/home");
+    expect(await response!.text()).toContain("new");
+  });
+
+  it("a copy older than two days asks the network first", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-10-10T08:00:00Z"));
+    const sw = load();
+    await keepWhole(sw, "/home", "old");
+    vi.setSystemTime(new Date("2026-10-12T09:00:00Z"));
+    sw.setNetwork(withAssets(() => html(ALICE, { body: "new" })));
+    const { response } = await sw.request("/home");
+    expect(await response!.text()).toContain("new");
+  });
+
+  it("a second document load moments after an instant answer goes to the network, so a reload cannot loop on the copy", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-10-13T08:00:00Z"));
+    const sw = load();
+    await keepWhole(sw, "/home", "old");
+    await keepWhole(sw, "/search", "old search");
+    /* A network slower than the phone, so the copy is the quicker answer. */
+    let release: (r: Response) => void = () => undefined;
+    sw.setNetwork(() => new Promise<Response>((resolve) => (release = resolve)));
+    const first = await sw.request("/home");
+    expect(await first.response!.text()).toContain("old");
+    release(html(ALICE, { body: "new", assets: ASSETS }));
+    await first.settled();
+    vi.setSystemTime(new Date("2026-10-13T08:00:05Z"));
+    sw.setNetwork(withAssets(() => html(ALICE, { body: "new", assets: ASSETS })));
+    const second = await sw.request("/search");
+    expect(await second.response!.text()).toContain("new");
+    await second.settled();
+    vi.setSystemTime(new Date("2026-10-13T08:01:00Z"));
+    sw.setNetwork(() => new Promise<Response>(() => undefined));
+    const later = await sw.request("/home");
+    expect(later.response!.headers.get("server-timing")).toBe('vallo-kept;desc="instant"');
+  });
+
+  it("the shell's start redirects at once to the viewer's kept home, with no round trip", async () => {
+    const sw = load();
+    await keepWhole(sw, "/home", "alice home");
+    let release: (r: Response) => void = () => undefined;
+    sw.setNetwork(() => new Promise<Response>((resolve) => (release = resolve)));
+    const start = await sw.request("/open");
+    expect(start.response!.status).toBe(302);
+    expect(start.response!.headers.get("location")).toBe(`${ORIGIN}/home`);
+    release(new Response(null, { status: 307, headers: { location: "/home" } }));
+    await start.settled();
+    const home = await sw.request("/home");
+    expect(await home.response!.text()).toContain("alice home");
+    expect(home.response!.headers.get("server-timing")).toBe('vallo-kept;desc="instant"');
+  });
+
+  it("the welcome screen answers at once only when it was kept the way the first-run cookie draws it now", async () => {
+    const cookies = new Map<string, string>();
+    const sw = load({ cookies });
+    await keepWhole(sw, "/welcome", "the slides");
+    sw.setNetwork(() => new Promise<Response>(() => undefined));
+    const same = await sw.request("/welcome");
+    expect(await same.response!.text()).toContain("the slides");
+    expect(same.response!.headers.get("server-timing")).toBe('vallo-kept;desc="instant"');
+
+    /* The device saw the slides since: the server now draws the choice, so the network answers. */
+    const other = load({ cookies });
+    await keepWhole(other, "/welcome", "the slides");
+    cookies.set("vallo_first_run", "seen");
+    other.setNetwork(withAssets(() => html(ALICE, { body: "the choice", assets: ASSETS })));
+    const changed = await other.request("/welcome");
+    expect(await changed.response!.text()).toContain("the choice");
+    await changed.settled();
+    /* Kept again, the choice way: now it answers at once while the cookie says so. */
+    const third = load({ cookies });
+    await keepWhole(third, "/welcome", "the choice");
+    third.setNetwork(() => new Promise<Response>(() => undefined));
+    const again = await third.request("/welcome");
+    expect(again.response!.headers.get("server-timing")).toBe('vallo-kept;desc="instant"');
+  });
+
+  it("the welcome screen never answers at once where the worker cannot read cookies", async () => {
+    const sw = load();
+    await keepWhole(sw, "/welcome", "the slides");
+    sw.setNetwork(withAssets(() => html(ALICE, { body: "from the network", assets: ASSETS })));
+    const { response } = await sw.request("/welcome");
+    expect(await response!.text()).toContain("from the network");
+  });
+
+  it("the front door is never redirected at once: its own copy or the network", async () => {
+    const sw = load();
+    await keepWhole(sw, "/home", "alice home");
+    sw.setNetwork(async () => html(ALICE, { body: "the landing" }));
+    const { response } = await sw.request("/");
+    expect(response!.status).toBe(200);
+    expect(await response!.text()).toContain("the landing");
+  });
+});
+
+/* ------------------------------------------------------------ the shell */
+
+describe("the offline shell, stale while revalidate", () => {
+  it("is fetched again behind a good navigation once the refresh interval has passed, and not before", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-10-13T08:00:00Z"));
+    const sw = load();
+    await sw.caches.open("vallo-shell-v6").then((c) => c.addAll(["/offline"]));
+    await sw.caches.open("vallo-meta-v6").then((c) => c.put("/__vallo/shell-refreshed", new Response(String(Date.now()))));
+    const network = async (url: string) =>
+      url.endsWith("/offline") ? new Response("the new offline screen", { headers: { "content-type": "text/html" } }) : html(ALICE);
+
+    vi.setSystemTime(new Date("2026-10-13T09:00:00Z"));
+    sw.setNetwork(network);
+    let visit = await sw.request("/home");
+    await visit.response!.text();
+    await visit.settled();
+    expect(sw.fetched.some((f) => f.url.endsWith("/offline"))).toBe(false);
+
+    vi.setSystemTime(new Date("2026-10-13T15:00:00Z"));
+    visit = await sw.request("/search");
+    await visit.response!.text();
+    await visit.settled();
+    expect(sw.fetched.filter((f) => f.url.endsWith("/offline"))).toHaveLength(1);
+    const shell = await sw.caches.stores.get("vallo-shell-v6")!.match(`${ORIGIN}/offline`);
+    expect(await shell!.text()).toBe("the new offline screen");
+  });
+
+  it("is never fetched again under Save-Data", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-10-13T08:00:00Z"));
+    const sw = load({ saveData: true });
+    await sw.caches.open("vallo-meta-v6").then((c) => c.put("/__vallo/shell-refreshed", new Response(String(Date.now() - 24 * 60 * 60 * 1000))));
+    sw.setNetwork(async () => html(ALICE));
+    const visit = await sw.request("/home");
+    await visit.response!.text();
+    await visit.settled();
+    expect(sw.fetched.some((f) => f.url.endsWith("/offline"))).toBe(false);
+  });
+});
+
+/* ------------------------------------------------------- the build output */
+
+describe("the hashed build output and the fonts", () => {
+  it("are cache first: answered from the phone with no second download", async () => {
+    const sw = load();
+    let hits = 0;
+    sw.setNetwork(async () => {
+      hits += 1;
+      return new Response("chunk", { headers: { "content-type": "application/javascript" } });
+    });
+    for (const path of ["/_next/static/chunks/main-d4.js?dpl=dpl_1", "/_next/static/chunks/main-d4.js?dpl=dpl_2", "/fonts/v2/inter-latin.woff2"]) {
+      const first = await sw.request(path, { mode: "no-cors" });
+      expect(await first.response!.text()).toBeTruthy();
+      await first.settled();
+    }
+    expect(hits).toBe(2);
+    sw.setNetwork(async () => {
+      throw new TypeError("offline");
+    });
+    const offline = await sw.request("/_next/static/chunks/main-d4.js", { mode: "no-cors" });
+    expect(await offline.response!.text()).toBe("chunk");
+  });
+
+  it("while the brand artwork stays stale while revalidate", async () => {
+    const sw = load();
+    let hits = 0;
+    sw.setNetwork(async () => {
+      hits += 1;
+      return new Response(`svg ${hits}`, { headers: { "content-type": "image/svg+xml" } });
+    });
+    const first = await sw.request("/brand/vallo-mark.svg", { mode: "no-cors" });
+    expect(await first.response!.text()).toBe("svg 1");
+    await new Promise((r) => setTimeout(r, 10));
+    const second = await sw.request("/brand/vallo-mark.svg", { mode: "no-cors" });
+    expect(await second.response!.text()).toBe("svg 1");
+    await new Promise((r) => setTimeout(r, 10));
+    expect(hits).toBe(2);
+  });
+});
+
 /* ----------------------------------------------------------- whose pages */
 
 describe("one viewer's pages are never another's", () => {
@@ -390,7 +720,7 @@ describe("one viewer's pages are never another's", () => {
     expect(sw.keptPaths(ALICE)).toEqual(["/messages"]);
     /* Bob signs in on the same phone: even a page that is never kept says whose it is. */
     await sw.visit("/sign-in", () => html(BOB));
-    expect(sw.caches.stores.has(`vallo-pages-v5-${ALICE}`)).toBe(false);
+    expect(sw.caches.stores.has(`vallo-pages-v6-${ALICE}`)).toBe(false);
     sw.setNetwork(async () => {
       throw new TypeError("offline");
     });
@@ -457,7 +787,7 @@ describe("listing photographs", () => {
     const path = "/_next/image?url=%2Fa.png&w=384&q=60";
     await sw.request(path, { mode: "no-cors" });
     await new Promise((r) => setTimeout(r, 10));
-    expect(sw.caches.stores.get("vallo-images-v5")?.entries.size ?? 0).toBe(0);
+    expect(sw.caches.stores.get("vallo-images-v6")?.entries.size ?? 0).toBe(0);
   });
 });
 

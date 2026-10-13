@@ -26,7 +26,7 @@ import { getShellIdentity, getShellWorkspaces } from "@/lib/app/shell-queries";
 import { getSide } from "@/lib/side";
 import { shellDictionary } from "@/lib/i18n/shell-dictionary";
 import { AppShell } from "@/components/app/AppShell";
-import { PasscodeGate } from "@/components/passcode/PasscodeGate";
+import { PasscodeGate, passkeyOfferedThisRequest } from "@/components/passcode/PasscodeGate";
 import { resolvePasscodeGate } from "@/lib/passcode/state";
 import { isSocialEnabled } from "@/lib/social/flag";
 import { CallLayerMount } from "@/components/calls/CallLayerMount";
@@ -90,6 +90,9 @@ export default async function AppLayout({
    * A preload only: nothing here waits on it.
    */
   void resolvePasscodeGate().catch(() => undefined);
+  /* The startup track (13 October 2026): the gate's key read joins it, for
+     the same reason. It used to wait for the gate's decision, in series. */
+  void passkeyOfferedThisRequest();
   const locale: Locale = await getLocale();
   const t = getDictionary(locale);
   /*
