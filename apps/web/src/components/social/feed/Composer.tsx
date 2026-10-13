@@ -9,6 +9,8 @@ import { notePublished } from "./publish-flight";
 import { toast } from "@/lib/ui/toast";
 import { useRouter } from "next/navigation";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { RemoteImage } from "@/components/ui/RemoteImage";
+import { initial as initialOf } from "@/lib/text/initial";
 import { Segmented } from "@/components/ui/Segmented";
 import { reencodeToJpeg } from "@/components/social/profile/reencode";
 import { loadBrowserClient } from "@/lib/supabase/load-client";
@@ -117,6 +119,7 @@ export function Composer({
   page = false,
   context,
   audience,
+  you = null,
 }: {
   /**
    * THE FULL PAGE (the founder's feed set: "if users want to comment it
@@ -131,6 +134,8 @@ export function Composer({
   context?: React.ReactNode;
   /** Above the field on a new post's page: the audience control. */
   audience?: React.ReactNode;
+  /** Who is writing: the face and name drawn at the top of a new post's page. */
+  you?: { label: string; avatarUrl: string } | null;
   areaId?: string;
   parentId?: string;
   signedIn: boolean;
@@ -146,6 +151,7 @@ export function Composer({
   onDraftChange?: (next: string) => void;
 }) {
   const router = useRouter();
+  const words = useClientCopy().feedV2.composer;
   const [pending, startTransition] = useTransition();
   const [kind, setKind] = useState<ComposableKind>(initialKind);
   /* The words live with the caller when it asks to hold them, so a sheet that
@@ -470,20 +476,36 @@ export function Composer({
         <div className="nf-compose-page__bar" data-compose-part="">
           {onDone ? (
             <button type="button" className="nf-compose-page__cancel" onClick={onDone} disabled={pending}>
-              Cancel
+              {words.cancel}
             </button>
           ) : (
             <span />
           )}
           {/* Disabled until there is something to send; it keeps its fill
               at rest (`nf-composer__send`, R1 A26). */}
-          <Button type="submit" variant="spark" size="sm" className="nf-composer__send nf-composer__send--label nf-compose-page__send" loading={pending} disabled={!canSend}>
-            {pending ? "Sending" : isReply ? "Reply" : "Post"}
+          <Button type="submit" variant="primary" size="sm" className="nf-compose-page__send" loading={pending} disabled={!canSend}>
+            {pending ? words.sending : isReply ? words.reply : words.post}
           </Button>
         </div>
       ) : null}
       {page ? context : null}
-      {page && !isReply ? audience : null}
+      {/* WHO IS WRITING (founder, 13 October): the face and the name at the top,
+          and under the name the one control that says who will see it. */}
+      {page && !isReply ? (
+        <div className="nf-compose-who" data-compose-part="" data-testid="composer-who">
+          <span className="nf-compose-who__face" aria-hidden="true">
+            {you?.avatarUrl ? (
+              <RemoteImage src={you.avatarUrl} alt="" width={88} height={88} sizes="44px" />
+            ) : (
+              <span className="nf-compose-who__monogram">{initialOf(you?.label)}</span>
+            )}
+          </span>
+          <span className="nf-compose-who__text">
+            <span className="nf-compose-who__name">{you?.label || words.you}</span>
+            {audience}
+          </span>
+        </div>
+      ) : null}
 
       {!isReply && !page ? (
         /*
@@ -642,7 +664,7 @@ export function Composer({
             className="nf-compose-page__tool"
             onClick={() => fileInput.current?.click()}
             disabled={pending || Boolean(strandedPost) || pictures.length >= POST_MEDIA_MAX}
-            aria-label={POST_COPY.picturePrompt}
+            aria-label={words.addPhotos}
           >
             <UiIcon name="picture" size={20} />
             {pictures.length > 0 ? (

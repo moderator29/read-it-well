@@ -42,7 +42,7 @@ import {
 } from "./posts-schema";
 import { SOCIAL_OFF_MESSAGE, isSocialEnabled } from "./flag";
 import { SOCIAL_REPORT_KIND } from "./report-kinds";
-import { getAreaFeed, getEverywhereFeed, getJoinedFeed, type FeedPage } from "./posts-queries";
+import { getAreaFeed, getEverywhereFeed, getFriendsFeed, getJoinedFeed, type FeedPage } from "./posts-queries";
 import { parseFeedCursor } from "./posts-cursor";
 import { blockUserSafely, unblockUserSafely } from "../safety/blocks-actions";
 import { DB_LIMIT_CODE, DB_LIMIT_MESSAGE, dbLimitRefusal } from "@/lib/security/db-limit";
@@ -730,11 +730,13 @@ export async function unmuteTarget(input: {
 export type FeedMode =
   | { kind: "everywhere" }
   | { kind: "joined" }
+  | { kind: "friends" }
   | { kind: "area"; areaId: string };
 
 const feedModeSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("everywhere") }),
   z.object({ kind: z.literal("joined") }),
+  z.object({ kind: z.literal("friends") }),
   z.object({ kind: z.literal("area"), areaId: z.uuid() }),
 ]);
 
@@ -816,7 +818,9 @@ async function loadMoreFeedInner(
         ? await getAreaFeed(chosen.areaId, at)
         : chosen.kind === "joined"
           ? await getJoinedFeed(session.user.id, at)
-          : await getEverywhereFeed(at);
+          : chosen.kind === "friends"
+            ? await getFriendsFeed(session.user.id, at)
+            : await getEverywhereFeed(at);
     /* A dropped read is a failure the control can say and retry, never the
        end of the timeline. */
     if (page.failed) return fail("The next page did not load. Check your connection and try again.");

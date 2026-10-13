@@ -151,7 +151,7 @@ try {
   }
 
   const tabs = await page.locator('[data-testid^="feed-tab-"]').all();
-  check("both are there, For you and Following", tabs.length === 2, [`${tabs.length}`]);
+  check("both are there, For you and Friends", tabs.length === 2, [`${tabs.length}`]);
 
   const shapes = [];
   for (const tab of tabs) {

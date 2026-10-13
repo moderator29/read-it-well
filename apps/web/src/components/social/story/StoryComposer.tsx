@@ -18,7 +18,11 @@ import {
   STORY_STANDFIRST_MAX,
 } from "@/lib/social/stories-model";
 import { IconPlate } from "@/components/ui/IconPlate";
+import { RemoteImage } from "@/components/ui/RemoteImage";
+import { initial as initialOf } from "@/lib/text/initial";
+import { useClientCopy } from "@/lib/i18n/client-copy";
 import { useSignInHref } from "@/lib/auth/use-sign-in-href";
+import "../feed/feed-v2.css";
 
 /**
  * Writing a story.
@@ -46,11 +50,15 @@ export function StoryComposer({
   areas,
   userId,
   signedIn,
+  you = null,
 }: {
   areas: { id: string; name: string; city: string }[];
   userId: string | null;
   signedIn: boolean;
+  /** Who is writing: the face and name shown at the top, as the post composer does. */
+  you?: { label: string; avatarUrl: string } | null;
 }) {
+  const words = useClientCopy().feedV2.composer;
   const signInHref = useSignInHref();
   const router = useRouter();
   const fileInput = useRef<HTMLInputElement>(null);
@@ -235,12 +243,26 @@ export function StoryComposer({
 
   return (
     <form
-      className="flex flex-col gap-md"
+      className="nf-story-form flex flex-col gap-md"
       onSubmit={(event) => {
         event.preventDefault();
         if (canPublish) publish();
       }}
     >
+      {/* Who is writing, the same top line the post composer has. */}
+      <div className="nf-compose-who" data-testid="story-who">
+        <span className="nf-compose-who__face" aria-hidden="true">
+          {you?.avatarUrl ? (
+            <RemoteImage src={you.avatarUrl} alt="" width={88} height={88} sizes="44px" />
+          ) : (
+            <span className="nf-compose-who__monogram">{initialOf(you?.label)}</span>
+          )}
+        </span>
+        <span className="nf-compose-who__text">
+          <span className="nf-compose-who__name">{you?.label || words.you}</span>
+        </span>
+      </div>
+
       {/*
         WHAT YOU WRITE IS WHAT POSTS (D74; the founder: posting a story was
         "so ugly and not neat not clean"). The composer is the story itself, at
@@ -334,7 +356,7 @@ export function StoryComposer({
         </p>
       ) : null}
 
-      <Button type="submit" variant="spark" full loading={pending} disabled={!canPublish}>
+      <Button type="submit" variant="primary" full loading={pending} disabled={!canPublish}>
         {pending ? STORY_COPY.publishing : STORY_COPY.publish}
       </Button>
 

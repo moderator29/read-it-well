@@ -93,3 +93,37 @@ export function WhoToFollow({
     </section>
   );
 }
+
+/**
+ * THE DESKTOP'S RIGHT RAIL: the same people the feed's block offers, in one
+ * quiet box beside the 600px column, with "See all" into the people page.
+ * Absent when there is nobody to suggest.
+ */
+export function PeopleRail({
+  people,
+  signedIn,
+  title,
+  seeAll,
+}: {
+  people: FollowSuggestion[];
+  signedIn: boolean;
+  title: string;
+  seeAll: string;
+}) {
+  if (people.length === 0) return null;
+  return (
+    <div className="nf-fv2-rail__box" data-testid="people-rail">
+      <div className="nf-fv2-rail__head">
+        <h2 className="nf-fv2-rail__title">{title}</h2>
+        <Link href="/around/people" className="nf-fv2-rail__all">
+          {seeAll}
+        </Link>
+      </div>
+      <ul className="nf-fv2-rail__list">
+        {people.map((person) => (
+          <FollowRow key={person.userId} person={person} signedIn={signedIn} />
+        ))}
+      </ul>
+    </div>
+  );
+}

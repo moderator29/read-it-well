@@ -33,6 +33,8 @@ export type ShellDictionary = Pick<Dictionary, "a11y" | "common" | "nav" | "side
   experienceRewards: Pick<Dictionary["experienceRewards"], "title">;
   /** The Create sheet's top-level options and their short lines (the "+" at the dock's right end). */
   homeV2: Pick<Dictionary["homeV2"], (typeof CREATE_KEYS)[number]>;
+  /** The People row's label, beside Feed: the page's own word, so the two cannot drift. */
+  feedV2: { people: Pick<Dictionary["feedV2"]["people"], "navPeople"> };
 };
 
 const CREATE_KEYS = [
@@ -74,6 +76,7 @@ export function shellDictionary(t: Dictionary): ShellDictionary {
     supply: Object.fromEntries(SUPPLY_KEYS.map((key) => [key, t.supply[key]])) as ShellDictionary["supply"],
     priceCheck: { title: t.priceCheck.title },
     pickers: { close: t.pickers.close },
+    feedV2: { people: { navPeople: t.feedV2.people.navPeople } },
     experienceShell: {
       navPayments: t.experienceShell.navPayments,
       navInvite: t.experienceShell.navInvite,
