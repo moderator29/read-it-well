@@ -14,9 +14,8 @@ import { sendMessage } from "./actions";
  * sending leaves nothing behind in either inbox.
  *
  * The chat itself is made by `public.start_direct_conversation`, which checks
- * the other person has a public profile and that neither has blocked the other
- * (and, once supabase/migrations/pending/start_direct_conversation_contact_policy.sql
- * is applied, the profile's ask-first rule for a new chat), and the database's own trigger holds the twenty-new-chats-a-day limit that
+ * the other person has a public profile and that neither has blocked the other,
+ * and the database's own trigger holds the twenty-new-chats-a-day limit that
  * listing and business chats share.
  */
 const PAUSED = "Messaging is paused for maintenance. Please try again in a little while.";
@@ -47,9 +46,9 @@ export async function sendDirectMessage(input: {
   if (read.state === "self") return fail("That is you. Pick somebody else to message.");
   /* The profile's own rule (`message-door.ts`): a person who asks first takes
      a new chat only from somebody who follows them. */
-  const followFirst = (name: string): ActionResult<{ conversationId: string }> =>
-    fail(`Follow ${name} to message them. They take new messages only from people who follow them.`);
-  if (read.state === "follow-first") return followFirst(read.target.displayLabel);
+  if (read.state === "follow-first") {
+    return fail(`Follow ${read.target.displayLabel} to message them. They take new messages only from people who follow them.`);
+  }
   if (read.state !== "ready") return fail("We could not find that person. They may have changed their name.");
 
   if (await blockedBetween(session.supabase, session.user.id, read.target.userId)) {
@@ -63,10 +62,6 @@ export async function sendDirectMessage(input: {
     });
     if (error || typeof data !== "string") {
       if (error?.code === "54000") return fail(LIMIT);
-      /* The database holds the same rule (pending migration
-         start_direct_conversation_contact_policy): an unfollow between the
-         read above and this call is refused there, and said the same way. */
-      if (error?.message?.includes("direct:follow_first")) return followFirst(read.target.displayLabel);
       if (error?.code === "42501") return fail(BLOCKED_THREAD_MESSAGE);
       return fail(UNREACHABLE);
     }
