@@ -1,0 +1,146 @@
+[
+ {
+  "name": "impact_soft",
+  "t": 13.846,
+  "offset_db": 2,
+  "pan": 0
+ },
+ {
+  "name": "sparkle",
+  "t": 14.712,
+  "offset_db": 0,
+  "pan": 0
+ },
+ {
+  "name": "whoosh_short",
+  "t": 21.069,
+  "offset_db": 0,
+  "pan": 0
+ },
+ {
+  "name": "tap",
+  "t": 26.488,
+  "offset_db": 0,
+  "pan": 0
+ },
+ {
+  "name": "toggle_on",
+  "t": 33.462,
+  "offset_db": 0,
+  "pan": 0
+ },
+ {
+  "name": "whoosh_short",
+  "t": 39.431,
+  "offset_db": 0,
+  "pan": 0
+ },
+ {
+  "name": "swipe",
+  "t": 46.104,
+  "offset_db": 0,
+  "pan": 0
+ },
+ {
+  "name": "swipe",
+  "t": 54.181,
+  "offset_db": 0,
+  "pan": 0
+ },
+ {
+  "name": "whoosh_short",
+  "t": 60.2,
+  "offset_db": 0,
+  "pan": 0
+ },
+ {
+  "name": "bubble_send",
+  "t": 67.5,
+  "offset_db": 0,
+  "pan": 0
+ },
+ {
+  "name": "swipe",
+  "t": 72.642,
+  "offset_db": 0,
+  "pan": 0
+ },
+ {
+  "name": "whoosh_short",
+  "t": 78.662,
+  "offset_db": 0,
+  "pan": 0
+ },
+ {
+  "name": "swipe",
+  "t": 84.181,
+  "offset_db": 0,
+  "pan": 0
+ },
+ {
+  "name": "swipe",
+  "t": 89.95,
+  "offset_db": 0,
+  "pan": 0
+ },
+ {
+  "name": "whoosh_short",
+  "t": 94.815,
+  "offset_db": 0,
+  "pan": 0
+ },
+ {
+  "name": "stamp",
+  "t": 102.115,
+  "offset_db": -2,
+  "pan": 0
+ },
+ {
+  "name": "whoosh_long",
+  "t": 111.069,
+  "offset_db": -2,
+  "pan": 0
+ },
+ {
+  "name": "pop",
+  "t": 111.669,
+  "offset_db": 0,
+  "pan": 0
+ },
+ {
+  "name": "pop",
+  "t": 111.969,
+  "offset_db": 0,
+  "pan": 0
+ },
+ {
+  "name": "whoosh_short",
+  "t": 124.815,
+  "offset_db": 0,
+  "pan": 0
+ },
+ {
+  "name": "chime_notify",
+  "t": 127.5,
+  "offset_db": -2,
+  "pan": 0
+ },
+ {
+  "name": "impact_soft",
+  "t": 131.538,
+  "offset_db": 3,
+  "pan": 0
+ },
+ {
+  "name": "sparkle",
+  "t": 133.846,
+  "offset_db": 0,
+  "pan": 0
+ },
+ {
+  "name": "stamp",
+  "t": 136.731,
+  "offset_db": -4,
+  "pan": 0
+ }
+]

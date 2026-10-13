@@ -1,0 +1,188 @@
+[
+ {
+  "name": "impact_soft",
+  "t": 18.462,
+  "offset_db": 2,
+  "pan": 0
+ },
+ {
+  "name": "whoosh_short",
+  "t": 19.062,
+  "offset_db": 0,
+  "pan": 0
+ },
+ {
+  "name": "whoosh_short",
+  "t": 37.323,
+  "offset_db": 0,
+  "pan": 0
+ },
+ {
+  "name": "pop",
+  "t": 37.823,
+  "offset_db": 0,
+  "pan": 0
+ },
+ {
+  "name": "whoosh_short",
+  "t": 57.892,
+  "offset_db": 0,
+  "pan": 0
+ },
+ {
+  "name": "swipe",
+  "t": 65.719,
+  "offset_db": 0,
+  "pan": 0
+ },
+ {
+  "name": "swipe",
+  "t": 71.488,
+  "offset_db": 0,
+  "pan": 0
+ },
+ {
+  "name": "whoosh_short",
+  "t": 76.354,
+  "offset_db": 0,
+  "pan": 0
+ },
+ {
+  "name": "bubble_send",
+  "t": 81.346,
+  "offset_db": 0,
+  "pan": 0
+ },
+ {
+  "name": "swipe",
+  "t": 85.335,
+  "offset_db": 0,
+  "pan": 0
+ },
+ {
+  "name": "whoosh_short",
+  "t": 94.815,
+  "offset_db": 0,
+  "pan": 0
+ },
+ {
+  "name": "swipe",
+  "t": 103.796,
+  "offset_db": 0,
+  "pan": 0
+ },
+ {
+  "name": "whoosh_short",
+  "t": 113.277,
+  "offset_db": 0,
+  "pan": 0
+ },
+ {
+  "name": "swipe",
+  "t": 122.258,
+  "offset_db": 0,
+  "pan": 0
+ },
+ {
+  "name": "whoosh_short",
+  "t": 131.738,
+  "offset_db": 0,
+  "pan": 0
+ },
+ {
+  "name": "swipe",
+  "t": 137.835,
+  "offset_db": 0,
+  "pan": 0
+ },
+ {
+  "name": "swipe",
+  "t": 141.873,
+  "offset_db": 0,
+  "pan": 0
+ },
+ {
+  "name": "whoosh_short",
+  "t": 145.585,
+  "offset_db": 0,
+  "pan": 0
+ },
+ {
+  "name": "swipe",
+  "t": 153.412,
+  "offset_db": 0,
+  "pan": 0
+ },
+ {
+  "name": "whoosh_short",
+  "t": 159.431,
+  "offset_db": 0,
+  "pan": 0
+ },
+ {
+  "name": "chime_notify",
+  "t": 164.423,
+  "offset_db": -3,
+  "pan": 0
+ },
+ {
+  "name": "whoosh_short",
+  "t": 173.277,
+  "offset_db": 0,
+  "pan": 0
+ },
+ {
+  "name": "chime_notify",
+  "t": 178.269,
+  "offset_db": -3,
+  "pan": 0
+ },
+ {
+  "name": "pop",
+  "t": 193.896,
+  "offset_db": -2,
+  "pan": 0
+ },
+ {
+  "name": "pop",
+  "t": 194.396,
+  "offset_db": -2,
+  "pan": 0
+ },
+ {
+  "name": "pop",
+  "t": 194.896,
+  "offset_db": -2,
+  "pan": 0
+ },
+ {
+  "name": "pop",
+  "t": 195.396,
+  "offset_db": -2,
+  "pan": 0
+ },
+ {
+  "name": "pop",
+  "t": 195.896,
+  "offset_db": -2,
+  "pan": 0
+ },
+ {
+  "name": "impact_soft",
+  "t": 205.385,
+  "offset_db": 3,
+  "pan": 0
+ },
+ {
+  "name": "sparkle",
+  "t": 207.692,
+  "offset_db": 0,
+  "pan": 0
+ },
+ {
+  "name": "stamp",
+  "t": 212.308,
+  "offset_db": -4,
+  "pan": 0
+ }
+]
