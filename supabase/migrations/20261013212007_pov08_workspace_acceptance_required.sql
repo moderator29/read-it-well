@@ -1,4 +1,4 @@
--- DRAFT, not applied. PAY ON VALLO 8 of 8. Needs pov07. Apply AFTER the app
+-- Applied 13 October 2026, after the release. PAY ON VALLO 8 of 8. Needs pov07. Apply AFTER the app
 -- on track/pay-on-vallo is live: until then the forms in production do not
 -- record pay_on_vallo, and a submission would be refused.
 -- Ruling 6, enforced in the database as well as in the server actions: a
