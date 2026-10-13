@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useBack } from "@/lib/nav/use-back";
-import type { Dictionary } from "@vallo/i18n/core";
+import type { RegisterCopy } from "./supply-copy";
 import { TYPE } from "@/components/app/Screen";
 import { TextField } from "@/components/ui/Field";
 import { Button } from "@/components/ui/Button";
@@ -15,11 +15,12 @@ import {
   REGISTER_STEPS,
   earliestStep,
   type AssociationProof,
-} from "@/lib/supply/registration";
+} from "@/lib/supply/registration-model";
 import { submitSupplyRegistration } from "@/lib/supply/registration-actions";
 import { RegField, RegFieldGroup } from "./RegisterField";
 import { CalmPanel, RegisterDone, RegisterShell } from "./RegisterShell";
 import { RegistrationFiledSheet } from "./RegistrationFiledSheet";
+import { WorkspaceAcceptance } from "@/components/legal/WorkspaceAcceptance";
 import { UploadCard, newBatchId, type UploadState } from "./UploadCard";
 import { IconPlate } from "@/components/ui/IconPlate";
 
@@ -73,7 +74,7 @@ export function FirmRegisterForm({
   t,
   startAt = 0,
 }: {
-  t: Dictionary;
+  t: RegisterCopy;
   /** The preview harness only. See the note on the owner form. */
   startAt?: number;
 }) {
@@ -103,6 +104,9 @@ export function FirmRegisterForm({
     attached: boolean;
   } | null>(null);
   const [pending, startTransition] = useTransition();
+  /* Ruling 6 (13 October 2026): the two ticks before this is sent. */
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [acceptPay, setAcceptPay] = useState(false);
 
   function back() {
     setScreenError(null);
@@ -128,7 +132,9 @@ export function FirmRegisterForm({
     }
     if (step === 1) return proof === null;
     /* The team screen never blocks. A firm with nobody added yet is the state
-       every firm starts in, and the screen says so rather than refusing. */
+       every firm starts in, and the screen says so rather than refusing. It
+       waits only for the two ticks (ruling 6). */
+    if (step === 2) return !acceptTerms || !acceptPay;
     return false;
   }
 
@@ -159,6 +165,8 @@ export function FirmRegisterForm({
         principalEmail: principalEmail.trim(),
         letterPath: letter?.path ?? "",
         team,
+        acceptTerms,
+        acceptPayOnVallo: acceptPay,
       });
       if (!result.ok) {
         setErrors(result.fieldErrors ?? {});
@@ -449,6 +457,17 @@ export function FirmRegisterForm({
       }}
     >
       {screen.body}
+      {step === 2 ? (
+        <WorkspaceAcceptance
+          className="mt-md"
+          copy={t.payChoice}
+          terms={acceptTerms}
+          pay={acceptPay}
+          onTerms={setAcceptTerms}
+          onPay={setAcceptPay}
+          showError={Boolean(errors.acceptTerms || errors.acceptPayOnVallo)}
+        />
+      ) : null}
     </RegisterShell>
   );
 }
@@ -467,7 +486,7 @@ export function FirmDoneScreen({
   t,
   filed,
 }: {
-  t: Dictionary;
+  t: RegisterCopy;
   filed: { reference: string; attached: boolean };
 }) {
   const router = useRouter();
@@ -486,9 +505,9 @@ export function FirmDoneScreen({
       onBack={() => router.replace("/home")}
       primary={{
         label: copy.trackIt,
-        onClick: () => router.push("/profile/application"),
+        onClick: () => router.replace("/profile/application"),
       }}
-      secondary={{ label: copy.backHome, onClick: () => router.push("/home") }}
+      secondary={{ label: copy.backHome, onClick: () => router.replace("/home") }}
     >
       <RegisterDone
         object="cluster-home"

@@ -30,7 +30,15 @@ import { describe, expect, it } from "vitest";
 const SRC = join(__dirname, "..", "..");
 
 /** The surfaces held to the rule. */
-const SURFACES = ["app/(app)/checkout", "app/(app)/rent/pay", "app/(auth)", "components/auth"];
+const SURFACES = [
+  "app/(app)/checkout",
+  "app/(app)/rent/pay",
+  "app/(auth)",
+  "components/auth",
+  /* Schedule a visit (13 October 2026): written to the dictionary from the start. */
+  "app/(app)/listing/[id]/visit",
+  "components/app/inspections/visit",
+];
 
 /** Props whose string value is read or announced. */
 const SPOKEN = new Set([
@@ -44,6 +52,8 @@ const LAYOUT = new Set([
   "variant", "icon", "size", "autoComplete", "inputMode", "art", "fallback", "key", "rel", "target",
   "method", "encType", "role", "trailingIcon", "state", "tone", "aria-labelledby", "aria-describedby",
   "htmlFor", "form", "value", "defaultValue", "pattern",
+  /* An image's responsive widths: a media query, never words for a person. */
+  "sizes",
 ]);
 
 /** Literal text that is not language: say why, or do not add it. */

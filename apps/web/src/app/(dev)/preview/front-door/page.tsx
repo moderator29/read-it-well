@@ -18,7 +18,6 @@ const FIXTURE_FEES: ListerFees = {
   commissionFlatMinor: 0,
   listingFeeBps: 0,
   listingFeeFlatMinor: 0,
-  guaranteeBps: 150,
 };
 
 export default async function FrontDoorPreview({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {

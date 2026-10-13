@@ -67,12 +67,18 @@ export function BookingsDesk({
         aside={
           /* THE RESERVATION OVERSIGHT LINK, kept: restaurant tables reuse the
              booking enum but are a different loop with their own queue. */
-          <Link href="/admin/bookings/reservations" className="nf-md-toggle">
-            Restaurant tables
-            <span className="nf-numeric">
-              {waitingTables === null ? " · count unavailable" : waitingTables === 0 ? " · none waiting" : ` · ${waitingTables} waiting`}
-            </span>
-          </Link>
+          <span className="flex flex-wrap gap-xs">
+            <Link href="/admin/bookings/reservations" className="nf-md-toggle">
+              Restaurant tables
+              <span className="nf-numeric">
+                {waitingTables === null ? " · count unavailable" : waitingTables === 0 ? " · none waiting" : ` · ${waitingTables} waiting`}
+              </span>
+            </Link>
+            {/* Visit ops: the inspection requests, as a calendar. */}
+            <Link href="/admin/bookings/visits" className="nf-md-toggle">
+              {t.visitOps.admin.openCalendar}
+            </Link>
+          </span>
         }
       />
 
@@ -161,7 +167,7 @@ export function BookingsDesk({
                   desk.table.rows.map((stay) => (
                     <tr key={stay.id}>
                       <td className="nf-md-lead" data-label="">
-                        <Link href={`/admin/bookings/${stay.id}`} className="block font-medium text-[var(--nf-content-primary)] underline-offset-2 hover:underline">
+                        <Link href={`/admin/bookings/${stay.id}`} className="flex min-h-11 min-w-11 items-center font-semibold text-[var(--nf-content-primary)] underline-offset-2 hover:underline">
                           {stay.listingTitle ?? "A listing that is no longer there"}
                         </Link>
                         <span className="block text-[length:var(--nf-text-caption)]">
@@ -243,7 +249,9 @@ function VolumePanel({ desk, locale }: { desk: BookingsDeskData | null; locale: 
         xLabels={days.map((d) => dayLabel(d.day, locale))}
         series={[{ name: "Stays booked", values: days.map((d) => d.count), rank: 0, area: true }]}
         label="Stays booked per day, last thirty days"
-        yLabel={(v) => String(Math.round(v))}
+        /* A count is whole: a gridline at 1.25 stays unlabelled rather than
+           read "1" beside a line that is not at one (C1 sweep). */
+        yLabel={(v) => (Number.isInteger(v) ? String(v) : "")}
         readout={days.map((d) => ({ title: dayLabel(d.day, locale, true), rows: [{ label: "Stays booked", value: String(d.count) }] }))}
       />
     </Panel>

@@ -5,7 +5,12 @@ import type { InspectionState } from "@/lib/inspections/types";
 import { ROOM_ITEMS } from "@/lib/inspections/report";
 import { INSPECTION, INSPECTION_FACTS } from "../../f5/fixtures";
 
-const STATES: readonly InspectionState[] = ["REQUESTED", "CONFIRMED", "PROPOSED", "DECLINED", "COMPLETED", "WITHDRAWN"];
+/** Three days from the request, on the hour: a viewing still ahead. */
+function aheadOfNow(): string {
+  return new Date(Math.ceil(Date.now() / 3_600_000) * 3_600_000 + 3 * 86_400_000).toISOString();
+}
+
+const STATES: readonly InspectionState[] = ["REQUESTED", "CONFIRMED", "PROPOSED", "DECLINED", "COMPLETED", "WITHDRAWN", "NO_SHOW"];
 
 /**
  * The inspection surface on fixture props, shared by the two
@@ -29,6 +34,8 @@ export async function InspectionFixture({
   rental: rentalParam,
   submitted: submittedParam,
   agreement: agreementParam,
+  ahead: aheadParam,
+  noshow: noShowParam,
 }: {
   side?: string;
   state?: string;
@@ -37,6 +44,10 @@ export async function InspectionFixture({
   rental?: string;
   submitted?: string;
   agreement?: string;
+  /** `ahead=1`: the agreed time is three days away, so it can still be moved or called off. */
+  ahead?: string;
+  /** On a NO_SHOW: `mine` (this reader reported it), `theirs` (this reader is marked absent), `disputed`. */
+  noshow?: string;
 }) {
   const photoCount = Math.max(0, Number.parseInt(photosParam ?? "0", 10) || 0);
   const live = roomsParam !== "off";
@@ -52,6 +63,7 @@ export async function InspectionFixture({
           inspection={{
             ...INSPECTION,
             state,
+            ...(aheadParam === "1" ? { slotAt: aheadOfNow(), requestedAt: aheadOfNow() } : {}),
             listingTitle: "Lekki Phase 1 Apartment",
             counterpartName: "Tunde Adebayo",
             listerNote: null,
@@ -68,6 +80,17 @@ export async function InspectionFixture({
           agreement={agreementParam ? { id: "00000000-0000-4000-8000-000000000000", status: agreementParam } : null}
           locale={locale}
           open
+          noShow={
+            noShowParam
+              ? {
+                  reportedByMe: noShowParam === "mine",
+                  absentRole: side === "lister" ? "lister" : "requester",
+                  reportedAt: new Date(Date.now() - 3 * 3_600_000).toISOString(),
+                  disputedAt: noShowParam === "disputed" ? new Date().toISOString() : null,
+                  resolution: null,
+                }
+              : null
+          }
           reportLive={live}
           report={
             live

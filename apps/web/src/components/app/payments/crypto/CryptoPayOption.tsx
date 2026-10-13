@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { getDictionary, type Locale } from "@vallo/i18n";
+import type { Locale } from "@vallo/i18n/core";
+import { useScopedCopy } from "@/lib/i18n/copy-scope";
 import { getCryptoQuote, startCryptoPayment } from "@/lib/crypto/actions";
 import { refundAddressLooksValid } from "@/lib/crypto/assets";
 import type { CryptoPaymentView } from "@/lib/crypto/view";
@@ -55,7 +56,7 @@ export function CryptoPayOption({
   totalMinor: number;
   locale: Locale;
 }) {
-  const t = getDictionary(locale).cryptoPay;
+  const t = useScopedCopy("cryptoPay");
   const [open, setOpen] = useState(false);
 
   if (offer.kind === "kyc") {
@@ -69,7 +70,7 @@ export function CryptoPayOption({
         <div className="min-w-0 flex-1">
           <p className="nf-body font-semibold text-[var(--nf-content-primary)]">{t.kycTitle}</p>
           <p className="nf-body-sm mt-inline-tight leading-relaxed text-[var(--nf-content-secondary)]">{t.kycBody}</p>
-          <Link href="/verification"className="nf-body-sm mt-row inline-block font-medium text-[var(--nf-brand-primary)] underline">
+          <Link href="/verification"className="nf-body-sm mt-row inline-block font-semibold text-[var(--nf-brand-primary)] underline">
             {t.kycAction}
           </Link>
         </div>
@@ -124,7 +125,7 @@ function CryptoSheet({
   locale: Locale;
   onClose: () => void;
 }) {
-  const t = getDictionary(locale).cryptoPay;
+  const t = useScopedCopy("cryptoPay");
   const assets = useMemo(() => [...new Set(offer.pairs.map((pair) => pair.asset))], [offer.pairs]);
   const [asset, setAsset] = useState(assets[0] ?? "");
   const networks = offer.pairs.filter((pair) => pair.asset === asset);
@@ -179,12 +180,12 @@ function CryptoSheet({
                 locale={locale}
                 showFraction
                 className="nf-display mt-inline block font-bold leading-none"
-                secondaryClassName="text-[0.55em] font-semibold opacity-70"
+                secondaryClassName="text-[length:max(0.55em,0.75rem)] font-semibold opacity-70"
               />
             ) : (
               <>
                 <p className="nf-display mt-inline break-all font-bold leading-none">
-                  {step.view.cryptoAmount} <span className="text-[0.55em] font-semibold opacity-80">{step.view.asset}</span>
+                  {step.view.cryptoAmount} <span className="text-[length:max(0.55em,0.75rem)] font-semibold opacity-80">{step.view.asset}</span>
                 </p>
                 <p className="nf-body-sm mt-inline opacity-80">
                   {fill(t.worth, { amount: "" })}
@@ -336,7 +337,7 @@ function QuoteCard({
   onConfirm: () => void;
   onRequote: () => void;
 }) {
-  const t = getDictionary(locale).cryptoPay;
+  const t = useScopedCopy("cryptoPay");
   const left = useCountdown(view.expiresAt);
   const expired = left <= 0;
   return (

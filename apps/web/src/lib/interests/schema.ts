@@ -1,13 +1,20 @@
+/**
+ * schema: the zod schemas the SERVER validates with.
+ *
+ * Everything a client component may import (the constants, labels, limits,
+ * copy and pure helpers) lives in `./model` and is re-exported here, so a server
+ * module still imports from this file as before. A client component imports
+ * the model, never this file, because this file builds zod schemas at import
+ * time and zod's classic API is 64 KB gzipped in every client chunk that
+ * reaches it (W13, chunk 2008felnqkn1d).
+ */
+
 import { z } from "zod";
 import { PROPERTY_TYPES } from "./property-types";
-
-export {
-  INTEREST_COPY,
-  PROPERTY_TYPES,
-  isPropertyType,
-  knownInterests,
-  type PropertyType,
-} from "./property-types";
+import {
+  INTENT_DIRECTIONS,
+} from "./model";
+export * from "./model";
 
 /**
  * What a client may send.
@@ -37,17 +44,8 @@ export const saveInterestsSchema = z.object({
 });
 
 export type SaveInterestsInput = z.input<typeof saveInterestsSchema>;
-export type SaveInterestsValues = z.output<typeof saveInterestsSchema>;
 
-/**
- * The two things somebody can say about a market from a card.
- *
- * Deliberately not a boolean. `more` and `less` are what the buttons say, they
- * are what the confirmation has to name back, and a `{ wanted: true }` payload
- * would have read as "set" rather than "add", which is a different write.
- */
-export const INTENT_DIRECTIONS = ["more", "less"] as const;
-export type IntentDirection = (typeof INTENT_DIRECTIONS)[number];
+export type SaveInterestsValues = z.output<typeof saveInterestsSchema>;
 
 /**
  * One market, adjusted in one direction.

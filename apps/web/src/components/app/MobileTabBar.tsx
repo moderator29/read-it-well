@@ -1,12 +1,37 @@
 import type { ShellDictionary } from "@/lib/i18n/shell-dictionary";
-import Link from "next/link";
 import { AutoHideDock } from "./AutoHideDock";
+import { HoldTabLink } from "./HoldTabLink";
 import { DockMore, type DockMoreItem } from "./DockMore";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import type { Side } from "@/lib/side.constants";
+import { CreateDock } from "./CreateDock";
+import { isFocusedRoute } from "./focused-route";
 
 /**
  * The bottom tab bar.
+ *
+ * ---------------------------------------------------------------------------
+ * THE DOCK SWAP (the founder, 13 October 2026). THE MENU AND THE "+" EXCHANGED
+ * PLACES.
+ *
+ *   was      capsule: Home  Search  [+]    Feed  Profile      (menu)
+ *   now      capsule: Home  Search  [menu] Feed  Profile      (+)
+ *
+ * The grid menu (`DockMore`, its tray of eight destinations) moved INTO the
+ * capsule's centre slot, in line with the other four and in the same container
+ * the "+" had, so the centre still reads as the special one. The "+"
+ * (`CreateDock`, the Create sheet) moved OUT to the round button at the right
+ * end where the menu was, brand blue with its glow. Nothing about what either
+ * does changed: the tray still lists the same destinations with the live
+ * unread count, and the sheet is still the same three plain options. The tray
+ * now opens centred above the capsule instead of from the bottom right; the
+ * Create sheet is a bottom sheet and opens the same from its new button. Both
+ * join the overlay registry, so the Android back button closes whichever is
+ * open (`lib/native/back-button.ts`). The names stay "More" and "Create".
+ *
+ * Everything below that mentions "the centre slot" as the "+" was written
+ * before this swap and is kept as the record of why the dock is the shape it
+ * is: the slot count, the in-line height and the container are unchanged.
  *
  * ---------------------------------------------------------------------------
  * THE EXACT CHANGE, AS ASKED FOR, IN THE ORDER IT WAS ASKED FOR.
@@ -69,6 +94,13 @@ import type { Side } from "@/lib/side.constants";
  * said, the weight change still marks the active tab for sight, and the bar
  * gets the calm the reference has. If labels ever return, they return for
  * everyone, not only the active tab.
+ *
+ * AND THE CHOSEN TAB'S WORD WENT TOO (the founder, 7 October 2026: "When I
+ * click any icon it shows the text, like Home. Make it not show the text of
+ * the icon, just the icon, when clicked."). The pill that opened with the
+ * word is now one slot wide around the glyph alone, on both sides' docks; the
+ * pill, the brand ink and the solid twin carry the state, and the name stays
+ * in `aria-label`. Pinned by `app/css/dock-label.dom.test.tsx`.
  *
  * THE ACTIVE GLYPH CHANGES WEIGHT, not only colour. `UiIcon` carries a drawn
  * solid silhouette for each of these four, so the active destination reads as
@@ -168,6 +200,10 @@ export function isImmersiveRoute(pathname: string): boolean {
   return /^\/messages\/(?!new$)[^/]+$/.test(pathname);
 }
 
+/* The focused routes (/wallet and its screens, D81) step out of the dock too:
+   `isFocusedRoute` in focused-route.ts says which, for the shell and here. */
+export { isFocusedRoute };
+
 /**
  * The tab a route belongs to, or null when none does.
  *
@@ -193,7 +229,7 @@ export function isImmersiveRoute(pathname: string): boolean {
  * lie. The root is the tab, so the pill goes where the reader is.
  */
 export function tabRootFor(pathname: string): string | null {
-  if (isImmersiveRoute(pathname)) return null;
+  if (isImmersiveRoute(pathname) || isFocusedRoute(pathname)) return null;
   return (
     TAB_BAR_ROUTES.find(
       (route) => pathname === route || pathname.startsWith(`${route}/`),
@@ -233,9 +269,10 @@ export function MobileTabBar({
   active = "/home",
   unreadNotifications = 0,
   signedIn = false,
-  switchSlot,
+  createSlot,
   prefetchFull = false,
   unreadConversationsPreview,
+  socialOn = true,
 }: {
   t: ShellDictionary;
   side?: Side;
@@ -243,8 +280,8 @@ export function MobileTabBar({
   unreadNotifications?: number;
   signedIn?: boolean;
   /**
-   * The centre slot, rendered by the shell: the "+" and its Create sheet
-   * (`CreateDock`), with the workspace sheet mounted beside it.
+   * The round button at the right end, rendered by the shell: the "+" and its
+   * Create sheet (`CreateDock`), with the workspace sheet mounted beside it.
    *
    * It arrives as an element rather than as props because it is a CLIENT
    * control whose workspace sheet needs the account's own workspace list, and
@@ -252,7 +289,7 @@ export function MobileTabBar({
    * the list once and hands the finished control down, which is the same
    * arrangement `AppShell` already uses for the drawer.
    */
-  switchSlot?: React.ReactNode;
+  createSlot?: React.ReactNode;
   /**
    * Prefetch each tab's WHOLE page, not only its loading shell (Track M
    * performance). Next's default for a dynamic route prefetches up to the
@@ -264,6 +301,8 @@ export function MobileTabBar({
   prefetchFull?: boolean;
   /** Dev preview only: a fixed unread-conversations figure (B1). */
   unreadConversationsPreview?: number;
+  /** The `social` switch. Off, the Feed slot holds Agreements (below). */
+  socialOn?: boolean;
 }) {
   /*
     FIVE SLOTS, AND THE CENTRE ONE IS THE SWITCH.
@@ -291,17 +330,30 @@ export function MobileTabBar({
     slot "Explore" and the property renders "Search": one word ships on both
     sides and the word is Search.
   */
+  /*
+    AROUND PAUSED (north star 10 E, "hide the tab when the switch is off").
+    With the `social` switch off the Feed slot does not lead to a screen that
+    says "Around is paused"; it holds Agreements instead, so the dock keeps
+    its five slots and its "+" stays in the centre (D28: the dock keeps its
+    slots). Agreements because it is already a dock root (`TAB_BAR_ROUTES`,
+    so the dock stays on screen when it is chosen) and it is where money
+    lives (Track A); a four-slot dock would push the "+" off centre, and an
+    empty slot would read as broken.
+  */
+  const feed: Tab = socialOn
+    ? { href: "/around", label: t.nav.feed, icon: "feed" }
+    : { href: "/agreements", label: t.nav.agreements, icon: "document" };
   const tabs: Tab[] =
     side === "stays"
       ? [
           { href: "/stays", label: t.nav.stays, icon: "bed" },
           { href: "/stays/search", label: t.nav.search, icon: "search-disc" },
-          { href: "/around", label: t.nav.feed, icon: "feed" },
+          feed,
         ]
       : [
           { href: "/home", label: t.nav.home, icon: "home" },
           { href: "/search", label: t.nav.search, icon: "search-disc" },
-          { href: "/around", label: t.nav.feed, icon: "feed" },
+          feed,
         ];
 
   /* Profile for a member, the way in for a guest. One slot, two honest jobs. */
@@ -329,10 +381,11 @@ export function MobileTabBar({
    */
   const root = tabRootFor(active);
   /*
-   * Slot order: two links, THE "+", one link, Profile. The travelling pill
-   * counts the "+" as a slot so the geometry stays one fifth per slot, and
-   * index 2 can never be active because the "+" is not a destination: it
-   * opens the Create sheet over wherever you already are.
+   * Slot order: two links, THE MENU, one link, Profile. The travelling pill
+   * counts the menu as a slot so the geometry stays one fifth per slot, and
+   * index 2 can never be active because the menu is not a destination: it
+   * opens the tray of destinations over wherever you already are (the tray
+   * rows light the menu's glyph when the route is one of them, `data-lit`).
    */
   const slots = [tabs[0], tabs[1], null, tabs[2], profile];
   const activeIndex = slots.findIndex((tab) => tab != null && tab.href === root);
@@ -356,14 +409,14 @@ export function MobileTabBar({
           icon: "calendar-booking",
         },
         { href: "/saved", label: t.nav.saved, icon: "heart" },
-        { href: "/assistant", label: t.nav.aiAssistant, icon: "sparkle" },
+        { href: "/assistant", label: t.nav.aiAssistant, icon: "bot" },
         { href: "/agreements", label: t.nav.agreements, icon: "document" },
         { href: "/price", label: t.priceCheck.title, icon: "price-tag" },
         { href: "/settings", label: t.nav.settings, icon: "settings-gear" },
         { href: "/support", label: t.nav.helpSupport, icon: "headset" },
       ]
     : [
-        { href: "/assistant", label: t.nav.aiAssistant, icon: "sparkle" },
+        { href: "/assistant", label: t.nav.aiAssistant, icon: "bot" },
         { href: "/price", label: t.priceCheck.title, icon: "price-tag" },
         { href: "/help", label: t.nav.helpSupport, icon: "headset" },
       ];
@@ -406,12 +459,21 @@ export function MobileTabBar({
         <li className="nf-tabbar__pill" data-parked={activeIndex < 0 || undefined} aria-hidden="true" />
         {slots.map((tab, index) => {
           if (tab == null) {
-            /* The centre slot: the round "+" (`CreateDock`), with no label
-               under it; its accessible name is "Create". It sits in line
-               with the other four, same height, same baseline. */
+            /* The centre slot: the grid menu (`DockMore`), with no label
+               under it; its accessible name is "More". It sits in line with
+               the other four, same height, same baseline, in the container
+               the centre slot has always had so it still reads as special.
+               Its tray opens centred above the capsule (shell-m.css), and a
+               member's unread conversations ride its corner, live. */
             return (
-              <li key="switch" className="nf-tab nf-tab--switch">
-                {switchSlot}
+              <li key="menu" className="nf-tab nf-tab--switch">
+                <DockMore
+                  items={more}
+                  label={t.nav.more}
+                  active={active}
+                  unreadLabel={signedIn ? t.a11y.unreadConversationsOn : undefined}
+                  unreadPreview={unreadConversationsPreview}
+                />
               </li>
             );
           }
@@ -419,7 +481,9 @@ export function MobileTabBar({
           const isProfile = index === slots.length - 1;
           return (
             <li key={tab.href} className="nf-tab">
-              <Link
+              {/* The startup track: a tab whose copy is still on its way keeps
+                  the current screen up until it lands (HoldTabLink). */}
+              <HoldTabLink
                 href={tab.href}
                 prefetch={prefetchFull}
                 aria-current={isActive ? "page" : undefined}
@@ -434,26 +498,35 @@ export function MobileTabBar({
               >
                 {/* The second ruling (B1, references 44 and 45): every dock
                     glyph is its SOLID CUTOUT twin, ink at rest and brand blue
-                    when chosen; the chosen tab opens into a pill with its
-                    word (shell-m.css, "SECOND RULING"). */}
-                <span className="nf-tab__icon">
-                  <UiIcon name={tab.icon} size="md" filled weight="bold" />
+                    when chosen; the chosen tab sits in a pill around the
+                    glyph alone, with no word (7 October; the name is the
+                    link's `aria-label`). */}
+                <span className="nf-tab__body">
+                  <span className="nf-tab__icon" data-glyph={tab.icon}>
+                    {/* The search disc draws its lens inside a ring, so at the shared size it
+                        read smaller than its neighbours (founder, 9 October): one rung up. */}
+                    <UiIcon name={tab.icon} size={tab.icon === "search-disc" ? "lg" : "md"} filled weight="bold" />
+                  </span>
                 </span>
-                <span className="nf-tab__label">{tab.label}</span>
-              </Link>
+              </HoldTabLink>
             </li>
           );
         })}
       </ul>
-      {/* B1: a member's More button and Messages row carry the live count of
-          conversations waiting on them (DockMore, lib/messages/unread-live). */}
-      <DockMore
-        items={more}
-        label={t.nav.more}
-        active={active}
-        unreadLabel={signedIn ? t.a11y.unreadConversationsOn : undefined}
-        unreadPreview={unreadConversationsPreview}
-      />
+      {/* The round "+" at the right end: brand blue with its glow, opening the
+          Create sheet over wherever you are. NEVER AN EMPTY END: a caller that
+          passes no control (a preview harness) gets the real "+" for its side,
+          not a gap. */}
+      <div className="nf-dockcreate">
+        {createSlot ?? (
+          <CreateDock
+            t={t}
+            side={side}
+            socialOn={socialOn}
+            listHref={side === "stays" ? "/profile/setup?side=stays" : "/profile/setup"}
+          />
+        )}
+      </div>
     </AutoHideDock>
   );
 }

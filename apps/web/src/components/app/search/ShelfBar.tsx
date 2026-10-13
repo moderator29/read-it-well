@@ -1,5 +1,9 @@
 import Link from "next/link";
 import { formatMoney, type Dictionary, type Locale } from "@vallo/i18n/core";
+import { SORTS } from "@/lib/listings/search-params";
+import { ViewToggle } from "@/components/app/filters/ViewToggle";
+import { ShelfChipRow, type SheetChip } from "./ShelfChipRow";
+import { quickChips } from "./quick-chips";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { FilterDrawer } from "@/components/app/filters/FilterDrawer";
 import type { ListingFacts } from "@/lib/listings/filter";
@@ -7,13 +11,17 @@ import type { Anchor } from "@/lib/listings/commute";
 import { kindLabel } from "@/lib/listings/search-params";
 import { ICON } from "@/components/app/Screen";
 import { RecentSearches } from "./RecentSearches";
+import { PillLanding, PillOrigin } from "./SearchPillMorph";
 import {
   MARKET_PARAM,
   shelfActiveCount,
   toShelfFiltersHref,
   toShelfHref,
+  toShelfViewHref,
   type ShelfQuery,
 } from "./shelf-query";
+import "@/app/css/catalogue.css";
+import "./search-v2.css";
 
 /**
  * The top of the results shelf, to 3EB3E2A9: the glass field with its
@@ -71,7 +79,7 @@ export function ShelfBar({
     query.intent === "sale"
       ? copy.marketBuy
       : query.kind
-        ? kindLabel(query.kind)
+        ? kindLabel(query.kind, t.experienceLabels.kinds)
         : query.intent === "rent"
           ? copy.marketRent
           : copy.anyMarket;
@@ -91,23 +99,36 @@ export function ShelfBar({
     (query.minMinor !== undefined || query.maxMinor !== undefined ? 1 : 0);
   const more = Math.max(0, shelfActiveCount(query) + (query.kind ? 1 : 0) - shown);
 
-  const chips: { key: string; label: string; icon: "home" | "bed" | "wallet" | "sliders"; on: boolean }[] = [
-    { key: "market", label: marketLabel, icon: "home", on: Boolean(query.intent || query.kind) },
-    { key: "beds", label: bedsLabel, icon: "bed", on: query.bedrooms !== undefined },
+  const chips: SheetChip[] = [
+    { key: "market", label: marketLabel, icon: "home", on: Boolean(query.intent || query.kind), href: sheetHref },
+    { key: "beds", label: bedsLabel, icon: "bed", on: query.bedrooms !== undefined, href: sheetHref },
     {
       key: "price",
       label: priceLabel,
       icon: "wallet",
       on: query.minMinor !== undefined || query.maxMinor !== undefined,
+      href: sheetHref,
     },
-    { key: "more", label: more > 0 ? `${copy.more} (${more})` : copy.more, icon: "sliders", on: more > 0 },
+    { key: "more", label: more > 0 ? `${copy.more} (${more})` : copy.more, icon: "sliders", on: more > 0, href: sheetHref },
   ];
+  const sv = t.searchV2;
+  const currentSort = SORTS.find((sort) => sort.key === query.sort) ?? SORTS[0]!;
+  const viewHrefs = {
+    list: toShelfViewHref(query, "list"),
+    rows: toShelfViewHref(query, "rows"),
+    map: toShelfViewHref(query, "map"),
+  };
 
   return (
     <div className="nf-shelf-bar nf-glass--chrome">
       <div className="mx-auto flex max-w-3xl items-center gap-inline">
         {leading}
-        <form action="/search" method="get" role="search" className="nf-shelf-field">
+        {/* The reference's search box: the field, the filters and the order in
+            one well, so the words get the width a phone has. */}
+        <div className="nf-shelf-box">
+        {/* The results header's field lands from the pill that sent the
+            search (`SearchPillMorph.tsx`); it is the same GET form either way. */}
+        <PillLanding path="/search" action="/search" method="get" role="search" className="nf-shelf-field">
           <UiIcon name="search" size={ICON.inline} />
           <label htmlFor="shelf-q" className="sr-only">
             {copy.search}
@@ -118,7 +139,7 @@ export function ShelfBar({
             type="search"
             autoComplete="off"
             defaultValue={query.q ?? ""}
-            placeholder={copy.searchPlaceholder}
+            placeholder={sv.placeholder}
             className="nf-shelf-field__input"
           />
           {/* Typing a new search must not silently drop the filters set. */}
@@ -128,7 +149,8 @@ export function ShelfBar({
           <button type="submit" aria-label={copy.search} className="nf-shelf-field__go">
             <UiIcon name="arrow-right" size={ICON.inline} />
           </button>
-        </form>
+          <PillOrigin path="/search" />
+        </PillLanding>
         <FilterDrawer
           query={query}
           facts={facts}
@@ -142,34 +164,63 @@ export function ShelfBar({
           unitCopy={t.shape.unit}
           anchors={anchors}
           commuteCopy={t.shape.commute}
+          kindCopy={t.experienceLabels}
           noFloodLabel={{ label: t.shape.neighbours.filterNoFlood, hint: t.shape.neighbours.filterNoFloodHint }}
           feesBasis={t.trustVisible.fees.sortBasis}
+          searchCopy={sv.filters}
           openOnMount={openFilters}
         />
+        {/* THE ORDER, BESIDE THE FILTERS, as the founder's reference draws
+            the search bar. A native disclosure, so an ordering stays a link
+            a back button can walk and no script has to open it; the phone's
+            view switch is the last item of its menu, as it was. */}
+        <details className="nf-shelf-sort nf-shelf-sort--square shrink-0" data-testid="sort-control">
+          <summary
+            aria-label={sv.sortCurrent.replace("{sort}", t.shape.sorts[currentSort.key])}
+            className="nf-shelf-square"
+          >
+            <UiIcon name="sort" size={ICON.inline} />
+          </summary>
+          <ul className="nf-shelf-sort__menu" aria-label={copy.sort}>
+            {SORTS.map((sort) => {
+              const active = sort.key === query.sort;
+              return (
+                <li key={sort.key}>
+                  <Link
+                    href={toShelfHref({ ...query, sort: sort.key })}
+                    prefetch
+                    aria-current={active ? "true" : undefined}
+                    className="nf-shelf-sort__item"
+                  >
+                    {t.shape.sorts[sort.key]}
+                    {active && <UiIcon name="check" size={16} />}
+                  </Link>
+                </li>
+              );
+            })}
+            <li className="mt-2xs border-t border-[var(--nf-panel-hair)] pt-2xs">
+              <ViewToggle current={query.view} hrefs={viewHrefs} className="nf-viewtoggle--menu" />
+            </li>
+          </ul>
+        </details>
+        </div>
       </div>
       {/* B2: the phone's recent hunts, offered when the field is empty. */}
       <RecentSearches
         inputId="shelf-q"
         path="/search"
         copy={{ title: t.catalogue.recent.title, clear: t.catalogue.recent.clear, clearLabel: t.catalogue.recent.clearLabel }}
+        palette={t.experienceDiscover.palette}
         className="mx-auto max-w-3xl"
       />
 
-      <nav aria-label={copy.filters} className="nf-shelf-chips nf-scroll-x mt-sm">
-        {chips.map((chip) => (
-          <Link
-            key={chip.key}
-            href={sheetHref}
-            prefetch={false}
-            data-testid={`shelf-chip-${chip.key}`}
-            className={`nf-shelf-chip ${chip.on ? "nf-shelf-chip--on" : ""}`}
-          >
-            <UiIcon name={chip.icon} size={16} />
-            {chip.label}
-            <UiIcon name="chevron-down" size={16} />
-          </Link>
-        ))}
-      </nav>
+      <ShelfChipRow
+        label={copy.filters}
+        query={query}
+        quick={quickChips(query)}
+        quickCopy={sv.quick}
+        chips={chips}
+      />
     </div>
   );
 }

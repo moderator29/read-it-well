@@ -2,6 +2,8 @@
 
 import Image from "next/image";
 import { useEffect, useState, type RefObject } from "react";
+import "@/app/css/catalogue.css";
+import "@/app/css/list-views.css";
 
 /**
  * A card's photographs, swipeable where there are several (Track M).

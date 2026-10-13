@@ -46,6 +46,14 @@ export type NfSettings = {
    * the system's own `prefers-contrast: more` applies either way.
    */
   increaseContrast: boolean;
+  /**
+   * R3-15: Reduce transparency. Written to the root as
+   * `data-transparency="reduced"` (`applyTransparency`), which
+   * `app/css/a11y-prefs.css` reads: the glass drops its blur and takes a
+   * solid surface. The system's `prefers-reduced-transparency` applies either
+   * way. Off by default.
+   */
+  reduceTransparency: boolean;
 };
 
 export const SETTINGS_DEFAULTS: NfSettings = {
@@ -60,6 +68,7 @@ export const SETTINGS_DEFAULTS: NfSettings = {
   distanceUnit: "km",
   dataSaver: false,
   increaseContrast: false,
+  reduceTransparency: false,
 };
 
 export function loadSettings(): NfSettings {
@@ -217,6 +226,15 @@ export function useApplyDeviceSettings(): void {
   useEffect(() => {
     if (!hydrating) applyContrast(settings.increaseContrast);
   }, [hydrating, settings.increaseContrast]);
+  useEffect(() => {
+    if (!hydrating) applyTransparency(settings.reduceTransparency);
+  }, [hydrating, settings.reduceTransparency]);
+}
+
+/** R3-15: the Reduce transparency switch, on the root, like the contrast. */
+export function applyTransparency(on: boolean): void {
+  if (on) document.documentElement.dataset.transparency = "reduced";
+  else delete document.documentElement.dataset.transparency;
 }
 
 /**

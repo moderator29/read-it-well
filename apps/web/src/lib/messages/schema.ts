@@ -42,6 +42,7 @@ export const sendMessageSchema = z.object({
     .trim()
     .min(1, "Type a message before sending.")
     .max(MAX_MESSAGE_LENGTH, "Keep messages under 2,000 characters."),
+  replyToId: z.uuid().nullable().optional(),
 });
 
 export type SendMessageInput = z.infer<typeof sendMessageSchema>;
@@ -82,3 +83,19 @@ export const markNotificationsReadSchema = z.object({
 });
 
 export type MarkNotificationsReadInput = z.infer<typeof markNotificationsReadSchema>;
+
+/** Delete a message for me, or for everyone inside the window (the database decides the window). */
+export const deleteMessageSchema = z.object({
+  messageId: z.uuid("This message could not be identified."),
+  scope: z.enum(["me", "everyone"]),
+});
+
+export type DeleteMessageInput = z.infer<typeof deleteMessageSchema>;
+
+/** Forward a message's words into another conversation of the sender's. */
+export const forwardMessageSchema = z.object({
+  messageId: z.uuid("This message could not be identified."),
+  conversationId: z.uuid("This conversation could not be identified."),
+});
+
+export type ForwardMessageInput = z.infer<typeof forwardMessageSchema>;

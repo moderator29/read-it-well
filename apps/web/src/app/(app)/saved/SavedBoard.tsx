@@ -21,9 +21,9 @@ import {
 } from "@/lib/saved/places-actions";
 import type { SavePlaceTarget } from "@/components/app/SaveControl";
 import { addLocalSave, readLocalSaves, removeLocalSave, writeLocalSaves } from "@/lib/saved/local";
-import { EmptyActions } from "@/components/app/EmptyActions";
 import { MetaStrip } from "@/components/ui/MetaStrip";
-import { EmptyState, ICON } from "@/components/app/Screen";
+import { ICON } from "@/components/app/Screen";
+import { DiscoveryEmpty } from "@/components/app/search/DiscoveryEmpty";
 import { countOf, formatNumber, intlTag, type Locale } from "@vallo/i18n/core";
 import { CountUp } from "@/components/motion/CountUp";
 import { useClientLocale } from "@/lib/i18n/use-client-locale";
@@ -32,6 +32,8 @@ import { motionQuiet } from "@/lib/motion/gate";
 import { SwipeToRemove } from "./SwipeToRemove";
 import { changeLine, type SavedChange, type SavedChangeCopy } from "@/lib/saved/changes";
 import Link from "next/link";
+import "@/app/css/catalogue.css";
+import "@/app/css/list-views.css";
 
 /**
  * The shortlist, made interactive.
@@ -86,12 +88,24 @@ function sameOrder(a: string[], b: string[]): boolean {
   return a.length === b.length && a.every((id, i) => id === b[i]);
 }
 
+type SlotCopy = { remove: string; removeLabel: string; removed: string; restoring: string; undo: string };
+
+const SLOT_ENGLISH: SlotCopy = {
+  remove: "Remove",
+  removeLabel: "Remove from saved",
+  removed: "Removed from saved",
+  restoring: "Putting it back",
+  undo: "Undo",
+};
+
 export function SavedBoard({
   items,
   comparable = 0,
   compare,
   copy = { shortlist: "Your shortlist", ready: "Ready to compare" },
   changeCopy,
+  emptyCopy,
+  slotCopy = SLOT_ENGLISH,
 }: {
   items: SavedBoardItem[];
   /** B3: how many saved properties the compare can take as columns. */
@@ -101,6 +115,25 @@ export function SavedBoard({
   copy?: { shortlist: string; ready: string };
   /** B13: the change lines' words; without them no line is drawn. */
   changeCopy?: SavedChangeCopy & { similar: string };
+  /**
+   * The empty shortlist's words (Session 3, W2), from the dictionary. Without
+   * them the board falls back to the English it always drew.
+   */
+  emptyCopy?: {
+    title: string;
+    body: string;
+    hydratingTitle: string;
+    hydratingBody: string;
+    action: string;
+    captureLead: string;
+    capture: string;
+  };
+  /**
+   * The words on and under each saved card (Remove, its spoken name, the
+   * undo chip). They were English literals; the page now passes the
+   * dictionary's, and a surface that passes nothing keeps the English.
+   */
+  slotCopy?: SlotCopy;
 }) {
   const locale = useClientLocale();
   const router = useRouter();
@@ -279,35 +312,41 @@ export function SavedBoard({
 
   if (items.length === 0 && rendered.length === 0) {
     return (
-      <Reveal>
-        {/* The one platform empty state. Was a `.nf-card` padded to 10 with an
-            80px object: a bordered box drawn around a message whose entire job
-            is to say the box is empty. */}
-        <EmptyState
-          icon="heart-home"
-          title={hydrating ? "Bringing your saves together" : "Nothing saved yet"}
-          body={
-            hydrating
-              ? "Places you hearted on this device are being matched to your account. This takes a moment."
-              /* This said "Tap the heart on any place" about a control the
-                 grid did not have: the heart lived on the detail page, on the
-                 map's dock and nowhere else, so the instruction was true only
-                 for somebody who had already opened a property. The card
-                 carries it now, so the sentence is true, and it says where. */
-              : "Tap the heart on any card and it waits for you here, ready to compare side by side."
-          }
-          action={
-            <EmptyActions primary={{ label: "Find a place", href: "/search" }} />
-          }
-          /* CLEARANCE FOR THE FLOATING DOCK. `/saved` is a tab-bar route and
-             this is the whole page, so without it the action lands underneath
-             the navigation. Same clearance as `/search`, and the same note:
-             this belongs in the empty state itself, which is not this file's
-             to change. */
-          className="pb-4xl"
-          data-testid="saved-empty"
-        />
-      </Reveal>
+      /*
+       * THE EMPTY SHORTLIST (Stage 5: empty states are the current product).
+       * The house with a heart settles in (Tier B, a symbol of a kept place),
+       * the reason says where the heart is, the one action goes to the
+       * shelves, and the want is captured another way: a saved search tells
+       * the person the minute a match goes live, which is the shortlist's
+       * other half and one tap away.
+       *
+       * CLEARANCE FOR THE FLOATING DOCK (`pb-4xl`): `/saved` is a tab-bar route
+       * and this is the whole page, so the action must not land underneath
+       * the navigation.
+       */
+      <DiscoveryEmpty
+        className="pb-4xl"
+        data-testid="saved-empty"
+        object="house-heart"
+        title={hydrating ? (emptyCopy?.hydratingTitle ?? "Bringing your saves together") : (emptyCopy?.title ?? "Nothing saved yet")}
+        body={
+          hydrating
+            ? (emptyCopy?.hydratingBody ??
+              "Places you hearted on this device are being matched to your account. This takes a moment.")
+            : (emptyCopy?.body ?? "Tap the heart on any card and it waits for you here, ready to compare side by side.")
+        }
+        primary={{ label: emptyCopy?.action ?? "Find a place", href: "/search" }}
+        capture={
+          emptyCopy ? (
+            <p>
+              {emptyCopy.captureLead}
+              <Link href="/saved/searches" className="nf-dempty__capture-link nf-link-quiet">
+                {emptyCopy.capture}
+              </Link>
+            </p>
+          ) : undefined
+        }
+      />
     );
   }
 
@@ -331,37 +370,42 @@ export function SavedBoard({
       </Reveal>
 
       <Reveal delay={60}>
-        <ul data-testid="saved-grid" className="grid grid-cols-1 gap-lg sm:grid-cols-2">
+        <ul data-testid="saved-grid" className="nf-shelves">
           {rendered.map(({ key, item, state }) => (
             <li key={key}>
               {state === undefined && item ? (
                 <div className={`nf-saved-slot${leaving[key] ? " nf-saved-slot--leaving" : ""}`}>
                   <div className="nf-saved-slot__inner">
-                    {/* The card carries its own heart; Remove lives behind a
-                        swipe on touch and as a quiet action under the card,
-                        not as a second bordered button (plan items 17, 28). */}
-                    <SwipeToRemove
-                      label="Remove"
-                      onRemove={() => unsave(item)}
-                      disabled={pending || Boolean(leaving[key])}
-                    >
-                      {item.card}
-                    </SwipeToRemove>
+                    {/* REMOVE LIVES ON THE SHELF (review of the shelves, 7
+                        October: the word floating under each object looked
+                        unfinished). The object and its ledge are the row; the
+                        filled heart at its end is the one control, beside the
+                        link rather than inside it, and a swipe on touch does
+                        the same (plan items 17, 28). */}
+                    <div className="nf-shelf-row">
+                      <SwipeToRemove
+                        label={slotCopy.remove}
+                        onRemove={() => unsave(item)}
+                        disabled={pending || Boolean(leaving[key])}
+                      >
+                        {item.card}
+                      </SwipeToRemove>
+                      <button
+                        type="button"
+                        onClick={() => unsave(item)}
+                        disabled={pending || Boolean(leaving[key])}
+                        aria-pressed="true"
+                        aria-label={slotCopy.removeLabel}
+                        title={slotCopy.remove}
+                        data-testid="saved-heart"
+                        className="nf-shelf-row__remove"
+                      >
+                        <UiIcon name="heart" size={16} filled />
+                      </button>
+                    </div>
                     {changeCopy && lastSaved !== undefined ? (
                       <ChangeLine item={item} since={lastSaved} locale={locale} copy={changeCopy} />
                     ) : null}
-                    <button
-                      type="button"
-                      onClick={() => unsave(item)}
-                      disabled={pending || Boolean(leaving[key])}
-                      aria-pressed="true"
-                      aria-label="Remove from saved"
-                      data-testid="saved-heart"
-                      className="nf-saved-remove"
-                    >
-                      <UiIcon name="heart" size={16} className="[&_path]:fill-current" />
-                      Remove
-                    </button>
                   </div>
                 </div>
               ) : (
@@ -370,7 +414,7 @@ export function SavedBoard({
                   className="nf-panel nf-panel--card nf-saved-undo h-full flex-row items-center justify-between gap-md p-card"
                 >
                   <p className="nf-body text-[var(--nf-content-secondary)]">
-                    {state === "restoring" ? "Putting it back" : "Removed from saved"}
+                    {state === "restoring" ? slotCopy.restoring : slotCopy.removed}
                   </p>
                   <button
                     type="button"
@@ -379,7 +423,7 @@ export function SavedBoard({
                     className="nf-chip whitespace-nowrap transition-transform active:scale-[0.96] disabled:opacity-60"
                   >
                     <UiIcon name="heart" size={ICON.inline} className="shrink-0" />
-                    Undo
+                    {slotCopy.undo}
                   </button>
                 </div>
               )}

@@ -2,6 +2,7 @@ import type { Dictionary } from "@vallo/i18n/core";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { Icon3D } from "@/components/ui/Icon3D";
 import { ButtonLink } from "@/components/ui/Button";
+import { withNext } from "@/lib/auth/next-link";
 import { ICON, Row, RowList, TYPE } from "@/components/app/Screen";
 import { SUPPLY_DOOR_HREF } from "@/components/agent/agent-doors";
 
@@ -70,7 +71,7 @@ export function ListingPitch({ copy, signedIn }: { copy: PitchCopy; signedIn: bo
           {copy.apply}
         </ButtonLink>
         {!signedIn && (
-          <ButtonLink href="/sign-in" variant="secondary">
+          <ButtonLink href={withNext("/sign-in", "/agent/list")} variant="secondary">
             {copy.signIn}
           </ButtonLink>
         )}

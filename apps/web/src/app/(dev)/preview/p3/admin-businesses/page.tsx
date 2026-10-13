@@ -8,7 +8,7 @@ import { AdminRail, AdminTabs, ConsoleSearch } from "@/app/admin/_components/Adm
 import { ConsoleFooter } from "@/app/admin/_components/QueueTable";
 import { QueueFilters } from "@/app/admin/_components/QueueFilters";
 import { adminUi } from "@/app/admin/_components/ui";
-import { BusinessCard } from "@/app/admin/businesses/page";
+import { BusinessCard } from "@/app/admin/businesses/BusinessCard";
 import { BUSINESS_STATUSES } from "@/lib/admin/business-queries";
 import { PERSON } from "../../_fixtures/people";
 import { P3_BUSINESS, P3_BUSINESS_APPROVED } from "../fixtures";
@@ -63,7 +63,7 @@ export default async function PreviewAdminBusinesses() {
             <span className="nf-icon-btn h-9 w-9 sm:h-10 sm:w-10" aria-hidden="true">
               <UiIcon name="arrow-left" size={20} />
             </span>
-            <Link href="/" className="lg:hidden" aria-label={t.a11y.logoHome}>
+            <Link href="/" className="nf-tap lg:hidden" aria-label={t.a11y.logoHome}>
               <Logo size={30} wordSize={16} />
             </Link>
             <ConsoleSearch
@@ -108,6 +108,13 @@ export default async function PreviewAdminBusinesses() {
             <ul className="nf-queue-list">
               <BusinessCard row={P3_BUSINESS} ui={ui} />
               <BusinessCard row={P3_BUSINESS_APPROVED} ui={ui} />
+              {/* The third state: the reviewer reading their own business,
+                  which is drawn with every control withheld. */}
+              <BusinessCard
+                row={{ ...P3_BUSINESS, id: `${P3_BUSINESS.id}-own` }}
+                ui={ui}
+                viewerId={P3_BUSINESS.ownerId}
+              />
             </ul>
           </div>
           <ConsoleFooter note={t.admin.console.auditNote} />

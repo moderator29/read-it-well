@@ -71,7 +71,7 @@ try {
   if (await opened("/preview/session-b/profile")) {
     const hero = page.locator('[data-testid="account-hero"]');
     check("the account hero renders", await hero.isVisible());
-    check("the cover band is present", (await page.locator(".nf-pf-cover").count()) > 0);
+    check("the cover band is present", (await page.locator(".nf-social-cover").count()) > 0);
     check(
       "the avatar opens a picker",
       await page.locator('[data-testid="account-avatar-button"]').isVisible(),

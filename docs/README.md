@@ -14,7 +14,8 @@ For setup, architecture and the repository layout, start with the [repository RE
 | [THE_HUNDRED.md](THE_HUNDRED.md) | The hundred ranked recommendations of 23 September 2026 (V-01 to V-100). Code comments cite their IDs |
 | [RECOMMENDATIONS.md](RECOMMENDATIONS.md) | The register of findings and open work. Code comments cite its IDs |
 | [ONE_PERSON_MANY_ACCOUNTS.md](ONE_PERSON_MANY_ACCOUNTS.md) | How one person holding several accounts or workspaces is handled at each gate |
-| [BADGES.md](BADGES.md) | Earned badges for agents and members |
+| [DECISIONS_2026-10-13.md](DECISIONS_2026-10-13.md) | The founder's decisions of 13 October 2026, each with its status in the code (BUILT, PARTLY, NOT BUILT), plus how viewings, listing media, host setup, restaurants and no-show disputes work. Read before changing fees, viewings or host rules |
+| [BADGES.md](BADGES.md) | Earned badges for agents and members, and what a badge does and does not mean |
 | [SOCIAL_DESIGN.md](SOCIAL_DESIGN.md) | The design record for the social layer (Around) |
 | [PRICE_CHECK_STAGE_ONE_STATE.md](PRICE_CHECK_STAGE_ONE_STATE.md) | Price Check: what is built and what the numbers say |
 
@@ -23,7 +24,9 @@ For setup, architecture and the repository layout, start with the [repository RE
 | Document | What it is for |
 |---|---|
 | [ARCHITECTURE_DECISIONS.md](ARCHITECTURE_DECISIONS.md) | ADR-001 to ADR-014 in one file |
-| [adr/0002-vallo-never-holds-customer-money.md](adr/0002-vallo-never-holds-customer-money.md) | Vallo never holds customer money (supersedes ADR 0001) |
+| [adr/0003-a-licensed-provider-holds-the-money-vallo-records-it.md](adr/0003-a-licensed-provider-holds-the-money-vallo-records-it.md) | **Current.** A licensed provider holds the money; Vallo records it. Escrow, balances, deposits and withdrawals are built, Payluk holds the funds, Vallo never takes custody, and the custody naming guard stays (amends ADR 0002) |
+| [adr/0004-two-rails-direct-and-provider-held-escrow.md](adr/0004-two-rails-direct-and-provider-held-escrow.md) | **Current, subordinate to ADR 0003.** Which rail a payment takes: direct settlement by split for registered businesses, provider held escrow for individuals, chosen by data in `payment_rail_policy`. Renumbered from 0003 on 8 October, when two files had been written under that number |
+| [adr/0002-vallo-never-holds-customer-money.md](adr/0002-vallo-never-holds-customer-money.md) | Vallo never holds customer money (supersedes ADR 0001, amended by ADR 0003 and 0004) |
 | [adr/0001-held-payments-custody-purpose-and-the-float.md](adr/0001-held-payments-custody-purpose-and-the-float.md) | Superseded: held payments (escrow), kept as history |
 | [API_INVENTORY.md](API_INVENTORY.md) | The third-party integration plan |
 
@@ -74,6 +77,35 @@ For setup, architecture and the repository layout, start with the [repository RE
 | [email/WHAT_SENDS.md](email/WHAT_SENDS.md) | What sends email, what refuses, and what is unproven |
 | [email/AUTH_EMAILS.md](email/AUTH_EMAILS.md) | The authentication emails: the Send Email Hook route, the templates and their design |
 | [../supabase/README.md](../supabase/README.md) | The auth email templates: how to generate and apply them |
+
+## The October 2026 upgrade (read these first)
+
+| Document | What it is for |
+|---|---|
+| [sessions/SESSION-1-RESPONSE.md](sessions/SESSION-1-RESPONSE.md) | The 5 October platform audit, architecture, the founder's four locked visual decisions, priorities, risk register and what only the founder can do. **Start here** |
+| [design/VISUAL_NORTH_STAR_2026-10-05.md](design/VISUAL_NORTH_STAR_2026-10-05.md) | The governing visual, material and motion specification for the full-platform upgrade: container tiers, the motion inventory, the surface-by-surface sweep, all 79 references classified, the asset prompts, and the per-page audit checklist |
+| [payments/VALLO_PRICING.md](payments/VALLO_PRICING.md) | **What Vallo charges and what the provider charges.** The 0.5 percent commission, the retired Guarantee, why no VAT yet, the withdrawal bands against what Nigerian banks actually charge, and the referral economics with the exposure spelled out |
+| [payments/VALLO_FINANCIAL_LAYER.md](payments/VALLO_FINANCIAL_LAYER.md) | **Vallo presents, the provider holds.** The founder's financial-layer brief translated into this repository: what Payluk actually provides endpoint by endpoint, the four conditions under which a balance surface is legal, the provider abstraction and the line it must not cross, and the eleven things the design prompts never covered |
+| [payments/VALLO_PAYMENTS_ARCHITECTURE.md](payments/VALLO_PAYMENTS_ARCHITECTURE.md) | Paystack, Payluk and Yellow Card: the provider interface, the ledger, the two tracks, and the legal gate. Its section 0 is an evidence warning that must be read before any Payluk code |
+| [sessions/DIRECTIVES-2026-10-05.md](sessions/DIRECTIVES-2026-10-05.md) | **The founder's current rulings, which supersede every earlier spec they touch.** Brand hierarchy, rectangles by default, paid promotion, tax, no staging database with double-audit discipline, the phone gate, Space as the noun, autonomy and model routing. Every session reads this first |
+| [sessions/CROSS-SESSION-CONTRACT.md](sessions/CROSS-SESSION-CONTRACT.md) | Who owns what, so two sessions never build the same thing. The test that resolves almost every case: does it decide what is true, or present what is true |
+| [sessions/FEATURE-REGISTER.md](sessions/FEATURE-REGISTER.md) | **The complete inventory**: 1,547 requirements extracted line by line from the founder's Master Prompt, three addendums and the Payments and Payluk prompt, with status and owner on each, and a conflict register resolving five places where the spec and the code oppose each other |
+| [sessions/BLIND-SPOTS.md](sessions/BLIND-SPOTS.md) | 39 gaps the spec itself does not cover, verified against the codebase: no staging database, no tax position, no chargeback handling, no chart system, and the phone-verification dependency that blocks the referral engine |
+| [design/MOTION_SYSTEM.md](design/MOTION_SYSTEM.md) | **The complete motion specification**: the moment inventory, the 1.5 second startup sequence, the deep Get Started reference and the passcode rebuild. Its section 0 reconciles the motion designer's brief with what this repository actually contains |
+| [design/CHATGPT_ASSET_PROMPTS.md](design/CHATGPT_ASSET_PROMPTS.md) | A complete standalone image prompt for every asset the upgrade needs: property types, Nigerian specifics, empty states, success and reward, tiers, onboarding and email |
+| [design/COMPONENT_LIBRARY.md](design/COMPONENT_LIBRARY.md) | The component library the founder supplied, with the porting rules that make each piece Vallo's: which dependency is allowed, which is refused, where the glass navigation belongs, and the twelve point checklist every ported component passes |
+| [design/CRAFT_DOCTRINE.md](design/CRAFT_DOCTRINE.md) | The taste standard: intention, negative discipline, one screen one idea, adaptive rhythm, haptics as sound design, and the seven questions a screen answers before it ships |
+| [design/component-library-source/](design/component-library-source/) | The founder's nine components as he supplied them, one file per component, with a README on what is wrong with each. Reference material: it sits outside every gate in this repository and none of it compiles |
+| [sessions/ROUND-3-2026-10-06.md](sessions/ROUND-3-2026-10-06.md) | **Four audits run against the branches rather than the response files.** 93 of 213 routes untouched, the 24 point checklist run on 14, the rail router and provider seam unwired, and forty more recommendations |
+| [sessions/ROUND-2-2026-10-06.md](sessions/ROUND-2-2026-10-06.md) | **What each session actually built, measured against the tree rather than its own report**, what is missing, and thirty numbered recommendations split across the three sessions. Read it before continuing any session's work |
+| [../HANDOFF.md](../HANDOFF.md) | **The only handoff.** Who the founder is and how the founder works, the product rules, the company facts, how work is done here, and what is open. Read it first |
+| [sessions/founder-corpus/](sessions/founder-corpus/README.md) | Every prompt the founder has written, in his own words, deduplicated, nothing cut. 14 files |
+| [../component-reference/](../component-reference/README.md) | Eight motion components the founder pasted in as the finish he wants, plus the five shadcn registry components he named. Reference only, outside the build |
+
+Six design documents are superseded by the north star and carry a banner saying
+so: `DESIGN_DIRECTION.md`, `design/GLOW_IDENTITY.md`, `BRAND_MARKS.md`,
+`ICON_UPGRADE_2026-09-29.md` and the two `ICONS_3D_*` files. They are kept
+because code comments cite them, and they govern nothing.
 
 ## Design
 

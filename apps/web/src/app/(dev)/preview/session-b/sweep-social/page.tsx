@@ -1,5 +1,8 @@
+import { joinDate } from "@/lib/format/join-date";
 import { Suspense } from "react";
+import { sheetWordsOf } from "@/components/social/sheet-words";
 import { getDictionary, type Locale } from "@vallo/i18n";
+import { reportWordsOf } from "@/components/social/sheet-words";
 import { AppShell } from "@/components/app/AppShell";
 import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
@@ -58,6 +61,7 @@ const FOLLOWERS: FollowRow[] = [
     displayLabel: COUNTERPART.name,
     avatarUrl: "",
     isAgent: true,
+    supplyRole: "agent" as const,
     badgeTier: "gold",
     bio: "Lettings across Lekki and Ajah.",
     viewerFollows: true,
@@ -144,6 +148,7 @@ async function Face({ f, tab, member, empty }: { f: string; tab?: string; member
             displayLabel: PERSON.name,
             avatarUrl: "",
             isAgent: true,
+            supplyRole: "agent" as const,
             badgeTier: "gold" as const,
             bio: PERSON.bio,
             bioStatus: "LIVE",
@@ -171,11 +176,11 @@ async function Face({ f, tab, member, empty }: { f: string; tab?: string; member
           ]}
           place={{ lga: "Eti-Osa", state: "Lagos", label: "Eti-Osa, Lagos" }}
           trust={{ completedDeals: 41, responseTime: "2 hrs", reviewCount: 28, averageRating: 4.8 }}
-          joinedLabel="March 2025"
+          joinedLabel={joinDate("2026-10-09T10:00:00Z", "en")}
           follow={<FollowButton handle={PERSON.handle} initialFollowing={false} signedIn labels={t.socialProfile} />}
           share={<ProfileShare handle={PERSON.handle} displayLabel={PERSON.name} />}
           menu={
-            <ProfileMenu handle={PERSON.handle} userId={PERSON.id} displayLabel={PERSON.name} isOwner={false} signedIn />
+            <ProfileMenu handle={PERSON.handle} userId={PERSON.id} displayLabel={PERSON.name} isOwner={false} signedIn reportWords={reportWordsOf(t)} />
           }
         />
       );
@@ -192,6 +197,7 @@ async function Face({ f, tab, member, empty }: { f: string; tab?: string; member
             initialTab={(tab as TabKey) ?? tabs[0]}
             storyCount={0}
             labels={t.socialProfile}
+            sheet={sheetWordsOf(t)}
             data={{
               posts: empty ? [] : FEED_POSTS,
               replies: [],
@@ -280,6 +286,7 @@ async function Face({ f, tab, member, empty }: { f: string; tab?: string; member
           <ShareToThread
             card={LISTING_CARD}
             target={{ kind: "listing", id: LISTING_ID }}
+            copy={t.experienceInbox.share.picker}
             threads={[
               {
                 id: "00000000-0000-4000-8000-00000000c001",
@@ -328,7 +335,7 @@ async function Face({ f, tab, member, empty }: { f: string; tab?: string; member
       return (
         <div className="flex h-dvh flex-col">
           <ThreadView
-            sheetCopy={{ passport: t.trustVisible.passport, unsafe: t.trustVisible.unsafe }}
+            sheetCopy={{ unsafe: t.trustVisible.unsafe }}
             live={false}
             conversationId={CONVERSATION_ID}
             meId={PERSON.id}

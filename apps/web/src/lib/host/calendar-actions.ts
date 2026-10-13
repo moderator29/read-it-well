@@ -29,54 +29,56 @@ import { z } from "zod";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../actions/session";
 import { MAX_CALENDAR_NIGHTS, cleanSelection, isIsoDate, lagosToday } from "./rate-calendar";
+import { fill, hostRefusals } from "./refusals";
 
-const SERVICE_DOWN_MESSAGE = "We could not save that just now. Nothing changed, so try again in a moment.";
-const NOT_YOURS_MESSAGE = "That room is not on your account. Open your calendar again to see the ones that are.";
-const PAST_MESSAGE = "Pick nights from today onwards. A night that has gone cannot be priced or closed.";
+/* The words are the host's (`experienceHost.refusals.calendar`), read per call. */
+type Words = Awaited<ReturnType<typeof hostRefusals>>["calendar"];
+const words = async (): Promise<Words> => (await hostRefusals()).calendar;
 
-const dates = z
-  .array(z.string().refine(isIsoDate, "That is not a date."))
-  .min(1, "Pick at least one night.")
-  .max(MAX_CALENDAR_NIGHTS, `Pick up to ${MAX_CALENDAR_NIGHTS} nights at a time so nothing is lost part way.`);
+const datesOf = (w: Words) =>
+  z
+    .array(z.string().refine(isIsoDate, w.notADate))
+    .min(1, w.pickOne)
+    .max(MAX_CALENDAR_NIGHTS, fill(w.tooMany, { max: MAX_CALENDAR_NIGHTS }));
 
 /** Kobo, whole, at most ₦50m a night (a typo guard, not a policy). */
-const minor = z
-  .number()
-  .int("Prices are in whole kobo.")
-  .min(100, "A night costs at least ₦1.")
-  .max(5_000_000_000, "That is more than ₦50,000,000 a night. Check the number.");
+const minorOf = (w: Words) => z.number().int(w.wholeKobo).min(100, w.atLeast).max(5_000_000_000, w.tooHigh);
 
-const priceSchema = z.object({
-  roomTypeId: z.uuid("That room could not be identified."),
-  ratePlanId: z.uuid("That rate could not be identified."),
-  dates,
-  /** Null puts the nights back on the plan's own rate. */
-  rateMinor: minor.nullable(),
-});
-
-const closeSchema = z.object({
-  roomTypeId: z.uuid("That room could not be identified."),
-  dates,
-  closed: z.boolean(),
-});
-
-const roomsSchema = z.object({
-  roomTypeId: z.uuid("That room could not be identified."),
-  dates,
-  unitsOpen: z.number().int("Rooms come in whole numbers.").min(0).max(500),
-});
-
-const planSchema = z
-  .object({
-    ratePlanId: z.uuid("That rate could not be identified."),
-    rateMinor: minor,
-    minStayNights: z.number().int().min(1, "At least one night.").max(90, "At most 90 nights."),
-    maxStayNights: z.number().int().min(1).max(365).nullable(),
-  })
-  .refine((v) => v.maxStayNights === null || v.maxStayNights >= v.minStayNights, {
-    message: "The longest stay cannot be shorter than the shortest.",
-    path: ["maxStayNights"],
+const priceSchema = (w: Words) =>
+  z.object({
+    roomTypeId: z.uuid(w.roomUnknown),
+    ratePlanId: z.uuid(w.rateUnknown),
+    dates: datesOf(w),
+    /** Null puts the nights back on the plan's own rate. */
+    rateMinor: minorOf(w).nullable(),
   });
+
+const closeSchema = (w: Words) =>
+  z.object({
+    roomTypeId: z.uuid(w.roomUnknown),
+    dates: datesOf(w),
+    closed: z.boolean(),
+  });
+
+const roomsSchema = (w: Words) =>
+  z.object({
+    roomTypeId: z.uuid(w.roomUnknown),
+    dates: datesOf(w),
+    unitsOpen: z.number().int(w.wholeRooms).min(0).max(500),
+  });
+
+const planSchema = (w: Words) =>
+  z
+    .object({
+      ratePlanId: z.uuid(w.rateUnknown),
+      rateMinor: minorOf(w),
+      minStayNights: z.number().int().min(1, w.minOneNight).max(90, w.maxNinety),
+      maxStayNights: z.number().int().min(1).max(365).nullable(),
+    })
+    .refine((v) => v.maxStayNights === null || v.maxStayNights >= v.minStayNights, {
+      message: w.longestShorter,
+      path: ["maxStayNights"],
+    });
 
 type Owned = { ok: true; planIds: string[]; unitsTotal: number } | { ok: false; result: ActionResult<never> };
 
@@ -97,8 +99,8 @@ async function ownedRoom(roomTypeId: string): Promise<Owned> {
     .eq("id", roomTypeId)
     .eq("accommodations.businesses.owner_id", got.s.user.id)
     .maybeSingle();
-  if (error) return { ok: false, result: fail(SERVICE_DOWN_MESSAGE) };
-  if (!data) return { ok: false, result: fail(NOT_YOURS_MESSAGE) };
+  if (error) return { ok: false, result: fail((await words()).serviceDown) };
+  if (!data) return { ok: false, result: fail((await words()).notYours) };
   const plans = ((data as unknown as { rate_plans: { id: string }[] | null }).rate_plans ?? []).map((p) => p.id);
   return { ok: true, planIds: plans, unitsTotal: data.units_total };
 }
@@ -122,15 +124,16 @@ function futureOnly(list: string[]): string[] | null {
  * closed: PostgREST's upsert updates only the columns it is sent.
  */
 export async function setNightPrice(input: unknown): Promise<ActionResult<{ nights: number }>> {
-  const parsed = validate(priceSchema, input);
+  const w = await words();
+  const parsed = validate(priceSchema(w), input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   const { roomTypeId, ratePlanId, rateMinor } = parsed.data;
   const nights = futureOnly(parsed.data.dates);
-  if (!nights) return fail(PAST_MESSAGE);
+  if (!nights) return fail(w.past);
 
   const owned = await ownedRoom(roomTypeId);
   if (!owned.ok) return owned.result;
-  if (!owned.planIds.includes(ratePlanId)) return fail(NOT_YOURS_MESSAGE);
+  if (!owned.planIds.includes(ratePlanId)) return fail(w.notYours);
 
   const got = await session();
   if (!got.ok) return got.result;
@@ -145,7 +148,7 @@ export async function setNightPrice(input: unknown): Promise<ActionResult<{ nigh
             nights.map((date) => ({ rate_plan_id: ratePlanId, date, rate_minor: rateMinor })),
             { onConflict: "rate_plan_id,date" },
           );
-  if (error) return fail(error.code === "42501" ? NOT_YOURS_MESSAGE : SERVICE_DOWN_MESSAGE);
+  if (error) return fail(error.code === "42501" ? w.notYours : w.serviceDown);
 
   refresh();
   return ok({ nights: nights.length });
@@ -162,16 +165,17 @@ export async function setNightPrice(input: unknown): Promise<ActionResult<{ nigh
  * exactly as they were.
  */
 export async function setNightsClosed(input: unknown): Promise<ActionResult<{ nights: number }>> {
-  const parsed = validate(closeSchema, input);
+  const w = await words();
+  const parsed = validate(closeSchema(w), input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   const { roomTypeId, closed } = parsed.data;
   const nights = futureOnly(parsed.data.dates);
-  if (!nights) return fail(PAST_MESSAGE);
+  if (!nights) return fail(w.past);
 
   const owned = await ownedRoom(roomTypeId);
   if (!owned.ok) return owned.result;
   if (owned.planIds.length === 0) {
-    return fail("This room has no rate yet, so there is nothing to close. Add a rate in your application first.");
+    return fail(w.noRateToClose);
   }
 
   const got = await session();
@@ -193,7 +197,7 @@ export async function setNightsClosed(input: unknown): Promise<ActionResult<{ ni
   };
   let { error } = await write(true);
   if (error && (error.code === "42703" || error.code === "PGRST204")) ({ error } = await write(false));
-  if (error) return fail(error.code === "42501" ? NOT_YOURS_MESSAGE : SERVICE_DOWN_MESSAGE);
+  if (error) return fail(error.code === "42501" ? w.notYours : w.serviceDown);
 
   refresh();
   return ok({ nights: nights.length });
@@ -201,17 +205,18 @@ export async function setNightsClosed(input: unknown): Promise<ActionResult<{ ni
 
 /** How many rooms of this type are on sale across some nights. */
 export async function setNightsRooms(input: unknown): Promise<ActionResult<{ nights: number; heldBack: number }>> {
-  const parsed = validate(roomsSchema, input);
+  const w = await words();
+  const parsed = validate(roomsSchema(w), input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   const { roomTypeId, unitsOpen } = parsed.data;
   const nights = futureOnly(parsed.data.dates);
-  if (!nights) return fail(PAST_MESSAGE);
+  if (!nights) return fail(w.past);
 
   const owned = await ownedRoom(roomTypeId);
   if (!owned.ok) return owned.result;
   if (unitsOpen > owned.unitsTotal) {
-    return fail(`You told us there are ${owned.unitsTotal} of these, so ${unitsOpen} cannot be on sale.`, {
-      unitsOpen: `At most ${owned.unitsTotal}.`,
+    return fail(fill(w.roomsOverTotal, { total: owned.unitsTotal, open: unitsOpen }), {
+      unitsOpen: fill(w.atMost, { total: owned.unitsTotal }),
     });
   }
 
@@ -222,17 +227,14 @@ export async function setNightsRooms(input: unknown): Promise<ActionResult<{ nig
     { onConflict: "room_type_id,date" },
   );
   if (error) {
-    if (error.code === "42501") return fail(NOT_YOURS_MESSAGE);
+    if (error.code === "42501") return fail(w.notYours);
     if (error.code === "23514") {
       if (/cannot be offered/i.test(error.message ?? "")) {
-        return fail("That is more rooms than this type has. Change the room type first.");
+        return fail(w.moreRoomsThanType);
       }
-      return fail(
-        "One of those nights already has more rooms booked than you are leaving open. Leave at least as many open as are booked.",
-        { unitsOpen: "Fewer than are already booked." },
-      );
+      return fail(w.bookedOverOpen, { unitsOpen: w.fewerThanBooked });
     }
-    return fail(SERVICE_DOWN_MESSAGE);
+    return fail(w.serviceDown);
   }
 
   /* C2b: rooms another site holds stay off sale whatever is asked; the
@@ -265,7 +267,8 @@ export async function setNightsRooms(input: unknown): Promise<ActionResult<{ nig
  * `catalogue_on_rate_plan`.
  */
 export async function updateRatePlan(input: unknown): Promise<ActionResult<null>> {
-  const parsed = validate(planSchema, input);
+  const w = await words();
+  const parsed = validate(planSchema(w), input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   const { ratePlanId, rateMinor, minStayNights, maxStayNights } = parsed.data;
 
@@ -277,8 +280,8 @@ export async function updateRatePlan(input: unknown): Promise<ActionResult<null>
     .eq("id", ratePlanId)
     .select("id")
     .maybeSingle();
-  if (error) return fail(error.code === "42501" ? NOT_YOURS_MESSAGE : SERVICE_DOWN_MESSAGE);
-  if (!data) return fail(NOT_YOURS_MESSAGE);
+  if (error) return fail(error.code === "42501" ? w.notYours : w.serviceDown);
+  if (!data) return fail(w.notYours);
 
   refresh();
   revalidatePath("/host");

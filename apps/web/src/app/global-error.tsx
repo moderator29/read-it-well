@@ -75,15 +75,15 @@ export default function GlobalError({
                 margin: 0,
               }}
             >
-              Something went wrong
+              Not loaded
             </p>
             <h1 style={{ fontSize: "1.75rem", lineHeight: 1.2, margin: "0.75rem 0 0" }}>
               Vallo did not load
             </h1>
             <p style={{ margin: "1rem 0 0", opacity: 0.8, lineHeight: 1.6 }}>
-              Something stopped before the app could start. Anything you had
-              typed may need typing again, and trying again usually settles
-              it.{" "}
+              Vallo stopped before it could start. That undoes nothing you had
+              already sent or saved; what you typed may need typing again,
+              and trying again usually settles it.{" "}
               If it keeps happening, tell support and quote the reference below.
             </p>
 

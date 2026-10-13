@@ -5,6 +5,8 @@ import { useState, useTransition } from "react";
 import { formatMoney, type Locale } from "@vallo/i18n/core";
 import { decideAgreement } from "@/lib/admin/agreements-actions";
 import type { QueueRow } from "@/lib/admin/reads/agreements";
+import { Button } from "@/components/ui/Button";
+import { Chip } from "@/components/ui/Chip";
 
 /**
  * THE QUEUE, BUILT TO BE WORKED AT SPEED.
@@ -96,12 +98,12 @@ function Row({ row, locale, now }: { row: QueueRow; locale: Locale; now: number 
       <div className="nf-admin-queue-row__actions">
         {!rejecting ? (
           <>
-            <button type="button" className="nf-btn nf-btn--primary" disabled={pending} onClick={() => act("approve")}>
+            <Button variant="primary" type="button" disabled={pending} onClick={() => act("approve")}>
               Approve
-            </button>
-            <button type="button" className="nf-btn nf-btn--glass" disabled={pending} onClick={() => setRejecting(true)}>
+            </Button>
+            <Button variant="secondary" type="button" disabled={pending} onClick={() => setRejecting(true)}>
               Reject
-            </button>
+            </Button>
           </>
         ) : (
           <form
@@ -125,23 +127,23 @@ function Row({ row, locale, now }: { row: QueueRow; locale: Locale; now: number 
             />
             <div className="flex flex-wrap gap-2xs">
               {QUICK_REASONS.map((quick) => (
-                <button
+                <Chip
                   key={quick}
-                  type="button"
-                  className="nf-chip text-[length:var(--nf-text-caption)]"
-                  onClick={() => setReason(quick)}
+                  size="sm"
+                  selected={reason === quick}
+                  onSelectedChange={() => setReason(quick)}
                 >
                   {quick.split(".")[0]}
-                </button>
+                </Chip>
               ))}
             </div>
-            <div className="flex gap-inline">
-              <button type="submit" className="nf-btn nf-btn--primary" disabled={pending || reason.trim().length < 10}>
+            <div className="flex flex-wrap gap-inline">
+              <Button variant="primary" type="submit" disabled={pending || reason.trim().length < 10}>
                 Send back
-              </button>
-              <button type="button" className="nf-btn nf-btn--ghost" onClick={() => setRejecting(false)}>
+              </Button>
+              <Button variant="quiet" type="button" onClick={() => setRejecting(false)}>
                 Cancel
-              </button>
+              </Button>
             </div>
           </form>
         )}

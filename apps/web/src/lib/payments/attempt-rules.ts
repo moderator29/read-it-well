@@ -102,7 +102,7 @@ export type ExpectedCharge = {
   agreementId: string;
   amountMinor: number;
   payeeSubaccount: string;
-  reserveSubaccount: string;
+  reserveSubaccount: string | null;
   listerShareMinor: number;
   guaranteeMinor: number;
   commissionMinor: number;

@@ -9,8 +9,13 @@ import { Button } from "@/components/ui/Button";
 import { BackChevron } from "@/components/social/profile/BackChevron";
 import { FollowButton } from "@/components/social/profile/FollowButton";
 import { ReportSheet } from "@/components/social/ReportSheet";
+import { DELETE_WORDS, DeleteSheet } from "@/components/social/DeleteSheet";
+import { ActionPill } from "@/components/social/feed/ActionPill";
+import type { ReportWords } from "@/components/social/sheet-words";
 import { CommentsSheet } from "@/components/social/comments/CommentsSheet";
 import { StoryRail } from "./StoryRail";
+import { markStorySeen } from "./seen";
+import { feedback } from "@/lib/ui/feedback";
 import { StorySequence } from "./StorySequence";
 import type { Face, StoryCard, StoryComment, StoryView } from "@/lib/social/stories-queries";
 import type { CommentRow } from "@/components/social/comments/CommentsSheet";
@@ -24,12 +29,13 @@ import {
   toggleStoryMark,
 } from "@/lib/social/stories-actions";
 import { blockUser, muteTarget, reportProfile } from "@/lib/social/posts-actions";
-import { POST_COPY, PROFILE_REPORT_REASONS } from "@/lib/social/posts-schema";
-import { STORY_COPY } from "@/lib/social/stories-schema";
+import { POST_COPY, PROFILE_REPORT_REASONS } from "@/lib/social/posts-model";
+import { STORY_COPY } from "@/lib/social/stories-model";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import { Toast, useToast } from "@/components/ui/Toast";
-import { countOf } from "@vallo/i18n/core";
+import { countOf, formatNumber } from "@vallo/i18n/core";
 import { useClientLocale } from "@/lib/i18n/use-client-locale";
+import { useSignInHref } from "@/lib/auth/use-sign-in-href";
 
 /**
  * A story, full bleed.
@@ -54,7 +60,9 @@ export function StoryViewer({
   comments,
   more,
   signedIn,
+  viewerId = null,
   viewerFollows,
+  reportWords,
 }: {
   story: StoryView;
   faces: Face[];
@@ -62,8 +70,13 @@ export function StoryViewer({
   comments: StoryComment[];
   more: StoryCard[];
   signedIn: boolean;
+  /** The signed-in reader's id: the seen ring is kept per account on a shared phone. */
+  viewerId?: string | null;
   viewerFollows: boolean;
+  /** The report sheets' reasons and words, from the server (`reportWordsOf`). */
+  reportWords: ReportWords;
 }) {
+  const signInHref = useSignInHref();
   const locale = useClientLocale();
   const router = useRouter();
   const [liked, setLiked] = useState(story.liked);
@@ -111,6 +124,14 @@ export function StoryViewer({
     return () => window.clearTimeout(timer);
   }, [story.id]);
 
+  /* The ring on the feed goes quiet for this story. Kept on this device only
+     (`./seen`), and marked when the story is opened rather than finished: the
+     ring says "you have been here", which a half-watched story has. A run
+     replaces the entry as it steps, so this fires for each story in turn. */
+  useEffect(() => {
+    markStorySeen(story.id, viewerId);
+  }, [story.id, viewerId]);
+
   const who = story.author.label;
   /* B16: this story and the recent run, as the sequence reads them. */
   const current = useMemo(
@@ -120,13 +141,15 @@ export function StoryViewer({
 
   const requireSignIn = () => {
     if (signedIn) return false;
-    router.push("/sign-in");
+    router.push(signInHref);
     return true;
   };
 
   const mark = (kind: "LIKE" | "SAVE") => {
     if (requireSignIn()) return;
     const on = kind === "LIKE" ? !liked : !saved;
+    /* A light tap in the hand when a mark lands; taking one back is quiet. */
+    if (on) feedback("select");
     if (kind === "LIKE") {
       setLiked(on);
       setLikeCount((n) => n + (on ? 1 : -1));
@@ -193,17 +216,21 @@ export function StoryViewer({
     });
   };
 
+  /* Taking a story down is confirmed by the slide (`DeleteSheet`), never by
+     the browser's `confirm()`. */
+  const [takingDown, setTakingDown] = useState(false);
   const takeDown = () => {
     setMenuOpen(false);
-    if (!window.confirm("Take this story down? The comments under it stay.")) return;
-    startTransition(async () => {
-      const result = await removeStory({ storyId: story.id });
-      if (!result.ok) {
-        show(result.error, "error");
-        return;
-      }
-      router.replace("/around");
-    });
+    setTakingDown(true);
+  };
+  const takeDownConfirmed = async (): Promise<boolean> => {
+    const result = await removeStory({ storyId: story.id });
+    if (!result.ok) {
+      show(result.error, "error");
+      return false;
+    }
+    router.replace("/around");
+    return true;
   };
 
   /* The sheet knows nothing about stories or posts. It is handed rows and two
@@ -255,7 +282,7 @@ export function StoryViewer({
 
           <Link
             href={story.author.handle ? `/u/${story.author.handle}` : "#"}
-            className="nf-story__author"
+            className="nf-story__author nf-tap"
             aria-label={`Open ${who}`}
           >
             <span className="nf-story__face">
@@ -350,7 +377,7 @@ export function StoryViewer({
                           setReporting(true);
                         }}
                       >
-                        Report this story
+                        {reportWords.reportStory}
                       </button>
                       <button
                         type="button"
@@ -370,27 +397,18 @@ export function StoryViewer({
 
         {/* -------------------------------------------------- what happened */}
         <div className="nf-story__foot">
+          {/* THE WORDS, ON SMOKED GLASS (D74: smoked glass for anything that
+              floats over media). One headline, one line under it, the place as
+              a small pill. The brand chip and the corner share button that sat
+              on this card are gone: the share is in the bar below, once. */}
           <div className="nf-story__card">
-            <span className="nf-story__card-share">
-              <Button
-                variant="secondary"
-                size="sm"
-                iconOnly
-                leadingIcon="share"
-                onClick={share}
-                aria-label="Share this story"
-                className="nf-social-round"
-              />
-            </span>
-
-            <span className="nf-story-chip">{STORY_COPY.chip}</span>
             <h1 className="nf-story__headline">{story.headline}</h1>
             {story.standfirst ? (
               <p className="nf-story__standfirst">{story.standfirst}</p>
             ) : null}
             {story.placeLabel ? (
               <p className="nf-story__place">
-                <UiIcon name="location" size={14} />
+                <UiIcon name="location" size={12} />
                 {story.placeLabel}
               </p>
             ) : null}
@@ -400,47 +418,6 @@ export function StoryViewer({
             <p className="nf-story__held">{story.heldReason} Only you can see this until then.</p>
           ) : null}
 
-          {/* ------------------------------------------ what I can do about it */}
-          <div className="nf-story__actions">
-            <button
-              type="button"
-              onClick={() => mark("LIKE")}
-              aria-pressed={liked}
-              className={`nf-story__act${liked ? " nf-story__act--on" : ""}`}
-            >
-              <span className="nf-story__act-circle">
-                <UiIcon name="heart" size={22} filled={liked} />
-              </span>
-              <span className="nf-story__act-count nf-numeric">{likeCount}</span>
-              <span className="sr-only">{liked ? "liked, undo" : "likes, like this story"}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => mark("SAVE")}
-              aria-pressed={saved}
-              className={`nf-story__act${saved ? " nf-story__act--on" : ""}`}
-            >
-              {/* A BOOKMARK, NOT THE REPOST ARROWS. This control saves a story
-                  to the reader's own shelf: nothing is republished and nobody
-                  else sees it happen, which is the exact opposite of what two
-                  circling arrows mean to anybody who has met them on the feed
-                  card directly beneath this screen. */}
-              <span className="nf-story__act-circle">
-                <UiIcon name="bookmark" size={22} filled={saved} />
-              </span>
-              <span className="nf-story__act-count nf-numeric">{saveCount}</span>
-              <span className="sr-only">{saved ? "saved, undo" : "saves, save this story"}</span>
-            </button>
-
-            <button type="button" onClick={share} className="nf-story__act">
-              <span className="nf-story__act-circle">
-                <UiIcon name="share" size={22} />
-              </span>
-              <span className="nf-story__act-count">Share</span>
-            </button>
-          </div>
-
           {/* --------------------------------------------- who else cared */}
           {faces.length > 0 ? (
             <div className="nf-story__pile">
@@ -449,7 +426,7 @@ export function StoryViewer({
                   <Link
                     key={face.userId}
                     href={face.handle ? `/u/${face.handle}` : "#"}
-                    className="nf-story__pileface"
+                    className="nf-story__pileface nf-tap"
                     aria-label={face.label}
                     title={face.label}
                   >
@@ -474,25 +451,46 @@ export function StoryViewer({
             </div>
           ) : null}
 
-          {/* ------------------------------------------------- the way in */}
-          <button
-            type="button"
-            onClick={() => setCommenting(true)}
-            className="nf-story__commentbar"
-          >
-            <span>
-              {story.commentCount > 0
-                ? countOf(story.commentCount, "comments", locale)
-                : STORY_COPY.addComment}
-            </span>
-            {/* This opens the comments. It was drawing the share arrow, which
-                was the THIRD share glyph on one screen (the card's corner, the
-                action row, and here) and the only one of the three that did
-                not share anything. */}
-            <span className="nf-story__send" aria-hidden="true">
-              <UiIcon name="chat-bubble" size={17} />
-            </span>
-          </button>
+          {/* ------------------------------------- one bar: reply, like, keep, send
+              THE WAY IN AND THE FEED'S CAPSULES, ON ONE LINE (D72, D74). The
+              reply field is a smoked capsule that opens the conversation; the
+              like, the save and the share are the same capsules as under a
+              post, so the like you press here is the like you press there. A
+              BOOKMARK, NOT THE REPOST ARROWS: saving puts the story on the
+              reader's own shelf and nobody else sees it happen. */}
+          <div className="nf-story__bar">
+            <div className="nf-story__actions nf-story__actions--pills">
+              <ActionPill
+                icon="heart"
+                tone="like"
+                pressed={liked}
+                payoff
+                count={formatNumber(likeCount, locale)}
+                label={liked ? `Liked, ${likeCount}. Undo` : `Likes ${likeCount}, like this story`}
+                onClick={() => mark("LIKE")}
+              />
+              {/* The comment is a bare glyph and its count like the like (D78:
+                  no wrapper around any action on the story). */}
+              <ActionPill
+                icon="chat-bubble"
+                tone="reply"
+                count={formatNumber(story.commentCount, locale)}
+                label={story.commentCount > 0 ? countOf(story.commentCount, "comments", locale) : STORY_COPY.addComment}
+                onClick={() => setCommenting(true)}
+              />
+              {/* Send, then save at the far edge: the same order as under a
+                  post, so the save is always the last mark on the row. */}
+              <ActionPill icon="send" tone="share" round label="Share this story" onClick={share} />
+              <ActionPill
+                icon="bookmark"
+                tone="save"
+                round
+                pressed={saved}
+                label={saved ? `Saved, ${saveCount}. Undo` : `Saves ${saveCount}, save this story`}
+                onClick={() => mark("SAVE")}
+              />
+            </div>
+          </div>
         </div>
       </article>
 
@@ -512,14 +510,24 @@ export function StoryViewer({
           /* B-7b: your own comment can be deleted (soft, like a post). */
           onDelete={(commentId) => deleteStoryComment({ commentId })}
           onReport={(input) => reportStoryComment(input)}
+          reportWords={reportWords}
         />
       ) : null}
 
+      <DeleteSheet
+        open={takingDown}
+        title={DELETE_WORDS.story.title}
+        body={DELETE_WORDS.story.body}
+        onClose={() => setTakingDown(false)}
+        onConfirm={takeDownConfirmed}
+      />
+
       {reporting && story.author.id ? (
         <ReportSheet
-          title={`Report ${who}`}
-          subject={`The account behind this story, at @${story.author.handle ?? ""}.`}
+          title={reportWords.reportWho.replace("{who}", () => who)}
+          subject={reportWords.storySubject.replace("{handle}", () => (story.author.handle ?? ""))}
           reasons={PROFILE_REPORT_REASONS}
+          words={reportWords}
           submit={({ reason, detail }) =>
             reportProfile({ userId: story.author.id as string, reason, detail })
           }

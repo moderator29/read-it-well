@@ -3,7 +3,8 @@
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/Button";
 import { useRouter } from "next/navigation";
-import { formatDate, getDictionary, type Locale } from "@vallo/i18n";
+import { formatDate, type Locale } from "@vallo/i18n/core";
+import { useScopedCopy } from "@/lib/i18n/copy-scope";
 import { SettingsGroup } from "@/components/app/account/rows";
 import { StatusPill, type StatusTone } from "@/components/ui/StatusPill";
 import type { MyReports as MyReportsList } from "@/lib/reports/my-reports";
@@ -27,7 +28,7 @@ const TONE: Record<string, StatusTone> = {
 };
 
 export function MyReports({ list, locale }: { list: MyReportsList; locale: Locale }) {
-  const copy = getDictionary(locale).platform.myReports;
+  const copy = useScopedCopy("myReports");
   const router = useRouter();
   const [armed, setArmed] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);

@@ -18,7 +18,7 @@ describe("the person line (V-23)", () => {
     });
     expect(personFacts(facts, copy, "en").map((f) => f.text)).toEqual([
       "Identity matched with NIMC, 2 Sept 2026",
-      "On Vallo since March 2026",
+      "On Vallo since 2 March 2026",
       "Phone confirmed",
       "4 viewings with you arranged on Vallo",
     ]);

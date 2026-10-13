@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { type Locale } from "@vallo/i18n/core";
 import type { AreaProposal, AreaSummary } from "@/lib/social/areas-queries";
-import { AREA_COPY, AREA_KIND_LABEL } from "@/lib/social/areas-schema";
+import { AREA_COPY, AREA_KIND_LABEL } from "@/lib/social/areas-model";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { JoinButton } from "../JoinButton";
 import { countOf } from "@vallo/i18n/core";

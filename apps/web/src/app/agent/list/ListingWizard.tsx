@@ -1,23 +1,35 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { PhoneGateLink } from "@/components/app/PhoneGateLink";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { formatDate, formatMoney, type Dictionary, type Locale } from "@vallo/i18n/core";
+import { countOf, formatDate, formatMoney, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { ShotList } from "@/components/agent/ShotList";
 import { fill } from "../_copy";
-import { createClient } from "@/lib/supabase/client";
+import { loadBrowserClient } from "@/lib/supabase/load-client";
 import { canCapturePhoto, capturePhoto } from "@/lib/native/device";
 import { Switch } from "@/components/ui/Switch";
+import { ListerFeeGate } from "@/components/money/ListerFeeGate";
+import {
+  acceptanceMatches,
+  feeGateHoldsSend,
+  listerFeeFigures,
+  type ListerFeeAcceptance,
+  type ListerFeePolicy,
+} from "@/lib/money/lister-fee";
+import { fetchListerFeePolicy, recordListerFeeAcceptance } from "@/lib/money/lister-fee-actions";
 import {
   addPhoto,
+  addVideo,
   removePhoto,
-  reorderPhotos,
+  removeVideo,
+  reorderMedia,
   saveDraft,
   setAmenities,
   setListingAccess,
   submitListing,
 } from "@/lib/agent/listings-actions";
-import type { OwnAnswers, WizardDraft } from "@/lib/agent/listings-queries";
+import type { ListingStatus, OwnAnswers, WizardDraft } from "@/lib/agent/listings-queries";
 import { BROADCAST_MONEY_KEYS, type BroadcastKey, type BroadcastParse } from "@/lib/agent/broadcast";
 import { BroadcastPaste } from "./BroadcastPaste";
 import { PriceGuidePanel, usePriceGuide } from "./PriceGuide";
@@ -31,12 +43,18 @@ import {
   MAX_PHOTOS,
   MAX_PHOTO_BYTES,
   MAX_PHOTO_LABEL,
+  MAX_UPLOAD_BYTES,
+  MAX_UPLOAD_LABEL,
+  MAX_VIDEOS,
+  MAX_VIDEO_SECONDS,
+  MIN_MEDIA,
+  RECOMMENDED_MEDIA,
   PHOTO_MIME_TYPES,
+  VIDEO_MIME_TYPES,
   rejectUpload,
   MAX_SECURITY_PHONE,
   MAX_TITLE_LENGTH,
   MIN_DESCRIPTION_WORDS,
-  MIN_PHOTOS,
   MIN_PHOTO_WIDTH,
   MIN_TITLE_LENGTH,
   collapseSpaces,
@@ -65,18 +83,28 @@ import {
   type RentPeriod,
   type SaleStatus,
   type WaterSupply,
-} from "@/lib/agent/listings-schema";
+} from "@/lib/agent/listings-model";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { BackControl } from "@/components/ui/BackControl";
 import type { BrandIconName } from "@/design-system/icons/BrandIcon";
 import { Amount } from "@/components/ui/Amount";
 import { moveInLines } from "@/components/app/listing/move-in-lines";
 import { RemoteImage } from "@/components/ui/RemoteImage";
-import { VideoWalkthrough, type WalkthroughVideo } from "@/components/agent/VideoWalkthrough";
+import { canMove, mergeMedia, photoFirst } from "@/lib/listings/media-order";
+import {
+  looksLikeVideo,
+  posterFrame,
+  scrubVideoLocation,
+  videoDuration,
+  videoExtension,
+  videoMime,
+} from "@/lib/agent/video-prep";
+import { resumableUpload } from "@/lib/agent/resumable-upload";
+import { SUPABASE_URL } from "@/lib/supabase/env";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Quantity } from "@/components/ui/Quantity";
 import { ListingSentForReview } from "./ListingSentForReview";
-import { SuccessSheet } from "@/components/ui/SuccessSheet";
+import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
 import { successCopy, type SuccessWords } from "@/lib/ui/success-moments";
 import { TextField, TextArea } from "@/components/ui/Field";
 import { CompoundQuestions } from "@/components/agent/CompoundQuestions";
@@ -88,6 +116,10 @@ import { FloodQuestion } from "@/components/agent/FloodQuestion";
 import type { Flooding } from "@/lib/around/pulse";
 import { EMPTY_UNIT_FORM, takesShape, unitPayload, type UnitForm } from "@/lib/listings/unit-shape";
 import { listingDraftKey } from "@/lib/agent/listing-draft-storage";
+import { ProgressPath } from "@/components/supply/ProgressPath";
+import { LISTING_STEP_TILES } from "@/components/supply/path-tiles";
+import { useDeviceStorage } from "@/components/supply/use-device-storage";
+import { Unfold } from "@/components/ui/Unfold";
 import { looksLikeStreetAddress, STREET_IN_TITLE_WARNING } from "@/lib/listings/public-title";
 import { tenantPreference } from "@/lib/safety/tenant-preference";
 import {
@@ -104,6 +136,9 @@ import { Icon3D } from "@/components/ui/Icon3D";
 import type { Icon3DName } from "@/components/ui/icon-3d";
 import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
 import { DetailGlyph } from "@/components/app/listing/DetailGlyph";
+import { feedback } from "@/lib/ui/feedback";
+import "@/app/css/catalogue.css";
+import "@/app/css/lister-publish.css";
 
 /**
  * The List Apartment wizard: eight steps, canon reference 03.
@@ -139,6 +174,35 @@ const STEP_KEYS = [
   "guestView",
   "submit",
 ] as const satisfies readonly (keyof WizardCopy["wizard"]["steps"])[];
+
+/**
+ * The step that owns a field the submit gate can name, so the checklist's
+ * Edit lands on the box that fixes it. Anything the gate grows later, and
+ * every rooms field, belongs to the first step.
+ */
+function stepOfGateField(field: string): number {
+  switch (field) {
+    case "photos":
+      return STEP_KEYS.indexOf("photos");
+    case "stateCode":
+    case "city":
+    case "area":
+      return STEP_KEYS.indexOf("location");
+    case "amenities":
+      return STEP_KEYS.indexOf("amenities");
+    case "price":
+    case "rent":
+    case "rentPeriod":
+    case "rate":
+    case "ratePeriod":
+    case "salePrice":
+    case "tenure":
+    case "totalMoveIn":
+      return STEP_KEYS.indexOf("pricing");
+    default:
+      return STEP_KEYS.indexOf("basics");
+  }
+}
 
 /** Display order of the type cards, which is not the schema's storage order. */
 /**
@@ -237,16 +301,47 @@ type Values = {
 
 type Photo = { id: string; path: string; url: string };
 
-/** How a rent cycle reads beside a figure, in the one place that prints both. */
-const PERIOD_WORD: Record<RentPeriod, string> = {
-  month: "per month",
-  quarter: "per quarter",
-  year: "per year",
-};
+/** A walkthrough on the listing; its url is signed (or local until the next read). */
+type Video = { id: string; url: string; posterUrl: string | null; durationSeconds: number | null };
+
+/**
+ * ONE ROW OF PHOTOS AND VIDEOS, the first of which (the cover) is a photo.
+ * Stored across two tables and read back with `mergeMedia`.
+ */
+type Media = ({ kind: "photo" } & Photo) | ({ kind: "video" } & Video);
+
+/** "0:42". */
+function clockOf(seconds: number): string {
+  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+}
+
+/** The row a stored draft opens on. */
+function mediaFrom(draft: WizardDraft | null): Media[] {
+  if (!draft) return [];
+  return mergeMedia(
+    draft.photos.map((photo, index) => ({ ...photo, position: photo.position ?? index })),
+    (draft.videos ?? []).map((video, index) => ({ ...video, position: video.position ?? index })),
+  ).map((entry) =>
+    entry.kind === "photo"
+      ? { kind: "photo" as const, id: entry.item.id, path: entry.item.path, url: entry.item.url }
+      : {
+          kind: "video" as const,
+          id: entry.item.id,
+          url: entry.item.url,
+          posterUrl: entry.item.posterUrl ?? null,
+          durationSeconds: entry.item.durationSeconds ?? null,
+        },
+  );
+}
 
 /** Keep an input numeric without fighting the caret. Empty stays empty. */
 function digitsOnly(raw: string, max: number): string {
   return raw.replace(/[^0-9]/g, "").slice(0, max);
+}
+
+/** A box as the save sends it: what was typed, or null for a box left empty. */
+function cleared(raw: string): string | null {
+  return raw.trim() === "" ? null : raw;
 }
 
 const EMPTY: Values = {
@@ -409,7 +504,7 @@ function Field({
       </span>
       {children}
       {error ? (
-        <span className="nf-body-sm mt-inline-tight block font-medium text-[var(--nf-state-error)]">
+        <span className="nf-body-sm mt-inline-tight block font-semibold text-[var(--nf-state-error)]">
           {error}
         </span>
       ) : hint ? (
@@ -524,7 +619,7 @@ const WATER_GLYPH: Record<WaterSupply, UiIconName> = {
 /** 07 screen three's twelve tiles. Same mapping the listing page tiles use. */
 const AMENITY_GLYPH: Record<string, UiIconName> = {
   wifi: "wifi",
-  ac: "sparkle",
+  ac: "snowflake",
   tv: "picture",
   kitchen: "kitchen",
   parking: "parking",
@@ -535,13 +630,26 @@ const AMENITY_GLYPH: Record<string, UiIconName> = {
   furnished: "home",
   balcony: "building-apartment",
   garden: "map",
-  laundry: "sparkle",
+  laundry: "washing-machine",
   generator: "bolt",
   water: "bath",
   shower: "bath",
   breakfast: "utensils",
   workspace: "document",
 };
+
+/**
+ * The one refusal shake (lister-publish.css, `[data-refused]`), replayed on
+ * every refusal. The attribute is the DOM's, not React's, so taking it off and
+ * putting it back across a reflow restarts the animation without remounting
+ * the field the lister is typing in.
+ */
+function refuse(el: HTMLElement | null) {
+  if (!el) return;
+  el.removeAttribute("data-refused");
+  void el.offsetWidth;
+  el.setAttribute("data-refused", "");
+}
 
 /** The step header: title, one sentence, and the object where there is one. */
 function StepHead({
@@ -871,16 +979,17 @@ function FromMessageMark({
   return (
     <span className="ml-inline-tight inline-flex flex-wrap items-center gap-2xs align-middle" data-testid="from-message">
       <span className="nf-badge nf-badge--info">{tag}</span>
-      <button
-        type="button"
-        className="nf-btn nf-btn--ghost nf-btn--sm min-h-11"
+      <Button
+        variant="quiet"
+        size="sm"
+        className="min-h-11"
         onClick={(event) => {
           event.preventDefault();
           onConfirm();
         }}
       >
         {confirm}
-      </button>
+      </Button>
     </span>
   );
 }
@@ -906,6 +1015,8 @@ export function ListingWizard({
   unitCopy,
   floodCopy,
   floodOpen = false,
+  feeGateBlocking = false,
+  initialFeePolicy,
   remainderCopy,
   moneyMapCopy,
   locale,
@@ -920,8 +1031,26 @@ export function ListingWizard({
   initialUnconfirmed = [],
   shotsCopy,
   demandCopy,
+  pathCopy,
+  listerCopy,
+  sentFrom = null,
 }: {
-  /** The page's `t.success`, for "Your listing is in review". Absent, no sheet. */
+  /** Round 5: the publish moment's few words. Absent in older harnesses, which draw the card unlabelled. */
+  listerCopy?: Dictionary["experienceLister"];
+  /**
+   * A listing the page found already with the review team (`?id=` of one in
+   * SUBMITTED or UNDER_REVIEW): the wizard opens as the chain it became when
+   * it was sent, settled, rather than a lock screen. It is also what keeps the
+   * screen in place when sending revalidates this route (the page re-renders
+   * with the listing now in review, and this is the same component there).
+   */
+  sentFrom?: { status: ListingStatus; submittedAt: string | null } | null;
+  /**
+   * The progress path's words (reference 7110). Absent in the harnesses that
+   * photograph the governing screens, which then draw exactly what they did.
+   */
+  pathCopy?: Dictionary["experienceFeatures"]["wizard"];
+  /** The page's `t.success`, for "Your listing is in review" over the chain. */
   success?: SuccessWords;
   /** V-70: the shot list's words. Without them the shot list is not drawn. */
   shotsCopy?: Dictionary["afterTheGate"]["shots"];
@@ -963,6 +1092,18 @@ export function ListingWizard({
   floodCopy: Dictionary["shape"]["neighbours"];
   /** V-41 is behind a fail-closed flag; the question shows only when it is on. */
   floodOpen?: boolean;
+  /**
+   * D60: whether Send for review waits for a recorded fee acceptance
+   * (`lister_fee_gate_blocking`, read fail closed). The fee screen is drawn on
+   * the last step either way; off, which is the default, nothing waits.
+   */
+  feeGateBlocking?: boolean;
+  /**
+   * The fee rates as already read, for the harnesses that draw the last step
+   * without a server (the `startAt` pattern). The product passes nothing and
+   * the step reads them when it opens.
+   */
+  initialFeePolicy?: ListerFeePolicy | null;
   /** V-13: the sentence that refuses an unexplained remainder in the total. */
   remainderCopy?: Dictionary["afterTheGate"]["remainder"];
   /** V-46: the captions that say who each move-in line is paid to. */
@@ -984,25 +1125,30 @@ export function ListingWizard({
   startAt?: number;
 }) {
   const router = useRouter();
+  /* Whether the draft really lands on this device, so the path's autosave
+     line only says what is true. */
+  const deviceKeeps = useDeviceStorage() && listingDraftKey(userId) !== null;
   const [step, setStep] = useState(() =>
-    Math.min(Math.max(Math.trunc(startAt), 0), STEP_KEYS.length - 1),
+    sentFrom ? STEP_KEYS.length - 1 : Math.min(Math.max(Math.trunc(startAt), 0), STEP_KEYS.length - 1),
   );
+  /* Round 5: which way the lister is travelling, and whether anything has
+     moved yet. Both change in the same render as the step, so the step being
+     left never animates, and the first paint is still (lister-publish.css). */
+  const [travel, setTravel] = useState<{ dir: "forward" | "back"; moved: boolean }>({ dir: "forward", moved: false });
+  /** The step an Edit came from, while the lister is on an earlier one. */
+  const [returnTo, setReturnTo] = useState<number | null>(null);
+  const railRef = useRef<HTMLDivElement | null>(null);
+  const cardRef = useRef<HTMLDivElement | null>(null);
   const [values, setValues] = useState<Values>(initial ? valuesFrom(initial) : EMPTY);
   /* The answer groups whose saved values could not be read (review 13). */
   const unread = useMemo(() => initial?.unread ?? [], [initial]);
-  const [photos, setPhotos] = useState<Photo[]>(initial?.photos ?? []);
+  /* The photos and videos, in the one order the lister arranged them. */
+  const [media, setMedia] = useState<Media[]>(() => mediaFrom(initial));
+  const photos = useMemo(() => media.filter((item): item is Media & { kind: "photo" } => item.kind === "photo"), [media]);
+  const videos = useMemo(() => media.filter((item): item is Media & { kind: "video" } => item.kind === "video"), [media]);
+  /** The video being uploaded now, for its progress line. */
+  const [videoProgress, setVideoProgress] = useState<{ name: string; percent: number } | null>(null);
   const [chosenAmenities, setChosenAmenities] = useState<string[]>(initial?.amenityCodes ?? []);
-  /* The walkthroughs already attached to this draft. Every layer behind them
-     was built weeks ago and had zero callers; `VideoWalkthrough` is the half a
-     human touches. */
-  const [videos, setVideos] = useState<WalkthroughVideo[]>(
-    (initial?.videos ?? []).map((video) => ({
-      id: video.id,
-      url: video.url,
-      posterUrl: video.posterUrl,
-      durationSeconds: video.durationSeconds,
-    })),
-  );
   const [listingId, setListingId] = useState<string | null>(initial?.id ?? null);
   /*
    * V-09: THE FIELDS A PASTED BROADCAST FILLED, until the agent touches them.
@@ -1050,10 +1196,13 @@ export function ListingWizard({
 
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [phoneGate, setPhoneGate] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [photoNotice, setPhotoNotice] = useState<string | null>(null);
   /** One line per file the last pick refused, naming the file. */
   const [photoProblems, setPhotoProblems] = useState<string[]>([]);
+  /** The files the last pick could not upload for a reason a second try can fix. */
+  const [retryFiles, setRetryFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   /* STORE-04: the shell's own camera, when the running binary carries it. */
   const [nativeCamera, setNativeCamera] = useState(false);
@@ -1066,10 +1215,22 @@ export function ListingWizard({
       live = false;
     };
   }, []);
-  const [submitted, setSubmitted] = useState(false);
-  /* The success sheet over the "sent for review" screen, opened by the
-     action's own ok and closed by the person; the screen stays under it. */
-  const [celebrate, setCelebrate] = useState(false);
+  /*
+   * SENT: what the server said when it accepted the listing, and whether that
+   * happened in this sitting (`now`, which is what earns the arrival motion and
+   * the one medium haptic). Only ever set from the action's own ok or from the
+   * page's read of the stored row, so the chain never runs ahead of the truth.
+   */
+  const [sent, setSent] = useState<{ status: ListingStatus; at: string | null; now: boolean } | null>(() =>
+    sentFrom ? { status: sentFrom.status, at: sentFrom.submittedAt, now: false } : null,
+  );
+  /* D51, D60, D61: THE FEE SCREEN. The rates in force for this listing are
+     read when the submit step opens, and the screen is drawn above Send for
+     review. `undefined` is "not read yet"; null is "could not be read", which
+     the screen says in words. The acceptance is held here only while the
+     blocking flag is on: with it off there is no accept to hold. */
+  const [feePolicy, setFeePolicy] = useState<ListerFeePolicy | null | undefined>(initialFeePolicy);
+  const [feeAcceptance, setFeeAcceptance] = useState<ListerFeeAcceptance | null>(null);
   const [pending, startTransition] = useTransition();
   /** Whether the last `persist` reached the server and was accepted. */
   const lastSaveOk = useRef(true);
@@ -1115,6 +1276,23 @@ export function ListingWizard({
   /* The headline figure, resolved exactly the way the catalogue resolves it, so
      the preview card on step 7 shows the number a renter will see. */
   const priceMinor = forSale ? saleMinor : tenancy ? rentMinor : rateMinor;
+  const feeKind = forSale ? "sale" : tenancy ? "rent" : "stay";
+  /* Void the moment the price, the rate or the terms move: an acceptance is of figures. */
+  const feeAccepted = acceptanceMatches(feeAcceptance, listerFeeFigures(priceMinor, feePolicy ?? null), feePolicy ?? null);
+  const feeHolds = feeGateHoldsSend(feeGateBlocking, feeAccepted);
+  useEffect(() => {
+    /* Sent, the fee screen is gone and its rates are not read. */
+    if (step !== 7 || !listingId || sent) return;
+    let live = true;
+    void fetchListerFeePolicy(listingId)
+      .catch(() => null)
+      .then((policy) => {
+        if (live) setFeePolicy(policy);
+      });
+    return () => {
+      live = false;
+    };
+  }, [step, listingId, sent]);
 
   /* V-74: what similar homes in the area are asking, on the pricing step only. */
   const guideSubject = useMemo<GuideSubject>(
@@ -1210,13 +1388,16 @@ export function ListingWizard({
   const preference = tenantPreference(`${values.title} ${values.description}`);
   const stepNames = STEP_KEYS.map((key) => copy.wizard.steps[key]);
   const amenityNames = copy.amenities.names as Record<string, string | undefined>;
+  /* The words after the headline figure, from the dictionary's own period
+     table. A tenancy printed "per year" whatever cycle the rent was quoted
+     in, so a monthly rent read on the preview card as a yearly one. */
   const pricePeriod = forSale
-    ? "asking price"
+    ? copy.pricing.period.sale
     : tenancy
-      ? copy.pricing.perYear
+      ? copy.pricing.period[values.rentPeriod]
       : perHead
-        ? "per head"
-        : copy.pricing.perNight;
+        ? copy.pricing.period.guest
+        : copy.pricing.period.night;
 
   const unmet = useMemo(
     () =>
@@ -1239,7 +1420,8 @@ export function ListingWizard({
         unitShape: values.unit.shape === "" ? null : values.unit.shape,
         amenityCount: chosenAmenities.length,
         photoCount: photos.length,
-        hasCover: photos.length > 0,
+        videoCount: videos.length,
+        hasCover: media[0]?.kind === "photo",
         moveInStatedMinor: tenancy ? statedTotalMinor : null,
         moveInPartsMinor: tenancy ? [partsSumMinor] : [],
       }),
@@ -1253,6 +1435,8 @@ export function ListingWizard({
       saleMinor,
       chosenAmenities.length,
       photos.length,
+      videos.length,
+      media,
       statedTotalMinor,
       partsSumMinor,
     ],
@@ -1290,8 +1474,8 @@ export function ListingWizard({
       case "propertyType":
         return g.propertyType;
       case "photos":
-        return photos.length < MIN_PHOTOS
-          ? fill(g.photos, { min: MIN_PHOTOS, count: photos.length })
+        return media.length < MIN_MEDIA
+          ? fill(g.photos, { min: MIN_MEDIA, count: media.length })
           : g.cover;
       case "stateCode":
         return g.stateCode;
@@ -1390,7 +1574,8 @@ export function ListingWizard({
   }, [initial, userId]);
 
   useEffect(() => {
-    if (!restored.current) return;
+    /* A listing with the review team is not a draft to keep on the device. */
+    if (!restored.current || sent) return;
     const draftKey = listingDraftKey(userId);
     if (!draftKey) return;
     try {
@@ -1401,7 +1586,7 @@ export function ListingWizard({
     } catch {
       /* storage unavailable, the platform copy still holds */
     }
-  }, [listingId, values, chosenAmenities, userId]);
+  }, [listingId, values, chosenAmenities, userId, sent]);
 
   function set<K extends keyof Values>(key: K, value: Values[K]) {
     setValues((prev) => ({ ...prev, [key]: value }));
@@ -1467,6 +1652,8 @@ export function ListingWizard({
   };
 
   const unconfirmedMoney = BROADCAST_MONEY_KEYS.filter((key) => fromMessage.has(key));
+  /** Whether Send for review is held, and so whether the last step reads "ready". */
+  const sendBlocked = unmet.length > 0 || unconfirmedMoney.length > 0 || marksUnread || feeHolds;
 
   /* --------------------------------------------------------------- saving */
 
@@ -1493,54 +1680,56 @@ export function ListingWizard({
       /* V-09: the unconfirmed set goes to the server in the same save. */
       broadcastUnconfirmed: marksUnread ? undefined : [...fromMessage],
       title: values.title,
-      description: values.description,
+      /* EVERY BOX THE LISTER EMPTIED IS SENT AS NULL, which the action reads as
+         "clear the column". An empty box used to be left out of the save, and
+         the server keeps what it is not sent, so a deleted fee, address or
+         count stayed on the listing that went to review and came back here on
+         the next visit. Undefined is now only ever "not this save's business". */
+      description: cleared(values.description),
       propertyType: values.propertyType,
-      stateCode: values.stateCode,
-      city: values.city,
-      area: values.area,
-      address: values.address,
-      landmark: values.landmark,
+      stateCode: values.stateCode === "" ? null : values.stateCode,
+      city: cleared(values.city),
+      area: cleared(values.area),
+      address: cleared(values.address),
+      landmark: cleared(values.landmark),
       bedrooms: values.bedrooms,
       bathrooms: values.bathrooms,
-      toilets: values.toilets === "" ? undefined : values.toilets,
-      parkingSpaces: values.parkingSpaces === "" ? undefined : values.parkingSpaces,
-      floor: values.floor === "" ? undefined : values.floor,
-      totalFloors: values.totalFloors === "" ? undefined : values.totalFloors,
-      sizeSqm: values.sizeSqm === "" ? undefined : values.sizeSqm,
+      toilets: cleared(values.toilets),
+      parkingSpaces: cleared(values.parkingSpaces),
+      floor: cleared(values.floor),
+      totalFloors: cleared(values.totalFloors),
+      sizeSqm: cleared(values.sizeSqm),
       intent: values.intent,
-      rentNaira: values.rentNaira === "" ? undefined : values.rentNaira,
+      rentNaira: cleared(values.rentNaira),
       rentPeriod: values.rentPeriod,
       rentNegotiable: values.rentNegotiable,
-      cautionDepositNaira:
-        values.cautionDepositNaira === "" ? undefined : values.cautionDepositNaira,
-      serviceChargeNaira:
-        values.serviceChargeNaira === "" ? undefined : values.serviceChargeNaira,
+      cautionDepositNaira: cleared(values.cautionDepositNaira),
+      serviceChargeNaira: cleared(values.serviceChargeNaira),
       serviceChargePeriod: values.serviceChargePeriod,
-      agencyFeeNaira: values.agencyFeeNaira === "" ? undefined : values.agencyFeeNaira,
-      legalFeeNaira: values.legalFeeNaira === "" ? undefined : values.legalFeeNaira,
-      agreementFeeNaira: values.agreementFeeNaira === "" ? undefined : values.agreementFeeNaira,
-      totalMoveInNaira: values.totalMoveInNaira === "" ? undefined : values.totalMoveInNaira,
-      minimumTenancyMonths:
-        values.minimumTenancyMonths === "" ? undefined : values.minimumTenancyMonths,
-      availableFrom: values.availableFrom === "" ? undefined : values.availableFrom,
-      furnished: values.furnished === "" ? undefined : values.furnished,
-      rateNaira: values.rateNaira === "" ? undefined : values.rateNaira,
-      salePriceNaira: values.salePriceNaira === "" ? undefined : values.salePriceNaira,
-      saleAgencyFeeNaira: values.saleAgencyFeeNaira === "" ? undefined : values.saleAgencyFeeNaira,
-      saleLegalFeeNaira: values.saleLegalFeeNaira === "" ? undefined : values.saleLegalFeeNaira,
-      governorsConsentFeeNaira: values.governorsConsentFeeNaira === "" ? undefined : values.governorsConsentFeeNaira,
-      stampDutyNaira: values.stampDutyNaira === "" ? undefined : values.stampDutyNaira,
-      surveyRegistrationFeeNaira: values.surveyRegistrationFeeNaira === "" ? undefined : values.surveyRegistrationFeeNaira,
-      totalPurchaseNaira: values.totalPurchaseNaira === "" ? undefined : values.totalPurchaseNaira,
+      agencyFeeNaira: cleared(values.agencyFeeNaira),
+      legalFeeNaira: cleared(values.legalFeeNaira),
+      agreementFeeNaira: cleared(values.agreementFeeNaira),
+      totalMoveInNaira: cleared(values.totalMoveInNaira),
+      minimumTenancyMonths: cleared(values.minimumTenancyMonths),
+      availableFrom: cleared(values.availableFrom),
+      furnished: values.furnished === "" ? null : values.furnished,
+      rateNaira: cleared(values.rateNaira),
+      salePriceNaira: cleared(values.salePriceNaira),
+      saleAgencyFeeNaira: cleared(values.saleAgencyFeeNaira),
+      saleLegalFeeNaira: cleared(values.saleLegalFeeNaira),
+      governorsConsentFeeNaira: cleared(values.governorsConsentFeeNaira),
+      stampDutyNaira: cleared(values.stampDutyNaira),
+      surveyRegistrationFeeNaira: cleared(values.surveyRegistrationFeeNaira),
+      totalPurchaseNaira: cleared(values.totalPurchaseNaira),
       priceNegotiable: values.priceNegotiable,
-      tenure: values.tenure === "" ? undefined : values.tenure,
+      tenure: values.tenure === "" ? null : values.tenure,
       saleStatus: values.saleStatus,
-      yearBuilt: values.yearBuilt === "" ? undefined : values.yearBuilt,
-      condition: values.condition === "" ? undefined : values.condition,
-      powerGrid: values.powerGrid === "" ? undefined : values.powerGrid,
-      powerBackup: values.powerBackup === "" ? undefined : values.powerBackup,
-      powerBackupHours: values.powerBackupHours === "" ? undefined : values.powerBackupHours,
-      waterSupply: values.waterSupply === "" ? undefined : values.waterSupply,
+      yearBuilt: cleared(values.yearBuilt),
+      condition: values.condition === "" ? null : values.condition,
+      powerGrid: values.powerGrid === "" ? null : values.powerGrid,
+      powerBackup: values.powerBackup === "" ? null : values.powerBackup,
+      powerBackupHours: cleared(values.powerBackupHours),
+      waterSupply: values.waterSupply === "" ? null : values.waterSupply,
       prepaidMeter: values.prepaidMeter,
       /* A group whose saved answers could not be read, and which the lister
          has not touched, is left out: sending its empty form would write
@@ -1627,10 +1816,14 @@ export function ListingWizard({
       titleGateOpen.current = true;
       setFieldErrors((prev) => ({ ...prev, title: gateText("title", titleIssue.message) }));
       /* On a phone the title sits far above Next, so the refusal was
-         happening off screen. Bring the field and its sentence into view. */
+         happening off screen. The refusal is immediate (CRAFT_DOCTRINE 5):
+         focusing the field brings it into view in one move, above the sticky
+         bar (its scroll margin), where a smooth scroll to the centre used to
+         race the keyboard opening. The field shakes once and says why. */
       const field = document.getElementById("listing-title-field");
-      field?.scrollIntoView({ behavior: "smooth", block: "center" });
-      field?.querySelector("input")?.focus({ preventScroll: true });
+      refuse(field);
+      field?.querySelector("input")?.focus();
+      feedback("error");
       startTransition(async () => {
         await persist();
       });
@@ -1644,13 +1837,46 @@ export function ListingWizard({
          on a step no longer shown, and every later autosave failed on the
          same field. Stay, and show why. Going back is always allowed. */
       if (!lastSaveOk.current && target > step) {
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        /* The refusal is at the top: shown at once, never scrolled to slowly. */
+        window.scrollTo({ top: 0, behavior: "instant" });
+        feedback("error");
         return;
       }
+      setTravel({ dir: target < step ? "back" : "forward", moved: true });
       setStep(target);
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      /* Arriving at (or past) the step an Edit came from ends the way back. */
+      setReturnTo((prev) => (prev !== null && target >= prev ? null : prev));
     });
   }
+
+  /**
+   * An Edit on the last two steps: go to the step that owns the fact, and
+   * remember where the lister came from, so one tap brings them back to it
+   * (`returnTo`, drawn under the step's title) instead of Next through every
+   * step in between, each one a save.
+   */
+  function editStep(target: number) {
+    if (pending || target < 0 || target >= step) return;
+    setReturnTo(step);
+    go(target);
+  }
+
+  /* The new step is put in view BEFORE it paints, and only when the rail has
+     gone above the fold: a smooth scroll here used to run under the step's own
+     arrival, two motions for one change. */
+  useLayoutEffect(() => {
+    if (!travel.moved) return;
+    const rail = railRef.current;
+    if (rail && rail.getBoundingClientRect().top < 0) window.scrollTo({ top: 0, behavior: "instant" });
+  }, [step, travel.moved]);
+
+  /* Sent: the checklist, the fee screen and the button are gone from under
+     the lister's thumb, so the page is put on the card, before it paints, and
+     the card lands there (lister-publish.css). One move, to the subject. */
+  const sentNow = sent?.now === true;
+  useLayoutEffect(() => {
+    if (sentNow) cardRef.current?.scrollIntoView({ block: "start", behavior: "instant" });
+  }, [sentNow]);
 
   /* --------------------------------------------------------------- photos */
 
@@ -1758,8 +1984,11 @@ export function ListingWizard({
 
   async function onFiles(files: FileList | readonly File[] | null) {
     if (!files || files.length === 0) return;
+    /* Copied now: a FileList is live and the input is emptied below. */
+    const chosen = Array.from(files);
     setPhotoNotice(null);
     setPhotoProblems([]);
+    setRetryFiles([]);
 
     if (!canPersist || !userId) {
       setPhotoNotice(copy.photos.needsKeys);
@@ -1770,24 +1999,65 @@ export function ListingWizard({
     try {
       const id = listingId ?? (await persist());
       if (!id) {
-        setPhotoNotice(copy.photos.needsTitle);
+        /* No listing to attach to. With a title that is because the save did
+           not reach the server, which a second try can fix; without one, the
+           title is what is missing. */
+        if (values.title.trim().length >= 2) {
+          setPhotoNotice(copy.wizard.saveUnreached);
+          setRetryFiles(chosen);
+        } else {
+          setPhotoNotice(copy.photos.needsTitle);
+        }
         return;
       }
 
-      const supabase = createClient();
+      /* The browser client loads now, when photos are chosen, not with the
+         wizard (lib/supabase/load-client.ts). A chunk that cannot be fetched
+         is the upload failure the wizard already says for a photo. */
+      const supabase = await loadBrowserClient();
+      if (!supabase) {
+        setPhotoNotice(copy.photos.uploadFailed);
+        setRetryFiles(chosen);
+        return;
+      }
       let slot = photos.length;
       /*
        * ONE LINE PER REFUSED FILE. A single notice was overwritten by every
        * later file, so choosing six photos with two bad ones showed at most
        * the last refusal, without saying which photo it was about.
+       *
+       * AND THE ONES A SECOND TRY CAN FIX ARE KEPT. A dropped connection on
+       * the upload or on the attach is not a problem with the photo, so those
+       * files are held for "Try again" rather than sent back to the gallery
+       * to be found and chosen a second time. A refusal about the photo itself
+       * (too small, wrong type, too big) is not kept: trying it again changes
+       * nothing.
        */
       const problems: string[] = [];
-      const refuse = (file: File, reason: string) => problems.push(fileLine(file.name, reason));
+      const retry: File[] = [];
+      const refuse = (file: File, reason: string, again = false) => {
+        problems.push(fileLine(file.name, reason));
+        if (again) retry.push(file);
+      };
 
-      for (const file of Array.from(files)) {
+      let videoCount = videos.length;
+      for (const file of chosen) {
+        /* A VIDEO, mixed in with the photos in the one picker. */
+        if (looksLikeVideo(file)) {
+          if (videoCount >= MAX_VIDEOS) {
+            refuse(file, fill(copy.photos.videoCeiling, { max: MAX_VIDEOS }));
+            continue;
+          }
+          const added = await uploadVideo(file, id, supabase, refuse);
+          if (added) {
+            setMedia((prev) => [...prev, added]);
+            videoCount += 1;
+          }
+          continue;
+        }
         if (slot >= MAX_PHOTOS) {
-          problems.push(fill(copy.photos.ceiling, { max: MAX_PHOTOS }));
-          break;
+          refuse(file, fill(copy.photos.ceiling, { max: MAX_PHOTOS }));
+          continue;
         }
         const verdict = judgePhoto(file, looksLikeImage(file) ? await sizeOf(file) : null);
         if (verdict === "not-image") {
@@ -1818,8 +2088,8 @@ export function ListingWizard({
         /*
          * THE BUCKET'S OWN CEILING, CHECKED BEFORE THE BYTES LEAVE.
          *
-         * `MAX_UPLOAD_BYTES` is fifty megabytes and the `listing-photos`
-         * bucket is capped at ten, so a photograph between the two was
+         * `MAX_UPLOAD_BYTES` (a video's) is far above the `listing-photos`
+         * bucket's ten megabytes, so a photograph between the two was
          * uploaded in full on somebody's mobile data and then refused by
          * storage at the very end. The re-encode above usually lands well
          * under ten, which is exactly why this is measured on the RE-ENCODED
@@ -1848,15 +2118,13 @@ export function ListingWizard({
           uploadError = { message: "network" };
         }
         if (uploadError) {
-          refuse(
-            file,
-            uploadErrorText(uploadError, {
-              tooBig: fill(copy.photos.uploadTooBig, { max: MAX_PHOTO_LABEL }),
-              wrongType: copy.photos.uploadWrongType,
-              signedOut: copy.photos.uploadSignedOut,
-              failed: copy.photos.uploadFailed,
-            }),
-          );
+          const reason = uploadErrorText(uploadError, {
+            tooBig: fill(copy.photos.uploadTooBig, { max: MAX_PHOTO_LABEL }),
+            wrongType: copy.photos.uploadWrongType,
+            signedOut: copy.photos.uploadSignedOut,
+            failed: copy.photos.uploadFailed,
+          });
+          refuse(file, reason, reason === copy.photos.uploadFailed);
           continue;
         }
 
@@ -1864,7 +2132,15 @@ export function ListingWizard({
         try {
           attached = await addPhoto({ listingId: id, storagePath: path, position: slot });
         } catch {
-          refuse(file, copy.wizard.saveUnreached);
+          /* The attach never reached the server, so nothing there removes the
+             object it would have named. It is in this lister's own folder of
+             a public bucket, so it goes now, best effort, rather than staying
+             downloadable for ever under a path no row points at. */
+          void supabase.storage
+            .from("listing-photos")
+            .remove([path])
+            .catch(() => undefined);
+          refuse(file, copy.wizard.saveUnreached, true);
           continue;
         }
         if (!attached.ok) {
@@ -1873,90 +2149,206 @@ export function ListingWizard({
         }
 
         const url = supabase.storage.from("listing-photos").getPublicUrl(path).data.publicUrl;
-        setPhotos((prev) => [...prev, { id: attached.data.photoId, path, url }]);
+        setMedia((prev) => [...prev, { kind: "photo", id: attached.data.photoId, path, url }]);
         slot += 1;
       }
       setPhotoProblems(problems);
+      setRetryFiles(retry);
     } finally {
       setUploading(false);
       if (fileInput.current) fileInput.current.value = "";
     }
   }
 
-  function orderPhotos(next: Photo[]) {
-    setPhotos(next);
-    if (!canPersist || !listingId) return;
-    const before = photos;
-    startTransition(async () => {
-      let result: Awaited<ReturnType<typeof reorderPhotos>>;
+  /**
+   * ONE VIDEO, from the picker to the listing: checked (type, size, length),
+   * its filmed location taken out, a still drawn from it, uploaded to the
+   * private `listing-videos` bucket under the lister's own folder (the photo
+   * rule: `<uid>/<listing>/<uuid>`), the still to the photo bucket, and both
+   * attached by `addVideo`, which reads the real size and type back from
+   * storage. Returns the row item, or null with the reason already said.
+   */
+  async function uploadVideo(
+    file: File,
+    id: string,
+    supabase: NonNullable<Awaited<ReturnType<typeof loadBrowserClient>>>,
+    refuse: (file: File, reason: string, again?: boolean) => void,
+  ): Promise<Media | null> {
+    const mime = videoMime(file);
+    if (file.type !== "" && !(VIDEO_MIME_TYPES as readonly string[]).includes(file.type)) {
+      refuse(file, copy.photos.notAnImage);
+      return null;
+    }
+    if (file.size > MAX_UPLOAD_BYTES) {
+      refuse(file, fill(copy.photos.videoTooBig, { max: MAX_UPLOAD_LABEL }));
+      return null;
+    }
+    const seconds = await videoDuration(file);
+    if (seconds === null) {
+      refuse(file, copy.photos.videoUnreadable);
+      return null;
+    }
+    if (seconds > MAX_VIDEO_SECONDS) {
+      refuse(file, fill(copy.photos.videoTooLong, { seconds: MAX_VIDEO_SECONDS }));
+      return null;
+    }
+
+    const scrubbed = await scrubVideoLocation(file);
+    const clean = new File([scrubbed], file.name, { type: mime });
+    const poster = await posterFrame(clean);
+
+    const { data: session } = await supabase.auth.getSession();
+    const token = session.session?.access_token;
+    if (!token) {
+      refuse(file, copy.photos.uploadSignedOut);
+      return null;
+    }
+
+    const path = `${userId}/${id}/${crypto.randomUUID()}.${videoExtension(file)}`;
+    setVideoProgress({ name: file.name, percent: 0 });
+    const result = await resumableUpload({
+      file: clean,
+      bucket: "listing-videos",
+      path,
+      supabaseUrl: SUPABASE_URL,
+      accessToken: token,
+      onProgress: (progress) =>
+        setVideoProgress({
+          name: file.name,
+          percent: progress.total > 0 ? Math.min(100, Math.round((progress.uploaded / progress.total) * 100)) : 0,
+        }),
+    });
+    setVideoProgress(null);
+    if (!result.ok) {
+      refuse(file, result.reason === "network" ? copy.photos.videoFailed : result.message, result.reason === "network");
+      return null;
+    }
+
+    /* The still is a nicety: without it the video still plays. */
+    let posterPath: string | undefined;
+    if (poster) {
+      const stillPath = `${userId}/${id}/${crypto.randomUUID()}.jpg`;
       try {
-        result = await reorderPhotos({
+        const upload = await supabase.storage
+          .from("listing-photos")
+          .upload(stillPath, poster, { contentType: "image/jpeg", upsert: false });
+        if (!upload.error) posterPath = stillPath;
+      } catch {
+        /* no still */
+      }
+    }
+
+    let attached: Awaited<ReturnType<typeof addVideo>>;
+    try {
+      attached = await addVideo({
+        listingId: id,
+        storagePath: result.path,
+        durationSeconds: seconds,
+        ...(posterPath ? { posterPath } : {}),
+      });
+    } catch {
+      void supabase.storage.from("listing-videos").remove([result.path]).catch(() => undefined);
+      if (posterPath) void supabase.storage.from("listing-photos").remove([posterPath]).catch(() => undefined);
+      refuse(file, copy.wizard.saveUnreached, true);
+      return null;
+    }
+    if (!attached.ok) {
+      refuse(file, attached.error);
+      return null;
+    }
+    return {
+      kind: "video",
+      id: attached.data.videoId,
+      url: URL.createObjectURL(clean),
+      posterUrl: posterPath ? supabase.storage.from("listing-photos").getPublicUrl(posterPath).data.publicUrl : null,
+      durationSeconds: seconds,
+    };
+  }
+
+  /**
+   * Put the row in a new order and store it: photos by rank, videos by place
+   * (`reorderMedia`). A refusal puts the row back as the listing holds it, or
+   * the cover on screen would not be the cover a renter sees.
+   */
+  function orderMedia(next: Media[]) {
+    const before = media;
+    setMedia(next);
+    if (!canPersist || !listingId) return;
+    startTransition(async () => {
+      let result: Awaited<ReturnType<typeof reorderMedia>>;
+      try {
+        result = await reorderMedia({
           listingId,
-          orderedIds: next.map((p) => p.id),
+          items: next.map((item) => ({ kind: item.kind, id: item.id })),
         });
       } catch {
-        setPhotos(before);
+        setMedia(before);
         setPhotoNotice(copy.wizard.saveUnreached);
         return;
       }
       if (!result.ok) {
-        /* The grid goes back to the order the listing actually holds, or
-           the cover on screen is not the cover a renter sees. */
-        setPhotos(before);
+        setMedia(before);
         setPhotoNotice(result.error);
         return;
       }
       setPhotoNotice(null);
-      // Adopt the ids the platform settled on: at the ten photo ceiling one row
-      // is rewritten, and holding a stale id would break the next reorder.
-      setPhotos((prev) =>
-        result.data.photos.map((photo) => ({
-          id: photo.id,
-          path: photo.path,
-          url: prev.find((p) => p.path === photo.path)?.url ?? "",
-        })),
+      /* Adopt the ids the platform settled on: at the ten photo ceiling one
+         photo row is rewritten, and a stale id would break the next move. */
+      setMedia((prev) =>
+        mergeMedia(
+          result.data.photos.map((photo) => ({
+            ...photo,
+            url: prev.find((item) => item.kind === "photo" && item.path === photo.path)?.url ?? "",
+          })),
+          result.data.videos.map((video) => ({ ...video })),
+        ).map((entry): Media => {
+          if (entry.kind === "photo") {
+            return { kind: "photo", id: entry.item.id, path: entry.item.path, url: entry.item.url };
+          }
+          const held = prev.find((item) => item.kind === "video" && item.id === entry.item.id);
+          return held ?? { kind: "video", id: entry.item.id, url: "", posterUrl: null, durationSeconds: null };
+        }),
       );
     });
   }
 
   /*
-   * Move one photograph one place, which is what the grid's two arrows do.
-   *
-   * It replaces `makeCover`, and it can do that because the cover IS the
-   * first photograph: walking one to the front makes it the cover, and the
-   * Cover mark on the grid says so while it moves. That is one control doing
-   * one thing instead of a "Make cover" button and a separate ordering that
-   * could disagree with each other.
+   * Move one item one place, which is what the grid's two arrows do. The
+   * cover IS the first item, and it has to be a photo, so a move that would
+   * put a video first is not offered (`canMove`).
    */
-  function movePhoto(from: number, to: number) {
-    if (to < 0 || to >= photos.length || from === to) return;
-    const next = photos.slice();
+  function moveMedia(from: number, to: number) {
+    if (!canMove(media, from, to)) return;
+    const next = media.slice();
     const [moved] = next.splice(from, 1);
     if (!moved) return;
     next.splice(to, 0, moved);
-    orderPhotos(next);
+    orderMedia(next);
   }
 
-  function dropPhoto(index: number) {
-    const chosen = photos[index];
+  function dropMedia(index: number) {
+    const chosen = media[index];
     if (!chosen) return;
-    const before = photos;
-    const next = photos.filter((_, i) => i !== index);
-    setPhotos(next);
+    const before = media;
+    /* Taking the cover off leaves the next photo as the cover, never a video. */
+    setMedia(photoFirst(media.filter((_, i) => i !== index)));
     if (!canPersist || !listingId) return;
     startTransition(async () => {
-      /* A refused removal put the photo back on screen nowhere: the grid
+      /* A refused removal put the item back on screen nowhere: the grid
          showed it gone while the listing still held it, and the count the
          submit gate reads disagreed with the one the lister saw. */
       let error: string | null = null;
       try {
-        const result = await removePhoto({ listingId, photoId: chosen.id });
+        const result =
+          chosen.kind === "photo"
+            ? await removePhoto({ listingId, photoId: chosen.id })
+            : await removeVideo({ listingId, videoId: chosen.id });
         if (!result.ok) error = result.error;
       } catch {
         error = copy.wizard.saveUnreached;
       }
       if (error) {
-        setPhotos(before);
+        setMedia(before);
         setPhotoNotice(error);
       }
     });
@@ -1965,6 +2357,7 @@ export function ListingWizard({
   /* --------------------------------------------------------------- submit */
 
   function send() {
+    setPhoneGate(false);
     startTransition(async () => {
       /* Saved first, always: the draft and its unconfirmed set (V-09) must be
          what the server checks, not what it held before the last tap. */
@@ -1977,11 +2370,24 @@ export function ListingWizard({
         setNotice(canPersist ? copy.submit.needsTitle : copy.submit.needsKeys);
         return;
       }
+      /* D60: ONLY WITH THE BLOCKING FLAG ON is the acceptance recorded first,
+         and a listing whose acceptance was not recorded is not sent (D51).
+         With it off nothing is recorded and nothing waits. */
+      if (feeGateBlocking) {
+        if (!feeAcceptance || !feeAccepted) return;
+        const recorded = await recordListerFeeAcceptance({ listingId: id, ...feeAcceptance }).catch(() => null);
+        if (!recorded || !recorded.ok) {
+          setNotice(recorded && !recorded.ok ? recorded.error : copy.wizard.saveUnreached);
+          if (recorded && !recorded.ok) setFeeAcceptance(null);
+          return;
+        }
+      }
       let result: Awaited<ReturnType<typeof submitListing>>;
       try {
         result = await submitListing({ listingId: id });
       } catch {
         setNotice(copy.wizard.saveUnreached);
+        feedback("error");
         return;
       }
       if (!result.ok) {
@@ -1992,13 +2398,21 @@ export function ListingWizard({
            words, rather than leaving a green checklist under a refusal. */
         const reasons = Object.entries(result.fieldErrors ?? {}).map(([field, message]) => gateText(field, message));
         setNotice([result.error, ...new Set(reasons)].join(" "));
+        setPhoneGate(result.gate === "phone");
         setFieldErrors(result.fieldErrors ?? {});
+        feedback("error");
         return;
       }
       setNotice(null);
       setFieldErrors({});
-      setSubmitted(true);
-      setCelebrate(true);
+      /* ACCEPTED, and only now: the card the lister built stays where it is,
+         its status turns to the server's word, the step's controls give way to
+         the chain, and the hand feels one medium beat because a commit was
+         accepted. Nothing pops and nothing is heavy: the listing is not live,
+         and the payoff waits for the day it is (lister-live). */
+      setSent({ status: result.data.status, at: result.data.submittedAt ?? null, now: true });
+      setTravel((prev) => ({ ...prev, moved: true }));
+      feedback("confirm");
       try {
         const draftKey = listingDraftKey(userId);
         if (draftKey) localStorage.removeItem(draftKey);
@@ -2011,31 +2425,125 @@ export function ListingWizard({
 
   /* ----------------------------------------------------------- the render */
 
-  if (submitted) {
-    const words = success ? successCopy(success, "listingSubmitted") : null;
-    return (
-      <>
-        <ListingSentForReview copy={copy} reference={reference} />
-        {success && words ? (
-        <SuccessSheet
-          open={celebrate}
-          onOpenChange={setCelebrate}
-          variant={words.variant}
-          object={words.object}
-          title={words.title}
-          body={words.body}
-          primary={{ label: success.continue }}
-        />
-        ) : null}
-      </>
-    );
-  }
-
   const price = priceMinor > 0 ? formatMoney(priceMinor, locale) : null;
   const stateName = states.find((s) => s.code === values.stateCode)?.name ?? "";
+  const sentWords = success ? successCopy(success, "listingSubmitted") : null;
+  /*
+   * THE CARD AS A MEMBER WILL SEE IT, built from the lister's own work: the
+   * cover photo, the title, the place, the price. Step 7 shows it too, and
+   * once the listing is sent it is the same element that stays on screen
+   * while everything around it changes (round 5): the lister watches THIS
+   * card go to review, not a confirmation page that replaced it.
+   */
+  const memberCard = (
+    <article className="nf-panel nf-panel--card block overflow-hidden" data-testid="member-card">
+      <div className="relative aspect-[4/3] w-full overflow-hidden bg-[var(--nf-surface-raised)]">
+        {photos[0] ? (
+          /* The guest view's cover: one wide 4:3 plate, so it earns a
+             larger candidate than the grid above it. */
+          <RemoteImage
+            src={photos[0].url}
+            alt=""
+            width={960}
+            height={720}
+            sizes="(max-width: 48rem) 100vw, 30rem"
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <div className="grid h-full w-full place-items-center text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+            {copy.guestView.addPhotos}
+          </div>
+        )}
+        <div
+          /* The platform scrim, not a hand-rolled black gradient. One
+             definition, used by the listing card and the gallery too, so
+             a preview of a card matches the card it previews. */
+          className="absolute inset-x-0 bottom-0 h-20"
+          style={{ backgroundImage: "var(--nf-scrim-media)" }}
+          aria-hidden="true"
+        />
+        {/* One badge, and which one it is says which market this is. The
+            instant-book badge is gone with the column behind it. */}
+        {forSale ? (
+          <span className="nf-badge nf-badge--warning absolute left-3 top-3">
+            For sale
+          </span>
+        ) : rental ? (
+          <span className="nf-badge nf-badge--brand absolute left-3 top-3">
+            {copy.guestView.rentBadge}
+          </span>
+        ) : null}
+        {/*
+          ON MEDIA, WHICH IS ITS OWN TOKEN FAMILY.
+
+          This line sits on the listing's own photograph, so it is not
+          a dark-theme colour and it is not a light-theme colour: it is
+          ink on somebody's picture, in both themes, and
+          `--nf-content-on-media` is the token that says so. The
+          `text-white/90` and `text-white/70` it replaces happened to
+          look right and could never follow a theme, which is exactly
+          the distinction the on-media family exists to hold.
+        */}
+        <p className="nf-body-sm absolute bottom-3 left-3 right-3 flex items-center gap-inline-tight font-semibold text-[var(--nf-content-on-media)]">
+          <UiIcon
+            name="location"
+            size={12}
+            className="shrink-0 text-[var(--nf-content-on-media-muted)]"
+          />
+          <span className="truncate">
+            {[values.area, values.city, stateName].filter(Boolean).join(", ") ||
+              copy.guestView.locationPlaceholder}
+          </span>
+        </p>
+      </div>
+      <div className="p-card">
+        <h3 className="text-[length:var(--nf-text-body-sm)] font-semibold leading-snug">
+          {values.title || copy.guestView.titlePlaceholder}
+        </h3>
+        <p className="nf-body-sm mt-inline-tight text-[var(--nf-content-muted)]">
+          {/* The dictionary sentence names a guest count this model no
+              longer has, so the preview states the two facts it does
+              hold rather than printing a number nothing stores. */}
+          {[
+            `${values.bedrooms} bed`,
+            `${values.bathrooms} bath`,
+            values.toilets ? `${values.toilets} toilet` : null,
+            values.sizeSqm ? `${values.sizeSqm} sqm` : null,
+          ]
+            .filter(Boolean)
+            .join(" · ")}
+        </p>
+        <p className="mt-inline flex items-baseline gap-inline-tight">
+          <span className="nf-numeric text-[length:var(--nf-text-body-lg)] font-bold">
+            {price ?? copy.guestView.priceToSet}
+          </span>
+          <span className="text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+            {pricePeriod}
+          </span>
+        </p>
+        {chosenAmenities.length > 0 && (
+          <p className="nf-body-sm mt-inline text-[var(--nf-content-secondary)]">
+            {chosenAmenities
+              .map(
+                (code) =>
+                  amenityNames[code] ??
+                  amenities.find((a) => a.code === code)?.label ??
+                  code,
+              )
+              .slice(0, 4)
+              .join(" · ")}
+          </p>
+        )}
+      </div>
+    </article>
+  );
 
   return (
-    <div className="mx-auto max-w-2xl pb-[calc(6.5rem+env(safe-area-inset-bottom))]">
+    <div
+      className="nf-lw-wizard mx-auto max-w-2xl pb-[calc(6.5rem+env(safe-area-inset-bottom))]"
+      data-dir={travel.dir}
+      data-moved={travel.moved ? "" : undefined}
+    >
       {/*
         THE RAIL, DRAWN AS THE THREE GOVERNING IMAGES DRAW IT.
 
@@ -2052,10 +2560,10 @@ export function ListingWizard({
         44pt buttons laid OVER a 10px bar, rather than 10px tap targets on the
         control that undoes a wrong turn.
       */}
-      <div className="nf-lw-rail py-lg">
+      <div className="nf-lw-rail py-lg" ref={railRef}>
         <BackControl
           onBack={() => go(step - 1)}
-          disabled={step === 0 || pending}
+          disabled={step === 0 || pending || Boolean(sent)}
           label={copy.wizard.back}
           className="nf-lw-back"
         />
@@ -2089,7 +2597,7 @@ export function ListingWizard({
                 <button
                   type="button"
                   onClick={() => index <= step && go(index)}
-                  disabled={index > step || pending}
+                  disabled={index > step || pending || Boolean(sent)}
                   aria-current={index === step ? "step" : undefined}
                   aria-label={fill(copy.wizard.stepAria, { number: index + 1, name })}
                   className="block h-full w-full"
@@ -2100,19 +2608,83 @@ export function ListingWizard({
         </div>
       </div>
 
+      {/* THE PROGRESS PATH (reference 7110): every step on one path, done ones
+          a tap away, with the autosave said only as far as it is true. Folded
+          under the rail so the step itself stays the subject; the rail and
+          the steps are unchanged (D28). */}
+      {pathCopy && !sent ? (
+        <Unfold
+          className="mb-group"
+          headingLevel={2}
+          items={[
+            {
+              id: "path",
+              icon: "clipboard-list",
+              title: pathCopy.allSteps,
+              hint: [
+                fill(pathCopy.stepOf, { n: step + 1, total: STEP_KEYS.length }),
+                deviceKeeps && canPersist
+                  ? pathCopy.savedBoth
+                  : deviceKeeps
+                    ? pathCopy.savedDevice
+                    : canPersist
+                      ? pathCopy.savedAccount
+                      : null,
+              ]
+                .filter(Boolean)
+                .join(" "),
+              content: (
+                <ProgressPath
+                  steps={stepNames.map((name, index) => {
+                    const key = STEP_KEYS[index] ?? name;
+                    return { id: key, label: name, tile: LISTING_STEP_TILES[key] };
+                  })}
+                  at={step}
+                  onJump={(index) => go(index)}
+                  disabled={pending}
+                  copy={{ done: pathCopy.done, current: pathCopy.current, upcoming: pathCopy.upcoming }}
+                  locale={locale}
+                />
+              ),
+            },
+          ]}
+        />
+      ) : null}
+
       {/* The title and its one sentence, with the step's object on the right.
           The "3 of 8" counter is gone from the picture and kept in the rail's
           accessible name, which is where the renders put that information:
           the row of rectangles says it to a sighted reader already. */}
       <StepHead
         /* Keyed by the step (Track M), so the title and its object arrive
-           fresh on every step instead of changing in place. */
-        key={stepKey || step}
-        title={(stepKey && copy.drawn.titles[stepKey]) || (stepNames[step] ?? "")}
-        sub={stepKey && copy.drawn.subtitles[stepKey]}
-        object={stepKey && STEP_OBJECT[stepKey]}
-        art={stepKey && STEP_ART[stepKey]}
+           fresh on every step instead of changing in place; and keyed again
+           once sent, so the verdict arrives the same way. */
+        key={sent ? "sent" : stepKey || step}
+        title={
+          sent
+            ? (sentWords?.title ?? copy.submitted.title)
+            : (stepKey && copy.drawn.titles[stepKey]) || (stepNames[step] ?? "")
+        }
+        sub={sent ? (sentWords?.body ?? copy.submitted.body) : stepKey && copy.drawn.subtitles[stepKey]}
+        object={sent ? undefined : stepKey && STEP_OBJECT[stepKey]}
+        art={sent ? undefined : stepKey && STEP_ART[stepKey]}
       />
+
+      {/* The way back to the step an Edit came from (see `editStep`). */}
+      {returnTo !== null && step < returnTo && !sent && (
+        <div className="mt-group">
+          <Button
+            variant="secondary"
+            size="sm"
+            arrow
+            onClick={() => go(returnTo)}
+            disabled={pending}
+            data-testid="wizard-return"
+          >
+            {fill(copy.wizard.returnTo, { step: stepNames[returnTo] ?? "" })}
+          </Button>
+        </div>
+      )}
 
       {!canPersist && (
         <div className="mt-group">
@@ -2120,7 +2692,9 @@ export function ListingWizard({
         </div>
       )}
 
-      {notice && (
+      {/* On the last step a refusal is said beside Send for review, where the
+          lister's thumb is, rather than at the top of a long step. */}
+      {notice && step !== STEP_KEYS.length - 1 && (
         <div className="mt-group">
           <Note glyph="flag" role="status">
             {notice}
@@ -2265,7 +2839,8 @@ export function ListingWizard({
             <div>
               <span className="nf-label">
                 {copy.drawn.rooms.title}
-                {mark("bedrooms", "bathrooms", "toilets", "parkingSpaces")}
+                {/* Furnishing included: its only control is in this group now. */}
+                {mark("bedrooms", "bathrooms", "toilets", "parkingSpaces", "furnished")}
               </span>
               <div className="nf-lw-facts">
                 <FactRow
@@ -2354,7 +2929,7 @@ export function ListingWizard({
                     placeholder="150"
                   />
                   {fieldErrors.sizeSqm && (
-                    <span className="nf-body-sm mt-inline-tight block font-medium text-[var(--nf-state-error)]">
+                    <span className="nf-body-sm mt-inline-tight block font-semibold text-[var(--nf-state-error)]">
                       {fieldErrors.sizeSqm}
                     </span>
                   )}
@@ -2406,7 +2981,7 @@ export function ListingWizard({
                     />
                   </div>
                   {(fieldErrors.floor || fieldErrors.totalFloors) && (
-                    <span className="nf-body-sm mt-inline-tight block font-medium text-[var(--nf-state-error)]">
+                    <span className="nf-body-sm mt-inline-tight block font-semibold text-[var(--nf-state-error)]">
                       {fieldErrors.floor ?? fieldErrors.totalFloors}
                     </span>
                   )}
@@ -2453,14 +3028,20 @@ export function ListingWizard({
         {step === 1 && (
           <div className="space-y-group">
             <Note>
-              {fill(copy.photos.intro, { min: MIN_PHOTOS, max: MAX_PHOTOS })}{" "}
+              {fill(copy.photos.intro, {
+                min: MIN_MEDIA,
+                recommended: RECOMMENDED_MEDIA,
+                max: MAX_PHOTOS,
+                videos: MAX_VIDEOS,
+              })}{" "}
               {fill(copy.photos.tooNarrow, { width: MIN_PHOTO_WIDTH })}
             </Note>
 
             <input
               ref={fileInput}
               type="file"
-              accept="image/*"
+              /* Photos and videos in the one picker (founder, 12 October). */
+              accept={["image/*", ...VIDEO_MIME_TYPES].join(",")}
               multiple
               className="sr-only"
               onChange={(e) => void onFiles(e.target.files)}
@@ -2476,6 +3057,19 @@ export function ListingWizard({
                   ))}
                 </span>
               </Note>
+            )}
+            {/* The same files again, for the failures a second try can fix. */}
+            {retryFiles.length > 0 && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => void onFiles(retryFiles)}
+                disabled={uploading}
+                loading={uploading}
+                data-testid="photo-retry"
+              >
+                {copy.photos.retry}
+              </Button>
             )}
 
             {/*
@@ -2495,26 +3089,56 @@ export function ListingWizard({
               thing.
             */}
             <ul className="nf-lw-shots">
-              {photos.map((photo, index) => (
-                <li key={photo.id} className="nf-lw-shot" data-cover={index === 0 ? "" : undefined}>
-                  <RemoteImage
-                    src={photo.url}
-                    alt=""
-                    width={640}
-                    height={480}
-                    sizes="(max-width: 40rem) 33vw, 14rem"
-                    className="nf-lw-shot__img"
-                  />
+              {media.map((item, index) => (
+                <li
+                  key={`${item.kind}-${item.id}`}
+                  className="nf-lw-shot"
+                  data-cover={index === 0 ? "" : undefined}
+                  data-kind={item.kind}
+                >
+                  {item.kind === "photo" ? (
+                    <RemoteImage
+                      src={item.url}
+                      alt=""
+                      width={640}
+                      height={480}
+                      sizes="(max-width: 40rem) 50vw, 14rem"
+                      className="nf-lw-shot__img"
+                    />
+                  ) : (
+                    /* Muted and still: a poster when there is one, and nothing
+                       fetched until the lister presses play. */
+                    <video
+                      src={item.url}
+                      poster={item.posterUrl ?? undefined}
+                      preload={item.posterUrl ? "none" : "metadata"}
+                      muted
+                      playsInline
+                      controls={false}
+                      className="nf-lw-shot__img"
+                      aria-label={
+                        item.durationSeconds === null
+                          ? copy.photos.video
+                          : `${copy.photos.video}, ${clockOf(item.durationSeconds)}`
+                      }
+                    />
+                  )}
                   {index === 0 && <span className="nf-lw-shot__cover">{copy.photos.cover}</span>}
+                  {item.kind === "video" && (
+                    <span className="nf-lw-shot__kind" aria-hidden="true">
+                      <UiIcon name="circle-play" size={16} />
+                      {item.durationSeconds === null ? null : clockOf(item.durationSeconds)}
+                    </span>
+                  )}
                   <button
                     type="button"
                     className="nf-lw-shot__drop"
                     aria-label={copy.photos.remove}
-                    /* One photo change at a time: a second reorder sent while
-                       the first is still moving rows races it on the unique
+                    /* One change at a time: a second reorder sent while the
+                       first is still moving rows races it on the unique
                        position index, and at ten photos holds a stale id. */
                     disabled={pending || uploading}
-                    onClick={() => dropPhoto(index)}
+                    onClick={() => dropMedia(index)}
                   >
                     <UiIcon name="close" size={16} />
                   </button>
@@ -2523,8 +3147,8 @@ export function ListingWizard({
                       type="button"
                       className="nf-lw-shot__move"
                       aria-label={copy.drawn.photos.earlier}
-                      disabled={index === 0 || pending || uploading}
-                      onClick={() => movePhoto(index, index - 1)}
+                      disabled={!canMove(media, index, index - 1) || pending || uploading}
+                      onClick={() => moveMedia(index, index - 1)}
                     >
                       <UiIcon name="arrow-left" size={16} />
                     </button>
@@ -2532,15 +3156,15 @@ export function ListingWizard({
                       type="button"
                       className="nf-lw-shot__move"
                       aria-label={copy.drawn.photos.later}
-                      disabled={index === photos.length - 1 || pending || uploading}
-                      onClick={() => movePhoto(index, index + 1)}
+                      disabled={!canMove(media, index, index + 1) || pending || uploading}
+                      onClick={() => moveMedia(index, index + 1)}
                     >
                       <UiIcon name="arrow-right" size={16} />
                     </button>
                   </span>
                 </li>
               ))}
-              {photos.length < MAX_PHOTOS && (
+              {(photos.length < MAX_PHOTOS || videos.length < MAX_VIDEOS) && (
                 <li className="contents">
                   <button
                     type="button"
@@ -2586,28 +3210,21 @@ export function ListingWizard({
               />
             )}
 
-            <p className="nf-numeric text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
-              {fill(copy.photos.progress, { count: photos.length, min: MIN_PHOTOS })}
+            {videoProgress && (
+              <p className="nf-body-sm text-[var(--nf-content-secondary)]" role="status" data-testid="video-progress">
+                {fill(copy.photos.videoUploading, { name: videoProgress.name, percent: videoProgress.percent })}
+              </p>
+            )}
+
+            {/* The count, then the nudge from the minimum to the recommendation. */}
+            <p className="nf-numeric text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]" data-testid="media-count">
+              {fill(copy.photos.progress, { count: media.length, min: MIN_MEDIA })}
+              {media.length >= MIN_MEDIA && media.length < RECOMMENDED_MEDIA
+                ? ` ${fill(copy.photos.recommend, { more: RECOMMENDED_MEDIA - media.length })}`
+                : null}
             </p>
 
-            {photos.length === 0 && <Note>{copy.photos.empty}</Note>}
-
-            {/*
-              THE WALKTHROUGH, ON THE SAME STEP AS THE PHOTOGRAPHS.
-
-              GOVERNING-07 screen four puts it here, under the photo grid,
-              headed "Video walkthrough" with the calm explanatory line above
-              the clip. It belongs with the photographs because it is the same
-              decision a lister is making: what a stranger will see.
-            */}
-            <VideoWalkthrough
-              listingId={listingId}
-              userId={userId}
-              videos={videos}
-              onChange={setVideos}
-              canUpload={canPersist && userId !== null}
-              ensureListing={persist}
-            />
+            {media.length === 0 && <Note>{copy.photos.empty}</Note>}
           </div>
         )}
 
@@ -2672,7 +3289,7 @@ export function ListingWizard({
           <div>
             <Note>{copy.amenities.intro}</Note>
             {fieldErrors.amenities && (
-              <p className="nf-body-sm mt-row font-medium text-[var(--nf-state-error)]">
+              <p className="nf-body-sm mt-row font-semibold text-[var(--nf-state-error)]">
                 {fieldErrors.amenities}
               </p>
             )}
@@ -2697,7 +3314,7 @@ export function ListingWizard({
                       )
                     }
                   >
-                    <UiIcon name={AMENITY_GLYPH[amenity.code] ?? "sparkle"} size={24} />
+                    <UiIcon name={AMENITY_GLYPH[amenity.code] ?? "circle-check"} size={24} />
                     <span>{amenityNames[amenity.code] ?? amenity.label}</span>
                     {active && (
                       <span className="nf-lw-choice__tick" aria-hidden="true">
@@ -2715,10 +3332,10 @@ export function ListingWizard({
         {step === 4 && (
           <div className="space-y-heading">
             <Note>
-              Is there light, is there water, and will they let a guest through
-              the gate. These are the first three questions every guest here
-              asks, and answering them honestly wins bookings from the listings
-              that do not.
+              Is there light, is there water, and how does somebody get through
+              the gate? These are the first questions anyone asks here, whether
+              they are renting, buying or staying a night, and honest answers
+              win you the enquiries that listings without them lose.
             </Note>
 
             {/*
@@ -2795,7 +3412,7 @@ export function ListingWizard({
                   onChange={(v) => set("powerBackupHours", String(v))}
                 />
                 {fieldErrors.powerBackupHours ? (
-                  <span className="nf-body-sm mt-inline-tight block font-medium text-[var(--nf-state-error)]">
+                  <span className="nf-body-sm mt-inline-tight block font-semibold text-[var(--nf-state-error)]">
                     {fieldErrors.powerBackupHours}
                   </span>
                 ) : (
@@ -3153,7 +3770,7 @@ export function ListingWizard({
                       "A buyer will ask before anything else. Answering here saves both of you a journey."}
                   </p>
                   {fieldErrors.tenure && (
-                    <p className="nf-body-sm mt-inline-tight font-medium text-[var(--nf-state-error)]">
+                    <p className="nf-body-sm mt-inline-tight font-semibold text-[var(--nf-state-error)]">
                       {fieldErrors.tenure}
                     </p>
                   )}
@@ -3203,7 +3820,7 @@ export function ListingWizard({
                   error={fieldErrors.rent ?? fieldErrors.rentNaira}
                   hint={
                     rentMinor > 0
-                      ? `${formatMoney(rentMinor, locale)} ${PERIOD_WORD[values.rentPeriod]}`
+                      ? `${formatMoney(rentMinor, locale)} ${copy.pricing.period[values.rentPeriod]}`
                       : copy.pricing.priceHint
                   }
                 >
@@ -3377,7 +3994,10 @@ export function ListingWizard({
                         inputMode="decimal"
                         value={values.totalMoveInNaira}
                         onChange={(e) => set("totalMoveInNaira", e.target.value)}
-                        placeholder="7,000,000"
+                        /* The parts' own sum, never an example: the example
+                           (7,000,000) was a total above the parts, which the
+                           gate refuses. */
+                        placeholder={partsSumMinor > 0 ? formatMoney(partsSumMinor, locale) : undefined}
                       />
                     </Field>
                   </div>
@@ -3425,7 +4045,9 @@ export function ListingWizard({
                   )}
                 </div>
 
-                <div className="grid grid-cols-2 gap-row">
+                {/* Bottom aligned: at phone width the first label wraps to two
+                    lines and pushed its box below its neighbour's. */}
+                <div className="grid grid-cols-2 items-end gap-row">
                   <Field
                     label="Shortest tenancy, in months"
                     error={fieldErrors.minimumTenancyMonths}
@@ -3450,20 +4072,9 @@ export function ListingWizard({
                   </Field>
                 </div>
 
-                <Field fromMessage={mark("furnished")} label="Furnishing">
-                  <select
-                    className="nf-field"
-                    value={values.furnished}
-                    onChange={(e) => set("furnished", e.target.value as Furnishing | "")}
-                  >
-                    <option value="">Not stated</option>
-                    {FURNISHING_CHOICES.map((c) => (
-                      <option key={c.value} value={c.value}>
-                        {c.label}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
+                {/* Furnishing is asked once, with the rooms on the first step.
+                    It was asked here too, a second control for the same
+                    answer, with its own wording for "not stated". */}
 
                 <p className="text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
                   {copy.pricing.rentalNote}
@@ -3495,24 +4106,22 @@ export function ListingWizard({
               </Field>
             )}
 
-            <Field
-              label="Available from"
-              hint="Shown on the listing so nobody asks."
-              error={fieldErrors.availableFrom}
-            >
-              {shortStay || forSale ? (
+            {/* A tenancy asks for the date beside its shortest term, above; a
+                second "Available from" row here only said "Set above". */}
+            {(shortStay || forSale) && (
+              <Field
+                label="Available from"
+                hint="Shown on the listing so nobody asks."
+                error={fieldErrors.availableFrom}
+              >
                 <input
                   className="nf-field"
                   type="date"
                   value={values.availableFrom}
                   onChange={(e) => set("availableFrom", e.target.value)}
                 />
-              ) : (
-                <span className="block text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
-                  Set above, with the tenancy terms.
-                </span>
-              )}
-            </Field>
+              </Field>
+            )}
           </div>
         )}
 
@@ -3526,106 +4135,7 @@ export function ListingWizard({
                 <DraftMatches listingId={listingId} copy={demandCopy} />
               </div>
             )}
-            <article className="nf-panel nf-panel--card block mt-group overflow-hidden">
-              <div className="relative aspect-[4/3] w-full overflow-hidden bg-[var(--nf-surface-raised)]">
-                {photos[0] ? (
-                  /* The guest view's cover: one wide 4:3 plate, so it earns a
-                     larger candidate than the grid above it. */
-                  <RemoteImage
-                    src={photos[0].url}
-                    alt=""
-                    width={960}
-                    height={720}
-                    sizes="(max-width: 48rem) 100vw, 30rem"
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="grid h-full w-full place-items-center text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
-                    {copy.guestView.addPhotos}
-                  </div>
-                )}
-                <div
-                  /* The platform scrim, not a hand-rolled black gradient. One
-                     definition, used by the listing card and the gallery too, so
-                     a preview of a card matches the card it previews. */
-                  className="absolute inset-x-0 bottom-0 h-20"
-                  style={{ backgroundImage: "var(--nf-scrim-media)" }}
-                  aria-hidden="true"
-                />
-                {/* One badge, and which one it is says which market this is. The
-                    instant-book badge is gone with the column behind it. */}
-                {forSale ? (
-                  <span className="nf-badge nf-badge--warning absolute left-3 top-3">
-                    For sale
-                  </span>
-                ) : rental ? (
-                  <span className="nf-badge nf-badge--brand absolute left-3 top-3">
-                    {copy.guestView.rentBadge}
-                  </span>
-                ) : null}
-                {/*
-                  ON MEDIA, WHICH IS ITS OWN TOKEN FAMILY.
-
-                  This line sits on the listing's own photograph, so it is not
-                  a dark-theme colour and it is not a light-theme colour: it is
-                  ink on somebody's picture, in both themes, and
-                  `--nf-content-on-media` is the token that says so. The
-                  `text-white/90` and `text-white/70` it replaces happened to
-                  look right and could never follow a theme, which is exactly
-                  the distinction the on-media family exists to hold.
-                */}
-                <p className="nf-body-sm absolute bottom-3 left-3 right-3 flex items-center gap-inline-tight font-medium text-[var(--nf-content-on-media)]">
-                  <UiIcon
-                    name="location"
-                    size={12}
-                    className="shrink-0 text-[var(--nf-content-on-media-muted)]"
-                  />
-                  <span className="truncate">
-                    {[values.area, values.city, stateName].filter(Boolean).join(", ") ||
-                      copy.guestView.locationPlaceholder}
-                  </span>
-                </p>
-              </div>
-              <div className="p-card">
-                <h3 className="text-[length:var(--nf-text-body-sm)] font-semibold leading-snug">
-                  {values.title || copy.guestView.titlePlaceholder}
-                </h3>
-                <p className="nf-body-sm mt-inline-tight text-[var(--nf-content-muted)]">
-                  {/* The dictionary sentence names a guest count this model no
-                      longer has, so the preview states the two facts it does
-                      hold rather than printing a number nothing stores. */}
-                  {[
-                    `${values.bedrooms} bed`,
-                    `${values.bathrooms} bath`,
-                    values.toilets ? `${values.toilets} toilet` : null,
-                    values.sizeSqm ? `${values.sizeSqm} sqm` : null,
-                  ]
-                    .filter(Boolean)
-                    .join(" · ")}
-                </p>
-                <p className="mt-inline flex items-baseline gap-inline-tight">
-                  <span className="nf-numeric text-[length:var(--nf-text-body-lg)] font-bold">
-                    {price ?? copy.guestView.priceToSet}
-                  </span>
-                  <span className="text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
-                    {pricePeriod}
-                  </span>
-                </p>
-                {chosenAmenities.length > 0 && (
-                  <p className="nf-body-sm mt-inline text-[var(--nf-content-secondary)]">
-                    {chosenAmenities
-                      .map(
-                        (code) =>
-                          amenityNames[code] ??
-                          amenities.find((a) => a.code === code)?.label ??
-                          code,
-                      )
-                      .slice(0, 4)
-                      .join(" · ")}
-                  </p>
-                )}
-              </div>
-            </article>
+            <div className="mt-group">{memberCard}</div>
             <p className="nf-body-sm mt-group whitespace-pre-line leading-relaxed text-[var(--nf-content-secondary)]">
               {values.description || copy.guestView.descriptionPlaceholder}
             </p>
@@ -3654,18 +4164,21 @@ export function ListingWizard({
                   value: copy.propertyTypes[values.propertyType]?.label,
                   step: 0,
                 },
+                /* Both counts are always answered (the steppers start at one),
+                   so a zero is the lister's answer, a studio or a plot, and
+                   prints as 0 rather than as "Not set". */
                 {
                   key: "bedrooms",
                   glyph: "bed" as UiIconName,
                   label: copy.drawn.checkOver.keys.bedrooms,
-                  value: values.bedrooms > 0 ? String(values.bedrooms) : null,
+                  value: String(values.bedrooms),
                   step: 0,
                 },
                 {
                   key: "bathrooms",
                   glyph: "bath" as UiIconName,
                   label: copy.drawn.checkOver.keys.bathrooms,
-                  value: values.bathrooms > 0 ? String(values.bathrooms) : null,
+                  value: String(values.bathrooms),
                   step: 0,
                 },
                 {
@@ -3693,12 +4206,75 @@ export function ListingWizard({
                   value: values.floor === "" ? null : values.floor,
                   step: 0,
                 },
+                /* Condition is asked on the first step (it moved there from
+                   the sale branch of the price step); Edit sent the lister to
+                   the price step, where it is not. */
                 {
                   key: "condition",
                   glyph: "verified" as UiIconName,
                   label: copy.drawn.checkOver.keys.condition,
                   value: CONDITION_CHOICES.find((c) => c.value === values.condition)?.label ?? null,
-                  step: 5,
+                  step: 0,
+                },
+                /* The rows for the steps the table did not cover, so every
+                   fact on the card above is one Edit away. */
+                {
+                  key: "photos",
+                  glyph: "picture" as UiIconName,
+                  label: copy.drawn.checkOver.keys.photos,
+                  value:
+                    media.length === 0
+                      ? null
+                      : [
+                          photos.length === 0
+                            ? null
+                            : photos.length === 1
+                              ? copy.workspace.photoCountOne
+                              : fill(copy.workspace.photoCount, { count: photos.length }),
+                          videos.length === 0
+                            ? null
+                            : countOf(videos.length, "videos", locale),
+                        ]
+                          .filter(Boolean)
+                          .join(", "),
+                  step: STEP_KEYS.indexOf("photos"),
+                },
+                {
+                  key: "location",
+                  glyph: "location" as UiIconName,
+                  label: copy.drawn.checkOver.keys.location,
+                  value: [values.area, values.city, stateName].filter(Boolean).join(", ") || null,
+                  step: STEP_KEYS.indexOf("location"),
+                },
+                {
+                  key: "amenities",
+                  glyph: "circle-check" as UiIconName,
+                  label: copy.drawn.checkOver.keys.amenities,
+                  value:
+                    chosenAmenities.length === 0
+                      ? null
+                      : fill(copy.drawn.checkOver.amenitiesCount, { count: chosenAmenities.length }),
+                  step: STEP_KEYS.indexOf("amenities"),
+                },
+                {
+                  key: "utilities",
+                  glyph: "bolt" as UiIconName,
+                  label: copy.drawn.checkOver.keys.utilities,
+                  value:
+                    [
+                      POWER_GRID_CHOICES.find((c) => c.value === values.powerGrid)?.label,
+                      WATER_SUPPLY_CHOICES.find((c) => c.value === values.waterSupply)?.label,
+                    ]
+                      .filter(Boolean)
+                      .join(", ") || null,
+                  step: STEP_KEYS.indexOf("utilities"),
+                },
+                {
+                  key: "price",
+                  glyph: "coins" as UiIconName,
+                  label: copy.drawn.checkOver.keys.price,
+                  value: price ? `${price} ${pricePeriod}` : null,
+                  step: STEP_KEYS.indexOf("pricing"),
                 },
                 {
                   key: "availability",
@@ -3711,7 +4287,7 @@ export function ListingWizard({
                   value: availableFromDate
                     ? formatDate(availableFromDate, locale)
                     : copy.drawn.checkOver.availableNow,
-                  step: 5,
+                  step: STEP_KEYS.indexOf("pricing"),
                 },
               ].map((row) => (
                 <div key={row.key} className="nf-lw-detail">
@@ -3729,7 +4305,7 @@ export function ListingWizard({
                   <Button
                     variant="quiet"
                     size="sm"
-                    onClick={() => go(row.step)}
+                    onClick={() => editStep(row.step)}
                     aria-label={`${copy.drawn.checkOver.edit}: ${row.label}`}
                   >
                     {copy.drawn.checkOver.edit}
@@ -3742,110 +4318,199 @@ export function ListingWizard({
 
         {/* -------------------------------------------------------- 7 submit */}
         {step === 7 && (
-          <div>
-            <h2 className="nf-h3">{copy.submit.title}</h2>
-            <p className="nf-body-sm mt-inline leading-relaxed text-[var(--nf-content-secondary)]">
-              {copy.submit.body}
-            </p>
+          <div className="nf-lw-publish" data-sent={sent ? (sent.now ? "now" : "settled") : undefined}>
+            {/* The card heads the last step, so what is being sent is in view
+                as it is sent; its status is the workspace's word for where it
+                stands, the server's once it has answered. Keyed so the word
+                crossfades as it turns. */}
+            <div className="nf-lw-publish__label">
+              <p className="nf-label">{listerCopy?.publish.cardLabel ?? copy.guestView.intro}</p>
+              <span key={sent?.status ?? "DRAFT"} className="nf-lw-publish__status" data-testid="member-card-status">
+                <StatusPill tone={toneForStatus(sent?.status ?? "DRAFT")}>
+                  {copy.workspace.status[sent?.status ?? "DRAFT"]}
+                </StatusPill>
+              </span>
+            </div>
+            <div className="nf-lw-publish__card mt-row" ref={cardRef}>
+              {memberCard}
+            </div>
+            {sent ? (
+              <ListingSentForReview
+                copy={copy}
+                reference={reference}
+                lister={listerCopy}
+                status={sent.status}
+                submittedAt={sent.at}
+                locale={locale}
+              />
+            ) : (
+              <div className="nf-lw-publish__send mt-heading">
+                <h2 className="nf-h3" data-testid="send-title">
+                  {sendBlocked ? copy.submit.notReadyTitle : copy.submit.title}
+                </h2>
+                <p className="nf-body-sm mt-inline leading-relaxed text-[var(--nf-content-secondary)]">
+                  {copy.submit.body}
+                </p>
 
-            <ul className="mt-group space-y-row">
-              {/*
-                EVERY UNMET REQUIREMENT HAS A ROW. The rows used to be keyed by
-                one field each, and the "price" row by a field the gate never
-                reports: an unset rent, rate, sale price, tenure or period, or
-                a missing unit shape or bedroom count, disabled Send for review
-                while every row showed green. A row now owns every gate field
-                it stands for, and anything the gate reports that no row owns
-                gets a row of its own, so the button is never disabled with
-                nothing on screen saying why.
-              */}
-              {withUncovered([
-                { field: "title", label: copy.submit.checklist.title },
-                {
-                  field: "description",
-                  label: fill(copy.submit.checklist.description, { min: MIN_DESCRIPTION_WORDS }),
-                },
-                {
-                  field: "photos",
-                  label: fill(copy.submit.checklist.photos, { min: MIN_PHOTOS }),
-                },
-                { field: "stateCode", label: copy.submit.checklist.stateCode },
-                { field: "city", label: copy.submit.checklist.city },
-                { field: "area", label: copy.submit.checklist.area },
-                { field: "amenities", label: copy.submit.checklist.amenities },
-                {
-                  field: "price",
-                  covers: ["rent", "rentPeriod", "rate", "ratePeriod", "salePrice", "tenure"],
-                  label: rental
-                    ? copy.submit.checklist.priceYear
-                    : copy.submit.checklist.priceNight,
-                },
-                {
-                  field: "bathrooms",
-                  covers: ["bathrooms", "bedrooms", "unitShape"],
-                  label: copy.submit.checklist.rooms,
-                },
-                ...(remainderCopy && unmet.some((u) => u.field === "totalMoveIn")
-                  ? [{ field: "totalMoveIn", label: remainderCopy.gateShort }]
-                  : []),
-              ]).map((item) => {
-                const problem = unmet.find((u) => (item.covers ?? [item.field]).includes(u.field));
-                return (
-                  <li key={item.field} className="flex items-start gap-row">
-                    <span
-                      className="mt-inline-tight grid h-5 w-5 shrink-0 place-items-center rounded-full"
-                      style={{
-                        background: problem
-                          ? "var(--nf-state-warning-surface)"
-                          : "var(--nf-state-success-surface)",
-                        color: problem ? "var(--nf-state-warning)" : "var(--nf-state-success)",
-                      }}
-                    >
-                      <UiIcon name="verified" size={12} />
-                    </span>
-                    <span className="min-w-0 leading-snug">
-                      <span className="block text-[length:var(--nf-text-body-sm)] font-medium">{item.label}</span>
-                      {problem && (
-                        <span className="block text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
-                          {gateText(problem.field, problem.message)}
+                <ul className="mt-group space-y-row">
+                  {/*
+                    EVERY UNMET REQUIREMENT HAS A ROW. The rows used to be keyed by
+                    one field each, and the "price" row by a field the gate never
+                    reports: an unset rent, rate, sale price, tenure or period, or
+                    a missing unit shape or bedroom count, disabled Send for review
+                    while every row showed green. A row now owns every gate field
+                    it stands for, and anything the gate reports that no row owns
+                    gets a row of its own, so the button is never disabled with
+                    nothing on screen saying why.
+                  */}
+                  {withUncovered([
+                    { field: "title", label: copy.submit.checklist.title },
+                    {
+                      field: "description",
+                      label: fill(copy.submit.checklist.description, { min: MIN_DESCRIPTION_WORDS }),
+                    },
+                    {
+                      field: "photos",
+                      label: fill(copy.submit.checklist.photos, { min: MIN_MEDIA }),
+                    },
+                    { field: "stateCode", label: copy.submit.checklist.stateCode },
+                    { field: "city", label: copy.submit.checklist.city },
+                    { field: "area", label: copy.submit.checklist.area },
+                    { field: "amenities", label: copy.submit.checklist.amenities },
+                    {
+                      field: "price",
+                      covers: ["rent", "rentPeriod", "rate", "ratePeriod", "salePrice", "tenure"],
+                      /* Named for the market the listing is in. It read
+                         "Price per night" on a sale and on a restaurant, and
+                         "Yearly rent" on a plot for sale or a monthly let. The
+                         dictionary has the yearly and nightly wordings; the
+                         rest read in English, as the price step's do. */
+                      label: forSale
+                        ? "Asking price and title deed"
+                        : tenancy
+                          ? values.rentPeriod === "year"
+                            ? copy.submit.checklist.priceYear
+                            : "Rent and how often it is paid"
+                          : perHead
+                            ? "Price per head"
+                            : copy.submit.checklist.priceNight,
+                    },
+                    {
+                      field: "bathrooms",
+                      covers: ["bathrooms", "bedrooms", "unitShape"],
+                      label: copy.submit.checklist.rooms,
+                    },
+                    ...(remainderCopy && unmet.some((u) => u.field === "totalMoveIn")
+                      ? [{ field: "totalMoveIn", label: remainderCopy.gateShort }]
+                      : []),
+                  ]).map((item) => {
+                    const problem = unmet.find((u) => (item.covers ?? [item.field]).includes(u.field));
+                    /* A met line and an open one differ by shape and by words,
+                       not by colour alone: a tick, or a mark with the reason
+                       under it and an Edit that goes to the step that fixes
+                       it. Every line used to carry the same shield, told apart
+                       only by its tint, and none of them led anywhere. */
+                    return (
+                      <li
+                        key={item.field}
+                        className="flex items-start gap-row"
+                        data-testid={`send-check-${item.field}`}
+                        data-met={problem ? undefined : ""}
+                      >
+                        <span
+                          className="mt-inline-tight grid h-5 w-5 shrink-0 place-items-center rounded-full"
+                          style={{
+                            background: problem
+                              ? "var(--nf-state-warning-surface)"
+                              : "var(--nf-state-success-surface)",
+                            color: problem ? "var(--nf-state-warning)" : "var(--nf-state-success)",
+                          }}
+                          aria-hidden="true"
+                        >
+                          <UiIcon name={problem ? "info" : "check"} size={12} />
                         </span>
-                      )}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-
-            {broadcastCopy && marksUnread && (
-              <p className="nf-body-sm mt-heading text-[var(--nf-content-secondary)]" role="status" data-testid="broadcast-unread">
-                {broadcastCopy.marksUnreachable}
-              </p>
-            )}
-            {broadcastCopy && unconfirmedMoney.length > 0 && (
-              <div className="mt-heading" role="status" data-testid="broadcast-confirm">
-                <p className="nf-body-sm font-semibold text-[var(--nf-content-primary)]">
-                  {broadcastCopy.confirmTitle}
-                </p>
-                <p className="nf-body-sm mt-inline-tight text-[var(--nf-content-secondary)]">
-                  {fill(broadcastCopy.confirmBody, {
-                    fields: unconfirmedMoney.map((key) => broadcastCopy.fields[key]).join(", "),
+                        <span className="min-w-0 flex-1 leading-snug">
+                          <span className="block text-[length:var(--nf-text-body-sm)] font-semibold">{item.label}</span>
+                          {problem && (
+                            <span className="block text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+                              {gateText(problem.field, problem.message)}
+                            </span>
+                          )}
+                        </span>
+                        {problem && (
+                          <Button
+                            variant="quiet"
+                            size="sm"
+                            className="shrink-0"
+                            onClick={() => editStep(stepOfGateField(problem.field))}
+                            disabled={pending}
+                            aria-label={`${copy.drawn.checkOver.edit}: ${item.label}`}
+                          >
+                            {copy.drawn.checkOver.edit}
+                          </Button>
+                        )}
+                      </li>
+                    );
                   })}
+                </ul>
+
+                {broadcastCopy && marksUnread && (
+                  <p className="nf-body-sm mt-heading text-[var(--nf-content-secondary)]" role="status" data-testid="broadcast-unread">
+                    {broadcastCopy.marksUnreachable}
+                  </p>
+                )}
+                {broadcastCopy && unconfirmedMoney.length > 0 && (
+                  <div className="mt-heading" role="status" data-testid="broadcast-confirm">
+                    <p className="nf-body-sm font-semibold text-[var(--nf-content-primary)]">
+                      {broadcastCopy.confirmTitle}
+                    </p>
+                    <p className="nf-body-sm mt-inline-tight text-[var(--nf-content-secondary)]">
+                      {fill(broadcastCopy.confirmBody, {
+                        fields: unconfirmedMoney.map((key) => broadcastCopy.fields[key]).join(", "),
+                      })}
+                    </p>
+                  </div>
+                )}
+                {/* Drawn once the read has answered (or when there is no saved
+                    listing to read for), so "cannot show" never flashes first. */}
+                {(feePolicy !== undefined || !listingId) && (
+                  <div className="mt-heading">
+                    <ListerFeeGate
+                      kind={feeKind}
+                      priceMinor={priceMinor > 0 ? priceMinor : null}
+                      policy={feePolicy ?? null}
+                      locale={locale}
+                      blocking={feeGateBlocking}
+                      accepted={feeAcceptance}
+                      onAcceptedChange={setFeeAcceptance}
+                    />
+                  </div>
+                )}
+                {notice && (
+                  <div className="mt-heading" data-testid="send-refused">
+                    <Note glyph="flag" role="status">
+                      {notice}
+                    </Note>
+                  </div>
+                )}
+                <PhoneGateLink show={phoneGate && notice !== null} full className="mt-sm" />
+                <Button
+                  variant="primary"
+                  full
+                  className="mt-heading"
+                  onClick={send}
+                  disabled={sendBlocked}
+                  data-testid="listing-send"
+                  loading={pending}
+                >
+                  {copy.submit.action}
+                </Button>
+                <p className="nf-body-sm mt-row text-center text-[var(--nf-content-muted)]">
+                  {copy.submit.note}
                 </p>
+
               </div>
             )}
-            <Button
-              variant="primary"
-              full
-              className="mt-heading"
-              onClick={send}
-              disabled={unmet.length > 0 || unconfirmedMoney.length > 0 || marksUnread}
-              loading={pending}
-            >
-              {copy.submit.action}
-            </Button>
-            <p className="nf-body-sm mt-row text-center text-[var(--nf-content-muted)]">
-              {copy.submit.note}
-            </p>
           </div>
         )}
       </div>
@@ -3859,6 +4524,21 @@ export function ListingWizard({
       {/* Sticky step footer: the way forward never moves. */}
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--nf-border-subtle)] bg-[var(--nf-surface-primary)] px-gutter pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-row lg:left-[var(--nf-rail-width)]">
         <div className="mx-auto flex max-w-2xl items-center gap-md">
+          {sent ? (
+            /* Sent: the bar stays where it was and offers the two ways on.
+               "List another" is the one control on the platform that means a
+               blank wizard, so it says so (`?new=1`); bare /agent/list would
+               resume an open draft. */
+            <>
+              <ButtonLink href="/agent/list?new=1" variant="secondary" className="flex-1">
+                {copy.submitted.another}
+              </ButtonLink>
+              <ButtonLink href="/agent/listings" variant="primary" className="flex-1">
+                {copy.submitted.goToListings}
+              </ButtonLink>
+            </>
+          ) : (
+          <>
           <Button
             variant="secondary"
             className="flex-1"
@@ -3880,6 +4560,8 @@ export function ListingWizard({
             <ButtonLink href="/agent/listings" variant="secondary" className="flex-1">
               {copy.wizard.myListings}
             </ButtonLink>
+          )}
+          </>
           )}
         </div>
       </div>

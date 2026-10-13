@@ -2,9 +2,11 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { usePhoneGateAction } from "@/components/app/PhoneGateLink";
 import { startCardCheckout } from "@/lib/bookings/checkout";
 import { PaymentGate } from "@/components/app/agreements/PaymentGate";
-import { GUARANTEE_SENTENCE, NO_CUSTODY_SENTENCE } from "@/lib/money/copy";
+import { NO_CUSTODY_SENTENCE, RAIL_COPY } from "@/lib/money/copy";
+import { LIVE_RAIL } from "@/lib/money/rails";
 import { startRentPayment } from "@/lib/rent/actions";
 import type { RentPayView } from "@/lib/rent/queries";
 import { ResultSheet } from "@/components/app/ResultSheet";
@@ -24,7 +26,8 @@ import { ActionBar } from "@/components/ui/ActionBar";
 import { Amount } from "@/components/ui/Amount";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { getDictionary, type Dictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
+import { useScopedCopy } from "@/lib/i18n/copy-scope";
 import { CryptoPayOption } from "@/components/app/payments/crypto/CryptoPayOption";
 import type { CryptoOffer } from "@/components/app/payments/crypto/offer";
 
@@ -76,7 +79,7 @@ type Phase =
      "not charged" (docs/SUCCESS_MOMENTS.md). */
   | { kind: "applying"; reference: string }
   | { kind: "stalled"; method: "card" }
-  | { kind: "error"; message: string };
+  | { kind: "error"; message: string; phoneGate?: boolean };
 
 function Option({
   icon,
@@ -130,11 +133,13 @@ export function PayPanel({
    */
   chargeSavedCard?: (methodId: string) => Promise<ActionResult<ChargeSavedCardOutcome>>;
 }) {
-  const c = getDictionary(view.locale).checkout;
-  const s = getDictionary(view.locale).success;
+  /* From the route's CopyScope (W13): no client dictionary read. */
+  const c = useScopedCopy("checkout");
+  const s = useScopedCopy("success");
   const paid = successCopy(s, "rentPaid");
   const router = useRouter();
   const [phase, setPhase] = useState<Phase>({ kind: "idle" });
+  const phoneGateAction = usePhoneGateAction();
   const [slow, setSlow] = useState(false);
   const cardKey = useMemo(() => newKey(), []);
   const timers = useRef<number[]>([]);
@@ -181,7 +186,7 @@ export function PayPanel({
     const opened = await startRentPayment({ inspectionId: view.inspectionId, moveIn: view.moveIn });
     if (!opened.ok) {
       clearTimers();
-      setPhase({ kind: "error", message: opened.error });
+      setPhase({ kind: "error", message: opened.error, phoneGate: opened.gate === "phone" });
       return null;
     }
     return opened.data.bookingId;
@@ -196,7 +201,7 @@ export function PayPanel({
     const result = await chargeSavedCard(chosenCard);
     clearTimers();
     if (!result.ok) {
-      setPhase({ kind: "error", message: result.error });
+      setPhase({ kind: "error", message: result.error, phoneGate: result.gate === "phone" });
       return;
     }
     if (result.data.kind === "needs_hosted_checkout") {
@@ -275,6 +280,10 @@ export function PayPanel({
                   onClick={payBySavedCard}
                   disabled={busy || chosenCard === null}
                   loading={phase.kind === "saved-card-charging"}
+                  /* Motion 7, on real phases only: the arc while the server is
+                     asked, the tick once the settlement says paid. */
+                  morph
+                  done={phase.kind === "paid"}
                 >
                   {c.payWithThisCard}
                 </Button>
@@ -299,6 +308,8 @@ export function PayPanel({
                 onClick={payByCard}
                 disabled={busy}
                 loading={phase.kind === "card-starting"}
+                morph
+                done={phase.kind === "paid"}
               >
                 {largeLead ? largeLead.largeLead : c.payByCard}
               </Button>
@@ -319,10 +330,11 @@ export function PayPanel({
         )}
       </ul>
       <p className="nf-caption mt-block leading-relaxed text-[var(--nf-content-muted)]" data-testid="rent-no-custody">
-        {NO_CUSTODY_SENTENCE} {GUARANTEE_SENTENCE}
+        {NO_CUSTODY_SENTENCE} {RAIL_COPY[LIVE_RAIL].standing}
       </p>
       <p className="nf-caption mt-block flex items-start gap-inline leading-relaxed text-[var(--nf-content-muted)]">
-        <UiIcon name="verified" size="xs" className="mt-3xs shrink-0" />
+        {/* Advice, so a neutral glyph: the shield means an earned check (A9). */}
+        <UiIcon name="info" size="xs" className="mt-3xs shrink-0" />
         <span>{c.onPlatformRent}</span>
       </p>
       {/* The spacer is the section's LAST in-flow child, so the fixed bar
@@ -353,6 +365,8 @@ export function PayPanel({
             onClick={payByCard}
             disabled={busy}
             loading={phase.kind === "card-starting"}
+            morph
+            done={phase.kind === "paid"}
             className="shrink-0"
           >
             {largeLead ? largeLead.largeLead : c.payByCard}
@@ -511,11 +525,20 @@ export function PayPanel({
         consequence={failureConsequence(
           phase.kind === "error" ? phase.message : null,
           c.nothingTaken,
+          c,
         )}
-        actions={[
-          { label: c.tryAgain, onClick: () => setPhase({ kind: "idle" }), tone: "primary" },
-          { label: c.getHelp, href: "/help", tone: "quiet" },
-        ]}
+        actions={
+          /* The phone gate's refusal: confirm the number, then come back. */
+          phase.kind === "error" && phase.phoneGate && phoneGateAction
+            ? [
+                { label: phoneGateAction.label, href: phoneGateAction.href, tone: "primary" },
+                { label: c.getHelp, href: "/help", tone: "quiet" },
+              ]
+            : [
+                { label: c.tryAgain, onClick: () => setPhase({ kind: "idle" }), tone: "primary" },
+                { label: c.getHelp, href: "/help", tone: "quiet" },
+              ]
+        }
       />
 
       {panel}

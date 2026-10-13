@@ -86,12 +86,23 @@ export function readMotion(): MotionPref {
   return DEFAULT_MOTION;
 }
 
+/**
+ * Paints a preference on the root and, when that changed anything, tells
+ * every live reader (`MOTION_EVENT`). Whoever applies a preference, the
+ * settings screen or the gallery's review switch, every gate hears it: the
+ * event used to be sent only by `writeMotion`, so a preference applied
+ * without saving left every mounted component on its old gate (D49.3).
+ */
 export function applyMotion(pref: MotionPref): void {
   const root = document.documentElement;
+  let changed = false;
   for (const [name, value] of Object.entries(motionAttributes(pref))) {
+    if ((root.getAttribute(name) ?? undefined) === value) continue;
+    changed = true;
     if (value === undefined) root.removeAttribute(name);
     else root.setAttribute(name, value);
   }
+  if (changed) window.dispatchEvent(new CustomEvent(MOTION_EVENT));
 }
 
 export function writeMotion(pref: MotionPref): void {
@@ -103,6 +114,8 @@ export function writeMotion(pref: MotionPref): void {
   } catch {
     /* The cookie above is the one the server reads. */
   }
+  /* Sends MOTION_EVENT itself when the root changed. Saving an unchanged
+     preference still tells the settings screen, which reads the cookie. */
   applyMotion(pref);
   window.dispatchEvent(new CustomEvent(MOTION_EVENT));
 }

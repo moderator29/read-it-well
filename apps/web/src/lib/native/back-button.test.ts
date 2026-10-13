@@ -61,12 +61,14 @@ vi.mock("@capacitor/app", () => ({
 /* Imported AFTER the mock is declared, which `vi.mock` hoisting handles, and
    dynamically so the module graph is built with the stub in place. */
 const { startBackButton } = await import("./back-button");
+const { joinOverlay, leaveOverlay } = await import("@/lib/ui/overlay-registry");
 
 /**
- * The two browser globals `back-button.ts` reads, and nothing else.
+ * The browser globals `back-button.ts` reads, and nothing else.
  *
- * `document.body.style.overflow` is how it asks whether an overlay is up, and
- * `window.location.pathname` is how it asks where the person is standing. This
+ * Whether an overlay is up is asked of the overlay registry
+ * (`lib/ui/overlay-registry.ts`, joined here exactly as `use-overlay.ts` joins
+ * it), and `window.location.pathname` is how it asks where the person is standing. This
  * suite runs in Node, so both are built here rather than through jsdom: a
  * hand-built pair is a shorter list of assumptions than a whole DOM, and every
  * property below is one the module under test genuinely touches.
@@ -79,6 +81,8 @@ type Fake = {
   closeOverlay: () => void;
   escapes: number;
 };
+
+const joined: symbol[] = [];
 
 function installGlobals(): Fake {
   const state = { escapes: 0, overflow: "" };
@@ -135,10 +139,11 @@ function installGlobals(): Fake {
       return history.backs;
     },
     openOverlay: () => {
-      body.style.overflow = "hidden";
+      joined.push(joinOverlay());
     },
     closeOverlay: () => {
-      body.style.overflow = "";
+      const token = joined.pop();
+      if (token) leaveOverlay(token);
     },
     get escapes() {
       return state.escapes;
@@ -162,6 +167,8 @@ beforeEach(async () => {
 
 afterEach(() => {
   stop();
+  /* Leave the registry empty for the next test. */
+  while (joined.length) leaveOverlay(joined.pop()!);
 });
 
 describe("the real Android back listener", () => {
@@ -183,6 +190,32 @@ describe("the real Android back listener", () => {
     expect(fake.escapes).toBe(before + 1);
     expect(backs).toEqual([]);
     expect(bridge.exits).toBe(0);
+  });
+
+  it("closes a NON-LOCKING overlay too: Back asks the registry, not the body scroll lock", () => {
+    /* The inner navigation menu joins the registry (`modal: false`) and holds no
+       lock. The body is untouched here, as it is for that menu. */
+    fake.setPath("/admin/money");
+    fake.openOverlay();
+    expect(globalThis.document.body.style.overflow).toBe("");
+    const before = fake.escapes;
+
+    bridge.press();
+
+    expect(fake.escapes).toBe(before + 1);
+    expect(backs).toEqual([]);
+    /* Once it is closed, Back goes to the parent again. */
+    fake.closeOverlay();
+    bridge.press();
+    expect(backs).toEqual(["/admin/money"]);
+  });
+
+  it("a body scroll lock with no overlay registered is not an overlay", () => {
+    fake.setPath("/search");
+    globalThis.document.body.style.overflow = "hidden";
+    bridge.press();
+    expect(backs).toEqual(["/search"]);
+    globalThis.document.body.style.overflow = "";
   });
 
   it("leaves the application at a declared root, and only there", () => {

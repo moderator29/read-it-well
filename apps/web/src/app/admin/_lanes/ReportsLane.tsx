@@ -127,6 +127,7 @@ function ReportCard({
           status={report.status}
           copy={copy}
           common={common}
+          reporterNoteLabel={getDictionary("en").platform.queueDesk.reporterNoteLabel}
         />
       )}
     </li>

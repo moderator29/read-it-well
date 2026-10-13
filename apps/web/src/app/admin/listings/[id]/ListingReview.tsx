@@ -1,7 +1,9 @@
 import { PersonTier } from "@/app/admin/_components/PersonTier";
 import { payeeCaption, type MoneyMapCopy, type PayeeContext } from "@/lib/listings/money-map";
 import type { ReactNode } from "react";
-import { countOf, formatMoney, type Dictionary, type Locale } from "@vallo/i18n/core";
+import { countOf, formatDate, formatMoney, getDictionary, type Dictionary, type Locale } from "@vallo/i18n";
+import { StatusTrack, type TrackStep } from "@/components/app/status/StatusTrack";
+import { listingTrack } from "./listing-track";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import type { ListingReviewView } from "@/lib/admin/queries";
@@ -20,6 +22,7 @@ import {
   WATER_LABEL,
 } from "../ListingCard";
 import { placeLine, priceLine } from "../rows";
+import { mergeMedia } from "@/lib/listings/media-order";
 
 /**
  * The listing under review, C1D98B3C panel 2, with the flow of
@@ -324,7 +327,7 @@ export function ListingReview(props: ListingReviewProps) {
         </Panel>
 
         <Panel title="Reason for review" labelledBy="rv-reason-panel">
-          <ReasonBlock listing={listing} copy={copy} />
+          <ReasonBlock listing={listing} copy={copy} locale={locale} />
         </Panel>
       </div>
 
@@ -378,11 +381,14 @@ function num(value: number | null): string | null {
   return value === null ? null : String(value);
 }
 
-function Fact({ icon, label, value }: { icon: UiIconName; label: string; value: string | null }) {
+export function Fact({ icon, label, value }: { icon: UiIconName; label: string; value: string | null }) {
   return (
     <div>
-      <UiIcon name={icon} size={16} />
-      <dt>{label}</dt>
+      {/* The glyph is inside the dt: a group div may hold only dt and dd. */}
+      <dt>
+        <UiIcon name={icon} size={16} />
+        {label}
+      </dt>
       <dd>{value ?? <span style={{ color: "var(--nf-content-muted)" }}>Not given</span>}</dd>
     </div>
   );
@@ -405,78 +411,87 @@ function Utility({ icon, label, value }: { icon: UiIconName; label: string; valu
 }
 
 function MediaStrip({ listing, copy }: { listing: ListingReviewView; copy: AdminCopy["listings"] }) {
-  const photos = listing.photos;
-  const video = listing.videos[0] ?? null;
-  const lead = photos[0] ?? null;
-  const rest = photos.slice(1);
-  const extraVideos = listing.videos.length > 1 ? listing.videos.length - 1 : 0;
-  const overflow = rest.length + extraVideos > SMALL_TILES;
-  const shown = rest.slice(0, overflow ? SMALL_TILES - 1 : SMALL_TILES);
-  const hidden = rest.length - shown.length + extraVideos;
+  /* ONE ROW, IN THE LISTER'S ORDER (founder, 13 October): the photos and the
+     videos as the renter will swipe through them, cover first, rather than
+     the photos with the videos set beside them. Every video plays here; a
+     reviewer approving a video has to be able to watch it. */
+  const row = mergeMedia(
+    listing.photos.map((src, position) => ({ src, position })),
+    listing.videos.map((video, index) => ({ ...video, position: video.position ?? index + 1 })),
+  );
+  const videoCount = listing.videos.length;
+  let photoNumber = 0;
+  let videoNumber = 0;
+  let smallPhotos = 0;
+  let hidden = 0;
 
-  if (!lead && !video) {
+  if (row.length === 0) {
     return (
       <Panel>
-        <p className="nf-rv-msg">No photos or walkthrough were uploaded with this listing.</p>
+        <p className="nf-rv-msg">No photos or videos were uploaded with this listing.</p>
       </Panel>
     );
   }
 
   return (
     <div className="nf-panel nf-rv-panel" style={{ padding: "var(--nf-space-sm)" }}>
-      <ul className="nf-rv-media" role="list" aria-label="Photos and walkthrough">
-        {lead ? (
-          <li className="nf-rv-media__lead">
-            <RemoteImage
-              src={lead}
-              alt={copy.photoAlt.replace("{title}", listing.title).replace("{number}", "1")}
-              width={320}
-              height={200}
-              sizes="(min-width: 900px) 22vw, 50vw"
-            />
-          </li>
-        ) : null}
-        {video ? (
-          <li className="nf-rv-media__lead">
-            {video.url ? (
-              /* A walkthrough of an empty flat carries no speech, so there is
-                 no track to caption. preload none: a reviewer's line is not
-                 spent on a video nobody pressed play on. */
-              <video
-                src={video.url}
-                poster={video.posterUrl ?? undefined}
-                controls
-                preload="none"
-                playsInline
-                aria-label="Walkthrough video"
-              />
-            ) : (
-              <div
-                className="nf-rv-media__video-off"
-                style={video.posterUrl ? { backgroundImage: `url(${video.posterUrl})` } : undefined}
-              >
-                <span className="nf-rv-media__play" aria-hidden="true">
-                  <UiIcon name="arrow-right" size={20} />
-                </span>
-                <span className="nf-rv-media__caption">
-                  This walkthrough could not be opened. The listing has one.
-                </span>
-              </div>
-            )}
-          </li>
-        ) : null}
-        {shown.map((photo, index) => (
-          <li key={photo}>
-            <RemoteImage
-              src={photo}
-              alt={copy.photoAlt.replace("{title}", listing.title).replace("{number}", String(index + 2))}
-              width={160}
-              height={128}
-              sizes="120px"
-              loading="lazy"
-            />
-          </li>
-        ))}
+      {/* Focusable: on a phone the strip scrolls sideways, and a keyboard must
+          be able to scroll it (axe scrollable-region-focusable, C1 sweep). */}
+      <ul className="nf-rv-media" role="list" aria-label="Photos and videos" tabIndex={0}>
+        {row.map((entry, index) => {
+          if (entry.kind === "video") {
+            videoNumber += 1;
+            const video = entry.item;
+            return (
+              <li key={`video-${index}`} className="nf-rv-media__lead" data-testid="rv-video">
+                {video.url ? (
+                  /* A walkthrough of an empty flat carries no speech, so there
+                     is no track to caption. preload none: a reviewer's line is
+                     not spent on a video nobody pressed play on. */
+                  <video
+                    src={video.url}
+                    poster={video.posterUrl ?? undefined}
+                    controls
+                    preload="none"
+                    playsInline
+                    aria-label={`Video ${videoNumber} of ${videoCount}${video.durationSeconds ? `, ${video.durationSeconds} seconds` : ""}`}
+                  />
+                ) : (
+                  <div
+                    className="nf-rv-media__video-off"
+                    style={video.posterUrl ? { backgroundImage: `url(${video.posterUrl})` } : undefined}
+                  >
+                    <span className="nf-rv-media__play" aria-hidden="true">
+                      <UiIcon name="arrow-right" size={20} />
+                    </span>
+                    <span className="nf-rv-media__caption">This video could not be opened. The listing has it.</span>
+                  </div>
+                )}
+              </li>
+            );
+          }
+          photoNumber += 1;
+          const alt = copy.photoAlt.replace("{title}", listing.title).replace("{number}", String(photoNumber));
+          if (index === 0) {
+            return (
+              <li key={`photo-${index}`} className="nf-rv-media__lead">
+                <RemoteImage src={entry.item.src} alt={alt} width={320} height={200} sizes="(min-width: 900px) 22vw, 50vw" />
+              </li>
+            );
+          }
+          smallPhotos += 1;
+          if (smallPhotos > SMALL_TILES) {
+            hidden += 1;
+            return null;
+          }
+          return (
+            /* Keyed by place as well as address, so two photographs that share
+               an address cannot drop one another from the strip. */
+            <li key={`photo-${index}`}>
+              <RemoteImage src={entry.item.src} alt={alt} width={160} height={128} sizes="120px" loading="lazy" />
+            </li>
+          );
+        })}
         {hidden > 0 ? (
           <li className="nf-rv-media__more" aria-label={`${hidden} more not shown`}>
             +{hidden}
@@ -533,7 +548,7 @@ function LocationMap({
   );
 }
 
-function MoneyBlock({
+export function MoneyBlock({
   listing,
   locale,
   keepers,
@@ -544,38 +559,44 @@ function MoneyBlock({
 }) {
   const block = listing.intent === "sale" ? listing.purchase : listing.moveIn;
   if (!block) {
+    /* The note is a paragraph, which a `dl` cannot hold: it sits under the
+       list in a plain wrapper, with no gap, exactly where it was in the grid. */
     return (
-      <dl className="nf-rv-money">
-        <div className="nf-rv-money__total">
-          <dt>{listing.intent === "sale" ? "Asking price" : "Headline price"}</dt>
-          <dd>{formatMoney(listing.priceMinor, locale)}</dd>
-        </div>
+      <div>
+        <dl className="nf-rv-money">
+          <div className="nf-rv-money__total">
+            <dt>{listing.intent === "sale" ? "Asking price" : "Headline price"}</dt>
+            <dd>{formatMoney(listing.priceMinor, locale)}</dd>
+          </div>
+        </dl>
         <p className="nf-rv-panel__note">The lister stated no other costs.</p>
-      </dl>
+      </div>
     );
   }
   return (
-    <dl className="nf-rv-money">
-      {block.parts.map((part) => {
-        const keeper = part.minor > 0 ? keeperFor(listing.intent, part.key, keepers) : null;
-        return (
-          <div key={part.key}>
-            <dt>
-              {part.label}
-              {keeper ? <span className="nf-rv-keeper">{keeper}</span> : null}
-            </dt>
-            <dd>{formatMoney(part.minor, locale)}</dd>
-          </div>
-        );
-      })}
-      <div className="nf-rv-money__total">
-        <dt>{listing.intent === "sale" ? "Total to buy" : "Total to move in"}</dt>
-        <dd>{formatMoney(block.totalMinor, locale)}</dd>
-      </div>
+    <div>
+      <dl className="nf-rv-money">
+        {block.parts.map((part) => {
+          const keeper = part.minor > 0 ? keeperFor(listing.intent, part.key, keepers) : null;
+          return (
+            <div key={part.key}>
+              <dt>
+                {part.label}
+                {keeper ? <span className="nf-rv-keeper">{keeper}</span> : null}
+              </dt>
+              <dd>{formatMoney(part.minor, locale)}</dd>
+            </div>
+          );
+        })}
+        <div className="nf-rv-money__total">
+          <dt>{listing.intent === "sale" ? "Total to buy" : "Total to move in"}</dt>
+          <dd>{formatMoney(block.totalMinor, locale)}</dd>
+        </div>
+      </dl>
       <p className="nf-rv-panel__note">
         {block.totalStated ? "Total as the lister stated it." : "Total summed from the parts."}
       </p>
-    </dl>
+    </div>
   );
 }
 
@@ -640,10 +661,54 @@ const STATUS_REASON: Record<string, string> = {
   SUSPENDED: "Taken out of search.",
 };
 
-function ReasonBlock({ listing, copy }: { listing: ListingReviewView; copy: AdminCopy["listings"] }) {
+/**
+ * The status track (reference 7118): only for a listing whose status sits on
+ * the approval flow, only with the times the record keeps (`listing-track.ts`).
+ */
+function ListingFlow({ listing, locale }: { listing: ListingReviewView; locale: Locale }) {
+  const model = listingTrack({
+    status: listing.status,
+    submittedAt: listing.submittedAt,
+    reviewedAt: listing.reviewedAt,
+    publishedAt: listing.publishedAt,
+  });
+  if (!model) return null;
+  const w = getDictionary(locale).experienceAdmin.listingTrack;
+  const day = (iso: string | null) =>
+    iso
+      ? formatDate(new Date(iso), locale, { day: "numeric", month: "short", year: "numeric", timeZone: "Africa/Lagos" })
+      : null;
+  const label: Record<string, string> = { submitted: w.submitted, review: w.review, decision: w.decision, live: w.live };
+  const steps: TrackStep[] = model.map((step) => ({
+    key: step.key,
+    label: label[step.key] ?? step.key,
+    when: day(step.at),
+    note:
+      step.key === "review" && listing.status === "MORE_INFO_REQUIRED" && step.state === "current"
+        ? w.sentBack
+        : step.key === "live" && step.state === "current"
+          ? w.notYetLive
+          : step.key === "decision" && step.state === "failed"
+            ? w.rejected
+            : null,
+    state: step.state,
+  }));
+  return <StatusTrack steps={steps} label={w.label} title={w.title} testId="listing-flow" />;
+}
+
+function ReasonBlock({
+  listing,
+  copy,
+  locale,
+}: {
+  listing: ListingReviewView;
+  copy: AdminCopy["listings"];
+  locale: Locale;
+}) {
   const failing = listing.checks.filter((check) => !check.pass);
   return (
     <div style={{ display: "grid", gap: "var(--nf-space-xs)" }}>
+      <ListingFlow listing={listing} locale={locale} />
       <p className="nf-rv-msg" style={{ color: "var(--nf-brand-secondary)" }}>
         {STATUS_REASON[listing.status] ?? listing.status}
       </p>

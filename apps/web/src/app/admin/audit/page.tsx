@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
+import { ReadOnlyNote } from "../_components/panels";
 import { getAuditActivity, getAuditLog } from "@/lib/admin/audit-queries";
 import { QUEUE_PAGE_SIZE } from "@/lib/admin/queue-filter";
 import {
@@ -84,6 +85,9 @@ export default async function AdminAuditPage({
   return (
     <div className="nf-console">
       <ui.QueueHeader title={COPY.title} lede={COPY.lede} />
+      <div className="mt-inline">
+        <ReadOnlyNote locale={locale} />
+      </div>
       <p className="nf-caption mt-inline">
         <Link className="text-[var(--nf-content-link)] underline" href={`/admin/audit/export${query.from || query.to ? `?${new URLSearchParams({ ...(query.from ? { from: query.from } : {}), ...(query.to ? { to: query.to } : {}) }).toString()}` : ""}`}>
           Download this period as CSV
@@ -103,6 +107,7 @@ export default async function AdminAuditPage({
       {activity.state === "ok" ? (
         <AuditCharts
           activity={activity.data}
+          locale={locale}
           copy={{
             perDay: t.uiCommon.charts.actionsPerDay,
             byKind: t.uiCommon.charts.actionsByKind,

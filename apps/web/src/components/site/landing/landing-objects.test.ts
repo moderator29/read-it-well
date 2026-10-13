@@ -7,6 +7,7 @@ import {
   CLOSE_OBJECTS,
   HERO_OBJECTS,
   JOURNEY_OBJECTS,
+  OS_OBJECTS,
   TRUTH_OBJECTS,
 } from "./landing-objects";
 import { objectsMayMove, pointerOffset } from "./object-field";
@@ -21,6 +22,7 @@ const rooms: Record<string, readonly string[]> = {
   bento: Object.values(BENTO_OBJECTS),
   categories: Object.values(CATEGORY_OBJECTS),
   truths: TRUTH_OBJECTS,
+  os: Object.values(OS_OBJECTS),
   app: Object.values(APP_OBJECTS),
   hero: HERO_OBJECTS.map((o) => o.name),
   close: CLOSE_OBJECTS.map((o) => o.name),

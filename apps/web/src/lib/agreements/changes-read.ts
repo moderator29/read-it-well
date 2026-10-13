@@ -1,4 +1,5 @@
 import "server-only";
+import { reportReadError } from "@/lib/observability/read-error";
 
 import { resolveSession } from "../actions/session";
 import { lastConfirmedVersion, termsDiff, type TermChange } from "./terms-diff";
@@ -49,6 +50,7 @@ export async function readChangesSinceConfirmed(input: {
       .from("deal_agreement_events")
       .select("action, actor_id, terms_version, created_at")
       .eq("agreement_id", input.agreementId);
+    await reportReadError("read.changes.readChangesSinceConfirmed", events.error);
     if (events.error || !Array.isArray(events.data)) return null;
     const rows = events.data as { action: string; actor_id: string | null; terms_version: number | null; created_at: string }[];
     const from = lastConfirmedVersion(
@@ -64,6 +66,7 @@ export async function readChangesSinceConfirmed(input: {
       .eq("agreement_id", input.agreementId)
       .eq("terms_version", from)
       .maybeSingle();
+    await reportReadError("read.changes.readChangesSinceConfirmed", snap.error);
     if (snap.error || !snap.data) return null;
     const before = snap.data as { terms: Record<string, unknown> | null; amount_minor: number };
 

@@ -57,7 +57,24 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ t
         activity={{ perDay: Array.from({ length: 30 }, (_, i) => ({ day: new Date(Date.parse("2026-08-24T12:00:00Z") + i * 86_400_000).toISOString().slice(0, 10), count: [3, 5, 2, 0, 4, 6, 8, 3, 2, 1, 0, 0, 5, 9, 12, 7, 4, 3, 6, 8, 10, 9, 14, 12, 18, 16, 20, 24, 40, 60][i]! })), byKind: [{ label: "wallet_entry", count: 483 }, { label: "cron_job", count: 4 }, { label: "agent_application", count: 1 }], byActor: [], windowDays: 30, total: 488, capped: false }}
         notifications={null}
         push={live ? PUSH_EMPTY : PUSH_FIXTURE}
-        inspections={{ byState: { REQUESTED: 0, PROPOSED: 0, CONFIRMED: 0, COMPLETED: 0, DECLINED: 0, WITHDRAWN: 0 }, total: 0, recent: [] }}
+        inspections={{
+          byState: { REQUESTED: 0, PROPOSED: 0, CONFIRMED: 0, COMPLETED: 0, NO_SHOW: 0, DECLINED: 0, WITHDRAWN: 0 },
+          total: 0,
+          recent: [],
+          noShows: {
+            disputes: [
+              {
+                inspectionId: "00000000-0000-4000-8000-00000000d201",
+                listingTitle: "Example 2 bedroom flat, Yaba",
+                absentRole: "requester",
+                reportedAt: "2026-10-12T11:00:00Z",
+                disputedAt: "2026-10-12T15:30:00Z",
+                disputeNote: "I was at the gate at ten and called twice.",
+              },
+            ],
+            repeats: [{ userId: "00000000-0000-4000-8000-00000000e201", name: "Example Member", count: 3, lastAt: "2026-10-12T11:00:00Z" }],
+          },
+        }}
       />
     </Frame>
   );

@@ -1,4 +1,5 @@
 import "server-only";
+import { reportReadError } from "@/lib/observability/read-error";
 
 import { resolveSession } from "../actions/session";
 import type { Slot } from "./route";
@@ -17,6 +18,7 @@ export async function readViewingSlots(listingId: string, days = 14): Promise<Sl
   try {
     const rpc = session.supabase.rpc.bind(session.supabase) as unknown as Rpc;
     const { data, error } = await rpc("viewing_slots", { p_listing: listingId, p_days: days });
+    await reportReadError("read.viewings.readViewingSlots", error);
     if (error || !Array.isArray(data)) return null;
     return (data as { slot_at: string; slot_minutes: number; window_id: string }[]).map((row) => ({
       slotAt: row.slot_at,
@@ -56,6 +58,7 @@ export async function readMyViewingWindows(): Promise<ViewingWindow[] | null> {
       .select("id, listing_ids, weekday, starts, ends, slot_minutes")
       .eq("active", true)
       .order("weekday", { ascending: true });
+    await reportReadError("read.viewings.readMyViewingWindows", error);
     if (error || !Array.isArray(data)) return null;
     return (data as { id: string; listing_ids: string[]; weekday: number; starts: string; ends: string; slot_minutes: number }[]).map(
       (row) => ({

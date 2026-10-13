@@ -28,117 +28,22 @@
   }
 
   /* ------------------------------------------------------------------
-   * THE LOGO: A NAVY PILL WITH A LIGHT RUNNING ROUND ITS EDGE (the founder,
-   * 29 September 2026, second pass: "like snakes moving around the edges").
+   * THE LOGO IS NOT TOUCHED BY THE THEME (D82, the founder, 8 October 2026:
+   * "make the logo and the text to be not change color should be same either
+   * on light mode or dark mode"). There used to be a daylight twin shown here
+   * on paper, a white halo filter on it, and a navy pill with two lights
+   * lapping its rim behind every `.nf-logo` in light. All three are gone: the
+   * mark and the wordmark are one artwork in the founder's own colours on
+   * every ground, and nothing in this file may select `.nf-logo` or
+   * `.nf-logo-art` (`design-system/brand/logo-sweep.test.ts`).
    *
-   * The morning's pass took the pill away and drew a paper twin of the
-   * artwork instead; the founder wants the brand's own night lockup back, on
-   * navy, everywhere the lockup appears in light. So in light every `.nf-logo`
-   * (the lockup: header, site bar, rail, auth, loading) is a navy pill, the
-   * NIGHT artwork is shown inside it and the paper twin is not, and two short
-   * arcs of light chase each other round the rim.
-   *
-   * The paper twin still serves a bare `LogoMark` outside a pill and outside
-   * a night island (the home greeting's small mark), which is why the day
-   * and night rules below exclude `.nf-logo *` rather than going away.
-   *
-   * MOTION. The arcs turn on a registered angle (`@property`), one lap in
-   * 7.5s. Under `prefers-reduced-motion`, data saving, and the app's Calm or
-   * Off motion setting the lap stops and the rim is a steady soft glow
-   * instead, so the pill is never left with two frozen dashes on it.
-   *
-   * THE DISPLAY IS `!important`, because a host that styles its own image
-   * (`.nf-assemble__mark img { display: block }` in threshold.css outranks a
-   * single class) would otherwise show both artworks at once.
+   * The lap's keyframes stay: the edge lights of the dock and the landing
+   * capsule still turn on them (shell-m.css, site.css).
    * ---------------------------------------------------------------- */
-  .nf-logo-art--day {
-    display: none !important;
-  }
-  :root[data-theme="light"] .nf-logo-art--day:not(:where([data-theme="dark"] *, .nf-logo *)) {
-    display: block !important;
-    filter: var(--nf-logo-day-halo);
-  }
-  :root[data-theme="light"] .nf-logo-art--night:not(:where([data-theme="dark"] *, .nf-logo *)) {
-    display: none !important;
-  }
-
-  /* The pill's box is the same in both themes, so switching themes never
-     moves the lockup or what is beside it: at night it is simply unpainted. */
-  .nf-logo {
-    padding: 0.25rem 0.75rem 0.25rem 0.5rem;
-    border-radius: var(--nf-radius-pill);
-  }
-  :root[data-theme="light"] .nf-logo {
-    position: relative;
-    isolation: isolate;
-    background:
-      radial-gradient(120% 160% at 18% 0%, color-mix(in oklab, var(--nf-glow-ink) 30%, transparent), transparent 62%),
-      var(--nf-night-tile-ground);
-    box-shadow:
-      inset 0 0 0 1px var(--nf-night-tile-rim),
-      inset 0 1px 0 color-mix(in oklab, var(--nf-glow-ink) 30%, transparent),
-      0 6px 16px -8px color-mix(in oklab, var(--nf-glow-ink) 70%, transparent);
-  }
-  :root[data-theme="light"] .nf-logo::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    padding: 1.5px;
-    border-radius: inherit;
-    pointer-events: none;
-    -webkit-mask:
-      linear-gradient(var(--nf-mask-opaque) 0 0) content-box,
-      linear-gradient(var(--nf-mask-opaque) 0 0);
-    -webkit-mask-composite: xor;
-    mask:
-      linear-gradient(var(--nf-mask-opaque) 0 0) content-box exclude,
-      linear-gradient(var(--nf-mask-opaque) 0 0);
-    /* The steady rim: what the lap settles to when motion is off. */
-    background: color-mix(in oklab, var(--nf-glow-ink) 55%, transparent);
-  }
-  /* The lights run on EVERY lockup in light (the founder, 29 September
-     2026: "all areas or place our logo is on light mode"): the app header,
-     the site bar, the rail and the drawer, the site menu, the footer, the
-     landing's app panel, the side cover and the staff access screen. The
-     earlier chrome-only rule stopped short of that ask. */
-  :root[data-theme="light"] .nf-logo::before {
-    background: conic-gradient(
-      from var(--nf-logo-lap),
-      transparent 0deg 110deg,
-      color-mix(in oklab, var(--nf-glow-ink) 70%, transparent) 150deg,
-      color-mix(in oklab, var(--nf-glow-ink) 50%, var(--nf-content-on-brand)) 176deg,
-      transparent 180deg 290deg,
-      color-mix(in oklab, var(--nf-glow-ink) 70%, transparent) 330deg,
-      color-mix(in oklab, var(--nf-glow-ink) 50%, var(--nf-content-on-brand)) 356deg,
-      transparent 360deg
-    );
-    animation: nf-logo-lap 7.5s linear infinite;
-  }
-  :root[data-theme="light"] .nf-logo > * {
-    position: relative;
-    z-index: 2;
-  }
   @keyframes nf-logo-lap {
     to {
       --nf-logo-lap: 360deg;
     }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    :root[data-theme="light"] .nf-logo::before {
-      animation: none;
-      background: color-mix(in oklab, var(--nf-glow-ink) 55%, transparent);
-    }
-  }
-  :root[data-theme="light"]:is(
-      [data-save-data="on"],
-      [data-motion-ambient="off"],
-      [data-motion="calm"],
-      [data-motion="off"]
-    )
-    .nf-logo::before {
-    animation: none;
-    background: color-mix(in oklab, var(--nf-glow-ink) 55%, transparent);
   }
 
   /* ------------------------------------------------------------------
@@ -166,62 +71,20 @@
   :root[data-theme="light"] .nf-site-nav[data-theme="dark"]:not([data-variant="landing"]) .nf-site-bar::after {
     display: none;
   }
-  /* The profile cover ran up behind the header's clear glass (`--nf-pf-lift`,
-     profile.css). Behind a solid block it is hidden, so in light it starts
-     under the header, lifted only through the shell's top padding so there
-     is no white band between the navy and the photograph; `--nf-social-bar`
-     does the same for the social covers (social.css). The gear no longer
-     has a header row above it on the cover, so it takes the corner inset it
-     already has from a tablet up. */
-  :root[data-theme="light"] .nf-pf:not(:where([data-theme="dark"] *)) {
-    --nf-pf-lift: var(--nf-gap-section-tight);
-  }
-  /* Unguarded: the hero is a night island now (profile.css), and the gear's
-     place is about the header above it, not about its palette. */
-  :root[data-theme="light"] .nf-pf-cover .nf-pf-gear {
-    inset-block-start: var(--nf-space-sm);
-    inset-inline-end: var(--nf-space-sm);
-  }
+  /* The profile covers ran up behind the header's clear glass. Behind a
+     solid bar they would be hidden, so in light `--nf-social-bar` is 0 and
+     they start under it (social.shared.css). */
 
   /* ------------------------------------------------------------------
-   * THE HOME TOP BLOCK (references 05 and 07; the clean unified sweep of
-   * 29 September 2026). The greeting, the place, the hero and the four doors
-   * are a night island in both themes (`HomeScreen`); in light this paints
-   * it as THE HERO BAND (below): the same navy, bloom, radius and inner
-   * spacing, a rounded block on the warm canvas under the paper header. At
-   * night the attribute changes nothing and none of this applies.
+   * THE HOME TOP BLOCK AND EVERY HERO BAND IN DAYLIGHT (October 2026). They
+   * were night islands painted navy here, a block of blue the height of
+   * Home's top on the warm paper, which the founder found too heavy. The
+   * band now takes the paper palette itself (`HeroBand` no longer carries
+   * `data-theme="dark"`) and its fill is the white card with a whisper of
+   * brand in its corner (`brand-glass.css`); the brand blue is left to the
+   * actions and the chosen state inside it. The box is the night rule's
+   * (controls.css), so nothing moves between themes.
    * ---------------------------------------------------------------- */
-  :root[data-theme="light"] .nf-home-top[data-theme="dark"] {
-    margin-inline: 0;
-    padding: 1.25rem;
-    border-radius: var(--nf-radius-xl);
-    background:
-      radial-gradient(90% 70% at 0% 0%, color-mix(in oklab, var(--nf-container-ink) 22%, transparent), transparent 70%),
-      var(--nf-surface-primary);
-    box-shadow: 0 18px 36px -24px color-mix(in oklab, var(--nf-surface-canvas) 70%, transparent);
-  }
-  @media (min-width: 40rem) {
-    :root[data-theme="light"] .nf-home-top[data-theme="dark"] {
-      padding: var(--nf-space-xl);
-    }
-  }
-
-  /* ------------------------------------------------------------------
-   * THE HERO BAND IN DAYLIGHT (`components/ui/HeroBand.tsx`; spec section
-   * 16, Q2 as the founder widened it on 29 September 2026). The light
-   * theme's one signature moment: the navy block on the warm paper, with a
-   * soft brand bloom in its upper corner and no rim, no glass. The element
-   * is a night island, so `--nf-surface-primary` here is the night card
-   * navy, and its type is white. The radius and spacing are the night
-   * rule's (controls.css), so the band has the same box in both themes.
-   * ---------------------------------------------------------------- */
-  :root[data-theme="light"] .nf-hero-band[data-theme="dark"] {
-    border-color: transparent;
-    background:
-      radial-gradient(90% 70% at 0% 0%, color-mix(in oklab, var(--nf-container-ink) 22%, transparent), transparent 70%),
-      var(--nf-surface-primary);
-    box-shadow: 0 18px 36px -24px color-mix(in oklab, var(--nf-surface-canvas) 70%, transparent);
-  }
 
   /* ------------------------------------------------------------------
    * THE GLASS OBJECTS IN DAYLIGHT: EVERY ONE ON A NAVY TILE (the founder,
@@ -253,6 +116,24 @@
       inset 0 0 0 1px var(--nf-night-tile-rim),
       inset 0 1px 0 color-mix(in oklab, var(--nf-content-on-brand) 20%, transparent),
       0 4px 12px -6px var(--nf-night-tile-bloom);
+  }
+  /*
+   * THE PAPER GROUND FOR TIERED OBJECTS (north star 14.7, D15, D29). A matte
+   * symbol or a realistic place has its own contrast on white, so it does not
+   * get the navy tile the glass set needed: it sits on a radius-14 plate at
+   * about 4% brand with a soft blue contact shadow, so it never floats on bare
+   * paper. BrandIcon says which material it drew (`data-material`). Declared
+   * BEFORE the generic tile rule so the host-plate rules after it still win
+   * and no plate is drawn inside a plate; glass keeps the navy tile below.
+   */
+  :root[data-theme="light"] :is(.nf-brand-icon-ground, .nf-icon-tile):is([data-material="matte"], [data-material="real"]):not(:where([data-theme="dark"] *)) {
+    background: color-mix(in oklab, var(--nf-brand-primary) 4%, var(--nf-surface-primary));
+    border-radius: var(--nf-radius-md);
+    box-shadow: none;
+  }
+  :root[data-theme="light"] :is(.nf-brand-icon-ground, .nf-icon-tile):is([data-material="matte"], [data-material="real"]):not(:where([data-theme="dark"] *)) > img {
+    transform: none;
+    filter: drop-shadow(0 6px 5px color-mix(in oklab, var(--nf-brand-primary) 22%, transparent));
   }
   :root[data-theme="light"] :is(.nf-brand-icon-ground, .nf-icon-tile):not(:where([data-theme="dark"] *)) {
     background: var(--nf-day-tile-fill);
@@ -317,10 +198,7 @@
     --nf-dock-fill-foot: color-mix(in oklab, color-mix(in oklab, var(--nf-brand-primary) 2%, var(--nf-surface-primary)) 90%, transparent);
     --nf-dock-sheen: var(--nf-surface-primary);
     --nf-dock-ring: var(--nf-surface-primary);
-    --nf-dock-drop:
-      0 1px 2px color-mix(in oklab, var(--nf-content-primary) 8%, transparent),
-      0 10px 28px -10px color-mix(in oklab, var(--nf-content-primary) 16%, transparent),
-      0 22px 44px -26px color-mix(in oklab, var(--nf-brand-primary) 45%, transparent);
+    --nf-dock-drop: var(--nf-elevation-floating);
     --nf-dock-ink-on: var(--nf-brand-primary);
     /* F-h (the founder, 30 September: "the entire platform on light mode
        should be blue ... the black icons should be blue"): the glyphs at
@@ -340,15 +218,30 @@
       inset 0 -1px 0 color-mix(in oklab, var(--nf-brand-primary) 5%, transparent),
       var(--nf-dock-drop);
   }
-  /* The tray's words: brand blue. The round More button's glyph is the
-     tabs' resting blue (F-h), full brand when lit or open. */
+  /* The tray's words: brand blue. The menu's glyph in the capsule is the
+     tabs' resting blue (F-h), full brand when lit or open. The tray is solid
+     white by day (it stands inside the capsule, so it draws no blur): its
+     fills are the capsule's own at full strength. */
   :root[data-theme="light"] .nf-dockmore__label:not(:where([data-theme="dark"] *)) {
     color: var(--nf-brand-primary);
+  }
+  :root[data-theme="light"] .nf-dockmore__tray:not(:where([data-theme="dark"] *)) {
+    --nf-dock-fill-top: var(--nf-surface-primary);
+    --nf-dock-fill-foot: color-mix(in oklab, var(--nf-brand-primary) 2%, var(--nf-surface-primary));
+    /* A hairline, so the solid white tray has a sharp edge on the warm page. */
+    border-color: color-mix(in oklab, var(--nf-brand-primary) 14%, transparent);
   }
   :root[data-theme="light"] .nf-dock-island:not(:where([data-theme="dark"] *)) {
     color: var(--nf-dock-glyph);
   }
+  /* The menu's container by day: a whisper of brand on the white capsule, a
+     brand ring, no bloom (a glow on white reads as a haze). */
+  :root[data-theme="light"] .nf-dockmore__button:not(:where([data-theme="dark"] *)) {
+    border-color: color-mix(in oklab, var(--nf-brand-primary) 30%, transparent);
+    box-shadow: none;
+  }
   :root[data-theme="light"] .nf-dockmore__button[data-lit]:not(:where([data-theme="dark"] *)) {
+    border-color: var(--nf-brand-primary);
     color: var(--nf-brand-primary);
   }
   /* F-h: the header's bare menu glyph and the workspace bar's panel toggle
@@ -365,15 +258,13 @@
   :root[data-theme="light"] :is(.nf-tabbar, .nf-dock-island):not(:where([data-theme="dark"] *))::before {
     display: none;
   }
-  /* The round More button, open: it stays white, its close mark blue, with
-     a brand ring so the open state is still seen. */
+  /* The menu, open: solid brand blue with the close mark in the on-brand ink,
+     and a soft brand drop rather than a night bloom. */
   :root[data-theme="light"] .nf-dockmore[data-open] .nf-dockmore__button:not(:where([data-theme="dark"] *)) {
-    border-color: color-mix(in oklab, var(--nf-brand-primary) 45%, transparent);
-    background: var(--nf-surface-primary);
-    color: var(--nf-brand-primary-strong);
-    box-shadow:
-      0 0 0 3px color-mix(in oklab, var(--nf-brand-primary) 14%, transparent),
-      var(--nf-dock-drop);
+    border-color: var(--nf-brand-primary);
+    background: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+    box-shadow: 0 6px 14px -6px color-mix(in oklab, var(--nf-brand-primary) 70%, transparent);
   }
   /* The tray's glyph tiles: a whisper of brand on white, the glyph blue. */
   :root[data-theme="light"] .nf-dockmore__glyph:not(:where([data-theme="dark"] *)) {
@@ -443,10 +334,13 @@
    * THE FEED. The post card built its own lit gradient from the canvas;
    * in light it is the reference card: white on a soft hairline.
    * ---------------------------------------------------------------- */
+  /* The Card tier on Paper, as every other card by day: white with ONE edge,
+     the raised shadow. It carried a grey hairline as well, the one card
+     family drawing two edges. */
   :root[data-theme="light"] .nf-post:not(:where([data-theme="dark"] *)) {
     background: var(--nf-surface-primary);
-    border-color: var(--nf-border-default);
-    box-shadow: var(--nf-elev-1);
+    border-color: transparent;
+    box-shadow: var(--nf-tier-card-shadow);
   }
   :root[data-theme="light"] :is(.nf-post__handle, .nf-post__when):not(:where([data-theme="dark"] *)) {
     color: var(--nf-content-muted);
@@ -497,8 +391,9 @@
   }
 }
 
-/* The angle the logo pill's two lights turn on. Registered so it can be
-   animated; outside any layer because `@property` is document-global. */
+/* The angle the edge lights turn on (shell-m.css, site.css). Registered so
+   it can be animated; outside any layer because `@property` is
+   document-global. */
 @property --nf-logo-lap {
   syntax: "<angle>";
   inherits: false;

@@ -1,0 +1,447 @@
+/*
+ * THE REFERRAL DESK (13 October 2026): the console's /admin/referrals
+ * (app/admin/referrals). Loaded by the components that draw it, not by
+ * globals.css.
+ *
+ * Semantic tokens only, so light and dark follow the theme on their own.
+ * Phone first: one column at 390px, the three top cards side by side from
+ * 1024px. Controls rest on a fill, never on a grey hairline. No weight 500.
+ */
+@layer theme, base, components, utilities;
+
+@layer components {
+  /* ----------------------------------------------------------- the top row */
+  .nf-rdesk-top {
+    display: grid;
+    gap: var(--nf-gap-block);
+    margin-bottom: var(--nf-gap-block);
+  }
+  @media (min-width: 1024px) {
+    .nf-rdesk-top {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  .nf-rdesk-card {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: var(--nf-space-xs);
+    padding: var(--nf-space-md);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-panel-fill-card);
+    box-shadow: var(--nf-elev-1);
+    color: var(--nf-content-primary);
+  }
+  .nf-rdesk-label {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+  }
+  .nf-rdesk-figure {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h1);
+    font-weight: 700;
+    line-height: 1.1;
+    overflow-wrap: anywhere;
+  }
+  .nf-rdesk-figure--sm {
+    font-size: var(--nf-text-h2);
+  }
+  .nf-rdesk-note {
+    margin: 0;
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.4;
+    color: var(--nf-content-secondary);
+  }
+  .nf-rdesk-note--warn {
+    color: var(--nf-state-warning-accent);
+    font-weight: 600;
+  }
+  .nf-rdesk-sub {
+    display: grid;
+    gap: var(--nf-space-3xs);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+  }
+  .nf-rdesk-sub li {
+    display: flex;
+    gap: var(--nf-space-xs);
+    align-items: baseline;
+  }
+
+  /* The budget bar: the track is the cap, the fill is what is committed. */
+  .nf-rdesk-bar {
+    position: relative;
+    height: 0.625rem;
+    overflow: hidden;
+    border-radius: var(--nf-radius-badge);
+    background: var(--nf-surface-inset);
+  }
+  .nf-rdesk-bar__fill {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--nf-brand-primary);
+  }
+  .nf-rdesk-bar[data-over] .nf-rdesk-bar__fill {
+    background: var(--nf-state-warning-accent);
+  }
+  .nf-rdesk-card__foot {
+    margin-top: auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--nf-space-xs);
+    align-items: center;
+  }
+
+  /* The three outcome counts, read across. */
+  .nf-rdesk-triple {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--nf-space-xs);
+    margin: 0;
+  }
+  .nf-rdesk-triple > div {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: var(--nf-space-3xs);
+    padding: var(--nf-space-sm);
+    border-radius: var(--nf-radius-card-sm);
+    background: var(--nf-surface-inset);
+  }
+  .nf-rdesk-triple dt {
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+  }
+  .nf-rdesk-triple dd {
+    margin: 0;
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h2);
+    font-weight: 700;
+    line-height: 1.1;
+  }
+  .nf-rdesk-triple small {
+    display: block;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+    line-height: 1.25;
+  }
+
+  /* ---------------------------------------------------- the live campaign */
+  .nf-rdesk-terms {
+    display: grid;
+    gap: var(--nf-space-sm);
+    margin: 0;
+  }
+  @media (min-width: 640px) {
+    .nf-rdesk-terms {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  .nf-rdesk-terms > div {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: var(--nf-space-3xs);
+    padding: var(--nf-space-sm);
+    border-radius: var(--nf-radius-card-sm);
+    background: var(--nf-surface-inset);
+  }
+  .nf-rdesk-terms dt {
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+  }
+  .nf-rdesk-terms dd {
+    margin: 0;
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+  }
+  .nf-rdesk-terms small {
+    display: block;
+    font-weight: 400;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-rdesk-reqs {
+    display: grid;
+    gap: var(--nf-space-2xs);
+    margin: var(--nf-space-xs) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .nf-rdesk-reqs li {
+    display: flex;
+    gap: var(--nf-space-xs);
+    align-items: baseline;
+    font-size: var(--nf-text-body-sm);
+  }
+  .nf-rdesk-reqs li::before {
+    content: "";
+    flex: none;
+    width: 0.5rem;
+    height: 0.5rem;
+    margin-top: 0.3rem;
+    border-radius: var(--nf-radius-xs);
+    background: var(--nf-brand-primary);
+  }
+  .nf-rdesk-earlier {
+    display: grid;
+    gap: var(--nf-space-2xs);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .nf-rdesk-earlier li {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--nf-space-xs);
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--nf-space-xs) var(--nf-space-sm);
+    border-radius: var(--nf-radius-control);
+    background: var(--nf-surface-inset);
+    font-size: var(--nf-text-body-sm);
+  }
+
+  /* ----------------------------------------------------------- the queues */
+  .nf-rdesk-list {
+    display: grid;
+    gap: var(--nf-gap-block);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .nf-rdesk-item {
+    display: grid;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-md);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-panel-fill-card);
+    box-shadow: var(--nf-elev-1);
+    min-width: 0;
+  }
+  .nf-rdesk-item__head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--nf-space-sm);
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+  .nf-rdesk-item__who {
+    min-width: 0;
+    margin: 0;
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+  .nf-rdesk-item__who a {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+  .nf-rdesk-item__amount {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h2);
+    font-weight: 700;
+    line-height: 1.1;
+    white-space: nowrap;
+  }
+  .nf-rdesk-item__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--nf-space-3xs) var(--nf-space-md);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+  }
+  .nf-rdesk-item__signals {
+    display: grid;
+    gap: var(--nf-space-xs);
+    padding: var(--nf-space-sm);
+    border-radius: var(--nf-radius-card-sm);
+    background: var(--nf-surface-inset);
+  }
+  .nf-rdesk-item__signals h3 {
+    margin: 0;
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+  }
+  .nf-rdesk-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--nf-space-2xs);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .nf-rdesk-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--nf-space-3xs) var(--nf-space-xs);
+    border-radius: var(--nf-radius-badge);
+    background: var(--nf-panel-fill-card);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--nf-content-primary);
+  }
+  .nf-rdesk-chip[data-strong] {
+    color: var(--nf-state-warning-accent);
+  }
+  .nf-rdesk-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--nf-space-xs);
+    align-items: center;
+  }
+  .nf-rdesk-actions__note {
+    flex: 1 1 12rem;
+    margin: 0;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+
+  /* The sheet's reason field and its refusal. */
+  .nf-rdesk-field {
+    display: grid;
+    gap: var(--nf-space-3xs);
+    margin-top: var(--nf-space-sm);
+  }
+  .nf-rdesk-error {
+    margin: var(--nf-space-xs) 0 0;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-state-error);
+  }
+  .nf-rdesk-done {
+    margin: var(--nf-space-xs) 0 0;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-state-success);
+  }
+
+  /* ------------------------------------------------------- the graph form */
+  .nf-rdesk-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--nf-space-xs);
+    align-items: flex-end;
+    margin-bottom: var(--nf-space-sm);
+  }
+  .nf-rdesk-form label {
+    flex: 1 1 18rem;
+    min-width: 0;
+  }
+
+  /* --------------------------------------------------------- the graph SVG */
+  .nf-rgraph-wrap {
+    overflow-x: auto;
+    padding: var(--nf-space-xs);
+    border-radius: var(--nf-radius-card-sm);
+    background: var(--nf-surface-inset);
+  }
+  .nf-rgraph-wrap:focus-visible {
+    outline: 2px solid var(--nf-brand-primary);
+    outline-offset: 2px;
+  }
+  .nf-rgraph {
+    display: block;
+    height: auto;
+    max-width: none;
+  }
+  .nf-rgraph__link {
+    fill: none;
+    stroke: var(--nf-content-muted);
+    stroke-width: 1.5;
+  }
+  .nf-rgraph__link--back {
+    stroke: var(--nf-state-warning-accent);
+    stroke-width: 2;
+    stroke-dasharray: 5 4;
+  }
+  .nf-rgraph__arrow {
+    fill: var(--nf-content-muted);
+  }
+  .nf-rgraph__arrow--back {
+    fill: var(--nf-state-warning-accent);
+  }
+  .nf-rgraph__box {
+    fill: var(--nf-surface-secondary);
+    stroke: var(--nf-content-muted);
+    stroke-width: 1;
+  }
+  .nf-rgraph__node--risk .nf-rgraph__box {
+    stroke: var(--nf-state-warning-accent);
+    stroke-width: 2;
+  }
+  .nf-rgraph__node--focus .nf-rgraph__box {
+    fill: var(--nf-brand-primary);
+    stroke: var(--nf-brand-primary);
+  }
+  .nf-rgraph__name {
+    fill: var(--nf-content-primary);
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .nf-rgraph__line {
+    fill: var(--nf-content-secondary);
+    font-size: 12px;
+  }
+  .nf-rgraph__node--focus .nf-rgraph__name,
+  .nf-rgraph__node--focus .nf-rgraph__line {
+    fill: var(--nf-content-on-brand);
+  }
+  .nf-rgraph-hint {
+    margin-top: var(--nf-space-xs);
+  }
+  @media (min-width: 1024px) {
+    .nf-rgraph-hint {
+      display: none;
+    }
+  }
+  .nf-rgraph-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--nf-space-xs) var(--nf-space-md);
+    margin: var(--nf-space-xs) 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+  }
+  .nf-rgraph-legend li {
+    display: inline-flex;
+    gap: var(--nf-space-2xs);
+    align-items: center;
+  }
+  .nf-rgraph-legend i {
+    display: inline-block;
+    width: 1.5rem;
+    height: 0;
+    border-top: 2px solid var(--nf-content-muted);
+  }
+  .nf-rgraph-legend i[data-back] {
+    border-top: 2px dashed var(--nf-state-warning-accent);
+  }
+  .nf-rgraph-legend i[data-focus] {
+    height: 0.75rem;
+    border: 0;
+    border-radius: var(--nf-radius-xs);
+    background: var(--nf-brand-primary);
+  }
+  .nf-rgraph-legend i[data-risk] {
+    height: 0.75rem;
+    border: 2px solid var(--nf-state-warning-accent);
+    border-radius: var(--nf-radius-xs);
+  }
+}

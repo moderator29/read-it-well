@@ -16,6 +16,15 @@
   rules below carry layout; where a material is written here it is the
   shared tokens by name, for the classes other groups' components draw.
 */
+/*
+ * Loaded by the components that draw its classes, not by globals.css (the
+ * CSS-diet move of 6 October). This line states the layer order the document
+ * already has from Tailwind, so the order holds whichever chunk the browser
+ * receives first; without it a chunk that arrived before globals would put
+ * `components` ahead of `base` and `theme`.
+ */
+@layer theme, base, components, utilities;
+
 @layer components {
   /* ======================================================= the property card
      3EB3E2A9: a photograph, Verified top-left, the heart top-right, the market
@@ -117,11 +126,17 @@
     flex: 1;
     flex-direction: column;
     gap: var(--nf-space-3xs);
-    padding: var(--nf-space-2xs) var(--nf-space-xs) var(--nf-space-xs);
+    /* THE EDGE FLOOR (the founder, 7 October 2026: "many things where the
+       content sits too close to the edges, sides or bottom of the container
+       it is in"). No word or fact sits closer than 12px (`space-sm`) to the
+       card's edge; it was 8 at the sides and the bottom, so the fact row
+       ("2 beds, 3 baths") sat on the card's foot. From a tablet up, the
+       ordinary card inset, `--nf-pad-card`. */
+    padding: var(--nf-space-xs) var(--nf-space-sm) var(--nf-space-sm);
   }
   @media (min-width: 40rem) {
     .nf-pcard__body {
-      padding: var(--nf-space-xs) var(--nf-space-sm) var(--nf-space-sm);
+      padding: var(--nf-space-sm) var(--nf-pad-card) var(--nf-pad-card);
     }
   }
   /* Up to three lines, then the ellipsis, with the whole title on the
@@ -131,7 +146,7 @@
   .nf-pcard__market {
     font-size: var(--nf-text-overline);
     line-height: 1rem;
-    font-weight: 500;
+    font-weight: 400;
     color: var(--nf-content-muted);
   }
   .nf-pcard__title {
@@ -225,6 +240,14 @@
   .nf-pcard__action {
     padding: 0 var(--nf-space-xs) var(--nf-space-xs);
   }
+  /* The card's one button fills a two-column card, which at 390 is 155px:
+     a full-width button keeps one line by rule, so "Message the agent" in Igbo
+     (193px of words) ran out of the button and the card (Round 3 sweep). Here
+     the label wraps, centred, and the button grows a line instead. */
+  .nf-pcard__action .nf-btn {
+    white-space: normal;
+    text-align: center;
+  }
   .nf-pcard__new {
     padding: 0 var(--nf-space-2xs);
     font-size: var(--nf-text-overline);
@@ -263,7 +286,7 @@
      fact on the line. */
   .nf-pcard__fact--more {
     color: var(--nf-content-muted);
-    font-weight: 500;
+    font-weight: 400;
   }
 
   /* The marks on the photograph. Verified is the brand mark of the renders:
@@ -386,10 +409,17 @@
     -webkit-backdrop-filter: var(--nf-btn-glass-backdrop);
     backdrop-filter: var(--nf-btn-glass-backdrop);
     box-shadow: var(--nf-btn-glass-shadow);
+    /* Centred, and it wraps rather than being cut by the photograph on a
+       two-up card, where "No photographs yet" is wider than the frame
+       (locale-fit, every language). */
     top: 50%;
-    left: 50%;
-    translate: -50% -50%;
-    white-space: nowrap;
+    left: 0;
+    right: 0;
+    width: max-content;
+    max-width: calc(100% - var(--nf-space-sm));
+    margin-inline: auto;
+    translate: 0 -50%;
+    text-align: center;
   }
   .nf-pcard__note {
     position: absolute;
@@ -406,7 +436,7 @@
      */
     border-radius: var(--nf-radius-xs);
     font-size: var(--nf-text-overline);
-    font-weight: 500;
+    font-weight: 600;
     color: var(--nf-content-on-media);
     border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
     background: var(--nf-btn-glass-fill);
@@ -428,6 +458,27 @@
     margin-inline: calc(var(--nf-pad-shell) * -1);
     padding: var(--nf-space-sm) var(--nf-pad-shell);
     border-bottom: var(--nf-border-width) solid var(--nf-panel-hair);
+  }
+  /*
+   * RECENT SEARCHES FLOAT UNDER THE FIELD ON THE RESULTS BAR (round 5 craft:
+   * typing never moves the page). In the flow, the list pushed the chips and
+   * every result down the moment the field took focus (the keyboard rising
+   * in the same instant) and pulled them back up on the first letter typed:
+   * two jumps under the thumb per search. Over the results instead, anchored
+   * under the field in the sticky bar, it moves nothing. Its height is the
+   * room left above the keyboard (`--nf-recent-room`, measured from the
+   * visual viewport by RecentSearches), so the last row is never under the
+   * keyboard; past that it scrolls inside itself. The Home hero keeps its
+   * list in the flow, where it cannot be clipped by the hero's frame.
+   */
+  .nf-shelf-bar > .nf-recent {
+    position: absolute;
+    z-index: 1;
+    inset-inline: var(--nf-pad-shell);
+    top: calc(var(--nf-space-sm) + 3.25rem);
+    max-height: var(--nf-recent-room, 60svh);
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
   .nf-shelf-field {
     display: flex;
@@ -803,7 +854,7 @@
     gap: var(--nf-space-xs);
     min-width: 0;
     font-size: var(--nf-text-body-sm);
-    font-weight: 500;
+    font-weight: 600;
     color: var(--nf-content-primary);
   }
   .nf-filters__switch-label > svg {
@@ -838,7 +889,7 @@
     border: 0;
     outline: none;
     font-size: var(--nf-text-body-sm);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--nf-content-primary);
   }
   .nf-filters__row-input::placeholder {
@@ -857,7 +908,7 @@
     appearance: none;
     -webkit-appearance: none;
     font-size: var(--nf-text-body-sm);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--nf-content-primary);
     cursor: pointer;
   }
@@ -1033,36 +1084,40 @@
      */
     --nf-rail-snap-pad: var(--nf-pad-shell);
   }
+  /*
+   * THE FACT CHIP (founder's reference, 13 October 2026): a line icon and a
+   * few words on one line, on the card's own quiet surface with a hairline,
+   * the way the reference draws "4 Beds" and "285sqm". It was a two-line glass
+   * tile with the glyph above the words, which made six facts read as six
+   * cards. 36px tall on a 10px corner (0.28), a lettered tag and so a rounded
+   * rectangle by the shape law, never a capsule.
+   */
   .nf-spec-tile {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: center;
+    display: inline-flex;
+    align-items: center;
     gap: var(--nf-space-2xs);
-    min-width: 6rem;
-    min-height: 4rem;
+    min-height: 2.25rem;
     flex-shrink: 0;
-    padding: var(--nf-space-xs) var(--nf-space-sm);
+    padding: 0 var(--nf-space-sm);
     font-size: var(--nf-text-caption);
     font-weight: 600;
+    line-height: 1.2;
     white-space: nowrap;
     color: var(--nf-content-primary);
     border: var(--nf-border-width) solid var(--nf-panel-edge);
     border-color: var(--nf-panel-edges);
-    border-radius: var(--nf-container-radius);
-    background: var(--nf-panel-fill-card);
-    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
+    border-radius: var(--nf-radius-sm);
+    background: var(--nf-surface-raised);
   }
   .nf-spec-tile > svg {
-    color: var(--nf-brand-secondary);
+    flex-shrink: 0;
+    color: var(--nf-content-secondary);
   }
   /*
-   * UI-06: five tiles squeezed onto one line at 390 came to about 55px each,
-   * and `overflow-wrap: anywhere` then broke words at any letter ("Parkin g",
-   * "Backu p power"). The row now wraps: a tile is at least a third of the
-   * row, so five tiles sit three and two, and a word breaks at a
-   * hyphenation point; only a word longer than the whole tile (a long
-   * translation or figure) breaks mid-letter rather than spilling out.
+   * UI-06 still holds: no word in a chip ever breaks mid letter. The row wraps
+   * whole chips onto the next line instead of squeezing them, and a chip only
+   * wraps its own words when a single chip is wider than the whole row (a long
+   * translation), at a word boundary.
    */
   .nf-spec-row--fit {
     flex-wrap: wrap;
@@ -1070,17 +1125,50 @@
     padding-inline: 0;
   }
   .nf-spec-row--fit .nf-spec-tile {
-    flex: 1 1 calc((100% - 2 * var(--nf-space-xs)) / 3);
+    flex: 0 1 auto;
     min-width: 0;
-    padding-inline: var(--nf-space-xs);
-    font-size: var(--nf-text-overline);
+    max-width: 100%;
     white-space: normal;
-    overflow-wrap: break-word;
-    hyphens: auto;
+    overflow-wrap: normal;
+    word-break: normal;
+    hyphens: manual;
   }
   .nf-spec-row--fit .nf-spec-tile > span {
     display: block;
     min-width: 0;
+  }
+  /* "+N": the one filled chip in the row, ink on paper by day and paper on
+     ink at night (the solid plate's own pair), so it reads as the control. */
+  .nf-spec-more-cell {
+    display: inline-flex;
+  }
+  .nf-spec-more {
+    display: inline-grid;
+    place-items: center;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    margin-block: calc((2.25rem - 2.75rem) / 2);
+    padding: 0 var(--nf-space-sm);
+    border: 0;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-plate-solid-fill);
+    color: var(--nf-plate-solid-ink);
+    font-size: var(--nf-text-caption);
+    font-weight: 700;
+    cursor: pointer;
+    transition: scale var(--nf-duration-press) var(--nf-ease-press);
+  }
+  .nf-spec-more:active {
+    scale: var(--nf-press-scale);
+  }
+  .nf-spec-more:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-spec-more {
+      transition: none;
+    }
   }
   /* The move-in block: brand-tinted glass, the figure lit. */
   .nf-detail-movein {
@@ -1453,6 +1541,37 @@
   .nf-media-chip--caption {
     font-size: var(--nf-text-caption);
   }
+
+  /*
+   * "WATCH VIDEO", ON A VIDEO SLIDE OF THE LISTING GALLERY (founder, 13
+   * October): a dark, see-through capsule at the photograph's bottom right
+   * holding a filled play circle and the words. It is a real button, so it
+   * takes the button's capsule (the one control allowed one) and its 44px
+   * reach; the ink and the ground are the on-media tokens, which hold in both
+   * themes because the hero is a night island either way.
+   */
+  .nf-btn.nf-gallery-watch {
+    min-height: 2.75rem;
+    padding-inline: var(--nf-space-sm) var(--nf-space-md);
+    gap: var(--nf-space-2xs);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-on-media);
+    background: var(--nf-overlay-media-strong);
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    border-radius: var(--nf-radius-button);
+    -webkit-backdrop-filter: blur(var(--nf-btn-glass-blur));
+    backdrop-filter: blur(var(--nf-btn-glass-blur));
+  }
+  .nf-gallery-watch__icon {
+    display: grid;
+    place-items: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-content-on-media);
+    color: var(--nf-overlay-media-strong);
+  }
   .nf-media-chip--lg {
     font-size: var(--nf-text-body-lg);
   }
@@ -1494,9 +1613,13 @@
     justify-content: center;
     gap: var(--nf-space-2xs);
     min-height: 3rem;
-    padding: var(--nf-space-2xs) var(--nf-space-xs);
+    /* The edge floor (7 October): 12 above and below, so a pair that wraps
+       to two lines ("2 room types") no longer sits 7px from the strip's
+       border. */
+    padding: var(--nf-space-sm) var(--nf-space-xs);
     font-size: var(--nf-text-caption);
     font-weight: 600;
+    line-height: 1.25;
     color: var(--nf-content-primary);
     text-align: center;
   }
@@ -1756,6 +1879,29 @@
     grid-area: action;
     justify-self: stretch;
   }
+  /* ONE ROW FROM A NORMAL PHONE UP (premium pass, 7 October; references
+     7B5335E0 and 9E8B56ED draw the figure and the one primary on a single
+     row). From 23rem (368px, so every 375 and 390 phone) the ghost half is a
+     44px glyph square beside the primary, its words still its accessible
+     name, and the bar is one row instead of two: about 64px of photograph and
+     breakdown given back to the page. Under 23rem (a 320 phone) the three
+     parts do not fit one row, so the two-row grid above stays. */
+  @media (min-width: 23rem) {
+    .nf-detail-foot {
+      grid-template-columns: minmax(0, 1fr) auto auto;
+      grid-template-areas: "figure secondary action";
+      gap: var(--nf-space-xs);
+    }
+    .nf-detail-foot__action {
+      justify-self: end;
+    }
+  }
+  @media (min-width: 23rem) and (max-width: 39.99rem) {
+    .nf-detail-foot__secondary.nf-btn {
+      width: 2.75rem;
+      padding-inline: 0;
+    }
+  }
   @media (min-width: 40rem) {
     .nf-detail-foot {
       grid-template-columns: minmax(0, 1fr) auto auto;
@@ -1793,6 +1939,351 @@
     margin-top: var(--nf-space-3xs);
     font-size: var(--nf-text-overline);
     color: var(--nf-content-muted);
+  }
+
+  /* ================================================= the listing page, 13 Oct
+     The founder's reference: the status chip, the title with the price
+     opposite, the rating and the place, the fact chips, "Listed by" with two
+     round monochrome buttons, the gallery strip, the full-width visit button
+     on a phone, and the sticky summary card from `lg`. Tokens only. */
+
+  /* The title and the headline figure on one row: the title takes what it
+     needs and wraps, the figure keeps its own width and never wraps. */
+  .nf-detail-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    column-gap: var(--nf-space-md);
+    row-gap: var(--nf-space-2xs);
+  }
+  .nf-detail-head__title {
+    min-width: 0;
+  }
+  .nf-detail-head__price {
+    display: flex;
+    align-items: baseline;
+    justify-content: flex-end;
+    gap: var(--nf-space-3xs);
+    padding-top: var(--nf-space-3xs);
+    white-space: nowrap;
+    text-align: end;
+  }
+  .nf-detail-head__figure {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h3);
+    font-weight: 700;
+    letter-spacing: var(--nf-tracking-tight);
+    line-height: 1;
+    color: var(--nf-content-primary);
+    font-variant-numeric: tabular-nums;
+  }
+  .nf-detail-head__unit {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 400;
+    color: var(--nf-content-muted);
+  }
+  /* The rating and the place under the title, one quiet line. */
+  .nf-detail-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: var(--nf-space-md);
+    row-gap: var(--nf-space-3xs);
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+  }
+  .nf-detail-meta__rating,
+  .nf-detail-meta__place {
+    display: inline-flex;
+    min-width: 0;
+    align-items: center;
+    gap: var(--nf-space-3xs);
+    color: inherit;
+    text-decoration: none;
+  }
+  .nf-detail-meta__place > svg {
+    color: var(--nf-content-muted);
+  }
+
+  /* "LISTED BY": one row, the person on the left as a link to their profile,
+     the two round buttons on the right. The buttons are the solid plate
+     (`IconPlate tone="solid"`): ink by day, paper at night. */
+  .nf-lister.nf-agent-card {
+    position: relative;
+    flex-wrap: nowrap;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-sm) var(--nf-space-sm) var(--nf-space-sm) var(--nf-space-sm);
+  }
+  .nf-lister__who {
+    display: flex;
+    min-width: 0;
+    flex: 1 1 auto;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    color: inherit;
+    text-decoration: none;
+    border-radius: var(--nf-radius-sm);
+  }
+  .nf-lister__who:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  .nf-agent-card__avatar.nf-lister__avatar {
+    width: 3rem;
+    height: 3rem;
+  }
+  .nf-lister__text {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--nf-space-3xs);
+  }
+  .nf-lister__name {
+    display: flex;
+    max-width: 100%;
+    min-width: 0;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    font-size: var(--nf-text-body);
+    font-weight: 700;
+    line-height: 1.25;
+    color: var(--nf-content-primary);
+  }
+  .nf-lister__role {
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.375rem;
+    padding: 0 var(--nf-space-xs);
+    border-radius: var(--nf-radius-xs);
+    background: var(--nf-surface-raised);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--nf-content-secondary);
+  }
+  .nf-lister__acts {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: var(--nf-space-xs);
+  }
+  .nf-lister-act {
+    cursor: pointer;
+    text-decoration: none;
+    transition: scale var(--nf-duration-press) var(--nf-ease-press);
+  }
+  .nf-lister-act:active {
+    scale: var(--nf-press-scale);
+  }
+  .nf-lister-act:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  .nf-lister-act:disabled {
+    cursor: progress;
+    opacity: 0.6;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-lister-act {
+      transition: none;
+    }
+  }
+  /* What the database said about a call, under the card. */
+  .nf-lister-note {
+    position: absolute;
+    inset-inline: 0;
+    top: calc(100% + var(--nf-space-xs));
+    z-index: 5;
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    border: var(--nf-border-width) solid var(--nf-card-border);
+    border-radius: var(--nf-radius-md);
+    background: var(--nf-surface-elevated);
+    box-shadow: var(--nf-float-shadow);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+  }
+  .nf-lister-note strong {
+    color: var(--nf-content-primary);
+  }
+  /* Inside the summary card the row is the card's content, not a card. */
+  .nf-lister--flat.nf-agent-card {
+    padding: 0;
+    border: 0;
+    background: none;
+    box-shadow: none;
+  }
+
+  /* THE SUMMARY CARD, from `lg`: the price, the lister, the action. */
+  .nf-detail-summary {
+    display: flex;
+    flex-direction: column;
+    padding: var(--nf-space-lg);
+  }
+  .nf-detail-summary__price .nf-detail-head__price {
+    justify-content: flex-start;
+    padding-top: 0;
+  }
+  .nf-detail-summary__price .nf-detail-head__figure {
+    font-size: var(--nf-text-h2);
+  }
+  .nf-detail-summary__note {
+    margin-top: var(--nf-space-xs);
+  }
+  .nf-detail-summary__movein {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--nf-space-2xs);
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+    text-decoration: none;
+  }
+  .nf-detail-summary__lister {
+    margin-block: var(--nf-space-md);
+    padding-block: var(--nf-space-md);
+    border-block: var(--nf-border-width) solid var(--nf-panel-hair);
+  }
+  .nf-detail-summary__action.nf-btn--primary {
+    box-shadow:
+      var(--nf-act-shadow),
+      var(--nf-elevation-floating);
+  }
+
+  /* THE AMENITY ROW (founder's "Property Detail" reference): round monochrome
+     plates with the word under each, five and a "+N", equal columns. */
+  /* One row: five columns on a phone (four plates and "+N"), six from 30rem
+     (five and "+N"). Six squeezed onto a phone ran "Swimming pool" into its
+     neighbour; the fifth plate waits for the room instead. */
+  .nf-amenity-plates {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: var(--nf-space-xs);
+  }
+  .nf-amenity-plate.nf-amenity-plate--wide {
+    display: none;
+  }
+  @media (min-width: 30rem) {
+    .nf-amenity-plates {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+    .nf-amenity-plates .nf-amenity-plate--wide {
+      display: flex;
+    }
+    .nf-amenity-plates .nf-amenity-plate--narrow {
+      display: none;
+    }
+  }
+  .nf-amenity-plate,
+  .nf-amenity-plate__more {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: center;
+    color: var(--nf-content-secondary);
+    text-decoration: none;
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+  .nf-amenity-plate__more:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+    border-radius: var(--nf-radius-sm);
+  }
+  .nf-amenity-plate .nf-plate {
+    font-size: var(--nf-text-caption);
+    font-weight: 700;
+  }
+
+  /* THE HIGHLIGHTS STRIP: the one brand-blue card on the page, the primary
+     action's own fill, two or three answered facts across it. */
+  .nf-highlights {
+    padding: var(--nf-space-md);
+    border-radius: var(--nf-container-radius);
+    background: var(--nf-act-fill);
+    box-shadow: var(--nf-act-shadow);
+    color: var(--nf-act-on);
+  }
+  .nf-highlights__title {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 700;
+    text-align: center;
+  }
+  .nf-highlights__row {
+    display: grid;
+    grid-auto-columns: minmax(0, 1fr);
+    grid-auto-flow: column;
+    gap: var(--nf-space-sm);
+    margin-top: var(--nf-space-sm);
+  }
+  .nf-highlights__item {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--nf-space-3xs);
+    text-align: center;
+  }
+  .nf-highlights__plate {
+    display: grid;
+    width: 2.5rem;
+    height: 2.5rem;
+    margin-bottom: var(--nf-space-3xs);
+    place-items: center;
+    border-radius: var(--nf-radius-circle);
+    background: color-mix(in oklab, var(--nf-act-on) 18%, transparent);
+  }
+  .nf-highlights__value {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 700;
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
+  }
+  .nf-highlights__label {
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    line-height: 1.2;
+    opacity: 0.85;
+  }
+
+  /* In the two-column page the section tabs run the width of their own
+     column: bled to the page gutter they reached into the side rail. */
+  @media (min-width: 64rem) {
+    .nf-detail-grid .nf-detail-tabs {
+      margin-inline: 0;
+      padding-inline: 0;
+    }
+    /* The move-in figure steps with the viewport (detail-m.css), and in the
+       two-column page its column is about half the viewport, so at 1280 the
+       full figure ran to the card's edge. It steps with the column instead. */
+    .nf-detail-grid .nf-movein-hero .nf-summary__figure {
+      font-size: min(var(--nf-text-figure-xl), 4.5vw);
+    }
+  }
+
+  /* THE FOOT, STACKED ON A PHONE: the figure and the quiet half on the first
+     row, "Schedule a visit" across the whole of the second, as the reference
+     draws it. From 40rem the three share one row again. */
+  @media (max-width: 39.99rem) {
+    .nf-detail-foot.nf-detail-foot--stacked {
+      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-areas:
+        "figure secondary"
+        "action action";
+      row-gap: var(--nf-space-sm);
+    }
+    .nf-detail-foot--stacked .nf-detail-foot__action {
+      justify-self: stretch;
+      min-height: 3.25rem;
+    }
   }
 
   /* ======================================================== move-in ledger
@@ -2019,35 +2510,9 @@
     height: 2rem;
     flex-shrink: 0;
   }
-  /* The stay card body: name and place left, the nightly figure right, the
-     amenity chips under both. */
-  .nf-stay-card__head {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: var(--nf-space-sm);
-  }
-  /* One price line (plan item 17): 17/600 tabular in the ink. */
-  .nf-stay-card__price {
-    flex-shrink: 0;
-    text-align: right;
-    font-family: var(--nf-font-sans);
-    font-size: 1.0625rem;
-    font-weight: 600;
-    font-variant-numeric: tabular-nums;
-    letter-spacing: -0.01em;
-    line-height: 1.2;
-    white-space: nowrap;
-    color: var(--nf-content-primary);
-  }
-  .nf-stay-card__per {
-    display: block;
-    font-family: var(--nf-font-sans);
-    font-size: var(--nf-text-overline);
-    font-weight: 500;
-    letter-spacing: 0;
-    color: var(--nf-content-muted);
-  }
+  /* The stay card's rating line and amenity chips, in the space card's info
+     panel (`StayCard`); its name, place and nightly figure are the space
+     card's own. */
   .nf-stay-card__rating {
     display: inline-flex;
     align-items: center;
@@ -2080,7 +2545,7 @@
     padding: 0 var(--nf-space-xs);
     border-radius: var(--nf-radius-sm);
     font-size: var(--nf-text-overline);
-    font-weight: 500;
+    font-weight: 400;
     white-space: nowrap;
     color: var(--nf-content-secondary);
     /* A quiet neutral chip (spec 12): the raised well, no rim, no glow. */
@@ -2108,7 +2573,7 @@
     padding: 0 var(--nf-space-xs);
     border-radius: var(--nf-radius-sm);
     font-size: var(--nf-text-overline);
-    font-weight: 500;
+    font-weight: 400;
     white-space: nowrap;
     color: var(--nf-content-secondary);
     border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
@@ -2252,7 +2717,7 @@
   .nf-movein__list {
     display: grid;
     overflow: hidden;
-    border: var(--nf-border-width) solid var(--nf-card-border);
+    border: var(--nf-border-width) solid var(--nf-tier-card-edge);
     border-radius: var(--nf-radius-card);
     background: var(--nf-surface-primary);
     box-shadow: var(--nf-card-shadow);
@@ -2332,7 +2797,7 @@
     color: var(--nf-content-primary);
   }
   .nf-movein__basis {
-    font-weight: 500;
+    font-weight: 400;
     color: var(--nf-content-muted);
   }
   .nf-movein__keeper {
@@ -2617,7 +3082,7 @@
   }
   .nf-lw-choice__sub {
     font-size: var(--nf-text-caption);
-    font-weight: 500;
+    font-weight: 400;
     line-height: 1.35;
     color: var(--nf-content-muted);
   }
@@ -2844,6 +3309,15 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--nf-space-xs);
   }
+  /* Two across at phone width. Three cells of a 390px screen are about 100px
+     wide and 75px tall, which put the remove cross a thumb's width from the
+     move arrows under it: a tap meant to move a photo could delete it. Two
+     across leaves each control room for its touch target (below). */
+  @media (max-width: 39.99rem) {
+    .nf-lw-shots {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
   .nf-lw-shot {
     position: relative;
     aspect-ratio: 4 / 3;
@@ -2876,6 +3350,26 @@
     box-shadow: var(--nf-selected-shadow-inline);
     color: var(--nf-content-on-brand);
   }
+  /* A video in the row: a play mark and its length, where the Cover mark
+     sits on the first item (which is always a photo). */
+  .nf-lw-shot__kind {
+    position: absolute;
+    top: var(--nf-space-2xs);
+    inset-inline-start: var(--nf-space-2xs);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-3xs);
+    padding: 0.125rem var(--nf-space-2xs);
+    border-radius: var(--nf-radius-control);
+    font-size: var(--nf-text-overline);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-content-on-media);
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    background: var(--nf-btn-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-btn-glass-blur));
+    backdrop-filter: blur(var(--nf-btn-glass-blur));
+  }
   /* Bare, icon-only, drawn round: it stays round. */
   .nf-lw-shot__drop {
     position: absolute;
@@ -2905,6 +3399,7 @@
     gap: var(--nf-space-3xs);
   }
   .nf-lw-shot__move {
+    position: relative;
     display: grid;
     place-items: center;
     width: 1.5rem;
@@ -2920,6 +3415,15 @@
   .nf-lw-shot__move:disabled {
     opacity: 0;
     pointer-events: none;
+  }
+  /* The cross and the arrows are drawn 24px and answer a 44px touch, which is
+     the wizard's own rule for every control. The ring is invisible and sits
+     on the control, so the photograph is not covered by anything drawn. */
+  .nf-lw-shot__drop::after,
+  .nf-lw-shot__move::after {
+    content: "";
+    position: absolute;
+    inset: -0.625rem;
   }
   .nf-lw-add {
     display: flex;
@@ -2995,80 +3499,194 @@
     color: var(--nf-content-link);
   }
 
-  /* ----------------------------------------------------- sent for review
-     08 screen four. The object with its tick, the verdict, the panel that
-     answers "where is my listing ID", and what happens next. */
-  .nf-lw-done {
-    display: grid;
-    justify-items: center;
-    text-align: center;
+  /* The sent-for-review screen's rules (`.nf-lw-done`, `.nf-lw-id`,
+     `.nf-lw-next`) are gone with the screen (round 5): the wizard's last
+     step becomes the chain under the card, in lister-publish.css, which only
+     the wizard loads. */
+}
+
+/*
+ * SEARCH TO RESULTS (Session 3, W2; MOTION_SYSTEM section 5). The field lands
+ * from the pill that sent the search (`SearchPillMorph.tsx`, measured, on
+ * framer's `animate`); the filter chips beneath it crossfade in once it is
+ * nearly home, on `glide` at 160ms, so the eye follows the pill first and the
+ * row second. Opacity only, so nothing shifts. Reduced motion collapses the
+ * token to 1ms; Calm and Off are `motion-pref.css`'s. The fade runs only
+ * when the pill actually flew (`PillLanding` sets `data-pill-landed` on its
+ * form), so a reload, a back navigation or a quiet-motion visit never hides
+ * the row for a moment with no flight to follow.
+ */
+@layer components {
+  .nf-shelf-bar:has([data-pill-landed]) .nf-shelf-chips {
+    animation: nf-shelf-chips-in var(--nf-duration-fast) var(--nf-ease-standard) both;
+    animation-delay: calc(var(--nf-duration-slow) * 0.6);
   }
-  .nf-lw-done__object {
-    position: relative;
+  @keyframes nf-shelf-chips-in {
+    from {
+      opacity: 0;
+    }
+  }
+}
+
+/*
+ * THE RESULT CARD'S SKELETON (`ResultSkeleton.tsx`): the card's own shape,
+ * with the photograph's frame hatched at 135 degrees, the chart system's mark
+ * for "nothing here yet" (charts.css), so the waiting frame reads as a frame
+ * and not as a grey slab. Token colours only; one edge treatment, the card's.
+ */
+@layer components {
+  .nf-rskel__media {
     display: block;
-    width: 8rem;
-    height: 8rem;
+    aspect-ratio: 4 / 3;
+    margin: var(--nf-space-2xs);
+    border-radius: calc(var(--nf-container-radius) - var(--nf-space-2xs));
+    background:
+      repeating-linear-gradient(
+        135deg,
+        var(--nf-chart-hatch, var(--nf-border-default)) 0 1px,
+        transparent 1px 8px
+      ),
+      var(--nf-media-ground-to);
+    opacity: 0.7;
   }
-  /* `.nf-lw-done__tick` STOOD HERE AND IS GONE. The render puts a tick badge
-     at the house's shoulder; our `home-check` object is drawn WITH one, so a
-     badge on top of it was two ticks on one object. The object says it. */
-  .nf-lw-done__verdict {
-    margin-top: var(--nf-space-md);
-    font-family: var(--nf-font-display);
-    font-size: var(--nf-text-h2);
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    color: var(--nf-content-primary);
+  .nf-rskel__body {
+    padding: var(--nf-space-xs) var(--nf-space-sm) var(--nf-space-sm);
   }
-  .nf-lw-done__body {
-    margin-top: var(--nf-space-xs);
-    font-size: var(--nf-text-body-sm);
-    line-height: 1.55;
+  .nf-rskel__facts {
+    display: flex;
+    gap: var(--nf-space-sm);
+    margin-top: var(--nf-space-sm);
+    padding-top: var(--nf-space-xs);
+    border-top: var(--nf-border-width) solid var(--nf-panel-hair);
+  }
+}
+
+/* ===================================================== THE PLASMA LEVEL (D74)
+   What floats over a card's photograph is smoked glass, as the founder's
+   governing set draws it (docs/design/references/2026-10-07/
+   GOVERNING-plasma-rewards-platinum.jpg): the heart, the photo arrows, the
+   Verified mark and the "No photographs yet" word. One card design, so this
+   is home's shelves, search, saved and More like this at once. The Example
+   mark keeps its cyan outline: that disclosure is ruled never to look like
+   anything else. Metal and smoke do not change with the lights, so none of
+   this is themed. */
+@layer components {
+  .nf-pcard .nf-pcard__heart,
+  .nf-pcard .nf-pcard__photobtn,
+  .nf-pcard .nf-pcard__nophoto,
+  .nf-pcard .nf-pcard__mark.nf-pcard__mark--verified {
+    border-color: var(--nf-smoked-glass-edge);
+    background: var(--nf-smoked-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    box-shadow: none;
+  }
+  .nf-pcard .nf-pcard__mark.nf-pcard__mark--verified {
+    color: var(--nf-content-on-media);
+  }
+  .nf-pcard .nf-pcard__mark.nf-pcard__mark--verified > svg {
+    color: var(--nf-status-verified);
+  }
+  @media (prefers-reduced-transparency: reduce) {
+    .nf-pcard :is(.nf-pcard__heart, .nf-pcard__photobtn, .nf-pcard__nophoto, .nf-pcard__mark--verified) {
+      background: var(--nf-smoked-glass-fill);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+  :root[data-transparency="reduced"]
+    :is(.nf-pcard .nf-pcard__heart, .nf-pcard .nf-pcard__photobtn, .nf-pcard .nf-pcard__nophoto, .nf-pcard .nf-pcard__mark--verified) {
+    background: var(--nf-smoked-glass-fill);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+/* ========================================================= THE PALETTE
+   The search field as a command palette (the founder's
+   command-search-palette.jpg; ONE-PRODUCT-DECISIONS recommendation 4). One
+   card under the field: rows of a small glyph tile and a label, the first
+   row (what Enter does) on a soft fill with its key hint, hairline between
+   the field and the list. It grows out of the field: anchored at its top
+   edge, it opens from 0.96 on `land`, so the field reads as becoming the
+   card rather than a menu dropping in. Reduced motion, Calm and Off open
+   it settled (the existing `.nf-recent` rules already stop its animation). */
+@layer components {
+  .nf-shelf-bar > .nf-recent:has(.nf-recent__list--palette) {
+    padding: var(--nf-space-2xs);
+    border-color: var(--nf-smoked-glass-edge);
+    border-radius: var(--nf-radius-card);
+    transform-origin: top center;
+    animation-name: nf-palette-open;
+  }
+  .nf-recent__list--palette {
+    gap: var(--nf-space-3xs);
+  }
+  /* It floats over the results, so at night it is smoked glass (D74): the
+     night glass it inherited let the chips and the count read through it.
+     The bar it hangs from already has a backdrop filter, which makes the bar
+     the panel's backdrop root, so a blur here cannot reach the results: the
+     smoke is laid over the near-black ink and reads as one solid object. */
+  :root:not([data-theme="light"]) .nf-shelf-bar > .nf-recent {
+    border-color: var(--nf-smoked-glass-edge);
+    background: var(--nf-smoked-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-smoked-glass-blur));
+    backdrop-filter: blur(var(--nf-smoked-glass-blur));
+  }
+  @media (prefers-reduced-transparency: reduce) {
+    :root:not([data-theme="light"]) .nf-shelf-bar > .nf-recent {
+      background: var(--nf-smoked-glass-fill);
+    }
+  }
+  .nf-recent__list--palette .nf-recent__row {
+    border-radius: var(--nf-radius-control);
+  }
+  .nf-recent__row[data-active] {
+    background: color-mix(in oklab, var(--nf-content-primary) 8%, transparent);
+  }
+  .nf-recent__tile {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: var(--nf-radius-control);
+    background: var(--nf-surface-raised);
     color: var(--nf-content-secondary);
   }
-  /* The listing ID panel. The render prints a code here. Ours cannot: the
-     database mints `VL-` at PUBLISH and a listing in review has none, so the
-     panel keeps the render's anatomy and says what is true instead of
-     drawing an invented code or an empty box. */
-  .nf-lw-id {
-    width: 100%;
-    margin-top: var(--nf-space-lg);
-    padding: var(--nf-space-lg) var(--nf-space-md);
-    border: var(--nf-border-width) solid var(--nf-panel-edge);
-    border-color: var(--nf-panel-edges);
-    border-radius: var(--nf-container-radius);
-    background: var(--nf-panel-fill-card);
-    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
-  }
-  .nf-lw-id__label {
-    font-size: var(--nf-text-body-sm);
-    font-weight: 600;
-    color: var(--nf-content-secondary);
-  }
-  .nf-lw-id__body {
-    margin-top: var(--nf-space-xs);
-    font-size: var(--nf-text-body-sm);
-    line-height: 1.55;
+  .nf-recent__kbd {
+    flex: none;
+    padding: var(--nf-space-3xs) var(--nf-space-2xs);
+    border: var(--nf-border-width) solid var(--nf-border-subtle);
+    border-radius: var(--nf-radius-xs);
+    font-family: inherit;
+    font-size: var(--nf-text-overline);
     color: var(--nf-content-muted);
   }
-  .nf-lw-next {
-    display: grid;
-    gap: var(--nf-space-sm);
-    width: 100%;
-    margin-top: var(--nf-space-lg);
-    text-align: start;
+  @keyframes nf-palette-open {
+    from {
+      opacity: 0;
+      transform: translateY(-6px) scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
   }
-  .nf-lw-next__row {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    align-items: center;
-    gap: var(--nf-space-sm);
-    font-size: var(--nf-text-body-sm);
-    color: var(--nf-content-secondary);
+}
+
+/* THE CARD'S CONTROLS DRAW SMALLER (the founder, 7 October, on the search
+   results: "before clicking it's too big"). The heart and the tune control
+   beside it draw 28px with a 16px glyph instead of 36 and 20; the 44px
+   target is the invisible square both already carry, so nothing gets harder
+   to hit, only quieter to look at until it is wanted. */
+@layer components {
+  .nf-pcard .nf-pcard__heart {
+    width: 1.75rem;
+    height: 1.75rem;
   }
-  .nf-lw-next__plate {
-    display: block;
-    width: 2.25rem;
-    height: 2.25rem;
-    flex-shrink: 0;
-  }}
+  .nf-pcard .nf-pcard__heart > svg {
+    width: 1rem;
+    height: 1rem;
+  }
+}

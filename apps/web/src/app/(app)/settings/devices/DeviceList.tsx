@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/Button";
 import { clearListingDrafts } from "@/lib/agent/listing-draft-storage";
 import { useState, useTransition } from "react";
 import { plural, type Locale, type PluralForms } from "@vallo/i18n/core";
@@ -225,17 +226,17 @@ export function DeviceList({
               </span>
             </div>
             <Facts first={current.signedIn} last={current.lastSeen} />
-            <button
-              type="button"
+            <Button
+              variant={armed === current.id ? "danger" : "secondary"}
+              size="sm"
+              full
               onClick={() => endOne(current)}
               disabled={pending}
               data-testid="device-end"
-              className={`nf-btn nf-btn--sm mt-group w-full ${
-                armed === current.id ? "nf-btn--danger" : "nf-btn--glass"
-              }`}
+              className="mt-group"
             >
               {armed === current.id ? copy.confirm : copy.endCurrent}
-            </button>
+            </Button>
           </div>
         </section>
       )}
@@ -272,17 +273,17 @@ export function DeviceList({
                         </span>
                       </div>
                       <Facts first={group.firstSignedIn} last={group.lastUsed} />
-                      <button
-                        type="button"
+                      <Button
+                        variant={armed === key ? "danger" : "secondary"}
+                        size="sm"
+                        full
                         onClick={() => endGroup(group)}
                         disabled={pending}
                         data-testid="device-group-end"
-                        className={`nf-btn nf-btn--sm mt-group w-full ${
-                          armed === key ? "nf-btn--danger" : "nf-btn--glass"
-                        }`}
+                        className="mt-group"
                       >
                         {armed === key ? copy.confirm : group.endLabel}
-                      </button>
+                      </Button>
                       {group.sessions.length > 1 && (
                         <div className="mt-row">
                           <Disclosure label={group.showLabel} hint={group.count} title={group.device}>
@@ -290,16 +291,16 @@ export function DeviceList({
                               {group.sessions.map((row) => (
                                 <li key={row.id} className="nf-panel nf-panel--card block p-card" data-testid="device-row">
                                   <Facts first={row.signedIn} last={row.lastSeen} />
-                                  <button
-                                    type="button"
+                                  <Button
+                                    variant={armed === row.id ? "danger" : "secondary"}
+                                    size="sm"
+                                    full
                                     onClick={() => endOne(row)}
                                     disabled={pending}
-                                    className={`nf-btn nf-btn--sm mt-group w-full ${
-                                      armed === row.id ? "nf-btn--danger" : "nf-btn--glass"
-                                    }`}
+                                    className="mt-group"
                                   >
                                     {armed === row.id ? copy.confirm : copy.endThis}
-                                  </button>
+                                  </Button>
                                 </li>
                               ))}
                             </ul>
@@ -320,17 +321,17 @@ export function DeviceList({
         <p className="nf-body-sm mt-row text-content-2">
           {othersCount === 0 ? copy.endOthersNone : copy.endOthersSub}
         </p>
-        <button
-          type="button"
+        <Button
+          variant={armed === "others" ? "danger" : "secondary"}
+          size="sm"
+          full
           onClick={endRest}
           disabled={pending || othersCount === 0}
           data-testid="devices-end-others"
-          className={`nf-btn nf-btn--sm mt-group w-full ${
-            armed === "others" ? "nf-btn--danger" : "nf-btn--glass"
-          }`}
+          className="mt-group"
         >
           {pending && armed === null ? copy.working : armed === "others" ? copy.confirm : copy.endOthers}
-        </button>
+        </Button>
       </div>
 
       <NotMePanel
@@ -343,17 +344,17 @@ export function DeviceList({
       <div className="nf-panel nf-panel--card block p-card">
         <p className="nf-body font-semibold text-content">{copy.endEverywhere}</p>
         <p className="nf-body-sm mt-row text-content-2">{copy.endEverywhereSub}</p>
-        <button
-          type="button"
+        <Button
+          variant={armed === "everywhere" ? "danger" : "secondary"}
+          size="sm"
+          full
           onClick={endEverywhere}
           disabled={pending}
           data-testid="devices-end-everywhere"
-          className={`nf-btn nf-btn--sm mt-group w-full ${
-            armed === "everywhere" ? "nf-btn--danger" : "nf-btn--glass"
-          }`}
+          className="mt-group"
         >
           {armed === "everywhere" ? copy.confirm : copy.endEverywhere}
-        </button>
+        </Button>
       </div>
 
       {/* The honest line, under the buttons rather than over them, because it

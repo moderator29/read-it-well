@@ -1,0 +1,32 @@
+/*
+  a11y-prefs: what the member's accessibility choices mean (R3-15).
+
+  REDUCE TRANSPARENCY. The glass tiers drop their blur and take a solid
+  surface, so nothing reads through a panel and the edge is the only edge.
+  Two ways in, like contrast (member-kit.css): the system asks
+  (`prefers-reduced-transparency: reduce`) unless the person chose otherwise,
+  or the person turns it on in Settings > Accessibility
+  (`data-transparency="reduced"`, written by `ContrastSync`).
+
+  It re-points tokens only; no component rule changes. Unlayered and on
+  `html:root`, for the same reason member-kit.css gives for contrast: it must
+  win over the theme blocks.
+*/
+@media (prefers-reduced-transparency: reduce) {
+  html:root:not([data-transparency="standard"]) {
+    --nf-tier-island-blur: 0px;
+    --nf-tier-sheet-blur: 0px;
+    --nf-glass-blur: 0px;
+    --nf-panel-blur: 0px;
+    --nf-btn-glass-blur: 0px;
+    --nf-tier-island-fill: var(--nf-surface-elevated);
+  }
+}
+html:root[data-transparency="reduced"] {
+  --nf-tier-island-blur: 0px;
+  --nf-tier-sheet-blur: 0px;
+  --nf-glass-blur: 0px;
+  --nf-panel-blur: 0px;
+  --nf-btn-glass-blur: 0px;
+  --nf-tier-island-fill: var(--nf-surface-elevated);
+}

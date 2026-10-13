@@ -1,9 +1,10 @@
 /*
  * COMPARE WHAT WE DREW AGAINST WHAT THE REFERENCE MEASURES.
  *
- * `sample-reference.mjs` answers half the founder's second ruling: it reads
- * the governing PNGs and says what colour is actually in them. This answers
- * the other half. It opens OUR page on a production server, screenshots it,
+ * The founder's second ruling had two halves. The first was answered by
+ * sampling the governing PNGs for what colour is actually in them (those
+ * images and their sampler were removed on 13 October 2026; the readings are
+ * recorded below as `want`). This answers the other half. It opens OUR page on a production server, screenshots it,
  * and samples the same kind of point off our own pixels, so a surface is
  * closed on a number rather than on somebody's impression of a number.
  *
@@ -78,10 +79,9 @@ const PHONE = { width: 390, height: 844 };
 const DESKTOP = { width: 1536, height: 1024 };
 
 /*
- * THE EXPECTED COLUMN IS NOT AN OPINION. Every `want` below is a hex that
- * `sample-reference.mjs` read out of a governing PNG, and the `from` names
- * which sample it is, so a disagreement is settled by re-running the sampler
- * rather than by arguing. Where the reference cannot answer (a surface it
+ * THE EXPECTED COLUMN IS NOT AN OPINION. Every `want` below is a hex read
+ * out of a governing PNG, and the `from` names which sample it is, so a
+ * disagreement is settled by the recorded reading rather than by arguing. Where the reference cannot answer (a surface it
  * never draws) there is no check here, because inventing a target and then
  * passing it is worse than admitting the reference is silent.
  *
@@ -227,8 +227,8 @@ const SURFACES = {
    * `/home` renders signed out (its layout passes `signedIn` through rather
    * than redirecting), so it is the route that can actually be measured.
    *
-   * Every `want` below is a hex `sample-reference.mjs --chrome` read out of
-   * that PNG, re-run by R1 rather than copied from prose.
+   * Every `want` below is a hex read out of that PNG, re-read by R1 rather
+   * than copied from prose.
    */
   home: {
     url: "/preview/f1/home",
@@ -1140,9 +1140,8 @@ let sample = await sampler(page);
 /*
  * THE GLOW, AS A CURVE, BECAUSE ONE SAMPLE CANNOT TELL A RADIUS FROM A SPREAD.
  *
- * `sample-reference.mjs` walks rightward from the primary button's edge in the
- * governing PNG and prints the series. This walks the SAME line on our own
- * page, off a production screenshot, so the two curves can be laid beside each
+ * The governing PNG was walked rightward from the primary button's edge and
+ * its series recorded. This walks the SAME line on our own page, off a production screenshot, so the two curves can be laid beside each
  * other. The founder's ruling was that ours is "hotter, wider and more
  * saturated", and every word of that is a statement about the SHAPE of this
  * series rather than about any one number in it.

@@ -203,7 +203,7 @@ export function ticketTrack(input: {
 
 export type ViewingStepKey = "asked" | "agreed" | "visited" | "recorded";
 
-export type ViewingState = "REQUESTED" | "CONFIRMED" | "PROPOSED" | "DECLINED" | "COMPLETED" | "WITHDRAWN";
+export type ViewingState = "REQUESTED" | "CONFIRMED" | "PROPOSED" | "DECLINED" | "COMPLETED" | "WITHDRAWN" | "NO_SHOW";
 
 /**
  * An inspection (a viewing): requested, time agreed, inspected, recorded. The
@@ -242,6 +242,11 @@ export function viewingTrack(input: {
       break;
     case "WITHDRAWN":
       reached = input.respondedAt !== null && input.slotAt !== null ? 2 : 1;
+      outcome = "failed";
+      break;
+    case "NO_SHOW":
+      /* A time was agreed; the visit is the step that failed. */
+      reached = 2;
       outcome = "failed";
       break;
     default:

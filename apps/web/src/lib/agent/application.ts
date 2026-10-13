@@ -46,6 +46,8 @@ export type ApplicationField =
   | "accountNumber"
   | "accountName"
   | "agreeTerms"
+  | "acceptTerms"
+  | "acceptPayOnVallo"
   | "documents";
 
 export type ApplicationResult = {
@@ -67,6 +69,10 @@ export type ApplicationResult = {
  */
 
 import { DOCUMENT_KINDS, STORED_DOCUMENT_KIND, type DocumentKind } from "./application-document-kinds";
+import { OPEN_STATUSES } from "./open-application";
+import { otherSideMessage } from "./role-lock";
+import { otherSideHeld } from "./role-lock-read";
+import { ACCEPT_PAY_REQUIRED, ACCEPT_TERMS_REQUIRED, withWorkspaceAcceptance } from "../legal/workspace-acceptance";
 
 type UploadedDocument = { kind: DocumentKind; path: string };
 
@@ -146,6 +152,10 @@ export async function submitAgentApplication(
   if (formData.get("agreeTerms") !== "on") {
     fieldErrors.agreeTerms = "You must accept the agent terms to continue.";
   }
+  /* Ruling 6 (13 October 2026): the Terms of Service and the Privacy Policy,
+     and that every payment for a deal happens inside Vallo, both ticked. */
+  if (formData.get("acceptTerms") !== "on") fieldErrors.acceptTerms = ACCEPT_TERMS_REQUIRED;
+  if (formData.get("acceptPayOnVallo") !== "on") fieldErrors.acceptPayOnVallo = ACCEPT_PAY_REQUIRED;
 
   const documents = readManifest(get("documents"));
   const has = (kind: DocumentKind) => documents.some((d) => d.kind === kind);
@@ -199,7 +209,7 @@ export async function submitAgentApplication(
   // same rule on the upload itself, so a path that fails here was never written
   // by this user and has no business being recorded against their application.
   const prefix = `${user.id}/`;
-  if (documents.some((d) => !d.path.startsWith(prefix))) {
+  if (documents.some((d) => !d.path.startsWith(prefix) || d.path.includes(".."))) {
     return {
       ok: false,
       fieldErrors: {
@@ -208,6 +218,32 @@ export async function submitAgentApplication(
       },
     };
   }
+
+  /* One open application per person (`open-application.ts`). The Submit
+     button is disabled once this form has filed, but a second visit to the
+     form filed a second row behind the first. A read that fails does not
+     block a filing. */
+  const { data: open } = await supabase
+    .from("agent_applications")
+    .select("reference")
+    .eq("user_id", user.id)
+    .in("status", [...OPEN_STATUSES])
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (open) {
+    return {
+      ok: false,
+      message:
+        `You already have an application waiting, filed as ${open.reference}. ` +
+        "Follow that one from your profile; a second would only queue behind it.",
+    };
+  }
+
+  /* The professional application makes an agent: an owner's account cannot
+     file it (`role-lock.ts`). */
+  const held = await otherSideHeld(supabase, user.id, "agent");
+  if (held) return { ok: false, message: otherSideMessage(held) };
 
   // Resolve the state name from the form to its canonical code.
   const stateName = get("state");
@@ -241,7 +277,10 @@ export async function submitAgentApplication(
       account_name: get("accountName"),
       agree_terms: true,
       submitted_at: new Date().toISOString(),
-    })
+      /* Ruling 6: recorded with each version and the moment, as the host
+         publish step records its agreement (pending migration pov07). */
+      consents: withWorkspaceAcceptance(null, new Date().toISOString()),
+    } as never)
     .select("id, reference")
     .single();
 

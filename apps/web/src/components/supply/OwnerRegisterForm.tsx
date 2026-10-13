@@ -4,7 +4,7 @@ import { PhoneField } from "@/components/app/PhoneField";
 import { useCallback, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useBack } from "@/lib/nav/use-back";
-import type { Dictionary } from "@vallo/i18n/core";
+import type { OwnerCopy } from "./supply-copy";
 import { TYPE } from "@/components/app/Screen";
 import { TextField } from "@/components/ui/Field";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -16,11 +16,13 @@ import {
   REGISTER_STEPS,
   earliestStep,
   type OwnershipAnswer,
-} from "@/lib/supply/registration";
+} from "@/lib/supply/registration-model";
 import { submitSupplyRegistration } from "@/lib/supply/registration-actions";
 import { RegField, RegFieldGroup } from "./RegisterField";
 import { CalmPanel, RegisterDone, RegisterShell } from "./RegisterShell";
 import { RegistrationFiledSheet } from "./RegistrationFiledSheet";
+import { WorkspaceAcceptance } from "@/components/legal/WorkspaceAcceptance";
+import { UploadCard, newBatchId, type UploadState } from "./UploadCard";
 
 /**
  * GOVERNING-03, THE OWNER FORM, AND IT IS THE ONE THAT MATTERS.
@@ -79,7 +81,7 @@ export function OwnerRegisterForm({
   states,
   startAt = 0,
 }: {
-  t: Dictionary;
+  t: OwnerCopy;
   states: StateOption[];
   /**
    * WHICH SCREEN TO OPEN ON, AND THE ONLY CALLER IS THE PREVIEW HARNESS.
@@ -107,6 +109,10 @@ export function OwnerRegisterForm({
   const [lgaCode, setLgaCode] = useState("");
   const [area, setArea] = useState("");
   const [held, setHeld] = useState<OwnershipAnswer | null>(null);
+  /* The document itself, uploaded into the private bucket the moment it is
+     chosen. Optional: the answer can be filed now and the paper sent later. */
+  const [batchId] = useState(newBatchId);
+  const [proof, setProof] = useState<UploadState | null>(null);
 
   const [lgas, setLgas] = useState<ChoiceGroup[]>([]);
   const [lgaLoading, setLgaLoading] = useState(false);
@@ -120,6 +126,9 @@ export function OwnerRegisterForm({
     attached: boolean;
   } | null>(null);
   const [pending, startTransition] = useTransition();
+  /* Ruling 6 (13 October 2026): the two ticks before this is sent. */
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [acceptPay, setAcceptPay] = useState(false);
 
   const loadLgas = useCallback(async (code: string) => {
     if (code === "" || loadedState.current === code) return;
@@ -186,7 +195,7 @@ export function OwnerRegisterForm({
   function blocked(): boolean {
     if (step === 0) return fullName.trim().length < 2 || phone.trim() === "";
     if (step === 1) return stateCode === "" || lgaCode === "";
-    if (step === 2) return held === null;
+    if (step === 2) return held === null || !acceptTerms || !acceptPay;
     return false;
   }
 
@@ -207,11 +216,15 @@ export function OwnerRegisterForm({
         lgaCode,
         area: area.trim(),
         ownershipDocument: held,
+        /* A document goes only with an answer that names one. */
+        ownershipPath: held !== "none" ? (proof?.path ?? "") : "",
+        acceptTerms,
+        acceptPayOnVallo: acceptPay,
       });
       if (!result.ok) {
         setErrors(result.fieldErrors ?? {});
         setScreenError(result.error);
-        const walkBack = earliestStep(result.fieldErrors);
+        const walkBack = earliestStep(result.fieldErrors, "owner");
         if (walkBack !== null) setStep(walkBack);
         return;
       }
@@ -394,6 +407,25 @@ export function OwnerRegisterForm({
           {held === "none" ? (
             <CalmPanel title={own.proof.stillListTitle} body={own.proof.stillListBody} />
           ) : null}
+          {/* THE PAPER ITSELF, for any answer that names one. Optional, as the
+              NIN is: the answer files without it. A reviewer opens it through
+              the audited document route, and approving it is what earns the
+              "Ownership seen" mark. */}
+          {held !== null && held !== "none" ? (
+            <div className="mt-group">
+              <UploadCard
+                t={t}
+                object="doc-home"
+                title={own.proof.uploadTitle}
+                body={own.proof.uploadBody}
+                slot="ownership"
+                batchId={batchId}
+                value={proof}
+                onChange={setProof}
+                {...(errors.ownershipPath ? { error: errors.ownershipPath } : {})}
+              />
+            </div>
+          ) : null}
         </>
       ),
     },
@@ -421,6 +453,17 @@ export function OwnerRegisterForm({
       }}
     >
       {screen.body}
+      {step === 2 ? (
+        <WorkspaceAcceptance
+          className="mt-md"
+          copy={t.payChoice}
+          terms={acceptTerms}
+          pay={acceptPay}
+          onTerms={setAcceptTerms}
+          onPay={setAcceptPay}
+          showError={Boolean(errors.acceptTerms || errors.acceptPayOnVallo)}
+        />
+      ) : null}
     </RegisterShell>
   );
 }
@@ -448,7 +491,7 @@ export function OwnerDoneScreen({
   t,
   filed,
 }: {
-  t: Dictionary;
+  t: OwnerCopy;
   filed: { reference: string; mark: boolean; attached: boolean };
 }) {
   const router = useRouter();
@@ -467,9 +510,9 @@ export function OwnerDoneScreen({
       onBack={() => router.replace("/home")}
       primary={{
         label: copy.trackIt,
-        onClick: () => router.push("/profile/application"),
+        onClick: () => router.replace("/profile/application"),
       }}
-      secondary={{ label: copy.backHome, onClick: () => router.push("/home") }}
+      secondary={{ label: copy.backHome, onClick: () => router.replace("/home") }}
     >
       <RegisterDone
         object="home-check"

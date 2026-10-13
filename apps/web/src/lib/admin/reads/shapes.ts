@@ -100,11 +100,27 @@ export type RefusalReasons = { rows: { reason: string; count: number }[]; total:
 export type AlertTrend = { openNow: number; openWeekAgo: number; daily: { day: string; opened: number }[] };
 
 /** `getInspectionActivity()`: every inspection state, exact, and the newest requests. */
-export type InspectionState = "REQUESTED" | "CONFIRMED" | "PROPOSED" | "DECLINED" | "COMPLETED" | "WITHDRAWN";
+export type InspectionState = "REQUESTED" | "CONFIRMED" | "PROPOSED" | "DECLINED" | "COMPLETED" | "WITHDRAWN" | "NO_SHOW";
 export type InspectionActivity = {
   byState: Record<InspectionState, number>;
   total: number;
   recent: { id: string; state: InspectionState; listingTitle: string | null; requestedAt: string; slotAt: string | null; outcome: string | null }[];
+  /** No-shows: the disputes waiting on staff, and the people reported more than once. Null when unreadable. */
+  noShows: NoShowActivity | null;
+};
+
+/** The last 90 days of `inspection_no_shows`, as staff read them. */
+export type NoShowActivity = {
+  disputes: {
+    inspectionId: string;
+    listingTitle: string | null;
+    absentRole: "requester" | "lister";
+    reportedAt: string;
+    disputedAt: string;
+    disputeNote: string | null;
+  }[];
+  /** Two or more no-shows that were not overturned, by the person said to have stayed away. */
+  repeats: { userId: string; name: string | null; count: number; lastAt: string }[];
 };
 
 /** Request A12: account deletions, which only the account holder may read today. */

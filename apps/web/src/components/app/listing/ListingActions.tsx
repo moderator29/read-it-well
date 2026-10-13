@@ -23,6 +23,9 @@ import { createShareLink } from "@/lib/share/actions";
 import { useClientCopy } from "@/lib/i18n/client-copy";
 import { nativeShare } from "@/lib/native/device";
 import { feedback } from "@/lib/ui/feedback";
+import "@/app/css/catalogue.css";
+import "@/app/css/list-views.css";
+import { useSignInHref } from "@/lib/auth/use-sign-in-href";
 
 /**
  * The two controls that float over the gallery: share and save.
@@ -110,6 +113,7 @@ export function ListingActions({
    */
   shareKind?: SharedKind;
 }) {
+  const signInHref = useSignInHref();
   /*
    * The device's answer, from the one store every heart reads.
    *
@@ -229,7 +233,7 @@ export function ListingActions({
         // A catalogue id can never be a row, so the device owns this save.
         if (next) addLocalSave(listingId);
         else removeLocalSave(listingId);
-        if (next) feedback("confirm");
+        if (next) feedback("select");
         /* And the store is told, so every other heart for this listing on the
            page behind this one moves with it rather than waiting for a reload. */
         deviceSavesChanged();
@@ -237,10 +241,10 @@ export function ListingActions({
         return;
       }
       setSaved(result.data.saved);
-      /* B14: a save accepted by the server is a CONFIRM. "success" is kept
-         for money and confirmed viewings, so a heart never feels like a
-         settled payment. */
-      if (result.data.saved) feedback("confirm");
+      /* B14: a save is felt once the server ACCEPTS it, as the toggle it
+         is: the light beat (CRAFT_DOCTRINE 6: light for a toggle). "success"
+         is kept for payoffs, so a heart never feels like a settled payment. */
+      if (result.data.saved) feedback("select");
       say(result.data.saved ? "Saved to your shortlist" : "Removed from saved");
     });
   }
@@ -362,11 +366,11 @@ export function ListingActions({
         <p
           role="status"
           data-testid="listing-action-message"
-          className="max-w-[15rem] rounded-[var(--nf-radius-xs)] nf-media-chip px-sm py-xs text-right font-medium leading-snug"
+          className="max-w-[15rem] rounded-[var(--nf-radius-xs)] nf-media-chip px-sm py-xs text-right font-semibold leading-snug"
         >
           {message}
           {signInPrompt && (
-            <Link href="/sign-in" className="ml-2xs font-semibold underline underline-offset-2">
+            <Link href={signInHref} className="ml-2xs font-semibold underline underline-offset-2">
               Sign in
             </Link>
           )}

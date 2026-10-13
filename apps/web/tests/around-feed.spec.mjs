@@ -134,7 +134,7 @@ async function feed(theme) {
     );
     /* Two segments, as the governing feed image draws them. New came off
        the row on purpose (`FeedMasthead.tsx:26-28`); `?tab=new` still answers. */
-    for (const tab of ["for-you", "following"]) {
+    for (const tab of ["for-you", "friends"]) {
       check(`the ${tab} tab is there`, (await page.getByTestId(`feed-tab-${tab}`).count()) === 1);
     }
     check("the retired New segment is not drawn", (await page.getByTestId("feed-tab-new").count()) === 0);

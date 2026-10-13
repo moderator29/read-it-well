@@ -1,0 +1,36 @@
+@layer theme, base, components, utilities;
+
+/*
+ * THE ANCHORED FOOT STEPS ASIDE while the form it leads to is on screen
+ * (`AnchorFoot`), sliding down out of the way on `leave` and back on
+ * `entrance`; reduced motion, Calm and Off simply hide and show it.
+ */
+@layer components {
+  .nf-anchorfoot {
+    transition:
+      translate var(--nf-duration-base) var(--nf-ease-entrance),
+      opacity var(--nf-duration-base) var(--nf-ease-entrance);
+  }
+  .nf-anchorfoot--away {
+    translate: 0 110%;
+    opacity: 0;
+    pointer-events: none;
+    transition-timing-function: var(--nf-ease-exit);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-anchorfoot {
+      transition: none;
+    }
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-anchorfoot {
+    transition: none;
+  }
+}
+
+/* Beside the member rail on a desktop, not under it (unlayered: the bar's
+   position is a utility class, which a layered rule cannot outrank). */
+@media (min-width: 64rem) {
+  .nf-app-shell .nf-anchorfoot {
+    left: var(--nf-rail-width);
+  }
+}

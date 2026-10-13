@@ -8,16 +8,45 @@ export const passcodeEn = {
   wordmark: "VALLO",
   welcomeBack: "Welcome back, {name}",
   welcomeBackNoName: "Welcome back",
+  /** The returning greeting (reference 6, 7 October 2026): the lock's title. */
+  hello: "Hello, {name}",
+  helloNoName: "Hello again",
+  /** Under the greeting: ends this session and opens sign in, for another account. */
+  switchAccount: "Switch account",
+  /** The second capsule where a passkey leads: the keypad. */
+  withPasscode: "Use your passcode",
+  /**
+   * FACE ID OR FINGERPRINT, MADE DISCOVERABLE (7 October 2026, "set and build
+   * Face ID to work"). The key is the WebAuthn platform key the money lock
+   * already enrols (`money_credentials`); the same key unlocks the passcode.
+   * Offered once after a new passcode is set, and in Settings, Passcode.
+   */
+  bioOfferTitle: "Unlock with Face ID next time?",
+  bioOfferBody: "Your phone's own lock opens Vallo in a look or a touch. Your passcode stays as the way in whenever it cannot.",
+  bioOfferSetUp: "Set up Face ID or fingerprint",
+  bioOfferLater: "Not now",
+  bioGroup: "Face ID or fingerprint",
+  bioRowTitle: "Unlock with Face ID or fingerprint",
+  bioRowUnset: "Set it up once with your password. The same key then unlocks Vallo and confirms payments.",
+  bioRowSet: "Offered first when Vallo is locked. Your passcode stays as the fallback.",
+  bioRowUnsupported: "This browser cannot reach this device's Face ID or fingerprint. The Vallo app and most phone browsers can.",
   enterCode: "Enter your passcode",
   lockedTitle: "Vallo is locked",
   wrong: "That is not your passcode.",
+  /*
+   * THE COUNT IS SHOWN ONLY WHEN IT IS THE LAST ONE (MOTION_SYSTEM section 6:
+   * never "a count of remaining attempts shown before the final one"). A
+   * wrong code says `wrong` and nothing more until exactly one try is left
+   * before the short pause or before the sign-out; then it says so, once,
+   * because that is the one moment the count changes what somebody does.
+   */
   wrongLeft: {
-    one: "That is not your passcode. 1 more try before a short pause.",
-    other: "That is not your passcode. {count} more tries before a short pause.",
+    one: "That is not your passcode. Try again: 1 more try before a short pause.",
+    other: "That is not your passcode. Try again: {count} more tries before a short pause.",
   },
   wrongLastBeforeSignOut: {
-    one: "That is not your passcode. 1 more wrong try signs you out.",
-    other: "That is not your passcode. {count} more wrong tries sign you out.",
+    one: "That is not your passcode. Try again carefully: 1 more wrong try signs you out.",
+    other: "That is not your passcode. Try again carefully: {count} more wrong tries sign you out.",
   },
   cooldown: "Too many tries. Wait {seconds} seconds.",
   paced: "Too many tries from here. Wait a little and try again.",
@@ -26,6 +55,10 @@ export const passcodeEn = {
   signInAgain: "Sign in again",
   error: "That did not go through. Check your connection and try again.",
   usePassword: "Use your password instead",
+  /** C14 and MOTION_SYSTEM section 6: the biometric door, offered before the keypad where the member has a platform key. */
+  passkeyUnlock: "Unlock with Face ID or fingerprint",
+  passkeyFailed: "That did not work. Enter your passcode instead.",
+  usePasscode: "Enter your passcode instead",
   signOut: "Sign out",
   checking: "Checking",
 

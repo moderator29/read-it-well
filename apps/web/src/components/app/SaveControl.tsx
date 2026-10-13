@@ -266,7 +266,7 @@ export function useSaveControl(
           say(result.error, "error");
           return;
         }
-        if (next) feedback("confirm");
+        if (next) feedback("select");
         say(next ? "Saved" : "Removed");
         return;
       }
@@ -283,7 +283,7 @@ export function useSaveControl(
         if (next) addLocalSave(listingId);
         else removeLocalSave(listingId);
         deviceChanged();
-        if (next) feedback("confirm");
+        if (next) feedback("select");
         say(next ? "Saved on this device" : "Removed");
         return;
       }
@@ -297,8 +297,10 @@ export function useSaveControl(
 
       const settled = result.data.mode === "db" ? result.data.saved : next;
       setOverride(settled);
-      /* B14: the heart is felt only once the save is ACCEPTED, as a confirm. */
-      if (settled) feedback("confirm");
+      /* B14: the heart is felt only once the save is ACCEPTED, and as the
+         toggle it is: the light beat (CRAFT_DOCTRINE 6). A medium beat is
+         for a primary action committing, and a heart is not one. */
+      if (settled) feedback("select");
       say(settled ? "Saved" : "Removed");
     }
   }, [listingId, pending, place, saved, say, OUTBOX_COPY]);

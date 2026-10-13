@@ -61,8 +61,10 @@ import {
 } from "./paystack";
 import { FUND_PREFIX, isFundReference } from "./references";
 
-const WALLET_OFF_MESSAGE =
-  "The wallet is switched off for a moment while we make improvements. Please try again shortly.";
+/* The flag is still stored as `wallet`; what it switches off, said to a
+   member, is saving a card (D48: there is no wallet to switch off). */
+const CARD_SETUP_OFF_MESSAGE =
+  "Saving a card is switched off for a moment while we make improvements. Please try again shortly.";
 
 const CARDS_DOWN_MESSAGE =
   "We could not reach your saved cards just now. Nothing has changed. Please try again in a moment.";
@@ -297,7 +299,7 @@ export type CardSetup = {
 export async function startCardSetup(
   input: { idempotencyKey?: string } = {},
 ): Promise<ActionResult<CardSetup>> {
-  if (!(await isFeatureEnabled("wallet"))) return fail(WALLET_OFF_MESSAGE);
+  if (!(await isFeatureEnabled("wallet"))) return fail(CARD_SETUP_OFF_MESSAGE);
 
   const session = await resolveSession();
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);

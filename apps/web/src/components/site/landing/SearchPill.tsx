@@ -119,7 +119,11 @@ export function SearchPill({
       {/* The discovery page, whose own drawer holds every filter this
           platform has. A 44px icon button beside the search on a wide
           screen; a quiet "Filters" line under the field on a phone. */}
-      <Link href="/search" prefetch={false} className="nf-landing-pill-filters" aria-label={labels.filters}>
+      {/* The accessible name always contains the word on screen (WCAG 2.5.3,
+          label in name), so a voice-control user can say what they see: where
+          the short word is not part of the full label (a locale that still
+          shows the English "Filters"), the name leads with it. */}
+      <Link href="/search" prefetch={false} className="nf-landing-pill-filters" aria-label={filtersName(labels.filters, labels.filtersShort)}>
         <UiIcon name="sliders" size={20} aria-hidden />
         <span className="nf-landing-pill-filters__word" aria-hidden="true">
           {labels.filtersShort}
@@ -133,4 +137,9 @@ export function SearchPill({
       </button>
     </form>
   );
+}
+
+/** The filters link's accessible name: the full label, led by the visible word when the label lacks it. */
+function filtersName(full: string, short: string): string {
+  return full.toLocaleLowerCase().includes(short.toLocaleLowerCase()) ? full : `${short}, ${full}`;
 }

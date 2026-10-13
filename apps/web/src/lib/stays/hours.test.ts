@@ -1,7 +1,20 @@
 import { describe, expect, it } from "vitest";
 
-import { HOURS_UNKNOWN_LABEL, lagosClock, openState } from "./hours";
+import { getDictionary } from "@vallo/i18n";
+import { hoursLabel, lagosClock, openState as answerOf } from "./hours";
 import type { ServiceWindowRow } from "./types";
+
+/*
+ * The English the module once spelled itself, now the dictionary's
+ * (`experienceDetail.hours`). Every assertion below reads the answer through
+ * the reader's words, so these pin the English byte for byte.
+ */
+const EN = getDictionary("en").experienceDetail.hours;
+const HOURS_UNKNOWN_LABEL = "Hours not published";
+function openState(windows: ServiceWindowRow[], now: Date) {
+  const state = answerOf(windows, now);
+  return { open_now: state.open_now, hours_label: hoursLabel(state.hours, EN) };
+}
 
 /**
  * Open-now on the Lagos clock, proved for fixed instants.
@@ -142,13 +155,28 @@ describe("openState across midnight", () => {
   });
 });
 
+describe("the answer is a fact, and the reader's words say it", () => {
+  it("answers with a key and a clock time, no sentence", () => {
+    expect(answerOf([FRIDAY_LUNCH, FRIDAY_DINNER], new Date("2026-09-18T18:30:00Z"))).toEqual({
+      open_now: true,
+      hours: { kind: "openUntil", time: "23:00" },
+    });
+    expect(answerOf([], new Date("2026-09-18T18:30:00Z")).hours).toEqual({ kind: "unknown" });
+  });
+
+  it("says it in whatever words it is handed", () => {
+    const words = { ...EN, openUntil: "A buɗe har {time}" };
+    expect(hoursLabel({ kind: "openUntil", time: "23:00" }, words)).toBe("A buɗe har 23:00");
+  });
+});
+
 describe("isOpenNow and hoursForWeekday", () => {
   it("answers yes inside a window and no once last seating has passed", async () => {
     const { isOpenNow, hoursForWeekday } = await import("./hours");
     expect(isOpenNow([FRIDAY_LUNCH, FRIDAY_DINNER], new Date("2026-09-18T18:30:00Z"))).toBe(true);
     expect(isOpenNow([FRIDAY_DINNER], new Date("2026-09-18T20:45:00Z"))).toBe(false);
-    expect(hoursForWeekday([FRIDAY_LUNCH, FRIDAY_DINNER], 5)).toBe("12:00 to 16:00, 18:00 to 23:00");
-    expect(hoursForWeekday([FRIDAY_DINNER], 6)).toBe("Closed");
+    expect(hoursForWeekday([FRIDAY_LUNCH, FRIDAY_DINNER], 5, EN)).toBe("12:00 to 16:00, 18:00 to 23:00");
+    expect(hoursForWeekday([FRIDAY_DINNER], 6, EN)).toBe("Closed");
   });
 
   it("reads no windows for an id that is not a uuid, without touching a client", async () => {

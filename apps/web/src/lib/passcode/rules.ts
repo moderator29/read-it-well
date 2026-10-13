@@ -12,7 +12,8 @@
 
 export const PASSCODE_LENGTHS = [6, 4] as const;
 export type PasscodeLength = (typeof PASSCODE_LENGTHS)[number];
-export const DEFAULT_PASSCODE_LENGTH: PasscodeLength = 6;
+/* Four by default since D18 (5 October 2026); six stays one tap away. */
+export const DEFAULT_PASSCODE_LENGTH: PasscodeLength = 4;
 
 /** Wrong attempts in a row that earn a cooldown, and how long it lasts. */
 export const ATTEMPTS_PER_COOLDOWN = 5;

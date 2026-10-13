@@ -1,4 +1,5 @@
 import { formatDate, formatNumber, type Dictionary, type Locale } from "@vallo/i18n/core";
+import { joinDate } from "@/lib/format/join-date";
 
 /**
  * THE VALLO RECORD (V-34), AS LINES. Pure.
@@ -153,12 +154,9 @@ export function recordLines(record: RecordRow | null, copy: Copy, locale: Locale
     out.push({ key: "lets", text: copy.lets.replace("{count}", fmt(record.lets)) });
   }
   if (validIso(record.since)) {
-    const month = formatDate(new Date(record.since), locale, {
-      month: "long",
-      year: "numeric",
-      timeZone: "Africa/Lagos",
-    });
-    out.push({ key: "since", text: copy.since.replace("{month}", month) });
+    /* The exact day (the founder, 13 October 2026), as the thread header and
+       the profile say it; the copy's `{month}` receives the whole date. */
+    out.push({ key: "since", text: copy.since.replace("{month}", joinDate(record.since, locale)) });
   }
   return out;
 }

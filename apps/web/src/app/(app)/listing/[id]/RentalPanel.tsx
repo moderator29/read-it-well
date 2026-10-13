@@ -1,11 +1,11 @@
-import { type Locale } from "@vallo/i18n/core";
+import { getDictionary, type Locale } from "@vallo/i18n";
 import { DetailGlyph } from "@/components/app/listing/DetailGlyph";
 import { ButtonLink } from "@/components/ui/Button";
 import { Amount } from "@/components/ui/Amount";
 import { TYPE } from "@/components/app/Screen";
 import { RequestInspection } from "@/components/app/inspections/RequestInspection";
 import { readOpenInspectionFor } from "@/lib/inspections/queries";
-import { PERIOD_SUFFIX, PERIOD_SUFFIX_SLASH, type RentPeriod } from "@/lib/listings/pricing";
+import type { RentPeriod } from "@/lib/listings/pricing";
 import { TenancyTerm } from "./TenancyTerm";
 
 /**
@@ -77,6 +77,7 @@ export async function RentalPanel({
 }) {
   const existing = await readOpenInspectionFor(listingId);
   const forSale = period === "sale";
+  const t = getDictionary(locale);
 
   /* Months into terms, rounding UP: a listing priced yearly with an 18 month
      minimum takes two years, not one. Rounding down would offer a tenancy
@@ -93,7 +94,7 @@ export async function RentalPanel({
           minorUnits={priceMinor}
           locale={locale}
           currency={currency}
-          suffix={forSale ? PERIOD_SUFFIX.sale : PERIOD_SUFFIX_SLASH[period]}
+          suffix={forSale ? t.agentListings.pricing.period.sale : t.experienceLabels.periodSlash[period]}
           className="nf-h3 leading-none tracking-tight text-[var(--nf-content-primary)]"
           secondaryClassName="text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-muted)]"
         />
@@ -157,7 +158,8 @@ export async function RentalPanel({
       {/* The trust block: the plated shield, the same line glyph on the same
           plate as every other row on the detail page (29 September 2026). */}
       <div className="mt-md flex items-start gap-sm border-t border-[var(--nf-panel-hair)] pt-md">
-        <DetailGlyph name="verified" />
+        {/* Advice, so a neutral glyph: the shield means an earned check (A9). */}
+        <DetailGlyph name="info" />
         <p className={TYPE.rowMeta}>
           For your safety, keep every chat and payment inside Vallo. Deals made outside the
           platform are not protected by us. Pay only after you have inspected the property.

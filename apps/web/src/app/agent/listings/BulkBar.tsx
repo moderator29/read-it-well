@@ -37,7 +37,7 @@ export function BulkBar({ plan, count, onClear }: { plan: BulkPlan; count: numbe
 
   return (
     <div
-      className="nf-panel nf-panel--card sticky bottom-md z-10 mt-block p-card-sm"
+      className="nf-panel nf-panel--card sticky bottom-[calc(var(--nf-tabbar-clearance)+var(--nf-space-xs))] z-10 mt-block p-card-sm lg:bottom-md"
       role="region"
       aria-label="Selected listings"
       data-testid="bulk-bar"

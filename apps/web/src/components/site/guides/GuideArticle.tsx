@@ -6,6 +6,7 @@ import { DisclosureInline } from "@/components/app/DisclosureInline";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { type Guide, type GuideBlock, readingMinutes } from "@/lib/guides/articles";
 import { GuideToc } from "./GuideToc";
+import "./docs-type.css";
 
 type GuideCopy = Dictionary["publicDoors"]["guides"];
 type Callout = Extract<GuideBlock, { callout: string }>;
@@ -80,7 +81,7 @@ export function GuideArticle({
             <ListGroup>
               <li className="nf-list-item">
                 <DisclosureInline title={copy.onThisPage} titleClassName="nf-faq-q" className="nf-faq-item">
-                  <ol className="nf-guide__toc-fold-list">
+                  <ol className="nf-guide__toc-fold-list" role="list">
                     {sections.map((section, index) => (
                       <li key={section.id}>
                         <a href={`#${section.id}`} className="nf-guide-toc__link">
@@ -158,7 +159,7 @@ function Block({ block }: { block: GuideBlock }) {
   if (typeof block === "string") return <p>{block}</p>;
   if ("list" in block) {
     return (
-      <ul>
+      <ul role="list">
         {block.list.map((item) => (
           <li key={item}>{item}</li>
         ))}

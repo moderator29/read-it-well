@@ -1,4 +1,5 @@
 import "server-only";
+import { reportReadError } from "@/lib/observability/read-error";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "../supabase/server";
@@ -18,6 +19,7 @@ export async function readListingCredentials(listingId: string): Promise<NonNull
       .from("listing_credentials")
       .select("kind, number, company_name, register_name, checked_at")
       .eq("listing_id", listingId);
+    await reportReadError("read.credentials.readListingCredentials", error);
     if (error || !Array.isArray(data)) return [];
     return (
       data as {

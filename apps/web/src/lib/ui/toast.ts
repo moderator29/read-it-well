@@ -41,8 +41,14 @@ export type ToastOptions = {
   "data-testid"?: string;
 };
 
-/** Long enough to read a sentence; an error or an undo gets longer. */
-export const TOAST_DWELL_MS = 4000;
+/**
+ * Long enough to read a short confirmation; an error or an undo gets longer.
+ * 2,400ms is the motion inventory's dwell (north star 7.1, moment 8): a toast
+ * confirms something the person just did, so it reads at a glance and goes,
+ * and the host pauses the clock while it is touched. Anything that needs
+ * reading or acting on keeps the longer 6,000ms below.
+ */
+export const TOAST_DWELL_MS = 2400;
 export const TOAST_DWELL_LONG_MS = 6000;
 
 /** The dwell a message gets when the caller does not name one. */

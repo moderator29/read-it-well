@@ -6,11 +6,19 @@ import { clientCopyOf } from "@/lib/i18n/client-copy-of";
 
 /**
  * The root a browser-mounted test renders into (`mount-in-browser.ts`),
- * inside the same copy provider the root layout draws, in English.
+ * inside the same provider the root layout draws, in English: the copy
+ * provider. There is no framer-motion provider, because the root layout has
+ * none (D49.1): the ported components drive motion values and `animate`
+ * directly, and their reduced-motion answer is the platform's own gate
+ * (`useMotionGate`), read inside each component.
  */
 export function mount(node: ReactNode): void {
   const root = createRoot(document.getElementById("root")!);
-  root.render(<ClientCopyProvider copy={clientCopyOf(getDictionary("en"))}>{node}</ClientCopyProvider>);
+  root.render(
+    <ClientCopyProvider copy={clientCopyOf(getDictionary("en"))}>
+      {node}
+    </ClientCopyProvider>,
+  );
   requestAnimationFrame(() => {
     (window as unknown as { __mounted: boolean }).__mounted = true;
   });

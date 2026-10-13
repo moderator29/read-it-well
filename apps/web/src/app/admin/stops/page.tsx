@@ -143,7 +143,7 @@ export default async function AdminStopsPage({
           state={narrowed ? "no-match" : "never"}
         />
       ) : (
-        <StopsDesk stopped={read.stopped} trading={read.trading} closedIds={closedIds} />
+        <StopsDesk stopped={read.stopped} trading={read.trading} closedIds={closedIds} recallCopy={t.trustVisible.desk} />
       )}
 
       <QueuePager

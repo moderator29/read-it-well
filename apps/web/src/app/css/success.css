@@ -5,23 +5,22 @@
  * Two shapes on one body: `SuccessSheet` (a dialog that fills a phone and is
  * a centred card from 40rem up) and `SuccessScreen` (a page's own content).
  * Both open on the soft top (section 17), carry one of the founder's 3D
- * objects in a soft halo ring with a few blue and orange sparks (section 18),
- * a title, one line, the facts worth keeping, and a full-width pill at the
- * foot.
+ * objects on a radial wash inside a soft halo ring, with a tick seal when the
+ * news is finished (motion 13), a title, one line, the amount and the facts
+ * worth keeping, and a full-width action at the foot.
  *
  * THE STATIC STATE IS THE DEFAULT AND THE MOTION IS OPT-IN. Every rule below
  * the geometry draws the FINAL picture: the object in place, the ring open,
- * the sparks at rest round it, the words up. The animation is layered on top
+ * the seal on it, the words up. The animation is layered on top
  * only when all three of these hold: the operating system has no
  * reduced-motion request, the app's motion setting is not Calm or Off, and
  * the component itself found the room quiet-free when it opened
  * (`data-quiet="false"`). So a quiet reader is never shown a half-drawn
  * moment, and nothing here has to be switched OFF for them.
  *
- * LIGHT ON A LOW-END PHONE: transform and opacity only, on about a dozen
- * small elements; no filter, no blur, no layout property animated. The float
- * runs a few breaths and stops, and not at all with ambient motion or data
- * saver off.
+ * LIGHT ON A LOW-END PHONE: transform and opacity only, on five elements
+ * and the words; no filter, no blur, no layout property animated. Nothing
+ * moves once the payoff has settled (MOTION_SYSTEM principle 10).
  *
  * The card geometry (`.nf-sheet--card`) is Sheet's, shared with the confirm
  * cards; the success moment's own shape is layered on `.nf-success-card`.
@@ -158,6 +157,16 @@
     height: 12rem;
     flex-shrink: 0;
   }
+  /* The radial wash: the brand's own light, strongest under the object and
+     gone by the edge of the mark, so the object is lit from behind rather
+     than placed on a disc. It is what opens first (motion 13). */
+  .nf-success__wash {
+    position: absolute;
+    inset: -1.5rem;
+    border-radius: var(--nf-radius-circle);
+    pointer-events: none;
+    background: radial-gradient(closest-side, var(--nf-success-halo), transparent);
+  }
   .nf-success__halo,
   .nf-success__pulse {
     position: absolute;
@@ -170,13 +179,13 @@
     background: var(--nf-success-halo);
     box-shadow: 0 0 0 1px var(--nf-success-ring);
   }
-  /* The one ring that pulses out on arrival; nothing at rest. */
+  /* The one ring that goes out at the payoff; nothing at rest. */
   .nf-success__pulse {
     border: 2px solid var(--nf-success-ring);
     opacity: 0;
   }
   .nf-success__pop,
-  .nf-success__float {
+  .nf-success__payoff {
     position: relative;
     display: block;
   }
@@ -185,30 +194,26 @@
     --nf-icon3d-size: clamp(7.5rem, 36vw, 9rem);
   }
 
-  /* The sparks, at rest round the ring: blue, with three in the orange. */
-  .nf-success__bit {
+  /*
+   * THE SEAL: a tick on a brand disc at the object's lower right, the "it is
+   * done" of the moment and the one element allowed to pop. A circle, so it
+   * reads as a mark and not as a control; ringed in the canvas colour so it
+   * sits on the object as a separate thing in both themes. White on brand
+   * blue is the product's button pair, so it clears contrast where the
+   * button does.
+   */
+  .nf-success__seal {
     position: absolute;
-    left: 50%;
-    top: 50%;
-    width: var(--bit-size);
-    height: var(--bit-size);
-    margin: calc(var(--bit-size) / -2) 0 0 calc(var(--bit-size) / -2);
-    transform: translate(var(--bit-x), var(--bit-y));
-    pointer-events: none;
-    background: var(--nf-success-blue-soft);
-  }
-  .nf-success__bit[data-tone="spark"] {
-    background: var(--nf-spark);
-  }
-  .nf-success__bit--dot {
+    right: 0.25rem;
+    bottom: 0.25rem;
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
     border-radius: var(--nf-radius-circle);
-  }
-  .nf-success__bit--star {
-    background: var(--nf-success-blue);
-    clip-path: polygon(50% 0, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0 50%, 39% 39%);
-  }
-  .nf-success__bit--star[data-tone="spark"] {
-    background: var(--nf-spark);
+    background: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+    box-shadow: 0 0 0 3px var(--nf-surface-canvas);
   }
 
   .nf-success__words {
@@ -284,61 +289,68 @@
 
   /* ------------------------------------------------------------- motion */
 
+  /*
+   * MOTION 13 (north star 7.1; MOTION_SYSTEM section 2, "payment confirmed"):
+   * the wash opens and the object scales in over it on `land` for 620ms (the
+   * `deliberate` token); at 620ms the seal lands with the payoff pop, 1.0 to
+   * 1.04 to 1.0 over 180ms, and one ring goes out from it; the words rise
+   * from 380ms, 60ms apart, on `land` 380ms. Then nothing moves.
+   *
+   * The haptic is SuccessSheet's (PAYOFF_MS, the same 620ms), so what is felt
+   * lands with what is seen.
+   */
   @media (prefers-reduced-motion: no-preference) {
     :root:not([data-motion="calm"], [data-motion="off"]) .nf-success[data-quiet="false"] {
-      & .nf-success__pop {
-        animation: nf-success-pop 520ms var(--nf-ease-spring) both;
+      & .nf-success__wash {
+        animation: nf-success-wash var(--nf-duration-deliberate) var(--nf-ease-standard) both;
       }
       & .nf-success__halo {
-        animation: nf-success-halo 480ms var(--nf-ease-spring) 40ms both;
+        animation: nf-success-halo var(--nf-duration-deliberate) var(--nf-ease-entrance) both;
+      }
+      & .nf-success__pop {
+        animation: nf-success-land var(--nf-duration-deliberate) var(--nf-ease-entrance) both;
+      }
+      & .nf-success__seal {
+        animation: nf-success-seal var(--nf-duration-fast) var(--nf-ease-entrance) var(--nf-duration-deliberate) both;
+      }
+      & .nf-success__payoff {
+        animation: nf-success-payoff 180ms var(--nf-ease-standard) var(--nf-duration-deliberate) both;
       }
       & .nf-success__pulse {
-        animation: nf-success-pulse 620ms var(--nf-ease-entrance) 80ms both;
-      }
-      & .nf-success__bit {
-        animation: nf-success-burst 460ms var(--nf-ease-entrance) calc(220ms + var(--bit-delay)) both;
+        animation: nf-success-pulse var(--nf-duration-slow) var(--nf-ease-entrance) var(--nf-duration-deliberate) both;
       }
       & .nf-success__title,
+      & .nf-success__body,
       & .nf-success__amount,
       & .nf-success__facts,
       & .nf-success__actions {
-        animation: nf-success-rise 380ms var(--nf-ease-entrance) 340ms both;
+        animation: nf-success-rise var(--nf-duration-slow) var(--nf-ease-entrance) 380ms both;
       }
       & .nf-success__body {
-        animation: nf-success-rise 380ms var(--nf-ease-entrance) 420ms both;
+        animation-delay: 440ms;
       }
-      & :is(.nf-success__amount, .nf-success__facts) {
-        animation-delay: 460ms;
+      & .nf-success__amount {
+        animation-delay: 500ms;
+      }
+      & .nf-success__facts {
+        animation-delay: 560ms;
       }
       & .nf-success__actions {
-        animation-delay: 520ms;
+        animation-delay: 620ms;
       }
     }
-    /* The float: a few slow breaths once the pop has landed, then still. */
-    :root:not([data-motion="calm"], [data-motion="off"], [data-motion-ambient="off"], [data-save-data="on"])
-      .nf-success[data-quiet="false"]
-      .nf-success__float {
-      animation: nf-success-float 3.2s ease-in-out 900ms 5;
+    /* A submission has no seal and no pop: the object lands and is still. */
+    :root:not([data-motion="calm"], [data-motion="off"]) .nf-success[data-quiet="false"] [data-sealed="false"] {
+      & .nf-success__payoff,
+      & .nf-success__pulse {
+        animation: none;
+      }
     }
   }
 
-  @keyframes nf-success-pop {
-    0% {
-      transform: translateY(0.75rem) scale(0.4);
-      opacity: 0;
-    }
-    55% {
-      transform: translateY(-0.125rem) scale(1.08);
-      opacity: 1;
-    }
-    100% {
-      transform: none;
-      opacity: 1;
-    }
-  }
-  @keyframes nf-success-halo {
+  @keyframes nf-success-wash {
     from {
-      transform: scale(0.55);
+      transform: scale(0.4);
       opacity: 0;
     }
     to {
@@ -346,29 +358,57 @@
       opacity: 1;
     }
   }
+  @keyframes nf-success-halo {
+    from {
+      transform: scale(0.6);
+      opacity: 0;
+    }
+    to {
+      transform: none;
+      opacity: 1;
+    }
+  }
+  /* The object scales in over the wash: decisive, no overshoot (the pop is
+     the seal's, and there is only one). */
+  @keyframes nf-success-land {
+    from {
+      transform: translateY(0.5rem) scale(0.6);
+      opacity: 0;
+    }
+    to {
+      transform: none;
+      opacity: 1;
+    }
+  }
+  @keyframes nf-success-seal {
+    from {
+      transform: scale(0);
+      opacity: 0;
+    }
+    to {
+      transform: none;
+      opacity: 1;
+    }
+  }
+  /* THE PAYOFF POP, and the only one in the product's success moments:
+     1.0 to 1.04 to 1.0 over 180ms (MOTION_SYSTEM principle 5). */
+  @keyframes nf-success-payoff {
+    0%,
+    100% {
+      transform: none;
+    }
+    50% {
+      transform: scale(1.04);
+    }
+  }
   @keyframes nf-success-pulse {
     0% {
-      transform: scale(0.85);
+      transform: scale(0.9);
       opacity: 0.9;
     }
     100% {
-      transform: scale(1.45);
+      transform: scale(1.4);
       opacity: 0;
-    }
-  }
-  /* Out past the resting place, then back to it: a burst, not a drift. */
-  @keyframes nf-success-burst {
-    0% {
-      transform: translate(0, 0) scale(0);
-      opacity: 0;
-    }
-    60% {
-      transform: translate(calc(var(--bit-x) * 1.16), calc(var(--bit-y) * 1.16)) scale(1.15);
-      opacity: 1;
-    }
-    100% {
-      transform: translate(var(--bit-x), var(--bit-y)) scale(1);
-      opacity: 1;
     }
   }
   @keyframes nf-success-rise {
@@ -379,15 +419,6 @@
     to {
       transform: none;
       opacity: 1;
-    }
-  }
-  @keyframes nf-success-float {
-    0%,
-    100% {
-      transform: none;
-    }
-    50% {
-      transform: translateY(-0.375rem);
     }
   }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, type MouseEvent, type ReactNode } from "react";
 import { feedback } from "@/lib/ui/feedback";
 
 /**
@@ -89,28 +89,45 @@ export function Keypad({
     return () => window.removeEventListener("keydown", onKey);
   }, [disabled, onDigit, onDelete]);
 
-  const press = (digit: string) => {
-    feedback("select");
+  /* THE TICK LANDS WITH THE FINGER, NOT AFTER IT (A.4). A click arrives on
+     release, a beat after the key has already gone down under the press
+     curve; the haptic on `pointerdown` arrives with it, so the key, the tick
+     and the finger are one moment. A click with no pointer behind it (a
+     keyboard's Enter or Space, `detail` 0) still ticks, once. */
+  const touch = () => feedback("select");
+  const tickIfKeyboard = (event: MouseEvent<HTMLButtonElement>) => {
+    if (event.detail === 0) feedback("select");
+  };
+  const press = (event: MouseEvent<HTMLButtonElement>, digit: string) => {
+    tickIfKeyboard(event);
     onDigit(digit);
   };
 
   return (
     <div className="nf-passcode__keypad" role="group" aria-label={label} data-testid="passcode-keypad">
       {KEYS.map((digit) => (
-        <button key={digit} type="button" className="nf-passcode__key" disabled={disabled} onClick={() => press(digit)}>
+        <button
+          key={digit}
+          type="button"
+          className="nf-passcode__key"
+          disabled={disabled}
+          onPointerDown={touch}
+          onClick={(event) => press(event, digit)}
+        >
           {digit}
         </button>
       ))}
       <span className="nf-passcode__key-slot">{accessory}</span>
-      <button type="button" className="nf-passcode__key" disabled={disabled} onClick={() => press("0")}>
+      <button type="button" className="nf-passcode__key" disabled={disabled} onPointerDown={touch} onClick={(event) => press(event, "0")}>
         0
       </button>
       <button
         type="button"
         className="nf-passcode__key nf-passcode__key--quiet"
         disabled={disabled}
-        onClick={() => {
-          feedback("select");
+        onPointerDown={touch}
+        onClick={(event) => {
+          tickIfKeyboard(event);
           onDelete();
         }}
         aria-label={deleteLabel}

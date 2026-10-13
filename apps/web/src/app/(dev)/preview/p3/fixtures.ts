@@ -74,6 +74,19 @@ export const P3_BUSINESS: BusinessQueueRow = {
   rungs: [],
   properties: [],
   restaurant: { priceBand: 3, cuisineCount: 0, windowCount: 4 },
+  /* Refused once and sent again: the desk shows the resubmission and the
+     decision that came before it. */
+  resubmission: true,
+  history: [
+    {
+      at: "2026-10-10T10:00:00.000Z",
+      decision: "reject",
+      afterStatus: "REJECTED",
+      note: "The CAC certificate is cut off at the bottom. Please upload all of it.",
+      reviewerName: "Tobi (operations)",
+    },
+  ],
+  consentWithdrawals: [],
 };
 
 /** The same venue a day later, read and approved, waiting on the shelf gate. */

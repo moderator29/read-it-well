@@ -1,7 +1,10 @@
 "use client";
 
+import { PhoneGateLink } from "@/components/app/PhoneGateLink";
+import { isPhoneGate } from "@/lib/actions/envelope";
 import { useActionState, useId, useState, useMemo } from "react";
 import Link from "next/link";
+import { withNext } from "@/lib/auth/next-link";
 import { plural, type Locale } from "@vallo/i18n/core";
 import { useClientCopy } from "@/lib/i18n/client-copy";
 import { reserve, type ReserveReceipt } from "@/lib/bookings/actions";
@@ -17,6 +20,8 @@ import { addDaysIso, useStayDates } from "@/components/app/listing/StayDates";
 import { PhoneField } from "@/components/app/PhoneField";
 import { Chip, ChipRow } from "@/components/ui/Chip";
 import { Icon3D } from "@/components/ui/Icon3D";
+import { DoorTotal, type DoorTotalCopy } from "@/components/stays/DoorTotal";
+import type { DoorCharge } from "@/lib/stays/door-total";
 
 /**
  * The next fourteen days, as ISO dates.
@@ -118,17 +123,19 @@ function Stepper({
           </span>
         </button>
         <span className="nf-numeric w-5 text-center nf-body font-semibold">{value}</span>
-        <button
-          type="button"
+        <Button
+          variant="glass"
+          size="sm"
+          iconOnly
           aria-label={`More ${label.toLowerCase()}`}
           disabled={value >= max}
           onClick={() => onChange(Math.min(max, value + 1))}
-          className="nf-btn nf-btn--glass nf-btn--sm nf-btn--icon h-9 w-9 rounded-[var(--nf-radius-sm)] disabled:opacity-40"
+          className="h-9 w-9 rounded-[var(--nf-radius-sm)] disabled:opacity-40"
         >
           <span aria-hidden="true" className="text-[length:var(--nf-text-body)] leading-none">
             +
           </span>
-        </button>
+        </Button>
       </span>
       <input type="hidden" name={name} value={value} />
     </div>
@@ -142,9 +149,19 @@ export function ReservePanel({
   instantBook,
   success,
   messageHref,
+  door = [],
+  doorCopy,
 }: {
   /** The page's `t.success`, for "Dates held" or "Booking requested". Absent, no sheet. */
   success?: SuccessWords;
+  /**
+   * The charges this stay declared for the door (V-57). With them the guest
+   * reads the whole cost before booking: each charge for these dates and this
+   * party, and the all-in figure.
+   */
+  door?: readonly DoorCharge[];
+  /** The words for the door charges; without them nothing about the door is drawn. */
+  doorCopy?: DoorTotalCopy;
   listingId: string;
   currency: string;
   locale: Locale;
@@ -238,7 +255,7 @@ export function ReservePanel({
     const r = state.data;
     /* Held when the stay books instantly, requested when the agent confirms
        it personally: the words follow what is true, and neither is "paid". */
-    const words = success ? successCopy(success, instantBook ? "stayHeld" : "stayRequested") : null;
+    const words = success ? successCopy(success, instantBook || r.instant ? "stayHeld" : "stayRequested") : null;
     return (
       <div className="nf-panel nf-panel--card isolate nf-confirm-sweep p-card" data-testid="reserve-success">
         {success && words ? (
@@ -248,6 +265,7 @@ export function ReservePanel({
             if (!open) setSuccessClosed(true);
           }}
           variant={words.variant}
+          haptic={words.haptic}
           object={words.object}
           title={words.title}
           body={words.body}
@@ -303,7 +321,7 @@ export function ReservePanel({
           </div>
         </dl>
         <p className="nf-rise mt-heading nf-body-sm leading-relaxed text-[var(--nf-content-muted)]">
-          {instantBook
+          {instantBook || r.instant
             ? "Your dates are held. Paying now confirms the stay straight away."
             : "The agent will confirm your dates personally. You can pay now to secure them, and we will notify you the moment the agent confirms."}
         </p>
@@ -353,13 +371,13 @@ export function ReservePanel({
             */
             suffix="/ night"
             className="text-[1.5rem] font-bold leading-none tracking-tight text-[var(--nf-content-primary)]"
-            secondaryClassName="text-[0.54em] font-semibold opacity-60"
+            secondaryClassName="text-[length:max(0.54em,0.75rem)] font-semibold opacity-60"
           />
         </p>
 
         {instantBook && (
           <p className="flex items-center gap-inline nf-caption font-semibold text-[var(--nf-state-warning)]">
-            <UiIcon name="sparkle" size={ICON.inline} />
+            <UiIcon name="calendar-check" size={ICON.inline} />
             Instant Book available
           </p>
         )}
@@ -650,7 +668,7 @@ export function ReservePanel({
                 currency={currency}
                 suffix="total"
                 className="nf-lede font-bold text-[var(--nf-content-primary)]"
-                secondaryClassName="nf-body-sm font-medium text-[var(--nf-content-muted)]"
+                secondaryClassName="nf-body-sm font-normal text-[var(--nf-content-muted)]"
               />
               {/* The 44px floor DRAWN, not faked (the system's tertiary). This
                   was a 17px-tall link with a `before:-inset-2` overlay that
@@ -708,6 +726,20 @@ export function ReservePanel({
                 </p>
               </dl>
             )}
+            {/* Every cost before booking, the charges at the door included,
+                open rather than behind the breakdown toggle. */}
+            {doorCopy && door.length > 0 && (
+              <div className="mt-block">
+                <DoorTotal
+                  charges={door}
+                  nights={nights}
+                  guests={adults + children}
+                  priceMinor={totalMinor}
+                  locale={locale}
+                  copy={doorCopy}
+                />
+              </div>
+            )}
           </div>
         )}
 
@@ -720,12 +752,13 @@ export function ReservePanel({
             {state.error}
             {state.error.startsWith("Sign in") && (
               <Link
-                href="/sign-in"
+                href={withNext("/sign-in", `/listing/${encodeURIComponent(listingId)}`)}
                 className="mt-row inline-flex min-h-11 items-center font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
               >
                 Sign in
               </Link>
             )}
+            <PhoneGateLink show={isPhoneGate(state)} full className="mt-sm" />
           </div>
         )}
 
@@ -733,7 +766,8 @@ export function ReservePanel({
           <Button type="submit" variant="primary" full disabled={!ready} loading={pending}>
             Reserve
           </Button>
-          <ButtonLink href={messageHref} variant="secondary" full>
+          {/* The second action under the blue Reserve is the warm spark (D81). */}
+          <ButtonLink href={messageHref} variant="spark" full>
             Message agent
           </ButtonLink>
         </div>
@@ -743,7 +777,9 @@ export function ReservePanel({
           piece of consumer protection. Caption is the floor, and this line is
           the reason somebody does not wire money to a stranger. */}
       <p className="mt-block flex items-start gap-inline nf-caption leading-relaxed text-[var(--nf-content-muted)]">
-        <UiIcon name="verified" size={ICON.inline} className="mt-3xs shrink-0 text-[var(--nf-state-success)]" />
+        {/* Advice, so a neutral glyph in the line's own ink: the green shield
+            means an earned check, and this line is not one (A9). */}
+        <UiIcon name="info" size={ICON.inline} className="mt-3xs shrink-0" />
         Pay only after you have inspected the property
       </p>
     </div>

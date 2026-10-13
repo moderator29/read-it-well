@@ -4,28 +4,38 @@ import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
 import { EmptyState, TYPE } from "@/components/app/Screen";
 import { ButtonLink } from "@/components/ui/Button";
-import { panelClass } from "@/components/ui/Panel";
+import { PassportSettings } from "@/components/passport/PassportSettings";
+import { gateFirstRun } from "@/components/app/feature-onboarding/first-run-store";
 import { resolveSession } from "@/lib/actions/session";
-import { passportLines, sharedInLine } from "@/lib/trust/passport";
-import { readMyPassport } from "@/lib/trust/passport-read";
-import { PassportSwitch } from "./PassportSwitch";
+import { withNext } from "@/lib/auth/next-link";
+import { readMyPassport } from "@/lib/passport/passport-read";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return { title: getDictionary(await getLocale()).trustVisible.passport.title };
+  return { title: getDictionary(await getLocale()).passportV2.title };
 }
 
+export const dynamic = "force-dynamic";
+
 /**
- * SETTINGS, RENTER PASSPORT (V-100). Off by default, never asked for.
+ * SETTINGS, VALLO PASSPORT: the owner's own page.
+ *
+ * Every member has a passport, whatever their side, and it is on by default
+ * with every line shown. This page draws it the way a member sees it (the
+ * document, in the owner's own light or dark), then a clean list of switches:
+ * one for the whole passport and one for each line. Phone, email, ID numbers,
+ * date of birth and address are not lines and are said not to be.
  *
  * States: signed out (sign in), a failed read (said, nothing changed), and the
- * page: the switch, where it is shown, and exactly what a lister would see,
- * with an honest empty line when Vallo has recorded nothing yet. Loading is
- * `loading.tsx` beside this file.
+ * page. Loading is `loading.tsx` beside this file.
  */
-export default async function PassportSettingsPage() {
+export default async function PassportSettingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const locale = await getLocale();
   const t = getDictionary(locale);
-  const copy = t.trustVisible.passport;
+  const copy = t.passportV2;
   const session = await resolveSession();
   const header = <PageHeader title={copy.title} subtitle={copy.subtitle} fallback="/settings" />;
 
@@ -35,10 +45,11 @@ export default async function PassportSettingsPage() {
         {header}
         <EmptyState
           icon="user-verified"
+          art="id-check"
           title={copy.signedOut}
           body={copy.lede}
           action={
-            <ButtonLink href="/sign-in?next=%2Fsettings%2Fpassport" variant="primary" size="lg">
+            <ButtonLink href={withNext("/sign-in", "/settings/passport")} variant="primary" size="lg">
               {copy.signIn}
             </ButtonLink>
           }
@@ -46,6 +57,10 @@ export default async function PassportSettingsPage() {
       </div>
     );
   }
+
+  /* THE PASSPORT'S FIRST RUN (north star 14.1, D11): once, after the sign-in
+     check and before anything is read. Fails towards drawing the page. */
+  await gateFirstRun("passport", "/settings/passport", await searchParams);
 
   const mine = await readMyPassport();
   if (!mine) {
@@ -59,33 +74,17 @@ export default async function PassportSettingsPage() {
     );
   }
 
-  const lines = passportLines(mine.facts, copy, locale);
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="mx-auto max-w-2xl" data-testid="passport-page">
       {header}
-      <div className="space-y-block">
-        <p className={TYPE.body}>{copy.lede}</p>
-        <PassportSwitch copy={copy} initialEnabled={mine.enabled} />
-        {mine.enabled && (
-          <p className={TYPE.body} data-testid="passport-shared-in">
-            {sharedInLine(mine.sharedIn, copy)}
-          </p>
-        )}
-        <section className={panelClass({ variant: "card", className: "block p-card" })} aria-label={copy.preview}>
-          <h2 className={TYPE.rowTitle}>{copy.preview}</h2>
-          {lines.length === 0 ? (
-            <p className={`${TYPE.body} mt-inline`}>{copy.previewEmpty}</p>
-          ) : (
-            <ul className="mt-inline grid gap-inline" data-testid="passport-preview">
-              {lines.map((line) => (
-                <li key={line.key} className={TYPE.body}>
-                  {line.text}
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-      </div>
+      <p className={`${TYPE.body} mb-block text-[var(--nf-content-secondary)]`}>{copy.lede}</p>
+      <PassportSettings
+        facts={mine.facts}
+        initial={mine.settings}
+        copy={copy}
+        roleCopy={t.socialProfile.roleLine}
+        locale={locale}
+      />
     </div>
   );
 }

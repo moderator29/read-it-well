@@ -6,7 +6,7 @@ import Image from "next/image";
  * It stood in the middle of the old first-run stage; the full-page steps
  * (`FirstRun.tsx`, 30 September) stand it as the hero of the last step. Its
  * faces keep the governing render's coin rim and glass (`coin-face.webp`),
- * a sunk inner field covers the drawn emblem, and `vallo-mark.png`, the same
+ * a sunk inner field covers the drawn emblem, and `vallo-mark.svg`, the same
  * artwork `LogoMark` draws, stands on it. The turn, the glow and the rim are
  * in welcome.css; `prefers-reduced-motion`, Calm and Off hold it at rest.
  *
@@ -35,11 +35,10 @@ export function WelcomeCoin() {
               />
               <span className="nf-gs-coin__field" />
               <Image
-                src="/brand/vallo-mark.png"
+                src="/brand/vallo-mark.svg"
                 alt=""
-                width={614}
-                height={587}
-                sizes="96px"
+                width={776}
+                height={664}
                 priority={side === "front"}
                 className="nf-gs-coin__mark"
               />

@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { CountUp } from "@/components/motion/CountUp";
 
 /**
@@ -21,6 +21,7 @@ export function HeroFigure({
   sub,
   id,
   size = "lg",
+  ems,
   className,
   children,
 }: {
@@ -29,6 +30,13 @@ export function HeroFigure({
   id?: string;
   /** `lg` is the 44px figure; `md` the 34px one for a long money figure. */
   size?: "lg" | "md";
+  /**
+   * The figure's width in ems, when the caller knows it (a money total does):
+   * the figure never grows past the size at which it fills its column, so
+   * under text zoom a long figure holds the column instead of running off it.
+   * Unset is six, ample for a count.
+   */
+  ems?: number;
   className?: string;
   children: ReactNode;
 }) {
@@ -39,7 +47,10 @@ export function HeroFigure({
           {caption}
         </p>
       ) : null}
-      <p className={`nf-hero-figure__value nf-numeric${size === "md" ? " nf-hero-figure__value--md" : ""}`}>
+      <p
+        className={`nf-hero-figure__value nf-numeric${size === "md" ? " nf-hero-figure__value--md" : ""}`}
+        style={ems ? ({ "--nf-figure-ems": ems.toFixed(2) } as CSSProperties) : undefined}
+      >
         {children}
       </p>
       {sub != null ? <p className="nf-hero-figure__sub">{sub}</p> : null}

@@ -1,4 +1,9 @@
-import { config } from "zod";
+/* `zod/v4/core`, never `zod`: this file is the first client code on EVERY
+   route, and the classic entry would drag the whole `z.*` builder (about 64 KB
+   gzipped) into the shared client chunk for one setting. `config` is the same
+   function the classic entry re-exports from the same core module, so the
+   setting lands on the one shared configuration (W13's chunk measurement). */
+import { config } from "zod/v4/core";
 
 /**
  * The first thing the browser runs, and the only thing it is here for.

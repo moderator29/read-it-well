@@ -91,7 +91,7 @@ export const HOST_NAV: readonly HostNavEntry[] = [
      2026), so a host never leaves the console to ask a question or change
      what reaches them. Account-wide settings are one link away from the
      workspace's own. */
-  { href: "/host/assistant", key: "assistant", icon: "sparkle" },
+  { href: "/host/assistant", key: "assistant", icon: "bot" },
   { href: "/host/settings", key: "settings", icon: "settings-gear" },
 ];
 

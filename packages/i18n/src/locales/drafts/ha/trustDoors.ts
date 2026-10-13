@@ -21,7 +21,6 @@ export const trustDoorsHa = {
     yesRole: { agent: "Wakili", owner: "Mai gida", firm: "Kamfani" },
     yesIdentity: "Vallo ya duba shaidar mutum a {date}.",
     yesTalk: "Yi magana da su a Vallo",
-    yesWhy: "Bar hirar da duk wani biyan kuɗi a cikin Vallo, inda ku biyu kuke da kariya.",
     noTitle: "Babu wakilin da ya yi rajistar wannan lambar da Vallo",
     noCodeTitle: "Babu wakili a Vallo da ke da wannan lambar",
     noBody: "Nemi lambar Vallo ɗinsu, kuma ka biya a cikin Vallo kaɗai.",

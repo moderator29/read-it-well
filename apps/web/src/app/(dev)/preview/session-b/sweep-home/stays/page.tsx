@@ -5,7 +5,7 @@ import { CategoryRow, type HomeCategory } from "@/components/app/home/CategoryRo
 import { CityRow } from "@/components/app/home/CityRow";
 import { FeaturedBand } from "@/components/app/home/FeaturedBand";
 import { HomeHero } from "@/components/app/home/HomeHero";
-import { DAYPART_GREETING, daypartFor, lagosHour } from "@/lib/app/home-queries";
+import { daypartFor, lagosHour } from "@/lib/app/home-queries";
 import { LogoMark } from "@/design-system/brand/Logo";
 import { STAYS } from "../../../f3/fixtures";
 import { SweepFrame } from "../Frame";
@@ -22,7 +22,7 @@ export default async function SweepStays() {
   const t = getDictionary(locale);
   const copy = t.catalogue.stays;
   const stays = t.directHome.stays;
-  const greeting = DAYPART_GREETING[daypartFor(lagosHour())];
+  const greeting = t.experienceDiscover.home.greeting[daypartFor(lagosHour())];
   const doors: HomeCategory[] = [
     { key: "hotels", label: stays.hotels, meaning: stays.hotelsNote, href: "/stays/search?type=hotel", icon: "hotel-room" },
     { key: "shortlets", label: stays.shortlets, meaning: stays.shortletsNote, href: "/stays/search?type=shortlet", icon: "shortlet" },

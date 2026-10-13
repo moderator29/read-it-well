@@ -1,3 +1,13 @@
+/* C6's member CSS move (6 October): the member-only sheets that left
+   `globals.css`, the ones this tree draws, in their old globals order. They
+   are the first imports so they keep their old place in the cascade: after
+   every global partial, before any sheet this tree's components import. */
+import "@/app/social.css";
+import "@/app/social-feed.css";
+import "@/app/css/passcode.css";
+import "@/app/css/money-history.css";
+import "@/app/css/detail-m.css";
+import "@/app/css/member-loop.css";
 import type { Metadata } from "next";
 import { DeskKeys } from "@/components/app/desk/DeskKeys";
 import { CONSOLE_JUMPS, CONSOLE_JUMP_WORDS } from "@/components/app/desk/desk-keys";
@@ -8,6 +18,8 @@ import { getLocale } from "@/lib/locale";
 import { requireAdmin, requireConsole } from "@/lib/admin/guard";
 import { StaffFrame } from "./_components/StaffFrame";
 import { getQueueCounts } from "@/lib/admin/queries";
+import { getCoverageCounts } from "@/lib/admin/desk-reads/extra-counts";
+import { getOpenChargebackCount } from "@/lib/admin/reads/chargebacks";
 import { getShellIdentity } from "@/lib/app/shell-queries";
 import { AccessScreen } from "./_components/AccessScreen";
 import { ConsoleStepUp } from "./_components/ConsoleStepUp";
@@ -19,6 +31,7 @@ import { BackButton } from "@/components/site/BackButton";
 import { getPersonTiers } from "@/lib/admin/reads/shared";
 import { ENTRY_COOKIE } from "./_components/entry";
 import { PasscodeLayer } from "@/components/passcode/PasscodeLayer";
+import { CallLayerMount } from "@/components/calls/CallLayerMount";
 /* The console's stylesheet, loaded by the console alone (B-4): it left
    `globals.css`, where every page paid for it. */
 import "@/app/css/admin.css";
@@ -71,20 +84,28 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       <StaffFrame staff={door.staff} name={name}>
         <PasscodeLayer>{children}</PasscodeLayer>
         <DeskKeys jumps={CONSOLE_JUMPS} jumpWords={CONSOLE_JUMP_WORDS} />
+        {/* VC1: review calls ring and play on the staff desk too. */}
+        <CallLayerMount />
       </StaffFrame>
     );
   }
 
-  const [counts, shell, jar, tiers] = await Promise.all([
+  const [counts, shell, jar, tiers, coverage, chargebacks] = await Promise.all([
     getQueueCounts(),
     getShellIdentity(),
     cookies(),
     // B-BADGE: the operator's published tier, for the shared slot beside their name.
     getPersonTiers([access.user.id]),
+    // Retention, seating disputes and email recoveries: waiting, with no queue count of their own.
+    getCoverageCounts(),
+    /* Chargebacks not yet decided, read on the operator's own session
+       (`staff_chargebacks` checks the finance scope itself). */
+    getOpenChargebackCount(access.userClient),
   ]);
   /* R-E: has this browser session opened the overview as this operator? */
   const entered = jar.get(ENTRY_COOKIE)?.value === access.user.id;
-  const badges: Record<string, number> = counts.state === "ok" ? { ...counts.data } : {};
+  const badges: Record<string, number> = { ...(counts.state === "ok" ? counts.data : {}), ...coverage };
+  if (chargebacks > 0) badges.chargebacks = chargebacks;
 
   const email = access.user.email ?? "";
   const name = shell.userName && shell.userName !== "Guest" ? shell.userName : email.split("@")[0] || "Admin";
@@ -107,12 +128,18 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       bellLabel={t.uiCommon.console.notifications}
       shell={t.admin.shell}
       back={<BackButton fallback="/admin" surface="round" />}
+      experience={{
+        palette: t.experienceAdmin.palette,
+        deskLedes: t.experienceAdmin.deskLedes,
+        waitingTotal: t.experienceAdmin.shell.waitingTotal,
+      }}
     >
       <EntryGate entered={entered} userId={access.user.id} opening={t.admin.shell.entry.opening}>
         {/* The passcode lock (docs/PASSCODE.md), for staff as for everyone. */}
         <PasscodeLayer>{children}</PasscodeLayer>
         {/* C6: j/k, a/x, g-jumps and ? on every desk but support, which has its own. */}
         <DeskKeys jumps={CONSOLE_JUMPS} jumpWords={CONSOLE_JUMP_WORDS} />
+        <CallLayerMount />
       </EntryGate>
     </AdminFrame>
   );

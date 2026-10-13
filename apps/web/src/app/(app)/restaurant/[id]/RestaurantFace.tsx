@@ -1,5 +1,4 @@
 import type { ComponentProps } from "react";
-import Link from "next/link";
 import type { Dictionary, Locale } from "@vallo/i18n/core";
 import { Amount } from "@/components/ui/Amount";
 import { ButtonLink } from "@/components/ui/Button";
@@ -14,9 +13,16 @@ import {
 } from "@/components/app/listing/DetailAnatomy";
 import { ICON, Section, Stack, Surface, TYPE } from "@/components/app/Screen";
 import { ReserveTable } from "../../listing/[id]/ReserveTable";
+import { PlaceTabs } from "@/components/app/listing/PlaceTabs";
+import { PlaceMapPanel } from "@/components/app/listing/PlaceMapPanel";
+import { AnchorFoot } from "@/components/app/listing/AnchorFoot";
+import { PhotoViewerProvider } from "@/components/app/listing/PhotoViewer";
+
+/* The table card's id, for the anchored foot that scrolls to it. */
+const TABLE_FORM_ID = "reserve-table";
 import { panelClass } from "@/components/ui/Panel";
 import { ReportSheet } from "@/components/app/ReportSheet";
-import { ExampleNotice } from "@/components/app/listing/ExampleNotice";
+import "@/app/css/catalogue.css";
 
 const WEEKDAY: Record<number, string> = {
   0: "Sunday",
@@ -53,9 +59,17 @@ export type RestaurantFaceProps = {
       reported as a listing, an onboarded venue as a business. Absent in a
       static preview. */
   report?: { targetType: "listing" | "business"; targetId: string; signedIn: boolean };
-  /** UX-09 / UI-P2-01: an example venue says so under its name, and offers no
-      table to hold. */
+  /** An example venue offers no table to hold. D24: it carries no label. */
   isExample?: boolean;
+  /** The venue's point rounded to about a kilometre on the server, for the Map tab. */
+  areaPoint?: { lat: number; lng: number } | null;
+  /**
+   * The venue's own table rules, in plain sentences (`tableRuleLines`): a
+   * table is free to ask for and never paid in advance, the bill is paid at
+   * the restaurant, and the notice, hold and sitting the venue set. Shown
+   * before the guest asks for a table, so nothing about it is a surprise.
+   */
+  tableRules?: string[];
 };
 
 /**
@@ -92,9 +106,13 @@ export function RestaurantFace({
   messageHref,
   report,
   isExample = false,
+  areaPoint,
+  tableRules = [],
 }: RestaurantFaceProps) {
   const copy = t.restaurantPage;
+  const placeCopy = t.catalogue.stays.place;
   return (
+    <PhotoViewerProvider title={title} photos={gallery.photos} hue={gallery.hue} kind="restaurant">
     <div className="nf-cat-surface">
       <ListingGallery {...gallery} />
 
@@ -109,7 +127,6 @@ export function RestaurantFace({
             )}
           </div>
           <h1 className="nf-h2 mt-row [text-wrap:balance]">{title}</h1>
-          {isExample && <ExampleNotice variant="page" className="mt-row" statement={t.examples.statement} />}
           {where && (
             <p className={`mt-inline-tight flex items-center gap-inline-tight ${TYPE.body}`}>
               <UiIcon name="location" size={ICON.inline} className="shrink-0 text-[var(--nf-brand-secondary)]" />
@@ -136,103 +153,141 @@ export function RestaurantFace({
           <DetailAboutCard title={copy.aboutTitle} paragraphs={aboutParagraphs} host={host} />
         </div>
 
-        <Stack className="mt-block">
-          {/* THE RESERVATION, FIRST. Not a panel beside the description. */}
-          {isExample ? (
-            <Section title={copy.reserveTitle}>
-              <Surface>
-                <p className={TYPE.rowMeta} data-testid="restaurant-not-bookable">
-                  {t.examples.restaurantNotBookable}
-                </p>
-                <ButtonLink href="/restaurants" variant="primary" className="mt-row w-full">
-                  {t.examples.browseRestaurants}
-                </ButtonLink>
-              </Surface>
-            </Section>
-          ) : (
-            <Section title={copy.reserveTitle} description={copy.reserveBody}>
-              <ReserveTable {...reserve} success={t.success} />
-            </Section>
-          )}
-
-          <Section title={copy.gettingThereTitle}>
-            <Surface>
-              {where && (
-                <p className={`flex items-start gap-inline-tight ${TYPE.body}`}>
-                  <UiIcon name="location" size={ICON.inline} className="mt-3xs shrink-0" />
-                  <span className="min-w-0">{where}</span>
-                </p>
-              )}
-              <p className={`mt-row ${TYPE.rowMeta}`}>{copy.threadLine}</p>
-              <Link
-                href="/restaurants"
-                className={`mt-row inline-flex items-center gap-inline-tight ${TYPE.rowMeta} font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline`}
-              >
-                {t.stays.restaurantsTitle}
-                <UiIcon name="arrow-right" size={ICON.inline} />
-              </Link>
-            </Surface>
-          </Section>
-
-          {/*
-            THE HOURS, AS THE FOOT OF THE PAGE.
-
-            `lib/stays/hours` answers "is it seating right now" on the Lagos
-            clock from the venue's own service windows, and that one line is
-            the last thing this page says, under the week it is computed from.
-            A venue that has published no windows says so plainly: not "coming
-            soon", not an empty week grid, and above all not an "Open now" pill
-            this page cannot stand behind, because a guessed badge sends
-            somebody across Lagos to a locked door.
-          */}
-          <Section title={copy.hoursTitle}>
-            <Surface>
-              {hours && (
-                <p
-                  className={`nf-reg-open ${hours.openNow ? "nf-reg-open--open" : "nf-reg-open--closed"} mb-row`}
-                  data-testid="hours-open-now"
-                >
-                  <UiIcon name="history" size={12} />
-                  {hours.label}
-                </p>
-              )}
-              {windows && windows.length > 0 ? (
-                <ul className="divide-y divide-[var(--nf-divider)]" data-testid="service-windows">
-                  {windows.map((window) => (
-                    <li key={window.id} className={`flex items-center justify-between gap-sm py-xs ${TYPE.body}`}>
-                      <span className="font-medium text-[var(--nf-content-primary)]">{WEEKDAY[window.weekday] ?? window.weekday}</span>
-                      <span className="nf-numeric">
-                        {window.opens.slice(0, 5)} to {window.closes.slice(0, 5)}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <>
-                  <p className={TYPE.body}>{copy.hoursUnknown}</p>
-                  <p className={`mt-row ${TYPE.rowMeta}`}>{copy.hoursAsk}</p>
-                </>
-              )}
-              {messageHref && (
-                <ButtonLink href={messageHref} variant="secondary" className="mt-row">
-                  {copy.message}
-                </ButtonLink>
-              )}
-            </Surface>
-          </Section>
-
-          {report && (
-            <div className="py-md" data-testid="restaurant-report">
-              <ReportSheet
-                targetType={report.targetType}
-                targetId={report.targetId}
-                targetLabel={title}
-                signedIn={report.signedIn}
+        {/* THE TABLE AND ITS MAP (the travel-app reference): one switch, the
+            reservation on one side and the area, its hours and the photo
+            tour on the other. One table card, under one heading. */}
+        <div className="mt-block">
+          <PlaceTabs
+            label={title}
+            labels={{ main: copy.tabTable, map: placeCopy.tabMap }}
+            map={
+              <PlaceMapPanel
+                lead={placeCopy.mapLeadTable}
+                coords={areaPoint ?? null}
+                area={where}
+                unavailable={placeCopy.mapUnavailable.replace("{area}", where)}
+                facts={[
+                  ...(where ? [{ key: "area", icon: "location" as const, label: placeCopy.area, value: where }] : []),
+                  ...(hours ? [{ key: "hours", icon: "history" as const, label: copy.openNowTitle, value: hours.label }] : []),
+                ]}
+                photoTour={
+                  gallery.photos.length > 0
+                    ? {
+                        label: placeCopy.photoTour,
+                        caption: placeCopy.photos.replace("{count}", String(gallery.photos.length)),
+                        count: gallery.photos.length,
+                      }
+                    : null
+                }
               />
-            </div>
-          )}
-        </Stack>
+            }
+            main={
+              <Stack>
+                {isExample ? (
+                  <Section title={copy.reserveTitle}>
+                    <Surface>
+                      <p className={TYPE.rowMeta} data-testid="restaurant-not-bookable">
+                        {t.experienceDetail.closed.restaurantBody}
+                      </p>
+                      <ButtonLink href="/restaurants" variant="primary" className="mt-row w-full">
+                        {t.experienceDetail.closed.restaurantAction}
+                      </ButtonLink>
+                    </Surface>
+                  </Section>
+                ) : (
+                  <Section title={copy.reserveTitle} description={copy.reserveBody}>
+                    {/* THE WINDOW PICKER: the times on offer are the ones inside
+                        the hours this venue publishes, for the day picked. The
+                        card carries no second title under this heading. */}
+                    <ReserveTable
+                      {...reserve}
+                      title={null}
+                      formId={TABLE_FORM_ID}
+                      windows={windows ?? undefined}
+                      windowCopy={t.experienceDetail.window}
+                      success={t.success}
+                    />
+                    {tableRules.length > 0 && (
+                      <ul className="mt-row grid gap-inline-tight" data-testid="table-rules">
+                        {tableRules.map((line) => (
+                          <li key={line} className={TYPE.rowMeta}>
+                            {line}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </Section>
+                )}
+
+                {/*
+                  THE HOURS. `lib/stays/hours` answers "is it seating right now"
+                  on the Lagos clock from the venue's own service windows. A
+                  venue that has published no windows says so plainly, never a
+                  guessed "Open now" that sends somebody to a locked door.
+                */}
+                <Section title={copy.hoursTitle}>
+                  <Surface>
+                    {hours && (
+                      <p
+                        className={`nf-reg-open ${hours.openNow ? "nf-reg-open--open" : "nf-reg-open--closed"} mb-row`}
+                        data-testid="hours-open-now"
+                      >
+                        <UiIcon name="history" size={12} />
+                        {hours.label}
+                      </p>
+                    )}
+                    {windows && windows.length > 0 ? (
+                      <ul className="divide-y divide-[var(--nf-divider)]" data-testid="service-windows">
+                        {windows.map((window) => (
+                          <li key={window.id} className={`flex items-center justify-between gap-sm py-xs ${TYPE.body}`}>
+                            <span className="font-semibold text-[var(--nf-content-primary)]">{WEEKDAY[window.weekday] ?? window.weekday}</span>
+                            <span className="nf-numeric">
+                              {window.opens.slice(0, 5)} to {window.closes.slice(0, 5)}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <>
+                        <p className={TYPE.body}>{copy.hoursUnknown}</p>
+                        <p className={`mt-row ${TYPE.rowMeta}`}>{copy.hoursAsk}</p>
+                        {messageHref && (
+                          <ButtonLink href={messageHref} variant="secondary" className="mt-row">
+                            {copy.message}
+                          </ButtonLink>
+                        )}
+                      </>
+                    )}
+                  </Surface>
+                </Section>
+
+                {report && (
+                  <div className="py-md" data-testid="restaurant-report">
+                    <ReportSheet
+                      targetType={report.targetType}
+                      targetId={report.targetId}
+                      targetLabel={title}
+                      signedIn={report.signedIn}
+                    />
+                  </div>
+                )}
+              </Stack>
+            }
+          />
+        </div>
       </div>
+
+      {/* THE ONE ANCHORED ACTION: it takes the guest to the table card and
+          steps aside while the card is on screen (`AnchorFoot`). */}
+      {isExample ? null : (
+        <AnchorFoot
+          targetId={TABLE_FORM_ID}
+          label={copy.reserveTitle}
+          figure={price && price.minor > 0 ? <Amount minorUnits={price.minor} locale={locale} currency={price.currency} /> : undefined}
+          caption={price && price.minor > 0 ? copy.perHead : copy.reserveFootCaption}
+        />
+      )}
     </div>
+    </PhotoViewerProvider>
   );
 }

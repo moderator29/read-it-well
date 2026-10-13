@@ -8,6 +8,7 @@ import { AuthGate } from "@/components/auth/AuthGate";
 import { MessageVenue } from "@/components/stays/MessageVenue";
 import { ListingAbout } from "./ListingAbout";
 import { ICON } from "@/components/app/Screen";
+import "@/app/css/catalogue.css";
 
 /**
  * THE ONE DETAIL ANATOMY, as B047A0CE draws it.
@@ -71,10 +72,16 @@ export function DetailPriceRow({
   figure,
   unit,
   rating,
+  sub,
 }: {
   figure: ReactNode;
   /** What the figure buys: "a night", "/ year", "a head". */
   unit: string;
+  /**
+   * The figure's second line: on a stay, the total for the picked dates
+   * beneath the nightly rate that leads (Session 3, Stage 5). Absent, no line.
+   */
+  sub?: ReactNode;
   /**
    * The guest rating, ONLY where real review rows stand behind it: the
    * average as the locale writes it, and the count already in its brackets.
@@ -82,6 +89,7 @@ export function DetailPriceRow({
   rating?: { average: string; reviews: string } | null;
 }) {
   return (
+    <>
     <div className="nf-detail-price-row" data-testid="detail-price-row">
       <p className="nf-detail-price">
         <span className="nf-detail-price__figure">{figure}</span>
@@ -97,6 +105,12 @@ export function DetailPriceRow({
         </p>
       )}
     </div>
+    {sub != null && (
+      <p className="nf-detail-price__sub nf-numeric" data-testid="detail-price-sub">
+        {sub}
+      </p>
+    )}
+    </>
   );
 }
 

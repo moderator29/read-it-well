@@ -27,6 +27,7 @@ import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 import { hashListingPhotos } from "../photo-hash/hash-server";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
+import { phoneGateFor } from "../phone-otp/gate";
 import {
   NOT_CONFIGURED_MESSAGE,
   SIGNED_OUT_MESSAGE,
@@ -43,6 +44,7 @@ import { getLocale } from "../locale";
 import { BROADCAST_MONEY_KEYS } from "./broadcast";
 import { readBroadcastMarks, writeBroadcastMarks } from "./broadcast-marks-queries";
 import { CLOSED_LISTING_MESSAGE, isClosedListingRefusal } from "../landlord/closed";
+import { RATE_AGREEMENT_NEEDED_MESSAGE, isRateAgreementRefusal } from "../pricing/rate-agreement";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import type { Database } from "../supabase/database.types";
 import { SCRUB_REFUSED_MESSAGE, scrubPublicPhoto } from "../images/scrub";
@@ -73,6 +75,7 @@ import {
   isTenancy,
   ratePeriodFor,
   removePhotoSchema,
+  reorderMediaSchema,
   reorderPhotosSchema,
   setAmenitiesSchema,
   submitRequirements,
@@ -82,6 +85,7 @@ import {
   type RentPeriod,
 } from "./listings-schema";
 import { dbLimitRefusal } from "@/lib/security/db-limit";
+import { storedPositions } from "../listings/media-order";
 
 const NOT_AGENT_MESSAGE =
   "Only approved agents can manage listings. Apply in two minutes.";
@@ -184,7 +188,8 @@ export type SavedDraft = { id: string; status: ListingStatus };
  * Insert when no id arrives, update when one does. Only the title is required,
  * because the alternative is losing a listing to an interruption. Fields the
  * wizard omits are left exactly as they were rather than being cleared, so a
- * partial save can never eat earlier work.
+ * partial save can never eat earlier work; a field sent as null is one the
+ * lister emptied, and its column is emptied with it.
  */
 export async function saveDraft(input: DraftInput): Promise<ActionResult<SavedDraft>> {
   const gate = await requireAgent();
@@ -218,10 +223,10 @@ export async function saveDraft(input: DraftInput): Promise<ActionResult<SavedDr
      obvious one: a rent defaults to yearly, which is what the Nigerian tenancy
      market quotes, and a service charge follows the rent it sits beside. */
   const rentPeriod: RentPeriod | undefined =
-    value.rentPeriod ?? existing?.rent_period ?? (value.rentNaira !== undefined ? "year" : undefined);
+    value.rentPeriod ?? existing?.rent_period ?? (typeof value.rentNaira === "number" ? "year" : undefined);
   const serviceChargePeriod: RentPeriod | undefined =
     value.serviceChargePeriod ??
-    (value.serviceChargeNaira !== undefined ? (rentPeriod ?? "year") : undefined);
+    (typeof value.serviceChargeNaira === "number" ? (rentPeriod ?? "year") : undefined);
 
   /*
    * The total to find at the door, checked against its own parts here rather
@@ -235,15 +240,17 @@ export async function saveDraft(input: DraftInput): Promise<ActionResult<SavedDr
    * parts are resolved against the stored row for anything this request did not
    * send, because a forgiving draft save sends only what changed.
    */
-  const settled = (sent: number | undefined, stored: number | null | undefined) =>
-    sent !== undefined ? sent : Number(stored ?? 0);
+  /* Sent wins; a part this save cleared (null) counts as nothing; a part it did
+     not send keeps what is stored. */
+  const settled = (sent: number | null | undefined, stored: number | null | undefined) =>
+    sent === undefined ? Number(stored ?? 0) : (sent ?? 0);
   const partsSum =
     settled(value.rentNaira, existing?.rent_amount_minor) +
     settled(value.cautionDepositNaira, existing?.caution_deposit_minor) +
     settled(value.agencyFeeNaira, existing?.agency_fee_minor) +
     settled(value.legalFeeNaira, existing?.legal_fee_minor) +
     settled(value.agreementFeeNaira, existing?.agreement_fee_minor);
-  if (value.totalMoveInNaira !== undefined && value.totalMoveInNaira < partsSum) {
+  if (typeof value.totalMoveInNaira === "number" && value.totalMoveInNaira < partsSum) {
     return fail(
       "The total to move in is less than the fees you listed, so one of the two figures is wrong.",
       {
@@ -266,7 +273,7 @@ export async function saveDraft(input: DraftInput): Promise<ActionResult<SavedDr
     settled(value.governorsConsentFeeNaira, existing?.governors_consent_fee_minor) +
     settled(value.stampDutyNaira, existing?.stamp_duty_minor) +
     settled(value.surveyRegistrationFeeNaira, existing?.survey_registration_fee_minor);
-  if (value.totalPurchaseNaira !== undefined && value.totalPurchaseNaira < purchaseSum) {
+  if (typeof value.totalPurchaseNaira === "number" && value.totalPurchaseNaira < purchaseSum) {
     return fail(
       "The total to buy is less than the price and the fees you listed, so one of the figures is wrong.",
       {
@@ -288,6 +295,11 @@ export async function saveDraft(input: DraftInput): Promise<ActionResult<SavedDr
     address: value.address,
     landmark: value.landmark,
     bedrooms: value.bedrooms,
+    /* The en-suite count travels with the bedrooms it is capped by
+       (`listings_ensuite_count_within_bedrooms`). Written only by
+       `writeUnit`, after this update, lowering the bedrooms below the stored
+       count broke the check and the whole save failed. */
+    ensuite_count: value.ensuiteCount,
     bathrooms: value.bathrooms,
     toilets: value.toilets,
     parking_spaces: value.parkingSpaces,
@@ -319,11 +331,13 @@ export async function saveDraft(input: DraftInput): Promise<ActionResult<SavedDr
        The period is never asked for: a restaurant is per head and everything
        else on this side is per night, and asking somebody to confirm the
        category they already chose is a question with one answer. */
-    rate_minor: tenancy ? undefined : value.rateNaira,
+    /* `rate_minor` is NOT NULL, so a rate the lister cleared is stored as the
+       zero the column has always meant "no rate set". */
+    rate_minor: tenancy || value.rateNaira === undefined ? undefined : (value.rateNaira ?? 0),
     rate_period:
       tenancy || value.rateNaira === undefined
         ? undefined
-        : value.rateNaira > 0
+        : (value.rateNaira ?? 0) > 0
           ? ratePeriodFor(propertyType)
           : null,
 
@@ -356,7 +370,7 @@ export async function saveDraft(input: DraftInput): Promise<ActionResult<SavedDr
     // the hours here rather than letting the write bounce with a 23514 the
     // host cannot act on.
     power_backup_hours:
-      value.powerBackup === "NONE" ? null : value.powerBackupHours,
+      value.powerBackup === "NONE" || value.powerBackup === null ? null : value.powerBackupHours,
     water_supply: value.waterSupply,
     prepaid_meter: value.prepaidMeter,
   };
@@ -980,6 +994,81 @@ export async function reorderPhotos(input: {
 }
 
 /**
+ * Put a listing's photos and videos in one order, the first a photo (the
+ * cover). Photos take their rank among photos, which `applyOrder` writes
+ * without breaking the unique, 0..9 position; each video takes its place in
+ * the whole row (lib/listings/media-order.ts). Returns both lists as stored,
+ * because at ten photos one photo row is re-made with a new id.
+ */
+export async function reorderMedia(input: {
+  listingId: string;
+  items: { kind: "photo" | "video"; id: string }[];
+}): Promise<
+  ActionResult<{
+    photos: { id: string; path: string; position: number }[];
+    videos: { id: string; position: number }[];
+  }>
+> {
+  const gate = await requireAgent();
+  if (!gate.ok) return fail(gate.error);
+
+  const parsed = validate(reorderMediaSchema, input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+  const { listingId, items } = parsed.data;
+
+  const listing = await ownedListing(gate.supabase, gate.agentId, listingId);
+  if (!listing) return fail(NOT_FOUND_MESSAGE);
+  if (!EDITABLE.includes(listing.status)) return fail(LOCKED_MESSAGE);
+
+  const [photoRes, videoRes] = await Promise.all([
+    gate.supabase.from("listing_photos").select("id, storage_path").eq("listing_id", listingId),
+    gate.supabase.from("listing_videos").select("id").eq("listing_id", listingId),
+  ]);
+  if (photoRes.error || videoRes.error || !photoRes.data || !videoRes.data) return fail(PHOTO_FAILED_MESSAGE);
+
+  const photoPaths = new Map(photoRes.data.map((p) => [p.id, p.storage_path]));
+  const videoIds = new Set(videoRes.data.map((v) => v.id));
+  const { photos: photoOrder, videos: videoPlaces } = storedPositions(items);
+  const stale =
+    photoOrder.length !== photoPaths.size ||
+    videoPlaces.length !== videoIds.size ||
+    photoOrder.some((id) => !photoPaths.has(id)) ||
+    videoPlaces.some((video) => !videoIds.has(video.id));
+  if (stale) return fail("The order was out of date. Reload the page and try again.");
+
+  const moved = await applyOrder(
+    gate.supabase,
+    listingId,
+    photoOrder.map((id) => ({ id, path: photoPaths.get(id) ?? "" })),
+  );
+  if (!moved) return fail("We could not reorder the photos just now. Please try again.");
+
+  for (const video of videoPlaces) {
+    const { error } = await gate.supabase
+      .from("listing_videos")
+      .update({ position: video.position })
+      .eq("id", video.id)
+      .eq("listing_id", listingId);
+    if (error) return fail("We could not reorder the videos just now. Please try again.");
+  }
+
+  const [settledPhotos, settledVideos] = await Promise.all([
+    gate.supabase
+      .from("listing_photos")
+      .select("id, storage_path, position")
+      .eq("listing_id", listingId)
+      .order("position", { ascending: true }),
+    gate.supabase.from("listing_videos").select("id, position").eq("listing_id", listingId),
+  ]);
+
+  refreshAgentSurfaces();
+  return ok({
+    photos: (settledPhotos.data ?? []).map((p) => ({ id: p.id, path: p.storage_path, position: p.position })),
+    videos: (settledVideos.data ?? []).map((v) => ({ id: v.id, position: v.position })),
+  });
+}
+
+/**
  * Remove an uploaded walkthrough, and its still, when no row names them. The
  * same narrow rule as `discardUnattached`: only inside this listing's own
  * folder, and never an object a `listing_videos` or `listing_photos` row
@@ -1123,7 +1212,17 @@ export async function addVideo(input: {
     );
   }
 
-  const position = held.reduce((highest, row) => Math.max(highest, row.position + 1), 0);
+  /* A video's position is its place in the listing's whole row of photos
+     and videos (lib/listings/media-order.ts): a new one goes on the end. */
+  const { count: photoCount, error: photoCountError } = await gate.supabase
+    .from("listing_photos")
+    .select("id", { count: "exact", head: true })
+    .eq("listing_id", listingId);
+  if (photoCountError) return refuse(VIDEO_FAILED_MESSAGE);
+  const position = Math.max(
+    (photoCount ?? 0) + held.length,
+    held.reduce((highest, row) => Math.max(highest, row.position + 1), 0),
+  );
 
   const { data: created, error } = await gate.supabase
     .from("listing_videos")
@@ -1302,7 +1401,8 @@ export async function setListingAccess(
 
 /* --------------------------------------------------------------- submit */
 
-export type SubmitOutcome = { id: string; status: ListingStatus };
+/** `submittedAt` is the stored `submitted_at`, which the wizard's chain prints. */
+export type SubmitOutcome = { id: string; status: ListingStatus; submittedAt: string | null };
 
 /**
  * Send a listing for review, but only if it clears the quality gate.
@@ -1328,6 +1428,11 @@ export async function submitListing(input: {
   if (listing.status === "SUBMITTED" || listing.status === "UNDER_REVIEW") {
     return fail(REVIEW_PENDING_MESSAGE);
   }
+  /* FULL GATE (13 October 2026): the first listing sent for publishing needs a
+     confirmed phone, flag on; a listing fails closed on a failed read
+     (`phone-otp/core.ts`). */
+  const phoneGate = await phoneGateFor(gate.supabase, gate.user.id, "listing");
+  if (phoneGate) return phoneGate;
   if (!EDITABLE.includes(listing.status)) {
     return fail("This listing has already been through review. Return it to a draft to change it.");
   }
@@ -1341,14 +1446,15 @@ export async function submitListing(input: {
     return fail(getDictionary(await getLocale()).frontDoor.broadcast.unconfirmedOnServer);
   }
 
-  const [photoRes, amenityRes, unitShape] = await Promise.all([
+  const [photoRes, videoRes, amenityRes, unitShape] = await Promise.all([
     gate.supabase.from("listing_photos").select("id, position").eq("listing_id", listingId),
+    gate.supabase.from("listing_videos").select("id").eq("listing_id", listingId),
     gate.supabase.from("listing_amenities").select("amenity_id").eq("listing_id", listingId),
     readUnitShape(gate.supabase, listingId),
   ]);
 
   /* Fail closed: a gate that could not read its own inputs does not pass. */
-  if (photoRes.error || amenityRes.error || unitShape === undefined) {
+  if (photoRes.error || videoRes.error || amenityRes.error || unitShape === undefined) {
     return fail("We could not check this listing just now. Nothing has changed. Please try again.");
   }
 
@@ -1372,6 +1478,8 @@ export async function submitListing(input: {
     unitShape,
     amenityCount: (amenityRes.data ?? []).length,
     photoCount: photos.length,
+    /* Walkthroughs count toward the media minimum (MIN_MEDIA) with the photos. */
+    videoCount: (videoRes.data ?? []).length,
     hasCover: photos.some((p) => p.position === 0),
     moveInStatedMinor: listing.total_move_in_cost_minor,
     moveInPartsMinor: [
@@ -1393,16 +1501,20 @@ export async function submitListing(input: {
     .update({ status: "SUBMITTED", submitted_at: new Date().toISOString() })
     .eq("id", listingId)
     .eq("agent_id", gate.agentId)
-    .select("id, status")
+    .select("id, status, submitted_at")
     .single();
 
   if (isClosedListingRefusal(error)) return fail(CLOSED_LISTING_MESSAGE);
+  /* D51: the database refuses SUBMITTED until the lister has accepted the fee
+     on this price under the rate in force (listings_zz_b3_rate_agreement_gate). */
+  if (isRateAgreementRefusal(error)) return fail(RATE_AGREEMENT_NEEDED_MESSAGE);
   if (error || !updated) {
     return fail("We could not send this listing for review just now. Please try again.");
   }
 
   refreshAgentSurfaces();
-  return ok({ id: updated.id, status: updated.status });
+  /* The stored time, so the wizard's chain prints the day the server wrote. */
+  return ok({ id: updated.id, status: updated.status, submittedAt: updated.submitted_at });
 }
 
 /* -------------------------------------------------------- state changes */

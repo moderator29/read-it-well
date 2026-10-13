@@ -247,14 +247,25 @@ const nextConfig: NextConfig = {
        * now lives: the agreements that gate a payment, and the admin queue
        * that approves them. Not permanent, so a browser never caches a
        * redirect a later route might want back.
+       *
+       * 7 October 2026 (ADR 0003): `/wallet` was that later route. It is the
+       * member balance the escrow partner holds, so its redirect is gone.
        */
-      { source: "/wallet", destination: "/agreements", permanent: false },
-      { source: "/wallet/:path*", destination: "/agreements", permanent: false },
       { source: "/escrow", destination: "/agreements", permanent: false },
       { source: "/escrow/:path*", destination: "/agreements", permanent: false },
       { source: "/admin/escrow", destination: "/admin/agreements", permanent: false },
       { source: "/admin/escrow/:path*", destination: "/admin/agreements", permanent: false },
-      { source: "/docs/your-wallet", destination: "/docs/money-and-the-guarantee", permanent: false },
+      /*
+       * Retired docs chapters (the docs track, 13 October 2026). Each lands on
+       * the closest current chapter; `docs-links.dom.test.tsx` holds every retired
+       * slug to a redirect and every redirect to a live chapter. "Money and
+       * the guarantee" named the retired Vallo Guarantee, and "Booking and
+       * paying" mixed stays with tables and money; both were split into
+       * one-topic chapters.
+       */
+      { source: "/docs/your-wallet", destination: "/docs/paying-on-vallo", permanent: false },
+      { source: "/docs/money-and-the-guarantee", destination: "/docs/paying-on-vallo", permanent: false },
+      { source: "/docs/booking-and-paying", destination: "/docs/booking-a-stay", permanent: false },
     ];
   },
 
@@ -317,8 +328,17 @@ const nextConfig: NextConfig = {
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "X-DNS-Prefetch-Control", value: "on" },
           {
+            /*
+             * VC1: camera and microphone are allowed for OUR OWN ORIGIN, and
+             * still for no other one (no embedded frame can ask). `camera=()`
+             * used to switch getUserMedia off for the whole site, which was
+             * right while nothing asked for it and would fail every call
+             * silently now: the browser rejects the request without ever
+             * showing the person a prompt. A permission is still only asked
+             * for when a person starts or answers a call.
+             */
             key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=(self), interest-cohort=()",
+            value: "camera=(self), microphone=(self), geolocation=(self), interest-cohort=()",
           },
           {
             key: "Strict-Transport-Security",

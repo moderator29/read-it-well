@@ -2,6 +2,7 @@ import "@/app/admin/_review/review.css";
 import { StillAvailableCard } from "@/components/agent/StillAvailableCard";
 import { ReviewActionBar } from "@/app/admin/listings/[id]/ReviewActionBar";
 import { ContestDecision } from "@/app/admin/_lanes/ContestDecision";
+import { getDictionary } from "@vallo/i18n";
 import { PasskeyIdleSetting } from "@/app/(app)/settings/passcode/PasskeyIdleSetting";
 import { ROSTER_WARNING_TEXT, rosterWarning } from "@/lib/admin/key-roster-rules";
 
@@ -54,9 +55,9 @@ export default function PlatformPreview() {
       </section>
       <section className="mx-auto w-full max-w-[36rem]">
         <h2 className="nf-h3 mb-xs">Passcode: with a key</h2>
-        <PasskeyIdleSetting hasPasskey />
+        <PasskeyIdleSetting hasPasskey copy={getDictionary("en").passcode} />
         <h2 className="nf-h3 mb-xs mt-block">Passcode: without a key</h2>
-        <PasskeyIdleSetting hasPasskey={false} />
+        <PasskeyIdleSetting hasPasskey={false} copy={getDictionary("en").passcode} />
       </section>
       <section className="nf-console mx-auto w-full max-w-[48rem]">
         <h2 className="nf-h3 mb-xs">Console keys</h2>

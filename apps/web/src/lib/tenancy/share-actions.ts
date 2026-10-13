@@ -18,7 +18,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../actions/session";
-import { parseNairaToKobo } from "../agent/listings-schema";
+import { parseNairaToKobo } from "../agent/listings-model";
 import { findUserByEmail, getAdminClient } from "@/lib/supabase/service";
 import { isPaystackConfigured } from "../payments/paystack";
 import { submitShareRefunds } from "./share-refunds";

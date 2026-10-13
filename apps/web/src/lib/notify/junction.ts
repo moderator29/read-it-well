@@ -7,6 +7,8 @@ import type { EmailMessage } from "@/lib/email/messages";
 import { contactForAgent, contactForUser, type Contact } from "@/lib/email/recipients";
 import type { Database } from "@/lib/supabase/database.types";
 
+import { writeInAppNotice } from "./in-app";
+
 /**
  * THE EMAIL AND NOTIFICATION JUNCTION.
  *
@@ -145,19 +147,17 @@ export async function announce(
 
   /* The in-app row first: our own database, no network beyond it, and the half
      that is still there next week. */
-  let notified = false;
-  try {
-    const { error } = await admin.from("notifications").insert({
-      user_id: userId,
-      kind: announcement.notice.kind,
-      title: announcement.notice.title,
-      body: announcement.notice.body,
-      href: announcement.notice.href,
-    });
-    notified = !error;
-  } catch {
-    notified = false;
-  }
+  /* Through the one in-app door, which applies the person's Bookings and
+     Messages switches the way `private.notify` does. A notice they have
+     switched off is not written, and the email half is unaffected. */
+  const written = await writeInAppNotice(admin, {
+    user_id: userId,
+    kind: announcement.notice.kind,
+    title: announcement.notice.title,
+    body: announcement.notice.body,
+    href: announcement.notice.href,
+  });
+  const notified = written.written > 0;
 
   if (!announcement.email) return { notified, emailed: "skipped" };
 

@@ -104,7 +104,7 @@ describe("guardMoney", () => {
   it("refuses every money-moving action on a locked session, before spending a slot", async () => {
     passcode.refusal = "Unlock Vallo with your passcode first.";
     try {
-      for (const action of ["startCardCheckout", "payWithSavedCard", "chargeSavedCard", "addBankAccount", "cryptoStart", "removeBankAccount"] as const) {
+      for (const action of ["startCardCheckout", "payWithSavedCard", "chargeSavedCard", "addBankAccount", "cryptoStart", "removeBankAccount", "startSubscriptionCheckout", "cancelSubscription"] as const) {
         const verdict = await guardMoney(action, "u");
         expect(verdict.allowed, action).toBe(false);
         if (!verdict.allowed) expect(verdict.message).toBe("Unlock Vallo with your passcode first.");
@@ -118,7 +118,7 @@ describe("guardMoney", () => {
   it("still answers the status polls on a locked session, so a paid payment is never hidden", async () => {
     passcode.refusal = "Unlock Vallo with your passcode first.";
     try {
-      for (const action of ["paymentState", "confirmCardSetup", "cryptoState", "cryptoQuote"] as const) {
+      for (const action of ["paymentState", "confirmCardSetup", "cryptoState", "cryptoQuote", "subscriptionCheckoutState"] as const) {
         expect((await guardMoney(action, "u")).allowed, action).toBe(true);
       }
     } finally {

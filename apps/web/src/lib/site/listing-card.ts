@@ -1,6 +1,5 @@
 import type { Dictionary } from "@vallo/i18n/core";
 import type { Listing, ListingKind } from "@/lib/listings/types";
-import { PERIOD_SUFFIX_SHORT } from "@/lib/listings/pricing";
 
 /**
  * The shape a listing takes on the landing page's floating cards.
@@ -53,7 +52,7 @@ export function toMiniListing(listing: Listing, t: Dictionary): MiniListing {
     place: listing.area ? `${listing.area}, ${listing.city}` : listing.city,
     priceMinor: listing.priceMinor,
     currency: listing.currency,
-    suffix: period ? PERIOD_SUFFIX_SHORT[period] : "",
+    suffix: period ? t.experienceLabels.periodShort[period] : "",
     photo: listing.photos[0] ?? null,
     hue: listing.hue,
     kind: listing.kind,

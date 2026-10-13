@@ -25,7 +25,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
       mode={s === "password-only" ? "password-only" : s === "unavailable" ? "unavailable" : "code"}
       length={s === "lock4" ? 4 : 6}
       name="Ada Okafor"
-      avatarUrl={s === "lock-photo" ? "/brand/session-b/roles/price-agency-person-256.png" : null}
+      avatarUrl={s === "lock-photo" ? "/brand/3d/team@2x.webp" : null}
       verify={fixtureWrongCode}
       passkey={s === "passkey"}
     />

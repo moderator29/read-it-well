@@ -1,11 +1,13 @@
 "use client";
 
+import type { HubCopy } from "@/components/app/account/settings-copy";
 import { clearListingDrafts } from "@/lib/agent/listing-draft-storage";
 import { initial } from "@/lib/text/initial";
 import { useState, useTransition } from "react";
 import Link from "next/link";
+import { withNext } from "@/lib/auth/next-link";
 import { useRouter } from "next/navigation";
-import { plural, type Dictionary, type Locale } from "@vallo/i18n/core";
+import { plural, type Locale } from "@vallo/i18n/core";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { SettingsGlyph, type SettingsGlyphName } from "@/components/app/account/SettingsGlyph";
 import { ICON } from "@/components/app/Screen";
@@ -17,13 +19,14 @@ import { useNfSettings } from "@/components/app/account/settings-store";
 import { clearPacks } from "@/lib/offline/pack-store";
 import { clearShelf } from "@/lib/offline/shelf-store";
 import { clearOutbox } from "@/lib/offline/outbox";
+import { forgetKeptPages } from "@/lib/offline/page-cache";
 import { forgetWidget } from "@/lib/native/widget";
 import { revokeWidgetTokens } from "@/lib/native/widget-actions";
 import { clearAllInflight } from "@/lib/offline/inflight";
 import { signOut } from "@/lib/profile/actions";
 import { clearLocalDevice, readLocalDevice } from "@/components/app/push/device-state";
 import { playThreshold } from "@/lib/motion/threshold";
-import type { ResolvedProfileSettings } from "@/lib/profile/schema";
+import type { ResolvedProfileSettings } from "@/lib/profile/model";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 
 /**
@@ -49,7 +52,7 @@ import { RemoteImage } from "@/components/ui/RemoteImage";
  */
 
 export type SettingsHubProps = {
-  t: Dictionary;
+  t: HubCopy;
   locale: Locale;
   signedIn: boolean;
   person: { name: string; email: string; avatarUrl: string; verified: boolean } | null;
@@ -63,8 +66,14 @@ export type SettingsHubProps = {
    * "nothing is needed" is not drawn).
    */
   phoneRow?: { label: string; sub: string } | null;
-  /** V-100: the renter passport row, for a signed-in person. Absent draws nothing. */
+  /** The Vallo passport row, for a signed-in person. Absent draws nothing. */
   passportRow?: { label: string; sub: string } | null;
+  /**
+   * The Rewards row, for a signed-in person: the Rewards page's title, and a
+   * line from the rewards read saying what that page will say (`rewardsDoorSub`;
+   * today "Rewards are not running yet"). Never a figure. Absent draws nothing.
+   */
+  rewardsRow?: { label: string; sub?: string | undefined } | null;
 };
 
 const ALL_ON: ResolvedProfileSettings["notifications"] = {
@@ -78,13 +87,13 @@ function ProfileRow({
   t,
   person,
 }: {
-  t: Dictionary;
+  t: HubCopy;
   person: SettingsHubProps["person"];
 }) {
   const hub = t.settings.hub;
   if (!person) {
     return (
-      <Link href="/sign-in" className="nf-panel nf-panel--card nf-hub-profile" data-testid="settings-profile-row">
+      <Link href={withNext("/sign-in", "/settings")} className="nf-panel nf-panel--card nf-hub-profile" data-testid="settings-profile-row">
         <span className="nf-hub-profile__avatar" aria-hidden="true">
           <UiIcon name="user" size={24} />
         </span>
@@ -245,6 +254,15 @@ export function SettingsHub({
           value={themeWord}
           testId="hub-appearance"
         />
+        {/* Accessibility was a destination in the settings menu and nowhere on
+            this screen, so it could not be found from here (7 October 2026). */}
+        <RowLink
+          href="/settings/accessibility"
+          glyph={<HubGlyph name="eye" />}
+          label={t.experienceSettings.accessibility.title}
+          sub={t.experienceSettings.accessibility.sub}
+          testId="hub-accessibility"
+        />
         <LanguageRow
           t={t}
           current={locale}
@@ -252,13 +270,17 @@ export function SettingsHub({
           sub={hub.languageSub}
           glyph={<HubGlyph name="globe" />}
         />
-        {/* A5: the member's own invite link. */}
         <RowLink
-          href="/settings/invite"
-          glyph={<HubGlyph name="users" />}
-          label={t.publicDoors.invite.rowTitle}
-          sub={t.publicDoors.invite.rowSub}
-          testId="hub-invite"
+          href="/settings/place"
+          glyph={<HubGlyph name="location" />}
+          label={t.experienceSettings.area.destinations.place}
+          testId="hub-place"
+        />
+        <RowLink
+          href="/settings/interests"
+          glyph={<HubGlyph name="heart" />}
+          label={t.experienceSettings.area.destinations.interests}
+          testId="hub-interests"
         />
       </SettingsGroup>
 
@@ -285,6 +307,14 @@ export function SettingsHub({
             testId="hub-passcode"
           />
         )}
+        {signedIn && (
+          <RowLink
+            href="/settings/devices"
+            glyph={<HubGlyph name="key" />}
+            label={t.experienceSettings.area.destinations.devices}
+            testId="hub-devices"
+          />
+        )}
       </SettingsGroup>
 
       {signedIn && (
@@ -295,15 +325,6 @@ export function SettingsHub({
             label={t.paymentsPage.settingsRow}
             sub="Cards you pay with, and the bank accounts you are paid into"
             testId="hub-payments"
-          />
-          {/* The record of what was paid and refunded. Read-only: there is
-              nothing held, so nothing here to top up or take out. */}
-          <RowLink
-            href="/payments"
-            glyph={<HubGlyph name="history" />}
-            label="Payment history"
-            sub="What you paid through Vallo, and every refund"
-            testId="hub-payment-history"
           />
         </SettingsGroup>
       )}
@@ -316,6 +337,13 @@ export function SettingsHub({
           sub={hub.helpSub}
           testId="hub-help"
         />
+        <RowLink
+          href="/docs"
+          glyph={<HubGlyph name="document" />}
+          label={about.docs}
+          sub={about.docsSub}
+          testId="hub-docs"
+        />
         <RowLink href="/terms" glyph={<HubGlyph name="document" />} label={about.terms} testId="hub-terms" />
         <RowLink href="/privacy" glyph={<HubGlyph name="eye-off" />} label={about.privacy} testId="hub-privacy-policy" />
         <RowLink href="/disclaimer" glyph={<HubGlyph name="info" />} label={about.disclaimer} testId="hub-disclaimer" />
@@ -325,7 +353,7 @@ export function SettingsHub({
 }
 
 /** Log Out, the last row on the screen. Real `signOut`, with its own error line. */
-export function LogOutRow({ t, signedIn }: { t: Dictionary; signedIn: boolean }) {
+export function LogOutRow({ t, signedIn }: { t: HubCopy; signedIn: boolean }) {
   const router = useRouter();
   const hub = t.settings.hub;
   const [signingOut, startSignOut] = useTransition();
@@ -364,6 +392,8 @@ export function LogOutRow({ t, signedIn }: { t: Dictionary; signedIn: boolean })
               /* SUP-16: a listing draft never outlives the session that wrote it. */
               clearListingDrafts();
               await clearOutbox();
+              /* The pages this phone kept for offline go with the session. */
+              await forgetKeptPages();
               await forgetWidget();
               clearAllInflight();
               clearLocalDevice();

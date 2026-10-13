@@ -140,6 +140,65 @@ the first rejection reason rather than a late one: Apple's guideline 2.1 asks
 for a demo account for anything behind a login, and Play's app access section
 is a form field that cannot be left blank.
 
+### Re-verified 6 October 2026 (directive D41), and exactly what running it requires
+
+**The two claims above still stand, with their dates.** Line 129 says no
+working reviewer account exists; line 132 says `scripts/seed/store-reviewer.mjs`
+has never been run. Both were measured on 23 September. The repository cannot
+see the production database, so whether it has been run since is UNKNOWN, but
+the latest evidence points the same way: `docs/sessions/SESSION-4-RESPONSE.md`
+(lines 1434 and 1530) still lists "No store reviewer account" as an open
+rejection risk, and `docs/THE_AUDIT.md` pass two counted 10 users and 0
+reviewer-like addresses. The live check is on the store desk,
+`/admin/operations?tab=store`, which tries the reviewer login and goes red if it
+fails. **Read that panel before anything else.** If the login row is green, the
+account exists and nothing below is needed.
+
+**This script WRITES to the production database. It was read on 6 October and
+was NOT run.** Run it only as the founder, and run `--dry-run` first (a dry run
+reads the account list through the admin API and writes nothing).
+
+What it needs, taken from the script itself (`scripts/seed/store-reviewer.mjs`):
+
+| Input | Required | What for | Privilege it grants |
+| --- | --- | --- | --- |
+| `SEED_REVIEWER_EMAIL` | yes (`required()`, exits 1 if missing) | the login to create or update | none |
+| `SEED_REVIEWER_PASSWORD` | yes, at least 12 characters (exits 1 if shorter) | set as that account's password; never printed | none |
+| `NEXT_PUBLIC_SUPABASE_URL` | yes | which project to write to. The project URL appears in `docs/store/FOUNDER_STEPS.md` section 4; use the PRODUCTION project and no other | none |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | yes | the final proof, a `signInWithPassword` exactly as the app does it | public, already in the deployment |
+| `SUPABASE_SERVICE_ROLE_KEY` | yes | `auth.admin.listUsers`, `createUser` or `updateUserById` (sets the password and confirms the email), and writes through RLS | **full database access that bypasses RLS. Treat it like a root password.** Pass it for the one run only; never put it in a file or a chat |
+| `SEED_REVIEWER_PASSCODE` | optional but needed in practice: 4 or 6 digits, not trivial | calls the `passcode_set` RPC as the reviewer so the app lock does not stop them (migration `20260929034124_passcode_member_app_lock_code_bcrypt_only.sql`) | none |
+
+Also needed on the machine that runs it: a checkout of this repository (the
+script reads `apps/web/src/lib/legal/versions.ts` for the Terms and Privacy
+versions, today `TERMS_VERSION` and `PRIVACY_VERSION` both `2026-09-25`),
+Node 20.9 or newer, `npm ci` already run (it imports `@supabase/supabase-js`),
+and outbound HTTPS to the Supabase project. This container has no route to it
+(see below).
+
+What it writes, so the founder can judge the blast radius: one `auth.users`
+row (created or updated); the profile, role and handle the sign-up trigger
+makes; two `terms_acceptances` rows (`source = store_review_seed`, one for
+terms and one for privacy, idempotent); and an attempted `wallets` row. It
+creates no listing, booking or message.
+
+**A stale step in the script, found 6 October and not edited (it is not in this
+file's remit).** The script upserts into `public.wallets`, but custody was
+retired on 25 September: migration
+`20260925163708_track_a1_vallo_never_holds_customer_money_custody_retired.sql`
+moves `wallets` out of `public` (lines 14 and 57). That upsert will therefore
+fail, and the script prints `wallet  NOT created: ...` and carries on, because it
+only reports the error. The account, receipts and sign-in proof are unaffected,
+so this is cosmetic, but a founder who sees that line should not read it as the
+run failing. The script's comment also describes a wallet whose empty state the
+reviewer sees; that is no longer a thing the product has. Whoever owns the
+script should delete the wallet step.
+
+**Re-run after any change to `PRIVACY_VERSION` or `TERMS_VERSION`.** The privacy
+notice may need a sentence about page speed samples (see
+`docs/store/PRIVACY_LABELS.md`), which would bump `PRIVACY_VERSION` and make
+the existing reviewer receipts stale.
+
 ### What the script does, so nobody has to read it to trust it
 
 `scripts/seed/store-reviewer.mjs`, run once with five environment values:

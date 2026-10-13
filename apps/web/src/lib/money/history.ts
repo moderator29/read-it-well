@@ -1,4 +1,5 @@
 import "server-only";
+import { reportReadFault } from "@/lib/observability/read-error";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../supabase/database.types";
@@ -57,6 +58,7 @@ async function readPage(
     p_limit: HISTORY_PAGE_SIZE + 1,
     p_before: before,
   } as never);
+  await reportReadFault(`read.money.${fn}`, error);
   if (error) return null;
   const entries = parseHistoryRows(data);
   if (!entries) return null;
@@ -72,6 +74,7 @@ export async function readMyPayments(before: string | null): Promise<HistoryRead
     session.supabase.rpc("my_payments_summary" as never),
     readPage(session.supabase, "my_payments_history", before),
   ]);
+  await reportReadFault("read.money.my_payments_summary", summaryRes.error);
   if (summaryRes.error || !page) return { state: "error" };
   const summary = parsePaymentsSummary(summaryRes.data);
   if (summary.status === "signed_out") return { state: "signed-out" };
@@ -88,6 +91,7 @@ export async function readMyEarnings(before: string | null): Promise<HistoryRead
     session.supabase.rpc("my_earnings_summary" as never),
     readPage(session.supabase, "my_earnings_history", before),
   ]);
+  await reportReadFault("read.money.my_earnings_summary", summaryRes.error);
   if (summaryRes.error || !page) return { state: "error" };
   const summary = parseEarningsSummary(summaryRes.data);
   if (summary.status === "signed_out") return { state: "signed-out" };
@@ -115,6 +119,7 @@ export async function readAdminMoneyHistory(
     userClient.rpc("admin_money_summary" as never, { p_from: range.from, p_to: range.to } as never),
     readAdminMoneyRows(userClient, { limit: options.limit, range }),
   ]);
+  await reportReadFault("read.money.admin_money_summary", summaryRes.error);
   if (summaryRes.error || rows === null) return { state: "error" };
   const summary = parseAdminSummary(summaryRes.data);
   if (summary.status === "forbidden") return { state: "forbidden" };
@@ -134,6 +139,7 @@ export async function readAdminMoneyRows(
     p_from: range.from,
     p_to: range.to,
   } as never);
+  await reportReadFault("read.money.admin_money_history", error);
   if (error) return null;
   return parseHistoryRows(data);
 }

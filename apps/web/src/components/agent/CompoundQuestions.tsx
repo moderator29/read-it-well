@@ -89,7 +89,7 @@ export function CompoundQuestions({
             onChange={(e) => patch({ flatsInCompound: e.target.value.replace(/[^0-9]/g, "").slice(0, 3) })}
           />
           {flatsError && (
-            <span role="alert" className="nf-body-sm mt-inline-tight block font-medium text-[var(--nf-state-error)]">
+            <span role="alert" className="nf-body-sm mt-inline-tight block font-semibold text-[var(--nf-state-error)]">
               {flatsError}
             </span>
           )}

@@ -27,6 +27,12 @@ describe("a missing record reads as neutral", () => {
     expect(src("app/(app)/checkout/page.tsx")).toContain('state={detail ? "expired" : "missing"}');
   });
 
+  it("a Record code that matches nobody, or fails, never wears the verified shield", () => {
+    const text = src("app/(app)/record/[code]/page.tsx");
+    expect(text).not.toContain('icon="shield-check"');
+    expect(text).toContain('<State kind="empty" art={false} title={copy.lookupMissingTitle}');
+  });
+
   it("the admin page uses the no-match mark, not the success shield", () => {
     expect(src("app/admin/bookings/[bookingId]/page.tsx")).toContain(
       '<ui.QueueEmpty title={copy.goneTitle} body={copy.goneBody} state="no-match" />',

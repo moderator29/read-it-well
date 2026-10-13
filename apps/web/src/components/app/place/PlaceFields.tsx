@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChoicePicker, type ChoiceGroup } from "./ChoicePicker";
 import { fetchLocalGovernments, fetchOccupations } from "@/lib/places/actions";
 import { groupOccupations, type StateOption } from "@/lib/places/reference";
-import type { Dictionary } from "@vallo/i18n/core";
+import type { PickersCopy } from "@/components/app/welcome/welcome-copy";
 
 /**
  * Country, state, local government, and what you do.
@@ -39,7 +39,7 @@ export function PlaceFields({
 }: {
   /* Handed down from the server component that resolved the locale. Both
      pickers below draw a dozen words each and none of them may be English. */
-  t: Dictionary;
+  t: PickersCopy;
   states: StateOption[];
   value: PlaceValues;
   onChange: (next: PlaceValues) => void;

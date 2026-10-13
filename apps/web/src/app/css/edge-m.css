@@ -60,6 +60,15 @@
  * `.nf-edge-lap` is left to that ring and not given a second light here.
  * Ordinary cards and buttons get no moving light at all.
  *
+ * TWO LAPS, THEN STILL (Session 3, C1; MOTION_SYSTEM principle 10, "nothing
+ * loops forever except the aurora and the assistant's thinking state"). These
+ * runners ran `infinite`, on the dock of every screen and on every hero band
+ * and summary card, which made them the product's biggest ambient loop. They
+ * now take two laps from the page's arrival (the logo plate's lap and the
+ * site's edge lap are bounded the same way) and end with the runner shrunk to
+ * a point, so the rim is simply its own border afterwards. The round button's
+ * ring is turned twice and rests where it stops.
+ *
  * WHEN IT STOPS. Reduced motion, data saving, the Living backgrounds switch
  * off, and the Calm and Off motion levels all remove the light: the runners
  * are simply not drawn, and every element keeps its own border.
@@ -172,7 +181,7 @@
       )
       left bottom / 100% var(--nf-edge-w) no-repeat;
     animation: nf-edge-long var(--nf-edge-lap, 7.5s) linear
-      var(--nf-edge-delay, 0s) infinite;
+      var(--nf-edge-delay, 0s) 2 both;
   }
 
   /* The side runner. */
@@ -205,7 +214,7 @@
       )
       right top / var(--nf-edge-w) 100% no-repeat;
     animation: nf-edge-side var(--nf-edge-lap, 7.5s) linear
-      var(--nf-edge-delay, 0s) infinite;
+      var(--nf-edge-delay, 0s) 2 both;
   }
 
   /* One lap: the top takes 35 parts, the right side 15, the bottom 35, the
@@ -311,7 +320,7 @@
     -webkit-mask-composite: xor;
     mask: linear-gradient(black 0 0) content-box exclude,
       linear-gradient(black 0 0);
-    animation: nf-edge-turn var(--nf-edge-lap, 7.5s) linear infinite;
+    animation: nf-edge-turn var(--nf-edge-lap, 7.5s) linear 2 both;
   }
   @keyframes nf-edge-turn {
     to {

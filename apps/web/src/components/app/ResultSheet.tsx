@@ -80,8 +80,13 @@ export type ResultState =
  * The screen form also says "missing" (UI-15): the thing is not there, or not
  * yours. Neither a failure the person can act on nor good news, so it is
  * neutral: never rose, never a success mark. The sheet never shows it.
+ *
+ * It also says "sign-in": the page needs the person signed in before it can
+ * show anything (a payment, a stay's checkout). Nothing has happened yet, so
+ * it is neutral too: a lock on the neutral plate, never the brand "verified"
+ * shield that `confirmed` draws (Round 3 sweep, C3).
  */
-export type ResultScreenState = ResultState | "missing";
+export type ResultScreenState = ResultState | "missing" | "sign-in";
 
 export type ResultAction = {
   label: string;
@@ -118,6 +123,12 @@ type Common = {
   mark?: BrandIconName;
   /** Small print under the actions. A receipt link, a support route. */
   footnote?: ReactNode;
+  /**
+   * What the hand feels instead of the state's own (`FEEL`). For a done
+   * state that is not a payoff: devices signed out is `confirmed`, and it is
+   * a security step, not good news, so it feels as the commit it was.
+   */
+  haptic?: FeedbackKind | null;
 };
 
 export type ResultSheetProps = Common &
@@ -172,6 +183,7 @@ const PLATE: Record<ResultScreenState, { tone: IconPlateTone; glyph: UiIconName 
   failed: { tone: "error", glyph: "close" },
   expired: { tone: "info", glyph: "history" },
   missing: { tone: "info", glyph: "search" },
+  "sign-in": { tone: "neutral", glyph: "lock" },
 };
 
 function ResultPlate({ state }: { state: ResultScreenState }) {
@@ -187,13 +199,19 @@ function ResultPlate({ state }: { state: ResultScreenState }) {
  * V-30: WHAT EACH STATE FEELS LIKE. The outcome is felt when it is known,
  * which is when this sheet opens, not when the button was pressed. `expired`
  * is felt as nothing: a window closing is neither news nor a fault.
+ *
+ * PENDING AND REVIEW ARE FELT AS NOTHING (CRAFT_DOCTRINE 6: "nothing in a
+ * passive state ever vibrates"; one error pattern). They were a third, sharp
+ * "warning" buzz for a payment that is still on its way: the hand was told
+ * something had gone wrong while the words said wait. The commit was already
+ * felt when it was accepted, and the outcome is felt when it arrives.
  */
 const FEEL: Record<ResultState, FeedbackKind | null> = {
   sent: "success",
   received: "success",
   confirmed: "success",
-  pending: "warning",
-  review: "warning",
+  pending: null,
+  review: null,
   failed: "error",
   expired: null,
 };
@@ -207,6 +225,7 @@ const STATE: Record<ResultScreenState, { ink: string }> = {
   failed: { ink: "var(--nf-state-error)" },
   expired: { ink: "var(--nf-content-muted)" },
   missing: { ink: "var(--nf-content-muted)" },
+  "sign-in": { ink: "var(--nf-content-muted)" },
 };
 
 export function ResultSheet(props: ResultSheetProps) {
@@ -236,11 +255,12 @@ export function ResultSheet(props: ResultSheetProps) {
 
   /* Felt once per opening, and again only if the state itself changes while
      open (pending becoming sent is a second piece of news). */
+  const override = props.haptic;
   useEffect(() => {
     if (!open) return;
-    const kind = FEEL[state];
+    const kind = override === undefined ? FEEL[state] : override;
     if (kind) feedback(kind);
-  }, [open, state]);
+  }, [open, state, override]);
 
   return (
     <Sheet
@@ -317,7 +337,7 @@ export function ResultSheet(props: ResultSheetProps) {
             a reader who sees no hue at all still gets the same answer. */}
         <p
           role={state === "failed" ? "alert" : undefined}
-          className="nf-h2 mt-block max-w-[18ch] font-extrabold tracking-[-0.02em] [text-wrap:balance]"
+          className="nf-h2 mt-block max-w-[18ch] font-bold tracking-[-0.02em] [text-wrap:balance]"
           style={{
             color: state === "failed" ? "var(--nf-result-ink)" : "var(--nf-content-primary)",
           }}
@@ -328,7 +348,7 @@ export function ResultSheet(props: ResultSheetProps) {
         {fact && (
           <div className="mt-row">
             {fact.amountMinor !== undefined && (
-              <p className="nf-numeric text-[clamp(2rem,9vw,2.75rem)] font-extrabold leading-none tracking-[-0.03em] text-[var(--nf-content-primary)]">
+              <p className="nf-numeric text-[clamp(2rem,9vw,2.75rem)] font-bold leading-none tracking-[-0.03em] text-[var(--nf-content-primary)]">
                 <Amount
                   minorUnits={fact.amountMinor}
                   locale={locale}
@@ -457,6 +477,7 @@ export function ResultScreen({
   consequence,
   actions,
   footnote,
+  heading = false,
   "data-testid": testId,
 }: {
   state: ResultScreenState;
@@ -466,6 +487,15 @@ export function ResultScreen({
   /** Kept for existing callers and no longer drawn (SW-ST3). */
   mark?: BrandIconName;
   footnote?: ReactNode;
+  /**
+   * The verdict is the page's one h1. Off by default, because most callers sit
+   * under a page that already has its own heading; a public door whose whole
+   * page is this screen (a safety share, a landlord's reply link) turns it on,
+   * so the page is not left without one. On a failure the alert role moves to a
+   * wrapper around the heading and the sentence, since `role="alert"` on the
+   * heading itself would replace its heading semantics.
+   */
+  heading?: boolean;
   "data-testid"?: string;
 }) {
   const tone = STATE[state];
@@ -483,16 +513,30 @@ export function ResultScreen({
         announced one assertively before; a screen a person lands on after a
         crash should say so rather than wait to be read.
       */}
-      <p
-        role={bad ? "alert" : undefined}
-        className="nf-h2 mt-block max-w-[18ch] font-extrabold tracking-[-0.02em] [text-wrap:balance]"
-        style={{ color: bad ? "var(--nf-result-ink)" : "var(--nf-content-primary)" }}
-      >
-        {verdict}
-      </p>
-      <p className="nf-body mt-row max-w-[38ch] leading-relaxed text-[var(--nf-content-secondary)]">
-        {consequence}
-      </p>
+      {(() => {
+        const Verdict = heading ? "h1" : "p";
+        const words = (
+          <>
+            <Verdict
+              role={bad && !heading ? "alert" : undefined}
+              className="nf-h2 mt-block max-w-[18ch] font-bold tracking-[-0.02em] [text-wrap:balance]"
+              style={{ color: bad ? "var(--nf-result-ink)" : "var(--nf-content-primary)" }}
+            >
+              {verdict}
+            </Verdict>
+            <p className="nf-body mt-row max-w-[38ch] leading-relaxed text-[var(--nf-content-secondary)]">
+              {consequence}
+            </p>
+          </>
+        );
+        return bad && heading ? (
+          <div role="alert" className="flex flex-col items-center">
+            {words}
+          </div>
+        ) : (
+          words
+        );
+      })()}
       {actions && actions.length > 0 && (
         <div className="mt-group flex w-full max-w-sm flex-col gap-row">
           {actions.map((action) =>

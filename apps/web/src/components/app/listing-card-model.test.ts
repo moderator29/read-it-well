@@ -173,7 +173,7 @@ describe("cardPrice", () => {
       minor: 675_000_000,
       approximate: false,
       rentMinor: 450_000_000,
-      rentSuffix: "/yr",
+      rentPeriod: "year",
     });
   });
 
@@ -191,7 +191,7 @@ describe("cardPrice", () => {
 
   it("keeps the rent as the lead when the lister named nothing", () => {
     const price = cardPrice(listing({ pricePeriod: "year", priceMinor: 450_000_000 }));
-    expect(price).toEqual({ lead: "headline", minor: 450_000_000, suffix: "/yr" });
+    expect(price).toEqual({ lead: "headline", minor: 450_000_000, period: "year" });
   });
 
   /* Nobody pays an agency fee for two nights, so a rate is never a move-in. */
@@ -199,14 +199,14 @@ describe("cardPrice", () => {
     const price = cardPrice(
       listing({ pricePeriod: "night", priceMinor: 9_500_000, moveInCostMinor: 40_000_000 }),
     );
-    expect(price).toEqual({ lead: "headline", minor: 9_500_000, suffix: "/night" });
+    expect(price).toEqual({ lead: "headline", minor: 9_500_000, period: "night" });
   });
 
   it("leads a sale with its asking price and no period suffix", () => {
     const price = cardPrice(
       listing({ intent: "sale", priceMinor: 52_000_000_000, pricePeriod: undefined }),
     );
-    expect(price).toEqual({ lead: "headline", minor: 52_000_000_000, suffix: "" });
+    expect(price).toEqual({ lead: "headline", minor: 52_000_000_000, period: "sale" });
   });
 
   it("answers none rather than zero when the row states no figure at all", () => {

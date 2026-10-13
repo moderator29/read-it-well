@@ -172,7 +172,7 @@ const SIGN_OFF = "Vallo";
 /* The legal line, mirrored from LEGAL_LINE in theme.ts and asserted equal.
    Carries the RC number from 22 September; shell.test.ts asserts that this
    file, theme.ts and company.ts all agree, so the three cannot half update. */
-const LEGAL_LINE = "VALLO SPACES LTD (RC 9870413), Abuja, Nigeria";
+const LEGAL_LINE = "VALLO SPACES LTD (RC 9870413), Plot 5, Zone 6, Dutse Alhaji, Bwari Area Council, FCT, Abuja, Nigeria";
 
 /* ------------------------------------------------------------------------- *
  * Blocks. Each template is a list of these, rendered twice: once as the HTML

@@ -2,6 +2,8 @@
 
 import { useActionState } from "react";
 import type { Dictionary } from "@vallo/i18n/core";
+import { Button } from "@/components/ui/Button";
+import { Radio } from "@/components/ui/Check";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { flagPepPerson } from "@/lib/compliance/pep-actions";
 
@@ -23,10 +25,9 @@ export function PepFlagForm({ copy, question }: { copy: Dictionary["compliancePe
         <legend className="nf-label mb-inline">{question.who}</legend>
         <div className="flex flex-wrap gap-xs">
           {(["self", "family", "associate"] as const).map((value) => (
-            <label key={value} className="nf-btn nf-btn--glass min-h-[44px] cursor-pointer">
-              <input type="radio" name="relation" value={value} className="mr-xs" />
+            <Radio key={value} name="relation" value={value}>
               {copy.relation[value]}
-            </label>
+            </Radio>
           ))}
         </div>
       </fieldset>
@@ -44,12 +45,12 @@ export function PepFlagForm({ copy, question }: { copy: Dictionary["compliancePe
         <input id="pep-flag-note" name="note" required minLength={2} maxLength={600} className="nf-field mt-xs min-h-[44px] w-full" />
       </div>
       <div className="flex flex-wrap gap-xs">
-        <button type="submit" name="flagged" value="yes" disabled={pending} className="nf-btn nf-btn--primary min-h-[44px] disabled:opacity-60">
+        <Button type="submit" name="flagged" value="yes" variant="primary" disabled={pending}>
           {copy.flag}
-        </button>
-        <button type="submit" name="flagged" value="no" disabled={pending} className="nf-btn nf-btn--glass min-h-[44px] disabled:opacity-60">
+        </Button>
+        <Button type="submit" name="flagged" value="no" variant="secondary" disabled={pending}>
           {copy.clear}
-        </button>
+        </Button>
       </div>
       {state?.ok ? (
         <p role="status" className="nf-caption text-[var(--nf-content-secondary)]">

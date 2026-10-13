@@ -4,6 +4,7 @@ import { Button, ButtonLink } from "@/components/ui/Button";
 import { useErrorReport } from "@/lib/observability/use-error-report";
 import { useClientCopy } from "@/lib/i18n/client-copy";
 import { StateMoment } from "@/components/ui/StateMoment";
+import { useOfflineBoundary } from "@/lib/offline/use-offline";
 
 /**
  * Personal Mode's error boundary: the brand moment, inside the chrome.
@@ -43,6 +44,36 @@ export default function AppError({
      read from the whole dictionary, which every in-app route shipped for it. */
   const clientCopy = useClientCopy();
   const COPY = clientCopy.trustVisible.state;
+  const [refBefore = "", refAfter = ""] = COPY.screenErrorRef.split("{digest}");
+
+  /* NO SIGNAL IS NOT A FAULT (13 October 2026). A segment that could not load
+     because the phone is offline says so in one calm line, with no reference
+     to quote and no "tell support", and loads itself again when the signal
+     returns. The same words in the agent and host boundaries. */
+  const offline = useOfflineBoundary(reset);
+  if (offline) {
+    return (
+      <StateMoment
+        kind="offline"
+        home="/home"
+        homeLabel={clientCopy.a11y.logoHome}
+        inset
+        overline={COPY.offlineOverline}
+        title={clientCopy.fixesV2.offline.title}
+        body={clientCopy.fixesV2.offline.body}
+        actions={
+          <div className="nf-system__actions">
+            <Button variant="primary" size="lg" full onClick={reset}>
+              {clientCopy.authFlow.tryAgain}
+            </Button>
+            <ButtonLink href="/home" variant="secondary" size="lg" full>
+              {clientCopy.a11y.logoHome}
+            </ButtonLink>
+          </div>
+        }
+      />
+    );
+  }
 
   /* V-97: the state kit's full-screen form, in the voice's words. */
   return (
@@ -54,7 +85,14 @@ export default function AppError({
       overline={COPY.screenErrorOverline}
       title={COPY.screenErrorTitle}
       body={COPY.screenErrorBody}
-      detail={<p className="nf-system__ref select-all">{COPY.screenErrorRef.replace("{digest}", reference)}</p>}
+      detail={
+        /* Only the code selects as one (support needs the code, not the sentence). */
+        <p className="nf-system__ref">
+          {refBefore}
+          <span className="nf-numeric select-all">{reference}</span>
+          {refAfter}
+        </p>
+      }
       actions={
         <div className="nf-system__actions">
           <Button variant="primary" size="lg" full onClick={reset}>

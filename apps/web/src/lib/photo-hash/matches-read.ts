@@ -1,4 +1,5 @@
 import "server-only";
+import { reportReadError } from "@/lib/observability/read-error";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireAdmin } from "../admin/guard";
@@ -43,6 +44,7 @@ export async function readPhotoProvenance(listingId: string): Promise<PhotoProve
       supabase.rpc("listing_photo_hash_coverage", { p_listing: listingId }),
     ]);
     const cov = coverageFrom(coverage.data);
+    await reportReadError("read.matches.readPhotoProvenance", matches.error, coverage.error);
     if (matches.error || coverage.error || !cov) return { state: "failed" };
     return { state: "ok", matches: photoMatchesFrom(matches.data), coverage: cov };
   } catch {
@@ -65,6 +67,7 @@ export async function readPhotoMatchCounts(listingIds: readonly string[]): Promi
     listingIds.slice(0, 60).map(async (id) => {
       try {
         const { data, error } = await supabase.rpc("listing_photo_matches", { p_listing: id });
+        await reportReadError("read.matches.readPhotoMatchCounts", error);
         if (error) return;
         const photos = new Set(photoMatchesFrom(data).map((m) => m.photoId));
         out.set(id, photos.size);

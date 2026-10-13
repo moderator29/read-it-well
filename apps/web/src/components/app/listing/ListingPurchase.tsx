@@ -4,6 +4,7 @@ import { Amount } from "@/components/ui/Amount";
 import { DetailGlyph } from "./DetailGlyph";
 import { TYPE } from "@/components/app/Screen";
 import { purchaseLines } from "./purchase-lines";
+import "@/app/css/catalogue.css";
 
 /**
  * WHAT IT WILL ACTUALLY COST TO BUY.

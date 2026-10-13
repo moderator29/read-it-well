@@ -11,7 +11,13 @@ import { ListingAgentCard } from "@/components/app/listing/ListingAgentCard";
 import { ListingAbout } from "@/components/app/listing/ListingAbout";
 import { ListingStickyBar } from "@/components/app/listing/ListingStickyBar";
 import { PhotoViewerProvider } from "@/components/app/listing/PhotoViewer";
-import { RENTAL } from "../fixtures";
+import { RENTAL, SHELF } from "../fixtures";
+import { FeaturedBand } from "@/components/app/home/FeaturedBand";
+import { ListingCard } from "@/components/app/ListingCard";
+import { forListingCard } from "@/lib/i18n/slice";
+import { ListingMapPanel } from "@/components/app/listing/ListingMapPanel";
+import { areaPoint } from "@/components/app/search/mapGeo";
+import { airportFor, straightKm } from "@/lib/maps/landmarks";
 
 /**
  * /listing/[id] on a tenancy, composed from the same components the route
@@ -28,6 +34,8 @@ export default async function ListingPreview() {
   const listing = RENTAL;
   const where = `${listing.area}, ${listing.city}, Lagos State`;
   const messageHref = `/messages/new?listing=${listing.id}`;
+  const mapPoint = areaPoint(listing.city, listing.area);
+  const airport = airportFor(listing.city);
 
   return (
     <PhotoViewerProvider title={listing.title} photos={listing.photos} hue={listing.hue} kind={listing.kind}>
@@ -50,7 +58,7 @@ export default async function ListingPreview() {
           <Stack>
             <Section className="nf-rise nf-glass nf-glass--card nf-detail-lead scroll-mt-16" id="overview">
               <h1 className="nf-h2 [overflow-wrap:anywhere]">{listing.title}</h1>
-              <a href="#location" className={`mt-inline-tight inline-flex max-w-full items-center gap-inline ${TYPE.body}`}>
+              <a href="#location" className={`nf-tap mt-inline-tight inline-flex max-w-full items-center gap-inline ${TYPE.body}`}>
                 <UiIcon name="location" size={ICON.inline} className="shrink-0 text-[var(--nf-brand-secondary)]" />
                 <span className="min-w-0">{where}</span>
                 <UiIcon name="arrow-right" size={16} className="shrink-0 text-[var(--nf-brand-secondary)]" />
@@ -87,7 +95,12 @@ export default async function ListingPreview() {
                 like the day `listings.listing_role` lands.
             */}
             <Section title={t.moveIn.title} description={t.moveIn.lede} divided>
-              <ListingMoveIn listing={listing} locale={locale} t={t} />
+              <ListingMoveIn
+                listing={listing}
+                locale={locale}
+                t={t}
+                actions={{ ledgerHref: "/preview/f3/move-in", messageHref, shareTitle: listing.title }}
+              />
             </Section>
 
             <Section title="The same listing, declared by its owner" divided>
@@ -115,7 +128,7 @@ export default async function ListingPreview() {
               tabs={[
                 { id: "overview", label: t.catalogue.detail.overview },
                 { id: "amenities", label: t.catalogue.detail.amenities },
-                { id: "location", label: t.catalogue.detail.location },
+                { id: "location", label: t.experienceDetail.map.tab },
                 { id: "reviews", label: t.catalogue.detail.reviews },
               ]}
             />
@@ -136,13 +149,17 @@ export default async function ListingPreview() {
               <ListingAmenityTiles amenities={listing.amenities} />
             </Section>
 
-            <Section id="location" title={t.catalogue.detail.location} divided className="scroll-mt-16">
-              <div className="nf-glass nf-glass--card nf-detail-lead">
-                <p className={`flex items-start gap-inline ${TYPE.body}`}>
-                  <UiIcon name="location" size={ICON.inline} className="mt-3xs shrink-0 text-[var(--nf-brand-secondary)]" />
-                  <span className="min-w-0">{where}</span>
-                </p>
-              </div>
+            {/* The Map tab, as the route draws it (ListingMapPanel). */}
+            <Section id="location" title={t.experienceDetail.map.title} divided className="scroll-mt-16">
+              <ListingMapPanel
+                where={where}
+                area={listing.area}
+                point={mapPoint}
+                airport={mapPoint && airport ? { name: airport.name, km: straightKm(mapPoint, airport.at) } : null}
+                hasWalkthrough={(listing.videos?.length ?? 0) > 0}
+                photoCount={listing.photos.length}
+                copy={t.experienceDetail.map}
+              />
             </Section>
 
             <Section title={t.catalogue.detail.agent} divided>
@@ -152,6 +169,23 @@ export default async function ListingPreview() {
             <Section id="reviews" title={t.catalogue.detail.reviews} divided className="scroll-mt-16">
               <p className={TYPE.rowMeta}>No reviews yet.</p>
             </Section>
+
+            {/* The route streams `SimilarListings` (a catalogue read); the
+                harness draws the same band and card from the shelf fixture. */}
+            <FeaturedBand
+              title={t.experienceDetail.similar.title}
+              seeAllHref="/preview/f3/search"
+              seeAllLabel={t.experienceDetail.similar.seeAll}
+              count={SHELF.length}
+              testId="similar-listings"
+              empty={null}
+            >
+              {SHELF.filter((row) => row.id !== listing.id).slice(0, 6).map((row, index) => (
+                <li key={row.id} className="nf-feature-row__item">
+                  <ListingCard listing={row} locale={locale} t={forListingCard(t)} index={index} />
+                </li>
+              ))}
+            </FeaturedBand>
           </Stack>
         </div>
         <ListingStickyBar

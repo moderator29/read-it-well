@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
+import { gateFirstRun } from "@/components/app/feature-onboarding/first-run-store";
 import { AgentShell } from "@/components/agent/AgentShell";
 import {
   agentProfileFrom,
@@ -9,6 +10,9 @@ import {
   readAgentNumbers,
 } from "@/lib/agent/listings-queries";
 import { RealDashboard } from "./RealDashboard";
+import { readRequestSeries } from "./request-series";
+import { loadAgentDash, loadOwnerDash } from "./dashboard-data";
+import { DeskFigure } from "@/components/workspace/DeskFigure";
 import { StillAvailableCard } from "@/components/agent/StillAvailableCard";
 import { readLiveFreshness } from "@/lib/agent/freshness-read";
 import { daysSinceConfirmed, dueForConfirmation } from "@/lib/agent/freshness";
@@ -19,6 +23,7 @@ import { ButtonLink } from "@/components/ui/Button";
 import { SUPPLY_DOOR_HREF } from "@/components/agent/agent-doors";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { IconPlate } from "@/components/ui/IconPlate";
+import { withNext } from "@/lib/auth/next-link";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
@@ -53,17 +58,28 @@ function requestTime(): number {
   return Date.now();
 }
 
-export default async function AgentDashboardPage() {
+export default async function AgentDashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const locale = await getLocale();
   const t = getDictionary(locale);
   const a = t.agent.dashboard;
 
   const context = await getAgentContext();
   if (context.state === "agent") {
+    /* The workspace's first run (north star 14.1, D11): once, for an agent,
+       before anything is read. Fails towards drawing the workspace. */
+    await gateFirstRun("agent", "/agent/dashboard", await searchParams);
+
     /* Two independent reads, so they cost one round trip rather than two.
        On the connections this product is built for that is the difference
        between a dashboard and a wait. */
-    const [numbers, inspections, standing, freshness] = await Promise.all([
+    const figureNow = new Date(requestTime());
+    /* One account holds one side (`agents.role`): the cards differ, the page does not. */
+    const ownerSide = context.agent.role === "owner";
+    const [numbers, inspections, standing, freshness, requestRows, ownerDash] = await Promise.all([
       readAgentNumbers(context.supabase, context.agent.id, context.user.id),
       readInspectionsForLister(),
       /*
@@ -77,9 +93,25 @@ export default async function AgentDashboardPage() {
       getKycStanding(context),
       /* C5: the live listings due a "still available?". Null until the column exists. */
       readLiveFreshness(context.supabase, context.agent.id),
+      /* The figure card (reference 5): viewing requests over the last thirty days. */
+      ownerSide ? Promise.resolve(null) : readRequestSeries(context.supabase, context.user.id, figureNow),
+      /* The owner's units, rent paid through Vallo, leases and agreements. */
+      ownerSide ? loadOwnerDash(context, figureNow) : Promise.resolve(null),
     ]);
     const now = requestTime();
     const due = freshness ? dueForConfirmation(freshness, now) : [];
+    const workspace =
+      ownerSide && ownerDash
+        ? ({ role: "owner", view: ownerDash.view, places: ownerDash.places } as const)
+        : ({
+            role: "agent",
+            dash: await loadAgentDash(context, {
+              now: figureNow,
+              liveListings: numbers.liveListings,
+              freshness,
+              dueCount: freshness ? due.length : null,
+            }),
+          } as const);
     return (
       <AgentShell
         t={t}
@@ -101,6 +133,9 @@ export default async function AgentDashboardPage() {
           displayName={context.agent.displayName}
           numbers={numbers}
           inspections={inspections}
+          figure={<DeskFigure rows={requestRows} kind="viewings" t={t} locale={locale} now={figureNow} />}
+          workspace={workspace}
+          now={figureNow}
         />
       </AgentShell>
     );
@@ -120,7 +155,7 @@ export default async function AgentDashboardPage() {
           cta: t.common.back,
         }
       : context.state === "signed-out"
-        ? { title: a.signedOutTitle, body: a.signedOutBody, href: "/sign-in", cta: t.common.signIn }
+        ? { title: a.signedOutTitle, body: a.signedOutBody, href: withNext("/sign-in", "/agent/dashboard"), cta: t.common.signIn }
         : {
             title: a.notAgentTitle,
             body: a.notAgentBody,

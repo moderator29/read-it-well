@@ -5,8 +5,7 @@ import type { StepPhoto } from "./step-photos";
 
 /**
  * THE PIECES A FULL-PAGE STEP IS DRAWN FROM (30 September), shared by the
- * steps (`FirstRun.tsx`) and the cold-start intro (`app/welcome/
- * WelcomeIntro.tsx`) so the two read as one place. Every visual rule is in
+ * steps of the one onboarding (`FirstRun.tsx`). Every visual rule is in
  * `app/welcome/welcome.css`. Server-safe: nothing here holds state.
  */
 
@@ -59,23 +58,23 @@ export function RiseWords({ text, start = 0 }: { text: string; start?: number })
  * the light theme gets the artwork made for a light ground.
  */
 export function Lockup({ onCanvas = false, themed = false }: { onCanvas?: boolean; themed?: boolean }) {
-  const pair = (day: boolean) => (
+  /* One artwork in both themes (D82); the two sets welcome.css switches
+     between are the same picture. */
+  const pair = (_day: boolean) => (
     <>
       <Image
-        src={day ? "/brand/vallo-mark-light.png" : "/brand/vallo-mark.png"}
+        src="/brand/vallo-mark.svg"
         alt=""
-        width={614}
-        height={587}
-        sizes="28px"
+        width={776}
+        height={664}
         priority
         className="nf-gs-lockup__mark"
       />
       <Image
-        src={day ? "/brand/vallo-wordmark-light.png" : "/brand/vallo-wordmark.png"}
+        src="/brand/vallo-wordmark.svg"
         alt=""
-        width={758}
-        height={167}
-        sizes="84px"
+        width={1664}
+        height={352}
         priority
         className="nf-gs-lockup__word"
       />

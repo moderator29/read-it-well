@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  kindFromAgentType,
+  kindFromSupplyRole,
   makeWorkspace,
   needsFlip,
   orderWorkspaces,
@@ -22,14 +22,9 @@ const ws = (over: Partial<Workspace> & Pick<Workspace, "key">): Workspace => ({
 });
 
 describe("what the database can say today", () => {
-  /*
-   * `agents.role` does not exist yet, so the person axis is still
-   * `agents.type`, which has never meant owner or agent. The mapping lives in
-   * one function so the day the column lands there is one line to change.
-   */
-  it("reads an individual as an owner and a business as an agent, for now", () => {
-    expect(kindFromAgentType("individual")).toBe("owner");
-    expect(kindFromAgentType("business")).toBe("agent");
+  it("reads the agents row by its side: owner is the owner workspace, agent the agent one", () => {
+    expect(kindFromSupplyRole("owner")).toBe("owner");
+    expect(kindFromSupplyRole("agent")).toBe("agent");
   });
 
   it("maps every application status onto a standing the sheet can draw", () => {

@@ -5,7 +5,9 @@ import { actionLabel, entityTypeLabel } from "@/lib/admin/audit-filter";
 import type { AlertView } from "@/lib/admin/queries";
 import { AreaTimeChart } from "@/components/agent/charts/AreaTimeChart";
 import { isQaAccount, type AlertTrend, type InspectionActivity, type JobHealth, type NotificationActivity, type PersonTier, type PushActivity } from "@/lib/admin/reads/shapes";
-import { EmailOutboxPanel, PushActivityPanels } from "./PushActivityPanels";
+import { PushActivityPanels } from "./PushActivityPanels";
+import { EmailOutboxPanel } from "./OpsReadPanels";
+import { inFlightWaiting, outboxWaiting, type OpsRead, type OpsReads } from "@/lib/admin/reads/ops-panels-model";
 import { InFlight } from "./InFlight";
 import { StorePanel } from "./StorePanel";
 import type { StoreRun } from "@/lib/store/run";
@@ -17,6 +19,7 @@ import {
   type DatabaseJobsSummary,
 } from "@/lib/admin/reads/jobs";
 import { niceTicks, periodDelta, sinceLabel } from "../_components/metrics";
+import { DeskSections } from "../_components/DeskSections";
 import { alertRows } from "../_components/OverviewView";
 import {
   AlertList,
@@ -26,6 +29,7 @@ import {
   KpiGrid,
   NotWired,
   PageHead,
+  ReadOnlyNote,
   Panel,
   PanelLink,
   PanelUnavailable,
@@ -69,6 +73,8 @@ export type OperationsProps = {
   inspections?: InspectionActivity | null;
   /** V-52: the store readiness checks, run live on the Store tab only. */
   store?: StoreRun | null;
+  /** The staff reads of the pending Operations draft; each is `missing` until it is applied. */
+  ops?: OpsReads;
 };
 
 function stamp(iso: string | null, locale: Locale): string {
@@ -144,8 +150,8 @@ export function OperationsView(props: OperationsProps) {
     { key: "jobs", label: c.tabJobs },
     { key: "alerts", label: c.tabAlerts, count: props.trend?.openNow },
     { key: "audit", label: c.tabAudit },
-    { key: "notifications", label: c.tabNotifications },
-    { key: "inflight", label: c.tabInFlight },
+    { key: "notifications", label: c.tabNotifications, count: outboxWaiting(props.ops) || undefined },
+    { key: "inflight", label: c.tabInFlight, count: inFlightWaiting(props.ops) || undefined },
     { key: "store", label: getDictionary(locale).frontDoor.store.tab },
   ].map((t) => ({
     ...t,
@@ -155,38 +161,56 @@ export function OperationsView(props: OperationsProps) {
   /* V-80: field speed is its own desk; Operations is where it is found. */
   tabs.push({ key: "field-speed", label: getDictionary(locale).platform.fieldSpeed.title, href: "/admin/field-speed", active: false });
 
+  /* The desk's sections in the glass pull, as the Money desk has them: the
+     figures, whichever tab is open, then the two records every tab shares. */
+  const x = getDictionary(locale).experienceAdmin;
+  const sections = [
+    { id: "ops-health", label: x.sections.health, icon: "bolt" as const },
+    { id: "ops-detail", label: tabs.find((t) => t.active)?.label ?? c.tabJobs, icon: "clipboard-list" as const },
+    { id: "ops-recent-alerts", label: shell.overview.alertsTitle, icon: "bell" as const },
+    { id: "ops-recent-audit", label: c.tabAudit, icon: "history" as const },
+  ];
+
   return (
     <div className="nf-admin-stack">
       <PageHead title={c.title} lede={c.lede} />
-      <div className="nf-admin-ops-kpis">
+      <ReadOnlyNote locale={locale} />
+      <DeskSections sections={sections} label={x.sections.navLabel} toggleLabel={x.sections.toggle} />
+      <div id="ops-health" className="nf-admin-ops-kpis nf-admin-anchor">
         <KpiGrid items={kpis} label={c.lede} />
       </div>
       <TabRow items={tabs} label={c.title} />
 
-      {props.tab === "jobs" && <JobsPanel {...props} />}
-      {props.tab === "alerts" && (
-        <Panel id="ops-alerts-all" title={tx(locale, "opsAlerts")} action={<PanelLink href="/admin/alerts">{tx(locale, "opsOpenTheAlertDesk")}</PanelLink>}>
-          <AlertsBody alerts={props.alerts} now={props.now} locale={locale} limit={40} />
-        </Panel>
-      )}
-      {props.tab === "audit" && <AuditPanel {...props} />}
-      {props.tab === "notifications" && (
-        <>
-          <PushActivityPanels push={props.push ?? null} locale={locale} />
-          <div className="nf-admin-grid nf-admin-grid--halves">
-            <NotificationsPanel activity={props.notifications} locale={locale} />
-            <EmailOutboxPanel locale={locale} />
-          </div>
-        </>
-      )}
-      {props.tab === "inflight" && <InFlight locale={locale} inspections={props.inspections ?? null} />}
-      {props.tab === "store" && <StorePanel run={props.store ?? null} locale={locale} />}
+      <div id="ops-detail" className="nf-admin-stack nf-admin-anchor">
+        {props.tab === "jobs" && <JobsPanel {...props} />}
+        {props.tab === "alerts" && (
+          <Panel id="ops-alerts-all" title={tx(locale, "opsAlerts")} action={<PanelLink href="/admin/alerts">{tx(locale, "opsOpenTheAlertDesk")}</PanelLink>}>
+            <AlertsBody alerts={props.alerts} now={props.now} locale={locale} limit={40} />
+          </Panel>
+        )}
+        {props.tab === "audit" && <AuditPanel {...props} />}
+        {props.tab === "notifications" && (
+          <>
+            <PushActivityPanels push={props.push ?? null} locale={locale} />
+            <div className="nf-admin-grid nf-admin-grid--halves">
+              <NotificationsPanel activity={props.notifications} read={props.ops?.notifications} locale={locale} />
+              <EmailOutboxPanel
+                read={props.ops?.outbox}
+                locale={locale}
+                missing={<NotWired title={tx(locale, "opsNotReadableByAnAdmin")} what={tx(locale, "opsEmailOutboxWhat")} request={tx(locale, "opsEmailOutboxRequest")} />}
+              />
+            </div>
+          </>
+        )}
+        {props.tab === "inflight" && <InFlight locale={locale} inspections={props.inspections ?? null} ops={props.ops} />}
+        {props.tab === "store" && <StorePanel run={props.store ?? null} locale={locale} />}
+      </div>
 
       <div className="nf-admin-grid nf-admin-grid--halves">
-        <Panel id="ops-recent-alerts" title={shell.overview.alertsTitle} action={<PanelLink href="/admin/alerts">{shell.states.viewAll}</PanelLink>}>
+        <Panel id="ops-recent-alerts" className="nf-admin-anchor" title={shell.overview.alertsTitle} action={<PanelLink href="/admin/alerts">{shell.states.viewAll}</PanelLink>}>
           <AlertsBody alerts={props.alerts} now={props.now} locale={locale} limit={4} />
         </Panel>
-        <Panel id="ops-recent-audit" title={c.tabAudit} action={<PanelLink href="/admin/audit">{shell.states.viewAll}</PanelLink>}>
+        <Panel id="ops-recent-audit" className="nf-admin-anchor" title={c.tabAudit} action={<PanelLink href="/admin/audit">{shell.states.viewAll}</PanelLink>}>
           {props.audit === "unavailable" ? (
             <PanelUnavailable what={tx(locale, "opsTheAuditLog")} locale={locale} />
           ) : props.audit.length === 0 ? (
@@ -246,8 +270,8 @@ function JobsPanel({ jobs, database, locale, now }: OperationsProps) {
           <PanelUnavailable what={tx(locale, "opsTheScheduledJobRuns")} locale={locale} />
         </div>
       ) : (
-        <div className="nf-admin-dt-wrap">
-          <table className="nf-admin-dt">
+        <div className="nf-admin-dt-wrap" tabIndex={0} role="region" aria-label="Scheduled jobs">
+          <table className="nf-admin-dt nf-admin-dt--stack">
             <caption className="sr-only">Scheduled jobs, their schedule in Lagos time, last run, duration and status</caption>
             <thead>
               <tr>
@@ -267,8 +291,8 @@ function JobsPanel({ jobs, database, locale, now }: OperationsProps) {
                       {jobTitle(job.name)}
                       <span className="nf-admin-dt__sub">Vercel Cron · {job.cron}</span>
                     </th>
-                    <td>{job.schedule}</td>
-                    <td className="nf-numeric">
+                    <td data-label={c.schedule}>{job.schedule}</td>
+                    <td className="nf-numeric" data-label={c.lastRun}>
                       {stamp(job.lastRunAt, locale)}
                       {job.lastRunAt && (
                         <span className="nf-admin-dt__sub">
@@ -276,8 +300,8 @@ function JobsPanel({ jobs, database, locale, now }: OperationsProps) {
                         </span>
                       )}
                     </td>
-                    <td className="nf-numeric">{durationLabel(job.lastDurationMs)}</td>
-                    <td>
+                    <td className="nf-numeric" data-label={c.duration}>{durationLabel(job.lastDurationMs)}</td>
+                    <td data-label={c.status}>
                       <Badge tone={status.tone} solid={status.word === "Failed"}>
                         {word[status.word] ?? status.word}
                       </Badge>
@@ -290,12 +314,12 @@ function JobsPanel({ jobs, database, locale, now }: OperationsProps) {
                   {c.databaseJobs}
                   <span className="nf-admin-dt__sub">pg_cron, {PG_CRON_JOBS.length} scheduled in the database</span>
                 </th>
-                <td colSpan={3} className="nf-admin-dt__muted">
+                <td colSpan={3} className="nf-admin-dt__muted" data-label={c.lastRun}>
                   {database
                     ? `Watched ${stamp(database.checkedAt, locale)}: ${database.failures} failed in the last day${database.recovered > 0 ? ` (${database.recovered} recovered since)` : ""}, ${database.neverRan} not yet run, ${database.stale} overdue. One row per job needs Request A5.`
                     : "The watch job has not reported yet. One row per job needs Request A5."}
                 </td>
-                <td>
+                <td data-label={c.status}>
                   {database ? (
                     database.failures - database.recovered > 0 || database.stale > 0 ? (
                       <Badge tone="error">{c.attention}</Badge>
@@ -386,10 +410,13 @@ function AuditPanel({ audit, activity, locale, now, tiers }: OperationsProps) {
   );
 }
 
-function NotificationsPanel({ activity, locale }: { activity: NotificationActivity | null; locale: Locale }) {
+function NotificationsPanel({ activity: given, read, locale }: { activity: NotificationActivity | null; read?: OpsRead<NotificationActivity>; locale: Locale }) {
+  const activity = given ?? (read?.state === "ok" ? read.data : null);
   return (
     <Panel id="ops-notifications" title={tx(locale, "opsNotificationsSent")}>
-      {!activity ? (
+      {!activity && read?.state === "unavailable" ? (
+        <PanelUnavailable what={tx(locale, "opsNotificationsSent")} locale={locale} />
+      ) : !activity ? (
         <NotWired
           title={tx(locale, "opsNotReadableByAnAdmin")}
           what={tx(locale, "opsEveryNotificationThePlatformSends")}
@@ -398,7 +425,7 @@ function NotificationsPanel({ activity, locale }: { activity: NotificationActivi
       ) : activity.total === 0 ? (
         <CalmNote title={tx(locale, "opsNoNotificationsSentInThis")} fills={tx(locale, "opsEachNotificationThePlatformSends")} />
       ) : (
-        <div className="nf-admin-dt-wrap">
+        <div className="nf-admin-dt-wrap" tabIndex={0} role="region" aria-label="Notifications sent">
           <table className="nf-admin-dt">
             <thead>
               <tr>

@@ -6,6 +6,10 @@ import {
   nextPhotoPosition,
   rejectPhoto,
 } from "./photos";
+import { getDictionary } from "@vallo/i18n";
+
+/* The PhotoManager's words, in English, which `rejectPhoto` speaks. */
+const W = getDictionary("en").experienceHost.photoManager.controls;
 
 /**
  * The two rules a venue's photographs stand on, in the form a machine can
@@ -54,24 +58,39 @@ describe("nextPhotoPosition", () => {
 
 describe("rejectPhoto", () => {
   it("accepts what a phone produces", () => {
-    expect(rejectPhoto({ type: "image/jpeg", size: 2_000_000 })).toBeNull();
-    expect(rejectPhoto({ type: "image/webp", size: 10 })).toBeNull();
+    expect(rejectPhoto({ type: "image/jpeg", size: 2_000_000 }, W)).toBeNull();
+    expect(rejectPhoto({ type: "image/webp", size: 10 }, W)).toBeNull();
   });
 
   it("refuses HEIC, which the server cannot strip metadata from (SEC-04); iOS converts to JPEG at the picker", () => {
-    expect(rejectPhoto({ type: "image/heic", size: 4_000_000 })).toContain("JPG");
+    expect(rejectPhoto({ type: "image/heic", size: 4_000_000 }, W)).toContain("JPG");
   });
 
   it("refuses a PDF, which the bucket would refuse too", () => {
-    expect(rejectPhoto({ type: "application/pdf", size: 10 })).toContain("JPG");
+    expect(rejectPhoto({ type: "application/pdf", size: 10 }, W)).toContain("JPG");
   });
 
   it("refuses a photograph over the bucket's own ceiling", () => {
-    const refusal = rejectPhoto({ type: "image/jpeg", size: PHOTO_MAX_BYTES + 1 });
+    const refusal = rejectPhoto({ type: "image/jpeg", size: PHOTO_MAX_BYTES + 1 }, W);
     expect(refusal).toContain("10MB");
   });
 
+  it("says in English, byte for byte, what it said before its words moved to the dictionary", () => {
+    expect(rejectPhoto({ type: "image/heic", size: 10 }, W)).toBe(
+      "That file is not JPG, PNG or WEBP. A photograph straight from a phone is one of those.",
+    );
+    expect(rejectPhoto({ type: "image/png", size: PHOTO_MAX_BYTES + 1 }, W)).toBe(
+      "That photograph is over 10MB. Send it at a smaller size and choose it again.",
+    );
+  });
+
+  it("speaks the words it is handed, so a host reads it in their own language", () => {
+    const words = { acceptedFormats: "A, B", notAccepted: "ba {formats}", tooLarge: "ya wuce {size}" };
+    expect(rejectPhoto({ type: "image/heic", size: 10 }, words)).toBe("ba A, B");
+    expect(rejectPhoto({ type: "image/png", size: PHOTO_MAX_BYTES + 1 }, words)).toBe("ya wuce 10MB");
+  });
+
   it("accepts a photograph exactly at the ceiling", () => {
-    expect(rejectPhoto({ type: "image/jpeg", size: PHOTO_MAX_BYTES })).toBeNull();
+    expect(rejectPhoto({ type: "image/jpeg", size: PHOTO_MAX_BYTES }, W)).toBeNull();
   });
 });

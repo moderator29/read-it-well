@@ -1,4 +1,5 @@
 import "server-only";
+import { reportReadError } from "@/lib/observability/read-error";
 
 import { cache } from "react";
 import { createClient } from "../supabase/server";
@@ -33,6 +34,7 @@ export const listStates = cache(async function listStates(): Promise<StateOption
       .from("states")
       .select("code, name")
       .order("name", { ascending: true });
+    await reportReadError("read.places.listStates", error);
     if (error || !data) return [];
     return data.map((row) => ({ code: row.code, name: row.name }));
   } catch {
@@ -53,6 +55,7 @@ export const listLocalGovernments = cache(async function listLocalGovernments(
       .select("code, state_code, name")
       .eq("state_code", code)
       .order("name", { ascending: true });
+    await reportReadError("read.places.listLocalGovernments", error);
     if (error || !data) return [];
     return data.map((row) => ({
       code: row.code,
@@ -85,6 +88,7 @@ export const listOccupations = cache(async function listOccupations(): Promise<O
       .order("sort_order", { ascending: true })
       .order("name", { ascending: true })
       .limit(2000);
+    await reportReadError("read.places.listOccupations", error);
     if (error || !data) {
       /*
        * Say why. This used to return [] silently, and the picker renders an

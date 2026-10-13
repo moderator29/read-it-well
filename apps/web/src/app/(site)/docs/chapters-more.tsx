@@ -1,10 +1,7 @@
 import Link from "next/link";
 import { getDictionary } from "@vallo/i18n";
 import { AI_DISCLOSURE } from "@/lib/ai/consent";
-import {
-  NO_INSPECTION_FEE,
-  PAYMENT_GATE_SENTENCE,
-} from "@/lib/money/copy";
+import { NO_INSPECTION_FEE } from "@/lib/money/copy";
 import {
   STAYS_DOOR_ORDER,
   STAYS_DOORS,
@@ -12,23 +9,24 @@ import {
   SUPPLY_DOOR_HREF,
   WORKSPACE_STANDING_COPY,
 } from "@/lib/supply/roles";
-import { VERIFICATION_ORDER } from "@/lib/trust/verification";
+import { MAX_UPLOAD_LABEL, MAX_VIDEOS, MAX_VIDEO_SECONDS, MIN_MEDIA, RECOMMENDED_MEDIA } from "@/lib/agent/listings-model";
+import { EDIT_WINDOW_MINUTES, POST_MAX, POST_MEDIA_MAX } from "@/lib/social/posts-model";
+import { MODERATOR_CAN, MODERATOR_CANNOT } from "@/lib/social/areas-model";
 import type { DocChapter, DocSection } from "./chapters";
 import { DocsFlow } from "./DocsFlow";
+import { PAY_INSIDE_VALLO } from "./facts";
 
 /**
  * THE CHAPTERS THE PLATFORM GREW INTO (Track M, the docs pass, 25 September
- * 2026): getting around the app (the dock and its tray, the menu, light and
- * dark, the motion setting), Price Check, the AI assistant, and listing on
- * Vallo (every supplier door and the verification ladder), plus the section
- * on messaging a hotel or a restaurant that joins the messages chapter.
+ * 2026, rewritten by the docs track on 13 October 2026): getting around the
+ * app, Price Check, the assistant, listing a property, messages and calls,
+ * and Around.
  *
  * The same rules as `chapters.tsx`. Every label a reader will look for on
  * screen is read from the dictionary or the module that draws it, so the
  * document and the screen cannot disagree; every rule is imported from the
- * code that enforces it; money is only ever a sentence from
- * `lib/money/copy.ts`. Nothing here describes a feature that is not there.
- * `number` is set by `chapters.tsx` from the reading order.
+ * code that enforces it. Nothing here describes a feature that is not there.
+ * `number` and `group` are set by `chapters.tsx` from the reading order.
  */
 
 const A = "font-semibold text-[var(--nf-content-link)] hover:underline";
@@ -117,7 +115,7 @@ export const GETTING_AROUND: DocChapter = {
             Under Settings, then {look.label}, then {look.motion}, you choose how much the app
             moves. {look.motionNote}
           </p>
-          <ul>
+          <ul role="list">
             <li>
               <strong>{look.motionCinematic}.</strong> {look.motionCinematicSub}
             </li>
@@ -132,7 +130,7 @@ export const GETTING_AROUND: DocChapter = {
             </li>
           </ul>
           <p>Three switches sit under the levels:</p>
-          <ul>
+          <ul role="list">
             <li>
               <strong>{look.motionSplash}.</strong> {look.motionSplashSub}
             </li>
@@ -220,7 +218,7 @@ export const PRICE_CHECK: DocChapter = {
               { object: "report-stats", label: "Asking range" },
             ]}
           />
-          <ul>
+          <ul role="list">
             <li>
               <strong>{pc.result.askingRange}.</strong> What the comparable properties near the
               pin are asking.
@@ -245,7 +243,7 @@ export const PRICE_CHECK: DocChapter = {
             Price Check would rather give no figure than a weak one, and it says which of these
             it has run into:
           </p>
-          <ul>
+          <ul role="list">
             {[
               pc.refusals.noLocation,
               pc.refusals.noComparables,
@@ -276,9 +274,9 @@ export const PRICE_CHECK: DocChapter = {
 export const AI_ASSISTANT: DocChapter = {
   slug: "ai-assistant",
   number: 0,
-  title: "The AI assistant",
+  title: "The assistant",
   summary:
-    "What Vallo AI can do for you, what it will not do, how to read its answers, and what happens to what you type.",
+    "What Vallo's assistant can do for you, what it never does, how to read its answers, and what happens to what you type. It never acts without your approval.",
   icon: "bot",
   sections: [
     {
@@ -287,9 +285,9 @@ export const AI_ASSISTANT: DocChapter = {
       body: (
         <>
           <p>
-            Vallo AI answers questions about finding, renting, buying and staying, in English,
-            Yorùbá, Hausa or Igbo. It searches the same listings you do, so it can only tell you
-            about places that are really on Vallo, and it links every one it names.
+            The assistant answers questions about finding, renting, buying and staying, in English,
+            Yorùbá, Hausa or Igbo. It searches the same listings you do, so it only names places that are
+            really on Vallo, and it links each one.
           </p>
           <p>{AI_DISCLOSURE.body}</p>
           <p>
@@ -301,50 +299,62 @@ export const AI_ASSISTANT: DocChapter = {
     },
     {
       id: "what-it-can-do",
-      heading: "What it can do",
+      heading: "Ask it to find, compare and explain",
       body: (
-        <ul>
+        <ul role="list">
           <li>
-            <strong>Search.</strong> Property to rent or buy, somewhere to stay, and restaurants,
-            with the figures the listing states.
+            <strong>Search.</strong> Homes to rent or buy, stays and restaurants, with the figures each
+            listing states.
           </li>
           <li>
-            <strong>Compare.</strong> Two to four listings side by side on the things that decide
-            between them: the price and the period it covers, the bedrooms, where it is, light
-            and water, and how far the lister has climbed the verification ladder.
+            <strong>Compare.</strong> Two to four listings side by side: the price and what it covers,
+            bedrooms, where it is, light and water, and how far the lister has climbed the verification
+            ladder.
           </li>
           <li>
-            <strong>Say what moving in costs.</strong> The rent is rarely the whole number: the
-            caution deposit and the agency, legal and agreement fees are normal, and it names
-            them.
+            <strong>Explain moving-in costs.</strong> The rent is rarely the whole number, and it names the
+            usual extra fees.
           </li>
           <li>
-            <strong>Say what an area is like</strong>, from what people who live there have
-            posted in Around, always as their words and never as a finding of ours.
+            <strong>Describe an area</strong> from what people who live there have posted on Around, as
+            their words.
+          </li>
+          <li>
+            <strong>Point you to the right screen.</strong> Ask where to do something, and it links the
+            screen.
           </li>
         </ul>
+      ),
+    },
+    {
+      id: "your-approval",
+      heading: "It never acts without your approval",
+      body: (
+        <p>
+          The assistant reads and answers. It cannot book, pay, publish or send a message for you. Nothing
+          happens to your account, your listings or your money unless you do it, or you approve the exact
+          action first.
+        </p>
       ),
     },
     {
       id: "what-it-will-not-do",
       heading: "What it will not do",
       body: (
-        <ul>
+        <ul role="list">
           <li>Invent a listing, a price, a date, a rating or a review.</li>
           <li>
-            Tell you a land title is good. It says which document a listing states, says so
-            plainly when it states none, and sends you to a lawyer before any money moves.
+            Say a land title is good. It says which document a listing states, says so when it states none,
+            and sends you to a lawyer before any money moves.
           </li>
-          <li>
-            Suggest paying outside the platform, for any reason. {PAYMENT_GATE_SENTENCE}
-          </li>
-          <li>Talk about things that are not Vallo. It steers back, politely.</li>
+          <li>Suggest paying outside Vallo, for any reason. {PAY_INSIDE_VALLO}</li>
+          <li>Follow instructions hidden in a listing or a post. It treats them as text to read.</li>
         </ul>
       ),
     },
     {
       id: "reading-an-answer",
-      heading: "Reading an answer",
+      heading: "Read an answer",
       body: (
         <>
           <DocsFlow
@@ -356,15 +366,18 @@ export const AI_ASSISTANT: DocChapter = {
               { object: "home-check", label: "Linked listings" },
             ]}
           />
+          <ul role="list">
+            <li>Every place it names links to the listing.</li>
+            <li>An example listing is marked Example and cannot be rented, bought or booked.</li>
+            <li>A rating comes with the number of reviews behind it.</li>
+            <li>When nothing fits, it says so and suggests widening the search.</li>
+          </ul>
           <p>
-            Every place it names is a link to that listing. An example listing is marked Example
-            and cannot be rented, bought or booked. A rating comes with the number of reviews
-            behind it, because two reviews say very little. When nothing suitable comes back, it
-            says so and suggests widening the search.
-          </p>
-          <p>
-            It is an assistant, not an agent: it cannot book, pay or message anybody for you. The
-            listing it links to is where you do those things.
+            Open it from the menu, or at{" "}
+            <Link href="/assistant" className={A}>
+              /assistant
+            </Link>
+            . Workspaces have their own assistant for listers and hosts.
           </p>
         </>
       ),
@@ -382,30 +395,29 @@ const STANDINGS = (["draft", "pending", "refused", "suspended"] as const).flatMa
 export const LISTING_ON_VALLO: DocChapter = {
   slug: "listing-on-vallo",
   number: 0,
-  title: "Listing on Vallo",
+  title: "Listing a property",
   summary:
-    "Every door for somebody supplying a place: an owner, an agent, a registered firm, a hotel, a shortlet or a restaurant. What each asks for, how long it takes, and the verification ladder behind the ticks.",
+    "Choose your workspace, post a listing with photos and videos, see what you will receive, and what happens when Vallo reviews it.",
   icon: "keys-handover",
   sections: [
     {
       id: "the-doors",
-      heading: "Choose your door",
+      heading: "Choose your workspace",
       body: (
         <>
           <p>
-            Everybody who supplies a place starts from the same screen, at{" "}
+            Everybody who lists starts at{" "}
             <Link href={SUPPLY_DOOR_HREF} className={A}>
-              {SUPPLY_DOOR_HREF}
+              Add a workspace
             </Link>
-            , and picks the door that describes them. The door decides what Vallo asks for,
-            because each kind of supplier can go wrong in a different way, and the checks are
-            written against that.
+            . The one you pick decides what Vallo asks you for, because each kind of lister can go wrong
+            in a different way. One account holds one side: owner or agent, never both.
           </p>
           <DocsFlow
-            label="From a door to a published listing"
+            label="From a workspace to a published listing"
             steps={[
-              { object: "person-card", label: "Pick a door" },
-              { object: "id-card-check", label: "Tell us who you are" },
+              { object: "person-card", label: "Pick a workspace" },
+              { object: "id-card-check", label: "Say who you are" },
               { object: "doc-review", label: "A person reviews it" },
               { object: "home-check", label: "Publish" },
             ]}
@@ -422,8 +434,7 @@ export const LISTING_ON_VALLO: DocChapter = {
             <p>
               <strong>{SUPPLY_DOORS[key].blurb}</strong> {SUPPLY_DOORS[key].whoItIsFor}
             </p>
-            <p>What it asks for:</p>
-            <ul>
+            <ul role="list">
               {SUPPLY_DOORS[key].needs.map((need) => (
                 <li key={need}>{need}</li>
               ))}
@@ -438,8 +449,7 @@ export const LISTING_ON_VALLO: DocChapter = {
       heading: "Hotels, shortlets and restaurants",
       body: (
         <>
-          <p>The Vallo Stays side has its own three doors:</p>
-          <ul>
+          <ul role="list">
             {STAYS_DOOR_ORDER.map((id) => (
               <li key={id}>
                 <strong>{STAYS_DOORS[id].title}.</strong> {STAYS_DOORS[id].blurb}
@@ -447,41 +457,83 @@ export const LISTING_ON_VALLO: DocChapter = {
             ))}
           </ul>
           <p>
-            A hotel or a shortlet sets its rooms, rates and calendar; a restaurant sets its
-            tables, hours and menu. Guests can then reserve, book a table, or message the business
-            from its page.
+            These set up through host setup. See{" "}
+            <Link href="/docs/hosting" className={A}>
+              Hosting a hotel or shortlet
+            </Link>{" "}
+            and{" "}
+            <Link href="/docs/restaurants#for-restaurants" className={A}>
+              Running a restaurant
+            </Link>
+            .
           </p>
         </>
       ),
     },
     {
-      id: "the-ladder",
-      heading: "The verification ladder",
+      id: "post-a-listing",
+      heading: "Post a listing",
       body: (
-        <>
-          <p>
-            A lister climbs the same ladder, one rung at a time, and a listing shows how far its
-            lister has climbed rather than a single word that could mean anything:
-          </p>
-          <ol>
-            {VERIFICATION_ORDER.map((rung) => (
-              <li key={rung.label}>
-                <strong>{rung.label}.</strong> {rung.meaning}
-              </li>
-            ))}
-          </ol>
-          <p>
-            A person at Vallo decides each rung by hand. The Verified tick appears only once a
-            person here has checked the ID of the lister behind the listing.
-          </p>
-        </>
+        <ol role="list">
+          <li>
+            Open{" "}
+            <Link href="/agent/list" className={A}>
+              List a property
+            </Link>{" "}
+            in your workspace.
+          </li>
+          <li>Say what kind of place it is, where it is, and the rooms.</li>
+          <li>Set the price and every cost a tenant or buyer will meet before the keys.</li>
+          <li>Answer the light and water questions. An unanswered one shows as unanswered.</li>
+          <li>For a shortlet, add the gate details. They stay private until a booking is confirmed.</li>
+          <li>Add photos and videos, then send it for review.</li>
+        </ol>
+      ),
+    },
+    {
+      id: "photos-and-videos",
+      heading: "Add photos and videos",
+      body: (
+        <ul role="list">
+          <li>
+            At least {MIN_MEDIA} items, and {RECOMMENDED_MEDIA} is recommended. Photos and videos go in one
+            uploader.
+          </li>
+          <li>The first item is the cover, and it must be a photo.</li>
+          <li>
+            Up to {MAX_VIDEOS} videos, each up to {MAX_UPLOAD_LABEL} and {MAX_VIDEO_SECONDS} seconds, as MP4,
+            MOV or WebM.
+          </li>
+        </ul>
+      ),
+    },
+    {
+      id: "what-you-receive",
+      heading: "See what you will receive",
+      body: (
+        <p>
+          Before you publish, Vallo shows the price a renter or guest pays and what you receive after
+          Vallo&rsquo;s commission, in naira. You accept those figures for the listing. Listing is free.
+        </p>
+      ),
+    },
+    {
+      id: "review",
+      heading: "What happens after you send it",
+      body: (
+        <ol role="list">
+          <li>A person at Vallo reviews the listing.</li>
+          <li>They approve it, ask for more, or reject it with a reason.</li>
+          <li>If it comes back, the wizard reopens with their note. Edit it and send it again.</li>
+          <li>Once approved, it is published and announced once in the place it sits in on Around.</li>
+        </ol>
       ),
     },
     {
       id: "standing",
-      heading: "Where your application stands",
+      heading: "Where your workspace stands",
       body: (
-        <ul>
+        <ul role="list">
           {STANDINGS.map((s) => (
             <li key={s.key}>
               <strong>{s.label}.</strong> {s.meaning}
@@ -492,34 +544,239 @@ export const LISTING_ON_VALLO: DocChapter = {
     },
     {
       id: "inspections-for-listers",
-      heading: "Inspections, and what you may charge",
+      heading: "What you may charge",
       body: (
         <p>
-          {NO_INSPECTION_FEE} A renter inspects before anything is paid, submits the inspection
-          report, and only then does the agreement go to both of you and to Vallo.
+          {NO_INSPECTION_FEE} Charge nothing that is not on the listing. {PAY_INSIDE_VALLO}
         </p>
       ),
     },
   ],
 };
 
-/* ------------------------------------------- messages: hotels and tables */
+/* ------------------------------------------------------- messages and calls */
 
-export const MESSAGING_A_BUSINESS: DocSection = {
-  id: "messaging-a-business",
-  heading: "Messaging a hotel or a restaurant",
-  body: (
-    <>
-      <p>
-        You do not need a booking to ask a hotel or a restaurant something. Where the business
-        takes messages, its page carries a message button: the conversation goes to the business
-        itself, one thread per business, and lives in your inbox beside your other
-        conversations.
-      </p>
-      <p>
-        The inbox keeps the two sides apart: property conversations and stays conversations
-        each have their own tab.
-      </p>
-    </>
-  ),
+export const MESSAGES: DocChapter = {
+  slug: "messages-and-notifications",
+  number: 0,
+  title: "Messages, calls and notifications",
+  summary:
+    "Message a lister, host or restaurant, reply, forward, delete and call from a thread, handle Requests, and choose what reaches you.",
+  icon: "chat-duo",
+  sections: [
+    {
+      id: "the-inbox",
+      heading: "Message a lister",
+      body: (
+        <p>
+          Every listing has a message button. Ask about the road, the light, the water or the landlord
+          before you commit. Conversations land in{" "}
+          <Link href="/messages" className={A}>
+            Messages
+          </Link>
+          , with property and stays in their own tabs. New messages arrive without a refresh.
+        </p>
+      ),
+    },
+    {
+      id: "messaging-a-business",
+      heading: "Message a hotel or a restaurant",
+      body: (
+        <p>
+          You do not need a booking to ask. Where a business takes messages, its page has a message
+          button, and the conversation goes to the business itself. Each table booking also opens its own
+          conversation.
+        </p>
+      ),
+    },
+    {
+      id: "message-tools",
+      heading: "Reply, forward, delete and call",
+      body: (
+        <ul role="list">
+          <li>
+            <strong>Reply</strong> to one message, so everyone sees which you mean. On a phone, swipe it.
+          </li>
+          <li>
+            <strong>Forward</strong> a message to another conversation.
+          </li>
+          <li>
+            <strong>Delete for me</strong> removes a message from your view only.
+          </li>
+          <li>
+            <strong>Delete for everyone</strong> removes it for both sides, for 2 days and 12 hours after
+            it was sent.
+          </li>
+          <li>
+            <strong>Call</strong> by voice or video from inside the conversation, so the call stays on
+            Vallo.
+          </li>
+        </ul>
+      ),
+    },
+    {
+      id: "requests",
+      heading: "Handle Requests",
+      body: (
+        <p>
+          Messages from people you do not follow arrive as <strong>Requests</strong>, in their own tab, so a
+          stranger cannot fill your inbox. They wait there until you open them.
+        </p>
+      ),
+    },
+    {
+      id: "keep-it-here",
+      heading: "Keep it on Vallo",
+      body: (
+        <>
+          <p>A conversation here is a record. Moved to another app, it is your word against theirs.</p>
+          <p>
+            Do not share account numbers in chat. Messages that look like account numbers are flagged to
+            the Vallo team. {PAY_INSIDE_VALLO}
+          </p>
+        </>
+      ),
+    },
+    {
+      id: "notifications",
+      heading: "Read your notifications",
+      body: (
+        <p>
+          <Link href="/notifications" className={A}>
+            Notifications
+          </Link>{" "}
+          lists what happened, by day: booking requests and answers, viewings, messages, payments and
+          activity on your posts. Tap one to open the thing it is about, or mark them all read at once.
+        </p>
+      ),
+    },
+    {
+      id: "choosing-what-reaches-you",
+      heading: "Choose which emails reach you",
+      body: (
+        <p>
+          Settings has four switches: <strong>Bookings</strong>, <strong>Messages</strong>,{" "}
+          <strong>Payments and agreements</strong> and <strong>Ideas and offers</strong>. They control email.
+          Marketing is off until you turn it on. Anything that puts money at risk still shows in the app.
+        </p>
+      ),
+    },
+  ],
+};
+
+/* ---------------------------------------------------------------- Around */
+
+export const AROUND: DocChapter = {
+  slug: "around",
+  number: 0,
+  title: "Around: places, posts and people",
+  summary:
+    "Join the places you live and work in, from your local government to your estate or campus, and post, ask and read what people there are saying.",
+  icon: "map-spot",
+  sections: [
+    {
+      id: "the-idea",
+      heading: "What Around is",
+      body: (
+        <p>
+          <Link href="/around" className={A}>
+            Around
+          </Link>{" "}
+          is a feed of places, not of strangers. Join your local government, your estate or your campus,
+          and read what people there are saying today: is there light, is the road open, has the tanker
+          come.
+        </p>
+      ),
+    },
+    {
+      id: "the-geography",
+      heading: "Find your place",
+      body: (
+        <p>
+          All 36 states, the Federal Capital Territory and all 774 local governments are here. A place can
+          also sit inside one, such as an estate inside Eti-Osa. Every place is a city, an area, an estate
+          or a campus.
+        </p>
+      ),
+    },
+    {
+      id: "joining",
+      heading: "Join a place",
+      body: (
+        <ul role="list">
+          <li>
+            Open{" "}
+            <Link href="/around/manage" className={A}>
+              the directory
+            </Link>
+            , find your state, then your local government, and join. Leave any time.
+          </li>
+          <li>If nobody is in it yet, joining opens it.</li>
+          <li>
+            For somewhere smaller, propose it from{" "}
+            <Link href="/around/new" className={A}>
+              the new place screen
+            </Link>
+            . A person reviews it.
+          </li>
+          <li>Reading needs no account.</li>
+        </ul>
+      ),
+    },
+    {
+      id: "posting",
+      heading: "Post or ask a question",
+      body: (
+        <>
+          <p>
+            Say something, or ask a question people who know the area can answer. Up to{" "}
+            {POST_MAX.toLocaleString("en-NG")} characters and {POST_MEDIA_MAX} pictures. You have{" "}
+            {EDIT_WINDOW_MINUTES} minutes to edit a post, and you can take it down any time.
+          </p>
+          <p>People reply, mark what is useful, and repost to their own places. Replies are one level deep.</p>
+        </>
+      ),
+    },
+    {
+      id: "stories",
+      heading: "Write a story",
+      body: (
+        <p>
+          A story is a longer piece with a picture and a headline, about a place. It does not expire, so it
+          is still there for the next person deciding whether to move to that street.
+        </p>
+      ),
+    },
+    {
+      id: "listings-in-a-place",
+      heading: "See new listings in your place",
+      body: <p>When a listing is published, it is announced once, in the place it is in.</p>,
+    },
+    {
+      id: "moderators",
+      heading: "Moderators",
+      body: (
+        <>
+          <p>A place can have moderators. They are members of the place, not Vallo staff. A moderator can:</p>
+          <ul role="list">
+            {MODERATOR_CAN.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+          <p>A moderator cannot:</p>
+          <ul role="list">
+            {MODERATOR_CANNOT.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+          <p>You can apply to moderate a place you are in.</p>
+        </>
+      ),
+    },
+    {
+      id: "people",
+      heading: "Follow, mute or block",
+      body: <p>Follow people whose posts help you. Block or mute an account, and report a post or a profile.</p>,
+    },
+  ],
 };

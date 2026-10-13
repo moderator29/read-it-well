@@ -153,7 +153,7 @@ export const RENTAL_THREAD: ThreadBubble[] = [
 
 export const RENTAL_CONTEXT: ThreadContext = {
   kind: "listing",
-  listing: { id: LISTING_ID, title: "Luxury 2 bedroom apartment", area: "Lekki Phase 1", city: "Lagos" },
+  listing: { id: LISTING_ID, title: "Luxury 2 bedroom apartment", area: "Lekki Phase 1", city: "Lagos", listingRole: "agent" },
 };
 
 export const INSPECTION: Inspection = {

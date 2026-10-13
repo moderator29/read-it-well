@@ -101,5 +101,7 @@ export const cryptoPayEn = {
   pageTitle: "Crypto payment",
   notFound: "We could not find that crypto payment on your account.",
   notFoundBody: "Open the charge from your bookings and start again. If crypto has already left your wallet, contact support with the transaction hash.",
+  /** Signed out on a payment's own page: why to sign in, and that they come back (Round 3 sweep, C3). */
+  signedOutBody: "A crypto payment is kept on the account that made it. Sign in and you land straight back here.",
   noCustody: "Vallo never holds your crypto or your money. {provider} converts it under its own licence and settles naira straight to the owner or agent.",
 };

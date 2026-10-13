@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { useSignInHref } from "@/lib/auth/use-sign-in-href";
 
 export type LocationChipCopy = {
   /** The accessible name of the control: which place the feed is read from. */
@@ -41,6 +42,7 @@ export function LocationChip({
   signedIn: boolean;
   copy: LocationChipCopy;
 }) {
+  const signInHref = useSignInHref();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -130,7 +132,7 @@ export function LocationChip({
             {!signedIn ? (
               <Link
                 role="menuitem"
-                href="/sign-in"
+                href={signInHref}
                 className="nf-post__menu-item"
                 onClick={() => setOpen(false)}
               >

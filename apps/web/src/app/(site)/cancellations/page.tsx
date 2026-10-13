@@ -6,7 +6,21 @@ import { ButtonLink } from "@/components/ui/Button";
 import { CancellationTimeline } from "@/lib/trust/CancellationTimeline";
 import { FULL_REFUND_HOURS } from "@/lib/trust/cancellation";
 import { RESPONSE_COMMITMENTS } from "@/lib/trust/standards";
-import { NO_CUSTODY_SENTENCE, REFUND_ROUTE } from "@/lib/money/copy";
+/* Every money sentence on this page is lib/money/copy.ts's (C6, the route sweep). */
+import {
+  CANCEL_AFTER_PAID,
+  CANCEL_BEFORE_PAID,
+  CANCEL_BY_AGENT,
+  CANCEL_LEDE,
+  CANCEL_NO_ENTRY,
+  CANCEL_NOT_AS_LISTED,
+  CANCEL_TABLE,
+  NO_CUSTODY_SENTENCE,
+  REFUND_NO_BALANCE,
+  REFUND_ROUTE,
+} from "@/lib/money/copy";
+import { DocumentSheet } from "@/components/app/money/DocumentSheet";
+import "@/components/site/guides/policy-sheet.css";
 
 /* A10: the title and description in the page's own language, with its
    canonical and hreflang (lib/i18n/public-metadata.ts; words in publicMeta). */
@@ -41,13 +55,17 @@ export default function CancellationPolicyPage() {
            exclusions the page already answers in full further down. The hero
            keeps the promise; the exclusions have their own sections, where
            somebody looking for one will actually find it. */
-        lede="A stay listed by an owner or agent follows the three steps below; a hotel room shows its own rate's terms before you choose it. Either way the terms are fixed on your booking when you pay, so they cannot change afterwards."
+        lede={CANCEL_LEDE}
       />
     <div className="nf-shell pb-section">
       <div className="mx-auto max-w-3xl">
 
+        {/* THE POLICY ON PAPER (D28.1; Session 3, W1b): one document sheet in the
+            reader's theme, sections separated by a hairline, the cards the parts
+            used to be now rows (policy-sheet.css). Every word is as it was. */}
+        <DocumentSheet kind="document" printable className="nf-policy mt-block">
         {/* ------------------------------------------------- the timeline */}
-        <section className="mt-section" aria-labelledby="the-schedule">
+        <section aria-labelledby="the-schedule">
           <h2 id="the-schedule" className="sr-only">
             The schedule
           </h2>
@@ -55,36 +73,27 @@ export default function CancellationPolicyPage() {
         </section>
 
         {/* ----------------------------------------------- before you pay */}
-        <section className="mt-section" aria-labelledby="before-you-pay">
-          <h2 id="before-you-pay" className="nf-h2 text-[1.375rem]">
+        <section aria-labelledby="before-you-pay">
+          <h2 id="before-you-pay">
             Before you have paid
           </h2>
-          <div className="nf-panel nf-panel--card block mt-group p-card">
-            <p className="text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
-              A reservation you have not paid for is a hold on the calendar and
-              nothing more. Cancel it from Plans, at any hour, for nothing, and the nights reopen for somebody
-              else immediately. A hold you walk away from releases itself, so you
-              cannot accidentally block an agent&apos;s calendar by forgetting
-              about it.
+          <div className="mt-group">
+            <p className="text-[length:var(--nf-text-row)] leading-relaxed text-[var(--nf-content-secondary)]">
+              {CANCEL_BEFORE_PAID}
             </p>
           </div>
         </section>
 
         {/* ------------------------------------------------ after you pay */}
-        <section className="mt-section" aria-labelledby="after-you-pay">
-          <h2 id="after-you-pay" className="nf-h2 text-[1.375rem]">
+        <section aria-labelledby="after-you-pay">
+          <h2 id="after-you-pay">
             After you have paid
           </h2>
-          <div className="nf-panel nf-panel--card block mt-group p-card">
-            <p className="text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
-              Once money has moved, a cancellation is handled by a person rather
-              than by a button, because a refund is somebody&apos;s money and it
-              deserves a name against the decision. Write to support with your
-              booking reference. We apply the schedule above exactly as it is
-              written, the refund goes back to the card or account you paid with,
-              and you get the amount and the reason in writing.
+          <div className="mt-group">
+            <p className="text-[length:var(--nf-text-row)] leading-relaxed text-[var(--nf-content-secondary)]">
+              {CANCEL_AFTER_PAID}
             </p>
-            <p className="mt-row text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
+            <p className="mt-row text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
               Cancellation requests are answered{" "}
               <span className="font-semibold text-[var(--nf-content-primary)]">
                 {RESPONSE_COMMITMENTS.standard.label.toLowerCase()}
@@ -100,73 +109,63 @@ export default function CancellationPolicyPage() {
         </section>
 
         {/* ------------------------------------------- when it is not you */}
-        <section className="mt-section" aria-labelledby="not-your-fault">
-          <h2 id="not-your-fault" className="nf-h2 text-[1.375rem]">
+        <section aria-labelledby="not-your-fault">
+          <h2 id="not-your-fault">
             When the cancellation is not your doing
           </h2>
-          <ul className="mt-group space-y-row">
-            <li className="nf-panel nf-panel--card block p-card-sm">
-              <h3 className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
+          <ul className="nf-policy__list mt-group">
+            <li className="nf-policy__item">
+              <h3 className="text-[length:var(--nf-text-row)] font-semibold text-[var(--nf-content-primary)]">
                 The agent cancels
               </h3>
-              <p className="mt-inline text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
-                You get everything back, whenever it happens, including inside
-                the last <span className="nf-numeric">{FULL_REFUND_HOURS}</span>{" "}
-                hours. The schedule above never applies to a cancellation you did
-                not choose.
+              <p className="mt-inline text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+                {CANCEL_BY_AGENT.split("{hours}").map((part, i) => (
+                  <span key={i}>
+                    {i > 0 ? <span className="nf-numeric">{FULL_REFUND_HOURS}</span> : null}
+                    {part}
+                  </span>
+                ))}
               </p>
             </li>
-            <li className="nf-panel nf-panel--card block p-card-sm">
-              <h3 className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
+            <li className="nf-policy__item">
+              <h3 className="text-[length:var(--nf-text-row)] font-semibold text-[var(--nf-content-primary)]">
                 The place is not what was listed
               </h3>
-              <p className="mt-inline text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
-                Do not cancel. Report it from the listing on the day, with
-                photographs if you have them. A misrepresented property is a
-                standards matter, not a cancellation, and it is refunded in full
-                once a person has looked at it.
+              <p className="mt-inline text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+                {CANCEL_NOT_AS_LISTED}
               </p>
             </li>
-            <li className="nf-panel nf-panel--card block p-card-sm">
-              <h3 className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
+            <li className="nf-policy__item">
+              <h3 className="text-[length:var(--nf-text-row)] font-semibold text-[var(--nf-content-primary)]">
                 You could not get in
               </h3>
-              <p className="mt-inline text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
-                A gate that will not open, an estate that has no record of you, a
-                key nobody brings. Message the agent in the thread so there is a
-                time stamp, then report it. Same treatment: full refund once it is
-                confirmed.
+              <p className="mt-inline text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+                {CANCEL_NO_ENTRY}
               </p>
             </li>
           </ul>
         </section>
 
         {/* --------------------------------------------- restaurant tables */}
-        <section className="mt-section" aria-labelledby="tables">
-          <h2 id="tables" className="nf-h2 text-[1.375rem]">
+        <section aria-labelledby="tables">
+          <h2 id="tables">
             A restaurant table is different
           </h2>
-          <div className="nf-panel nf-panel--card block mt-group p-card">
-            <p className="text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
-              Nothing is taken for a table, so nothing has to come back. You ask
-              a restaurant for a date, a time and a party size, and the restaurant
-              confirms it or turns it down. Cancel from the reservation at any
-              hour, for nothing, and tell them in its own conversation if you are
-              simply running late. You pay the restaurant when you eat, and the
-              schedule above has nothing to say about any of it.
+          <div className="mt-group">
+            <p className="text-[length:var(--nf-text-row)] leading-relaxed text-[var(--nf-content-secondary)]">
+              {CANCEL_TABLE}
             </p>
           </div>
         </section>
 
         {/* ------------------------------------------------ refund route */}
-        <section className="mt-section" aria-labelledby="refund-route">
-          <h2 id="refund-route" className="nf-h2 text-[1.375rem]">
+        <section aria-labelledby="refund-route">
+          <h2 id="refund-route">
             Where a refund actually goes
           </h2>
-          <div className="nf-panel nf-panel--card block mt-group p-card">
-            <p className="text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
-              {REFUND_ROUTE} {NO_CUSTODY_SENTENCE} There is no Vallo balance for a
-              refund to sit in, so it always goes back the way the money came.
+          <div className="mt-group">
+            <p className="text-[length:var(--nf-text-row)] leading-relaxed text-[var(--nf-content-secondary)]">
+              {REFUND_ROUTE} {NO_CUSTODY_SENTENCE} {REFUND_NO_BALANCE}
             </p>
           </div>
         </section>
@@ -176,12 +175,12 @@ export default function CancellationPolicyPage() {
             is settled in its own agreement and then the page never mentioned
             it again, so the only place that answer existed was a sentence in
             the hero nobody scrolls back up to. */}
-        <section className="mt-section" aria-labelledby="tenancies">
-          <h2 id="tenancies" className="nf-h2 text-[1.375rem]">
+        <section aria-labelledby="tenancies">
+          <h2 id="tenancies">
             A tenancy, a sale or a lease is different again
           </h2>
-          <div className="nf-panel nf-panel--card block mt-group p-card">
-            <p className="text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
+          <div className="mt-group">
+            <p className="text-[length:var(--nf-text-row)] leading-relaxed text-[var(--nf-content-secondary)]">
               The schedule above is for stays: a room, a flat or a house taken by
               the night. A year&apos;s rent, a purchase or a commercial lease is
               settled in the agreement you sign with the agent, and the terms in
@@ -192,7 +191,9 @@ export default function CancellationPolicyPage() {
           </div>
         </section>
 
-        <p className="mt-block text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+        </DocumentSheet>
+
+        <p className="mt-block text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
           Read this next to the{" "}
           <Link
             href="/safety"

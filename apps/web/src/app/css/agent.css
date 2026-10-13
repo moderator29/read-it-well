@@ -245,6 +245,17 @@
   .nf-host__body--wide {
     max-width: 76rem;
   }
+  /* The main dock is drawn below 1024px (`WorkspaceDock`); the body clears it by
+     the one token the consumer shell uses. From 1024px the dock is not drawn
+     and the sidebar carries the navigation, so the body keeps its own foot. */
+  .nf-host__body.nf-host__body--docked {
+    padding-bottom: calc(var(--nf-space-md) + var(--nf-tabbar-clearance));
+  }
+  @media (min-width: 64rem) {
+    .nf-host__body.nf-host__body--docked {
+      padding-bottom: calc(var(--nf-space-2xl) + env(safe-area-inset-bottom));
+    }
+  }
   .nf-host--immersive .nf-host__col {
     min-height: 0;
   }
@@ -399,6 +410,19 @@
     display: grid;
     gap: 1.5rem;
   }
+  /* The figure hero on the band (reference 7033, Session 3): "Needs you
+     today" large and counting, then the one next action as a single row,
+     then the count cards. Air above the cards so the figure reads first. */
+  .nf-today-hero {
+    display: grid;
+    gap: var(--nf-space-md);
+    margin-bottom: var(--nf-space-lg);
+  }
+  .nf-today-hero__next {
+    width: 100%;
+    max-width: 34rem;
+    justify-self: center;
+  }
   .nf-desk-kpis {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -439,7 +463,7 @@
   }
   .nf-desk-card {
     padding: 1rem;
-    border: var(--nf-border-width) solid var(--nf-card-border);
+    border: var(--nf-border-width) solid var(--nf-tier-card-edge);
     border-radius: var(--nf-radius-card);
     background: var(--nf-surface-primary);
     box-shadow: var(--nf-card-shadow);
@@ -481,7 +505,7 @@
     background: transparent;
     appearance: none;
     font-size: var(--nf-text-body-sm);
-    font-weight: 500;
+    font-weight: 400;
     color: inherit;
     cursor: pointer;
   }

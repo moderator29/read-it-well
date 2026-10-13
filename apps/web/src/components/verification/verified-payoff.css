@@ -1,0 +1,209 @@
+@layer theme, base, components, utilities;
+
+/*
+ * THE VERIFICATION-PASSED MOMENT (round 5; MOTION_SYSTEM "Verification passed:
+ * shield assembles, tick embosses, pop"; CRAFT_DOCTRINE 5, "payoff: sharp,
+ * then settled"). Imported by `VerifiedPayoff.tsx` only, so it rides with the
+ * one route that can play it. The phone step's face is `verified-face.css`.
+ *
+ * It plays only inside `.nf-vpass-plate[data-vpass="play"]`, which the page
+ * renders only when the server says a rung really passed recently and this
+ * device has not been shown the level. `[data-vpass-seen]` (set before paint
+ * when this device already saw it) stops everything on the final frame.
+ *
+ * THE STORYBOARD (full motion; every number is a token sum):
+ *      0ms   the object slot holds the object the member saw while waiting
+ *    160ms   it leaves (`leave`, 240ms) as the shield assembles in the same
+ *            slot (`land`, 380ms): the pending plate becomes the verified one
+ *    400ms   the tick embosses on the shield's corner and draws (240ms)
+ *    640ms   the pop, 1.0 to 1.04 to 1.0 over 180ms, and the one haptic;
+ *            the title rises, the body 60ms later, the review track 60ms after
+ *    820ms   the tick disc fades into the shield's own tick (160ms)
+ * At rest the plate is exactly the plain approved plate: the waiting object
+ * and the disc are invisible and take no space of their own.
+ *
+ * QUIET (reduced motion, Calm, data saving): the same story as a crossfade,
+ * opacity only, 160ms written out (the duration tokens fall to 1ms here): the
+ * waiting object fades to the shield, then the words fade in. No pop, no
+ * disc. Off: the settled plate, nothing moves. The haptic is felt in every
+ * mode (`payoff-haptic.ts`).
+ */
+@layer components {
+  .nf-vpass {
+    position: relative;
+    display: grid;
+    flex-shrink: 0;
+  }
+  .nf-vpass > * {
+    grid-area: 1 / 1;
+  }
+  .nf-vpass__was,
+  .nf-vpass__badge {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .nf-vpass__badge {
+    display: block;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+    position: absolute;
+    inset-inline-end: -0.125rem;
+    inset-block-end: -0.125rem;
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
+    box-shadow: 0 0 0 2px var(--nf-surface-primary);
+  }
+  .nf-vpass__badge svg {
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+    stroke: currentColor;
+  }
+  .nf-vpass__tick {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+  }
+
+  /* ------------------------------------------------------------ full motion */
+  @media (prefers-reduced-motion: no-preference) {
+    :root:not([data-motion="calm"], [data-motion="off"], [data-save-data="on"], [data-motion-lite="on"]) {
+      & .nf-vpass-plate[data-vpass="play"]:not([data-vpass-seen]) {
+        & .nf-vpass__was {
+          animation: nf-vpass-leave var(--nf-duration-base) var(--nf-ease-exit) var(--nf-duration-fast) both;
+        }
+        & .nf-vpass__shield {
+          animation: nf-vpass-assemble var(--nf-duration-slow) var(--nf-ease-entrance) var(--nf-duration-fast) both;
+        }
+        & .nf-vpass__badge {
+          animation: nf-vpass-emboss calc(var(--nf-duration-fast) + var(--nf-duration-base) + 180ms) var(--nf-ease-entrance)
+            calc(var(--nf-duration-fast) + var(--nf-duration-base)) both;
+        }
+        & .nf-vpass__tick {
+          animation: nf-vpass-draw var(--nf-duration-base) var(--nf-ease-standard) calc(var(--nf-duration-fast) + var(--nf-duration-base))
+            both;
+        }
+        & .nf-vpass {
+          animation: nf-vpass-pop 180ms var(--nf-ease-standard) calc(var(--nf-duration-fast) + 2 * var(--nf-duration-base));
+        }
+        & :is(.nf-vpass__words > *, .nf-vpass__track) {
+          animation: nf-vpass-rise var(--nf-duration-base) var(--nf-ease-entrance) calc(var(--nf-duration-fast) + 2 * var(--nf-duration-base))
+            both;
+        }
+        & .nf-vpass__words > :nth-child(2) {
+          animation-delay: calc(var(--nf-duration-fast) + 2 * var(--nf-duration-base) + 60ms);
+        }
+        & .nf-vpass__track {
+          animation-delay: calc(var(--nf-duration-fast) + 2 * var(--nf-duration-base) + 120ms);
+        }
+      }
+    }
+  }
+
+  /* ------------------------------------------------- quiet: one crossfade */
+  /* The floor in animation.css collapses every animation under reduced
+     motion unless the element opts in (`--nf-reduced-duration`, W2), so each
+     fade says its own 160ms there. */
+  @media (prefers-reduced-motion: reduce) {
+    :root:not([data-motion="off"]) .nf-vpass-plate[data-vpass="play"]:not([data-vpass-seen]) .nf-vpass__was {
+      animation: nf-vpass-fade-out 160ms var(--nf-ease-standard) both;
+      --nf-reduced-duration: 160ms;
+    }
+    :root:not([data-motion="off"]) .nf-vpass-plate[data-vpass="play"]:not([data-vpass-seen]) .nf-vpass__shield {
+      animation: nf-vpass-fade-in 160ms var(--nf-ease-standard) both;
+      --nf-reduced-duration: 160ms;
+    }
+    :root:not([data-motion="off"]) .nf-vpass-plate[data-vpass="play"]:not([data-vpass-seen]) :is(.nf-vpass__words > *, .nf-vpass__track) {
+      animation: nf-vpass-fade-in 160ms var(--nf-ease-standard) 160ms both;
+      --nf-reduced-duration: 160ms;
+      --nf-reduced-delay: 160ms;
+    }
+  }
+  :root:is([data-motion="calm"], [data-save-data="on"], [data-motion-lite="on"]):not([data-motion="off"]) .nf-vpass-plate[data-vpass="play"]:not([data-vpass-seen]) .nf-vpass__was {
+    animation: nf-vpass-fade-out 160ms var(--nf-ease-standard) both;
+  }
+  :root:is([data-motion="calm"], [data-save-data="on"], [data-motion-lite="on"]):not([data-motion="off"]) .nf-vpass-plate[data-vpass="play"]:not([data-vpass-seen]) .nf-vpass__shield {
+    animation: nf-vpass-fade-in 160ms var(--nf-ease-standard) both;
+  }
+  :root:is([data-motion="calm"], [data-save-data="on"], [data-motion-lite="on"]):not([data-motion="off"]) .nf-vpass-plate[data-vpass="play"]:not([data-vpass-seen]) :is(.nf-vpass__words > *, .nf-vpass__track) {
+    animation: nf-vpass-fade-in 160ms var(--nf-ease-standard) 160ms both;
+  }
+
+  @keyframes nf-vpass-leave {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+      transform: scale(0.86);
+    }
+  }
+  @keyframes nf-vpass-assemble {
+    from {
+      opacity: 0;
+      transform: translateY(0.5rem) scale(0.86);
+    }
+  }
+  /* In over the first 160ms, held through the pop, out over the last 160ms. */
+  @keyframes nf-vpass-emboss {
+    0% {
+      opacity: 0;
+      transform: scale(0.6);
+    }
+    28%,
+    72% {
+      opacity: 1;
+      transform: none;
+    }
+    100% {
+      opacity: 0;
+      transform: none;
+    }
+  }
+  @keyframes nf-vpass-draw {
+    from {
+      stroke-dashoffset: 1;
+    }
+  }
+  /* THE PAYOFF POP, 1.0 to 1.04 to 1.0 (MOTION_SYSTEM principle 5). */
+  @keyframes nf-vpass-pop {
+    50% {
+      transform: scale(1.04);
+    }
+  }
+  @keyframes nf-vpass-rise {
+    from {
+      opacity: 0;
+      transform: translateY(0.5rem);
+    }
+  }
+  @keyframes nf-vpass-fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes nf-vpass-fade-out {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+}
+
+/*
+ * THE APPROVED PLATE'S REVIEW TRACK IS STILL ON AN ORDINARY VISIT. Its
+ * "Verified" step is an earned mark, and the shared track (status-track.css)
+ * fills its connectors and pops its nodes on every view. Inside the plain
+ * approved plate (`KycStatus`, `.nf-vtrack-still`) it is simply there; inside
+ * the payoff it arrives with the plate. Unlayered and important, because the
+ * track's own motion block is unlayered and more specific; `none` is the only
+ * value it can force.
+ */
+.nf-vtrack-still .nf-track__node,
+.nf-vtrack-still .nf-track__step::after,
+.nf-vpass-plate[data-vpass-seen] .nf-track__node,
+.nf-vpass-plate[data-vpass-seen] .nf-track__step::after {
+  animation: none !important;
+}

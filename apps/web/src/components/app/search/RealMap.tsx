@@ -43,9 +43,25 @@ const KIND_LABEL: Record<ListingKind, string> = {
   land: "Land",
 };
 
+/*
+ * WHAT THE FIGURE COVERS, FROM THE LISTING'S OWN PERIOD (search-map track).
+ * This read `pricePeriod === "year" ? "year" : "night"`, so a monthly or
+ * quarterly rent was printed "/ night" on the docked card and a house for
+ * sale was priced by the night. The period column states the cycle; a sale
+ * has none.
+ */
 function periodFor(listing: Listing): MapListing["period"] {
   if (listing.kind === "restaurant" || listing.kind === "experience") return "guest";
-  return listing.pricePeriod === "year" ? "year" : "night";
+  if (listing.intent === "sale") return "sale";
+  switch (listing.pricePeriod) {
+    case "year":
+    case "month":
+    case "quarter":
+    case "guest":
+      return listing.pricePeriod;
+    default:
+      return "night";
+  }
 }
 
 /**
@@ -63,9 +79,15 @@ export async function RealMap({
   pins,
   active,
   listings,
+  listHref,
+  fill = false,
 }: {
+  /** Fill the parent's height: the desktop list's sticky map. */
+  fill?: boolean;
   pins: CityPin[];
   active?: string;
+  /** The same results as a list, where a place with no pin is still drawn (Session 3, W2). */
+  listHref?: string;
   /** Escape hatch for a caller that has already resolved the result set. */
   listings?: Listing[];
 }) {
@@ -104,6 +126,9 @@ export async function RealMap({
       reviewCount: listing.reviewCount,
       ...(listing.photos[0] ? { photo: listing.photos[0] } : {}),
       hue: listing.hue,
+      ...(listing.bedrooms > 0 ? { bedrooms: listing.bedrooms } : {}),
+      ...(listing.bathrooms > 0 ? { bathrooms: listing.bathrooms } : {}),
+      ...(listing.sizeSqm !== undefined && listing.sizeSqm > 0 ? { sizeSqm: listing.sizeSqm } : {}),
       verified: listing.verified,
       isDemo: listing.isDemo,
       drawn: isModestExample(listing),
@@ -120,8 +145,21 @@ export async function RealMap({
     count: pin.count,
   }));
 
+  /*
+   * THE LISTING WITH NO PIN (B-27). A place whose city has no coordinate is
+   * not guessed onto the map: it is counted, and the map says how many are
+   * not on it and opens them as a list, where they are drawn like any other.
+   * Silently dropping them would make the map's count disagree with the
+   * results' count with nothing to say why.
+   */
+  const unplaced = catalogue.length - placed.length;
+  const dm = t.experienceDiscover.map;
+
   return (
     <MapCanvas
+      fill={fill}
+      unplaced={unplaced}
+      {...(listHref ? { listHref } : {})}
       listings={mapListings}
       cities={cities}
       {...(active ? { active } : {})}
@@ -129,8 +167,23 @@ export async function RealMap({
       copy={{
         night: t.common.night,
         year: t.common.year,
-        guest: "guest",
+        guest: t.experienceLabels.periodShort.guest,
+        month: t.catalogue.card.perMonth,
+        quarter: t.catalogue.card.perQuarter,
+        sqm: t.catalogue.card.sqm,
         verified: t.common.verified,
+        about: t.searchV2.map.about,
+        credits: t.searchV2.map.credits,
+        noPinOne: dm.noPinOne,
+        noPinMany: dm.noPinMany,
+        noPinList: dm.noPinList,
+        emptyTitle: dm.emptyTitle,
+        emptyArea: dm.emptyArea,
+        emptySearch: dm.emptySearch,
+        emptyAction: dm.emptyAction,
+        imageryOffline: dm.imageryOffline,
+        creditJoin: dm.creditJoin,
+        approximate: dm.approximate,
       }}
       wholeMapHref="/search?view=map"
     />

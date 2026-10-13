@@ -99,14 +99,20 @@ export default async function AdminSocialPage({
   const nothing =
     queue.proposed.length === 0 && queue.applications.length === 0 && queue.open.length === 0;
 
+  /*
+    ON THE CONSOLE'S FRAME. This desk wrote its own header at h4 in a bare
+    column, so it sat at a different width and two type tiers below every other
+    desk, with hand-drawn count boxes beside its section titles (C1 sweep). Now
+    the shared header with the waiting count, the console width, and the
+    console's badge for each section's count.
+  */
   return (
-    <div className="flex flex-col gap-xl">
-      <header>
-        <h1 className="text-[length:var(--nf-text-h4)] font-semibold text-[var(--nf-content-primary)]">Around</h1>
-        <p className="mt-2xs text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
-          Places people asked for, and people who asked to look after one.
-        </p>
-      </header>
+    <div className="nf-console flex flex-col gap-xl">
+      <ui.QueueHeader
+        title="Around"
+        lede="Places people asked for, and people who asked to look after one."
+        count={queue.proposed.length + queue.applications.length}
+      />
 
       <QueueFilters
         base="/admin/social"
@@ -131,7 +137,7 @@ export default async function AdminSocialPage({
       <section>
         <h2 className="mb-sm flex items-center gap-xs text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
           Places waiting
-          <span className="nf-numeric rounded-[var(--nf-radius-xs)] border border-[var(--nf-border-default)] px-xs py-3xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+          <span className="nf-badge nf-badge--brand nf-numeric">
             {queue.proposed.length}
           </span>
         </h2>
@@ -195,7 +201,7 @@ export default async function AdminSocialPage({
       <section>
         <h2 className="mb-sm flex items-center gap-xs text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
           People who want to look after a place
-          <span className="nf-numeric rounded-[var(--nf-radius-xs)] border border-[var(--nf-border-default)] px-xs py-3xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+          <span className="nf-badge nf-badge--brand nf-numeric">
             {queue.applications.length}
           </span>
         </h2>
@@ -255,7 +261,7 @@ export default async function AdminSocialPage({
       <section>
         <h2 className="mb-sm flex items-center gap-xs text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
           Open places
-          <span className="nf-numeric rounded-[var(--nf-radius-xs)] border border-[var(--nf-border-default)] px-xs py-3xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+          <span className="nf-badge nf-badge--brand nf-numeric">
             {queue.open.length}
           </span>
         </h2>
@@ -277,22 +283,20 @@ export default async function AdminSocialPage({
                   <div className="flex items-center gap-xs">
                     <Link
                       href={`/around/${area.slug}`}
-                      className="truncate text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]"
+                      className="flex min-h-11 min-w-0 items-center text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]"
                     >
-                      {area.name}
+                      <span className="truncate">{area.name}</span>
                     </Link>
-                    {area.status === "PAUSED" ? (
-                      <span className="rounded-[var(--nf-radius-xs)] border border-[var(--nf-border-default)] px-xs py-3xs text-[length:var(--nf-text-overline)] font-semibold uppercase tracking-[var(--nf-tracking-label)] text-[var(--nf-content-muted)]">
-                        Paused
-                      </span>
-                    ) : null}
+                    {area.status === "PAUSED" ? <ui.StatusChip label="Paused" tone="neutral" /> : null}
                   </div>
                   <p className="nf-numeric mt-3xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
                     {area.city} &middot; {area.memberCount} members &middot;{" "}
                     {area.moderatorCount} looking after it
                   </p>
                   {area.moderatorCount === 0 ? (
-                    <p className="mt-2xs text-[length:var(--nf-text-overline)] text-[var(--nf-state-warning)]">
+                    /* The error ink: `--nf-state-warning` is the pending cyan,
+                       which says "on its way" about a place nobody watches. */
+                    <p className="mt-2xs text-[length:var(--nf-text-overline)] font-semibold text-[var(--nf-state-error)]">
                       Nobody is watching this place.
                     </p>
                   ) : null}

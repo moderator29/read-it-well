@@ -35,6 +35,7 @@ import {
   URL_PATH_HEADER,
 } from "@/lib/i18n/public-locale";
 import { LOCALE_COOKIE } from "@/lib/locale.constants";
+import { ANON_VIEWER, VIEWER_HEADER, VIEWER_PATH_HEADER, viewerStamp, wantsViewerStamp } from "@/lib/offline/viewer-stamp";
 import {
   finishSetupGateApplies,
   finishSetupHref,
@@ -164,6 +165,9 @@ const PUBLIC_SEGMENTS = new Set([
   // omission: a stranger following a footer link got a sign-in wall.
   "disclaimer",
   "eula",
+  // The Host Agreement is read by a host before they have a host account, and
+  // the Terms link to it, so it is as open as the Terms (13 October 2026).
+  "host-agreement",
   "privacy",
   "safety",
   "standards",
@@ -257,9 +261,9 @@ const PUBLIC_PATHS = new Set(["/", "/robots.txt", "/sitemap.xml", "/opengraph-im
  * page list: a new endpoint is then born closed. Every entry here carries its
  * own guard, and none of them is a session:
  *
- *   webhooks           a signature over the body, from Paystack, Yellow Card
- *                      and Supabase's own auth hook. The sender has no cookie
- *                      and never will.
+ *   webhooks           a signature over the body, from Paystack, Yellow Card,
+ *                      LiveKit (`/api/calls/webhook`, VC1) and Supabase's own
+ *                      auth hook. The sender has no cookie and never will.
  *   cron               a bearer secret through `lib/cron/run.ts`, including
  *                      `/api/push/drain`, which pg_net calls every five
  *                      minutes, and `/api/paystack/reconcile`.
@@ -305,16 +309,21 @@ const PUBLIC_API_PATHS = new Set([
      64-character token in the query is the whole key; it returns dates only. */
   "/api/calendar/feed",
   "/api/client-error",
+  "/api/calls/webhook",
   "/api/cron/account-purge",
+  "/api/cron/calls-sweep",
   "/api/cron/canary",
   /* C2: calendar sync, behind the cron bearer and CALENDAR_SYNC_ENABLED. */
   "/api/cron/calendar-sync",
   "/api/cron/complete-stays",
   /* Crypto payments read back from the provider, behind the cron bearer. */
   "/api/cron/crypto-reconcile",
+  /* Escrow arrangements read back from the payment partner, behind the cron bearer. */
+  "/api/cron/arrangements-reconcile",
   "/api/cron/email-outbox",
   "/api/cron/hold-sweep",
   "/api/cron/rent-share-refunds",
+  "/api/cron/reservation-deposit-refunds",
   "/api/cron/inventory-drift",
   "/api/cron/landlord-line",
   "/api/cron/pg-cron-watch",
@@ -340,6 +349,8 @@ const PUBLIC_API_PATHS = new Set([
   "/api/push/key",
   "/api/paystack/reconcile",
   "/api/paystack/webhook",
+  /* Part B phase 15: Payluk webhooks, behind the HMAC-SHA512 signature. */
+  "/api/payluk/webhook",
   /* V-98: the home-screen widget, behind its device-bound token. */
   "/api/plans/next",
   "/api/push/drain",
@@ -478,6 +489,9 @@ export async function proxy(request: NextRequest) {
    */
   const nonce = createNonce();
   request.headers.set(NONCE_HEADER, nonce);
+  /* The offline stamp is the server's to set, never the client's. */
+  request.headers.delete(VIEWER_HEADER);
+  request.headers.delete(VIEWER_PATH_HEADER);
 
   /*
    * A10: LANGUAGES YOU CAN LINK TO. `/ha/about` is the Hausa `/about`: the
@@ -539,6 +553,33 @@ export async function proxy(request: NextRequest) {
   }
 
   /*
+   * WHOSE PAGE THIS IS, for the service worker that keeps visited pages for
+   * offline (`lib/offline/viewer-stamp.ts`). Set once the session has been
+   * read, below; left null when it could not be, and never put on a response
+   * that sets a cookie, so neither is ever kept.
+   */
+  let viewer: string | null = null;
+
+  /*
+   * The stamp goes on the response header (in `finish`) and into the render,
+   * for the head's meta tag, which is the copy the Android app's worker can
+   * read. Into the render means onto the forwarded request, so the
+   * pass-through is rebuilt with it; only when nothing has set a cookie on the
+   * response yet, so nothing is lost by rebuilding it, and only when this
+   * response will not set the language cookie either.
+   */
+  const stampRender = (current: NextResponse): NextResponse => {
+    const setsLocale = Boolean(urlLocale && !request.cookies.get(LOCALE_COOKIE));
+    if (!viewer || setsLocale || current.headers.get("set-cookie")) {
+      viewer = null;
+      return current;
+    }
+    request.headers.set(VIEWER_HEADER, viewer);
+    request.headers.set(VIEWER_PATH_HEADER, request.nextUrl.pathname);
+    return forward();
+  };
+
+  /*
    * What every page response on a language-bearing address also carries: the
    * hreflang set (so a search engine finds all four languages from any one),
    * and, for a first-time visitor who arrived through a language address with
@@ -556,6 +597,7 @@ export async function proxy(request: NextRequest) {
         sameSite: "lax",
       });
     }
+    if (viewer && !response.headers.get("set-cookie")) response.headers.set(VIEWER_HEADER, viewer);
     return withSecurityPolicy(response, nonce);
   };
 
@@ -604,8 +646,11 @@ export async function proxy(request: NextRequest) {
 
   let response = forward();
 
+  const stamped = wantsViewerStamp(request);
+
   if (!isSupabaseConfigured()) {
-    return finish(response);
+    if (stamped) viewer = ANON_VIEWER;
+    return finish(stampRender(response));
   }
 
   const supabase = createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -702,6 +747,7 @@ export async function proxy(request: NextRequest) {
      to sign-in at once. */
   if (reader === "unknown") return finish(response);
   const user = reader;
+  if (stamped) viewer = await viewerStamp(user);
 
   /* SPEED-4: the 404 check for a detail page, when it is already known to be
      needed, starts beside the stranger's rate-limit read instead of after it.
@@ -874,7 +920,7 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  return finish(response);
+  return finish(stampRender(response));
 }
 
 /** The one read the finish-setup gate makes, narrowed to its shape. */

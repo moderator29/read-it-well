@@ -1,0 +1,465 @@
+/*
+ * THE VISIT CALENDARS (13 October 2026): the lister's on /agent/inspections
+ * (components/agent/visit-calendar/VisitCalendar.tsx) and the console's on
+ * /admin/bookings/visits (app/admin/bookings/visits/VisitsDesk.tsx). Loaded by
+ * the components that draw them, not by globals.css.
+ *
+ * Semantic tokens only, so light and dark follow the theme on their own.
+ * Phone first: one column at 390px, the side column beside the calendar from
+ * 1024px. Controls rest on a fill, never on a grey hairline, and the picked
+ * day wears the shared selected fill and edge.
+ */
+@layer theme, base, components, utilities;
+
+@layer components {
+  /* The arrangement: the calendar, and beside it the side column. */
+  .nf-vcal {
+    display: grid;
+    gap: var(--nf-gap-block);
+    margin-top: var(--nf-space-lg);
+  }
+  .nf-vcal__main,
+  .nf-vcal__aside {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: var(--nf-gap-block);
+  }
+  @media (min-width: 1024px) {
+    .nf-vcal {
+      grid-template-columns: minmax(0, 1fr) minmax(18rem, 22rem);
+      align-items: start;
+    }
+    .nf-vcal__aside {
+      position: sticky;
+      top: var(--nf-space-3xl);
+    }
+  }
+
+  /* The console draws days, steps and rows as links; they read as controls. */
+  a.nf-vcal-day,
+  a.nf-vcal-cell,
+  a.nf-vrow,
+  a.nf-vcal-nav__step,
+  a.nf-vcal-nav__today {
+    text-decoration: none;
+  }
+
+  /* The three figures. */
+  .nf-vcal-sum {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--nf-space-xs);
+  }
+  .nf-vcal-sum__item {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--nf-space-3xs);
+    padding: var(--nf-space-sm);
+    border-radius: var(--nf-radius-card-sm);
+    background: var(--nf-panel-fill-card);
+    box-shadow: var(--nf-elev-1);
+    color: var(--nf-content-primary);
+    text-align: start;
+    cursor: pointer;
+  }
+  .nf-vcal-sum__item[data-attention] .nf-vcal-sum__figure {
+    color: var(--nf-state-warning-accent);
+  }
+  .nf-vcal-sum__item:focus-visible {
+    outline: 2px solid var(--nf-brand-primary);
+    outline-offset: 2px;
+  }
+  .nf-vcal-sum__figure {
+    font-size: var(--nf-text-h2);
+    font-weight: 600;
+    line-height: 1.1;
+  }
+  .nf-vcal-sum__word {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+    line-height: 1.25;
+  }
+
+  /* A card on the calendar column. */
+  .nf-vcal-card {
+    padding: var(--nf-space-md);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-panel-fill-card);
+    box-shadow: var(--nf-elev-1);
+  }
+  .nf-vcal-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--nf-space-sm);
+  }
+  .nf-vcal-nav {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    margin-top: var(--nf-gap-group);
+  }
+  .nf-vcal-nav__step,
+  .nf-vcal-nav__today {
+    display: inline-flex;
+    min-height: 2.5rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--nf-radius-control);
+    background: var(--nf-surface-inset);
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .nf-vcal-nav__step {
+    width: 2.5rem;
+  }
+  .nf-vcal-nav__today {
+    padding-inline: var(--nf-space-md);
+  }
+  .nf-vcal-nav__step:focus-visible,
+  .nf-vcal-nav__today:focus-visible {
+    outline: 2px solid var(--nf-brand-primary);
+    outline-offset: 2px;
+  }
+
+  /* The week strip: seven days, the count under each. */
+  .nf-vcal-strip {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: var(--nf-space-3xs);
+  }
+  .nf-vcal-day {
+    display: flex;
+    width: 100%;
+    min-height: 4rem;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--nf-space-3xs);
+    border: 1px solid transparent;
+    border-radius: var(--nf-radius-control);
+    background: var(--nf-surface-inset);
+    color: var(--nf-content-primary);
+    cursor: pointer;
+  }
+  .nf-vcal-day[aria-pressed="true"],
+  .nf-vcal-cell[aria-pressed="true"],
+  .nf-vcal-day[data-picked],
+  .nf-vcal-cell[data-picked] {
+    border-color: var(--nf-selected-edges);
+    background: var(--nf-selected-fill);
+    box-shadow: var(--nf-selected-shadow-inline);
+  }
+  /* Today is underlined in the day's own ink, so it reads on the picked fill
+     as well as at rest. */
+  .nf-vcal-day[aria-current="date"] .nf-vcal-day__date,
+  .nf-vcal-cell[aria-current="date"] .nf-vcal-cell__date {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 4px;
+  }
+  /* The picked day wears the brand fill, so its words take the ink made for it. */
+  .nf-vcal-day[aria-pressed="true"],
+  .nf-vcal-day[data-picked],
+  .nf-vcal-cell[aria-pressed="true"],
+  .nf-vcal-cell[data-picked] {
+    color: var(--nf-content-on-brand);
+  }
+  .nf-vcal-day[aria-pressed="true"] .nf-vcal-day__week,
+  .nf-vcal-day[aria-pressed="true"] .nf-vcal-day__count,
+  .nf-vcal-day[data-picked] .nf-vcal-day__week,
+  .nf-vcal-day[data-picked] .nf-vcal-day__count {
+    color: inherit;
+  }
+  .nf-vcal-day:focus-visible,
+  .nf-vcal-cell:focus-visible {
+    outline: 2px solid var(--nf-brand-primary);
+    outline-offset: 2px;
+  }
+  .nf-vcal-day__week {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+  }
+  .nf-vcal-day__date {
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+  }
+  .nf-vcal-day__count {
+    min-height: 1em;
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+  }
+
+  /* The month grid. */
+  .nf-vcal-month {
+    display: grid;
+    gap: var(--nf-space-3xs);
+  }
+  .nf-vcal-month__head,
+  .nf-vcal-month__row {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: var(--nf-space-3xs);
+  }
+  .nf-vcal-month__weekday {
+    padding-block: var(--nf-space-3xs);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+    text-align: center;
+  }
+  .nf-vcal-cell {
+    display: flex;
+    width: 100%;
+    min-height: 3rem;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--nf-space-3xs);
+    border: 1px solid transparent;
+    border-radius: var(--nf-radius-control-sm);
+    background: var(--nf-surface-inset);
+    color: var(--nf-content-primary);
+    cursor: pointer;
+  }
+  .nf-vcal-cell[data-out] {
+    background: transparent;
+    color: var(--nf-content-muted);
+  }
+  .nf-vcal-cell__date {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+  }
+  .nf-vcal-cell__count {
+    min-width: 1.25rem;
+    padding-inline: var(--nf-space-3xs);
+    border-radius: var(--nf-radius-badge);
+    background: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    line-height: 1.4;
+    text-align: center;
+  }
+  .nf-vcal-cell[aria-pressed="true"] .nf-vcal-cell__count,
+  .nf-vcal-cell[data-picked] .nf-vcal-cell__count {
+    background: var(--nf-content-on-brand);
+    color: var(--nf-brand-primary);
+  }
+  @media (min-width: 768px) {
+    .nf-vcal-cell {
+      min-height: 4.25rem;
+      align-items: flex-start;
+      justify-content: space-between;
+      padding: var(--nf-space-xs);
+    }
+  }
+
+  /* A day's visits. */
+  .nf-vcal-week {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-md);
+  }
+  .nf-vcal-agenda {
+    scroll-margin-top: var(--nf-space-3xl);
+  }
+  .nf-vcal-agenda__day {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--nf-space-2xs);
+    margin-bottom: var(--nf-space-xs);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-vcal-agenda[data-today] .nf-vcal-agenda__day > span:first-child {
+    color: var(--nf-brand-primary);
+  }
+  .nf-vcal-agenda__date {
+    font-weight: 400;
+    color: var(--nf-content-secondary);
+  }
+  .nf-vcal-agenda__count {
+    margin-inline-start: auto;
+    font-size: var(--nf-text-caption);
+    font-weight: 400;
+    color: var(--nf-content-secondary);
+  }
+  .nf-vcal-agenda__none,
+  .nf-vcal-empty {
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-muted);
+  }
+  .nf-vcal-rows {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-2xs);
+  }
+
+  /* One visit. Time, mode, who and where, state. */
+  /* On a phone the state chip sits under the name and listing, so neither is
+     cut to a few letters; from 480px it takes its own column. */
+  .nf-vrow {
+    display: grid;
+    width: 100%;
+    grid-template-columns: 4rem 1.25rem minmax(0, 1fr);
+    grid-template-areas:
+      "time mode who"
+      "time mode state";
+    align-items: center;
+    row-gap: var(--nf-space-3xs);
+    gap: var(--nf-space-xs);
+    padding: var(--nf-space-xs) var(--nf-space-sm);
+    border: 1px solid transparent;
+    border-radius: var(--nf-radius-control);
+    background: var(--nf-surface-inset);
+    color: var(--nf-content-primary);
+    text-align: start;
+  }
+  .nf-vrow--open {
+    cursor: pointer;
+  }
+  .nf-vrow--open:hover {
+    background: var(--nf-surface-secondary);
+  }
+  /* An open row keeps its own surface and gains the brand edge: its grey
+     second lines would not read on the brand fill. */
+  .nf-vrow[aria-current="true"],
+  .nf-vrow[aria-pressed="true"] {
+    border-color: var(--nf-brand-primary);
+    background: var(--nf-surface-secondary);
+  }
+  .nf-vrow:focus-visible {
+    outline: 2px solid var(--nf-brand-primary);
+    outline-offset: 2px;
+  }
+  @media (min-width: 480px) {
+    .nf-vrow {
+      grid-template-columns: 4rem 1.25rem minmax(0, 1fr) auto;
+      grid-template-areas: "time mode who state";
+    }
+  }
+  .nf-vrow__time {
+    grid-area: time;
+    display: flex;
+    flex-direction: column;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    line-height: 1.2;
+  }
+  .nf-vrow__asked {
+    white-space: nowrap;
+    font-size: var(--nf-text-caption);
+    font-weight: 400;
+    color: var(--nf-content-muted);
+  }
+  .nf-vrow__mode {
+    grid-area: mode;
+    display: inline-flex;
+    color: var(--nf-content-secondary);
+  }
+  .nf-vrow__who {
+    grid-area: who;
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+  }
+  .nf-vrow__listing {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  /* A name wraps rather than losing its end: on the console it is two people. */
+  .nf-vrow__name {
+    overflow-wrap: anywhere;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+  }
+  .nf-vrow__listing {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+  }
+  .nf-vrow__state {
+    grid-area: state;
+    display: inline-flex;
+    justify-content: flex-start;
+  }
+  @media (min-width: 480px) {
+    .nf-vrow__state {
+      justify-content: flex-end;
+    }
+  }
+
+  /* The console's desk: filters, the day counts and the detail panel. */
+  .nf-vdesk {
+    display: grid;
+    gap: var(--nf-gap-block);
+  }
+  /* On a phone an open visit comes first, and the "pick a visit" panel is
+     not drawn at all: it would sit under a month of rows saying nothing. */
+  .nf-vdesk__detail {
+    order: -1;
+    min-width: 0;
+  }
+  .nf-vdesk__detail--idle {
+    display: none;
+  }
+  @media (min-width: 1280px) {
+    .nf-vdesk {
+      grid-template-columns: minmax(0, 1fr) minmax(20rem, 24rem);
+      align-items: start;
+    }
+    .nf-vdesk__detail {
+      order: 0;
+      position: sticky;
+      top: var(--nf-space-3xl);
+    }
+    .nf-vdesk__detail--idle {
+      display: block;
+    }
+  }
+  .nf-vdesk__filters {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--nf-space-xs);
+    margin-top: var(--nf-gap-group);
+  }
+  @media (min-width: 768px) {
+    .nf-vdesk__filters {
+      grid-template-columns: repeat(4, minmax(0, 1fr)) auto auto;
+      align-items: end;
+    }
+  }
+  .nf-vdesk__history {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-2xs);
+  }
+  .nf-vdesk__history li {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--nf-space-sm);
+    font-size: var(--nf-text-body-sm);
+  }
+  .nf-vdesk__facts {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    gap: var(--nf-space-2xs) var(--nf-space-sm);
+    font-size: var(--nf-text-body-sm);
+  }
+  .nf-vdesk__facts dt {
+    color: var(--nf-content-secondary);
+  }
+  .nf-vdesk__facts dd {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+}

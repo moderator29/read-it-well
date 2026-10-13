@@ -45,17 +45,20 @@ export function periodDelta(
 }
 
 /**
- * Round axis ticks from zero to at least `max`: 0, then `count` even steps on
- * a 1, 2, 2.5 or 5 multiple of a power of ten. A zero series still gets a
- * readable axis (0 to 1 step) rather than a collapsed one.
+ * Round axis ticks from zero to at least `max`: 0, then up to `count` even
+ * steps on a 1, 2, 2.5 or 5 multiple of a power of ten, stopping at the first
+ * tick that covers `max`. (It used to draw all `count` steps whatever the
+ * data, so a peak of 107 sat under a 200 line with the top half of the plot
+ * empty.) A zero series still gets a readable axis (0 to 1) rather than a
+ * collapsed one.
  */
 export function niceTicks(max: number, count = 4): number[] {
   const safeMax = Number.isFinite(max) && max > 0 ? max : 1;
   const raw = safeMax / count;
   const power = 10 ** Math.floor(Math.log10(raw));
   const step = [1, 2, 2.5, 5, 10].map((m) => m * power).find((s) => s >= raw) ?? 10 * power;
-  const ticks: number[] = [];
-  for (let i = 0; i <= count; i += 1) ticks.push(Math.round(step * i * 1e6) / 1e6);
+  const ticks: number[] = [0];
+  for (let i = 1; i <= count && ticks.at(-1)! < safeMax; i += 1) ticks.push(Math.round(step * i * 1e6) / 1e6);
   return ticks;
 }
 

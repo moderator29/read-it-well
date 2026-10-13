@@ -1,4 +1,5 @@
 import "server-only";
+import { reportReadError } from "@/lib/observability/read-error";
 
 import { resolveSession } from "../actions/session";
 import {
@@ -57,6 +58,7 @@ export async function loadProfileState(): Promise<ProfileState> {
     .eq("id", user.id)
     .maybeSingle();
 
+  await reportReadError("read.profile.loadProfileState", error);
   if (error || !row) return { state: "no-row", email: user.email ?? "" };
 
   const settings = parseSettings(row.settings);
@@ -184,6 +186,7 @@ async function readCount(
 ): Promise<number> {
   try {
     const { count, error } = await query;
+    await reportReadError("read.profile.readCount", error);
     if (error || typeof count !== "number") return 0;
     return count;
   } catch {

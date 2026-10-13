@@ -72,7 +72,7 @@ export function ContestDecision({ contest }: { contest: ContestView }) {
       </div>
 
       {done ? (
-        <p role="status" className="text-[length:var(--nf-text-body-sm)] font-medium text-[var(--nf-state-success)]">
+        <p role="status" className="text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-state-success)]">
           {done}
         </p>
       ) : (

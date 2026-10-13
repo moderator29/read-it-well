@@ -1,4 +1,4 @@
-import { POST_COPY } from "@/lib/social/posts-schema";
+import { POST_COPY } from "@/lib/social/posts-model";
 
 /**
  * What is left of a deleted post INSIDE A CONVERSATION, and nowhere else.

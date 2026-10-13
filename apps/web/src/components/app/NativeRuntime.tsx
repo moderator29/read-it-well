@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { decideBack, performBack } from "@/lib/nav/use-back";
+import { settlePausedBack } from "@/lib/nav/paused-back";
 import { startNativeRuntime } from "@/lib/native/boot";
 
 /**
@@ -64,7 +65,14 @@ export function NativeRuntime() {
           const last = pressedAt.current;
           if (last && last.path === path && now - last.at < SETTLE_MS) return;
           pressedAt.current = { path, at: now };
-          performBack(decideBack(path, "/home", "android"), router);
+          /* A paused social screen (`PausedBack`) marks <html> with the home of
+             the side; the hardware button then takes the same rule as the drawn
+             one: the ordinary decision, never landing on another paused screen. */
+          const pausedHome = document.documentElement.dataset.socialPaused;
+          performBack(
+            pausedHome ? settlePausedBack(decideBack(path, pausedHome, "android"), pausedHome) : decideBack(path, "/home", "android"),
+            router,
+          );
         },
       }),
     /* NOT keyed on the pathname: re-running tore the whole runtime down and

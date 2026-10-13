@@ -1,4 +1,5 @@
 import "server-only";
+import { reportReadError } from "@/lib/observability/read-error";
 
 import { formatMoney, type Locale } from "@vallo/i18n/core";
 import { getDictionary, plural } from "@vallo/i18n";
@@ -40,6 +41,7 @@ export async function getBlockedDates(listingId: string): Promise<string[]> {
       .in("status", ["booked", "unavailable"])
       .order("date", { ascending: true })
       .limit(400);
+    await reportReadError("read.bookings.getBlockedDates", error);
     if (error || !data) return [];
     return data.map((row) => row.date);
   } catch {
@@ -80,6 +82,14 @@ export type BookingView = {
    * database would refuse.
    */
   reviewable: boolean;
+  /** D75: a settled payment exists on this stay (read under the guest's RLS). */
+  paid: boolean;
+  /**
+   * D73/D75: the guest can pay now: not paid, still PENDING or CONFIRMED, not
+   * over. An instant booking is CONFIRMED and unpaid, so status alone no
+   * longer says "pay"; the checkout itself says whether payment is open.
+   */
+  payable: boolean;
 };
 
 /**
@@ -204,6 +214,7 @@ export async function getMyBookings(
    * could not load your trips, rather than you have none, and rather than here
    * are some.
    */
+  await reportReadError("read.bookings.getMyBookings", error);
   if (error || !rows) return "unavailable";
 
   /*
@@ -359,13 +370,23 @@ export async function getMyBookings(
       reviewed: reviewedBookingIds.has(row.id),
       /*
        * The same rule as reviews_insert_own, through lib/reviews/eligibility:
-       * CONFIRMED or COMPLETED with a check-out on or before today. Tenancy
-       * charges were filtered out above, so none reaches this view.
+       * CONFIRMED or COMPLETED, paid (D75), with a check-out on or before
+       * today. Tenancy charges were filtered out above, so none reaches this
+       * view. D75: a hotel room stay is reviewable too; the review action
+       * writes it against the hotel (C4), which the policy already allows.
        */
       reviewable:
-        Boolean(row.listing_id) &&
-        reviewIneligibility({ status: row.status, checkOut: row.check_out, isTenancy: false }, today) === null &&
+        Boolean(row.listing_id || row.accommodation_id) &&
+        reviewIneligibility(
+          { status: row.status, checkOut: row.check_out, isTenancy: false, paid: paidBookingIds.has(row.id) },
+          today,
+        ) === null &&
         !reviewedBookingIds.has(row.id),
+      paid: paidBookingIds.has(row.id),
+      payable:
+        !paidBookingIds.has(row.id) &&
+        (row.status === "PENDING" || row.status === "CONFIRMED") &&
+        row.check_out > today,
     };
     /*
      * STATUS DECIDES THE BUCKET. THE DATE ONLY BREAKS THE TIE.

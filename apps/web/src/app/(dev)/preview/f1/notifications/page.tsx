@@ -32,9 +32,9 @@ const ROWS: NotificationItem[] = [
   {
     id: "n3",
     kind: "wallet",
-    title: "Wallet funded",
-    body: "Your top-up has landed and is ready to use.",
-    href: "/wallet",
+    title: "Your payment went through",
+    body: "The receipt is in your payments.",
+    href: "/payments",
     read: true,
     createdAt: ago(60 * 5),
   },

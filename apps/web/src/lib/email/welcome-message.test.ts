@@ -4,7 +4,8 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 import { siteUrl } from "./render";
-import { LEGAL_LINE, LOCKUP_PATH, MAX_WIDTH, SIGN_OFF, WORDMARK_ALT } from "./theme";
+import { EMAIL_SHOWS_OBJECT } from "./icons";
+import { BRAND, LEGAL_LINE, LOCKUP_PATH, MAX_WIDTH, SIGN_OFF, WORDMARK_ALT } from "./theme";
 import {
   WELCOME_LANDING,
   WELCOME_ROUTES,
@@ -261,13 +262,15 @@ describe("every statement has evidence in the code", () => {
 });
 
 describe("it is built to survive a mail client", () => {
-  it.each(ALL)("$role is a table layout, 600px and fluid, with a designed dark scheme", ({ message }) => {
+  /* D23 made the inline layer white and the dark a scheme (W9): the welcome
+     declares both and carries the designed dark for a dark-mode reader. */
+  it.each(ALL)("$role is a table layout, 600px and fluid, white with a designed dark scheme", ({ message }) => {
     const html = message.html;
     expect(html).toContain('<table role="presentation"');
     expect(html).not.toMatch(/display\s*:\s*(flex|grid|inline-flex|inline-grid)/);
     expect(html).toContain(`max-width:${MAX_WIDTH}px;width:100%;`);
     expect(html).toContain(`<table role="presentation" width="${MAX_WIDTH}"`);
-    expect(html).toContain('name="color-scheme" content="dark"');
+    expect(html).toContain('name="color-scheme" content="light dark"');
     expect(html).toContain("@media (prefers-color-scheme: dark)");
     expect(html).toContain("@media only screen and (max-width: 480px)");
     expect((html.match(/<style\b/g) ?? []).length).toBe(1);
@@ -276,10 +279,14 @@ describe("it is built to survive a mail client", () => {
 
   it.each(ALL)("$role puts no words in a picture and gives every image alt text", ({ message }) => {
     const images = message.html.match(/<img\b[^>]*>/g) ?? [];
-    // The lockup and the role's 3D mark above the hero (icons.ts).
-    expect(images).toHaveLength(2);
-    expect(images[1]).toContain("/brand/3d/email/");
-    expect(images[1]).toContain('alt=""');
+    // The lockup, and (only when the layout shows it, EMAIL_SHOWS_OBJECT in
+    // icons.ts) the role's 3D object above the hero, whose alt is its family
+    // word so a blocked image still says something.
+    expect(images).toHaveLength(EMAIL_SHOWS_OBJECT ? 2 : 1);
+    if (EMAIL_SHOWS_OBJECT) {
+      expect(images[1]).toContain("/brand/3d/email/");
+      expect(images[1]).toContain('alt="Welcome"');
+    }
     for (const image of images) {
       expect(image).toMatch(/\balt="[^"]*"/);
       expect(image).toMatch(/\bwidth="\d+"/);
@@ -297,14 +304,17 @@ describe("it is built to survive a mail client", () => {
     expect(blind.length).toBeGreaterThan(800);
   });
 
-  it.each(ALL)("$role draws a lit button with a solid fallback", ({ message }) => {
+  it.each(ALL)("$role draws the one flat brand-blue button, with a Word fallback", ({ message }) => {
     const html = message.html;
-    // Solid colour first, gradient over it, and a soft shadow under it.
-    expect(html).toMatch(/background-color:#[0-9A-F]{6};background-image:linear-gradient/);
-    expect(html).toMatch(/color:#FFFFFF;text-decoration:none;border-radius:14px;">Step inside/);
-    expect(html).toMatch(/box-shadow:0 10px 24px/);
-    // 14px on a 52px button: a rounded rectangle, never a capsule.
-    expect(html).toContain("border-radius:14px");
+    // A solid fill, as an attribute and as an inline colour; no gradient and no glow.
+    expect(html).toContain(`bgcolor="${BRAND}" style="border-radius:12px;background-color:${BRAND};"`);
+    expect(html).toMatch(/color:#FFFFFF;text-decoration:none;border-radius:12px;">Step inside/);
+    expect(html).not.toContain("linear-gradient(180deg");
+    expect(html).not.toMatch(/box-shadow:0 10px/);
+    // Outlook's Word engine gets a VML round rectangle with the same fill.
+    expect(html).toContain(`fillcolor="${BRAND}"`);
+    // 12px on a 50px button: a rounded rectangle, never a capsule.
+    expect(html).toContain("border-radius:12px");
   });
 
   it.each(ALL)("$role stays light", ({ message }) => {

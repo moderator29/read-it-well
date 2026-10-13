@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { lookup } from "@/lib/admin/lookup-reads";
 import { PageHead, Panel } from "../_components/panels";
 import { StatusBadge } from "@/components/ui/StatusBadge";
+import { Button } from "@/components/ui/Button";
 
 export const metadata: Metadata = { title: "Lookup", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -12,6 +13,7 @@ const KIND_WORD: Record<string, string> = {
   uuid: "an id",
   email: "an email address",
   listing: "a listing code",
+  agent: "an agent's code",
   payment: "a payment reference",
   error: "an error reference",
   text: "a word",
@@ -31,16 +33,16 @@ export default async function LookupPage({ searchParams }: { searchParams: Promi
     <div className="nf-console">
       <PageHead
         title="Lookup"
-        lede="Paste a ticket reference, a booking or member id, an email address, a listing code, a payment reference or an error reference. Press Ctrl K (Cmd K on a Mac) from any desk."
+        lede="Paste a ticket reference, a booking or member id, an email address, a listing code, an agent's VA- code, a payment reference or an error reference. Press Ctrl K (Cmd K on a Mac) from any desk."
       />
       <form method="get" action="/admin/lookup" role="search" className="mb-block flex flex-wrap gap-xs">
         <label className="sr-only" htmlFor="lookup-q">
           What to look up
         </label>
         <input id="lookup-q" name="q" type="search" defaultValue={q} className="nf-field min-w-0 flex-1" autoFocus />
-        <button type="submit" className="nf-btn nf-btn--primary nf-btn--md">
+        <Button type="submit" variant="primary">
           Look up
-        </button>
+        </Button>
       </form>
       {result ? (
         <Panel title={`Results for ${KIND_WORD[result.kind] ?? "this"}`}>
@@ -56,7 +58,7 @@ export default async function LookupPage({ searchParams }: { searchParams: Promi
                 <li key={`${hit.kind}-${hit.href}`} className="nf-admin-queue-row">
                   <p className="flex flex-wrap items-center gap-xs">
                     <StatusBadge tone="neutral">{hit.kind}</StatusBadge>
-                    <Link href={hit.href} className="font-semibold text-[var(--nf-content-link)] underline-offset-2 hover:underline">
+                    <Link href={hit.href} className="inline-flex min-h-11 items-center font-semibold text-[var(--nf-content-link)] underline-offset-2 hover:underline">
                       {hit.title}
                     </Link>
                   </p>

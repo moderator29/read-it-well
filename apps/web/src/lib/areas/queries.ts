@@ -1,4 +1,5 @@
 import "server-only";
+import { reportReadError } from "@/lib/observability/read-error";
 
 import { cache } from "react";
 import { createClient } from "@supabase/supabase-js";
@@ -39,6 +40,7 @@ export const areaPricePages = cache(async function areaPricePages(): Promise<Are
     });
     const rpc = supabase.rpc.bind(supabase) as unknown as PagesRpc;
     const { data, error } = await rpc("area_price_pages", { p_minimum: 5 });
+    await reportReadError("read.areas.areaPricePages", error);
     if (error || !Array.isArray(data)) return null;
     const rows = (data as Record<string, unknown>[])
       .map(areaPageRowFromRow)

@@ -262,9 +262,17 @@ describe("fifteen real-shaped broadcasts", () => {
   });
 
   it("18. a figure above the draft's ceiling is handed back, never trimmed", () => {
-    const r = parseBroadcast("FOR SALE: mansion on Banana Island. Asking price N2.5b. Agency 5%.");
+    const r = parseBroadcast("FOR SALE: mansion on Banana Island. Asking price N60b. Agency 5%.");
     expect(r.kobo.salePriceNaira).toBeUndefined();
     expect(r.notCarried.some((n) => n.kind === "tooLarge")).toBe(true);
+    assertDraftable(r);
+  });
+
+  it("18b. a sale above the rent ceiling is carried: the sale side has its own", () => {
+    const r = parseBroadcast("FOR SALE: mansion on Banana Island. Asking price N2.5b. Agency 5%.");
+    expect(r.kobo.salePriceNaira).toBe(2_500_000_000_00);
+    expect(r.kobo.saleAgencyFeeNaira).toBe(125_000_000_00);
+    expect(r.notCarried.some((n) => n.kind === "tooLarge")).toBe(false);
     assertDraftable(r);
   });
 

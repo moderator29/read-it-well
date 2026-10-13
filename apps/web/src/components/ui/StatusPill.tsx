@@ -167,6 +167,14 @@ export type StatusPillProps = {
    * "pill" draws the same rounded rectangle as "control".
    */
   shape?: "control" | "pill";
+  /**
+   * Draw another tone's MARK in this tone's colour (Session 3, `StatusChip`).
+   * The six shapes are keyed to the six tones, and two states can share a
+   * colour without sharing a meaning: pending and disputed are both cyan
+   * (attention, never red), so disputed borrows the diamond and the two are
+   * told apart by shape as well as by word.
+   */
+  markShape?: StatusTone;
   className?: string;
   children: ReactNode;
 };
@@ -177,6 +185,7 @@ export function StatusPill({
   size = "xs",
   live = false,
   mark = "shape",
+  markShape,
   className,
   children,
 }: StatusPillProps) {
@@ -203,7 +212,7 @@ export function StatusPill({
           /* `boxSizing` so the hollow shapes keep the same outer size as the
              filled ones; a 1.5px border would otherwise make the ring and the
              hollow square 3px wider than their five siblings. */
-          style={{ boxSizing: "border-box", ...TONE_MARK[tone] }}
+          style={{ boxSizing: "border-box", ...TONE_MARK[markShape ?? tone] }}
         />
       )}
       {children}

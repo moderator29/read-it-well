@@ -1,9 +1,11 @@
 import Link from "next/link";
 import Image from "next/image";
-import { getDictionary, plural, type Locale } from "@vallo/i18n";
+import { formatMoney, getDictionary, plural, type Locale } from "@vallo/i18n";
 import { Disclosure } from "@/components/app/Disclosure";
 import { ICON, TYPE } from "@/components/app/Screen";
-import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
+import { StatusPill } from "@/components/ui/StatusPill";
+import { StatusChip } from "@/components/ui/StatusChip";
+import { bookingChip } from "@/components/app/bookings/booking-chip";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { iconPlateClass } from "@/components/ui/IconPlate";
 import type { BookingView } from "@/lib/bookings/queries";
@@ -11,6 +13,9 @@ import type { ReservationView } from "@/lib/reservations/queries";
 import { CancelBookingControl } from "@/components/app/bookings/CancelBookingSheet";
 import { restaurantPlate } from "@/components/app/stays/restaurant-plates";
 import { buildTripSpine, type TripEntry } from "./trip-spine";
+import { depositLine, depositPayable } from "@/lib/reservations/deposits";
+import { PayDepositButton } from "@/components/app/reservations/PayDepositButton";
+import { TableSeatingPanel } from "@/components/app/reservations/TableSeatingPanel";
 
 /**
  * TRIPS, ON A DATE SPINE.
@@ -47,6 +52,11 @@ type TripItem = TripEntry & {
   /* The row's own booking, carried so the cancel control has the record it
      confirms against. Only a stay has one; a table will carry its own. */
   booking: BookingView | null;
+  /* D75: a table's deposit, in words, and whether it can be paid now. */
+  deposit?: { line: string; payable: boolean; payLabel: string; openLabel: string; href: string } | null;
+  /* Founder decision D: the table itself, for its check-in code, the
+     "Did you dine?" question, the bill and the review. */
+  table?: ReservationView | null;
 };
 
 /** The Lagos date and a short time, from a reservation's instant. */
@@ -131,6 +141,24 @@ export function TripSpine({
     status: reservation.status,
     justBooked: reservation.id === justBookedId,
     booking: null,
+    table: reservation,
+    deposit: reservation.deposit
+      ? {
+          line:
+            depositLine(
+              reservation.deposit,
+              (minor) => formatMoney(minor, locale, "NGN"),
+              (iso) => tableWhen(iso),
+              t.tableDeposits.status,
+            ) ?? "",
+          payable: depositPayable(reservation.deposit.status) && reservation.cancellable,
+          payLabel: t.tableDeposits.status.pay,
+          openLabel: t.tableDeposits.status.open,
+          /* The deposit's own page: the amount, the refund rule, and the
+             receipt once it is paid. */
+          href: `/pay/deposit/${reservation.id}`,
+        }
+      : null,
   }));
 
   const items: TripItem[] = [...stays, ...tables];
@@ -260,7 +288,10 @@ function SpineRow({
         <span className="min-w-0 flex-1 leading-tight">
           <span className="flex flex-wrap items-center gap-inline-tight">
             {today && <StatusPill tone="brand">{todayLabel}</StatusPill>}
-            <StatusPill tone={toneForStatus(item.status)}>{statusWord}</StatusPill>
+            {/* The same mapping the booking page uses: a cancelled or no-show trip is
+                neutral (a window closed, nothing failed), never the red that
+                means it went wrong. A table shares the booking enum. */}
+            <StatusChip state={bookingChip(item.status)}>{statusWord}</StatusChip>
           </span>
           <span className={`mt-2xs block ${TYPE.rowTitle}`}>{item.title}</span>
           <span className={`mt-3xs block ${TYPE.rowMeta}`}>
@@ -298,9 +329,29 @@ function SpineRow({
         read: `PENDING` means reserved and not paid, and `reviewable` is the
         read's own word for "the database would accept a review now".
       */}
+      {item.deposit && item.deposit.line && !muted && (
+        <div className="mt-inline grid gap-inline pl-[calc(var(--nf-plate-size-lg)+var(--spacing-md))]" data-testid="trip-deposit">
+          <span className={`block ${TYPE.rowMeta}`}>{item.deposit.line}</span>
+          <span className="flex flex-wrap items-center gap-md">
+            {item.deposit.payable && <PayDepositButton reservationId={item.id} label={item.deposit.payLabel} />}
+            <Link
+              href={item.deposit.href}
+              className="text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+              data-testid="trip-deposit-open"
+            >
+              {item.deposit.openLabel}
+            </Link>
+          </span>
+        </div>
+      )}
+      {item.table && (
+        <div className="pl-[calc(var(--nf-plate-size-lg)+var(--spacing-md))]">
+          <TableSeatingPanel table={item.table} />
+        </div>
+      )}
       {item.booking && !muted && (
         <div className="mt-inline flex flex-wrap items-center gap-md pl-[calc(var(--nf-plate-size-lg)+var(--spacing-md))]">
-          {item.booking.status === "PENDING" && (
+          {item.booking.payable && (
             <Link
               href={`/checkout/${item.booking.id}`}
               className="nf-btn nf-btn--primary nf-btn--sm"

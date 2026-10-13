@@ -88,9 +88,9 @@ jobs:
     runs-on: ${{ vars.IOS_RUNNER || 'macos-15' }}
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -146,7 +146,7 @@ jobs:
 
       - name: Keep the build log
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ios-compile-log-${{ github.sha }}
           path: ${{ runner.temp }}/xcodebuild.log
@@ -176,9 +176,9 @@ jobs:
             exit 1
           fi
 
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -197,10 +197,12 @@ jobs:
       - name: Write versions
         run: VALLO_BUILD=${{ github.run_number }} npm run sync:versions
 
-      # The RELEASE gate: refuses while the association files carry
-      # placeholders, so no binary claims links that cannot verify.
+      # The RELEASE gate: refuses while the iOS association file carries a
+      # placeholder, so no binary claims a universal link that cannot verify.
+      # Scoped to iOS so a staged launch (iOS first, Play Store later) is never
+      # blocked on Android values that are deliberately not set up yet.
       - name: Capacitor sync (release gate)
-        run: npm run cap:sync --workspace @vallo/web
+        run: npm run cap:sync:ios --workspace @vallo/web
 
       - name: Write the API key to the runner only
         run: |
@@ -208,10 +210,25 @@ jobs:
           echo "$ASC_KEY_P8_BASE64" | base64 --decode > "$RUNNER_TEMP/asc/AuthKey.p8"
           chmod 600 "$RUNNER_TEMP/asc/AuthKey.p8"
 
-      # CODE_SIGN_ENTITLEMENTS adopts App/App.entitlements (Associated
-      # Domains, aps-environment, Sign in with Apple). The App ID must carry
-      # all three capabilities or signing stops here, by name.
-      - name: Archive (automatic signing via the API key)
+      # UNSIGNED on purpose. Every earlier attempt tried to get this step
+      # itself to resolve a Distribution identity under automatic signing,
+      # and every one of them either got "App has conflicting provisioning
+      # settings" (an explicit CODE_SIGN_IDENTITY next to
+      # CODE_SIGN_STYLE=Automatic is a hard conflict, wherever it is set) or
+      # fell back silently to Development, which needs a registered device
+      # UDID and fails with "Your team has no devices from which to generate
+      # a provisioning profile." That is because `xcodebuild archive` run
+      # from the command line always resolves automatic signing as if it
+      # were an ordinary device build; only the Xcode GUI's Archive menu
+      # command special-cases this to Distribution, and that special case
+      # does not exist in xcodebuild. The archive step never needed to be
+      # signed at all: CODE_SIGNING_ALLOWED=NO produces an unsigned archive
+      # (the same technique the compile job above already uses for the
+      # simulator build), and the "Export the IPA" step below does the real
+      # Distribution signing, via -allowProvisioningUpdates and the API key,
+      # for the app-store-connect export method specifically, which resolves
+      # a Distribution profile and never needs a device.
+      - name: Archive (unsigned; the export step signs for distribution)
         working-directory: apps/web/ios/App
         run: |
           set -o pipefail
@@ -221,13 +238,7 @@ jobs:
             -configuration Release \
             -destination 'generic/platform=iOS' \
             -archivePath "$RUNNER_TEMP/Vallo.xcarchive" \
-            -allowProvisioningUpdates \
-            -authenticationKeyPath "$RUNNER_TEMP/asc/AuthKey.p8" \
-            -authenticationKeyID "$ASC_KEY_ID" \
-            -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
-            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
-            CODE_SIGN_STYLE=Automatic \
-            CODE_SIGN_ENTITLEMENTS=App/App.entitlements \
+            CODE_SIGNING_ALLOWED=NO \
             | tee "$RUNNER_TEMP/archive.log" | grep -E "error:|ARCHIVE (SUCCEEDED|FAILED)" || true
           grep -q "ARCHIVE SUCCEEDED" "$RUNNER_TEMP/archive.log"
 
@@ -259,7 +270,7 @@ jobs:
 
       - name: Keep the IPA
         if: ${{ success() && !inputs.upload }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: vallo-ios-${{ github.run_number }}
           path: ${{ runner.temp }}/export/*.ipa

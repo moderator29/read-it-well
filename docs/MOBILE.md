@@ -252,7 +252,7 @@ fetched, and there is no macOS and no Xcode. What was actually verified here:
 
 **Firebase is now real, and the release build guards it.** *(28 Sep)* Push
 uses FCM on Android: `app/google-services.json` is committed for Firebase
-project `vallo-44059` with a placeholder `current_key`, and `app/build.gradle`
+project `vallo-6f946` with a placeholder `current_key`, and `app/build.gradle`
 applies `com.google.gms.google-services` only when the file is valid, failing
 any release build until the owner pastes the real Android API key in.
 

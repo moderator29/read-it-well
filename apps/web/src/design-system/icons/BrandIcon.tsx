@@ -1,7 +1,16 @@
 import Image from "next/image";
+import { brandArtwork, type TieredObjectName } from "./object-assets";
 
 /**
  * Vallo brand icon.
+ *
+ * NO BRANDICON DRAWS GLASS (the founder, 7 October 2026: "Remove all glass
+ * icons on the entire platform"). The names below are still the vocabulary a
+ * call site speaks, but each one now draws a SOLID object: the tiered render
+ * of the same name where there is one, else the solid object
+ * `glass-to-solid.ts` chose for its meaning (tier B, tier A, or the founder's
+ * 3D sheet). The history below is about the glass pack and is kept so the
+ * next reader knows why the files are still on disk.
  *
  * The content tier: one object per thing the product talks about. A shield, a
  * villa, a receipt. Navigation is `UiIcon`: the side drawer, the rail, the
@@ -79,8 +88,7 @@ import Image from "next/image";
  * FORTY ONE OF THESE ARE CROPPED FROM THE REFERENCE RENDERS, not sliced from
  * a sheet, on the direction's ruling that a glass object a governing render
  * uses and the sheets lack is cropped, keyed and filed under a name. They are
- * `RENDER_CROPS` in `scripts/icon-manifest.mjs`, which records the render and
- * the region each came from, and `docs/ICON_SYSTEM.md` lists them. Two things
+ * recorded in `docs/ICON_SYSTEM.md`, which lists them. Two things
  * to know at a call site. They are single objects with no light twin, so in
  * daylight they take the navy chip like the other 80. And they are NOT all
  * drawn at the same size: the wallet and the hotel are around 200 pixels at
@@ -299,13 +307,32 @@ const LEGACY_ALIASES = {
   "house-sparkle": "modern-house",
 } as const satisfies Record<string, BrandIconObject>;
 
-/** Every name a call site may pass, including the seven deprecated aliases. */
+/** Every glass name a call site may pass, including the seven deprecated aliases. */
 export type BrandIconName = BrandIconObject | keyof typeof LEGACY_ALIASES;
 
-function resolveObject(name: BrandIconName): BrandIconObject {
+/**
+ * What the `BrandIcon` component itself accepts: a glass name, or one of the
+ * accepted two-tier objects of 6 October 2026 (`prepaid-meter`, `padlock`,
+ * `trophy`...). `BrandIconName` stays the glass vocabulary on purpose: the line
+ * twin map in `glass-to-line.ts` and the empty-state kit are keyed on it, and a
+ * new object has no line twin to invent.
+ */
+export type BrandIconProp = BrandIconName | TieredObjectName;
+
+function resolveObject(name: BrandIconProp): BrandIconObject {
   return name in LEGACY_ALIASES
     ? LEGACY_ALIASES[name as keyof typeof LEGACY_ALIASES]
     : (name as BrandIconObject);
+}
+
+/**
+ * What a name draws (7 October 2026, the founder: no glass anywhere). The
+ * legacy alias is resolved first, then `brandArtwork` in `object-assets.ts`
+ * picks the tiered render of the same name where one exists, else the solid
+ * object `glass-to-solid.ts` chose. It never returns a `/brand/glass/` path.
+ */
+function resolveArtwork(name: BrandIconProp) {
+  return brandArtwork(name, resolveObject(name));
 }
 
 export function BrandIcon({
@@ -320,7 +347,7 @@ export function BrandIcon({
   state,
   className,
 }: {
-  name: BrandIconName;
+  name: BrandIconProp;
   /** Rendered edge length in px. Ignored when `fill` is set. */
   size?: number;
   /** Fill the parent box so a wrapper can size the icon responsively. */
@@ -344,15 +371,15 @@ export function BrandIcon({
    */
   loading?: "eager" | "lazy";
   /**
-   * Draw the full glass chip behind the object. OFF by default: see the note
+   * Draw the chip (`.nf-icon-tile`) behind the object. OFF by default: see the note
    * at the top of this file. Turn it on only where the object is the subject
    * of the surface rather than an ornament on it.
    */
   tile?: boolean;
   /**
    * React to something real rather than to a loop: "alert" rings the object
-   * while something is unread, "confirmed" pops it once when a booking lands,
-   * "verified" pulses its inner ring while a check is in force.
+   * while something is unread, "confirmed" pops it once when a booking lands.
+   * ("verified" pulsed a box-shadow and no caller used it; gone, round 5.)
    *
    * IT ONLY WORKS WITH `tile`, AND THE COMPONENT DOES NOT SAY SO ANYWHERE ELSE.
    *
@@ -376,11 +403,18 @@ export function BrandIcon({
    * `.nf-brand-icon-ground[data-state]` gains the three rules - which is new
    * motion on a money surface and a design decision rather than a cleanup.
    */
-  state?: "alert" | "confirmed" | "verified";
+  state?: "alert" | "confirmed";
+  /**
+   * @deprecated No effect. It asked for the render over the glass original
+   * (the space types row, 7 October 2026); later that day the founder ruled
+   * out glass everywhere, so the render is now what every BrandIcon draws.
+   * Kept so existing call sites compile; drop it when you touch one.
+   */
+  preferRender?: boolean;
   className?: string;
 }) {
   const decorative = !label;
-  const object = resolveObject(name);
+  const { src, material, object } = resolveArtwork(name);
 
   /*
    * `fill` here means "fill the wrapper box", implemented with intrinsic
@@ -431,7 +465,7 @@ export function BrandIcon({
     <Image
       {...shared}
       alt={label ?? ""}
-      src={`/brand/glass/${object}.png`}
+      src={src}
       priority={priority}
       {...(loading && !priority ? { loading } : {})}
       className="nf-brand-icon h-full w-full"
@@ -472,6 +506,12 @@ export function BrandIcon({
     return (
       <span
         data-object={object}
+        /* `data-material` is the hook the light theme keys the ground plate on:
+           the matte and realistic objects stand on the paper plate (radius 14,
+           about 4 percent brand fill, soft blue contact shadow) and NOT on the
+           navy chip the glass needs. See north star 14.7 and the rule in the
+           report that accompanies this change. */
+        data-material={material}
         /* The ground owns its box and its padding in pixels when it has a
            size, for the reason the tiled branch below does: `padding: 7%`
            in glass.css resolves against the CONTAINING block, so a 22px
@@ -501,6 +541,7 @@ export function BrandIcon({
   return (
     <span
       data-state={state}
+      data-material={material}
       style={fill ? undefined : { width: size, height: size, padding: tilePadding }}
       className={`nf-icon-tile ${fill ? "h-full w-full" : ""} ${className ?? ""}`}
     >

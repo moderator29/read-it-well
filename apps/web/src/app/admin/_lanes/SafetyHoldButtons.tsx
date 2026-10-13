@@ -1,13 +1,20 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { getDictionary } from "@vallo/i18n";
 import { decideSafetyHold } from "@/lib/admin/safety-holds";
+import { Button } from "@/components/ui/Button";
 
-const desk = getDictionary("en").trustVisible.desk;
-
-/** V-63: Clear or Extend one safety hold. */
-export function SafetyHoldButtons({ holdId }: { holdId: string }) {
+/**
+ * V-63: Clear or Extend one safety hold. The three words come from the server
+ * page that draws the row, so this client file never imports the dictionary.
+ */
+export function SafetyHoldButtons({
+  holdId,
+  copy,
+}: {
+  holdId: string;
+  copy: { working: string; clear: string; extend: string };
+}) {
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -21,12 +28,12 @@ export function SafetyHoldButtons({ holdId }: { holdId: string }) {
 
   return (
     <span className="flex flex-wrap items-center gap-xs">
-      <button type="button" disabled={pending} onClick={() => act("clear")} className="nf-btn nf-btn--glass nf-btn--sm">
-        {pending ? desk.holdsWorking : desk.holdsClear}
-      </button>
-      <button type="button" disabled={pending} onClick={() => act("extend")} className="nf-btn nf-btn--ghost nf-btn--sm">
-        {desk.holdsExtend}
-      </button>
+      <Button variant="secondary" size="sm" type="button" disabled={pending} onClick={() => act("clear")}>
+        {pending ? copy.working : copy.clear}
+      </Button>
+      <Button variant="quiet" size="sm" type="button" disabled={pending} onClick={() => act("extend")}>
+        {copy.extend}
+      </Button>
       {error && (
         <span role="alert" className="nf-caption text-[var(--nf-state-error)]">
           {error}

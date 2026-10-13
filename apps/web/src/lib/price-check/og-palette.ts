@@ -113,3 +113,17 @@ export const OG_PALETTE_SOURCES: readonly { value: string; token: string }[] = [
   { value: OG_WARNING, token: "--nf-state-warning" },
   { value: OG_HAIRLINE, token: "--nf-border-default" },
 ];
+
+/**
+ * A palette literal at an opacity, for the unfurl card's glow and scrim
+ * (`components/share/og-centred-card.tsx`). Derived from the held literals
+ * above rather than written out again, so a token change reaches the light as
+ * well as the ink, and no new colour enters the file.
+ */
+export function ogAlpha(hex: string, alpha: number): string {
+  const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex);
+  if (!m) return hex;
+  const [r, g, b] = [m[1]!, m[2]!, m[3]!].map((part) => parseInt(part, 16));
+  // eslint-disable-next-line nf/no-raw-colour -- Satori resolves no custom property; the channels come from the held literals above.
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}

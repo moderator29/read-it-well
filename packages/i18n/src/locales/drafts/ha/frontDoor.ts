@@ -604,7 +604,7 @@ export const frontDoorHa = {
     windowsTitle: "Lokutan duba gida",
     windowsNote: "Saita lokutan da kake nuna gidaje. Masu neman haya suna yin ajiyar lokaci a cikin tagar lokaci, kuma ranarka ta zama hanya.",
     windowsEmpty: "Babu lokutan duba gida tukuna. Masu neman haya har yanzu suna iya neman lokaci, kuma kana amsa kowanne.",
-    windowLine: "Kowace {day}, {starts} zuwa {ends}, lokutan minti {minutes}, gidaje {count}",
+    windowLine: "Kowace {day}, {starts} zuwa {ends}, lokutan minti {minutes}, {homes}",
     addWindow: "Ƙara lokaci",
     weekday: "Rana",
     starts: "Daga",

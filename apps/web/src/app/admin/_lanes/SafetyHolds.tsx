@@ -39,7 +39,10 @@ export function SafetyHolds({ rows }: { rows: SafetyHoldRow[] | null }) {
               <span className="nf-rv-msg min-w-0 flex-1">
                 {desk.holdsRow.replace("{name}", row.heldName).replace("{date}", day(row.expiresAt))}
               </span>
-              <SafetyHoldButtons holdId={row.id} />
+              <SafetyHoldButtons
+                holdId={row.id}
+                copy={{ working: desk.holdsWorking, clear: desk.holdsClear, extend: desk.holdsExtend }}
+              />
             </li>
           ))}
         </ul>

@@ -30,7 +30,9 @@ import { doorImage, photoData } from "./door-image";
 
 export const alt = "A home on Vallo";
 export const size = { width: 1200, height: 630 };
-export const contentType = "image/png";
+/* A JPEG under 100KB (`lib/share/og-encode.ts`): the listing's photograph made
+   this card a 477KB PNG. */
+export const contentType = "image/jpeg";
 
 export default async function Image({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;

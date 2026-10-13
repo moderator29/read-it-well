@@ -1,3 +1,4 @@
+import "@/app/css/auth.css";
 import Link from "next/link";
 import { withNext } from "@/lib/auth/next-link";
 import type { Dictionary } from "@vallo/i18n/core";

@@ -22,6 +22,7 @@ export function SaturdayRoute({
   next,
   copy,
   locale,
+  className = "mt-lg",
 }: {
   dayLabel: string;
   route: RouteLeg[];
@@ -29,6 +30,8 @@ export function SaturdayRoute({
   next: RouteLeg | null;
   copy: Copy;
   locale: Locale;
+  /** Spacing from the block above; the calendar's side column sets its own. */
+  className?: string;
 }) {
   const [said, setSaid] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -36,7 +39,7 @@ export function SaturdayRoute({
   const time = (iso: string) => formatDate(new Date(iso), locale, { hour: "2-digit", minute: "2-digit", timeZone: "Africa/Lagos" });
 
   return (
-    <section className="nf-panel nf-panel--card mt-lg p-card-sm" aria-labelledby="route-title" data-testid="viewing-route">
+    <section className={`nf-panel nf-panel--card p-card-sm ${className}`} aria-labelledby="route-title" data-testid="viewing-route">
       <h2 id="route-title" className="nf-h4 text-[var(--nf-content-primary)]">
         {copy.routeTitle.replace("{day}", dayLabel)}
       </h2>
@@ -66,6 +69,9 @@ export function SaturdayRoute({
           variant="secondary"
           className="mt-group"
           loading={pending}
+          /* Once said, said: a second tap sent the renter the same "running
+             late" message again. */
+          disabled={said !== null}
           onClick={() => {
             setError(null);
             start(async () => {
@@ -80,7 +86,7 @@ export function SaturdayRoute({
       )}
       {said && <p className="mt-inline nf-body-sm text-[var(--nf-content-secondary)]" role="status">{said}</p>}
       {error && (
-        <p className="mt-inline nf-body-sm font-medium text-[var(--nf-state-error)]" role="alert">
+        <p className="mt-inline nf-body-sm font-semibold text-[var(--nf-state-error)]" role="alert">
           {error}
         </p>
       )}

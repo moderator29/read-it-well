@@ -49,3 +49,20 @@ describe("decide, for a new sign-in during quiet hours", () => {
     expect(verdict.action).toBe("hold");
   });
 });
+
+describe("decide, for an incoming call during quiet hours (the founder, 8 October 2026)", () => {
+  const conv = "11111111-2222-4333-8444-555555555555";
+  const call = "66666666-7777-4888-8999-aaaaaaaaaaaa";
+  it("rings through: the member thread, the agent side and a review invitation", () => {
+    for (const href of [`/messages/${conv}?call=${call}`, `/agent/messages/${conv}?call=${call}`, `/calls/reviews/${conv}?call=${call}`]) {
+      expect(isUrgentPath(href), href).toBe(true);
+      const verdict = decide({ notification: note(href), settings: QUIET, now: NIGHT });
+      expect(verdict.action, href).toBe("send");
+    }
+  });
+  it("still holds the missed-call notice and an ordinary message until morning", () => {
+    for (const href of [`/messages/${conv}`, `/agent/messages/${conv}`, `/messages/${conv}?call=not-a-call`]) {
+      expect(isUrgentPath(href), href).toBe(false);
+    }
+  });
+});

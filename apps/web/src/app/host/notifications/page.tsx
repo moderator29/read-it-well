@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
+import { getDictionary } from "@vallo/i18n";
+import { getLocale } from "@/lib/locale";
 import { HostShell } from "@/components/host/HostShell";
 import NotificationsPage from "@/app/(app)/notifications/page";
 
-export const metadata: Metadata = {
-  title: "Notifications",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: getDictionary(await getLocale()).nav.notifications, robots: { index: false, follow: false } };
+}
 
 /**
  * /host/notifications: the host bell's destination, inside the workspace.

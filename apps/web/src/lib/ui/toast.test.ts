@@ -24,7 +24,7 @@ describe("the one toast", () => {
   });
 
   it("gives errors and undo offers the longer dwell", () => {
-    expect(dwellFor("neutral", false)).toBe(4000);
+    expect(dwellFor("neutral", false)).toBe(2400);
     expect(dwellFor("error", false)).toBe(6000);
     expect(dwellFor("success", true)).toBe(6000);
     const id = toast.error("Could not copy");

@@ -66,7 +66,6 @@ export type UiIconName =
   | "chevron-down"
   | "arrow-right"
   | "arrow-left"
-  | "sparkle"
   | "home"
   | "compass"
   | "building-hotel"
@@ -84,7 +83,14 @@ export type UiIconName =
   | "grid"
   | "key"
   | "sliders"
+  /* The search bar's order control: lines shortening downward [arrow-down-wide-narrow]. */
+  | "sort"
+  /* Open the chosen place, on the map's docked card [arrow-up-right]. */
+  | "arrow-up-right"
   | "share"
+  /* The feed's send: a paper plane, "send this to somebody", where `share`
+     is the outbound tray a sheet of destinations opens from. */
+  | "send"
   | "shield-stop"
   | "panel-left"
   | "menu"
@@ -124,7 +130,7 @@ export type UiIconName =
   | "info"
   | "mail"
   /* Electricity. A listing's power supply is one of the facts that decides a
-     Nigerian tenancy; `sparkle` means "recommended" and must not stand in. */
+     Nigerian tenancy; nothing else stands in for it. */
   | "bolt"
   /* The feed: two stacked cards. Not `grid`, which is a launcher. */
   | "feed"
@@ -191,7 +197,33 @@ export type UiIconName =
   | "shield-lock"
   /* The motion levels (Settings, Motion): play is standard, pause is off. */
   | "circle-play"
-  | "circle-pause";
+  | "circle-pause"
+  /* THE SPARKLE IS GONE (the founder, 7 October 2026: "what kind of icon is
+     that? Don't use it... use a real icon for each thing"). The four-point
+     star stood for the assistant, Pro, For you, "recommended", air
+     conditioning, laundry and Cinematic motion, which is to say for nothing.
+     Each meaning now has its own object: `bot` the assistant, `crown` Pro,
+     `house-heart` For you, `gift` a reward, `snowflake` air conditioning,
+     `washing-machine` laundry, `film` Cinematic. `sparkle-ban.test.ts`
+     refuses the name anywhere in the source. */
+  | "crown"
+  | "house-heart"
+  | "gift"
+  | "snowflake"
+  | "washing-machine"
+  | "film"
+  /* VC1, THE CALL GLYPHS (8 October 2026): the thread header's voice and
+     video buttons, the call screen's controls and the history rows. Lucide
+     drawings with solid twins, because the call controls are solid (D78). */
+  | "video"
+  | "video-off"
+  | "mic"
+  | "mic-off"
+  | "phone-missed"
+  | "phone-incoming"
+  | "phone-outgoing"
+  | "switch-camera"
+  | "volume";
 
 /*
  * THE OUTLINES. Lucide names in brackets where the drawing is Lucide's, so the
@@ -199,6 +231,82 @@ export type UiIconName =
  * rules. Every stroke takes the svg's computed width, round caps, round joins.
  */
 const PATHS: Record<UiIconName, React.ReactNode> = {
+  // [video]
+  video: (
+    <>
+      <path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5" />
+      <rect x="2" y="6" width="14" height="12" rx="2" />
+    </>
+  ),
+  // [video-off]
+  "video-off": (
+    <>
+      <path d="M10.66 6H14a2 2 0 0 1 2 2v2.5l5.248-3.062A.5.5 0 0 1 22 7.87v8.196" />
+      <path d="M16 16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h2" />
+      <path d="m2 2 20 20" />
+    </>
+  ),
+  // [mic]
+  mic: (
+    <>
+      <path d="M12 19v3" />
+      <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+      <rect x="9" y="2" width="6" height="13" rx="3" />
+    </>
+  ),
+  // [mic-off]
+  "mic-off": (
+    <>
+      <path d="M12 19v3" />
+      <path d="M15 9.34V5a3 3 0 0 0-5.68-1.33" />
+      <path d="M16.95 16.95A7 7 0 0 1 5 12v-2" />
+      <path d="M18.89 13.23A7 7 0 0 0 19 12v-2" />
+      <path d="m2 2 20 20" />
+      <path d="M9 9v3a3 3 0 0 0 5.12 2.12" />
+    </>
+  ),
+  // [phone-missed]
+  "phone-missed": (
+    <>
+      <path d="m16 2 6 6" />
+      <path d="m22 2-6 6" />
+      <path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384" />
+    </>
+  ),
+  // [phone-incoming]
+  "phone-incoming": (
+    <>
+      <path d="M16 2v6h6" />
+      <path d="m22 2-6 6" />
+      <path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384" />
+    </>
+  ),
+  // [phone-outgoing]
+  "phone-outgoing": (
+    <>
+      <path d="m16 8 6-6" />
+      <path d="M22 8V2h-6" />
+      <path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384" />
+    </>
+  ),
+  // [switch-camera]
+  "switch-camera": (
+    <>
+      <path d="M11 19H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5" />
+      <path d="M13 5h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-5" />
+      <circle cx="12" cy="12" r="3" />
+      <path d="m18 22-3-3 3-3" />
+      <path d="m6 2 3 3-3 3" />
+    </>
+  ),
+  // [volume-2]
+  volume: (
+    <>
+      <path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z" />
+      <path d="M16 9a5 5 0 0 1 0 6" />
+      <path d="M19.364 18.364a9 9 0 0 0 0-12.728" />
+    </>
+  ),
   // [phone]
   phone: (
     <path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384" />
@@ -257,6 +365,14 @@ const PATHS: Record<UiIconName, React.ReactNode> = {
       <path d="M12 2v13" />
       <path d="m16 6-4-4-4 4" />
       <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+    </>
+  ),
+  /* [send]: the paper plane under a post and a story. It sends the post to a
+     person, which is what people do with a home they want somebody to see. */
+  send: (
+    <>
+      <path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z" />
+      <path d="m21.854 2.147-10.94 10.939" />
     </>
   ),
   // [map]: a folded sheet, so it reads as a map rather than a pin.
@@ -441,9 +557,85 @@ const PATHS: Record<UiIconName, React.ReactNode> = {
       <path d="m19 12-7 7-7-7" />
     </>
   ),
-  // [sparkle]: the assistant, and "recommended". Never electricity.
-  sparkle: (
-    <path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z" />
+  // [arrow-up-right]: out of the map, into the place.
+  "arrow-up-right": (
+    <>
+      <path d="M7 7h10v10" />
+      <path d="M7 17 17 7" />
+    </>
+  ),
+  // [arrow-down-wide-narrow]: the order of the results.
+  sort: (
+    <>
+      <path d="m3 16 4 4 4-4" />
+      <path d="M7 20V4" />
+      <path d="M11 4h10" />
+      <path d="M11 8h7" />
+      <path d="M11 12h4" />
+    </>
+  ),
+  // [crown]: Pro, the paid tier.
+  crown: (
+    <>
+      <path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z" />
+      <path d="M5 21h14" />
+    </>
+  ),
+  // [house-heart]: For you, homes picked for this member.
+  "house-heart": (
+    <>
+      <path d="M8.62 13.8A2.25 2.25 0 1 1 12 10.836a2.25 2.25 0 1 1 3.38 2.966l-2.626 2.856a.998.998 0 0 1-1.507 0z" />
+      <path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+    </>
+  ),
+  // [gift]: a reward or a bonus.
+  gift: (
+    <>
+      <rect x="3" y="8" width="18" height="4" rx="1" />
+      <path d="M12 8v13" />
+      <path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7" />
+      <path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5" />
+    </>
+  ),
+  // [snowflake]: air conditioning.
+  snowflake: (
+    <>
+      <path d="m10 20-1.25-2.5L6 18" />
+      <path d="M10 4 8.75 6.5 6 6" />
+      <path d="m14 20 1.25-2.5L18 18" />
+      <path d="m14 4 1.25 2.5L18 6" />
+      <path d="m17 21-3-6h-4" />
+      <path d="m17 3-3 6 1.5 3" />
+      <path d="M2 12h6.5L10 9" />
+      <path d="m20 10-1.5 2 1.5 2" />
+      <path d="M22 12h-6.5L14 15" />
+      <path d="m4 10 1.5 2L4 14" />
+      <path d="m7 21 3-6-1.5-3" />
+      <path d="m7 3 3 6h4" />
+    </>
+  ),
+  // [washing-machine]: laundry.
+  "washing-machine": (
+    <>
+      <path d="M3 6h3" />
+      <path d="M17 6h.01" />
+      <rect width="18" height="20" x="3" y="2" rx="2" />
+      <circle cx="12" cy="13" r="5" />
+      <path d="M12 18a2.5 2.5 0 0 0 0-5 2.5 2.5 0 0 1 0-5" />
+    </>
+  ),
+  // [film]: the Cinematic motion level.
+  film: (
+    <>
+      <rect width="18" height="18" x="3" y="3" rx="2" />
+      <path d="M7 3v18" />
+      <path d="M3 7.5h4" />
+      <path d="M3 12h18" />
+      <path d="M3 16.5h4" />
+      <path d="M17 3v18" />
+      <path d="M17 7.5h4" />
+      <path d="M17 16.5h4" />
+    </>
   ),
   // [house]: the Home tab.
   home: (
@@ -1094,11 +1286,14 @@ const PATHS: Record<UiIconName, React.ReactNode> = {
       <rect x="2" y="5" width="20" height="14" rx="2" />
     </>
   ),
-  // [receipt]
+  // [receipt-text]: the torn-edge slip with three lines of text. It used to draw
+  // a dollar sign, which is the wrong currency on a naira product; the lines say
+  // "a record" without naming one.
   receipt: (
     <>
-      <path d="M12 17V7" />
-      <path d="M16 8h-6a2 2 0 0 0 0 4h4a2 2 0 0 1 0 4H8" />
+      <path d="M14 8H8" />
+      <path d="M16 12H8" />
+      <path d="M13 16H8" />
       <path d="M4 3a1 1 0 0 1 1-1 1.3 1.3 0 0 1 .7.2l.933.6a1.3 1.3 0 0 0 1.4 0l.934-.6a1.3 1.3 0 0 1 1.4 0l.933.6a1.3 1.3 0 0 0 1.4 0l.933-.6a1.3 1.3 0 0 1 1.4 0l.934.6a1.3 1.3 0 0 0 1.4 0l.933-.6A1.3 1.3 0 0 1 19 2a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1 1.3 1.3 0 0 1-.7-.2l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.934.6a1.3 1.3 0 0 1-1.4 0l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-1.4 0l-.934-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-.7.2 1 1 0 0 1-1-1z" />
     </>
   ),
@@ -1222,6 +1417,63 @@ const HOUSE_BODY =
   "M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z";
 
 const FILLED: Partial<Record<UiIconName, FilledTwin>> = {
+  /* VC1: the call controls' solid twins. A slash is cut a little below
+     and right of the line it keeps, so the solid body shows a clean gap. */
+  video: {
+    body: (
+      <>
+        <rect x="2" y="6" width="14" height="12" rx="2" />
+        <path d="M16 10.5l5.248-3.062A.5.5 0 0 1 22 7.87v8.196a.5.5 0 0 1-.777.416L16 13z" />
+      </>
+    ),
+  },
+  "video-off": {
+    body: (
+      <>
+        <rect x="2" y="6" width="14" height="12" rx="2" />
+        <path d="M16 10.5l5.248-3.062A.5.5 0 0 1 22 7.87v8.196a.5.5 0 0 1-.777.416L16 13z" />
+      </>
+    ),
+    cut: <path d="m3.5 1.5 20 20" />,
+    keep: <path d="m2 2 20 20" />,
+  },
+  mic: {
+    body: <rect x="9" y="2" width="6" height="13" rx="3" />,
+    keep: (
+      <>
+        <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+        <path d="M12 19v3" />
+      </>
+    ),
+  },
+  "mic-off": {
+    body: <rect x="9" y="2" width="6" height="13" rx="3" />,
+    cut: <path d="m3.5 1.5 20 20" />,
+    keep: (
+      <>
+        <path d="M16.95 16.95A7 7 0 0 1 5 12v-2" />
+        <path d="M18.89 13.23A7 7 0 0 0 19 12v-2" />
+        <path d="M12 19v3" />
+        <path d="m2 2 20 20" />
+      </>
+    ),
+  },
+  "phone-missed": {
+    body: <path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384z" />,
+    keep: <path d="m16 2 6 6M22 2l-6 6" />,
+  },
+  "phone-incoming": {
+    body: <path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384z" />,
+    keep: <path d="M16 2v6h6M22 2l-6 6" />,
+  },
+  "phone-outgoing": {
+    body: <path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384z" />,
+    keep: <path d="m16 8 6-6M22 8V2h-6" />,
+  },
+  volume: {
+    body: <path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z" />,
+    keep: <path d="M16 9a5 5 0 0 1 0 6M19.364 18.364a9 9 0 0 0 0-12.728" />,
+  },
   home: {
     body: <path d={HOUSE_BODY} />,
     cut: <path d="M10.5 21.5v-6a1.5 1.5 0 0 1 3 0v6z" fill="black" />,
@@ -1277,7 +1529,14 @@ const FILLED: Partial<Record<UiIconName, FilledTwin>> = {
   "chat-bubble": { body: PATHS["chat-bubble"] },
   heart: { body: <path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5z" /> },
   star: { body: PATHS.star },
-  sparkle: { body: PATHS.sparkle },
+  crown: {
+    body: <path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z" />,
+    keep: <path d="M5 21h14" />,
+  },
+  "house-heart": {
+    body: <path d={HOUSE_BODY} />,
+    cut: <path d="M8.62 13.8A2.25 2.25 0 1 1 12 10.836a2.25 2.25 0 1 1 3.38 2.966l-2.626 2.856a.998.998 0 0 1-1.507 0z" fill="black" />,
+  },
   bookmark: { body: PATHS.bookmark },
   bolt: { body: PATHS.bolt },
   moon: { body: <path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401z" /> },
@@ -1582,6 +1841,7 @@ export function UiIcon({
   /** Accessible name. Omit when a text label sits beside the glyph. */
   label?: string;
   effect?: SymbolEffect;
+  /** Repeats the effect three times and rests (not forever; principle 10). */
   effectLoop?: boolean;
   /**
    * Draws the glyph's filled twin: a selected tab, a saved heart, a rated

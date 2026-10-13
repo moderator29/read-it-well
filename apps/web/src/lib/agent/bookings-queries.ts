@@ -26,7 +26,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../supabase/database.types";
 import { createAdminClient } from "../supabase/admin";
 import type { AgentContext } from "./listings-queries";
-import { HOLD_WINDOW_HOURS } from "./bookings-schema";
+import { HOLD_WINDOW_HOURS } from "./bookings-model";
 
 type Db = SupabaseClient<Database>;
 

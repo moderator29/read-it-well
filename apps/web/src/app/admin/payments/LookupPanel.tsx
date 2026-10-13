@@ -7,6 +7,7 @@ import { fill } from "../_components/copy";
 import { RemoveSavedMethod } from "./MethodLookup";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { IconPlate } from "@/components/ui/IconPlate";
+import { Button } from "@/components/ui/Button";
 
 /**
  * The payment-method lookup panel.
@@ -60,9 +61,9 @@ export function LookupPanel({
             className="nf-field mt-inline-tight w-full"
           />
         </label>
-        <button type="submit" className="nf-chip nf-chip--active shrink-0">
+        <Button type="submit" variant="secondary" className="shrink-0">
           {c.submit}
-        </button>
+        </Button>
       </form>
 
       {term.length > 0 && (
@@ -87,6 +88,7 @@ export function LookupResult({
 }) {
   const t = getDictionary(locale);
   const c = t.admin.payments.lookup;
+  const removeCopy = { remove: t.admin.payments.remove, notNow: t.admin.common.notNow };
   if (!lookup || lookup.state !== "ok") {
     return (
       <div className="mt-sm">
@@ -145,12 +147,15 @@ export function LookupResult({
                   : c.card;
                 const describe = fill(c.ending, { what: brand, last4: card.last4 ?? "????" });
                 return (
+                  /* The words keep 12rem beside the glyph; the action wraps under
+                     them on a phone instead of squeezing them to a word a line
+                     (C1 sweep, 390). Same for the accounts and the terms rows. */
                   <li key={card.id} className="nf-row flex-wrap">
                     {/* The saved card's plated glyph. Never a card number beside it. */}
                     <IconPlate size="sm" className="shrink-0">
                       <UiIcon name="credit-card" size={20} />
                     </IconPlate>
-                    <span className="min-w-0 flex-1">
+                    <span className="min-w-[12rem] flex-1 basis-0">
                       <span className="nf-body-sm block font-semibold text-content">
                         {describe}
                         {card.bank ? ` · ${card.bank}` : ""}
@@ -168,7 +173,7 @@ export function LookupResult({
                     {card.removedAt ? (
                       <ui.StatusChip label={fill(c.removedOn, { when: ui.when(card.removedAt) })} tone="neutral" />
                     ) : (
-                      <RemoveSavedMethod kind="card" id={card.id} describe={describe} locale={locale} />
+                      <RemoveSavedMethod kind="card" id={card.id} describe={describe} copy={removeCopy} />
                     )}
                   </li>
                 );
@@ -189,7 +194,7 @@ export function LookupResult({
                     <IconPlate size="sm" className="shrink-0">
                       <UiIcon name="bank" size={20} />
                     </IconPlate>
-                    <span className="min-w-0 flex-1">
+                    <span className="min-w-[12rem] flex-1 basis-0">
                       <span className="nf-body-sm block font-semibold text-content">
                         {account.bankName}
                         {" · "}
@@ -208,7 +213,7 @@ export function LookupResult({
                         tone="neutral"
                       />
                     ) : (
-                      <RemoveSavedMethod kind="account" id={account.id} describe={describe} locale={locale} />
+                      <RemoveSavedMethod kind="account" id={account.id} describe={describe} copy={removeCopy} />
                     )}
                   </li>
                 );
@@ -252,7 +257,7 @@ function TermsRow({
     <ul className="nf-rows mt-row">
       {standing.data.accepted.map((accepted) => (
         <li key={`${accepted.document}-${accepted.version}`} className="nf-row flex-wrap">
-          <span className="min-w-0 flex-1">
+          <span className="min-w-[12rem] flex-1 basis-0">
             <span className="nf-body-sm block font-semibold text-content">
               {fill(accepted.document === "privacy" ? c.acceptedPrivacy : c.acceptedTerms, { version: accepted.version })}
             </span>

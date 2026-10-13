@@ -1,6 +1,6 @@
 "use client";
 
-import { POST_COPY } from "@/lib/social/posts-schema";
+import { POST_COPY } from "@/lib/social/posts-model";
 import { displayHost } from "@/lib/brand-domain";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Toast, useToast } from "@/components/ui/Toast";

@@ -1,4 +1,5 @@
 "use client";
+import "@/app/css/auth.css";
 
 import { startTransition, useActionState, useEffect, useRef, useState } from "react";
 import { AcceptTerms } from "./AcceptTerms";

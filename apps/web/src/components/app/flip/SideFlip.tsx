@@ -15,6 +15,7 @@ import {
 import { usePathname, useRouter } from "next/navigation";
 import { SIDE_HOME, writeSideCookie, type Side } from "@/lib/side.constants";
 import { SideCover } from "./SideCover";
+import "@/app/css/side-flip.css";
 
 /**
  * The flip: the product's signature interaction.
@@ -108,6 +109,11 @@ function tokenMs(name: string, fallback: number): number {
 
 function prefersReducedMotion(): boolean {
   if (typeof window === "undefined") return false;
+  /* The app's own Calm and Off settings get the crossfade too: the turn is a
+     big movement of the whole screen, exactly what a person who chose Calm
+     asked not to be shown. It read only the system setting before. */
+  const level = document.documentElement.dataset.motion;
+  if (level === "calm" || level === "off") return true;
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
@@ -253,6 +259,11 @@ export function SideFlip({
         style={{ "--nf-flip-dir": dir } as React.CSSProperties}
       >
         <div className="nf-flip-card">
+          {/* THE PANE HAS A THICKNESS (GOVERNING-flip-mid-turn.png). Two lit
+              edges stand at the card's sides, so as it passes edge-on there
+              is a slab of glass to see rather than a line (side-flip.css). */}
+          <span className="nf-flip-edge nf-flip-edge--start" aria-hidden="true" />
+          <span className="nf-flip-edge nf-flip-edge--end" aria-hidden="true" />
           <div ref={frontRef} className="nf-flip-face nf-flip-face--front" inert={active}>
             {children}
           </div>

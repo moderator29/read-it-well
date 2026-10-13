@@ -9,7 +9,7 @@ import {
   toShelfHref,
   type ShelfQuery,
 } from "@/components/app/search/shelf-query";
-import { formatMoney, getDictionary, type Locale } from "@vallo/i18n";
+import { formatMoney, type Dictionary, type Locale } from "@vallo/i18n/core";
 
 /**
  * A SAVED SEARCH, AS A VALUE. The vocabulary the actions, the list screen, the
@@ -187,6 +187,33 @@ function sentence(value: string): string {
 }
 
 /**
+ * THE WORDS THE CHIPS TAKE FROM THE DICTIONARY, HANDED IN.
+ *
+ * This module is imported by a client component (`SavedSearchBoard`), and it
+ * used to call `getDictionary` for these lines: the dictionary is 448 KB, and
+ * a runtime import of it from a client module puts all of it in that route's
+ * first load (398 KB gzipped on `/saved/searches`, W13). So the lines arrive
+ * as data: the server page reads them off `t.shape` with `searchChipCopyOf`
+ * and passes them down, and this file imports the dictionary's TYPES only.
+ * `searches-runtime-imports.test.ts` holds that.
+ */
+export type SearchChipCopy = {
+  cash: Pick<Dictionary["shape"]["cash"], "savedBudget" | "savedUpfrontYear" | "savedUpfrontMonths">;
+  unit: Pick<Dictionary["shape"]["unit"], "shapes" | "filterBq">;
+};
+
+export function searchChipCopyOf(shape: Dictionary["shape"]): SearchChipCopy {
+  return {
+    cash: {
+      savedBudget: shape.cash.savedBudget,
+      savedUpfrontYear: shape.cash.savedUpfrontYear,
+      savedUpfrontMonths: shape.cash.savedUpfrontMonths,
+    },
+    unit: { shapes: shape.unit.shapes, filterBq: shape.unit.filterBq },
+  };
+}
+
+/**
  * THE FILTERS THAT ARE ACTUALLY STORED, AS CHIPS.
  *
  * This is the read-back the ONE LAW asks for, in words: the row does not say
@@ -196,7 +223,8 @@ function sentence(value: string): string {
  */
 export function summariseSearch(
   params: SavedSearchParams,
-  locale: Locale = "en",
+  locale: Locale,
+  copy: SearchChipCopy,
 ): string[] {
   const query = parseShelfQuery(params);
   const chips: string[] = [];
@@ -208,7 +236,7 @@ export function summariseSearch(
      search's chip says so, since its meaning changed (batch 4 review). */
   const cashBudget = rentMeansTenancy(query) && query.maxMinor !== undefined && query.minMinor === undefined;
   const money = cashBudget
-    ? getDictionary(locale).shape.cash.savedBudget.replace("{amount}", formatMoney(query.maxMinor!, locale))
+    ? copy.cash.savedBudget.replace("{amount}", formatMoney(query.maxMinor!, locale))
     : moneyClause(query, locale);
   if (money) chips.push(sentence(money));
   if (query.bedrooms !== undefined) chips.push(`${query.bedrooms}+ beds`);
@@ -224,14 +252,14 @@ export function summariseSearch(
   if (query.servicedOnly) chips.push("Serviced");
   if (query.gatedEstate) chips.push("Gated estate");
   if (query.maxUpfront !== undefined) {
-    const cash = getDictionary(locale).shape.cash;
+    const cash = copy.cash;
     chips.push(
       query.maxUpfront === 12 ? cash.savedUpfrontYear : cash.savedUpfrontMonths.replace("{n}", String(query.maxUpfront)),
     );
   }
   /* V-66: the shapes and areas, in the words the dictionary uses. */
-  for (const shape of query.shapes ?? []) chips.push(getDictionary(locale).shape.unit.shapes[shape]);
-  if (query.withBq) chips.push(getDictionary(locale).shape.unit.filterBq);
+  for (const shape of query.shapes ?? []) chips.push(copy.unit.shapes[shape]);
+  if (query.withBq) chips.push(copy.unit.filterBq);
   for (const area of query.areas ?? []) chips.push(sentence(area));
   for (const code of query.amenities) chips.push(amenityWord(code));
 

@@ -4,9 +4,12 @@ import Image from "next/image";
 import { useState } from "react";
 import { Sheet } from "@/components/ui/Sheet";
 import { Button } from "@/components/ui/Button";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { ListingKind } from "@/lib/listings/types";
 import { PhotoFrame } from "./PhotoFrame";
 import { usePhotoViewer } from "./PhotoViewer";
+import { clockOf, photosAsMedia, type GalleryMedia } from "./gallery-media";
+import "@/app/css/catalogue.css";
 
 /**
  * The photo grid.
@@ -27,16 +30,43 @@ import { usePhotoViewer } from "./PhotoViewer";
  * focus restoration never nest.
  */
 
-const PREVIEW = 6;
+/*
+ * THE GALLERY STRIP (founder's reference, 13 October 2026): a "Gallery"
+ * heading with "View all" opposite it and one row of three frames under it,
+ * the third carrying "+N" when there are more. Six tiles in two rows was a
+ * second hero halfway down the page; one row says "there is more" and the
+ * sheet and the lightbox say the rest. Nothing is lost: "View all" opens the
+ * whole set and any frame opens the lightbox at that frame.
+ */
+const PREVIEW = 3;
+
+/** The strip's words, from the page's dictionary (`catalogue.detail`). */
+export type PhotoGridCopy = {
+  /** "Gallery" */
+  title: string;
+  /** "View all" */
+  viewAll: string;
+  /** "View all {count} photos and videos" */
+  viewAllMedia: string;
+};
 
 export function ListingPhotoGrid({
   photos,
+  media,
   hue,
   kind,
   /** Only used for the sheet's accessible name. */
   title,
+  copy,
 }: {
+  copy?: PhotoGridCopy;
   photos: string[];
+  /**
+   * Photos and videos in the lister's order (`gallery-media.ts`). A video is a
+   * tile with a play badge and opens the viewer playing. Optional: without it
+   * the grid is the photo grid it always was.
+   */
+  media?: GalleryMedia[];
   hue: number;
   /**
    * Which market this is, so the frame drawn behind a missing photograph is a
@@ -48,44 +78,57 @@ export function ListingPhotoGrid({
 }) {
   const viewer = usePhotoViewer();
   const [showAll, setShowAll] = useState(false);
+  const items = media && media.length > 0 ? media : photosAsMedia(photos);
 
   // The hero already is the photograph when there is only one. A grid of one
   // tile states nothing the reader cannot already see.
-  if (photos.length < 2) return null;
+  if (items.length < 2) return null;
 
-  const preview = photos.slice(0, PREVIEW);
-  const remainder = photos.length - preview.length;
+  const preview = items.slice(0, PREVIEW);
+  const remainder = items.length - preview.length;
 
-  function open(index: number) {
+  /* The tapped tile's rectangle travels with the index, so the photograph
+     grows out of the tile it was (PhotoViewer, motion 18). */
+  function open(index: number, from?: Element | null, foldBack = true) {
     setShowAll(false);
-    viewer?.open(index);
+    viewer?.open(index, from ? from.getBoundingClientRect() : null, { foldBack });
   }
 
   return (
     <section data-testid="listing-photo-grid">
       <div className="mb-sm flex items-baseline justify-between gap-md">
-        <h2 className="nf-h3">Photos</h2>
-        <Button variant="quiet" size="sm" leadingIcon="grid" onClick={() => setShowAll(true)} data-testid="photos-show-all">
-          Show all {photos.length}
+        <h2 className="nf-h3">{copy?.title ?? "Photos"}</h2>
+        <Button
+          variant="quiet"
+          size="sm"
+          onClick={() => setShowAll(true)}
+          aria-label={copy ? copy.viewAllMedia.replace("{count}", String(items.length)) : undefined}
+          data-testid="photos-show-all"
+        >
+          {copy?.viewAll ?? `Show all ${items.length}`}
         </Button>
       </div>
 
       <ul className="grid grid-cols-3 gap-xs">
-        {preview.map((photo, i) => {
+        {preview.map((item, i) => {
           const last = i === preview.length - 1 && remainder > 0;
           return (
-            <li key={`${photo}-${i}`}>
+            <li key={`${item.src}-${i}`}>
               <button
                 type="button"
-                onClick={() => open(i)}
+                onClick={(event) => open(i, event.currentTarget)}
                 aria-label={
                   last
-                    ? `View all ${photos.length} photos`
-                    : `View photo ${i + 1} of ${photos.length} full screen`
+                    ? (copy?.viewAllMedia ?? "View all {count} photos and videos").replace("{count}", String(items.length))
+                    : item.kind === "video"
+                      ? `Play video ${i + 1} of ${items.length} full screen`
+                      : `View photo ${i + 1} of ${items.length} full screen`
                 }
-                className="relative block aspect-square w-full overflow-hidden rounded-[var(--nf-container-radius)] transition-transform active:scale-[0.97] motion-reduce:transition-none"
+                className="relative block aspect-[4/3] w-full overflow-hidden rounded-[var(--nf-radius-md)] transition-transform active:scale-[0.97] motion-reduce:transition-none"
               >
-                <Tile photo={photo} hue={hue} kind={kind} index={i} sizes="(max-width: 640px) 33vw, 220px" />
+                {/* The "+N" cap stands for the rest of the set, so a video
+                    badge under it would be a second mark on one tile. */}
+                <Tile item={item} hue={hue} kind={kind} index={i} sizes="(max-width: 640px) 33vw, 220px" badge={!last} />
                 {last && (
                   <span className="nf-numeric absolute inset-0 grid place-items-center bg-[var(--nf-overlay-media-strong)] nf-media-chip nf-media-chip--lg font-bold backdrop-blur-[2px]">
                     +{remainder}
@@ -99,15 +142,19 @@ export function ListingPhotoGrid({
 
       <Sheet open={showAll} onOpenChange={setShowAll} title={`${title} photos`}>
         <ul className="grid grid-cols-2 gap-xs sm:grid-cols-3">
-          {photos.map((photo, i) => (
-            <li key={`all-${photo}-${i}`}>
+          {items.map((item, i) => (
+            <li key={`all-${item.src}-${i}`}>
               <button
                 type="button"
-                onClick={() => open(i)}
-                aria-label={`View photo ${i + 1} of ${photos.length} full screen`}
+                onClick={(event) => open(i, event.currentTarget, false)}
+                aria-label={
+                  item.kind === "video"
+                    ? `Play video ${i + 1} of ${items.length} full screen`
+                    : `View photo ${i + 1} of ${items.length} full screen`
+                }
                 className="relative block aspect-[4/3] w-full overflow-hidden rounded-[var(--nf-container-radius)] transition-transform active:scale-[0.97] motion-reduce:transition-none"
               >
-                <Tile photo={photo} hue={hue} kind={kind} index={i} sizes="(max-width: 640px) 50vw, 220px" />
+                <Tile item={item} hue={hue} kind={kind} index={i} sizes="(max-width: 640px) 50vw, 220px" />
               </button>
             </li>
           ))}
@@ -119,31 +166,48 @@ export function ListingPhotoGrid({
 
 /** One thumbnail, falling back to the listing's branded frame if it will not load. */
 function Tile({
-  photo,
+  item,
   hue,
   kind,
   index,
   sizes,
+  badge = true,
 }: {
-  photo: string;
+  badge?: boolean;
+  item: GalleryMedia;
   hue: number;
   kind: ListingKind;
   index: number;
   sizes: string;
 }) {
   const [broken, setBroken] = useState(false);
+  const still = item.kind === "photo" ? item.src : item.poster;
   return (
     <>
       <PhotoFrame hue={hue} index={index} kind={kind} />
-      {!broken && (
+      {still && !broken && (
         <Image
-          src={photo}
+          src={still}
           alt=""
           fill
           sizes={sizes}
           onError={() => setBroken(true)}
           className="object-cover"
         />
+      )}
+      {item.kind === "video" && badge && (
+        /* The play badge: a video among the photos, which opens playing. */
+        <span
+          className="absolute bottom-2 left-2 z-[1] inline-flex items-center gap-3xs rounded-[var(--nf-radius-xs)] nf-media-chip px-2xs py-3xs font-semibold"
+          data-testid="grid-video-badge"
+          /* A chip on a photograph keeps the night material in both themes:
+             on paper it painted a white box with a white glyph in it. */
+          data-theme="dark"
+          aria-hidden="true"
+        >
+          <UiIcon name="circle-play" size={16} />
+          {item.durationSeconds ? <span className="nf-numeric">{clockOf(item.durationSeconds)}</span> : null}
+        </span>
       )}
     </>
   );

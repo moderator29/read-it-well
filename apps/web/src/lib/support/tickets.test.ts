@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { getDictionary } from "@vallo/i18n";
+import { RESPONSE_COMMITMENTS } from "../trust/standards";
+import { SUPPORT_TOPICS, SUPPORT_TOPIC_LABEL } from "../trust/support-topics";
 import {
   REOPEN_DAYS,
   canMemberReply,
@@ -14,8 +17,11 @@ import {
   previewText,
   summariseThread,
   ticketStatusCopy,
+  topicName,
   type TicketMessage,
 } from "./tickets";
+
+const support = getDictionary("en").experienceInbox.support;
 
 const msg = (id: string, senderRole: "user" | "admin", createdAt: string, body = id): TicketMessage => ({
   id,
@@ -82,9 +88,17 @@ describe("a member's ticket thread", () => {
     expect(memberTicketState("open", true)).toBe("waiting");
     expect(memberTicketState("resolved", true)).toBe("resolved");
     expect(memberTicketState("closed", false)).toBe("resolved");
-    expect(memberStateCopy("pending", true).label).toBe("Waiting on you");
-    expect(memberStateCopy("closed", false).label).toBe("Resolved");
-    expect(memberStateCopy("closed", false).meaning).toMatch(/Closed by the team/);
+    expect(memberStateCopy("pending", true, support.states)).toEqual({
+      label: "Waiting on you",
+      tone: "brand",
+      meaning: "The team replied and needs something from you. Reply below.",
+    });
+    expect(memberStateCopy("closed", false, support.states).label).toBe("Resolved");
+    expect(memberStateCopy("closed", false, support.states).meaning).toBe(
+      "Closed by the team. Ask a new question if you still need help.",
+    );
+    expect(memberStateCopy("resolved", false, support.states).meaning).toBe("Answered. If it is not sorted, reopen it below.");
+    expect(memberStateCopy("open", false, support.states).tone).toBe("neutral");
   });
 
   it("counts a staff reply as unread until the member opens the thread after it", () => {
@@ -114,17 +128,30 @@ describe("a member's ticket thread", () => {
   });
 
   it("names staff by first name only", () => {
-    expect(staffByline("Amaka Obi")).toBe("Amaka, Vallo support");
-    expect(staffByline(" Tunde ")).toBe("Tunde, Vallo support");
-    expect(staffByline(null)).toBe("Vallo support");
-    expect(staffByline("")).toBe("Vallo support");
+    expect(staffByline("Amaka Obi", support.thread)).toBe("Amaka, Vallo support");
+    expect(staffByline(" Tunde ", support.thread)).toBe("Tunde, Vallo support");
+    expect(staffByline(null, support.thread)).toBe("Vallo support");
+    expect(staffByline("", support.thread)).toBe("Vallo support");
   });
 
   it("promises the clock /standards publishes for the topic", () => {
-    expect(expectedResponse("safety")).toBe("A person replies within 4 hours.");
-    expect(expectedResponse("payment")).toBe("A person replies within 1 day.");
-    expect(expectedResponse("verification")).toBe("A person replies within 3 days.");
-    expect(expectedResponse(null)).toBe("A person replies within 1 day.");
+    const expected = support.form.expected;
+    expect(expectedResponse("safety", expected)).toBe("A person replies within 4 hours.");
+    expect(expectedResponse("payment", expected)).toBe("A person replies within 1 day.");
+    expect(expectedResponse("verification", expected)).toBe("A person replies within 3 days.");
+    expect(expectedResponse(null, expected)).toBe("A person replies within 1 day.");
+    /* The English lines are /standards' own windows, word for word. */
+    for (const grade of ["urgent", "standard", "routine"] as const) {
+      expect(expected[grade]).toBe(`A person replies ${RESPONSE_COMMITMENTS[grade].label.toLowerCase()}.`);
+    }
+  });
+
+  it("names a topic in the member's words, equal in English to the console's", () => {
+    for (const code of SUPPORT_TOPICS) {
+      expect(topicName(code, support.topicNames)).toBe(SUPPORT_TOPIC_LABEL[code]);
+    }
+    expect(topicName("an_old_code", support.topicNames)).toBeNull();
+    expect(topicName(null, support.topicNames)).toBeNull();
   });
 
   it("only lets a uuid through as a ticket id", () => {

@@ -180,7 +180,10 @@ function AmountStatic({
      what `formatMoney` already does. Same rule, one place. */
   const tail = lower(splitAt === -1 || lastFraction === -1 ? "" : join(lastFraction + 1));
 
-  const muted = secondaryClassName ?? "text-[0.62em] font-semibold opacity-60";
+  /* The muted part is 0.62 of the figure, and never under 12px (north star
+     section 5: nothing below 12 anywhere). On a 16px row figure 0.62em was
+     9.9px kobo; on a hero figure the floor changes nothing. */
+  const muted = secondaryClassName ?? "text-[length:max(0.75rem,0.62em)] font-semibold opacity-60";
 
   /*
    * B15: WHAT A SCREEN READER HEARS. A compact figure ("₦2.8m") is read
@@ -197,7 +200,10 @@ function AmountStatic({
       <span className={["nf-numeric", className ?? ""].filter(Boolean).join(" ")}>
         <span aria-hidden="true">
           {head}
-          {fraction ? <span className={muted}>{fraction}</span> : null}
+          {/* A compact figure's fraction is part of the number, not kobo:
+              "₦2.4m" with a faint ".4" read as ₦2m on the map card. So in
+              short form it keeps the figure's weight; only kobo is muted. */}
+          {fraction ? short ? fraction : <span className={muted}>{fraction}</span> : null}
           {tail}
           {suffix ? <span className={muted}> {suffix}</span> : null}
         </span>
@@ -242,7 +248,7 @@ export function Figure({
         ? <CountUp value={value} tag={intlTag[locale]} eager />
         : value.toLocaleString(intlTag[locale])
       : value;
-  const muted = secondaryClassName ?? "text-[0.62em] font-semibold opacity-60";
+  const muted = secondaryClassName ?? "text-[length:max(0.75rem,0.62em)] font-semibold opacity-60";
   return (
     <span className={["nf-numeric", className ?? ""].filter(Boolean).join(" ")}>
       {shown}

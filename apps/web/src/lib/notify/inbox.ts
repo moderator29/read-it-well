@@ -18,7 +18,8 @@ import type { Database } from "@/lib/supabase/database.types";
  * person from one statement share a timestamp, and a cursor on the timestamp
  * alone would drop whichever of them fell on the far side of a page break.
  */
-export type NotificationRow = Database["public"]["Tables"]["notifications"]["Row"];
+/* The columns the inbox selects. `severity` exists on the table but is not read here. */
+export type NotificationRow = Omit<Database["public"]["Tables"]["notifications"]["Row"], "severity">;
 
 export const NOTIFICATION_PAGE = 50;
 

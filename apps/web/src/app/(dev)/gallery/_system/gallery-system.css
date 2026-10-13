@@ -1,0 +1,190 @@
+@layer theme, base, components, utilities;
+
+/*
+ * LAYOUT FOR THE SYSTEM GALLERY ONLY (B-33). Imported by `SystemFrame.tsx`,
+ * which sits behind the preview gate, so none of this is shipped to a product
+ * page. It styles the BOARD (sections, specimen labels, frames), never the
+ * primitives: every primitive on the board draws itself from its own single
+ * definition point, and nothing here restyles one.
+ *
+ * Tokens only. The `@layer` line above is first on purpose: a component-
+ * imported sheet that uses `@layer` can reach the page before `globals.css`
+ * and flip Tailwind's layer order (the B3 gotcha in WAVE2.md).
+ */
+@layer components {
+  .nf-sg {
+    max-inline-size: 72rem;
+    margin-inline: auto;
+    padding-inline: var(--nf-space-md);
+    padding-block: var(--nf-space-lg) var(--nf-space-2xl);
+  }
+  .nf-sg-lede {
+    margin: var(--nf-space-xs) 0 0;
+    max-inline-size: 46rem;
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+  }
+
+  /* The toolbar: back link, the two switches, and the family links. */
+  .nf-sg-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--nf-space-sm) var(--nf-space-md);
+    margin-block: var(--nf-space-md);
+  }
+  .nf-sg-bar__group {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+  }
+  .nf-sg-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--nf-space-xs);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .nf-sg-nav a {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 2.75rem;
+    padding-inline: var(--nf-space-sm);
+    border-radius: var(--nf-radius-pill);
+    border: var(--nf-border-width) solid var(--nf-border-subtle);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+    text-decoration: none;
+  }
+  .nf-sg-nav a[aria-current="page"] {
+    color: var(--nf-content-primary);
+    border-color: var(--nf-brand-primary);
+  }
+
+  .nf-sg-section {
+    margin-block-start: var(--nf-space-2xl);
+  }
+  .nf-sg-note {
+    margin: var(--nf-space-2xs) 0 0;
+    max-inline-size: 46rem;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-sg-grid {
+    display: grid;
+    gap: var(--nf-space-md);
+    margin-block-start: var(--nf-space-md);
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+  }
+  .nf-sg-grid--wide {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+  }
+  .nf-sg-spec {
+    display: grid;
+    gap: var(--nf-space-xs);
+    align-content: start;
+    min-inline-size: 0;
+  }
+  .nf-sg-label {
+    margin: 0;
+    font-size: var(--nf-text-overline);
+    letter-spacing: 0.04em;
+    color: var(--nf-content-muted);
+  }
+  .nf-sg-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--nf-space-sm);
+  }
+
+  /* A page-coloured ground: the specimen on the theme's own canvas. */
+  .nf-sg-ground {
+    padding: var(--nf-space-md);
+    border-radius: var(--nf-radius-lg);
+    background: var(--nf-surface-primary);
+    /* A fine hatch, so the Island's blur has something to blur. */
+    background-image: repeating-linear-gradient(
+      135deg,
+      var(--nf-border-subtle) 0 1px,
+      transparent 1px 0.75rem
+    );
+  }
+
+  /* A frame that is the containing block for a fixed thing (the Sheet). */
+  .nf-sg-frame {
+    position: relative;
+    overflow: hidden;
+    transform: translateZ(0);
+    min-block-size: 18rem;
+    border-radius: var(--nf-radius-lg);
+    background: var(--nf-surface-primary);
+  }
+  .nf-sg-frame .nf-sheet {
+    position: absolute;
+    transition: none;
+  }
+
+  /* The Plate tier. The rows of the side navigation read these same tokens
+     (side-nav.css); this draws the bare tier so it can be looked at. */
+  .nf-sg-plate {
+    display: flex;
+    align-items: center;
+    min-block-size: 2.75rem;
+    padding: var(--nf-space-sm);
+    border-radius: var(--nf-tier-plate-radius);
+    border: var(--nf-border-width) solid var(--nf-tier-plate-edge);
+    background: var(--nf-tier-plate-fill);
+    color: var(--nf-content-primary);
+  }
+
+  /* Paper: a theme-constant sheet colour, for the receipt's desk. */
+  .nf-sg-desk {
+    padding: var(--nf-space-lg) var(--nf-space-md);
+    border-radius: var(--nf-radius-lg);
+    background: var(--nf-surface-secondary);
+  }
+
+  .nf-sg-readout {
+    margin: 0;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+  }
+  .nf-sg-field {
+    inline-size: 8rem;
+    min-block-size: 2.75rem;
+    padding-inline: var(--nf-space-sm);
+    border-radius: var(--nf-radius-control);
+    border: var(--nf-border-width) solid var(--nf-border-subtle);
+    background: var(--nf-surface-elevated);
+    color: var(--nf-content-primary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* The brand-icon grid: one cell per object, name under it. */
+  .nf-sg-objects {
+    display: grid;
+    gap: var(--nf-space-sm);
+    grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
+    margin: var(--nf-space-md) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .nf-sg-objects--large {
+    grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  }
+  .nf-sg-object {
+    display: grid;
+    justify-items: center;
+    gap: var(--nf-space-2xs);
+    min-inline-size: 0;
+    text-align: center;
+  }
+  .nf-sg-object__name {
+    max-inline-size: 100%;
+    overflow-wrap: anywhere;
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-muted);
+  }
+}

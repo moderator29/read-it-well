@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { ButtonLink } from "@/components/ui/Button";
-import { EmptyState, Section, Stack } from "@/components/app/Screen";
+import { Section, Stack } from "@/components/app/Screen";
+import { DiscoveryEmpty } from "@/components/app/search/DiscoveryEmpty";
 import { PageHeader } from "@/components/app/PageHeader";
 import { listStates } from "@/lib/places/queries";
 import { shareById } from "@/lib/price-check/queries";
@@ -120,15 +121,13 @@ export default async function AreaSharePage({ params }: Params) {
     return (
       <>
         <PageHeader title={t.priceCheck.title} fallback="/price" />
-        <EmptyState
-          icon="report-stats"
+        {/* Stage 5: the object settles, the reason is the true one, and the
+            one way onward is a check of their own. */}
+        <DiscoveryEmpty
+          object="doc-search"
           title={copy.missingTitle}
           body={copy.missingBody}
-          action={
-            <ButtonLink href="/price" variant="primary" full>
-              {copy.checkYours}
-            </ButtonLink>
-          }
+          primary={{ href: "/price", label: copy.checkYours }}
           data-testid="nf-pc-share-missing"
         />
       </>

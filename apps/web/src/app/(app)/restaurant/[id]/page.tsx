@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { tableRuleLines } from "@/lib/host/cancellation-presets";
 import { isPropertyMarket, marketOf } from "@/lib/listings/market";
 import { notFound, redirect } from "next/navigation";
 import { getDictionary, type Locale } from "@vallo/i18n";
@@ -8,12 +9,14 @@ import { formatNumber } from "@vallo/i18n";
 import type { UiIconName } from "@/design-system/icons/UiIcon";
 import type { SpecPair } from "@/components/app/listing/DetailAnatomy";
 import { getRestaurantDetail } from "@/lib/stays/queries";
+import { hoursLabel } from "@/lib/stays/hours";
 import { listBusinessPhotos } from "@/lib/stays/business-photos";
 import { listSavedPlaces } from "@/lib/saved/places-actions";
 import { isSaved, savedKeySet } from "@/lib/saved/places";
 import { RESTAURANT_PLATES } from "@/components/app/stays/restaurant-plates";
 import { siteUrl } from "@/lib/site";
 import { resolveSession } from "@/lib/actions/session";
+import { readVenueDeposit } from "@/lib/reservations/deposit-settings";
 import { RestaurantFace } from "./RestaurantFace";
 
 /**
@@ -71,17 +74,17 @@ export async function generateMetadata({
   /* The business-grade venue answers here too, or every M7 restaurant would
      carry the fallback title in the tab and in a shared link. */
   const venue = restaurant ?? (await getRestaurantDetail(id));
+  const dictionary = getDictionary(await getLocale());
   if (!venue) {
-    return { title: getDictionary(await getLocale()).restaurantPage.fallbackTitle };
+    return { title: dictionary.restaurantPage.fallbackTitle };
   }
   const name = "business" in venue ? venue.business.name : venue.title;
   const area = "business" in venue ? venue.business.area : venue.area;
   const city = "business" in venue ? venue.business.city : venue.city;
   const where = [area, city].filter(Boolean).join(", ");
   const title = where ? `${name}, ${where}` : name;
-  const description = where
-    ? `${name}, ${where}. Ask for a table on Vallo.`
-    : `${name}. Ask for a table on Vallo.`;
+  const share = dictionary.experienceDetail.restaurant;
+  const description = (where ? share.shareWhere : share.shareName).replace("{name}", name).replace("{where}", where);
   const url = `${siteUrl().replace(/\/+$/, "")}/restaurant/${id}`;
   /* A listing-backed restaurant carries photographs; an M7 business row does
      not expose one here, and a card with no image is better than a card
@@ -164,10 +167,17 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
      are independent of each other once the two reads above are in, so they
      are asked for together. The shortlist is read only for a business venue,
      which is exactly when there is no catalogue listing face. */
-  const [venuePhotos, savedPlaces, viewerSession] = await Promise.all([
+  /* D75 (track/restaurant-deposits): the venue's deposit rules, only while
+     `restaurant_deposits` is on and only for a business venue whose owner
+     can be paid (the database asks for nothing otherwise). Null keeps the
+     free form exactly as it was. */
+  const [venuePhotos, savedPlaces, viewerSession, venueDeposit] = await Promise.all([
     detail ? listBusinessPhotos(detail.business.id) : Promise.resolve([]),
     listingFace ? Promise.resolve(null) : listSavedPlaces(),
     resolveSession(),
+    !listingFace && detail && detail.business.is_demo !== true
+      ? readVenueDeposit(detail.business.id, ownerOf(detail.business))
+      : Promise.resolve(null),
   ]);
 
   /*
@@ -186,10 +196,12 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
         area: listingFace.area,
         city: listingFace.city,
         photos: listingFace.photos ?? [],
-        verified: listingFace.verified,
+        /* D24: an example row is never drawn as a checked one. The read
+           already clamps both; this is the presentation's own lock. */
+        verified: listingFace.verified && listingFace.isDemo !== true,
         priceMinor: listingFace.priceMinor,
         currency: listingFace.currency,
-        rating: listingFace.reviewCount > 0 && listingFace.rating > 0
+        rating: listingFace.isDemo !== true && listingFace.reviewCount > 0 && listingFace.rating > 0
           ? { average: listingFace.rating, count: listingFace.reviewCount }
           : null,
       }
@@ -220,7 +232,7 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
   /* The hours, when the venue has published them through lib/stays
      (service windows on the business-grade schema). A listing with none
      keeps the honest line below rather than a guessed badge. */
-  const hours = detail ? { openNow: detail.open_now, label: detail.hours_label } : null;
+  const hours = detail ? { openNow: detail.open_now, label: hoursLabel(detail.hours, t.experienceDetail.hours) } : null;
 
   /* A business venue's shortlist is `saved_places` under the restaurant kind,
      keyed on the business id exactly as `catalogue_entries` files it; a
@@ -268,12 +280,20 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
   /* The one paragraph this page can write without inventing anything: the
      venue's own words where the business wrote some, and otherwise a sentence
      assembled from fields that exist. */
+  const about = t.experienceDetail.restaurant;
   const aboutParagraphs = [
     detail?.business.description ??
-      [venue.title, where ? `is in ${where}` : null, firstCuisine ? `and serves ${firstCuisine}` : null]
-        .filter(Boolean)
-        .join(" ")
-        .concat("."),
+      (where && firstCuisine
+        ? about.aboutWhereServes
+        : where
+          ? about.aboutWhere
+          : firstCuisine
+            ? about.aboutServes
+            : about.aboutName
+      )
+        .replace("{name}", venue.title)
+        .replace("{where}", where)
+        .replace("{cuisine}", firstCuisine ?? ""),
   ];
 
   const signedIn = viewerSession.state === "signed-in";
@@ -340,10 +360,35 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
       /* A reservation names exactly one venue and the database says which
          column it lands in: `business_id` for an M7 venue, `listing_id` for a
          catalogue restaurant. */
-      reserve={{ ...(venue.isBusiness ? { businessId: venue.id } : { listingId: venue.id }), messageHref }}
+      reserve={{
+        ...(venue.isBusiness ? { businessId: venue.id } : { listingId: venue.id }),
+        messageHref,
+        deposit: venueDeposit ? { ...venueDeposit, words: t.tableDeposits.guest, locale } : null,
+      }}
       windows={detail ? detail.windows : null}
       messageHref={messageHref}
       isExample={venue.isExample}
+      tableRules={withDepositLine(
+        tableRuleLines(
+          {
+            holdMinutes: smallNumber(profile, "hold_minutes"),
+            cancelNoticeHours: smallNumber(profile, "cancel_notice_hours"),
+            sittingMinutes: smallNumber(profile, "sitting_minutes"),
+          },
+          locale,
+        ),
+        venueDeposit ? t.tableDeposits.guest.freeLine : null,
+      )}
+      areaPoint={
+        /* A venue's point, rounded to about a kilometre: the Map tab draws
+           the area. A catalogue listing carries no point here. */
+        !listingFace && detail?.business.latitude != null && detail.business.longitude != null
+          ? {
+              lat: Math.round(detail.business.latitude * 100) / 100,
+              lng: Math.round(detail.business.longitude * 100) / 100,
+            }
+          : null
+      }
       report={{
         targetType: venue.isBusiness ? "business" : "listing",
         targetId: venue.id,
@@ -351,4 +396,27 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
       }}
     />
   );
+}
+
+/**
+ * The first table rule says a table is free and the bill is paid at the
+ * restaurant. For a venue that sets a deposit, that line says so instead:
+ * free unless a deposit applies to the time and party picked, and any
+ * deposit comes off the bill.
+ */
+function withDepositLine(lines: string[], depositLine: string | null): string[] {
+  if (!depositLine || lines.length === 0) return lines;
+  return [depositLine, ...lines.slice(1)];
+}
+
+/** The venue owner's id, from a business row the generated types may not name. */
+function ownerOf(business: unknown): string | null {
+  const id = (business as { owner_id?: unknown } | null)?.owner_id;
+  return typeof id === "string" ? id : null;
+}
+
+/** A whole number from a profile column the generated types may not carry yet. */
+function smallNumber(row: unknown, key: string): number | null {
+  const value = (row as Record<string, unknown> | null)?.[key];
+  return typeof value === "number" && Number.isInteger(value) ? value : null;
 }

@@ -41,9 +41,21 @@ import "server-only";
  *      than a board that will not load.
  *
  * Nothing here writes, and nothing here is logged.
+ *
+ * ---------------------------------------------------------------------------
+ * THE GUEST RECORD (RESTAURANT-06), ON REQUESTS ONLY.
+ *
+ * For the requests still waiting for an answer, one call to
+ * `reservation_guest_records` on the CALLER'S OWN session asks how many tables
+ * each diner kept and missed in the last 12 months. The database answers only
+ * for reservations this person hosts. Counts only; a first-time diner and a
+ * failed read both come back as no record, and the card shows no line.
  */
 
 import { createAdminClient } from "@/lib/supabase/admin";
+import { resolveSession } from "@/lib/actions/session";
+import { reportReadError } from "@/lib/observability/read-error";
+import { readGuestRecords, type GuestRecord } from "@/lib/reservations/guest-record";
 import {
   getHostReservations,
   type HostReservationView,
@@ -69,6 +81,20 @@ export const EMPTY_TABLE_BOARD: HostTableBoard = {
   past: [],
   total: 0,
 };
+
+/** Kept and missed counts for the requests on the board. See the header. */
+async function guestRecords(ids: string[]): Promise<Map<string, GuestRecord>> {
+  if (ids.length === 0) return new Map();
+  try {
+    const session = await resolveSession();
+    if (session.state !== "signed-in") return new Map();
+    return await readGuestRecords(session.supabase, ids, (error) =>
+      reportReadError("read.reservations.guestRecords", error),
+    );
+  } catch {
+    return new Map();
+  }
+}
 
 /** Display names for ids RLS has already authorised. See the header. */
 async function guestNames(ids: string[]): Promise<Map<string, string>> {
@@ -108,17 +134,21 @@ export async function readHostTableBoard(now: Date = new Date()): Promise<HostBo
   if (rows === "unavailable") return { state: "unavailable" };
   if (rows.length === 0) return { state: "ok", board: EMPTY_TABLE_BOARD };
 
-  const names = await guestNames([...new Set(rows.map((row) => row.guestId))]);
-  const named = rows.map((row) => ({
-    ...row,
-    guestName: names.get(row.guestId) ?? FALLBACK_GUEST_NAME,
-  }));
-
   const instant = now.getTime();
   const past = (row: HostReservationView) => {
     const at = Date.parse(row.reservedFor);
     return Number.isFinite(at) ? at <= instant : true;
   };
+
+  const [names, records] = await Promise.all([
+    guestNames([...new Set(rows.map((row) => row.guestId))]),
+    guestRecords(rows.filter((row) => row.status === "PENDING" && !past(row)).map((row) => row.id)),
+  ]);
+  const named = rows.map((row) => ({
+    ...row,
+    guestName: names.get(row.guestId) ?? FALLBACK_GUEST_NAME,
+    guestRecord: records.get(row.id) ?? null,
+  }));
 
   return {
     state: "ok",

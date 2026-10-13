@@ -1,6 +1,8 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
+import { Button } from "@/components/ui/Button";
+import { useDoneFlash } from "@/lib/ui/use-done-flash";
 import type { ActionResult } from "@/lib/actions/envelope";
 
 /**
@@ -26,13 +28,19 @@ export function ApproveForm({
   ownLine: string;
 }) {
   const [state, run, pending] = useActionState<ActionResult<null> | null, FormData>(action, null);
+  /* The tick is held for a beat only once the server has said yes. */
+  const [done, flash] = useDoneFlash();
+  const accepted = state?.ok === true;
+  useEffect(() => {
+    if (accepted) flash();
+  }, [accepted, flash]);
   if (own) return <p className="nf-caption text-[var(--nf-content-muted)]">{ownLine}</p>;
   return (
     <form action={run} className="flex flex-wrap items-center gap-xs">
       <input type="hidden" name={fieldName} value={value} />
-      <button type="submit" disabled={pending || state?.ok === true} className="nf-btn nf-btn--primary min-h-[44px] disabled:opacity-60">
+      <Button type="submit" variant="primary" morph loading={pending} done={done} disabled={accepted}>
         {label}
-      </button>
+      </Button>
       {state?.ok ? (
         <span role="status" className="nf-caption text-[var(--nf-content-secondary)]">
           {doneLabel}

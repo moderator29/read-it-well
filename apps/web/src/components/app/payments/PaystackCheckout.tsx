@@ -1,8 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { DEFAULT_LOCALE, getDictionary, type Locale } from "@vallo/i18n";
+import type { Locale } from "@vallo/i18n/core";
+import { useScopedCopy } from "@/lib/i18n/copy-scope";
+import { useClientCopy } from "@/lib/i18n/client-copy";
 import { ResultSheet } from "@/components/app/ResultSheet";
+import { PaymentSteps, cardPaymentSteps } from "./PaymentSteps";
 import { clearInflight, noteInflight } from "@/lib/offline/inflight";
 import { releaseCardAttempt } from "@/lib/payments/attempt-actions";
 
@@ -132,7 +135,20 @@ export type PaystackCheckoutProps = {
   onCancelled: () => void;
   /** It failed, or we stopped being able to tell. The sentence is the truth. */
   onFailed: (message: string) => void;
+  /**
+   * The caller draws the wait itself, in its own pay stage (PaymentStage), so
+   * the card a person tapped into is the card that answers them. With this
+   * set, `opening` and `settling` draw nothing here and are reported through
+   * `onPhase` instead; `unavailable` is still drawn here, because it offers a
+   * choice only this component can make.
+   */
+  staged?: boolean;
+  /** Where the checkout is, every time that changes. */
+  onPhase?: (at: CheckoutAt) => void;
 };
+
+/** The checkout's own phases, as `onPhase` reports them. */
+export type CheckoutAt = "idle" | "opening" | "open" | "settling" | "unavailable";
 
 /**
  * The poll, and why it backs off rather than ticking.
@@ -188,6 +204,8 @@ export function PaystackCheckout({
   onPaid,
   onCancelled,
   onFailed,
+  staged = false,
+  onPhase,
 }: PaystackCheckoutProps) {
   const [phase, setPhase] = useState<Phase>(() =>
     accessCode.trim().length > 0
@@ -198,8 +216,11 @@ export function PaystackCheckout({
   /* Callbacks reach us from an iframe long after the render that created
      them, so they are read through a ref rather than closed over: a stale
      `onPaid` here would settle a payment into a panel that has moved on. */
-  const handlers = useRef({ onPaid, onCancelled, onFailed, confirm });
-  handlers.current = { onPaid, onCancelled, onFailed, confirm };
+  const handlers = useRef({ onPaid, onCancelled, onFailed, confirm, onPhase });
+  handlers.current = { onPaid, onCancelled, onFailed, confirm, onPhase };
+  useEffect(() => {
+    handlers.current.onPhase?.(phase.kind);
+  }, [phase.kind]);
   /* V-40: the figure for the in-flight note, read when the checkout opens. */
   const amountRef = useRef(amountMinor);
   amountRef.current = amountMinor;
@@ -412,12 +433,34 @@ export function PaystackCheckout({
     reference,
   };
 
+  /* The payment's real steps (motion 14), under the two waiting sheets. Each
+     ticks only when its phase has genuinely passed: "opening" is done once
+     Paystack's window reported that it loaded (only then can a settle run),
+     "confirming" is done once our own transaction record says paid, at which
+     point the caller swaps this sheet for the receipt. The words are the
+     checkout dictionary's own, from the route's CopyScope (W13: a client
+     dictionary read here shipped the whole dictionary with the payment). */
+  const stepWords = useScopedCopy("checkout");
+  const offlineWord = useClientCopy().platform.inflight.offline;
+  const steps = (at: "opening" | "settling") => (
+    <PaymentSteps
+      label={stepWords.confirmingPayment}
+      steps={cardPaymentSteps(at, {
+        opening: stepWords.openingPaymentPage,
+        confirming: stepWords.confirmingPayment,
+        received: stepWords.paymentReceived,
+      })}
+    />
+  );
+
   /* While Paystack's iframe is up it is fixed and full viewport, so our own
      sheet would sit behind it and be read by a screen reader as a second
      dialog over the one the person is using. The `open` phase therefore draws
      nothing at all: the page underneath is ours, the URL is ours, and the
      payment is happening on top of it. */
   if (phase.kind === "open") return null;
+  /* Staged: the caller's pay stage draws the wait. */
+  if (staged && (phase.kind === "opening" || phase.kind === "settling")) return null;
 
   if (phase.kind === "opening") {
     return (
@@ -430,6 +473,7 @@ export function PaystackCheckout({
         consequence="Nothing has been charged yet. The payment window opens on this page."
         fact={fact}
         locale={locale}
+        footnote={steps("opening")}
       />
     );
   }
@@ -445,6 +489,7 @@ export function PaystackCheckout({
         consequence="We are checking with our own records rather than taking the payment window's word for it. Do not pay again."
         fact={fact}
         locale={locale}
+        footnote={steps("settling")}
       />
     );
   }
@@ -464,7 +509,7 @@ export function PaystackCheckout({
         }}
         state="failed"
         verdict="Cannot pay here"
-        consequence={`${phase.offline ? getDictionary(locale ?? DEFAULT_LOCALE).platform.inflight.offline : phase.message} You can try again in a moment, or open the payment page on Paystack's own site, which will take you off Vallo until it is done.`}
+        consequence={`${phase.offline ? offlineWord : phase.message} You can try again in a moment, or open the payment page on Paystack's own site, which will take you off Vallo until it is done.`}
         fact={fact}
         locale={locale}
         actions={

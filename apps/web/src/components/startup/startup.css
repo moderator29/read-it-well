@@ -1,0 +1,98 @@
+/*
+ * THE APP OPENING: THE PRODUCT ARRIVING (D68c, 7 October 2026).
+ *
+ * No overlay, no lockup, no mark on an empty field: the logo never appears by
+ * itself on app open. What plays is the app's own first screen arriving, keyed
+ * on the root's `data-splash="on"` (the before-paint gate in
+ * `startup-script.ts`) and released to "done" by its controller.
+ *
+ * FRAME ONE IS ALREADY THE PRODUCT. The header and the dock are on screen from
+ * the first frame, dim and a few pixels from home, and resolve into place;
+ * they are never absent. The ground (`#main`) settles from 72% to full in
+ * opacity only, at 0.6 of the foreground's speed (its 900ms against their
+ * 540ms), and never with a transform: a filled transform on `#main` would make
+ * it the containing block of every fixed child (the pinned price bar, sheets).
+ * The page's own entrances (`animation.css`, `home.css`, `inner-m.css`,
+ * `detail-m.css`, `landing-rooms.css`, `list-views.css` and the rest) rise
+ * after `--nf-splash-hold` (threshold.css), now 160ms, with their own
+ * staggers.
+ *
+ *   full    the first open of the day: header 0 to 540, dock 60 to 600,
+ *           ground 0 to 900, content from 160 with its staggers; settled by
+ *           about 1,500ms, usable from the first frame.
+ *   brief   a returning open: no hold; the header and the dock take 280ms and
+ *           the ground does not move. About 400ms.
+ *
+ * The chrome moves with the individual `translate` property rather than
+ * `transform`, so it composes with whatever transform the chrome already has
+ * instead of replacing it. Curves are tokens: `land` (`--nf-ease-entrance`)
+ * for arrivals, `standard` for the ground.
+ */
+
+@layer theme, base, components, utilities;
+
+@layer components {
+  /* The hold the page's entrances wait for: `--nf-startup-door` plus 100ms
+     (threshold.css). Inherited, so the page reads the same number; the
+     controller pins it on `data-startup-pin` when it lets go. */
+  :root[data-splash="on"] {
+    --nf-startup-door: 60ms;
+  }
+  :root[data-splash="on"][data-opening="brief"] {
+    --nf-startup-door: -100ms;
+  }
+
+  /* The native wait: every animation on the page held at its first frame
+     until the native splash is going (startup-script.ts). `!important`
+     because an `animation` shorthand anywhere resets the play state. */
+  :root[data-startup-native="wait"] *,
+  :root[data-startup-native="wait"] *::before,
+  :root[data-startup-native="wait"] *::after {
+    animation-play-state: paused !important;
+  }
+
+  :root[data-splash="on"] .nf-app-header {
+    animation: nf-open-header 540ms var(--nf-ease-entrance) both;
+  }
+  :root[data-splash="on"] .nf-dockrow {
+    animation: nf-open-dock 540ms var(--nf-ease-entrance) 60ms both;
+  }
+  :root[data-splash="on"] #main {
+    animation: nf-open-ground 900ms var(--nf-ease-standard) both;
+  }
+
+  :root[data-splash="on"][data-opening="brief"] :is(.nf-app-header, .nf-dockrow) {
+    animation-duration: 280ms;
+    animation-delay: 0ms;
+  }
+  :root[data-splash="on"][data-opening="brief"] #main {
+    animation: none;
+  }
+
+  @keyframes nf-open-header {
+    from {
+      opacity: 0.4;
+      translate: 0 -8px;
+    }
+  }
+  @keyframes nf-open-dock {
+    from {
+      opacity: 0.4;
+      translate: 0 14px;
+    }
+  }
+  @keyframes nf-open-ground {
+    from {
+      opacity: 0.72;
+    }
+  }
+
+  /* A backstop for the gate: the platform's reduced-motion setting never
+     switches the opening on, and if a page switched it on by hand it still
+     gets one settled frame. */
+  @media (prefers-reduced-motion: reduce) {
+    :root[data-splash="on"] :is(.nf-app-header, .nf-dockrow, #main) {
+      animation: none;
+    }
+  }
+}

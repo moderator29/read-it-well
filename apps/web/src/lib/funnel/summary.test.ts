@@ -35,6 +35,7 @@ describe("A6 funnel", () => {
   it("reads the door from the room a link sat in", () => {
     expect(doorFromChapter("hero", null)).toBe("hero");
     expect(doorFromChapter("close", null)).toBe("close");
+    expect(doorFromChapter("markets", null)).toBe("category");
     expect(doorFromChapter("hero", "header")).toBe("header");
     expect(doorFromChapter("mystery", null)).toBe("other");
   });

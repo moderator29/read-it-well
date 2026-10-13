@@ -1,4 +1,5 @@
 "use client";
+import "@/app/css/auth.css";
 
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -17,11 +18,10 @@ export function AuthFocal() {
   if (art.kind === "object") return <FocalArtImage art={art} />;
   return (
     <Image
-      src="/brand/vallo-mark.png"
+      src="/brand/vallo-mark.svg"
       alt=""
-      width={614}
-      height={587}
-      sizes="48px"
+      width={776}
+      height={664}
       priority
       className="nf-slate-focal__mark"
     />

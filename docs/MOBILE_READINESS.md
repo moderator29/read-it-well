@@ -131,12 +131,14 @@ What the product can request, why, and what the native projects declare.
 | --- | --- | --- | --- |
 | Geolocation | `components/app/search/MapCanvas.tsx`, the locate-me control | Centres the map on the person searching; falls back to the fitted viewport, status announced in a live region | Android `ACCESS_COARSE_LOCATION`, `ACCESS_FINE_LOCATION` capped at `maxSdkVersion="30"` (the reasoning is written in `AndroidManifest.xml`); iOS `NSLocationWhenInUseUsageDescription` |
 | Photo library / file read | The listing, profile, story, message and verification upload inputs | A standard file input; the platform only ever sees the files picked | iOS `NSPhotoLibraryUsageDescription` |
-| Camera | Nothing calls `getUserMedia`; the web sends `camera=()` | iOS draws a Take Photo row in its own picker for `accept="image/*"` inputs and terminates an app that reaches the camera with no purpose string | iOS `NSCameraUsageDescription` only |
+| Camera | Video calls (VC1, 8 October 2026: `getUserMedia` in the call screen), and photo capture inputs | A call publishes the camera; iOS also draws a Take Photo row for `accept="image/*"` inputs | iOS `NSCameraUsageDescription` (names calls); Android `CAMERA` with `android.hardware.camera` not required |
+| Microphone | Voice and video calls (VC1), and the walkthrough video's sound | A call publishes the microphone | iOS `NSMicrophoneUsageDescription`; Android `RECORD_AUDIO` and `MODIFY_AUDIO_SETTINGS` |
 | Internet | Everything | | Android `INTERNET` |
-| Microphone, contacts, calendar, background location, notifications | Not requested | Nothing needs them | Not declared |
+| Contacts, calendar, background location | Not requested | Nothing needs them | Not declared |
 
-The edge declares the negative half in `next.config.ts`:
-`Permissions-Policy: camera=(), microphone=(), geolocation=(self), interest-cohort=()`.
+The edge declares the policy in `next.config.ts`:
+`Permissions-Policy: camera=(self), microphone=(self), geolocation=(self), interest-cohort=()`
+(camera and microphone were `()` until VC1; see `docs/video-calling/VIDEO-CALLING-MOBILE-COMPATIBILITY.md`).
 A native build mirrors this list and adds nothing.
 
 ---

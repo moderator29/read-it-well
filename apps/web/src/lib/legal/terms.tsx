@@ -324,13 +324,14 @@ export const TERMS_SECTIONS: { title: string; body: React.ReactNode }[] = [
       <ul>
         <li>
           <strong>
-            Listing is free and {COMPANY_TRADING_NAME} charges no fee today to look, to
-            save, to message, to enquire, to inspect or to list.
+            Listing is free, and {COMPANY_TRADING_NAME} charges renters and guests nothing:
+            no fee to look, to book or to pay, and nothing added to the price on the
+            listing.
           </strong>{" "}
-          When a payment is made to you through the platform, between 1 and 2 percent of
-          it goes to the Vallo Guarantee reserve (section 14) out of your share, and the
-          exact percentage is shown on the agreement before anybody pays. Our commission
-          is zero today.
+          {COMPANY_TRADING_NAME} charges a fee only when a deal is completed. When a payment
+          is made through the platform, the platform fee comes out of your share as the
+          lister, and it is shown to you in naira before you agree. A restaurant pays a
+          fixed fee for each table that is seated; the diner pays nothing extra to book.
         </li>
         <li>
           If that ever changes, the rate will be shown before the action that incurs it,
@@ -339,9 +340,23 @@ export const TERMS_SECTIONS: { title: string; body: React.ReactNode }[] = [
           booked under one rate completes under that rate.
         </li>
         <li>
+          <strong>If you host a stay or a restaurant</strong>, you also agree to the Host
+          Agreement (at /host-agreement) before your business is set up. In short: you must
+          not charge a guest anything that is not listed on {COMPANY_TRADING_NAME}, every
+          charge you list must say what it is for, and anything not listed cannot be charged.
+        </li>
+        <li>
           You are responsible for the accuracy of what you list. Listings must be
           lawful, must be yours to offer, and must carry photographs of the actual
           property. Every listing is reviewed by a person before it is published.
+        </li>
+        <li>
+          <strong>No hidden charges.</strong> A lister or host must not charge a guest
+          or renter anything that is not listed on {COMPANY_TRADING_NAME}, and must not
+          add a charge without a stated reason. Every cost, including any charge payable
+          at the door, must be listed before the booking is confirmed so that the guest
+          sees the full total first. A charge that breaks this rule can lead to the
+          listing being removed or the account being stopped, and you can report it.
         </li>
         <li>
           Where a listing states a title, such as a certificate of occupancy or a deed

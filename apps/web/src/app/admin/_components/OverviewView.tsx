@@ -29,6 +29,7 @@ import { RangeSelect } from "./RangeSelect";
 import { currentDestination, labelFor, type ShellCopy } from "./nav";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { QueueByDesk } from "./QueueByDesk";
+import { QueueFigures } from "./QueueFigures";
 import type { OverviewCounts } from "./ConsoleOverview";
 
 /** "You were heading to Money": the desk the address asked for, one tap away. */
@@ -128,6 +129,8 @@ export function OverviewView(props: OverviewProps) {
       icon: { tier: "admin", name: "clipboard" },
       label: c.listingsLive,
       value: pulse ? n(pulse.listingsLive) : null,
+      count: pulse?.listingsLive,
+      locale,
       delta: pulse ? periodDelta(pulse.listingsLive, pulse.listingsLiveWeekAgo) : null,
       spark: spark("strip-live", (d) => d.liveAtClose, "Live listings, last 14 days"),
       pending: pending("This figure"),
@@ -137,6 +140,8 @@ export function OverviewView(props: OverviewProps) {
       icon: { tier: "ui", name: "user" },
       label: c.signupsToday,
       value: pulse ? n(pulse.signupsToday) : null,
+      count: pulse?.signupsToday,
+      locale,
       delta: pulse ? periodDelta(pulse.signupsToday, pulse.signupsYesterday) : null,
       spark: spark("strip-signups", (d) => d.signups, "Sign-ups, last 14 days"),
       caption:
@@ -150,6 +155,8 @@ export function OverviewView(props: OverviewProps) {
       icon: { tier: "admin", name: "naira" },
       label: c.collectedToday,
       value: pulse ? money(pulse.collectedTodayMinor) : null,
+      minor: pulse?.collectedTodayMinor,
+      locale,
       delta: pulse ? periodDelta(pulse.collectedTodayMinor, pulse.collectedYesterdayMinor) : null,
       spark: spark("strip-collected", (d) => d.collectedMinor, "Naira collected, last 14 days"),
       pending: pending("This figure"),
@@ -170,6 +177,8 @@ export function OverviewView(props: OverviewProps) {
       icon: { tier: "ui", name: "home" },
       label: c.liveListings,
       value: pulse ? n(pulse.listingsLive) : null,
+      count: pulse?.listingsLive,
+      locale,
       delta: pulse ? periodDelta(pulse.listingsLive, pulse.listingsLiveWeekAgo) : null,
       caption: pulse ? c.vsLastWeek : c.examplesNotCounted,
       spark: spark("card-live", (d) => d.liveAtClose, "Live listings, last 14 days"),
@@ -181,6 +190,8 @@ export function OverviewView(props: OverviewProps) {
       icon: { tier: "ui", name: "plus" },
       label: c.newSupply,
       value: pulse ? n(pulse.newSupplyWeek) : null,
+      count: pulse?.newSupplyWeek,
+      locale,
       delta: pulse ? periodDelta(pulse.newSupplyWeek, pulse.newSupplyPrevWeek) : null,
       caption: c.vsLastWeek,
       spark: spark("card-supply", (d) => d.submitted, "Listings submitted, last 14 days"),
@@ -192,6 +203,8 @@ export function OverviewView(props: OverviewProps) {
       icon: { tier: "admin", name: "naira" },
       label: c.collected,
       value: pulse ? money(pulse.collectedWeekMinor) : null,
+      minor: pulse?.collectedWeekMinor,
+      locale,
       delta: pulse ? periodDelta(pulse.collectedWeekMinor, pulse.collectedPrevWeekMinor) : null,
       caption: c.vsLastWeek,
       spark: spark("card-collected", (d) => d.collectedMinor, "Naira collected, last 14 days"),
@@ -203,6 +216,8 @@ export function OverviewView(props: OverviewProps) {
       icon: { tier: "ui", name: "document" },
       label: c.openReviews,
       value: props.openReviews === null ? null : n(props.openReviews),
+      ...(props.openReviews === null ? {} : { count: props.openReviews }),
+      locale,
       /* No delta: an open count has no history to compare against until
          something snapshots it. The caption says what the number is instead. */
       delta: null,
@@ -217,6 +232,8 @@ export function OverviewView(props: OverviewProps) {
     <div className="nf-admin-stack">
       <h1 className="sr-only">{c.title}</h1>
       {props.headingTo && <HeadingTo href={props.headingTo} copy={shell.entry} shell={shell} />}
+      {/* The overview's first answer: what is waiting on a person, as figures. */}
+      <QueueFigures t={getDictionary(locale)} locale={locale} counts={props.queue ?? null} />
       <KpiStrip items={strip} label={c.pulse} />
       <KpiGrid items={cards} label={c.week} />
 
@@ -226,12 +243,16 @@ export function OverviewView(props: OverviewProps) {
       {props.queue ? <QueueByDesk t={getDictionary(locale)} locale={locale} counts={props.queue} /> : null}
 
       <div className="nf-admin-grid nf-admin-grid--wide-left">
-        <Panel
-          id="ov-collected"
-          title={c.chartTitle}
-          action={<RangeSelect value={props.range} options={{ "30d": c.range30, "90d": c.range90, "12m": c.range12 }} label={c.range12} />}
-        >
-          <CollectedChart series={props.collected} locale={locale} />
+        <Panel id="ov-collected" title={c.chartTitle}>
+          {/* Reference 5 and D74: the range pill, then the one big figure
+              with its unit in grey, then the smooth curve. */}
+          <RangeSelect
+            value={props.range}
+            options={{ "30d": c.range30, "90d": c.range90, "12m": c.range12 }}
+            short={{ "30d": "30 days", "90d": "90 days", "12m": "12 months" }}
+            label={c.chartTitle}
+          />
+          <CollectedChart series={props.collected} locale={locale} rangeWords={{ "30d": c.range30, "90d": c.range90, "12m": c.range12 }} />
         </Panel>
 
         <Panel id="ov-supply" title={c.supplyTitle}>
@@ -283,7 +304,33 @@ function dayTick(start: string, locale: Locale, withYear = false): string {
   });
 }
 
-function CollectedChart({ series, locale }: { series: CollectedSeries | null; locale: Locale }) {
+/**
+ * The figure as reference 5 and D74 set it: the number in full ink, the unit
+ * (the naira sign) softer, the same size. Split on the first digit, so a
+ * locale that writes the sign after the number keeps it after.
+ */
+function HeroAmount({ text }: { text: string }) {
+  const first = text.search(/\d/);
+  const last = text.search(/\d[^\d]*$/);
+  if (first < 0) return <span className="nf-admin-hero__figure nf-numeric">{text}</span>;
+  return (
+    <span className="nf-admin-hero__figure nf-numeric">
+      {first > 0 ? <span className="nf-admin-hero__unit">{text.slice(0, first)}</span> : null}
+      {text.slice(first, last + 1)}
+      {last + 1 < text.length ? <span className="nf-admin-hero__unit">{text.slice(last + 1)}</span> : null}
+    </span>
+  );
+}
+
+function CollectedChart({
+  series,
+  locale,
+  rangeWords,
+}: {
+  series: CollectedSeries | null;
+  locale: Locale;
+  rangeWords: Record<CollectedSeries["range"], string>;
+}) {
   const c = getDictionary(locale).admin.shell.overview;
   if (!series) {
     return <PanelUnavailable what={tx(locale, "ovMoneyCollectedOverTime")} locale={locale} />;
@@ -307,6 +354,7 @@ function CollectedChart({ series, locale }: { series: CollectedSeries | null; lo
       />
     );
   }
+  const payments = series.buckets.reduce((sum, b) => sum + b.count, 0);
   const ticks = niceTicks(Math.max(...series.buckets.map((b) => b.amountMinor)));
   const points = series.buckets.map((b) => ({
     key: b.start,
@@ -316,13 +364,21 @@ function CollectedChart({ series, locale }: { series: CollectedSeries | null; lo
     display: `${formatMoney(b.amountMinor, locale)} · ${formatNumber(b.count, locale)} payments`,
   }));
   return (
-    <AreaTimeChart
-      points={points}
-      yTicks={ticks.map((v) => ({ value: v, label: formatMoney(v, locale, "NGN", { compact: true }) }))}
-      label={c.chartTitle}
-      height={220}
-      tickEvery={monthly ? 1 : series.range === "90d" ? 2 : 5}
-    />
+    <>
+      <div className="nf-admin-hero" data-testid="ov-collected-figure">
+        <HeroAmount text={formatMoney(total, locale)} />
+        <span className="nf-admin-hero__label">
+          {rangeWords[series.range]} · {formatNumber(payments, locale)} payments
+        </span>
+      </div>
+      <AreaTimeChart
+        points={points}
+        yTicks={ticks.map((v) => ({ value: v, label: formatMoney(v, locale, "NGN", { compact: true }) }))}
+        label={c.chartTitle}
+        height={220}
+        tickEvery={monthly ? 1 : series.range === "90d" ? 2 : 5}
+      />
+    </>
   );
 }
 

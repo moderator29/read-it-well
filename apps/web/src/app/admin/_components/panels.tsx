@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 import { PersonTier } from "./PersonTier";
 import type { PersonTier as PersonTierValue } from "@/lib/admin/reads/shapes";
 import { getDictionary, type Locale } from "@vallo/i18n";
+import { intlTag } from "@vallo/i18n/core";
+import { CountUp, CountUpMoney } from "@/components/motion/CountUp";
 import Link from "next/link";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Sparkline, type SparkTone } from "@/components/agent/charts/Sparkline";
@@ -68,6 +70,21 @@ export function Panel({
       )}
       {children}
     </UiPanel>
+  );
+}
+
+/**
+ * A desk that only reads says so once, in a quiet line, instead of leaving a
+ * table that looks as if it should carry a control. It states what the desk
+ * does (reads and reports), never what is currently in it, and it draws no
+ * dead button.
+ */
+export function ReadOnlyNote({ locale }: { locale: Locale }) {
+  return (
+    <p className="nf-admin-readonly" data-testid="desk-readonly">
+      <UiIcon name="info" size={16} />
+      <span>{getDictionary(locale).experienceAdmin.readOnly.line}</span>
+    </p>
   );
 }
 
@@ -138,6 +155,18 @@ export type KpiItem = {
   pending?: string;
   /** The word in place of the figure: "Unavailable" by default, "Not recorded" for a metric with no source. */
   missingWord?: string;
+  /**
+   * The figure's real number, so it can count up on arrival (D4, 620ms, once).
+   * `value` is still what the server prints and what a screen reader hears;
+   * this only says what the digits count to. A COUNT of things, whole. Never
+   * passed for a percentage or anything that is not a plain count, and never
+   * a number the read did not return.
+   */
+  count?: number;
+  /** The same, for naira: minor units, counted in whole naira and handed back to `value`. */
+  minor?: number;
+  /** The reader's language, for the digits while they run. */
+  locale?: Locale;
 };
 
 function Figure({ item, big }: { item: KpiItem; big: boolean }) {
@@ -151,7 +180,20 @@ function Figure({ item, big }: { item: KpiItem; big: boolean }) {
       </span>
     );
   }
-  return <span className={`nf-admin-kpi__value${big ? "" : " nf-admin-kpi__value--sm"} nf-numeric`}>{item.value}</span>;
+  const klass = `nf-admin-kpi__value${big ? "" : " nf-admin-kpi__value--sm"} nf-numeric`;
+  /* The count-up is a figure ARRIVING. A figure that is not a plain count or an
+     amount (a percentage, a share) is printed as it is. */
+  if (item.count !== undefined && item.count > 0) {
+    return <CountUp value={item.count} tag={intlTag[item.locale ?? "en"]} eager className={klass} />;
+  }
+  if (item.minor !== undefined && item.minor > 0 && item.locale) {
+    return (
+      <CountUpMoney minorUnits={item.minor} locale={item.locale} eager frameClassName={klass}>
+        <span className={klass}>{item.value}</span>
+      </CountUpMoney>
+    );
+  }
+  return <span className={klass}>{item.value}</span>;
 }
 
 /** The renders' top strip: four figures in one lit pane, split by hairlines. */

@@ -374,6 +374,8 @@ interface. No Google Maps SDK in the browser.**
 
 - Collections fee shape (search-derived, requires confirmation): 1.5% +
   NGN 100 local, NGN 100 waived under NGN 2,500, capped at NGN 2,000.
+> **Superseded, 6 October 2026 (Session 2).** Virtual accounts are not a plan. Payluk's virtual-account endpoint answers `410 Gone` since 2 September 2026, citing CBN rules, and the founder's directives forbid building a Vallo-held wallet or account to replace it. Money is held, where it must be, in a provider's escrow; see `docs/payments/PAYLUK_LIVE_DOCS_FINDINGS.md`.
+
 - **Dedicated Virtual Accounts (DVA)**: per-customer NUBAN account numbers so
   a guest funds a wallet by plain bank transfer. Registered Nigerian
   businesses that completed go-live only; requires customer BVN

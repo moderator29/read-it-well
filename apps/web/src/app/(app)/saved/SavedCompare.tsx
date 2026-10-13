@@ -6,7 +6,26 @@ import { Sheet } from "@/components/ui/Sheet";
 import { Button } from "@/components/ui/Button";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { COMPARE_MAX, COMPARE_MIN, forSelection, type CompareTable } from "@/lib/saved/compare";
+import { COMPARE_MIN, forSelection, type CompareTable } from "@/lib/saved/compare";
+import type { UiIconName } from "@/design-system/icons/UiIcon";
+import "@/app/css/catalogue.css";
+import "@/app/css/list-views.css";
+
+/** 15.3: a head-to-head is two columns. */
+const TWO = 2;
+
+/** The small glyph per row (15.3), by the row's key; a fee line takes the receipt. */
+const ROW_GLYPH: Record<string, UiIconName> = {
+  moveIn: "wallet",
+  rent: "key",
+  beds: "bed",
+  baths: "bath",
+  size: "grid",
+  parking: "parking",
+  type: "house",
+  power: "bolt",
+  available: "calendar-check",
+};
 
 export type SavedCompareCopy = {
   open: string;
@@ -16,11 +35,11 @@ export type SavedCompareCopy = {
   pickLimit: string;
   tooFew: string;
   notStated: string;
-  lowest: string;
   view: string;
   close: string;
-  example: string;
   verified: string;
+  /** "Lower": the leading figure of two, by word. */
+  lower: string;
 };
 
 /**
@@ -37,9 +56,19 @@ export type SavedCompareCopy = {
  * the places scroll sideways a column at a time (scroll snap). ON A WIDE
  * SCREEN every chosen column is in view as a grid.
  *
- * The lowest figure of a money row carries a dot and the word "Lowest",
+ * The lower figure of a money row carries a dot and the word "Lower",
  * never colour alone; a fact the lister did not state says "Not stated".
  * It opens on the two most recently saved.
+ *
+ * SESSION 3 (W2): THE HEAD-TO-HEAD OF NORTH STAR 15.3. Two columns, never
+ * three: a comparison table earns its place as two figures read across one
+ * labelled row, and a third column on a phone is a column you cannot see. A
+ * third pick replaces the first, so the reader is never refused. Each row
+ * carries a small line glyph so the eye finds the row before it reads it, and
+ * the leading value of a money row is weighted (and named "Lower", by word,
+ * never by colour alone). Both columns are the reader's own saved spaces:
+ * this never compares against another member, and there is no leaderboard.
+ * D24: no Example mark on a column; Verified only where it was earned.
  */
 export function SavedCompare({ table, copy }: { table: CompareTable; copy: SavedCompareCopy }) {
   const [open, setOpen] = useState(false);
@@ -58,12 +87,9 @@ export function SavedCompare({ table, copy }: { table: CompareTable; copy: Saved
       setNote(null);
       return;
     }
-    if (valid.length >= COMPARE_MAX) {
-      setNote(copy.pickLimit);
-      return;
-    }
-    setChosen([...valid, id]);
-    setNote(null);
+    /* A third pick replaces the first chosen: two at a time, never refused. */
+    setChosen(valid.length >= TWO ? [...valid.slice(1), id] : [...valid, id]);
+    setNote(valid.length >= TWO ? copy.pickLimit : null);
   };
 
   return (
@@ -138,10 +164,8 @@ export function SavedCompare({ table, copy }: { table: CompareTable; copy: Saved
                         {column.photo ? (
                           <RemoteImage src={column.photo} alt="" width={160} height={120} sizes="(max-width: 640px) 40vw, 240px" />
                         ) : null}
-                        {column.mark ? (
-                          <span className={`nf-badge ${column.mark === "example" ? "nf-badge--example" : "nf-badge--verified"}`}>
-                            {column.mark === "example" ? copy.example : copy.verified}
-                          </span>
+                        {column.mark === "verified" ? (
+                          <span className="nf-badge nf-badge--verified">{copy.verified}</span>
                         ) : null}
                       </span>
                       <span className="nf-compare__title">{column.title}</span>
@@ -158,6 +182,9 @@ export function SavedCompare({ table, copy }: { table: CompareTable; copy: Saved
                 {shown.rows.map((row) => (
                   <tr key={row.key}>
                     <th scope="row" className="nf-compare__label">
+                      <span className="nf-compare__glyph" aria-hidden="true">
+                        <UiIcon name={ROW_GLYPH[row.key] ?? (row.kind === "money" ? "receipt" : "info")} size={16} />
+                      </span>
                       {row.label}
                     </th>
                     {row.cells.map((cell, i) => (
@@ -175,7 +202,7 @@ export function SavedCompare({ table, copy }: { table: CompareTable; copy: Saved
                             {cell.lowest ? (
                               <span className="nf-compare__lowest">
                                 <span className="nf-compare__dot" aria-hidden="true" />
-                                {copy.lowest}
+                                {copy.lower}
                               </span>
                             ) : null}
                           </>

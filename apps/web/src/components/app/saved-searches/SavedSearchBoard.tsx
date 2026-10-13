@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
-import { formatDate, type Locale } from "@vallo/i18n/core";
+import { formatDate, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/Field";
@@ -13,7 +13,12 @@ import {
   renameSavedSearch,
   setSavedSearchAlert,
 } from "@/lib/saved/searches-actions";
-import { SAVED_SEARCH_LABEL_MAX, summariseSearch, type SavedSearchView } from "@/lib/saved/searches";
+import {
+  SAVED_SEARCH_LABEL_MAX,
+  summariseSearch,
+  type SavedSearchView,
+  type SearchChipCopy,
+} from "@/lib/saved/searches";
 
 /**
  * THE KEPT SEARCHES, AND EVERY WRITE THAT CAN REACH THEM.
@@ -52,12 +57,20 @@ const NOTE_MS = 2600;
 
 type Note = { text: string; tone: "ok" | "error" } | null;
 
+/** The board's own words, from the dictionary through the page (`experienceDiscover.saved.board`). */
+export type SavedSearchBoardCopy = Dictionary["experienceDiscover"]["saved"]["board"];
+
 export function SavedSearchBoard({
   initial,
   locale,
+  chipCopy,
+  copy,
 }: {
   initial: SavedSearchView[];
   locale: Locale;
+  copy: SavedSearchBoardCopy;
+  /** The dictionary's lines for the chips, read on the server (`searchChipCopyOf`). */
+  chipCopy: SearchChipCopy;
 }) {
   const [rows, setRows] = useState(initial);
 
@@ -77,6 +90,8 @@ export function SavedSearchBoard({
             key={row.id}
             row={row}
             locale={locale}
+            chipCopy={chipCopy}
+            copy={copy}
             onReplace={replace}
             onDrop={drop}
           />
@@ -89,11 +104,15 @@ export function SavedSearchBoard({
 function SavedSearchRow({
   row,
   locale,
+  chipCopy,
+  copy,
   onReplace,
   onDrop,
 }: {
   row: SavedSearchView;
   locale: Locale;
+  chipCopy: SearchChipCopy;
+  copy: SavedSearchBoardCopy;
   onReplace: (next: SavedSearchView) => void;
   onDrop: (id: string) => void;
 }) {
@@ -108,7 +127,7 @@ function SavedSearchRow({
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const alertOn = alertOverride ?? row.alertEnabled;
-  const chips = summariseSearch(row.params, locale);
+  const chips = summariseSearch(row.params, locale, chipCopy);
 
   /* The timer is cleared on unmount, because a row that has just been removed
      is unmounted while its note is still counting down. */
@@ -140,17 +159,17 @@ function SavedSearchRow({
       setAlertOverride(null);
       say(
         result.data.alertEnabled
-          ? "We will tell you when a new place matches this."
-          : "Alerts off. The search is still saved.",
+          ? copy.alertsOn
+          : copy.alertsOff,
       );
     });
-  }, [alertOn, onReplace, pending, row.id, say]);
+  }, [alertOn, copy.alertsOff, copy.alertsOn, onReplace, pending, row.id, say]);
 
   const commitRename = useCallback(() => {
     if (pending) return;
     const label = draft.trim();
     if (label.length === 0) {
-      say("Give this search a name.", "error");
+      say(copy.nameNeeded, "error");
       return;
     }
     startTransition(async () => {
@@ -161,9 +180,9 @@ function SavedSearchRow({
       }
       onReplace(result.data);
       setRenaming(false);
-      say("Renamed");
+      say(copy.renamed);
     });
-  }, [draft, onReplace, pending, row.id, say]);
+  }, [copy.nameNeeded, copy.renamed, draft, onReplace, pending, row.id, say]);
 
   const remove = useCallback(() => {
     if (pending) return;
@@ -183,14 +202,14 @@ function SavedSearchRow({
       {renaming ? (
         <div className="flex flex-col gap-sm">
           <TextField
-            label="Name this search"
+            label={copy.nameLabel}
             value={draft}
             maxLength={SAVED_SEARCH_LABEL_MAX}
             autoFocus
             onChange={(event) => setDraft(event.target.value)}
             data-testid="saved-search-name"
           />
-          <div className="flex gap-sm">
+          <div className="flex flex-wrap gap-sm">
             <Button
               variant="primary"
               size="sm"
@@ -198,7 +217,7 @@ function SavedSearchRow({
               onClick={commitRename}
               data-testid="saved-search-name-save"
             >
-              Save name
+              {copy.saveName}
             </Button>
             <Button
               variant="secondary"
@@ -208,7 +227,7 @@ function SavedSearchRow({
                 setRenaming(false);
               }}
             >
-              Cancel
+              {copy.cancel}
             </Button>
           </div>
         </div>
@@ -219,10 +238,13 @@ function SavedSearchRow({
             <Link
               href={row.href}
               prefetch
-              className="nf-link-quiet flex items-center gap-2xs"
+              className="nf-link-quiet nf-tap flex items-start gap-2xs"
               data-testid="saved-search-open"
             >
-              <span className={`${TYPE.rowTitle} min-w-0 truncate`}>{row.label}</span>
+              {/* The whole name, wrapped: a search is told apart by its last
+                  words ("under 2m a year"), which the ellipsis cut at 390
+                  (Round 3 sweep). */}
+              <span className={`${TYPE.rowTitle} min-w-0 [overflow-wrap:anywhere]`}>{row.label}</span>
               <UiIcon name="chevron-right" size={16} />
             </Link>
             {chips.length > 0 && (
@@ -231,8 +253,8 @@ function SavedSearchRow({
               </p>
             )}
             <p className={`${TYPE.rowMeta} mt-3xs`}>
-              Saved {formatDate(new Date(row.createdAt), locale)}
-              {row.derivedLabel ? ". Named from its filters." : ""}
+              {copy.savedOn.replace("{date}", formatDate(new Date(row.createdAt), locale))}
+              {row.derivedLabel ? copy.namedFromFilters : ""}
             </p>
           </div>
         </div>
@@ -243,7 +265,7 @@ function SavedSearchRow({
           checked={alertOn}
           disabled={pending}
           onCheckedChange={toggleAlert}
-          label="Tell me about new matches"
+          label={copy.alertLabel}
           data-testid="saved-search-alert"
         />
         <div className="flex items-center gap-2xs">
@@ -257,7 +279,7 @@ function SavedSearchRow({
               }}
               data-testid="saved-search-rename"
             >
-              Rename
+              {copy.rename}
             </Button>
           )}
           {confirming ? (
@@ -269,10 +291,10 @@ function SavedSearchRow({
                 onClick={remove}
                 data-testid="saved-search-remove-confirm"
               >
-                Remove it
+                {copy.removeConfirm}
               </Button>
               <Button variant="secondary" size="sm" onClick={() => setConfirming(false)}>
-                Keep
+                {copy.keep}
               </Button>
             </>
           ) : (
@@ -282,7 +304,7 @@ function SavedSearchRow({
               onClick={() => setConfirming(true)}
               data-testid="saved-search-remove"
             >
-              Remove
+              {copy.remove}
             </Button>
           )}
         </div>

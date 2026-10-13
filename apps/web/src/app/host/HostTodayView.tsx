@@ -6,9 +6,10 @@ import { KpiTile } from "@/components/ui/KpiTile";
 import { ListGroup, ListRow } from "@/components/ui/ListGroup";
 import { IconPlate } from "@/components/ui/IconPlate";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { Gauge, type GaugeStage } from "@/components/ui/charts/Gauge";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
-import { HOST_STATUS_WORD, type HostToday, type TodayAttention } from "./today";
+import { TodayHero } from "@/components/workspace/TodayHero";
+import type { HostToday, TodayAttention } from "./today";
+import "@/app/css/site.css";
 
 /**
  * THE HOST WORKSPACE HOME, DRAWN (plan item 14, spec 13, reference 38 on a
@@ -21,6 +22,15 @@ import { HOST_STATUS_WORD, type HostToday, type TodayAttention } from "./today";
  * the host's own rows; a tile whose source could not be read is not drawn,
  * a gauge with nothing to count is left out, and no tile carries a delta
  * chip because no figure here has a measured previous period.
+ *
+ * REFERENCE 7033, FIGURE HERO PLUS LIST (Session 3, 6 October). The band now
+ * leads with one figure, "Needs you today": the sum of the three queue tiles
+ * that were read (requests waiting, arriving today, unread), which is
+ * `hostToday().needsYou` and nothing else. Under it, the oldest thing still
+ * waiting is promoted to the one next action, and it leaves the "Needs
+ * attention" list so nothing is listed twice. The four tiles stay where they
+ * were (the 2x2 count cards of north star 15.4, each a door into its queue),
+ * and so do the list and the gauge: D28, nobody's furniture moves.
  */
 
 const KPI_ICON: Record<string, UiIconName> = {
@@ -43,6 +53,8 @@ export function HostTodayView({
   locale,
   sub,
   action,
+  figure,
+  dashboard,
   children,
 }: {
   today: HostToday;
@@ -52,6 +64,10 @@ export function HostTodayView({
   sub: string;
   /** The one primary action. */
   action: ReactNode;
+  /** The figure card (reference 5), drawn under the band. */
+  figure?: ReactNode;
+  /** The hotel and restaurant dashboards (summary cards, front desk, week), under the band. */
+  dashboard?: ReactNode;
   /** The rest of the page: the application in progress, the businesses. */
   children?: ReactNode;
 }) {
@@ -64,28 +80,27 @@ export function HostTodayView({
     timeZone: "Africa/Lagos",
   }).format(new Date(`${today.day}T12:00:00Z`));
 
-  const stages: GaugeStage[] = today.stages.map((stage) => ({
-    key: stage.key,
-    label: d.host.stage[stage.key === "staying" ? "checkedIn" : stage.key],
-    count: stage.count,
-    tone:
-      stage.key === "requested"
-        ? "warning"
-        : stage.key === "confirmed"
-          ? "brand"
-          : stage.key === "staying"
-            ? "success"
-            : "neutral",
-  }));
-
-  const shown = today.attention.slice(0, 5);
+  /* The oldest waiting item becomes the next action; the list carries the
+     rest. With one item, the list is left out entirely. */
+  const [first, ...rest] = today.attention;
+  const shown = rest.slice(0, 5);
+  /* No queue was read at all: no figure, rather than a 0 nobody counted. */
+  const readQueues = today.kpis.some((k) => k.key === "arriving" || k.key === "requests" || k.key === "unread");
 
   return (
     <div className="nf-desk-home">
       {/* The moving edge light on the one band that opens the desk (lead,
           29 September); `.nf-edge-lap` settles to a steady rim under reduced
           motion, data saver, Calm and Off. */}
-      <HeroBand className="nf-edge-lap" label={dateLine} title={d.today.title} sub={sub} action={action}>
+      <HeroBand className="nf-edge-lap" label={dateLine} title={d.today.title} titleAs="h1" sub={sub} action={action}>
+        <TodayHero
+          caption={d.today.needsYou}
+          count={readQueues ? today.needsYou : null}
+          busy={d.today.sumLine}
+          idle={d.today.nothing}
+          tag={tag}
+          next={first ? attentionRowProps(first, t, tag) : null}
+        />
         {today.kpis.length > 0 ? (
           <div className="nf-desk-kpis">
             {today.kpis.map((kpi) => (
@@ -103,14 +118,21 @@ export function HostTodayView({
         ) : null}
       </HeroBand>
 
-      {shown.length > 0 || stages.length > 0 ? (
+      {dashboard}
+
+      {figure}
+
+      {/* ONE LIST (clean spaces): what needs the host. The reservations by
+          status gauge lives on the reservations board, one tap away. */}
+      {shown.length > 0 ? (
         <div className="nf-desk-grid">
           {shown.length > 0 ? (
             <ListGroup
               label={d.today.needsAttention}
+              labelAs="h2"
               action={
-                today.attention.length > shown.length ? (
-                  <Link href="/host/decide" className="nf-link-quiet">
+                rest.length > shown.length ? (
+                  <Link href="/host/decide" className="nf-link-quiet nf-tap">
                     {d.today.viewAll.replace("{count}", String(today.attention.length))}
                   </Link>
                 ) : undefined
@@ -121,16 +143,6 @@ export function HostTodayView({
               ))}
             </ListGroup>
           ) : null}
-          {stages.length > 0 ? (
-            <section className="nf-list-section">
-              <div className="nf-list-section__head">
-                <h3 className="nf-section-label">{d.host.pipeline}</h3>
-              </div>
-              <div className="nf-desk-card">
-                <Gauge stages={stages} totalLabel={d.host.pipelineTotal} label={d.host.pipeline} tag={tag} />
-              </div>
-            </section>
-          ) : null}
         </div>
       ) : null}
 
@@ -139,7 +151,8 @@ export function HostTodayView({
   );
 }
 
-function AttentionRow({ item, t, tag }: { item: TodayAttention; t: Dictionary; tag: string }) {
+/** One waiting item as a row's parts: the list row and the next action share it. */
+function attentionRowProps(item: TodayAttention, t: Dictionary, tag: string) {
   const a = t.desk.host.attention;
   let title = item.title;
   let sub = item.sub;
@@ -167,22 +180,33 @@ function AttentionRow({ item, t, tag }: { item: TodayAttention; t: Dictionary; t
     sub = a.stopped;
     badge = (
       <StatusBadge tone={item.tone === "error" ? "error" : "warning"}>
-        {HOST_STATUS_WORD[item.sub] ?? item.sub}
+        {t.experienceHost.businessStatus[item.sub as keyof Dictionary["experienceHost"]["businessStatus"]] ?? item.sub}
       </StatusBadge>
     );
   }
+  return {
+    href: item.href,
+    leading: (
+      <IconPlate size="sm" shape="round" tone={item.tone === "neutral" ? "neutral" : item.tone}>
+        <UiIcon name={ATTENTION_ICON[item.kind]} size={20} />
+      </IconPlate>
+    ),
+    title,
+    sub,
+    status: badge ?? undefined,
+  };
+}
+
+function AttentionRow({ item, t, tag }: { item: TodayAttention; t: Dictionary; tag: string }) {
+  const row = attentionRowProps(item, t, tag);
   return (
     <ListRow
-      href={item.href}
-      leading={
-        <IconPlate size="sm" shape="round" tone={item.tone === "neutral" ? "neutral" : item.tone}>
-          <UiIcon name={ATTENTION_ICON[item.kind]} size={20} />
-        </IconPlate>
-      }
-      title={title}
-      sub={sub}
-      status={badge}
-      chevron={badge === null}
+      href={row.href}
+      leading={row.leading}
+      title={row.title}
+      sub={row.sub}
+      status={row.status}
+      chevron={row.status === undefined}
     />
   );
 }

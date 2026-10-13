@@ -2,7 +2,7 @@ import { getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { AgentShell } from "@/components/agent/AgentShell";
 import { ListingWizard } from "@/app/agent/list/ListingWizard";
-import { AMENITY_CHOICES, STATE_CODES } from "@/lib/agent/listings-schema";
+import { AMENITY_CHOICES, STATE_CODES } from "@/lib/agent/listings-model";
 import type { WizardDraft } from "@/lib/agent/listings-queries";
 import { SCENE_PHOTOGRAPHS } from "@/lib/listings/scene-photographs.generated";
 import { AGENT_PROFILE } from "../ops-fixtures";
@@ -106,6 +106,38 @@ const RENTAL_DRAFT: WizardDraft = {
 };
 
 /**
+ * A SALE IN PROGRESS, priced above the old one hundred million naira ceiling
+ * (which refused it as "too high"), with a stated zero agency fee and two
+ * costs left blank, and no title deed chosen yet, so the last step shows an
+ * open line with its Edit. Example content, never written.
+ */
+const SALE_DRAFT: WizardDraft = {
+  ...RENTAL_DRAFT,
+  id: "preview-sale",
+  title: "Four bedroom detached house with a BQ in Lekki Phase 1",
+  propertyType: "home",
+  intent: "sale",
+  rentNaira: "",
+  rentNegotiable: false,
+  cautionDepositNaira: "",
+  serviceChargeNaira: "",
+  agencyFeeNaira: "",
+  minimumTenancyMonths: "",
+  salePriceNaira: "380000000",
+  saleAgencyFeeNaira: "0",
+  saleLegalFeeNaira: "19000000",
+  governorsConsentFeeNaira: "",
+  stampDutyNaira: "",
+  surveyRegistrationFeeNaira: "",
+  totalPurchaseNaira: "",
+  priceNegotiable: true,
+  tenure: "",
+  saleStatus: "available",
+  yearBuilt: "2019",
+  condition: "renovated",
+};
+
+/**
  * `/agent/list`, the listing wizard, at any one of its eight steps.
  *
  * `canPersist` is false, which is the wizard's own signed-out path rather than
@@ -118,22 +150,28 @@ const RENTAL_DRAFT: WizardDraft = {
  * harness that only reaches step one can only ever close one of them.
  *
  * `?draft=rental` opens it on a tenancy in progress. See `RENTAL_DRAFT`.
+ * `?draft=sale` opens it on a sale in progress. See `SALE_DRAFT`.
+ * `?draft=rental&sent=1` opens it as it stands once sent (round 5): the card,
+ * its server status and the chain, settled. No date: a harness has no row.
+ *
+ * The progress path and the move-in captions are drawn with the words the
+ * product page passes, so the harness shows the wizard a lister meets.
  */
 export const dynamic = "force-dynamic";
 
 export default async function PreviewAgentList({
   searchParams,
 }: {
-  searchParams: Promise<{ step?: string; draft?: string; broadcast?: string }>;
+  searchParams: Promise<{ step?: string; draft?: string; broadcast?: string; sent?: string }>;
 }) {
   const locale: Locale = await getLocale();
   const t = getDictionary(locale);
-  const { step, draft, broadcast } = await searchParams;
+  const { step, draft, broadcast, sent } = await searchParams;
   const startAt = Math.max(0, (Number(step) || 1) - 1);
   /* `?draft=rental` opens on the tenancy above. Without it the wizard opens
      blank, which is the state a first-time lister meets and is worth a
      picture of its own. */
-  const initial = draft === "rental" ? RENTAL_DRAFT : null;
+  const initial = draft === "rental" ? RENTAL_DRAFT : draft === "sale" ? SALE_DRAFT : null;
   return (
     <AgentShell t={t} locale={locale} active="/agent/list" profile={AGENT_PROFILE}>
       <ListingWizard
@@ -151,6 +189,12 @@ export default async function PreviewAgentList({
         initial={initial}
         canPersist={false}
         startAt={startAt}
+        success={t.success}
+        listerCopy={t.experienceLister}
+        pathCopy={t.experienceFeatures.wizard}
+        remainderCopy={t.afterTheGate.remainder}
+        moneyMapCopy={t.afterTheGate.moneyMap}
+        sentFrom={sent === "1" ? { status: "SUBMITTED", submittedAt: null } : null}
         /* `?broadcast=1` draws V-09's paste panel on step one. */
         broadcastCopy={broadcast === "1" ? t.frontDoor.broadcast : undefined}
       />

@@ -1,11 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import type { Locale } from "@vallo/i18n/core";
 import { lockPasscodeAction } from "@/lib/passcode/actions";
 import { idleExpired, type PasscodeLength } from "@/lib/passcode/rules";
 import { idleLimitMs, readLongIdle } from "@/lib/passcode/idle-setting";
 import { markTabUnlocked, tabWasUnlocked } from "@/lib/passcode/tab";
+import { servedFromKeptCopy } from "@/lib/offline/page-cache";
 import { PasscodeLock, type PasscodeCopy } from "./PasscodeLock";
 
 /**
@@ -30,10 +31,29 @@ import { PasscodeLock, type PasscodeCopy } from "./PasscodeLock";
  * clears the cookie, Next re-renders the route (a cookie written by a server
  * action does that), the layout then draws its own lock screen in place of
  * the page, and every money action refuses until a right code.
+ *
+ * A COPY THE PHONE KEPT (13 October 2026). The service worker now opens the
+ * last screen at once from the phone (`public/sw.js`), and that copy was
+ * rendered while this session was unlocked. So: the wrapper is marked
+ * `data-passcode-guarded`, and `app/css/passcode.css` keeps it out of sight
+ * on a kept copy until this guard has decided (`data-guard-ready` on the
+ * root), and while it is locked; and a kept copy's `mint` is never honoured,
+ * because it describes the sign-in that copy was rendered after, not this
+ * one. A new tab therefore still meets the lock, as it always did.
  */
 const TOUCH_EVERY_MS = 60 * 1000;
 const CHECK_EVERY_MS = 15 * 1000;
 const ACTIVITY = ["pointerdown", "keydown", "wheel", "touchstart", "scroll"] as const;
+
+/* The root's "the guard has decided" mark, which the kept-copy rule in
+   `app/css/passcode.css` waits for. */
+function markGuardReady(): void {
+  try {
+    document.documentElement.setAttribute("data-guard-ready", "");
+  } catch {
+    /* No document to mark. */
+  }
+}
 
 export function PasscodeGuard({
   copy,
@@ -85,13 +105,22 @@ export function PasscodeGuard({
 
   useEffect(() => {
     lastActivity.current = Date.now();
-    if (mint) {
+    if (mint && !servedFromKeptCopy()) {
       markTabUnlocked();
       void touch();
+      markGuardReady();
     } else if (!tabWasUnlocked()) {
       lock();
+    } else {
+      markGuardReady();
     }
   }, [lock, mint, touch]);
+
+  /* Locked: the mark goes on only once the lock is committed, so a kept copy
+     never shows its page for a frame between the decision and the lock. */
+  useLayoutEffect(() => {
+    if (locked) markGuardReady();
+  }, [locked]);
 
   useEffect(() => {
     /* Five minutes, or fifteen on a device with a key and the setting on (C14). */
@@ -131,7 +160,7 @@ export function PasscodeGuard({
 
   return (
     <>
-      <div className="contents" inert={locked} aria-hidden={locked || undefined}>
+      <div className="contents" data-passcode-guarded="" inert={locked} aria-hidden={locked || undefined}>
         {children}
       </div>
       {locked ? (

@@ -61,12 +61,12 @@ export function MyBriefs({
                   <li key={answer.listingId} className="flex flex-wrap items-center justify-between gap-sm">
                     <span className="nf-body-sm text-[var(--nf-content-primary)]">{titles[answer.listingId] ?? ""}</span>
                     <span className="flex gap-sm">
-                      <Link href={`/listing/${answer.listingId}`} className="nf-link-quiet nf-body-sm text-[var(--nf-content-link)]">
+                      <Link href={`/listing/${answer.listingId}`} className="nf-link-quiet nf-body-sm inline-flex min-h-[44px] items-center text-[var(--nf-content-link)]">
                         {copy.open}
                       </Link>
                       <Link
                         href={answer.conversationId ? `/messages/${answer.conversationId}` : `/messages/new?listing=${answer.listingId}`}
-                        className="nf-link-quiet nf-body-sm text-[var(--nf-content-link)]"
+                        className="nf-link-quiet nf-body-sm inline-flex min-h-[44px] items-center text-[var(--nf-content-link)]"
                       >
                         {copy.message}
                       </Link>
@@ -96,7 +96,7 @@ export function MyBriefs({
         );
       })}
       {error && (
-        <li className="nf-body-sm font-medium text-[var(--nf-state-error)]" role="alert">
+        <li className="nf-body-sm font-semibold text-[var(--nf-state-error)]" role="alert">
           {error}
         </li>
       )}

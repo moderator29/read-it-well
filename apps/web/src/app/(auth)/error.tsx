@@ -1,4 +1,5 @@
 "use client";
+import "@/app/css/auth.css";
 
 import { useErrorReport } from "@/lib/observability/use-error-report";
 import Link from "next/link";

@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { formatMoney, formatMoneyGlance, type Locale } from "@vallo/i18n/core";
 import { motionQuiet } from "@/lib/motion/gate";
+import { EASE, FIGURE_ARRIVAL_MS } from "@/lib/motion/ease";
+import { Odometer } from "@/components/ui/Odometer";
 
 /**
  * A real figure that counts up once, the first time it scrolls into view.
@@ -14,18 +16,21 @@ import { motionQuiet } from "@/lib/motion/gate";
  * summary card's and KPI tile's figure, plan item 26) counts on first view
  * even when that view is the first screen.
  *
- * 600ms on an ease-out curve (plan item 26; it was the 900ms cinematic token
- * for the landing), tabular numerals so the width never jumps while the
- * digits turn. A figure that CHANGES while shown (a new request arrives)
- * never recounts: it crossfades to the new number over 160ms. Pass a BCP 47
+ * 620ms on the `glide` curve (north star motion 4, Session 3; it was 600ms
+ * on an unnamed cubic, and the landing's 900ms cinematic token before that),
+ * tabular numerals so the width never jumps while the digits turn. A figure
+ * that CHANGES while shown (a new request arrives) never recounts: the digits
+ * that changed roll to their new values (`Odometer`, motion 5). Pass a BCP 47
  * tag (`intlTag` from `@vallo/i18n`) rather than the dictionary, so this
  * stays a leaf. `prefix` and `suffix` ride outside the digits ("N", "%").
  */
 /**
  * The count itself, shared by `CountUp` (a plain figure) and `CountUpMoney`
- * (a money figure): 0 to `value` once, 600ms ease-out, on first view (or at
- * once with `eager`), the final value with motion off. A later change of
- * `value` does not recount: it lands, and `swap` ticks for a crossfade.
+ * (a money figure): 0 to `value` once per mount, 620ms `glide`, on first view
+ * (or at once with `eager`), the final value with motion off. A later change
+ * of `value` does not recount and a re-render with the same value does
+ * nothing: the new value lands, `swap` ticks, and the caller rolls the
+ * changed digits on the odometer.
  */
 export function useCountUp(value: number, eager: boolean) {
   const ref = useRef<HTMLSpanElement | null>(null);
@@ -64,10 +69,9 @@ export function useCountUp(value: number, eager: boolean) {
         io.disconnect();
         started = true;
         const start = performance.now();
-        const DURATION = 600;
         const tick = (now: number) => {
-          const p = Math.min(1, (now - start) / DURATION);
-          const eased = 1 - (1 - p) ** 3;
+          const p = Math.min(1, (now - start) / FIGURE_ARRIVAL_MS);
+          const eased = EASE.glide(p);
           setShown(p < 1 ? Math.round(value * eased) : value);
           if (p < 1) raf = requestAnimationFrame(tick);
           else {
@@ -112,21 +116,26 @@ export function CountUp({
   eager?: boolean;
   className?: string;
 }) {
-  const { ref, shown, swap } = useCountUp(value, eager);
+  const { ref, shown, counting } = useCountUp(value, eager);
   const fmt = new Intl.NumberFormat(tag);
+  const text = `${prefix ?? ""}${fmt.format(shown)}${suffix ?? ""}`;
   return (
     <span ref={ref} className={`nf-numeric nf-m-count ${className ?? ""}`.trim()}>
-      {/* The final figure for assistive tech, whatever the digits are doing. */}
-      <span aria-hidden="true" key={swap} className={swap > 0 ? "nf-count-swap" : undefined}>
-        {prefix}
-        {fmt.format(shown)}
-        {suffix}
-      </span>
-      <span className="sr-only">
-        {prefix}
-        {fmt.format(value)}
-        {suffix}
-      </span>
+      {counting ? (
+        <>
+          {/* The final figure for assistive tech, whatever the digits are doing. */}
+          <span aria-hidden="true">{text}</span>
+          <span className="sr-only">
+            {prefix}
+            {fmt.format(value)}
+            {suffix}
+          </span>
+        </>
+      ) : (
+        /* At rest the figure is an odometer: it mounts on the final value
+           (no roll), and only a later change of `value` turns its wheels. */
+        <Odometer value={text} />
+      )}
     </span>
   );
 }
@@ -161,7 +170,40 @@ export function CountUpMoney({
   children: ReactNode;
 }) {
   const whole = Math.max(0, Math.round(minorUnits / 100));
-  const { ref, shown, counting } = useCountUp(whole, eager);
+  const { ref, shown, counting, swap } = useCountUp(whole, eager);
+  /*
+   * A CONFIRMED CHANGE ROLLS, THEN THE PRINTED FIGURE RETURNS. When the
+   * amount changes after the arrival count (the caller passes a new
+   * `minorUnits` only once the server has confirmed it), the changed digits
+   * roll on the odometer in whole naira, and the caller's own `Amount` with
+   * its kobo styling takes over again once the wheels have stopped.
+   */
+  const [rolling, setRolling] = useState<{ from: string; turn: number } | null>(null);
+  const [seenSwap, setSeenSwap] = useState(swap);
+  const [last, setLast] = useState(minorUnits);
+  if (swap !== seenSwap) {
+    setSeenSwap(swap);
+    setLast(minorUnits);
+    setRolling({ from: formatMoney(last, locale, currency), turn: swap });
+  }
+  useEffect(() => {
+    if (rolling === null) return;
+    /* The longest roll: 380ms plus the stagger across a long figure. */
+    const timer = window.setTimeout(() => setRolling(null), 380 + 20 * 12);
+    return () => window.clearTimeout(timer);
+  }, [rolling]);
+  if (rolling !== null) {
+    return (
+      <span ref={ref} className="nf-m-count">
+        <Odometer
+          key={rolling.turn}
+          from={rolling.from}
+          value={formatMoney(minorUnits, locale, currency)}
+          className={frameClassName}
+        />
+      </span>
+    );
+  }
   return (
     <span ref={ref} className="nf-m-count">
       {counting ? (

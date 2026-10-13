@@ -5,6 +5,7 @@ import { useState, useTransition } from "react";
 import { openRentAgreement } from "@/lib/agreements/actions";
 import { PAYMENT_GATE_SENTENCE } from "@/lib/money/copy";
 import { withDone } from "@/lib/ui/success-moments";
+import { Button } from "@/components/ui/Button";
 
 /**
  * The step after the inspection report (Track A).
@@ -59,9 +60,9 @@ export function DrawUpAgreement({ inspectionId, minDate }: { inspectionId: strin
           {error}
         </p>
       ) : null}
-      <button type="submit" className="nf-btn nf-btn--primary nf-btn--md nf-btn--full" disabled={pending}>
+      <Button type="submit" variant="primary" full disabled={pending}>
         {pending ? "Drawing up the agreement" : "Draw up the agreement"}
-      </button>
+      </Button>
     </form>
   );
 }

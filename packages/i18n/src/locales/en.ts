@@ -15,6 +15,7 @@ import { afterTheGateEn } from "./after-the-gate.en";
 import { cryptoPayEn } from "./crypto-pay.en";
 import { trustVisibleEn } from "./trust-visible.en";
 import { memberKitEn } from "./member-kit.en";
+import { visitEn } from "./visit.en";
 import { landlordEn } from "./landlord.en";
 import { trustDoorsEn } from "./trust-doors.en";
 import { publicDoorsEn } from "./public-doors.en";
@@ -30,6 +31,27 @@ import { complianceRiskEn } from "./compliance-risk.en";
 import { complianceBeneficialOwnershipEn } from "./compliance-17.en";
 /* The passcode lock (docs/PASSCODE.md), in its own module like the rest. */
 import { passcodeEn } from "./passcode.en";
+import { experienceLandingEn } from "./experience-landing.en";
+import { experienceDiscoverEn } from "./experience-discover.en";
+import { experienceDetailEn } from "./experience-detail.en";
+import { experienceSocialEn } from "./experience-social.en";
+import { experienceInboxEn } from "./experience-inbox.en";
+import { callsEn } from "./calls.en";
+import { subscriptionsEn } from "./subscriptions.en";
+import { experienceAccountEn } from "./experience-account.en";
+import { experienceFeaturesEn } from "./experience-features.en";
+import { experienceRewardsEn } from "./experience-rewards.en";
+import { experienceAdminEn } from "./experience-admin.en";
+import { experienceMoneyEn } from "./experience-money.en";
+import { experienceUiEn } from "./experience-ui.en";
+import { experienceEntryEn } from "./experience-entry.en";
+import { experienceShellEn } from "./experience-shell.en";
+import { experienceSpeedEn } from "./experience-speed.en";
+import { experienceListerEn } from "./experience-lister.en";
+import { experienceSettingsEn } from "./experience-settings.en";
+import { experienceHostEn } from "./experience-host.en";
+import { experienceSiteEn } from "./experience-site.en";
+import { experienceLabelsEn } from "./experience-labels.en";
 /* The workspace desks and the confirm panel (UI/UX plan items 14, 20, 22). */
 import { deskEn } from "./desk.en";
 /* The public pages' titles and descriptions, per language (A10). */
@@ -42,6 +64,15 @@ import { mailEn } from "./mail.en";
 import { detailsEn } from "./details.en";
 /* Get started in motion: the chips and controls of the four scenes. */
 import { onboardingMotionEn } from "./onboarding-motion.en";
+/* Visit ops: the lister's and the console's visit calendars (13 October). */
+import { visitOpsEn } from "./visit-ops.en";
+/* The console desks that had a database function and no screen (13 October). */
+import { adminCoverageEn } from "./admin-coverage.en";
+/* The referral desk: the console's /admin/referrals (13 October). */
+import { referralDeskEn } from "./referral-desk.en";
+/* The chargebacks desk and the lister's hold notice (13 October 2026). */
+import { chargebacksEn } from "./chargebacks.en";
+/* Get Started as four cards (reference 3, 7 October). */
 
 /**
  * The counted nouns, in every form English uses.
@@ -127,16 +158,15 @@ export const en = {
     cardUnavailableStayNote:
       "Your dates stay held and nothing has been charged. Try the card again from here, or pay by bank transfer.",
     cardUnavailableRentNote: "Nothing has been charged. Try the card again from here, or pay by bank transfer.",
-    addMoney: "Add money",
     onPlatformStay:
-      "Money moves inside Vallo, so the stay and the payment stay attached to each other. Keep every conversation and every payment on the platform.",
+      "Paying here keeps the stay and the payment attached to each other. Keep every conversation and every payment on Vallo.",
     onPlatformRent:
-      "Money moves inside Vallo, so the tenancy and the payment stay attached to each other. Keep every conversation and every payment on the platform.",
+      "Paying here keeps the tenancy and the payment attached to each other. Keep every conversation and every payment on Vallo.",
     rentTotalStated: "Move-in total, as stated by the lister",
     rentTotalFromParts: "Move-in total, from the parts the lister stated",
     rentPeriod: { month: "monthly", quarter: "quarterly", year: "yearly" },
     rentTerms:
-      "Rent is {period}, moving in from {moveIn}. Vallo charges nothing on this payment; a card processor may show its own charge on the payment page.",
+      "Rent is {period}, moving in from {moveIn}.",
     rentStepOpen:
       "This payment step stays open for 48 hours from when you opened it. If it closes unpaid, open it again from here.",
     holdRunOut: "Hold has run out",
@@ -338,9 +368,12 @@ export const en = {
    * a chance to break it.
    */
   welcomeCards: {
-    /* The intro a stranger meets first (the Slate pass, 29 September): the
-       name, one line, a small moving scene and the two doors. Not
-       skippable and with no tour door (the founder, 29 September). */
+    /* Get Started, the intro a stranger meets first. Monotone since 6
+       October (D13): the mark, the slogan as the one display line, the
+       product explanation as the quiet line (both read from `landing`, D1),
+       and these two doors. Not skippable and with no tour door (the founder,
+       29 September). The old one-line tagline and the scene's label went with
+       the scene. `chip` is still the label on the tour's receipt scene. */
     intro: {
       tagline: "Homes to rent, buy and stay in, from agents a person has checked.",
       chip: "Your move-in total, printed",
@@ -594,9 +627,10 @@ export const en = {
     messages: "Messages",
     agreements: "Agreements",
     /*
-     * The dock's centre "+" and the sheet it opens (29 September 2026). The
-     * workspace switch that button used to be moved into this sheet as its
-     * last row, so nothing it did was lost.
+     * The dock's centre "+" and the sheet it opens. Since 7 October 2026
+     * (handoff A.6) the sheet is three plain titles per side and nothing
+     * else; the `...Sub` lines and `switch` are no longer drawn there.
+     * Switch workspace lives on `/profile` (the Switch role row).
      */
     create: {
       trigger: "Create",
@@ -608,6 +642,7 @@ export const en = {
       viewing: "Book a viewing",
       viewingSub: "Find a place and choose a time to see it",
       stay: "Create a stay listing",
+      bookStay: "Book a stay",
       staySub: "A room type or a whole place for guests",
       switch: "Switch workspace",
       switchSub: "Personal, or a workspace you hold",
@@ -731,6 +766,8 @@ export const en = {
   socialProfile: {
     /** The account page's tab pair and the rows under Belongings (`50E032EA`). */
     belongings: "Belongings",
+    /** The way to reach somebody from their profile (A.7). */
+    message: "Message",
     myBookings: "Plans",
     myBookingsSub: "Viewings, move-ins and stays",
     savedSub: "Homes, hotels and places",
@@ -780,6 +817,30 @@ export const en = {
       claimHandleNote:
         "A handle is your address on Vallo. Claim one and this page gets a cover, a public page and somewhere for what you write to live.",
     },
+    /*
+     * The one line under a person's name on both profiles: what they are on
+     * Vallo, each word read from a row (`lib/profile/role-line.ts`), joined
+     * by a middle dot when there is more than one.
+     */
+    roleLine: {
+      renter: "Renter",
+      landlord: "Landlord",
+      agent: "Agent",
+      agency: "Agency",
+      hotel: "Hotel",
+      servicedApartments: "Serviced apartments",
+      guestHouse: "Guest house",
+      resort: "Resort",
+      shortletHost: "Shortlet host",
+      restaurant: "Restaurant",
+    },
+    /* The section under the header that holds what vouches for a person:
+       their badges, their Vallo Record, an agent's reviews and, on your own
+       page, your Vallo passport. */
+    credentials: "Credentials",
+    passportAndCredentials: "Passport and credentials",
+    /** The passport row's line when it is off, and the way into it. */
+    passportOpen: "Open your passport",
     back: "Back",
     verified: "Verified agent",
     verifiedTitle: "A verified Vallo agent",
@@ -838,38 +899,24 @@ export const en = {
       },
       hero: {
         /*
-         * THE HEADLINE IS THE FOUNDER'S, WORD FOR WORD, AND IT IS COUPLED TO
-         * THE SEARCH CONTROL. DO NOT EDIT EITHER ONE ALONE.
+         * THE HEADLINE IS NOT HERE ANY MORE, AND THAT IS THE BRAND HIERARCHY
+         * (founder directive D1, 5 October 2026).
          *
-         * `title1` names the same three actions as the segments of the landing
-         * search control, and that is not a coincidence to be tidied away:
-         * the headline teaches the control and the control proves the
-         * headline. The headline reads them rent,
-         * buy, stay and the control draws them buy, rent, stay, which is the
-         * founder's own wording of each kept as he approved it: the rule is
-         * the same three words, never the same sequence. The segments are
-         * declared in `components/site/landing/segments.ts`. IF ONE CHANGES,
-         * THE OTHER CHANGES IN THE SAME COMMIT, and
-         * `components/site/landing/headline-coupling.test.ts` fails the build
-         * if they ever drift apart.
+         * `title1`, `title2` and `subtitle` held "Rent, buy or stay. / Without
+         * the runaround." and a one-line sub. D1 sets the landing hero to the
+         * brand's own two layers instead: the SLOGAN as the line
+         * (`landing.slogan`) and the PRODUCT EXPLANATION as the subtitle
+         * (`landing.explanation`). Both live once, directly under `landing`,
+         * so the hero, the auth lockup, Get Started and anything else that
+         * says what Vallo is read the same strings rather than copies of them.
+         * The POSITIONING line is deliberately not on this page's first
+         * screen: D1 says it is never the primary consumer line.
          *
-         * The line it replaced was "Real Estate / reimagined.", which is the
-         * old positioning: it told a first time visitor nothing about what
-         * Vallo helps them do. The position now is one sentence. VALLO DOES
-         * NOT REMOVE THE AGENT. VALLO REMOVES THE RUNAROUND.
-         *
-         * NIGERIA, NOT AFRICA, and the word changes when the fact changes.
-         *
-         * THE SUB-LINE IS ONE LINE (the clean pass, 29 September). It used to
-         * run four, naming the lister and dealing with the owner "where there
-         * is one"; the hero now says where you can look and the one thing
-         * Vallo shows you first, and the owner clause, which is conditional
-         * on owner listings existing, is left to the pages that can show one.
+         * The search control's Buy, Rent and Stay segments still sit under the
+         * headline; `components/site/landing/headline-coupling.test.ts` now
+         * holds the part of the old coupling that survives (the hero promises
+         * nothing the control cannot do) and says why the rest went.
          */
-        title1: "Rent, buy or stay.",
-        title2: "Without the runaround.",
-        subtitle:
-          "Homes, land and stays across Nigeria, with the real cost up front.",
         explore: "Explore properties",
         /* THE DOOR WHILE THE CATALOGUE IS CLOSED TO STRANGERS (UIUX item
            12). `/search` answers a signed-out visitor with a sign-in wall
@@ -1007,6 +1054,14 @@ export const en = {
            the position because the foot of the page is where a reader who
            has scrolled the whole thing is still working out what this is. */
         legalLine: "A Nigerian technology company, building a way to rent, buy or stay without the runaround.",
+        /* The registered office, exactly as it reads on the CAC certificate
+           and on the TIN record. A company that asks a stranger in Lagos to
+           send a deposit owes them a real place it can be found, so this is
+           a trust surface before it is a legal one. It sits in the footer's
+           legal block because that block is already the legal surface, and
+           it is rendered in an <address> element so a reader, a screen
+           reader and a search engine all read it as one. */
+        registeredOfficeLabel: "Registered office",
         stayConnected: "Stay connected",
         newsletterBody: "New listings, product news and the occasional honest update.",
         emailLabel: "Email address",
@@ -1033,25 +1088,43 @@ export const en = {
       },
     },
     /*
-     * The slogan, deliberately not translated, one form in every locale the
-     * way Nike never translates Just Do It.
+     * THE BRAND HIERARCHY, FOUR STRINGS WITH FOUR JOBS (founder directive D1,
+     * 5 October 2026; it supersedes "Real Estate reimagined!" and the Master
+     * Prompt's "FIND YOUR SPACE. WITHOUT THE RUNAROUND."). They are four keys
+     * and not one because each has a different place to be and a different
+     * place it must NOT be, and a single string cannot be in two of those at
+     * once:
      *
-     * IT IS NOW READ BY EXACTLY ONE SURFACE: the lockup on the auth screens.
-     * It used to be read by three. The metadata moved to the approved position
-     * on 22 September, and the landing's phone mock moved to a key of its own,
-     * because that mock was a picture OF THE APP on the marketing front page
-     * and the last place the retired positioning still showed to a visitor.
-     * The mock and its key were deleted on 29 September with the phones.
+     *   slogan        The line beside the wordmark: the app's first screen,
+     *                 the landing hero, receipts, emails, store listings.
+     *                 "Space" rather than "find your space" because the
+     *                 platform is no longer only a search: it is finding,
+     *                 checking, paying, moving in and managing, all without
+     *                 the runaround.
+     *   positioning   The category, for investors, partners and press. NEVER
+     *                 the primary consumer line (D1: it reads corporate as a
+     *                 first impression), so no first screen prints it.
+     *   explanation   The answer to "what is Vallo": the landing subtitle,
+     *                 Get Started's quiet line, the store description.
+     *   shortForm     The four-beat rhythm, for bands, footers and step
+     *                 headings.
      *
-     * WHETHER THE AUTH LOCKUP KEEPS IT IS THE FOUNDER'S CALL AND IT IS IN THE
-     * LEDGER. "Real Estate reimagined!" is the OLD positioning line, and this
-     * comment used to say so in those words. The new one is "Rent, buy or
-     * stay. Without the runaround." A slogan beside a wordmark is a brand
-     * decision rather than a copy fix, so it is not changed here as a copy
-     * edit; splitting the key is what lets it change in one line when he
-     * rules, without dragging the auth screen along by accident.
+     * THE SLOGAN IS ENGLISH IN EVERY LOCALE, the way the wordmark is and the
+     * way Nike never translates Just Do It. Yoruba, Hausa and Igbo do not
+     * declare it: `withFallback` serves this string, which is the mechanism
+     * doing exactly what the rule asks, and it keeps an English sentence out
+     * of those files where the completeness gate would rightly count it.
+     *
+     * THE OTHER THREE FALL BACK TO ENGLISH FOR NOW, and that is the package's
+     * convention rather than an oversight: nobody on this build writes
+     * Yoruba, Hausa or Igbo, and an invented translation of a founder
+     * approved brand line is worse than none (see the note on
+     * `landing.face.hero` in each locale file). A native speaker writes them.
      */
-    slogan: "Real Estate reimagined!",
+    slogan: "Space, without the runaround.",
+    positioning: "The operating system for physical spaces.",
+    explanation: "Discover, verify, transact, and manage spaces in one place.",
+    shortForm: "Discover. Verify. Transact. Manage.",
     /*
      * The property card's own words. Small on purpose: a card is read at a
      * glance and every one of these is one or two words on a 390px grid cell.
@@ -1066,44 +1139,17 @@ export const en = {
     },
     hero: {
       /*
-       * SUPERSEDED ON 22 SEPTEMBER, AND ONLY `searchLabel` IS STILL READ.
+       * SUPERSEDED ON 22 SEPTEMBER, AND ONLY `searchLabel` IS STILL READ, by
+       * the signed-in home screen (`components/app/home/HomeScreen.tsx`).
        *
-       * This block is the landing page BEFORE the rebuild to the founder's
-       * governing images; the live landing reads `landing.face` above. The
-       * one key anything still reads is `searchLabel`, which the signed-in
-       * home screen uses (`components/app/home/HomeScreen.tsx`). Every other
-       * key here, including the "Real Estate, / reimagined." headline and the
-       * "Nigeria's real estate marketplace" overline, is dead copy carrying
-       * the OLD POSITIONING and is left rather than deleted only because the
-       * three other locales mirror this shape and a namespace removal is a
-       * change to all four at once, not a copy edit. IF YOU
-       * ARE ABOUT TO COPY A LINE OUT OF HERE, DO NOT. The position is
-       * "Rent, buy or stay. Without the runaround." and it lives in
-       * `landing.face.hero` above.
-       *
-       * The historical reasoning is kept below because it explains why the
-       * overline, the h1 and the subtitle were split across three jobs.
-       *
-       * THE SLOGAN IS THE HEADLINE, AND THAT IS THE FOUNDER'S DIRECT CALL.
-       *
-       * The first rebuild made the h1 the offer ("Rent, buy or sell. The
-       * move-in total, printed.") on the argument that a slogan as a headline
-       * says nothing. The founder read it and asked for the brand line
-       * instead, steered toward "real estate marketplace". So the three jobs
-       * are dealt differently now, and nothing is lost: the OVERLINE names
-       * what this is (Nigeria's real estate marketplace), the H1 is the brand
-       * making its one claim, and the SUBTITLE carries the offer and the
-       * proof. The move-in argument still gets a whole band of its own two
-       * scrolls down.
-       *
-       * The h1 stays in English in every locale, like the wordmark; the
-       * overline and subtitle translate.
+       * This block was the landing page before the rebuild to the founder's
+       * governing images. It also carried the retired positioning ("Real
+       * Estate, / reimagined." under "Nigeria's real estate marketplace"),
+       * which D1 retires everywhere it could render, so those keys came out of
+       * all four locales on 6 October rather than waiting for somebody to copy
+       * a line out of here. The brand's words are directly under `landing`
+       * (`slogan`, `positioning`, `explanation`, `shortForm`).
        */
-      overline: "Nigeria's real estate marketplace",
-      title1: "Real Estate,",
-      title2: "reimagined.",
-      subtitle:
-        "Somewhere for a night, somewhere for the year, a house to buy, a shop to trade from, or the land itself. Nine markets, agents checked by real people, and payments Vallo never holds.",
       searchPlaceholder: "Where do you want to go?",
       searchLabel: "Start exploring",
       popularLabel: "Popular right now",
@@ -1258,18 +1304,16 @@ export const en = {
       secondary: "Become an agent",
     },
     footer: {
-      /* The slogan, not a summary. One form in every locale, per the note on
-         `landing.slogan`. */
       /*
        * A DESCRIPTION, NOT THE SLOGAN AGAIN.
        *
-       * This key held "Real Estate reimagined!" and so does `landing.slogan`,
-       * which the footer prints beside the copyright about 200px below it. The
-       * same eight words twice on every page of the site, once as though it
-       * were a summary of the company and once as the signature it actually
-       * is. The signature stays where a signature belongs. This slot says what
-       * Vallo is, which is the thing somebody scrolling to the bottom of a
-       * page is usually still trying to work out.
+       * This key once held the retired slogan, the same words `landing.slogan`
+       * held, so the foot of every page said the brand line as though it were
+       * a summary of the company. This slot says what Vallo is, which is the
+       * thing somebody scrolling to the bottom of a page is usually still
+       * trying to work out. Moving it onto the D1 hierarchy (the explanation
+       * and the short form) is part of the landing's later pass, not the hero
+       * change of 6 October.
        */
       tagline: "Rent, buy or stay across Nigeria, without the runaround. Homes, land, hotels and shortlets, in one account.",
       rights: "All rights reserved.",
@@ -1329,6 +1373,8 @@ export const en = {
     termsLink: "Terms",
     privacyLink: "Privacy policy",
     rulesLink: "Community rules",
+    helpLink: "Help",
+    docsLink: "Docs",
   },
 
   auth: {
@@ -1699,7 +1745,7 @@ export const en = {
       privacySub: "Password, sign-in and devices",
       appearanceSub: "Text size, motion, data",
       languageSub: "App language",
-      help: "Help & Support",
+      help: "Help and support",
       helpSub: "FAQs, contact us",
       payments: "Payment methods",
       paymentsSub: "Manage your cards and bank accounts.",
@@ -1981,9 +2027,11 @@ export const en = {
         bookingsSub: "Requests, confirmations and changes to your stays.",
         messages: "Messages",
         messagesSub: "New replies from hosts and agents you are talking to.",
-        wallet: "Payments and receipts",
-        walletSub:
-          "Emails when you pay, when a refund is on its way, your receipts, and decisions on your agreements and Guarantee claims. Anything about your money's safety still appears in the app.",
+        /* The Payments channel. Stored as `wallet` in profiles.settings until
+           Session 2 renames the key (D48 step 2); the words never say wallet. */
+        payments: "Payments",
+        paymentsSub:
+          "Emails when you pay, when a refund is on its way, your receipts, and decisions on your agreements. Anything about your money's safety still appears in the app.",
         marketing: "Ideas and offers",
         marketingSub: "Occasional highlights from around Nigeria. Off by default.",
         /* B13: the push for a price drop on a place you saved. */
@@ -1995,8 +2043,10 @@ export const en = {
         bookingsSub: "New requests, cancellations and payments on your listings.",
         messages: "Messages",
         messagesSub: "New enquiries from guests about your listings.",
-        wallet: "Payments and payouts",
-        walletSub:
+        /* The Payments channel. Stored as `wallet` in profiles.settings until
+           Session 2 renames the key (D48 step 2); the words never say wallet. */
+        payments: "Payments",
+        paymentsSub:
           "Emails when a renter or guest pays you, and when your share settles to your bank. Anything about your money's safety still appears in the app.",
         marketing: "Ideas and offers",
         marketingSub: "Hosting tips and what is moving in your area. Off by default.",
@@ -2111,6 +2161,8 @@ export const en = {
       note: "Preferences kept on this device stay on this device. Only you can see or change your account preferences.",
       help: "Help",
       helpSub: "FAQs, contact us",
+      docs: "Documentation",
+      docsSub: "How Vallo works, for renters, landlords, agents and hosts",
       terms: "Terms",
       privacy: "Privacy policy",
       disclaimer: "Disclaimer",
@@ -2312,6 +2364,9 @@ export const en = {
       personalDesc: "Discover and book amazing places across Nigeria.",
       agentDesc: "Manage your listings, bookings, customers and earnings.",
       verifiedAgent: "Verified agent",
+      /* The same workspace for an account whose side is owner (agents.role). */
+      owner: "Owner workspace",
+      verifiedOwner: "Verified owner",
       noWorkspace: "You are not listing yet",
       applyToList: "Apply to list",
       workspaceLabel: "Your listings",
@@ -2390,7 +2445,7 @@ export const en = {
         idBack: "ID card, back",
         registration: "Business registration",
         upload: "Upload",
-        chooseFile: "Choose a file, PNG or JPG or PDF, up to 10MB",
+        chooseFile: "Choose a file, PNG or JPG or PDF, up to 8MB",
       },
       review: {
         title: "Review and submit",
@@ -2400,7 +2455,15 @@ export const en = {
     },
     status: {
       submittedTitle: "Application submitted",
-      submittedBody: "We are reviewing your application. You will be notified once it is approved.",
+      submittedBody: "We are reviewing your application, and we will tell you the moment it is decided.",
+      /* The line under the heading, one per state. `submittedBody` used to be
+         the line for every state, so a refused applicant read "you will be
+         notified once it is approved" above the refusal. */
+      draftBody: "This application has not been sent yet.",
+      moreInfoBody: "The reviewer needs something from you before they can decide. Their note, and the way to answer it, are below.",
+      approvedBody: "Your workspace is open, so you can start listing. The identity checks are a separate step, started from your dashboard.",
+      rejectedBody: "This application was not approved. The reviewer's note says why, and you can apply again.",
+      suspendedBody: "This account is suspended. Contact support with your reference and a person will explain.",
       status: "Status",
       draft: "Draft",
       pendingReview: "Pending review",
@@ -2408,6 +2471,8 @@ export const en = {
       moreInfo: "More information required",
       approved: "Approved",
       rejected: "Rejected",
+      suspended: "Suspended",
+      applyAgain: "Apply again",
       submittedOn: "Submitted on",
       applicationId: "Application ID",
       reviewNote: "Our team typically reviews applications within 24 to 48 hours.",
@@ -2419,8 +2484,8 @@ export const en = {
       signIn: "Sign in",
       noneTitle: "No application on file",
       noneBody:
-        "You have not applied to become an agent yet. It takes about ten minutes and you need one photo ID.",
-      startApplication: "Apply to become an agent",
+        "You have not applied to list on Vallo yet. Say whether you own the property or act for an owner; the form takes about ten minutes.",
+      startApplication: "Start an application",
       unconfiguredTitle: "We cannot reach your application right now",
       unconfiguredBody:
         "This is on our side, not yours. Nothing you have submitted is lost. Try again in a few minutes.",
@@ -2433,7 +2498,8 @@ export const en = {
         answerHint: "Up to 2,000 characters.",
         attachIdentityTitle: "An identity document",
         attachAddressTitle: "Proof of address",
-        attachBody: "Optional. A photo or a PDF, up to 10 MB.",
+        attachBusinessTitle: "Business registration (CAC certificate)",
+        attachBody: "Optional. Add one when it answers what the reviewer asked for.",
         send: "Send it back",
         sending: "Sending",
         sent: "Sent back. It is with the reviewer again.",
@@ -2513,7 +2579,7 @@ export const en = {
        */
       titles: {
         basics: "What are you listing?",
-        photos: "Photos and a walkthrough",
+        photos: "Photos and videos",
         location: "Where is it?",
         amenities: "What else is there?",
         utilities: "Light and water",
@@ -2524,8 +2590,8 @@ export const en = {
       /* The sentence under each step's title. One line, plain, and it says
          what the step is for rather than selling it. */
       subtitles: {
-        basics: "Tell us the type of property, what you want to list it as, and the rooms inside it.",
-        photos: "Add clear photos of the property and a short video walkthrough.",
+        basics: "Tell us the type of property, describe it, and count the rooms inside it.",
+        photos: "Add clear photos and short videos of the property, in the order you want them seen.",
         location: "Tell us the exact location of the property.",
         amenities: "Select all the amenities available at the property.",
         utilities: "Tell us about the power supply, the backup and the water at the property.",
@@ -2575,6 +2641,8 @@ export const en = {
         edit: "Edit",
         notSet: "Not set",
         availableNow: "Available now",
+        /* "3 chosen", beside Amenities in the details table. */
+        amenitiesCount: "{count} chosen",
         keys: {
           propertyType: "Property type",
           bedrooms: "Bedrooms",
@@ -2584,6 +2652,13 @@ export const en = {
           floor: "Floor",
           condition: "Condition",
           availability: "Availability",
+          /* The rows that make the table cover every step, so a wrong figure
+             anywhere is one Edit away rather than a walk back by hand. */
+          photos: "Photos",
+          location: "Location",
+          amenities: "Amenities",
+          utilities: "Light and water",
+          price: "Price",
         },
       },
       /* `GOVERNING-08` screen four. */
@@ -2594,9 +2669,9 @@ export const en = {
         three: "You get a notification once it is live.",
       },
       photos: {
-        add: "Add photos",
-        earlier: "Move this photo earlier",
-        later: "Move this photo later",
+        add: "Add photos or videos",
+        earlier: "Move this item earlier",
+        later: "Move this item later",
       },
     },
 
@@ -2623,6 +2698,9 @@ export const en = {
       next: "Next",
       back: "Back",
       myListings: "My listings",
+      /* After an Edit on the last two steps: one tap back to where the lister
+         was, rather than Next through every step in between. */
+      returnTo: "Back to {step}",
     },
 
     basics: {
@@ -2631,7 +2709,7 @@ export const en = {
       titlePlaceholder: "Bright 2 bedroom flat in Lekki Phase 1",
       propertyTypeLabel: "Property type",
       rentalNote:
-        "Rentals are the yearly market: you set the rent per year, guests message you, inspect the property, then pay. There is no nightly booking on a rental.",
+        "Rentals are let on a tenancy: you set the rent and how often it is paid, people message you, inspect the property, then pay. There is no nightly booking on a rental.",
       descriptionLabel: "Description",
       descriptionHint: "{words} of {min} words. Describe the rooms, the area and what is nearby.",
       descriptionPlaceholder:
@@ -2664,7 +2742,7 @@ export const en = {
 
     photos: {
       intro:
-        "Add at least {min} photos, up to {max}. The first one is the cover, so lead with the wide shot that sells the place.",
+        "Add at least {min} photos or videos; {recommended} make a stronger listing. Up to {max} photos and {videos} videos of a minute or less. The first item is the cover and has to be a photo, so lead with the wide shot that sells the place.",
       tooNarrow: "Photos need at least {width}px on their longest side so they look sharp on every screen.",
       choose: "Choose photos",
       /* STORE-04: the app's own camera, shown only inside the native app. */
@@ -2672,15 +2750,28 @@ export const en = {
       addMore: "Add more photos",
       uploading: "Uploading",
       progress: "{count} of {min} needed",
-      empty: "No photos yet. Daylight, wide angles and a tidy room do most of the work.",
+      empty: "No photos or videos yet. Daylight, wide angles and a tidy room do most of the work.",
+      /* Under the count once the minimum is met and before the recommendation. */
+      recommend: "Add {more} more for a stronger listing.",
       cover: "Cover",
       makeCover: "Make cover",
       remove: "Remove",
       ceiling: "A listing holds up to {max} photos.",
-      notAnImage: "Photos need to be image files, for example JPG or PNG.",
+      notAnImage: "Add photos (for example JPG or PNG) or videos (MP4, MOV or WebM).",
+      /* The video gate's refusals, one per cause, each naming what to do. */
+      video: "Video",
+      videoTooLong: "Videos can be up to {seconds} seconds long. Trim this one, then add it again.",
+      videoTooBig: "That video is over {max}. Record a shorter clip, or export it at a lower resolution.",
+      videoUnreadable: "This video could not be opened. Try exporting it again as an MP4.",
+      videoCeiling: "A listing holds up to {max} videos.",
+      videoFailed: "That video did not finish uploading. Please try it again.",
+      videoUploading: "Uploading {name}, {percent}%",
       notPrepared:
         "We could not prepare that photo safely, so it was not uploaded. Try a different photo.",
       uploadFailed: "That photo did not finish uploading. Please try it again.",
+      /* Under the list of photos that did not upload for a reason a second try
+         can fix (the connection, the session): sends the same files again. */
+      retry: "Try again",
       /* The photo gate's refusals, one per cause, each naming what to do. */
       heicUndecodable:
         "This photo is in the HEIC format, which this browser cannot open. On an iPhone, set Camera, Formats to Most Compatible. On Android, turn off High efficiency pictures in the camera's settings. Or share the photo as a JPEG, then add it again.",
@@ -2759,7 +2850,7 @@ export const en = {
       instantTitle: "Instant book",
       instantBody: "Guests book without waiting for you to confirm.",
       rentalNote:
-        "Rentals are priced per year. Guests message you inside Vallo, inspect the property, then pay. For your safety, keep every chat and payment inside Vallo.",
+        "Rent is quoted per year, per quarter or per month. People message you inside Vallo, inspect the property, then pay. For your safety, keep every chat and payment inside Vallo.",
     },
 
     guestView: {
@@ -2776,6 +2867,9 @@ export const en = {
 
     submit: {
       title: "Ready to send for review",
+      /* The same heading while a line of the checklist below is still open:
+         "Ready" over a list of what is missing contradicted itself. */
+      notReadyTitle: "A few things before you send",
       body:
         "We check every listing by hand before it reaches guests. Clear that checklist and it goes straight into the queue.",
       action: "Send for review",
@@ -2784,14 +2878,16 @@ export const en = {
       checklist: {
         title: "Title",
         description: "Description of {min} words or more",
-        photos: "{min} photos or more, cover first",
+        photos: "{min} photos or videos, a photo first",
         stateCode: "State",
         city: "City",
         area: "Area",
         amenities: "Amenities",
         priceNight: "Price per night",
         priceYear: "Yearly rent",
-        rooms: "Rooms and guests",
+        /* Guests are not asked any more; the row stands for the bedrooms, the
+           bathrooms and the shape of the home. */
+        rooms: "Rooms",
       },
       needsTitle: "Add a title on step one first, then we can send this listing for review.",
       needsKeys:
@@ -2808,8 +2904,8 @@ export const en = {
       titleLong: "Shorten the title to {max} characters or fewer.",
       description: "Describe the property in at least {min} words. You have {count} so far.",
       propertyType: "Choose what kind of property this is.",
-      photos: "Add at least {min} photos. You have {count}.",
-      cover: "Choose which photo leads the listing. The first one is the cover.",
+      photos: "Add at least {min} photos or videos. You have {count}.",
+      cover: "Put a photo first. The first item is the cover, and a cover has to be a photo.",
       stateCode: "Choose the state the property is in.",
       city: "Enter the city, for example Lagos.",
       area: "Enter the area, for example Lekki Phase 1.",
@@ -3068,7 +3164,7 @@ export const en = {
     emptyAction: "See your bookings",
     howTitle: "How your share is worked out",
     howBody:
-      "A settled payment is split two ways: your share and what the payment processor takes. Vallo takes nothing from it. The two always add up to what the guest paid, which is why every line here reconciles.",
+      "A settled payment is split into your share, Vallo's platform fee and the payment processor's own fee. They always add up to what the guest paid, which is why every line here reconciles.",
   },
 
   /**
@@ -3181,20 +3277,6 @@ export const en = {
    * Kano works the same queues as an operator in Lagos.
    */
 
-  /*
-   * The wallet's own vocabulary.
-   *
-   * These were two hard-coded English maps in `components/app/wallet/kinds.ts`,
-   * read by the ledger, the recent activity strip and the receipt. Money is the
-   * one place on this platform where a reader should never have to work out
-   * what a word means, and three of the four languages were being handed
-   * English.
-   *
-   * The three escrow labels say what the platform actually does and never use
-   * the word escrow, because the terms of service say in bold that we do not
-   * hold money in escrow, and a ledger row contradicting the contract is the
-   * fault F2-001 was about.
-   */
   /**
    * THE APPLICANT'S OWN VERIFICATION SCREEN, WHICH WAS THE LAST ONE ENTIRELY IN
    * ENGLISH.
@@ -3682,6 +3764,9 @@ export const en = {
       submittedWhen: "Submitted {when}",
       decidedWhen: "Decided {when}.",
       sections: {
+        /* Drawn above the six numbered sections, only for the three
+           registration forms (owner, agent, firm). */
+        registration: "What they registered as",
         personal: "1. Personal",
         identity: "2. Identity",
         business: "3. Business",
@@ -3689,7 +3774,18 @@ export const en = {
         payout: "5. Payout",
         review: "6. Review",
       },
+      roleNames: {
+        owner: "Owner",
+        agent: "Agent",
+        firm: "Firm",
+      },
       fields: {
+        registeredAs: "Registered as",
+        holds: "Holds on the property",
+        area: "Area",
+        experience: "Time as an agent",
+        agencyFee: "Agency fee",
+        legalFee: "Legal fee",
         fullName: "Full name",
         phone: "Phone",
         email: "Email",
@@ -3716,10 +3812,20 @@ export const en = {
       documentsNone: "No documents uploaded, so this application cannot be verified yet",
       documentOpen: "Open",
       documentUnavailable: "Link unavailable",
+      /* Keyed by `agent_documents.kind`, which is what the desk reads. The
+         first three are the wizard's slot names, which are never stored
+         (`lib/agent/application-document-kinds.ts` maps them), so every chip
+         used to print the raw kind: "identity", "selfie". */
       documentKinds: {
         idFront: "ID, front",
         idBack: "ID, back",
         registration: "CAC registration",
+        identity: "ID",
+        address: "Proof of address",
+        business: "Business registration",
+        selfie: "Photo of their face",
+        association: "Letter from their principal",
+        ownership: "Proof of ownership",
       },
       termsAgreed: "Agreed to the platform terms",
       termsNotAgreed: "Not agreed",
@@ -3783,9 +3889,13 @@ export const en = {
       photoAlt: "{title}, photo {number}",
       checklistTitle: "Admission checklist",
       checks: {
-        photoCount: "Four photos or more",
+        photoCount: "Three photos or videos",
         cover: "Cover photo set",
+        /* No longer a line on the checklist (lib/admin/listing-checks.ts): it
+           was a rule nobody asked of the lister. Kept while the other locales
+           still carry it. */
         titleCase: "Title in title case",
+        titleLength: "Title of 8 to 80 characters",
         place: "Area and city recorded",
         price: "Price recorded in naira",
         rooms: "Bedrooms and bathrooms recorded",
@@ -4064,141 +4174,14 @@ export const en = {
         lastClean: "Last clean run",
         noneRecorded: "None recorded",
       },
-      evidence: {
-        facts: {
-          viewing_attended: "The inspection happened",
-          viewing_missed: "The inspection did not happen",
-          keys_received: "The keys were handed over",
-          keys_not_received: "The keys were not handed over",
-          agreement_signed: "An agreement was signed",
-          agreement_not_signed: "No agreement was signed",
-          service_delivered: "The work was done",
-          service_not_delivered: "The work was not done",
-          property_matched_listing: "The property matched the listing",
-          property_differed_from_listing: "The property was not what the listing said",
-          contacted_on: "Got in touch with the other side",
-          no_reply_since: "No reply from the other side since",
-          amount_agreed: "The amount agreed",
-        },
-        aFact: "A fact",
-        factOn: "{fact} on {date}",
-        factAmount: "{fact}: {amount}",
-        sizeBytes: "{size} bytes",
-        sizeKb: "{size} KB",
-        sizeMb: "{size} MB",
-        kindFile: "File",
-        kindPdf: "PDF",
-        kindImage: "Image",
-        payer: "Payer · {name}",
-        payee: "Payee · {name}",
-        neither: "Neither party · {name}",
-        noDisplayName: "no display name",
-        label: "Evidence filed on this dispute",
-        title: "Evidence filed",
-        titleCount: "Evidence filed ({count})",
-        unreadTitle: "The evidence could not be read",
-        unreadBody:
-          "What each side has filed on this dispute. The read did not answer just now, which is not the same as nothing being filed. Reload before ruling.",
-        noneTitle: "Nothing has been filed on this dispute",
-        noneFills:
-          "Every receipt, photograph, message screenshot and dated fact either side files, with who filed it and when.",
-        noneCreates:
-          "Each side files from their own held payment page. Items appear here as they are filed and cannot be edited or removed.",
-        aFile: "A file",
-        openFile: "Open file",
-        cannotOpen: "Could not be opened just now",
-      },
-      stuckTitle: "Stuck, and somebody is waiting",
-      stuckHint: "{count} pending over half an hour",
-      stuckBody:
-        "These debits have been PENDING for over half an hour. The money has left a spendable balance and has not arrived anywhere. The stale hold sweeper releases withdrawal holds on a schedule; anything here that is not a withdrawal has not got a sweeper and needs a person.",
-      settledLabel: "Settled this week",
       vsSevenDaysBefore: "vs the 7 days before",
-      settledNote: "Completed wallet entries, last 7 days",
-      failedLabel: "Failed charges",
-      failedNote: {
-        one: "{count} failed card or top-up charge this week",
-        other: "{count} failed card or top-up charges this week",
-      },
-      failedNoteUnread: "Card and top-up charges that failed this week",
       incomplete:
         "The ledger is larger than this desk reads in one pass, so the figures above are at least these amounts rather than totals.",
-      summaryTitle: "Transaction summary",
-      last30Days: "Last 30 days",
       moneyIn: "Money in",
-      moneyOut: "Money out",
-      net: "Net",
-      ledgerUnreadTitle: "The ledger could not be read",
-      summaryUnreadBody:
-        "Money in, money out and the difference over the last 30 days, across every wallet. The read did not answer just now; nothing about the money itself is implied. Reload in a moment.",
-      searchLabel: "Find a person, a wallet or a payment",
-      searchPlaceholder: "Name, wallet id or reference",
-      ledgerTitle: "Ledger",
-      ledgerUnreadBody:
-        "Every wallet entry, newest first, with the platform float after each one. The read did not answer just now; reload in a moment.",
-      matchingFilter: "Matching this filter",
-      newestForty: "Newest first, up to forty",
-      settled: "Settled",
-      settledHintNarrowed: "Across the wallets matching this filter",
-      settledHint: "Across the wallets listed below, newest first",
-      heldPending: "Held pending",
-      heldPendingHint: "Debits that have left a spendable balance and not settled",
-      held: "{amount} held",
-      disputesTitle: "Disputed holds waiting on a ruling",
-      disputesBody:
-        "Somebody objected and the money is held until a person rules. Release pays the payee; refund returns it to the payer. Both people are sent your ruling word for word, and the transition is in the audit log. The full desk is at",
-      disputeLine: "{payer} paid, {payee} waits",
-      thePayer: "the payer",
-      thePayee: "the payee",
-      rentState: {
-        awaiting: "Awaiting payment",
-        paid: "Paid",
-        no_show: "Did not move in",
-        check: "Needs a look",
-      },
-      rentPeriod: { month: "Monthly", quarter: "Quarterly", year: "Yearly" },
-      rentTitle: "Tenancy charges",
-      rentUnreadTitle: "Tenancy charges could not be read",
-      rentUnreadBody:
-        "Every move-in charge by where it stands, and the newest ones. The read did not answer just now; nothing about the charges themselves is implied. Reload in a moment.",
-      rentHint: { one: "{count} charge", other: "{count} charges" },
-      rentHintPartial: {
-        one: "{count} charge, more than one pass reads",
-        other: "{count} charges, more than one pass reads",
-      },
-      rentByState: "Tenancy charges by state",
-      rentEnded: "Cancelled or did not move in",
-      rentCaption: "The newest tenancy charges",
-      opened: "Opened",
-      tenancy: "Tenancy",
-      moveIn: "Move-in",
       total: "Total",
       state: "State",
-      rentNoneTitle: "No tenancy charge yet",
-      rentNoneFills:
-        "Every move-in charge by where it stands, what is paid and what is awaited, and the newest charges.",
-      rentNoneCreates:
-        "A charge opens when a tenant starts paying the move-in costs on an inspection the lister accepted.",
-      flowTitle: "Money in vs money out",
-      flowUnreadBody:
-        "Settled money coming into wallets against settled money leaving them, month by month for a year. The read did not answer just now; reload in a moment.",
-      flowNoneTitle: "No money has settled yet",
-      flowOneMonth: "One month of settled money so far ({month})",
-      flowFills: "Settled money into wallets against settled money out, month by month for a year.",
-      flowCreates:
-        "Every top-up, booking payment, payout and refund that completes adds to it. A line needs a second month, so none is drawn.",
-      flowLabel: "Settled money in and out of wallets by month",
-      ledgerFoot: "The balance column is the platform float, so it is shown only for the unfiltered ledger.",
-      date: "Date",
-      description: "Description",
       type: "Type",
       amount: "Amount",
-      balance: "Balance",
-      ledgerNoneTitle: "No money has moved yet",
-      ledgerNoneFills: "Every wallet entry, newest first, with the platform float after each one.",
-      ledgerNoneCreates: "A top-up, a booking payment, a payout or a refund writes the first entry.",
-      credit: "Credit",
-      debit: "Debit",
       entries: "entries",
       refundState: {
         submitted: "Sent back to the card",
@@ -4324,40 +4307,16 @@ export const en = {
     },
 
     payments: {
-      lede: "Money coming in, and anything stuck, short or waiting on the provider.",
+      lede: "Money coming in through the provider, and any payment it has not settled.",
       healthTitle: "Health",
-      healthHint: "Money that is stuck, short, or waiting on the provider",
-      shortfall: "Ledger shortfall",
-      addsUp: "Every wallet adds up",
-      belowZero: { one: "1 wallet is below zero", other: "{count} wallets are below zero" },
-      frozen: "Frozen by stuck holds",
-      nothingHeld: "Nothing is held past its window",
-      olderThan: {
-        one: "1 withdrawal older than {minutes} minutes",
-        other: "{count} withdrawals older than {minutes} minutes",
-      },
+      healthHint: "Payments the provider has not settled",
       waitingProvider: "Waiting on the provider",
       nothingUnsettled: "Nothing unsettled in thirty days",
       pendingOrFailed: { one: "1 payment pending or failed", other: "{count} payments pending or failed" },
       clearTitle: "The money is where it should be",
-      clearFills:
-        "No wallet is overdrawn, no withdrawal is held past its window, and the provider has settled everything it was sent in the last thirty days.",
-      clearCreates: "An overdrawn wallet, a stuck hold or an unsettled payment appears here the moment one exists.",
-      overdrawnTitle: "Overdrawn wallets",
-      overdrawnHint:
-        "A wallet whose settled entries sum below zero. This is not a delay, it is an arithmetic failure in the ledger, and it has no button here on purpose: an adjusting entry typed into a web form would bury the evidence an engineer needs to find the cause.",
-      owner: "Owner",
-      wallet: "Wallet",
-      balance: "Balance",
-      nameNotOnFile: "Name not on file",
-      stuckTitle: "Stuck withdrawal holds",
-      stuckHint:
-        "A withdrawal still marked pending after {minutes} minutes. The money is neither in the owner's spendable balance nor in their bank account.",
-      stuckNoneTitle: "No withdrawal is stuck",
-      stuckNoneFills: "Every pending hold is inside its window, which means it is on its way rather than frozen.",
-      stuckNoneCreates: "A withdrawal still pending after the window appears here with the control to release it.",
+      clearFills: "The provider has settled every payment it was sent in the last thirty days.",
+      clearCreates: "A payment the provider has not settled appears here the moment one exists.",
       reference: "Reference",
-      heldSince: "Held since",
       amount: "Amount",
       waitingHint:
         "Payments the provider has not settled, from the last thirty days. Re-asking the provider is the reconcile job's decision to take, not this screen's.",
@@ -4368,17 +4327,17 @@ export const en = {
       unknownProvider: "Unknown provider",
       outcome: { succeeded: "Succeeded", initialised: "Started", abandoned: "Abandoned" },
       kpiStarted: "Started",
-      kpiStartedNote: "Checkouts and top-ups begun this week",
+      kpiStartedNote: "Checkouts begun this week",
       kpiSucceededNote: "Paid and settled this week",
       kpiFailedNote: "Refused or reversed this week",
       kpiAbandonedNote: "Started and not finished within a day",
       perDayTitle: "Money in per day",
       unreadTitle: "Payments could not be read",
-      unreadCharts: "Every checkout and top-up the platform has started. The read did not answer just now; reload in a moment.",
+      unreadCharts: "Every checkout the platform has started. The read did not answer just now; reload in a moment.",
       perDayHint: "Succeeded, last 30 days",
       perDayNone: "No payment succeeded in thirty days",
       perDayOne: "One day of payments so far",
-      perDayFills: "The value of checkouts and top-ups that succeeded each day over the last thirty days.",
+      perDayFills: "The value of checkouts that succeeded each day over the last thirty days.",
       perDayCreates: "Every payment the provider settles adds to its day. A line needs two days, so none is drawn.",
       openMoneyDesk: "Open the money desk",
       perDayLabel: "Succeeded payments per day, last thirty days",
@@ -4386,33 +4345,28 @@ export const en = {
       byChannelTitle: "By channel",
       byChannelHint: "Attempts, last 30 days",
       noAttemptTitle: "No payment attempt in thirty days",
-      byChannelFills: "Checkouts and top-ups by the channel they were paid through: card, bank transfer, USSD and the rest.",
-      byChannelCreates: "The channel is recorded when the provider confirms a top-up.",
+      byChannelFills: "Checkouts by the channel they were paid through: card, bank transfer, USSD and the rest.",
+      byChannelCreates: "Each checkout started is counted here, under its channel where the provider recorded one.",
       channelIn: "{channel}: {amount} in",
       nothingOnChannel: "Nothing succeeded on any channel in thirty days.",
       endedTitle: "Where payments ended",
       attempts30: { one: "{count} attempt, last 30 days", other: "{count} attempts, last 30 days" },
       endedLabel: "Payment attempts by outcome, last thirty days",
-      endedFills: "Where every checkout and top-up ended: succeeded, still in progress, abandoned, failed or refunded.",
-      startsOne: "A guest paying for a stay or a person funding their wallet starts one.",
+      endedFills: "Where every checkout ended: succeeded, still in progress, abandoned, failed or refunded.",
+      startsOne: "A guest paying for a stay starts one.",
       everyTitle: "Every payment",
       attempts: { one: "{count} attempt", other: "{count} attempts" },
       narrowOutcome: "Narrow the payments",
-      narrowKind: "Narrow by kind",
       allOutcomes: "All outcomes",
-      allKinds: "Checkouts and top-ups",
-      checkouts: "Booking checkouts",
-      topups: "Wallet top-ups",
-      unreadTable: "Every checkout and top-up with its reference, channel and outcome. The read did not answer just now.",
+      unreadTable: "Every checkout with its reference, channel and outcome. The read did not answer just now.",
       kind: "Kind",
       channel: "Channel",
       outcomeColumn: "Outcome",
       noMatchFills: "No payment attempt has that outcome or kind.",
       showEvery: "Show every payment",
       noneTitle: "No payment has been started yet",
-      noneFills: "Every booking checkout and wallet top-up, with its reference, channel and where it ended.",
+      noneFills: "Every booking checkout, with its reference, channel and where it ended.",
       checkout: "Booking checkout",
-      topup: "Wallet top-up",
       paymentsNoun: "payments",
       lookup: {
         title: "Saved cards and bank accounts",
@@ -4872,16 +4826,6 @@ export const en = {
   },
 
   /**
-   * /wallet/send: a whole page for sending to another Vallo wallet.
-   * Added 18 September 2026.
-   */
-
-  /**
-   * /wallet/receive: your handle, your address, a request to share.
-   * Added 18 September 2026.
-   */
-
-  /**
    * /settings/payments: "Payment methods". Cards you pay with, accounts you
    * are paid into. Added 18 September 2026.
    */
@@ -4915,17 +4859,15 @@ export const en = {
     removeCardBody: "It is forgotten here and cannot be charged by Vallo again. Your bank is not involved.",
     removeCardConfirm: "Yes, remove it",
     banksLabel: "Bank accounts",
-    banksNote: "Where a Vallo Guarantee payout is sent if a claim is approved. We confirm the name with the bank before saving anything.",
-    banksNoteBeforePayouts:
-      "Withdrawal to a bank is not available yet. An account saved here is where withdrawals will go once bank payouts open. We confirm the name with the bank before saving anything.",
+    banksNote: "Where your share of a payment settles, and where an approved claim is paid. We confirm the name with the bank before saving anything.",
     accountsEmptyTitle: "No bank account yet",
-    accountsEmptyBody: "Add the account your share of a payment, or an approved Guarantee claim, should reach. The first one becomes your default.",
+    accountsEmptyBody: "Add the account your share of a payment should reach. The first one becomes your default.",
     addAccount: "Add a bank account",
     defaultPayouts: "Default for payouts",
     accountSheetTitle: "This account",
     makeDefaultAccount: "Use for payouts",
     removeAccount: "Remove this account",
-    removeAccountBody: "Payments and Guarantee payouts can no longer go here. Nothing already sent is affected.",
+    removeAccountBody: "Payments can no longer settle here. Nothing already sent is affected.",
     removeAccountConfirm: "Yes, remove it",
     addSheetTitle: "Add a bank account",
     pickBank: "Bank",
@@ -4965,6 +4907,9 @@ export const en = {
     aboutTitle: "About this place",
     roomsTitle: "Rooms",
     roomsDescription: "Tap a room to see its rates and what each one includes.",
+    /* D73: a fixed-price stay books instantly; the rate cards are the choice. */
+    ratesDescription: "Choose a rate. The total below follows your choice.",
+    bookAndPay: "Book and pay",
     theDetails: "The details",
     amenitiesTitle: "What is here",
     policyTitle: "Cancellation",
@@ -5031,6 +4976,9 @@ export const en = {
     menu: "See the menu",
     openNowTitle: "Open now",
     perHead: "a head, typically",
+    /* The place tabs and the anchored foot (7 October 2026). */
+    tabTable: "The table",
+    reserveFootCaption: "Pick a day, a time and your party",
     reserveTitle: "Hold a table",
     reserveBody: "Pick a time and the restaurant answers. Nothing is charged to hold a table.",
     hoursTitle: "Opening hours",
@@ -5067,6 +5015,7 @@ export const en = {
       rent: "Rent",
       sqm: "m²",
       noPhotos: "No photographs yet",
+      watchVideo: "Watch video",
       example: "Example",
     },
     /* B2: what the phone remembers, offered back (lib/search/memory.ts). */
@@ -5193,6 +5142,22 @@ export const en = {
       verifiedHost: "Verified host",
       selectDate: "Select date",
       bookNow: "Book now",
+      /* The listing page upgrade (13 October 2026): the founder's reference layout. */
+      scheduleVisit: "Schedule a visit",
+      gallery: "Gallery",
+      viewAll: "View all",
+      viewAllMedia: "View all {count} photos and videos",
+      messageLister: "Message {name}",
+      callByMessage: "Message {name} first to arrange a call",
+      openProfile: "Open the profile of {name}",
+      theLister: "the lister",
+      allFacts: "Show all details",
+      fewerFacts: "Show fewer details",
+      highlights: "Highlights",
+      hoursADay: "{hours} a day",
+      verifiedBeforeLive: "A person at Vallo checked their ID before this listing went live.",
+      managesListing: "Manages this listing on Vallo",
+      restaurantLede: "Listed on Vallo by the person who runs it. Message them to ask about a table, a large party or anything the page does not answer.",
     },
     ledger: {
       title: "Move-in cost",
@@ -5296,6 +5261,26 @@ export const en = {
       seeAll: "See all",
       perNight: "per night",
       reviews: "({count} reviews)",
+      /* The featured stack (the travel-app reference) and a place's Map tab. */
+      stack: {
+        open: "Open",
+        next: "Next place",
+        previous: "Previous place",
+        position: "{n} of {total}",
+      },
+      place: {
+        tabStay: "The stay",
+        tabMap: "Map",
+        mapLead: "The area. The exact address comes with your confirmation.",
+        mapLeadTable: "The area. The full address is in your reservation.",
+        area: "Area",
+        photoTour: "Photo tour",
+        photos: "{count} photographs",
+        noPhotos: "No photographs yet",
+        checkIn: "Check in from",
+        checkOut: "Check out by",
+        mapUnavailable: "The map did not load. The area is {area}.",
+      },
       results: "{count} stays",
       resultsOne: "1 stay",
       resultsNone: "No stays match yet",
@@ -5757,6 +5742,16 @@ export const en = {
       documentsMissed:
         "Your application is filed, but the files did not attach. Contact us with that reference and we will add them.",
       trackIt: "See how it stands",
+      /* Shown instead of a setup form while an application is still open. */
+      openTitle: "You already have an application waiting",
+      openBody: "It is filed as {reference}. A second one would only queue behind it, so follow that one instead.",
+      /* One account, one side (lib/agent/role-lock.ts). */
+      otherSideTitle: "This account is already on the other side",
+      ownerNotAgent:
+        "This account is an owner's account. An agent works from a separate account, because the two workspaces are different. To work as an agent, sign up again with a different email address and register as an agent there.",
+      agentNotOwner:
+        "This account is an agent's account. An owner lists from a separate account, because the two workspaces are different. To list your own property, sign up again with a different email address and register as an owner there.",
+      backToProfile: "Back to your profile",
       backHome: "Back to home",
       reviewDays: "Usually two working days",
       reviewDaysFirm: "Usually three working days",
@@ -5764,7 +5759,11 @@ export const en = {
       replaceFile: "Choose a different file",
       uploading: "Uploading",
       fileReady: "Ready to send",
-      fileTooBig: "That file is over 10MB. Please choose a smaller photo or PDF.",
+      fileTooBig: "That file is over 8MB. Please choose a smaller photo or PDF.",
+      fileType: "That file is not a photo or a PDF, so it cannot be sent. Choose a JPG, PNG, HEIC or PDF.",
+      /* `{size}` is the bucket's ceiling, "8MB" (components/verification/kyc.ts). */
+      fileLimit: "A photo or a PDF, up to {size}.",
+      photoLimit: "A photo, up to {size}.",
       fileFailed: "That upload did not go through. Please try again.",
       signInFirst: "Please sign in before uploading, so the file is filed to your account.",
       owner: {
@@ -5793,8 +5792,15 @@ export const en = {
             governors_consent: "Governor's consent",
             survey_plan: "Survey plan",
             utility_bill: "Utility bill in your name",
+            letter_of_authority: "Letter of authority from the owner",
             none: "I have none of these",
           },
+          /* The mark a reviewer's approval of the document earns, on the
+             owner's profile and listings (components/trust/OwnershipSeenMark). */
+          seenMark: "Ownership seen",
+          uploadTitle: "Send a photo or scan of it",
+          uploadBody:
+            "Optional, and you can send it later. Only Vallo's reviewers open it. Once a reviewer has seen it, your profile and listings show \"Ownership seen\".",
           stillListTitle: "You can still list",
           stillListBody:
             "That is a normal answer in Nigeria and it does not stop you listing. Your listing goes live the same way; it just will not carry the ownership mark until you can show us something.",
@@ -5843,7 +5849,10 @@ export const en = {
           title: "Your fees, in the open",
           sub: "Set what you charge. Every client sees it before they ever ring you.",
           agency: "Agency fee",
-          agencyMeaning: "What you charge the landlord.",
+          /* The tenant pays it: the live total below adds it to what a tenant
+             pays to move in. This read "What you charge the landlord", which
+             contradicted the total on the same screen. */
+          agencyMeaning: "What the tenant pays you for finding them the place.",
           legal: "Legal fee",
           legalMeaning: "What you charge for the legal work.",
           less: "Less",
@@ -5949,6 +5958,8 @@ export const en = {
   trustVisible: trustVisibleEn,
   /* B5 to B17: the member kit. */
   memberKit: memberKitEn,
+  /* Schedule a visit: the two-step flow at /listing/[id]/visit. */
+  visit: visitEn,
   /* The small things: one toast, copy, connection, pull to refresh. */
   details: detailsEn,
 
@@ -5970,6 +5981,36 @@ export const en = {
 
   passcode: passcodeEn,
 
+  /* Session 3, the experience upgrade: one module per owner (docs/sessions/SESSION-3-RESPONSE.md). */
+  experienceLanding: experienceLandingEn,
+  experienceDiscover: experienceDiscoverEn,
+  experienceDetail: experienceDetailEn,
+  experienceSocial: experienceSocialEn,
+  experienceInbox: experienceInboxEn,
+  /* VC1: voice and video calls, and the review calls (docs/video-calling/). */
+  calls: callsEn,
+  /* Vallo Pro and Vallo Business: the trial, the Paystack checkout, managing a plan. */
+  subscriptions: subscriptionsEn,
+  experienceAccount: experienceAccountEn,
+  experienceFeatures: experienceFeaturesEn,
+  /* C3, Round 3: the Rewards Balance and the referral dashboard (D51). */
+  experienceRewards: experienceRewardsEn,
+  experienceAdmin: experienceAdminEn,
+  experienceMoney: experienceMoneyEn,
+  experienceUi: experienceUiEn,
+  experienceEntry: experienceEntryEn,
+  experienceShell: experienceShellEn,
+  experienceSpeed: experienceSpeedEn,
+  experienceLister: experienceListerEn,
+  /* C5, Round 3: the settings area nav, notification matrix, Accessibility and Language and currency. */
+  experienceSettings: experienceSettingsEn,
+  /* C5, the route sweep: the host pages' remaining words (English only; see the module for why not hostWorkspace). */
+  experienceHost: experienceHostEn,
+  /* C6, the route sweep: the public site's and the auth doors' new words (English only). */
+  experienceSite: experienceSiteEn,
+  /* C9, after the route sweep: the listing label maps lib/listings once spelled in English (English only). */
+  experienceLabels: experienceLabelsEn,
+
   desk: deskEn,
 
   publicMeta: publicMetaEn,
@@ -5979,6 +6020,11 @@ export const en = {
   mail: mailEn,
 
   onboardingMotion: onboardingMotionEn,
+
+  visitOps: visitOpsEn,
+
+  referralDesk: referralDeskEn,
+
 
   /*
    * THE SUCCESS SHEET (components/ui/SuccessSheet.tsx, docs/SUCCESS_MOMENTS.md).
@@ -6178,6 +6224,983 @@ export const en = {
       },
     },
   },
+
+  /* The host table desk (`/host/reservations`, track/restaurant-desk):
+     today's figures, search, the day lists and every word on a table card.
+     Counted phrases are plural forms, read with `plural()`. */
+  tableDesk: {
+    today: "Today",
+    upcoming: "Upcoming",
+    earlier: "Earlier",
+    todayEmpty: "No tables today.",
+    upcomingEmpty: "Nothing booked after today yet.",
+    earlierEmpty: "Nothing in the last few weeks.",
+    figuresLabel: "Today at a glance",
+    figures: {
+      covers: "Covers expected",
+      coversSub: "across {tables}",
+      toConfirm: "To confirm",
+      toConfirmLater: { one: "1 more after today", other: "{count} more after today" },
+      toConfirmNoneLater: "None after today",
+      seated: "Seated",
+      done: "Done",
+      doneSub: "of {tables} booked",
+    },
+    tables: { one: "1 table", other: "{count} tables" },
+    dayCovers: "{tables}, {guests}",
+    search: {
+      label: "Search tables",
+      placeholder: "Guest, note, venue or party size",
+      none: "No table matches that search.",
+      clear: "Clear search",
+      results: { one: "1 table found", other: "{count} tables found" },
+    },
+    status: {
+      request: "Request",
+      confirmed: "Confirmed",
+      seated: "Seated",
+      noShow: "No-show",
+      disputed: "Disputed",
+      closed: "Declined or called off",
+      lapsed: "Not answered in time",
+    },
+    card: {
+      note: "Note from the guest",
+      confirm: "Confirm",
+      decline: "Decline",
+      confirmTitle: "Confirm {name}'s table?",
+      confirmTable: "Confirm table",
+    },
+    record: {
+      line: "Kept {kept}, missed {missed}, last 12 months",
+      keptOnly: "Kept {kept}, last 12 months",
+      missedOnly: "Missed {missed}, last 12 months",
+      tables: { one: "1 table", other: "{count} tables" },
+    },
+    seat: {
+      title: "A guest has arrived",
+      label: "Guest's check-in code",
+      hint: "The six digits the guest shows you. It marks the table as seated.",
+      submit: "Seat the table",
+      done: "Seated. Enjoy the service.",
+    },
+    outcome: {
+      ask: "How did this table go? Mark it once the time has passed.",
+      seated: "Seated",
+      noShow: "No-show",
+      markedSeated: "Marked as seated.",
+      markedNoShow: "Marked as a no-show. The guest is told.",
+    },
+    bill: {
+      label: "The total on the bill",
+      hint: "The guest can then pay it to you through Vallo.",
+      paid: "Bill of {amount} paid through Vallo.",
+      paying: "The guest is paying the bill of {amount}.",
+      check: "The guest entered a bill of {amount}. Is that right?",
+      confirm: "Confirm the bill",
+      sent: "Bill of {amount} sent. The guest can pay it now.",
+      send: "Send the bill",
+      sendInstead: "Send this amount instead",
+      failed: "That did not go through. Please try again.",
+    },
+  },
+  /**
+   * Search, upgraded (track search-map, 13 October 2026): the one-per-row
+   * result card, the quick chips under the bar, Best matches and New
+   * listings, the filter sheet's market, price and room rows, and the map's
+   * photo pins, docked card and credit control. Every reason line names a
+   * real signal the person gave: a saved search, a saved home, what they
+   * said they came for, or a place they opened. Nothing here is a score.
+   */
+  searchV2: {
+    placeholder: "Search or describe your home",
+    sort: "Sort",
+    sortCurrent: "Sort, now {sort}",
+    quick: {
+      label: "Quick picks",
+      forYou: "For you",
+      nearMe: "Near me",
+      newListed: "New listed",
+      locating: "Finding your location",
+      denied: "Location is off for this site. Turn it on in your browser settings to search near you.",
+      failed: "Your location could not be found. Try again.",
+      unavailable: "This browser does not share location, so we cannot search near you.",
+    },
+    sections: {
+      bestMatches: "Best matches",
+      bestMatchesHint: "From your saved searches, saved homes, what you came for and the places you opened.",
+      newListings: "New listings",
+      allHomes: "All homes",
+    },
+    reasons: {
+      areaBudget: "In {area}, under your budget",
+      areaSaved: "In {area}, like your saved search",
+      budget: "Under your saved budget",
+      saved: "Matches your saved search",
+      nearSaved: "In {area}, near a home you saved",
+      recent: "In {area}, where you have been looking",
+      kind: "{kind}, what you came for",
+    },
+    filters: {
+      market: "Market",
+      forRent: "For rent",
+      forSale: "For sale",
+      shortlet: "Shortlet",
+      shortletNote: "Shortlets are stays, so they open on the Stays search with your words kept.",
+      price: "Price",
+      minBudget: "Min budget",
+      maxBudget: "Max budget",
+      minimumCount: "Minimum count",
+      seeHomes: "See {homes}",
+      seeNone: "No homes match yet",
+      seeShortlets: "See shortlets",
+    },
+    map: {
+      about: "About this map",
+      credits: "Map data",
+      aside: "Map of these homes",
+    },
+  },
+  /**
+   * PAY ON VALLO (founder rulings, 13 October 2026). The payment step's
+   * choice card (escrow preselected, or card; a sale is escrow only, a hotel
+   * room card only) and the acceptance every workspace application and setup
+   * asks for before it is sent. The sentences about where money goes are in
+   * `lib/money/copy.ts`; these are the labels, the actions and the refusals.
+   */
+  payChoice: {
+    title: "How would you like to pay?",
+    label: "Choose how to pay",
+    escrow: "Escrow",
+    card: "Pay by card",
+    recommended: "Recommended",
+    continue: "Continue",
+    saving: "Saving your choice",
+    escrowOnlyTitle: "Paid into escrow",
+    cardOnlyTitle: "Paid by card",
+    lockedNote: "Your payment has started, so the way you pay stays as it is.",
+    notPayerNote: "The renter or guest chooses how to pay.",
+    refused: {
+      not_found: "We could not find that agreement on your account.",
+      not_payer: "Only the person paying can choose how to pay.",
+      bad_choice: "Choose Escrow or Pay by card.",
+      closed: "This agreement is closed, so there is nothing to pay on it.",
+      already_paid: "This is already paid.",
+      payment_started: "A payment is already under way, so the way you pay cannot change now.",
+      sale_escrow_only: "A purchase is paid into escrow only.",
+      card_only: "This is paid by card only.",
+      escrow_only: "This is paid into escrow only.",
+      no_rail: "Payment is not open for this yet. Nothing has been charged.",
+      card_needs_review: "Paying by card is not open on this deal now, because it would need a person at Vallo to check it first. Escrow is open.",
+      unavailable: "That could not be saved just now. Nothing has been charged; try again in a moment.",
+    },
+    accept: {
+      title: "Before you send this",
+      termsLead: "I have read and accept the",
+      termsLink: "Terms of Service",
+      and: "and the",
+      privacyLink: "Privacy Policy",
+      newTab: "opens in a new tab",
+      payInside: "Every payment for a deal I make on Vallo happens inside Vallo.",
+      required: "Tick both boxes to send this.",
+      done: "You accepted the Terms of Service and the Privacy Policy, and that every payment for a deal happens inside Vallo.",
+    },
+  },
+  workspaceDash: {
+    common: {
+      viewAll: "View all",
+      unavailable: "This could not be loaded. Try again in a moment.",
+      today: "Today",
+    },
+    owner: {
+      band: {
+        paid: "Rent paid this month",
+        paidSub: "paid through Vallo",
+        renewals: "Renewals in 90 days",
+        renewalsSub: "tenancies ending",
+        visits: "Visits this week",
+        visitsSub: "confirmed",
+        waiting: "Waiting on you",
+        waitingSub: "agreements to confirm",
+      },
+      leaseToday: {
+        title: "Lease ends today",
+        endsToday: "Ends today",
+        unnamed: "Your unit",
+        open: "Open tenancy file",
+      },
+      rentMonth: {
+        title: "Rent due this month",
+        due: "Due",
+        paid: "Paid so far",
+        progress: "{paid} of {due} paid",
+        opened: { one: "{count} rent charge opened", other: "{count} rent charges opened" } as PluralForms,
+        empty: "No rent charge was opened this month.",
+        emptyBody: "When a tenant is asked to pay, it shows here with how much has come in through Vallo.",
+        note: "Only payments made inside Vallo are counted.",
+      },
+      trend: {
+        title: "Rent paid in, last 6 months",
+        periodHead: "Month",
+        valueHead: "Paid in",
+        empty: "No rent has been paid in through Vallo in these months.",
+      },
+      units: {
+        title: "Your rental units",
+        let: "Let",
+        vacant: "Live and vacant",
+        other: "Draft or in review",
+        total: { one: "{count} unit", other: "{count} units" } as PluralForms,
+        empty: "No rental units yet",
+        emptyBody: "Add a property and it shows here as let, vacant or in draft.",
+        cta: "Add a property",
+      },
+      paymentDue: {
+        title: "Next rent due",
+        dueOn: "Rent falls due {date}",
+        today: "Today",
+        inDays: { one: "in {count} day", other: "in {count} days" } as PluralForms,
+        current: "Current rent {amount}",
+        open: "Open tenancy file",
+        empty: "No rent is due soon",
+        emptyBody: "Once a tenant has paid through Vallo, the date their rent falls due again shows here.",
+      },
+      upcoming: {
+        title: "Coming up",
+        visits: "Visits this week",
+        renewals: "Renewals in 90 days",
+        agreements: "Agreements waiting on you",
+        noVisits: "No visits are booked this week.",
+        noRenewals: "No tenancy ends in the next 90 days.",
+        noAgreements: "No agreement is waiting on you.",
+        confirmTerms: "Confirm the terms",
+        endsOn: "Ends {date}",
+        unnamed: "Your unit",
+        agreement: "Agreement",
+      },
+      property: {
+        title: "Property",
+        letUntil: "Let until {date}",
+        vacant: "Live and vacant",
+        offMarket: "Not on the market yet",
+        tenancy: "Tenancy file",
+        earnings: "Earnings",
+        listing: "Listing",
+        visits: "Visits",
+      },
+    },
+    agent: {
+      band: {
+        enquiries: "New enquiries",
+        enquiriesSub: "last 30 days",
+        viewings: "Viewings booked",
+        viewingsSub: "coming up",
+        live: "Listings live",
+        liveSub: "on the market",
+        deals: "Deals closed",
+        dealsSub: "last 90 days",
+      },
+      featured: {
+        title: "Featured listing",
+        why: "Most enquiries in the last 30 days",
+        whyNewest: "A live listing of yours",
+        enquiries: "Enquiries",
+        enquiriesSub: "30 days",
+        opened: "Opened",
+        openedSub: "7 days",
+        viewings: "Viewings",
+        viewingsSub: "7 days",
+        open: "Open listing",
+        empty: "No live listing yet",
+        emptyBody: "Publish a listing and the one getting the most enquiries is featured here.",
+        cta: "Add a listing",
+        bedrooms: "{count} bed",
+      },
+      chart: {
+        title: "Enquiries and visits",
+        enquiries: "Enquiries",
+        visits: "Visits",
+        periodHead: "Month",
+        empty: "Nothing recorded in the last 6 months yet.",
+      },
+      contacts: {
+        title: "Recent contacts",
+        message: "Message",
+        call: "Call",
+        about: "About {listing}",
+        empty: "No enquiries yet",
+        emptyBody: "People who message you about a listing appear here.",
+      },
+      reminders: {
+        title: "Reminders",
+        followups: { one: "{count} follow-up due", other: "{count} follow-ups due" } as PluralForms,
+        overdue: { one: "{count} overdue", other: "{count} overdue" } as PluralForms,
+        visits: { one: "{count} visit today", other: "{count} visits today" } as PluralForms,
+        expiring: {
+          one: "{count} listing to confirm as still available",
+          other: "{count} listings to confirm as still available",
+        } as PluralForms,
+        empty: "Nothing needs you today",
+        emptyBody: "Follow-ups, visits and listings to confirm show here when they are due.",
+        unread: "Some reminders could not be loaded.",
+      },
+      calendar: {
+        title: "Visit calendar",
+        legend: "A dot marks a day with a visit.",
+        open: "Open visits",
+        visits: { one: "{count} visit", other: "{count} visits" } as PluralForms,
+        empty: "No visits are booked this month.",
+      },
+    },
+    followup: {
+      label: "Follow up on",
+      noteLabel: "Note",
+      notePlaceholder: "What to say or ask",
+      save: "Save follow-up",
+      clear: "Clear",
+      cancel: "Cancel",
+      change: "Set date",
+      set: "Follow up on {date}",
+      none: "No follow-up set",
+      dueChip: "Due today",
+      overdueTag: "Overdue",
+      dueEmpty: "No follow-ups are due",
+      dueEmptyBody: "When a follow-up date arrives, the enquiry is listed here.",
+      dueToday: "Due today",
+      errPast: "Pick today or a later day.",
+      errFar: "A follow-up can be at most a year ahead.",
+      errNote: "Keep the note to 200 characters.",
+      errFormat: "Pick a valid date.",
+      errNotYours: "This enquiry is not yours.",
+      errFailed: "Nothing was saved. Try again.",
+    },
+  },
+
+  /*
+   * THE HOTEL AND RESTAURANT WORKSPACE (track/hospitality-workspace): the
+   * summary cards, the front desk, the booking calendar (tape chart) and the
+   * restaurant's home figures. Counted phrases are plural forms read through
+   * `plural()`; Yoruba and Igbo have the one category `other`.
+   */
+  hostDash: {
+    hotel: {
+      summaryLabel: "Today at your hotel",
+      arrivals: "Arrivals today",
+      arrivalsToCheckIn: { one: "1 still to check in", other: "{count} still to check in" },
+      arrivalsAllIn: "Everyone is in",
+      arrivalsNone: "None expected",
+      inHouse: "In house",
+      inHouseLeaving: { one: "1 leaving today", other: "{count} leaving today" },
+      inHouseNoneLeaving: "None leaving today",
+      inHouseFromDates: "Staying tonight",
+      departures: "Departures today",
+      departuresToCheckOut: { one: "1 still to check out", other: "{count} still to check out" },
+      departuresAllOut: "Everyone is out",
+      departuresNone: "None today",
+      fromDates: "From the booking dates",
+      occupancy: "Occupancy tonight",
+      occupancyOf: { one: "{booked} of 1 room booked", other: "{booked} of {count} rooms booked" },
+      occupancyNone: "No rooms on sale tonight",
+      revenue: "Received this month",
+      revenueShare: "{paid} paid by guests, {fee} to Vallo",
+      revenueNone: "No payments yet this month",
+      revenueUnavailable: "Could not be read just now",
+      calendarLink: "Open the booking calendar",
+      bookingsLink: "All room bookings",
+    },
+    desk: {
+      title: "Front desk",
+      lede: "Who is arriving, who is in the house and who is leaving, by the Lagos day.",
+      arriving: "Arriving today",
+      inHouse: "In house",
+      leaving: "Leaving today",
+      emptyArriving: "Nobody left to check in today.",
+      emptyInHouse: "Nobody is in the house right now.",
+      emptyLeaving: "Nobody is leaving today.",
+      checkIn: "Check in",
+      checkOut: "Check out",
+      checkedInAt: "In at {time}",
+      checkedOutAt: "Out at {time}",
+      working: "Saving",
+      roomLine: "{room} at {hotel}",
+      leavesOn: "Leaves {date}",
+      lateArrival: "Late arrival, expected {date}",
+      lateLeaving: "Was due out {date}",
+      awaitingPayment: "Awaiting payment",
+      guest: "Guest",
+      more: { one: "1 more in the booking calendar", other: "{count} more in the booking calendar" },
+      notAvailable: "Check in and check out are not available yet. These lists come from the booking dates.",
+      unreadable: "The check-in marks could not be read just now, so the buttons are off. Refresh to try again.",
+      errors: {
+        not_available: "Check in and check out are not available yet. Nothing was changed.",
+        not_yours: "That booking is not at one of your hotels.",
+        sign_in: "Sign in again to continue.",
+        not_confirmed: "Check in and check out work only for a confirmed stay.",
+        not_paid: "This stay is not paid through Vallo yet, so it cannot be checked in.",
+        outside_dates: "Check in is open from the guest's arrival day to their departure day.",
+        check_in_first: "Check the guest in first.",
+        failed: "That did not go through. Nothing was changed. Try again.",
+      },
+    },
+    tape: {
+      title: "Booking calendar",
+      lede: "The next 14 days, with a bar for every stay under its room type.",
+      frame: "Booking calendar for the next 14 days",
+      filtersLabel: "Show room types",
+      filters: { all: "All", vacant: "Vacant tonight", occupied: "Occupied tonight", dueOut: "Due out today" },
+      roomType: "Room type",
+      available: "Available",
+      occupancy: "Occupancy",
+      allRooms: "All room types",
+      today: "Today",
+      notOnSale: "Not on sale",
+      offSale: { one: "1 off sale", other: "{count} off sale" },
+      stay: "{guest}, {from} to {to}, {nights}",
+      requestSuffix: "waiting for your answer",
+      legendIn: "In house now",
+      legendStay: "Confirmed stay",
+      legendRequest: "Waiting for your answer",
+      legendOffSale: "Rooms off sale",
+      guest: "Guest",
+      noMatch: "No room type matches this filter tonight.",
+      emptyTitle: "No rooms to show yet",
+      emptyBody: "Add your room types and the nights you sell them, and the next two weeks appear here.",
+      emptyAction: "Set up rooms",
+      truncated: { one: "Only the first booking is drawn.", other: "Only the first {count} bookings are drawn." },
+      scrollHint: "Scroll sideways for the rest of the 14 days.",
+    },
+    restaurant: {
+      summaryLabel: "Today at your restaurant",
+      covers: "Covers expected",
+      coversSub: "across {tables}",
+      toConfirm: "Bookings to confirm",
+      toConfirmToday: { one: "1 is for today", other: "{count} are for today" },
+      toConfirmNone: "Nothing waiting",
+      seated: "Seated",
+      seatedNone: "Nobody seated yet",
+      noShows: "No-shows this month",
+      noShowsSub: "Tables nobody came to",
+      noShowsUnavailable: "Could not be counted just now",
+      tables: { one: "1 table", other: "{count} tables" },
+      weekTitle: "Bookings, next 7 days",
+      weekTotal: { one: "1 table booked", other: "{count} tables booked" },
+      weekDay: "{tables}, {guests}",
+      weekEmpty: "No tables are booked for the next 7 days yet.",
+      weekUnavailable: "The week could not be read just now.",
+      todayTitle: "Today",
+      todayEmpty: "No tables today.",
+      todayMore: { one: "1 more table today", other: "{count} more tables today" },
+      status: { request: "To confirm", confirmed: "Confirmed", seated: "Seated", noShow: "No-show" },
+      emptyTitle: "No tables yet",
+      emptyBody: "When a guest asks for a table, it appears here and on the table desk.",
+      openDesk: "Open the table desk",
+    },
+  },
+  /**
+   * Chat hints (apps/web/src/lib/messages/hints.ts): the one small card and the quick
+   * reply chips above a renter's composer in a listing thread. A chip only fills
+   * the composer with `text`; nothing is sent until the person presses send.
+   */
+  chatHints: {
+    label: "You may want to ask",
+    region: "Suggested questions",
+    dismiss: "Dismiss this suggestion",
+    gaps: {
+      power: {
+        line: "Ask about electricity and backup power",
+        chip: "Ask about power",
+        text: "Hello, how many hours of electricity does the property usually get in a day, and is there a generator or inverter? Thank you.",
+      },
+      water: {
+        line: "Ask about the water supply",
+        chip: "Ask about water",
+        text: "Hello, where does the water come from, and is there a borehole or a tank? Thank you.",
+      },
+      moveIn: {
+        line: "Ask for the full cost to move in",
+        chip: "Ask about charges",
+        text: "Hello, could you list everything I would pay to move in, such as caution, agency, legal and service charges, with the total? Thank you.",
+      },
+      buyCosts: {
+        line: "Ask for the full cost to buy",
+        chip: "Ask about costs",
+        text: "Hello, could you list every cost on top of the asking price, such as agency, legal and registration fees, with the total? Thank you.",
+      },
+      parking: {
+        line: "Ask about parking",
+        chip: "Ask about parking",
+        text: "Hello, is there parking at the property, and is it inside the compound? Thank you.",
+      },
+      rules: {
+        line: "Ask about pets and house rules",
+        chip: "Ask about rules",
+        text: "Hello, are pets allowed, and are there any house rules I should know about? Thank you.",
+      },
+    },
+    visit: {
+      label: "You can book a visit",
+      line: "Pick a day and time that suits you. A viewing never takes money.",
+      chip: "Schedule a visit",
+    },
+  },
+  homeV2: {
+    premiumTitle: "Premium listings",
+    featuredTitle: "Featured listings",
+    bestTitle: "Best matches",
+    newTitle: "New listings",
+    reasonSearch: "Matches your saved search: {label}",
+    reasonInterest: "You said you came for {kind}",
+    reasonSaved: "Like places you saved in {area}",
+    bestEmptyTitle: "Tell us what you are looking for",
+    bestEmptyBody:
+      "Best matches come from what you said you came for, your saved searches and the places you save. Add one and they show up here.",
+    bestEmptyAction: "Choose what you came for",
+    bestEmptySearch: "Save a search",
+    bestNoneTitle: "No matches yet",
+    bestNoneBody: "Nothing listed right now fits what you told us. This row updates as new listings are published.",
+    newEmptyTitle: "No new listings yet",
+    newEmptyBody: "New listings appear here the day they are published, newest first.",
+    loadingFeatured: "Loading featured listings",
+    loadingBest: "Loading your best matches",
+    loadingNew: "Loading new listings",
+    photoOf: "Photo {at} of {count}",
+    priceFrom: "from",
+    createStory: "Post to story",
+    createStorySub: "Share a moment from a place",
+    createPost: "Post to feed",
+    createPostSub: "Say something about a place you know",
+    createList: "List a property",
+    createListSub: "Rent it out or sell it",
+    createStay: "Create a stay listing",
+    createStaySub: "A room or a whole place for guests",
+    mapCredits: "Map credits",
+  },
+  /**
+   * The feed, the composers and the people page (13 October 2026): For you
+   * and Friends, the stories row, a post card, and Find people. `card` and
+   * `composer` are carried to client code through `clientCopyOf`, so they stay
+   * short.
+   */
+  feedV2: {
+    card: {
+      commentPill: "Drop a comment",
+      commentAria: "reply to this",
+      readMore: "Read more",
+      readLess: "Show less",
+      roleLandlord: "Landlord",
+      roleAgent: "Agent",
+      openPost: "Open post and replies",
+      edited: "edited",
+      repostedBy: "Reposted by {name}",
+      assistant: "The assistant",
+      someone: "someone",
+      looksAfter: "Looks after {place}",
+      mod: "Mod",
+      moreActions: "More actions",
+      replyingTo: "Replying to",
+      onlyYou: "Only you can see this until then.",
+      pictureAlt: "The picture on this post",
+      seen: "seen",
+      describeVallo: "Posted by Vallo",
+      describeBot: "Answered by the Vallo assistant",
+      describePlain: "Posted by {name}",
+      describeLandlord: "Posted by {name}, a landlord",
+      describeAgent: "Posted by {name}, an agent",
+    },
+    composer: {
+      cancel: "Cancel",
+      post: "Post",
+      sending: "Sending",
+      reply: "Reply",
+      you: "You",
+      addPhotos: "Add photos",
+    },
+    feed: {
+      tabsLabel: "Which feed to read",
+      tabForYou: "For you",
+      tabFriends: "Friends",
+      storiesLabel: "Stories",
+      yourStory: "Your story",
+      addStory: "Add to your story",
+      findPeople: "Find people and businesses to follow",
+      writePost: "Write a post",
+      emptyFriendsTitle: "Nobody you follow has posted yet",
+      emptyFriendsBody: "Follow people and what they write shows up here, newest first.",
+      emptyFriendsSignedOut: "Friends shows what the people you follow write. Sign in and follow a few.",
+      emptyFriendsAction: "Find people",
+      railTitle: "People to follow",
+      railSeeAll: "See all",
+    },
+    people: {
+      navPeople: "People",
+      title: "Find people",
+      searchLabel: "Search people by name or handle",
+      searchPlaceholder: "Search by name or @handle",
+      clear: "Clear the search",
+      searching: "Looking for people",
+      resultsFor: "Results for {query}",
+      noResultsTitle: "Nobody called {query} yet",
+      noResultsBody: "Check the spelling, or try the start of their name or @handle.",
+      back: "Back to the feed",
+      topLandlords: "Top landlords",
+      topAgents: "Top agents",
+      topHotels: "Top hotels",
+      mostFollowed: "Most followed",
+      peopleToFollow: "People to follow",
+      roleLandlord: "Landlord",
+      roleAgent: "Agent",
+      roleHotel: "Hotel",
+      roleAgency: "Agency",
+      roleRestaurant: "Restaurant",
+      followers: { one: "{count} follower", other: "{count} followers" },
+      deals: { one: "{count} completed deal", other: "{count} completed deals" },
+      stays: { one: "{count} completed stay", other: "{count} completed stays" },
+      listings: { one: "{count} live listing", other: "{count} live listings" },
+      rooms: { one: "{count} place live", other: "{count} places live" },
+      viewHotel: "View",
+      viewHotelAria: "View {name}",
+      you: "You",
+      openProfile: "Open {name}",
+      signInToFollow: "Sign in to follow people.",
+      emptyTitle: "Nobody to show yet",
+      emptyBody: "As people on Vallo publish listings and gather followers, they appear here.",
+      unavailableTitle: "People are not available just now",
+      unavailableBody: "This page could not be read. Nothing is shown rather than a guess. Try again in a moment.",
+    },
+  },
+  /**
+   * Chat polish (apps/web/src/components/calls/call-pill-words.ts and
+   * components/app/messages/MediaViewer.tsx): the call pills that sit in a
+   * thread (who called, what happened, how long) and the full-screen viewer for
+   * photos and videos. A duration is only ever one the call recorded.
+   */
+  chatPolish: {
+    calls: {
+      video: "video call",
+      voice: "voice call",
+      videoTitle: "Video call",
+      voiceTitle: "Voice call",
+      missedFrom: "Missed {call} from {name}",
+      callWith: "{Call} with {name}, {duration}",
+      callWithNoTime: "{Call} with {name}",
+      youCalled: "You called {name}, {outcome}",
+      youDeclined: "You declined a {call} from {name}",
+      callFrom: "{Call} from {name}, {outcome}",
+      outcomeCancelled: "cancelled",
+      outcomeNoAnswer: "no answer",
+      outcomeDeclined: "declined",
+      outcomeBusy: "on another call",
+      outcomeFailed: "could not connect",
+      outcomeExpired: "expired",
+      minutes: "{n} min",
+      seconds: "{n} s",
+      callBack: "Call {name} back, {call}",
+    },
+    viewer: {
+      label: "Photos and videos in this chat",
+      close: "Close",
+      save: "Save",
+      share: "Share",
+      previous: "Previous",
+      next: "Next",
+      position: "{n} of {total}",
+      you: "You",
+      photo: "Photo",
+      video: "Video",
+      openPhoto: "Open photo full screen",
+      openVideo: "Play video full screen",
+      zoomIn: "Zoom in",
+      zoomOut: "Zoom out",
+      downloadStarted: "Download started",
+      saveFailed: "Could not save this file. Try again.",
+      loadFailed: "This photo could not be loaded.",
+      shareTitle: "Photo from {name}",
+    },
+  },
+
+  /**
+   * THE VALLO PASSPORT (13 October 2026). Every member has one, whatever their
+   * side. It shows only what Vallo itself recorded, every line is on until its
+   * owner switches it off, and only signed-in members can open it. The reply
+   * time and the verification level are worded here so the document reads as
+   * one piece; the facts themselves come from `lib/passport/model.ts`.
+   */
+  passportV2: {
+    navLabel: "Vallo passport",
+    title: "Vallo passport",
+    subtitle: "What Vallo recorded about you.",
+    documentKind: "Member passport",
+    fallbackName: "Vallo member",
+    nameLabel: "Name",
+    roleLabel: "Role",
+    joinedLabel: "Member since",
+    numberLabel: "Passport no.",
+    levelLabel: "Verification",
+    recordLabel: "On record",
+    rentalsLabel: "Rentals completed",
+    staysLabel: "Stays completed",
+    reviewsLabel: "Reviews",
+    reviewsAverage: "Average {rating} out of 5",
+    responseLabel: "Replies",
+    responseHour: "Usually within an hour",
+    responseHours: "Usually within a few hours",
+    responseDay: "Usually within a day",
+    languagesLabel: "Languages",
+    pidginWelcome: "Pidgin is welcome",
+    levelMember: "Member",
+    levelMemberMeaning: "On Vallo. No identity check by Vallo yet.",
+    levelVerified: "Verified",
+    levelVerifiedMeaning: "Identity checked by a person at Vallo.",
+    levelVallo: "Vallo team",
+    levelValloMeaning: "A Vallo administrator.",
+    machineLine: "Machine-readable lines, made only from what is shown above.",
+    photoAlt: "Photo of {name}",
+    viewTitle: "{name}'s passport",
+    viewLede: "What Vallo recorded about this member.",
+    viewPassport: "View passport",
+    yourPassport: "Your passport",
+    unavailableTitle: "This passport is not available",
+    unavailableBody: "The member has not shared it, or it cannot be opened from your account.",
+    membersOnlyTitle: "Passports are for members",
+    membersOnlyBody: "Sign in to open a member's passport.",
+    signIn: "Sign in",
+    signedOut: "Sign in to use your passport.",
+    readFailed: "Your passport could not be loaded. Try again in a moment.",
+    saveFailed: "That change was not saved. Try again.",
+    lede: "Every line is shown until you switch it off. Members can open your passport from your profile and from a chat.",
+    previewLabel: "What members see",
+    previewOff: "Your passport is off, so nobody can open it.",
+    wholeLabel: "Show my passport",
+    wholeOnSub: "Signed-in members can open it.",
+    wholeOffSub: "Nobody can open it, and cards in chats stop opening.",
+    linesLabel: "Lines on your passport",
+    linesNote: "Your phone number, email, ID numbers, date of birth and address are never on it.",
+    on: "On",
+    off: "Off",
+    notRecorded: "Nothing recorded yet",
+    hiddenSub: "Hidden from members",
+    line: {
+      photo: "Photo",
+      role: "Role",
+      joined: "Join date",
+      verification: "Verification level",
+      rentals: "Completed rentals",
+      stays: "Completed stays",
+      reviews: "Reviews and rating",
+      response: "Reply time",
+      languages: "Languages",
+    },
+    showInChat: "Show my passport",
+    showInChatHint: "Posts a passport card in this chat.",
+    showInChatOff: "Turn on your passport to show it",
+    showInChatOffHint: "It is off now. Open your passport to turn it on.",
+    shownInChat: "Passport card sent.",
+    sendFailed: "The card was not sent. Try again.",
+    viewTheirs: "View {name}'s passport",
+    viewTheirsHint: "What Vallo recorded about them.",
+    cardOpen: "Open passport",
+    cardJoined: "Member since {date}",
+    firstRun: {
+      name: "your passport",
+      p1Title: "What Vallo saw, not what you claim",
+      p1Body: "It holds only what Vallo itself recorded: your role, the day you joined, your verification level, completed rentals and stays, reviews and reply time.",
+      p2Title: "On by default, line by line",
+      p2Body: "Signed-in members can open it. You can switch off any line, or the whole passport, whenever you like.",
+      p3Title: "Never your phone or ID",
+      p3Body: "Your phone number, email, ID numbers, date of birth and address are never on it.",
+      action: "Open my passport",
+    },
+  },
+  /*
+   * The fixes bundle (13 October 2026). One namespace, appended last.
+   *
+   * referral    the founder's ruling: an invited person counts only after they
+   *             verify their phone number. Said plainly on the referral
+   *             surfaces beside what the campaign's own steps say.
+   * offline     what an error boundary says when the phone has no signal: a
+   *             calm fact about the place, not a failure (the same words in
+   *             the app, agent and host boundaries).
+   */
+  fixesV2: {
+    referral: {
+      countsOnPhone: "Your invite counts once they verify their phone number.",
+    },
+    offline: {
+      title: "You are offline",
+      body: "Vallo cannot reach the network right now. This screen loads again by itself when you are back online.",
+    },
+  },
+  /*
+   * Restaurant table deposits (track/restaurant-deposits, 13 October 2026).
+   * The founder's ruling: deposits on, and a table stays free unless the
+   * restaurant sets a deposit for that time and party. One namespace,
+   * appended last.
+   *
+   * guest     the reservation form and the step after it
+   * page      the deposit page (/pay/deposit/[reservationId])
+   * receipt   the deposit receipt on the document sheet
+   * status    one line per deposit state, for the guest's trip row
+   * refusals  why a deposit could not be paid, each a sentence
+   * desk      the restaurant's settings card and the line on each table
+   *
+   * Words follow lib/money/copy.ts: the money goes to the restaurant at the
+   * charge, Vallo never holds it, and no provider is named to a guest.
+   */
+  tableDeposits: {
+    guest: {
+      title: "Deposit to hold this table",
+      perGuest: "{amount} per guest",
+      perTable: "One amount for the table",
+      total: "Deposit",
+      howPaid: "You pay it by card after you send the request. It goes straight to the restaurant and comes off your bill on the night.",
+      refundBefore: "Cancel at least {hours} before your table and it all comes back to your card. Later than that, or if nobody comes, the restaurant keeps it.",
+      refundAnyTime: "Cancel any time before your table and it all comes back to your card. If nobody comes, the restaurant keeps it.",
+      venueCancels: "If the restaurant declines or cancels, it all comes back to your card.",
+      free: "No deposit for this time and party. Asking for a table is free.",
+      freeLine: "Asking for a table is free unless the restaurant asks for a deposit for the time and party you pick. You pay the bill at the restaurant, and any deposit comes off it.",
+      stepTitle: "One step left: the deposit",
+      stepBody: "The restaurant confirms your table once the deposit is paid.",
+      pay: "Pay {amount} by card",
+      opening: "Opening the payment",
+      payLater: "Pay later from your bookings",
+      seeDeposit: "Deposit and receipt",
+    },
+    page: {
+      title: "Table deposit",
+      signedOutTitle: "Sign in to see this deposit",
+      signedOutBody: "A table deposit is shown only to the guest who asked for the table.",
+      signIn: "Sign in",
+      notFoundTitle: "No deposit for this table",
+      notFoundBody: "We could not find a deposit for this table on your account.",
+      backToBookings: "Back to your bookings",
+      checking: "Checking your payment",
+      paidNow: "Deposit paid. The restaurant has it, and it comes off your bill.",
+      notPaid: "The payment did not go through. Nothing has been charged.",
+      stillOpen: "The payment is still open. If you paid, it shows here within a few minutes.",
+      goingBack: "This payment could not be applied to your table, so it goes back to your card.",
+      venue: "Restaurant",
+      when: "Table",
+      party: "Party",
+      freeUntil: "Free cancellation until",
+      freeUntilPassed: "Free cancellation ended",
+      howPaid: "How it is paid",
+      cardOnly: "Card only",
+      afterTitle: "What happens next",
+      afterApplied: "It comes off your bill when you dine.",
+      afterRefund: "Cancel in time, or if the restaurant declines, and it comes back to your card.",
+      afterKept: "A late cancellation or a no-show and the restaurant keeps it. If a no-show is overturned because you were there, it comes back to your card.",
+    },
+    receipt: {
+      kind: "Receipt",
+      figureLabel: "Deposit paid",
+      line: "Table deposit",
+      total: "Total paid",
+      paid: "Payment",
+      paidState: "Received by the restaurant",
+      applied: "Your bill",
+      appliedState: "Taken off",
+      refunded: "Refund",
+      refundedState: "Sent to your card",
+      reference: "Reference",
+      note: "Vallo never holds your money. When you paid, the restaurant's share went straight to its bank account through our payment processor, in the same transaction.",
+    },
+    status: {
+      due: "Deposit of {amount} to hold this table. It comes off your bill; the restaurant confirms once it is paid.",
+      paid: "Deposit of {amount} paid. It comes off your bill.",
+      paidUntil: "Deposit of {amount} paid. It comes off your bill. Cancel before {when} and it all comes back to your card.",
+      applied: "Deposit of {amount} taken off your bill.",
+      refundDue: "Deposit of {amount} is on its way back to your card.",
+      refunded: "Deposit of {amount} refunded to your card.",
+      forfeited: "Deposit of {amount} kept by the restaurant under its cancellation rule.",
+      pay: "Pay deposit",
+      open: "Deposit and receipt",
+    },
+    refusals: {
+      switchedOff: "Table deposits are not open yet. Nothing has been charged.",
+      notFound: "We could not find that reservation on your account.",
+      noDeposit: "This table does not need a deposit.",
+      alreadyPaid: "Your deposit for this table is already paid.",
+      alreadyApplied: "Your deposit was taken off your bill.",
+      alreadyForfeited: "This deposit was kept by the restaurant under its cancellation rule.",
+      pending: "A payment for this deposit is already open. If you closed it, try again in a little while.",
+      outcomeUnknown: "We could not confirm the payment page opened. Nothing is charged twice: if you paid, it shows here within a few minutes.",
+      unavailable: "Card payment is not available right now. Nothing has been charged.",
+      needsEmail: "Card payment needs an email address on your account. Add one to your profile and try again.",
+      checkLater: "We could not check the payment yet. Try again in a minute.",
+    },
+    desk: {
+      title: "Table deposits",
+      lede: "Ask for a card deposit on the tables that matter most. It comes off the guest's bill, and it is yours if they do not come.",
+      venue: "Restaurant",
+      on: "Ask for a deposit",
+      offHint: "Off, every table is free to ask for.",
+      amount: "Amount",
+      amountHint: "At least 100 naira.",
+      perGuest: "Per guest",
+      perTable: "Per table",
+      parties: "Which parties",
+      everyParty: "Every party",
+      fromParty: "From a party size",
+      partySize: "Party size",
+      partyValue: "{count} or more",
+      fewer: "One fewer",
+      more: "One more",
+      times: "Which times",
+      allTimes: "All service times",
+      someTimes: "Only the times I pick",
+      noWindows: "Publish your opening hours to pick times. Until then a deposit applies at every time.",
+      refund: "Free cancellation",
+      refundHint: "A guest who cancels in time gets it all back. Later, or a no-show, and it is yours. If you decline or cancel, or a no-show is overturned, it goes back to the guest.",
+      refundUntilTable: "Until the table time",
+      refundHours: "{hours} before",
+      save: "Save deposit settings",
+      saving: "Saving",
+      saved: "Saved. New table requests follow these settings.",
+      failed: "Those settings could not be saved. Try again.",
+      notOwner: "Only the owner of this restaurant can change its deposit.",
+      notOpen: "Table deposits are not open yet.",
+      problems: {
+        amount: "Enter an amount of at least 100 naira.",
+        party: "Pick a party size between 1 and 50.",
+        refund: "Pick a free cancellation time.",
+        times: "Pick at least one time, or choose all service times.",
+      },
+      summaryOff: "Off. Every table is free to ask for.",
+      summaryPerGuest: "{amount} per guest",
+      summaryPerTable: "{amount} per table",
+      summaryEveryParty: "every party",
+      summaryFromParty: "parties of {count} or more",
+      summaryAllTimes: "at every time",
+      summarySomeTimes: "at the times you picked",
+      summaryRefund: "free cancellation until {hours} before",
+      summaryRefundUntilTable: "free cancellation until the table time",
+      payoutMissing: "Add a bank account in payment settings so a deposit can reach you. Until then guests are not asked for one.",
+      payoutLink: "Payment settings",
+      money: "Guests pay by card, and the money goes straight to your bank account at the charge. Vallo never holds it.",
+      commission: "Vallo's commission of {percent} comes off each deposit, as on every payment through Vallo.",
+      line: {
+        due: "Deposit of {amount} not paid yet. You can confirm once the guest pays.",
+        pending: "The guest is paying the {amount} deposit.",
+        paid: "Deposit of {amount} paid. {share} reaches your bank.",
+        applied: "Deposit of {amount} taken off the bill.",
+        forfeited: "Deposit of {amount} kept by you.",
+        refundDue: "Deposit of {amount} going back to the guest.",
+        refunded: "Deposit of {amount} refunded to the guest.",
+      },
+      unpaid: "The guest has not paid the deposit yet. You can confirm this table once it is paid.",
+    },
+  },
+
+  /* Admin coverage (13 October 2026): withheld weight, blocked terms, call
+     usage, ledger books, retention, withdrawal fees, fee acceptance and the
+     lister's promotion purchases. English only; the others fall back. */
+  adminCoverage: adminCoverageEn,
+  /*
+   * Chargebacks (13 October 2026, track/chargebacks): the finance desk, the
+   * stay panel, the lister's hold notice and the desk's in-app notices.
+   * `chargebacks.en.ts` carries the words and the reasons.
+   */
+  chargebacks: chargebacksEn,
 
 };
 

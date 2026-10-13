@@ -5,7 +5,7 @@ const NOW = Date.parse("2026-09-22T12:00:00Z");
 const DAY = 86_400_000;
 const a = (id: string, outcome: PaymentAttempt["outcome"], daysAgo: number, over: Partial<PaymentAttempt> = {}): PaymentAttempt => ({
   id,
-  kind: "topup",
+  kind: "checkout",
   reference: `ref-${id}`,
   channel: "card",
   provider: null,
@@ -33,7 +33,7 @@ describe("buildPayments", () => {
     a("1", "succeeded", 1),
     a("2", "failed", 2, { channel: "bank" }),
     a("3", "abandoned", 3),
-    a("4", "succeeded", 9, { kind: "checkout", channel: null }),
+    a("4", "succeeded", 9, { channel: null }),
     a("5", "succeeded", 40),
   ];
   const desk = buildPayments(attempts, { page: 1, pageSize: 10 }, NOW);
@@ -55,12 +55,11 @@ describe("buildPayments", () => {
     expect(desk.perDay).toHaveLength(30);
     expect(desk.perDay.reduce((s, d) => s + d.amountMinor, 0)).toBe(200_000);
   });
-  it("filters by outcome and kind and pages every attempt", () => {
+  it("filters by outcome and pages every attempt", () => {
     expect(buildPayments(attempts, { outcome: "succeeded", page: 1, pageSize: 10 }, NOW).table.total).toBe(3);
-    expect(buildPayments(attempts, { kind: "checkout", page: 1, pageSize: 10 }, NOW).table.rows.map((r) => r.id)).toEqual(["4"]);
     expect(buildPayments(attempts, { page: 1, pageSize: 2 }, NOW).table.rows.map((r) => r.id)).toEqual(["1", "2"]);
   });
   it("never invents a channel", () => {
-    expect(channelLabel({ kind: "topup", channel: null })).toBe("top-up, unrecorded");
+    expect(channelLabel({ kind: "checkout", channel: null })).toBe("checkout, unrecorded");
   });
 });

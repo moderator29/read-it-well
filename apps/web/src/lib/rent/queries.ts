@@ -1,4 +1,5 @@
 import "server-only";
+import { reportReadError } from "@/lib/observability/read-error";
 
 import { formatMoney, type Locale } from "@vallo/i18n/core";
 import { resolveSession } from "../actions/session";
@@ -104,6 +105,7 @@ export async function getRentPayView(inspectionId: string, locale: Locale): Prom
       .select("id, listing_id, requester_id, lister_id, state, outcome, slot_at")
       .eq("id", inspectionId)
       .maybeSingle();
+    await reportReadError("read.rent.getRentPayView", error);
     if (error) return { state: "unavailable" };
     if (!inspection) return { state: "missing" };
 
@@ -143,6 +145,7 @@ export async function getRentPayView(inspectionId: string, locale: Locale): Prom
         .select("*")
         .eq("inspection_id", inspectionId)
         .maybeSingle();
+      await reportReadError("read.rent.getRentPayView", quoteRead.error);
       quote = quoteRead.error ? null : readMoveInQuote(quoteRead.data);
     } catch {
       quote = null;
@@ -285,6 +288,7 @@ export async function getMyRentCharges(locale: Locale): Promise<RentChargeSummar
     .select("*")
     .order("created_at", { ascending: false })
     .limit(100);
+  await reportReadError("read.rent.getMyRentCharges", error);
   if (error || !data) return "unavailable";
   return data.map((row) => ({
     id: row.id,

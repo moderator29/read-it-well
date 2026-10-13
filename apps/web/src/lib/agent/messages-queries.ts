@@ -3,6 +3,9 @@ import "server-only";
 import { loadConversationSummaries, type LiveConversationSummary } from "../messages/live";
 import { loadUnreadCounts } from "../messages/unread";
 import { getAgentContext } from "./listings-queries";
+import { markerIds } from "../calls/thread-calls";
+import { inboxMissedCall, parseCallMarker } from "../calls/screen";
+import type { CallKind } from "../calls/types";
 
 /**
  * Read side of the host inbox.
@@ -28,6 +31,8 @@ export type AgentThread = LiveConversationSummary & {
   waitingOnYou: boolean;
   /** Whole hours since the last message, for ageing the waiting list. */
   waitingHours: number;
+  /** VC1: the newest message is a call this host missed (from `messages.call_id`). */
+  missedCall?: CallKind | null;
 };
 
 export type AgentInbox = {
@@ -59,8 +64,14 @@ export async function getAgentInbox(): Promise<AgentInboxRead> {
   try {
     const summaries = await loadConversationSummaries(context.supabase, context.user);
 
+    /* VC1: only rows whose words look like a call marker are asked about. */
+    const markers = await markerIds(
+      context.supabase,
+      summaries.filter((s) => !s.lastFromMe && s.lastMessageId && parseCallMarker(s.lastMessage)).map((s) => s.lastMessageId!),
+    );
     const threads: AgentThread[] = summaries.map((s) => ({
       ...s,
+      missedCall: inboxMissedCall(s.lastMessage, s.lastFromMe, Boolean(s.lastMessageId && markers.has(s.lastMessageId))),
       waitingOnYou: !s.lastFromMe || s.unread > 0,
       waitingHours: hoursSince(s.lastAt),
     }));

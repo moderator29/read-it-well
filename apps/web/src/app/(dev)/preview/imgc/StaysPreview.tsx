@@ -67,10 +67,13 @@ export function StaysPreview({
     fieldErrors: {},
     /* Nothing is sent. See the note above. */
     run: () => {},
+    runAsync: async () => true,
     saveText: (_extra, then) => then?.(),
+    saveTextAsync: async () => true,
     setNotice: () => {},
     goTo: () => {},
     advance: () => {},
+    proceed: () => {},
     userId: PREVIEW_USER,
     expectedRooms,
     onExpectedRooms: setExpectedRooms,

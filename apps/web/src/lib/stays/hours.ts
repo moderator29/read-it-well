@@ -1,3 +1,4 @@
+import type { Dictionary } from "@vallo/i18n/core";
 import type { ServiceWindowRow } from "./types";
 
 /**
@@ -12,10 +13,41 @@ import type { ServiceWindowRow } from "./types";
  * importable by a test with no database behind it.
  */
 
+/**
+ * What the clock says about a venue, as a fact rather than a sentence: the
+ * sentence is the reader's (`hoursLabel`, from `t.experienceDetail.hours`),
+ * so a card read by a Hausa diner says it in Hausa. `time` is "18:00".
+ */
+export type HoursAnswer =
+  | { kind: "unknown" }
+  | { kind: "openUntil"; time: string }
+  | { kind: "closedToday" }
+  | { kind: "opensAt"; time: string }
+  | { kind: "closedForToday" };
+
 export type OpenState = {
   open_now: boolean;
-  hours_label: string;
+  hours: HoursAnswer;
 };
+
+/** The opening-hours words, from the reader's dictionary (`t.experienceDetail.hours`). */
+export type HoursWords = Dictionary["experienceDetail"]["hours"];
+
+/** The answer in the reader's words: "Open until 23:00", "Hours not published". */
+export function hoursLabel(answer: HoursAnswer, words: HoursWords): string {
+  switch (answer.kind) {
+    case "unknown":
+      return words.unknown;
+    case "openUntil":
+      return words.openUntil.replace("{time}", answer.time);
+    case "closedToday":
+      return words.closedToday;
+    case "opensAt":
+      return words.opensAt.replace("{time}", answer.time);
+    case "closedForToday":
+      return words.closedForToday;
+  }
+}
 
 const WEEKDAY_INDEX: Record<string, number> = {
   Sun: 0,
@@ -65,9 +97,9 @@ function hhmm(time: string): string {
  * the content truth sweep are both about. `/restaurant/<id>` already draws its
  * own "no hours published" card from `windows.length`; the CARD on
  * `/restaurants` does not have that list, only this label, so the label has to
- * carry the distinction.
+ * carry the distinction. It is its own answer, `unknown`, with its own words
+ * (`experienceDetail.hours.unknown`, "Hours not published").
  */
-export const HOURS_UNKNOWN_LABEL = "Hours not published";
 
 /**
  * A window that runs past midnight, e.g. opens 18:00 and closes 02:00.
@@ -119,7 +151,7 @@ function byOpens(a: ServiceWindowRow, b: ServiceWindowRow): number {
  */
 export function openState(windows: ServiceWindowRow[], now: Date = new Date()): OpenState {
   if (windows.length === 0) {
-    return { open_now: false, hours_label: HOURS_UNKNOWN_LABEL };
+    return { open_now: false, hours: { kind: "unknown" } };
   }
 
   const { weekday, time } = lagosClock(now);
@@ -132,24 +164,24 @@ export function openState(windows: ServiceWindowRow[], now: Date = new Date()): 
     .sort(byOpens)
     .find((w) => spillSeatingNow(w, time));
   if (spill) {
-    return { open_now: true, hours_label: `Open until ${hhmm(spill.closes)}` };
+    return { open_now: true, hours: { kind: "openUntil", time: hhmm(spill.closes) } };
   }
 
   if (today.length === 0) {
-    return { open_now: false, hours_label: "Closed today" };
+    return { open_now: false, hours: { kind: "closedToday" } };
   }
 
   const current = today.find((w) => seatingNow(w, time));
   if (current) {
-    return { open_now: true, hours_label: `Open until ${hhmm(current.closes)}` };
+    return { open_now: true, hours: { kind: "openUntil", time: hhmm(current.closes) } };
   }
 
   const next = today.find((w) => w.opens > time);
   if (next) {
-    return { open_now: false, hours_label: `Opens at ${hhmm(next.opens)}` };
+    return { open_now: false, hours: { kind: "opensAt", time: hhmm(next.opens) } };
   }
 
-  return { open_now: false, hours_label: "Closed for today" };
+  return { open_now: false, hours: { kind: "closedForToday" } };
 }
 
 /** The yes-or-no form of `openState`, for a filter or a chip. */
@@ -157,13 +189,13 @@ export function isOpenNow(windows: ServiceWindowRow[], at: Date = new Date()): b
   return openState(windows, at).open_now;
 }
 
-/** One weekday's hours in words: "12:00 to 16:00, 18:00 to 23:00", or "Closed". */
-export function hoursForWeekday(windows: ServiceWindowRow[], weekday: number): string {
+/** One weekday's hours in the reader's words: "12:00 to 16:00, 18:00 to 23:00", or "Closed". */
+export function hoursForWeekday(windows: ServiceWindowRow[], weekday: number, words: HoursWords): string {
   const day = windows
     .filter((w) => w.weekday === weekday)
     .sort((a, b) => (a.opens < b.opens ? -1 : a.opens > b.opens ? 1 : 0));
-  if (day.length === 0) return "Closed";
-  return day.map((w) => `${hhmm(w.opens)} to ${hhmm(w.closes)}`).join(", ");
+  if (day.length === 0) return words.closed;
+  return day.map((w) => words.range.replace("{opens}", hhmm(w.opens)).replace("{closes}", hhmm(w.closes))).join(", ");
 }
 
 /**

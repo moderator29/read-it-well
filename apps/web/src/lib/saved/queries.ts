@@ -1,4 +1,5 @@
 import "server-only";
+import { reportReadError } from "@/lib/observability/read-error";
 
 import { pointSelect } from "../supabase/public-point";
 import { resolveSession } from "../actions/session";
@@ -50,6 +51,7 @@ async function readSavedRows(): Promise<{ listingId: string; savedAt: number }[]
       .eq("user_id", session.user.id)
       .order("created_at", { ascending: false })
       .limit(ROW_LIMIT);
+    await reportReadError("read.saved.readSavedRows", error);
     if (error || !data) return [];
     return data.map((row) => ({
       listingId: row.listing_id,
@@ -179,6 +181,7 @@ export async function getSavedPlaces(): Promise<SavedPlaceEntry[]> {
       .in("entity_kind", ["accommodation", "restaurant"])
       .order("created_at", { ascending: false })
       .limit(ROW_LIMIT);
+    await reportReadError("read.saved.getSavedPlaces", error);
     if (error || !saves) return [];
 
     const wanted = saves.filter((save) => UUID_RE.test(save.entity_id));

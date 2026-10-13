@@ -1,18 +1,19 @@
 import type { Metadata } from "next";
-import { countOf, getDictionary, type Dictionary } from "@vallo/i18n";
+import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { resolveSession } from "@/lib/actions/session";
 import { authHref, returnHref } from "@/components/auth/auth-intent";
-import { EmptyState, TYPE } from "@/components/app/Screen";
+import { EmptyState } from "@/components/app/Screen";
 import { ButtonLink } from "@/components/ui/Button";
 import { HostShell } from "@/components/host/HostShell";
-import { HostReservationsBoard } from "./ReservationsBoard";
-import { readHostTableBoard, type HostTableBoard } from "./board";
+import { isPaystackConfigured } from "@/lib/payments/paystack";
+import { readHostTableBoard } from "./board";
+import { HostTablesBody } from "./HostTablesBody";
+import { readDeskDeposits } from "@/lib/reservations/deposit-settings";
 
-export const metadata: Metadata = {
-  title: "Tables",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: getDictionary(await getLocale()).experienceHost.screens.tables, robots: { index: false, follow: false } };
+}
 
 export const dynamic = "force-dynamic";
 
@@ -46,7 +47,7 @@ export default async function HostReservationsPage() {
           body={t.hostWorkspace.reservations.signedOutBody}
           action={
             <ButtonLink href={authHref(next, "sign-in")} variant="primary" size="lg">
-              Sign in
+              {t.common.signIn}
             </ButtonLink>
           }
         />
@@ -54,84 +55,29 @@ export default async function HostReservationsPage() {
     );
   }
 
-  const read = await readHostTableBoard();
+  /* One instant for the whole render: the board's split, Lagos today and the
+     client's own cut all agree on it. */
+  const now = new Date();
+  /* D75: the deposit card, only while `restaurant_deposits` is on (read on
+     the server, failing closed); null leaves the desk as it was. */
+  const [read, deposits] = await Promise.all([readHostTableBoard(now), readDeskDeposits()]);
 
   return (
-    <HostShell logoLabel={t.a11y.logoHome} fallback="/host">
+    <HostShell logoLabel={t.a11y.logoHome} fallback="/host" wide>
       <HostTablesBody
         copy={t.hostWorkspace}
+        words={t.experienceHost}
+        desk={t.tableDesk}
+        locale={locale}
+        now={now}
+        /* A bill is entered on the desk only when the guest could then pay it
+           through Vallo; until Paystack is configured they pay the venue. */
+        billsOn={isPaystackConfigured()}
         board={read.state === "ok" ? read.board : null}
         unavailable={read.state === "unavailable"}
+        deposits={deposits}
+        depositWords={t.tableDeposits.desk}
       />
     </HostShell>
-  );
-}
-
-/**
- * The board, apart from its reads, so the whole screen can be drawn from
- * fixtures in the preview harness and read against the register at 390 dark.
- * The route passes exactly what it read; nothing here fetches anything.
- */
-export function HostTablesBody({
-  board,
-  unavailable = false,
-  copy = getDictionary("en").hostWorkspace,
-}: {
-  board: HostTableBoard | null;
-  /** True when the read itself failed. A dropped read is not an empty venue. */
-  unavailable?: boolean;
-  /** The host workspace words in the reader's language; English in the previews. */
-  copy?: Dictionary["hostWorkspace"];
-}) {
-  if (unavailable || board === null) {
-    return (
-      <EmptyState
-        icon="concierge-bell"
-        title={copy.reservations.failedTitle}
-        body={copy.reservations.failedBody}
-        action={
-          <ButtonLink href="/host/reservations" variant="primary" size="lg">
-            Try again
-          </ButtonLink>
-        }
-      />
-    );
-  }
-
-  return (
-    <>
-      <div className="nf-agent-head">
-        <div>
-          <h1 className="nf-agent-head__title">Tables</h1>
-          <p className={`mt-row ${TYPE.bodyLg}`}>
-            {board.requests.length === 0
-              ? "Nothing is waiting on you."
-              : countOf(board.requests.length, "requestsWaiting")}
-          </p>
-        </div>
-      </div>
-
-      {board.total === 0 ? (
-        /*
-          NOTHING HAS EVER ARRIVED HERE, which is not the same as a cleared
-          queue and must not be dressed as one. It says what will appear and
-          what puts it here, and it states the two facts a venue most needs to
-          be sure of: a table costs nobody anything, and nothing is held for a
-          guest until the venue itself says yes.
-        */
-        <EmptyState
-          icon="concierge-bell"
-          title={copy.reservations.emptyTitle}
-          body={copy.reservations.emptyBody}
-          action={
-            <ButtonLink href="/host" variant="secondary" size="lg">
-              Your venue
-            </ButtonLink>
-          }
-        />
-      ) : (
-        <HostReservationsBoard board={board} />
-      )}
-    </>
   );
 }

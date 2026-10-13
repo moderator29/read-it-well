@@ -1,9 +1,11 @@
 import { getDictionary, type Locale } from "@vallo/i18n";
 import { resolveSession } from "@/lib/actions/session";
-import { readFrozenTerms, readMyRefundLines, type RefundLine } from "@/lib/after-gate/refunds";
+import { readFrozenTerms, readMyRefundLines } from "@/lib/after-gate/refunds";
+import { refundLead, refundMark } from "@/lib/after-gate/refund-lines";
 import { CancellationTimeline } from "@/lib/trust/CancellationTimeline";
-import { UiIcon } from "@/design-system/icons/UiIcon";
 import { TYPE } from "@/components/app/Screen";
+import { DocFigure, DocHead, DocRows, DocState, DocumentSheet } from "@/components/app/money/DocumentSheet";
+import { documentRowClass } from "@/components/app/money/document-sheet";
 import { CANCELLATION_REASONS } from "@/lib/trust/cancellation";
 import { RefundRequestForm } from "./RefundRequestForm";
 
@@ -16,24 +18,22 @@ import { RefundRequestForm } from "./RefundRequestForm";
  * claim that something is owed. A read that failed says so in one line rather
  * than pretending there is nothing.
  *
+ * THE REFUND IS A DOCUMENT (D28.1, Session 3 W13). It is the paper a guest
+ * screenshots to show a bank that money is coming back, so it is drawn on
+ * the document sheet (`DocumentSheet`, the one definition for receipts,
+ * statements and terms), light paper on whatever theme the member chose,
+ * with the page around it unchanged. One refund leads with its amount as the
+ * sheet's figure; several list their amounts on their rows. The figure never
+ * counts or rolls: a refund that is decided is stated, not animated.
+ *
  * Colour is never the only signal: every refund line carries its sentence
- * ("Due in your wallet by Thu 22 Oct", "In your wallet Tue 13 Oct, 10:02am")
- * and an icon, and the tone only reinforces it.
+ * ("Refunded to your card Tue 13 Oct") and a shape (the filled circle for
+ * money that went back, the hollow one for a refund still on its way or
+ * still being decided, nothing for a line that is not a refund at all), and
+ * the sentence stays in the paper's ink in every tone (a night-theme state
+ * hue on white paper would fail contrast). Dates are the facts; there is no
+ * tick.
  */
-const TONE_CLASS: Record<RefundLine["tone"], string> = {
-  success: "text-[var(--nf-state-success)]",
-  attention: "text-[var(--nf-state-warning)]",
-  error: "text-[var(--nf-state-error)]",
-  neutral: "text-[var(--nf-content-secondary)]",
-};
-
-const TONE_ICON: Record<RefundLine["tone"], "verified" | "history" | "info"> = {
-  success: "verified",
-  attention: "history",
-  error: "info",
-  neutral: "info",
-};
-
 export async function BookingMoneyRecord({
   bookingId,
   checkIn,
@@ -59,6 +59,12 @@ export async function BookingMoneyRecord({
     readMyRefundLines(bookingId, locale, { cancelled, checkOut }),
   ]);
 
+  const record = getDictionary(locale).experienceSpeed.afterGate;
+  /* One refund with an amount leads the sheet with it; several do not, so
+     no line is promoted over another and nothing is summed on the page. A
+     single refund of nothing is not a headline ("N0.00 back"): the sheet
+     keeps its row, which says nothing was owed, and draws no figure. */
+  const lead = refunds.state === "ready" ? refundLead(refunds.lines) : null;
   const canAsk = refunds.state !== "unavailable" && refunds.canAsk;
   if (!frozen && refunds.state === "none" && !canAsk) return null;
 
@@ -70,21 +76,27 @@ export async function BookingMoneyRecord({
         </p>
       )}
       {refunds.state === "ready" && (
-        <div className="nf-panel nf-panel--card block p-md" data-testid="booking-refunds">
-          <h2 className="nf-h3">{copy.heading}</h2>
-          <ul className="mt-row grid gap-row">
-            {refunds.lines.map((line) => (
-              <li key={line.id} className="grid gap-2xs" data-testid="booking-refund-line" data-tone={line.tone}>
-                {line.amount && <p className={`${TYPE.rowTitle} nf-numeric`}>{line.amount}</p>}
-                <p className={`flex items-start gap-xs ${TYPE.body} ${TONE_CLASS[line.tone]}`}>
-                  <UiIcon name={TONE_ICON[line.tone]} size={16} className="mt-3xs shrink-0" />
-                  <span className="nf-numeric">{line.sentence}</span>
-                </p>
-                {line.retained && <p className={TYPE.rowMeta}>{line.retained}</p>}
-              </li>
-            ))}
-          </ul>
-        </div>
+        <DocumentSheet aria-labelledby={`refund-${bookingId}`} data-testid="booking-refunds">
+          <DocHead label={record.overline} title={copy.heading} id={`refund-${bookingId}`} />
+          {lead?.amount && <DocFigure testId="booking-refund-figure">{lead.amount}</DocFigure>}
+          <DocRows>
+            {refunds.lines.map((line) => {
+              /* The filled mark only for money that reached the card (`landed`),
+                 never for a refund Paystack has only started. */
+              const mark = refundMark(line);
+              const title = lead ? record.where : (line.amount ?? record.where);
+              return (
+                <div key={line.id} className={documentRowClass("prose")} data-testid="booking-refund-line" data-tone={line.tone}>
+                  <dt>{mark ? <DocState done={mark === "done"}>{title}</DocState> : title}</dt>
+                  <dd className="nf-numeric">
+                    {line.sentence}
+                    {line.retained && <span className="mt-3xs block text-[var(--nf-content-muted)]">{line.retained}</span>}
+                  </dd>
+                </div>
+              );
+            })}
+          </DocRows>
+        </DocumentSheet>
       )}
       {canAsk && (
         <RefundRequestForm

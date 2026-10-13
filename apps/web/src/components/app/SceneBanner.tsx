@@ -64,7 +64,7 @@ export function SceneBanner({
           name={art}
           label={alt}
           fill
-          className="nf-story-art transition-transform duration-700 ease-out group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+          className="nf-story-art transition-transform duration-[var(--nf-duration-cinematic)] ease-[var(--nf-ease-standard)] group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
         />
       </span>
 

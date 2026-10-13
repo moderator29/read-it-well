@@ -1,9 +1,21 @@
 # Vallo native test matrix
 
-28 September 2026. **No row has been run on a device, by anyone.** Every
-Observed cell is empty and every Result reads NOT RUN until a person fills it
-in from a real handset. Evidence is a screenshot, screen recording or log
-file name.
+Status on 6 October 2026: **0 of 34 rows have been run, and 0 of the 9 P0
+rows** (the matrix has nine rows marked P0: 1, 2, 3, 4, 7, 9, 21, 23 and 29;
+earlier notes said ten, which was a miscount). No row has been run on a device,
+by anyone, since the matrix was written on 28 September. Every Observed cell
+is empty and every Result reads NOT RUN until a person fills it in from a real
+handset. Evidence is a screenshot, screen recording or log file name.
+
+Builds that exist: a signed iOS archive was built and uploaded to App Store
+Connect on 3 October (run 37103086939), so iOS is installable through
+TestFlight once the build has finished processing there. Android has a debug
+APK from every run of `.github/workflows/native-android.yml`. There is no
+release Android build. Nobody has installed either on a handset.
+
+The ninety-minute pass for the founder, covering the P0 rows with step-by-step
+instructions, is `FOUNDER_DEVICE_TEST_BRIEF.md`. Directive D43
+(`sessions/DIRECTIVES-2026-10-05.md`) ranks it as the next action.
 
 Devices to use, at minimum: one current iPhone with a notch or Dynamic Island,
 one smaller iPhone on the oldest iOS you support (15 is the floor), one Pixel

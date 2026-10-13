@@ -36,7 +36,9 @@ describe("SUP-16: the listing draft on this device", () => {
   it("the wizard uses the account's key, and every sign-out clears the drafts", () => {
     const wizard = readFileSync("src/app/agent/list/ListingWizard.tsx", "utf8");
     expect(wizard).not.toContain('"nf_listing_draft"');
-    expect(wizard.match(/listingDraftKey\(userId\)/g)?.length).toBe(3);
+    /* Restore, save, clear on submit, and (since W7's tray) whether this
+       device keeps a draft at all: every read goes through the account's key. */
+    expect(wizard.match(/listingDraftKey\(userId\)/g)?.length).toBe(4);
     for (const file of [
       "src/app/(app)/settings/SettingsHub.tsx",
       "src/app/(app)/settings/AccountSection.tsx",

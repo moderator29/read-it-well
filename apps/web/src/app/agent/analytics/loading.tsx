@@ -1,5 +1,6 @@
 import { AgentScreenSkeleton, AgentTitleSkeleton } from "@/components/agent/AgentScreenSkeleton";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { FigureCardSkeleton } from "@/components/agent/intel/IntelSkeletons";
 
 /**
  * The wait, on your analytics.
@@ -20,6 +21,10 @@ export default function LoadingAgentAnalytics() {
       <AgentTitleSkeleton />
 
       <div className="space-y-lg">
+        {/* J3: the Space Analytics card first, as the page draws it: the
+            period control, the figure, the plot and the eight figure rows. */}
+        <FigureCardSkeleton rows={8} />
+
         {/* Four headline tiles, at the tile's own rhythm. */}
         <div className="grid grid-cols-2 gap-md lg:grid-cols-4">
           {Array.from({ length: 4 }, (_, i) => (

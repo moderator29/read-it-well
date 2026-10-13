@@ -18,7 +18,10 @@ import { IconPlate } from "@/components/ui/IconPlate";
  * is the one costing them a booking.
  */
 
-export type InboxFilter = "waiting" | "all";
+export type InboxFilter = "waiting" | "all" | "due";
+
+/** AGENT-01: the words of the Due today filter and its empty state. */
+export type DueCopy = { chip: string; empty: string; emptyBody: string };
 
 function waitLabel(hours: number): string {
   if (hours < 1) return "just now";
@@ -40,7 +43,10 @@ function ThreadRow({
   askedLabel,
   stage,
   deskCopy,
+  missedWords,
 }: {
+  /** VC1: "Missed video call" and "Missed voice call", from the page's dictionary. */
+  missedWords?: { VIDEO: string; AUDIO: string } | undefined;
   thread: AgentThread;
   askedLabel?: string | undefined;
   stage?: DeskStage | undefined;
@@ -92,7 +98,14 @@ function ThreadRow({
         </div>
 
         <p className="mt-sm line-clamp-2 text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
-          {thread.lastMessage}
+          {thread.missedCall && missedWords ? (
+            <span className="inline-flex items-center gap-inline-tight font-semibold text-[var(--nf-state-error)]" data-testid="inbox-missed-call">
+              <UiIcon name="phone-missed" size={16} filled />
+              {missedWords[thread.missedCall]}
+            </span>
+          ) : (
+            thread.lastMessage
+          )}
         </p>
 
         {/* V-14: a still-available question waiting on a one-tap answer. */}
@@ -122,7 +135,19 @@ export function AgentInbox({
   stage,
   deskCopy,
   briefsLabel,
+  missedWords,
+  dueIds,
+  dueCopy,
 }: {
+  /**
+   * AGENT-01: the threads whose follow-up is due today (or earlier and still
+   * open), or null when the follow-ups could not be read, which draws no
+   * "Due today" chip rather than one that says "none".
+   */
+  dueIds?: ReadonlySet<string> | null;
+  dueCopy?: DueCopy;
+  /** VC1: the missed-call line's words. */
+  missedWords?: { VIDEO: string; AUDIO: string };
   inbox: Inbox;
   filter: InboxFilter;
   /**
@@ -142,12 +167,15 @@ export function AgentInbox({
 }) {
   const staged = stages && deskCopy ? stages : null;
   const activeStage = staged ? (stage ?? null) : null;
+  const due = dueIds && dueCopy ? dueIds : null;
   const threads =
     activeStage !== null
       ? inbox.threads.filter((t) => staged?.get(t.id)?.stage === activeStage)
-      : filter === "waiting"
-        ? inbox.threads.filter((t) => t.waitingOnYou)
-        : inbox.threads;
+      : filter === "due" && due
+        ? inbox.threads.filter((t) => due.has(t.id))
+        : filter === "waiting"
+          ? inbox.threads.filter((t) => t.waitingOnYou)
+          : inbox.threads;
   const stageCounts = staged
     ? countByStage(inbox.threads.flatMap((t) => (staged.get(t.id) ? [staged.get(t.id)!] : [])))
     : null;
@@ -176,6 +204,16 @@ export function AgentInbox({
               {chip.label}
             </Chip>
           ))}
+          {due && dueCopy && (
+            <Chip
+              behaviour="link"
+              href="/agent/messages?filter=due"
+              selected={activeStage === null && filter === "due"}
+              count={due.size}
+            >
+              {dueCopy.chip}
+            </Chip>
+          )}
           {briefsLabel && (
             <Chip behaviour="link" href="/agent/messages?filter=briefs" selected={false}>
               {briefsLabel}
@@ -217,6 +255,7 @@ export function AgentInbox({
               askedLabel={asked?.has(thread.id) ? askedLabel : undefined}
               stage={staged?.get(thread.id)}
               deskCopy={deskCopy}
+              missedWords={missedWords}
             />
           ))}
         </ul>
@@ -228,6 +267,16 @@ export function AgentInbox({
           </p>
           <Link href="/agent/messages?filter=all" className="nf-btn nf-btn--glass mt-md">
             {deskCopy.all}
+          </Link>
+        </div>
+      ) : filter === "due" && due && dueCopy ? (
+        <div className="nf-panel nf-panel--card block mt-md p-xl text-center" data-testid="inbox-due-empty">
+          <p className="font-semibold text-[var(--nf-content-primary)]">{dueCopy.empty}</p>
+          <p className="mx-auto mt-2xs max-w-[40ch] text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
+            {dueCopy.emptyBody}
+          </p>
+          <Link href="/agent/messages?filter=all" className="nf-btn nf-btn--glass mt-md">
+            {deskCopy?.all ?? "All"}
           </Link>
         </div>
       ) : (

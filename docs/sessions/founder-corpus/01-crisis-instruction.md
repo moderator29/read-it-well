@@ -1,0 +1,23 @@
+# The instruction that produced this corpus
+
+Source: the founder's message of 7 October 2026, the one that asked for the
+handoffs to be deleted and rewritten.
+
+This file is the founder's own words. It is not a summary and it has not been
+edited for content. The only change made to it is mechanical: the em dash is
+forbidden everywhere under `docs/` by `apps/web/scripts/check-no-em-dash.mjs`,
+so every em dash has been replaced with a hyphen. Nothing was cut, softened,
+reordered or paraphrased.
+
+---
+
+“The whole withdrawal, deposits the whole entire stack was not built ? Bro what you do now to save your entire reputation with me is delete the 3 session handoff and write a new one now make sure this new one is upgrading and all the features not built tell it what is on the prompt I’m about to send also about the motions send it all the components I sent along side don’t fucking tell me otherwise this would be done by a new session tell it to upgrade the looks of the app the feeds looks to be amazing the app looks to be upgraded to something premium beautiful than platform current thing all the pages not built beautifully give it access to the entire 90 images or I can’t recall it don’t fucking remove features or tell it no pay nothing or whatever follow the new system and new approach write the handsoff and write the prompt the session is restoring this thing once it’s done I close it so start writing the prompt to cover all this thing and the upgrades in looks in components the new icons etc I added to GitHub should be used in the new app places the flip top wasn’t even done still carry the glass the whole thing is not done tell it to research to think of how to upgrade the looks to be more priming tell it to use 2 agent never more than make it make the app look more premium to upgrade all inner area to be more premium animations motions lovely like wide platform upgrade all things in all the prompt don’t fucking tell it don’t build payment don’t built this or don’t built that give it access to my prompt to make all the build unified all the missing areas should inspect give it my prompts all of it but make it clean no duplicates of stuffs give it all my prompt and all access and add it to the prompt I’m sending to it too about full approval of all tools and to work autonomously to make the app feel fucking premium you don’t fucking own this app and you can’t tell me my decision on what I want on my app and how beautiful and lovely I want it you can’t tell it not to built new features. I want but that’s what you been building and I trust you and that’s why I didn’t read it but you fixked me up better give it all things I asked for all in all make sure it covers everything all of this!!! And make it all clean tell it that the designs needs to be clean those screenshots images I Sen to GitHub tell it to pick many many things from them don’t fucking lock access give it full access and make it build things that’s a not how you can keep your reputations up give it full contest don’t block him on things all everything he should do tell it deeply to build crazy motions crazy crazy motions like films you know something cinematic the sign up and sorry I mean the get started page to reflect the platform new intuitions so it need to upgrade every fucking areas all in all bottom nav’s too a bit upgrade but more priming containers area please tell it to make it more beautiful more premium big r it access to all it tell it to look at those images deeply everything everytime to pick things to pick a lot of beautiful things!!! You get me ?! Don’t fucking gate keep anything to new session it’s even wiser and more clean stuffs “
+Absolutely. Now I have the structure correctly don’t remove things and I want you to give the handoff all things tha it need to make and design our platform so fucking lovely upgrade
+
+Session 1 is not an implementation agent. It is the mastermind/product architect/technical strategist. It studies the entire existing Vallo product, our strategy, the reference images, the last ~48 hours of decisions, challenges them where necessary, and then produces the updated, extremely detailed handoffs/prompts for Sessions 2 and 3, plus the plan for Session 4.
+
+And yes, each implementation session can use up to 4 agents, not 3.
+
+I also remember the access rule you wanted: Session 2/3/4 should not keep stopping to ask you for approval to access Vercel, GitHub, Supabase, etc. You want the sessions to have the appropriate access and proceed, rather than repeatedly interrupting you with approval requests. They should still respect security boundaries and not make destructive/high-risk changes casually.
+
+Here is the master prompt.

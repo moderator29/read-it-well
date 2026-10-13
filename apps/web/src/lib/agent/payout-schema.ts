@@ -1,3 +1,14 @@
+/**
+ * payout-schema: the zod schemas the SERVER validates with.
+ *
+ * Everything a client component may import (the constants, labels, limits,
+ * copy and pure helpers) lives in `./payout-model` and is re-exported here, so a server
+ * module still imports from this file as before. A client component imports
+ * the model, never this file, because this file builds zod schemas at import
+ * time and zod's classic API is 64 KB gzipped in every client chunk that
+ * reaches it (W13, chunk 2008felnqkn1d).
+ */
+
 import { z } from "zod";
 
 /**
@@ -7,25 +18,11 @@ import { z } from "zod";
  * NUBAN rules and the grouping helper without pulling a server module into the
  * browser bundle.
  */
-
-/** A Nigerian NUBAN is exactly ten digits. The database checks this too. */
-export const NUBAN_LENGTH = 10;
-const NUBAN_RE = /^\d{10}$/;
-
-/** Strip everything that is not a digit, so paste and spacing both work. */
-export function digitsOnly(value: string): string {
-  return value.replace(/\D/g, "");
-}
-
-/**
- * Display grouping for a NUBAN: 0123 456 789. The stored value stays bare, so
- * this is presentation only and never reaches the database.
- */
-export function groupNuban(value: string): string {
-  const digits = digitsOnly(value).slice(0, NUBAN_LENGTH);
-  const parts = [digits.slice(0, 4), digits.slice(4, 7), digits.slice(7, 10)];
-  return parts.filter((p) => p.length > 0).join(" ");
-}
+import {
+  NUBAN_RE,
+  digitsOnly,
+} from "./payout-model";
+export * from "./payout-model";
 
 const accountNumber = z
   .string({ message: "Enter the ten digit account number." })

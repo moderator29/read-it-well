@@ -1,4 +1,5 @@
 import { formatDate, formatNumber, type Dictionary, type Locale } from "@vallo/i18n/core";
+import { joinDate } from "@/lib/format/join-date";
 
 /**
  * THE LINE ABOUT THE OTHER PERSON IN A THREAD (V-23). Pure.
@@ -46,12 +47,10 @@ export function personFacts(
     out.push({ key: "identity", text: (nimc ? copy.identityNimc : copy.identitySeen).replace("{date}", date) });
   }
   if (valid(facts.memberSince)) {
-    const month = formatDate(new Date(facts.memberSince), locale, {
-      month: "long",
-      year: "numeric",
-      timeZone: "Africa/Lagos",
-    });
-    out.push({ key: "since", text: copy.memberSince.replace("{month}", month) });
+    /* The exact day (the founder, 13 October 2026): "On Vallo since 9 October
+       2026". The copy's placeholder is still spelt `{month}`, which every
+       locale's wording already carries; it now receives the whole date. */
+    out.push({ key: "since", text: copy.memberSince.replace("{month}", joinDate(facts.memberSince, locale)) });
   }
   if (facts.phoneConfirmed) out.push({ key: "phone", text: copy.phoneConfirmed });
   const n = Math.trunc(facts.viewingsArranged);

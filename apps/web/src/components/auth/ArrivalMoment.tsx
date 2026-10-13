@@ -1,4 +1,5 @@
 "use client";
+import "@/app/css/auth.css";
 
 import Image from "next/image";
 import type { Dictionary } from "@vallo/i18n/core";

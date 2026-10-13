@@ -7,6 +7,7 @@ import { countOf, formatMoney, type Locale } from "@vallo/i18n/core";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Sheet } from "@/components/ui/Sheet";
 import { Button } from "@/components/ui/Button";
+import { BatchTray } from "@/components/ui/BatchTray";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { feedback } from "@/lib/ui/feedback";
 import {
@@ -29,6 +30,10 @@ import type { SyncState } from "@/lib/host/rate-calendar-queries";
 import { SelectionPanel } from "./SelectionPanel";
 import { RatePlanSheet } from "./RatePlanSheet";
 import { CalendarSync } from "./CalendarSync";
+import { useHostPageCopy } from "../host-copy";
+import type { Dictionary } from "@vallo/i18n/core";
+
+type CalendarWords = Dictionary["experienceHost"]["calendarUi"];
 
 /**
  * THE HOST'S RATE CALENDAR (C1, 30 September 2026). One month, one room type
@@ -71,9 +76,10 @@ export type RateCalendarProps = {
   sync: SyncState;
   feedBase: string;
   locale: Locale;
+  /** The batch tray's clear control, from `experienceUi.clearSelection`. */
+  clearSelectionLabel?: string;
 };
 
-const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const LONG_PRESS_MS = 260;
 const MOVE_SLOP = 8;
 
@@ -89,33 +95,39 @@ function monthTitle(month: string, locale: Locale): string {
   );
 }
 
-function cellWords(cell: NightCell, locale: Locale): string {
+/** "2 held by Airbnb", in the reader's words; null when no other site holds a room. */
+function heldBy(cell: NightCell, w: CalendarWords): string | null {
+  return heldWords(cell, w.heldBy);
+}
+
+function cellWords(cell: NightCell, locale: Locale, w: CalendarWords): string {
   const tag = locale === "en" ? "en-NG" : locale;
   const day = new Intl.DateTimeFormat(tag, { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" }).format(
     new Date(`${cell.date}T12:00:00Z`),
   );
   const tone = toneOf(cell);
-  const price = cell.priceMinor !== null ? formatMoney(cell.priceMinor, locale) : "no rate";
+  const price = cell.priceMinor !== null ? formatMoney(cell.priceMinor, locale) : w.cellNoRate;
   const left = cell.unitsOpen !== null ? Math.max(cell.unitsOpen - cell.unitsBooked, 0) : 0;
   const state =
     tone === "past"
-      ? "gone"
+      ? w.cellGone
       : tone === "imported"
-        ? `no room left, ${heldWords(cell) ?? `booked on ${cell.imported}`}`
+        ? w.cellNoRoomLeft.replace("{why}", heldBy(cell, w) ?? w.cellBookedOn.replace("{site}", cell.imported ?? ""))
         : tone === "closed"
-          ? "closed"
+          ? w.cellIsClosed
           : tone === "none"
-            ? "not on sale"
+            ? w.cellNotOnSale
             : tone === "full"
-              ? "fully booked"
-              : countOf(left, "roomsLeft", "en");
-  const own = tone === "override" ? ", your own price for this night" : "";
-  const elsewhere = cell.imported && tone !== "imported" ? `, ${heldWords(cell)}` : "";
+              ? w.cellFullyBooked
+              : countOf(left, "roomsLeft", locale);
+  const own = tone === "override" ? w.cellOwnPrice : "";
+  const elsewhere = cell.imported && tone !== "imported" ? `, ${heldBy(cell, w)}` : "";
   return `${day}, ${price}${own}, ${state}${elsewhere}`;
 }
 
 export function RateCalendar(props: RateCalendarProps) {
   const { rooms, month, today, locale } = props;
+  const w = useHostPageCopy().calendarUi;
   const rows: CalendarRows = useMemo(
     () => ({
       rates: new Map(props.rates),
@@ -329,8 +341,11 @@ export function RateCalendar(props: RateCalendarProps) {
     <div className="nf-rcal" data-testid="rate-calendar">
       <div className="nf-rcal__main">
         {rooms.length > 1 ? (
-          <nav className="nf-rcal__rooms" aria-label="Room types">
+          <nav className="nf-rcal__rooms" aria-label={w.roomTypes}>
             {rooms.map((r) => (
+              /* The raw chip: `Chip`'s selected state blooms, and this rail sits
+                 beside the primary and the presets, so it keeps the calm
+                 `nf-chip--active` tint like the rail beside it. */
               <button
                 key={r.id}
                 type="button"
@@ -356,35 +371,35 @@ export function RateCalendar(props: RateCalendarProps) {
               {room.name}
               {room.status !== "PUBLISHED" ? (
                 <StatusBadge tone="neutral" className="ml-xs align-middle">
-                  Not live yet
+                  {w.notOnShelf}
                 </StatusBadge>
               ) : null}
             </p>
             <p className="nf-caption">
               {plan
-                ? `${plan.name}: ${formatMoney(plan.rateMinor, locale)} a night unless a night says otherwise`
-                : "No rate yet. Add one in your application, then price nights here."}
+                ? w.planLine.replace("{plan}", plan.name).replace("{rate}", formatMoney(plan.rateMinor, locale))
+                : w.noRate}
             </p>
           </div>
           {plan ? (
             <Button variant="secondary" size="sm" leadingIcon="pencil" onClick={() => setPlanSheet(true)}>
-              Edit rate
+              {w.editRate}
             </Button>
           ) : null}
         </div>
 
         {room.plans.length > 1 ? (
-          <div className="nf-rcal__plans" role="group" aria-label="Which rate the calendar shows">
+          <div className="nf-rcal__plans" role="group" aria-label={w.whichRate}>
             {room.plans.map((p) => (
               <button
                 key={p.id}
                 type="button"
-                className={`nf-chip nf-chip--sm${p.id === plan?.id ? " nf-chip--active" : ""}`}
+                className={`nf-chip${p.id === plan?.id ? " nf-chip--active" : ""}`}
                 aria-pressed={p.id === plan?.id}
                 onClick={() => setPlanId(p.id)}
               >
                 {p.name}
-                {p.active ? "" : " (off sale)"}
+                {p.active ? "" : w.offSaleSuffix}
               </button>
             ))}
           </div>
@@ -392,7 +407,7 @@ export function RateCalendar(props: RateCalendarProps) {
 
         <div className="nf-rcal__monthbar">
           {canPrev ? (
-            <Link href={href(prevMonth)} className="nf-btn nf-btn--surface nf-btn--icon nf-btn--round" aria-label="Previous month" scroll={false}>
+            <Link href={href(prevMonth)} className="nf-btn nf-btn--surface nf-btn--icon nf-btn--round" aria-label={w.previousMonth} scroll={false}>
               <UiIcon name="arrow-left" size={20} />
             </Link>
           ) : (
@@ -402,7 +417,7 @@ export function RateCalendar(props: RateCalendarProps) {
             {monthTitle(month, locale)}
           </h2>
           {canNext ? (
-            <Link href={href(nextMonth)} className="nf-btn nf-btn--surface nf-btn--icon nf-btn--round" aria-label="Next month" scroll={false}>
+            <Link href={href(nextMonth)} className="nf-btn nf-btn--surface nf-btn--icon nf-btn--round" aria-label={w.nextMonth} scroll={false}>
               <UiIcon name="arrow-right" size={20} />
             </Link>
           ) : (
@@ -410,15 +425,15 @@ export function RateCalendar(props: RateCalendarProps) {
           )}
         </div>
 
-        <div className="nf-rcal__presets" role="group" aria-label="Select nights quickly">
+        <div className="nf-rcal__presets" role="group" aria-label={w.presets}>
           <button type="button" className="nf-chip nf-chip--sm" onClick={() => applyPreset("weekends")}>
-            Fri and Sat nights
+            {w.weekends}
           </button>
           <button type="button" className="nf-chip nf-chip--sm" onClick={() => applyPreset("weekdays")}>
-            Sun to Thu nights
+            {w.weekdaysPreset}
           </button>
           <button type="button" className="nf-chip nf-chip--sm" onClick={() => applyPreset("month")}>
-            Every night
+            {w.everyNight}
           </button>
         </div>
 
@@ -440,14 +455,14 @@ export function RateCalendar(props: RateCalendarProps) {
           }}
         >
           <div className="nf-rcal__week nf-rcal__week--head" role="row">
-            {WEEKDAYS.map((day, i) => (
+            {w.weekdays.map((day, i) => (
               <span key={day} role="columnheader" className={`nf-rcal__wd${i >= 4 && i <= 5 ? " nf-rcal__wd--wknd" : ""}`}>
                 {day}
               </span>
             ))}
           </div>
-          {weeks.map((week, w) => (
-            <div key={`w${w}`} className="nf-rcal__week" role="row">
+          {weeks.map((week, wi) => (
+            <div key={`w${wi}`} className="nf-rcal__week" role="row">
               {week.map((date, i) => {
                 if (!date) return <span key={`gap-${i}`} className="nf-rcal__cell nf-rcal__cell--gap" role="gridcell" aria-hidden="true" />;
                 const cell = cells.get(date);
@@ -465,8 +480,8 @@ export function RateCalendar(props: RateCalendarProps) {
                     data-today={date === today ? "" : undefined}
                     aria-selected={isSelected}
                     aria-disabled={cell.past || undefined}
-                    aria-label={cellWords(cell, locale)}
-                    title={cell.imported && tone !== "past" ? heldWords(cell) ?? undefined : undefined}
+                    aria-label={cellWords(cell, locale, w)}
+                    title={cell.imported && tone !== "past" ? heldBy(cell, w) ?? undefined : undefined}
                     tabIndex={date === focusDate ? 0 : -1}
                     className={`nf-rcal__cell${isSelected ? " is-selected" : ""}`}
                     onPointerDown={(event) => onPointerDown(event, date)}
@@ -482,16 +497,16 @@ export function RateCalendar(props: RateCalendarProps) {
                       {tone === "imported"
                         ? cell.imported
                         : cell.imported && tone !== "past"
-                          ? `${cell.held} held`
+                          ? w.cellHeld.replace("{count}", String(cell.held))
                         : tone === "closed"
-                          ? "Closed"
+                          ? w.cellClosed
                           : tone === "none"
-                            ? "Off sale"
+                            ? w.cellOffSale
                             : tone === "full"
-                              ? "Full"
+                              ? w.cellFull
                               : tone === "past"
                                 ? ""
-                                : `${left} left`}
+                                : w.cellLeft.replace("{count}", String(left))}
                     </span>
                   </button>
                 );
@@ -500,14 +515,14 @@ export function RateCalendar(props: RateCalendarProps) {
           ))}
         </div>
 
-        <ul className="nf-rcal__legend" aria-label="What the colours mean">
-          <li><span className="nf-rcal__key" data-tone="open" aria-hidden="true" />On sale at the rate</li>
-          <li><span className="nf-rcal__key" data-tone="override" aria-hidden="true" />Your own price</li>
-          <li><span className="nf-rcal__key" data-tone="full" aria-hidden="true" />Fully booked</li>
-          <li><span className="nf-rcal__key" data-tone="closed" aria-hidden="true" />Closed</li>
-          <li><span className="nf-rcal__key" data-tone="imported" aria-hidden="true" />Every room booked elsewhere</li>
-          <li><span className="nf-rcal__key" data-tone="elsewhere" aria-hidden="true" />Some rooms held by another site</li>
-          <li><span className="nf-rcal__key" data-tone="none" aria-hidden="true" />Not on sale</li>
+        <ul className="nf-rcal__legend" aria-label={w.legendLabel}>
+          <li><span className="nf-rcal__key" data-tone="open" aria-hidden="true" />{w.legendOpen}</li>
+          <li><span className="nf-rcal__key" data-tone="override" aria-hidden="true" />{w.legendOwn}</li>
+          <li><span className="nf-rcal__key" data-tone="full" aria-hidden="true" />{w.legendFull}</li>
+          <li><span className="nf-rcal__key" data-tone="closed" aria-hidden="true" />{w.legendClosed}</li>
+          <li><span className="nf-rcal__key" data-tone="imported" aria-hidden="true" />{w.legendImported}</li>
+          <li><span className="nf-rcal__key" data-tone="elsewhere" aria-hidden="true" />{w.legendElsewhere}</li>
+          <li><span className="nf-rcal__key" data-tone="none" aria-hidden="true" />{w.legendNone}</li>
         </ul>
 
         {notice ? (
@@ -518,11 +533,11 @@ export function RateCalendar(props: RateCalendarProps) {
         ) : null}
 
         <p className="nf-caption nf-rcal__fine">
-          A guest pays what the night shows when they ask. Requests already made keep the price they were made at.
+          {w.fine}
         </p>
       </div>
 
-      <aside className="nf-rcal__side" aria-label="Change the selected nights">
+      <aside className="nf-rcal__side" aria-label={w.sideLabel}>
         {panel}
         <CalendarSync room={room} sync={props.sync} feedBase={props.feedBase} locale={locale} />
       </aside>
@@ -531,24 +546,26 @@ export function RateCalendar(props: RateCalendarProps) {
         <CalendarSync room={room} sync={props.sync} feedBase={props.feedBase} locale={locale} />
       </div>
 
-      {selected.size > 0 ? (
-        <div className="nf-rcal__bar" role="region" aria-label="Selected nights">
-          <div className="min-w-0">
-            <p className="nf-rcal__bar-count">
-              {countOf(selected.size, "nights", locale)}
-            </p>
-            <p className="nf-caption nf-rcal__bar-sub">{describeSelection(selectedDates)}</p>
-          </div>
-          <Button variant="quiet" size="sm" onClick={() => { setSelected(new Set()); setAnchor(null); }}>
-            Clear
-          </Button>
-          <Button variant="primary" size="sm" onClick={() => setSheetOpen(true)}>
-            Change
-          </Button>
-        </div>
-      ) : null}
+      {/* THE SELECTED NIGHTS AS A BATCH (D34, COMPONENT_LIBRARY "Batch gesture
+          tray": "the bulk actions the host workspace already has"). The phone's
+          hand-rolled bar became the one tray the platform uses for a
+          multi-select: the count said politely, Change opening the same panel
+          as before, and Clear as the circle. Drag it down to clear. Phone only;
+          from 1024px the panel beside the month is the action. */}
+      <BatchTray
+        className="nf-rcal-tray"
+        count={selected.size}
+        countLabel={`${countOf(selected.size, "nights", locale)}, ${describeSelection(selectedDates, w.selection)}`}
+        label={w.selectedNights}
+        clearLabel={props.clearSelectionLabel ?? w.clearSelection}
+        onClear={() => {
+          setSelected(new Set());
+          setAnchor(null);
+        }}
+        actions={[{ id: "change", label: w.change, icon: "pencil", onSelect: () => setSheetOpen(true) }]}
+      />
 
-      <Sheet open={sheetOpen} onOpenChange={setSheetOpen} title="Change the selected nights" detents={[0.9]}>
+      <Sheet open={sheetOpen} onOpenChange={setSheetOpen} title={w.sideLabel} detents={[0.9]}>
         {panel}
       </Sheet>
 

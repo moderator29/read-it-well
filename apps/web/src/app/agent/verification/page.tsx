@@ -1,22 +1,18 @@
 import type { Metadata } from "next";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
+import { gateFirstRun } from "@/components/app/feature-onboarding/first-run-store";
 import { AgentShell } from "@/components/agent/AgentShell";
 import { agentProfileFrom, getAgentContext } from "@/lib/agent/listings-queries";
-import { getOwnLadder, type OwnLadder } from "@/lib/agent/verification-queries";
+import { getOwnLadder } from "@/lib/agent/verification-queries";
 import { ListingPitch } from "../list/ListingPitch";
-import { ButtonLink } from "@/components/ui/Button";
 import { SuccessFromFlag } from "@/components/ui/SuccessFromFlag";
 import { approvedRecently } from "@/lib/ui/recent-approval";
-import { StatusPill } from "@/components/ui/StatusPill";
-import {
-  nextRung,
-  TIER_NAME,
-  VERIFICATION_ORDER,
-  type VerificationTier,
-} from "@/lib/trust/verification";
+import { TIER_NAME, VERIFICATION_ORDER } from "@/lib/trust/verification";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { IconPlate } from "@/components/ui/IconPlate";
+import { TrustTierFan } from "@/components/app/artefact/TrustTierFan";
+import { Ladder, Standing } from "./VerificationLadder";
 
 /**
  * /agent/verification: where this agent stands, and what the next rung wants.
@@ -50,132 +46,11 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export const dynamic = "force-dynamic";
 
-/**
- * The ladder itself.
- *
- * Every rung is drawn, including the ones nobody has looked at, because the
- * question this page answers is "what is left" as much as "what is done". A
- * list that showed only decided rungs would leave an agent on tier 1 looking at
- * a single line with no idea that three more exist.
- */
-export function Ladder({ ladder }: { ladder: OwnLadder }) {
-  return (
-    <ol className="mt-lg flex flex-col gap-sm">
-      {VERIFICATION_ORDER.map((rung) => {
-        const decision = ladder.rungs[rung.kind];
-        const reached = ladder.tier >= rung.step;
-        const failed = decision?.status === "failed";
-
-        return (
-          <li key={rung.kind} className="nf-panel nf-panel--card block p-md sm:p-panel">
-            <div className="flex flex-wrap items-center gap-xs">
-              <span className="text-[length:var(--nf-text-overline)] font-semibold tabular-nums text-[var(--nf-content-muted)]">
-                {rung.step}
-              </span>
-              <span className="text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
-                {rung.label}
-              </span>
-              {/* Three states, and the third is the honest one that a two-state
-                  badge would have to lie about: not yet looked at is not the
-                  same as failed, and telling an agent otherwise would have them
-                  ringing support about a rung nobody has reached. */}
-              {decision ? (
-                <StatusPill tone={failed ? "danger" : "success"}>
-                  {failed ? "Not passed" : "Passed"}
-                </StatusPill>
-              ) : (
-                <StatusPill tone="neutral">Not checked yet</StatusPill>
-              )}
-            </div>
-
-            <p className="mt-xs text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
-              {rung.meaning}
-            </p>
-
-            {/* Named concretely so a host can go and get it, which is the whole
-                point of publishing the ladder rather than describing it. */}
-            <p className="mt-xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
-              <span className="font-semibold">What we look at:</span> {rung.evidence}
-            </p>
-
-            {/* The most useful thing on the page. A failed rung with a reason is
-                something a host can act on this afternoon; without one it is a
-                locked door. */}
-            {decision?.note && (
-              <p
-                className={`mt-sm rounded-[var(--nf-container-radius)] px-sm py-xs text-[length:var(--nf-text-caption)] leading-relaxed ${
-                  failed
-                    ? "bg-[var(--nf-state-error-surface)] text-[var(--nf-content-primary)]"
-                    : "bg-[var(--nf-surface-raised)] text-[var(--nf-content-secondary)]"
-                }`}
-              >
-                {decision.note}
-              </p>
-            )}
-
-            {!decision && reached && (
-              /* Tier says this rung is behind them but no row records it. That
-                 is a real state: the tier is recomputed by trigger and a row can
-                 be removed. Said plainly rather than papered over. */
-              <p className="mt-xs text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">
-                Counted towards your standing, with no decision recorded against
-                it.
-              </p>
-            )}
-          </li>
-        );
-      })}
-    </ol>
-  );
-}
-
-export function Standing({ tier }: { tier: VerificationTier }) {
-  const next = nextRung(tier);
-  return (
-    <div className="nf-panel nf-panel--card block p-panel">
-      <p className="text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
-        Your standing
-      </p>
-      <p className="mt-2xs text-[length:var(--nf-text-h3)] font-bold leading-tight text-[var(--nf-content-primary)]">
-        {TIER_NAME[tier]}
-      </p>
-      <p className="mt-2xs text-[length:var(--nf-text-caption)] tabular-nums text-[var(--nf-content-muted)]">
-        {tier} of {VERIFICATION_ORDER.length} checks passed
-      </p>
-
-      {/*
-        THE SENTENCE IS NOT SPLICED OUT OF THE REVIEWER'S WORDS ANY MORE.
-
-        It read "Next up is bank account in their own name. The payout account
-        resolved through the payment processor, with the returned account name
-        matching the identity on file." Both halves come from
-        `lib/trust/verification.ts`, which is written for the member of staff
-        making the decision: it says "this agent", "they" and "them" about the
-        very person reading this page. Lower-casing a label into the middle of
-        a second-person sentence made it worse. The rung's own card below
-        carries the reviewer's words under "What we look at", where third
-        person is correct because it is quoting the check.
-      */}
-      <p className="mt-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
-        {next
-          ? `Next on the ladder: ${next.label}. What that check looks at is on its card below.`
-          : "Every check on the ladder is passed. There is nothing further to send."}
-      </p>
-
-      {/* No upload control, on purpose. Nothing behind this page accepts a
-          document: the evidence arrived with the application and a rung is a
-          decision somebody records after reading it. Messaging support is the
-          real next step, so it is the one offered. */}
-      {next && (
-        <ButtonLink href="/support" variant="secondary" full className="mt-md">
-          Ask about this check
-        </ButtonLink>
-      )}
-    </div>
-  );
-}
-
-export default async function Page() {
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const locale = await getLocale();
   const t = getDictionary(locale);
   const context = await getAgentContext();
@@ -204,6 +79,10 @@ export default async function Page() {
     );
   }
 
+  /* The ladder's first run (north star 14.1): what each check looks at and
+     that a person decides it, once, before the ladder is read. */
+  await gateFirstRun("verification", "/agent/verification", await searchParams);
+
   const read = await getOwnLadder(context);
 
   return (
@@ -230,24 +109,48 @@ export default async function Page() {
           reloading usually settles it.
         </p>
       ) : (
-        <div className="grid gap-lg lg:grid-cols-[1fr_20rem]">
-          <div className="lg:order-2">
-            <Standing tier={read.ladder.tier} />
+        <>
+          {/* THE TIERS AS CREDENTIALS (north star 14.4, D14): each tier the
+              ladder defines is something held or not yet, in the ladder's own
+              words, and the stack is how an agent picks one up to read it. It
+              opens on the tier they hold; "Held" is the database's tier. */}
+          <section className="mb-lg">
+            <TrustTierFan
+              tiers={VERIFICATION_ORDER.map((rung) => ({
+                step: rung.step,
+                name: TIER_NAME[rung.step],
+                meaning: rung.meaning,
+                held: read.ladder.tier >= rung.step,
+              }))}
+              current={read.ladder.tier}
+              copy={{
+                selector: t.experienceFeatures.trustTiers.selector,
+                position: t.experienceFeatures.artefact.position,
+                tier: t.experienceFeatures.trustTiers.tier,
+                held: t.experienceFeatures.trustTiers.held,
+                notYet: t.experienceFeatures.trustTiers.notYet,
+              }}
+            />
+          </section>
+          <div className="grid gap-lg lg:grid-cols-[1fr_20rem]">
+            <div className="lg:order-2">
+              <Standing tier={read.ladder.tier} />
+            </div>
+            {/* Where the reviewer's decision notice lands. The same key as
+                /verification, so a level is celebrated once on this device
+                whichever door it is seen through (docs/SUCCESS_MOMENTS.md). */}
+            <SuccessFromFlag
+              copy={t.success}
+              show={read.ladder.tier > 0 && approvedRecently(Object.values(read.ladder.rungs), requestNow())}
+              moment="verificationApproved"
+              seenKey={`verification-approved:tier-${read.ladder.tier}`}
+              haptic={false}
+            />
+            <div className="lg:order-1">
+              <Ladder ladder={read.ladder} />
+            </div>
           </div>
-          {/* Where the reviewer's decision notice lands. The same key as
-              /verification, so a level is celebrated once on this device
-              whichever door it is seen through (docs/SUCCESS_MOMENTS.md). */}
-          <SuccessFromFlag
-            copy={t.success}
-            show={read.ladder.tier > 0 && approvedRecently(Object.values(read.ladder.rungs), requestNow())}
-            moment="verificationApproved"
-            seenKey={`verification-approved:tier-${read.ladder.tier}`}
-            haptic={false}
-          />
-          <div className="lg:order-1">
-            <Ladder ladder={read.ladder} />
-          </div>
-        </div>
+        </>
       )}
     </AgentShell>
   );

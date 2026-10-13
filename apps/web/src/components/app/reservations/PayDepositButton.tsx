@@ -1,0 +1,65 @@
+"use client";
+
+import { PhoneGateLink } from "@/components/app/PhoneGateLink";
+import { isPhoneGate } from "@/lib/actions/envelope";
+import { useState, useTransition } from "react";
+import { payReservationDeposit } from "@/lib/reservations/deposit-actions";
+import { Button } from "@/components/ui/Button";
+
+/**
+ * D75: pay a restaurant's table deposit, by card. Opens Paystack's hosted
+ * checkout; the webhook and the return page (never this button) record it
+ * as paid. The words are the caller's, in the reader's language.
+ */
+export function PayDepositButton({
+  reservationId,
+  label,
+  pendingLabel,
+  size = "sm",
+  full = false,
+}: {
+  reservationId: string;
+  label: string;
+  /** Said while the payment page is being opened. Defaults to the label. */
+  pendingLabel?: string;
+  size?: "sm" | "md" | "lg";
+  full?: boolean;
+}) {
+  const [error, setError] = useState<string | null>(null);
+  const [phoneGate, setPhoneGate] = useState(false);
+  const [pending, start] = useTransition();
+  return (
+    <span className={`${full ? "flex w-full" : "inline-flex"} flex-col gap-inline`}>
+      <Button
+        type="button"
+        variant="primary"
+        size={size}
+        full={full}
+        disabled={pending}
+        loading={pending}
+        data-testid="trip-pay-deposit"
+        onClick={() =>
+          start(async () => {
+            setError(null);
+            setPhoneGate(false);
+            const result = await payReservationDeposit(reservationId);
+            if (!result.ok) {
+              setError(result.error);
+              setPhoneGate(isPhoneGate(result));
+              return;
+            }
+            window.location.assign(result.data.authorizationUrl);
+          })
+        }
+      >
+        {pending ? (pendingLabel ?? label) : label}
+      </Button>
+      {error && (
+        <span role="alert" className="nf-caption text-[var(--nf-state-error)]">
+          {error}
+        </span>
+      )}
+      <PhoneGateLink show={phoneGate} full />
+    </span>
+  );
+}

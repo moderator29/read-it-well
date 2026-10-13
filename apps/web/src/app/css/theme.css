@@ -64,7 +64,23 @@
 
   --spacing-section: var(--nf-gap-section);
   --spacing-section-tight: var(--nf-gap-section-tight);
-  --spacing-block: var(--nf-gap-block);
+  /*
+   * `block` IS NOT A `--spacing` KEY, and must never be one. Tailwind 4's
+   * `inline-*` utility (inline-size) reads the `--spacing` namespace, so a key
+   * called `block` turned the display class `inline-block` into
+   * `display: inline-block; inline-size: var(--nf-gap-block)`: every
+   * inline-block element in the product was about 32px wide (found by C5 on
+   * /host's "Contact us"; measured by C1 as the agent rail's "Apply / to list"
+   * broken over two lines in a 32px box). The role lives in the four
+   * namespaces its utilities actually read instead, so `mt-block`, `mb-block`,
+   * `pt-block`, `pb-block`, `py-block`, `gap-block` and `space-y-block` keep
+   * their names and their value, and `inline-block` is a display class again.
+   * `app/css/spacing-keys.test.ts` compiles the cascade and holds both.
+   */
+  --margin-block: var(--nf-gap-block);
+  --padding-block: var(--nf-gap-block);
+  --gap-block: var(--nf-gap-block);
+  --space-block: var(--nf-gap-block);
   --spacing-heading: var(--nf-gap-heading);
   --spacing-group: var(--nf-gap-group);
   --spacing-row: var(--nf-gap-row);
@@ -180,6 +196,20 @@
    * utility and the other is not.
    */
   --container-content-read: var(--nf-content-read);
+
+  /*
+   * MOTION, bridged (round 5, W1). Tailwind's `ease-in`, `ease-out` and
+   * `ease-in-out` and the plain `transition*` utilities resolved to its own
+   * curves and 150ms, so every component that wrote `transition-colors` moved
+   * on a curve that is not ours. Pointed at the ladder, they are `leave`,
+   * `land` and `glide`, and the default is `glide` at the fast rung, which is
+   * also what makes them collapse under reduced motion with the tokens.
+   */
+  --ease-in: var(--nf-ease-exit);
+  --ease-out: var(--nf-ease-entrance);
+  --ease-in-out: var(--nf-ease-standard);
+  --default-transition-duration: var(--nf-duration-fast);
+  --default-transition-timing-function: var(--nf-ease-standard);
 
   --font-sans: var(--nf-font-sans);
 }

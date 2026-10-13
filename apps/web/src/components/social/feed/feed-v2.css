@@ -1,0 +1,793 @@
+/*
+ * THE FEED, THE STORIES ROW, THE POST CARD AND THE COMPOSER (13 October 2026).
+ *
+ * The founder's reference, taken in shape and not in colour: a row of
+ * rounded-square story tiles with the name under each and a "Your story" tile
+ * with a plus first; a small capsule segmented control (For you, Friends); a
+ * post as a round face with the name in bold over the @handle, the time at the
+ * right, the caption, the picture in one large rounded container with its
+ * labels laid over it, and under it a rounded "Drop a comment" pill with a
+ * heart at the right. A post with words and no picture puts the words inside
+ * the same rounded container, so a text post is as tidy as a photo post.
+ *
+ * Tokens only, and every colour comes from a token that is re-pointed for the
+ * night and day themes, so one rule serves both. Corners are the radius scale
+ * (`--nf-radius-island` for the big container, `--nf-radius-lg` for a story
+ * tile, the pill for the comment pill). Nothing here uses font-weight 500.
+ *
+ * It sits beside `social-feed.css` and wins by naming its own classes
+ * (`nf-pc`, `nf-fv2`), not by fighting the old ones.
+ */
+@layer components {
+  /* ------------------------------------------------------------ the page */
+
+  .nf-fv2-page {
+    --nf-feed-gap: var(--nf-space-md);
+    inline-size: 100%;
+    max-inline-size: 48rem;
+    margin-inline: auto;
+  }
+  .nf-fv2-grid {
+    display: block;
+  }
+  .nf-fv2-main {
+    min-inline-size: 0;
+  }
+  /* The right rail is for a desktop. On a phone the same people sit inside the
+     feed itself, so the rail is not drawn there. */
+  .nf-fv2-rail {
+    display: none;
+  }
+  @media (min-width: 1024px) {
+    .nf-fv2-page {
+      max-inline-size: 66rem;
+    }
+    .nf-fv2-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 37.5rem) 20rem;
+      justify-content: center;
+      align-items: start;
+      gap: var(--nf-space-xl);
+    }
+    .nf-fv2-rail {
+      display: block;
+      position: sticky;
+      inset-block-start: var(--nf-space-lg);
+    }
+    /* The in-feed block is the phone's; the rail is the desktop's. */
+    .nf-fv2-main .nf-follow {
+      display: none;
+    }
+  }
+
+  /* ------------------------------------------------------------ stories */
+
+  div.nf-story-ring.nf-fv2-stories .nf-story-ring__row {
+    gap: var(--nf-space-sm);
+    padding-block: var(--nf-space-2xs);
+  }
+  div.nf-story-ring.nf-fv2-stories .nf-story-ring__item {
+    inline-size: 4.5rem;
+    gap: var(--nf-space-xs);
+    border-radius: var(--nf-radius-lg);
+  }
+  /* The tile: a rounded square holding the story's own picture, ringed by one
+     segment per live story (the ring's gradient is written by the item). */
+  div.nf-story-ring.nf-fv2-stories .nf-story-ring__disc {
+    inline-size: 4.5rem;
+    block-size: 4.5rem;
+    padding: 3px;
+    border-radius: var(--nf-radius-lg);
+    box-shadow: none;
+  }
+  div.nf-story-ring.nf-fv2-stories .nf-story-ring__disc img,
+  div.nf-story-ring.nf-fv2-stories .nf-story-ring__monogram {
+    border-radius: var(--nf-radius-md);
+  }
+  div.nf-story-ring.nf-fv2-stories .nf-story-ring__name {
+    max-inline-size: 100%;
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-secondary);
+  }
+  /* "Your story": the same rounded square, a soft dashed outline, a plus in
+     the middle. No picture is claimed for somebody who has not made one. */
+  div.nf-story-ring.nf-fv2-stories .nf-story-ring__disc.nf-story-ring__disc--you:not([style*="--nf-ring"]) {
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: var(--nf-border-width-strong) dashed var(--nf-border-strong);
+    background: var(--nf-surface-secondary);
+    color: var(--nf-brand-secondary);
+    transition:
+      background-color var(--nf-duration-fast) var(--nf-ease-standard),
+      border-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  div.nf-story-ring.nf-fv2-stories .nf-story-ring__item:hover .nf-story-ring__disc--you:not([style*="--nf-ring"]),
+  div.nf-story-ring.nf-fv2-stories .nf-story-ring__item:focus-visible .nf-story-ring__disc--you:not([style*="--nf-ring"]) {
+    background: var(--nf-brand-tint-1);
+    border-color: var(--nf-brand-secondary);
+  }
+  /* On a desktop the row starts where the column does. */
+  @media (min-width: 1024px) {
+    div.nf-story-ring.nf-fv2-stories {
+      margin-inline: 0;
+    }
+    div.nf-story-ring.nf-fv2-stories .nf-story-ring__row {
+      padding-inline: 0;
+      scroll-padding-inline: 0;
+    }
+  }
+  .nf-story-ring__add {
+    display: grid;
+    place-items: center;
+    inline-size: 2.25rem;
+    block-size: 2.25rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-brand-tint-1);
+  }
+
+  /* ------------------------------------------------------- the capsule tabs */
+
+  .nf-fv2-seg {
+    display: flex;
+    justify-content: flex-start;
+    margin-block: var(--nf-space-xs) var(--nf-space-md);
+  }
+  .nf-fv2-seg__track {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-3xs);
+    padding: var(--nf-space-2xs);
+    border-radius: var(--nf-radius-pill);
+    border: var(--nf-border-width) solid var(--nf-border-subtle);
+    background: var(--nf-surface-secondary);
+  }
+  .nf-fv2-seg__link {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-block-size: 2rem;
+    padding-inline: var(--nf-space-md);
+    border-radius: var(--nf-radius-pill);
+    color: var(--nf-content-secondary);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    line-height: 1;
+    text-decoration: none;
+    white-space: nowrap;
+    transition:
+      color var(--nf-duration-fast) var(--nf-ease-standard),
+      background-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  /* The pill looks small and the target is not: 44px tall by the link's own
+     width, centred on the pill. */
+  .nf-fv2-seg__link::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    inset-block-start: 50%;
+    translate: 0 -50%;
+    block-size: max(100%, 44px);
+  }
+  .nf-fv2-seg__link:hover {
+    color: var(--nf-content-primary);
+  }
+  .nf-fv2-seg__link:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: var(--nf-focus-ring-offset);
+  }
+  .nf-fv2-seg__link[aria-current="page"] {
+    background: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+  }
+
+  /* --------------------------------------------------------- the post card */
+
+  /* The card: the platform's own card material (white by day, the deep navy by
+     night), one corner and one padding. `.nf-post` is kept on the element as the
+     hook the feed's arrival motion and the end-to-end checks use, so the card's
+     own look is stated here with enough weight to be the one that applies. */
+  .nf-post.nf-pc {
+    position: relative;
+    display: block;
+    min-inline-size: 0;
+    padding: var(--nf-space-md);
+    border: var(--nf-border-width) solid var(--nf-card-border);
+    border-radius: var(--nf-radius-island);
+    background: var(--nf-surface-primary);
+    box-shadow: var(--nf-card-shadow);
+  }
+  .nf-pc__reposted {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    margin: 0 0 var(--nf-space-xs);
+    color: var(--nf-content-muted);
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+  }
+
+  .nf-pc__head {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+  }
+  .nf-pc__face {
+    display: block;
+    flex: none;
+    border-radius: var(--nf-radius-circle);
+  }
+  .nf-pc__avatar {
+    display: grid;
+    flex: none;
+    place-items: center;
+    inline-size: 2.75rem;
+    block-size: 2.75rem;
+    overflow: hidden;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-surface-raised);
+  }
+  .nf-pc__avatar img {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+  .nf-pc__monogram {
+    display: grid;
+    place-items: center;
+    inline-size: 100%;
+    block-size: 100%;
+    background: var(--nf-gradient-brand-ink);
+    color: var(--nf-content-on-brand);
+    font-size: var(--nf-text-body-lg);
+    font-weight: 700;
+  }
+  .nf-pc__who {
+    display: grid;
+    flex: 1;
+    gap: var(--nf-space-3xs);
+    min-inline-size: 0;
+  }
+  .nf-pc__nameline {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    min-inline-size: 0;
+  }
+  .nf-pc__name {
+    position: relative;
+    display: block;
+    min-inline-size: 0;
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-body);
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    text-decoration: none;
+  }
+  /* The name is a link and a small one: its target reaches 44 tall. The
+     ellipsis is on the text inside, so the target is not clipped with it. */
+  .nf-pc__name::after {
+    content: "";
+    position: absolute;
+    inset-inline: calc(-1 * var(--nf-space-2xs));
+    inset-block-start: 50%;
+    translate: 0 -50%;
+    block-size: 44px;
+  }
+  .nf-pc__name-text {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .nf-pc__tick {
+    display: inline-flex;
+    flex: none;
+  }
+  .nf-pc__handle {
+    overflow: hidden;
+    color: var(--nf-content-muted);
+    font-size: var(--nf-text-caption);
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .nf-pc__side {
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: var(--nf-space-3xs);
+  }
+  .nf-pc__marks {
+    display: inline-flex;
+    gap: var(--nf-space-2xs);
+  }
+  .nf-pc__mark {
+    padding: var(--nf-space-3xs) var(--nf-space-xs);
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-brand-tint-1);
+    color: var(--nf-brand-secondary);
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    line-height: 1.3;
+  }
+  .nf-pc__when {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    color: var(--nf-content-muted);
+    font-size: var(--nf-text-caption);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  /* The time is a link and a small one: its target reaches 44 tall. */
+  .nf-pc__when::after {
+    content: "";
+    position: absolute;
+    inset-inline: calc(-1 * var(--nf-space-xs));
+    inset-block-start: 50%;
+    translate: 0 -50%;
+    block-size: 44px;
+  }
+  .nf-pc__when:hover,
+  .nf-pc__when:focus-visible {
+    color: var(--nf-content-primary);
+  }
+  .nf-pc .nf-pc__kebab {
+    flex: none;
+    display: grid;
+    place-items: center;
+    inline-size: 2.75rem;
+    block-size: 2.75rem;
+    margin-block: 0;
+    margin-inline: calc(-1 * var(--nf-space-xs)) calc(-1 * var(--nf-space-sm));
+    padding: 0;
+    color: var(--nf-content-muted);
+  }
+
+  .nf-pc__replying {
+    margin: var(--nf-space-xs) 0 0;
+    color: var(--nf-content-muted);
+    font-size: var(--nf-text-overline);
+  }
+  .nf-pc__replying span {
+    color: var(--nf-brand-secondary);
+    font-weight: 600;
+  }
+  .nf-pc__held {
+    margin: var(--nf-space-sm) 0 0;
+    padding: var(--nf-space-xs) var(--nf-space-sm);
+    border-radius: var(--nf-radius-md);
+    border: var(--nf-border-width) solid var(--nf-border-default);
+    background: var(--nf-surface-secondary);
+    color: var(--nf-content-secondary);
+    font-size: var(--nf-text-overline);
+    line-height: 1.5;
+  }
+  .nf-pc__note {
+    margin: var(--nf-space-xs) 0 0;
+    color: var(--nf-content-muted);
+    font-size: var(--nf-text-overline);
+    line-height: 1.5;
+  }
+
+  /* The words. */
+  .nf-pc .nf-pc__text {
+    margin: 0;
+    min-inline-size: 0;
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-body);
+    line-height: 1.5;
+    letter-spacing: -0.006em;
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+  }
+  .nf-pc .nf-pc__text--big {
+    font-size: var(--nf-text-h3);
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: -0.015em;
+  }
+  .nf-pc .nf-pc__text--clamped {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 8;
+    line-clamp: 8;
+    overflow: hidden;
+  }
+  .nf-pc__caption .nf-pc__text--clamped {
+    -webkit-line-clamp: 5;
+    line-clamp: 5;
+  }
+  .nf-pc__caption {
+    margin-block-start: var(--nf-space-sm);
+  }
+  .nf-pc__more {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 2.75rem;
+    padding: 0;
+    color: var(--nf-brand-secondary);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+  }
+  .nf-pc__editor {
+    margin-block-start: var(--nf-space-sm);
+  }
+
+  /* The one rounded container: the picture's frame and the words' frame. */
+  .nf-pc__frame {
+    position: relative;
+    margin-block-start: var(--nf-space-sm);
+    overflow: hidden;
+    border-radius: var(--nf-radius-xl);
+  }
+  .nf-pc__media {
+    background: var(--nf-surface-inset);
+    border: var(--nf-border-width) solid var(--nf-border-subtle);
+  }
+  .nf-pc__media--one {
+    /* A fixed proportion before a byte arrives (set inline from the picture's
+       own size), held between a tall portrait and a wide landscape. */
+    max-block-size: 32rem;
+  }
+  .nf-pc__media--one img {
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+
+  /* More than one picture: a swipe through full-width slides inside the same
+     frame, with a count at the top. */
+  .nf-pc .nf-pc__media--rail {
+    aspect-ratio: 5 / 4;
+  }
+  .nf-pc .nf-pc__media--rail .nf-post__rail,
+  .nf-pc .nf-pc__media--rail .nf-post__rail-track {
+    block-size: 100%;
+  }
+  .nf-pc .nf-pc__media--rail .nf-post__rail-track {
+    gap: 0;
+    padding-inline: 0;
+    scroll-padding-inline: 0;
+  }
+  .nf-pc .nf-pc__media--rail .nf-post__rail-track img {
+    flex: 0 0 100%;
+    inline-size: 100%;
+    block-size: 100%;
+    aspect-ratio: auto;
+    border: 0;
+    border-radius: 0;
+    object-fit: cover;
+    scroll-snap-align: start;
+  }
+  .nf-pc .nf-pc__media--rail .nf-post__rail-count {
+    inset-block-start: var(--nf-space-sm);
+    inset-inline-start: auto;
+    inset-inline-end: var(--nf-space-sm);
+  }
+
+  /* Labels laid over the picture: likes at the left, the place at the right. */
+  .nf-pc__chips {
+    position: absolute;
+    inset-inline: var(--nf-space-sm);
+    inset-block-end: var(--nf-space-sm);
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-space-xs);
+    pointer-events: none;
+  }
+  .nf-pc__chips > * {
+    pointer-events: auto;
+  }
+  .nf-pc .nf-pc__place {
+    margin: 0;
+    min-inline-size: 0;
+    max-inline-size: 70%;
+    margin-inline-start: auto;
+    color: var(--nf-content-on-media);
+  }
+  .nf-pc .nf-pc__place .nf-post__place-chip {
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-surface-control-on-media-strong);
+    color: var(--nf-content-on-media);
+  }
+  .nf-pc .nf-pc__place .nf-post__place-chip .nf-ui-icon {
+    color: var(--nf-content-on-media);
+  }
+  .nf-pc__plainplace {
+    margin-block-start: var(--nf-space-2xs);
+  }
+  .nf-pc__plainplace .nf-pc__place {
+    max-inline-size: 100%;
+    margin-inline-start: 0;
+    color: var(--nf-content-secondary);
+  }
+  .nf-pc__plainplace .nf-pc__place .nf-post__place-chip {
+    background: var(--nf-brand-tint-1);
+    color: var(--nf-content-secondary);
+  }
+  .nf-pc__plainplace .nf-pc__place .nf-post__place-chip .nf-ui-icon {
+    color: var(--nf-brand-secondary);
+  }
+
+  /* Words in the frame: the same rounded container as a picture. */
+  .nf-pc__textframe {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--nf-space-sm);
+    min-block-size: 9rem;
+    padding: var(--nf-space-lg) var(--nf-space-md);
+    border: var(--nf-border-width) solid var(--nf-card-border);
+    background:
+      radial-gradient(120% 90% at 100% 0, var(--nf-brand-tint-1), transparent 60%),
+      var(--nf-surface-secondary);
+    box-shadow: var(--nf-card-shadow);
+  }
+  .nf-pc__textframe:has(.nf-pc__text--big) {
+    min-block-size: 12rem;
+  }
+  .nf-pc__textframe .nf-pc__more {
+    align-self: flex-start;
+    min-block-size: 2rem;
+    margin-block-end: calc(-1 * var(--nf-space-2xs));
+  }
+  .nf-pc__chips--text {
+    position: static;
+    inset: auto;
+    justify-content: flex-end;
+    margin-block-start: var(--nf-space-xs);
+  }
+
+  /* ---------------------------------------------------------- the actions */
+
+  .nf-pc__actions {
+    display: grid;
+    gap: var(--nf-space-2xs);
+    margin-block-start: var(--nf-space-sm);
+  }
+  .nf-pc__reply-row {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+  }
+  /* The rounded "Drop a comment" pill: a comment icon and the words, the count
+     at its far end. The pill is the 44px target, whole. */
+  .nf-pc__comment {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    min-inline-size: 0;
+    min-block-size: 2.75rem;
+    padding-inline: var(--nf-space-md);
+    border-radius: var(--nf-radius-pill);
+    border: var(--nf-border-width) solid var(--nf-border-subtle);
+    background: var(--nf-surface-secondary);
+    color: var(--nf-content-muted);
+    font-size: var(--nf-text-body-sm);
+    text-align: start;
+    transition:
+      background-color var(--nf-duration-fast) var(--nf-ease-standard),
+      border-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-pc__comment:hover {
+    background: var(--nf-surface-raised);
+    color: var(--nf-content-secondary);
+  }
+  .nf-pc__comment:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: var(--nf-focus-ring-offset);
+  }
+  .nf-pc__comment .nf-ui-icon {
+    flex: none;
+    color: var(--nf-content-subtle);
+  }
+  .nf-pc__comment-text {
+    flex: 1;
+    min-inline-size: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .nf-pc__comment-count {
+    flex: none;
+    color: var(--nf-content-secondary);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+  }
+  /* The glyphs in both rows are bare: no fill and no edge on the control. */
+  .nf-pc .nf-act-pill {
+    min-block-size: 2.75rem;
+    border-color: transparent;
+    background: transparent;
+  }
+  .nf-pc .nf-act-pill--round {
+    min-inline-size: 2.75rem;
+  }
+  .nf-pc .nf-act-pill:hover {
+    background: var(--nf-surface-secondary);
+  }
+  .nf-pc .nf-act-pill[aria-pressed="true"] {
+    border-color: transparent;
+    background: transparent;
+  }
+  .nf-pc__more-row {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    margin-inline-start: calc(-1 * var(--nf-space-xs));
+  }
+  .nf-pc__more-row .nf-post__act--share {
+    margin-inline-start: 0;
+  }
+  .nf-pc__more-row > :last-child {
+    margin-inline-start: auto;
+    margin-inline-end: calc(-1 * var(--nf-space-xs));
+  }
+  .nf-pc__more-row .nf-post__act--save {
+    margin-inline-start: auto;
+  }
+  .nf-pc .nf-post__attach,
+  .nf-pc .nf-post__cited {
+    margin-block-start: var(--nf-space-sm);
+  }
+  .nf-pc .nf-post__meta {
+    margin-block: var(--nf-space-sm) 0;
+    color: var(--nf-content-muted);
+    font-size: var(--nf-text-caption);
+  }
+
+  /* ----------------------------------------------------- the feed's header */
+
+  .nf-fv2-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+  }
+  .nf-fv2-bar .nf-feed-find {
+    margin-inline-start: auto;
+  }
+
+  /* On a wide screen the feed is a calm centred column of 600px. */
+  @media (min-width: 1024px) {
+    .nf-fv2-main .nf-post.nf-pc {
+      padding: var(--nf-space-lg);
+    }
+  }
+
+  /* ------------------------------------------------------ the right rail */
+
+  .nf-fv2-rail__box {
+    display: grid;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-md);
+    border-radius: var(--nf-radius-xl);
+    border: var(--nf-border-width) solid var(--nf-card-border);
+    background: var(--nf-surface-primary);
+    box-shadow: var(--nf-card-shadow);
+  }
+  .nf-fv2-rail__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--nf-space-sm);
+  }
+  .nf-fv2-rail__title {
+    margin: 0;
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-body);
+    font-weight: 700;
+  }
+  .nf-fv2-rail__all {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 2.75rem;
+    color: var(--nf-brand-secondary);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .nf-fv2-rail__list {
+    display: grid;
+    gap: var(--nf-space-2xs);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* ------------------------------------------------- the composer, v2 */
+
+  /* Who is writing: the face, the name and who will see it, under the bar. */
+  .nf-compose-who {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    margin-block-end: var(--nf-space-sm);
+  }
+  .nf-compose-who__face {
+    display: grid;
+    flex: none;
+    place-items: center;
+    inline-size: 2.75rem;
+    block-size: 2.75rem;
+    overflow: hidden;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-surface-raised);
+  }
+  .nf-compose-who__face img {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+  .nf-compose-who__monogram {
+    display: grid;
+    place-items: center;
+    inline-size: 100%;
+    block-size: 100%;
+    background: var(--nf-gradient-brand-ink);
+    color: var(--nf-content-on-brand);
+    font-weight: 700;
+  }
+  .nf-compose-who__text {
+    display: grid;
+    flex: 1;
+    gap: var(--nf-space-3xs);
+    justify-items: start;
+    min-inline-size: 0;
+  }
+  .nf-compose-who__name {
+    max-inline-size: 100%;
+    overflow: hidden;
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-body);
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  /* The story composer wears the same rounded container as a post's picture. */
+  .nf-story-form .nf-story-compose {
+    border-radius: var(--nf-radius-island);
+  }
+  /* The page's bar: Cancel at the left, a clear Post button at the right. */
+  .nf-compose-page .nf-compose-page__send {
+    min-inline-size: 5rem;
+    border-radius: var(--nf-radius-pill);
+  }
+  .nf-compose-page .nf-compose-page__bar {
+    padding-block-end: var(--nf-space-sm);
+  }
+  .nf-compose-page .nf-compose-page__field {
+    font-size: var(--nf-text-h4);
+    line-height: 1.45;
+  }
+  /* The media tray: rounded thumbnails, large enough to be recognised, with
+     the remove control on each. */
+  .nf-compose-page .nf-compose-pics {
+    flex-wrap: nowrap;
+    gap: var(--nf-space-xs);
+    margin-block: var(--nf-space-sm);
+    padding-block-end: var(--nf-space-2xs);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .nf-compose-page .nf-compose-pics::-webkit-scrollbar {
+    display: none;
+  }
+  .nf-compose-page .nf-compose-pics__item {
+    flex: none;
+    inline-size: 6.5rem;
+    block-size: 6.5rem;
+    border-radius: var(--nf-radius-xl);
+  }
+  .nf-compose-page .nf-compose-page__tools {
+    border-block-start: var(--nf-border-width) solid var(--nf-divider);
+  }
+}

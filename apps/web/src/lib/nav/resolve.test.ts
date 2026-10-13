@@ -362,7 +362,7 @@ describe("but never to a screen that is not safe to return to", () => {
       ["/tenancy/t1", "/tenancy/t1/complaint", "/bookings"],
       ["/profile/application", "/profile/setup/owner", "/profile"],
       ["/agent/listings", "/agent/list", "/agent/dashboard"],
-      ["/host", "/host/start", "/home"],
+      ["/host", "/host/start", "/stays"], // the Stays home: /host is a Stays address
       ["/rent/review/r1", "/rent/pay/i1", "/bookings"],
     ];
     for (const [path, behind, want] of FORMS) {
@@ -466,6 +466,65 @@ describe("same-screen entries are stepped over", () => {
     expect(previousEntry(withSheet)).toEqual({ path: "/search?beds=2", distance: 2 });
     expect(previousEntry(navigationWith(["/search?a", "/search?b"], 1))).toBe(null);
     expect(previousEntry(null)).toBe(null);
+  });
+});
+
+/* ------------------------------------------------- the home of your side */
+
+/*
+ * Session 3 navigation audit: a shared screen opened cold on the Stays side
+ * went back to `/home`, the PROPERTY home, and the shell turned over under
+ * the person. The home a press lands on is the home of the side the screen
+ * is painted on.
+ */
+describe("the home is the home of the side you are on", () => {
+  const SHARED = ["/messages", "/notifications", "/bookings", "/saved", "/settings", "/profile", "/assistant", "/support"];
+
+  it("returns a shared screen on the Stays side to /stays, cold and after a refused screen", () => {
+    for (const path of SHARED) {
+      expect(press(path, null, { shellSide: "stays" }), path).toMatchObject({ action: "replace", href: "/stays" });
+      expect(press(path, "/sign-in", { shellSide: "stays" }), path).toMatchObject({ action: "replace", href: "/stays", refused: "door" });
+    }
+    /* The feed names the `/home-or-landing` redirect, which only ever answers
+       `/home` for a member: on the Stays side that is `/stays`. */
+    expect(press("/around", null, { shellSide: "stays" })).toMatchObject({ action: "replace", href: "/stays" });
+  });
+
+  it("walks history to the Stays home when it is sitting right behind", () => {
+    expect(press("/messages", "/stays", { shellSide: "stays" })).toMatchObject({
+      action: "back",
+      href: "/stays",
+      reason: "history-is-parent",
+    });
+  });
+
+  it("leaves the Property side, and a caller that cannot say, exactly as declared", () => {
+    for (const path of SHARED) {
+      expect(lands(path, null, { shellSide: "property" }), path).toBe("/home");
+      expect(lands(path, null), path).toBe("/home");
+    }
+    expect(lands("/around", null)).toBe("/home-or-landing");
+  });
+
+  it("lets an address's own side win over the shell's", () => {
+    /* Property-owned: never sent to the Stays home, whatever the shell says. */
+    expect(lands("/search", null, { shellSide: "stays" })).toBe("/home-or-landing");
+    expect(lands("/agent/dashboard", null, { shellSide: "stays" })).toBe("/home");
+    /* Stays-owned: the host workspace is declared under `/stays` itself. */
+    expect(parentOf("/host")).toMatchObject({ href: "/stays" });
+    expect(lands("/host", null, { shellSide: "property" })).toBe("/stays");
+  });
+
+  it("only ever answers a home with a home: every other parent is untouched", () => {
+    expect(lands("/messages/t1", null, { shellSide: "stays" })).toBe("/messages");
+    expect(lands("/settings/account", null, { shellSide: "stays" })).toBe("/settings");
+    expect(lands("/stay/s1", null, { shellSide: "stays" })).toBe("/stays");
+  });
+
+  it("never turns a root into a way out on Android because of the side", () => {
+    expect(press("/home", null, { surface: "android", shellSide: "stays" })).toEqual({ action: "exit", reason: "root" });
+    expect(press("/messages/abc", null, { surface: "android", shellSide: "stays" })).toMatchObject({ href: "/messages" });
+    expect(press("/messages", null, { surface: "android", shellSide: "stays" })).toMatchObject({ href: "/stays" });
   });
 });
 

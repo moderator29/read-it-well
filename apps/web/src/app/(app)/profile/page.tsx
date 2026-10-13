@@ -1,25 +1,43 @@
 import type { Metadata } from "next";
+import { sheetWordsOf } from "@/components/social/sheet-words";
 import { redirect } from "next/navigation";
 import "./profile.css";
-import { getDictionary } from "@vallo/i18n";
+import { getDictionary, type Locale } from "@vallo/i18n";
+import { intlTag } from "@vallo/i18n/core";
 import { getLocale } from "@/lib/locale";
 import { RowLink, SettingsGroup } from "@/components/app/account/rows";
 import { loadProfileState } from "@/lib/profile/queries";
 import { loadAccountSocialIdentity } from "@/lib/profile/social-identity";
 import { getProfileFeed } from "@/lib/social/posts-queries";
 import { AccountHero } from "./AccountHero";
+import { PeopleSearch } from "@/components/social/find/PeopleSearch";
 import { SignedOutHero } from "./SignedOutHero";
 import { AccountBody } from "./AccountBody";
 import { getAgentContext } from "@/lib/agent/listings-queries";
 import { getMode } from "@/lib/mode";
 import { RoleSwitcher } from "@/components/roles/RoleSwitcher";
 import { VerifyPrompt } from "@/components/roles/VerifyPrompt";
-import { roleStateFrom, type AgentFacts, type RoleState } from "@/components/roles/roles";
+import { needsVerification, roleStateFrom, type AgentFacts, type RoleState } from "@/components/roles/roles";
 import { resolveWorkspaces } from "@/lib/supply/workspaces-queries";
 import { loadBelongings, loadOwnBadgeTier } from "./belongings-queries";
+import { createClient } from "@/lib/supabase/server";
+import { siteUrl } from "@/lib/site";
+import { BadgeRow } from "@/components/social/badges/BadgeRow";
+import { BadgeEarnedHost } from "@/components/social/badges/BadgeEarnedHost";
+import { badgeCopyOf } from "@/components/social/badges/badge-copy";
+import { readProfileBadges } from "@/components/social/profile/badges-read";
+import { IdentityCredentials } from "@/components/app/identity/IdentityHeader";
+import { ValloRecord } from "@/components/app/trust/ValloRecord";
+import { readUserRecord } from "@/lib/trust/record-read";
+import { readMyPassportOn } from "@/lib/passport/passport-read";
+import { readOwnRoleWords } from "@/lib/profile/role-facts";
+import { roleLine } from "@/lib/profile/role-line";
+import { PassportRows } from "./PassportRows";
 import { switchParamTarget, switchRoleLine } from "./belongings";
 
-export const metadata: Metadata = { title: "Profile" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: getDictionary(await getLocale()).experienceSocial.account.title };
+}
 
 /**
  * What the three roles look like when there is no account behind them.
@@ -115,11 +133,35 @@ export default async function ProfilePage({
 
   const identity = social.state === "claimed" ? social.identity : null;
 
-  // Only somebody with a handle has posts to read, and the read is keyed by
-  // user id rather than handle, so it needs the identity to have resolved.
-  const posts =
-    social.state === "claimed" ? await getProfileFeed(social.userId) : [];
-
+  /*
+   * Only somebody with a handle has posts to read, and the read is keyed by
+   * user id rather than handle, so it needs the identity to have resolved.
+   * The badges on this account, for the row under the hero and the earned
+   * moment: null when the read failed, and then nothing is drawn; the row
+   * never guesses. Only a signed-in account has any. The two are independent,
+   * so they go out together (speed pass, 8 October 2026), not one after the
+   * other.
+   */
+  const shareUrl = identity ? `${siteUrl().replace(/\/+$/, "")}/u/${identity.handle}` : undefined;
+  /*
+   * And what the header and the credentials section say about the person,
+   * all independent, so all at once: the role line under the name (their
+   * approved agents row and the businesses they publish), their renter
+   * passport, and, for a lister, their Vallo Record. Each answers null or
+   * nothing on a failure and then draws nothing; none of them guesses.
+   */
+  const signedIn = account.state === "signed-in";
+  const userId = signedIn ? account.profile.userId : null;
+  const client = signedIn ? await createClient() : null;
+  const [posts, badges, roleWords, passportOn, record] = await Promise.all([
+    social.state === "claimed" ? getProfileFeed(social.userId) : Promise.resolve([]),
+    client && userId ? readProfileBadges(client, userId, locale) : Promise.resolve(null),
+    client && userId
+      ? readOwnRoleWords(client, userId, agentContext.state === "agent" ? agentContext.agent : null)
+      : Promise.resolve(null),
+    signedIn ? readMyPassportOn() : Promise.resolve(null),
+    userId && agentContext.state === "agent" ? readUserRecord(userId) : Promise.resolve(null),
+  ]);
   const copy = {
     bookings: t.nav.bookings,
     saved: t.nav.saved,
@@ -145,8 +187,7 @@ export default async function ProfilePage({
             role="status"
             className="nf-card mt-sm p-md text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]"
           >
-            We could not load your account profile just now, so this page is showing what is
-            held on this device. Sign out and back in, then open this page again.
+            {t.experienceSocial.account.noRow}
           </p>
         )}
 
@@ -155,8 +196,8 @@ export default async function ProfilePage({
             most likely to be deciding whether to sign up. No counts, because
             there is nothing yet to count. */}
         <div className="mt-lg space-y-lg">
-          <SettingsGroup label="What is here">
-            <RowLink href="/search" icon="search" label="Find a place" />
+          <SettingsGroup label={t.experienceSocial.account.whatIsHere}>
+            <RowLink href="/search" icon="search" label={t.experienceSocial.account.findPlace} />
             <RowLink href="/bookings" icon="calendar-booking" label={t.nav.bookings} />
             <RowLink href="/saved" icon="heart" label={t.nav.saved} />
           </SettingsGroup>
@@ -176,9 +217,9 @@ export default async function ProfilePage({
           */}
           <RoleSwitcher roles={SIGNED_OUT_ROLES} current="renter" variant="row" />
 
-          <SettingsGroup label="More">
+          <SettingsGroup label={t.experienceSocial.account.more}>
             <RowLink href="/settings" icon="settings-gear" label={t.nav.settings} />
-            <RowLink href="/help" icon="ticket" label="Help" />
+            <RowLink href="/help" icon="ticket" label={t.experienceSocial.account.help} />
           </SettingsGroup>
         </div>
       </div>
@@ -211,18 +252,54 @@ export default async function ProfilePage({
             : null
         }
         badgeTier={badgeTier}
+        roleLine={roleWords ? roleLine(roleWords, t.socialProfile.roleLine) : undefined}
         locale={locale}
+        postsLabel={t.socialProfile.posts}
+        credentials={
+          /*
+            THE PASSPORT AND CREDENTIALS, one section under the person, in the
+            order somebody vouching for them would read: where a seller's or
+            an agent's verification stands (the calm prompt, for somebody who
+            has applied and is not yet verified; a renter or buyer is never
+            asked), the badges they hold, their renter passport with what it
+            says, and a lister's Vallo Record.
+          */
+          <IdentityCredentials label={t.socialProfile.passportAndCredentials}>
+            {rolesView.roles.filter(needsVerification).map((role) => (
+              <VerifyPrompt key={role.id} role={role} />
+            ))}
+            {badges && badges.length > 0 ? (
+              <>
+                <BadgeRow badges={badges} isOwner copy={badgeCopyOf(t)} shareUrl={shareUrl} />
+                <BadgeEarnedHost viewerId={profile.userId} badges={badges} copy={badgeCopyOf(t)} shareUrl={shareUrl} />
+              </>
+            ) : null}
+            <PassportRows
+              on={passportOn}
+              copy={t.passportV2}
+              memberSinceLabel={t.socialProfile.accountPage.memberSince}
+              memberSince={monthAndYear(profile.memberSince, locale)}
+            />
+            {record ? <ValloRecord record={record} t={t} locale={locale} /> : null}
+          </IdentityCredentials>
+        }
       />
 
-      {/*
-        The calm verification prompt, under the person rather than above the
-        cover: the cover runs up behind the app header and nothing may sit on
-        top of it. Renders for a seller or an agent who has applied and not
-        been verified, and for nobody else. A renter or buyer is never asked.
-      */}
-      {rolesView.roles.map((role) => (
-        <VerifyPrompt key={role.id} role={role} className="nf-pf-verify" />
-      ))}
+      {/* Find anybody by @username (founder, 9 October 2026): type, and their
+          profile is one tap away, where Follow and Message are. */}
+      <div className="mx-gutter mt-block">
+        <PeopleSearch
+          mode="dropdown"
+          copy={{
+            label: t.experienceSocial.people.findLabel,
+            placeholder: t.experienceSocial.people.findPlaceholder,
+            clear: t.experienceSocial.people.clear,
+            searching: t.experienceSocial.people.findSearching,
+            none: t.experienceSocial.people.findNone,
+            seeAll: t.experienceSocial.people.findSeeAll,
+          }}
+        />
+      </div>
 
       <AccountBody
         counts={profile.counts}
@@ -240,6 +317,7 @@ export default async function ProfilePage({
         handle={identity?.handle ?? null}
         hasBio={(identity?.bio.length ?? 0) > 0}
         locale={locale}
+        sheet={sheetWordsOf(t)}
         facts={belongings}
         /*
           SWITCH ROLE, the last row. It opens the workspace sheet the dock
@@ -248,17 +326,19 @@ export default async function ProfilePage({
           under it names only what this account actually holds.
         */
         switchLine={switchRoleLine(held.workspaces, t.socialProfile.accountPage)}
-        memberSince={monthAndYear(profile.memberSince)}
       />
     </div>
   );
 }
 
 /** Member-since reads as a month and a year, in Lagos time. */
-function monthAndYear(iso: string): string {
+/* The reader's own locale, not "en-NG" for everybody (Round 3 sweep). An
+   unreadable date draws nothing: the line said "today", in English, which
+   is a claim about the account the page cannot make. */
+function monthAndYear(iso: string, locale: Locale): string {
   const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return "today";
-  return new Intl.DateTimeFormat("en-NG", {
+  if (Number.isNaN(date.getTime())) return "";
+  return new Intl.DateTimeFormat(intlTag[locale], {
     month: "long",
     year: "numeric",
     timeZone: "Africa/Lagos",

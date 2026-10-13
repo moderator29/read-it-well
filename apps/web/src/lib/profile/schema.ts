@@ -1,3 +1,14 @@
+/**
+ * schema: the zod schemas the SERVER validates with.
+ *
+ * Everything a client component may import (the constants, labels, limits,
+ * copy and pure helpers) lives in `./model` and is re-exported here, so a server
+ * module still imports from this file as before. A client component imports
+ * the model, never this file, because this file builds zod schemas at import
+ * time and zod's classic API is 64 KB gzipped in every client chunk that
+ * reaches it (W13, chunk 2008felnqkn1d).
+ */
+
 import { z } from "zod";
 
 /**
@@ -10,25 +21,20 @@ import { z } from "zod";
  * data saver. Everything a client sends is validated here, on the server,
  * before a single row is touched.
  */
-
-/** Product locales, matching packages/i18n and the public.locale enum. */
-export const LOCALE_CODES = ["en", "yo", "ha", "ig"] as const;
-export type LocaleCode = (typeof LOCALE_CODES)[number];
-
-export const MAX_NAME_LENGTH = 80;
-export const MAX_NICKNAME_LENGTH = 40;
-export const MAX_PHONE_LENGTH = 24;
-
-/**
- * Phone numbers as Nigerians actually write them: 0803 123 4567,
- * +234 803 123 4567, 08031234567. Spaces, brackets and hyphens are allowed
- * and the digit count is what is really checked.
- */
-const PHONE_SHAPE_RE = /^\+?[\d][\d\s()-]{5,22}$/;
-
-function phoneDigits(value: string): number {
-  return value.replace(/\D/g, "").length;
-}
+import {
+  AVATAR_PATH_RE,
+  LOCALE_CODES,
+  MAX_NAME_LENGTH,
+  MAX_NICKNAME_LENGTH,
+  MAX_PHONE_LENGTH,
+  NOTIFICATION_TOPICS,
+  type NotificationTopic,
+  PHONE_SHAPE_RE,
+  ResolvedProfileSettings,
+  SETTINGS_DEFAULTS,
+  phoneDigits,
+} from "./model";
+export * from "./model";
 
 const nameField = (label: string) =>
   z
@@ -74,86 +80,38 @@ export const updateProfileSchema = z.object({
  */
 
 export type UpdateProfileInput = z.input<typeof updateProfileSchema>;
+
 export type UpdateProfileValues = z.output<typeof updateProfileSchema>;
 
 /* ------------------------------------------------------------------ settings */
-
-export type NotificationSettings = {
-  bookings: boolean;
-  messages: boolean;
-  wallet: boolean;
-  marketing: boolean;
-  /** B13: push for a price drop on a saved place. On by default. */
-  savedPriceDrops?: boolean;
-};
-
-export type PrivacySettings = {
-  hideActivity: boolean;
-  /** V-64: publish the occupation on the member's page. Off by default. */
-  showOccupation: boolean;
-  /** V-64: publish the home town (local government and state). Off by default. */
-  showHomeTown: boolean;
-};
-
-export type ProfileSettings = {
-  notifications: NotificationSettings;
-  privacy: PrivacySettings;
-  locale?: LocaleCode;
-  dataSaver?: boolean;
-  /**
-   * True once the first-run intent question has been put to this person, by
-   * either answering it or skipping it.
-   *
-   * It lives here rather than beside `profiles.interests` because it is not a
-   * fact about the catalogue, it is a note about a conversation we have already
-   * had. `interests` alone cannot carry it: an empty array is both "never
-   * asked" and "asked and declined", and a skip that is indistinguishable from
-   * silence is a skip that asks again tomorrow.
-   */
-  interestsAsked?: boolean;
-  /**
-   * True once the three welcome cards have been shown and dismissed, by
-   * reading them through or by skipping.
-   *
-   * Separate from `interestsAsked` because they are two different promises.
-   * The cards are us talking and the question is them answering, and somebody
-   * who read the cards and then closed the tab has been told what this place
-   * is; putting them through it again on their next sign-in is the platform
-   * failing to remember a conversation it started. A RETURNING USER MUST NEVER
-   * SEE THEM.
-   */
-  welcomeSeen?: boolean;
-  /**
-   * STORE-07. When this person agreed that what they type to the assistant or
-   * the support chat is sent to Anthropic, and to which wording (`version`,
-   * `lib/ai/consent.ts`). Null until they agree; set and cleared only by
-   * `recordAiConsent` / `withdrawAiConsent`, never by `updateSettings`.
-   */
-  aiConsent?: { version: string; at: string } | null;
-};
-
-/** Settings with every optional filled in, which is what the UI renders from. */
-export type ResolvedProfileSettings = Required<ProfileSettings>;
-
-export const SETTINGS_DEFAULTS: ResolvedProfileSettings = {
-  /* B13: savedPriceDrops, the push for a price drop on a saved place, is on
-     by default (the founder, 30 September 2026). */
-  notifications: { bookings: true, messages: true, wallet: true, marketing: false, savedPriceDrops: true },
-  /* V-64: occupation and home town are private until the member turns each
-     one on. `public.profile_public_facts` reads these two keys. */
-  privacy: { hideActivity: false, showOccupation: false, showHomeTown: false },
-  locale: "en",
-  dataSaver: false,
-  interestsAsked: false,
-  welcomeSeen: false,
-  aiConsent: null,
-};
 
 /**
  * Tolerant reader for the stored blob. jsonb can hold anything a past version
  * of the app wrote, so every branch falls back to a default rather than
  * throwing: a malformed settings document must never stop the page rendering.
  */
+/* R3-14: the matrix's push column and quiet hours. Shapes are the push
+   policy's own readers' (lib/push/preferences.ts, lib/push/quiet-hours.ts), so
+   what the screen writes is exactly what delivery reads. */
+const CLOCK = /^([01][0-9]|2[0-3]):[0-5][0-9]$/;
+const topicPush = z.object({ push: z.boolean() }).partial();
+const channelsSchema = z
+  .object({
+    bookings: topicPush,
+    messages: topicPush,
+    wallet: topicPush,
+    listings: topicPush,
+    social: topicPush,
+    marketing: topicPush,
+  } satisfies Record<NotificationTopic, typeof topicPush>)
+  .partial();
+const quietHoursSchema = z.object({
+  enabled: z.boolean(),
+  from: z.string().regex(CLOCK),
+  to: z.string().regex(CLOCK),
+  timezone: z.string().min(1).max(64),
+});
+
 const storedSettingsSchema = z
   .object({
     notifications: z
@@ -163,6 +121,8 @@ const storedSettingsSchema = z
         wallet: z.boolean(),
         marketing: z.boolean(),
         savedPriceDrops: z.boolean(),
+        channels: channelsSchema.optional().catch(undefined),
+        quiet_hours: quietHoursSchema.optional().catch(undefined),
       })
       .partial()
       .catch({}),
@@ -205,6 +165,8 @@ export const settingsPatchSchema = z
         wallet: z.boolean(),
         marketing: z.boolean(),
         savedPriceDrops: z.boolean(),
+        channels: channelsSchema,
+        quiet_hours: quietHoursSchema,
       })
       .partial()
       .optional(),
@@ -233,7 +195,7 @@ export function mergeSettings(
 ): ResolvedProfileSettings {
   const current = parseSettings(currentRaw);
   return {
-    notifications: { ...current.notifications, ...patch.notifications },
+    notifications: mergeNotifications(current.notifications, patch.notifications),
     privacy: { ...current.privacy, ...patch.privacy },
     locale: patch.locale ?? current.locale,
     dataSaver: patch.dataSaver ?? current.dataSaver,
@@ -245,14 +207,6 @@ export function mergeSettings(
 
 /* -------------------------------------------------------------------- avatar */
 
-/** The longest edge an avatar is stored at. The client downscales to this. */
-export const AVATAR_MAX_EDGE = 512;
-/** The largest upload accepted after downscaling. */
-export const AVATAR_MAX_BYTES = 1_500_000;
-export const AVATAR_BUCKET = "avatars";
-
-const AVATAR_PATH_RE = /^[0-9a-f-]{36}\/[A-Za-z0-9._-]{1,80}\.(jpe?g|png|webp)$/i;
-
 export const setAvatarSchema = z.object({
   storagePath: z
     .string({ message: "The upload did not complete. Try again." })
@@ -263,46 +217,27 @@ export const setAvatarSchema = z.object({
 
 export type SetAvatarInput = z.infer<typeof setAvatarSchema>;
 
-/** The public URL a stored avatar is served from. */
-export function avatarPublicUrl(supabaseUrl: string, storagePath: string): string {
-  return `${supabaseUrl.replace(/\/$/, "")}/storage/v1/object/public/${AVATAR_BUCKET}/${storagePath}`;
-}
-
-/* ------------------------------------------------------------------- deletion */
-
-/*
- * DELETION LIVES IN `lib/account-deletion`, AND IT LIVES THERE ONCE.
- *
- * `DELETE_CONFIRM_PHRASE` and `deleteAccountSchema` used to be declared here
- * as well, word for word. Nothing imported this copy any more: the panel and
- * the action both read `lib/account-deletion/constants.ts` and
- * `lib/account-deletion/schema.ts`. A second copy of a confirmation phrase is
- * not redundant, it is a trap with a delay on it: the day somebody changes
- * the words a person has to type, they change one of the two, the form keeps
- * validating against the other, and the failure is an account that cannot be
- * deleted or one that deletes on the wrong words. Deleted rather than
- * re-exported, because a re-export is still a second name for it.
- */
-
-/* ---------------------------------------------------------------- name helpers */
-
-/** One display name from the parts, with no stray spacing. */
-export function composeDisplayName(firstName: string, surname: string): string {
-  return [firstName.trim(), surname.trim()].filter(Boolean).join(" ");
-}
-
 /**
- * Best effort split of a stored display name, used only when the identity
- * block is empty (rows the signup trigger created from auth metadata). The
- * first word is the first name and everything after it is the surname, so
- * compound surnames survive the round trip.
+ * The notifications document, merged one level deeper than the rest: a push
+ * switch for one topic must not wipe the push switch for another, and a patch
+ * without quiet hours keeps the stored window.
  */
-export function splitDisplayName(displayName: string | null): {
-  firstName: string;
-  surname: string;
-} {
-  const parts = (displayName ?? "").trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return { firstName: "", surname: "" };
-  const [first, ...rest] = parts;
-  return { firstName: first ?? "", surname: rest.join(" ") };
+function mergeNotifications(
+  current: ResolvedProfileSettings["notifications"],
+  patch: SettingsPatch["notifications"],
+): ResolvedProfileSettings["notifications"] {
+  if (!patch) return current;
+  const { channels: patchChannels, quiet_hours: patchQuiet, ...flags } = patch;
+  const channels = { ...(current.channels ?? {}) };
+  for (const topic of NOTIFICATION_TOPICS) {
+    const next = patchChannels?.[topic];
+    if (next) channels[topic] = { ...(channels[topic] ?? {}), ...next };
+  }
+  const quiet = patchQuiet ?? current.quiet_hours;
+  return {
+    ...current,
+    ...flags,
+    ...(Object.keys(channels).length > 0 ? { channels } : {}),
+    ...(quiet ? { quiet_hours: quiet } : {}),
+  };
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Dictionary, Locale } from "@vallo/i18n/core";
@@ -15,8 +15,25 @@ import {
 } from "@/lib/inspections/actions";
 import type { Inspection, InspectionOutcome, InspectionState } from "@/lib/inspections/types";
 import { fill, lagosWhen } from "./when";
-import { earliestLagosInput, lagosWallClockToIso } from "@/lib/inspections/when";
 import { ViewingDayKit } from "@/components/app/inspections/ViewingDayKit";
+import {
+  ViewingStepSheet,
+  ViewingTimeSheet,
+  type StepResult,
+  type StepSheetWords,
+  type TimeSheetWords,
+} from "@/components/app/inspections/ViewingSheets";
+import {
+  LISTER_CANCEL_WORDS,
+  REASON_LABEL,
+  RENTER_CANCEL_WORDS,
+  RESCHEDULE_WORDS,
+  VIEWING_WORDS,
+  WITHDRAW_WORDS,
+  NO_SHOW_WORDS,
+  noShowWords,
+} from "@/components/app/inspections/viewing-words";
+import { reportNoShow } from "@/lib/inspections/no-show-actions";
 
 /**
  * THE RENTAL FACE: the inspection request, inside the chat it was made in.
@@ -30,7 +47,10 @@ import { ViewingDayKit } from "@/components/app/inspections/ViewingDayKit";
  *
  * `role` changes what you can do, never what you can see. A lister answers:
  * yes, another time, or no. A requester takes an offered time or pulls out.
- * Either side can say the inspection happened.
+ * A booked viewing that is still ahead can be moved by the lister or called
+ * off by either side; once its time has come, either side can say it
+ * happened. Every move with no way back (decline, withdraw, cancel) asks
+ * first, in the sheets the inspection card and the dashboard rows open too.
  *
  * Every write goes through the existing actions and the database's own guard.
  * The face shows its new state the moment the action returns and then asks
@@ -38,6 +58,19 @@ import { ViewingDayKit } from "@/components/app/inspections/ViewingDayKit";
  */
 
 type RentalCopy = Dictionary["threads"]["rental"];
+
+type OpenSheet =
+  | null
+  | "propose"
+  | "reschedule"
+  | "decline"
+  | "cancelLister"
+  | "withdraw"
+  | "cancelRenter"
+  | "outcome"
+  | "noShow";
+
+const NO_SHOW_SETTLED = "Marked as a no-show. They can dispute it within 48 hours.";
 
 export function RentalFace({
   inspection,
@@ -50,6 +83,7 @@ export function RentalFace({
   conversationId = null,
   area = "",
   place = "",
+  now,
 }: {
   inspection: Inspection;
   role: "lister" | "requester";
@@ -66,6 +100,8 @@ export function RentalFace({
   area?: string;
   /** Area and city, for the calendar location. */
   place?: string;
+  /** The render's clock, so a preview can pin "before" and "after" the viewing. */
+  now?: number;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -73,24 +109,39 @@ export function RentalFace({
   const [slotAt, setSlotAt] = useState<string | null>(inspection.slotAt);
   const [settled, setSettled] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [declining, setDeclining] = useState(false);
-  const [proposing, setProposing] = useState(false);
-  const [closing, setClosing] = useState(false);
+  const [sheet, setSheet] = useState<OpenSheet>(null);
+  /* A second tap while the first is in flight is dropped, not sent twice. */
+  const inFlight = useRef(false);
+  /* Read once, as the day kit does: whether the agreed time has come. */
+  const [clock] = useState(() => now ?? Date.now());
 
-  function run(
-    work: () => Promise<{ ok: boolean; error?: string }>,
-    then: () => void,
-  ) {
+  function run(work: () => Promise<{ ok: boolean; error?: string }>, then: () => void) {
+    if (inFlight.current) return;
+    inFlight.current = true;
     setError(null);
     startTransition(async () => {
-      const result = await work();
-      if (!result.ok) {
-        setError(result.error ?? "That did not go through.");
-        return;
+      try {
+        const result = await work();
+        if (!result.ok) {
+          setError(result.error ?? "That did not go through.");
+          return;
+        }
+        then();
+        router.refresh();
+      } finally {
+        inFlight.current = false;
       }
-      then();
-      router.refresh();
     });
+  }
+
+  /* A move made from a sheet: the sheet draws its own refusal; on success
+     the face takes its new state and the thread re-reads. */
+  function fromSheet(result: StepResult, then: () => void): StepResult {
+    if (result.ok) {
+      then();
+      startTransition(() => router.refresh());
+    }
+    return result;
   }
 
   const accept = () =>
@@ -114,57 +165,54 @@ export function RentalFace({
       },
     );
 
-  const decline = () =>
-    run(
-      () => answerInspection({ id: inspection.id, state: "DECLINED" }),
+  const propose = async (when: string, note: string) =>
+    fromSheet(
+      await answerInspection({ id: inspection.id, state: "PROPOSED", when, ...(note ? { note } : {}) }),
       () => {
-        setDeclining(false);
-        setState("DECLINED");
-        setSettled(copy.declined);
-      },
-    );
-
-  const withdraw = () =>
-    run(
-      () => closeInspection({ id: inspection.id, state: "WITHDRAWN" }),
-      () => {
-        setState("WITHDRAWN");
-        setSettled(copy.withdrawn);
-      },
-    );
-
-  const propose = (when: string, note: string) =>
-    run(
-      () =>
-        answerInspection({
-          id: inspection.id,
-          state: "PROPOSED",
-          when,
-          ...(note ? { note } : {}),
-        }),
-      () => {
-        setProposing(false);
         setState("PROPOSED");
         setSlotAt(when);
+        setSettled(null);
       },
     );
 
-  const complete = (outcome: InspectionOutcome) =>
-    run(
-      /* `outcome` rides the same call. The action's schema is BE2's to widen;
-         until it is, the state still lands and the reason is dropped, which is
-         the previous behaviour and not a lie about it. */
-      () => closeInspection({ id: inspection.id, state: "COMPLETED", outcome }),
+  /* A decline of a request, or a lister calling off a booked viewing: the
+     same move (to DECLINED), and the reason rides it into the notification. */
+  const decline = async (note: string, booked: boolean) =>
+    fromSheet(
+      await answerInspection({ id: inspection.id, state: "DECLINED", ...(note ? { note } : {}) }),
       () => {
-        setClosing(false);
-        setState("COMPLETED");
-        setSettled(copy.inspected);
+        setState("DECLINED");
+        setSettled(booked ? VIEWING_WORDS.cancelled : copy.declined);
       },
     );
+
+  /* A withdrawal of a request, or a renter calling off a booked viewing. */
+  const withdraw = async (booked: boolean) =>
+    fromSheet(await closeInspection({ id: inspection.id, state: "WITHDRAWN" }), () => {
+      setState("WITHDRAWN");
+      setSettled(booked ? VIEWING_WORDS.cancelled : copy.withdrawn);
+    });
+
+  /* Once the time has come: the other side did not turn up. */
+  const noShow = async (note: string) =>
+    fromSheet(await reportNoShow({ id: inspection.id, ...(note ? { note } : {}) }), () => {
+      setState("NO_SHOW");
+      setSettled(NO_SHOW_SETTLED);
+    });
+
+  const complete = async (outcome: InspectionOutcome) =>
+    fromSheet(await closeInspection({ id: inspection.id, state: "COMPLETED", outcome }), () => {
+      setState("COMPLETED");
+      setSettled(copy.inspected);
+    });
 
   const name = counterpartName;
   const asked = lagosWhen(inspection.requestedAt, locale);
   const agreed = slotAt ? lagosWhen(slotAt, locale) : asked;
+  const agreedAt = slotAt ?? inspection.requestedAt;
+  /* The agreed time has come: it can be marked as inspected (the server
+     holds the same rule); until then it can still be moved or called off. */
+  const timeCome = Date.parse(agreedAt) <= clock;
 
   let sentence = "";
   let detail: string | null = null;
@@ -184,6 +232,29 @@ export function RentalFace({
   const yourMove =
     (role === "lister" && state === "REQUESTED") ||
     (role === "requester" && state === "PROPOSED");
+
+  /* The dictionary's words wherever it has them; the shared English ones
+     (`viewing-words.ts`) for the moves it does not carry yet. */
+  const proposeWords: TimeSheetWords = {
+    title: copy.proposeTitle,
+    body: sheet === "reschedule" ? RESCHEDULE_WORDS.body : copy.proposeBody,
+    when: copy.proposeWhen,
+    note: copy.proposeNote,
+    send: copy.proposeSend,
+  };
+  const stepWords: Record<"decline" | "cancelLister" | "withdraw" | "cancelRenter", StepSheetWords> = {
+    decline: {
+      title: copy.declineTitle,
+      body: copy.declineBody,
+      note: REASON_LABEL,
+      confirm: copy.declineConfirm,
+      keep: copy.keep,
+    },
+    cancelLister: { ...LISTER_CANCEL_WORDS, keep: copy.keep },
+    withdraw: { ...WITHDRAW_WORDS, keep: copy.keep },
+    cancelRenter: { ...RENTER_CANCEL_WORDS, keep: copy.keep },
+  };
+  const closeSheet = (next: boolean) => setSheet(next ? sheet : null);
 
   return (
     <section
@@ -224,10 +295,10 @@ export function RentalFace({
               <Button size="sm" variant="primary" disabled={pending} onClick={accept}>
                 {copy.accept}
               </Button>
-              <Button size="sm" variant="secondary" disabled={pending} onClick={() => setProposing(true)}>
+              <Button size="sm" variant="secondary" disabled={pending} onClick={() => setSheet("propose")}>
                 {copy.offerAnother}
               </Button>
-              <Button size="sm" variant="ghost" disabled={pending} onClick={() => setDeclining(true)}>
+              <Button size="sm" variant="quiet" disabled={pending} onClick={() => setSheet("decline")}>
                 {copy.decline}
               </Button>
             </div>
@@ -240,7 +311,7 @@ export function RentalFace({
                   {copy.acceptTime}
                 </Button>
               )}
-              <Button size="sm" variant="ghost" disabled={pending} onClick={withdraw}>
+              <Button size="sm" variant="quiet" disabled={pending} onClick={() => setSheet("withdraw")}>
                 {copy.withdraw}
               </Button>
             </div>
@@ -265,9 +336,39 @@ export function RentalFace({
                   <UiIcon name="chevron-right" size={16} />
                 </Link>
               )}
-              <Button size="sm" variant="secondary" disabled={pending} onClick={() => setClosing(true)}>
-                {copy.markInspected}
-              </Button>
+              {timeCome ? (
+                <>
+                  <Button size="sm" variant="secondary" disabled={pending} onClick={() => setSheet("outcome")}>
+                    {copy.markInspected}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="quiet"
+                    disabled={pending}
+                    onClick={() => setSheet("noShow")}
+                    data-testid="thread-no-show"
+                  >
+                    {role === "lister" ? NO_SHOW_WORDS.markRenter : NO_SHOW_WORDS.markLister}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  {role === "lister" && (
+                    <Button size="sm" variant="secondary" disabled={pending} onClick={() => setSheet("reschedule")}>
+                      {copy.offerAnother}
+                    </Button>
+                  )}
+                  <Button
+                    size="sm"
+                    variant="quiet"
+                    disabled={pending}
+                    onClick={() => setSheet(role === "lister" ? "cancelLister" : "cancelRenter")}
+                    data-testid="thread-cancel-viewing"
+                  >
+                    {VIEWING_WORDS.cancelViewing}
+                  </Button>
+                </>
+              )}
             </div>
           )}
 
@@ -290,97 +391,35 @@ export function RentalFace({
         </div>
       </div>
 
-      {declining && (
-        <Sheet open={declining} onOpenChange={setDeclining} title={copy.declineTitle} detents={[0.42]}>
-          <p className={TYPE.body}>{copy.declineBody}</p>
-          {/* Rose on the confirming control only. The sheet, its title and the
-              quiet way out carry no state colour at all. */}
-          <div className="mt-block flex flex-col gap-inline">
-            <Button variant="danger" full disabled={pending} onClick={decline}>
-              {copy.declineConfirm}
-            </Button>
-            <Button variant="ghost" full disabled={pending} onClick={() => setDeclining(false)}>
-              {copy.keep}
-            </Button>
-          </div>
-        </Sheet>
+      {(sheet === "propose" || sheet === "reschedule") && (
+        <ViewingTimeSheet open onOpenChange={closeSheet} words={proposeWords} onSubmit={propose} />
       )}
-
-      {proposing && (
-        <ProposeSheet
-          open={proposing}
-          onOpenChange={setProposing}
-          pending={pending}
-          copy={copy}
-          onSubmit={propose}
+      {(sheet === "decline" || sheet === "cancelLister") && (
+        <ViewingStepSheet
+          open
+          onOpenChange={closeSheet}
+          words={stepWords[sheet]}
+          onConfirm={(note) => decline(note, sheet === "cancelLister")}
         />
       )}
-
-      {closing && (
-        <OutcomeSheet
-          open={closing}
-          onOpenChange={setClosing}
-          pending={pending}
-          copy={copy}
-          onSubmit={complete}
+      {(sheet === "withdraw" || sheet === "cancelRenter") && (
+        <ViewingStepSheet
+          open
+          onOpenChange={closeSheet}
+          words={stepWords[sheet]}
+          onConfirm={() => withdraw(sheet === "cancelRenter")}
         />
       )}
+      {sheet === "noShow" && (
+        <ViewingStepSheet
+          open
+          onOpenChange={closeSheet}
+          words={{ ...noShowWords(role === "lister" ? "requester" : "lister"), keep: copy.keep }}
+          onConfirm={noShow}
+        />
+      )}
+      {sheet === "outcome" && <OutcomeSheet open onOpenChange={closeSheet} copy={copy} onSubmit={complete} />}
     </section>
-  );
-}
-
-function ProposeSheet({
-  open,
-  onOpenChange,
-  pending,
-  copy,
-  onSubmit,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  pending: boolean;
-  copy: RentalCopy;
-  onSubmit: (whenIso: string, note: string) => void;
-}) {
-  const [when, setWhen] = useState("");
-  const [note, setNote] = useState("");
-  return (
-    <Sheet open={open} onOpenChange={onOpenChange} title={copy.proposeTitle} detents={[0.55]}>
-      <p className={TYPE.body}>{copy.proposeBody}</p>
-      <label className="mt-md block">
-        <span className="nf-label">{copy.proposeWhen}</span>
-        <input
-          type="datetime-local"
-          value={when}
-          /* UX-20: Lagos time, two hours ahead at the earliest, as the request is. */
-          min={earliestLagosInput()}
-          suppressHydrationWarning
-          step={900}
-          onChange={(event) => setWhen(event.target.value)}
-          className="nf-field mt-2xs w-full"
-        />
-      </label>
-      <label className="mt-md block">
-        <span className="nf-label">{copy.proposeNote}</span>
-        <input
-          type="text"
-          value={note}
-          maxLength={400}
-          onChange={(event) => setNote(event.target.value)}
-          className="nf-field mt-2xs w-full"
-        />
-      </label>
-      <Button
-        full
-        size="lg"
-        variant="primary"
-        className="mt-lg"
-        disabled={pending || when.length === 0}
-        onClick={() => onSubmit(lagosWallClockToIso(when) ?? when, note.trim())}
-      >
-        {copy.proposeSend}
-      </Button>
-    </Sheet>
   );
 }
 
@@ -388,27 +427,48 @@ function ProposeSheet({
  * How it went. Three answers, one of which is chosen before Save is live, so
  * a thumb cannot mark an inspection done by accident. The choice is a group of
  * pressed buttons rather than a segmented row: the labels are sentences and
- * three of them side by side at 390px would be three truncated words.
+ * three of them side by side at 390px would be three truncated words. A
+ * refusal is drawn here, in the sheet, not on the face behind it.
  */
 function OutcomeSheet({
   open,
   onOpenChange,
-  pending,
   copy,
   onSubmit,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  pending: boolean;
   copy: RentalCopy;
-  onSubmit: (outcome: InspectionOutcome) => void;
+  onSubmit: (outcome: InspectionOutcome) => Promise<StepResult>;
 }) {
   const [outcome, setOutcome] = useState<InspectionOutcome | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const inFlight = useRef(false);
   const options: { value: InspectionOutcome; label: string }[] = [
     { value: "inspected", label: copy.outcomeInspected },
     { value: "deal_done", label: copy.outcomeDealDone },
     { value: "no_deal", label: copy.outcomeNoDeal },
   ];
+  async function save(chosen: InspectionOutcome) {
+    if (inFlight.current) return;
+    inFlight.current = true;
+    setBusy(true);
+    setError(null);
+    try {
+      const result = await onSubmit(chosen);
+      if (!result.ok) {
+        setError(result.error ?? "That did not go through.");
+        return;
+      }
+      onOpenChange(false);
+    } catch {
+      setError("That did not go through.");
+    } finally {
+      inFlight.current = false;
+      setBusy(false);
+    }
+  }
   return (
     <Sheet open={open} onOpenChange={onOpenChange} title={copy.outcomeTitle} detents={[0.55]}>
       <div role="group" aria-label={copy.outcomeTitle} className="flex flex-col gap-inline">
@@ -429,13 +489,19 @@ function OutcomeSheet({
           );
         })}
       </div>
+      {error && (
+        <p role="alert" className={`mt-sm ${TYPE.rowMeta} text-[var(--nf-state-error)]`}>
+          {error}
+        </p>
+      )}
       <Button
         full
         size="lg"
         variant="primary"
         className="mt-lg"
-        disabled={pending || outcome === null}
-        onClick={() => outcome && onSubmit(outcome)}
+        loading={busy}
+        disabled={outcome === null}
+        onClick={() => outcome && void save(outcome)}
       >
         {copy.outcomeSave}
       </Button>

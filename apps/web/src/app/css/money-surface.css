@@ -24,12 +24,9 @@
   .nf-money .nf-odometer__slot {
     clip-path: inset(0.1em -0.05em 0.1em -0.05em);
   }
-  /* The big figure is white; blue is kept for accents. */
-  .nf-money .nf-odometer-figure {
-    color: var(--nf-content-primary);
-  }
   .nf-money-kobo {
-    font-size: 0.68em;
+    /* Never under 12px, whatever the figure beside it (the product's floor). */
+    font-size: max(0.68em, 0.75rem);
     font-weight: 600;
     color: var(--nf-content-primary);
     opacity: 0.74;
@@ -90,10 +87,10 @@
     width: 4.25rem;
     height: 2.75rem;
     border-radius: var(--nf-radius-sm);
-    background: var(--nf-gradient-brand);
+    background: var(--nf-gradient-brand-ink);
     color: var(--nf-content-on-brand);
     font-size: var(--nf-text-caption);
-    font-weight: 800;
+    font-weight: 700;
     letter-spacing: 0.02em;
     box-shadow:
       inset 0 1px 0 var(--nf-glow-2),
@@ -104,6 +101,66 @@
   @media (max-width: 639px) {
     .nf-money > * {
       margin-inline: -0.625rem;
+    }
+  }
+}
+
+/*
+ * THE PAYMENT'S REAL STEPS (`components/app/payments/PaymentSteps.tsx`,
+ * motion 14). A short ordered list under a waiting sheet: a tick for a step
+ * that has genuinely completed, a still ring for where the payment is now, a
+ * hollow ring for what is still to come. Nothing loops. When a step's state
+ * changes its tick scales in once on `land`; the label never moves. Reduced
+ * motion and Off land it at once (the duration tokens collapse to 1ms).
+ */
+@layer components {
+  .nf-paysteps {
+    display: grid;
+    gap: var(--nf-space-sm);
+    margin: var(--nf-space-sm) 0 0;
+    padding: 0;
+    list-style: none;
+    text-align: left;
+  }
+  .nf-paysteps__step {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-muted);
+  }
+  .nf-paysteps__step[data-state="active"],
+  .nf-paysteps__step[data-state="done"] {
+    color: var(--nf-content-primary);
+  }
+  .nf-paysteps__mark {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 1.375rem;
+    height: 1.375rem;
+    border-radius: var(--nf-radius-circle);
+    border: 2px solid var(--nf-border-default);
+  }
+  .nf-paysteps__step[data-state="active"] .nf-paysteps__mark {
+    border-color: var(--nf-brand-primary);
+  }
+  .nf-paysteps__step[data-state="done"] .nf-paysteps__mark {
+    border-color: var(--nf-state-success);
+    background: var(--nf-state-success);
+    /* The canvas ink: dark navy on night's light emerald, near-white on
+       Light's deep emerald, so the tick clears 3:1 in both themes. */
+    color: var(--nf-surface-canvas);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .nf-paysteps__step[data-state="done"] .nf-paysteps__mark > * {
+      animation: nf-paysteps-tick var(--nf-duration-base) var(--nf-ease-entrance) both;
+    }
+  }
+  @keyframes nf-paysteps-tick {
+    from {
+      opacity: 0;
+      transform: scale(0.6);
     }
   }
 }

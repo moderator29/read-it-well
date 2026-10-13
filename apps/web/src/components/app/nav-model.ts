@@ -155,6 +155,7 @@ export function buildNav({
             { href: "/stays", label: t.nav.stays, icon: "bed" },
             { href: "/stays/search", label: t.nav.search, icon: "search" },
             { href: "/around", label: t.nav.feed, icon: "feed" },
+            { href: "/around/people", label: t.feedV2.people.navPeople, icon: "users" },
           ]
         : [
             { href: "/home", label: t.nav.home, icon: "home" },
@@ -163,6 +164,7 @@ export function buildNav({
                feed, place or neighbourhood: it was the one destination in the set
                a person could not guess from its glyph. `feed` exists now. */
             { href: "/around", label: t.nav.feed, icon: "feed" },
+            { href: "/around/people", label: t.feedV2.people.navPeople, icon: "users" },
           ],
     },
   ];
@@ -202,9 +204,10 @@ export function buildNav({
         },
         { href: "/saved", label: t.nav.saved, icon: "heart" },
         { href: "/agreements", label: t.nav.agreements, icon: "document" },
-        /* What this person paid and what came back: a record, never an
-           account. English until the dictionary carries the word. */
-        { href: "/payments", label: "Payments", icon: "history" },
+        /* D78: the passport is a feature, with its own row. Its name is the
+           passport's own (`passportV2.navLabel`, translated in all four
+           languages), so the row and the page it opens cannot drift. */
+        { href: "/settings/passport", label: t.passportV2.navLabel, icon: "id-card" },
         /* No crypto row: V-83 took the deferred crypto market out of the
            shipped tree (parked on `claude/parked-crypto-deferred`). */
         /*
@@ -232,7 +235,51 @@ export function buildNav({
          * it could drift - every other row here reads `t.nav.*` and would
          * have followed a rename for free. (R1 finding A33.)
          */
-        { href: "/assistant", label: t.nav.aiAssistant, icon: "sparkle" },
+        { href: "/assistant", label: t.nav.aiAssistant, icon: "bot" },
+      ],
+    });
+
+    /*
+     * MONEY IS ITS OWN GROUP (7 October 2026, D70).
+     *
+     * Receipts, Payouts and Refunds were built, tested and reachable only by
+     * typing the address. The founder opened this drawer, looked for what he
+     * had paid for, did not find it, and concluded it had not been built. He
+     * was navigating correctly; this list was wrong.
+     *
+     * One heading for everything that is a figure about this person: what
+     * they paid, the proof of it, what came back, what they are owed, and
+     * what an invite earns. Every row but one is a record, never an account:
+     * Vallo holds no customer money (ADR 0003). The one account, Balance, is
+     * the escrow partner's, read from it with its time (lib/money/member-wallet.ts).
+     *
+     * Payouts shows to everyone signed in, not only to listers: its page
+     * draws an honest empty state that points at payout details, and hiding
+     * the door is exactly the failure this group exists to undo.
+     *
+     * Invite friends and Rewards moved here from the account block: an
+     * invite link and what Vallo owes for it are money, and the earlier note
+     * that placed them on the account (same day) is superseded by this one.
+     */
+    /*
+     * MONEY, THREE ROWS (D78, 7 October 2026, evening).
+     *
+     * The founder: "the payment, receipts, payout etc should be removed from
+     * there and put in the wallet ... that gives space for the side nav;
+     * normally all of it is supposed to be inside the wallet." Payments,
+     * Receipts, Payouts and Refunds are rows on the Wallet screen now. The
+     * invite row is "Referral", and the Leaderboard opens from the Referral
+     * page, not from here.
+     */
+    sections.push({
+      heading: t.experienceShell.navMoneyLabel,
+      items: [
+        { href: "/wallet", label: t.experienceShell.navBalance, icon: "wallet" },
+        /* "Rewards" is the Rewards page's own title. Whether a reward is
+           running is said by the page itself, from the rewards read
+           (`lib/referral/rewards-read.ts`); the row never shows a figure. */
+        { href: "/rewards", label: t.experienceRewards.title, icon: "hand-coins" },
+        { href: "/settings/invite", label: t.experienceShell.navInvite, icon: "users" },
       ],
     });
   }
@@ -254,7 +301,7 @@ export function buildNav({
    */
   /*
    * PRICE CHECK HAS A DOOR (track L, 25 September 2026). `/price` had no
-   * inbound link anywhere in the product (`lib/nav/route-parents.ts` said so):
+   * inbound link anywhere in the product (`lib/nav/route-parents.ts` used to say so):
    * it was reached by address and by share cards only. It sits on the
    * Property side, because what it reports is what homes near a place are
    * asking, and signed in, because the route is behind the gate. Its own
@@ -384,6 +431,11 @@ export function buildNav({
      chat and "talk to a person"); signed out, the public help centre. */
   tail.push({ href: signedIn ? "/support" : "/help", label: t.nav.helpSupport, icon: "headset" });
   if (signedIn) {
+    /* P6 (7 October): Pro, what it is and where the member stands, above
+       Settings. "Pro" is the plan's name and reads the same in every
+       language (the dictionary's own `experienceFeatures.pro.label` is
+       "Pro"), so the shell slice is not widened for one word. */
+    tail.push({ href: "/pro", label: "Pro", icon: "crown" });
     tail.push({ href: "/settings", label: t.nav.settings, icon: "settings-gear" });
   }
   if (tail.length > 0) sections.push({ heading: null, items: tail });

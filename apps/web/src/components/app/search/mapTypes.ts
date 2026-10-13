@@ -24,8 +24,17 @@ export type MapListing = {
   /** Rate in MINOR UNITS (kobo). Zero means the source published no amount. */
   priceMinor: number;
   currency: string;
-  /** What the amount covers, already resolved for this category. */
-  period: "night" | "year" | "guest";
+  /**
+   * What the amount covers, already resolved for this category. A monthly or
+   * quarterly rent says so, and a sale says nothing after its figure: the
+   * map used to call every non-yearly price "a night".
+   */
+  period: "night" | "year" | "guest" | "month" | "quarter" | "sale";
+  /** Bedrooms and bathrooms as listed; zero is drawn as nothing, never as "0 beds". */
+  bedrooms?: number;
+  bathrooms?: number;
+  /** Floor area in square metres, when the lister gave one. */
+  sizeSqm?: number;
   rating: number;
   reviewCount: number;
   photo?: string;
@@ -60,5 +69,27 @@ export type MapCopy = {
   night: string;
   year: string;
   guest: string;
+  /** "/month" and "/quarter" after a rent; optional so an older caller still compiles. */
+  month?: string;
+  quarter?: string;
+  /** "m²" after a floor area. */
+  sqm?: string;
   verified: string;
+  /** The round credit control's name, and the heading of what it opens. */
+  about?: string;
+  credits?: string;
+  /** "{count} places have no pin yet" (Session 3, W2: the listing with no pin). */
+  noPinOne?: string;
+  noPinMany?: string;
+  /** Opens the same results as a list, where an unplaced place is still drawn. */
+  noPinList?: string;
+  /** The empty viewport's words. */
+  emptyTitle?: string;
+  emptyArea?: string;
+  emptySearch?: string;
+  emptyAction?: string;
+  /** The line under the map: tiles that failed, the credits' joiner, approximate pins. */
+  imageryOffline: string;
+  creditJoin: string;
+  approximate: string;
 };

@@ -1,3 +1,4 @@
+import type { Locale } from "@vallo/i18n";
 import type { AuditActivity } from "@/lib/admin/audit-queries";
 import { entityTypeLabel } from "@/lib/admin/audit-filter";
 import { Bars } from "@/components/ui/charts/Bars";
@@ -35,8 +36,10 @@ import { TimeSeries } from "@/components/ui/charts/TimeSeries";
 export function AuditCharts({
   activity,
   copy,
+  locale,
 }: {
   activity: AuditActivity;
+  locale: Locale;
   copy: {
     perDay: string;
     byKind: string;
@@ -67,6 +70,7 @@ export function AuditCharts({
           <TimeSeries
             points={activity.perDay}
             label={copy.perDay}
+            locale={locale}
             {...(caveat ? { caveat } : {})}
           />
         </div>

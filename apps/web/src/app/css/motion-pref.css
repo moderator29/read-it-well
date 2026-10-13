@@ -108,6 +108,17 @@
   :root[data-motion="calm"] .nf-sgroup,
   :root[data-motion="calm"] .nf-notif__list > li,
   :root[data-motion="calm"] [data-testid="inbox-row"],
+  :root[data-motion="calm"] :is(
+      .nf-inbox-list,
+      .nf-notif__group .nf-list-group,
+      .nf-pf-rows,
+      .nf-arrive-list,
+      .nf-host :is(.nf-list-group, .nf-decide__list),
+      .nf-agent :is(.nf-list-group, [aria-labelledby="health-recs"] > ul),
+      .nf-admin :is(.nf-list-group, .nf-admin-table > ul)
+    ) > *,
+  :root[data-motion="calm"] .nf-tab-swap,
+  :root[data-motion="calm"] :is(.nf-msg-in--mine, .nf-msg-in--theirs),
   :root[data-motion="calm"] .nf-nav--drawer .nf-nav__section,
   :root[data-motion="calm"] .nf-nav--drawer .nf-nav__who--hero,
   :root[data-motion="calm"] .nf-nav--drawer .nf-nav__foot,
@@ -254,8 +265,10 @@
     height: 2rem;
   }
   .nf-motion-level__name {
+    /* 600, the label role: 650 was a fourth weight outside the system's
+       400, 600 and 700 (north star 5; Round 3 sweep). */
     font-size: var(--nf-text-body-sm);
-    font-weight: 650;
+    font-weight: 600;
   }
   .nf-motion-level__sub {
     grid-column: 1 / -1;

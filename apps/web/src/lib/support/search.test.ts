@@ -1,0 +1,71 @@
+import { describe, expect, it } from "vitest";
+import { FAQS } from "./help-articles";
+import { search, stem, queryTerms, type SearchEntry } from "./search";
+
+const E: SearchEntry[] = [
+  { id: "1", section: "help", title: "Does it cost anything to list?", trail: "Listing your property", text: "Listing is free. Vallo only charges when a deal is completed.", href: "/help#a" },
+  { id: "2", section: "docs", title: "Cancelling a booking", trail: "Docs, Booking and paying", text: "Open the booking in Plans and choose Cancel. The refund follows the cancellation schedule.", href: "/docs/booking-and-paying#cancelling" },
+  { id: "3", section: "guides", title: "Avoiding rental scams", trail: "Guides", text: "Never pay outside Vallo.", href: "/guides/avoiding-rental-scams" },
+  { id: "4", section: "legal", title: "Cancellations and refunds", trail: "Legal and safety", text: "The refund schedule for a paid stay.", href: "/cancellations" },
+];
+
+describe("unified search", () => {
+  it("stems plurals and endings so cancel finds cancelling and cancelled", () => {
+    expect(stem("cancelling")).toBe(stem("cancel"));
+    expect(stem("cancelled")).toBe(stem("cancel"));
+    expect(stem("bookings")).toBe(stem("booking"));
+  });
+
+  it("drops filler words from a plain question", () => {
+    expect(queryTerms("how do I cancel a booking").map((t) => t.stem)).toEqual([stem("cancel"), stem("booking")]);
+  });
+
+  it("answers 'how do I cancel a booking' with the docs chapter first", () => {
+    const hits = search(E, "how do I cancel a booking");
+    expect(hits[0]?.entry.id).toBe("2");
+  });
+
+  it("answers 'is Vallo free' through the synonym for fee and charge", () => {
+    const hits = search(E, "is Vallo free");
+    expect(hits[0]?.entry.id).toBe("1");
+  });
+
+  it("returns the section each result came from", () => {
+    const hits = search(E, "refund");
+    expect(new Set(hits.map((h) => h.entry.section)).size).toBeGreaterThan(1);
+  });
+
+  it("finds nothing for an empty or filler-only query", () => {
+    expect(search(E, "   ")).toEqual([]);
+    expect(search(E, "how do I")).toEqual([]);
+  });
+
+  it("does not drag in everything for a nonsense word", () => {
+    expect(search(E, "zzzqx")).toEqual([]);
+  });
+});
+
+describe("the real help articles", () => {
+  const entries: SearchEntry[] = FAQS.map((f, i) => ({
+    id: `h${i}`,
+    section: "help",
+    title: f.q,
+    trail: f.category,
+    text: f.a,
+    href: "/help",
+  }));
+
+  it("finds the refund answers for a plain question", () => {
+    const hits = search(entries, "how do I get a refund");
+    expect(hits.length).toBeGreaterThan(0);
+    expect(hits[0]?.entry.title.toLowerCase()).toContain("refund");
+  });
+
+  it("finds fee answers for 'is Vallo free'", () => {
+    expect(search(entries, "is Vallo free").length).toBeGreaterThan(0);
+  });
+
+  it("finds a cancel answer for 'how do I cancel a booking'", () => {
+    expect(search(entries, "how do I cancel a booking").length).toBeGreaterThan(0);
+  });
+});

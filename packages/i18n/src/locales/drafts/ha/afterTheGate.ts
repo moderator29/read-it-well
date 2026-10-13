@@ -280,6 +280,11 @@ export const afterTheGateHa = {
     reportSubmit: "Ba da rahoto",
     reportSent: "An ba da rahoto. Sashen taimako yana da shi tare da ajiyarka.",
     publishNeeds: "Bayyana kuɗaɗen ƙofa da farko (duka biyar, adadi ko babu), sannan ka buga.",
+    perLine: "{amount} a kowane {per}",
+    returned: "Za a mayar da shi bisa ƙa'idojin da aka lissafa",
+    asUsed: "Gwargwadon amfani",
+    allIn: "Komai na wannan zaman",
+    allInNote: "Farashin da kowane kuɗin da mai masauki ya lissafa. Ba za a nemi wani abu dabam a ƙofa ba.",
   },
   shots: {
     heading: "Faɗi abin da kowane hoto ke nunawa",

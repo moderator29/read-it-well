@@ -124,7 +124,7 @@ export function ShareCardFrame({
   variant?: "plain" | "tinted";
   /** The card's name, left of the chip in the plain frame. */
   title?: string;
-  /** The tinted chip: a word and a glyph ("Estimate", sparkle). */
+  /** The tinted chip: a word and an optional glyph ("Estimate"). */
   chip?: { label: string; icon?: UiIconName };
   /** The round-cornered info button (tinted frame), as a link or a native tooltip. */
   info?: { label: string; href?: string };

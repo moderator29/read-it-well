@@ -1,0 +1,133 @@
+@layer theme, base, components, utilities;
+
+/*
+ * THE AREA MAP: a raised frame, the tiles calm inside it, one soft brand
+ * circle over the neighbourhood, and the provider's credit small in the
+ * corner as its licence requires.
+ */
+@layer components {
+  .nf-areamap {
+    position: relative;
+    overflow: hidden;
+    block-size: 13rem;
+    border: var(--nf-border-width) solid var(--nf-border-subtle);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-surface-inset);
+  }
+  .nf-areamap__canvas {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background: var(--nf-surface-inset);
+  }
+  .nf-areamap__circle {
+    fill: var(--nf-brand-primary);
+    fill-opacity: 0.18;
+    stroke: var(--nf-brand-secondary);
+    stroke-width: 2;
+    stroke-opacity: 0.8;
+  }
+  .nf-areamap__credit {
+    position: absolute;
+    inset-block-end: 0;
+    inset-inline-end: 0;
+    z-index: 1;
+    display: flex;
+    gap: var(--nf-space-2xs);
+    padding: 0.125rem var(--nf-space-2xs);
+    border-start-start-radius: var(--nf-radius-control);
+    background: var(--nf-smoked-glass-fill);
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-on-media-secondary);
+  }
+  .nf-areamap__credit a {
+    color: inherit;
+  }
+  .nf-areamap--offline {
+    display: grid;
+    place-items: center;
+    padding: var(--nf-space-md);
+    font-size: var(--nf-text-body-sm);
+    text-align: center;
+    color: var(--nf-content-muted);
+  }
+
+  /* Getting there: the facts the place published, as tiles. */
+  .nf-placefacts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(6.25rem, 1fr));
+    gap: var(--nf-space-xs);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .nf-placefacts__tile {
+    display: grid;
+    gap: var(--nf-space-3xs);
+    padding: var(--nf-space-sm);
+    border: var(--nf-border-width) solid var(--nf-border-subtle);
+    border-radius: var(--nf-radius-control);
+    background: var(--nf-surface-raised);
+    color: var(--nf-brand-secondary);
+  }
+  .nf-placefacts__label {
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--nf-content-muted);
+  }
+  .nf-placefacts__value {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+    overflow-wrap: anywhere;
+  }
+  /* The photo tour: one wide tile that opens the place's photographs. */
+  .nf-phototour {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    inline-size: 100%;
+    min-block-size: 3.5rem;
+    padding: var(--nf-space-sm);
+    border: var(--nf-border-width) solid var(--nf-border-subtle);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-surface-raised);
+    color: var(--nf-content-primary);
+    font: inherit;
+    cursor: pointer;
+    transition: transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+  .nf-phototour:active {
+    transform: scale(0.985);
+  }
+  .nf-phototour:focus-visible {
+    outline: 2px solid var(--nf-brand-primary);
+    outline-offset: 2px;
+  }
+  .nf-phototour__glyph {
+    display: grid;
+    place-items: center;
+    inline-size: 2.5rem;
+    block-size: 2.5rem;
+    border-radius: var(--nf-radius-control);
+    background: color-mix(in oklab, var(--nf-brand-primary) 16%, var(--nf-surface-inset));
+    color: var(--nf-brand-secondary);
+  }
+  .nf-phototour__title {
+    display: block;
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+  }
+  .nf-phototour__caption {
+    display: block;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-phototour {
+      transition: none;
+    }
+  }
+}

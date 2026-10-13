@@ -21,6 +21,14 @@ import { NoteForm } from "./NoteForm";
 
 const LINK = "inline-flex min-h-11 items-center underline underline-offset-2";
 
+/* The database's own reason for a refused number (`phone.number_refused`),
+   in staff words. The member only ever saw "We could not use this number". */
+const PHONE_REFUSAL_WORDS: Record<string, string> = {
+  taken: "the number is already confirmed on another account (see the shared-phone match above)",
+  taken_on_confirm: "the number was confirmed on another account while the code was out",
+  invalid: "the number is not one Vallo can send a code to",
+};
+
 function Section({ title, id, failed, children }: { title: string; id: string; failed: boolean; children: ReactNode }) {
   return (
     <section
@@ -101,6 +109,26 @@ export function MemberSections({
             <dd>{extras.profile ? (extras.profile.phoneOnFile ? "Yes (not shown here)" : "No") : "Not recorded"}</dd>
           </div>
           <div>
+            <dt className="nf-caption text-[var(--nf-content-muted)]">Phone confirmation</dt>
+            <dd data-testid="person-phone">
+              {!extras.phone
+                ? "Could not be read"
+                : extras.phone.qa
+                  ? "Test account: never asked for a phone"
+                  : extras.phone.confirmedAt
+                    ? `Confirmed ${ui.when(extras.phone.confirmedAt)}`
+                    : "Not confirmed"}
+            </dd>
+          </div>
+          {extras.phone?.lastRefusal && (
+            <div>
+              <dt className="nf-caption text-[var(--nf-content-muted)]">Last number refused</dt>
+              <dd data-testid="person-phone-refused">
+                {`${ui.when(extras.phone.lastRefusal.at)}: ${PHONE_REFUSAL_WORDS[extras.phone.lastRefusal.reason] ?? extras.phone.lastRefusal.reason}. The member was told only that the number could not be used.`}
+              </dd>
+            </div>
+          )}
+          <div>
             <dt className="nf-caption text-[var(--nf-content-muted)]">Staff access</dt>
             <dd>
               {f.has("staff")
@@ -133,7 +161,7 @@ export function MemberSections({
           <Rows>
             {extras.documents.map((d) => (
               <Row key={d.id}>
-                <span className="font-medium">{KYC_DOCUMENT_KIND_WORDS[d.kind] ?? d.kind}</span>
+                <span className="font-semibold">{KYC_DOCUMENT_KIND_WORDS[d.kind] ?? d.kind}</span>
                 {d.subtype && (
                   <span className="text-[var(--nf-content-secondary)]">{KYC_DOCUMENT_SUBTYPE_WORDS[d.subtype] ?? d.subtype}</span>
                 )}
@@ -258,7 +286,7 @@ export function MemberSections({
 
       <Section title="Reports" id="reports" failed={f.has("reports")}>
         <p className="mt-row nf-body-sm">
-          They filed {countOf(extras.reportsFiled, "reports", locale)}.{extras.reportsAgainst.length === 0 ? "None about them or their lister account." : `${extras.reportsAgainst.length} about them or their lister account${extras.reportsAgainst.length >= 20 ? " (newest 20)" : ""}:`}
+          They filed {countOf(extras.reportsFiled, "reports", locale)}.{" "}{extras.reportsAgainst.length === 0 ? "None about them or their lister account." : `${extras.reportsAgainst.length} about them or their lister account${extras.reportsAgainst.length >= 20 ? " (newest 20)" : ""}:`}
         </p>
         {extras.reportsAgainst.length > 0 && (
           <Rows>
@@ -283,7 +311,7 @@ export function MemberSections({
           <Rows>
             {extras.devices.map((d, i) => (
               <Row key={i}>
-                <span className="font-medium">{d.words ?? "A device"}</span>
+                <span className="font-semibold">{d.words ?? "A device"}</span>
                 <span className="nf-caption text-[var(--nf-content-muted)]">
                   first seen {ui.when(d.firstSeenAt)} · last seen {ui.when(d.lastSeenAt)}
                 </span>

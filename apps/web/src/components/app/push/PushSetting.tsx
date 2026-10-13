@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+import { Button } from "@/components/ui/Button";
+
 import {
   controlState,
   deviceIsLive,
@@ -333,15 +335,9 @@ export function PushSetting({
           ) : null}
         </p>
       )}
-      <button
-        type="button"
-        onClick={turnOn}
-        disabled={busy}
-        data-testid="push-turn-on"
-        className="nf-btn nf-btn--sm nf-btn--glass w-full"
-      >
+      <Button variant="secondary" size="sm" full onClick={turnOn} disabled={busy} data-testid="push-turn-on">
         {busy ? "Just a moment" : registered ? "Register this device again" : "Turn on for this device"}
-      </button>
+      </Button>
     </div>
   );
 }

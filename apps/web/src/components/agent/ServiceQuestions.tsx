@@ -11,6 +11,7 @@ import {
   type ServiceCover,
   type ServiceForm,
 } from "@/lib/listings/service";
+import "@/app/css/catalogue.css";
 
 /**
  * THE SERVICE CHARGE AND THE GATE, in the listing wizard (V-68).
@@ -70,7 +71,7 @@ export function ServiceQuestions({
                     aria-pressed={value.covers.includes(cover)}
                     data-testid={`service-cover-${cover}`}
                     onClick={() => toggle(cover)}
-                    className="nf-filters__tile"
+                    className="nf-filters__tile min-w-11"
                   >
                     {copy.covers[cover]}
                   </button>

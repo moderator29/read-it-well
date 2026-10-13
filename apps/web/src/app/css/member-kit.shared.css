@@ -1,0 +1,51 @@
+/*
+ * The part of member-kit.css that stays in globals.css (C6's member CSS move,
+ * 6 October). The rest of member-kit.css loads from the member layouts, after
+ * every global partial. What stays here: its unlayered contrast and
+ * forced-colours rules, which sit outside the layers and so keep their place
+ * among the other unlayered rules. A rule moved after a sheet that answers it
+ * would win where it used to lose, so it keeps its place.
+ */
+@media (prefers-contrast: more) {
+  html:root:not([data-contrast="standard"]) {
+    --nf-border-subtle: var(--nf-border-strong);
+    --nf-border-default: var(--nf-border-strong);
+    --nf-card-border: var(--nf-border-strong);
+    --nf-glass-border: var(--nf-border-strong);
+    --nf-content-muted: var(--nf-content-secondary);
+    --nf-content-subtle: var(--nf-content-secondary);
+    --nf-focus-ring-width: 3px;
+  }
+  html:root:not([data-contrast="standard"]) .nf-tab__link[aria-current="page"] .nf-tab__label {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 4px;
+  }
+}
+html:root[data-contrast="more"] {
+  --nf-border-subtle: var(--nf-border-strong);
+  --nf-border-default: var(--nf-border-strong);
+  --nf-card-border: var(--nf-border-strong);
+  --nf-glass-border: var(--nf-border-strong);
+  --nf-content-muted: var(--nf-content-secondary);
+  --nf-content-subtle: var(--nf-content-secondary);
+  --nf-focus-ring-width: 3px;
+}
+html:root[data-contrast="more"] .nf-tab__link[aria-current="page"] .nf-tab__label {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+@media (forced-colors: active) {
+  [data-testid="map-pin"],
+  .nf-badge,
+  .nf-segmented__capsule,
+  .nf-tabbar__pill {
+    /* !important: a component's own transparent border (catalogue's marks) must not hide this edge. */
+    border: 1px solid CanvasText !important;
+    forced-color-adjust: none;
+  }
+  [data-testid="map-pin"][aria-pressed="true"] {
+    outline: 2px solid Highlight;
+  }
+}

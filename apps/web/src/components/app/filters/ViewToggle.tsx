@@ -4,6 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import type { ViewKey } from "@/lib/listings/search-params";
+import "@/app/css/catalogue.css";
+import "@/app/css/list-views.css";
 
 /**
  * List, grid or map (Track M).

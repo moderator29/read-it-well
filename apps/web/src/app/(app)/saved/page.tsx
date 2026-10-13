@@ -1,17 +1,15 @@
 import type { Metadata } from "next";
-import { forListingCard, forStayCard } from "@/lib/i18n/slice";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
 import { PageScene } from "@/components/app/PageScene";
-import { ListingCard } from "@/components/app/ListingCard";
-import { StayCard } from "@/components/app/stays/StayCard";
 import { stayCardFromRow } from "@/components/app/stays/stay-card-model";
 import { SAVED_COOKIE, parseSavedCookie } from "@/lib/saved/keys";
 import { getSavedListings, getSavedPlaces } from "@/lib/saved/queries";
 import { SavedBoard, type SavedBoardItem } from "./SavedBoard";
+import { listingShelf, placeShelf } from "./shelf-rows";
 import { ShelfSync } from "./ShelfSync";
 import { resolveSession } from "@/lib/actions/session";
 import { shelfFromListing } from "@/lib/offline/shelf";
@@ -20,7 +18,9 @@ import { SavedCompare } from "./SavedCompare";
 import { readSavedChanges } from "@/lib/saved/changes";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-export const metadata: Metadata = { title: "Saved" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: getDictionary(await getLocale()).nav.saved };
+}
 
 /**
  * Saved.
@@ -77,7 +77,7 @@ export default async function SavedPage() {
 
   /* The copies are built here, from the same rows the cards draw, so the
      phone's copy cannot disagree with the card. */
-  const shelf = shelfCopies(entries.map((entry) => entry.listing));
+  const shelf = shelfCopies(entries.map((entry) => entry.listing), t.experienceLabels.periodShort);
 
   /* B3: the compare table for every saved property, most recent first; the
      reader picks two or three of its columns (SavedCompare). */
@@ -111,21 +111,12 @@ export default async function SavedPage() {
       id: entry.listing.id,
       mode: entry.mode,
       savedAt: entry.savedAt,
-      /* IT IS ON THE SHORTLIST, SO THE HEART IS FILLED. Every row on this
-         board is saved by definition, and the card used to draw the heart
-         from the device store alone: a signed-in reader whose save went to
-         `saved_items` saw an empty heart beside the `StayCard` half's filled
-         one, on the same screen. `entry.mode` says which half resolved it
-         and both mean saved. (R2 finding 4.) */
-      card: (
-        <ListingCard
-          listing={entry.listing}
-          locale={locale}
-          t={forListingCard(t)}
-          saved
-          eager={entry.savedAt === newest}
-        />
-      ),
+      /* Every row on this board is saved by definition; `entry.mode` says
+         which half resolved it (R2 finding 4) and the board's Remove reads it. */
+      /* A shelf, not a card (the founder's before-after-collection-shelves.jpg
+         and ONE-PRODUCT-DECISIONS recommendation 6): the things a member
+         keeps are objects on lit ledges. The card stays the catalogue's. */
+      card: listingShelf(entry.listing, locale, t, entry.savedAt === newest),
       changes: changes.get(entry.listing.id),
       similarHref: `/search?q=${encodeURIComponent(entry.listing.area || entry.listing.city)}`,
     })),
@@ -137,16 +128,7 @@ export default async function SavedPage() {
       mode: "db",
       savedAt: entry.savedAt,
       place: { kind: entry.kind === "restaurant" ? "restaurant" : "accommodation", id: entry.row.entity_id },
-      card: (
-        <StayCard
-          stay={stayCardFromRow(entry.row)}
-          locale={locale}
-          t={forStayCard(t)}
-          saved
-          canSavePlaces
-          eager={entry.savedAt === newest}
-        />
-      ),
+      card: placeShelf(stayCardFromRow(entry.row), locale, t, entry.savedAt === newest),
     })),
   ].sort((a, b) => b.savedAt - a.savedAt);
 
@@ -168,7 +150,7 @@ export default async function SavedPage() {
             className="nf-link-quiet nf-body-sm inline-flex min-h-11 items-center text-[var(--nf-content-link)]"
             data-testid="saved-searches-link"
           >
-            Saved searches
+            {t.experienceDiscover.saved.searchesLink}
           </Link>
         }
       />
@@ -181,6 +163,22 @@ export default async function SavedPage() {
         comparable={compare.columns.length}
         copy={{ shortlist: cc.shortlist, ready: cc.ready }}
         changeCopy={t.catalogue.savedChanges}
+        slotCopy={{
+          remove: t.experienceDiscover.saved.remove,
+          removeLabel: t.experienceDiscover.saved.removeLabel,
+          removed: t.experienceDiscover.saved.removed,
+          restoring: t.experienceDiscover.saved.restoring,
+          undo: t.experienceDiscover.saved.undo,
+        }}
+        emptyCopy={{
+          title: t.experienceDiscover.saved.emptyTitle,
+          body: t.experienceDiscover.saved.emptyBody,
+          hydratingTitle: t.experienceDiscover.saved.hydratingTitle,
+          hydratingBody: t.experienceDiscover.saved.hydratingBody,
+          action: t.experienceDiscover.saved.emptyAction,
+          captureLead: t.experienceDiscover.saved.captureLead,
+          capture: t.experienceDiscover.saved.capture,
+        }}
         compare={
           <SavedCompare
             table={compare}
@@ -188,15 +186,14 @@ export default async function SavedPage() {
               open: cc.open,
               openLabel: cc.openLabel,
               title: cc.title,
-              pick: cc.pick,
-              pickLimit: cc.pickLimit,
+              pick: t.experienceDiscover.saved.pickTwo,
+              pickLimit: t.experienceDiscover.saved.pickSwap,
               tooFew: cc.tooFew,
               notStated: cc.notStated,
-              lowest: cc.lowest,
               view: cc.view,
               close: cc.close,
-              example: t.catalogue.card.example,
               verified: t.common.verified,
+              lower: t.experienceDiscover.saved.lower,
             }}
           />
         }
@@ -206,7 +203,7 @@ export default async function SavedPage() {
 }
 
 /** V-77: the phone's copies, stamped with the time of the read, not a render. */
-function shelfCopies(listings: Parameters<typeof shelfFromListing>[0][]) {
+function shelfCopies(listings: Parameters<typeof shelfFromListing>[0][], short: Parameters<typeof shelfFromListing>[2]) {
   const readAt = Date.now();
-  return listings.map((listing) => shelfFromListing(listing, readAt));
+  return listings.map((listing) => shelfFromListing(listing, readAt, short));
 }

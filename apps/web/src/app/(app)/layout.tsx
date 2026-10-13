@@ -1,3 +1,19 @@
+/* C6's member CSS move (6 October): the member-only sheets that left
+   `globals.css`, the ones this tree draws, in their old globals order. They
+   are the first imports so they keep their old place in the cascade: after
+   every global partial, before any sheet this tree's components import. */
+import "@/app/social.css";
+import "@/app/social-feed.css";
+import "@/app/css/motion.css";
+import "@/app/css/passcode.css";
+import "@/app/css/photo-viewer.css";
+import "@/app/css/filter-tiles.css";
+import "@/app/css/threads.css";
+import "@/app/css/member-kit.css";
+import "@/app/css/money-history.css";
+import "@/app/css/flow-m.css";
+import "@/app/css/detail-m.css";
+import "@/app/css/member-loop.css";
 import { getDictionary, type Locale } from "@vallo/i18n";
 import { VitalsReporter } from "@/components/app/VitalsReporter";
 import { DataMeterRecorder } from "@/components/app/DataMeterRecorder";
@@ -10,8 +26,10 @@ import { getShellIdentity, getShellWorkspaces } from "@/lib/app/shell-queries";
 import { getSide } from "@/lib/side";
 import { shellDictionary } from "@/lib/i18n/shell-dictionary";
 import { AppShell } from "@/components/app/AppShell";
-import { PasscodeGate } from "@/components/passcode/PasscodeGate";
+import { PasscodeGate, passkeyOfferedThisRequest } from "@/components/passcode/PasscodeGate";
 import { resolvePasscodeGate } from "@/lib/passcode/state";
+import { isSocialEnabled } from "@/lib/social/flag";
+import { CallLayerMount } from "@/components/calls/CallLayerMount";
 /* C12: the feed's motion sheet, out of `globals.css`; only this tree draws a post. */
 import "@/app/css/feed-m.css";
 
@@ -72,6 +90,9 @@ export default async function AppLayout({
    * A preload only: nothing here waits on it.
    */
   void resolvePasscodeGate().catch(() => undefined);
+  /* The startup track (13 October 2026): the gate's key read joins it, for
+     the same reason. It used to wait for the gate's decision, in series. */
+  void passkeyOfferedThisRequest();
   const locale: Locale = await getLocale();
   const t = getDictionary(locale);
   /*
@@ -98,7 +119,8 @@ export default async function AppLayout({
     side,
     { userName, userHandle, unreadNotifications, avatarUrl, signedIn, isAgent, isAdmin, isHost },
     { workspaces, current },
-  ] = await Promise.all([getSide(), getShellIdentity(), getShellWorkspaces()]);
+    socialOn,
+  ] = await Promise.all([getSide(), getShellIdentity(), getShellWorkspaces(), isSocialEnabled()]);
 
   return (
     <AppShell
@@ -115,6 +137,9 @@ export default async function AppLayout({
       isHost={isHost}
       workspaces={workspaces}
       currentProfile={current}
+      /* North star 10 E: Around's tab, row and Create action leave the
+         navigation while the `social` switch is off (fails open). */
+      socialOn={socialOn}
     >
       {/* V-79: counts, on this phone only, what each page could measure. */}
       <DataMeterRecorder />
@@ -128,6 +153,9 @@ export default async function AppLayout({
       <OfflineTray />
       {/* V-98: the home-screen widget's token, in the native app only. */}
       <WidgetBridge />
+      {/* VC1: incoming calls on any page, and the one call surface, only
+          while video_calls is on (nothing at all otherwise). */}
+      <CallLayerMount />
       {/* The passcode lock (docs/PASSCODE.md): the page only when this
           session is unlocked, the lock or the setup screen otherwise. */}
       <PasscodeGate t={t} locale={locale} name={signedIn && userName !== "Guest" ? userName : ""} avatarUrl={avatarUrl}>

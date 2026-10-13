@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { useClientCopy } from "@/lib/i18n/client-copy";
-import { SuccessSheet } from "@/components/ui/SuccessSheet";
 import { consumeSuccess } from "@/lib/ui/success-actions";
 import {
   DONE_FLAGS,
@@ -36,6 +36,18 @@ import {
  * found in the address is removed, on every route including the site pages,
  * and nothing opens.
  */
+/*
+ * THE SHEET LOADS WHEN THERE IS A MOMENT TO SHOW (speed, 6 October 2026).
+ * This host is in the root layout, so a static import put the whole sheet
+ * (SuccessSheet, SuccessScreen, the clay object through `Icon3D` and with it
+ * `next/image`'s client runtime) in the JavaScript every route loads first,
+ * for a moment most page loads never have. It is fetched the moment one is
+ * known to be coming: the hint cookie is present (in parallel with asking
+ * the server for the flag), or a client screen announces one.
+ */
+const loadSheet = () => import("@/components/ui/SuccessSheet").then((m) => m.SuccessSheet);
+const SuccessSheet = dynamic(loadSheet, { ssr: false });
+
 export function SuccessFlagHost() {
   const copy = useClientCopy().success;
   const pathname = usePathname();
@@ -52,6 +64,8 @@ export function SuccessFlagHost() {
     }
 
     if (!document.cookie.split("; ").some((part) => part === `${SUCCESS_HINT_COOKIE}=1`)) return;
+    /* Fetch the sheet while the server is asked, so the two arrive together. */
+    void loadSheet().catch(() => undefined);
     /* Not cancelled on a further navigation: the server has already deleted
        the cookie by the time it answers, so dropping the answer would lose
        the moment for good. */
@@ -81,6 +95,7 @@ export function SuccessFlagHost() {
         if (!open) setFlag(null);
       }}
       variant={words.variant}
+      haptic={words.haptic}
       object={words.object}
       title={words.title}
       body={words.body}

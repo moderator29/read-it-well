@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import Link from "next/link";
+import { withNext } from "@/lib/auth/next-link";
 import { PageHeader } from "@/components/app/PageHeader";
 import { loadInterestsState } from "@/lib/interests/queries";
 import { InterestChoices } from "@/components/app/welcome/InterestChoices";
@@ -46,7 +47,7 @@ export default async function InterestsSettingsPage() {
               : t.interests.accountBodySignedOut}
           </p>
           {state.state === "signed-out" && (
-            <Link href="/sign-in" className="nf-btn nf-btn--primary mt-md w-full sm:w-auto">
+            <Link href={withNext("/sign-in", "/settings/interests")} className="nf-btn nf-btn--primary mt-md w-full sm:w-auto">
               {t.common.signIn}
             </Link>
           )}

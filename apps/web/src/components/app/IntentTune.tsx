@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { adjustInterest } from "@/lib/interests/actions";
-import type { IntentDirection, PropertyType } from "@/lib/interests/schema";
+import type { IntentDirection, PropertyType } from "@/lib/interests/model";
 
 /**
  * "More like this" / "Not for me", on the card itself.
@@ -147,9 +147,10 @@ export function IntentTune({
          * pale one on the same corner of the same card. `nf-icon-btn` is the
          * platform's round control, it follows the theme, and it guarantees the
          * 44px target through an overflowing pseudo-element, so the drawn 36px
-         * matches the save control exactly.
+         * matches the save control exactly (both draw 28px since the founder
+         * found them too big on the card, 7 October; the target stays 44).
          */
-        className="nf-icon-btn h-9 w-9"
+        className="nf-icon-btn h-7 w-7"
       >
         <UiIcon name="sliders" size={16} />
       </button>

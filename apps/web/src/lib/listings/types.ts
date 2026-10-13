@@ -224,7 +224,13 @@ export type Listing = {
    * Walkthrough video URLs, best first. Empty rather than absent when the
    * listing has none, so a reader never has to test for undefined.
    */
-  videos?: { url: string; posterUrl: string | null; durationSeconds: number | null }[];
+  videos?: {
+    url: string;
+    posterUrl: string | null;
+    durationSeconds: number | null;
+    /** Its place in the row of photos and videos (lib/listings/media-order.ts). */
+    position?: number;
+  }[];
   /**
    * When somebody from Vallo stood in the property. Not the same claim as
    * `verified`, which only says the lister was admitted.

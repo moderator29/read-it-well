@@ -2,6 +2,8 @@
 
 import { useState, useTransition } from "react";
 import type { Dictionary } from "@vallo/i18n/core";
+import { Button } from "@/components/ui/Button";
+import { DragToConfirm } from "@/components/ui/DragToConfirm";
 import {
   approveStr,
   decideStr,
@@ -28,6 +30,20 @@ import {
  */
 
 type Copy = Dictionary["complianceStr"];
+/**
+ * The words the one slide on this lane carries, built on the server from the
+ * shared labels and the console's copy so this client file never reads a
+ * dictionary of its own and never writes a label.
+ */
+export type StrSlideWords = {
+  slideApprove: string;
+  confirming: string;
+  confirmed: string;
+  error: string;
+  decisionBar: string;
+  /** The slide that ends a hold: a second person's release is as final as an approval. */
+  slideApproveRelease: string;
+};
 type Said = { ok: boolean; text: string } | null;
 
 function Message({ said }: { said: Said }) {
@@ -136,19 +152,15 @@ export function StrOpenForm({
         />
         <span className="nf-caption">{copy.groundsHint}</span>
       </label>
-      <button
-        type="submit"
-        disabled={pending}
-        className="nf-btn nf-btn--primary w-full min-h-[44px]"
-      >
+      <Button type="submit" variant="primary" full loading={pending}>
         {pending ? copy.opening : copy.open}
-      </button>
+      </Button>
       <Message said={said} />
     </form>
   );
 }
 
-export function StrCaseControls({ copy, c }: { copy: Copy; c: StrCase }) {
+export function StrCaseControls({ copy, c, words }: { copy: Copy; c: StrCase; words: StrSlideWords }) {
   const [said, setSaid] = useState<Said>(null);
   const [pending, start] = useTransition();
   const [reasons, setReasons] = useState("");
@@ -159,6 +171,10 @@ export function StrCaseControls({ copy, c }: { copy: Copy; c: StrCase }) {
     useState<(typeof STR_LINK_KINDS)[number]>("transaction");
   const [linkRef, setLinkRef] = useState("");
   const [releaseNote, setReleaseNote] = useState("");
+  /* True from the moment the approval slide is released until the server has
+     answered, so the other way out of the same decision cannot be taken
+     while this one is in flight. */
+  const [ruling, setRuling] = useState(false);
 
   function run(
     action: () => Promise<
@@ -176,6 +192,27 @@ export function StrCaseControls({ copy, c }: { copy: Copy; c: StrCase }) {
     });
   }
 
+  /*
+   * THE ONE RULING THAT CANNOT BE TAKEN BACK. A second person's approval is
+   * recorded once and never revised, so it is a slide, and the track says
+   * "confirmed" only after the server has said so: this resolves false on a
+   * refusal, and the refusal's own sentence is printed under it. Sending a
+   * decision back reopens the case, so that stays a button.
+   */
+  async function rule(
+    action: () => Promise<{ ok: true; data: { text: string } } | { ok: false; error: string }>,
+  ): Promise<boolean> {
+    setSaid(null);
+    setRuling(true);
+    try {
+      const result = await action();
+      setSaid(result.ok ? { ok: true, text: result.data.text } : { ok: false, text: result.error });
+      return result.ok;
+    } finally {
+      setRuling(false);
+    }
+  }
+
   return (
     <div className="mt-row grid gap-row">
       {c.state === "open" && (
@@ -190,31 +227,26 @@ export function StrCaseControls({ copy, c }: { copy: Copy; c: StrCase }) {
             />
             <span className="nf-caption">{copy.reasonsHint}</span>
           </label>
-          <div className="grid gap-inline sm:grid-cols-2">
-            <button
-              type="button"
-              disabled={pending}
-              className="nf-btn nf-btn--danger min-h-[44px]"
-              onClick={() =>
-                run(() =>
-                  decideStr({ caseId: c.id, decision: "file", reasons })
-                )
-              }
-            >
-              {copy.decisionFile}
-            </button>
-            <button
-              type="button"
-              disabled={pending}
-              className="nf-btn nf-btn--glass min-h-[44px]"
-              onClick={() =>
-                run(() =>
-                  decideStr({ caseId: c.id, decision: "no_file", reasons })
-                )
-              }
-            >
-              {copy.decisionNoFile}
-            </button>
+          {/* The decision bar: on a phone it stays above the home indicator
+              while the grounds above it are read. A decision here is a
+              proposal a second person must approve, so it is a button. */}
+          <div className="nf-admin-decision" role="group" aria-label={words.decisionBar}>
+            <div className="nf-admin-decision__buttons grid gap-inline sm:grid-cols-2">
+              <Button
+                variant="danger"
+                disabled={pending}
+                onClick={() => run(() => decideStr({ caseId: c.id, decision: "file", reasons }))}
+              >
+                {copy.decisionFile}
+              </Button>
+              <Button
+                variant="secondary"
+                disabled={pending}
+                onClick={() => run(() => decideStr({ caseId: c.id, decision: "no_file", reasons }))}
+              >
+                {copy.decisionNoFile}
+              </Button>
+            </div>
           </div>
         </div>
       )}
@@ -231,39 +263,26 @@ export function StrCaseControls({ copy, c }: { copy: Copy; c: StrCase }) {
               maxLength={4000}
             />
           </label>
-          <div className="grid gap-inline sm:grid-cols-2">
-            <button
-              type="button"
-              disabled={pending}
-              className="nf-btn nf-btn--primary min-h-[44px]"
-              onClick={() =>
-                run(() =>
-                  approveStr({
-                    decisionId: c.decision!.id,
-                    approve: true,
-                    note,
-                  })
-                )
-              }
-            >
-              {copy.approve}
-            </button>
-            <button
-              type="button"
-              disabled={pending}
-              className="nf-btn nf-btn--glass min-h-[44px]"
-              onClick={() =>
-                run(() =>
-                  approveStr({
-                    decisionId: c.decision!.id,
-                    approve: false,
-                    note,
-                  })
-                )
-              }
-            >
-              {copy.reject}
-            </button>
+          <div className="nf-admin-decision" role="group" aria-label={words.decisionBar}>
+            <div className="nf-admin-decision__buttons grid gap-inline">
+              <DragToConfirm
+                label={words.slideApprove}
+                keyboardLabel={copy.approve}
+                confirmingLabel={words.confirming}
+                confirmedLabel={words.confirmed}
+                errorLabel={words.error}
+                disabled={pending}
+                onConfirm={() => rule(() => approveStr({ decisionId: c.decision!.id, approve: true, note }))}
+                data-testid="str-approve-slide"
+              />
+              <Button
+                variant="secondary"
+                disabled={pending || ruling}
+                onClick={() => run(() => approveStr({ decisionId: c.decision!.id, approve: false, note }))}
+              >
+                {copy.reject}
+              </Button>
+            </div>
           </div>
         </div>
       )}
@@ -288,22 +307,24 @@ export function StrCaseControls({ copy, c }: { copy: Copy; c: StrCase }) {
               onChange={(e) => setFiledAt(e.target.value)}
             />
           </label>
-          <button
-            type="button"
-            disabled={pending || !lagosLocalToIso(filedAt)}
-            className="nf-btn nf-btn--primary min-h-[44px]"
-            onClick={() =>
-              run(() =>
-                recordStrFiling({
-                  caseId: c.id,
-                  reference,
-                  filedAt: lagosLocalToIso(filedAt) ?? "",
-                })
-              )
-            }
-          >
-            {copy.recordFiling}
-          </button>
+          <div className="nf-admin-decision">
+            <Button
+              variant="primary"
+              full
+              disabled={pending || !lagosLocalToIso(filedAt)}
+              onClick={() =>
+                run(() =>
+                  recordStrFiling({
+                    caseId: c.id,
+                    reference,
+                    filedAt: lagosLocalToIso(filedAt) ?? "",
+                  })
+                )
+              }
+            >
+              {copy.recordFiling}
+            </Button>
+          </div>
         </div>
       )}
 
@@ -337,16 +358,13 @@ export function StrCaseControls({ copy, c }: { copy: Copy; c: StrCase }) {
               maxLength={200}
             />
           </label>
-          <button
-            type="button"
+          <Button
+            variant="secondary"
             disabled={pending}
-            className="nf-btn nf-btn--glass min-h-[44px]"
-            onClick={() =>
-              run(() => linkStr({ caseId: c.id, kind: linkKind, ref: linkRef }))
-            }
+            onClick={() => run(() => linkStr({ caseId: c.id, kind: linkKind, ref: linkRef }))}
           >
             {copy.link}
-          </button>
+          </Button>
         </div>
       )}
 
@@ -357,16 +375,12 @@ export function StrCaseControls({ copy, c }: { copy: Copy; c: StrCase }) {
         >
           {c.state !== "not_filed" && (
             <>
-              <button
-                type="button"
-                disabled={pending}
-                className="nf-btn nf-btn--danger min-h-[44px]"
-                onClick={() =>
-                  run(() => holdStrSubject({ caseId: c.id }))
-                }
-              >
+              {/* Holding does not move money: it stops a payout account being
+                  added or changed, and a second person ends it. So it is a
+                  danger button, not a money slide. */}
+              <Button variant="danger" disabled={pending} onClick={() => run(() => holdStrSubject({ caseId: c.id }))}>
                 {copy.hold}
-              </button>
+              </Button>
               <p className="nf-caption">{copy.holdHint}</p>
             </>
           )}
@@ -379,16 +393,13 @@ export function StrCaseControls({ copy, c }: { copy: Copy; c: StrCase }) {
               maxLength={2000}
             />
           </label>
-          <button
-            type="button"
+          <Button
+            variant="secondary"
             disabled={pending}
-            className="nf-btn nf-btn--glass min-h-[44px]"
-            onClick={() =>
-              run(() => releaseStrHold({ caseId: c.id, note: releaseNote }))
-            }
+            onClick={() => run(() => releaseStrHold({ caseId: c.id, note: releaseNote }))}
           >
             {copy.release}
-          </button>
+          </Button>
         </div>
       )}
 
@@ -402,25 +413,31 @@ export function StrCaseControls({ copy, c }: { copy: Copy; c: StrCase }) {
   );
 }
 
-/** SCUML items 6 and 19: the second person on a hold release. */
-export function StrApproveRelease({ copy, releaseId }: { copy: Copy; releaseId: string }) {
+/**
+ * SCUML items 6 and 19: the second person on a hold release. Ending a hold is
+ * as final as approving a decision (it is recorded once, by a second person),
+ * so it is the same slide: not the money one, because ending a hold moves no
+ * money, and resolving false on a refusal, with the refusal's own sentence
+ * printed beneath.
+ */
+export function StrApproveRelease({ copy, releaseId, words }: { copy: Copy; releaseId: string; words: StrSlideWords }) {
   const [said, setSaid] = useState<Said>(null);
-  const [pending, start] = useTransition();
   return (
     <div className="mt-row">
-      <button
-        type="button"
-        disabled={pending}
-        className="nf-btn nf-btn--glass min-h-[44px] w-full"
-        onClick={() =>
-          start(async () => {
-            const result = await approveStrRelease({ releaseId });
-            setSaid(result.ok ? { ok: true, text: result.data.text } : { ok: false, text: result.error });
-          })
-        }
-      >
-        {pending ? copy.working : copy.approveRelease}
-      </button>
+      <DragToConfirm
+        label={words.slideApproveRelease}
+        keyboardLabel={copy.approveRelease}
+        confirmingLabel={words.confirming}
+        confirmedLabel={words.confirmed}
+        errorLabel={words.error}
+        onConfirm={async () => {
+          setSaid(null);
+          const result = await approveStrRelease({ releaseId });
+          setSaid(result.ok ? { ok: true, text: result.data.text } : { ok: false, text: result.error });
+          return result.ok;
+        }}
+        data-testid="str-release-slide"
+      />
       <Message said={said} />
     </div>
   );

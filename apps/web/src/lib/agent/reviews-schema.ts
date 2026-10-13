@@ -1,3 +1,14 @@
+/**
+ * reviews-schema: the zod schemas the SERVER validates with.
+ *
+ * Everything a client component may import (the constants, labels, limits,
+ * copy and pure helpers) lives in `./reviews-model` and is re-exported here, so a server
+ * module still imports from this file as before. A client component imports
+ * the model, never this file, because this file builds zod schemas at import
+ * time and zod's classic API is 64 KB gzipped in every client chunk that
+ * reaches it (W13, chunk 2008felnqkn1d).
+ */
+
 import { z } from "zod";
 
 /**
@@ -7,11 +18,11 @@ import { z } from "zod";
  * reply form can use the length limit without dragging a server module into
  * the browser bundle.
  */
-
-/** The longest reply we accept. The database checks the same bound. */
-export const REPLY_MAX = 1200;
-
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+import {
+  REPLY_MAX,
+  UUID_RE,
+} from "./reviews-model";
+export * from "./reviews-model";
 
 export const replyInputSchema = z.object({
   reviewId: z

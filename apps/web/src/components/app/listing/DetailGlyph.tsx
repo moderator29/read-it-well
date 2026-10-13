@@ -1,5 +1,6 @@
 import { ICON_PLATE_GLYPH, IconPlate, type IconPlateSize, type IconPlateTone } from "@/components/ui/IconPlate";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import "@/app/css/catalogue.css";
 
 /**
  * THE DETAIL PAGES' ROW GLYPH (the founder, 29 September 2026).

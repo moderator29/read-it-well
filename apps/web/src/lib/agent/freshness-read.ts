@@ -1,4 +1,5 @@
 import "server-only";
+import { reportReadError } from "@/lib/observability/read-error";
 
 import type { FreshnessRow } from "./freshness";
 
@@ -18,6 +19,7 @@ export async function readLiveFreshness(supabase: unknown, agentId: string): Pro
       .eq("agent_id", agentId)
       .eq("status", "PUBLISHED")
       .limit(500);
+    await reportReadError("read.freshness.readLiveFreshness", error);
     if (error || !Array.isArray(data)) return null;
     return (data as { id: string; title: string | null; published_at: string | null; lister_confirmed_at: string | null }[]).map(
       (r) => ({ id: r.id, title: r.title ?? "Untitled listing", publishedAt: r.published_at, listerConfirmedAt: r.lister_confirmed_at }),

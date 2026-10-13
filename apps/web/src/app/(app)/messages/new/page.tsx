@@ -11,12 +11,15 @@ import { authHref, returnHref } from "@/components/auth/auth-intent";
 import { EmptyActions } from "@/components/app/EmptyActions";
 import { EmptyState } from "@/components/app/Screen";
 import { getDictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import { getLocale } from "@/lib/locale";
 import { renterQuestions } from "@/lib/enquiry/renter-questions";
 import { readViewingSlots } from "@/lib/viewings/queries";
 import { ReplyTimeLine } from "@/components/app/listing/ReplyTimeLine";
 
-export const metadata: Metadata = { title: "New message" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: getDictionary(await getLocale()).experienceInbox.newMessage.metaTitle };
+}
 
 /**
  * /messages/new?listing=<id>: the bridge from a property to its conversation.
@@ -50,11 +53,13 @@ function Bridge({
   message,
   listingId,
   primary,
+  words,
 }: {
   title: string;
   message: string;
   listingId: string;
   primary: { label: string; href: string };
+  words: Dictionary["experienceInbox"]["newMessage"];
 }) {
   return (
     /*
@@ -80,7 +85,7 @@ function Bridge({
       docstring calls the single most important hop in the messaging journey.
     */
     <div className="mx-auto max-w-2xl">
-      <PageHeader title="Message the agent" fallback={`/listing/${listingId}`} />
+      <PageHeader title={words.title} fallback={`/listing/${listingId}`} />
       <EmptyState
         icon="chat-duo"
         title={title}
@@ -93,7 +98,7 @@ function Bridge({
              empty state in the product. */
           <EmptyActions
             primary={primary}
-            secondary={{ label: "Back to the property", href: `/listing/${listingId}` }}
+            secondary={{ label: words.backToProperty, href: `/listing/${listingId}` }}
           />
         }
       />
@@ -112,6 +117,7 @@ export default async function NewMessagePage({
   if (!listing) redirect("/messages");
 
   const session = await resolveSession();
+  const words = getDictionary(await getLocale()).experienceInbox.newMessage;
 
   if (session.state === "signed-in") {
     /* UX-P2-03: look, do not write. An existing thread opens; otherwise the
@@ -137,7 +143,7 @@ export default async function NewMessagePage({
       });
       return (
         <div className="mx-auto max-w-2xl">
-          <PageHeader title="Message the agent" fallback={`/listing/${listing}`} />
+          <PageHeader title={words.title} fallback={`/listing/${listing}`} />
           <FirstMessage
             listingId={listing}
             listingTitle={found?.title ?? null}
@@ -145,16 +151,18 @@ export default async function NewMessagePage({
             questions={questions}
             questionsTitle={t.memberKit.questions.title}
             replyLine={<ReplyTimeLine listingId={listing} locale={locale} />}
+            copy={words}
           />
         </div>
       );
     }
     return (
       <Bridge
-        title="This chat did not open"
+        words={words}
+        title={words.didNotOpen}
         message={result.error}
         listingId={listing}
-        primary={{ label: "Go to your Inbox", href: "/messages" }}
+        primary={{ label: words.goToInbox, href: "/messages" }}
       />
     );
   }
@@ -174,20 +182,22 @@ export default async function NewMessagePage({
     const next = returnHref("/messages/new", `?listing=${listing}${then === "showme" ? "&then=showme" : ""}`, "message");
     return (
       <Bridge
-        title="Sign in to message the agent"
-        message="Chat with the agent, arrange an inspection and keep every step of the deal in one place, on the record. You will come straight back to this conversation."
+        words={words}
+        title={words.signedOutTitle}
+        message={words.signedOutBody}
         listingId={listing}
-        primary={{ label: "Sign in", href: authHref(next, "sign-in") }}
+        primary={{ label: words.signIn, href: authHref(next, "sign-in") }}
       />
     );
   }
 
   return (
     <Bridge
-      title="We cannot reach messaging right now"
-      message="This is on our side, not yours. Nothing has been lost and nothing has been sent. Try again in a few minutes."
+        words={words}
+      title={words.unreachableTitle}
+      message={words.unreachableBody}
       listingId={listing}
-      primary={{ label: "Go to your Inbox", href: "/messages" }}
+      primary={{ label: words.goToInbox, href: "/messages" }}
     />
   );
 }

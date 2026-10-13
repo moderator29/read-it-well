@@ -103,7 +103,7 @@ Two rules the whole way through:
 
 ## 6. Add the Firebase Android key (for Android notifications)
 
-1. Go to **console.firebase.google.com**, open the project **vallo-44059**.
+1. Go to **console.firebase.google.com**, open the project **vallo-6f946**.
 2. The gear icon, **Project settings**, **General**, scroll to **Your apps**,
    the Android app `com.vallospaces.app`.
 3. Click **google-services.json** to download it.

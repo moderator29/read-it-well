@@ -51,7 +51,7 @@ export function AiShowcase({
 }: {
   scripts: ShowcaseScript[];
   locale: Locale;
-  labels: { caption: string; replay: string; you: string; name: string; verified: string; example: string; script: string };
+  labels: { caption: string; replay: string; you: string; name: string; verified: string; script: string };
 }) {
   const ref = useRef<HTMLDivElement | null>(null);
   /* Reduced motion, or the motion setting at Calm or Off: the finished first
@@ -106,7 +106,14 @@ export function AiShowcase({
   };
 
   return (
-    <div className="nf-ai-show" ref={ref} data-playing={live && visible ? "true" : "false"}>
+    <div
+      className="nf-ai-show"
+      ref={ref}
+      data-playing={live && visible ? "true" : "false"}
+      /* No script with cards (an empty catalogue): a shorter panel, so the room
+         holds no empty pane. */
+      data-cards={scripts.some((s) => s.cards.length === 2) ? "yes" : "none"}
+    >
       <div className="nf-ai-show-bar">
         <span className="nf-ai-show-caption">{labels.caption}</span>
         {live && (
@@ -168,7 +175,7 @@ export function AiShowcase({
               {script.cards.map((card, i) =>
                 t >= replyEnd + 200 + i * CARD_GAP ? (
                   <div key={card.id} className="nf-ai-card" data-live={live ? "true" : undefined}>
-                    <ListingMini listing={card} locale={locale} verifiedLabel={labels.verified} exampleLabel={labels.example} sizes="170px" />
+                    <ListingMini listing={card} locale={locale} verifiedLabel={labels.verified} sizes="170px" />
                   </div>
                 ) : (
                   <div key={card.id} className="nf-ai-card nf-ai-card--slot" />

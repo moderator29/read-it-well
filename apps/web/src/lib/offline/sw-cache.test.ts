@@ -20,12 +20,14 @@ type Pure = {
   };
   assetCacheKey: (url: URL) => string | null;
   offlineAssetUrls: (html: string) => string[];
+  isImmutableAssetPath: (pathname: string) => boolean;
+  withKeptMark: (html: string) => string;
   CACHE_VERSION: string;
 };
 
 function load(): Pure {
   const self = { addEventListener: () => undefined, location: { origin: "https://www.vallospaces.com" } };
-  const run = new Function("self", `${SOURCE}\nreturn { assetCacheKey, offlineAssetUrls, CACHE_VERSION, notificationFromPayload };`);
+  const run = new Function("self", `${SOURCE}\nreturn { assetCacheKey, offlineAssetUrls, isImmutableAssetPath, withKeptMark, CACHE_VERSION, notificationFromPayload };`);
   return run(self) as Pure;
 }
 
@@ -65,9 +67,38 @@ describe("offlineAssetUrls", () => {
   });
 });
 
+describe("isImmutableAssetPath", () => {
+  it("names the hashed build output and the versioned fonts, which are answered cache first", () => {
+    expect(sw.isImmutableAssetPath("/_next/static/chunks/11-v4cdswovuj.js")).toBe(true);
+    expect(sw.isImmutableAssetPath("/_next/static/css/app.css")).toBe(true);
+    expect(sw.isImmutableAssetPath("/_next/static/media/inter.a1b2.woff2")).toBe(true);
+    expect(sw.isImmutableAssetPath("/fonts/v2/inter-latin.woff2")).toBe(true);
+  });
+  it("leaves the artwork, the icons and anything else under /fonts to stale while revalidate", () => {
+    expect(sw.isImmutableAssetPath("/brand/vallo-mark.svg")).toBe(false);
+    expect(sw.isImmutableAssetPath("/pwa/icon-192.png")).toBe(false);
+    expect(sw.isImmutableAssetPath("/icons/x.svg")).toBe(false);
+    expect(sw.isImmutableAssetPath("/fonts/README.md")).toBe(false);
+  });
+});
+
+describe("withKeptMark", () => {
+  it("marks the root element once, and only the root element", () => {
+    const page = '<!DOCTYPE html><html lang="en" data-theme="dark"><head></head><body><p>html is a word</p></body></html>';
+    const marked = sw.withKeptMark(page);
+    expect(marked).toBe('<!DOCTYPE html><html data-vallo-kept="" lang="en" data-theme="dark"><head></head><body><p>html is a word</p></body></html>');
+    expect(sw.withKeptMark(marked)).toBe(marked);
+  });
+  it("leaves a body with no root element alone", () => {
+    expect(sw.withKeptMark("<p>no root</p>")).toBe("<p>no root</p>");
+  });
+});
+
 describe("the version", () => {
   it("was bumped, so the activate step clears the caches keyed the old way", () => {
-    expect(sw.CACHE_VERSION).toBe("v4");
+    /* v5 (8 October 2026): visited pages kept per viewer, photographs and fonts.
+       v6 (13 October 2026): kept pages answer at once, marked, with a whole flag. */
+    expect(sw.CACHE_VERSION).toBe("v6");
   });
 });
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useRef, type ReactNode } from "react";
+import { Children, useId, useRef, type ReactNode } from "react";
 import Link from "next/link";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { ICON } from "@/components/app/Screen";
@@ -8,6 +8,7 @@ import { Sheet as UiSheet } from "@/components/ui/Sheet";
 import { Switch } from "@/components/ui/Switch";
 import { Segmented } from "@/components/ui/Segmented";
 import { IconPlate } from "@/components/ui/IconPlate";
+import { feedback } from "@/lib/ui/feedback";
 
 /**
  * Grouped rows: the one shape every account surface on this platform uses.
@@ -57,7 +58,12 @@ export function SettingsGroup({
       {/* The shared panel (`components/ui/Panel.tsx`'s class): the console's
           lit glass, one material for every container on the platform since
           the sweep of 23 September. The group paints nothing of its own. */}
-      <div className="nf-sgroup__body nf-panel nf-panel--card">{children}</div>
+      {/* A group with no rows draws no card: an empty panel is a 4px lit
+          sliver with nothing in it (`/support`'s "Your reports" with none
+          filed, Round 3 sweep). The label and the note still say why. */}
+      {Children.toArray(children).length > 0 ? (
+        <div className="nf-sgroup__body nf-panel nf-panel--card">{children}</div>
+      ) : null}
       {note && <p className="nf-sgroup__note">{note}</p>}
     </section>
   );
@@ -327,7 +333,13 @@ export function RowSwitch({
       )}
       <Switch
         checked={checked}
-        onCheckedChange={onChange}
+        /* A toggle is a light tap in the hand (craft doctrine section 6: light
+           for a chip, a tab, a toggle). The thumb's own spring is the
+           primitive's (`Switch`, `drift` 240ms). */
+        onCheckedChange={(next) => {
+          feedback("select");
+          onChange(next);
+        }}
         aria-labelledby={labelId}
         disabled={disabled}
         data-testid={testId}

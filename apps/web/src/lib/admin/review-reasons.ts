@@ -1,3 +1,5 @@
+import { MIN_MEDIA, RECOMMENDED_MEDIA } from "@/lib/agent/listings-model";
+
 /**
  * LISTING REVIEW REASON CODES (C8).
  *
@@ -12,8 +14,13 @@
  * THE WORDING IS LISTER-FACING COPY AND THE FOUNDER'S DECISION (RECS_C C8).
  * These are drafts in plain English; change the sentence here, never the code.
  */
+/** Small counts as words, the way the sentences read. */
+const MEDIA_WORDS: Record<number, string> = { 2: "two", 3: "three", 4: "four", 5: "five", 6: "six" };
+
 export const REVIEW_REASONS = [
-  { code: "photos_unclear", label: "Photos too few or unclear", sentence: "Add at least five clear, well-lit photos, including every bedroom, the kitchen and a bathroom." },
+  /* The numbers are the gate's own (MIN_MEDIA, RECOMMENDED_MEDIA): this asked
+     for five while the lister's checklist and the server asked for four. */
+  { code: "photos_unclear", label: "Photos too few or unclear", sentence: `Add at least ${MEDIA_WORDS[MIN_MEDIA] ?? MIN_MEDIA} clear, well-lit photos or videos, and ${MEDIA_WORDS[RECOMMENDED_MEDIA] ?? RECOMMENDED_MEDIA} for a strong listing, including every bedroom, the kitchen and a bathroom.` },
   { code: "price_fee_missing", label: "Price missing a fee", sentence: "State every fee a tenant or guest pays on top of the price (agency, legal, caution, service), or say there are none." },
   { code: "address_mismatch", label: "Address does not match", sentence: "The address does not match the map pin or the photos. Correct the address or move the pin to the property." },
   { code: "photos_elsewhere", label: "Photos seen on another listing", sentence: "Some photos also appear on another listing. Use photos you took of this property." },

@@ -8,8 +8,12 @@ import { z } from "zod";
 import { resolveSession } from "../actions/session";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { startConversation } from "../messages/actions";
-import { INSPECTION_OUTCOMES, type InspectionState } from "./types";
+import { INSPECTION_OUTCOMES, isClosed, type InspectionState } from "./types";
 import { phoneGateFor } from "../phone-otp/gate";
+import { getDictionary } from "@vallo/i18n";
+import { getLocale } from "../locale";
+import { videoCallsOn } from "../calls/flags";
+import { VISIT_MODES, type VisitMode } from "./visit";
 
 /**
  * MOVING AN INSPECTION.
@@ -27,9 +31,30 @@ import { phoneGateFor } from "../phone-otp/gate";
  * WHAT IS NOT HERE: a confirm action for the requester on their own request.
  * The database refuses that transition; there is no reason for a door in front
  * of a wall.
+ *
+ * WHAT IS HERE, ON TOP OF THE GUARD. Each move reads the row first and writes
+ * only from the state it read (`.eq("state", read)`), and asks for the row
+ * back. Row-level security answers an update it does not allow with zero rows
+ * and no error, and the guard returns early when the state does not change,
+ * so without this a stranger's tap, a second tab or a stale screen came back
+ * "ok" while nothing moved, or quietly rewrote the agreed time. A write that
+ * returns no row is now said as what it is: the request moved on.
  */
 
 const MAX_NOTE = 400;
+
+/** The states a request is alive in: somebody's move, or booked in. */
+const LIVE_STATES: readonly InspectionState[] = ["REQUESTED", "PROPOSED", "CONFIRMED"];
+
+const NOT_FOUND_MESSAGE = "We could not find that request. Refresh the page to see your current requests.";
+
+/** The row moved between the read and the write: another tab, or the other side. */
+const MOVED_MESSAGE = "This request changed while you were looking at it. Refresh to see where it stands.";
+
+const CLOSED_MESSAGE = "This request has already been closed. Refresh to see where it ended up.";
+
+const ALREADY_ASKED_MESSAGE =
+  "You have already asked to see this property. Follow it on your Plans, where you can also withdraw it.";
 
 /**
  * The example refusal, in the one sentence a person can act on.
@@ -64,7 +89,23 @@ const requestSchema = z.object({
   listingId: z.string().uuid("That property could not be found."),
   when: whenSchema,
   note: z.string().trim().max(MAX_NOTE, `Keep this under ${MAX_NOTE} characters.`).optional(),
+  /* `inspection_requests.visit_mode`. Absent is the column's own default,
+     in person, so every caller written before the visit flow still files
+     exactly what it filed. */
+  mode: z.enum(VISIT_MODES).optional(),
 });
+
+/**
+ * A video visit rides on the calls feature, so it is refused while
+ * `video_calls` is off, whatever a screen drew: the visit would promise a
+ * call the database refuses to place. Null when the mode may be filed. Not
+ * exported: in a "use server" module an export is a public endpoint.
+ */
+async function visitModeRefusal(mode: VisitMode | undefined): Promise<string | null> {
+  if (mode !== "video") return null;
+  if (await videoCallsOn()) return null;
+  return getDictionary(await getLocale()).visit.problems.videoOff;
+}
 
 /**
  * Ask to inspect a property.
@@ -96,7 +137,10 @@ async function requestInspectionWork(
   /* V-50: the first inspection request needs a confirmed phone, when the
      phone_confirmation flag is on. Null, and nothing read, when it is off. */
   const phoneGate = await phoneGateFor(session.supabase, session.user.id, "inspection");
-  if (phoneGate) return fail(phoneGate);
+  if (phoneGate) return phoneGate;
+
+  const modeRefusal = await visitModeRefusal(parsed.data.mode);
+  if (modeRefusal) return fail(modeRefusal, { mode: modeRefusal });
 
   /* Before the write, so the person reads the truth rather than a constraint
      violation. The trigger refuses again underneath: this is the courtesy and
@@ -108,6 +152,23 @@ async function requestInspectionWork(
     .eq("id", parsed.data.listingId)
     .maybeSingle();
   if (listing?.is_demo) return fail(EXAMPLE_LISTING_MESSAGE);
+
+  /* One live request per person per property. The listing page already says
+     "you asked" instead of offering a second request, but a second tab, two
+     taps that minted two tap keys, or a direct call still reached the insert,
+     and a lister's queue then held the same person twice for one home. The
+     courtesy, not the guarantee: two calls in the same instant can both pass,
+     and the table holds no unique rule for it (book_viewing_slot refuses the
+     same case inside its own transaction). */
+  const { data: already } = await session.supabase
+    .from("inspection_requests")
+    .select("id")
+    .eq("listing_id", parsed.data.listingId)
+    .eq("requester_id", session.user.id)
+    .in("state", [...LIVE_STATES])
+    .limit(1)
+    .maybeSingle();
+  if (already) return fail(ALREADY_ASKED_MESSAGE);
 
   /* V-63: a person on a safety hold is refused by the database, in the same
      words as a listing that is not taking requests (the row-level security
@@ -126,6 +187,7 @@ async function requestInspectionWork(
       lister_id: session.user.id,
       requested_at: new Date(parsed.data.when).toISOString(),
       ...(parsed.data.note ? { note: parsed.data.note } : {}),
+      ...(parsed.data.mode ? { visit_mode: parsed.data.mode } : {}),
     })
     .select("id")
     .single();
@@ -143,6 +205,16 @@ async function requestInspectionWork(
     }
     if (message.includes("inspection_requests_parties_differ")) {
       return fail("This is your own property, so there is nothing to arrange.");
+    }
+    /* `private.inspection_needs_an_open_listing`: both are final for now, so
+       neither may end in "try again". */
+    if (message.includes("has been closed")) {
+      return fail("This listing has been closed, so it is not taking inspection requests.");
+    }
+    if (message.includes("has not reconfirmed")) {
+      return fail(
+        "The owner has not yet reconfirmed this property is available, so it is not taking new requests. Message the lister to ask.",
+      );
     }
     if (message.includes("row-level security")) {
       return fail("This property is not taking inspection requests just now. Message the lister to ask when viewings open.");
@@ -184,11 +256,16 @@ const answerSchema = z.object({
 });
 
 /**
- * The lister's answer: yes, another time, or no.
+ * The lister's answer: yes, another time, or no. The same three moves serve a
+ * viewing that is already booked: another time reschedules it (CONFIRMED to
+ * PROPOSED, so it is not confirmed again until the renter takes the new time)
+ * and no cancels it (CONFIRMED to DECLINED). The guard has always allowed
+ * both; these are the doors to them.
  *
  * A `CONFIRMED` row must carry a slot - the table refuses one without, because
- * an appointment with no time is not an appointment - so confirming without
- * naming a time takes the time that was asked for, which is what "yes" means.
+ * an appointment with no time is not an appointment - so "yes" takes the time
+ * that was asked for. Only that time: a different one is something the renter
+ * has to agree to, which is what offering another time is for.
  */
 export async function answerInspection(input: unknown): Promise<ActionResult<null>> {
   const parsed = validate(answerSchema, input);
@@ -199,21 +276,43 @@ export async function answerInspection(input: unknown): Promise<ActionResult<nul
 
   const existing = await session.supabase
     .from("inspection_requests")
-    .select("id, listing_id, requested_at, state")
+    .select("id, listing_id, lister_id, requested_at, state")
     .eq("id", parsed.data.id)
     .maybeSingle();
   if (existing.error || !existing.data) {
-    return fail("We could not find that request. Refresh the page to see your current requests.");
+    return fail(NOT_FOUND_MESSAGE);
   }
 
+  const current = existing.data.state as InspectionState;
   const nextState = parsed.data.state as InspectionState;
+  if (existing.data.lister_id !== session.user.id) {
+    return fail("Only the person who listed this property can answer this request.");
+  }
+  if (isClosed(current)) return fail(CLOSED_MESSAGE);
+  /* The guard waves an unchanged state through, so a second "yes" from a
+     stale screen used to rewrite the agreed time back to the asked one, and
+     tell nobody. */
+  if (current === nextState) {
+    return fail(
+      nextState === "CONFIRMED"
+        ? "This viewing is already confirmed. Refresh to see the agreed time."
+        : "You have already offered a time. Their answer will show here, or message them in the chat.",
+    );
+  }
   if (nextState === "PROPOSED" && !parsed.data.when) {
     return fail("Say which time you can do.", { when: "Pick a day and a time." });
+  }
+  if (
+    nextState === "CONFIRMED" &&
+    parsed.data.when &&
+    Date.parse(parsed.data.when) !== Date.parse(existing.data.requested_at)
+  ) {
+    return fail("To confirm a different time, offer it to them instead.", { when: "Offer this time instead." });
   }
 
   const slot =
     nextState === "CONFIRMED"
-      ? (parsed.data.when ?? existing.data.requested_at)
+      ? existing.data.requested_at
       : nextState === "PROPOSED"
         ? parsed.data.when
         : null;
@@ -223,16 +322,19 @@ export async function answerInspection(input: unknown): Promise<ActionResult<nul
     return fail("The time they asked for has passed. Offer another time instead.");
   }
 
-  const { error } = await session.supabase
+  const { data: moved, error } = await session.supabase
     .from("inspection_requests")
     .update({
       state: nextState,
       ...(slot ? { slot_at: new Date(slot).toISOString() } : {}),
       ...(parsed.data.note ? { lister_note: parsed.data.note } : {}),
     })
-    .eq("id", parsed.data.id);
+    .eq("id", parsed.data.id)
+    .eq("state", current)
+    .select("id");
 
   if (error) return fail(refusalMessage(error.message));
+  if (!moved || moved.length === 0) return fail(MOVED_MESSAGE);
 
   revalidatePath("/agent/dashboard");
   revalidatePath("/agent/inspections");
@@ -258,14 +360,44 @@ export async function acceptProposedTime(input: unknown): Promise<ActionResult<n
   const session = await resolveSession();
   if (session.state !== "signed-in") return fail("Sign in to confirm this time.");
 
-  const { error } = await session.supabase
+  const existing = await session.supabase
+    .from("inspection_requests")
+    .select("id, listing_id, requester_id, state, slot_at")
+    .eq("id", parsed.data.id)
+    .maybeSingle();
+  if (existing.error || !existing.data) return fail(NOT_FOUND_MESSAGE);
+
+  /* The guard lets a LISTER move PROPOSED to CONFIRMED too, because a lister
+     may confirm. Through this door that would be the lister agreeing to
+     their own offer on the renter's behalf, so only the renter comes in. */
+  if (existing.data.requester_id !== session.user.id) {
+    return fail("Only the person who asked for this viewing can take the time offered.");
+  }
+  if (existing.data.state === "CONFIRMED") {
+    return fail("This viewing is already confirmed. Refresh to see the agreed time.");
+  }
+  if (existing.data.state !== "PROPOSED") {
+    return fail(isClosed(existing.data.state as InspectionState) ? CLOSED_MESSAGE : MOVED_MESSAGE);
+  }
+  /* UX-20, from the renter's side: taking a time that has already gone books
+     nothing anybody can keep. */
+  if (!existing.data.slot_at || Date.parse(existing.data.slot_at) <= Date.now()) {
+    return fail("The time they offered has passed. Ask them for another time in the chat.");
+  }
+
+  const { data: moved, error } = await session.supabase
     .from("inspection_requests")
     .update({ state: "CONFIRMED" })
-    .eq("id", parsed.data.id);
+    .eq("id", parsed.data.id)
+    .eq("state", "PROPOSED")
+    .select("id");
 
   if (error) return fail(refusalMessage(error.message));
+  if (!moved || moved.length === 0) return fail(MOVED_MESSAGE);
 
   revalidatePath("/bookings");
+  revalidatePath("/agent/inspections");
+  revalidatePath(`/listing/${existing.data.listing_id}`);
   return ok(null);
 }
 
@@ -288,7 +420,14 @@ const closeSchema = z
  *
  * Withdrawing rather than deleting is the whole reason there is no delete
  * policy on this table: a withdrawn request and a vanished one look the same
- * to the person who was asked, and they mean different things.
+ * to the person who was asked, and they mean different things. A renter may
+ * withdraw a viewing that is already booked as well: that is how they cancel
+ * it, and the lister hears it.
+ *
+ * "It happened" waits for the agreed time. The table's own account of
+ * COMPLETED is "set by either side after the slot has passed", and the guard
+ * does not check the clock, so a tap a week early told both sides a visit was
+ * done that nobody had made.
  */
 export async function closeInspection(input: unknown): Promise<ActionResult<null>> {
   const parsed = validate(closeSchema, input);
@@ -297,19 +436,46 @@ export async function closeInspection(input: unknown): Promise<ActionResult<null
   const session = await resolveSession();
   if (session.state !== "signed-in") return fail("Sign in to change this request.");
 
-  const { error } = await session.supabase
+  const existing = await session.supabase
+    .from("inspection_requests")
+    .select("id, listing_id, requester_id, state, slot_at, requested_at")
+    .eq("id", parsed.data.id)
+    .maybeSingle();
+  if (existing.error || !existing.data) return fail(NOT_FOUND_MESSAGE);
+
+  const current = existing.data.state as InspectionState;
+  if (isClosed(current)) return fail(CLOSED_MESSAGE);
+
+  if (parsed.data.state === "WITHDRAWN" && existing.data.requester_id !== session.user.id) {
+    return fail("Only the person who asked for this viewing can withdraw it.");
+  }
+  if (parsed.data.state === "COMPLETED") {
+    if (current !== "CONFIRMED") {
+      return fail("A viewing is marked as done once a time has been agreed and it has taken place.");
+    }
+    const agreed = existing.data.slot_at ?? existing.data.requested_at;
+    if (Date.parse(agreed) > Date.now()) {
+      return fail("You can mark this viewing as done once its time has come.");
+    }
+  }
+
+  const { data: moved, error } = await session.supabase
     .from("inspection_requests")
     .update({
       state: parsed.data.state,
       ...(parsed.data.outcome ? { outcome: parsed.data.outcome } : {}),
     })
-    .eq("id", parsed.data.id);
+    .eq("id", parsed.data.id)
+    .eq("state", current)
+    .select("id");
 
   if (error) return fail(refusalMessage(error.message));
+  if (!moved || moved.length === 0) return fail(MOVED_MESSAGE);
 
   revalidatePath("/bookings");
   revalidatePath("/agent/dashboard");
   revalidatePath("/agent/inspections");
+  revalidatePath(`/listing/${existing.data.listing_id}`);
   return ok(null);
 }
 

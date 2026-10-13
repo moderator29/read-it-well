@@ -131,7 +131,7 @@ export function ExternalLinkSheet({
             rel="nofollow noopener noreferrer ugc"
             target="_blank"
             onClick={() => setOpen(false)}
-            className="nf-body-sm text-center font-medium text-[var(--nf-content-muted)] underline"
+            className="nf-body-sm text-center font-normal text-[var(--nf-content-muted)] underline"
           >
             {t.offPlatform.open}
           </a>

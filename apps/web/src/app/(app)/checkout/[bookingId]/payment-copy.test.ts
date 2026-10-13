@@ -2,13 +2,16 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import {
-  failureConsequence,
-  RENT_PAID_PAGE_CONSEQUENCE,
-  RENT_PAID_SHEET_CONSEQUENCE,
-  STAY_PAID_SHEET_CONSEQUENCE,
-  vettedFailureSentence,
-} from "./payment-copy";
+import { getDictionary } from "@vallo/i18n";
+import { failureConsequence as consequenceWith, vettedFailureSentence as vetWith } from "./payment-copy";
+import { RENT_PAID_PAGE_CONSEQUENCE, RENT_PAID_SHEET_CONSEQUENCE, STAY_PAID_SHEET_CONSEQUENCE } from "./paid-copy";
+
+/* The rewrite answers in the caller's checkout words (W13 moved the dictionary
+   out of the client module); the tests hand it the English ones, so every
+   assertion below reads exactly as it did. */
+const words = getDictionary("en").checkout;
+const vettedFailureSentence = (raw: string | undefined | null) => vetWith(raw, words);
+const failureConsequence = (raw: string | undefined | null, money: string) => consequenceWith(raw, money, words);
 
 /**
  * The boundary between whatever the server put in `result.error` and the person

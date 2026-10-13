@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { publicPageMetadata } from "@/lib/i18n/public-metadata";
-import Link from "next/link";
-import { UiIcon } from "@/design-system/icons/UiIcon";
+import { getDictionary } from "@vallo/i18n";
+import { getLocale } from "@/lib/locale";
 import { ButtonLink } from "@/components/ui/Button";
-import { CHAPTERS, CHAPTER_INDEX } from "./chapters";
-import { IconPlate } from "@/components/ui/IconPlate";
+import { CHAPTER_INDEX, CHAPTERS, chaptersByGroup } from "./chapters";
+import { IndexRows } from "@/components/site/guides/IndexRows";
 import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
 
 /* A10: the title and description in the page's own language, with its
@@ -16,111 +16,106 @@ export async function generateMetadata(): Promise<Metadata> {
 /**
  * The table of contents.
  *
- * Twelve cards in reading order, each one saying what its chapter answers, so
- * somebody arriving with a specific question can pick the right door without
- * opening three. The card carries its own heading count, because "how long is
- * this" is the second thing anybody wants to know about a chapter.
+ * Every chapter in reading order, under its group (Start here, Renting and
+ * buying, Stays and restaurants, Money, Listing and hosting, Messages and
+ * tools, Trust and privacy), each saying what it answers, so somebody
+ * arriving with a specific question can pick the right page without opening
+ * three. The row carries its heading count, because "how long is this" is the
+ * second thing anybody wants to know about a page.
  *
- * The three surfaces underneath are the places this document deliberately does
- * not duplicate: the searchable help centre, the refund schedule and the
- * policies. Documentation that restates a policy is documentation that will one
- * day contradict it.
+ * The surfaces underneath are the places this document deliberately does not
+ * duplicate: the searchable help centre, the guides, the refund schedule and
+ * the policies. Documentation that restates a policy is documentation that
+ * will one day contradict it.
  */
-export default function DocsHomePage() {
-  const first = CHAPTER_INDEX[0];
+export default async function DocsHomePage() {
+  const x = getDictionary(await getLocale()).experienceLanding.docs.docs;
+  const sectionCount = new Map(CHAPTERS.map((chapter) => [chapter.slug, chapter.sections.length]));
 
   return (
     <div>
       {/* ------------------------------------------------------------ hero */}
       <div className="nf-rise">
-        <h1 className="nf-h1 max-w-[18ch]">Every part of the platform, written out</h1>
-        <p className="mt-group max-w-[62ch] text-[var(--nf-content-secondary)]">
-          Both sides of Vallo written out plainly. On the Property side: how to find a
-          place to rent or buy, what the light and water rows on a listing actually
-          tell you, and how an inspection comes before any money moves. On Vallo
-          Stays: searching against dates and guests, how a booking holds your nights,
-          asking a restaurant for a table, and where it all lands in Plans. Then the
-          way paying works on both, how Around works, and what happens when something
-          goes wrong. Vallo&rsquo;s commission is zero, the one amount set aside from a
-          payment is the Vallo Guarantee contribution, and this document says so
-          wherever it matters.
+        <h1 className="nf-h1 max-w-[18ch]">How Vallo works</h1>
+        <p className="mt-group max-w-[62ch] text-[length:var(--nf-text-body-lg)] leading-[1.6] text-[var(--nf-content-secondary)]">
+          Plain answers for everyone on Vallo: renters, buyers and guests, owners and landlords,
+          agents, hosts and restaurants. Pick your topic below, or start with the quick start.
         </p>
-        {first && (
-          <div className="mt-heading flex flex-wrap gap-row">
-            <ButtonLink href={`/docs/${first.slug}`} variant="primary">
-              Start at the beginning
-            </ButtonLink>
-            <ButtonLink href="/help" variant="secondary">
-              Search the help centre
-            </ButtonLink>
-          </div>
-        )}
+        <div className="mt-heading flex flex-wrap gap-row">
+          <ButtonLink href="/docs/quick-start" variant="primary">
+            Quick start
+          </ButtonLink>
+          <ButtonLink href="/docs/paying-on-vallo" variant="secondary">
+            How paying works
+          </ButtonLink>
+          <ButtonLink href="/help" variant="secondary">
+            Help centre
+          </ButtonLink>
+        </div>
       </div>
 
       {/* -------------------------------------------------------- chapters */}
-      <ol className="nf-rise mt-block grid gap-row sm:grid-cols-2" style={{ animationDelay: "calc(var(--nf-splash-hold, 0s) + 80ms)" }}>
-        {CHAPTERS.map((chapter) => (
-          <li key={chapter.slug}>
-            <Link
-              href={`/docs/${chapter.slug}`}
-              className="nf-panel nf-panel--card nf-card--interactive nf-fx-host flex h-full flex-col p-card-sm"
-            >
-              <div className="flex items-start gap-row">
-                <IconPlate size="sm" className="shrink-0">
-                  <UiIcon name={lineGlyphFor(chapter.icon)} size={20} />
-                </IconPlate>
-                <div className="min-w-0">
-                  <span className="nf-numeric block text-[0.6875rem] font-semibold text-[var(--nf-content-muted)]">
-                    Chapter {chapter.number}
-                  </span>
-                  <span className="mt-inline-tight block text-[0.9375rem] leading-snug font-semibold text-[var(--nf-content-primary)]">
-                    {chapter.title}
-                  </span>
-                </div>
-              </div>
-              <p className="mt-row text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
-                {chapter.summary}
-              </p>
-              <span className="mt-auto flex items-center gap-inline pt-row text-[0.75rem] font-semibold text-[var(--nf-content-muted)]">
-                {chapter.sections.length} sections
-                <UiIcon name="chevron-right" size={12} />
-              </span>
-            </Link>
-          </li>
-        ))}
-      </ol>
+      {/* THE INDEX (reference 7086): one list per group, a Plate row per
+          chapter, each a glyph plate, the chapter's title and its one line,
+          with how long it is on the right. */}
+      {chaptersByGroup(CHAPTER_INDEX).map((group) => (
+        <section key={group.id} className="mt-block" aria-labelledby={`docs-group-${group.id}`}>
+          <h2 id={`docs-group-${group.id}`} className="nf-h3">
+            {group.label}
+          </h2>
+          <IndexRows
+            as="ol"
+            label={group.label}
+            className="mt-group"
+            items={group.items.map((chapter) => {
+              const count = sectionCount.get(chapter.slug) ?? 0;
+              return {
+                href: `/docs/${chapter.slug}`,
+                icon: lineGlyphFor(chapter.icon),
+                title: chapter.title,
+                line: chapter.summary,
+                meta: count === 1 ? x.sectionOne : x.sections.replace("{count}", String(count)),
+              };
+            })}
+          />
+        </section>
+      ))}
 
       {/* --------------------------------------------------- other surfaces */}
-      <section className="nf-rise mt-section" style={{ animationDelay: "calc(var(--nf-splash-hold, 0s) + 140ms)" }}>
-        <h2 className="nf-h3">Where else to look</h2>
-        <div className="mt-group grid gap-row sm:grid-cols-3">
-          {[
+      <section className="mt-section" aria-labelledby="docs-elsewhere">
+        <h2 id="docs-elsewhere" className="nf-h3">
+          Where else to look
+        </h2>
+        <IndexRows
+          label="Where else to look"
+          className="mt-group"
+          items={[
             {
               href: "/help",
+              icon: "headset",
               title: "Help centre",
-              body: "The same answers, searchable, plus a way to reach a person.",
+              line: "Short answers, searchable, plus a way to reach a person.",
+            },
+            {
+              href: "/guides",
+              icon: "file-text",
+              title: "Guides",
+              line: "Longer reads for renters and guests: scams, move-in costs, renting in Lagos and Abuja, and how stays work.",
             },
             {
               href: "/cancellations",
+              icon: "calendar-clock",
               title: "Cancellations",
-              body: "The one refund schedule that governs every stay, with the windows written out.",
+              line: "The standard refund schedule for stays, with the windows written out.",
             },
             {
               href: "/terms",
+              icon: "file-text",
               title: "Terms and privacy",
-              body: "The formal documents. Where this guide and a policy differ, the policy governs.",
+              line: "The formal documents. Where these docs and a policy differ, the policy governs.",
             },
-          ].map((card) => (
-            <Link key={card.href} href={card.href} className="nf-panel nf-panel--card block nf-card--interactive p-card-sm">
-              <span className="block text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
-                {card.title}
-              </span>
-              <span className="mt-inline-tight block text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]">
-                {card.body}
-              </span>
-            </Link>
-          ))}
-        </div>
+          ]}
+        />
       </section>
     </div>
   );

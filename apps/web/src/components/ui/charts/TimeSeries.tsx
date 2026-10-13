@@ -1,4 +1,5 @@
-import { CHART_INK, CHART_SERIES } from "./palette";
+import { formatDate, type Locale } from "@vallo/i18n";
+import { CHART_CONTEXT, CHART_INK, CHART_SERIES } from "./palette";
 
 /**
  * One series over days. The console's change-over-time chart.
@@ -39,10 +40,21 @@ import { CHART_INK, CHART_SERIES } from "./palette";
  */
 
 export type TimePoint = {
-  /** An ISO day, `YYYY-MM-DD`. Used for the axis label and the accessible row. */
+  /** An ISO day, `YYYY-MM-DD`. Read as a Lagos day and written as one ("18 Sept"). */
   day: string;
   count: number;
 };
+
+/*
+ * THE DAY IS WRITTEN AS A DATE, NOT AS A KEY. The axis used to print the ISO
+ * key itself, `2026-09-18`, which no other date on the console looks like and
+ * which broke at its hyphen on a phone ("2026-09-" over "18"). Noon in Lagos,
+ * so the day never moves across midnight in any time zone.
+ */
+function dayLabel(day: string, locale: Locale | undefined): string {
+  const date = new Date(`${day}T12:00:00+01:00`);
+  return Number.isNaN(date.getTime()) ? day : formatDate(date, locale, { day: "numeric", month: "short" });
+}
 
 export function TimeSeries({
   points,
@@ -53,6 +65,7 @@ export function TimeSeries({
   targetLabel,
   height = 180,
   className,
+  locale,
 }: {
   points: TimePoint[];
   /** Names the series. This is the legend. */
@@ -67,6 +80,8 @@ export function TimeSeries({
   targetLabel?: string;
   height?: number;
   className?: string;
+  /** The reader's language, for the day labels. */
+  locale?: Locale;
 }) {
   /*
    * A CHART OF NOTHING SAYS NOTHING. With no points there is no line to draw
@@ -98,6 +113,7 @@ export function TimeSeries({
   const last = points[points.length - 1]!;
   const peak = points.reduce((a, b) => (b.count > a.count ? b : a), first);
   const colW = 100 / points.length;
+  const say = (day: string) => dayLabel(day, locale);
 
   return (
     <figure className={["nf-ts", className ?? ""].filter(Boolean).join(" ")}>
@@ -105,7 +121,7 @@ export function TimeSeries({
         <svg
           viewBox={`0 0 ${w} ${h}`}
           role="img"
-          aria-label={`${label}. ${describe(points)}${typeof target === "number" && targetLabel ? ` ${targetLabel}.` : ""}`}
+          aria-label={`${label}. ${describe(points, say)}${typeof target === "number" && targetLabel ? ` ${targetLabel}.` : ""}`}
           preserveAspectRatio="none"
           style={{ width: "100%", height: "auto", maxHeight: h, display: "block" }}
         >
@@ -125,7 +141,7 @@ export function TimeSeries({
               y1={yOf(target)}
               x2={w - padX}
               y2={yOf(target)}
-              stroke="var(--nf-content-muted)"
+              stroke={CHART_CONTEXT}
               strokeWidth="1"
               strokeDasharray="4 4"
               vectorEffect="non-scaling-stroke"
@@ -149,13 +165,15 @@ export function TimeSeries({
           per point: on a fine pointer's hover it shows the brand-tint band,
           the 4px point and the dark tooltip (`--nf-surface-inverse`, 12px
           white, the same in both themes). Hidden from assistive tech: the
-          figure's label already says the chart in a sentence.
+          figure's label already says the chart in a sentence. A tip in the
+          outer quarter of the plot opens inwards from its column's edge, so
+          the newest day's tip never runs off the card or the window.
         */}
         <div className="nf-ts__cols" aria-hidden="true">
           {points.map((p, i) => (
             <span
               key={p.day}
-              className="nf-ts__col"
+              className={`nf-ts__col${(i + 0.5) * colW < 25 ? " nf-ts__col--start" : (i + 0.5) * colW > 75 ? " nf-ts__col--end" : ""}`}
               style={{ left: `${i * colW}%`, width: `${colW}%` }}
             >
               <span
@@ -163,7 +181,7 @@ export function TimeSeries({
                 style={{ left: `${(xOf(i) / w) * 100 - i * colW}%`, top: `${(yOf(p.count) / h) * 100}%` }}
               />
               <span className="nf-ts__tip nf-numeric">
-                {p.count} · {p.day}
+                {p.count} · {say(p.day)}
               </span>
             </span>
           ))}
@@ -176,12 +194,12 @@ export function TimeSeries({
         Two labels and a peak, never a number under every point.
       */}
       <figcaption className="nf-ts__axis">
-        <span className="nf-numeric">{first.day}</span>
+        <span className="nf-numeric whitespace-nowrap">{say(first.day)}</span>
         <span>
           {label}
           {" · "}
-          <span className="nf-numeric text-[var(--nf-content-secondary)]">
-            {peak.count} on {peak.day}
+          <span className="nf-numeric whitespace-nowrap text-[var(--nf-content-secondary)]">
+            {peak.count} on {say(peak.day)}
           </span>
           {typeof target === "number" && targetLabel ? (
             <>
@@ -190,7 +208,7 @@ export function TimeSeries({
             </>
           ) : null}
         </span>
-        <span className="nf-numeric">{last.day}</span>
+        <span className="nf-numeric whitespace-nowrap">{say(last.day)}</span>
       </figcaption>
 
       {caveat ? (
@@ -203,8 +221,8 @@ export function TimeSeries({
 }
 
 /** The chart in a sentence, for a reader who cannot see it. */
-function describe(points: TimePoint[]): string {
+function describe(points: TimePoint[], say: (day: string) => string): string {
   const total = points.reduce((sum, p) => sum + p.count, 0);
   const peak = points.reduce((a, b) => (b.count > a.count ? b : a), points[0]!);
-  return `${total} in total across ${points.length} days, most on ${peak.day} with ${peak.count}.`;
+  return `${total} in total across ${points.length} days, most on ${say(peak.day)} with ${peak.count}.`;
 }

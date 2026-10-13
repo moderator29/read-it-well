@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { getDictionary } from "@vallo/i18n";
+import type { Dictionary } from "@vallo/i18n/core";
 import { recordCredential } from "@/lib/trust/credentials-actions";
+import { Button } from "@/components/ui/Button";
 
 /**
  * V-87: record a LASRERA or ESVARBON entry checked by hand on the public
@@ -15,9 +16,9 @@ import { recordCredential } from "@/lib/trust/credentials-actions";
  * offering a choice that would record a sentence nobody saw. The desk reads
  * English.
  */
-const desk = getDictionary("en").trustVisible.desk;
 
-export function CredentialForm({ subjectId }: { subjectId: string }) {
+/** The desk's own words, handed down by the server page that draws the card. */
+export function CredentialForm({ subjectId, desk }: { subjectId: string; desk: Dictionary["trustVisible"]["desk"] }) {
   const [kind, setKind] = useState<"lasrera" | "esvarbon">("lasrera");
   const [number, setNumber] = useState("");
   const [registerName, setRegisterName] = useState("");
@@ -62,9 +63,9 @@ export function CredentialForm({ subjectId }: { subjectId: string }) {
           className="nf-field min-h-[44px] w-full"
         />
       </label>
-      <button type="button" onClick={submit} disabled={pending || !ready} className="nf-btn nf-btn--glass nf-btn--sm">
+      <Button variant="secondary" size="sm" type="button" onClick={submit} disabled={pending || !ready}>
         {pending ? desk.credentialRecording : desk.credentialSubmit}
-      </button>
+      </Button>
       {note && (
         <p
           role={note.ok ? "status" : "alert"}

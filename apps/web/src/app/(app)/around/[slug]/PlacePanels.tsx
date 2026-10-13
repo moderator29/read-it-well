@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { formatNumber, type Locale } from "@vallo/i18n/core";
 import type { AreaDetail, AreaSummary } from "@/lib/social/areas-queries";
-import { AREA_COPY } from "@/lib/social/areas-schema";
+import { AREA_COPY } from "@/lib/social/areas-model";
 
 /**
  * The quiet panels of one place (`/around/[slug]`): its status notes, what it

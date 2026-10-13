@@ -10,9 +10,9 @@ import type { ClientCopy } from "./client-copy-of";
  * The back button, the page header, the offline tray, the save control and
  * the in-app error screen are client components mounted on almost every
  * route, with no server parent in a position to hand them a dictionary. They
- * read their words through `useClientDictionary`, which imports all four
- * dictionaries, so every route shipped a 717 KB chunk (222 KB gzipped) for
- * the word "Back" and a handful of sentences.
+ * once read their words through a client-side dictionary hook (since deleted)
+ * that imported all four dictionaries, so every route shipped a 717 KB chunk
+ * (222 KB gzipped) for the word "Back" and a handful of sentences.
  *
  * Now the root layout, which already holds the reader's dictionary, passes
  * just those words down through this context: a few kilobytes in the page,

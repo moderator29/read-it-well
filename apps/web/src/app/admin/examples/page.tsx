@@ -236,10 +236,15 @@ function ExampleRow({
      printing "past its date" beside it would be describing a solved problem. */
   const overdue = !listing.retired && isOverdue(listing.retireAfter, today);
 
+  /* THE ROW WRAPS RATHER THAN PUSHING THE FIGURE OFF THE PHONE. A status chip,
+     the words, a second chip and the amount on one line overflowed 390px in
+     Igbo, where the chip labels run longest (C1 sweep, measured): the words
+     keep at least 12rem beside the first chip, and what does not fit drops to
+     a second line with the amount at its end. */
   return (
-    <li className="nf-row">
+    <li className="nf-row flex-wrap">
       <ui.StatusChip status={listing.status} />
-      <span className="min-w-0 flex-1">
+      <span className="min-w-[12rem] flex-1 basis-0">
         <span className="nf-body block font-semibold text-content">{listing.title}</span>
         <span className="nf-caption block truncate">
           {listing.city ?? "City not recorded"} · {listing.listerName ?? "Lister not on file"}
@@ -248,7 +253,7 @@ function ExampleRow({
       </span>
       {overdue && <ui.StatusChip label="Past its date" tone="danger" />}
       {listing.amountMinor !== null && (
-        <span className="nf-numeric nf-body shrink-0 font-semibold">
+        <span className="nf-numeric nf-body ml-auto shrink-0 font-semibold">
           {formatMoney(listing.amountMinor, locale)}
         </span>
       )}

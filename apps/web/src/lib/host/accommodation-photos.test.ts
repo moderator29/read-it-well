@@ -1,8 +1,13 @@
 import { describe, expect, it } from "vitest";
+import { getDictionary } from "@vallo/i18n";
 
 import { accommodationPhotoIdSchema, accommodationPhotoSchema } from "./schema";
 import { documentPathBelongsTo, emptyHostDraft, missingFrom } from "./onboarding";
+import { HOST_AGREEMENT_VERSION, PAY_ON_VALLO_VERSION } from "../legal/versions";
 import { nextPhotoPosition } from "./photos";
+
+/* The field messages the server action builds the schema from, in English. */
+const W = getDictionary("en").experienceHost.refusals.schema;
 
 /**
  * THE GATE THAT COULD NOT BE PASSED.
@@ -70,6 +75,17 @@ function shortletDraft(photos: { id: string; url: string }[]) {
       terms: "2026-09-22T08:00:00Z",
       processing: "2026-09-22T08:00:00Z",
     },
+    hostAgreementVersion: HOST_AGREEMENT_VERSION,
+    payOnValloVersion: PAY_ON_VALLO_VERSION,
+    /* V-57: all five charges at the door answered, which a stay now needs
+       before it is sent. */
+    arrivalCharges: {
+      caution: { none: true },
+      power: { none: true },
+      cleaning: { none: true },
+      extra_guest: { none: true },
+      visitor: { none: true },
+    } as const,
   };
 }
 
@@ -86,7 +102,7 @@ describe("the accommodation photograph gate", () => {
 
 describe("accommodationPhotoSchema", () => {
   it("takes the property and the stored path", () => {
-    const parsed = accommodationPhotoSchema.safeParse({
+    const parsed = accommodationPhotoSchema(W).safeParse({
       accommodationId: UUID,
       storagePath: `${OWNER}/${UUID}/a.jpg`,
     });
@@ -94,7 +110,7 @@ describe("accommodationPhotoSchema", () => {
   });
 
   it("refuses a property that is not an id", () => {
-    const parsed = accommodationPhotoSchema.safeParse({
+    const parsed = accommodationPhotoSchema(W).safeParse({
       accommodationId: "the one with the blue door",
       storagePath: `${OWNER}/${UUID}/a.jpg`,
     });
@@ -102,7 +118,7 @@ describe("accommodationPhotoSchema", () => {
   });
 
   it("refuses an empty path rather than recording a row pointing at nothing", () => {
-    const parsed = accommodationPhotoSchema.safeParse({
+    const parsed = accommodationPhotoSchema(W).safeParse({
       accommodationId: UUID,
       storagePath: "   ",
     });
@@ -110,8 +126,8 @@ describe("accommodationPhotoSchema", () => {
   });
 
   it("names a photograph for removal by its id only", () => {
-    expect(accommodationPhotoIdSchema.safeParse({ photoId: UUID }).success).toBe(true);
-    expect(accommodationPhotoIdSchema.safeParse({ photoId: "p1" }).success).toBe(false);
+    expect(accommodationPhotoIdSchema(W).safeParse({ photoId: UUID }).success).toBe(true);
+    expect(accommodationPhotoIdSchema(W).safeParse({ photoId: "p1" }).success).toBe(false);
   });
 });
 

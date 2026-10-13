@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { getDictionary, formatNumber } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { resolveSession } from "@/lib/actions/session";
-import { PageHead, Panel, PanelEmpty, PanelUnavailable } from "../_components/panels";
+import { PageHead, Panel, PanelEmpty, PanelUnavailable, ReadOnlyNote } from "../_components/panels";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
@@ -51,13 +51,14 @@ export default async function FieldSpeedPage() {
   const copy = getDictionary(locale).platform.fieldSpeed;
   const rows = await readRows();
   const seconds = (ms: number | null) =>
-    ms === null ? "" : `${formatNumber(ms / 1000, locale, { maximumFractionDigits: 1 })} s`;
-  const ms = (value: number | null) => (value === null ? "" : `${formatNumber(Math.round(value), locale)} ms`);
+    ms === null ? copy.unknown : `${formatNumber(ms / 1000, locale, { maximumFractionDigits: 1 })} s`;
+  const ms = (value: number | null) => (value === null ? copy.unknown : `${formatNumber(Math.round(value), locale)} ms`);
 
   return (
     <div className="nf-admin-stack" data-testid="field-speed">
       <PageHead title={copy.title} lede={copy.lede} />
-      <Panel title={copy.panel} id="field-speed" flush>
+      <ReadOnlyNote locale={locale} />
+      <Panel title={copy.panel} id="field-speed" flush={rows !== null && rows.length > 0}>
         {rows === null ? (
           <PanelUnavailable what={copy.what} locale={locale} />
         ) : rows.length === 0 ? (
@@ -85,10 +86,10 @@ export default async function FieldSpeedPage() {
                     <td className="p-cell text-right tabular-nums">{seconds(row.p75_lcp_ms)}</td>
                     <td className="p-cell text-right tabular-nums">{ms(row.p75_inp_ms)}</td>
                     <td className="p-cell text-right tabular-nums">
-                      {row.p75_cls === null ? "" : formatNumber(row.p75_cls, locale, { maximumFractionDigits: 2 })}
+                      {row.p75_cls === null ? copy.unknown : formatNumber(row.p75_cls, locale, { maximumFractionDigits: 2 })}
                     </td>
                     <td className="p-cell text-right tabular-nums">
-                      {row.p75_transfer_kb === null ? "" : `${formatNumber(Math.round(row.p75_transfer_kb), locale)} KB`}
+                      {row.p75_transfer_kb === null ? copy.unknown : `${formatNumber(Math.round(row.p75_transfer_kb), locale)} KB`}
                     </td>
                   </tr>
                 ))}

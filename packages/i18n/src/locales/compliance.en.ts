@@ -49,7 +49,7 @@ export const complianceEn = {
     refusedOwnCase: "This match is about you, so you cannot decide it. Ask a colleague.",
     refusedOwnProposal: "You proposed this, so a second person must decide it.",
     refusedIncomplete: "This file does not prove it is whole (no END row), so it cannot be activated. Load the whole file.",
-    scope: "Screened: agent applications, identity checks, bank and payout accounts, and every card payment, settlement line, wallet entry, rent payment, held payment and business transfer.",
+    scope: "Screened: agent applications, identity checks, bank and payout accounts, and every card payment, rent payment and business transfer.",
     uploadSame: "That file is the version already in force. Nothing changed.",
     uploadFailed: "The file could not be read as that list. Nothing changed.",
     uploadTooLarge: "That file is over 4 MB. Nothing changed.",

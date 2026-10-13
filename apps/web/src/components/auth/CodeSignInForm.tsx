@@ -1,4 +1,5 @@
 "use client";
+import "@/app/css/auth.css";
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -67,7 +68,13 @@ export function CodeSignInForm({ mode, t, next }: { mode: Mode; t: Dictionary; n
   }
   const state = latest === "checked" ? checked : sent;
   const onCode = state.step === "code";
-  const message = state.error ? (copy as Record<string, string>)[state.error] ?? copy.failed : null;
+  /* A code tried too often names the check's limit, not the send's "too many
+     codes" (errors that name the next action). */
+  const message = !state.error
+    ? null
+    : onCode && state.error === "limited"
+      ? copy.verifyLimited
+      : ((copy as Record<string, string>)[state.error] ?? copy.failed);
 
   useEffect(() => {
     if (!onCode || wait <= 0) return;

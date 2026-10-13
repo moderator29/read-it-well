@@ -16,12 +16,18 @@ import { stepPhotoPaths, type StepNumber } from "./step-photos";
  * (transform and opacity only; reduced motion, Calm and Off land everything
  * at once, and a still background stops the float).
  *
- *   1  two worlds      the home and the hotel; Property and Stays
+ *   1  the platform    the home and the hotel; Homes and Stays
  *   2  know who        the shield and the ID card under a scanning frame,
  *                      the Verified agent badge and the Vallo Record
- *   3  talk and pay    a conversation, then Pay on Vallo (display only)
+ *   3  talk and pay    one question to an agent, then an Example payment on
+ *                      Vallo (display only)
  *   4  move in         the arch and the keys, an Example move-in total that
  *                      counts up
+ *
+ * CLEAN (the founder, 7 October): at most two pieces over each picture, so
+ * the art leads and nothing competes with the headline. The Property and
+ * Stays switch, the reply bubble and its typing dots, the "Inspections kept"
+ * pill and the "move-in total, printed" pill went in that pass.
  *
  * TRUTHFUL. Every figure is labelled Example; every other chip is a feature
  * word the product stands behind (the tick is a person seeing the agent's
@@ -100,25 +106,17 @@ function Art({ step, priority }: { step: StepNumber; priority: boolean }) {
   );
 }
 
-export function WorldsScene({ t, priority }: { t: Dictionary; priority: boolean }) {
-  const w = t.welcomeCards.twoWorlds;
+export function WorldsScene({ copy, priority }: { copy: Copy; priority: boolean }) {
   return (
     <>
       <Pop i={0} className="nf-om-art-wrap" float={false}>
         <Art step={1} priority={priority} />
       </Pop>
       <Pop i={2} className="nf-om-at nf-om-at--tl">
-        <Chip icon="rent" title={w.property} hint={w.propertyHint} />
+        <Chip icon="rent" title={copy.worlds.homes} hint={copy.worlds.homesHint} />
       </Pop>
       <Pop i={3} className="nf-om-at nf-om-at--br">
-        <Chip icon="hotel" title={w.stays} hint={w.staysHint} />
-      </Pop>
-      <Pop i={4} className="nf-om-at nf-om-at--bc" float={false}>
-        <span className="nf-om-sides">
-          <span className="nf-om-sides__thumb" />
-          <span className="nf-om-sides__side">{w.property}</span>
-          <span className="nf-om-sides__side">{w.stays}</span>
-        </span>
+        <Chip icon="hotel" title={copy.worlds.stays} hint={copy.worlds.staysHint} />
       </Pop>
     </>
   );
@@ -148,23 +146,15 @@ export function KnowScene({ copy, priority }: { copy: Copy; priority: boolean })
       <Pop i={4} className="nf-om-at nf-om-at--bl">
         <Chip icon="id-check" title={copy.know.record} hint={copy.know.recordHint} />
       </Pop>
-      <Pop i={5} className="nf-om-at nf-om-at--br2">
-        <span className="nf-om-pill">
-          <span className="nf-om-tag">{copy.example}</span>
-          {copy.know.line}
-          <span className="nf-om-pill__dots" aria-hidden="true">
-            <span />
-            <span />
-            <span />
-          </span>
-        </span>
-      </Pop>
     </>
   );
 }
 
+/** The example payment on the third scene; a display figure, never a balance. */
+export const EXAMPLE_PAYMENT = 450000;
+
 export function TalkScene({ copy, priority, tag }: { copy: Copy; priority: boolean; tag: string }) {
-  const amount = new Intl.NumberFormat(tag).format(450000);
+  const amount = new Intl.NumberFormat(tag).format(EXAMPLE_PAYMENT);
   return (
     <>
       <Pop i={0} className="nf-om-art-wrap" float={false}>
@@ -176,22 +166,13 @@ export function TalkScene({ copy, priority, tag }: { copy: Copy; priority: boole
           {copy.talk.ask}
         </span>
       </Pop>
-      <span className="nf-om-typing nf-om-at nf-om-at--mr" aria-hidden="true">
-        <span />
-        <span />
-        <span />
-      </span>
-      <Pop i={5} className="nf-om-at nf-om-at--mr nf-om-pop--late">
-        <span className="nf-om-bubble nf-om-bubble--out">{copy.talk.reply}</span>
-      </Pop>
-      <Pop i={7} className="nf-om-at nf-om-at--bc nf-om-pop--late">
+      <Pop i={4} className="nf-om-at nf-om-at--bc">
         <span className="nf-om-pay">
           <span className="nf-om-chip__plate">
             <Icon3D name="pay" size={32} />
           </span>
           <span className="nf-om-chip__words">
             <span className="nf-om-chip__title">{copy.talk.pay}</span>
-            <span className="nf-om-chip__hint">{copy.talk.payHint}</span>
           </span>
           <span className="nf-om-pay__amount">
             <span className="nf-om-tag">{copy.example}</span>
@@ -206,7 +187,6 @@ export function TalkScene({ copy, priority, tag }: { copy: Copy; priority: boole
 export const EXAMPLE_MOVE_IN_TOTAL = 2150000;
 
 export function MoveInScene({
-  t,
   copy,
   priority,
   active,
@@ -214,12 +194,9 @@ export function MoveInScene({
   count,
   tag,
 }: {
-  t: Dictionary;
   copy: Copy;
   priority: boolean;
-  /** On screen now: the figure counts only when it arrives. */
   active: boolean;
-  /** Bumped every arrival, so the count runs again each time. */
   visit: number;
   count: boolean;
   tag: string;
@@ -235,13 +212,7 @@ export function MoveInScene({
           <Icon3D name="keys" size={72} />
         </span>
       </Pop>
-      <Pop i={3} className="nf-om-at nf-om-at--tl">
-        <span className="nf-om-pill">
-          <UiIcon name="check" size={14} />
-          {t.welcomeCards.intro.chip}
-        </span>
-      </Pop>
-      <Pop i={4} className="nf-om-at nf-om-at--total" float={false}>
+      <Pop i={3} className="nf-om-at nf-om-at--total" float={false}>
         <span className="nf-om-total">
           <span className="nf-om-total__head">
             <span className="nf-om-total__label">{copy.moveIn.total}</span>

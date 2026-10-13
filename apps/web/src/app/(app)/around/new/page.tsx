@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { PageHeader } from "@/components/app/PageHeader";
 import { resolveSession } from "@/lib/actions/session";
 import { listStates } from "@/lib/social/areas-queries";
-import { MODERATOR_CAN, MODERATOR_CANNOT } from "@/lib/social/areas-schema";
+import { MODERATOR_CAN, MODERATOR_CANNOT } from "@/lib/social/areas-model";
 import { ProposeAreaForm } from "./ProposeAreaForm";
 import { SocialPaused } from "@/components/social/SocialPaused";
 import { isSocialEnabled } from "@/lib/social/flag";
@@ -19,7 +19,7 @@ export const metadata: Metadata = { title: "Suggest a place" };
  * limits of that role should be known before they ask rather than after.
  */
 export default async function ProposeAreaPage() {
-  if (!(await isSocialEnabled())) return <SocialPaused title="Suggest a place" fallback="/home" />;
+  if (!(await isSocialEnabled())) return <SocialPaused title="Suggest a place" />;
 
   const [session, states] = await Promise.all([resolveSession(), listStates()]);
   const signedIn = session.state === "signed-in";

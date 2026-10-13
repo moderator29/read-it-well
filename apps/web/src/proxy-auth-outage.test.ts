@@ -49,8 +49,11 @@ function accessToken(expiresAt: number): string {
   ].join(".");
 }
 
-const PORT = 33494;
-const STUB = `http://127.0.0.1:${PORT}`;
+/* The stand-in listens on a port the system assigns (0), never a fixed one:
+   a fixed port collides with whatever else is listening on the machine (a
+   preview server, a browser), and the listen then fails with EADDRINUSE and
+   the setup hangs to its timeout. */
+let STUB = "";
 
 /** How the stand-in answers `/auth/v1/user`. */
 let mode: "ok" | "down" | "hang" | "revoked" = "ok";
@@ -82,7 +85,13 @@ beforeAll(async () => {
     }
     res.end(JSON.stringify(USER));
   });
-  await new Promise<void>((resolve) => server.listen(PORT, "127.0.0.1", resolve));
+  await new Promise<void>((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", resolve);
+  });
+  const address = server.address();
+  if (!address || typeof address === "string") throw new Error("the stand-in has no port");
+  STUB = `http://127.0.0.1:${address.port}`;
 
   process.env.NEXT_PUBLIC_SUPABASE_URL = STUB;
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "stub-anon-key";

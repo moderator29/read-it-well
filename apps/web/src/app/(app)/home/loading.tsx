@@ -1,7 +1,9 @@
-import { Skeleton, SkeletonCard } from "@/components/ui/Skeleton";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { LoadingShell } from "@/components/app/ScreenSkeleton";
 import { panelClass } from "@/components/ui/Panel";
 import { iconPlateClass } from "@/components/ui/IconPlate";
+import { HomeListSkeleton } from "@/components/app/home/HomeLists";
+import "@/app/css/home.css";
 
 /**
  * The wait, on home.
@@ -15,7 +17,9 @@ import { iconPlateClass } from "@/components/ui/IconPlate";
  * the screen's own, in its order and on its own materials (the platform
  * sweep, 23 September): the greeting, the location chip and the hero on the
  * shared panel, the four category plates on the shared icon plate, then the
- * featured row at `ListingCard`'s proportions on the panel card. A skeleton
+ * premium stack, then the Featured listings' one-per-row cards (13 October
+ * 2026; Best matches and New listings stream behind their own skeletons once
+ * the page is up, see `HomeStreams`). A skeleton
  * that does not match its screen teaches the eye the wrong shape and then
  * corrects it.
  */
@@ -43,14 +47,18 @@ export default function LoadingHome() {
 
       <div className="mt-section-tight">
         <Skeleton width="13rem" height="1.5rem" radius="sm" />
-        <ul className="nf-home__cards mt-heading">
-          {Array.from({ length: 2 }, (_, i) => (
-            <li key={i}>
-              <SkeletonCard className={panelClass({ variant: "card", className: "p-0" })} />
-            </li>
-          ))}
-        </ul>
+        {/* The featured stack's shape: one tall card with the next peeking. */}
+        <div className="nf-fstack">
+          <div className="nf-fstack__stage" aria-hidden="true">
+            <div className="nf-fstack__card" data-role="next" />
+            <div className="nf-fstack__card" data-role="front">
+              <Skeleton className="h-full w-full" radius="none" />
+            </div>
+          </div>
+        </div>
       </div>
+
+      <HomeListSkeleton shape="rows" />
     </LoadingShell>
   );
 }

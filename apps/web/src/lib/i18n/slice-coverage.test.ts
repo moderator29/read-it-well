@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { SLICES } from "./slice";
-import { reachableNamespaces } from "./reachable-namespaces";
+import { getDictionary, type Locale } from "@vallo/i18n";
+import { NARROW, SLICES } from "./slice";
+import { dictionaryKeyReads, missingSegment, reachableNamespaces, reachableSubKeys } from "./reachable-namespaces";
 
 /*
  * THE SLICES MUST COVER EVERYTHING THEIR COMPONENT CAN REACH.
@@ -31,4 +32,84 @@ describe("every dictionary slice carries what its component can reach", () => {
       expect(missing, `${name} slice is missing namespaces its import graph reads`).toEqual([]);
     });
   }
+});
+
+/*
+ * THE NARROWED NAMESPACES MUST COVER EVERY KEY THEIR GRAPH READS, AND NOTHING
+ * MAY READ THEM WHOLE. `unit-shape.ts` is the one false positive: it reads
+ * `unit.shape`, the unit's own field, which is not a dictionary at all.
+ */
+describe("narrowed namespaces carry every key their component can reach", () => {
+  for (const [name, narrow] of Object.entries(NARROW)) {
+    for (const [namespace, carried] of Object.entries(narrow)) {
+      it(`${name}.${namespace}`, () => {
+        const { keys, whole } = reachableSubKeys(ROOTS[name as keyof typeof ROOTS], namespace);
+        const missing = [...keys].filter((key) => !(carried as readonly string[]).includes(key)).sort();
+        expect(missing, `${name} narrows ${namespace} but its graph reads these keys`).toEqual([]);
+        const wholeReads = whole.filter((line) => !line.startsWith("lib/listings/unit-shape.ts"));
+        expect(wholeReads, `${name} reads ${namespace} as a whole, so it cannot be narrowed`).toEqual([]);
+      });
+    }
+  }
+});
+
+/*
+ * THE THREE WAYS MOVING HUNDREDS OF STRINGS BREAKS SILENTLY (D61, section 6).
+ *
+ * A slice can carry every namespace and the screen can still print nothing:
+ * the code names a key English never had (a cast or a `Record<string, ...>`
+ * view hides it from tsc and the reader sees `undefined`), a value is the empty
+ * string (the reader sees a gap where a word was), or a translation drops or
+ * renames a placeholder (the reader sees "{count}" or loses the number). One
+ * assertion each.
+ */
+const LOCALES: Locale[] = ["en", "ha", "ig", "yo"];
+
+/** Every string in a dictionary, by dotted path; array items as `path[i]`. */
+function strings(value: unknown, path = "", out = new Map<string, string>()): Map<string, string> {
+  if (typeof value === "string") out.set(path, value);
+  else if (Array.isArray(value)) value.forEach((item, i) => strings(item, `${path}[${i}]`, out));
+  else if (value && typeof value === "object") {
+    for (const [key, child] of Object.entries(value)) strings(child, path ? `${path}.${key}` : key, out);
+  }
+  return out;
+}
+
+/** The placeholders in a line, sorted, repeats kept: "{count} of {total}" is ["count", "total"]. */
+function placeholders(line: string): string[] {
+  return [...line.matchAll(/\{(\w+)\}/g)].map((m) => m[1]!).sort();
+}
+
+describe("the dictionary itself (D61)", () => {
+  it("has every key the code names, in English", () => {
+    const en = getDictionary("en");
+    const reads = dictionaryKeyReads();
+    const missing = reads
+      .filter((read) => read.paths.every((path) => missingSegment(en, path) !== null))
+      .map((read) => {
+        const path = read.paths[0]!;
+        return `${read.file}:${read.line} ${path.slice(0, missingSegment(en, path)! + 1).join(".")}`;
+      });
+    /* The scan has to find something to be worth trusting. */
+    expect(reads.length).toBeGreaterThan(5000);
+    expect([...new Set(missing)].sort(), "keys named in code that English does not have").toEqual([]);
+  });
+
+  it("has no empty value in any locale", () => {
+    const empty = LOCALES.flatMap((locale) =>
+      [...strings(getDictionary(locale))].filter(([, line]) => line.trim() === "").map(([path]) => `${locale} ${path}`),
+    );
+    expect(empty, "an empty string prints as a gap where a word was").toEqual([]);
+  });
+
+  it("says the same placeholders in every translation as in English", () => {
+    const en = strings(getDictionary("en"));
+    const wrong = (["ha", "ig", "yo"] as const).flatMap((locale) =>
+      [...strings(getDictionary(locale))]
+        .filter(([path, line]) => en.has(path) && en.get(path) !== line)
+        .filter(([path, line]) => placeholders(line).join(",") !== placeholders(en.get(path)!).join(","))
+        .map(([path, line]) => `${locale} ${path}: {${placeholders(line).join("},{")}} where English has {${placeholders(en.get(path)!).join("},{")}}`),
+    );
+    expect(wrong, "a translation that drops or renames a placeholder").toEqual([]);
+  });
 });

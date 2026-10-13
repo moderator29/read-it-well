@@ -688,21 +688,12 @@ const POINTER = /cursor\s*:\s*pointer/;
  * it without writing which kind they are adding.
  *
  * PERMANENT: the check is wrong about these, and the reason is about
- * semantics rather than taste.
- *
- *   `.nf-tag-pill--neutral` is the neutral member of a status family whose
- *   other members carry status colour. Blue on it would read as a state, and
- *   "no state" is the state it exists to express.
+ * semantics rather than taste. (`.nf-tag-pill--neutral` and `.nf-option`
+ * were listed here until R3-18 deleted both rules: neither had a consumer.)
  *
  *   `.nf-switch`, in both files that draw one, is a TRACK in its off
  *   position. Grey off and brand on is the entire semantics of a switch; a
  *   blue track would say the switch is on before anybody touched it.
- *
- *   `.nf-option` belongs to the agent workspace and selects with
- *   `--nf-mode-agent`. Its own comment argues it is an inset ANSWER inside a
- *   container rather than an object, and the mode's whole point is that it is
- *   not the brand. A brand-blue resting edge would put brand chrome inside a
- *   surface deliberately built not to wear it.
  *
  * DEBT: real instances of the fault in a file this sweep did not own. They
  * are listed so the gate stays green for their owner today and so the rule is
@@ -714,7 +705,6 @@ const POINTER = /cursor\s*:\s*pointer/;
  *   outline, so all three are the same fault, not exceptions.
  */
 const DULL_ALLOWED = new Set([
-  "src/app/css/chips.css  .nf-tag-pill--neutral",
   "src/app/css/controls.css  .nf-switch",
   "src/app/settings-rows.css  .nf-switch",
   /*
@@ -741,7 +731,6 @@ const DULL_ALLOWED = new Set([
    * Deleting it means a future revert to a border token fires here again, which
    * is the whole point of the list.
    */
-  "src/app/css/utilities.css  .nf-option",
   "src/app/css/catalogue.css  .nf-shelf-sort > summary",
   "src/app/css/catalogue.css  .nf-stay-card__chip",
   "src/app/css/catalogue.css  .nf-tenancy-chip",
@@ -908,7 +897,7 @@ for (const dir of ROOTS) {
  *   their owners deleting the rules.
  */
 const PILL_RADIUS =
-  /border(?:-[a-z]+)*-radius\s*:[^;]*(?:var\(\s*--nf-radius-(?:pill|control-pill|button)\s*\)|\b9{3,4}px\b)/;
+  /border(?:-[a-z]+)*-radius\s*:[^;]*(?:var\(\s*--nf-radius-(?:pill|control-pill|button|segment)\s*\)|\b9{3,4}px\b)/;
 
 /*
  * THE BUTTON IS THE ONE CONTROL ALLOWED A CAPSULE (founder references 44 and
@@ -951,6 +940,31 @@ function isButtonRule(selector) {
  */
 const PILL_ALLOWED = new Set([
   /*
+   * PERMANENT, by founder directive D2 of 5 October 2026, which supersedes the
+   * 19 September ruling for this one role: "the pill is reserved for chips,
+   * filters, SEGMENTED CONTROLS and circular icon controls, so that seeing a
+   * pill tells a person the thing is selectable" (north star 5A, the
+   * segmented role: pill track, pill thumb). The segmented control's radius is
+   * its own token, `--nf-radius-segment`, which PILL_RADIUS now recognises, so
+   * this permission is enforced and visible rather than passing unseen. Every
+   * other control keeps the rectangle.
+   */
+  "src/app/css/chips.css  .nf-segmented--pill",
+  /*
+   * PERMANENT, by the founder's Plasma ruling D74 of 7 October 2026
+   * (`docs/design/references/2026-10-07/GOVERNING-plasma-rewards-platinum.jpg`,
+   * `-tiers-cards.jpg`, `-withdraw-anytime.jpg`): the one primary action on an
+   * explainer or a payoff is "the capsule with a reflection", a full-width
+   * capsule with a mirrored glow on the floor beneath it, one per screen
+   * (PREMIUM-STANDARD.md, "The governing level"). Every other control keeps
+   * the rectangle.
+   */
+  "src/app/css/premium-moments.css  .nf-capsule",
+  /* PERMANENT, the same D74 ruling: the invite's share moment is one white
+     capsule with a round green button at its end
+     (`docs/design/references/2026-10-07/invite-ready-pill.jpg`). */
+  "src/app/css/money-layer.css  .nf-ready__pill",
+  /*
    * PERMANENT. The dock island is 56px square, holds one glyph and carries no
    * word, so it is the ruling's second exception: a bare icon button, the same
    * species as the landing nav's search glyph. Its own rule in `chrome.css`
@@ -958,6 +972,15 @@ const PILL_ALLOWED = new Set([
    * beside, `.nf-tabbar`, is a rounded rectangle.
    */
   "src/app/css/chrome.css  .nf-dock-island",
+  /*
+   * PERMANENT, by founder directive D72 of 7 October 2026 and his feed
+   * reference (PREMIUM-STANDARD.md reference 2): "under the post, the action
+   * row is four separate dark capsules (reply with count, repost, like with
+   * count, bookmark) and a round share button, each a soft charcoal pill
+   * with a thin outline icon and a tabular count. That is the feed's action
+   * row." A glyph and a number, never a word, on the segment role's token.
+   */
+  "src/app/social-feed.css  .nf-act-pill",
   /*
    * PERMANENT, and it is the SAME OBJECT as the one `PILL_ALLOWED_TSX` already
    * excuses below: `components/ui/Switch.tsx` is a switch track drawn as a
@@ -1003,6 +1026,37 @@ const PILL_ALLOWED = new Set([
    * test above cannot see them. They are buttons; nothing else wears it.
    */
   "src/app/admin/_review/review.css  .nf-rv-btn",
+  /*
+   * PERMANENT, by D81 (8 October 2026), which supersedes D80's glass
+   * capsules: the founder's governing Wallet
+   * (`docs/design/references/2026-10-08/GOVERNING-wallet-overview-transactions.png`,
+   * the right-hand phone). Its Overview | Transactions tabs are the
+   * segmented role (a pill track, a pill thumb, D2), and its filter chips
+   * (All, Received, Sent, Withdrawals), the move-money screens' quick amounts
+   * and reason chips are the chip role D2 reserves the pill for. The two
+   * bottom capsules (Withdraw, Send), Add money on the card and the banner's
+   * Learn more are buttons drawn by the Wallet's own classes rather than
+   * `.nf-btn`, which is why the button test above cannot see them.
+   */
+  "src/app/css/money-wallet.css  .nf-mw-tabs__tab",
+  "src/app/css/money-wallet.css  .nf-mw-chip",
+  "src/app/css/money-wallet.css  .nf-mw-cap",
+  "src/app/css/money-wallet.css  .nf-mw-add",
+  "src/app/css/money-wallet.css  .nf-mw-banner__cta",
+  /*
+   * PERMANENT, by the founder's video calling brief of 8 October 2026
+   * (`docs/video-calling/BRIEF.md`, phase 2 and phase 11: "premium incoming
+   * and outgoing screens ... elegant controls ... camera and microphone
+   * controls; camera switch; speaker; end call") and D2's own words: the pill
+   * is reserved for "circular icon controls". Every call control (accept,
+   * decline, end, mute, camera, switch, output) is a 56 to 72px round button
+   * holding ONE glyph and no word; its caption is a separate element under
+   * it. This is the round icon control every phone's call screen draws, and
+   * the reason it is visible here rather than drawn with the circle token,
+   * which this check does not read: a permission said out loud. Nothing else
+   * in `calls.css` wears a capsule.
+   */
+  "src/app/css/calls.css  .nf-call-btn",
 ]);
 
 /* The TSX half of the same list, and it has one entry. The two round things

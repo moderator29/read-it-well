@@ -46,7 +46,9 @@ export function ReceiptCodePanel({
   }
 
   return (
-    <div className="nf-panel nf-panel--card block p-md" data-testid="tenancy-receipt">
+    /* `tenancy-proof` is where the Share tile on the money sheet lands: the
+       receipt is shared as a code anyone can check at /r, never as a file. */
+    <div id="tenancy-proof" className="nf-panel nf-panel--card block scroll-mt-24 p-md" data-testid="tenancy-receipt">
       <h3 className="nf-h4">{copy.heading}</h3>
       <p className="nf-body-sm mt-xs text-[var(--nf-content-secondary)]">{copy.lede}</p>
       {fresh ? (

@@ -52,14 +52,14 @@ export function ContactForm({
         <IconPlate size="md" className="mx-auto grid place-items-center">
           <UiIcon name="headset" size={20} />
         </IconPlate>
-        <p className="mt-row text-[1.0625rem] font-semibold text-[var(--nf-content-primary)]">
+        <p className="mt-row text-[length:var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
           Your message is with support
         </p>
-        <p className="mx-auto mt-inline max-w-[44ch] text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="mx-auto mt-inline max-w-[44ch] text-[length:var(--nf-text-row)] leading-relaxed text-[var(--nf-content-secondary)]">
           We reply within one business day, Monday to Saturday. Your reference is
           below, and it is in the confirmation email we have just sent you.
         </p>
-        <p className="nf-numeric mt-group inline-block nf-panel nf-panel--card px-group py-inline text-[1.0625rem] font-bold tracking-wide text-[var(--nf-content-primary)]">
+        <p className="nf-numeric mt-group inline-block nf-panel nf-panel--card px-group py-inline text-[length:var(--nf-text-body-lg)] font-bold tracking-wide text-[var(--nf-content-primary)]">
           {state.data.reference}
         </p>
         {/* Filed while signed in: the ticket is on the account, so the reply
@@ -75,7 +75,7 @@ export function ContactForm({
             </Link>
           </p>
         )}
-        <p className="mt-group text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="mt-group text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
           {SUPPORT_MAILBOX ? (
             <>
               Need to add something? Reply to that email, or write to{" "}
@@ -174,7 +174,7 @@ export function ContactForm({
         <p
           id="contact-form-note"
           role="alert"
-          className="nf-panel nf-panel--card block p-row text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]"
+          className="nf-panel nf-panel--card block p-row text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]"
         >
           {state.error}
           {SUPPORT_MAILBOX ? (
@@ -193,7 +193,7 @@ export function ContactForm({
           )}
         </p>
       ) : (
-        <p id="contact-form-note" className="text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
+        <p id="contact-form-note" className="text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
           {/* No "or write to us at" line without a mailbox to write to. This
               form opens a real support_tickets row that an admin works in the
               console, so it is the channel, not the fallback. */}

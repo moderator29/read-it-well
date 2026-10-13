@@ -7,7 +7,8 @@ import { Sheet } from "@/components/ui/Sheet";
 import { ConfirmPanel } from "@/components/app/confirm/ConfirmPanel";
 import { acceptRoomRequest, declineRoomRequest } from "@/lib/host/room-booking-actions";
 import { bookingAcceptedPreview } from "@/lib/email/everyone-gets";
-import { PAYOUT_ANSWER } from "@/lib/money/copy";
+import type { Dictionary } from "@vallo/i18n/core";
+import { HOST_ROOM_GUEST_PAYS_NEXT, HOST_ROOM_TOTAL_LABEL, PAYOUT_ANSWER } from "@/lib/money/copy";
 
 /** What the confirm panel names: the request as the row already shows it. */
 export type RoomRequestSummary = {
@@ -38,7 +39,16 @@ const PAID_STRAIGHT = PAYOUT_ANSWER.split(". ")[0] + ".";
  * that neither fires from the row any more; each opens the panel, which says
  * what is being answered, what happens next and what the guest receives.
  */
-export function RoomRequestAnswer({ bookingId, summary }: { bookingId: string; summary: RoomRequestSummary }) {
+export function RoomRequestAnswer({
+  bookingId,
+  summary,
+  words,
+}: {
+  bookingId: string;
+  summary: RoomRequestSummary;
+  /** The sheet's words in the reader's language, handed down by the page. */
+  words: Dictionary["experienceHost"]["bookings"]["answer"];
+}) {
   const [open, setOpen] = useState<"accept" | "decline" | null>(null);
   const [reason, setReason] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -49,7 +59,7 @@ export function RoomRequestAnswer({ bookingId, summary }: { bookingId: string; s
     start(async () => {
       setError(null);
       const result = await act();
-      if (!result.ok) setError(result.error ?? "That did not go through.");
+      if (!result.ok) setError(result.error ?? words.failed);
       else {
         setOpen(null);
         router.refresh();
@@ -72,19 +82,19 @@ export function RoomRequestAnswer({ bookingId, summary }: { bookingId: string; s
     .map((card) => ({ ...card, email: null, channel: "App" as const }));
 
   const facts = [
-    { label: "Guest", value: summary.guestName },
-    { label: "Dates", value: summary.dates },
-    { label: "Room", value: summary.room },
+    { label: words.guest, value: summary.guestName },
+    { label: words.dates, value: summary.dates },
+    { label: words.room, value: summary.room },
   ];
 
   return (
     <div className="mt-xs grid gap-xs" data-testid="room-request-answer">
       <div className="flex flex-wrap gap-xs">
         <Button variant="primary" size="md" disabled={pending} onClick={() => setOpen("accept")}>
-          Accept
+          {words.accept}
         </Button>
         <Button variant="secondary" size="md" disabled={pending} onClick={() => setOpen("decline")}>
-          Decline
+          {words.decline}
         </Button>
       </div>
 
@@ -96,7 +106,7 @@ export function RoomRequestAnswer({ bookingId, summary }: { bookingId: string; s
             setError(null);
           }
         }}
-        title={open === "decline" ? `Decline ${first}'s request?` : `Accept ${first}'s booking?`}
+        title={(open === "decline" ? words.declineTitle : words.acceptTitle).replace("{name}", first)}
         hideTitle
         card
         detents={[0.9]}
@@ -104,22 +114,22 @@ export function RoomRequestAnswer({ bookingId, summary }: { bookingId: string; s
         {open === "accept" ? (
           <ConfirmPanel
             icon="bed"
-            title={`Accept ${first}'s booking?`}
-            context={`${summary.room} at ${summary.hotel} · ${summary.stay}`}
+            title={words.acceptTitle.replace("{name}", first)}
+            context={`${words.roomAt.replace("{room}", summary.room).replace("{hotel}", summary.hotel)} · ${summary.stay}`}
             summary={facts}
-            total={{ label: "Total the guest pays", amount: summary.total }}
+            total={{ label: HOST_ROOM_TOTAL_LABEL, amount: summary.total }}
             reassurance={PAID_STRAIGHT}
             next={[
-              { icon: "file-text", text: "The stay agreement is drawn up for you and the guest to confirm." },
-              { icon: "shield-check", text: "Vallo checks the agreement." },
-              { icon: "credit-card", text: "The guest pays by card once it is approved." },
+              { icon: "file-text", text: words.nextAgreement },
+              { icon: "shield-check", text: words.nextChecked },
+              { icon: "credit-card", text: HOST_ROOM_GUEST_PAYS_NEXT },
             ]}
             everyone={everyone}
-            told={`${first} is told at once.`}
+            told={words.told.replace("{name}", first)}
             error={error}
             cancel={
               <Button variant="secondary" size="md" disabled={pending} onClick={() => setOpen(null)}>
-                Cancel
+                {words.cancel}
               </Button>
             }
             primary={
@@ -130,7 +140,7 @@ export function RoomRequestAnswer({ bookingId, summary }: { bookingId: string; s
                 disabled={pending}
                 onClick={() => run(() => acceptRoomRequest(bookingId))}
               >
-                Accept booking
+                {words.acceptBooking}
               </Button>
             }
           />
@@ -138,15 +148,15 @@ export function RoomRequestAnswer({ bookingId, summary }: { bookingId: string; s
           <ConfirmPanel
             icon="circle-x"
             tone="error"
-            title={`Decline ${first}'s request?`}
-            context={`${summary.room} at ${summary.hotel} · ${summary.stay}`}
+            title={words.declineTitle.replace("{name}", first)}
+            context={`${words.roomAt.replace("{room}", summary.room).replace("{hotel}", summary.hotel)} · ${summary.stay}`}
             summary={facts}
-            next={[{ icon: "calendar-check", text: "The nights go back on sale at once." }]}
-            told={`${first} is told at once.`}
+            next={[{ icon: "calendar-check", text: words.nextNightsBack }]}
+            told={words.told.replace("{name}", first)}
             error={error}
             cancel={
               <Button variant="secondary" size="md" disabled={pending} onClick={() => setOpen(null)}>
-                Keep it
+                {words.keepIt}
               </Button>
             }
             primary={
@@ -158,12 +168,12 @@ export function RoomRequestAnswer({ bookingId, summary }: { bookingId: string; s
                 className="text-[var(--nf-state-error)]"
                 onClick={() => run(() => declineRoomRequest(bookingId, reason.trim() || undefined))}
               >
-                Decline the request
+                {words.declineRequest}
               </Button>
             }
           >
             <label className="grid gap-2xs">
-              <span className="nf-caption">Tell the guest why (optional)</span>
+              <span className="nf-caption">{words.why}</span>
               <textarea
                 className="nf-field"
                 rows={2}

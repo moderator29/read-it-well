@@ -3,6 +3,7 @@
 import type { Dictionary } from "@vallo/i18n/core";
 import { Segmented } from "@/components/ui/Segmented";
 import { UNIT_SHAPES, inferShape, type UnitForm, type UnitShape } from "@/lib/listings/unit-shape";
+import "@/app/css/catalogue.css";
 
 /**
  * WHAT SHAPE IS IT, in the listing wizard's first step (V-66).
@@ -51,14 +52,14 @@ export function UnitQuestions({
             aria-pressed={value.shape === shape}
             data-testid={`wizard-unit-${shape}`}
             onClick={() => pick(shape)}
-            className={`nf-filters__tile ${suggested === shape ? "border-[var(--nf-border-strong)]" : ""}`}
+            className={`nf-filters__tile min-w-11 ${suggested === shape ? "border-[var(--nf-border-strong)]" : ""}`}
           >
             {copy.shapes[shape]}
           </button>
         ))}
       </div>
       {error && (
-        <p role="alert" className="nf-body-sm mt-inline block font-medium text-[var(--nf-state-error)]">
+        <p role="alert" className="nf-body-sm mt-inline block font-semibold text-[var(--nf-state-error)]">
           {error}
         </p>
       )}

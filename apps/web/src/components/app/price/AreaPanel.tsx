@@ -1,5 +1,6 @@
 import { Amount } from "@/components/ui/Amount";
 import { EmptyState, Section, TYPE } from "@/components/app/Screen";
+import { DiscoveryEmpty } from "@/components/app/search/DiscoveryEmpty";
 import { LAGOS_TIME_ZONE, intlTag, type Locale } from "@vallo/i18n/core";
 import { factLabel } from "@/lib/price-check/facts-labels";
 import type { AreaAskingRow, AreaCensus, AreaUtilityFacts } from "@/lib/price-check/types";
@@ -89,6 +90,7 @@ export function AreaReport({
   copy,
   typeNames,
   renderShare,
+  chart,
 }: {
   /** Null means we could not read, which is different from "there is nothing". */
   rows: AreaAskingRow[] | null;
@@ -111,6 +113,13 @@ export function AreaReport({
    * exists.
    */
   renderShare?: (row: AreaAskingRow | null) => React.ReactNode;
+  /**
+   * The figure and chart that lead the report when there are rows
+   * (`AreaAskingChart`, Session 3, W2). A slot rather than an import because
+   * the chart is a client component and this panel is drawn on surfaces that
+   * do not all ship one.
+   */
+  chart?: React.ReactNode;
 }) {
   /*
    * THREE EMPTY STATES AND THEY ARE NOT THE SAME SENTENCE.
@@ -140,8 +149,11 @@ export function AreaReport({
     const examplesOnly = census !== null && census.realCount === 0 && census.demoCount > 0;
     return (
       <>
-        <EmptyState
-          icon={examplesOnly ? "seal-pending" : "report-stats"}
+        {/* Stage 5: the empty report is the current product nearly
+            everywhere, so the object settles in (the matte bars, the chart
+            that is waiting for figures) and the reason is the true one. */}
+        <DiscoveryEmpty
+          object={examplesOnly ? "info-disc" : "bars-chart"}
           title={examplesOnly ? copy.demoOnlyTitle : copy.emptyTitle}
           body={examplesOnly ? copy.demoOnlyBody : copy.emptyBody}
           data-testid={examplesOnly ? "nf-pc-area-demo-only" : "nf-pc-area-empty"}
@@ -153,6 +165,7 @@ export function AreaReport({
 
   return (
     <Section title={copy.heading} description={copy.subheading}>
+      {chart}
       <div>
         {rows.map((row) => {
           const typeName = typeNames[row.propertyType] ?? row.propertyType;

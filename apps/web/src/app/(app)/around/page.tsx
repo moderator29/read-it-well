@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { UiIcon } from "@/design-system/icons/UiIcon";
+import { sheetWordsOf } from "@/components/social/sheet-words";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { resolveSession } from "@/lib/actions/session";
@@ -7,19 +10,23 @@ import { listMyAreas, type AreaSummary } from "@/lib/social/areas-queries";
 import {
   getAreaFeed,
   getEverywhereFeed,
+  getFriendsFeed,
   getJoinedFeed,
 } from "@/lib/social/posts-queries";
 import { listStories } from "@/lib/social/stories-queries";
 import { stampAuthorTiers } from "@/lib/social/author-badges";
-import { POST_COPY } from "@/lib/social/posts-schema";
+import { POST_COPY } from "@/lib/social/posts-model";
 import { AROUND_UNCONFIGURED } from "./copy";
 import { loadMoreAround } from "./feed-actions";
 import type { FeedMode } from "@/lib/social/posts-actions";
 import { Feed } from "@/components/social/feed/Feed";
-import { FeedTabs, isFeedTab, type FeedTab } from "@/components/social/feed/FeedMasthead";
+import { FeedTabs, isFeedTab, liveTab, type FeedTab } from "@/components/social/feed/FeedMasthead";
 import { LocationChip } from "@/components/social/feed/LocationChip";
 import { StoryRing } from "@/components/social/feed/StoryRing";
 import { AroundFab } from "@/components/social/AroundFab";
+import { ComposeButton } from "@/components/social/feed/ComposeButton";
+import { PeopleRail, WhoToFollow } from "@/components/social/follow/WhoToFollow";
+import { readFollowSuggestions } from "@/lib/social/follow-suggestions";
 import { SocialPaused } from "@/components/social/SocialPaused";
 import { BackButton } from "@/components/site/BackButton";
 import { isSocialEnabled } from "@/lib/social/flag";
@@ -88,11 +95,15 @@ export default async function AroundPage({
   const tab: FeedTab = isFeedTab(rawTab) ? rawTab : "for-you";
   const joined = viewerId !== null && mine.length > 0;
 
+  /* Friends: the people you follow. An address from before the control said
+     "Following" opens the same half. */
+  const friends = liveTab(tab) === "friends";
+
   const read = selected
     ? await getAreaFeed(selected.id)
-    : tab === "following"
-      ? joined
-        ? await getJoinedFeed(viewerId)
+    : friends
+      ? viewerId
+        ? await getFriendsFeed(viewerId)
         : { posts: [], cursor: null, ended: true }
       : tab === "new"
         ? await getEverywhereFeed()
@@ -109,8 +120,8 @@ export default async function AroundPage({
   const activeArea = selected && selected.status === "ACTIVE" ? selected.id : undefined;
   const feedMode: FeedMode = activeArea
     ? { kind: "area", areaId: activeArea }
-    : tab === "following"
-      ? { kind: "joined" }
+    : friends
+      ? { kind: "friends" }
       : tab === "new"
         ? { kind: "everywhere" }
         : joined
@@ -126,10 +137,10 @@ export default async function AroundPage({
       ? signedIn
         ? POST_COPY.emptyFeed
         : POST_COPY.emptyFeedSignedOut
-      : tab === "following"
+      : friends
         ? signedIn
-          ? t.social.emptyFollowing
-          : t.social.emptyFollowingSignedOut
+          ? t.feedV2.feed.emptyFriendsBody
+          : t.feedV2.feed.emptyFriendsSignedOut
         : tab === "new"
           ? t.social.emptyNew
           : browsingOpen
@@ -153,15 +164,36 @@ export default async function AroundPage({
         }
       : null;
 
+  /*
+   * WHO TO FOLLOW, AROUND THE MEMBER (the founder, 7 October). Where comes
+   * only from what the app already holds: the place being read, else the
+   * first place the member joined. With neither, or with nobody doing
+   * published work there, the block widens to everyone on Vallo and says
+   * so; it never names a city it guessed. Unavailable (the read is not
+   * applied yet, or failed) draws nothing.
+   */
+  const followCity = selected?.city ?? mine.find((area) => area.status === "ACTIVE")?.city ?? null;
+  let follow = unconfigured ? null : await readFollowSuggestions({ city: followCity, limit: 6 });
+  let followScope: string | null = followCity;
+  if (follow?.state === "ready" && follow.people.length === 0 && followCity) {
+    follow = await readFollowSuggestions({ city: null, limit: 6 });
+    followScope = null;
+  }
+
   const activePlaces = mine
     .filter((area) => area.status === "ACTIVE")
     .map((area) => ({ slug: area.slug, name: area.name, city: area.city }));
 
+  const inFeed = follow?.state === "ready" ? follow.people.slice(0, 3) : [];
+  const inFeedMore = follow?.state === "ready" ? follow.people.length > 3 || follow.more : false;
+  const words = t.feedV2.feed;
+
   return (
     <div
-      /* `nf-feed-page`: the 3xl column, and on a phone the image's 16px
-         gutter in place of the shell's 24 (social-feed.css). */
-      className="nf-feed-page pt-sm"
+      /* `nf-fv2-page`: a column on a phone with the image's 16px gutter, and
+         on a desktop the 600px feed beside a rail of people to follow
+         (feed-v2.css). */
+      className="nf-fv2-page pt-sm"
       /* The dock floats over the bottom of the screen on a phone. Padding
          rather than a fixed value so the clearance tracks the dock's real
          height and the home indicator's inset together. */
@@ -171,70 +203,121 @@ export default async function AroundPage({
       {/* The screen's name for a screen reader; the chip is the visual head. */}
       <h1 className="sr-only">{t.nav.around}</h1>
 
-      {/*
-        THE WAY BACK, BESIDE THE PLACE.
+      <div className="nf-fv2-grid">
+        <div className="nf-fv2-main">
+          {/*
+            THE WAY BACK, BESIDE THE PLACE.
 
-        `/around` declares `/home` above it and drew nothing. The paused branch
-        above renders `SocialPaused`, which DOES carry a `PageHeader`, and that
-        is exactly the trap: a static read of this file found a back control in
-        the import graph and the running feed had none, because the only screen
-        that drew one was the kill-switch notice nobody sees.
+            `/around` declares `/home` above it and drew nothing. The paused
+            branch above renders `SocialPaused`, which DOES carry a
+            `PageHeader`, and that is exactly the trap: a static read of this
+            file found a back control in the import graph and the running feed
+            had none, because the only screen that drew one was the kill-switch
+            notice nobody sees.
 
-        It sits on the chip's row rather than above it because the chip IS this
-        screen's head, the same way the search field is `/search`'s. A
-        `PageHeader` here would put the word "Around" over a screen whose first
-        object already says where you are.
-      */}
-      <div className="flex items-center gap-inline">
-        <BackButton fallback="/" surface="round" />
-        <LocationChip
-          place={placeLabel || t.social.locationEverywhere}
-          places={activePlaces}
-          currentSlug={selected?.slug ?? null}
-          signedIn={signedIn}
-          copy={{
-            label: t.social.locationLabel,
-            allPlaces: t.social.allPlaces,
-            changePlace: t.social.changePlace,
-            pickPlaces: t.social.pickPlaces,
-            signIn: t.common.signIn,
-          }}
-        />
+            It sits on the chip's row rather than above it because the chip IS
+            this screen's head. A `PageHeader` here would put the word "Around"
+            over a screen whose first object already says where you are.
+          */}
+          <div className="nf-fv2-bar">
+            <BackButton fallback="/" surface="round" />
+            <LocationChip
+              place={placeLabel || t.social.locationEverywhere}
+              places={activePlaces}
+              currentSlug={selected?.slug ?? null}
+              signedIn={signedIn}
+              copy={{
+                label: t.social.locationLabel,
+                allPlaces: t.social.allPlaces,
+                changePlace: t.social.changePlace,
+                pickPlaces: t.social.pickPlaces,
+                signIn: t.common.signIn,
+              }}
+            />
+            {/* The search: the people page (`/around/people`), a round glyph at
+                the head's right as the feed reference draws it. */}
+            <Link href="/around/people" className="nf-feed-find" aria-label={words.findPeople} data-testid="feed-find-people">
+              <UiIcon name="search" size={20} />
+            </Link>
+            {/* THE FEED'S OWN PLUS: opens the post composer, one tap. The dock's
+                plus is the platform's create sheet, a different thing. Without
+                keys there is no composer to open, so no plus. */}
+            {unconfigured ? null : <ComposeButton label={words.writePost} />}
+          </div>
+
+          {/* No tiles without keys: an empty row would claim nobody has a
+              story, and nothing was read. */}
+          {unconfigured ? null : (
+            <StoryRing
+              stories={stories}
+              yourStoryLabel={words.yourStory}
+              storiesLabel={words.storiesLabel}
+              addStoryLabel={words.addStory}
+              seenWord={t.experienceSocial.feed.storySeen}
+              viewerId={profile?.userId ?? null}
+            />
+          )}
+
+          <FeedTabs active={tab} t={t} />
+
+          <section>
+            <Feed
+              initial={feed.posts}
+              pageCursor={feed.cursor}
+              /* The next page, through BB's `loadMoreFeed` with the mode bound
+                 here, so the client supplies a cursor and nothing else. */
+              loadMore={loadMoreAround.bind(null, feedMode)}
+              locale={locale}
+              sheet={sheetWordsOf(t)}
+              signedIn={signedIn}
+              canCompose
+              areaId={activeArea}
+              areaName={selected?.name}
+              aside={
+                follow?.state === "ready" && inFeed.length > 0 ? (
+                  <WhoToFollow
+                    people={inFeed}
+                    city={followScope}
+                    signedIn={follow.signedIn}
+                    more={inFeedMore}
+                  />
+                ) : null
+              }
+              emptyMessage={emptyMessage}
+              {...(unconfigured
+                ? { emptyTitle: AROUND_UNCONFIGURED.feedTitle, emptyIcon: "home-search" as const }
+                : friends && !selected
+                  ? {
+                      emptyTitle: words.emptyFriendsTitle,
+                      emptyIcon: "people-ring" as const,
+                      emptyAction: { href: "/around/people", label: words.emptyFriendsAction },
+                    }
+                  : {
+                      emptyTitle: selected ? t.experienceSocial.around.emptyIn.replace("{name}", selected.name) : t.experienceSocial.around.empty,
+                      emptyAction: { href: "/around/settings", label: t.experienceSocial.around.findPlaces },
+                    })}
+            />
+          </section>
+        </div>
+
+        {/* The desktop's right rail: the people worth following, drawn only
+            when the read returned some. A phone sees the same block inside
+            the feed instead. */}
+        {follow?.state === "ready" && follow.people.length > 0 ? (
+          <aside className="nf-fv2-rail" aria-label={words.railTitle}>
+            <PeopleRail
+              people={follow.people.slice(0, 5)}
+              signedIn={follow.signedIn}
+              title={words.railTitle}
+              seeAll={words.railSeeAll}
+            />
+          </aside>
+        ) : null}
       </div>
 
-      {/* No rings without keys: an empty row would claim nobody has a story,
-          and nothing was read. */}
-      {unconfigured ? null : (
-        <StoryRing stories={stories} you={you} yourStoryLabel={t.social.yourStory} />
-      )}
-
-      <FeedTabs active={tab} t={t} />
-
-      <section>
-        <Feed
-          initial={feed.posts}
-          pageCursor={feed.cursor}
-          /* The next page, through BB's `loadMoreFeed` with the mode bound
-             here, so the client supplies a cursor and nothing else. */
-          loadMore={loadMoreAround.bind(null, feedMode)}
-          locale={locale}
-          signedIn={signedIn}
-          canCompose
-          areaId={activeArea}
-          areaName={selected?.name}
-          emptyMessage={emptyMessage}
-          {...(unconfigured
-            ? { emptyTitle: AROUND_UNCONFIGURED.feedTitle, emptyIcon: "home-search" as const }
-            : {
-                emptyTitle: selected ? `Nothing in ${selected.name} yet` : "Nothing here yet",
-                emptyAction: { href: "/around/settings", label: "Find places to join" },
-              })}
-        />
-      </section>
-
       {/* `?compose=1` is the dock's "Post to the feed" (`CreateDock`): the
-          bloom opens on arrival. */}
-      <AroundFab currentAreaId={activeArea} initialOpen={params.compose === "1"} />
+          composer opens on arrival, in one tap from the dock. */}
+      <AroundFab currentAreaId={activeArea} compose={params.compose === "1"} you={you} />
     </div>
   );
 }

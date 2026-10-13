@@ -45,6 +45,24 @@ A consumer screen behind a workspace screen *is* returned to. A help page opened
 from the agent drawer goes back to the agent dashboard. "List a property" opened
 from the Create sheet goes back to where the sheet was opened.
 
+### The home is the home of your side
+
+Added 6 October 2026 (Session 3 navigation audit). Vallo has two homes,
+`/home` for Property and `/stays` for Stays. Every screen the two sides share
+(Messages, Notifications, Plans, Saved, Agreements, Payments, Settings,
+Profile, the feed, the assistant, support, the console) declares `/home`, and
+a Stays member who opened one cold (a push, a shared link) and pressed back
+was sent to the Property home, which turned the whole shell over under them.
+
+So when Back lands on a home (`/home`, or `/home-or-landing`, which answers
+`/home` for a member), `sideHome` in `resolve.ts` answers the home of the side
+the screen is painted on: the side the address owns when it owns one
+(`sideOfPath` in `lib/side.constants.ts`), otherwise the side the shell is
+showing (`data-side` on the document, read in `use-back.ts`). A
+Property-owned screen (`/search`, `/agent/*`) never returns to `/stays`; a
+Stays-owned one never to `/home`. The host workspace is a Stays address and
+now declares `/stays` itself. Android's hardware button takes the same answer.
+
 ### Mechanics
 
 - **Up replaces, it does not push.** When the parent is used, it
@@ -81,6 +99,37 @@ Android goes through `lib/nav/in-page-step.ts`:
 - Sheets and overlays: browser back closes the top sheet
   (`use-sheet-history.ts`). Android's back dispatches Escape to the top overlay.
   Neither changes the page.
+- The chat's full-screen media viewer (`components/app/messages/MediaViewer.tsx`)
+  is one of these overlays: it joins the overlay registry through `useOverlay`
+  (Escape, the Tab trap, the scroll lock, focus back on the photo that was
+  tapped) and takes one sheet history entry through `useSheetHistory`. So the
+  browser's back, the iPhone edge swipe and Android's back button close the
+  viewer first and leave the thread where it was; the X, a swipe down and
+  Escape close it and take the entry back off.
+
+### Unsaved changes
+
+The host wizard asks before anything unsaved is lost: Save and go back,
+Discard, or Stay. Its own Back, a step jump, a link, a reload and closing the
+tab were always asked about. Since 13 October 2026 the browser's Back button
+(and the Android Chrome back gesture) is too:
+
+- While something is unsaved, `useBackGuard` (`lib/ui/use-back-guard.ts`)
+  pushes one entry at the same address, stamped `nfUnsaved`. Browser Back
+  takes it off instead of leaving, and the wizard asks.
+- Stay pushes the guard again. Save and go back, and Discard, leave through
+  the wizard's own `useBack`, which steps over every entry at this address.
+- The leave waits until the prompt's own sheet entry is off history
+  (`whenSheetsClosed` in `use-sheet-history.ts`). Walking back while that
+  entry was still on top landed one screen too far back in Chromium.
+- The guard is found by its Navigation API key, because a router refresh
+  (every save) wipes custom history state. Browsers without the Navigation
+  API get no guard; everything else is still asked about.
+- With nothing unsaved the guard stays where it is, and a Back that takes it
+  off goes on back at once, so no press is wasted.
+- Not inside the native shell: Android's hardware back has its own handler.
+
+Tested in Chromium by `apps/web/src/lib/ui/use-back-guard.test.ts`.
 
 ### Android hardware back
 
@@ -99,7 +148,10 @@ There is one component, `apps/web/src/components/ui/BackControl.tsx`.
 `BackButton`, `PageHeader`, `BackChevron`, the listing gallery (hero and
 floating), the listing section tabs, the thread, the assistant, the inspection
 sheet, the register shell, KYC, the host wizard, sign-up step two, list a
-property and the welcome slides all draw it.
+property and the welcome slides all draw it. Since October 2026 so do the
+signed-in profile's cover (it had none), the Wallet header (a hand-drawn
+link that always pushed a fixed address) and the restricted staff console
+(it had none).
 
 - 44 by 44 CSS px, drawn as the element's real size (not a pseudo-element
   target). The pill form is 44 tall.
@@ -194,7 +246,8 @@ Each of these was a real destination under the old code. Each has a test in
 ## The table
 
 The **came-from rule applies to every row**: when the screen behind is safe, Back
-returns to it. This table lists where Back goes otherwise, that is when the
+returns to it, and a `/home` below means the home of the reader's side (see
+"The home is the home of your side"). This table lists where Back goes otherwise, that is when the
 route is opened cold or the screen behind is refused. It is generated from
 `route-parents.ts`. Preview harness routes are left out.
 
@@ -211,6 +264,9 @@ route is opened cold or the screen behind is refused. It is generated from
 | --- | --- | --- |
 | `/search` | `/home-or-landing` |  |
 | `/listing/[id]` | `/search` |  |
+| `/listing/[id]/trust` | `/listing/[id]` |  |
+| `/listing/[id]/visit` | `/listing/[id]` | yes, a flow (form or payment) |
+| `/listing/[id]/visit/[inspectionId]` | `/listing/[id]` |  |
 | `/saved` | `/home` |  |
 | `/saved/searches` | `/saved` |  |
 | `/inspections/gate/[id]` | `/bookings` |  |
@@ -279,7 +335,8 @@ route is opened cold or the screen behind is refused. It is generated from
 | --- | --- | --- |
 | `/settings/passport` | `/settings` |  |
 | `/assistant` | `/home` |  |
-| `/notifications` | `/home` |  |
+| `/notifications` | `/home` (`/stays` on the Stays side) |  |
+| `/notifications/[id]` | `/notifications` |  |
 | `/profile` | `/home` |  |
 | `/profile/application` | `/profile` |  |
 | `/profile/setup` | `/profile` |  |
@@ -304,6 +361,14 @@ route is opened cold or the screen behind is refused. It is generated from
 | `/settings/place` | `/settings` |  |
 | `/settings/privacy` | `/settings` |  |
 | `/settings/privacy/blocked` | `/settings/privacy` |  |
+| `/settings/privacy/ai` | `/settings/privacy` |  |
+| `/settings/privacy/data` | `/settings/privacy` |  |
+| `/settings/privacy/money-lock` | `/settings/privacy` |  |
+| `/settings/passport/[fact]` | `/settings/passport` |  |
+| `/settings/invite` | `/settings` |  |
+| `/settings/invite/how-it-works` | `/settings/invite` |  |
+| `/settings/invite/referrals` | `/settings/invite` |  |
+| `/settings/invite/referrals/[id]` | `/settings/invite/referrals` |  |
 | `/settings/phone` | `/settings` | yes, a flow (form or payment) |
 | `/settings/passcode` | `/settings` | yes, a flow (form or payment) |
 | `/legal/privacy` | `/settings` |  |
@@ -342,7 +407,7 @@ route is opened cold or the screen behind is refused. It is generated from
 | --- | --- | --- |
 | `/host/arrival` | `/host` |  |
 | `/host/earnings` | `/host` |  |
-| `/host` | `/home` |  |
+| `/host` | `/stays` (it was `/home`, which flipped the shell to Property) |  |
 | `/host/apply` | `/host` | yes, a flow (form or payment) |
 | `/host/photos` | `/host` |  |
 | `/host/reservations` | `/host` |  |
@@ -353,6 +418,22 @@ route is opened cold or the screen behind is refused. It is generated from
 | `/host/assistant` | `/host` |  |
 | `/host/settings` | `/host` |  |
 | `/host/notifications` | `/host` |  |
+
+### A feature's first run
+
+`/first-run/[feature]` stands in front of a feature, so each one goes back to
+where the feature sits, never into the feature it introduces. A first run is a
+flow: its exits replace it, and it is never returned to through history.
+
+| Route | Back, opened cold or after an unsafe screen | Never returned to as history |
+| --- | --- | --- |
+| `/first-run/host` | `/stays` | yes, a flow |
+| `/first-run/agent` | `/home` | yes, a flow |
+| `/first-run/verification` | `/agent/dashboard` | yes, a flow |
+| `/first-run/agreements` | `/home` | yes, a flow |
+| `/first-run/invite` | `/settings` | yes, a flow |
+| `/first-run/passport` | `/settings` | yes, a flow |
+| `/first-run/analytics` | `/agent/dashboard` | yes, a flow |
 
 ### The admin console
 
@@ -367,6 +448,8 @@ route is opened cold or the screen behind is refused. It is generated from
 | `/admin/bookings` | `/admin` |  |
 | `/admin/bookings/[bookingId]` | `/admin/bookings` |  |
 | `/admin/bookings/reservations` | `/admin/bookings` |  |
+| `/admin/bookings/visits` | `/admin/bookings` |  |
+| `/admin/referrals` | `/admin/money` |  |
 | `/admin/businesses` | `/admin` |  |
 | `/admin/agreements` | `/admin` |  |
 | `/admin/examples` | `/admin` |  |

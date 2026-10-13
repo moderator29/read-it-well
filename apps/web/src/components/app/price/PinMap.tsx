@@ -222,7 +222,7 @@ export function PinMap({
             </div>
             <p className="nf-pc-map__credit">
               {credits.map((credit) => (
-                <a key={credit.label} href={credit.href} rel="noreferrer noopener" target="_blank">
+                <a key={credit.label} href={credit.href} rel="noreferrer noopener" target="_blank" className="nf-tap">
                   {credit.label}
                 </a>
               ))}

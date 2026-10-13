@@ -11,6 +11,8 @@ const BUSINESS = "0f3b2a4e-8a1c-4d7e-9b2a-1c2d3e4f5a6b";
 const seam = vi.hoisted(() => ({ scrub: vi.fn(), insert: vi.fn(), order: [] as string[] }));
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
+/* The action builds its field schema in the request's language (`hostRefusals`); a test has no request. */
+vi.mock("../locale", () => ({ getLocale: async () => "en" }));
 vi.mock("../images/scrub", () => ({
   SCRUB_REFUSED_MESSAGE: "refused: not safe to publish",
   scrubPublicPhoto: async (bucket: string, path: string) => {

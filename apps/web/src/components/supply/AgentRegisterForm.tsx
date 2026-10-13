@@ -4,7 +4,8 @@ import { PhoneField } from "@/components/app/PhoneField";
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useBack } from "@/lib/nav/use-back";
-import { formatMoney, intlTag, type Dictionary, type Locale } from "@vallo/i18n/core";
+import { formatMoney, intlTag, type Locale } from "@vallo/i18n/core";
+import type { RegisterCopy } from "./supply-copy";
 import { TYPE } from "@/components/app/Screen";
 import { SelectField, TextField } from "@/components/ui/Field";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -17,11 +18,12 @@ import {
   stepFee,
   tenantTotal,
   type ExperienceBand,
-} from "@/lib/supply/registration";
+} from "@/lib/supply/registration-model";
 import { submitSupplyRegistration } from "@/lib/supply/registration-actions";
 import { RegField, RegFieldGroup } from "./RegisterField";
 import { CalmPanel, RegisterDone, RegisterShell } from "./RegisterShell";
 import { RegistrationFiledSheet } from "./RegistrationFiledSheet";
+import { WorkspaceAcceptance } from "@/components/legal/WorkspaceAcceptance";
 import { UploadCard, newBatchId, type UploadState } from "./UploadCard";
 
 /**
@@ -69,7 +71,7 @@ export function AgentRegisterForm({
   locale,
   startAt = 0,
 }: {
-  t: Dictionary;
+  t: RegisterCopy;
   /** For the money and the percentage, both of which are formatted, not built. */
   locale: Locale;
   /** The preview harness only. See the note on the owner form. */
@@ -103,6 +105,9 @@ export function AgentRegisterForm({
     attached: boolean;
   } | null>(null);
   const [pending, startTransition] = useTransition();
+  /* Ruling 6 (13 October 2026): the two ticks before this is sent. */
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [acceptPay, setAcceptPay] = useState(false);
 
   /* Naira in, kobo out, rounded once, at the boundary and nowhere else. */
   const rentMinor = useMemo(() => {
@@ -146,6 +151,8 @@ export function AgentRegisterForm({
      * missing document costs something, and it says so there in full. What the
      * screen does NOT do is pretend a slot is filled when it is not.
      */
+    /* The last screen waits for the two ticks (ruling 6). */
+    if (step === 2) return !acceptTerms || !acceptPay;
     return false;
   }
 
@@ -167,6 +174,8 @@ export function AgentRegisterForm({
         legalFeeBps,
         idPath: idDoc?.path ?? "",
         selfiePath: selfie?.path ?? "",
+        acceptTerms,
+        acceptPayOnVallo: acceptPay,
       });
       if (!result.ok) {
         setErrors(result.fieldErrors ?? {});
@@ -418,6 +427,17 @@ export function AgentRegisterForm({
       }}
     >
       {screen.body}
+      {step === 2 ? (
+        <WorkspaceAcceptance
+          className="mt-md"
+          copy={t.payChoice}
+          terms={acceptTerms}
+          pay={acceptPay}
+          onTerms={setAcceptTerms}
+          onPay={setAcceptPay}
+          showError={Boolean(errors.acceptTerms || errors.acceptPayOnVallo)}
+        />
+      ) : null}
     </RegisterShell>
   );
 }
@@ -511,7 +531,7 @@ function FeeStepper({
       {error ? (
         <p
           role="alert"
-          className="nf-arrive mt-xs text-[length:var(--nf-text-caption)] font-medium text-[var(--nf-state-error)]"
+          className="nf-arrive mt-xs text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-state-error)]"
         >
           {error}
         </p>
@@ -532,7 +552,7 @@ export function AgentDoneScreen({
   t,
   filed,
 }: {
-  t: Dictionary;
+  t: RegisterCopy;
   filed: { reference: string; attached: boolean };
 }) {
   const router = useRouter();
@@ -551,9 +571,9 @@ export function AgentDoneScreen({
       onBack={() => router.replace("/home")}
       primary={{
         label: copy.trackIt,
-        onClick: () => router.push("/profile/application"),
+        onClick: () => router.replace("/profile/application"),
       }}
-      secondary={{ label: copy.backHome, onClick: () => router.push("/home") }}
+      secondary={{ label: copy.backHome, onClick: () => router.replace("/home") }}
     >
       <RegisterDone
         object="keys-tag"

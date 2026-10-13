@@ -14,6 +14,12 @@
  * replaces this page with the app's start path; the `online` event does the
  * same by itself when the connection returns.
  *
+ * KEEPS TRYING BY ITSELF (8 October 2026). The `online` event is not enough
+ * on its own: a phone that never lost its Wi-Fi association but had no
+ * internet behind it never fires it. So after a failed probe the card tries
+ * again on a slow backoff (2, 4, 8, 15, then every 30 seconds), and the
+ * person never has to find the button. Only one probe is ever in flight.
+ *
  * Plain ES5 in one closure, no network request of its own beyond the retry
  * probe, so it runs from the binary with the radio switched off.
  */
@@ -62,6 +68,13 @@
     }
   }
 
+  /* The waits between automatic retries, in milliseconds; the last repeats. */
+  var BACKOFF_MS = [2000, 4000, 8000, 15000, 30000];
+
+  function backoffAt(attempt) {
+    return BACKOFF_MS[Math.min(attempt, BACKOFF_MS.length - 1)];
+  }
+
   function start(win, doc) {
     hideSplash(win);
     var target = retryTarget(win);
@@ -71,8 +84,20 @@
     }
 
     var busy = false;
+    var failures = 0;
+    var timer = null;
     var still = doc.getElementById("still");
     var button = doc.getElementById("retry");
+
+    /* The next automatic try, after a failed one. */
+    function schedule() {
+      if (typeof win.setTimeout !== "function") return;
+      if (timer !== null && typeof win.clearTimeout === "function") win.clearTimeout(timer);
+      timer = win.setTimeout(function () {
+        timer = null;
+        attempt();
+      }, backoffAt(failures - 1));
+    }
 
     function attempt() {
       if (busy) return;
@@ -83,8 +108,10 @@
         if (button) button.removeAttribute("disabled");
         if (reachable) {
           win.location.replace(target);
-        } else if (still) {
-          still.hidden = false;
+        } else {
+          failures += 1;
+          if (still) still.hidden = false;
+          schedule();
         }
       };
       /* An opaque no-cors request resolves when the origin answers at all and
@@ -105,9 +132,20 @@
 
     if (button) button.addEventListener("click", attempt);
     if (win.addEventListener) win.addEventListener("online", attempt);
+    /* The first automatic try comes after the first wait, never at once: the
+       web view has only just failed to reach the origin. */
+    failures = 1;
+    schedule();
     return { target: target, attempt: attempt };
   }
 
-  root.__valloShell = { originOf: originOf, startPathOf: startPathOf, retryTarget: retryTarget, start: start, hideSplash: hideSplash };
+  root.__valloShell = {
+    originOf: originOf,
+    startPathOf: startPathOf,
+    retryTarget: retryTarget,
+    start: start,
+    hideSplash: hideSplash,
+    backoffAt: backoffAt
+  };
   if (root.document && root.document.body) start(root, root.document);
 })(typeof window !== "undefined" ? window : this);

@@ -19,6 +19,8 @@ const PAGES = [
   "agent-done",
   "firm",
   "firm-done",
+  "open",
+  "respond",
 ];
 
 export default function PreviewB1bIndex() {

@@ -12,7 +12,9 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { toggleSave } from "@/lib/saved/actions";
 import { addLocalSave, readLocalSaves, removeLocalSave } from "@/lib/saved/local";
+import Image from "next/image";
 import { MapDock } from "./MapDock";
+import { MapCredit } from "./MapCredit";
 import { readViewport, writeViewport } from "./map-viewport";
 import {
   clusterByGrid,
@@ -24,8 +26,10 @@ import {
   type ScreenPoint,
 } from "./mapGeo";
 import type { MapCopy, MapListing } from "./mapTypes";
-import { countOf } from "@vallo/i18n/core";
-import { IconPlate } from "@/components/ui/IconPlate";
+import { countOf, formatNumber } from "@vallo/i18n/core";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
+import "./discovery.css";
+import "./search-v2.css";
 
 /**
  * The discovery map.
@@ -65,7 +69,6 @@ const MAX_MARKS = 80;
  */
 const SELECTED_FILL = "var(--nf-selected-fill)";
 const SELECTED_SHADOW = "var(--nf-selected-shadow-inline)";
-const GLASS_SHADOW = "var(--nf-btn-glass-shadow)";
 const HALO = "var(--nf-panel-halo)";
 
 /** Space kept clear at the foot of the frame for the docked card. */
@@ -90,7 +93,15 @@ export function MapCanvas({
   locale,
   copy,
   wholeMapHref,
+  unplaced = 0,
+  listHref,
+  fill = false,
 }: {
+  /**
+   * Fill the parent's height instead of the map's own: the desktop list's
+   * sticky map beside the results, whose column sets the height.
+   */
+  fill?: boolean;
   listings: MapListing[];
   cities: MapCity[];
   /** The text query behind these results. Sets the opening view when it names a city. */
@@ -99,6 +110,10 @@ export function MapCanvas({
   copy: MapCopy;
   /** Where "show every place" goes when a query has emptied the map. */
   wholeMapHref: string;
+  /** Results with no honest place on the map (their city has no coordinate). */
+  unplaced?: number;
+  /** The same results as a list, where an unplaced place is still drawn. */
+  listHref?: string;
 }) {
   const frameRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -586,7 +601,9 @@ export function MapCanvas({
          the element a keyboard actually lands on. */
       tabIndex={0}
       aria-label="Map of places. Every pin is a button, and the list control opens the same places as text. Arrow keys pan, plus and minus zoom."
-      className="relative h-[440px] w-full overflow-hidden outline-none focus-visible:ring-2 focus-visible:ring-[var(--nf-brand-primary)] sm:h-[560px]"
+      className={`relative w-full overflow-hidden outline-none focus-visible:ring-2 focus-visible:ring-[var(--nf-brand-primary)] ${
+        fill ? "h-full" : "h-[max(26rem,calc(100svh-18rem))] sm:h-[640px]"
+      }`}
       onKeyDown={(event) => {
         if (event.key === "Escape" && selectedId) {
           event.stopPropagation();
@@ -710,42 +727,39 @@ export function MapCanvas({
                   left: pin.x,
                   top: pin.y,
                   zIndex: chosen ? 2 : 1,
-                  background: chosen ? SELECTED_FILL : undefined,
-                  boxShadow: chosen ? SELECTED_SHADOW : GLASS_SHADOW,
                   "--pin-i": i,
                 } as React.CSSProperties
               }
-              /* THE SHAPE LAW. A price pin is a button carrying a price, so it
-                 takes the control radius. It read `--nf-radius-pill`.
-                 `nf-map-pin-hit` gives it the 44px hit area (map.css) on a
-                 pseudo element, so the painted pin and its tip stay put. */
-              className={`nf-numeric nf-map-pin-hit nf-map-pin-drop pointer-events-auto absolute -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-[var(--nf-radius-control)] px-sm py-xs text-[length:var(--nf-text-overline)] font-bold transition-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--nf-focus-ring)] active:scale-95 motion-reduce:transition-none ${
-                chosen
-                  ? "scale-110 border border-[var(--nf-selected-edge)] text-[var(--nf-content-on-brand)]"
-                  : "nf-btn--glass text-[var(--nf-content-primary)] hover:border-[var(--nf-selected-edge)]"
-              }`}
+              /* THE PHOTO PIN (the founder's map reference, 13 October 2026):
+                 the listing's own thumbnail in a circle with a paper ring,
+                 larger with the brand ring and a pointer once chosen. A
+                 control that carries a picture and no word, so a circle under
+                 the shape law. The price it used to print is in its name and
+                 on the docked card; `nf-map-pin-hit` keeps the 44px target. */
+              className="nf-map-photo nf-map-pin-hit nf-map-pin-drop pointer-events-auto active:scale-95 motion-reduce:transition-none"
             >
-              {/* Idle pins breathe on their own inner span, so the slow scale
-                  loop never fights the button's own position or selection
-                  transform (see the CSS comment by nf-map-pin-breathe). */}
-              <span
-                className={`inline-flex items-center gap-2xs ${chosen ? "" : "nf-map-pin-breathe"}`}
-              >
-                {pin.verified && (
-                  <UiIcon
-                    name="verified"
-                    size={12}
-                    className={chosen ? undefined : "text-[var(--nf-brand-primary)]"}
-                  />
+              <span className="nf-map-photo__img relative block" aria-hidden="true">
+                {pin.photo ? (
+                  <Image src={pin.photo} alt="" fill sizes="56px" className="object-cover" />
+                ) : (
+                  <span className="grid h-full w-full place-items-center">
+                    <UiIcon name="house" size={20} />
+                  </span>
                 )}
+              </span>
+              {/* D24: the tick only on a checked place that is not an example. */}
+              {pin.verified && !pin.isDemo && (
+                <span className="nf-map-photo__tick" aria-hidden="true">
+                  <UiIcon name="verified" size={12} />
+                </span>
+              )}
+              <span className="sr-only">
+                {/* B15: the price as words, read with the place. */}
                 {pin.priceMinor > 0 ? (
-                  /* B15: "2.8 million naira", not "naira two point eight m". */
                   <Money minor={pin.priceMinor} locale={locale} currency={pin.currency} />
                 ) : (
                   pin.kindLabel
                 )}
-              </span>
-              <span className="sr-only">
                 {`, ${pin.title}, ${pin.area}`}
               </span>
             </button>
@@ -804,29 +818,49 @@ export function MapCanvas({
           )}
         </div>
 
-        {/* Empty state. Honest about why, and it offers the way back. */}
+        {/* THE LISTING WITH NO PIN (B-27): counted, never guessed onto the
+            map, and one tap from the list where it is drawn. */}
+        {unplaced > 0 && listHref && copy.noPinOne && copy.noPinMany && (
+          <a
+            href={listHref}
+            data-testid="map-no-pin"
+            className="nf-chip pointer-events-auto mx-sm min-h-11 w-fit max-w-[86%] text-[length:var(--nf-text-overline)]"
+          >
+            <UiIcon name="info" size={12} className="shrink-0 opacity-70" />
+            <span>
+              {(unplaced === 1 ? copy.noPinOne : copy.noPinMany).replace("{count}", formatNumber(unplaced, locale))}
+              {copy.noPinList ? `. ${copy.noPinList}` : ""}
+            </span>
+          </a>
+        )}
+
+        {/*
+          THE EMPTY VIEWPORT (B-27). Honest about why, and it offers the way
+          back. The matte map pin settles into the frame the way every empty
+          shelf's object does (motion 21, `discovery.css`), so an empty map
+          reads as the same product as an empty list.
+        */}
         {visible.length === 0 && (
           <div
-            className="nf-panel nf-panel--card isolate pointer-events-auto mx-auto mt-lg w-[min(20rem,86%)] items-center p-lg text-center"
+            data-testid="map-empty"
+            className="nf-panel nf-panel--card isolate pointer-events-auto mx-auto mt-lg flex w-[min(20rem,86%)] flex-col items-center p-lg text-center"
           >
-            <IconPlate size="md">
-              <UiIcon name="location" size={20} />
-            </IconPlate>
-            <p className="mt-sm font-semibold text-[var(--nf-content-primary)]">
-              No places here
-            </p>
+            <span className="nf-dempty__object" aria-hidden="true">
+              <BrandIcon name="map-pin" size={56} />
+            </span>
+            <p className="mt-sm font-semibold text-[var(--nf-content-primary)]">{copy.emptyTitle ?? "No places here"}</p>
             <p className="mt-2xs text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">
               {areaBox
-                ? "No place sits inside this part of the map."
-                : "This search matched no place we can put on the map."}
+                ? (copy.emptyArea ?? "No place sits inside this part of the map.")
+                : (copy.emptySearch ?? "This search matched no place we can put on the map.")}
             </p>
             {areaBox ? (
               <Button variant="secondary" onClick={clearArea} className="mt-md">
-                Show every place
+                {copy.emptyAction ?? "Show every place"}
               </Button>
             ) : (
               <ButtonLink href={wholeMapHref} variant="secondary" className="mt-md">
-                Show every place
+                {copy.emptyAction ?? "Show every place"}
               </ButtonLink>
             )}
           </div>
@@ -834,38 +868,28 @@ export function MapCanvas({
 
         <div className="flex-1" />
 
-        {/* Attribution and the state of the imagery, always clear of the dock. */}
-        <p className="pointer-events-auto px-sm pb-2xs text-[length:var(--nf-text-overline)] leading-tight text-[var(--nf-content-muted)]">
-          {imagery === "offline" ? (
-            <span data-testid="map-imagery-note">
-              Map imagery could not load. Every place is still placed by its area.
-            </span>
-          ) : (
-            <>
-              {/* Whoever the provider's terms name, in the order they ask
-                  for. Hard-coding the pair here is how a provider swap
-                  replaces one licence breach with another. */}
-              {credits.map((credit, i) => (
-                <span key={credit.href}>
-                  {i > 0 ? " and " : null}
-                  <a
-                    href={credit.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="underline-offset-2 hover:underline"
-                  >
-                    {credit.label}
-                  </a>
-                </span>
-              ))}
-            </>
-          )}
-          {approximate && <span>{" · Pins show the area, not the address."}</span>}
-        </p>
+        {/* The state of the imagery, when it failed: a state, so it stays in
+            words over the map. The credit is behind the "i" below. */}
+        {imagery === "offline" && (
+          <p className="pointer-events-auto px-sm pb-2xs text-[length:var(--nf-text-overline)] leading-tight text-[var(--nf-content-muted)]">
+            <span data-testid="map-imagery-note">{copy.imageryOffline}</span>
+          </p>
+        )}
 
-        {/* Controls. They sit above the dock in the same column, so a docked
-            card can never cover the locate control. */}
+        {/* The foot of the map, above the dock, so a docked card can never
+            cover it: the credit as a round "i" (MapLibre's compact
+            attribution; whoever the provider's terms name, in the order they
+            ask for, one tap away) and the locate control's words. */}
         <div className="flex items-end justify-end gap-xs px-sm pb-xs">
+          <div className="mr-auto">
+            <MapCredit
+              credits={credits}
+              join={copy.creditJoin}
+              label={copy.about ?? "About this map"}
+              heading={copy.credits ?? "Map data"}
+              note={approximate ? copy.approximate.replace(/^[\s·]+/, "") : null}
+            />
+          </div>
           {locateMessage && (
             <p
               role="status"
@@ -876,13 +900,24 @@ export function MapCanvas({
               {locateMessage}
             </p>
           )}
+        </div>
+        {/* The map's own controls, one quiet column at the right edge under
+            the count (the reference keeps the map clear): the list, zoom,
+            fit and locate. Every one is a 44px round target. */}
+        <div
+          className={`absolute right-sm top-[4.25rem] flex flex-col gap-2xs ${
+            /* On a phone the docked card owns the foot of the frame; the column
+               steps aside while it is open and is back the moment it closes. */
+            selected && !listOpen ? "max-sm:hidden" : ""
+          }`}
+        >
           <button
             type="button"
             data-testid="map-list-toggle"
             aria-expanded={listOpen}
             aria-label={listOpen ? "Close the list of places" : "Browse these places as a list"}
             onClick={() => setListOpen((open) => !open)}
-            className="nf-icon-btn pointer-events-auto h-10 w-10 nf-btn--glass"
+            className="nf-icon-btn nf-icon-btn--round pointer-events-auto"
           >
             <UiIcon name="grid" size={16} />
           </button>
@@ -891,7 +926,7 @@ export function MapCanvas({
             data-testid="map-zoom-in"
             aria-label="Zoom in"
             onClick={() => zoomBy(1)}
-            className="nf-icon-btn pointer-events-auto h-11 w-11 nf-btn--glass"
+            className="nf-icon-btn nf-icon-btn--round pointer-events-auto"
           >
             <UiIcon name="plus" size={16} />
           </button>
@@ -900,7 +935,7 @@ export function MapCanvas({
             data-testid="map-zoom-out"
             aria-label="Zoom out"
             onClick={() => zoomBy(-1)}
-            className="nf-icon-btn pointer-events-auto h-11 w-11 nf-btn--glass"
+            className="nf-icon-btn nf-icon-btn--round pointer-events-auto"
           >
             <UiIcon name="minus" size={16} />
           </button>
@@ -909,7 +944,7 @@ export function MapCanvas({
             data-testid="map-fit"
             aria-label="Fit every place in view"
             onClick={fitAll}
-            className="nf-icon-btn pointer-events-auto h-10 w-10 nf-btn--glass"
+            className="nf-icon-btn nf-icon-btn--round pointer-events-auto"
           >
             <UiIcon name="compass" size={16} />
           </button>
@@ -919,7 +954,7 @@ export function MapCanvas({
             aria-label="Centre the map on my location"
             aria-busy={locate.phase === "working"}
             onClick={locateMe}
-            className="nf-icon-btn pointer-events-auto h-10 w-10 nf-btn--glass"
+            className="nf-icon-btn nf-icon-btn--round pointer-events-auto"
           >
             <UiIcon
               name="location"
@@ -981,7 +1016,10 @@ export function MapCanvas({
             </ul>
           </div>
         ) : selected ? (
+          /* Keyed by the place, so choosing another pin lands a new card
+             (map.css, `.nf-map-dock`) rather than changing words in place. */
           <MapDock
+            key={selected.id}
             listing={selected}
             locale={locale}
             copy={copy}

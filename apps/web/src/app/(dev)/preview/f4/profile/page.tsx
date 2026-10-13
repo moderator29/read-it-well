@@ -1,4 +1,5 @@
 import { AccountHero } from "@/app/(app)/profile/AccountHero";
+import { sheetWordsOf } from "@/components/social/sheet-words";
 import { AccountBody } from "@/app/(app)/profile/AccountBody";
 import { RoleSwitcher } from "@/components/roles/RoleSwitcher";
 import { getDictionary } from "@vallo/i18n";
@@ -33,6 +34,7 @@ export default function ProfilePreview() {
           locale="en"
         />
         <AccountBody
+          sheet={sheetWordsOf(t)}
           counts={{ trips: 3, saved: 12, reviews: 2 }}
           copy={{
             bookings: t.nav.bookings,

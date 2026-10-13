@@ -43,10 +43,27 @@
  * `looksNative()` has said this is the shell, so the website never evaluates
  * `@capacitor/core`. If the shell was built without the plugin,
  * `isPluginAvailable` says so and the call falls through to channel 2 (the
- * Android web view has `navigator.vibrate`) or to silence. The npm package
- * `@capacitor/haptics` and its native half are a pipeline change
- * (`apps/web/package.json`, `npx cap sync`) that belongs to the build owners;
- * this file works the day they land and costs nothing before.
+ * Android web view has `navigator.vibrate`) or to silence. `@capacitor/haptics`
+ * is in `apps/web/package.json` and synced into both shells
+ * (`android/capacitor.settings.gradle`, `ios/App/CapApp-SPM/Package.swift`;
+ * `haptic-census.test.ts` holds all three), so in the app a select is a real
+ * light impact, a confirm a medium one, and success and error the system's own
+ * notification patterns (on Android, amplitude-shaped waveforms at 250 and 180).
+ * Nothing of it reaches the website's bundle: the import below is lazy.
+ *
+ * ---------------------------------------------------------------------------
+ * THE WEIGHTS (CRAFT_DOCTRINE 6), AND WHERE EACH IS HELD.
+ *
+ *   select   light: a digit, a chip, a toggle, a tab, a heart
+ *   confirm  medium: a primary action accepted, a sheet landing, an unlock
+ *   success  heavy: a payoff only (`HEAVY_SITES` and `PAYOFF_MOMENTS`)
+ *   error    the one sharp pattern, for a genuine failure
+ *   warning  kept in the grammar for the native mapping and the styleguide;
+ *            no call site uses it, because there is one error pattern
+ *
+ * Nothing in a list, a scroll or a passive state vibrates: the census reads
+ * every call site and fails on one inside a scroll or move handler, an
+ * observer, a timer or a delivery listener.
  *
  * ---------------------------------------------------------------------------
  * REDUCED MOTION TURNS IT DOWN, NOT OFF.
@@ -193,4 +210,26 @@ export function feedback(kind: FeedbackKind): void {
     return;
   }
   void haptics().then(run, () => run(null));
+}
+
+/**
+ * VC1: the incoming call's buzz, the one REPEATING pattern the platform has,
+ * so it lives here with every other vibration rather than in the call screen.
+ * A ring is a call for attention, not a reply to a press, which is why it is
+ * outside the five kinds above. Where `navigator.vibrate` exists (Android),
+ * never under reduced motion, never while the page is hidden.
+ * `ringBuzz(false)` stops it.
+ */
+export function ringBuzz(on: boolean): void {
+  if (typeof navigator === "undefined" || typeof navigator.vibrate !== "function") return;
+  try {
+    if (!on) {
+      navigator.vibrate(0);
+      return;
+    }
+    if (reducedMotion() || (typeof document !== "undefined" && document.hidden)) return;
+    navigator.vibrate([400, 200, 400]);
+  } catch {
+    /* Not supported. */
+  }
 }

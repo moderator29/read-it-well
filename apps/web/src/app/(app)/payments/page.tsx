@@ -1,24 +1,23 @@
 import type { Metadata } from "next";
+import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { readMyPayments } from "@/lib/money/history";
 import { parseBefore } from "@/lib/money/history-model";
-import {
-  HISTORY_NOT_A_BALANCE,
-  PAYMENTS_EMPTY_BODY,
-  PAYMENTS_EMPTY_TITLE,
-  PAYMENTS_REFUNDED_LABEL,
-  PAYMENTS_TOTAL_LABEL,
-  REFUND_ROUTE,
-} from "@/lib/money/copy";
+import { HISTORY_NOT_A_BALANCE } from "@/lib/money/copy";
 import { PageHeader } from "@/components/app/PageHeader";
-import { EmptyState, TYPE } from "@/components/app/Screen";
+import { EmptyState } from "@/components/app/Screen";
 import { ButtonLink } from "@/components/ui/Button";
-import { authHref } from "@/components/auth/auth-intent";
-import { HistoryHero } from "@/components/app/money-history/HistoryHero";
-import { HistoryList } from "@/components/app/money-history/HistoryList";
-import { HistoryEmpty, HistoryUnavailable } from "@/components/app/money-history/HistoryStates";
+import { withNext } from "@/lib/auth/next-link";
+import { HistoryUnavailable } from "@/components/app/money-history/HistoryStates";
+import { PaymentsView } from "@/components/money/PaymentsView";
+import { readMyBalances } from "@/lib/money/partner-reads";
 
-export const metadata: Metadata = { title: "Payments", robots: { index: false, follow: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: getDictionary(await getLocale()).experienceMoney.payments.title,
+    robots: { index: false, follow: false },
+  };
+}
 export const dynamic = "force-dynamic";
 
 /**
@@ -26,8 +25,8 @@ export const dynamic = "force-dynamic";
  * that came back to their card or bank account.
  *
  * A RECORD, NOT AN ACCOUNT. Vallo never holds anybody's money: when somebody
- * pays, Paystack splits the charge in the same transaction, the lister's share
- * to the lister's bank, the Guarantee contribution to its reserve. So there is
+ * pays, Paystack splits the charge in the same transaction: the lister's share
+ * to the lister's bank and any platform fee to Vallo. So there is
  * nothing on this screen to top up, spend or withdraw, and the figure at the
  * top is the sum of what was paid, said as that. Every row is read from
  * `my_payments_history` under the person's own session, at the moment of
@@ -42,22 +41,24 @@ export default async function PaymentsPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const locale = await getLocale();
+  /* The page's own words; every sentence about money is lib/money/copy.ts's. */
+  const words = getDictionary(locale).experienceMoney.payments;
   const params = await searchParams;
   const before = parseBefore(params.before);
-  const read = await readMyPayments(before);
+  const [read, balances] = await Promise.all([readMyPayments(before), readMyBalances()]);
 
   return (
     <main className="nf-page nf-md nf-history">
-      <PageHeader title="Payments" fallback="/home" />
+      <PageHeader title={words.title} fallback="/home" />
 
       {read.state === "signed-out" ? (
         <EmptyState
           icon="receipt-check"
-          title="Sign in to see your payments"
+          title={words.signInTitle}
           body={HISTORY_NOT_A_BALANCE}
           action={
-            <ButtonLink href={authHref("/payments", "sign-in")} variant="primary" size="lg">
-              Sign in
+            <ButtonLink href={withNext("/sign-in", "/payments")} variant="primary" size="lg">
+              {words.signIn}
             </ButtonLink>
           }
         />
@@ -66,37 +67,15 @@ export default async function PaymentsPage({
           <HistoryUnavailable retryHref="/payments" />
         </div>
       ) : (
-        <div className="mt-inline space-y-block">
-          <HistoryHero
-            id="nf-payments-total"
-            label={PAYMENTS_TOTAL_LABEL}
-            totalMinor={read.summary.paidMinor}
-            locale={locale}
-            note={HISTORY_NOT_A_BALANCE}
-            facts={
-              read.summary.refundedMinor > 0
-                ? [{ label: PAYMENTS_REFUNDED_LABEL, minor: read.summary.refundedMinor }]
-                : []
-            }
-          />
-          {read.entries.length === 0 && !before ? (
-            <HistoryEmpty
-              title={PAYMENTS_EMPTY_TITLE}
-              body={PAYMENTS_EMPTY_BODY}
-              next={{ href: "/agreements", label: "See your agreements" }}
-            />
-          ) : (
-            <HistoryList
-              entries={read.entries}
-              nextBefore={read.nextBefore}
-              basePath="/payments"
-              paged={before !== null}
-              locale={locale}
-              heading="Your payments and refunds"
-            />
-          )}
-          <p className={TYPE.rowMeta}>{REFUND_ROUTE}</p>
-        </div>
+        <PaymentsView
+          summary={read.summary}
+          entries={read.entries}
+          nextBefore={read.nextBefore}
+          before={before}
+          balances={balances}
+          locale={locale}
+          show={typeof params.show === "string" ? params.show : null}
+        />
       )}
     </main>
   );

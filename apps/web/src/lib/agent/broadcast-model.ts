@@ -3,7 +3,7 @@ import "server-only";
 import { isSupabaseConfigured } from "../supabase/env";
 import { createClient } from "../supabase/server";
 import { parseBroadcast, type BroadcastKey, type BroadcastParse } from "./broadcast";
-import { koboToNairaInput } from "./listings-schema";
+import { koboToNairaInput } from "./listings-model";
 
 /**
  * THE OPTIONAL SECOND READER FOR A PASTED BROADCAST (V-09), AND ITS FENCE.

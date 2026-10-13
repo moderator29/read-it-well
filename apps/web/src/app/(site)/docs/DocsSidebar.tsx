@@ -1,17 +1,17 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useId, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import type { DocChapterIndexEntry } from "./chapters";
+import { chaptersByGroup, type DocChapterIndexEntry } from "./chapters";
 
 /**
  * The chapter rail.
  *
  * It lives in the docs layout rather than on a page, so it survives navigation
  * between chapters and the reader keeps their place in the list instead of
- * watching a sidebar rebuild itself twelve times on the way through.
+ * watching a sidebar rebuild itself on every chapter.
  *
  * ONE list of links, drawn two ways.
  *
@@ -28,12 +28,11 @@ import type { DocChapterIndexEntry } from "./chapters";
  */
 export function DocsSidebar({ items }: { items: DocChapterIndexEntry[] }) {
   const pathname = usePathname();
-  const [open, setOpen] = useState(false);
+  /* Open for the path it was opened on: choosing a chapter (or a back
+     gesture) changes the path, which closes it with no effect to do so. */
+  const [openAt, setOpenAt] = useState<string | null>(null);
+  const open = openAt === pathname;
   const panelId = useId();
-
-  useEffect(() => {
-    setOpen(false);
-  }, [pathname]);
 
   const current = items.find((item) => pathname === `/docs/${item.slug}`);
   const onContents = pathname === "/docs";
@@ -44,13 +43,13 @@ export function DocsSidebar({ items }: { items: DocChapterIndexEntry[] }) {
     <div className="lg:sticky lg:top-24 lg:w-[248px] lg:shrink-0 lg:self-start">
       {/*
         The phone opener, which the contents page itself does not get: that
-        page IS the list of chapters, so a control that unfolds the same twelve
+        page IS the list of chapters, so a control that unfolds the same
         titles above it is one tap to see what is already on screen.
       */}
       {!onContents && (
         <button
           type="button"
-          onClick={() => setOpen((was) => !was)}
+          onClick={() => setOpenAt(open ? null : pathname)}
           aria-expanded={open}
           aria-controls={panelId}
           className="nf-tap flex min-h-11 w-full items-center justify-between gap-row rounded-[var(--nf-radius-control)] border border-[var(--nf-btn-glass-edge)] bg-[image:var(--nf-btn-glass-fill)] shadow-[var(--nf-rim-lit)] px-group py-inline text-left lg:hidden"
@@ -61,7 +60,7 @@ export function DocsSidebar({ items }: { items: DocChapterIndexEntry[] }) {
               size={16}
               className="shrink-0 text-[var(--nf-content-muted)]"
             />
-            <span className="min-w-0 text-[0.875rem] font-semibold text-[var(--nf-content-primary)]">
+            <span className="min-w-0 text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
               {label}
             </span>
           </span>
@@ -84,21 +83,35 @@ export function DocsSidebar({ items }: { items: DocChapterIndexEntry[] }) {
         <p className="nf-overline hidden px-row pb-inline text-[var(--nf-content-muted)] lg:block">
           Documentation
         </p>
-        <ol className="space-y-inline-tight rounded-[var(--nf-container-radius)] border border-[var(--nf-panel-edge)] bg-[image:var(--nf-panel-fill-card)] p-inline lg:border-0 lg:bg-none lg:bg-transparent lg:p-0">
-          <li>
-            <ChapterLink href="/docs" active={onContents} number={null} title="All chapters" />
-          </li>
-          {items.map((item) => (
-            <li key={item.slug}>
-              <ChapterLink
-                href={`/docs/${item.slug}`}
-                active={pathname === `/docs/${item.slug}`}
-                number={item.number}
-                title={item.title}
-              />
-            </li>
+        <div className="rounded-[var(--nf-container-radius)] border border-[var(--nf-panel-edge)] bg-[image:var(--nf-panel-fill-card)] p-inline lg:border-0 lg:bg-none lg:bg-transparent lg:p-0">
+          <ChapterLink href="/docs" active={onContents} number={null} title="All chapters" />
+          {/* The chapters in their groups (the docs track, 13 October 2026):
+              each group's name labels the list under it, so a screen
+              reader hears "Money, list, 3 items" and not a flat run of
+              every title. */}
+          {chaptersByGroup(items).map((group) => (
+            <div key={group.id} className="mt-group">
+              <p
+                id={`${panelId}-${group.id}`}
+                className="nf-overline px-inline pb-inline-tight text-[var(--nf-content-muted)]"
+              >
+                {group.label}
+              </p>
+              <ol aria-labelledby={`${panelId}-${group.id}`} className="space-y-inline-tight">
+                {group.items.map((item) => (
+                  <li key={item.slug}>
+                    <ChapterLink
+                      href={`/docs/${item.slug}`}
+                      active={pathname === `/docs/${item.slug}`}
+                      number={item.number}
+                      title={item.title}
+                    />
+                  </li>
+                ))}
+              </ol>
+            </div>
           ))}
-        </ol>
+        </div>
       </nav>
     </div>
   );
@@ -129,7 +142,7 @@ function ChapterLink({
     <Link
       href={href}
       aria-current={active ? "page" : undefined}
-      className={`nf-tap flex min-h-11 items-center gap-inline rounded-[var(--nf-radius-sm)] border-l-2 py-inline pr-inline pl-inline text-[0.8125rem] leading-snug transition-colors ${
+      className={`nf-tap flex min-h-11 items-center gap-inline rounded-[var(--nf-radius-sm)] border-l-2 py-inline pr-inline pl-inline text-[length:var(--nf-text-caption)] leading-snug transition-colors ${
         active
           ? "border-l-[var(--nf-selected-edge)] bg-[image:var(--nf-selected-fill)] shadow-[var(--nf-selected-shadow-inline)] font-semibold text-[var(--nf-content-on-brand)]"
           : "border-l-transparent text-[var(--nf-content-secondary)] hover:bg-[var(--nf-glass-fill-thin)] hover:text-[var(--nf-content-primary)]"

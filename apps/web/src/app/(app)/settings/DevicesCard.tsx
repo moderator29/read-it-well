@@ -1,4 +1,5 @@
 import { RowLink } from "@/components/app/account/rows";
+import { withNext } from "@/lib/auth/next-link";
 import type { Dictionary } from "@vallo/i18n/core";
 
 /**
@@ -27,7 +28,7 @@ import type { Dictionary } from "@vallo/i18n/core";
  * The count is on the row deliberately. "Devices and sessions" with a chevron
  * is a label somebody scrolls past; "3 signed in" is a fact that makes a person
  * who owns one phone stop and look. That is the entire job of this row, because
- * the account behind it holds a wallet.
+ * the account behind it can start payments and change payout details.
  *
  * `count` is null when the list could not be read, and that draws as a prompt
  * to check rather than as a zero. A settings row that says "0 signed in" to
@@ -56,7 +57,7 @@ export function DevicesRow({
 
   return (
     <RowLink
-      href={signedIn ? "/settings/devices" : "/sign-in"}
+      href={signedIn ? "/settings/devices" : withNext("/sign-in", "/settings/devices")}
       icon="key"
       label={copy.rowLabel}
       sub={signedIn ? copy.rowNote : copy.rowNoteSignedOut}

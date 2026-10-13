@@ -1,7 +1,9 @@
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { panelClass } from "@/components/ui/Panel";
+import { IconPlate } from "@/components/ui/IconPlate";
 import { amenityLabel } from "@/components/app/filters/amenities";
 import { ICON } from "@/components/app/Screen";
+import "@/app/css/catalogue.css";
 
 /**
  * The amenity tiles of 9E8B56ED: glass squares with a glyph and a word.
@@ -15,16 +17,20 @@ const AMENITY_ICON: Record<string, UiIconName> = {
   wifi: "wifi",
   kitchen: "kitchen",
   parking: "parking",
-  security: "verified",
+  /* The listing's own security, never the verified tick: that glyph is the
+     product's check mark and must not stand for a guard at a gate. */
+  security: "shield-lock",
   generator: "bolt",
-  gym: "bolt",
-  ac: "sparkle",
+  /* Not the bolt: that is backup power, and the two sat side by side
+     looking like the same amenity twice. */
+  gym: "trending-up",
+  ac: "snowflake",
   tv: "picture",
   furnished: "home",
   balcony: "building-apartment",
   garden: "map",
-  laundry: "sparkle",
-  water: "sparkle",
+  laundry: "washing-machine",
+  water: "droplet",
   shower: "bath",
   breakfast: "utensils",
   workspace: "document",
@@ -36,7 +42,15 @@ export function ListingAmenityTiles({
   limit,
   moreHref,
   moreLabel,
+  variant = "tiles",
 }: {
+  /**
+   * "plates": the founder's reference row of 13 October 2026, a round
+   * monochrome icon plate with the word under it, at most `limit` and then a
+   * "+N" plate that leads to the full list. Built only from the listing's own
+   * amenity codes, like the tiles.
+   */
+  variant?: "tiles" | "plates";
   amenities: string[];
   limit?: number;
   moreHref?: string;
@@ -56,6 +70,50 @@ export function ListingAmenityTiles({
    * passes, so it is also the signal that this is the scrolling row.
    */
   const row = limit !== undefined;
+  if (variant === "plates") {
+    /*
+     * ONE ROW, AS THE REFERENCE DRAWS IT. A phone has room for five columns,
+     * so it shows four plates and "+N"; from 30rem there are six columns and
+     * the fifth plate joins them with a "+N" one smaller. The two "+N" links
+     * are each `display: none` outside their own width, so only one is ever
+     * in the page or in the accessibility tree.
+     */
+    const more = moreLabel ?? "More";
+    const narrowRest = amenities.length - Math.min(shown.length, 4);
+    const moreLink = (count: number, which: "narrow" | "wide") => (
+      <li key={which} className={`nf-amenity-plate nf-amenity-plate--${which}`}>
+        <a
+          href={moreHref}
+          className="nf-amenity-plate__more nf-tap"
+          aria-label={`+${count} ${more}`}
+          data-testid="amenity-plates-more"
+        >
+          <IconPlate size="md" shape="round" tone="solid">
+            <span className="nf-numeric">+{count}</span>
+          </IconPlate>
+          <span>{more}</span>
+        </a>
+      </li>
+    );
+    return (
+      <ul className="nf-amenity-plates" data-testid="amenity-plates">
+        {shown.map((code, i) => (
+          <li
+            key={code}
+            className={i === 4 ? "nf-amenity-plate nf-amenity-plate--wide" : "nf-amenity-plate"}
+            data-amenity={code}
+          >
+            <IconPlate size="md" shape="round">
+              <UiIcon name={AMENITY_ICON[code] ?? "circle-check"} size={20} />
+            </IconPlate>
+            <span>{amenityLabel(code)}</span>
+          </li>
+        ))}
+        {moreHref && narrowRest > 0 && shown.length > 4 && moreLink(narrowRest, "narrow")}
+        {moreHref && remainder > 0 && moreLink(remainder, "wide")}
+      </ul>
+    );
+  }
   return (
     <ul
       className={row ? "nf-amenity-row nf-scroll-x" : "nf-amenity-grid"}
@@ -63,7 +121,7 @@ export function ListingAmenityTiles({
     >
       {shown.map((code) => (
         <li key={code} className={panelClass({ variant: "card", className: "nf-amenity-tile" })}>
-          <UiIcon name={AMENITY_ICON[code] ?? "sparkle"} size={ICON.inline} />
+          <UiIcon name={AMENITY_ICON[code] ?? "circle-check"} size={ICON.inline} />
           <span>{amenityLabel(code)}</span>
         </li>
       ))}

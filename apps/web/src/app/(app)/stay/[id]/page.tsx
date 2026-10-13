@@ -1,4 +1,8 @@
+import { STAYS_INSTANT_PAY_FLAG, flagIsOn } from "@/lib/flags/read";
 import type { Metadata } from "next";
+import { ArrivalChargesLine } from "@/components/stays/ArrivalChargesLine";
+import { readDeclaration } from "@/lib/stays/arrival-queries";
+import { toDoorCharges } from "@/lib/stays/door-total";
 import { redirect } from "next/navigation";
 import { listingById } from "@/lib/listings/listing-by-id";
 import { isPropertyMarket, marketOf } from "@/lib/listings/market";
@@ -7,6 +11,12 @@ import { getLocale } from "@/lib/locale";
 import { StayDetailView } from "./StayDetailView";
 import { readStayDates } from "@/components/app/stays/model";
 import type { StayDetail } from "./detail-model";
+
+/* About a kilometre: two decimal places. The Map tab draws an area, never the door. */
+function areaPoint(lat: number | null, lng: number | null): { lat: number; lng: number } | null {
+  if (lat === null || lng === null || !Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  return { lat: Math.round(lat * 100) / 100, lng: Math.round(lng * 100) / 100 };
+}
 import { getStayDetail } from "@/lib/stays/queries";
 import { listSavedPlaces } from "@/lib/saved/places-actions";
 import { isSaved, savedKeySet } from "@/lib/saved/places";
@@ -36,6 +46,7 @@ async function readStayDetail(id: string): Promise<StayDetail | null> {
   if (!detail) return null;
 
   const { accommodation } = detail;
+  const isExample = accommodation.is_demo === true || detail.business.is_demo === true;
   return {
     id: accommodation.id,
     name: accommodation.name,
@@ -43,6 +54,7 @@ async function readStayDetail(id: string): Promise<StayDetail | null> {
     starRating: accommodation.star_rating,
     city: accommodation.city,
     area: accommodation.area,
+    areaPoint: areaPoint(accommodation.latitude, accommodation.longitude),
     checkInFrom: accommodation.check_in_from,
     checkOutBy: accommodation.check_out_by,
     houseRules: accommodation.house_rules,
@@ -103,8 +115,11 @@ async function readStayDetail(id: string): Promise<StayDetail | null> {
      * projection's own column is read (`getStayDetail`) and used verbatim; no
      * projection row means no shield.
      */
-    hostVerified: detail.catalogue?.verified === true,
-    isExample: accommodation.is_demo === true || detail.business.is_demo === true,
+    /* D24: an example row is never drawn as a checked one, whatever the
+       projection says; the label is gone from the page and this is what
+       keeps that safe. Same for the rating below. */
+    hostVerified: !isExample && detail.catalogue?.verified === true,
+    isExample,
     /*
      * THE RATING IS THE PROJECTION'S, AND TODAY THE PROJECTION HAS NONE.
      *
@@ -116,7 +131,7 @@ async function readStayDetail(id: string): Promise<StayDetail | null> {
      * reviews can key on a stay: the refresh averages them and this lights up.
      */
     rating:
-      detail.catalogue && detail.catalogue.rating_avg !== null && detail.catalogue.rating_count > 0
+      !isExample && detail.catalogue && detail.catalogue.rating_avg !== null && detail.catalogue.rating_count > 0
         ? { average: detail.catalogue.rating_avg, count: detail.catalogue.rating_count }
         : null,
   };
@@ -141,8 +156,8 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   if (!detail) return listingMetadata({ params });
   const where = [detail.area, detail.city].filter(Boolean).join(", ");
   const title = where ? `${detail.name}, ${where}` : detail.name;
-  const description =
-    detail.description ?? (where ? `A stay in ${where}, on Vallo.` : "A stay on Vallo.");
+  const share = getDictionary(await getLocale()).experienceDetail.stay;
+  const description = detail.description ?? (where ? share.shareWhere.replace("{where}", where) : share.shareNone);
   const url = `${siteUrl().replace(/\/+$/, "")}/stay/${detail.id}`;
   const cover = detail.photos[0]?.url;
   return {
@@ -187,7 +202,7 @@ export default async function StayDetailPage({
     return <ListingPage params={params} searchParams={searchParams} />;
   }
 
-  const [locale, query, savedPlaces, session] = await Promise.all([
+  const [locale, query, savedPlaces, session, instant] = await Promise.all([
     getLocale(),
     searchParams,
     /* THE HEART'S RESTING STATE, read on the server so it survives a reload.
@@ -196,9 +211,15 @@ export default async function StayDetailPage({
        alone; `isSaved` decides this one card. */
     listSavedPlaces(),
     resolveSession(),
+    /* D73: words only. The database decides whether each booking is instant. */
+    flagIsOn(STAYS_INSTANT_PAY_FLAG),
   ]);
   const t = getDictionary(locale);
   const { checkIn, checkOut, nights, guests } = readStayDates(query);
+  /* Every charge the host declared for the door, so the cost a guest reads
+     before booking is the whole cost (founder decision A). */
+  const declared = await readDeclaration({ accommodationId: detail.id });
+  const doorCharges = toDoorCharges(declared, t.afterTheGate.arrival);
   const saved = isSaved(
     savedKeySet(savedPlaces.ok ? savedPlaces.data : []),
     "accommodation",
@@ -220,6 +241,9 @@ export default async function StayDetailPage({
       reserve={{ stayId: detail.id, checkIn, checkOut, guests }}
       saved={saved}
       signedIn={session.state === "signed-in"}
+      instant={instant}
+      arrival={<ArrivalChargesLine listingId={null} accommodationId={detail.id} locale={locale} />}
+      door={doorCharges}
     />
   );
 }

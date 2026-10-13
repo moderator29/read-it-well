@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { forApply } from "@/components/agent/agent-copy";
 import { notFound } from "next/navigation";
 import { requireSignedInPage } from "@/lib/actions/signed-in-page";
 import { getDictionary } from "@vallo/i18n";
@@ -6,6 +7,10 @@ import { getLocale } from "@/lib/locale";
 import { ApplyWizard, type SetupRole } from "@/components/agent/ApplyWizard";
 import { ROLE_COPY } from "@/components/roles/roles";
 import { PageHeader } from "@/components/app/PageHeader";
+import { OpenApplicationNotice } from "@/components/supply/OpenApplicationNotice";
+import { readMyApplication } from "@/lib/agent/application-status";
+import { isOpenApplication } from "@/lib/agent/open-application";
+import { myOtherSideHeld } from "@/lib/agent/role-lock-read";
 
 export const metadata: Metadata = {
   title: "Set up your profile",
@@ -60,9 +65,38 @@ export default async function ProfileSetupPage({
   if (!isSetupRole(role)) notFound();
   await requireSignedInPage(`/profile/setup/${role}`);
 
-  const locale = await getLocale();
+  const [locale, mine, otherSide] = await Promise.all([
+    getLocale(),
+    readMyApplication(),
+    myOtherSideHeld("agent"),
+  ]);
   const t = getDictionary(locale);
   const copy = ROLE_COPY[role];
+
+  /* The professional application makes an agent: not from an owner's account. */
+  if (otherSide) {
+    const r = t.supply.register;
+    return (
+      <OpenApplicationNotice
+        heading={copy.setup.title}
+        reference=""
+        copy={{ title: r.otherSideTitle, body: r.ownerNotAgent, action: r.backToProfile }}
+        href="/profile"
+      />
+    );
+  }
+
+  /* An application still open is followed, not filed again. */
+  if (mine.state === "found" && isOpenApplication(mine.application.status)) {
+    const r = t.supply.register;
+    return (
+      <OpenApplicationNotice
+        heading={copy.setup.title}
+        reference={mine.application.reference}
+        copy={{ title: r.openTitle, body: r.openBody, action: r.trackIt }}
+      />
+    );
+  }
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -75,7 +109,7 @@ export default async function ProfileSetupPage({
       <p className="nf-lede max-w-[52ch]">{copy.setup.involves}</p>
 
       <div className="mt-lg">
-        <ApplyWizard t={t} role={role} />
+        <ApplyWizard t={forApply(t)} role={role} />
       </div>
     </div>
   );

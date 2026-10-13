@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { StoryCard } from "@/lib/social/stories-queries";
-import { STORY_COPY } from "@/lib/social/stories-schema";
+import { STORY_COPY } from "@/lib/social/stories-model";
 import { EmptyPanel } from "../profile/EmptyPanel";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 

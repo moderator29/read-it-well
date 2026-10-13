@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "966141537297",
-    "project_id": "vallo-44059",
-    "storage_bucket": "vallo-44059.firebasestorage.app"
+    "project_number": "827891631158",
+    "project_id": "vallo-6f946",
+    "storage_bucket": "vallo-6f946.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:966141537297:android:0af7b5bad40d25535e55b0",
+        "mobilesdk_app_id": "1:827891631158:android:94b075d0d108daec144497",
         "android_client_info": {
           "package_name": "com.vallospaces.app"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "PASTE_THE_ANDROID_API_KEY_FROM_FIREBASE_HERE"
+          "current_key": "AIzaSyDFjmvDXVFvDZXONuCNq6m1kAmw27G_ScQ"
         }
       ],
       "services": {

@@ -1,0 +1,23 @@
+/*
+ * The part of threads.css that stays in globals.css (C6's member CSS move, 6
+ * October). The rest of threads.css loads from the member layouts, after every
+ * global partial. What stays here: `.nf-inbox-row`, whose transition
+ * press-motion.css answers at equal specificity. A rule moved after a sheet
+ * that answers it would win where it used to lose, so it keeps its place.
+ */
+@layer components {
+  .nf-inbox-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    min-height: 4.5rem;
+    padding: 0.75rem 0.75rem 0.75rem 1rem;
+    transition: background var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-inbox-row {
+      transition: none;
+    }
+  }
+}

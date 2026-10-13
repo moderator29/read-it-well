@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { Sheet } from "@/components/ui/Sheet";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { Button } from "@/components/ui/Button";
 
 /**
  * A person's identity document, read inside Vallo.
@@ -71,13 +72,9 @@ function DocumentCanvas({
     return (
       <div className="flex flex-col gap-xs">
         <div className="flex items-center gap-inline">
-          <button
-            type="button"
-            onClick={() => setUpright((turn) => (turn + 90) % 360)}
-            className="nf-chip text-[length:var(--nf-text-overline)]"
-          >
+          <Button type="button" variant="quiet" size="sm" onClick={() => setUpright((turn) => (turn + 90) % 360)}>
             Turn it
-          </button>
+          </Button>
           <span className="nf-overline">
             A photographed document is often sideways. Turning it here changes nothing
             that is stored.

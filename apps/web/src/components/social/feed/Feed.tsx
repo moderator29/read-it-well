@@ -1,10 +1,13 @@
 "use client";
 
+import type { SheetWords } from "@/components/social/sheet-words";
+import { Button } from "@/components/ui/Button";
 import { DEFAULT_LOCALE, type Locale } from "@vallo/i18n/core";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { PostCard, type PostView } from "./PostCard";
 import { ReportSheet } from "../ReportSheet";
+import { DELETE_WORDS, DeleteSheet } from "../DeleteSheet";
 import { ActionSheet, actionsForPost } from "../ActionSheet";
 import {
   DistrictChips,
@@ -19,7 +22,10 @@ import { EmptyPanel } from "../profile/EmptyPanel";
 import type { StoryCard } from "@/lib/social/stories-queries";
 import type { ReviewCard } from "@/lib/social/profile-tabs-queries";
 import { PostEditor } from "./PostEditor";
+import { LEAD_SETTLE_MS, leadIndexes, leadPropsFor } from "./lead";
+import { feedback } from "@/lib/ui/feedback";
 import { ViewportPost } from "./ViewportPost";
+import { FreshArrival } from "./FreshArrival";
 import {
   blockUser,
   muteTarget,
@@ -29,10 +35,10 @@ import {
   toggleRepost,
 } from "@/lib/social/posts-actions";
 import type { BrandIconName } from "@/design-system/icons/BrandIcon";
-import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { FeedPage } from "@/lib/social/posts-queries";
 import type { ActionResult } from "@/lib/actions/envelope";
-import { POST_COPY, POST_REPORT_REASONS } from "@/lib/social/posts-schema";
+import { POST_COPY, POST_REPORT_REASONS } from "@/lib/social/posts-model";
+import { useSignInHref } from "@/lib/auth/use-sign-in-href";
 
 /**
  * The heading when a caller has not given one.
@@ -66,6 +72,7 @@ const MORE_COPY = {
 export function Feed({
   initial,
   locale = DEFAULT_LOCALE,
+  sheet,
   signedIn,
   areaName,
   emptyMessage,
@@ -75,7 +82,14 @@ export function Feed({
   district,
   pageCursor = null,
   loadMore,
+  aside,
 }: {
+  /**
+   * Something the surface sets between posts, once: the feed's "worth
+   * following" block, after the third post (or after the last, on a shorter
+   * feed), so the first thing read is always somebody's post.
+   */
+  aside?: React.ReactNode;
   initial: PostView[];
   /**
    * The cursor after the first page, or null when the timeline ended there.
@@ -88,6 +102,8 @@ export function Feed({
   /* Only the counts need it, but they are on every card, so it rides down from
      the server component that resolved it rather than each card guessing. */
   locale?: Locale;
+  /** The action sheet's two lines, from the server (`sheetWordsOf`), so the browser never loads a dictionary for them. */
+  sheet: SheetWords;
   signedIn: boolean;
   /**
    * Whether this timeline is one somebody can write into.
@@ -148,6 +164,7 @@ export function Feed({
     join?: React.ReactNode;
   };
 }) {
+  const signInHref = useSignInHref();
   const router = useRouter();
   const [posts, setPosts] = useState(initial);
   const [notice, setNotice] = useState<string | null>(null);
@@ -161,7 +178,18 @@ export function Feed({
   /* One sheet per screen, holding the post it was opened for. One per card
      would be one modal per row in the document. */
   const [sheetFor, setSheetFor] = useState<PostView | null>(null);
+  /* The post the delete slide is open for. */
+  const [deleting, setDeleting] = useState<PostView | null>(null);
   const [chip, setChip] = useState<DistrictChip>("all");
+  /* The lead stagger belongs to the posts the feed mounted with, once. See
+     `lead.ts`: keyed by id so a hidden card cannot pull the seventh in, and
+     switched off after it has played so a chip change does not replay it. */
+  const [leadIds] = useState(() => leadIndexes(initial.map((post) => post.id)));
+  const [leadSettled, setLeadSettled] = useState(false);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setLeadSettled(true), LEAD_SETTLE_MS);
+    return () => window.clearTimeout(timer);
+  }, []);
   const [, startTransition] = useTransition();
 
   /*
@@ -283,7 +311,7 @@ export function Feed({
    */
   const onRepost = (post: PostView) => {
     if (!signedIn) {
-      router.push("/sign-in");
+      router.push(signInHref);
       return;
     }
     const reposted = !post.reposted;
@@ -301,10 +329,13 @@ export function Feed({
 
   const onLike = (post: PostView) => {
     if (!signedIn) {
-      router.push("/sign-in");
+      router.push(signInHref);
       return;
     }
     const liked = !post.liked;
+    /* One light tap in the hand when a like lands. Un-liking is quiet: a
+       haptic on every toggle would buzz at a person taking something back. */
+    if (liked) feedback("select");
     patch(post.id, { liked, likeCount: post.likeCount + (liked ? 1 : -1) });
     startTransition(async () => {
       const result = await toggleMark({ postId: post.id, mark: "LIKE" });
@@ -356,7 +387,7 @@ export function Feed({
       return;
     }
     if (!signedIn) {
-      router.push("/sign-in");
+      router.push(signInHref);
       return;
     }
     /* The one row this sheet offers that already had a handler and no way to
@@ -374,22 +405,29 @@ export function Feed({
       setEditing(post.id);
       return;
     }
+    /* Taking a post down is confirmed by the slide (`DeleteSheet`), never by
+       the browser's `confirm()` (ONE-PRODUCT-DECISIONS, destructive confirm). */
+    if (action === "delete") {
+      setDeleting(post);
+      return;
+    }
+    /* Save is optimistic now that it is a disc in the row: the mark shows on
+       the tap and goes back the moment the server disagrees, like a like. */
+    if (action === "save") {
+      const saved = !post.saved;
+      if (saved) feedback("select");
+      patch(post.id, { saved });
+      startTransition(async () => {
+        const result = await toggleMark({ postId: post.id, mark: "SAVE" });
+        if (!result.ok) {
+          patch(post.id, { saved: post.saved });
+          setNotice(result.error);
+        }
+      });
+      return;
+    }
 
     startTransition(async () => {
-      if (action === "save") {
-        const result = await toggleMark({ postId: post.id, mark: "SAVE" });
-        if (!result.ok) return setNotice(result.error);
-        patch(post.id, { saved: !post.saved });
-        return;
-      }
-      if (action === "delete") {
-        if (!window.confirm(POST_COPY.deleteConfirm)) return;
-        const result = await removePost({ postId: post.id });
-        if (!result.ok) return setNotice(result.error);
-        setPosts((all) => all.filter((p) => p.id !== post.id));
-        router.refresh();
-        return;
-      }
       // Both of these act on a PERSON, so they need the author's user id and
       // not the post's. Passing the post id would have blocked a uuid that is
       // nobody, silently succeeded, and shown "Blocked" for an action that did
@@ -542,8 +580,15 @@ export function Feed({
         />
       ) : null}
 
-      {(chip === "stories" || chip === "reviews" ? [] : shown).map((post) => (
-        <div key={post.id} className="flex flex-col gap-[var(--nf-feed-gap)]">
+      {(chip === "stories" || chip === "reviews" ? [] : shown).map((post, index, list) => {
+        const lead = leadPropsFor(leadIds, post.id, leadSettled);
+        return (
+        <div
+          key={post.id}
+          className={["flex flex-col gap-[var(--nf-feed-gap)]", lead.className ?? ""].filter(Boolean).join(" ")}
+          style={lead.style}
+        >
+          <FreshArrival postId={post.id}>
           <ViewportPost postId={post.id}>
             <PostCard
               post={post}
@@ -570,6 +615,7 @@ export function Feed({
               }
             />
           </ViewportPost>
+          </FreshArrival>
 
           {/*
             THE CARD NO LONGER UNFOLDS A COMPOSER, AND IT USED TO.
@@ -591,24 +637,26 @@ export function Feed({
             position". Scroll position is worth less than knowing what you are
             replying to.
           */}
+          {aside && index === Math.min(2, list.length - 1) ? aside : null}
         </div>
-        ))}
+        );
+      })}
 
         {loadMore && shown.length > 0 && chip !== "stories" && chip !== "reviews" ? (
           <div className="nf-feed-more" data-testid="feed-more">
             <div ref={sentinelRef} aria-hidden="true" className="nf-feed-more__sentinel" />
             {cursor ? (
-              <button
-                type="button"
-                className="nf-btn nf-btn--glass nf-feed-more__button"
+              <Button
+                variant="secondary"
+                className="nf-feed-more__button"
                 onClick={() => void readMore()}
                 disabled={loadingMore}
                 aria-busy={loadingMore}
+                leadingIcon="arrow-down"
                 data-testid="feed-load-more"
               >
-                <UiIcon name="arrow-down" size={16} />
                 {loadingMore ? MORE_COPY.loading : MORE_COPY.more}
-              </button>
+              </Button>
             ) : null}
             <p role="status" aria-live="polite" className="nf-feed-more__status">
               {loadError
@@ -635,22 +683,44 @@ export function Feed({
             repostCount: sheetFor.repostCount,
             editable: sheetFor.editable,
             hasAuthor: Boolean(sheetFor.author?.id),
-            who: sheetFor.author?.handle ? `@${sheetFor.author.handle}` : "this person",
-          })}
+            who: sheetFor.author?.handle ? `@${sheetFor.author.handle}` : sheet.thisPerson,
+          }, sheet.menu)}
           onChoose={(key) => onMenuAction(sheetFor, key)}
           onClose={() => setSheetFor(null)}
+          body={sheet.body}
+          dismissLabel={sheet.dismissLabel}
         />
       ) : null}
 
+      <DeleteSheet
+        open={deleting !== null}
+        title={DELETE_WORDS.post.title}
+        body={DELETE_WORDS.post.body}
+        onClose={() => setDeleting(null)}
+        onConfirm={async () => {
+          const target = deleting;
+          if (!target) return false;
+          const result = await removePost({ postId: target.id });
+          if (!result.ok) {
+            setNotice(result.error);
+            return false;
+          }
+          setPosts((all) => all.filter((p) => p.id !== target.id));
+          router.refresh();
+          return true;
+        }}
+      />
+
       {reporting ? (
         <ReportSheet
-          title="Report this post"
+          title={sheet.reportTitle}
           subject={
             reporting.author?.handle
-              ? `Posted by @${reporting.author.handle}`
-              : "Posted on Around"
+              ? sheet.reportPostedBy.replace("{handle}", reporting.author.handle)
+              : sheet.reportPostedOnAround
           }
           reasons={POST_REPORT_REASONS}
+          words={sheet.report}
           submit={({ reason, detail }) =>
             reportPost({ postId: reporting.id, reason, detail })
           }

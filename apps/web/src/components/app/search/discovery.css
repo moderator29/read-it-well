@@ -1,0 +1,138 @@
+@layer theme, base, components, utilities;
+
+/*
+ * THE DISCOVERY SURFACES' OWN MATERIAL (Session 3, W2): the empty state that
+ * is the current product on every shelf, imported by `DiscoveryEmpty.tsx`.
+ *
+ * Every duration and curve is a token, so `prefers-reduced-motion` (tokens at
+ * 1ms), Calm (`[data-state-kind="empty"] > *` becomes a 180ms fade) and Off
+ * (1ms) collapse it with no rule of its own.
+ */
+@layer components {
+  .nf-dempty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--nf-space-md);
+    margin-inline: auto;
+    max-width: 26rem;
+    padding-block: var(--nf-space-xl) var(--nf-space-3xl);
+    text-align: center;
+  }
+
+  /*
+   * THE GROUND. On night the object sits directly on the surface; in light a
+   * radius-14 plate at the day icon tint with a soft blue contact shadow, so a
+   * matte object never floats on white (north star 14.7). One edge treatment:
+   * the shadow, never a border as well.
+   */
+  .nf-dempty__ground {
+    display: grid;
+    place-items: center;
+    width: 8rem;
+    height: 8rem;
+    border-radius: var(--nf-tier-plate-radius);
+  }
+  :root[data-theme="light"] .nf-dempty__ground {
+    background: var(--nf-icon-plate-day);
+    box-shadow: var(--nf-elevation-raised);
+  }
+
+  /* Motion 21: the object drops 12px onto its ground and settles on `drift`. */
+  .nf-dempty__object {
+    display: block;
+    animation: nf-dempty-settle var(--nf-duration-entrance) var(--nf-ease-spring) both;
+  }
+  @keyframes nf-dempty-settle {
+    from {
+      opacity: 0;
+      transform: translate3d(0, -12px, 0) scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* ... then the copy fades, once the object has landed. */
+  .nf-dempty__words,
+  .nf-dempty__actions,
+  .nf-dempty__capture {
+    animation: nf-dempty-copy var(--nf-duration-base) var(--nf-ease-standard) both;
+    animation-delay: calc(var(--nf-duration-entrance) * 0.6);
+  }
+  .nf-dempty__actions {
+    animation-delay: calc(var(--nf-duration-entrance) * 0.6 + 60ms);
+  }
+  .nf-dempty__capture {
+    animation-delay: calc(var(--nf-duration-entrance) * 0.6 + 120ms);
+  }
+  @keyframes nf-dempty-copy {
+    from {
+      opacity: 0;
+    }
+  }
+
+  .nf-dempty__words {
+    display: grid;
+    gap: var(--nf-space-xs);
+  }
+  .nf-dempty__title {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h3);
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--nf-content-primary);
+    text-wrap: balance;
+  }
+  .nf-dempty__body {
+    font-size: var(--nf-text-body);
+    line-height: 1.55;
+    color: var(--nf-content-secondary);
+    text-wrap: pretty;
+  }
+  .nf-dempty__actions {
+    display: grid;
+    gap: var(--nf-space-sm);
+    width: 100%;
+    max-width: 20rem;
+  }
+  .nf-dempty__secondary {
+    display: flex;
+    justify-content: center;
+  }
+  /* The capture is a quiet line under the action, never a second primary. */
+  .nf-dempty__capture {
+    width: 100%;
+    padding-top: var(--nf-space-md);
+    border-top: 1px solid var(--nf-panel-hair);
+    font-size: var(--nf-text-body-sm, 0.875rem);
+    line-height: 1.5;
+    color: var(--nf-content-muted);
+  }
+
+  /* The capture's link sits on its own line under the sentence, a full 44px
+     target, never squeezed into the sentence's line box. */
+  .nf-dempty__capture-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.75rem;
+    margin-top: var(--nf-space-3xs);
+    font-weight: 600;
+    color: var(--nf-content-link);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-dempty__object,
+    .nf-dempty__words,
+    .nf-dempty__actions,
+    .nf-dempty__capture {
+      animation-name: nf-dempty-copy;
+      animation-duration: 160ms;
+      animation-delay: 0ms;
+      /* The floor in animation.css would make this fade instant; this opts in. */
+      --nf-reduced-duration: 160ms;
+    }
+  }
+}

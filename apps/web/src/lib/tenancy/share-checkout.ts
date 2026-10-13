@@ -25,6 +25,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../actions/session";
+import { phoneGateFor } from "../phone-otp/gate";
 import { getAdminClient } from "@/lib/supabase/service";
 import {
   PaystackError,
@@ -41,6 +42,8 @@ import { IN_FLIGHT_MESSAGE, withIdempotency } from "../security/idempotency";
 import { recordCheckoutHandle, reuseLiveAttempt } from "../payments/attempts";
 import { recordMoneyAudit } from "../money/audit";
 import { announceConfirmedStay } from "../bookings/arrival";
+import { railForBooking, railGate } from "../payments/router";
+import { escrowRailLive } from "../payments/providers";
 import { SHARE_NOT_PAYABLE } from "./share-words";
 
 const SERVICE_DOWN = "Payment is temporarily unavailable. Nothing has been charged. Try again in a moment.";
@@ -93,6 +96,10 @@ export async function startShareCheckout(input: {
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
   if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
   if (!isPaystackConfigured()) return fail("We cannot reach card payment right now. Nothing has been charged.");
+  /* FULL GATE (13 October 2026): the first payment needs a confirmed phone,
+     flag on; a payment fails closed on a failed read (`phone-otp/core.ts`). */
+  const phoneGate = await phoneGateFor(session.supabase, session.user.id, "payment");
+  if (phoneGate) return phoneGate;
   const email = session.user.email ?? null;
   if (!email) return fail("Your account has no email address, which card payment needs. Add one to your profile and try again.");
   const admin = getAdminClient();
@@ -108,8 +115,6 @@ export async function startShareCheckout(input: {
       shouldRecord: (result) => result.ok,
     },
     async () => {
-      const reserve = currentReserveSubaccount();
-      if (!reserve) return fail(SHARE_NOT_PAYABLE.reserve_not_set_up as string);
       const { data, error } = await admin.rpc("payment_split_for_rent_share" as never, {
         p_rent_payment: parsed.data.tenancyId,
         p_payer: session.user.id,
@@ -129,6 +134,20 @@ export async function startShareCheckout(input: {
       ) {
         return fail(SERVICE_DOWN);
       }
+      /*
+       * THE RAIL, exactly as the main checkout resolves it (split-attempt.ts
+       * quoteSplit): the policy decides whether this booking may be paid by a
+       * Paystack split at all. An escrow answer, no rail, or an unreachable
+       * router refuses before any row exists, and the answer is written on
+       * the attempt (rail, rail_policy_id), fixed by trigger thereafter.
+       */
+      const gate = railGate(await railForBooking(admin, split.booking_id), "direct", await escrowRailLive());
+      if (!gate.open) return fail(gate.message);
+      if (gate.rail !== "direct") return fail(SERVICE_DOWN);
+      const railPolicyId = gate.policyId;
+      /* D51: the reserve account is demanded only when the split has a reserve leg. */
+      const reserve = guarantee > 0 ? currentReserveSubaccount() : null;
+      if (guarantee > 0 && !reserve) return fail(SHARE_NOT_PAYABLE.reserve_not_set_up as string);
       // One open attempt per payer and share: a payer who closed the window
       // gets the checkout they already have. Matched on this payer only, so
       // a flatmate never resumes another's checkout, however equal the shares.
@@ -172,6 +191,8 @@ export async function startShareCheckout(input: {
         commission_minor: commission,
         share_payer_id: session.user.id,
         paystack_mode: currentPaystackMode(),
+        rail: "direct",
+        rail_policy_id: railPolicyId,
         // Joins the attempt lifecycle: the in-flight rule and the sweep time it from here.
         checkout_opened_at: new Date().toISOString(),
       } as never);

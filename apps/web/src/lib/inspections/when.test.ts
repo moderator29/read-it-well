@@ -31,18 +31,30 @@ describe("when an inspection may be asked for", () => {
     expect(farEnoughAhead(new Date(now + LEAD_MS + 60_000).toISOString(), now)).toBe(true);
   });
 
-  it("is the rule the server action and the sheet use", () => {
+  it("is the rule the server action and the visit flow use", () => {
     const actions = readFileSync(join(__dirname, "actions.ts"), "utf8");
     expect(actions).toContain("farEnoughAhead(value)");
-    const sheet = readFileSync(join(__dirname, "..", "..", "components", "app", "inspections", "RequestInspection.tsx"), "utf8");
-    expect(sheet).toContain("min={earliestLagosInput()}");
-    expect(sheet).toContain("lagosWallClockToIso(when)");
-    expect(sheet).not.toContain("new Date(when).toISOString()");
-    expect(sheet).toContain('<Link href="/inspections"');
-    expect(sheet).not.toContain("Coming from Yaba");
+    /* The request sheet became the door into Schedule a visit (13 October
+       2026). The times it offers come from `askTimesOn`, which builds each
+       one on Lagos wall-clock time and keeps only those the action accepts. */
+    const visit = readFileSync(join(__dirname, "visit.ts"), "utf8");
+    expect(visit).toMatch(/askTimesOn[\s\S]{0,400}farEnoughAhead\(time\.slotAt, now\)/);
+    expect(visit).toContain("+01:00");
+    const planner = readFileSync(join(__dirname, "..", "..", "components", "app", "inspections", "visit", "VisitPlanner.tsx"), "utf8");
+    expect(planner).toContain("askTimesOn(");
+    expect(planner).not.toContain("new Date(when).toISOString()");
+    const door = readFileSync(join(__dirname, "..", "..", "components", "app", "inspections", "RequestInspection.tsx"), "utf8");
+    expect(door).toContain("href={`/listing/${listingId}/visit`}");
+    expect(door).not.toContain('type="datetime-local"');
+    expect(door).not.toContain("Coming from Yaba");
   });
 
   it("is what every counter-offer picker uses too", () => {
+    /* One picker now, shared by the card, the dashboard rows and the thread. */
+    const picker = readFileSync(join(__dirname, "..", "..", "components/app/inspections/ViewingSheets.tsx"), "utf8");
+    expect(picker).not.toContain("new Date(when).toISOString()");
+    expect(picker).toContain("lagosWallClockToIso(when)");
+    expect(picker).toContain("min={earliestLagosInput()}");
     for (const file of [
       "components/app/inspections/InspectionSheet.tsx",
       "components/app/inspections/InspectionRows.tsx",
@@ -50,8 +62,8 @@ describe("when an inspection may be asked for", () => {
     ]) {
       const text = readFileSync(join(__dirname, "..", "..", file), "utf8");
       expect(text, file).not.toContain("new Date(when).toISOString()");
-      expect(text, file).toContain("lagosWallClockToIso(when)");
-      expect(text, file).toContain("min={earliestLagosInput()}");
+      expect(text, file).not.toContain('type="datetime-local"');
+      expect(text, file).toContain("<ViewingTimeSheet");
     }
   });
 });

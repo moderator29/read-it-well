@@ -1,8 +1,9 @@
 "use client";
 
+import { Button } from "@/components/ui/Button";
 import { useState, useTransition } from "react";
 import { editPost } from "@/lib/social/posts-actions";
-import { EDIT_WINDOW_MINUTES, POST_MAX } from "@/lib/social/posts-schema";
+import { EDIT_WINDOW_MINUTES, POST_MAX } from "@/lib/social/posts-model";
 
 /**
  * Fixing what you wrote.
@@ -87,7 +88,7 @@ export function PostEditor({
         </p>
       ) : null}
 
-      <div className="mt-sm flex items-center justify-end gap-sm">
+      <div className="mt-sm flex flex-wrap items-center justify-end gap-sm">
         {left < 240 ? (
           <span
             className={`nf-numeric text-[length:var(--nf-text-overline)] ${
@@ -97,21 +98,12 @@ export function PostEditor({
             {left}
           </span>
         ) : null}
-        <button
-          type="button"
-          className="nf-btn nf-btn--ghost h-10 px-md text-[length:var(--nf-text-body-sm)]"
-          onClick={onDone}
-          disabled={pending}
-        >
+        <Button variant="ghost" size="sm" onClick={onDone} disabled={pending}>
           Cancel
-        </button>
-        <button
-          type="submit"
-          className="nf-btn nf-btn--primary h-10 px-lg text-[length:var(--nf-text-body-sm)]"
-          disabled={!changed || pending}
-        >
+        </Button>
+        <Button type="submit" variant="primary" size="sm" disabled={!changed || pending}>
           {pending ? "Saving" : "Save"}
-        </button>
+        </Button>
       </div>
     </form>
   );

@@ -10,6 +10,7 @@ import {
   type AlertTrend,
   type InspectionActivity,
   type InspectionState,
+  type NoShowActivity,
   type JobHealth,
   type PushActivity,
   type PushDeliveryRow,
@@ -182,7 +183,7 @@ export async function getAlertTrend(now: number): Promise<Read<AlertTrend>> {
   }
 }
 
-export const INSPECTION_STATES = ["REQUESTED", "PROPOSED", "CONFIRMED", "COMPLETED", "DECLINED", "WITHDRAWN"] as const;
+export const INSPECTION_STATES = ["REQUESTED", "PROPOSED", "CONFIRMED", "COMPLETED", "NO_SHOW", "DECLINED", "WITHDRAWN"] as const;
 
 /**
  * Every inspection on the platform by state (six exact counts, under the
@@ -190,6 +191,95 @@ export const INSPECTION_STATES = ["REQUESTED", "PROPOSED", "CONFIRMED", "COMPLET
  * listing's title. Read only: an inspection is the requester's and the
  * lister's to move; the console watches it.
  */
+/** How far back the no-show panel looks, and how many make a "repeat". */
+const NO_SHOW_WINDOW_DAYS = 90;
+const NO_SHOW_REPEAT_AT = 2;
+
+type NoShowRow = {
+  inspection_id: string;
+  absent_id: string;
+  absent_role: "requester" | "lister";
+  reported_at: string;
+  disputed_at: string | null;
+  dispute_note: string | null;
+  resolved_at: string | null;
+  resolution: "upheld" | "overturned" | null;
+};
+
+/**
+ * The no-shows staff act on: open disputes (disputed, not yet decided), and
+ * the people reported two or more times in 90 days, an overturned report not
+ * counting. Pure over the rows, so it is tested without a database.
+ */
+export function noShowActivityFrom(
+  rows: NoShowRow[],
+  titles: Map<string, string>,
+  names: Map<string, string>,
+): NoShowActivity {
+  const disputes = rows
+    .filter((row) => row.disputed_at !== null && row.resolved_at === null)
+    .sort((a, b) => a.disputed_at!.localeCompare(b.disputed_at!))
+    .map((row) => ({
+      inspectionId: row.inspection_id,
+      listingTitle: titles.get(row.inspection_id) ?? null,
+      absentRole: row.absent_role,
+      reportedAt: row.reported_at,
+      disputedAt: row.disputed_at!,
+      disputeNote: row.dispute_note,
+    }));
+  const byPerson = new Map<string, { count: number; lastAt: string }>();
+  for (const row of rows) {
+    if (row.resolution === "overturned") continue;
+    const now = byPerson.get(row.absent_id) ?? { count: 0, lastAt: row.reported_at };
+    byPerson.set(row.absent_id, {
+      count: now.count + 1,
+      lastAt: row.reported_at > now.lastAt ? row.reported_at : now.lastAt,
+    });
+  }
+  const repeats = [...byPerson.entries()]
+    .filter(([, one]) => one.count >= NO_SHOW_REPEAT_AT)
+    .map(([userId, one]) => ({ userId, name: names.get(userId) ?? null, count: one.count, lastAt: one.lastAt }))
+    .sort((a, b) => b.count - a.count || b.lastAt.localeCompare(a.lastAt));
+  return { disputes, repeats };
+}
+
+/** Null when the table cannot be read (for one, before its migration is applied). */
+async function readNoShowActivity(db: SupabaseClient): Promise<NoShowActivity | null> {
+  try {
+    const since = new Date(Date.now() - NO_SHOW_WINDOW_DAYS * DAY_MS).toISOString();
+    const { data, error } = await db
+      .from("inspection_no_shows")
+      .select("inspection_id, absent_id, absent_role, reported_at, disputed_at, dispute_note, resolved_at, resolution")
+      .gte("reported_at", since)
+      .order("reported_at", { ascending: false })
+      .limit(500);
+    if (error) return null;
+    const rows = (data ?? []) as NoShowRow[];
+    const ids = rows.map((row) => row.inspection_id);
+    const people = [...new Set(rows.map((row) => row.absent_id))];
+    const [inspections, profiles] = await Promise.all([
+      ids.length
+        ? db.from("inspection_requests").select("id, listings ( title )").in("id", ids)
+        : Promise.resolve({ data: [] as unknown[] }),
+      people.length
+        ? db.from("profiles").select("id, display_name").in("id", people)
+        : Promise.resolve({ data: [] as unknown[] }),
+    ]);
+    const titles = new Map<string, string>();
+    for (const row of (inspections.data ?? []) as { id: string; listings: { title?: string | null } | { title?: string | null }[] | null }[]) {
+      const listing = Array.isArray(row.listings) ? row.listings[0] : row.listings;
+      if (listing?.title) titles.set(row.id, listing.title);
+    }
+    const names = new Map<string, string>();
+    for (const row of (profiles.data ?? []) as { id: string; display_name: string | null }[]) {
+      if (row.display_name) names.set(row.id, row.display_name);
+    }
+    return noShowActivityFrom(rows, titles, names);
+  } catch {
+    return null;
+  }
+}
+
 export async function getInspectionActivity(): Promise<Read<InspectionActivity>> {
   const db = await adminReader("operations");
   if (!db) return UNAVAILABLE;
@@ -200,16 +290,21 @@ export async function getInspectionActivity(): Promise<Read<InspectionActivity>>
       ),
     );
     if (counts.some((c) => c === null)) return UNAVAILABLE;
+    /* Newest by when the request was MADE. `requested_at` is the time the
+       renter asked to view, so ordering by it put the furthest-off viewings
+       first under a panel titled "Newest requests". */
     const { data, error } = await db
       .from("inspection_requests")
       .select("id, state, requested_at, slot_at, outcome, listings ( title )")
-      .order("requested_at", { ascending: false })
+      .order("created_at", { ascending: false })
       .limit(8);
     if (error) return UNAVAILABLE;
     const byState = Object.fromEntries(INSPECTION_STATES.map((s, i) => [s, counts[i]!])) as InspectionActivity["byState"];
+    const noShows = await readNoShowActivity(db as unknown as SupabaseClient);
     return {
       state: "ok",
       data: {
+        noShows,
         byState,
         total: Object.values(byState).reduce((a, b) => a + b, 0),
         recent: (data ?? []).map((row) => {

@@ -1,4 +1,5 @@
 import "server-only";
+import { reportReadError } from "@/lib/observability/read-error";
 
 import { cache } from "react";
 import { photoUrl } from "../listings/supabase-repository";
@@ -64,6 +65,7 @@ export const readDoor = cache(async function readDoor(key: string): Promise<Door
   try {
     const rpc = supabase.rpc.bind(supabase) as unknown as DoorRpc;
     const { data, error } = await rpc("share_door", { p_token: key.trim() });
+    await reportReadError("read.share.readDoor", error);
     if (error) return { state: "unreachable" };
     const first = Array.isArray(data) ? (data[0] as DoorRow | undefined) : undefined;
     const card = doorCardFromRow(first ?? null);

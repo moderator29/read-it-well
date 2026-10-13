@@ -96,7 +96,7 @@ async function RiskLaneBody({ t, locale }: ComplianceLaneProps) {
         ) : (
           <ul className="grid gap-sm" data-testid="risk-pending">
             {desk.pending.map((p) => (
-              <li key={p.id} className="nf-panel nf-panel--card block p-card">
+              <li key={p.id} className="nf-admin-case">
                 <p className="nf-body-sm">
                   {l.pendingRow
                     .replace("{name}", p.name)
@@ -132,7 +132,7 @@ async function RiskLaneBody({ t, locale }: ComplianceLaneProps) {
         ) : (
           <ul className="grid gap-sm" data-testid="risk-people">
             {desk.people.map((p) => (
-              <li key={p.userId} className="nf-panel nf-panel--card block p-card">
+              <li key={p.userId} className="nf-admin-case">
                 <p className="nf-body-sm font-semibold text-[var(--nf-content-primary)]">
                   {p.name}: {l.class[p.riskClass]}
                   {p.riskClass === "high" ? ` · ${p.eddClear ? l.gateOpen : l.gateShut}` : ""}

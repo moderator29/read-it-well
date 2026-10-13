@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import {
+  currentPaystackMode,
   isPaystackConfigured,
   metadataObject,
-  verifyWebhookSignature,
 } from "@/lib/payments/paystack";
+import { paystackSeam } from "@/lib/payments/providers";
 import {
   failureReason,
   logMoney,
@@ -16,10 +17,18 @@ import { markChargeFailed, settleBookingCharge } from "@/lib/bookings/settlement
 import { savePaymentMethodFromCharge } from "@/lib/payments/methods";
 import { recordAlert } from "@/lib/alerts";
 import { ROUTE_FAILURE_LIMITS, countRouteFailure } from "@/lib/security/money-limits";
-import { BOOKING_PREFIX, FUND_PREFIX, isBookingReference } from "@/lib/payments/references";
+import { BILL_PREFIX, BOOKING_PREFIX, DEPOSIT_PREFIX, FUND_PREFIX, isBookingReference } from "@/lib/payments/references";
+import { handleBillChargeFailed, handleBillChargeSuccess } from "@/lib/reservations/bill-settlement";
 import { refundChargeToCard } from "@/lib/payments/refund";
 import { handleRefundEvent, readRefundEvent } from "@/lib/payments/refund-events";
 import { REFUND_ALREADY_CLAIMED } from "@/lib/payments/refund-outcomes";
+import { PROMOTION_PREFIX } from "@/lib/promotion/reference";
+import { handlePromotionChargeFailed, handlePromotionChargeSuccess } from "@/lib/promotion/webhook";
+import { handleDepositChargeFailed, handleDepositChargeSuccess } from "@/lib/reservations/deposit-settlement";
+import { settleRewardsTransferEvent } from "@/lib/payouts/referral-payout";
+import { isRewardsReference } from "@/lib/payouts/referral-transfer";
+import { SUBSCRIPTION_PREFIX, isSubscriptionCharge } from "@/lib/subscriptions/events";
+import { handleSubscriptionEvent } from "@/lib/subscriptions/webhook";
 
 /**
  * Paystack webhook.
@@ -72,7 +81,19 @@ import { REFUND_ALREADY_CLAIMED } from "@/lib/payments/refund-outcomes";
  *  - rm-fund-<uuid>: a wallet top-up from before the wallet was retired. If
  *    one ever arrives, it is refunded to the card in full; it is never
  *    credited anywhere.
- *  - transfer.* events are acknowledged and ignored: Vallo sends no transfers.
+ *  - rm-dep-<uuid>: a restaurant table deposit (lib/reservations/deposit-settlement.ts).
+ *  - rm-bill-<uuid>: a restaurant bill paid through Vallo, settled through
+ *    `restaurant_bill_settle`, the same function the diner's return calls
+ *    (lib/reservations/bill-settlement.ts). Whichever arrives first settles
+ *    it; the second is a duplicate.
+ *  - transfer.* events for a Rewards Balance payout (`vallo-rw-`, from the
+ *    marketing float) go to `settleRewardsTransferEvent`, the only path that
+ *    marks one paid (D62). Every other transfer.* is acknowledged and ignored.
+ *  - Vallo Pro and Vallo Business, Vallo's own revenue: charge.success on an
+ *    `rm-sub-` checkout or on a renewal Paystack charged under a plan, and
+ *    subscription.create / not_renew / disable and invoice.create / update /
+ *    payment_failed, all go to lib/subscriptions/webhook.ts, which applies
+ *    them in one database transaction (`subscription_apply_event`).
  *
  * Completion notifications fire from the database trigger, never from here.
  */
@@ -293,6 +314,12 @@ async function dispatch(
   if (event === "charge.success") {
     // Two charge families share this event, told apart by their reference.
     if (reference.startsWith(BOOKING_PREFIX)) return handleBookingChargeSuccess(admin, data);
+    // D60: a promotion purchase, Vallo's own revenue. Single-party charge, no split.
+    if (reference.startsWith(PROMOTION_PREFIX)) return handlePromotionChargeSuccess(admin, data);
+    // D75: a restaurant table deposit, split to the venue at the charge.
+    if (reference.startsWith(DEPOSIT_PREFIX)) return handleDepositChargeSuccess(admin, data);
+    // Founder decision D: a restaurant bill paid through Vallo, split to the venue at the charge.
+    if (reference.startsWith(BILL_PREFIX)) return handleBillChargeSuccess(admin, data);
     if (reference.startsWith(FUND_PREFIX)) {
       // A retired wallet top-up. Nothing credits it: it goes back to the card.
       const refund = await refundChargeToCard(admin, {
@@ -305,12 +332,26 @@ async function dispatch(
       }
       return verdict(refund.ok ? "posted" : "failed", `wallet_topup_refunded:${refund.ok}`, 200);
     }
+    // A subscription's first charge (`rm-sub-`) or a renewal under a plan.
+    if (isSubscriptionCharge(data)) {
+      return handleSubscriptionEvent(admin, currentPaystackMode(), event, data);
+    }
     return verdict("ignored", "reference_not_ours", 200);
   }
 
   if (event === "charge.failed") {
     if (reference.startsWith(BOOKING_PREFIX)) return handleBookingChargeFailed(admin, data);
+    if (reference.startsWith(PROMOTION_PREFIX)) return handlePromotionChargeFailed(admin, data);
+    if (reference.startsWith(DEPOSIT_PREFIX)) return handleDepositChargeFailed(admin, data);
+    if (reference.startsWith(BILL_PREFIX)) return handleBillChargeFailed(admin, data);
+    // A subscription checkout whose card was declined: the checkout simply
+    // stays unpaid (the member can try again); nothing was granted.
+    if (reference.startsWith(SUBSCRIPTION_PREFIX)) return verdict("rejected", "subscription_charge_failed", 200);
     return verdict("ignored", "reference_not_ours", 200);
+  }
+
+  if (event.startsWith("subscription.") || event.startsWith("invoice.")) {
+    return handleSubscriptionEvent(admin, currentPaystackMode(), event, data);
   }
 
   // V-24: the processor's word that a refund reached the card (or did not).
@@ -324,6 +365,15 @@ async function dispatch(
   }
 
   if (event.startsWith("transfer.")) {
+    if (isRewardsReference(reference)) {
+      const rewards = await settleRewardsTransferEvent(event, data);
+      if (rewards === "error") return verdict("failed", "rewards_transfer_not_recorded", 500);
+      if (rewards === "duplicate") return verdict("duplicate", "rewards_transfer", 200);
+      // Recorded, not applied (amount mismatch, contradiction, unknown
+      // reference): an incident for staff, never "posted".
+      if (rewards === "incident") return verdict("rejected", "rewards_transfer_incident", 200);
+      return verdict(rewards === "recorded" ? "posted" : "ignored", `rewards_transfer:${rewards}`, 200);
+    }
     return verdict("ignored", "transfers_retired", 200);
   }
 
@@ -439,8 +489,8 @@ export async function POST(request: Request): Promise<NextResponse> {
     );
   }
 
-  const signature = request.headers.get("x-paystack-signature") ?? "";
-  if (!verifyWebhookSignature(rawBody, signature)) {
+  // x-paystack-signature over the raw body, constant-time, through the provider seam.
+  if (!paystackSeam().verifyWebhook(rawBody, request.headers)) {
     // Deliberately before any database work. An unauthenticated caller must not
     // be able to write rows into audit_log by posting nonsense at this URL.
     //

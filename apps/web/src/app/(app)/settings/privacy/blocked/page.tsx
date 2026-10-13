@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getDictionary } from "@vallo/i18n";
+import { formatDate, getDictionary } from "@vallo/i18n";
+import { withNext } from "@/lib/auth/next-link";
 import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
 import { loadMyBlocks } from "@/lib/safety/blocks-queries";
@@ -16,12 +17,10 @@ export async function generateMetadata(): Promise<Metadata> {
 /* A block list read from a cache could show somebody as unblocked who is not. */
 export const dynamic = "force-dynamic";
 
-const LAGOS_DATE = new Intl.DateTimeFormat("en-GB", {
-  timeZone: "Africa/Lagos",
-  day: "numeric",
-  month: "short",
-  year: "numeric",
-});
+/* The date in the reader's language, on the Lagos calendar, as every other
+   settings date is drawn (it was fixed to en-GB, so a Hausa reader got an
+   English month inside a Hausa sentence). */
+const BLOCKED_ON = { timeZone: "Africa/Lagos", day: "numeric", month: "short", year: "numeric" } as const;
 
 /**
  * Settings, Privacy & Security, Blocked accounts. DB2.
@@ -30,7 +29,8 @@ const LAGOS_DATE = new Intl.DateTimeFormat("en-GB", {
  * with Unblock. Reached from the Blocked accounts row on /settings/privacy.
  */
 export default async function BlockedAccountsPage() {
-  const t = getDictionary(await getLocale());
+  const locale = await getLocale();
+  const t = getDictionary(locale);
   const copy = t.settings.blocked;
   const list = await loadMyBlocks();
 
@@ -40,7 +40,7 @@ export default async function BlockedAccountsPage() {
       {list.state === "signed-out" ? (
         <div className="nf-panel nf-panel--card block p-card text-center">
           <p className="nf-body-sm text-content-2">{copy.signedOut}</p>
-          <Link href="/sign-in" className="nf-btn nf-btn--primary mt-block w-full sm:w-auto">
+          <Link href={withNext("/sign-in", "/settings/privacy/blocked")} className="nf-btn nf-btn--primary mt-block w-full sm:w-auto">
             {t.common.signIn}
           </Link>
         </div>
@@ -67,7 +67,7 @@ export default async function BlockedAccountsPage() {
                 (p): BlockedRow => ({
                   userId: p.userId,
                   name: p.name ?? copy.someone,
-                  when: copy.blockedOn.replace("{when}", LAGOS_DATE.format(new Date(p.blockedAt))),
+                  when: copy.blockedOn.replace("{when}", formatDate(new Date(p.blockedAt), locale, BLOCKED_ON)),
                 }),
               )}
               copy={{

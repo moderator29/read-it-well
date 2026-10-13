@@ -20,7 +20,7 @@ export default async function PreviewAgentListSent() {
   const t = getDictionary(locale);
   return (
     <AgentShell t={t} locale={locale} active="/agent/list" profile={AGENT_PROFILE}>
-      <ListingSentForReview copy={t.agentListings} reference={t.listingReference} />
+      <ListingSentForReview copy={t.agentListings} reference={t.listingReference} lister={t.experienceLister} locale={locale} />
     </AgentShell>
   );
 }

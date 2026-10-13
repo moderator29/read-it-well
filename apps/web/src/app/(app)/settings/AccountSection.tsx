@@ -1,5 +1,7 @@
 "use client";
 
+import type { AccountCopy } from "@/components/app/account/settings-copy";
+import { withNext } from "@/lib/auth/next-link";
 import { clearListingDrafts } from "@/lib/agent/listing-draft-storage";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
@@ -7,6 +9,7 @@ import { RowLink, RowValue, RowButton, SettingsGroup } from "@/components/app/ac
 import { clearPacks } from "@/lib/offline/pack-store";
 import { clearShelf } from "@/lib/offline/shelf-store";
 import { clearOutbox } from "@/lib/offline/outbox";
+import { forgetKeptPages } from "@/lib/offline/page-cache";
 import { forgetWidget } from "@/lib/native/widget";
 import { revokeWidgetTokens } from "@/lib/native/widget-actions";
 import { clearAllInflight } from "@/lib/offline/inflight";
@@ -15,7 +18,7 @@ import { clearLocalDevice, readLocalDevice } from "@/components/app/push/device-
 import { playThreshold } from "@/lib/motion/threshold";
 import { DeleteAccountPanel } from "./DeleteAccountPanel";
 import type { Blocker } from "@/lib/account-deletion/preconditions";
-import type { Dictionary, Locale } from "@vallo/i18n/core";
+import type { Locale } from "@vallo/i18n/core";
 
 /**
  * The account block: who you are signed in as, sign out, and deletion.
@@ -43,7 +46,7 @@ export function AccountSection({
   /* Handed down from the settings page, which resolved the locale. The flow
      below is the one control in the app that cannot be undone, so not one word
      of it may arrive in a language the person did not choose. */
-  t: Dictionary;
+  t: AccountCopy;
   locale: Locale;
   state: "signed-in" | "signed-out" | "unconfigured";
   email: string;
@@ -79,6 +82,8 @@ export function AccountSection({
       /* SUP-16: a listing draft never outlives the session that wrote it. */
       clearListingDrafts();
       await clearOutbox();
+      /* The pages this phone kept for offline go with the session. */
+      await forgetKeptPages();
       await forgetWidget();
       clearAllInflight();
       clearLocalDevice();
@@ -136,7 +141,7 @@ export function AccountSection({
           chevron={false}
         />
       ) : state === "signed-out" ? (
-        <RowLink href="/sign-in" icon="key" label={t.common.signIn} />
+        <RowLink href={withNext("/sign-in", "/settings/account")} icon="key" label={t.common.signIn} />
       ) : null}
 
       {state === "signed-in" && (

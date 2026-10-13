@@ -15,7 +15,7 @@ import {
   AREA_KIND_LABEL,
   slugifyArea,
   type AreaKind,
-} from "@/lib/social/areas-schema";
+} from "@/lib/social/areas-model";
 import { useDisplayHost } from "@/lib/ui/use-display-host";
 
 /**

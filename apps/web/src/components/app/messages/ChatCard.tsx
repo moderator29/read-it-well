@@ -6,6 +6,9 @@ import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { ListingKind } from "@/lib/listings/types";
 import { shareHref, type SharedRef } from "./share";
+import { AreaMapTile } from "@/components/app/maps/AreaMapTile";
+import { areaPoint } from "@/components/app/search/mapGeo";
+import { PassportChatCard, type PassportChatCardData } from "@/components/passport/PassportChatCard";
 
 /**
  * The card a listing or a booking becomes inside a chat.
@@ -82,11 +85,18 @@ export type ChatCardBooking = {
 
 export type ChatCardData = ChatCardListing | ChatCardBooking;
 
+/**
+ * Every card the thread draws. The picker and the forward control only ever
+ * see `ChatCardData`; a member's Vallo passport (`components/passport`) is
+ * posted from the options sheet and drawn here, in the thread, and nowhere else.
+ */
+export type ThreadCardData = ChatCardData | PassportChatCardData;
+
 function Stars({ rating }: { rating: number | null }) {
   if (rating === null || rating <= 0) return null;
   const full = Math.round(Math.min(5, Math.max(0, rating)));
   return (
-    <span className="nf-chat-card__stars" aria-label={`Rated ${rating} out of 5`}>
+    <span className="nf-chat-card__stars" role="img" aria-label={`Rated ${rating} out of 5`}>
       {/* Solid, the way the render draws a rating. `star` is one of the
           glyphs authored as a closed silhouette, so `filled` is real here
           rather than paint poured into an outline. Blue by rule 8. */}
@@ -152,39 +162,61 @@ function Forward({ target }: { target: SharedRef }) {
  */
 const CARD = panelClass({ variant: "card", glass: true, className: "nf-chat-card" });
 
-export function ChatCard({ card, forwardable = true }: { card: ChatCardData; forwardable?: boolean }) {
+export function ChatCard({ card, forwardable = true }: { card: ThreadCardData; forwardable?: boolean }) {
+  /* A passport is never forwarded: it is the sender's own, shown in this
+     conversation, so it carries no forward control whatever `forwardable` says. */
+  if (card.kind === "passport") return <PassportChatCard card={card} />;
   if (card.kind === "listing") {
     /* What this card IS, decided once, so the primary link, the forward and
        the foot cannot disagree about it. */
     const stay = card.shareKind === "stay";
     const self: SharedRef = { kind: stay ? "stay" : "listing", id: card.id };
+    const point = areaPoint(card.city, card.area);
     return (
-      <article className={CARD} data-testid="chat-card-listing" aria-label={card.title}>
-        <Photo photo={card.photo} hue={card.hue} kind={card.listingKind} alt="" />
+      <article className={`${CARD} nf-chat-card--stack`} data-testid="chat-card-listing" aria-label={card.title}>
+        {/* THE SHARED LISTING IS HOME'S STACK CARD (the founder's travel-app
+            set, 7 October: "sharing a listing into a chat uses this card as
+            its preview"): the photograph tall, the facts on a frosted inset at
+            its foot beside a still map of the AREA (never the address), and
+            Forward as a smoked circle on the photograph. */}
+        <div className="nf-chat-card__stack">
+          <Photo photo={card.photo} hue={card.hue} kind={card.listingKind} alt="" />
+          {card.verified && (
+            <span className="nf-badge nf-badge--verified nf-chat-card__seal">
+              <UiIcon name="verified" size={12} />
+              Verified
+            </span>
+          )}
+          {forwardable && <Forward target={self} />}
+          <div className="nf-chat-card__inset" data-theme="dark">
+            <div className="nf-chat-card__words">
+              <p className="nf-chat-card__title">{card.title}</p>
+              <Stars rating={card.rating} />
+              <p className="nf-chat-card__place">
+                <UiIcon name="location" size={12} className="shrink-0" />
+                <span>{[card.area, card.city].filter(Boolean).join(", ")}</span>
+              </p>
+              <div className="nf-chat-card__features">
+                <span>{card.bedrooms} bed</span>
+                <span>{card.bathrooms} bath</span>
+              </div>
+              <p className="nf-chat-card__price-row">
+                <span className="nf-chat-card__price">{card.priceLabel}</span>
+                {card.periodLabel && <span className="nf-chat-card__unit">{card.periodLabel}</span>}
+              </p>
+            </div>
+            {point ? (
+              <AreaMapTile
+                lat={point.lat}
+                lng={point.lng}
+                zoom={13}
+                className="nf-chat-card__map"
+                label={`Map of ${card.area || card.city}. The pin shows the area, not the address.`}
+              />
+            ) : null}
+          </div>
+        </div>
         <div className="nf-chat-card__body">
-          <div className="nf-chat-card__head">
-            <p className="nf-chat-card__title">{card.title}</p>
-            {card.verified && (
-              <span className="nf-badge nf-badge--verified shrink-0">
-                <UiIcon name="verified" size={12} />
-                Verified
-              </span>
-            )}
-            {forwardable && <Forward target={self} />}
-          </div>
-          <Stars rating={card.rating} />
-          <p className="nf-chat-card__place">
-            <UiIcon name="location" size={16} className="shrink-0 text-[var(--nf-brand-secondary)]" />
-            <span>{[card.area, card.city].filter(Boolean).join(", ")}</span>
-          </p>
-          <div className="nf-chat-card__features mt-inline-tight">
-            <span>{card.bedrooms} bed</span>
-            <span>{card.bathrooms} bath</span>
-          </div>
-          <p className="nf-chat-card__price-row">
-            <span className="nf-chat-card__price">{card.priceLabel}</span>
-            {card.periodLabel && <span className="nf-chat-card__chip">{card.periodLabel}</span>}
-          </p>
           <div className="nf-chat-card__actions">
             <Link href={shareHref(self)} className="nf-btn nf-btn--primary nf-btn--sm">
               {stay ? "View stay" : "View listing"}
@@ -226,29 +258,29 @@ export function ChatCard({ card, forwardable = true }: { card: ChatCardData; for
 
         <dl className="nf-chat-card__facts">
           <div className="nf-chat-card__fact">
-            <UiIcon name="calendar-booking" size={12} className="nf-chat-card__fact-glyph" />
-            <div className="min-w-0">
-              <dt className="nf-chat-card__fact-label">Check in</dt>
-              <dd className="nf-chat-card__fact-value">{card.checkInLabel}</dd>
-            </div>
+            <dt className="nf-chat-card__fact-label">
+              <UiIcon name="calendar-booking" size={12} className="nf-chat-card__fact-glyph" />
+              Check in
+            </dt>
+            <dd className="nf-chat-card__fact-value">{card.checkInLabel}</dd>
           </div>
           <div className="nf-chat-card__fact">
-            <UiIcon name="calendar-booking" size={12} className="nf-chat-card__fact-glyph" />
-            <div className="min-w-0">
-              <dt className="nf-chat-card__fact-label">Check out</dt>
-              <dd className="nf-chat-card__fact-value">{card.checkOutLabel}</dd>
-            </div>
+            <dt className="nf-chat-card__fact-label">
+              <UiIcon name="calendar-booking" size={12} className="nf-chat-card__fact-glyph" />
+              Check out
+            </dt>
+            <dd className="nf-chat-card__fact-value">{card.checkOutLabel}</dd>
           </div>
           <div className="nf-chat-card__fact">
-            <UiIcon name="user" size={12} className="nf-chat-card__fact-glyph" />
-            <div className="min-w-0">
-              <dt className="nf-chat-card__fact-label">Guests</dt>
-              {card.partyLines.map((line, i) => (
-                <dd key={line} className={i === 0 ? "nf-chat-card__fact-value" : "nf-chat-card__fact-sub"}>
-                  {line}
-                </dd>
-              ))}
-            </div>
+            <dt className="nf-chat-card__fact-label">
+              <UiIcon name="user" size={12} className="nf-chat-card__fact-glyph" />
+              Guests
+            </dt>
+            {card.partyLines.map((line, i) => (
+              <dd key={line} className={i === 0 ? "nf-chat-card__fact-value" : "nf-chat-card__fact-sub"}>
+                {line}
+              </dd>
+            ))}
           </div>
         </dl>
 

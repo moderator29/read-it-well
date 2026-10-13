@@ -16,13 +16,16 @@
  * for how fast a person answers.
  */
 import {
-  GUARANTEE_SCOPE,
-  GUARANTEE_SENTENCE,
+  DIRECT_RAIL_STANDING,
+  LEGACY_GUARANTEE_CLAIM,
   NO_CUSTODY_SENTENCE,
   NO_INSPECTION_FEE,
+  NO_PAYMENT_BALANCE,
   OFF_PLATFORM_SENTENCE,
   PAYMENT_GATE_SENTENCE,
   REFUND_ROUTE,
+  REWARDS_BALANCE_SEPARATE,
+  WHO_PAYS_SENTENCE,
 } from "../money/copy";
 
 export type FaqEntry = {
@@ -45,7 +48,7 @@ export const SUPPORT_FAQ: FaqEntry[] = [
     id: "booking",
     keywords: ["book", "reserv", "stay", "check in", "check-in", "checkin", "trip", "night"],
     answer:
-      "To book a place, open it from Search, pick your dates and guests, then confirm on the booking screen. The stay is held as pending until the host accepts and Vallo approves it; then you pay by card or bank transfer, and every booking appears under Bookings with its status, its dates and its total.",
+      "To book a place, open it from Stays, pick your dates and guests, and check the full price, including any charge at the door. A hotel room is paid by card when you book. A shortlet is held for you while the host answers, then you pay inside Vallo. Every booking appears in Plans with its status, its dates and its total.",
   },
   {
     id: "rent-inspection",
@@ -73,18 +76,21 @@ export const SUPPORT_FAQ: FaqEntry[] = [
     id: "charges",
     keywords: [CHARGE_WORD, "charge", "commission", "cost to use", "hidden", "how much does vallo"],
     answer:
-      `Vallo charges nothing to use. Searching, booking, inspecting and messaging agents cost you nothing extra; the price you see on a listing is the price you pay. ${NO_INSPECTION_FEE} Between 1 and 2 percent of each payment goes to the Vallo Guarantee reserve out of the owner's or agent's share, never added on top.`,
+      `Vallo charges nothing to use. Searching, booking, inspecting and messaging agents cost you nothing extra; the price you see on a listing is the price you pay. ${NO_INSPECTION_FEE} ${WHO_PAYS_SENTENCE}`,
   },
   {
     id: "wallet",
     keywords: ["wallet", "balance", "top up", "topup", "fund", "withdraw", "escrow", "hold my money"],
     answer:
-      `Vallo has no wallet and keeps no balance. ${NO_CUSTODY_SENTENCE} There is nothing to top up and nothing to withdraw. Refunds go back to the card or account you paid with.`,
+      /* The id stays `wallet`, the word members type. The answer says the
+         narrower true thing (A9): no balance holds a payment, and the Rewards
+         Balance is separate. "Nothing to withdraw" was untrue beside it. */
+      `${NO_PAYMENT_BALANCE} ${NO_CUSTODY_SENTENCE} ${REWARDS_BALANCE_SEPARATE} Refunds go back to the card or account you paid with.`,
   },
   {
     id: "guarantee",
     keywords: ["guarantee", "claim", "reserve"],
-    answer: `${GUARANTEE_SENTENCE} ${GUARANTEE_SCOPE} File a claim from the agreement, with photos, inside the window.`,
+    answer: `The Vallo Guarantee has been retired, and no contribution is taken from a new payment. ${DIRECT_RAIL_STANDING} If you paid while it was running: ${LEGACY_GUARANTEE_CLAIM} File it from the agreement, with photos.`,
   },
   {
     id: "verified-badge",
@@ -102,13 +108,13 @@ export const SUPPORT_FAQ: FaqEntry[] = [
     id: "agents",
     keywords: ["agent", "list my", "list a propert", "become", "host", "shortlet", "rent out", "landlady"],
     answer:
-      "To list property, open your profile and switch profile at the top of the screen, then pick Listing or selling if the property is your own, or Agent or estate manager if you do this for other people. Whichever you pick explains what it is and starts the setup: your details, business area and a valid ID. Applications and verification documents are answered within 3 days. Once approved you can publish listings, manage availability and receive bookings.",
+      "To list property, open Add a workspace from your profile and pick the one that fits: I own the property, I am an agent, or We are a registered firm. Hotels, shortlets and restaurants use host setup. Each asks for your details and a valid ID, and a person at Vallo reviews it. One account holds one side: owner or agent, never both. Once approved you can publish listings, manage availability and receive bookings.",
   },
   {
     id: "languages",
     keywords: ["language", "yoruba", "hausa", "igbo", "pidgin", "translate"],
     answer:
-      "Vallo speaks English, Pidgin, Hausa, Igbo and Yoruba. Switch language any time from Settings and the whole app follows immediately on this device.",
+      "Vallo speaks English, Yoruba, Hausa and Igbo. Switch language any time from Settings and the whole app follows immediately on this device.",
   },
   {
     id: "cancellations",
@@ -198,7 +204,7 @@ export const SUPPORT_FAQ: FaqEntry[] = [
     id: "greeting",
     keywords: ["hello", "hi", "hey", "good morning", "good afternoon", "good evening", "how far"],
     answer:
-      "Hello. I can help with bookings, payments, agreements, the Vallo Guarantee, listing a property, verification, cancellations and more. What would you like to know?",
+      "Hello. I can help with bookings, payments, agreements, listing a property, verification, cancellations and more. What would you like to know?",
   },
 ];
 

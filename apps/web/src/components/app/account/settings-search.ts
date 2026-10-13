@@ -97,12 +97,12 @@ export function settingsSections(t: Dictionary): SettingsSection[] {
     ),
     section(
       "settings-ai-consent",
-      "/settings/privacy#settings-ai-consent",
+      "/settings/privacy/ai",
       t.settings.aiConsent.label,
       t.settings.aiConsent,
       "ai assistant anthropic consent withdraw",
     ),
-    section("settings-data", "/settings/privacy#settings-data", t.settings.data.label, t.settings.data),
+    section("settings-data", "/settings/privacy/data", t.settings.data.label, t.settings.data),
     section(
       "settings-account",
       "/settings/account#settings-account",

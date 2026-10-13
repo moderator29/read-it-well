@@ -5,7 +5,10 @@ import type { Translation } from "../../fallback";
    plain, and with no claim the English does not make. */
 export const publicMetaHa = {
   site: {
-    title: "Vallo. Yi haya, saya ko zauna, ba tare da wahala ba.",
+    /* `title` is not declared: since D1 (6 October) it is "Vallo." and the
+       slogan, which stays English in every locale like the wordmark, so the
+       English falls through. The draft that stood here translated the
+       retired "rent, buy or stay" line. */
     description:
       "Gidaje, filaye, otal-otal da shortlet a faɗin Najeriya. Ga abin da za ka biya a zahiri kafin ka kira kowa, san wanda ke bayan kowane jeri, kuma ka riƙe rikodi. Vallo Stays yana ɗauke da otal-otal, fulat, gidajen baƙi, wuraren shaƙatawa da teburin gidajen abinci a asusu ɗaya da akwatin saƙo ɗaya.",
     shareDescription:

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { previewHarnessIsOpen } from "@/lib/preview-harness";
@@ -46,5 +47,21 @@ import { GalleryBoard } from "./GalleryBoard";
  */
 export default function GalleryPage() {
   if (!previewHarnessIsOpen(process.env)) notFound();
-  return <GalleryBoard />;
+  return (
+    <>
+      {/* The other boards of this harness. Same gate as this page (each page
+          checks `previewHarnessIsOpen` itself), and none is product, so they
+          are NON_NAVIGABLE in `lib/nav/route-parents.ts`: this is the only way
+          in short of typing the address. */}
+      <nav aria-label="Other boards" className="nf-shell flex flex-wrap gap-sm pt-md">
+        <Link href="/gallery/ported" className="nf-link-btn">
+          Ported components
+        </Link>
+        <Link href="/gallery/features" className="nf-link-btn">
+          Features
+        </Link>
+      </nav>
+      <GalleryBoard />
+    </>
+  );
 }

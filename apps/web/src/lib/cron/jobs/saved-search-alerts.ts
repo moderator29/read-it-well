@@ -13,6 +13,7 @@ import {
   SAVED_SEARCH_COLUMNS,
   type SavedSearchRow,
 } from "../../saved/searches-db";
+import { writeInAppNotices } from "../../notify/in-app";
 import type { AdminClient } from "../rpc";
 
 /**
@@ -175,7 +176,8 @@ export async function savedSearchAlerts(admin: AdminClient): Promise<JobVerdict>
      other way round: a stamp that moved before its notification was written is
      a person who is never told. */
   if (plan.notices.length > 0) {
-    const { error } = await admin.from("notifications").insert(
+    const { error } = await writeInAppNotices(
+      admin,
       plan.notices.map((notice) => ({
         user_id: notice.userId,
         kind: NOTIFICATION_KIND,

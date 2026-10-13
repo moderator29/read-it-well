@@ -1,9 +1,8 @@
-import { initial } from "@/lib/text/initial";
-import Image from "next/image";
 import Link from "next/link";
-import { formatNumber, formatRating, intlTag, type Dictionary, type Locale } from "@vallo/i18n/core";
-import { CountUp } from "@/components/motion/CountUp";
-import { TierBadge } from "@/components/trust/TierBadge";
+import { formatNumber, formatRating, type Dictionary, type Locale } from "@vallo/i18n/core";
+import { BadgeRow, type BadgeRowCopy } from "../badges/BadgeRow";
+import { BadgeEarnedHost } from "../badges/BadgeEarnedHost";
+import type { ProfileBadge } from "../badges/badge-model";
 import { ShareCardFrame } from "@/components/share/ShareCardFrame";
 import { BADGE_TIER_LABEL } from "@/lib/trust/badge-tier";
 import { ratingFill } from "@/lib/ui/meter";
@@ -13,10 +12,10 @@ import { BackChevron } from "./BackChevron";
 import { ButtonLink } from "@/components/ui/Button";
 import type { ModeratorOf, SocialProfileView } from "@/lib/social/profiles-queries";
 import type { AgentTrust, Occupation, ProfilePlace, Standing } from "@/lib/social/profile-extras";
-import { BIO_HELD_DETAIL, BIO_HELD_TITLE, linkLabel } from "@/lib/social/profiles-schema";
+import { BIO_HELD_DETAIL, BIO_HELD_TITLE, linkLabel } from "@/lib/social/profiles-model";
 import { ExternalLinkSheet } from "@/components/ui/ExternalLinkSheet";
-import { RemoteImage } from "@/components/ui/RemoteImage";
 import "./social-profile.css";
+import { IdentityCredentials, IdentityHeader } from "@/components/app/identity/IdentityHeader";
 import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
 
 /**
@@ -68,9 +67,6 @@ import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
  * becomes a dash or a placeholder. A profile should never look like a form
  * somebody abandoned.
  */
-/** The cover for a page whose owner has set none: the founder's villa plate. */
-const COVER_PLATE = "/brand/photos/villa-pool-skyline-01.jpg";
-
 export function ProfileHeader({
   profile,
   isOwner,
@@ -85,8 +81,14 @@ export function ProfileHeader({
   trust,
   joinedLabel,
   follow,
+  message,
   menu,
   share,
+  badges = null,
+  badgeCopy,
+  shareUrl,
+  roleLine,
+  record = null,
 }: {
   profile: SocialProfileView;
   isOwner: boolean;
@@ -106,15 +108,32 @@ export function ProfileHeader({
   joinedLabel: string;
   /** The follow control, supplied by the page so this stays a server component. */
   follow?: React.ReactNode;
+  /** How to reach them: the Message control, when there is one. */
+  message?: React.ReactNode;
   /** The overflow menu. */
   menu?: React.ReactNode;
   /** Share, floating on the banner. */
   share?: React.ReactNode;
+  /**
+   * This person's badges from `user_badges`, or null when the read failed.
+   * Null falls back to the admin-granted chips (`standing`) so a failed read
+   * never costs a badge somebody was given. An empty array draws nothing.
+   */
+  badges?: readonly ProfileBadge[] | null;
+  badgeCopy?: BadgeRowCopy;
+  /** The person's public address, for the Share on the earned moment. */
+  shareUrl?: string;
+  /** The one line under the name (`lib/profile/role-line.ts`), already worded. */
+  roleLine?: string;
+  /**
+   * The lister's Vallo Record (`ValloRecord`), built by the page, or null when
+   * there is none. Drawn in the credentials section with the badges and the
+   * agent's reviews.
+   */
+  record?: React.ReactNode;
 }) {
   const copy = t.socialProfile;
-  const visible = t.trustVisible.profile;
   const name = profile.displayLabel || `@${profile.handle}`;
-  const monogram = initial(profile.displayLabel || profile.handle);
   /*
    * One badge, not a stack of them. Somebody who looks after four areas would
    * otherwise push the name off a 390px line, and the fifth badge tells a
@@ -124,166 +143,68 @@ export function ProfileHeader({
   const mod = moderatorOf[0];
 
   return (
-    <header data-testid="profile-header" data-theme="dark" className="nf-profile-top">
-      {/* ------------------------------------------------------ the banner */}
-      <div className="nf-social-cover nf-social-cover--profile">
-        {profile.coverUrl ? (
-          /* The bucket is public, so the CDN URL renders without a signed
-             request. next/image is skipped for it: one image from a host that
-             only exists once the platform keys land. The plate IS optimised. */
-          /* The largest image on the page, into a band about 140px tall. It
-             was shipping at whatever size the uploader stored. */
-          <RemoteImage
-            src={profile.coverUrl}
-            alt=""
-            width={1200}
-            height={400}
-            sizes="(max-width: 640px) 100vw, 640px"
-            className="nf-social-cover__photo"
-          />
-        ) : (
-          <Image
-            src={COVER_PLATE}
-            alt=""
-            fill
-            priority
-            sizes="(max-width: 768px) 100vw, 768px"
-            className="nf-social-cover__plate"
-          />
-        )}
-        <div className="nf-social-cover__scrim" aria-hidden="true" />
-
-        <div className="nf-social-float nf-social-float--start">
-          <BackChevron fallback="/around" label={copy.back} labelled />
-        </div>
-        {share ? (
-          <div className="nf-social-float nf-social-float--end">{share}</div>
-        ) : null}
-      </div>
-
-      {/* --------------------------------- the person, beside the picture */}
-      <div className="nf-profile-identity">
-        <div className="nf-profile-avatar">
-          <span className="nf-profile-avatar__disc">
-            {profile.avatarUrl ? (
-              <RemoteImage
-                src={profile.avatarUrl}
-                alt={`${name}, profile photo`}
-                width={192}
-                height={192}
-                sizes="96px"
-              />
-            ) : (
-              <span aria-hidden="true">{monogram}</span>
-            )}
+    <IdentityHeader
+      state={isOwner ? "mine" : "theirs"}
+      testId="profile-header"
+      name={name}
+      handle={profile.handle}
+      pronouns={profile.pronouns || undefined}
+      bio={profile.bio || undefined}
+      badgeTier={profile.badgeTier}
+      roleLine={roleLine}
+      role={
+        mod ? (
+          <span
+            className="nf-social-role"
+            role="img"
+            aria-label={copy.moderatorOf.replace("{place}", mod.name)}
+            data-testid="profile-role-badge"
+          >
+            <span aria-hidden="true">{copy.moderatorShort}</span>
+            <span className="nf-social-role__dot" aria-hidden="true">
+              ·
+            </span>
+            <span aria-hidden="true">{mod.name}</span>
           </span>
-          {/*
-            NO MARK ON THE RING (the founder, 25 September 2026): the person's
-            badge is shown once, beside the name, where it says whose it is.
-            It stood at the foot of the ring as well, so a verified person
-            wore it twice. The one beside the name is still
-            `public.person_badge.tier` through the one renderer, and never
-            `isAgent`, which is a role marker and not an earned badge.
-          */}
-        </div>
-
-        <div className="nf-profile-text">
-          <div className="nf-social-nameline">
-            <h1 className="nf-social-name">
-              <span className="truncate-none">{name}</span>
-              {/* The same one mark beside the name, from the same one source. */}
-              <TierBadge tier={profile.badgeTier} size={18} className="nf-social-verified" />
-            </h1>
-            {mod ? (
-              <span
-                className="nf-social-role"
-                aria-label={copy.moderatorOf.replace("{place}", mod.name)}
-                data-testid="profile-role-badge"
-              >
-                <span aria-hidden="true">{copy.moderatorShort}</span>
-                <span className="nf-social-role__dot" aria-hidden="true">
-                  ·
-                </span>
-                <span aria-hidden="true">{mod.name}</span>
-              </span>
-            ) : null}
-          </div>
-
-          <p className="nf-social-handle" data-testid="profile-handle-line">
-            @{profile.handle}
-            {/* Only when they typed it. Never inferred, never defaulted. */}
-            {profile.pronouns ? (
-              <>
-                <span className="nf-social-handle__dot" aria-hidden="true">
-                  ·
-                </span>
-                <span data-testid="profile-pronouns">{profile.pronouns}</span>
-              </>
-            ) : null}
-          </p>
-
-          {profile.bio && <p className="nf-social-bio">{profile.bio}</p>}
-
-          {/* ------------------------------------------------------- the meta: where and since when, before the counts (the doc order above) */}
-          {(place || homeArea || joinedLabel) && (
-            <div className="nf-social-meta" data-testid="profile-meta">
-              {place ? (
-                <span>
-                  <UiIcon name="location" size={16} />
-                  {place.label}
-                </span>
-              ) : homeArea ? (
-                <span>
-                  <UiIcon name="location" size={16} />
-                  {homeArea.name}, {homeArea.city}
-                </span>
-              ) : null}
-              {joinedLabel ? (
-                <span>
-                  <UiIcon name="calendar-booking" size={16} />
-                  {copy.joined.replace("{month}", joinedLabel)}
-                </span>
-              ) : null}
-            </div>
-          )}
-
-          {/*
-            Followers and Following, with a rule between them. Both lists exist
-            as routes, so both are links. Posts is the tab below rather than a
-            third number here, as the render draws it.
-          */}
-          <div className="nf-social-counts" data-testid="profile-counts">
-            <Link href={`/u/${profile.handle}/followers`} className="nf-social-count">
-              <span className="nf-social-count__value nf-numeric">
-                <CountUp value={profile.followerCount} tag={intlTag[locale]} eager />
-              </span>
-              <span className="nf-social-count__label">{copy.followers}</span>
-            </Link>
-            <span className="nf-social-count__rule" aria-hidden="true" />
-            <Link href={`/u/${profile.handle}/following`} className="nf-social-count">
-              <span className="nf-social-count__value nf-numeric">
-                <CountUp value={profile.followingCount} tag={intlTag[locale]} eager />
-              </span>
-              <span className="nf-social-count__label">{copy.following}</span>
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      {/* ----------------------------------- what to do about them */}
-      <div className="nf-profile-actions">
-        {isOwner ? (
-          <ButtonLink href={`/u/${profile.handle}/edit`} size="sm" variant="secondary">
-            {copy.editProfile}
-          </ButtonLink>
+        ) : null
+      }
+      coverUrl={profile.coverUrl || undefined}
+      avatarUrl={profile.avatarUrl || undefined}
+      place={place ? place.label : homeArea ? `${homeArea.name}, ${homeArea.city}` : undefined}
+      joined={joinedLabel ? copy.joined.replace("{month}", joinedLabel) : undefined}
+      counts={{
+        followers: profile.followerCount,
+        following: profile.followingCount,
+        posts: profile.postCount,
+        labels: { followers: copy.followers, following: copy.following, posts: copy.posts },
+      }}
+      locale={locale}
+      /* Back is a glyph on the cover, no plate and no word (D79); its name is
+         still read out. */
+      topStart={<BackChevron fallback="/around" label={copy.back} />}
+      topEnd={share}
+      actions={
+        /* MINE: the edit control. THEIRS: follow, then message when there is
+           a way to reach them, then the overflow menu. */
+        isOwner ? (
+          <>
+            <ButtonLink href={`/u/${profile.handle}/edit`} size="sm" variant="secondary">
+              {copy.editProfile}
+            </ButtonLink>
+            {menu}
+          </>
         ) : (
-          follow
-        )}
-        {menu}
-      </div>
+          <>
+            {follow}
+            {message}
+            {menu}
+          </>
+        )
+      }
+    >
 
-      {/* -------------------------------------------------- what they are */}
-      {(occupation || standing.length > 0 || profile.pidginOk) && (
+      {/* ------------------------------------- what they do, what they speak */}
+      {(occupation || profile.pidginOk) && (
         <div className="nf-social-chips nf-profile-chips">
           {occupation ? (
             <span className="nf-social-chip">
@@ -291,12 +212,6 @@ export function ProfileHeader({
               {occupation.name}
             </span>
           ) : null}
-          {standing.map((badge) => (
-            <span key={badge.code} className="nf-social-chip nf-social-chip--brand">
-              <UiIcon name={lineGlyphFor(objectFor(badge.objectName))} size={16} />
-              {badge.name}
-            </span>
-          ))}
           {profile.pidginOk ? (
             <span className="nf-social-chip">
               <UiIcon name="chat-bubble" size={12} />
@@ -351,53 +266,95 @@ export function ProfileHeader({
         </p>
       ) : null}
 
-      {/* --------------------------------------------- agents only, ever */}
-      {trust ? (
-        /* V-21: NO SCORE. The "Trust score" cell was a number out of 100
-           nobody could explain, and it is gone with its column. The card
-           (spec section 10) prints plain facts, each only when there is one:
-           the average review with its count, the stays hosted (never a zero,
-           which told every rental agent their lets did not count), and the
-           reply time. The meter is the average out of five on ten bars, and
-           its word is the review count it came from. */
-        <ShareCardFrame
-          className="mt-md"
-          testId="profile-agent-record"
-          align="center"
-          title={visible.cardTitle}
-          chip={profile.badgeTier === "gold" ? { label: BADGE_TIER_LABEL.gold } : undefined}
-          {...(trust.reviewCount > 0 && trust.averageRating !== null
-            ? {
-                eyebrow: visible.ratingLabel,
-                figure: formatRating(trust.averageRating, locale),
-                figureUnit: visible.ratingUnit,
-                meter: {
-                  filled: ratingFill(trust.averageRating),
-                  word:
-                    trust.reviewCount === 1
-                      ? visible.reviewsWordOne
-                      : visible.reviewsWord.replace("{count}", formatNumber(trust.reviewCount, locale)),
-                },
-                honest: visible.honest,
-              }
-            : {
-                eyebrow: copy.responseTime,
-                figure: trust.responseTime,
-                figureSize: "lg" as const,
-                honest: visible.noReviews,
-              })}
-          stats={[
-            ...(trust.reviewCount > 0 && trust.averageRating !== null
-              ? [{ label: visible.reviews, value: formatNumber(trust.reviewCount, locale) }]
-              : []),
-            ...(trust.completedDeals > 0
-              ? [{ label: visible.staysHosted, value: formatNumber(trust.completedDeals, locale) }]
-              : []),
-            ...(trust.reviewCount > 0 ? [{ label: copy.responseTime, value: trust.responseTime }] : []),
-          ]}
-        />
-      ) : null}
-    </header>
+      {/* ------------------------------------------------- the credentials */}
+      {/* What vouches for them, in one section under one label: the badges
+          they hold (or, when that read failed, the standing an admin granted,
+          so a failed read never costs a badge), the lister's Vallo Record and
+          an agent's reviews. Nothing in it is drawn without a row behind it,
+          and with nothing to show the section and its label are absent. */}
+      <IdentityCredentials label={copy.credentials}>
+        {badges && badges.length > 0 && badgeCopy ? (
+          <>
+            <BadgeRow badges={badges} isOwner={isOwner} copy={badgeCopy} shareUrl={shareUrl} />
+            {isOwner ? <BadgeEarnedHost viewerId={profile.userId} badges={badges} copy={badgeCopy} shareUrl={shareUrl} /> : null}
+          </>
+        ) : null}
+        {badges === null && standing.length > 0 ? (
+          <div className="nf-social-chips nf-profile-chips">
+            {standing.map((badge) => (
+              <span key={badge.code} className="nf-social-chip nf-social-chip--brand">
+                <UiIcon name={lineGlyphFor(objectFor(badge.objectName))} size={16} />
+                {badge.name}
+              </span>
+            ))}
+          </div>
+        ) : null}
+        {record}
+        {trust ? <AgentTrustCard profile={profile} trust={trust} locale={locale} t={t} /> : null}
+      </IdentityCredentials>
+    </IdentityHeader>
+  );
+}
+
+/**
+ * An agent's reviews, as plain facts (agents only, ever).
+ *
+ * V-21: NO SCORE. The "Trust score" cell was a number out of 100 nobody could
+ * explain, and it is gone with its column. The card (spec section 10) prints
+ * plain facts, each only when there is one: the average review with its
+ * count, the stays hosted (never a zero, which told every rental agent their
+ * lets did not count), and the reply time. The meter is the average out of
+ * five on ten bars, and its word is the review count it came from.
+ */
+function AgentTrustCard({
+  profile,
+  trust,
+  locale,
+  t,
+}: {
+  profile: SocialProfileView;
+  trust: AgentTrust;
+  locale: Locale;
+  t: Dictionary;
+}) {
+  const copy = t.socialProfile;
+  const visible = t.trustVisible.profile;
+  return (
+    <ShareCardFrame
+      testId="profile-agent-record"
+      align="center"
+      title={visible.cardTitle}
+      chip={profile.badgeTier === "gold" ? { label: BADGE_TIER_LABEL.gold } : undefined}
+      {...(trust.reviewCount > 0 && trust.averageRating !== null
+        ? {
+            eyebrow: visible.ratingLabel,
+            figure: formatRating(trust.averageRating, locale),
+            figureUnit: visible.ratingUnit,
+            meter: {
+              filled: ratingFill(trust.averageRating),
+              word:
+                trust.reviewCount === 1
+                  ? visible.reviewsWordOne
+                  : visible.reviewsWord.replace("{count}", formatNumber(trust.reviewCount, locale)),
+            },
+            honest: visible.honest,
+          }
+        : {
+            eyebrow: copy.responseTime,
+            figure: trust.responseTime,
+            figureSize: "lg" as const,
+            honest: visible.noReviews,
+          })}
+      stats={[
+        ...(trust.reviewCount > 0 && trust.averageRating !== null
+          ? [{ label: visible.reviews, value: formatNumber(trust.reviewCount, locale) }]
+          : []),
+        ...(trust.completedDeals > 0
+          ? [{ label: visible.staysHosted, value: formatNumber(trust.completedDeals, locale) }]
+          : []),
+        ...(trust.reviewCount > 0 ? [{ label: copy.responseTime, value: trust.responseTime }] : []),
+      ]}
+    />
   );
 }
 

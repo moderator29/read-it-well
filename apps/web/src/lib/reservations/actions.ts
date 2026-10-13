@@ -8,6 +8,13 @@ import { consume, subjectForUser } from "../security/rate-limit";
 import type { ReservationStatus } from "./db";
 import { lagosInstant, reserveSchema, reserveTarget, respondSchema, whyNotBookable } from "./schema";
 import { countOf } from "@vallo/i18n/core";
+import { seatingRefusal } from "./seating";
+import { seatingMissing } from "./seating-missing";
+import { phoneGateFor } from "../phone-otp/gate";
+import { flagIsOn } from "../flags/read";
+import { getLocale } from "../locale";
+import { getDictionary } from "@vallo/i18n";
+import { RESTAURANT_DEPOSITS_FLAG } from "./deposits";
 
 /**
  * Asking a restaurant to hold a table, and the restaurant answering.
@@ -57,7 +64,55 @@ const EXAMPLE_RESTAURANT_MESSAGE =
 const REFUSED_MESSAGE = "That table could not be held. Check the date and time, and try again.";
 
 /** `conversationId` is optional so the existing form typing (reservation id and status) still fits. */
-type Reserved = { reservationId: string; status: "PENDING"; conversationId?: string | null };
+type Reserved = {
+  reservationId: string;
+  status: "PENDING";
+  conversationId?: string | null;
+  /**
+   * D75: the deposit the restaurant's rule asks of this table, read back
+   * from the database's own quote once the row exists (null: the table is
+   * free). The form then shows the one step left: pay it by card.
+   */
+  deposit?: ReservedDeposit | null;
+};
+
+export type ReservedDeposit = { amountMinor: number; refundUntil: string | null; refundUntilHours: number; perGuest: boolean };
+
+/**
+ * The quote for a table just asked for, under the guest's own session
+ * (`reservation_deposit_quote_for` answers the guest and the venue only).
+ * Only while `restaurant_deposits` is on and only for a business venue,
+ * which is the only kind a deposit rule can name. Any failure is no deposit:
+ * the database asks again when the guest pays, and the venue cannot confirm
+ * an unpaid one, so a missed quote here costs nobody anything.
+ */
+async function depositForNewTable(
+  db: { rpc: (fn: string, args: Record<string, unknown>) => PromiseLike<{ data: unknown; error: unknown }> },
+  reservationId: string,
+): Promise<ReservedDeposit | null> {
+  try {
+    if (!(await flagIsOn(RESTAURANT_DEPOSITS_FLAG))) return null;
+    const { data, error } = await db.rpc("reservation_deposit_quote_for", { p_reservation: reservationId });
+    const q = (data ?? {}) as {
+      status?: string;
+      amount_minor?: number;
+      refund_until?: string;
+      refund_until_hours?: number;
+      per_guest?: boolean;
+    };
+    if (error || q.status !== "ok") return null;
+    const amountMinor = Number(q.amount_minor);
+    if (!Number.isSafeInteger(amountMinor) || amountMinor <= 0) return null;
+    return {
+      amountMinor,
+      refundUntil: q.refund_until ?? null,
+      refundUntilHours: Number(q.refund_until_hours ?? 0),
+      perGuest: q.per_guest === true,
+    };
+  } catch {
+    return null;
+  }
+}
 
 /** "Fri 18 Sep, 19:30", on the Lagos clock, for the words in the thread. */
 function lagosLabel(iso: string): string {
@@ -119,6 +174,10 @@ export async function reserveTable(
 
   const parsed = validate(reserveSchema, formDataToObject(formData));
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+
+  /* FULL GATE (13 October 2026): a table reservation is a booking. */
+  const phoneGate = await phoneGateFor(session.supabase, session.user.id, "booking");
+  if (phoneGate) return phoneGate;
 
   const at = lagosInstant(parsed.data.date, parsed.data.time);
   if (!at) {
@@ -197,9 +256,17 @@ export async function reserveTable(
     await db.from("reservations").update({ conversation_id: conversationId }).eq("id", data.id);
   }
 
+  const deposit =
+    target.kind === "business"
+      ? await depositForNewTable(
+          db as unknown as Parameters<typeof depositForNewTable>[0],
+          data.id,
+        )
+      : null;
+
   revalidatePath(target.kind === "business" ? `/restaurant/${target.id}` : `/listing/${target.id}`);
   revalidatePath("/bookings");
-  return ok({ reservationId: data.id, status: "PENDING", conversationId });
+  return ok({ reservationId: data.id, status: "PENDING", conversationId, ...(deposit ? { deposit } : {}) });
 }
 
 /**
@@ -236,6 +303,19 @@ export async function respondToReservation(
     .maybeSingle();
 
   if (error) {
+    /* D75: the venue tried to confirm a table whose deposit the guest has
+       not paid yet; `reservation_deposit_before_confirm` refuses it. Said
+       plainly, in the venue's language: it is the one refusal here that
+       tells them what to wait for. */
+    if (/reservation_deposit_unpaid/.test((error as { message?: string }).message ?? "")) {
+      let unpaid = getDictionary("en").tableDeposits.desk.unpaid;
+      try {
+        unpaid = getDictionary(await getLocale()).tableDeposits.desk.unpaid;
+      } catch {
+        // English, the reference language.
+      }
+      return fail(unpaid);
+    }
     return fail("That answer could not be saved. Try again.");
   }
   if (!data) {
@@ -331,4 +411,72 @@ export async function cancelReservation(
 
   revalidatePath("/bookings");
   return ok(null);
+}
+
+/**
+ * THE RESTAURANT RECORDING HOW A TABLE WENT: seated, or nobody came.
+ *
+ * A table is never prepaid on Vallo: it is free to ask for, the restaurant
+ * confirms it when a table is free, and the bill is paid at the restaurant.
+ * What the venue records after the time is the one fact about the table that
+ * is not already on it, and it is what Vallo bills a restaurant on later, so
+ * it is a mark the venue makes deliberately, once, on each table.
+ *
+ * `private.guard_reservation_write` already allows exactly this and nothing
+ * more: the venue moves a CONFIRMED table to COMPLETED (seated) or NO_SHOW
+ * once its time has passed, and the guest is told about a no-show by the
+ * database's own notification. The update repeats both conditions, so a
+ * second tap or a stale tab writes nothing.
+ */
+export async function markReservationOutcome(input: {
+  reservationId: string;
+  outcome: "COMPLETED" | "NO_SHOW";
+}): Promise<ActionResult<{ outcome: "COMPLETED" | "NO_SHOW" }>> {
+  const session = await resolveSession();
+  if (session.state !== "signed-in") return fail("Sign in to record how a table went.");
+
+  const id = typeof input?.reservationId === "string" ? input.reservationId : "";
+  const outcome = input?.outcome;
+  if (!/^[0-9a-f-]{36}$/i.test(id) || (outcome !== "COMPLETED" && outcome !== "NO_SHOW")) {
+    return fail("That table could not be identified.");
+  }
+
+  /* Founder decision D: once migration 20261013100000 is applied the
+     seating function records the outcome with who decided it, and opens a
+     dispute when the diner already said otherwise. Before that, the plain
+     update below, which the guard already allows. */
+  const viaSeating = await (session.supabase as unknown as {
+    rpc: (fn: string, args: Record<string, unknown>) => PromiseLike<{ data: unknown; error: { code?: string } | null }>;
+  }).rpc("reservation_record_outcome", { p_reservation: id, p_outcome: outcome === "COMPLETED" ? "SEATED" : "NO_SHOW" });
+  if (!viaSeating.error || !seatingMissing(viaSeating.error)) {
+    if (viaSeating.error) return fail("That could not be saved. Try again.");
+    const status = (viaSeating.data as { status?: string } | null)?.status;
+    if (status === "disputed") {
+      revalidatePath("/host/reservations");
+      return fail("The guest told us something different about this table, so a person at Vallo will check it.");
+    }
+    if (status !== "recorded") return fail(seatingRefusal(status));
+    revalidatePath("/host/reservations");
+    revalidatePath("/host");
+    revalidatePath("/bookings");
+    return ok({ outcome });
+  }
+
+  const { data, error } = await session.supabase
+    .from("reservations")
+    .update({ status: outcome })
+    .eq("id", id)
+    .eq("status", "CONFIRMED")
+    .lte("reserved_for", new Date().toISOString())
+    .select("id")
+    .maybeSingle();
+  if (error) return fail("That could not be saved. Try again.");
+  if (!data) {
+    return fail("That table has already been marked, or its time has not come yet.");
+  }
+
+  revalidatePath("/host/reservations");
+  revalidatePath("/host");
+  revalidatePath("/bookings");
+  return ok({ outcome });
 }

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
 import { EmptyState } from "@/components/app/Screen";
@@ -10,7 +11,9 @@ import { hasUnread, summariseThread } from "@/lib/support/tickets";
 import { MarkRead } from "./TicketActions";
 import { TicketThreadView } from "./ThreadView";
 
-export const metadata: Metadata = { title: "Support conversation" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: getDictionary(await getLocale()).experienceInbox.support.pages.ticketTitle };
+}
 
 /**
  * One support conversation.
@@ -26,6 +29,7 @@ export default async function SupportTicketPage({ params }: { params: Promise<{ 
   const { id } = await params;
   const locale = await getLocale();
   const read = await loadMyTicket(id);
+  const w = getDictionary(locale).experienceInbox.support.pages;
   const back = "/support/messages";
 
   if (read.state === "not-found") notFound();
@@ -33,14 +37,14 @@ export default async function SupportTicketPage({ params }: { params: Promise<{ 
   if (read.state === "signed-out") {
     return (
       <div className="mx-auto max-w-2xl">
-        <PageHeader title="Support conversation" fallback={back} />
+        <PageHeader title={w.ticketTitle} fallback={back} />
         <EmptyState
           icon="support-chat"
-          title="Sign in to read this conversation"
-          body="Support conversations are kept on your account, so only you can open them."
+          title={w.ticketSignedOutTitle}
+          body={w.ticketSignedOutBody}
           action={
             <ButtonLink href={`/sign-in?next=${encodeURIComponent(`/support/messages/${id}`)}`} variant="primary" size="lg">
-              Sign in
+              {w.signIn}
             </ButtonLink>
           }
         />
@@ -51,15 +55,15 @@ export default async function SupportTicketPage({ params }: { params: Promise<{ 
   if (read.state === "unreadable") {
     return (
       <div className="mx-auto max-w-2xl">
-        <PageHeader title="Support conversation" fallback={back} />
+        <PageHeader title={w.ticketTitle} fallback={back} />
         <EmptyState
           icon="support-chat"
-          title="This conversation could not be loaded"
-          body="Nothing is lost: every message is kept on your ticket. Check your connection and try again."
+          title={w.ticketUnreadableTitle}
+          body={w.ticketUnreadableBody}
           action={<RetryButton />}
           secondary={
             <ButtonLink href={back} variant="ghost" size="lg">
-              Back to messages
+              {w.backToMessages}
             </ButtonLink>
           }
         />

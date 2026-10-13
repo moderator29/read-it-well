@@ -6,6 +6,7 @@ import { getLocale } from "@/lib/locale";
 import { getSide } from "@/lib/side";
 import { isSide, type Side } from "@/lib/side.constants";
 import { AddWorkspaceChooser } from "@/components/supply/AddWorkspaceChooser";
+import { forChooser } from "@/components/supply/supply-copy";
 
 /* Back to the declared parent (`route-parents.ts`): this route declared one and drew no control, so Android back closed the app. */
 const BACK = parentOf("/profile/setup");
@@ -64,7 +65,7 @@ export default async function AddWorkspacePage({
       <div className="pb-sm">
         <BackButton fallback={BACK.kind === "parent" ? BACK.href : "/profile"} surface="round" />
       </div>
-      <AddWorkspaceChooser t={t} side={side} />
+      <AddWorkspaceChooser t={forChooser(t)} side={side} />
     </>
   );
 }

@@ -59,7 +59,7 @@ export async function GET(request: Request) {
           headline: "2 bedroom flats in Yaba",
           range: "Asking ₦1.8m to ₦2.6m a year",
           basis: "Based on 6 Vallo listings, September 2026",
-          footer: "Asking prices, not sold prices. vallo.ng",
+          footer: "Asking prices, not sold prices. vallospaces.com",
           count: 6,
           meterWord: "6 listings",
           month: "September 2026",

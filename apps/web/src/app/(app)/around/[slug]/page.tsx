@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { sheetWordsOf } from "@/components/social/sheet-words";
 import { getDictionary } from "@vallo/i18n";
 import { PulseCard } from "@/components/app/around/PulseCard";
 import { nextQuestion } from "@/lib/around/pulse";
@@ -16,13 +17,13 @@ import {
   getLgaDoor,
   listPlacesWithinLga,
 } from "@/lib/social/areas-queries";
-import { PLACE_COPY } from "@/lib/social/places-schema";
+import { PLACE_COPY } from "@/lib/social/places-model";
 import { getAreaFeed } from "@/lib/social/posts-queries";
 import { stampAuthorTiers } from "@/lib/social/author-badges";
 import { listStories } from "@/lib/social/stories-queries";
 import { getPlaceReviews } from "@/lib/social/reviews-queries";
 import { listMyAreas } from "@/lib/social/areas-queries";
-import { POST_COPY } from "@/lib/social/posts-schema";
+import { POST_COPY } from "@/lib/social/posts-model";
 import { Feed } from "@/components/social/feed/Feed";
 import { loadMoreAround } from "../feed-actions";
 import { AroundFab } from "@/components/social/AroundFab";
@@ -41,13 +42,14 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const detail = await getArea(slug);
-  if (!detail || detail === "unconfigured") return { title: "Around" };
+  const [detail, locale] = await Promise.all([getArea(slug), getLocale()]);
+  const words = getDictionary(locale).experienceSocial.place;
+  if (!detail || detail === "unconfigured") return { title: words.title };
   return {
-    title: `Around ${detail.area.name}`,
+    title: words.metaTitle.replace("{name}", detail.area.name),
     description:
       detail.area.blurb ??
-      `What is happening around ${detail.area.name}, ${detail.area.city}.`,
+      words.metaDescription.replace("{name}", detail.area.name).replace("{city}", detail.area.city),
   };
 }
 
@@ -75,6 +77,7 @@ export default async function AreaPage({
      this is correctness rather than a visible fix, and it is cheap here
      because the locale is one call away. */
   const locale = await getLocale();
+  const words = getDictionary(locale).experienceSocial.place;
   const { slug } = await params;
   if (!(await isSocialEnabled())) return <SocialPaused />;
 
@@ -86,10 +89,9 @@ export default async function AreaPage({
   if (detail === "unconfigured") {
     return (
       <div className="mx-auto w-full max-w-3xl pb-4xl pt-md">
-        <PageHeader title="Around" fallback="/around" />
+        <PageHeader title={words.title} fallback="/around" />
         <p className="nf-panel nf-panel--card block p-lg text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
-          We cannot reach this place right now. This is on our side, not yours.
-          Nothing has been lost, and the rest of the app works as normal.
+          {words.unreachable}
         </p>
       </div>
     );
@@ -142,7 +144,7 @@ export default async function AreaPage({
       {door ? (
         <Link href={`/around/${door.slug}`} className="nf-chip nf-enter__back mb-md">
           <UiIcon name="arrow-up" size={15} />
-          Part of {door.name}
+          {words.partOf.replace("{name}", door.name)}
         </Link>
       ) : null}
 
@@ -175,6 +177,7 @@ export default async function AreaPage({
           /* The place's own timeline pages through BB's `loadMoreFeed`, the
              same read `getAreaFeed` made for the first page. */
           loadMore={loadMoreAround.bind(null, { kind: "area", areaId: area.id })}
+          sheet={sheetWordsOf(getDictionary(locale))}
           signedIn={viewer.signedIn}
           canCompose
           areaId={area.status === "ACTIVE" ? area.id : undefined}

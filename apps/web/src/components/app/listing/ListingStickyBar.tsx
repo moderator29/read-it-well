@@ -8,6 +8,7 @@ import { useStayDatesOptional } from "./StayDates";
 import { ButtonLink } from "@/components/ui/Button";
 import { AuthGate } from "@/components/auth/AuthGate";
 import { ActionBar } from "@/components/ui/ActionBar";
+import "@/app/css/catalogue.css";
 
 /**
  * The listing's pinned action bar.
@@ -74,6 +75,7 @@ export function ListingStickyBar({
   moveInFromLabel,
   secondaryShortLabel,
   sidePanelFromLg = false,
+  stackOnPhone = false,
 }: {
   variant: "stay" | "rental" | "partner";
   priceMinor: number;
@@ -121,6 +123,13 @@ export function ListingStickyBar({
    * pinned twin under it (and the bar no longer runs under the side rail).
    */
   sidePanelFromLg?: boolean;
+  /**
+   * THE PRIMARY TAKES THE WHOLE WIDTH ON A PHONE (founder's reference, 13
+   * October 2026: "Schedule a visit", brand blue, full width). The figure and
+   * the quiet second action share the first row and the primary has the
+   * second to itself, under 40rem; from 40rem the three sit on one row.
+   */
+  stackOnPhone?: boolean;
 }) {
   // Only a stay has a date picker to read from; the hook is optional so the
   // same bar renders on rental and partner pages with no provider above it.
@@ -206,7 +215,7 @@ export function ListingStickyBar({
       <div
         ref={footRef}
         data-testid="listing-sticky-bar"
-        className="nf-detail-foot"
+        className={stackOnPhone ? "nf-detail-foot nf-detail-foot--stacked" : "nf-detail-foot"}
       >
         <p className="nf-detail-foot__lead">
           {amount > 0 ? (
@@ -287,7 +296,10 @@ export function ListingStickyBar({
             className="nf-detail-foot__secondary"
             data-testid="sticky-breakdown"
           >
-            <span className="nf-btn__label sm:hidden">{secondaryShortLabel ?? secondary.label}</span>
+            {/* Under 23rem (a 320 phone, two rows) the short word; from 23rem
+                to `sm` the glyph alone on the one-row bar; the full label
+                from `sm`. The accessible name is the full label throughout. */}
+            <span className="nf-btn__label min-[23rem]:hidden">{secondaryShortLabel ?? secondary.label}</span>
             <span className="nf-btn__label hidden sm:inline">{secondary.label}</span>
           </ButtonLink>
         ) : secondary ? (

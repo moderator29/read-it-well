@@ -1,7 +1,8 @@
 import type { Dictionary, Locale } from "@vallo/i18n/core";
 import type { Listing } from "@/lib/listings/types";
 import { Amount } from "@/components/ui/Amount";
-import { DetailGlyph } from "./DetailGlyph";
+import { Money } from "@/components/ui/Money";
+import { TrueCostActions } from "./TrueCostActions";
 import { TYPE } from "@/components/app/Screen";
 import { moveInLines } from "./move-in-lines";
 import { unexplainedRemainder } from "@/lib/rent/ledger";
@@ -9,6 +10,11 @@ import type { PayeeContext } from "@/lib/listings/money-map";
 import { feeShares, formatBps, type FeeKey } from "@/lib/listings/fee-share";
 import { feeRuleFor } from "@/lib/trust/fee-rules";
 import { formatMoney } from "@vallo/i18n/core";
+import { Unfold } from "@/components/ui/Unfold";
+import "@/app/css/catalogue.css";
+
+/* The fees on a bill: every cost that is neither the rent nor money that comes back. */
+const FEE_KEYS = new Set(["agency", "legal", "agreement", "service"]);
 
 /**
  * What it actually costs to move in.
@@ -51,6 +57,17 @@ import { formatMoney } from "@vallo/i18n/core";
  *     than a ₦0 nobody reads.
  *   - It renders nothing at all when the lister named neither a total nor a
  *     single part, rather than showing a zero or an empty breakdown.
+ *
+ * REFERENCE 7073, ITEMISED (Session 3, Stage 5). The bill in 7073 is one
+ * card: each charge's name with its basis on a quiet line beneath it, the
+ * figure on the right, and "Total payable" closing the same card under a
+ * heavier rule. So the total no longer floats in its own glowing panel below
+ * the list (a second container, and a second glow on a screen that allows
+ * one): it is the card's last row, at display size, always visible. What sits
+ * behind the one `Unfold` is only the reading notes (how a stated or summed
+ * total is meant, the state's published fee limits): every cost, every fee,
+ * its share of a year's rent, the gaps and the total stay on the page, because
+ * price, fees and money state are never behind a disclosure.
  */
 
 export function ListingMoveIn({
@@ -58,12 +75,19 @@ export function ListingMoveIn({
   locale,
   t,
   records = { mandateVerified: false, ownershipVerified: false },
+  actions,
 }: {
   listing: Listing;
   locale: Locale;
   t: Dictionary;
   /** V-46: whether staff dated the ownership or the mandate. Absent reads as neither. */
   records?: Pick<PayeeContext, "mandateVerified" | "ownershipVerified">;
+  /**
+   * The three equal tiles under the total (Ledger, Share, Ask). The listing
+   * page passes them; a harness or a surface with nowhere to send them leaves
+   * them out and the bill ends at its total.
+   */
+  actions?: { ledgerHref: string; messageHref: string; shareTitle: string };
 }) {
   const copy = t.moveIn;
   const lines = moveInLines(listing, copy, {
@@ -97,12 +121,57 @@ export function ListingMoveIn({
   /* A declared zero agency fee is the direct-from-owner argument in one line,
      so it gets said in words rather than left as a ₦0 in a column. */
   const noAgencyFee = listing.agencyFeeMinor === 0;
+  const gateTitle = t.experienceDetail.breakdown.howRead;
+  const gateHint = t.experienceDetail.breakdown.howReadHint;
+  const sx = t.experienceDetail.breakdown;
+
+  /*
+   * THE BILL, TO PREMIUM-STANDARD REFERENCE 8 (the founder's bill breakdown,
+   * 7 October): three small figures over the lines, then one card of lines
+   * whose amounts sit right aligned and tabular with a muted line under each
+   * label that says what the figure is made of, then a heavier total, then
+   * three equal action tiles. The plates that stood at the start of every row
+   * came off: the reference draws none, and at 390 they cost the label column
+   * 56px, which is why a two-word cost wrapped onto four lines.
+   *
+   * WHO EACH COST IS PAID TO stays on its row, under the arithmetic, because
+   * "no landlord is on record" is a trust fact and the rule above holds:
+   * money facts are never behind a disclosure.
+   */
+  const rentMinor = lines.find((line) => line.key === "rent")?.minor ?? 0;
+  const feesMinor = lines
+    .filter((line) => FEE_KEYS.has(line.key))
+    .reduce((sum, line) => sum + (line.minor ?? 0), 0);
+  const backMinor = lines.find((line) => line.key === "caution")?.minor ?? 0;
+  const strip = [
+    rentMinor > 0 ? { key: "rent", label: sx.stripRent, minor: rentMinor } : null,
+    feesMinor > 0 ? { key: "fees", label: sx.stripFees, minor: feesMinor } : null,
+    backMinor > 0 ? { key: "back", label: sx.stripBack, minor: backMinor } : null,
+  ].filter((cell): cell is { key: string; label: string; minor: number } => cell !== null);
 
   return (
-    <div data-testid="move-in-cost" className="nf-movein">
+    <div data-testid="move-in-cost" className="nf-movein nf-movein--bill">
+      {/* A strip of one figure says nothing the total does not, so it needs two. */}
+      {strip.length > 1 && (
+        <dl className="nf-bill-strip" aria-label={sx.stripLabel} data-testid="move-in-strip">
+          {strip.map((cell) => (
+            <div key={cell.key} className="nf-bill-strip__cell" data-cell={cell.key}>
+              <dt className="nf-bill-strip__label">{cell.label}</dt>
+              <dd className="nf-bill-strip__figure">
+                <Money minor={cell.minor} locale={locale} currency={listing.currency} mode="glance" />
+              </dd>
+            </div>
+          ))}
+        </dl>
+      )}
       <ul className="nf-movein__list">
         {lines.map((line) => {
           const isDeclared = line.minor !== undefined && line.minor !== null;
+          const share = shares?.each[line.key as FeeKey];
+          const sub = [
+            line.basis,
+            share ? feeCopy.shareOfRent.replace("{share}", formatBps(share.bps, locale)) : undefined,
+          ].filter(Boolean);
           return (
             <li
               key={line.key}
@@ -110,26 +179,20 @@ export function ListingMoveIn({
               data-declared={isDeclared || undefined}
               data-testid={`move-in-line-${line.key}`}
             >
-              <DetailGlyph name={line.glyph} className="nf-movein__plate" />
               <span className="nf-movein__name">
-                <span className="nf-movein__label">
-                  {line.label}
-                  {line.basis && <span className="nf-movein__basis"> ({line.basis})</span>}
-                </span>
-                {/* A declared ZERO does not also say who keeps it: "No agency
-                    fee" over "Paid to the agent" is two halves of a sentence
-                    that contradict each other, and the zero is the whole
-                    point of the line. */}
+                <span className="nf-movein__label">{line.label}</span>
+                {sub.length > 0 && (
+                  <span
+                    className="nf-movein__basis nf-numeric"
+                    {...(share ? { "data-testid": `fee-share-${line.key}` } : {})}
+                  >
+                    {sub.join(" · ")}
+                  </span>
+                )}
+                {/* A declared zero has nobody to be paid; "No agency fee" over
+                    "Paid to the agent" would contradict itself. */}
                 {isDeclared && line.minor !== 0 && line.keeper && (
                   <span className="nf-movein__keeper">{line.keeper}</span>
-                )}
-                {shares?.each[line.key as FeeKey] && (
-                  <span className="nf-movein__keeper nf-numeric" data-testid={`fee-share-${line.key}`}>
-                    {feeCopy.shareOfRent.replace(
-                      "{share}",
-                      formatBps(shares.each[line.key as FeeKey]!.bps, locale),
-                    )}
-                  </span>
                 )}
               </span>
               <span className="nf-movein__figure">
@@ -152,29 +215,24 @@ export function ListingMoveIn({
         })}
         {remainder > 0 && (
           <li className="nf-movein__row" data-declared data-testid="move-in-line-remainder">
-            <DetailGlyph name="info" tone="pending" className="nf-movein__plate" />
             <span className="nf-movein__name">
               <span className="nf-movein__label text-[var(--nf-state-warning)]">{gateCopy.line}</span>
-              <span className="nf-movein__keeper">{gateCopy.note}</span>
+              <span className="nf-movein__basis">{gateCopy.note}</span>
             </span>
             <span className="nf-movein__figure text-[var(--nf-state-warning)]">
               <Amount minorUnits={remainder} locale={locale} currency={listing.currency} />
             </span>
           </li>
         )}
-      </ul>
-
-      <div className="nf-movein__total" data-testid="move-in-total">
-        <DetailGlyph name="coins" size="lg" className="nf-movein__plate" />
-        <span className="min-w-0">
-          <span className="nf-movein__total-label">
-            {stated ? copy.totalStated : copy.totalFrom}
-          </span>
+        {/* The total: the lister's stated figure, or the floor of the parts
+            they named, labelled "from". Never computed into something else. */}
+        <li className="nf-movein__row nf-movein__row--total" data-declared data-testid="move-in-total">
+          <span className="nf-movein__total-label">{stated ? copy.totalStated : copy.totalFrom}</span>
           <span className="nf-movein__total-figure">
             <Amount minorUnits={total} locale={locale} currency={listing.currency} />
           </span>
-        </span>
-      </div>
+        </li>
+      </ul>
 
       {shares?.total && shares.total.minor > 0 && (
         <p className={`mt-row ${TYPE.body}`} data-testid="fee-share-total">
@@ -183,20 +241,6 @@ export function ListingMoveIn({
             .replace("{share}", formatBps(shares.total.bps, locale))}
         </p>
       )}
-      {shares && rule && (
-        <p className={`mt-inline-tight ${TYPE.caption} leading-relaxed`} data-testid="fee-state-rule">
-          {feeCopy.stateRule
-            .replace("{state}", rule.stateName)
-            .replace("{agency}", formatBps(rule.agencyMaxBps, locale))
-            .replace("{legal}", formatBps(rule.legalMaxBps, locale))
-            .replace("{source}", rule.source)}{" "}
-          {feeCopy.noCap}
-        </p>
-      )}
-
-      <p className={`mt-row ${TYPE.caption} leading-relaxed`}>
-        {stated ? copy.statedNote : copy.summedNote}
-      </p>
       {undeclared > 0 && (
         <p className={`mt-inline-tight ${TYPE.caption} leading-relaxed`} data-testid="move-in-gaps">
           {(undeclared === 1 ? copy.undeclaredOne : copy.undeclaredMany).replace(
@@ -205,11 +249,57 @@ export function ListingMoveIn({
           )}
         </p>
       )}
-      {noAgencyFee && (
-        <p className={`mt-inline-tight ${TYPE.caption} leading-relaxed`} data-testid="move-in-direct">
-          {copy.noAgencyFeeNote}
-        </p>
+      {actions && (
+        <TrueCostActions
+          listingId={listing.id}
+          title={actions.shareTitle}
+          ledgerHref={actions.ledgerHref}
+          messageHref={actions.messageHref}
+          copy={{
+            label: sx.actionsLabel,
+            ledger: sx.ledger,
+            ledgerLabel: sx.ledgerLabel,
+            share: sx.share,
+            shareLabel: sx.shareLabel,
+            ask: sx.ask,
+            askLabel: sx.askLabel,
+          }}
+        />
       )}
+      <Unfold
+        className="mt-row"
+        data-testid="move-in-notes"
+        items={[
+          {
+            id: "how-read",
+            icon: "info",
+            title: gateTitle,
+            hint: gateHint,
+            content: (
+              <div className="grid gap-inline-tight">
+                {shares && rule && (
+                  <p className={`${TYPE.caption} leading-relaxed`} data-testid="fee-state-rule">
+                    {feeCopy.stateRule
+                      .replace("{state}", rule.stateName)
+                      .replace("{agency}", formatBps(rule.agencyMaxBps, locale))
+                      .replace("{legal}", formatBps(rule.legalMaxBps, locale))
+                      .replace("{source}", rule.source)}{" "}
+                    {feeCopy.noCap}
+                  </p>
+                )}
+                <p className={`${TYPE.caption} leading-relaxed`}>
+                  {stated ? copy.statedNote : copy.summedNote}
+                </p>
+                {noAgencyFee && (
+                  <p className={`${TYPE.caption} leading-relaxed`} data-testid="move-in-direct">
+                    {copy.noAgencyFeeNote}
+                  </p>
+                )}
+              </div>
+            ),
+          },
+        ]}
+      />
     </div>
   );
 }

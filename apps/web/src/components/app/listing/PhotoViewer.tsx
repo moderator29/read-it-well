@@ -13,11 +13,15 @@ import {
 import { createPortal } from "react-dom";
 import type { CSSProperties, ReactNode, TouchEvent as ReactTouchEvent } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { Button } from "@/components/ui/Button";
 import { useOverlay } from "@/lib/ui/use-overlay";
 import { readSheetMarker } from "@/lib/ui/use-sheet-history";
 import type { ListingKind } from "@/lib/listings/types";
 import { PhotoFrame } from "./PhotoFrame";
+import { clockOf, photosAsMedia, type GalleryMedia } from "./gallery-media";
 import { useClientMount } from "@/lib/ui/client-mount";
+import { useMotionGate } from "@/components/motion/useMotionGate";
+import "@/app/css/catalogue.css";
 
 /**
  * The listing lightbox.
@@ -34,11 +38,39 @@ import { useClientMount } from "@/lib/ui/client-mount";
  * frames, Escape closes, page scroll is locked while it is open, and focus goes
  * back to whatever opened it. The entrance is a fade plus a small scale, and
  * under `prefers-reduced-motion` it collapses to the fade alone.
+ *
+ * PHOTO OPEN IS A SHARED-ELEMENT ZOOM (MOTION_SYSTEM "Content and feed",
+ * north star motion 18). When the opener hands over the rectangle of the
+ * thumbnail that was tapped, the photograph grows OUT OF THAT THUMBNAIL into
+ * the viewer rather than fading up in the middle of the screen, while the dark
+ * ground fades in behind it; closing from inside folds it back into the same
+ * rectangle. The person never loses the photograph: that is what the motion
+ * says. It is measured, not guessed (`getBoundingClientRect` on both ends),
+ * one uniform scale so the photograph is never squashed, on the `land` curve
+ * in, `leave` out, transform and opacity only, through the Web Animations API
+ * because it is a known track with a known end. Durations and curves are READ
+ * FROM THE TOKENS at run time, so reduced motion (which collapses the tokens
+ * to 1ms) and the Calm and Off settings (`useMotionGate().quiet`, which skips
+ * the morph entirely) are honoured without a second code path.
  */
 
+type ViewerOptions = {
+  /** False when the opener is about to disappear (the "Show all" sheet). */
+  foldBack?: boolean;
+  /**
+   * The opener can show any photo in the tapped frame (the hero's own track).
+   * On close the viewer asks it to show the photo the reader ended on, and
+   * folds into the frame even when that is not the photo first tapped.
+   */
+  follow?: (index: number) => void;
+};
+
 type ViewerApi = {
-  /** Opens the viewer on a given photo index. No-op when there is nothing to show. */
-  open(index: number): void;
+  /**
+   * Opens the viewer on a given photo index. No-op when there is nothing to
+   * show. `origin` is the tapped thumbnail's rectangle, for the zoom.
+   */
+  open(index: number, origin?: DOMRect | null, options?: ViewerOptions): void;
 };
 
 const PhotoViewerContext = createContext<ViewerApi | null>(null);
@@ -51,6 +83,7 @@ export function usePhotoViewer(): ViewerApi | null {
 export function PhotoViewerProvider({
   title,
   photos,
+  media,
   hue,
   kind,
   children,
@@ -58,6 +91,11 @@ export function PhotoViewerProvider({
   title: string;
   /** Photo URLs, best first. */
   photos: string[];
+  /**
+   * Photos and videos in the lister's order (`gallery-media.ts`). Optional:
+   * without it the viewer shows `photos`, as it always has.
+   */
+  media?: GalleryMedia[];
   hue: number;
   /**
    * Which market this is, so the frame drawn behind a missing photograph is a
@@ -67,16 +105,23 @@ export function PhotoViewerProvider({
   kind: ListingKind;
   children: ReactNode;
 }) {
+  const items = useMemo(() => (media && media.length > 0 ? media : photosAsMedia(photos)), [media, photos]);
   const [index, setIndex] = useState<number | null>(null);
+  const [origin, setOrigin] = useState<DOMRect | null>(null);
+  const [foldBack, setFoldBack] = useState(true);
+  const [follow, setFollow] = useState<{ to: (index: number) => void } | null>(null);
 
   const api = useMemo<ViewerApi>(
     () => ({
-      open(next: number) {
-        if (photos.length === 0) return;
-        setIndex(Math.max(0, Math.min(photos.length - 1, next)));
+      open(next: number, from?: DOMRect | null, options?: ViewerOptions) {
+        if (items.length === 0) return;
+        setOrigin(from ?? null);
+        setFoldBack(options?.foldBack !== false);
+        setFollow(options?.follow ? { to: options.follow } : null);
+        setIndex(Math.max(0, Math.min(items.length - 1, next)));
       },
     }),
-    [photos.length],
+    [items.length],
   );
 
   return (
@@ -85,10 +130,13 @@ export function PhotoViewerProvider({
       {index !== null && (
         <Lightbox
           title={title}
-          photos={photos}
+          items={items}
           hue={hue}
           kind={kind}
           startIndex={index}
+          origin={origin}
+          foldBack={foldBack}
+          follow={follow?.to ?? null}
           onClose={() => setIndex(null)}
         />
       )}
@@ -100,17 +148,26 @@ const FOCUSABLE = 'button:not([disabled]),[tabindex]:not([tabindex="-1"])';
 
 function Lightbox({
   title,
-  photos,
+  items,
   hue,
   kind,
   startIndex,
+  origin,
+  foldBack,
+  follow,
   onClose,
 }: {
   title: string;
-  photos: string[];
+  items: GalleryMedia[];
   hue: number;
   kind: ListingKind;
   startIndex: number;
+  /** The tapped thumbnail's rectangle, or null for a plain fade. */
+  origin: DOMRect | null;
+  /** False when the opener is about to disappear (the "Show all" sheet). */
+  foldBack: boolean;
+  /** The opener shows a given photo in the tapped frame, or null. */
+  follow: ((index: number) => void) | null;
   onClose(): void;
 }) {
   const track = useRef<HTMLDivElement | null>(null);
@@ -120,7 +177,12 @@ function Lightbox({
      which is a second render scheduled for a fact React already knew. See
      `client-mount.ts`. */
   const mounted = useClientMount();
-  const [entered, setEntered] = useState(false);
+  const { quiet } = useMotionGate();
+  /* Decided once, on open: a zoom needs a rectangle to grow from and a reader
+     who has not asked for less motion. Otherwise the existing fade. */
+  const [morph] = useState(() => origin !== null && origin.width > 0 && !quiet);
+  /* The zoom carries the entrance itself, so the surface starts opaque. */
+  const [entered, setEntered] = useState(morph);
   const [active, setActive] = useState(startIndex);
   const [broken, setBroken] = useState<Record<number, true>>({});
 
@@ -198,7 +260,70 @@ function Lightbox({
     return () => window.removeEventListener("popstate", onPop);
   }, [mounted]);
 
-  const close = useCallback(() => {
+  /* Closing from inside folds the photograph back into its thumbnail; the
+     history pop that does the real close waits for the fold.
+
+     ROUND 5. It folded only while the photo on screen was the one first
+     tapped and nothing was mid-drag; otherwise the viewer vanished in one
+     frame, which is most closes (people swipe, then close; or swipe down).
+     Now:
+       - a frame that can follow (the hero's own track) is first moved to the
+         photo the reader ended on, out of sight under the viewer, and the
+         photograph folds into it: the same picture lands where it goes;
+       - a dismissing drag folds FROM WHERE THE FINGER LEFT IT. The track is
+         still carrying the drag's transform, so the pane's fold is written
+         relative to it, and the two compose into one move to the frame,
+         with the ground fading on from wherever the drag had taken it. */
+  const folding = useRef(false);
+  /* The zoom out of the thumbnail still running, and the fold back into it:
+     held so a close mid-open measures the pane at rest, and so nothing is
+     left animating (or calling back) once the viewer has gone. */
+  const opening = useRef<Animation[]>([]);
+  const folds = useRef<Animation[]>([]);
+  const fold = useCallback((then: () => void, held?: { dy: number; scale: number; fade: number }) => {
+    const ground = surface.current;
+    const el = track.current;
+    const at = el ? Math.round(el.scrollLeft / Math.max(1, el.clientWidth)) : startIndex;
+    const pane = el?.children[at];
+    const canLand = at === startIndex || follow !== null;
+    if (!morph || !foldBack || !origin || !canLand || !(pane instanceof HTMLElement) || !ground || folding.current) {
+      then();
+      return;
+    }
+    folding.current = true;
+    /* Cancelled BEFORE measuring: a pane caught mid-zoom reports its scaled,
+       translated box, and the fold would then fly back from the wrong place. */
+    for (const run of opening.current) run.cancel();
+    opening.current = [];
+    if (at !== startIndex) follow?.(at);
+    /* The pane at rest is the viewer's own box (fixed, full screen); measured
+       there rather than on the pane, which may be carrying the drag. */
+    const f = flightOf(origin, ground.getBoundingClientRect());
+    const to = held
+      ? `translate(${f.dx / held.scale}px, ${(f.dy - held.dy) / held.scale}px) scale(${f.scale / held.scale})`
+      : `translate(${f.dx}px, ${f.dy}px) scale(${f.scale})`;
+    const timing = motionToken("--nf-duration-base", "240ms", "--nf-ease-exit", "cubic-bezier(0.4, 0, 1, 1)");
+    const fade = ground.animate([{ opacity: held?.fade ?? 1 }, { opacity: 0 }], { ...timing, fill: "forwards", pseudoElement: "::before" });
+    const back = pane.animate([{ transform: "none", opacity: 1 }, { transform: to, opacity: 0.6 }], { ...timing, fill: "forwards" });
+    folds.current = [fade, back];
+    back.onfinish = then;
+    back.oncancel = then;
+  }, [morph, foldBack, origin, startIndex, follow]);
+  /* Gone mid-fold (a route change under the viewer): stop the fold without
+     letting its cancel call the close that already happened. */
+  useEffect(
+    () => () => {
+      for (const run of folds.current) {
+        run.onfinish = null;
+        run.oncancel = null;
+        run.cancel();
+      }
+      folds.current = [];
+    },
+    [],
+  );
+
+  const closeNow = useCallback(() => {
     if (pushed.current && (window.history.state as { nfPhotoViewer?: boolean } | null)?.nfPhotoViewer) {
       pushed.current = false;
       /* popstate above does the actual close, so there is one path out. */
@@ -207,6 +332,18 @@ function Lightbox({
     }
     onClose();
   }, [onClose]);
+  /* Where a dismissing drag has the photograph, read through a ref so this
+     callback keeps one identity while the finger moves; the fold starts
+     from there (above). */
+  const dragAt = useRef(0);
+  const close = useCallback(() => {
+    if (morph && foldBack) {
+      const dy = dragAt.current;
+      fold(closeNow, dy > 0 ? dragPose(dy) : undefined);
+      return;
+    }
+    closeNow();
+  }, [fold, morph, foldBack, closeNow]);
   useOverlay({ open: mounted, onClose: close, panelRef: surface, autoFocus: false });
 
   /*
@@ -222,6 +359,9 @@ function Lightbox({
    * animate on the way.
    */
   const [drag, setDrag] = useState(0);
+  useEffect(() => {
+    dragAt.current = drag;
+  }, [drag]);
   const gesture = useRef<{ x: number; y: number; t: number; axis: "x" | "y" | null } | null>(null);
   const reduced = useRef(false);
   useEffect(() => {
@@ -284,6 +424,26 @@ function Lightbox({
     el.scrollLeft = startIndex * el.clientWidth;
   }, [mounted, startIndex]);
 
+  /* The zoom out of the thumbnail. Runs once, after the track has been
+     scrolled to the tapped photo, so the pane it measures is the one shown. */
+  useEffect(() => {
+    if (!mounted || !morph || !origin) return;
+    const pane = track.current?.children[startIndex];
+    const ground = surface.current;
+    if (!(pane instanceof HTMLElement) || !ground) return;
+    const from = flight(origin, pane.getBoundingClientRect());
+    const timing = motionToken("--nf-duration-slow", "380ms", "--nf-ease-entrance", "cubic-bezier(0.16, 1, 0.3, 1)");
+    const zoom = pane.animate([{ transform: from, opacity: 0.6 }, { transform: "none", opacity: 1 }], timing);
+    const fade = ground.animate([{ opacity: 0 }, { opacity: 1 }], { ...timing, pseudoElement: "::before" });
+    opening.current = [zoom, fade];
+    return () => {
+      zoom.cancel();
+      fade.cancel();
+      opening.current = [];
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per opening, by design
+  }, [mounted]);
+
   const go = useCallback((next: number) => {
     const el = track.current;
     if (!el) return;
@@ -338,8 +498,8 @@ function Lightbox({
         drag > 0
           ? ({
               "--nf-viewer-drag": `${drag}px`,
-              "--nf-viewer-fade": String(1 - Math.min(drag / 520, 0.75)),
-              "--nf-viewer-scale": String(1 - Math.min(drag / 3000, 0.12)),
+              "--nf-viewer-fade": String(dragPose(drag).fade),
+              "--nf-viewer-scale": String(dragPose(drag).scale),
             } as CSSProperties)
           : undefined
       }
@@ -347,8 +507,10 @@ function Lightbox({
         // Above the Sheet primitive's 80/81, so a photo opened from the
         // "Show all" sheet is never painted behind the sheet it came from.
         "nf-photo-viewer fixed inset-0 z-[90] outline-none",
-        "transition-opacity duration-200 ease-out motion-reduce:transition-none",
-        "motion-safe:transition-[opacity,transform] motion-safe:duration-200",
+        /* The plain fade (no thumbnail to grow from) on the motion tokens,
+           not Tailwind's own 200ms and curve (CRAFT-PRINCIPLES 2.1). */
+        "transition-opacity duration-[var(--nf-duration-base)] ease-[var(--nf-ease-standard)] motion-reduce:transition-none",
+        "motion-safe:transition-[opacity,transform]",
         entered ? "opacity-100 motion-safe:scale-100" : "opacity-0 motion-safe:scale-[0.98]",
       ].join(" ")}
     >
@@ -357,17 +519,40 @@ function Lightbox({
         onScroll={onScroll}
         className="nf-scroll-x nf-photo-viewer__track flex h-full w-full snap-x snap-mandatory"
       >
-        {photos.map((photo, i) => (
+        {items.map((item, i) => (
           <div
-            key={`${photo}-${i}`}
+            key={`${item.src}-${i}`}
             className="relative h-full w-full shrink-0 snap-center snap-always overflow-hidden"
           >
-            {broken[i] ? (
+            {item.kind === "video" ? (
+              /* A video opens PLAYING (it was asked for), muted until the
+                 viewer unmutes, with its controls. Only the slide on screen
+                 holds a player: swiping away unmounts it, which stops it,
+                 and the others show their still. */
+              i === active ? (
+                <video
+                  src={item.src}
+                  poster={item.poster ?? undefined}
+                  controls
+                  autoPlay
+                  muted
+                  playsInline
+                  preload="auto"
+                  aria-label={`${title}, video ${i + 1} of ${items.length}${item.durationSeconds ? `, ${clockOf(item.durationSeconds)}` : ""}`}
+                  data-testid="lightbox-video"
+                  className="h-full w-full object-contain"
+                />
+              ) : item.poster ? (
+                <Image src={item.poster} alt="" fill sizes="100vw" className="object-contain" />
+              ) : (
+                <PhotoFrame hue={hue} index={i} kind={kind} />
+              )
+            ) : broken[i] ? (
               <PhotoFrame hue={hue} index={i} kind={kind} />
             ) : (
               <Image
-                src={photo}
-                alt={`${title}, photo ${i + 1} of ${photos.length}`}
+                src={item.src}
+                alt={`${title}, photo ${i + 1} of ${items.length}`}
                 fill
                 sizes="100vw"
                 onError={() => setBroken((prev) => ({ ...prev, [i]: true }))}
@@ -380,44 +565,91 @@ function Lightbox({
 
       {/* Chrome sits above the track and clears the notch and the home indicator. */}
       <div className="nf-photo-viewer__chrome pointer-events-none absolute inset-x-0 top-0 flex items-center justify-between gap-sm">
-        <button
-          type="button"
+        <Button
+          variant="glass"
+          size="sm"
+          iconOnly
           onClick={close}
           aria-label="Close photos"
           data-testid="lightbox-close"
-          className="pointer-events-auto grid h-11 w-11 place-items-center nf-btn nf-btn--glass nf-btn--sm nf-btn--icon text-[var(--nf-content-on-media)] transition-transform active:scale-90 motion-reduce:transition-none"
+          className="pointer-events-auto grid h-11 w-11 place-items-center text-[var(--nf-content-on-media)] transition-transform active:scale-90 motion-reduce:transition-none"
         >
           <UiIcon name="close" size={20} />
-        </button>
+        </Button>
         <p className="nf-numeric pointer-events-none rounded-[var(--nf-radius-xs)] nf-media-chip nf-media-chip--caption px-sm py-xs font-semibold">
           <span className="sr-only">Photo </span>
-          {active + 1} / {photos.length}
+          {active + 1} / {items.length}
         </p>
       </div>
 
-      {photos.length > 1 && (
+      {items.length > 1 && (
         <>
-          <button
-            type="button"
+          <Button
+            variant="glass"
+            size="sm"
+            iconOnly
             onClick={() => go(active - 1)}
             disabled={active === 0}
             aria-label="Previous photo"
-            className="absolute left-3 top-1/2 hidden h-11 w-11 -translate-y-1/2 place-items-center nf-btn nf-btn--glass nf-btn--sm nf-btn--icon text-[var(--nf-content-on-media)] disabled:opacity-0 sm:grid"
+            className="absolute left-3 top-1/2 hidden h-11 w-11 -translate-y-1/2 place-items-center text-[var(--nf-content-on-media)] disabled:opacity-0 sm:grid"
           >
             <UiIcon name="arrow-left" size={20} />
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="glass"
+            size="sm"
+            iconOnly
             onClick={() => go(active + 1)}
-            disabled={active === photos.length - 1}
+            disabled={active === items.length - 1}
             aria-label="Next photo"
-            className="absolute right-3 top-1/2 hidden h-11 w-11 -translate-y-1/2 place-items-center nf-btn nf-btn--glass nf-btn--sm nf-btn--icon text-[var(--nf-content-on-media)] disabled:opacity-0 sm:grid"
+            className="absolute right-3 top-1/2 hidden h-11 w-11 -translate-y-1/2 place-items-center text-[var(--nf-content-on-media)] disabled:opacity-0 sm:grid"
           >
             <UiIcon name="arrow-right" size={20} />
-          </button>
+          </Button>
         </>
       )}
     </div>,
     document.body,
   );
+}
+
+/**
+ * The transform that puts a full-screen pane over the thumbnail it came from:
+ * one uniform scale (never squashed) about the pane's centre, and the move
+ * between the two centres. Measured on both ends, so it is right at any width.
+ */
+function flightOf(from: DOMRect, pane: DOMRect): { dx: number; dy: number; scale: number } {
+  if (pane.width === 0 || pane.height === 0) return { dx: 0, dy: 0, scale: 1 };
+  return {
+    scale: Math.max(from.width / pane.width, from.height / pane.height),
+    dx: from.left + from.width / 2 - (pane.left + pane.width / 2),
+    dy: from.top + from.height / 2 - (pane.top + pane.height / 2),
+  };
+}
+
+function flight(from: DOMRect, pane: DOMRect): string {
+  if (pane.width === 0 || pane.height === 0) return "none";
+  const f = flightOf(from, pane);
+  return `translate(${f.dx}px, ${f.dy}px) scale(${f.scale})`;
+}
+
+/** Where a dismissing drag of `dy` pixels has the photograph and its ground. */
+function dragPose(dy: number): { dy: number; scale: number; fade: number } {
+  return { dy, scale: 1 - Math.min(dy / 3000, 0.12), fade: 1 - Math.min(dy / 520, 0.75) };
+}
+
+/**
+ * A duration and a curve READ FROM THE MOTION TOKENS, for the Web Animations
+ * API, which cannot read a CSS variable itself. Reduced motion collapses the
+ * duration tokens to 1ms in tokens.css, and that reaches this too. The
+ * fallbacks are the tokens' own values, for a document where they are absent.
+ */
+function motionToken(duration: string, durationFallback: string, ease: string, easeFallback: string): KeyframeAnimationOptions {
+  const root = getComputedStyle(document.documentElement);
+  const raw = root.getPropertyValue(duration).trim() || durationFallback;
+  const ms = raw.endsWith("ms") ? Number.parseFloat(raw) : Number.parseFloat(raw) * 1000;
+  return {
+    duration: Number.isFinite(ms) ? ms : Number.parseFloat(durationFallback),
+    easing: root.getPropertyValue(ease).trim() || easeFallback,
+  };
 }

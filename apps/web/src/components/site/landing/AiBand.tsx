@@ -72,7 +72,6 @@ export function AiBand({ t, locale, cards, door }: { t: Dictionary; locale: Loca
               you: a.you,
               name: a.name,
               verified: t.landing.face.card.verified,
-              example: t.landing.face.card.example,
               script: a.caption,
             }}
           />

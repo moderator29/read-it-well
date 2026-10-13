@@ -1,4 +1,6 @@
+import { getDictionary } from "@vallo/i18n";
 import { StoryViewer } from "@/components/social/story/StoryViewer";
+import { reportWordsOf } from "@/components/social/sheet-words";
 import { FEED_STORIES, STORY, STORY_COMMENTS, STORY_FACES } from "../fixtures";
 
 /**
@@ -34,6 +36,7 @@ export default function StoryPreview() {
           more={FEED_STORIES.slice(1)}
           signedIn
           viewerFollows={false}
+          reportWords={reportWordsOf(getDictionary("en"))}
         />
       </div>
     </main>

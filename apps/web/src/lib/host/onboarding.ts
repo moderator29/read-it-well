@@ -21,6 +21,8 @@
  */
 
 import type { Database } from "../supabase/database.types";
+import type { ArrivalCharges } from "../stays/arrival-charges";
+import { HOST_AGREEMENT_VERSION, PAY_ON_VALLO_VERSION } from "../legal/versions";
 
 export type BusinessKind = Database["public"]["Enums"]["business_kind"];
 
@@ -173,6 +175,9 @@ export type HostStepId =
   | "house-rules"
   /* Shared by both accommodation branches: `GOVERNING-10` screen four. */
   | "facilities"
+  /* Both accommodation branches: every charge a guest could be asked for at
+     the door (V-57), which the publish gate requires. */
+  | "extra-charges"
   /* The restaurant's two, `GOVERNING-11` screens three and four. */
   | "restaurant"
   | "tables"
@@ -269,6 +274,11 @@ const STEPS: Record<HostStepId, HostStep> = {
     title: "Facilities and photos",
     hint: "Show guests what the property has to offer, and where it is.",
   },
+  "extra-charges": {
+    id: "extra-charges",
+    title: "Extra charges",
+    hint: "Anything a guest could be asked to pay when they arrive. Answer all five, an amount or none.",
+  },
   restaurant: {
     id: "restaurant",
     title: "Your restaurant",
@@ -322,7 +332,10 @@ export function stepsFor(hostType: HostType | null, kind: BusinessKind | null = 
       branchFor(kind) === "shortlet"
         ? ["place", "house-rules"]
         : ["hotel", "room-types", "rates"];
-    ids.push(...drawn, "facilities");
+    /* The charges at the door come last before the payout, so they are
+       answered before the application is sent: an approved stay cannot be
+       published until all five are (V-57). */
+    ids.push(...drawn, "facilities", "extra-charges");
   }
   if (hostType === "restaurant") ids.push("restaurant", "tables");
   ids.push("payout", "consent", "review");
@@ -543,10 +556,23 @@ export type HostDraft = {
     /* The cuisines themselves, which `GOVERNING-11` screen three draws as
        chips and which a count cannot express. */
     cuisines: string[];
+    /*
+     * The restaurant's own table rules. Null until set, and null on an estate
+     * where `20261013090200_...` has not run, where they cannot be kept.
+     */
+    sittingMinutes: number | null;
+    holdMinutes: number | null;
+    cancelNoticeHours: number | null;
   } | null;
   serviceWindowCount: number;
   /** SUP-17: photographs of the business itself (a restaurant's), on record. */
   businessPhotoCount: number;
+  /**
+   * Those photographs themselves, cover first, so the restaurant's step can
+   * draw them. `missingFrom` refuses a restaurant with none, and until the
+   * wizard carried them there was nowhere in the application to add one.
+   */
+  businessPhotos: { id: string; url: string }[];
   /*
    * THE OPENING HOURS, as `GOVERNING-11` screen four lists them: one row a
    * day, with the hours and a switch. Read back for the same reason as the
@@ -566,6 +592,32 @@ export type HostDraft = {
   hasBankAccount: boolean;
   /** ISO instants keyed by consent id; an absent key is a consent not given. */
   consents: Partial<Record<ConsentId, string>>;
+  /**
+   * The reviewer's words when the application was sent back
+   * (MORE_INFO_REQUIRED) or refused. The wizard prints them at the top of
+   * every step, because a host told "open the application to answer" has to
+   * be able to read the question there.
+   */
+  reviewNotes: string | null;
+  /**
+   * The charges at the door, as last declared and complete, or null when the
+   * five have not all been answered. A stay is not sent without them (V-57).
+   */
+  arrivalCharges: ArrivalCharges | null;
+  /** Consents given and then withdrawn, newest last, for the record. */
+  consentWithdrawals: { id: ConsentId; at: string }[];
+  /**
+   * The Host Agreement version this host agreed to (with the Terms and the
+   * Privacy policy, `consents.agreements`), or null. Agreed before the
+   * business is created; a business on an older version is asked again.
+   */
+  hostAgreementVersion: string | null;
+  /**
+   * Ruling 6 (13 October 2026): the version of "Every payment for a deal I
+   * make on Vallo happens inside Vallo." this host ticked, or null. Optional
+   * so a draft written before it reads as not yet ticked.
+   */
+  payOnValloVersion?: string | null;
 };
 
 /** A draft with nothing in it, for a host who has not started. */
@@ -596,11 +648,74 @@ export function emptyHostDraft(): HostDraft {
     restaurant: null,
     serviceWindowCount: 0,
     businessPhotoCount: 0,
+    businessPhotos: [],
     serviceWindows: [],
     hygieneAttestedAt: null,
     licenceAttestedAt: null,
     hasBankAccount: false,
     consents: {},
+    reviewNotes: null,
+    arrivalCharges: null,
+    consentWithdrawals: [],
+    hostAgreementVersion: null,
+    payOnValloVersion: null,
+  };
+}
+
+/**
+ * The wizard's draft after the server has read the application back.
+ *
+ * WHY THIS EXISTS. Every write in the wizard ends in `router.refresh()`, which
+ * hands the wizard a fresh `initial` read from the database, and the wizard
+ * kept its first copy in state and never looked at the new one. So a property,
+ * a room type, a rate, a photograph or a week of hours could be saved and the
+ * screen would go on drawing the draft from before the save: the room types
+ * step never offered Continue, the facilities step said "save the property
+ * first" about a property that existed, an uploaded photograph never appeared,
+ * the health permit box would not stay ticked, and Back showed blanks over
+ * answers that were on record.
+ *
+ * WHAT COMES FROM WHERE. The rows only the server writes (the property, its
+ * rooms, rates and photographs, the restaurant's profile, hours and
+ * photographs, the attestations, the status and the reviewer's note) are taken
+ * from the read. The words the person is typing (names, contact, address,
+ * registration, the representative) and the host type stay the device's,
+ * because a keystroke made while a save was in flight is newer than the read
+ * that save produced. Documents and the bank account only ever gain an entry.
+ * Consents are the server's: ticking one records it and unticking one
+ * records its withdrawal.
+ *
+ * A READ THAT CAME BACK EMPTY CHANGES NOTHING. `readMyHostDraft` answers a
+ * failed read with an empty draft, and adopting it would wipe the screen.
+ */
+export function mergeServerDraft(local: HostDraft, server: HostDraft): HostDraft {
+  if (!server.businessId) return local;
+  if (local.businessId && local.businessId !== server.businessId) return local;
+  return {
+    ...local,
+    businessId: server.businessId,
+    status: server.status,
+    documents: { ...local.documents, ...server.documents },
+    accommodation: server.accommodation,
+    roomTypeCount: server.roomTypeCount,
+    ratePlanCount: server.ratePlanCount,
+    roomTypes: server.roomTypes,
+    restaurant: server.restaurant,
+    serviceWindowCount: server.serviceWindowCount,
+    businessPhotoCount: server.businessPhotoCount,
+    businessPhotos: server.businessPhotos,
+    serviceWindows: server.serviceWindows,
+    hygieneAttestedAt: server.hygieneAttestedAt,
+    licenceAttestedAt: server.licenceAttestedAt,
+    hasBankAccount: local.hasBankAccount || server.hasBankAccount,
+    reviewNotes: server.reviewNotes,
+    arrivalCharges: server.arrivalCharges,
+    /* Every tick and every untick is now a write (a withdrawal is recorded),
+       so the read is the truth about consents too. */
+    consents: server.consents,
+    consentWithdrawals: server.consentWithdrawals,
+    hostAgreementVersion: server.hostAgreementVersion,
+    payOnValloVersion: server.payOnValloVersion ?? null,
   };
 }
 
@@ -651,6 +766,9 @@ export function missingFrom(draft: HostDraft): string[] {
     }
     if (draft.roomTypeCount === 0) missing.push("At least one room type");
     if (draft.ratePlanCount === 0) missing.push("A rate with a cancellation policy");
+    /* V-57: the publish gate refuses a stay whose charges at the door are not
+       all answered, so the application asks for them before it is sent. */
+    if (!draft.arrivalCharges) missing.push("The charges at the door, all five answered");
   } else {
     if (!draft.restaurant || draft.restaurant.priceBand === null) missing.push("A price band");
     if (draft.serviceWindowCount === 0) missing.push("At least one service window");
@@ -660,6 +778,16 @@ export function missingFrom(draft: HostDraft): string[] {
   }
 
   if (!draft.hasBankAccount) missing.push("A bank account for payouts");
+
+  /* Founder decision B: the Terms, the Privacy policy and the Host Agreement,
+     agreed with their versions, before anything is sent or published. */
+  if (draft.hostAgreementVersion !== HOST_AGREEMENT_VERSION) {
+    missing.push("Your agreement to the Terms, the Privacy policy and the Host Agreement");
+  }
+  /* Ruling 6: and that every payment for a deal happens inside Vallo. */
+  if (draft.payOnValloVersion !== PAY_ON_VALLO_VERSION) {
+    missing.push("Your statement that every payment for a deal you make on Vallo happens inside Vallo");
+  }
 
   for (const consent of CONSENTS) {
     if (!draft.consents[consent.id]) missing.push(consent.label);

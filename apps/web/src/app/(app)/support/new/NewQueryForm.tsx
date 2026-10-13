@@ -29,6 +29,9 @@ import {
 } from "@/lib/support/new-query";
 import { expectedResponse } from "@/lib/support/tickets";
 import { IconPlate } from "@/components/ui/IconPlate";
+import type { Dictionary } from "@vallo/i18n/core";
+
+type FormCopy = Dictionary["experienceInbox"]["support"]["form"];
 
 const DRAFT_KEY = "nf_support_new_draft";
 
@@ -52,7 +55,10 @@ export function NewQueryForm({
   initialKind,
   initialTopic,
   records,
+  copy,
 }: {
+  /** The form's words, `experienceInbox.support.form`, from the server page. */
+  copy: FormCopy;
   /** From the link the member tapped; absent keeps the stored draft's kind. */
   initialKind: QueryKind | undefined;
   initialTopic: string | null;
@@ -126,7 +132,7 @@ export function NewQueryForm({
       return;
     }
     if (!online) {
-      setServerError("You are offline. Your message is kept here; send it when you are back online.");
+      setServerError(copy.offline);
       return;
     }
     start(async () => {
@@ -159,7 +165,7 @@ export function NewQueryForm({
   if (filed)
     return (
       <>
-        <FiledView filed={filed} topic={draft.topic} />
+        <FiledView filed={filed} topic={draft.topic} copy={copy} />
         <TicketFiledSheet reference={filed.reference} />
       </>
     );
@@ -170,19 +176,19 @@ export function NewQueryForm({
     <form onSubmit={submit} className="space-y-block" noValidate data-testid="support-new-form">
       <Segmented
         options={[
-          { value: "question", label: "Question" },
-          { value: "problem", label: "Problem" },
+          { value: "question", label: copy.question },
+          { value: "problem", label: copy.problem },
         ]}
         value={draft.kind}
         onChange={(kind) => update({ kind })}
         semantics="radio"
-        label="What kind of message"
+        label={copy.kindLabel}
         full
       />
       <p className="nf-body-sm -mt-group text-[var(--nf-content-secondary)]">{kindCopy.lede}</p>
 
-      <section className="nf-sgroup" aria-label="Topic">
-        <p className="nf-sgroup__label">What is it about?</p>
+      <section className="nf-sgroup" aria-label={copy.topic}>
+        <p className="nf-sgroup__label">{copy.about}</p>
         <div className="nf-sgroup__body nf-panel nf-panel--card">
           <button
             type="button"
@@ -193,8 +199,8 @@ export function NewQueryForm({
             data-testid="support-topic"
           >
             <span className="nf-srow__body min-w-0">
-              <span className="nf-srow__label">{topic ? topic.title : "Choose a topic"}</span>
-              <span className="nf-srow__sub">{topic ? topic.hint : "Account, payment, booking, safety and more"}</span>
+              <span className="nf-srow__label">{topic ? copy.topicChoices[topic.code].title : copy.chooseTopic}</span>
+              <span className="nf-srow__sub">{topic ? copy.topicChoices[topic.code].hint : copy.chooseTopicHint}</span>
             </span>
             <UiIcon name="chevron-right" size={16} className="shrink-0 text-[var(--nf-content-muted)]" />
           </button>
@@ -204,10 +210,10 @@ export function NewQueryForm({
                 <div className="nf-srow" data-testid="support-related-chosen">
                   <span className="nf-srow__body min-w-0">
                     <span className="nf-srow__label break-words">{draft.related.label}</span>
-                    <span className="nf-srow__sub">Linked, so the team opens the right record</span>
+                    <span className="nf-srow__sub">{copy.linkedHint}</span>
                   </span>
                   <Button variant="quiet" size="sm" onClick={() => update({ related: null })} className="shrink-0">
-                    Remove
+                    {copy.remove}
                   </Button>
                 </div>
               ) : (
@@ -219,8 +225,8 @@ export function NewQueryForm({
                   data-testid="support-related"
                 >
                   <span className="nf-srow__body min-w-0">
-                    <span className="nf-srow__label">Link a record</span>
-                    <span className="nf-srow__sub">Optional. Choose from your own records</span>
+                    <span className="nf-srow__label">{copy.linkRecord}</span>
+                    <span className="nf-srow__sub">{copy.linkRecordHint}</span>
                   </span>
                   <UiIcon name="plus" size={16} className="shrink-0 text-[var(--nf-content-muted)]" />
                 </button>
@@ -237,11 +243,11 @@ export function NewQueryForm({
 
       <div ref={bodyRef}>
       <TextArea
-        label={draft.kind === "problem" ? "What happened?" : "Your question"}
+        label={draft.kind === "problem" ? copy.whatHappened : copy.yourQuestion}
         hint={
           draft.kind === "problem"
-            ? "What happened, when, and what you expected instead."
-            : "Ask it the way you would ask a person."
+            ? copy.whatHappenedHint
+            : copy.yourQuestionHint
         }
         value={draft.body}
         onChange={(e) => update({ body: e.target.value })}
@@ -264,18 +270,17 @@ export function NewQueryForm({
 
       <div className="space-y-row">
         <Button type="submit" variant="primary" size="lg" full loading={pending} disabled={pending} data-testid="support-send">
-          Send to support
+          {copy.send}
         </Button>
         <p className="nf-caption text-center text-[var(--nf-content-muted)]">
-          {expectedResponse(draft.topic)} You get a reference now, and the reply in Messages, your notifications and
-          your email.
+          {copy.afterSend.replace("{expected}", expectedResponse(draft.topic, copy.expected))}
         </p>
       </div>
 
-      <Sheet open={sheet === "topic"} onOpenChange={(o) => setSheet(o ? "topic" : null)} title="What is it about?" closeLabel="Close" detents={[0.85]}>
+      <Sheet open={sheet === "topic"} onOpenChange={(o) => setSheet(o ? "topic" : null)} title={copy.about} closeLabel={copy.close} detents={[0.85]}>
         <ChoiceList
-          label="Topics"
-          items={TOPIC_CHOICES.map((choice) => ({ key: choice.code, title: choice.title, sub: choice.hint }))}
+          label={copy.topics}
+          items={TOPIC_CHOICES.map((choice) => ({ key: choice.code, title: copy.topicChoices[choice.code].title, sub: copy.topicChoices[choice.code].hint }))}
           selected={draft.topic}
           onPick={(key) => {
             const next = topicChoice(key);
@@ -286,7 +291,7 @@ export function NewQueryForm({
         />
       </Sheet>
 
-      <Sheet open={sheet === "record"} onOpenChange={(o) => setSheet(o ? "record" : null)} title="Link a record" closeLabel="Close" detents={[0.85]}>
+      <Sheet open={sheet === "record"} onOpenChange={(o) => setSheet(o ? "record" : null)} title={copy.linkRecord} closeLabel={copy.close} detents={[0.85]}>
         <RecordList
           records={offered}
           selected={draft.related?.id ?? null}
@@ -325,7 +330,7 @@ function ChoiceList({
               data-testid={`support-choice-${item.key}`}
             >
               <span className="min-w-0 flex-1">
-                <span className="nf-body block font-medium text-[var(--nf-content-primary)]">{item.title}</span>
+                <span className="nf-body block font-semibold text-[var(--nf-content-primary)]">{item.title}</span>
                 {item.sub && <span className="nf-caption block text-[var(--nf-content-muted)]">{item.sub}</span>}
               </span>
               {chosen && <UiIcon name="check" size={20} className="shrink-0 text-[var(--nf-content-link)]" />}
@@ -367,7 +372,7 @@ function RecordList({
                     className="flex min-h-14 w-full cursor-pointer items-center gap-group rounded-[var(--nf-radius-control)] px-xs py-xs text-left hover:bg-[var(--nf-surface-inset)]"
                   >
                     <span className="min-w-0 flex-1">
-                      <span className="nf-body-sm block break-words font-medium text-[var(--nf-content-primary)]">
+                      <span className="nf-body-sm block break-words font-semibold text-[var(--nf-content-primary)]">
                         {record.label}
                       </span>
                       {record.sub && (
@@ -387,16 +392,15 @@ function RecordList({
 }
 
 /** The receipt after filing: the reference, the clock, and the way into the thread. */
-export function FiledView({ filed, topic }: { filed: Filed; topic: string | null }) {
+export function FiledView({ filed, topic, copy }: { filed: Filed; topic: string | null; copy: FormCopy }) {
   return (
     <div className="nf-panel nf-panel--card block p-card text-center" data-testid="support-filed" role="status">
       <IconPlate size="lg" className="mx-auto">
         <UiIcon name="headset" size={24} />
       </IconPlate>
-      <h2 className="nf-h3 mt-group text-[var(--nf-content-primary)]">We have your message</h2>
+      <h2 className="nf-h3 mt-group text-[var(--nf-content-primary)]">{copy.filedTitle}</h2>
       <p className="nf-body-sm mx-auto mt-row max-w-[40ch] text-[var(--nf-content-secondary)]">
-        {expectedResponse(topic)} We have emailed you this reference and you will get a notification when the team
-        replies.
+        {copy.filedBody.replace("{expected}", expectedResponse(topic, copy.expected))}
       </p>
       <div className="mt-group flex justify-center">
         <span
@@ -410,11 +414,11 @@ export function FiledView({ filed, topic }: { filed: Filed; topic: string | null
       <div className="mt-block space-y-row">
         {filed.id ? (
           <ButtonLink href={`/support/messages/${filed.id}`} variant="primary" size="lg" full>
-            Open the conversation
+            {copy.openConversation}
           </ButtonLink>
         ) : null}
         <Link href="/support" className="nf-link-quiet inline-flex min-h-11 items-center font-semibold">
-          Back to help and support
+          {copy.backToHelp}
         </Link>
       </div>
     </div>

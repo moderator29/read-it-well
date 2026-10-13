@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { formatDate, type Locale } from "@vallo/i18n";
+import { formatDate, getDictionary, type Locale } from "@vallo/i18n";
 import { StatusPill } from "@/components/ui/StatusPill";
 import type { TicketSummary } from "@/lib/support/my-tickets";
-import { memberStateCopy, previewText } from "@/lib/support/tickets";
+import { memberStateCopy, previewText, topicName } from "@/lib/support/tickets";
 
 /**
  * The member's support tickets as rows: topic, the last thing said, the
@@ -12,11 +12,12 @@ import { memberStateCopy, previewText } from "@/lib/support/tickets";
  * type and the words "New reply", so unread is never colour alone.
  */
 export function TicketListView({ tickets, locale }: { tickets: TicketSummary[]; locale: Locale }) {
+  const w = getDictionary(locale).experienceInbox.support;
   return (
-    <section className="nf-sgroup" aria-label="Support conversations">
-      <ul className="nf-sgroup__body nf-panel nf-panel--card" data-testid="support-ticket-list">
+    <section className="nf-sgroup" aria-label={w.list.label}>
+      <ul className="nf-sgroup__body nf-panel nf-panel--card nf-arrive-list" data-testid="support-ticket-list">
         {tickets.map((ticket) => {
-          const state = memberStateCopy(ticket.status, ticket.thread.supportSpokeLast);
+          const state = memberStateCopy(ticket.status, ticket.thread.supportSpokeLast, w.states);
           const last = ticket.thread.last;
           const when = formatDate(new Date(last?.createdAt ?? ticket.createdAt), locale, {
             day: "numeric",
@@ -36,16 +37,16 @@ export function TicketListView({ tickets, locale }: { tickets: TicketSummary[]; 
                     {ticket.unread && (
                       <span className="h-2 w-2 shrink-0 rounded-full bg-[var(--nf-brand-primary)]" aria-hidden="true" />
                     )}
-                    <span className={`truncate ${ticket.unread ? "font-bold" : ""}`}>{ticket.topic ?? "Support ticket"}</span>
+                    <span className={`truncate ${ticket.unread ? "font-bold" : ""}`}>{topicName(ticket.topicCode, w.topicNames) ?? ticket.topic ?? w.list.untitled}</span>
                   </span>
                   <span className="nf-srow__sub break-words">
                     {last
-                      ? `${last.senderRole === "admin" ? "Support" : "You"}: ${previewText(last.body, 80)}`
-                      : "Waiting for a person to pick it up"}
+                      ? `${last.senderRole === "admin" ? w.list.supportSaid : w.list.youSaid}: ${previewText(last.body, 80)}`
+                      : w.list.waiting}
                   </span>
                   <span className="nf-srow__sub">
                     {ticket.reference} · {when}
-                    {ticket.unread ? " · New reply" : ""}
+                    {ticket.unread ? ` · ${w.thread.newReply}` : ""}
                   </span>
                 </span>
                 <span className="nf-srow__value">
@@ -58,7 +59,7 @@ export function TicketListView({ tickets, locale }: { tickets: TicketSummary[]; 
           );
         })}
       </ul>
-      <p className="nf-sgroup__note">Replies also arrive by email and in your notifications.</p>
+      <p className="nf-sgroup__note">{w.list.emailNote}</p>
     </section>
   );
 }

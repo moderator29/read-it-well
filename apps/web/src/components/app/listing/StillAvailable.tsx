@@ -64,7 +64,7 @@ export function StillAvailable({
       </Button>
       <p className="mt-inline nf-caption text-[var(--nf-content-muted)]">{copy.askNote}</p>
       {error && (
-        <p className="mt-inline nf-body-sm font-medium text-[var(--nf-state-error)]" role="alert">
+        <p className="mt-inline nf-body-sm font-semibold text-[var(--nf-state-error)]" role="alert">
           {error}
         </p>
       )}

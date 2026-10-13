@@ -8,6 +8,15 @@
   register the content pages inherit from the landing: a photo plate behind
   the page head, the same glass, the same glow, the same rhythm.
 */
+/*
+ * Loaded by the components that draw its classes, not by globals.css (the
+ * CSS-diet move of 6 October). This line states the layer order the document
+ * already has from Tailwind, so the order holds whichever chunk the browser
+ * receives first; without it a chunk that arrived before globals would put
+ * `components` ahead of `base` and `theme`.
+ */
+@layer theme, base, components, utilities;
+
 @layer components {
   /*
    * The phone bar carries exactly three things, as the render does: the
@@ -267,11 +276,8 @@
     margin-top: var(--nf-gap-block);
     overflow: hidden;
     border-radius: var(--nf-container-radius);
-    border: var(--nf-border-width) solid var(--nf-panel-edge);
-    border-color: var(--nf-panel-edges);
-    box-shadow:
-      var(--nf-panel-glow),
-      var(--nf-elev-2);
+    -webkit-mask-image: radial-gradient(110% 95% at 50% 35%, #000 55%, transparent 100%);
+    mask-image: radial-gradient(110% 95% at 50% 35%, #000 55%, transparent 100%);
   }
   @media (max-width: 63.999rem) {
     .nf-site-head--tool .nf-site-head-plate {
@@ -292,16 +298,19 @@
       border: 0;
       border-radius: 0;
       box-shadow: none;
+      -webkit-mask-image: none;
+      mask-image: none;
     }
     .nf-site-head-plate::after {
       content: "";
       position: absolute;
       inset: 0;
       background:
+        radial-gradient(50% 60% at 50% 42%, color-mix(in oklab, var(--nf-landing-ink) 55%, transparent), transparent 100%),
         linear-gradient(
           180deg,
-          color-mix(in oklab, var(--nf-landing-ink) 72%, transparent) 0%,
-          color-mix(in oklab, var(--nf-landing-ink) 48%, transparent) 55%,
+          color-mix(in oklab, var(--nf-landing-ink) 82%, transparent) 0%,
+          color-mix(in oklab, var(--nf-landing-ink) 60%, transparent) 55%,
           var(--nf-surface-canvas) 100%
         );
     }
@@ -339,6 +348,27 @@
     color: var(--nf-landing-fg);
     background: var(--nf-landing-control);
   }
+  /* THE PLASMA PASS (P7): the landing's mono overline, where the chip stood. */
+  .nf-site-head-overline {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--nf-brand-secondary);
+  }
+  .nf-site-head-overline > svg {
+    flex: none;
+  }
+  @media (min-width: 64rem) {
+    .nf-site-head-overline {
+      color: var(--nf-landing-fg-2);
+    }
+  }
   .nf-site-head-body {
     display: flex;
     flex-direction: column;
@@ -351,16 +381,25 @@
   }
   .nf-site-head-title {
     font-family: var(--nf-font-display);
-    font-size: var(--nf-text-h0);
-    line-height: 1.05;
-    font-weight: 700;
-    letter-spacing: var(--nf-tracking-display);
+    font-size: clamp(2.25rem, 1.35rem + 3.4vw, 4rem);
+    line-height: 1.02;
+    font-weight: 600;
+    letter-spacing: -0.035em;
     color: var(--nf-landing-fg);
+    text-wrap: balance;
   }
   .nf-site-head-lede {
     font-size: var(--nf-text-body-lg);
     line-height: 1.55;
     color: var(--nf-landing-fg-2);
+  }
+  /* On a phone in Light the lede stands on the head's blue wash, where the
+     secondary ink measured 3.7:1. The primary ink clears 4.5. From 64rem it is
+     on the photograph's scrim and keeps its on-ink white. */
+  @media (max-width: 63.999rem) {
+    :root[data-theme="light"] .nf-site-head:not(:where([data-theme="dark"] *)) .nf-site-head-lede {
+      color: var(--nf-content-primary);
+    }
   }
 
   /*
@@ -454,7 +493,7 @@
  * A thin light runs round the rim of a container: two short arcs of a conic
  * gradient, masked to a 1.5px ring that follows the element's own corner
  * (`border-radius: inherit`), turned by the registered angle `--nf-logo-lap`
- * on the `nf-logo-lap` keyframes. Both are the logo pill's, declared once in
+ * on the `nf-logo-lap` keyframes. Both were the retired logo pill's (D82), declared once in
  * light.css; the keyframes are not theme-gated, so the lap runs in the night
  * too. Transform-free and paint-only on a pseudo-element, so the container's
  * content never repaints.
@@ -504,7 +543,9 @@
       var(--nf-edge-lap-ink-2) 357deg,
       transparent 360deg
     );
-    animation: nf-logo-lap var(--nf-edge-lap-speed) linear infinite;
+    /* Two laps, then it rests at the end angle (the dock's lap does the same):
+       nothing loops forever but the aurora and the assistant's thinking. */
+    animation: nf-logo-lap var(--nf-edge-lap-speed) linear 2 both;
   }
   /* THE BLUE-TO-ORANGE LAP (the warm spark, spec section 18): on the landing
      capsule, the hero's eyebrow capsule and the one band that opens each
@@ -552,7 +593,7 @@
     min-height: 3.75rem;
     padding: 0.5rem;
     padding-inline-end: 0.5rem;
-    border-radius: 1.875rem;
+    border-radius: var(--nf-radius-pill);
     border: var(--nf-border-width) solid var(--nf-card-border);
     background: color-mix(in oklab, var(--nf-surface-elevated) 90%, transparent);
     -webkit-backdrop-filter: blur(18px) saturate(1.4);
@@ -571,10 +612,10 @@
   .nf-cap__brand {
     display: inline-flex;
     align-items: center;
-    gap: 0.625rem;
+    gap: 0.5rem;
     min-height: 2.75rem;
     padding-inline-end: var(--nf-space-xs);
-    border-radius: 1.375rem;
+    border-radius: var(--nf-radius-pill);
     color: var(--nf-content-primary);
   }
   .nf-cap__brand:focus-visible {
@@ -589,12 +630,15 @@
     height: 2.75rem;
     border-radius: var(--nf-radius-circle);
     border: var(--nf-border-width) solid var(--nf-card-border);
-    background: var(--nf-surface-primary);
+    /* The logo's plate (D82): white in both themes, so the mark looks the same everywhere. */
+    background: var(--nf-logo-plate);
     box-shadow: var(--nf-card-shadow, var(--nf-elev-1));
   }
   .nf-cap__word {
     display: inline-flex;
     align-items: center;
+    /* The wordmark keeps its drawn shape; a squeezed one reads as a typo. */
+    flex-shrink: 0;
   }
   .nf-cap__nav {
     display: none;
@@ -626,6 +670,37 @@
   .nf-cap__signin:focus-visible {
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
     outline-offset: 2px;
+  }
+  /*
+   * A KNOWN STRANGER ON A PHONE (`data-guest`, the founder, 7 October 2026):
+   * Sign in and Sign up sit in the capsule at every width. Sized to it: the
+   * primary paints 36px inside the 60px capsule (its `::before` keeps the
+   * 44px hit area, buttons.css), Sign in is quiet text on a 44px target, and
+   * under 24rem the wordmark steps out so the mark, the two doors and the
+   * menu never touch. Layout only; the colours are the buttons' own.
+   */
+  .nf-cap__actions[data-guest] {
+    gap: 0.125rem;
+  }
+  .nf-cap__actions[data-guest] .nf-cap__signin {
+    display: inline-flex;
+    padding: 0 0.625rem;
+    border-radius: var(--nf-radius-pill);
+    white-space: nowrap;
+  }
+  .nf-cap .nf-cap__actions[data-guest] .nf-cap__start {
+    display: inline-flex;
+    min-height: 2.25rem;
+    height: 2.25rem;
+    padding-block: 0;
+    padding-inline: 0.875rem;
+    margin-inline-end: 0.375rem;
+    white-space: nowrap;
+  }
+  @media (max-width: 23.99rem) {
+    .nf-cap:has(.nf-cap__actions[data-guest]) .nf-cap__word {
+      display: none;
+    }
   }
   /* The round brand menu button (reference 39; the header icon buttons are
      circles by the lead's Q1 ruling). */
@@ -674,6 +749,31 @@
     .nf-cap,
     .nf-cap__menu {
       transition: none;
+    }
+  }
+}
+
+/*
+ * THE SUPPLY DOORS' ONE ISLAND (Session 3, stage 9, W1b): the payout card on
+ * /for-agents, /for-hosts and /for-landlords. It was a `.nf-pd-card`; as the
+ * page's single Island it takes the navy glass at night and the elevated
+ * white on Paper (glass.css), and so supplies its own layout and padding,
+ * which the card used to give it. One Island per screen: nothing else on
+ * these pages is one.
+ */
+@layer components {
+  .nf-island.nf-supply__payout {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    gap: var(--nf-space-sm);
+    min-width: 0;
+    padding: var(--nf-space-md);
+  }
+  @media (min-width: 64rem) {
+    .nf-island.nf-supply__payout {
+      padding: var(--nf-space-lg);
+      gap: var(--nf-space-md);
     }
   }
 }

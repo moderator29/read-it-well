@@ -3,6 +3,7 @@
 import { App } from "@capacitor/app";
 import { isAppRoot } from "@/lib/nav/resolve";
 import { isInPageStep } from "@/lib/nav/in-page-step";
+import { overlayIsOpen } from "@/lib/ui/overlay-registry";
 
 /**
  * Android's hardware back button, given the same meaning it has in every other
@@ -60,20 +61,14 @@ import { isInPageStep } from "@/lib/nav/in-page-step";
  * proxy question, one layer further away.
  */
 
-/**
- * Is an overlay currently up?
- *
- * `lib/ui/use-overlay.ts` is the single implementation behind all twenty-two
- * overlays on the platform, and while any of them is open it holds the body
- * scroll lock. That lock is an observable fact about the document, so it is
- * read here rather than adding a second registry that could disagree with the
- * first. Exporting the counter from that module would be cleaner and is not
- * done for one reason: it is not this agent's file to change, and a read of an
- * existing effect cannot break the surface it observes.
+/*
+ * Is an overlay currently up? Asked of the overlay registry
+ * (`lib/ui/overlay-registry.ts`), which `lib/ui/use-overlay.ts` joins for every
+ * overlay on the platform whether or not it also holds the body scroll lock.
+ * This used to read the scroll lock as a proxy, which stopped being true the
+ * moment an overlay could be non-modal (the inner navigation menu): it holds no
+ * lock, so Back would have left the screen with the menu still open.
  */
-function overlayIsOpen(): boolean {
-  return document.body.style.overflow === "hidden";
-}
 
 /**
  * Ask the top overlay to close, the same way the Escape key does.

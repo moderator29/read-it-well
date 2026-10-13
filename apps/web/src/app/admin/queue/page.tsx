@@ -32,7 +32,9 @@ import {
   type Weight,
 } from "@/lib/admin/queue-desk";
 import { loadDesk } from "@/lib/admin/reads/queue-desk";
+import { BulkSubmit, QueueSelection } from "../_components/QueueSelection";
 import { bulkAct, deleteView, releaseRow, saveView, takeRow } from "@/lib/admin/queue-desk-actions";
+import { Button } from "@/components/ui/Button";
 
 export const dynamic = "force-dynamic";
 
@@ -454,9 +456,9 @@ export default async function AdminQueuePage({
             <form action={claim ? releaseRow : takeRow} className="inline">
               <input type="hidden" name="item" value={key} />
               {hidden}
-              <button type="submit" className="nf-link-quiet inline-flex min-h-11 items-center px-2xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-link)]">
+              <Button type="submit" variant="quiet" size="sm">
                 {claim ? desk.release : desk.take}
-              </button>
+              </Button>
             </form>
           )}
           {row.weight && <span className="min-w-0 truncate">{weightLine(row.weight)}</span>}
@@ -523,7 +525,9 @@ export default async function AdminQueuePage({
       })()}
 
       {/* V-89: decide the selected rows. The boxes on each row belong to this form. */}
-      <form id="queue-bulk" action={bulkAct} className="mt-inline flex flex-wrap items-end gap-xs" aria-label={desk.bulkLabel}>
+      <details className="nf-admin-bulk mt-inline">
+      <summary className="nf-admin-bulk__summary">{desk.bulkLabel}</summary>
+      <form id="queue-bulk" action={bulkAct} className="nf-admin-bulk__form flex flex-wrap items-end gap-xs" aria-label={desk.bulkLabel}>
         {hidden}
         <label className="nf-caption flex flex-col gap-3xs">
           {desk.bulkVerb}
@@ -561,10 +565,35 @@ export default async function AdminQueuePage({
             ))}
           </select>
         </label>
-        <button type="submit" className="nf-btn nf-btn--glass nf-btn--sm">
-          {desk.bulkApply}
-        </button>
+        <BulkSubmit>{desk.bulkApply}</BulkSubmit>
       </form>
+      </details>
+
+      {/* W8: once a row is ticked, a tray rises with the verbs. It fills this
+          same form and submits it; the form above still works without scripts. */}
+      <QueueSelection
+        verbs={[
+          { id: "take", label: desk.verbs.take, icon: "user-check" },
+          { id: "approve", label: desk.verbs.approve, icon: "verified", confirm: true },
+          { id: "send_back", label: desk.verbs.send_back, icon: "arrow-left", needs: "reason", confirm: true },
+          { id: "assign", label: desk.verbs.assign, icon: "user", needs: "to" },
+          { id: "close_spam", label: desk.verbs.close_spam, icon: "block", confirm: true },
+        ]}
+        words={{
+          label: t.experienceAdmin.cases.bulkLabel,
+          count: t.experienceAdmin.cases.selected,
+          clear: t.experienceUi.clearSelection,
+          selectAll: t.experienceAdmin.cases.selectAll,
+          selectNone: t.experienceAdmin.cases.selectNone,
+          confirmTitle: t.experienceAdmin.cases.bulkConfirmTitle,
+          confirmBody: t.experienceAdmin.cases.bulkConfirmBody,
+          confirmApply: t.experienceAdmin.cases.bulkConfirmApply,
+          notNow: t.experienceUi.notNow,
+          needsReason: t.experienceAdmin.cases.bulkNeedsReason,
+          needsTo: t.experienceAdmin.cases.bulkNeedsTo,
+          needsOpen: t.experienceAdmin.cases.bulkNeedsOpen,
+        }}
+      />
 
       {shown.length === 0 ? (
         <ui.QueueEmpty
@@ -597,9 +626,9 @@ export default async function AdminQueuePage({
                   <form action={deleteView}>
                     <input type="hidden" name="id" value={view.id} />
                     {hidden}
-                    <button type="submit" className="nf-link-quiet nf-caption text-[var(--nf-content-link)]">
+                    <Button type="submit" variant="quiet" size="sm">
                       {desk.viewDelete}
-                    </button>
+                    </Button>
                   </form>
                 )}
               </li>
@@ -615,9 +644,9 @@ export default async function AdminQueuePage({
           <label className="nf-caption flex items-center gap-3xs">
             <input type="checkbox" name="shared" /> {desk.viewShared}
           </label>
-          <button type="submit" className="nf-btn nf-btn--glass nf-btn--sm">
+          <Button variant="secondary" size="sm" type="submit">
             {desk.viewSave}
-          </button>
+          </Button>
         </form>
       </section>
 

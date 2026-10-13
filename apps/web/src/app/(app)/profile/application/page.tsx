@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { forRespond } from "@/components/agent/agent-copy";
 import { getDictionary, formatDate } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { readMyApplication } from "@/lib/agent/application-status";
@@ -11,6 +12,7 @@ import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
 import { RespondToReview } from "@/components/agent/RespondToReview";
 import { StatusTrack, type TrackStep } from "@/components/app/status/StatusTrack";
 import { applicationTrack } from "@/components/app/status/tracks";
+import { withNext } from "@/lib/auth/next-link";
 
 export const metadata: Metadata = {
   title: "Your application",
@@ -61,15 +63,17 @@ export default async function ProfileApplicationPage() {
         icon: "user-check" as const,
         title: s.signedOutTitle,
         body: s.signedOutBody,
-        cta: { href: "/sign-in", label: s.signIn },
+        cta: { href: withNext("/sign-in", "/profile/application"), label: s.signIn },
       },
       none: {
         icon: "doc-shield" as const,
         title: s.noneTitle,
         body: s.noneBody,
-        /* The one place a person still starts one, and it is the profile they
-           are setting up rather than a marketing page. */
-        cta: { href: "/profile/setup/owner", label: s.startApplication },
+        /* The chooser, where the person says whether they own the property or
+           act for an owner. This went straight to the owner form under a
+           button reading "Apply to become an agent", so an agent who pressed
+           it landed on "Register as an owner". */
+        cta: { href: "/profile/setup", label: s.startApplication },
       },
     }[result.state];
 
@@ -101,12 +105,27 @@ export default async function ProfileApplicationPage() {
     MORE_INFO_REQUIRED: s.moreInfo,
     APPROVED: s.approved,
     REJECTED: s.rejected,
-    SUSPENDED: s.rejected,
+    SUSPENDED: s.suspended,
+  };
+
+  /* The line under the heading says where THIS application stands. It was
+     "you will be notified once it is approved" for every state, including a
+     refusal and a request the applicant has to answer. */
+  const statusLine: Record<typeof application.status, string> = {
+    DRAFT: s.draftBody,
+    SUBMITTED: s.submittedBody,
+    UNDER_REVIEW: s.submittedBody,
+    MORE_INFO_REQUIRED: s.moreInfoBody,
+    APPROVED: s.approvedBody,
+    REJECTED: s.rejectedBody,
+    SUSPENDED: s.suspendedBody,
   };
 
   const approved = application.status === "APPROVED";
   const decided =
     approved || application.status === "REJECTED" || application.status === "SUSPENDED";
+  /* A business, or a firm, can be asked for its registration papers. */
+  const business = application.type === "business" || application.supplyRole === "firm";
 
   /*
    * The track (spec section 14): submitted, under review, decided. How far it
@@ -127,7 +146,7 @@ export default async function ProfileApplicationPage() {
   const trackSteps: TrackStep[] = track.map((step) => ({
     key: step.key,
     label: trackLabels[step.key],
-    when: step.at ? formatDate(new Date(step.at), locale) : null,
+    when: step.at ? formatDate(new Date(step.at), locale, { day: "numeric", month: "short", year: "numeric", timeZone: "Africa/Lagos" }) : null,
     note:
       step.key === "review" && step.state === "current"
         ? application.status === "MORE_INFO_REQUIRED"
@@ -152,7 +171,7 @@ export default async function ProfileApplicationPage() {
         seenKey={approval?.seenKey ?? "agent-approved:none"}
         haptic={false}
       />
-      <PageHeader title={s.status} subtitle={s.submittedBody} fallback="/profile" />
+      <PageHeader title={s.status} subtitle={statusLine[application.status]} fallback="/profile" />
 
       <Stack>
         {/* ONE SURFACE, three parts, the label outside it. */}
@@ -183,12 +202,24 @@ export default async function ProfileApplicationPage() {
 
         {/* SUP-05: the reviewer asked for something, so the answer is here,
             under their note, rather than in an email that pointed nowhere. */}
-        {application.status === "MORE_INFO_REQUIRED" && <RespondToReview t={t} />}
+        {application.status === "MORE_INFO_REQUIRED" && (
+          <RespondToReview t={forRespond(t)} business={business} />
+        )}
 
         {approved && (
           <div className="flex justify-center">
             <ButtonLink href="/agent/dashboard" variant="primary" size="lg">
               {s.enterAgent}
+            </ButtonLink>
+          </div>
+        )}
+
+        {/* A refusal was the one state with nothing to do next. The reviewer's
+            note says why, and a fresh application starts at the chooser. */}
+        {application.status === "REJECTED" && (
+          <div className="flex justify-center">
+            <ButtonLink href="/profile/setup" variant="secondary" size="lg">
+              {s.applyAgain}
             </ButtonLink>
           </div>
         )}

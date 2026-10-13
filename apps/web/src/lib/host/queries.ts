@@ -1,4 +1,5 @@
 import "server-only";
+import { reportReadError } from "@/lib/observability/read-error";
 import { withPublicPoint } from "../supabase/public-point";
 import { PrivateFieldsUnavailable, withBusinessPrivate } from "../supabase/private-fields";
 
@@ -32,7 +33,12 @@ import {
 } from "./onboarding";
 import type { Database } from "../supabase/database.types";
 import { accommodationPhotoUrl } from "../stays/photos";
+import { businessPhotoUrl } from "../stays/business-photos";
+import { MAX_BUSINESS_PHOTOS } from "./photos";
 import { bedsTotal } from "./stays-setup";
+import { readArrivalCharges } from "../stays/arrival-charges";
+import { readHostAgreementVersion } from "./agreement";
+import { acceptedVersion } from "../legal/workspace-acceptance";
 import {
   BUSINESS_TIER_NAME,
   asBusinessTier,
@@ -140,6 +146,30 @@ function readConsents(value: BusinessRow["consents"]): Partial<Record<ConsentId,
 }
 
 /**
+ * The consents withdrawn, from `consents.withdrawals` (`[{id, at}]`), which
+ * `saveHostDraft` appends to when a host unticks a consent they had given.
+ * Anything malformed is skipped rather than thrown on.
+ */
+export function readConsentWithdrawals(value: unknown): { id: ConsentId; at: string }[] {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) return [];
+  const list = (value as Record<string, unknown>).withdrawals;
+  if (!Array.isArray(list)) return [];
+  return list.flatMap((entry) => {
+    if (typeof entry !== "object" || entry === null) return [];
+    const { id, at } = entry as Record<string, unknown>;
+    return (id === "accuracy" || id === "terms" || id === "processing") && typeof at === "string"
+      ? [{ id, at }]
+      : [];
+  });
+}
+
+/** A whole number from a column the generated types may not carry yet. */
+function smallNumber(row: unknown, key: string): number | null {
+  const value = (row as Record<string, unknown> | null)?.[key];
+  return typeof value === "number" && Number.isInteger(value) ? value : null;
+}
+
+/**
  * The application the caller is still working on, with everything
  * `missingFrom` needs to say what is absent.
  *
@@ -181,7 +211,9 @@ async function loadMyHostDraft(): Promise<HostDraft> {
       .from("businesses")
       .select(BUSINESS_COLUMNS)
       .eq("owner_id", session.user.id)
-      .in("status", ["DRAFT", "MORE_INFO_REQUIRED", "SUBMITTED"])
+      /* REJECTED too: a refused host edits the same application and sends it
+         again, as on Airbnb and Booking.com, rather than starting over. */
+      .in("status", ["DRAFT", "MORE_INFO_REQUIRED", "SUBMITTED", "REJECTED"])
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -201,7 +233,9 @@ async function loadMyHostDraft(): Promise<HostDraft> {
         .limit(1),
       session.supabase
         .from("restaurant_profiles")
-        .select("price_band, cuisines")
+        /* `*` so the sitting, hold and notice columns come back once
+           `20261013090200_...` has run, and nothing breaks before it has. */
+        .select("*")
         .eq("business_id", business.id)
         .maybeSingle(),
       session.supabase
@@ -216,14 +250,34 @@ async function loadMyHostDraft(): Promise<HostDraft> {
         .eq("user_id", session.user.id)
         .is("deleted_at", null)
         .limit(1),
-      /* SUP-17: a restaurant is submitted with a photograph, as a property is. */
+      /* SUP-17: a restaurant is submitted with a photograph, as a property is.
+         The rows rather than a count, cover first, so the restaurant's step
+         can draw and manage them. */
       session.supabase
         .from("business_photos")
-        .select("id", { count: "exact", head: true })
-        .eq("business_id", business.id),
+        .select("id, storage_path, position")
+        .eq("business_id", business.id)
+        .order("position", { ascending: true })
+        .limit(MAX_BUSINESS_PHOTOS),
     ]);
 
     const accommodation = accommodations.data?.[0] ?? null;
+
+    /* The charges at the door, newest declaration, read through the owner's
+       own policy (`arrival_charge_declarations_owner_read`). Only a complete
+       set counts, which is what the publish gate checks. */
+    let arrivalCharges: HostDraft["arrivalCharges"] = null;
+    if (accommodation) {
+      const { data: declared } = await session.supabase
+        .from("arrival_charge_declarations")
+        .select("charges")
+        .eq("accommodation_id", accommodation.id)
+        .order("declared_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      arrivalCharges = declared ? readArrivalCharges(declared.charges) : null;
+    }
+
     let roomTypeCount = 0;
     let ratePlanCount = 0;
     let roomTypes: HostDraft["roomTypes"] = [];
@@ -245,6 +299,10 @@ async function loadMyHostDraft(): Promise<HostDraft> {
           "*, rate_plans(id, name, meal_plan, rate_minor)",
         )
         .eq("accommodation_id", accommodation.id)
+        /* Oldest first: the shortlet's place is the first room type
+           (`setShortletPlaceDraft` writes onto the oldest), and a hotel's list
+           should not reshuffle between two visits to the same step. */
+        .order("created_at", { ascending: true })
         .limit(50);
       roomTypeCount = rows?.length ?? 0;
       ratePlanCount = (rows ?? []).reduce((total, row) => total + row.rate_plans.length, 0);
@@ -325,10 +383,17 @@ async function loadMyHostDraft(): Promise<HostDraft> {
             priceBand: restaurant.data.price_band,
             cuisineCount: restaurant.data.cuisines.length,
             cuisines: restaurant.data.cuisines,
+            sittingMinutes: smallNumber(restaurant.data, "sitting_minutes"),
+            holdMinutes: smallNumber(restaurant.data, "hold_minutes"),
+            cancelNoticeHours: smallNumber(restaurant.data, "cancel_notice_hours"),
           }
         : null,
       serviceWindowCount: windows.data?.length ?? 0,
-      businessPhotoCount: businessPhotos.count ?? 0,
+      businessPhotoCount: businessPhotos.data?.length ?? 0,
+      businessPhotos: (businessPhotos.data ?? []).map((photo) => ({
+        id: photo.id,
+        url: businessPhotoUrl(photo.storage_path),
+      })),
       serviceWindows: (windows.data ?? []).map((row) => ({
         id: row.id,
         weekday: row.weekday,
@@ -341,6 +406,11 @@ async function loadMyHostDraft(): Promise<HostDraft> {
       licenceAttestedAt: business.licence_attested_at,
       hasBankAccount: (bankAccounts.data?.length ?? 0) > 0,
       consents: readConsents(business.consents as Parameters<typeof readConsents>[0]),
+      reviewNotes: business.review_notes ?? null,
+      arrivalCharges,
+      consentWithdrawals: readConsentWithdrawals(business.consents),
+      hostAgreementVersion: readHostAgreementVersion(business.consents),
+      payOnValloVersion: acceptedVersion(business.consents, "pay_on_vallo"),
     };
   } catch (error) {
     if (error instanceof PrivateFieldsUnavailable) throw error;
@@ -364,6 +434,7 @@ export async function getMyBusinesses(): Promise<MyBusiness[]> {
       .eq("owner_id", session.user.id)
       .order("created_at", { ascending: false })
       .limit(50);
+    await reportReadError("read.host.getMyBusinesses", error);
     if (error) return [];
 
     const rows = await withBusinessPrivate(session.supabase, data ?? [], ["verification_tier", "review_notes"] as const);
@@ -422,6 +493,7 @@ export async function getPrimaryAccommodation(
       .order("created_at", { ascending: true })
       .limit(1)
       .maybeSingle();
+    await reportReadError("read.host.getPrimaryAccommodation", error);
     if (error || !data) return null;
     return { id: data.id, name: data.name, status: data.status };
   } catch {
@@ -468,6 +540,7 @@ export async function getMyRoomTypes(accommodationId: string): Promise<MyRoomTyp
       .eq("accommodation_id", accommodationId)
       .order("created_at", { ascending: true })
       .limit(50);
+    await reportReadError("read.host.getMyRoomTypes", error);
     if (error || !data) return [];
     /* An empty `in` list is not a query anybody wants sent: PostgREST renders
        it as `in.()`, which is a syntax error rather than "no rows". A property
@@ -556,6 +629,7 @@ export async function getMyBusinessLadder(businessId: string): Promise<MyBusines
       .eq("id", businessId)
       .eq("owner_id", session.user.id)
       .maybeSingle();
+    await reportReadError("read.host.getMyBusinessLadder", error);
     if (error || !publicRow) return null;
     const [business] = await withBusinessPrivate(session.supabase, [publicRow], ["verification_tier"] as const);
     if (!business) return null;

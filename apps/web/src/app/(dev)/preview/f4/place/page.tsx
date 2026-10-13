@@ -1,10 +1,12 @@
 import { formatNumber } from "@vallo/i18n/core";
+import { getDictionary } from "@vallo/i18n";
+import { sheetWordsOf } from "@/components/social/sheet-words";
 import Link from "next/link";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Feed } from "@/components/social/feed/Feed";
 import { AroundFab } from "@/components/social/AroundFab";
 import { JoinButton } from "@/app/(app)/around/JoinButton";
-import { PLACE_COPY } from "@/lib/social/places-schema";
+import { PLACE_COPY } from "@/lib/social/places-model";
 import { FEED_PLACES, FEED_POSTS, FEED_STORIES, PLACE_REVIEWS } from "../fixtures";
 
 /**
@@ -41,6 +43,7 @@ export default function PlacePreview() {
         <Feed
           initial={FEED_POSTS}
           locale="en"
+          sheet={sheetWordsOf(getDictionary("en"))}
           signedIn
           canCompose
           areaId={AREA.id}

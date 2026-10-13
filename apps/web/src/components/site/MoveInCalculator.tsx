@@ -4,7 +4,7 @@ import { useEffect, useId, useMemo, useState } from "react";
 import { formatMoney, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Segmented } from "@/components/ui/Segmented";
-import { StatusBar, type StatusSegment } from "@/components/ui/charts/StatusBar";
+import { Odometer } from "@/components/ui/Odometer";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import {
   bpsLabel,
@@ -20,14 +20,17 @@ import {
 
 type Copy = Dictionary["publicDoors"]["moveIn"];
 
-const LINE_TONES: Record<"rent" | FeeLine, StatusSegment["tone"]> = {
-  rent: "brand",
-  agency: "info",
-  legal: "neutral",
-  caution: "success",
-  agreement: "warning",
-  service: "error",
-};
+/*
+ * ONE HUE, IN STEPS (north star 3 and the chart rules in
+ * `components/ui/charts/chart-rules.ts`: brand for the subject, the rest in
+ * quieter steps of it, never a colour per series). The bar used to paint the
+ * six lines in six hues (brand, info, neutral, success, warning, error),
+ * which is the four-hue chart the specification refuses, and it made a fee
+ * look like an error. Each line now takes its step by its place in the
+ * total, the rent strongest; the list under the bar names every line and its
+ * amount, so nothing depends on telling the steps apart.
+ */
+const STEPS = 6;
 
 /**
  * A8. The move-in calculator at `/move-in-cost`.
@@ -38,6 +41,15 @@ const LINE_TONES: Record<"rent" | FeeLine, StatusSegment["tone"]> = {
  * the listing's own `cashAtDoor`. The page renders the result for the query
  * it was opened with (a shared link opens on the same total), and this
  * component updates it as the visitor types.
+ *
+ * IT LEADS WITH ITS FIGURE (north star 10 J; Session 3). The total is the
+ * subject of the page, so it comes first: on a phone a slim strip carrying
+ * the total sticks under the bar while the visitor types further down, so
+ * the figure is never off screen when it changes; from 60rem the result card
+ * is the first column, sticky beside the form. The total rolls only the
+ * digits that changed (`Odometer`, north star motion 5) as each figure is
+ * typed. It is the visitor's own arithmetic, not money that moved, so the
+ * odometer's money rule (never optimistic) does not bite.
  */
 export function MoveInCalculator({
   copy,
@@ -111,6 +123,17 @@ export function MoveInCalculator({
 
   return (
     <div className="nf-calc">
+      {/* The phone's leading strip: the total, sticky while the form is typed
+          into. The result card below is the live region, so this copy is
+          hidden from assistive technology rather than read twice. */}
+      <div className="nf-calc__lead" aria-hidden="true">
+        <span className="nf-calc__lead-label">{copy.totalLabel}</span>
+        {result.state === "ok" ? (
+          <Odometer value={money(result.totalMinor)} className="nf-calc__lead-figure nf-numeric" />
+        ) : (
+          <span className="nf-calc__lead-empty">{copy.compactPlaceholder}</span>
+        )}
+      </div>
       <form method="get" action="/move-in-cost" className="nf-pd-card nf-calc__form" onSubmit={(e) => e.preventDefault()}>
         <div className="nf-calc__field">
           <label htmlFor={`${id}-rent`} className="nf-label">
@@ -257,23 +280,21 @@ export function MoveInCalculator({
         {result.state === "ok" ? (
           <>
             <p className="nf-calc__total nf-numeric" data-testid="calc-total">
-              {money(result.totalMinor)}
+              <Odometer value={money(result.totalMinor)} />
             </p>
-            <StatusBar
-              label={copy.barLabel}
-              legend={false}
-              segments={result.lines.map((line) => ({
-                key: line.key,
-                label: lineLabel(line.key),
-                count: line.minor,
-                tone: LINE_TONES[line.key],
-                display: money(line.minor),
-              }))}
-            />
+            <div className="nf-calc__bar" role="img" aria-label={copy.barLabel}>
+              {result.lines.map((line, i) => (
+                <span
+                  key={line.key}
+                  data-step={Math.min(i, STEPS - 1)}
+                  style={{ flexGrow: Math.max(line.minor, 1) }}
+                />
+              ))}
+            </div>
             <ul className="nf-calc__lines">
-              {result.lines.map((line) => (
+              {result.lines.map((line, i) => (
                 <li key={line.key}>
-                  <span className="nf-calc__dot" data-tone={LINE_TONES[line.key]} aria-hidden="true" />
+                  <span className="nf-calc__dot" data-step={Math.min(i, STEPS - 1)} aria-hidden="true" />
                   <span className="nf-calc__line-label">{lineLabel(line.key)}</span>
                   <span className="nf-calc__line-value nf-numeric">{money(line.minor)}</span>
                 </li>

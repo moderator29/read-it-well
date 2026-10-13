@@ -240,6 +240,7 @@ const EXPECTED_PUBLIC = new Set([
   "/cancellations",
   "/disclaimer",
   "/eula",
+  "/host-agreement",
   "/privacy",
   "/safety",
   "/standards",
@@ -303,11 +304,15 @@ const EXPECTED_PUBLIC = new Set([
      first-party funnel beacon, rate limited, recording no person. */
   "/api/email/unsubscribe",
   "/api/funnel",
+  /* VC1: the media provider's webhook, behind its signature over the body. */
+  "/api/calls/webhook",
   "/api/cron/account-purge",
+  "/api/cron/calls-sweep",
   "/api/cron/complete-stays",
   "/api/cron/email-outbox",
   "/api/cron/hold-sweep",
   "/api/cron/rent-share-refunds",
+  "/api/cron/reservation-deposit-refunds",
   "/api/cron/inventory-drift",
   "/api/cron/landlord-line",
   "/api/cron/sanctions-lists",
@@ -319,6 +324,8 @@ const EXPECTED_PUBLIC = new Set([
   "/api/cron/risk-classes",
   /* Crypto payments read back from the provider, behind the cron bearer. */
   "/api/cron/crypto-reconcile",
+  /* Escrow arrangements read back from the payment partner, behind the cron bearer. */
+  "/api/cron/arrangements-reconcile",
   "/api/cron/saved-search-alerts",
   "/api/cron/store-readiness",
   "/api/cron/new-match-alerts",
@@ -327,6 +334,8 @@ const EXPECTED_PUBLIC = new Set([
   "/api/landlord/inbound",
   "/api/paystack/reconcile",
   "/api/paystack/webhook",
+  /* Part B phase 15: Payluk webhooks, behind the HMAC-SHA512 signature. */
+  "/api/payluk/webhook",
   /* V-98: the home-screen widget, behind its device-bound token. */
   "/api/plans/next",
   "/api/push/drain",
@@ -469,6 +478,7 @@ describe("who may see the platform with no session", () => {
   it("leaves the webhooks and the scheduler alone, which have no cookie and never will", () => {
     for (const path of [
       "/api/paystack/webhook",
+      "/api/payluk/webhook",
       "/api/yellowcard/webhook",
       "/api/auth/email-hook",
       "/api/cron/email-outbox",

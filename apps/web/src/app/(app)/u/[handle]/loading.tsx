@@ -18,6 +18,7 @@
  * while it waits has told the reader something false about the person, and
  * they will have read it before the truth arrives.
  */
+import "@/components/social/profile/social-profile.css";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { State } from "@/components/ui/State";
 
@@ -29,30 +30,27 @@ export default function LoadingProfile() {
         <div className="nf-social-cover__art" aria-hidden="true" />
       </div>
 
-      <div className="nf-social-identity" aria-hidden="true">
+      {/* The Island the real header draws, at its own size, so the page does
+          not reshape when the person arrives. */}
+      <div className="nf-profile-identity nf-island" aria-hidden="true">
         <div className="nf-social-avatar nf-social-avatar--ring" />
-        <div className="nf-social-identity__actions">
-          <Skeleton width="6rem" height="2.75rem" radius="md" />
-          <Skeleton width="2.75rem" height="2.75rem" radius="pill" />
+        <div className="nf-profile-text space-y-xs">
+          <Skeleton width="10rem" height="1.25rem" radius="xs" />
+          <Skeleton width="8rem" height="0.75rem" radius="xs" />
+          <Skeleton width="80%" height="0.75rem" radius="xs" />
+          <div className="flex gap-sm pt-xs">
+            <Skeleton width="3.5rem" height="1.75rem" radius="xs" />
+            <Skeleton width="3.5rem" height="1.75rem" radius="xs" />
+            <Skeleton width="3.5rem" height="1.75rem" radius="xs" />
+          </div>
         </div>
       </div>
 
-      <div className="mt-sm space-y-xs" aria-hidden="true">
-        <Skeleton width="10rem" height="1.25rem" radius="xs" />
-        <Skeleton width="8rem" height="0.75rem" radius="xs" />
-        <Skeleton height="0.75rem" radius="xs" className="mt-md" />
-        <Skeleton width="80%" height="0.75rem" radius="xs" />
-        <div className="flex gap-md pt-xs">
-          <Skeleton width="6rem" height="0.75rem" radius="xs" />
-          <Skeleton width="6rem" height="0.75rem" radius="xs" />
-        </div>
-        <div className="flex gap-md pt-xs">
-          <Skeleton width="5rem" height="1rem" radius="xs" />
-          <Skeleton width="5rem" height="1rem" radius="xs" />
-          <Skeleton width="3.5rem" height="1rem" radius="xs" />
-        </div>
-        <Skeleton height="2.75rem" radius="md" className="mt-lg" />
+      <div className="mt-sm flex gap-xs" aria-hidden="true">
+        <Skeleton width="6rem" height="2.75rem" radius="md" />
+        <Skeleton width="2.75rem" height="2.75rem" radius="pill" />
       </div>
+      <Skeleton height="2.75rem" radius="md" className="mt-lg" />
     </State>
   );
 }

@@ -1,4 +1,5 @@
 "use client";
+import "@/app/css/auth.css";
 
 import { startTransition, useActionState, useEffect, useRef, useState, useTransition } from "react";
 import type { Dictionary } from "@vallo/i18n/core";

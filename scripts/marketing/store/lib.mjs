@@ -14,7 +14,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 export const MARKETING = join(HERE, "..");
 export const REPO = join(MARKETING, "..", "..");
 export const BRAND = join(REPO, "apps", "web", "public", "brand");
-export const FONTS = join(REPO, "apps", "web", "public", "fonts");
+export const FONTS = join(REPO, "apps", "web", "public", "fonts", "v2");
 /* STORE_SCREENS points the compositor at another folder of displays (design proofs). */
 export const SCREENS = process.env.STORE_SCREENS || join(REPO, "docs", "marketing", "screens");
 export const SOURCE = join(REPO, "docs", "marketing", "source");

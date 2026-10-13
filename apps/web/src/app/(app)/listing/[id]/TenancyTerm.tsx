@@ -4,6 +4,7 @@ import { useState } from "react";
 import { countOf, type Locale } from "@vallo/i18n/core";
 import { Amount } from "@/components/ui/Amount";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { Button } from "@/components/ui/Button";
 import { PERIOD_NOUN, type RentPeriod } from "@/lib/listings/pricing";
 import { TYPE } from "@/components/app/Screen";
 
@@ -138,8 +139,10 @@ function StepButton({
   onClick: () => void;
 }) {
   return (
-    <button
-      type="button"
+    <Button
+      variant="glass"
+      size="sm"
+      iconOnly
       onClick={onClick}
       disabled={disabled}
       aria-label={label}
@@ -150,9 +153,9 @@ function StepButton({
          (GOVERNING-chat-booking-card.png: back, call, overflow, send) draws every
          one of them as a rounded square. A surface with no reference inherits the
          register, and the register's control is the rectangle. */
-      className="nf-btn nf-btn--glass nf-btn--sm nf-btn--icon grid h-9 w-9 rounded-[var(--nf-radius-sm)] place-items-center text-[var(--nf-content-primary)] disabled:opacity-35"
+      className="grid h-9 w-9 rounded-[var(--nf-radius-sm)] place-items-center text-[var(--nf-content-primary)] disabled:opacity-35"
     >
       <UiIcon name={icon} size={16} />
-    </button>
+    </Button>
   );
 }

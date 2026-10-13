@@ -1,6 +1,6 @@
 import { DEFAULT_LOCALE, countOf, type Dictionary, type Locale } from "@vallo/i18n/core";
 import type { Listing, PowerBackup, PowerGrid } from "@/lib/listings/types";
-import { PERIOD_SUFFIX_SHORT, isTenancyPeriod } from "@/lib/listings/pricing";
+import { isTenancyPeriod, type PricePeriod } from "@/lib/listings/pricing";
 
 /**
  * What a property card says, decided away from how it looks.
@@ -59,25 +59,25 @@ export type CardPrice =
       minor: number;
       /** True when the figure is a floor built from the named parts. */
       approximate: boolean;
-      /** The rent beneath it, in kobo, with its own period suffix. */
+      /** The rent beneath it, in kobo, and the period it is quoted in (`t.experienceLabels.periodShort` names it). */
       rentMinor: number;
-      rentSuffix: string;
+      rentPeriod: PricePeriod;
     }
-  | { lead: "headline"; minor: number; suffix: string }
+  /** `period` is "sale" when the row states none: a sale has no period and prints no suffix. */
+  | { lead: "headline"; minor: number; period: PricePeriod | "sale" }
   /** No real figure anywhere on the row. The card says so in words. */
   | { lead: "none" };
 
 export function cardPrice(listing: Listing): CardPrice {
   const headline = listing.priceMinor > 0;
   const period = listing.pricePeriod;
-  const suffix = period ? PERIOD_SUFFIX_SHORT[period] : PERIOD_SUFFIX_SHORT.sale;
 
   /* A tenancy is the only thing that HAS a move-in total: `pricePeriod` of
      night or guest is occupancy priced by the stay, and a sale carries no
      period at all. Tested against the period rather than against `kind`,
      because `listing_intent` cannot distinguish four markets with two values
      and the period is the column that can. */
-  const tenancy = period === "year" || period === "month" || period === "quarter";
+  const tenancy = period !== undefined && isTenancyPeriod(period);
   const moveIn = listing.moveInCostMinor ?? 0;
 
   if (listing.intent !== "sale" && tenancy && moveIn > 0) {
@@ -86,12 +86,12 @@ export function cardPrice(listing: Listing): CardPrice {
       minor: moveIn,
       approximate: listing.moveInCostStated !== true,
       rentMinor: listing.priceMinor,
-      rentSuffix: suffix,
+      rentPeriod: period,
     };
   }
 
   if (!headline) return { lead: "none" };
-  return { lead: "headline", minor: listing.priceMinor, suffix };
+  return { lead: "headline", minor: listing.priceMinor, period: period ?? "sale" };
 }
 
 /* ----------------------------------------------------------------- market */
@@ -101,7 +101,7 @@ export function cardPrice(listing: Listing): CardPrice {
  *
  * A sale and a tenancy were indistinguishable on the grid. "₦520m" and
  * "₦2.8m/yr" sat side by side with nothing saying one was a purchase, because
- * `PERIOD_SUFFIX_SHORT.sale` is deliberately the empty string and the only
+ * a sale carries no period suffix at all (`experienceLabels.periodShort` has no "sale") and the only
  * other statement of the market was inside the title, which the heading clamps
  * away at "Five bedroom villa for sale i...". The detail page has said this
  * correctly the whole time through `MARKET_PILL`; the card was the outlier.

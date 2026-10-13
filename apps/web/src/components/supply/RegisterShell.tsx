@@ -6,8 +6,7 @@ import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { Button } from "@/components/ui/Button";
 import { BackControl } from "@/components/ui/BackControl";
 import { Surface, TYPE } from "@/components/app/Screen";
-import { IconPlate } from "@/components/ui/IconPlate";
-import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
+import { ProgressRing } from "./ProgressPath";
 
 /**
  * THE FRAME EVERY SCREEN OF THE THREE REGISTRATION FORMS STANDS IN.
@@ -44,7 +43,6 @@ export function RegisterShell({
   stepOfLabel,
   backLabel,
   onBack,
-  mark,
   children,
   primary,
   secondary,
@@ -68,8 +66,10 @@ export function RegisterShell({
   backLabel: string;
   onBack(): void;
   /**
-   * The small glass object in the top right corner, which three of the twelve
-   * screens carry. Omitted on the rest, exactly as the renders omit it.
+   * The small glass object the top right corner used to carry. That corner is
+   * the progress ring with a count now (reference 2) on every screen, so the
+   * object is no longer drawn; the prop stays so the forms that name one
+   * still type-check and keep saying which object belongs to the screen.
    */
   mark?: BrandIconName;
   children: ReactNode;
@@ -86,13 +86,15 @@ export function RegisterShell({
   return (
     <div className="mx-auto max-w-2xl">
       <div className="mb-heading flex items-center gap-md">
-        <BackControl onBack={onBack} label={backLabel} />
+        {/* The round control every page header draws (`PageHeader`), so the
+            setup forms under `/profile` read as the same family of screens. */}
+        <BackControl onBack={onBack} label={backLabel} surface="round" />
         <h1 className={`min-w-0 flex-1 ${TYPE.rowTitle}`}>{formTitle}</h1>
-        {mark ? (
-          <IconPlate size="md" className="shrink-0">
-            <UiIcon name={lineGlyphFor(mark)} size={20} />
-          </IconPlate>
-        ) : null}
+        {/* THE PROGRESS RING WITH A COUNT (reference 2), in the corner where
+            the governing frames draw their round object: how many of the
+            form's screens are behind the member. The confirmation screen
+            passes no heading, and by then every screen is done. */}
+        <ProgressRing done={heading ? current : steps} total={steps} size={48} />
       </div>
 
       <div className="nf-steprow" aria-hidden="true">
@@ -129,7 +131,7 @@ export function RegisterShell({
       {error ? (
         <p
           role="alert"
-          className="nf-arrive mt-heading text-[length:var(--nf-text-body-sm)] font-medium text-[var(--nf-state-error)]"
+          className="nf-arrive mt-heading text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-state-error)]"
         >
           {error}
         </p>

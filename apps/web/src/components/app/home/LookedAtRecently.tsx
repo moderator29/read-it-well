@@ -1,9 +1,10 @@
 "use client";
 
-import Link from "next/link";
-import { Button } from "@/components/ui/Button";
 import { useSyncExternalStore } from "react";
-import { RemoteImage } from "@/components/ui/RemoteImage";
+import { useHydrated } from "@/components/motion/useInView";
+import { Button } from "@/components/ui/Button";
+import { SpaceCard } from "@/components/ui/space-card/SpaceCard";
+import { SaveButton, useSaveControl } from "@/components/app/SaveControl";
 import { drawnSrcIn, handOff } from "@/lib/listings/handoff";
 import {
   clearRecentListings,
@@ -12,20 +13,23 @@ import {
   subscribeRecent,
   type RecentListing,
 } from "@/lib/search/memory";
+import "@/app/css/space-card.css";
 
 /**
- * "LOOKED AT RECENTLY" (recommendation B2, 30 September 2026).
+ * "RECENTLY VIEWED" (recommendation B2, 30 September 2026; drawn as the space
+ * card on 13 October 2026, `components/ui/space-card`).
  *
  * The phone already remembers the last eight listings opened
  * (`rememberListing`, written by `RecordVisit` on the listing page). This row
- * reads them back on Home, under the hero band, as small cards: the photo,
- * the title, the place and the price line the listing's own card printed.
- * It sits beside "Up next" and does not replace it.
+ * reads them back on Home, under the hero band, as compact cards in a sideways
+ * row: the photograph, the title, the price line the listing's own card
+ * printed, a heart. It sits beside "Up next" and does not replace it.
  *
- * Hidden when empty, on the server and on a phone that has opened nothing.
- * Device only; forgotten on sign-out (`ForgetOnSignOut`). An example listing
- * keeps its Example mark. An older entry with no photo or price still shows,
- * with a plain plate and no price line, never a made-up one.
+ * REAL ONLY. Hidden when empty, on the server and on a phone that has opened
+ * nothing. Device only (what a phone opened is kept on the phone, never read by
+ * the server); forgotten on sign-out (`ForgetOnSignOut`). An older entry with
+ * no photo or price still shows, with a plain plate and no price line, never a
+ * made-up one. An example listing keeps no mark here (D24).
  *
  * A tap hands the card's facts to the listing's loading shell (B4), so the
  * listing opens in one frame from here too.
@@ -33,10 +37,39 @@ import {
 export function LookedAtRecently({
   copy,
 }: {
-  copy: { title: string; clear: string; clearLabel: string; example: string; verified: string };
+  copy: { title: string; clear: string; clearLabel: string; verified: string };
 }) {
   const entries = useSyncExternalStore(subscribeRecent, recentListingsSnapshot, recentListingsServerSnapshot);
-  if (entries.length === 0) return null;
+  const hydrated = useHydrated();
+  const filled = entries.length > 0;
+  /*
+   * THE SLOT HOLDS THE ROW'S HEIGHT OPEN BEFORE THE ROW EXISTS (13 October
+   * 2026, layout stability). The row reads the phone's memory, so the server
+   * draws none of it and it used to arrive after hydration and push Home down.
+   * Now the server always draws this empty slot; `member-loop.css` gives it
+   * the row's height from the first frame when the head script has seen a
+   * remembered listing (`data-recent-listings` on the root), the row fills the
+   * space it was holding, and a phone that turns out to have nothing collapses
+   * the slot (`data-empty`, set only once hydrated and still empty).
+   */
+  return (
+    <div
+      className="nf-lookback-slot"
+      data-filled={filled ? "" : undefined}
+      data-empty={hydrated && !filled ? "" : undefined}
+    >
+      {filled ? <LookedAtRow entries={entries} copy={copy} /> : null}
+    </div>
+  );
+}
+
+function LookedAtRow({
+  entries,
+  copy,
+}: {
+  entries: RecentListing[];
+  copy: { title: string; clear: string; clearLabel: string; verified: string };
+}) {
   return (
     <section className="nf-lookback mt-group" aria-labelledby="lookback-title" data-testid="looked-at-recently">
       <div className="nf-lookback__head">
@@ -47,9 +80,9 @@ export function LookedAtRecently({
           {copy.clear}
         </Button>
       </div>
-      <ul className="nf-lookback__track nf-scroll-x">
+      <ul className="nf-feature-row nf-scroll-x nf-scroll-x--gutter">
         {entries.map((entry) => (
-          <li key={entry.id} className="contents">
+          <li key={entry.id} className="nf-feature-row__item">
             <LookbackCard entry={entry} copy={copy} />
           </li>
         ))}
@@ -58,12 +91,22 @@ export function LookedAtRecently({
   );
 }
 
-function LookbackCard({ entry, copy }: { entry: RecentListing; copy: { example: string; verified: string } }) {
+function LookbackCard({ entry, copy }: { entry: RecentListing; copy: { verified: string } }) {
+  const save = useSaveControl(entry.id);
   return (
-    <Link
+    <SpaceCard
+      variant="compact"
       href={`/listing/${entry.id}`}
-      className="nf-lookback__card"
-      onClick={(event) => {
+      title={entry.title}
+      photos={entry.photo ? [entry.photo] : []}
+      /* D24: no example mark; the glance's "example" mark draws nothing, and
+         Verified is only ever set on a row that is not an example. */
+      status={entry.mark === "verified" ? copy.verified : null}
+      heart={<SaveButton saved={save.saved} pending={save.pending} onToggle={save.toggle} title={entry.title} />}
+      price={entry.price ? { amount: entry.price, unit: entry.priceNote || null } : null}
+      mediaId={entry.id}
+      onOpen={(event, media) => {
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
         handOff(
           {
             id: entry.id,
@@ -74,28 +117,9 @@ function LookbackCard({ entry, copy }: { entry: RecentListing; copy: { example: 
             priceNote: entry.priceNote ?? "",
             mark: entry.mark ?? null,
           },
-          drawnSrcIn(event.currentTarget, entry.photo),
+          drawnSrcIn(media, entry.photo),
         );
       }}
-    >
-      <span className="nf-lookback__photo">
-        {entry.photo ? (
-          <RemoteImage src={entry.photo} alt="" width={152} height={114} sizes="152px" loading="lazy" />
-        ) : null}
-        {entry.mark === "example" ? (
-          <span className="nf-badge nf-badge--example">{copy.example}</span>
-        ) : entry.mark === "verified" ? (
-          <span className="nf-badge nf-badge--verified">{copy.verified}</span>
-        ) : null}
-      </span>
-      <span className="nf-lookback__title">{entry.title}</span>
-      {entry.place ? <span className="nf-lookback__place">{entry.place}</span> : null}
-      {entry.price ? (
-        <span className="nf-lookback__price">
-          {entry.price}
-          {entry.priceNote ? <span className="nf-lookback__note"> {entry.priceNote}</span> : null}
-        </span>
-      ) : null}
-    </Link>
+    />
   );
 }

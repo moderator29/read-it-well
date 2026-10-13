@@ -1,5 +1,6 @@
 import type { Dictionary } from "@vallo/i18n/core";
 import { ButtonLink } from "@/components/ui/Button";
+import { MotionReveal } from "@/components/motion/Reveal";
 import { IconPlate } from "@/components/ui/IconPlate";
 import { ListGroup, ListRow } from "@/components/ui/ListGroup";
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -9,11 +10,12 @@ import { EdgeLap } from "@/components/site/EdgeLap";
 import { DisclosureInline } from "@/components/app/DisclosureInline";
 import { LogoMark } from "@/design-system/brand/Logo";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { GUARANTEE_CONTRIBUTION_NOTE } from "@/lib/money/copy";
+import { WHO_PAYS_SENTENCE } from "@/lib/money/copy";
 import type { ListerFees } from "@/lib/site/lister-fees";
 import { bpsLabel } from "@/lib/site/move-in-calculator";
 import { breadcrumbLd, faqLd, webPageLd } from "@/lib/site/structured-data";
 import { SUPPLY_DOORS, SUPPLY_ROLES, type SupplyDoor } from "@/lib/site/supply-doors";
+import "@/app/css/site.css";
 
 /** `?next=` for the sign-up and sign-in doors, carrying the setup address. */
 export function startHref(base: "/sign-up" | "/sign-in", setupPath: string): string {
@@ -35,22 +37,14 @@ export function feeRows(fees: ListerFees | null): { title: string; value: string
       value: free(fees.commissionBps, fees.commissionFlatMinor) ? "None" : bpsLabel(fees.commissionBps),
       sub: "On a payment through Vallo",
     },
-    ...(fees.guaranteeBps !== null
-      ? [
-          {
-            title: "Guarantee",
-            value: bpsLabel(fees.guaranteeBps),
-            sub: "Of each payment, from your share",
-          },
-        ]
-      : []),
+    /* No Guarantee row (C6, the route sweep). D51 retired the Guarantee; the
+       row used to print while money_policy.guarantee_bps was above zero, with
+       a reserve sentence written in this file. A supply page is an offer, not
+       a record: a lister's own agreement keeps whatever it was signed under
+       (agreements/[id]), so nothing here has to carry it. */
     { title: "Inspection fee", value: "None", sub: "Viewing through Vallo is free" },
   ];
 }
-
-/** Under the fee tiles when the Guarantee row prints: where that money goes. */
-export const GUARANTEE_TILE_NOTE =
-  "The Guarantee contribution goes into a separate reserve. It is never added to the price a renter or guest pays.";
 
 /**
  * A9. One supply page, in the landing's register (the re-audit of 30
@@ -61,6 +55,12 @@ export const GUARANTEE_TILE_NOTE =
  * desk; the common questions (FAQPage data, the page's own sentences); and
  * the landing's final card. Every fact comes from `lib/site/supply-doors.ts`,
  * which reads it from the module that enforces it.
+ *
+ * SESSION 3 (stage 9): the page is on the landing's material. Each section
+ * arrives on the shared reveal, and the payout, the one promise a lister
+ * reads for, is the page's single Island (navy glass at night, white and
+ * elevated on Paper); the one glow is the head's aurora. No proof is added:
+ * every line is still the door's own data.
  */
 export function SupplyPage({ door, fees, t }: { door: SupplyDoor; fees: ListerFees | null; t: Dictionary }) {
   const s = t.publicDoors.supply;
@@ -103,7 +103,7 @@ export function SupplyPage({ door, fees, t }: { door: SupplyDoor; fees: ListerFe
 
       <div className="nf-shell">
         <div className="nf-supply mx-auto max-w-3xl">
-          <section aria-labelledby="supply-steps">
+          <MotionReveal as="section" aria-labelledby="supply-steps">
             <h2 id="supply-steps" className="nf-supply__h2">
               {s.stepsTitle}
             </h2>
@@ -125,37 +125,34 @@ export function SupplyPage({ door, fees, t }: { door: SupplyDoor; fees: ListerFe
                 </li>
               ))}
             </ol>
-          </section>
+          </MotionReveal>
 
-          <section aria-labelledby="supply-fees">
+          <MotionReveal as="section" aria-labelledby="supply-fees">
             <h2 id="supply-fees" className="nf-supply__h2">
               {s.feesTitle}
             </h2>
             {rows.length > 0 ? (
-              <>
-                <ul className="nf-figure-tiles nf-supply__tiles">
-                  {rows.map((row) => (
-                    <li key={row.title} className="nf-kpi nf-supply__tile">
-                      <p className="nf-kpi__head">
-                        <span className="nf-section-label nf-kpi__label">{row.title}</span>
-                      </p>
-                      <p className="nf-kpi__figure nf-numeric">{row.value}</p>
-                      {row.sub ? <p className="nf-kpi__sub">{row.sub}</p> : null}
-                    </li>
-                  ))}
-                </ul>
-                {fees?.guaranteeBps != null ? <p className="nf-supply__note">{GUARANTEE_TILE_NOTE}</p> : null}
-              </>
+              <ul className="nf-figure-tiles nf-supply__tiles">
+                {rows.map((row) => (
+                  <li key={row.title} className="nf-kpi nf-supply__tile">
+                    <p className="nf-kpi__head">
+                      <span className="nf-section-label nf-kpi__label">{row.title}</span>
+                    </p>
+                    <p className="nf-kpi__figure nf-numeric">{row.value}</p>
+                    {row.sub ? <p className="nf-kpi__sub">{row.sub}</p> : null}
+                  </li>
+                ))}
+              </ul>
             ) : (
-              <p className="nf-pd-card nf-supply__body">{GUARANTEE_CONTRIBUTION_NOTE}</p>
+              <p className="nf-pd-card nf-supply__body">{WHO_PAYS_SENTENCE}</p>
             )}
-          </section>
+          </MotionReveal>
 
-          <section aria-labelledby="supply-payout">
+          <MotionReveal as="section" aria-labelledby="supply-payout">
             <h2 id="supply-payout" className="nf-supply__h2">
               {s.payoutTitle}
             </h2>
-            <div className="nf-pd-card nf-supply__payout">
+            <div className="nf-island nf-supply__payout">
               <IconPlate size="md" shape="round" tone="success">
                 <UiIcon name="bank" size={20} />
               </IconPlate>
@@ -167,9 +164,9 @@ export function SupplyPage({ door, fees, t }: { door: SupplyDoor; fees: ListerFe
                 ))}
               </div>
             </div>
-          </section>
+          </MotionReveal>
 
-          <section aria-labelledby="supply-checks">
+          <MotionReveal as="section" aria-labelledby="supply-checks">
             <h2 id="supply-checks" className="nf-supply__h2">
               {s.checksTitle}
             </h2>
@@ -201,9 +198,9 @@ export function SupplyPage({ door, fees, t }: { door: SupplyDoor; fees: ListerFe
                 ))}
               </ListGroup>
             </div>
-          </section>
+          </MotionReveal>
 
-          <section aria-labelledby="supply-example">
+          <MotionReveal as="section" aria-labelledby="supply-example">
             <div className="nf-supply__h2-row">
               <h2 id="supply-example" className="nf-supply__h2">
                 {s.exampleTitle}
@@ -228,9 +225,9 @@ export function SupplyPage({ door, fees, t }: { door: SupplyDoor; fees: ListerFe
               ))}
             </ListGroup>
             <p className="nf-supply__note">{s.exampleNote}</p>
-          </section>
+          </MotionReveal>
 
-          <section aria-labelledby="supply-faq">
+          <MotionReveal as="section" aria-labelledby="supply-faq">
             <h2 id="supply-faq" className="nf-supply__h2">
               {s.faqTitle}
             </h2>
@@ -243,7 +240,7 @@ export function SupplyPage({ door, fees, t }: { door: SupplyDoor; fees: ListerFe
                 </li>
               ))}
             </ListGroup>
-          </section>
+          </MotionReveal>
         </div>
       </div>
 

@@ -89,6 +89,14 @@ export async function lookup(raw: string): Promise<{ kind: string; hits: LookupH
     });
   }
 
+  if (kind === "agent") {
+    /* `agents.public_code` (20260924104806): unique, assigned by the database. */
+    await section(undefined, "People", async () => {
+      const { data } = await db.from("agents").select("id, user_id, display_name, status, public_code").eq("public_code", value).limit(1);
+      for (const a of data ?? []) hits.push({ kind: "Agent", title: `${a.public_code}, ${a.display_name ?? "Agent"}`, sub: said(a.status), href: `/admin/people/${a.user_id}` });
+    });
+  }
+
   if (kind === "payment") {
     await section("finance", "Payments", async () => {
       const { data } = await db.from("transactions").select("id, provider_ref, status, created_at").eq("provider_ref", value).limit(5);

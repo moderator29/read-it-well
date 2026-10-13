@@ -1,6 +1,6 @@
 "use client";
 
-import { useHostCopy } from "@/components/host/host-copy";
+import { useHostCopy, useHostPageCopy } from "@/components/host/host-copy";
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -17,7 +17,7 @@ import type {
   TransferOffer,
   TransferableBusiness,
 } from "@/lib/business-transfer/queries";
-import { countOf, formatDate } from "@vallo/i18n/core";
+import { countOf, formatDate, type Locale } from "@vallo/i18n/core";
 import { useClientLocale } from "@/lib/i18n/use-client-locale";
 
 /**
@@ -39,31 +39,10 @@ import { useClientLocale } from "@/lib/i18n/use-client-locale";
  * ignorance is not consent.
  */
 
-const KIND_WORD: Record<string, string> = {
-  hotel: "Hotel",
-  serviced_apartments: "Serviced apartments",
-  guest_house: "Guest house",
-  resort: "Resort",
-  shortlet_operator: "Shortlet operator",
-  restaurant: "Restaurant",
-  agency: "Agency",
-};
-
-const STATUS_WORD: Record<string, string> = {
-  DRAFT: "Draft",
-  SUBMITTED: "With our team",
-  UNDER_REVIEW: "Being read",
-  MORE_INFO_REQUIRED: "Needs more from you",
-  APPROVED: "Approved",
-  PUBLISHED: "Live",
-  REJECTED: "Not approved",
-  SUSPENDED: "Suspended",
-};
-
-function when(iso: string): string {
+function when(iso: string, locale: Locale): string {
   const parsed = Date.parse(iso);
   if (!Number.isFinite(parsed)) return "";
-  return formatDate(new Date(parsed), "en", {
+  return formatDate(new Date(parsed), locale, {
     day: "numeric",
     month: "long",
     year: "numeric",
@@ -82,6 +61,8 @@ export function TransferWorkspace({
   partial: boolean;
 }) {
   const hw = useHostCopy();
+  const w = useHostPageCopy();
+  const tw = w.transfer;
   const locale = useClientLocale();
   const trading = businesses.filter((business) => business.stillTrading).length;
 
@@ -89,12 +70,12 @@ export function TransferWorkspace({
     <>
       <div className="nf-agent-head">
         <div>
-          <h1 className="nf-agent-head__title">Hand over a business</h1>
+          <h1 className="nf-agent-head__title">{w.screens.transfer}</h1>
           <p className={`mt-row ${TYPE.bodyLg}`}>
             {businesses.length === 0
-              ? "There is no business on this account."
+              ? tw.noBusiness
               : trading === 0
-                ? "Nothing here is trading, so none of it is holding anything up."
+                ? tw.nothingTrading
                 : /*
                      THE VERB AGREES WITH `trading`, NOT WITH `businesses.length`.
                      Two businesses with one of them trading once read "1 of
@@ -102,7 +83,7 @@ export function TransferWorkspace({
                      number that is trading, so that count picks the form; a
                      single business on the account has its own sentence.
                   */
-                  `${countOf(trading, businesses.length > 1 ? "businessesStillTrading" : "yourBusinessTrading", locale)} A business a stranger can book cannot be left with nobody behind it, so it has to move or close before an account can be deleted.`}
+                  `${countOf(trading, businesses.length > 1 ? "businessesStillTrading" : "yourBusinessTrading", locale)} ${tw.whyItMatters}`}
           </p>
         </div>
       </div>
@@ -111,7 +92,7 @@ export function TransferWorkspace({
         {incoming.length > 0 && (
           <Section
             title={hw.transfer.offeredTitle}
-            description="Nothing has moved. It is yours only if you accept it, and taking it on means taking on its bookings and its obligations."
+            description={tw.offeredDescription}
           >
             <RowList boxed>
               {incoming.map((offer) => (
@@ -124,7 +105,7 @@ export function TransferWorkspace({
         {businesses.length > 0 && (
           <Section
             title={hw.transfer.businessesTitle}
-            description="Two ways out of each one: hand it to somebody who accepts it, or close it and take it off the market. Both leave every record where it is."
+            description={tw.businessesDescription}
           >
             <RowList boxed>
               {businesses.map((business) => (
@@ -147,7 +128,7 @@ export function TransferWorkspace({
             body={hw.transfer.nothingBody}
             action={
               <ButtonLink href="/settings/account" variant="secondary" size="lg">
-                Back to my account
+                {tw.backToAccount}
               </ButtonLink>
             }
           />
@@ -155,8 +136,7 @@ export function TransferWorkspace({
 
         {partial && (
           <p className={TYPE.rowMeta}>
-            We could not check every part of this just now, so the list above may be short. Nothing
-            has been changed.
+            {tw.partial}
           </p>
         )}
       </Stack>
@@ -180,6 +160,9 @@ function BusinessRow({
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState<string | null>(null);
   const [busy, start] = useTransition();
+  const w = useHostPageCopy();
+  const tw = w.transfer;
+  const locale = useClientLocale();
 
   const send = () => {
     setError(null);
@@ -233,35 +216,35 @@ function BusinessRow({
         <span className="min-w-0">
           <span className={`block ${TYPE.rowTitle}`}>{business.name}</span>
           <span className={`block ${TYPE.rowMeta}`}>
-            {KIND_WORD[business.kind] ?? business.kind}
-            {business.verified ? ", verified" : ""}
+            {tw.kind[business.kind as keyof typeof tw.kind] ?? business.kind}
+            {business.verified ? tw.verifiedSuffix : ""}
           </span>
         </span>
         <StatusPill
           tone={business.stillTrading ? "info" : "neutral"}
           className="justify-self-start sm:justify-self-end"
         >
-          {STATUS_WORD[business.status] ?? business.status}
+          {w.businessStatus[business.status as keyof typeof w.businessStatus] ?? business.status}
         </StatusPill>
       </div>
 
       {business.stillTrading && (
         <ul className={`space-y-2xs ${TYPE.rowMeta}`}>
-          {business.status === "PUBLISHED" && <li>It is live, so anybody can find it.</li>}
+          {business.status === "PUBLISHED" && <li>{tw.live}</li>}
           {business.publishedRooms > 0 && (
             <li>
-              {countOf(business.publishedRooms, "propertiesLive")}
+              {countOf(business.publishedRooms, "propertiesLive", locale)}
             </li>
           )}
           {business.futureReservations > 0 && (
             <li>
-              {countOf(business.futureReservations, "tablesBooked")}{" "}
+              {countOf(business.futureReservations, "tablesBooked", locale)}{" "}
               <Link
                 href="/agent/bookings"
                 className="font-semibold text-[var(--nf-content-link)] hover:underline"
                 data-testid={`transfer-diary-${business.id}`}
               >
-                Settle the diary
+                {tw.settleDiary}
               </Link>
             </li>
           )}
@@ -270,16 +253,14 @@ function BusinessRow({
 
       {offer ? (
         <div className="nf-panel nf-panel--card block p-md">
-          <p className={TYPE.rowTitle}>Offered, waiting on an answer</p>
+          <p className={TYPE.rowTitle}>{tw.offerWaiting}</p>
           <p className={`mt-2xs ${TYPE.rowMeta}`}>
-            {offer.counterpartyHandle
-              ? `Sent to @${offer.counterpartyHandle}. `
-              : "Sent. "}
-            It runs out on {when(offer.expiresAt)} and nothing has moved yet.
+            {offer.counterpartyHandle ? tw.sentTo.replace("{handle}", offer.counterpartyHandle) : tw.sent}{" "}
+            {tw.runsOutNothingMoved.replace("{date}", when(offer.expiresAt, locale))}
           </p>
           <div className="mt-sm">
             <Button variant="secondary" onClick={takeBack} loading={busy} data-testid="transfer-withdraw">
-              Take the offer back
+              {tw.takeOfferBack}
             </Button>
           </div>
         </div>
@@ -288,12 +269,12 @@ function BusinessRow({
           className={`${TYPE.rowMeta} text-[var(--nf-state-success)]`}
           data-testid="transfer-sent"
         >
-          Offer sent. It runs out on {when(sent)}, and the business stays yours until they accept.
+          {tw.offerSent.replace("{date}", when(sent, locale))}
         </p>
       ) : open ? (
         <div className="nf-panel nf-panel--card block p-md">
           <label className="nf-label mb-2xs block" htmlFor={`email-${business.id}`}>
-            Their email address on Vallo
+            {tw.emailLabel}
           </label>
           <input
             id={`email-${business.id}`}
@@ -306,11 +287,10 @@ function BusinessRow({
             data-testid={`transfer-email-${business.id}`}
           />
           <p className={`mt-2xs ${TYPE.caption} text-[var(--nf-content-muted)]`}>
-            They must already have a Vallo account. We send them the offer and nothing moves until
-            they accept it.
+            {tw.emailHint}
           </p>
           <label className="nf-label mb-2xs mt-sm block" htmlFor={`note-${business.id}`}>
-            A note for them, if you want one
+            {tw.noteLabel}
           </label>
           <input
             id={`note-${business.id}`}
@@ -322,7 +302,7 @@ function BusinessRow({
           />
           <div className="mt-md grid gap-sm sm:grid-cols-2">
             <Button variant="secondary" full onClick={() => setOpen(false)}>
-              Cancel
+              {tw.cancel}
             </Button>
             <Button
               variant="primary"
@@ -332,7 +312,7 @@ function BusinessRow({
               disabled={email.trim().length === 0}
               data-testid={`transfer-send-${business.id}`}
             >
-              Send the offer
+              {tw.sendOffer}
             </Button>
           </div>
         </div>
@@ -347,7 +327,7 @@ function BusinessRow({
             data-testid={`transfer-open-${business.id}`}
           >
             <UiIcon name="arrow-right" size={20} />
-            Hand it over
+            {tw.handOver}
           </Button>
           <Button
             variant="secondary"
@@ -356,7 +336,7 @@ function BusinessRow({
             loading={busy}
             data-testid={`transfer-close-${business.id}`}
           >
-            Close it
+            {tw.closeIt}
           </Button>
         </div>
       )}
@@ -376,6 +356,8 @@ function IncomingRow({ offer }: { offer: TransferOffer }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [busy, start] = useTransition();
+  const tw = useHostPageCopy().transfer;
+  const locale = useClientLocale();
 
   const answer = (decision: "accept" | "decline") => {
     setError(null);
@@ -397,14 +379,13 @@ function IncomingRow({ offer }: { offer: TransferOffer }) {
       <span className="min-w-0">
         <span className={`block ${TYPE.rowTitle}`}>{offer.businessName}</span>
         <span className={`block ${TYPE.rowMeta}`}>
-          {offer.counterpartyHandle ? `From @${offer.counterpartyHandle}. ` : ""}
-          Runs out on {when(offer.expiresAt)}.
+          {offer.counterpartyHandle ? `${tw.from.replace("{handle}", offer.counterpartyHandle)} ` : ""}
+          {tw.runsOut.replace("{date}", when(offer.expiresAt, locale))}
         </span>
       </span>
       {offer.note && <p className={`${TYPE.rowMeta} whitespace-pre-wrap`}>{offer.note}</p>}
       <p className={TYPE.rowMeta}>
-        If you accept, its bookings and its diary become yours. The verified badge starts again from
-        your own identity check, and the consents and attestations are yours to make.
+        {tw.takingOn}
       </p>
       <div className="grid gap-sm sm:grid-cols-2">
         <Button
@@ -414,7 +395,7 @@ function IncomingRow({ offer }: { offer: TransferOffer }) {
           loading={busy}
           data-testid="transfer-decline"
         >
-          No thank you
+          {tw.noThanks}
         </Button>
         <Button
           variant="primary"
@@ -423,7 +404,7 @@ function IncomingRow({ offer }: { offer: TransferOffer }) {
           loading={busy}
           data-testid="transfer-accept"
         >
-          Accept it
+          {tw.acceptIt}
         </Button>
       </div>
       {error && (

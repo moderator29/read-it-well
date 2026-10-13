@@ -1,6 +1,6 @@
 import { getDictionary } from "@vallo/i18n";
 
-import { ListingCard } from "@/app/admin/listings/page";
+import { ListingCard } from "@/app/admin/listings/ListingCard";
 import { adminUi } from "@/app/admin/_components/ui";
 import { getLocale } from "@/lib/locale";
 import type { ListingReviewView } from "@/lib/admin/queries";
@@ -90,9 +90,9 @@ const LISTING: ListingReviewView = {
   reviewNotes: "Photographs were re-taken after the first pass. Utilities check out.",
   createdAt: "2026-09-17T18:00:00.000Z",
   checks: [
-    { label: "Four photos or more", pass: false, detail: "0 photos" },
+    { label: "Three photos or videos", pass: false, detail: "0 photos and 1 video" },
     { label: "Cover photo set", pass: false, detail: "No cover" },
-    { label: "Title in title case", pass: true, detail: "Reads as a title" },
+    { label: "Title of 8 to 80 characters", pass: true, detail: "Two Bedroom Flat, Herbert Macaulay Way, Yaba" },
     { label: "Area and city recorded", pass: true, detail: "Yaba, Lagos" },
     { label: "Price recorded in naira", pass: true, detail: "Asking price stated" },
     { label: "Title deed stated", pass: true, detail: "Certificate of occupancy" },

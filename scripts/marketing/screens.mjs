@@ -24,7 +24,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = join(HERE, "..", "..");
 const SOURCE = join(REPO, "docs", "marketing", "source");
 const OUT = join(REPO, "docs", "marketing", "screens");
-const FONTS = join(REPO, "apps", "web", "public", "fonts");
+const FONTS = join(REPO, "apps", "web", "public", "fonts", "v2");
 mkdirSync(OUT, { recursive: true });
 
 /* Inlined: a page set with setContent may not load file:// fonts. */

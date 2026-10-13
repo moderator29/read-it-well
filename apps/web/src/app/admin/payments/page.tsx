@@ -9,7 +9,6 @@ import {
 import { findAdminSubject } from "@/lib/admin/queries";
 import { getTermsStanding } from "@/lib/admin/legal-queries";
 import { adminUi } from "../_components/ui";
-import { fill } from "../_components/copy";
 import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/Table";
 import { LookupPanel } from "./LookupPanel";
 import { ActingFor, ActingForLookup } from "../_components/ActingFor";
@@ -20,6 +19,7 @@ import { LiveRefresh } from "../_components/LiveRefresh";
 import { CalmNote, DeskHead, Panel, flatParams } from "../money/_desk/Desk";
 import { PaymentsCharts, PaymentsKpis, PaymentsTable } from "./PaymentsFlow";
 import { currentPaystack, describePaystackMode } from "@/lib/payments/paystack-mode";
+import { getSubscriptionsDesk, LIVE_SUBSCRIPTION_STATUSES } from "@/lib/admin/reads/subscriptions";
 import "../money/_desk/desk.css";
 
 /** Payment attempts per page. */
@@ -35,16 +35,13 @@ export const dynamic = "force-dynamic";
 /**
  * Payment health.
  *
- * THE QUESTION THIS SCREEN ANSWERS. "Is anybody's money stuck." Vallo holds
- * no customer money (docs/MONEY_ARCHITECTURE.md), so what can be stuck is a
- * charge the processor has not settled, or a hold left from before custody
- * was retired.
+ * THE QUESTION THIS SCREEN ANSWERS. "Has the provider settled what it was
+ * sent." Vallo holds no customer money (docs/MONEY_ARCHITECTURE.md), so the
+ * one thing that can be outstanding is a charge the processor has not settled.
  *
- * The overdrawn-wallets table that used to lead this page is gone with the
- * wallets: `admin_payment_health` still returns the key, always empty.
- *
- * Stale holds come first and carry the one action, because they are the
- * finding where somebody is actively short of their own money.
+ * The overdrawn-wallets table and the stale withdrawal holds that used to lead
+ * this page are gone with custody: `admin_payment_health` still returns both
+ * keys, always empty.
  *
  * Unsettled payments come last and are read-only: the reconcile route at
  * /api/paystack/reconcile is what re-asks the provider, and duplicating that as
@@ -66,16 +63,65 @@ export default async function AdminPaymentsPage({
 
   const flat = flatParams(params);
   const acting = readActingForParams(params, "transaction");
-  const [read, lookup, flow] = await Promise.all([
+  const [read, lookup, flow, subs] = await Promise.all([
     getPaymentHealth(STALE_HOLD_MINUTES),
     term.length > 0 ? findAdminSubject(term) : Promise.resolve(null),
     getPaymentsDesk({
       ...(flat.outcome ? { outcome: flat.outcome } : {}),
-      ...(flat.kind ? { kind: flat.kind } : {}),
       page: readPage(params.page),
       pageSize: PAYMENTS_PAGE_SIZE,
     }),
+    getSubscriptionsDesk(),
   ]);
+  const s = t.subscriptions.admin;
+  /* Vallo Pro and Vallo Business, read only (lib/admin/reads/subscriptions.ts). */
+  const subscriptions = (
+    <ui.Section title={s.title} hint={s.hint}>
+      {subs.state !== "ok" ? (
+        <p className="nf-caption text-[var(--nf-content-muted)]" data-testid="admin-subscriptions-unavailable">
+          {s.unavailable}
+        </p>
+      ) : (
+        <>
+          <ui.StatRow>
+            {LIVE_SUBSCRIPTION_STATUSES.map((status) => (
+              <ui.Stat key={status} label={s.counts[status]} value={String(subs.data.counts[status])} tone="neutral" />
+            ))}
+          </ui.StatRow>
+          {subs.data.latest.length === 0 ? (
+            <p className="nf-caption mt-sm text-[var(--nf-content-muted)]">{s.none}</p>
+          ) : (
+            <Table caption={s.caption} density="compact">
+              <THead>
+                <TR>
+                  <TH>{s.plan}</TH>
+                  <TH>{s.status}</TH>
+                  <TH>{s.member}</TH>
+                  <TH>{s.mode}</TH>
+                  <TH>{s.ends}</TH>
+                  <TH>{s.started}</TH>
+                  <TH align="end">{s.amount}</TH>
+                </TR>
+              </THead>
+              <TBody>
+                {subs.data.latest.map((row) => (
+                  <TR key={row.id}>
+                    <TD className="font-semibold text-[var(--nf-content-primary)]">{row.planName}</TD>
+                    <TD>{s.statuses[row.status as keyof typeof s.statuses] ?? row.status}</TD>
+                    <TD className="[overflow-wrap:anywhere] [user-select:all]">{row.userId}</TD>
+                    <TD>{row.mode ?? s.trial}</TD>
+                    <TD>{row.endsAt ? ui.when(row.endsAt) : ""}</TD>
+                    <TD>{ui.when(row.createdAt)}</TD>
+                    <TD align="end">{row.amountMinor != null ? formatMoney(row.amountMinor, locale) : s.trial}</TD>
+                  </TR>
+                ))}
+              </TBody>
+            </Table>
+          )}
+        </>
+      )}
+    </ui.Section>
+  );
   const payments = flow.state === "ok" ? flow.data : null;
   /* Read-only: which Paystack account this deployment is talking to, so a
      sandbox deployment can never be mistaken for the live one. */
@@ -111,39 +157,30 @@ export default async function AdminPaymentsPage({
         <PaymentsKpis desk={payments} locale={locale} />
         <PaymentsCharts desk={payments} locale={locale} />
         <PaymentsTable desk={payments} params={flat} locale={locale} ui={ui} />
+        {subscriptions}
         <ui.QueueUnavailable />
       </div>
     );
   }
 
-  /* `overdrawn` is not read. It listed wallets below zero, and there are no
-     wallets: custody is retired (docs/MONEY_ARCHITECTURE.md) and
-     `admin_payment_health` answers it with an empty list, so the table and its
-     "books add up" figure were a check on a ledger that no longer moves. */
-  const { staleHolds, unsettled, totals, staleMinutes } = read.data;
-  const healthy = staleHolds.length === 0 && unsettled.length === 0;
+  /* `overdrawn` and `staleHolds` are not read. They listed wallets below zero
+     and withdrawal holds past their window, and there are no wallets and no
+     withdrawals: custody is retired (docs/MONEY_ARCHITECTURE.md), the custody
+     tables are unreachable from every app role, and `admin_payment_health`
+     can only answer both with empty lists. A panel for either would describe
+     a ledger that no longer moves (D48). */
+  const { unsettled, totals } = read.data;
+  const healthy = unsettled.length === 0;
 
   return (
     <div className="nf-console nf-md">
       <LiveRefresh />
       {head}
 
-      <PaymentsKpis desk={payments} locale={locale} />
-      <PaymentsCharts desk={payments} locale={locale} />
-      <PaymentsTable desk={payments} params={flat} locale={locale} ui={ui} />
-
+      {/* The answer to the desk's question first: has the provider settled what
+          it was sent. It sat under the whole payments table (C1 sweep). */}
       <Panel title={c.healthTitle} hint={c.healthHint}>
       <ui.StatRow>
-        <ui.Stat
-          label={c.frozen}
-          value={formatMoney(totals.frozenMinor, locale)}
-          hint={
-            staleHolds.length === 0
-              ? c.nothingHeld
-              : fill(plural(staleHolds.length, c.olderThan, locale), { minutes: staleMinutes })
-          }
-          tone={staleHolds.length === 0 ? "success" : "warning"}
-        />
         <ui.Stat
           label={c.waitingProvider}
           value={formatMoney(totals.unsettledMinor, locale)}
@@ -163,51 +200,6 @@ export default async function AdminPaymentsPage({
         </div>
       )}
       </Panel>
-
-      <ui.Section
-        title={c.stuckTitle}
-        hint={fill(c.stuckHint, { minutes: staleMinutes })}
-      >
-        {staleHolds.length === 0 ? (
-          <CalmNote
-            kind="clear"
-            title={c.stuckNoneTitle}
-            fills={c.stuckNoneFills}
-            creates={c.stuckNoneCreates}
-          />
-        ) : (
-          <div className="nf-stack nf-stack--group">
-            {/* The reference gets its own column and still never clips: it is
-                what a stuck hold is traced by with the processor. */}
-            <Table caption={c.stuckTitle} density="compact">
-              <THead>
-                <TR>
-                  <TH>{c.owner}</TH>
-                  <TH>{c.reference}</TH>
-                  <TH>{c.heldSince}</TH>
-                  <TH align="end">{c.amount}</TH>
-                </TR>
-              </THead>
-              <TBody>
-                {staleHolds.map((hold) => (
-                  <TR key={hold.reference}>
-                    <TD className="font-semibold text-[var(--nf-content-primary)]">
-                      {hold.ownerName ?? c.nameNotOnFile}
-                    </TD>
-                    <TD className="[overflow-wrap:anywhere] [user-select:all]">
-                      {hold.reference}
-                    </TD>
-                    <TD>{ui.when(hold.createdAt)}</TD>
-                    <TD align="end" className="font-bold">
-                      {formatMoney(hold.amountMinor, locale)}
-                    </TD>
-                  </TR>
-                ))}
-              </TBody>
-            </Table>
-          </div>
-        )}
-      </ui.Section>
 
       {unsettled.length > 0 && (
         <ui.Section
@@ -272,6 +264,12 @@ export default async function AdminPaymentsPage({
           </Table>
         </ui.Section>
       )}
+
+      <PaymentsKpis desk={payments} locale={locale} />
+      <PaymentsCharts desk={payments} locale={locale} />
+      <PaymentsTable desk={payments} params={flat} locale={locale} ui={ui} />
+
+      {subscriptions}
 
       <LookupPanel
         term={term}

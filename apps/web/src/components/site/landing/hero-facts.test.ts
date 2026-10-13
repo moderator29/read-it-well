@@ -30,8 +30,10 @@ describe("the hero's facts", () => {
     expect(hero.facts.moveIn.toLowerCase()).toContain("move-in total");
   });
 
+  /* D68d: payment opens when both parties confirm; the rail decides whether a
+     person looks first. Still never before the agreement. */
   it("say the payment gate: pay only after the agreement", () => {
-    expect(PAYMENT_GATE_SENTENCE.toLowerCase()).toMatch(/only after .*confirm the agreement/);
+    expect(PAYMENT_GATE_SENTENCE.toLowerCase()).toMatch(/as soon as .*both of you confirm the agreement/);
     expect(hero.facts.agree.toLowerCase()).toMatch(/only once you both agree/);
   });
 

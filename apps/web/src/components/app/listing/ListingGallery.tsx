@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { BackControl } from "@/components/ui/BackControl";
 import { useClientCopy } from "@/lib/i18n/client-copy";
@@ -10,8 +10,12 @@ import type { SavePlaceTarget } from "@/components/app/SaveControl";
 import type { SharedKind } from "@/components/app/messages/share";
 import type { ListingKind } from "@/lib/listings/types";
 import { PhotoFrame } from "./PhotoFrame";
-import { isPhotoMorphFor } from "@/lib/motion/photo-morph";
+import { aimPhotoMorph } from "@/lib/motion/photo-morph";
+import { handoffFor } from "@/lib/listings/handoff";
 import { usePhotoViewer } from "./PhotoViewer";
+import { clockOf, type GalleryMedia } from "./gallery-media";
+import "@/app/css/catalogue.css";
+import "@/app/css/list-views.css";
 
 /**
  * The immersive media hero.
@@ -42,6 +46,7 @@ export function ListingGallery({
   hue,
   kind,
   photos,
+  media,
   plates = [],
   drawn = false,
   initialSaved = false,
@@ -51,7 +56,26 @@ export function ListingGallery({
   place,
   shareTitle,
   floatingBack = true,
+  desktopInset = false,
+  framed = false,
 }: {
+  /**
+   * THE SPACE CARD'S TOP (the founder, 13 October 2026). The photograph is
+   * inset inside the outer card the page draws around it (`.nf-sc-top`), with
+   * its own rounded corners and an even gap, instead of running to the phone's
+   * edges and under the lead card. The floating back, share and save, Watch
+   * video and the photo counter keep their places on the photograph, and the
+   * counter and the video pill drop to its foot because nothing overlaps it
+   * any more. Phones, tablets and desktops alike.
+   */
+  framed?: boolean;
+  /**
+   * From `lg`, the photograph sits in the page's left column as a rounded
+   * frame rather than running edge to edge, so the listing's sticky summary
+   * card can stand beside it (the listing page's two columns, 13 October
+   * 2026). Phones and tablets keep the full-bleed hero either way.
+   */
+  desktopInset?: boolean;
   /**
    * A back control that stays on screen after the photograph has scrolled
    * away. On by default; the property listing turns it off because its sticky
@@ -85,6 +109,13 @@ export function ListingGallery({
   kind: ListingKind;
   /** Photo URLs, best first. May be empty. */
   photos: string[];
+  /**
+   * Photos AND videos, in the lister's order, cover first (`gallery-media.ts`).
+   * Optional: without it the gallery is the photo gallery it always was, which
+   * is what the stay and restaurant pages pass. A video slide shows its still
+   * and a "Watch video" button, and plays in place when that is pressed.
+   */
+  media?: GalleryMedia[];
   initialSaved?: boolean;
   /** Where back goes when this page was opened directly. */
   backFallback?: string;
@@ -119,9 +150,24 @@ export function ListingGallery({
 
   // One pane per photo; the stand-in plates when there is no photography
   // yet, and one honest drawn pane when there is neither.
-  const standIn = photos.length === 0 && plates.length > 0;
-  const panes: (string | null)[] = photos.length > 0 ? photos : standIn ? plates : [null];
-  const count = photos.length;
+  const mixed = media && media.length > 0 ? media : null;
+  const standIn = !mixed && photos.length === 0 && plates.length > 0;
+  /* What each pane paints: a photo, or a video's still (null draws the frame). */
+  const panes: (string | null)[] = mixed
+    ? mixed.map((item) => (item.kind === "photo" ? item.src : item.poster))
+    : photos.length > 0
+      ? photos
+      : standIn
+        ? plates
+        : [null];
+  const count = mixed ? mixed.length : photos.length;
+  /* The one video playing, if any. Only ever the slide on screen: swiping
+     away unmounts its player, which stops it (and its sound). The file is
+     fetched only from the moment "Watch video" is pressed. */
+  const [playing, setPlaying] = useState<number | null>(null);
+  useEffect(() => {
+    if (playing !== null && playing !== active) setPlaying(null);
+  }, [active, playing]);
 
   const onScroll = useCallback(() => {
     const el = track.current;
@@ -141,6 +187,41 @@ export function ListingGallery({
     [panes.length],
   );
 
+  /* The lightbox closes onto the photo the reader ended on: the hero jumps to
+     it out of sight, under the viewer, so the fold lands on the same picture
+     (PhotoViewer, `follow`). Instant, not smooth: nobody sees it move. */
+  const show = useCallback((index: number) => {
+    const el = track.current;
+    if (!el) return;
+    el.scrollTo({ left: index * el.clientWidth, behavior: "instant" });
+    setActive(index);
+    /* Focus comes back to the photo the reader is on, not the one first
+       tapped: returning it there would scroll the hero back as well. */
+    el.querySelectorAll<HTMLElement>("[data-testid=gallery-open]")[index]?.focus({ preventScroll: true });
+  }, []);
+
+  /*
+   * "WATCH VIDEO" ON THE COVER (founder's reference, 13 October 2026).
+   *
+   * A listing with a walkthrough says so on the first thing anybody sees,
+   * not only once they have swiped to the video's slide. The pill on the cover
+   * jumps straight to the first video and plays it, in place, exactly as the
+   * slide's own pill does. It is drawn only while the slide on screen is not
+   * a video (that slide carries its own) and nothing is playing, so there is
+   * never more than one "Watch video" on screen.
+   */
+  const firstVideo = mixed ? mixed.findIndex((item) => item.kind === "video") : -1;
+  const watchFirst = useCallback(() => {
+    const el = track.current;
+    if (!el || firstVideo < 0) return;
+    /* Instant, not smooth: a smooth scroll passes through the slides between
+       and `onScroll` would name each one active on the way, which stops the
+       player the moment it starts. */
+    el.scrollTo({ left: firstVideo * el.clientWidth, behavior: "instant" });
+    setActive(firstVideo);
+    setPlaying(firstVideo);
+  }, [firstVideo]);
+
   /*
      The listing's back control is the shared `BackControl`, on the photograph
      and again, fixed, once the photograph has scrolled away. A listing opened
@@ -159,18 +240,48 @@ export function ListingGallery({
    */
   const heroBack = useRef<HTMLDivElement | null>(null);
   /*
-   * The lead pane answers to the card's photo name only while this page is
-   * arriving (motion sweep, 29 September 2026). Named for good, it was lifted
-   * out of the page on every LATER transition too, so leaving the listing
-   * slid the text away and left the photograph fading in place on its own.
-   * And only when a card really started the flight (lib/motion/photo-morph.ts).
+   * THE HERO ANSWERS TO THE CARD'S PHOTO NAME only while this page is
+   * arriving (motion sweep, 29 September 2026; round 5). Named for good, it
+   * was lifted out of the page on every LATER transition too, so leaving the
+   * listing slid the text away and left the photograph fading in place on its
+   * own. And only when a card really started the flight: `aimPhotoMorph`
+   * says no otherwise (lib/motion/photo-morph.ts).
+   *
+   * The WHOLE hero takes the name now, not the lead pane: the scrims, the
+   * round controls and the counter ride in with the photograph and are
+   * there when it lands. Named on the pane alone they sat under the flying
+   * group and appeared in one frame once it had landed.
+   *
+   * A layout effect, so the name and the flight's start are written inside
+   * the view transition's update, before the browser captures this page.
    */
-  const [arriving, setArriving] = useState(() => isPhotoMorphFor(listingId));
-  useEffect(() => {
-    const done = window.setTimeout(() => setArriving(false), 1000);
-    return () => window.clearTimeout(done);
-  }, []);
+  const hero = useRef<HTMLElement | null>(null);
+  useLayoutEffect(() => {
+    aimPhotoMorph(hero.current, listingId);
+  }, [listingId]);
+  /*
+   * CAME FROM A CARD ON THIS TAB (round 5). The card left its glance and its
+   * drawn photo (lib/listings/handoff.ts). Two things follow:
+   *   - `data-arrival="card"`: the title and the price were already on
+   *     screen (the loading shell painted them, or the transition carried
+   *     them), so the lead card does not rise a second time when the page
+   *     streams in over the shell (route-motion.css).
+   *   - the photo the card drew sits under the lead pane while the hero's
+   *     larger file arrives, so the photograph never drops to the drawn
+   *     frame between the card and the hero. The browser has it already:
+   *     no second download.
+   * Read once: a cold open (a shared link, a refresh) has no handoff, here
+   * or on the server, so the two renders agree.
+   */
+  const [arrival] = useState(() => handoffFor(listingId));
   const [heroBackGone, setHeroBackGone] = useState(false);
+  /* Where the photograph's foot marks sit: clear of the lead card's overlap on
+     the full-bleed hero, at the foot of the inset photograph when framed. */
+  const counterAt = framed ? "bottom-3 right-3 sm:bottom-4 sm:right-4" : "bottom-12 right-3 sm:bottom-14 sm:right-4";
+  const watchAt = framed
+    ? "bottom-[3.75rem] right-3 sm:bottom-[4.25rem] sm:right-4"
+    : "bottom-[5.25rem] right-3 sm:bottom-[5.75rem] sm:right-4";
+  const dotsAt = framed ? "bottom-3 sm:bottom-4" : "bottom-13 sm:bottom-15";
   useEffect(() => {
     const node = heroBack.current;
     if (!floatingBack || !node || typeof IntersectionObserver === "undefined") return;
@@ -184,8 +295,11 @@ export function ListingGallery({
   return (
     <>
     <section
+      ref={hero}
       aria-label={`${title} photos`}
       data-testid="listing-gallery"
+      data-morph-hero={listingId}
+      data-arrival={arrival ? "card" : undefined}
       /* The hero is a photograph: its controls, chips and scrims keep the
          night material in both themes. */
       data-theme="dark"
@@ -214,7 +328,13 @@ export function ListingGallery({
        * Once the shell stops welding its 64px header onto this route the same
        * rule puts the hero under the status bar with no further change here.
        */
-      className="relative -mx-gutter -mt-xl sm:-mt-2xl"
+      className={
+        framed
+          ? "nf-gallery nf-gallery--framed nf-vt-morph relative"
+          : `nf-gallery nf-vt-morph relative -mx-gutter -mt-xl sm:-mt-2xl${
+              desktopInset ? " lg:mx-0 lg:mt-0 lg:overflow-hidden lg:rounded-[var(--nf-radius-xl)]" : ""
+            }`
+      }
     >
       <div
         ref={track}
@@ -226,22 +346,25 @@ export function ListingGallery({
         tabIndex={0}
         role="group"
         aria-label={t.a11y.photoGallery.replace("{title}", title)}
-        className="nf-scroll-x flex aspect-[4/3] w-full snap-x snap-mandatory sm:aspect-[16/9] lg:aspect-[2/1]"
+        className={`nf-scroll-x flex w-full snap-x snap-mandatory ${
+          framed
+            ? "aspect-[3/2] sm:aspect-[16/10]"
+            : `aspect-[4/3] sm:aspect-[16/9] ${desktopInset ? "lg:aspect-[3/2]" : "lg:aspect-[2/1]"}`
+        }`}
       >
-        {panes.map((photo, i) => (
+        {panes.map((photo, i) => {
+          const video = mixed?.[i]?.kind === "video" ? (mixed[i] as Extract<GalleryMedia, { kind: "video" }>) : null;
+          return (
           <div
-            key={photo ?? `pane-${i}`}
-            className={`relative h-full w-full shrink-0 snap-center snap-always overflow-hidden${i === 0 ? " nf-vt-morph" : ""}`}
-            /*
-             * The lead pane carries the same view-transition-name the listing
-             * card tagged its photo box with, so a browser that supports the
-             * View Transitions API morphs the card's photo into this frame
-             * instead of cutting to it. Every other browser just never reads
-             * this property: no feature check needed on the receiving end.
-             */
-            style={i === 0 && arriving ? { viewTransitionName: `listing-photo-${listingId}` } : undefined}
+            key={`${i}-${photo ?? "pane"}`}
+            className="relative h-full w-full shrink-0 snap-center snap-always overflow-hidden"
+            data-kind={video ? "video" : undefined}
           >
             <PhotoFrame hue={hue} index={i} kind={kind} drawn={drawn} />
+            {i === 0 && arrival?.drawn && photo && !broken[i] && (
+              // eslint-disable-next-line @next/next/no-img-element -- the exact URL the card drew, already cached; an optimiser URL would be a second download
+              <img src={arrival.drawn} alt="" className="absolute inset-0 h-full w-full object-cover" />
+            )}
             {photo && !broken[i] && (
               <Image
                 src={photo}
@@ -258,18 +381,79 @@ export function ListingGallery({
               scroll track keeps a plain div as its snap child and the hit area
               still covers the whole frame.
             */}
-            {photo && viewer && (
+            {photo && viewer && !video && (
               <button
                 type="button"
-                onClick={() => viewer.open(i)}
+                onClick={(event) => viewer.open(i, event.currentTarget.getBoundingClientRect(), { follow: show })}
                 aria-label={`View photo ${i + 1} full screen`}
                 data-testid="gallery-open"
                 className="absolute inset-0 z-[1] cursor-zoom-in"
               />
             )}
+            {video && playing === i && (
+              /* Muted until the viewer unmutes, with its controls, and never
+                 on its own: it starts only because "Watch video" was pressed. */
+              <video
+                src={video.src}
+                poster={video.poster ?? undefined}
+                controls
+                autoPlay
+                muted
+                playsInline
+                preload="auto"
+                aria-label={`${title}, video${video.durationSeconds ? `, ${clockOf(video.durationSeconds)}` : ""}`}
+                data-testid="gallery-video"
+                className="absolute inset-0 z-[3] h-full w-full bg-[var(--nf-overlay-media-deep)] object-contain"
+              />
+            )}
+            {video && playing !== i && (
+              <>
+                {/* The still is a target too, for a thumb; the button below
+                    is the one a keyboard and a screen reader reach. */}
+                <div
+                  aria-hidden="true"
+                  onClick={() => setPlaying(i)}
+                  className="absolute inset-0 z-[1] cursor-pointer"
+                />
+                <button
+                  type="button"
+                  onClick={() => setPlaying(i)}
+                  aria-label={t.catalogue.card.watchVideo}
+                  data-testid="gallery-watch"
+                  className={`nf-btn nf-gallery-watch absolute z-10 ${watchAt}`}
+                >
+                  <span className="nf-gallery-watch__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width={12} height={12} focusable="false">
+                      <path d="M8 5v14l11-7z" fill="currentColor" />
+                    </svg>
+                  </span>
+                  <span>{t.catalogue.card.watchVideo}</span>
+                  {video.durationSeconds ? (
+                    <span className="nf-numeric opacity-80">{clockOf(video.durationSeconds)}</span>
+                  ) : null}
+                </button>
+              </>
+            )}
           </div>
-        ))}
+          );
+        })}
       </div>
+
+      {firstVideo >= 0 && playing === null && mixed?.[active]?.kind !== "video" && (
+        <button
+          type="button"
+          onClick={watchFirst}
+          data-testid="gallery-watch-cover"
+          className={`nf-btn nf-gallery-watch absolute z-10 ${watchAt}`}
+        >
+          <span className="nf-gallery-watch__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width={12} height={12} focusable="false">
+              <path d="M8 5v14l11-7z" fill="currentColor" />
+            </svg>
+          </span>
+          <span>{t.catalogue.card.watchVideo}</span>
+        </button>
+      )}
 
       {/* Scrims: the controls sit on light sky at the top and the counter on
           whatever the photograph does at the bottom. Both need their own. */}
@@ -354,20 +538,22 @@ export function ListingGallery({
              Nothing else sits at the centre (the arrows are at the sides from
              `sm`, the dots are hidden for stand-in plates), and it lets a tap
              through to the lightbox under it. */
-          className="pointer-events-none absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-[var(--nf-radius-xs)] nf-media-chip nf-media-chip--muted px-sm py-2xs font-medium"
+          className="pointer-events-none absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-[var(--nf-radius-xs)] nf-media-chip nf-media-chip--muted px-sm py-2xs font-semibold"
         >
           {t.catalogue.card.noPhotos}
         </p>
       )}
-      {count > 0 && (
+      {/* Off while a video plays: it sat on the player's mute and full-screen
+          controls, and the sound is the first thing a viewer reaches for. */}
+      {count > 0 && playing === null && (
         <p
           data-testid="gallery-counter"
           /* `--nf-radius-sm`, the same 28px-plate ratio as the stand-in chip
              above it. See the note there. */
-          className="nf-numeric absolute bottom-12 right-3 z-10 rounded-[var(--nf-radius-xs)] nf-media-chip px-sm py-2xs font-semibold sm:bottom-14 sm:right-4"
+          className={`nf-numeric absolute z-10 rounded-[var(--nf-radius-xs)] nf-media-chip px-sm py-2xs font-semibold ${counterAt}`}
         >
           <UiIcon name="picture" size={16} className="mr-2xs inline-block align-[-2px]" />
-          <span className="sr-only">Photo </span>
+          <span className="sr-only">{mixed ? "Slide " : "Photo "}</span>
           {Math.min(active + 1, count)}/{count}
         </p>
       )}
@@ -379,7 +565,7 @@ export function ListingGallery({
             type="button"
             onClick={() => go(active - 1)}
             disabled={active === 0}
-            aria-label="Previous photo"
+            aria-label={mixed ? "Previous slide" : "Previous photo"}
             data-theme="light"
             className="absolute left-3 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 place-items-center nf-icon-btn nf-icon-btn--round disabled:opacity-0 sm:grid"
           >
@@ -389,7 +575,7 @@ export function ListingGallery({
             type="button"
             onClick={() => go(active + 1)}
             disabled={active === panes.length - 1}
-            aria-label="Next photo"
+            aria-label={mixed ? "Next slide" : "Next photo"}
             data-theme="light"
             className="absolute right-3 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 place-items-center nf-icon-btn nf-icon-btn--round disabled:opacity-0 sm:grid"
           >
@@ -408,15 +594,17 @@ export function ListingGallery({
             stand-in plates.
           */}
           <ul
-            className={`pointer-events-none absolute bottom-13 left-1/2 z-10 -translate-x-1/2 items-center gap-2xs sm:bottom-15 ${
+            className={`pointer-events-none absolute left-1/2 z-10 -translate-x-1/2 items-center gap-2xs ${dotsAt} ${
               count > 0 || standIn ? "hidden" : "flex"
             }`}
             aria-hidden="true"
           >
             {panes.map((photo, i) => (
               <li
-                key={photo ?? `dot-${i}`}
-                className={`h-1.5 rounded-full transition-all motion-reduce:transition-none ${
+                key={`${i}-${photo ?? "dot"}`}
+                /* The colour eases; the width steps. A width that animates is
+                   a layout every frame (CRAFT-PRINCIPLES 2.2). */
+                className={`h-1.5 rounded-full transition-colors duration-[var(--nf-duration-fast)] motion-reduce:transition-none ${
                   i === active
                     ? "w-4 bg-[var(--nf-content-on-media)]"
                     : "w-1.5 bg-[var(--nf-content-on-media-muted)]"

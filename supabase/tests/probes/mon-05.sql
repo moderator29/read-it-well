@@ -39,6 +39,15 @@ declare
   a1 uuid; a2 uuid; a3 uuid; a6 uuid; ra uuid; g bigint;
   lister uuid := 'e0000000-0000-4000-8000-000000000001'; rental uuid := 'ed000000-0000-4000-8000-000000000007'; r jsonb; n int; st text; s bigint;
 begin
+  -- 7 October 2026 (D68d, D77): an agreement approved by the system (no
+  -- decided_by) is payable only while no risk signal fires for it. This probe
+  -- is about the payment, not the review, so its fixture deals are ordinary
+  -- deals that raise no signal: the signals are switched off in
+  -- agreement_risk_settings for this transaction only.
+  update public.agreement_risk_settings
+     set check_first_deal = false, check_amount = false, check_recent_change = false,
+         check_payout_name = false, check_fraud_radar = false
+   where id = 1;
   -- 29 September: the console's second factor. An admin or a staff member
   -- holds their role only on a session that proved a security key, so this
   -- probe's session carries one for every admin and for the QA member (who
@@ -224,7 +233,10 @@ begin
          'owner', 'call_back', '03f3dd52-ea28-4852-9abe-e5b0a67c2a43', now()
     from public.listings where id = rental and listing_role <> 'owner'
      and not private.listing_has_live_mandate(id);
-  update public.listings set is_demo = false, status = 'PUBLISHED', listing_intent = 'rent',
+  -- 7 October 2026 (b2 rail at open): a Paystack charge must resolve to the
+  -- direct rail. A shortlet is escrow; the fixture lets the place as a
+  -- registered business's apartment, which the rail policy settles direct.
+  update public.listings set is_demo = false, status = 'PUBLISHED', listing_intent = 'rent', property_type = 'apartment',
          rent_amount_minor = 150000000, rent_period = 'year', rate_minor = 0, rate_period = null,
          caution_deposit_minor = null, service_charge_minor = null, agency_fee_minor = null,
          legal_fee_minor = null, agreement_fee_minor = null, total_move_in_cost_minor = null

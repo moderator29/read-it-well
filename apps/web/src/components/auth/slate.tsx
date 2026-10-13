@@ -1,3 +1,5 @@
+import { MARK_VIEWBOX, WORDMARK_VIEWBOX } from "@/lib/brand/logo-geometry";
+import "@/app/css/auth.css";
 import Image from "next/image";
 import Link from "next/link";
 import type { ComponentProps, MouseEventHandler, ReactNode } from "react";
@@ -83,29 +85,32 @@ export function AuthCurveBlock({
 }) {
   const word = (
     <>
-      <Image
-        src="/brand/vallo-mark.png"
-        alt=""
-        aria-hidden
-        width={614}
-        height={587}
-        sizes="32px"
-        priority
-        className="nf-slate-top__mark nf-slate-top__mark--on-navy"
-      />
-      <Image
-        src="/brand/vallo-mark-light.png"
-        alt=""
-        aria-hidden
-        width={614}
-        height={587}
-        sizes="32px"
-        priority
-        className="nf-slate-top__mark nf-slate-top__mark--on-paper"
-      />
-      <span className="nf-slate-top__word" aria-hidden="true">
-        {wordmark}
+      {/* The logo (D81) in its own colours, the same in both themes (D82).
+          The block is the brand blue, where the blue letters would vanish,
+          so the lockup stands on a white plate (`--nf-logo-plate`); the
+          artwork itself is never recoloured. The dictionary's spaced name
+          stays the link's text for a reader. */}
+      <span className="nf-slate-top__plate">
+        <Image
+          src="/brand/vallo-mark.svg"
+          alt=""
+          aria-hidden
+          width={MARK_VIEWBOX.w}
+          height={MARK_VIEWBOX.h}
+          priority
+          className="nf-slate-top__mark"
+        />
+        <Image
+          src="/brand/vallo-wordmark.svg"
+          alt=""
+          aria-hidden
+          width={WORDMARK_VIEWBOX.w}
+          height={WORDMARK_VIEWBOX.h}
+          priority
+          className="nf-slate-top__word"
+        />
       </span>
+      <span className="sr-only">{wordmark}</span>
     </>
   );
 

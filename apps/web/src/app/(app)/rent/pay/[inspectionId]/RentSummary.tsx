@@ -13,7 +13,10 @@ export function RentSummary({ view }: { view: RentPayView }) {
   const copy = getDictionary(view.locale).afterTheGate;
   const c = getDictionary(view.locale).checkout;
   return (
-    <section aria-labelledby="nf-rent-summary" className="nf-panel nf-panel--card block p-md sm:p-lg">
+    /* The Island, as checkout's summary is before payment (reference 7038,
+       north star section 4): the one hero container on the screen, holding
+       what is being bought and the whole cost before the action. */
+    <section aria-labelledby="nf-rent-summary" className="nf-island p-card" data-testid="rent-summary">
       <h2 id="nf-rent-summary" className="nf-h3">
         {view.title}
       </h2>
@@ -33,7 +36,6 @@ export function RentSummary({ view }: { view: RentPayView }) {
           locale={view.locale}
           currency={view.currency}
           showFraction
-          count
           className="text-[length:var(--nf-text-display-sm)] font-bold leading-none tracking-[-0.02em] text-[var(--nf-content-primary)]"
           secondaryClassName="text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-muted)]"
         />

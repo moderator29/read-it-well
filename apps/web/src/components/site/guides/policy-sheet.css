@@ -1,0 +1,96 @@
+@layer theme, base, components, utilities;
+
+/*
+ * A POLICY ON PAPER (Session 3, W1b; D28.1: "paper is a document sheet on the
+ * member's theme", north star 10 J). The cancellation schedule, the trust and
+ * safety standards and the account deletion page are documents someone reads
+ * once and may print or quote, so each sits on the shared document sheet
+ * (components/app/money/DocumentSheet.tsx) and not on a stack of glass cards.
+ *
+ * What this adds to `.nf-doc` is what a policy needs and a receipt does not:
+ *
+ *   THE HIERARCHY   a display-face head per section and a hairline between
+ *                   sections, the same as the legal pages' `.nf-legal-sheet`.
+ *   ONE EDGE        the sheet is the container, so the cards the page's
+ *                   parts used to be (and the two shared components that
+ *                   still draw cards: the cancellation timeline and the
+ *                   ranking list) become rows with a hairline between them.
+ *                   A card never nests on paper.
+ *   THE CONTROLS    the sheet re-answers the content tokens for paper
+ *                   (document.css), but not the field, glass button or
+ *                   inset surfaces, which a night field and a night glass
+ *                   button would carry onto white as dark boxes under dark
+ *                   ink. They are re-pointed at the sheet's own inset and
+ *                   hairline here, so the restore form and the secondary
+ *                   buttons read on the paper in both themes.
+ *
+ * `!important` appears twice, on purpose: the shared components bring their
+ * own spacing utilities (`mt-section`, `p-card`), which the utilities layer
+ * would otherwise win, and they are not this page's to edit.
+ *
+ * Tokens only.
+ */
+@layer components {
+  .nf-policy {
+    --nf-surface-inset: var(--nf-doc-bg-inset, var(--nf-content-on-media));
+    --nf-btn-glass-fill: var(--nf-doc-bg, var(--nf-content-on-media));
+    --nf-btn-glass-edge: var(--nf-doc-hairline, var(--nf-border-on-paper));
+    --nf-btn-glass-shadow: none;
+    --nf-btn-glass-backdrop: none;
+    --nf-glass-fill-strong: var(--nf-doc-accent-tint, var(--nf-doc-bg-inset));
+  }
+
+  /* ------------------------------------------------------ the sections */
+  .nf-policy > section + section {
+    margin-top: var(--nf-space-xl) !important;
+    padding-top: var(--nf-space-xl);
+    border-top: var(--nf-border-width) solid var(--nf-divider);
+  }
+  .nf-policy > section:first-child {
+    margin-top: 0 !important;
+  }
+  .nf-policy h2:not(.sr-only) {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h3);
+    font-weight: 600;
+    line-height: 1.22;
+    letter-spacing: -0.015em;
+    color: var(--nf-content-primary);
+    text-wrap: balance;
+  }
+  .nf-policy :is(p, li) {
+    max-width: 68ch;
+    text-wrap: pretty;
+  }
+
+  /* ------------------------------------------------------------- rows */
+  .nf-policy__list {
+    display: grid;
+  }
+  .nf-policy__item {
+    padding-block: var(--nf-space-sm);
+  }
+  .nf-policy__list > .nf-policy__item + .nf-policy__item {
+    border-top: var(--nf-border-width) solid var(--nf-divider);
+  }
+  .nf-policy__list > .nf-policy__item:first-child {
+    padding-top: 0;
+  }
+
+  /* A shared component's cards, drawn as rows on the paper. */
+  .nf-policy :is(.nf-panel, .nf-card) {
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    padding-inline: 0 !important;
+  }
+  .nf-policy :is(ol, ul) > :is(.nf-panel, .nf-card) + :is(.nf-panel, .nf-card) {
+    border-top: var(--nf-border-width) solid var(--nf-divider);
+  }
+  .nf-policy :is(ol, ul) > :is(.nf-panel, .nf-card):first-child {
+    padding-top: 0;
+  }
+}

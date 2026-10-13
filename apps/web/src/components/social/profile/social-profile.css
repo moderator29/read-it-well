@@ -21,10 +21,14 @@
    * 362px on a 390 screen, and it is kept inside the viewport on anything
    * narrower. Supersedes `.nf-social-more__menu` in `social-feed.css`.
    */
+  /* Hung from the trigger's start edge; `ProfileMenu` flips it to the end
+     edge, or slides it, when that would leave the screen (D79: it ran off
+     the right side of a phone, cutting "Report" and "Block" in half). */
   .nf-post__menu.nf-social-more__menu {
     inset-inline-start: 0;
     inset-inline-end: auto;
-    max-inline-size: calc(100vw - 2.5rem);
+    min-inline-size: 13rem;
+    max-inline-size: calc(100vw - 2rem);
     border-radius: var(--nf-container-radius);
     border-color: var(--nf-panel-edges);
     background: var(--nf-panel-fill-card);
@@ -74,21 +78,11 @@
     letter-spacing: 0.06em;
   }
 
-  /* The tab bar: the panel's track and the shared SELECTED state (the
-     console's chosen row: lit fill, bright edges, the inline glow) on the
-     live tab. Supersedes the track and the flat brand tab of `.nf-glass-seg`
-     for the profile only; the landing's segment is another group's. */
-  .nf-glass-seg.nf-glass-seg--profile {
-    border-color: var(--nf-panel-edges);
-    background: var(--nf-panel-fill-card);
-    box-shadow: var(--nf-panel-rim);
-  }
-  .nf-glass-seg--profile .nf-glass-seg__tab[aria-selected="true"] {
-    background: var(--nf-selected-fill);
-    border: var(--nf-border-width) solid transparent;
-    border-color: var(--nf-selected-edges);
-    box-shadow: var(--nf-selected-shadow-inline);
-  }
+  /* The profile's tabs are the platform's underline tabs (`.nf-glass-seg`
+     in social.css, the same ink as `/profile`'s own tabs): muted labels, the
+     chosen one in full ink with the travelling line under it. The lit block
+     that filled the chosen tab here is gone (D79, founder: "a big blue
+     block"). */
 
   /*
    * A choice card in the profile editor (who may message you, pidgin): the
@@ -96,7 +90,7 @@
    * Replaces the inline `style` the editor set a brand ring with, and the
    * `--nf-border-subtle` grey edge at rest.
    */
-  .nf-choice {
+  .nf-pchoice {
     display: flex;
     align-items: flex-start;
     gap: var(--nf-space-sm);
@@ -110,16 +104,16 @@
       border-color var(--nf-duration-fast) var(--nf-ease-standard),
       box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
   }
-  .nf-choice:has(input:checked) {
+  .nf-pchoice:has(input:checked) {
     border-color: var(--nf-selected-edges);
     box-shadow: var(--nf-selected-shadow-inline);
   }
-  .nf-choice:has(input:focus-visible) {
+  .nf-pchoice:has(input:focus-visible) {
     outline: 2px solid var(--nf-focus-ring);
     outline-offset: 2px;
   }
   @media (prefers-reduced-motion: reduce) {
-    .nf-choice {
+    .nf-pchoice {
       transition: none;
     }
   }
@@ -128,5 +122,63 @@
      (bright cyan is the platform's pending colour). */
   .nf-panel.nf-panel--held {
     border-color: color-mix(in oklab, var(--nf-status-pending) 60%, transparent);
+  }
+
+  /*
+   * THE PROFILE HERO IS AN ISLAND (north star 10 E, tier 3), the same block
+   * `/profile` wears: navy glass over a 16px blur, its one edge the light on
+   * the border box, radius 28, lapping the cover's foot so the photograph
+   * reads as a picture and the person as one hero. The face, the name, the
+   * handle, the bio and the counts sit inside it; before they sat straight on
+   * the page with the face alone overlapping the cover.
+   *
+   * Only the geometry is here. The material is `.nf-island` (glass.css), and
+   * the banner behind it is the blur's reason to exist.
+   */
+  .nf-profile-identity.nf-island {
+    align-items: center;
+    margin-block-start: -2.5rem;
+    padding: var(--nf-space-md);
+    column-gap: var(--nf-space-md);
+  }
+  .nf-profile-identity.nf-island .nf-profile-text {
+    padding-block-start: 0;
+  }
+  @media (min-width: 640px) {
+    .nf-profile-identity.nf-island {
+      margin-inline: var(--nf-space-md);
+      padding: 1.25rem var(--nf-space-lg);
+    }
+  }
+
+  /* The counts are Figures: tabular, a size up from their label, and three of
+     them share the column beside the face, so the gap is the small step. */
+  .nf-profile-text .nf-social-counts {
+    gap: var(--nf-space-sm);
+  }
+  .nf-profile-text .nf-social-count__value {
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  /* The cover's corners (D79) live with the header in `identity.css`, so
+     `/profile`, which never loads this partial, wears the same two. */
+
+  /* The overflow trigger beside Follow takes the same compact rung, 36 drawn
+     and 44 to the finger. */
+  .nf-identity .nf-identity__actions .nf-social-more {
+    position: relative;
+    inline-size: 36px;
+    block-size: 36px;
+  }
+  .nf-identity .nf-identity__actions .nf-social-more::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 44px;
+    height: 44px;
+    translate: -50% -50%;
   }
 }

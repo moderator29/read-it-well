@@ -1,29 +1,34 @@
 "use client";
 
-import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
-import { Sheet } from "@/components/ui/Sheet";
+import type { UiIconName } from "@/design-system/icons/UiIcon";
+import { ActionSheetIllustrated, type ActionSheetRow } from "@/components/ui/ActionSheetIllustrated";
 import { countOf } from "@vallo/i18n/core";
+import type { MenuWords } from "./sheet-words";
 
 /**
  * The sheet behind a card's `…`.
  *
- * A bottom sheet rather than a popover, and that is not a style choice. Every
- * row carries a title AND the sentence that says what it actually does, because
+ * It is the platform's illustrated action sheet (north star 15.2, reference
+ * 43): a clay object on a soft ground, a title, one line, then hairline rows
+ * each with a round glyph plate, the action and the sentence that says what it
+ * actually does, and one quiet dismiss. It used to be a generic list in a plain
+ * `Sheet`, which is exactly the pattern 15.2 says this component replaces.
+ *
+ * Every row carries a title AND the sentence that says what it does, because
  * "Hide" and "Not interested" and "Mute" are three words people cannot tell
  * apart and the difference between them matters: one is about a post, one is
- * about a feed, one is about a person. Five rows of two lines do not fit in a
- * popover on a 390px screen.
+ * about a feed, one is about a person. The sentence rides in the row's `hint`.
  *
  * **The rows change with what was tapped.** A person's post does not offer
  * "Contact Agent", because there is no agent to contact, and a control that
  * cannot work should not be there to press. What is offered is decided by the
  * caller and passed in, so this component holds no knowledge of what a post is.
  *
- * The surface is the platform's `Sheet`: drag or flick down to close, Escape,
- * Back, the focus trap and return, the counted scroll lock, the home-indicator
- * inset and a body that scrolls when eight two-line rows are taller than a
- * phone held sideways. It used to build its own panel, which had none of the
- * gestures and pushed its top rows off a landscape screen.
+ * Everything about being a sheet (drag or flick to close, Escape, Back, the
+ * focus trap and return, the counted scroll lock, the home-indicator inset, a
+ * body that scrolls when ten two-line rows are taller than a phone held
+ * sideways) is `Sheet`'s, inherited through `ActionSheetIllustrated`. A danger
+ * row takes the rose plate and label and never glows.
  */
 
 export type SheetAction = {
@@ -41,49 +46,41 @@ export function ActionSheet({
   actions,
   onChoose,
   onClose,
+  body,
+  dismissLabel,
 }: {
-  /** What this sheet is about, for a screen reader. */
+  /** What this sheet is about: the title, and the dialog's accessible name. */
   label: string;
   actions: SheetAction[];
   onChoose: (key: string) => void;
   onClose: () => void;
+  /** The one line under the title, in the reader's language (`sheetWordsOf`). */
+  body: string;
+  /** The single quiet dismiss, the locale's "Not now" (`sheetWordsOf`). */
+  dismissLabel: string;
 }) {
+  const rows: ActionSheetRow[] = actions.map((action) => ({
+    id: action.key,
+    label: action.title,
+    hint: action.note,
+    icon: action.glyph ?? action.icon ?? "sliders",
+    danger: action.danger,
+    onSelect: () => onChoose(action.key),
+  }));
+
   return (
-    <Sheet
+    <ActionSheetIllustrated
       open
       onOpenChange={(next) => {
         if (!next) onClose();
       }}
       title={label}
-      hideTitle
-    >
-      <div role="menu" aria-label={label} className="nf-actions__list">
-        {actions.map((action) => (
-          <button
-            key={action.key}
-            type="button"
-            role="menuitem"
-            className={`nf-actions__row${action.danger ? " nf-actions__row--danger" : ""}`}
-            onClick={() => {
-              onClose();
-              onChoose(action.key);
-            }}
-          >
-            <span className="nf-actions__icon">
-              {action.glyph ? (
-                <UiIcon name={action.glyph} size={19} />
-              ) : (
-                <UiIcon name={action.icon ?? "sliders"} size={19} />
-              )}
-            </span>
-            <span className="min-w-0">
-              <span className="nf-actions__title">{action.title}</span>
-              <span className="nf-actions__note">{action.note}</span>
-            </span>
-          </button>
-        ))}
-      </div>
-    </Sheet>
+      body={body}
+      object="local-talks"
+      rows={rows}
+      dismissLabel={dismissLabel}
+      testId="post-action-sheet"
+    />
   );
 }
 
@@ -128,7 +125,7 @@ export function actionsForPost(options: {
       entry both have a null author, and neither can be muted or blocked. */
   hasAuthor: boolean;
   who: string;
-}): SheetAction[] {
+}, words: MenuWords): SheetAction[] {
   /* The public count, said in words. The card's row has five items already and
      the owner's standing note is that nothing is jam-packed, so the number
      lives here rather than becoming a sixth control at 390px. */
@@ -144,21 +141,21 @@ export function actionsForPost(options: {
          exact same `post_reactions` row with the mark SAVE. It used to say
          "Interested" here, which is a second word for one concept and the kind
          of drift that ends with two features nobody can tell apart. */
-      title: options.saved ? "Saved" : "Save",
-      note: options.saved ? "Take it off your saved list" : "Keep it to come back to",
+      title: options.saved ? words.saved : words.save,
+      note: options.saved ? words.savedNote : words.saveNote,
       glyph: "bookmark",
     },
     {
       key: "repost",
-      title: options.reposted ? "Reposted" : "Repost",
+      title: options.reposted ? words.reposted : words.repost,
       /* Exactly where it goes and no further. A repost appears under Activity
          on your own page, and the author is told. It does not lift the post
          into anybody's feed, because nothing in this product injects a repost
          into a feed, and promising that here would be the fourth control on
          this surface found saying more than it does. */
       note: options.reposted
-        ? `Take it off your Activity.${soFar}`
-        : `It shows under Activity on your page, and they are told.${soFar}`,
+        ? `${words.repostedNote}${soFar}`
+        : `${words.repostNote}${soFar}`,
       glyph: "repost",
     },
   ];
@@ -166,16 +163,16 @@ export function actionsForPost(options: {
   if (options.isAgentAuthor && options.hasListing) {
     rows.push({
       key: "contact",
-      title: "Contact agent",
-      note: "Send a message about this place",
+      title: words.contact,
+      note: words.contactNote,
       glyph: "chat-bubble",
     });
   }
 
   rows.push({
     key: "share",
-    title: "Share",
-    note: "Send it to somebody",
+    title: words.share,
+    note: words.shareNote,
     glyph: "share",
   });
 
@@ -190,8 +187,8 @@ export function actionsForPost(options: {
    */
   rows.push({
     key: "copy",
-    title: "Copy link",
-    note: "Paste it anywhere",
+    title: words.copy,
+    note: words.copyNote,
     glyph: "link",
   });
 
@@ -199,15 +196,15 @@ export function actionsForPost(options: {
     if (options.editable) {
       rows.push({
         key: "edit",
-        title: "Change what it says",
-        note: "For fifteen minutes after posting. It says edited afterwards",
+        title: words.edit,
+        note: words.editNote,
         glyph: "plus",
       });
     }
     rows.push({
       key: "delete",
-      title: "Delete this post",
-      note: "Replies under it stay, with a note where it was",
+      title: words.delete,
+      note: words.deleteNote,
       glyph: "trash",
       danger: true,
     });
@@ -241,16 +238,16 @@ export function actionsForPost(options: {
        * the thing that exists under its own name.
        */
       key: "mute",
-      title: `Mute ${options.who}`,
-      note: "They stop showing up in your feeds, stories and threads",
+      title: words.mute.replace("{who}", options.who),
+      note: words.muteNote,
       glyph: "mute",
     });
   }
 
   rows.push({
     key: "report",
-    title: "Report",
-    note: "Tell us what is wrong with this",
+    title: words.report,
+    note: words.reportNote,
     glyph: "flag",
     danger: true,
   });
@@ -258,8 +255,8 @@ export function actionsForPost(options: {
   if (options.hasAuthor) {
     rows.push({
       key: "block",
-      title: `Block ${options.who}`,
-      note: "You will not see each other anywhere on Vallo",
+      title: words.block.replace("{who}", options.who),
+      note: words.blockNote,
       glyph: "block",
       danger: true,
     });

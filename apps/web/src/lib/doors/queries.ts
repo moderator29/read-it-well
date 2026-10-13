@@ -1,4 +1,5 @@
 import "server-only";
+import { reportReadError } from "@/lib/observability/read-error";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { isSupabaseConfigured } from "../supabase/env";
@@ -24,6 +25,7 @@ export async function readMyAgentLookup(): Promise<MyAgentLookup | null> {
   try {
     const db = await createClient();
     const { data, error } = await callLandlordRpc(db, "my_agent_lookup", {});
+    await reportReadError("read.doors.readMyAgentLookup", error);
     if (error || !data || typeof data !== "object") return null;
     const row = data as { code?: unknown; hint?: unknown };
     return {
@@ -46,6 +48,7 @@ export async function readSafetyShareByToken(token: string): Promise<SafetyShare
   try {
     const db = await createClient();
     const { data, error } = await callLandlordRpc(db, "safety_share_read", { p_token: token });
+    await reportReadError("read.doors.readSafetyShareByToken", error);
     if (error) return { state: "failed" };
     return readSafetyShare(data);
   } catch {
@@ -69,6 +72,7 @@ export async function readMyLiveSafetyShares(): Promise<Record<string, { checked
       .is("stopped_at", null)
       .gt("expires_at", new Date().toISOString())
       .limit(100);
+    await reportReadError("read.doors.readMyLiveSafetyShares", error);
     if (error || !Array.isArray(data)) return {};
     const out: Record<string, { checkedIn: boolean; expiresAt: string }> = {};
     for (const row of data as { inspection_id?: unknown; checked_in_at?: unknown; expires_at?: unknown }[]) {

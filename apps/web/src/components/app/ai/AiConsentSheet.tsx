@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 
+import { Button } from "@/components/ui/Button";
 import { AI_DISCLOSURE } from "@/lib/ai/consent";
 import { recordAiConsent } from "@/lib/ai/consent-actions";
 
@@ -45,9 +46,8 @@ export function AiConsentSheet({
         </Link>
       </p>
       <div className="mt-md flex flex-wrap gap-sm">
-        <button
-          type="button"
-          className="nf-btn nf-btn--primary"
+        <Button
+          variant="primary"
           disabled={busy}
           onClick={() => {
             setBusy(true);
@@ -59,10 +59,10 @@ export function AiConsentSheet({
           }}
         >
           {AI_DISCLOSURE.agree}
-        </button>
-        <button type="button" className="nf-btn nf-btn--ghost" disabled={busy} onClick={onDeclined}>
+        </Button>
+        <Button variant="quiet" disabled={busy} onClick={onDeclined}>
           {AI_DISCLOSURE.decline}
-        </button>
+        </Button>
       </div>
       {failed ? (
         <p role="alert" className="nf-body-sm mt-sm" data-testid="ai-consent-failed">

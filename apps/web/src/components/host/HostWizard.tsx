@@ -1,17 +1,23 @@
 "use client";
 
-import { useHostCopy } from "@/components/host/host-copy";
-import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
+import { PhoneGateLink } from "@/components/app/PhoneGateLink";
+import { useHostCopy, useHostPageCopy } from "@/components/host/host-copy";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useBack } from "@/lib/nav/use-back";
-import { countOf, getDictionary, type Locale } from "@vallo/i18n";
-import { useClientLocale } from "@/lib/i18n/use-client-locale";
+import { useBackGuard } from "@/lib/ui/use-back-guard";
+import { whenSheetsClosed } from "@/lib/ui/use-sheet-history";
+import { countOf, type Locale } from "@vallo/i18n/core";
+import { useScopedCopy } from "@/lib/i18n/copy-scope";
 import { useMoneyStepUp } from "@/components/app/money/MoneyStepUp";
-import type { BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
+import { Sheet } from "@/components/ui/Sheet";
 import { SuccessSheet } from "@/components/ui/SuccessSheet";
+import { Unfold } from "@/components/ui/Unfold";
+import { ProgressPath } from "@/components/supply/ProgressPath";
+import { HOST_STEP_TILES, HOST_TYPE_TILES } from "@/components/supply/path-tiles";
 import { successCopy } from "@/lib/ui/success-moments";
 import { SelectField, TextArea, TextField } from "@/components/ui/Field";
 import { TYPE } from "@/components/app/Screen";
@@ -24,6 +30,7 @@ import {
   HOST_TYPES,
   branchFor,
   hostsAccommodation,
+  mergeServerDraft,
   missingFrom,
   progressLabel,
   stepsFor,
@@ -32,7 +39,6 @@ import {
   type HostDocumentKind,
   type HostDraft,
   type HostStepId,
-  type HostType,
 } from "@/lib/host/onboarding";
 import type { StaysDoor } from "@/lib/host/doors";
 import {
@@ -40,6 +46,10 @@ import {
   listBanks,
   resolveBankAccount,
 } from "@/lib/payments/bank-accounts-actions";
+import { BusinessPhotoManager } from "./BusinessPhotoManager";
+import { HeldProvider, differs, useGuard, useHeld, useWizardMemory } from "./wizard-memory";
+import { ExtraChargesStep } from "./stays/ExtraChargesStep";
+import type { Dictionary } from "@vallo/i18n/core";
 import { HostDocumentUploader } from "./HostDocumentUploader";
 import { FacilitiesStep } from "./stays/FacilitiesStep";
 import { HotelStep } from "./stays/HotelStep";
@@ -50,9 +60,9 @@ import { RestaurantStep } from "./stays/RestaurantStep";
 import { RoomTypesStep } from "./stays/RoomTypesStep";
 import { StaysHead } from "./stays/StaysParts";
 import { TablesStep } from "./stays/TablesStep";
-import { IconPlate } from "@/components/ui/IconPlate";
 import { Icon3D } from "@/components/ui/Icon3D";
-import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
+import { HOST_AGREEMENT_VERSION, PAY_ON_VALLO_VERSION } from "@/lib/legal/versions";
+import { WorkspaceAcceptance } from "@/components/legal/WorkspaceAcceptance";
 
 /**
  * THE HOST WIZARD, ON `lib/host`.
@@ -90,11 +100,18 @@ export type PolicyOption = {
   name: string;
   summary: string;
   isFreeUntilHours: number | null;
+  /** The refund tiers (`[{hours_before, refund_bps}]`), printed in plain words. */
+  rules?: unknown;
+  /** flexible, moderate, firm or strict, when the policy is one of the presets. */
+  preset?: string | null;
 };
 
-type Notice = { tone: "ok" | "error"; text: string } | null;
+type Notice = { tone: "ok" | "error"; text: string; phoneGate?: boolean } | null;
 
 const STORAGE_KEY = "nf_host_draft";
+
+/* The unsaved-changes prompt's heading, as the founder worded it. */
+const UNSAVED_TITLE = "You have unsaved changes";
 
 const KIND_LABEL: Record<BusinessKind, string> = {
   agency: "Agency",
@@ -104,12 +121,6 @@ const KIND_LABEL: Record<BusinessKind, string> = {
   resort: "Resort",
   shortlet_operator: "Shortlet operator",
   restaurant: "Restaurant",
-};
-
-const TYPE_MARK: Record<HostType, BrandIconName> = {
-  individual: "keys-home",
-  business: "hotel",
-  restaurant: "concierge-bell",
 };
 
 /*
@@ -156,6 +167,39 @@ function writeLocal(draft: LocalDraft) {
   }
 }
 
+/** The typed business fields, the half of the draft `saveHostDraft` writes. */
+const TEXT_FIELDS = [
+  "name",
+  "description",
+  "phone",
+  "email",
+  "address",
+  "area",
+  "city",
+  "stateCode",
+  "registeredName",
+  "cacNumber",
+  "tin",
+  "representativeName",
+  "representativePhone",
+] as const satisfies readonly TextKeys[];
+
+type SavedText = Pick<HostDraft, TextKeys | "hostType" | "kind">;
+
+function pickText(draft: HostDraft): SavedText {
+  const out = { hostType: draft.hostType, kind: draft.kind } as SavedText;
+  for (const key of TEXT_FIELDS) (out as Record<string, unknown>)[key] = draft[key];
+  return out;
+}
+
+/** Where the person is trying to go when the wizard asks about unsaved changes. */
+type Leave =
+  | { kind: "back" }
+  /* The browser's own Back (or the Android Chrome gesture): out of the wizard. */
+  | { kind: "history" }
+  | { kind: "jump"; index: number }
+  | { kind: "link"; href: string };
+
 export function HostWizard({
   initial,
   userId,
@@ -163,8 +207,20 @@ export function HostWizard({
   locale,
   door = null,
   initialStep = null,
+  arrivalCopy,
+  acceptCopy,
 }: {
   initial: HostDraft;
+  /**
+   * Ruling 6: the words of the pay-on-Vallo tick (`payChoice.accept`), handed
+   * down by the page. Absent (the dev previews), the English line is drawn.
+   */
+  acceptCopy?: Pick<Dictionary["payChoice"], "accept">;
+  /**
+   * The words of the Extra charges step (`afterTheGate.arrival`), handed down
+   * by the page so the client does not load the dictionary for them.
+   */
+  arrivalCopy?: Dictionary["afterTheGate"]["arrival"];
   userId: string;
   policies: PolicyOption[];
   locale: Locale;
@@ -225,6 +281,38 @@ export function HostWizard({
    */
   const [expectedRooms, setExpectedRooms] = useState(1);
 
+  /*
+   * EVERY SAVE ENDS IN `router.refresh()`, WHICH HANDS THIS COMPONENT A NEW
+   * `initial`. The state above is seeded from the first one only, so without
+   * this the screen went on drawing the draft from before the save: a room
+   * type saved and no Continue, a property saved and "save the property
+   * first", a photograph uploaded and nothing shown. `mergeServerDraft` says
+   * which half of the draft is the server's and which is still the device's.
+   * Adjusted during render rather than in an effect, as `wasSubmitted` below
+   * is, so no frame is drawn from the stale copy.
+   */
+  const [seenInitial, setSeenInitial] = useState(initial);
+  /* What the server holds of the typed fields: what "unsaved" is measured
+     against, and what Discard puts back. */
+  const [savedText, setSavedText] = useState<SavedText>(() => pickText(initial));
+  /*
+   * THE HOST'S AGREEMENT, ticked on the business step (founder decision B).
+   * Nothing is created for a host who has not agreed to the Terms, the Privacy
+   * policy and the Host Agreement; the tick rides on the save that creates
+   * the business and is recorded there with each version.
+   */
+  const [agreeNow, setAgreeNow] = useState(false);
+  const agreed = draft.hostAgreementVersion === HOST_AGREEMENT_VERSION;
+  /* Ruling 6 (13 October 2026): every payment for a deal happens inside Vallo,
+     ticked beside the Host Agreement and recorded the same way. */
+  const [payNow, setPayNow] = useState(false);
+  const payAgreed = draft.payOnValloVersion === PAY_ON_VALLO_VERSION;
+  if (seenInitial !== initial) {
+    setSeenInitial(initial);
+    setDraft((current) => mergeServerDraft(current, initial));
+    if (initial.businessId) setSavedText(pickText(initial));
+  }
+
   /* The device's copy of the typed fields, merged UNDER the server's: a
      field the server holds is the truth, a field it does not is what was
      typed before the last save failed. */
@@ -250,6 +338,9 @@ export function HostWizard({
   const steps = useMemo(() => stepsFor(draft.hostType, draft.kind), [draft.hostType, draft.kind]);
   const step = steps[Math.min(at, steps.length - 1)]!;
   const submitted = draft.status === "SUBMITTED";
+  /* What each step has typed and not saved, held here so Back never loses it
+     (`components/host/wizard-memory.tsx`). */
+  const memory = useWizardMemory(step.id);
   /*
    * The success sheet opens on the TRANSITION to submitted, which only
    * `submitHostApplication`'s ok makes (ReviewStep sets the status in its
@@ -261,8 +352,12 @@ export function HostWizard({
     setWasSubmitted(submitted);
     if (submitted) setCelebrate(true);
   }
-  /* This wizard already carries the dictionary for its locale. */
-  const successWords = getDictionary(useClientLocale()).success;
+  /* The page's CopyScope carries these (W13): no client dictionary read. */
+  const successWords = useScopedCopy("success");
+  const hostPage = useHostPageCopy();
+  /* The progress path's words: the same ones the agent's listing wizard uses
+     (`experienceFeatures.wizard`). */
+  const pathWords = useScopedCopy("featuresWizard");
 
   const set = useCallback(<K extends keyof HostDraft>(key: K, value: HostDraft[K]) => {
     setDraft((current) => {
@@ -300,7 +395,7 @@ export function HostWizard({
       start(async () => {
         const result = await work();
         if (!result.ok) {
-          setNotice({ tone: "error", text: result.error });
+          setNotice({ tone: "error", text: result.error, phoneGate: result.gate === "phone" });
           if (result.fieldErrors) setFieldErrors(result.fieldErrors);
           return;
         }
@@ -311,43 +406,92 @@ export function HostWizard({
     [router],
   );
 
-  /** Save the text of the draft, creating the row on the first call. */
-  const saveText = useCallback(
-    (extra: Record<string, unknown> = {}, then?: () => void) =>
-      run(
-        () =>
-          saveHostDraft({
-            ...(draft.hostType ? { hostType: draft.hostType } : {}),
-            ...(draft.kind ? { kind: draft.kind } : {}),
-            name: draft.name,
-            description: draft.description,
-            phone: draft.phone,
-            email: draft.email,
-            address: draft.address,
-            area: draft.area,
-            city: draft.city,
-            stateCode: draft.stateCode,
-            registeredName: draft.registeredName,
-            cacNumber: draft.cacNumber,
-            tin: draft.tin,
-            representativeName: draft.representativeName,
-            representativePhone: draft.representativePhone,
-            ...extra,
-          }),
-        (data) => {
-          const saved = data as { businessId: string; status: string };
-          setDraft((current) => ({
-            ...current,
-            businessId: saved.businessId,
-            status: saved.status as HostDraft["status"],
-          }));
-          then?.();
-        },
-      ),
-    [draft, run],
+  /**
+   * `run`, awaitable. Every step's save is built on this, so the same save
+   * serves the step's own Continue and the wizard's "Save and go back".
+   */
+  const runAsync = useCallback(
+    (work: () => Promise<ActionResult<unknown>>) =>
+      new Promise<boolean>((resolve) => {
+        setNotice(null);
+        setFieldErrors({});
+        start(async () => {
+          try {
+            const result = await work();
+            if (!result.ok) {
+              setNotice({ tone: "error", text: result.error, phoneGate: result.gate === "phone" });
+              if (result.fieldErrors) setFieldErrors(result.fieldErrors);
+              resolve(false);
+              return;
+            }
+            router.refresh();
+            resolve(true);
+          } catch {
+            setNotice({ tone: "error", text: "That did not go through. Check your connection and try again." });
+            resolve(false);
+          }
+        });
+      }),
+    [router],
   );
 
-  const forward = () => setAt((i) => Math.min(steps.length - 1, i + 1));
+  /** Save the text of the draft, creating the row on the first call. */
+  const saveTextAsync = useCallback(
+    async (extra: Record<string, unknown> = {}) => {
+      const sent = pickText(draft);
+      let saved: { businessId: string; status: string } | null = null;
+      const done = await runAsync(async () => {
+        const result = await saveHostDraft({
+          ...(agreeNow && !agreed ? { agreeToHostTerms: true } : {}),
+          ...(payNow && !payAgreed ? { agreeToPayOnVallo: true } : {}),
+          ...(draft.hostType ? { hostType: draft.hostType } : {}),
+          ...(draft.kind ? { kind: draft.kind } : {}),
+          name: draft.name,
+          description: draft.description,
+          phone: draft.phone,
+          email: draft.email,
+          address: draft.address,
+          area: draft.area,
+          city: draft.city,
+          stateCode: draft.stateCode,
+          registeredName: draft.registeredName,
+          cacNumber: draft.cacNumber,
+          tin: draft.tin,
+          representativeName: draft.representativeName,
+          representativePhone: draft.representativePhone,
+          ...extra,
+        });
+        if (result.ok) saved = result.data;
+        return result;
+      });
+      const written = saved as { businessId: string; status: string } | null;
+      if (done && written) {
+        setDraft((current) => ({
+          ...current,
+          businessId: written.businessId,
+          status: written.status as HostDraft["status"],
+        }));
+        setSavedText(sent);
+      }
+      return done;
+    },
+    [draft, runAsync, agreeNow, agreed, payNow, payAgreed],
+  );
+
+  const saveText = useCallback(
+    (extra: Record<string, unknown> = {}, then?: () => void) => {
+      void saveTextAsync(extra).then((done) => {
+        if (done) then?.();
+      });
+    },
+    [saveTextAsync],
+  );
+
+  /* Moving on after a save: what the step held is now on record. */
+  const forward = () => {
+    memory.forget(step.id);
+    setAt((i) => Math.min(steps.length - 1, i + 1));
+  };
   /*
    * ONE BACK CONTROL, AND IT WALKS OUT OF THE FLOW AT THE TOP OF IT.
    *
@@ -357,16 +501,122 @@ export function HostWizard({
    * is the declared parent of this route, rather than calling history back.
    */
   const leave = useBack("/host");
-  const back = () => {
+
+  /*
+   * UNSAVED CHANGES ARE ASKED ABOUT, NEVER LOST.
+   *
+   * Back, a jump along the progress path, a row's chevron, a link out of the
+   * wizard, reloading and closing the tab all go through `attempt`, which asks
+   * when the step (or a typed field) has anything not yet saved: Save and go
+   * back, Discard, or Stay. A browser leaving the page gets the browser's own
+   * prompt (`beforeunload`), which is the only one a page may show there.
+   * The browser's Back button gets this prompt too: `useBackGuard` holds one
+   * history entry while anything is unsaved, so Back takes that entry off
+   * and the wizard asks (docs/BACK_NAVIGATION.md, "Unsaved changes").
+   */
+  const textDirty = draft.businessId
+    ? differs(pickText(draft), savedText)
+    : TEXT_FIELDS.some((key) => (draft[key] ?? "").trim().length > 0);
+  const isDirty = () => textDirty || memory.dirty();
+  const [leaving, setLeaving] = useState<Leave | null>(null);
+  const [savingLeave, setSavingLeave] = useState(false);
+
+  const perform = (target: Leave) => {
     setNotice(null);
-    if (at === 0) {
+    if (target.kind === "jump") {
+      setAt(Math.max(0, Math.min(steps.length - 1, target.index)));
+      return;
+    }
+    if (target.kind === "link") {
+      if (/^https?:/i.test(target.href) && !target.href.startsWith(window.location.origin)) {
+        window.location.assign(target.href);
+      } else {
+        router.push(target.href);
+      }
+      return;
+    }
+    if (target.kind === "history" || at === 0) {
       /* Leave the way the person came in (the Create sheet, the host
-         landing), not by stacking a second `/host` on top. */
-      leave();
+         landing), not by stacking a second `/host` on top. Only once the
+         prompt's own history entry is off: walking back while it is still
+         on top landed one screen too far back. */
+      whenSheetsClosed(leave);
       return;
     }
     setAt((i) => Math.max(0, i - 1));
   };
+  const attempt = (target: Leave) => {
+    setNotice(null);
+    if (isDirty()) setLeaving(target);
+    else perform(target);
+  };
+  const back = () => attempt({ kind: "back" });
+  const jumpTo = (index: number) => attempt({ kind: "jump", index });
+  /* The browser's Back, which only reaches here while something is unsaved. */
+  useBackGuard(isDirty(), () => {
+    setNotice(null);
+    setLeaving({ kind: "history" });
+  });
+
+  const discardAndGo = () => {
+    const target = leaving;
+    memory.forget(step.id);
+    setDraft((current) => {
+      const reverted = { ...current, ...savedText };
+      const keep: LocalDraft = {};
+      for (const key of ["hostType", "kind", ...TEXT_FIELDS] as const) {
+        (keep as Record<string, unknown>)[key] = reverted[key];
+      }
+      writeLocal(keep);
+      return reverted;
+    });
+    setLeaving(null);
+    if (target) perform(target);
+  };
+  const saveAndGo = async () => {
+    const target = leaving;
+    setSavingLeave(true);
+    const textSaved = textDirty ? await saveTextAsync() : true;
+    const saved = textSaved && (await memory.saveAll());
+    setSavingLeave(false);
+    if (!saved) return;
+    memory.forget(step.id);
+    setLeaving(null);
+    if (target) perform(target);
+  };
+
+  /* The browser's own leave prompt, and links anywhere on the page. A link
+     click is caught on the way down (capture), before Next's router sees it. */
+  const dirtyNow = useRef(isDirty);
+  useEffect(() => {
+    dirtyNow.current = isDirty;
+  });
+  useEffect(() => {
+    const onBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (!dirtyNow.current()) return;
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    const onClick = (event: MouseEvent) => {
+      if (event.defaultPrevented || event.button !== 0) return;
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const anchor = (event.target as Element | null)?.closest?.("a[href]") as HTMLAnchorElement | null;
+      if (!anchor || anchor.target === "_blank" || anchor.hasAttribute("download")) return;
+      const url = new URL(anchor.href, window.location.href);
+      const sameOrigin = url.origin === window.location.origin;
+      if (sameOrigin && url.pathname === window.location.pathname && url.search === window.location.search) return;
+      if (!dirtyNow.current()) return;
+      event.preventDefault();
+      event.stopPropagation();
+      setLeaving({ kind: "link", href: sameOrigin ? `${url.pathname}${url.search}${url.hash}` : url.href });
+    };
+    window.addEventListener("beforeunload", onBeforeUnload);
+    document.addEventListener("click", onClick, true);
+    return () => {
+      window.removeEventListener("beforeunload", onBeforeUnload);
+      document.removeEventListener("click", onClick, true);
+    };
+  }, []);
 
   /** What Next does on each step: save what the step holds, then move. */
   const next = () => {
@@ -389,7 +639,7 @@ export function HostWizard({
       case "host-type":
         return draft.hostType !== null && draft.kind !== null;
       case "business":
-        return BUSINESS_SECTIONS.every((section) =>
+        return (agreed || agreeNow) && (payAgreed || payNow) && BUSINESS_SECTIONS.every((section) =>
           section.fields.every(
             (field) => field.optional || (draft[field.name as TextKeys] ?? "").trim().length > 0,
           ),
@@ -432,6 +682,35 @@ export function HostWizard({
         body={applied.body}
         primary={{ label: successWords.continue }}
       />
+      <Sheet
+        open={leaving !== null}
+        onOpenChange={(open) => {
+          if (!open && !savingLeave) setLeaving(null);
+        }}
+        title={UNSAVED_TITLE}
+        card
+        detents={[0.6]}
+      >
+        <div className="flex flex-col gap-md p-md" data-testid="unsaved-prompt">
+          <p className={TYPE.body}>
+            What you changed here is not saved yet. Save it before you go, or discard it.
+          </p>
+          {notice?.tone === "error" && (
+            <p role="alert" className="nf-body-sm text-[var(--nf-state-error)]">
+              {notice.text}
+            </p>
+          )}
+          <Button variant="primary" size="lg" full loading={savingLeave} disabled={savingLeave} onClick={() => void saveAndGo()}>
+            {leaving?.kind === "back" || leaving?.kind === "history" ? "Save and go back" : "Save and go"}
+          </Button>
+          <Button variant="secondary" size="lg" full disabled={savingLeave} onClick={discardAndGo}>
+            Discard
+          </Button>
+          <Button variant="quiet" size="lg" full disabled={savingLeave} onClick={() => setLeaving(null)}>
+            Stay
+          </Button>
+        </div>
+      </Sheet>
       <StaysHead
         /*
          * `GOVERNING-11` screen three is the one drawn screen whose heading is
@@ -446,7 +725,74 @@ export function HostWizard({
         onBack={back}
       />
 
+      {/* SENT BACK BY A REVIEWER. The host page says "open the application to
+          answer", so the question has to be here, on every step, in the
+          reviewer's own words. Before this the wizard never mentioned it. */}
+      {(draft.status === "MORE_INFO_REQUIRED" || draft.status === "REJECTED") && (
+        <section
+          className="nf-panel nf-panel--card block nf-host-group mt-md"
+          role="status"
+          data-testid="host-sent-back"
+        >
+          {/* The host page's own words for this state and this note, so the
+              two screens say the same thing. */}
+          <h2 className="nf-host-group__title">
+            {draft.status === "REJECTED"
+              ? hostPage.businessStatus.REJECTED
+              : hostPage.businessStatus.MORE_INFO_REQUIRED}
+          </h2>
+          <p className="nf-host-group__note whitespace-pre-wrap">
+            {draft.reviewNotes
+              ? hostPage.home.reviewerWrote.replace("{note}", draft.reviewNotes)
+              : hostPage.home.noReason}
+          </p>
+          <p className="mt-2xs nf-caption">
+            {draft.status === "REJECTED"
+              ? "You can change this application and send it again. It goes back to our team as a resubmission, with the note above beside it."
+              : "Change what they asked for, then send it again from the last step."}
+          </p>
+        </section>
+      )}
+
+      {/* THE PROGRESS PATH (reference 7110), the same one the agent's listing
+          wizard carries: every step on one path, done ones a tap away, folded
+          under the head so the step stays the subject. It shows the steps this
+          host will be asked for (`steps`, the same list the segments count) in
+          their own words, and says the autosave only as far as it is true: the
+          device keeps the typed fields from the start, the account from the
+          business step on. The steps and the rail are unchanged (D28). */}
+      {steps.length > 1 ? (
+        <Unfold
+          className="mt-md"
+          headingLevel={2}
+          items={[
+            {
+              id: "path",
+              icon: "clipboard-list",
+              title: pathWords.allSteps,
+              hint: [
+                pathWords.stepOf.replace("{n}", String(at + 1)).replace("{total}", String(steps.length)),
+                draft.businessId ? pathWords.savedHost : pathWords.savedDevice,
+                /* Two sentences, the first with no full stop of its own ("Step 1 of 11"):
+                   a plain space ran them together as "Step 1 of 11 Saved on this device". */
+              ].join(" · "),
+              content: (
+                <ProgressPath
+                  steps={steps.map((s) => ({ id: s.id, label: s.title, tile: HOST_STEP_TILES[s.id] }))}
+                  at={at}
+                  onJump={jumpTo}
+                  disabled={pending}
+                  copy={{ done: pathWords.done, current: pathWords.current, upcoming: pathWords.upcoming }}
+                  locale={locale}
+                />
+              ),
+            },
+          ]}
+        />
+      ) : null}
+
       <div className="mt-lg flex flex-col gap-md" key={step.id}>
+        <HeldProvider value={memory.value}>
         <StepBody
           step={step.id}
           draft={draft}
@@ -462,11 +808,23 @@ export function HostWizard({
           expectedRooms={expectedRooms}
           onExpectedRooms={setExpectedRooms}
           advance={forward}
+          proceed={() => attempt({ kind: "jump", index: at + 1 })}
+          runAsync={runAsync}
+          saveTextAsync={saveTextAsync}
+          arrivalCopy={arrivalCopy}
+          agreed={agreed}
+          agreeNow={agreeNow}
+          onAgree={setAgreeNow}
+          payAgreed={payAgreed}
+          payNow={payNow}
+          onPay={setPayNow}
+          acceptCopy={acceptCopy}
           goTo={(id) => {
             const index = steps.findIndex((s) => s.id === id);
-            if (index >= 0) setAt(index);
+            if (index >= 0) jumpTo(index);
           }}
         />
+        </HeldProvider>
       </div>
 
       {notice && (
@@ -477,6 +835,7 @@ export function HostWizard({
           {notice.text}
         </p>
       )}
+      <PhoneGateLink show={notice?.phoneGate === true} full className="mt-sm" />
 
       {/*
         THE FOOT IS ONLY FOR THE STEPS THAT ARE NOT DRAWN. Every drawn panel
@@ -525,8 +884,22 @@ type StepProps = {
   saveText: (extra?: Record<string, unknown>, then?: () => void) => void;
   setNotice: (notice: Notice) => void;
   goTo: (id: HostStepId) => void;
-  /** Move on. Every drawn panel owns its own Continue and calls this. */
+  /** Move on after a save. Every drawn panel owns its own Continue and calls this. */
   advance: () => void;
+  /** Move on without saving, asking first if anything is unsaved. */
+  proceed: () => void;
+  runAsync: (work: () => Promise<ActionResult<unknown>>) => Promise<boolean>;
+  saveTextAsync: (extra?: Record<string, unknown>) => Promise<boolean>;
+  arrivalCopy?: Dictionary["afterTheGate"]["arrival"];
+  /** The host's agreement: already on record, or ticked on this visit. */
+  agreed: boolean;
+  agreeNow: boolean;
+  onAgree: (next: boolean) => void;
+  /** Ruling 6: the pay-on-Vallo statement, on record or ticked on this visit. */
+  payAgreed: boolean;
+  payNow: boolean;
+  onPay: (next: boolean) => void;
+  acceptCopy?: Pick<Dictionary["payChoice"], "accept">;
   /** The hotel's stated total, held by the wizard. See its declaration. */
   expectedRooms: number;
   onExpectedRooms(next: number): void;
@@ -546,6 +919,7 @@ const DRAWN_STAYS_STEPS = new Set<HostStepId>([
   "place",
   "house-rules",
   "facilities",
+  "extra-charges",
   "restaurant",
   "tables",
 ]);
@@ -555,7 +929,23 @@ function StepBody(props: StepProps) {
     case "host-type":
       return <HostTypeStep {...props} />;
     case "business":
-      return <BusinessStep {...props} />;
+      return (
+        <>
+          <BusinessStep {...props} />
+          <HostAgreementTick agreed={props.agreed} agreeNow={props.agreeNow} onAgree={props.onAgree} />
+          {props.payAgreed ? null : (
+            <WorkspaceAcceptance
+              className="nf-host-group"
+              copy={props.acceptCopy ?? PAY_ON_VALLO_FALLBACK}
+              showTerms={false}
+              terms
+              pay={props.payNow}
+              onTerms={() => undefined}
+              onPay={props.onPay}
+            />
+          )}
+        </>
+      );
     case "registration":
       return <RegistrationStep {...props} />;
     case "representative":
@@ -572,12 +962,22 @@ function StepBody(props: StepProps) {
       return <HouseRulesStep {...props} />;
     case "facilities":
       return <FacilitiesStep {...props} />;
+    case "extra-charges":
+      return <ExtraChargesStep {...props} copy={props.arrivalCopy} />;
     case "restaurant":
+      /* The photographs and the health permit sit ABOVE the step's Continue:
+         both are on `missingFrom`'s list, and the permit used to be drawn
+         under the button, where a host who pressed Continue never saw it. */
       return (
-        <>
-          <RestaurantStep {...props} />
-          <HygieneAttestation {...props} />
-        </>
+        <RestaurantStep
+          {...props}
+          extra={
+            <>
+              <VenuePhotos {...props} />
+              <HygieneAttestation {...props} />
+            </>
+          }
+        />
       );
     case "tables":
       return <TablesStep {...props} />;
@@ -612,9 +1012,12 @@ function HostTypeStep({ draft, set }: StepProps) {
                 set("kind", type === "restaurant" ? "restaurant" : definition.kinds.includes(draft.kind as BusinessKind) ? draft.kind : null);
               }}
             >
-              <IconPlate size="sm" className="nf-host-choice__mark">
-                <UiIcon name={lineGlyphFor(TYPE_MARK[type])} size={20} />
-              </IconPlate>
+              {/* The stays door's 3D render (`GOVERNING-09` screen three), on
+                  the same plate the learning path's tiles stand on. */}
+              <span className="nf-path__tile" aria-hidden="true">
+                {/* eslint-disable-next-line @next/next/no-img-element -- a 256px render at 48px */}
+                <img src={HOST_TYPE_TILES[type]} alt="" width={48} height={48} decoding="async" />
+              </span>
               <span className="min-w-0 flex-1">
                 <span className={`block ${TYPE.rowTitle}`}>{definition.title}</span>
                 <span className={`block ${TYPE.rowMeta}`}>{definition.meaning}</span>
@@ -631,6 +1034,9 @@ function HostTypeStep({ draft, set }: StepProps) {
           <p className="nf-host-group__title">What is it, exactly?</p>
           <div className="mt-sm flex flex-wrap gap-xs" role="group" aria-label={hw.wizard.businessKindLabel}>
             {chosen.kinds.map((kind) => (
+              /* The raw chip, on purpose: `Chip`'s selected state is the lit CTA
+                 gradient with a bloom, and a filter row is not where a screen's
+                 one glow goes. `nf-chip--active` is the calm brand tint. */
               <button
                 key={kind}
                 type="button"
@@ -645,6 +1051,70 @@ function HostTypeStep({ draft, set }: StepProps) {
         </div>
       )}
     </>
+  );
+}
+
+/** The pay-on-Vallo tick's English, for a caller that hands no dictionary (the dev previews). */
+const PAY_ON_VALLO_FALLBACK: Pick<Dictionary["payChoice"], "accept"> = {
+  accept: {
+    title: "Before you send this",
+    termsLead: "I have read and accept the",
+    termsLink: "Terms of Service",
+    and: "and the",
+    privacyLink: "Privacy Policy",
+    newTab: "opens in a new tab",
+    payInside: "Every payment for a deal I make on Vallo happens inside Vallo.",
+    required: "Tick both boxes to send this.",
+    done: "You accepted the Terms of Service and the Privacy Policy, and that every payment for a deal happens inside Vallo.",
+  },
+};
+
+/**
+ * THE TERMS, THE PRIVACY POLICY AND THE HOST AGREEMENT, agreed before the
+ * business is created. Each opens in a new tab; the tick is recorded with the
+ * moment and the three versions on the save that creates the business.
+ */
+function HostAgreementTick({
+  agreed,
+  agreeNow,
+  onAgree,
+}: {
+  agreed: boolean;
+  agreeNow: boolean;
+  onAgree: (next: boolean) => void;
+}) {
+  return (
+    <section className="nf-panel nf-panel--card block nf-host-group" data-testid="host-agreement">
+      {agreed ? (
+        <p className="nf-host-group__note">
+          You agreed to the Terms of service, the Privacy policy and the Host Agreement.
+        </p>
+      ) : (
+        <label className="flex items-start gap-sm">
+          <input
+            type="checkbox"
+            className="mt-3xs h-5 w-5 shrink-0"
+            checked={agreeNow}
+            onChange={(event) => onAgree(event.target.checked)}
+          />
+          <span className={TYPE.body}>
+            I agree to the{" "}
+            <Link href="/terms" target="_blank" className="text-[var(--nf-content-link)] underline">
+              Terms of service
+            </Link>
+            , the{" "}
+            <Link href="/privacy" target="_blank" className="text-[var(--nf-content-link)] underline">
+              Privacy policy
+            </Link>{" "}
+            and the{" "}
+            <Link href="/host-agreement" target="_blank" className="text-[var(--nf-content-link)] underline">
+              Host Agreement
+            </Link>
+            . In short: I only charge guests what is listed on Vallo, with a reason for every charge.
+          </span>
+        </label>
+      )}
+    </section>
   );
 }
 
@@ -791,6 +1261,23 @@ function RepresentativeStep({ draft, set, userId, fieldErrors }: StepProps) {
  * the week removing. It sits under "Your restaurant", which is the screen
  * about the venue rather than the screen about its week.
  */
+/**
+ * THE RESTAURANT'S PHOTOGRAPHS, ON ITS OWN STEP.
+ *
+ * `missingFrom` refuses to send a restaurant with no photograph (SUP-17), and
+ * nothing in the wizard could upload one: the review step listed "At least one
+ * photo of the restaurant" with no way to meet it short of finding
+ * `/host/photos` by accident. The manager is the one `/host/photos` draws, on
+ * the business spine, and `addBusinessPhoto` gates on ownership rather than on
+ * the application being editable, so the photographs can also arrive later.
+ */
+function VenuePhotos({ draft, userId }: StepProps) {
+  if (!draft.businessId) return null;
+  return (
+    <BusinessPhotoManager businessId={draft.businessId} userId={userId} photos={draft.businessPhotos} />
+  );
+}
+
 function HygieneAttestation({ draft, pending, saveText }: StepProps) {
   return (
     <section className="nf-stays-plate">
@@ -815,13 +1302,15 @@ function HygieneAttestation({ draft, pending, saveText }: StepProps) {
   );
 }
 
-function PayoutStep({ draft, pending, run, setNotice, set }: StepProps) {
+function PayoutStep({ draft, pending, runAsync, setNotice, set }: StepProps) {
   const hw = useHostCopy();
   const [banks, setBanks] = useState<{ code: string; name: string }[] | null>(null);
   const [banksError, setBanksError] = useState<string | null>(null);
-  const [bank, setBank] = useState("");
-  const [number, setNumber] = useState("");
-  const [resolved, setResolved] = useState<string | null>(null);
+  /* Held in the wizard, so Back keeps a typed account number; an account
+     typed and not saved is asked about before the host leaves. */
+  const [bank, setBank] = useHeld("bank", "");
+  const [number, setNumber] = useHeld("number", "");
+  const [resolved, setResolved] = useHeld<string | null>("resolved", null);
   const [resolving, setResolving] = useState(false);
 
   useEffect(() => {
@@ -842,28 +1331,37 @@ function PayoutStep({ draft, pending, run, setNotice, set }: StepProps) {
     const result = await resolveBankAccount({ bankCode: bank, accountNumber: number });
     setResolving(false);
     if (!result.ok) {
-      setNotice({ tone: "error", text: result.error });
+      setNotice({ tone: "error", text: result.error, phoneGate: result.gate === "phone" });
       return;
     }
     setResolved(result.data.accountName);
   };
 
   /* V-81: a new account to be paid into asks for the phone lock, when there is one. */
-  const viewerLocale = useClientLocale();
-  const lock = useMoneyStepUp(viewerLocale);
-  const save = () =>
-    run(
-      async () => {
-        const result = await lock.guard({ kind: "bank_add", target: `${bank}:${number.replace(/\D/g, "")}` }, (stepUp) =>
-          addBankAccount({ bankCode: bank, accountNumber: number, stepUp }),
-        );
-        return result ?? { ok: false as const, error: getDictionary(viewerLocale).platform.moneyLock.notConfirmed };
-      },
-      () => {
-        set("hasBankAccount", true);
-        setNotice({ tone: "ok", text: "The account is saved, in the name the bank gave." });
-      },
-    );
+  const lockWords = useScopedCopy("moneyLock");
+  const lock = useMoneyStepUp();
+  const saveAsync = async () => {
+    if (!resolved) {
+      setNotice({ tone: "error", text: "Check the account with the bank first, then save it." });
+      return false;
+    }
+    const saved = await runAsync(async () => {
+      const result = await lock.guard({ kind: "bank_add", target: `${bank}:${number.replace(/\D/g, "")}` }, (stepUp) =>
+        addBankAccount({ bankCode: bank, accountNumber: number, stepUp }),
+      );
+      return result ?? { ok: false as const, error: lockWords.notConfirmed };
+    });
+    if (saved) {
+      set("hasBankAccount", true);
+      setBank("");
+      setNumber("");
+      setResolved(null);
+      setNotice({ tone: "ok", text: "The account is saved, in the name the bank gave." });
+    }
+    return saved;
+  };
+  const save = () => void saveAsync();
+  useGuard("account", number.trim().length > 0, saveAsync);
 
   return (
     <>
@@ -928,7 +1426,10 @@ function ConsentStep({ draft, pending, saveText, set }: StepProps) {
     if (on) consents[id] = new Date().toISOString();
     else delete consents[id];
     set("consents", consents);
-    if (on) saveText({ consents: [id] });
+    /* Unticking a consent that was given withdraws it: the withdrawal is
+       recorded with its moment, and the application cannot be sent until it
+       is given again. */
+    saveText(on ? { consents: [id] } : { withdrawConsents: [id] });
   };
   return (
     <div className="flex flex-col gap-xs" role="group" aria-label={hw.wizard.permissionsLabel}>
@@ -965,6 +1466,7 @@ function ConsentStep({ draft, pending, saveText, set }: StepProps) {
 
 function ReviewStep({ draft, pending, run, goTo, set, locale }: StepProps) {
   const hw = useHostCopy();
+  const hostPage = useHostPageCopy();
   const missing = missingFrom(draft);
   const send = () =>
     run(
@@ -999,6 +1501,17 @@ function ReviewStep({ draft, pending, run, goTo, set, locale }: StepProps) {
           ) : (
             <Fact label={hw.wizard.review.service} value={draft.serviceWindowCount > 0 ? countOf(draft.serviceWindowCount, "windows", locale) : ""} onEdit={() => goTo("tables")} />
           )}
+          {/* The photographs are a requirement on both spines and live on a
+              different step from the property's name, so they get their own
+              row and their own way back to where they are added. */}
+          <Fact
+            label={hostPage.businessDoors.photos}
+            value={(() => {
+              const count = accommodation ? (draft.accommodation?.photos.length ?? 0) : draft.businessPhotoCount;
+              return count > 0 ? countOf(count, "photos", locale) : "";
+            })()}
+            onEdit={() => goTo(accommodation ? "facilities" : "restaurant")}
+          />
           <Fact label={hw.wizard.review.payouts} value={draft.hasBankAccount ? "Bank account on record" : ""} onEdit={() => goTo("payout")} />
         </dl>
       </section>
@@ -1022,7 +1535,7 @@ function ReviewStep({ draft, pending, run, goTo, set, locale }: StepProps) {
       </section>
 
       <Button variant="primary" size="lg" full onClick={send} disabled={pending || missing.length > 0} loading={pending}>
-        Send for review
+        {draft.status === "REJECTED" || draft.status === "MORE_INFO_REQUIRED" ? "Send it again" : "Send for review"}
       </Button>
     </>
   );

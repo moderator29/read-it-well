@@ -280,6 +280,11 @@ export const afterTheGateYo = {
     reportSubmit: "Ròyìn rẹ̀",
     reportSent: "A ti ròyìn rẹ̀. Ẹgbẹ́ ìrànlọ́wọ́ ní in pẹ̀lú ìfipamọ́ rẹ.",
     publishNeeds: "Kọ́kọ́ sọ owó ní ẹnu ọ̀nà (gbogbo márùn-ún, iye kan tàbí òfo), lẹ́yìn náà tẹ̀ ẹ́ jáde.",
+    perLine: "{amount} fún {per}",
+    returned: "A ó dá a padà gẹ́gẹ́ bí òfin tí a kọ sílẹ̀",
+    asUsed: "Bí a ṣe lò ó",
+    allIn: "Gbogbo owó ibùgbé yìí",
+    allInNote: "Iye owó náà àti gbogbo owó tí olùgbàlejò kọ sílẹ̀. A kò gbọdọ̀ béèrè ohunkóhun mìíràn ní ẹnu ọ̀nà.",
   },
   shots: {
     heading: "Sọ ohun tí àwòrán kọ̀ọ̀kan ń fi hàn",

@@ -63,6 +63,12 @@ export const ICON_3D_NAMES = [
 ] as const;
 export type Icon3DName = (typeof ICON_3D_NAMES)[number];
 
+/**
+ * Every name draws the founder's original 3D object from `public/brand/3d/`.
+ * (For a few days in October 2026 a dozen names were redirected to the matte
+ * set in `public/brand/tier-b/`; the founder asked for the original 3D icons
+ * back, so there is no redirect.)
+ */
 export function icon3dSrc(name: Icon3DName): string {
   return `/brand/3d/${name}@2x.webp`;
 }

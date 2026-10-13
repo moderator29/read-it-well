@@ -1,0 +1,478 @@
+/*
+ * THE DOCUMENT SHEET (D28.1, 6 October 2026).
+ *
+ * The member's theme governs the application everywhere, and Dark stays the
+ * default. Paper is not a screen theme any more: it is the treatment for the
+ * DOCUMENT ITSELF. A receipt, an agreement's terms or a statement renders as a
+ * light sheet sitting on the dark canvas, the way a printed receipt sits on a
+ * desk: elevated, bounded and unmistakably a document, while the header, the
+ * dock and every control around it stay in the member's theme. On Light the
+ * same sheet is paper on paper, separated by its contact edge and its lift.
+ *
+ * FROM THE FOUNDER'S PRINTER (docs/design/component-library-source/
+ * payment-receipt-printer.tsx, D34). Kept: the paper extruding from its top
+ * edge, the serrated tear top and bottom, the perforation notches, the
+ * dashed ledger rules and the tabular figures. Dropped: the POS chassis, the
+ * LEDs, the feed slot, the shaking housing, the replay button, the drawn
+ * barcode, and every default the source shipped (a merchant, an order
+ * number, an amount, "AUTH #99824"): nothing reaches this paper that the
+ * caller did not read from a record.
+ *
+ * Drawn by `components/app/money/DocumentSheet.tsx`, which imports this file
+ * (the route-sheet pattern MapCanvas.tsx set for map.css), so the rules load
+ * with the component and are not paid for on every page.
+ *
+ * TOKENS. The sheet reads the document tokens in tokens.css (`--nf-doc-bg`,
+ * `--nf-doc-ink`, `--nf-doc-ink-muted`, `--nf-doc-hairline`, `--nf-doc-shadow`,
+ * `--nf-doc-accent`, `--nf-doc-radius` and the three paper state inks
+ * `--nf-doc-success`, `--nf-doc-error`, `--nf-doc-attention`), which are the
+ * same in both themes. Every one is read with a fallback to the closest
+ * token that existed before them, so the sheet still renders if this file
+ * lands before they do:
+ *
+ *   --nf-doc-bg          falls back to --nf-content-on-media, the one
+ *                        theme-constant white in layer 2
+ *   --nf-doc-ink         falls back to --nf-content-on-paper
+ *   --nf-doc-ink-muted   falls back to --nf-content-on-paper-muted
+ *   --nf-doc-hairline    falls back to --nf-border-on-paper
+ *   --nf-doc-shadow      falls back to --nf-elev-2 (themed per theme)
+ *   --nf-doc-accent      falls back to --nf-brand-primary
+ *   --nf-doc-radius      falls back to --nf-radius-xl (22, the Card tier
+ *                        radius for a card carrying a figure)
+ *   the state inks       fall back to --nf-content-on-paper
+ *
+ * THE SHEET RE-ANSWERS THE CONTENT TOKENS FOR WHAT IS INSIDE IT. The night
+ * palette's `--nf-content-primary` is white, and a white figure on a white
+ * sheet is no figure at all. So inside `.nf-doc` the content, divider and link
+ * tokens are pointed at the paper inks, and any component dropped inside (the
+ * `Amount` figure, a heading, a caption) reads paper values without knowing
+ * it is on paper. A status inside a sheet is still said in words and a shape
+ * (`.nf-doc__mark`), so the meaning never rides on the ink.
+ *
+ * ONE EDGE TREATMENT. The sheet carries a shadow and nothing else: on night
+ * the light paper against the navy ground is its own edge, and on Light the
+ * shadow's first layer is a 1px contact ring in the paper hairline, which is
+ * the "border and elevation" D28.1 asks for, drawn as one shadow.
+ *
+ * Tokens only, inside `@layer components`.
+ */
+@layer components {
+  .nf-doc {
+    /* The content tokens, re-answered for paper (see above). */
+    --nf-content-primary: var(--nf-doc-ink, var(--nf-content-on-paper));
+    --nf-content-secondary: var(--nf-content-on-paper-secondary);
+    --nf-content-muted: var(--nf-doc-ink-muted, var(--nf-content-on-paper-muted));
+    --nf-content-subtle: var(--nf-doc-ink-muted, var(--nf-content-on-paper-muted));
+    --nf-content-link: var(--nf-doc-accent, var(--nf-brand-primary));
+    --nf-divider: var(--nf-doc-hairline, var(--nf-border-on-paper));
+    --nf-panel-hair: var(--nf-doc-hairline, var(--nf-border-on-paper));
+    --nf-border-subtle: var(--nf-doc-hairline, var(--nf-border-on-paper));
+    --nf-border-default: var(--nf-doc-hairline, var(--nf-border-on-paper));
+    /* The state inks too, now that the document has its own paper-tuned
+       success, error and attention inks; without them a night state ink
+       (light emerald, light rose) would be drawn on white. Each falls back
+       to the document ink, never to its own night value. */
+    --nf-state-success: var(--nf-doc-success, var(--nf-content-on-paper));
+    --nf-state-error: var(--nf-doc-error, var(--nf-content-on-paper));
+    --nf-state-warning: var(--nf-doc-attention, var(--nf-content-on-paper));
+    /* The chart roles (tokens.css) are aliases of the inks re-answered above,
+       and a custom property that names another is resolved where it is
+       DECLARED, so the root's and every `[data-theme]` element's answer is
+       the night one. Declaring them here makes a chart inside a document
+       resolve the paper inks too. */
+    --nf-chart-series: var(--nf-brand-primary);
+    --nf-chart-context: var(--nf-content-muted);
+    --nf-chart-axis: var(--nf-border-default);
+    --nf-chart-grid: var(--nf-border-subtle);
+    --nf-chart-track: var(--nf-well-fill);
+    --nf-chart-hatch: var(--nf-border-default);
+
+    position: relative;
+    display: block;
+    /* Card tier, at the radius a card carrying a figure takes (north star
+       section 4): 22. */
+    border-radius: var(--nf-doc-radius, var(--nf-radius-xl));
+    /* The sheet's own padding, named once so the perforation below can reach
+       exactly to the paper's edges. */
+    --nf-docsheet-pad: var(--nf-space-lg);
+    padding: var(--nf-docsheet-pad);
+    background: var(--nf-doc-bg, var(--nf-content-on-media));
+    color: var(--nf-content-primary);
+    box-shadow: var(--nf-doc-shadow, var(--nf-elev-2));
+    font-family: var(--nf-font-sans);
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.55;
+    /* The sheet unrolls from its top edge, like paper leaving a printer. */
+    transform-origin: 50% 0;
+  }
+  @media (min-width: 40rem) {
+    .nf-doc {
+      --nf-docsheet-pad: var(--nf-space-xl);
+    }
+  }
+
+  /* A skeleton waiting on the sheet (the legal documents' loading files,
+     C6): its slab reads the night inset, a dark bar on white paper, so on
+     the paper it is the paper's hairline ink instead. The sweep's washes are
+     unchanged and stop under reduced motion as everywhere. */
+  .nf-doc .nf-skeleton {
+    --nf-surface-inset: var(--nf-doc-hairline, var(--nf-border-on-paper));
+  }
+
+  /* On Light the sheet is paper on paper: the contact ring is the first
+     layer of the one shadow, never a separate border. */
+  :root[data-theme="light"] .nf-doc {
+    box-shadow:
+      0 0 0 1px var(--nf-doc-hairline, var(--nf-border-on-paper)),
+      var(--nf-doc-shadow, var(--nf-elev-2));
+  }
+
+  /* ---------------------------------------------------- the receipt edge */
+
+  /*
+   * THE PRINTER'S PAPER WITHOUT THE PRINTER (D34). A receipt keeps the
+   * serrated tear at its top and bottom and nothing else: no chassis, no
+   * LEDs, no feed slot. Each edge is a 6px strip of teeth just outside the
+   * sheet, painted in the sheet's own fill by two corner triangles per 12px
+   * cell, so the teeth are the paper and not a drawing of paper. A torn edge
+   * has no rounded corner, so the receipt drops its radius.
+   */
+  .nf-doc--receipt {
+    border-radius: 0;
+    margin-block: 6px;
+  }
+  .nf-doc--receipt::before,
+  .nf-doc--receipt::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    height: 6px;
+    background-size: 12px 12px;
+    background-repeat: repeat-x;
+    pointer-events: none;
+  }
+  .nf-doc--receipt::before {
+    bottom: 100%;
+    background-image:
+      linear-gradient(45deg, var(--nf-doc-bg, var(--nf-content-on-media)) 25%, transparent 25%),
+      linear-gradient(-45deg, var(--nf-doc-bg, var(--nf-content-on-media)) 25%, transparent 25%);
+    background-position: 0 100%;
+  }
+  .nf-doc--receipt::after {
+    top: 100%;
+    background-image:
+      linear-gradient(135deg, var(--nf-doc-bg, var(--nf-content-on-media)) 25%, transparent 25%),
+      linear-gradient(225deg, var(--nf-doc-bg, var(--nf-content-on-media)) 25%, transparent 25%);
+    background-position: 0 0;
+  }
+
+  /*
+   * THE PERFORATION (the founder's printer source keeps a pair of ticket
+   * notches where the header tears from the ledger). A dashed tear line the
+   * full width of the paper, with a half-round notch bitten out of each
+   * edge. The notches are painted in the canvas ink, because a notch is the
+   * ground showing through the paper; on a page whose ground is not the bare
+   * canvas the notch reads as a darker dot rather than a hole, which is the
+   * honest limit of painting rather than cutting. Print drops it.
+   */
+  .nf-doc__perf {
+    position: relative;
+    height: 0;
+    margin: var(--nf-space-lg) calc(var(--nf-docsheet-pad) * -1);
+    border-top: 1px dashed var(--nf-doc-hairline, var(--nf-border-on-paper));
+  }
+  .nf-doc__perf::before,
+  .nf-doc__perf::after {
+    content: "";
+    position: absolute;
+    top: -0.5rem;
+    width: 1rem;
+    height: 1rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-surface-canvas);
+  }
+  .nf-doc__perf::before {
+    left: -0.5rem;
+  }
+  .nf-doc__perf::after {
+    right: -0.5rem;
+  }
+  .nf-doc__perf + .nf-doc__rows {
+    margin-top: 0;
+  }
+  /* The tear line is the first rule; the first row does not draw a second. */
+  .nf-doc__perf + .nf-doc__rows > .nf-doc__row:first-child {
+    border-top: 0;
+  }
+
+  /* The ledger feel the founder kept from the printer: on a receipt every
+     figure, date and reference is tabular with a slashed zero, so columns
+     of naira line up digit under digit and a 0 is never read as an O. */
+  .nf-doc--receipt .nf-doc__rows,
+  .nf-doc--receipt .nf-doc__figure {
+    font-variant-numeric: tabular-nums slashed-zero;
+  }
+
+  /* ------------------------------------------------------------- anatomy */
+
+  .nf-doc__head {
+    display: grid;
+    gap: var(--nf-space-2xs);
+  }
+  /* The quiet label above a figure or a title: 12px, sentence case. */
+  .nf-doc__label {
+    font-size: var(--nf-text-overline);
+    font-weight: 400;
+    line-height: 1.4;
+    color: var(--nf-content-muted);
+  }
+  .nf-doc__title {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h4);
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--nf-content-primary);
+    overflow-wrap: anywhere;
+  }
+  /* The one figure on the sheet: Poppins 600, tabular, 32 to 40. */
+  .nf-doc__figure {
+    font-family: var(--nf-font-display);
+    font-size: clamp(2rem, 1.6rem + 1.8vw, 2.5rem);
+    font-weight: 600;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-content-primary);
+  }
+
+  /* The key-value list. A receipt's rules are dashed, the ledger feel the
+     founder kept from the printer; an agreement's are solid. */
+  .nf-doc__rows {
+    display: grid;
+    margin: var(--nf-space-lg) 0 0;
+  }
+  .nf-doc__row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--nf-space-md);
+    padding-block: var(--nf-space-xs);
+    border-top: 1px solid var(--nf-divider);
+  }
+  .nf-doc--receipt .nf-doc__row:not(.nf-doc__row--total) {
+    border-top-style: dashed;
+  }
+  .nf-doc__row dt {
+    min-width: 0;
+    color: var(--nf-content-muted);
+  }
+  .nf-doc__row dd {
+    margin: 0;
+    min-width: 0;
+    text-align: right;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-content-primary);
+    overflow-wrap: anywhere;
+  }
+  /* A row whose value is prose (a sentence, not a figure) reads left. */
+  .nf-doc__row--prose {
+    display: grid;
+    gap: var(--nf-space-3xs);
+  }
+  .nf-doc__row--prose dd {
+    text-align: left;
+    font-weight: 400;
+  }
+  /* The total: the line the column adds up to, under a solid rule. */
+  .nf-doc__row--total {
+    border-top-style: solid;
+    border-top-width: 2px;
+    padding-top: var(--nf-space-sm);
+  }
+  .nf-doc__row--total dt,
+  .nf-doc__row--total dd {
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+
+  /* The hero block: the quiet label and the figure the sheet leads with
+     (reference 7073's 6,420.00 under its account line). */
+  .nf-doc__hero {
+    display: grid;
+    gap: var(--nf-space-2xs);
+    margin-top: var(--nf-space-md);
+  }
+  /* Kobo beside a naira figure: the same ink, half the size, so the whole
+     reads first and the exact tail is still there to check. */
+  .nf-doc__kobo {
+    font-size: max(0.5em, 0.75rem); /* never under 12px */
+    font-weight: 600;
+    color: var(--nf-content-muted);
+  }
+
+  /*
+   * THE ITEMISED LEDGER ROW (reference 7073): a line glyph on a tinted
+   * plate, the line's name, the arithmetic beneath it in muted ink, and the
+   * figure on the right. The glyph is chrome below 32px, so it is the line
+   * tier, never an object (north star D2).
+   */
+  .nf-doc__row--glyph {
+    align-items: center;
+    padding-block: var(--nf-space-sm);
+  }
+  .nf-doc__row--glyph dt {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    gap: var(--nf-space-sm);
+  }
+  /* A figure is never broken mid-number: the line's words wrap instead. */
+  .nf-doc__row--glyph dd {
+    flex: none;
+    white-space: nowrap;
+    overflow-wrap: normal;
+  }
+  .nf-doc__glyph {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: var(--nf-radius-circle);
+    color: var(--nf-content-link);
+    background: color-mix(in oklab, var(--nf-content-link) 9%, transparent);
+  }
+  .nf-doc__line {
+    display: grid;
+    min-width: 0;
+    gap: var(--nf-space-3xs);
+  }
+  .nf-doc__line-label {
+    font-weight: 600;
+    color: var(--nf-content-primary);
+    overflow-wrap: anywhere;
+  }
+  .nf-doc__line-hint {
+    font-size: var(--nf-text-overline);
+    line-height: 1.45;
+    color: var(--nf-content-muted);
+    overflow-wrap: anywhere;
+  }
+  /* A part of the total nobody itemised (V-13): the attention ink on the
+     label, the glyph and the figure, with the words that say why beside it,
+     so the colour is never the only signal. */
+  .nf-doc__row--attention .nf-doc__line-label,
+  .nf-doc__row--attention dd,
+  .nf-doc__row--attention .nf-doc__glyph {
+    color: var(--nf-state-warning);
+  }
+  .nf-doc__row--attention .nf-doc__glyph {
+    background: color-mix(in oklab, var(--nf-state-warning) 10%, transparent);
+  }
+
+  /* The confirmations and the reference: their own block under the total,
+     the way reference 7082 sets its two "Confirmed" rows apart. */
+  .nf-doc__rows--confirm {
+    margin-top: var(--nf-space-md);
+  }
+
+  /* A reference or code: tabular Inter, never wrapped mid-glyph-group. */
+  .nf-doc__ref {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+    overflow-wrap: anywhere;
+  }
+
+  /* A confirmation or a state, said in words with a shape beside it. The
+     shape is the mark the status pill uses (filled circle: done; hollow
+     circle: waiting), so the meaning never rides on colour. */
+  .nf-doc__state {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+  }
+  .nf-doc__mark {
+    flex: none;
+    width: 0.625rem;
+    height: 0.625rem;
+    border-radius: var(--nf-radius-circle);
+    border: 2px solid currentColor;
+  }
+  .nf-doc__state--done {
+    color: var(--nf-content-link);
+  }
+  .nf-doc__state--done .nf-doc__mark {
+    background: currentColor;
+  }
+  .nf-doc__state--waiting {
+    color: var(--nf-content-muted);
+  }
+
+  .nf-doc__section {
+    margin-top: var(--nf-space-lg);
+  }
+  .nf-doc__section-title {
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    color: var(--nf-content-muted);
+  }
+  .nf-doc__note {
+    margin-top: var(--nf-space-md);
+    font-size: var(--nf-text-overline);
+    line-height: 1.55;
+    color: var(--nf-content-muted);
+  }
+
+  /* ------------------------------------------- the actions under a sheet */
+
+  /* Print, Share, Dispute (reference 7074): the action tiles in a row under
+     the sheet, in the member's theme, never on the paper. */
+  .nf-doc-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--nf-space-lg);
+    margin-top: var(--nf-space-lg);
+  }
+
+  /* ------------------------------------------------------------- motion */
+
+  /*
+   * THE SHEET UNROLLS DOWNWARD, ONCE, ON `glide` (MOTION_SYSTEM section 2,
+   * the receipt printer). It answers where the document came from: it was
+   * printed from the record, top edge first. Transform and opacity only. No
+   * figure on a sheet animates: a receipt states money that has already
+   * moved, so nothing on it may count, roll or settle in a way that implies
+   * movement it does not have.
+   *
+   * Reduced motion and Calm collapse it to a 160ms fade; Off lands it.
+   */
+  @keyframes nf-doc-unroll {
+    from {
+      opacity: 0;
+      transform: translateY(-0.75rem) scaleY(0.96);
+    }
+  }
+  @keyframes nf-doc-fade {
+    from {
+      opacity: 0;
+    }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    :root:not([data-motion="calm"], [data-motion="off"]) .nf-doc {
+      animation: nf-doc-unroll var(--nf-duration-slow) var(--nf-ease-standard) both;
+    }
+    :root[data-motion="calm"] .nf-doc {
+      animation: nf-doc-fade 160ms var(--nf-ease-standard) both;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :root:not([data-motion="off"]) .nf-doc {
+      animation: nf-doc-fade 160ms var(--nf-ease-standard) both;
+      /* The floor in animation.css would make this fade instant; this opts in. */
+      --nf-reduced-duration: 160ms;
+    }
+  }
+}

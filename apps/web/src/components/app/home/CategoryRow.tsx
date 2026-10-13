@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { WholePrefetchLink } from "@/components/app/WholePrefetchLink";
-import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import { BrandIcon, type BrandIconName, type BrandIconProp } from "@/design-system/icons/BrandIcon";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { Icon3D } from "@/components/ui/Icon3D";
 import type { Icon3DName } from "@/components/ui/icon-3d";
 import { IconPlate, ICON_PLATE_GLYPH } from "@/components/ui/IconPlate";
 import { panelClass } from "@/components/ui/Panel";
+import "@/app/css/home.css";
 
 /**
  * The category row, to `GOVERNING-01` screen one and `GOVERNING-09` screen
@@ -51,6 +52,12 @@ export type HomeCategory = {
   art?: Icon3DName;
   /** Fetch the page whole before the tap (`WholePrefetchLink`); for light pages only. */
   whole?: boolean;
+  /**
+   * A tiered object (D29, `object-assets.ts`) for the door, drawn in place of
+   * `art` on the plates variant: a real place for a space you buy or rent, a
+   * matte symbol for an idea such as paying or listing. Session 3, W2.
+   */
+  object?: BrandIconProp;
 };
 
 export function CategoryRow({
@@ -81,7 +88,11 @@ export function CategoryRow({
             return (
               <li key={category.key} className="min-w-0">
                 <Door href={category.href} className="nf-home-door group" data-testid={`home-category-${category.key}`}>
-                  {category.art ? (
+                  {category.object ? (
+                    <span className="nf-home-door__object" data-object={category.object}>
+                      <BrandIcon name={category.object} size={48} />
+                    </span>
+                  ) : category.art ? (
                     <span
                       className="grid size-12 place-items-center transition-transform duration-[var(--nf-duration-press,120ms)] group-active:scale-[0.94] motion-reduce:transition-none"
                       data-art={category.art}

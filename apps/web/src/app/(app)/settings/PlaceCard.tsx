@@ -1,4 +1,5 @@
 import { RowLink, SettingsGroup } from "@/components/app/account/rows";
+import { withNext } from "@/lib/auth/next-link";
 import type { ReactNode } from "react";
 import type { Dictionary } from "@vallo/i18n/core";
 
@@ -32,7 +33,7 @@ export function PlaceCard({
   children?: ReactNode;
 }) {
   const place = [lgaName, stateName].filter(Boolean).join(", ");
-  const href = signedIn ? "/settings/place" : "/sign-in";
+  const href = signedIn ? "/settings/place" : withNext("/sign-in", "/settings/place");
   const copy = t.settings.place;
 
   return (

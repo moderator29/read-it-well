@@ -15,11 +15,11 @@ export default async function BookingsPreview() {
   return (
     <div className="mx-auto max-w-2xl">
       <PageHeader variant="large" title={t.shape.plans.title} fallback="/preview/f3" />
-      <div className="flex flex-col gap-md">
+      <ul className="flex flex-col gap-md">
         {TENANCIES.map((tenancy) => (
           <TenancyCard key={tenancy.id} tenancy={tenancy} locale={locale} />
         ))}
-      </div>
+      </ul>
       <TripSpine bookings={BOOKINGS} today="2026-09-24" locale={locale} />
     </div>
   );

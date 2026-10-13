@@ -1,0 +1,933 @@
+/*
+  visit: Schedule a visit (`/listing/[id]/visit`) and its status screen
+  (`/listing/[id]/visit/[inspectionId]`). Imported by the components in
+  `components/app/inspections/visit/`, never by globals.css.
+
+  ONE CALM COLUMN. At a phone width everything stacks in reading order: the
+  header, the property, then each choice. From 1024px the column keeps its
+  560px measure and the property card moves to a sticky side column, so the
+  thing being booked stays in view while the time is chosen.
+
+  Both themes come from the semantic tokens: nothing here is a raw colour, a
+  raw radius or a hand-written elevation. Selected is the brand's own
+  selected fill (`--nf-selected-fill`), a choice card's selected state is the
+  brand edge over the brand tint, and every pressed thing is at least 44px.
+*/
+@layer components {
+  /* ----------------------------------------------------------- the frame */
+
+  .nf-visit {
+    width: 100%;
+    max-width: 35rem;
+    margin-inline: auto;
+    /* Clears the pinned action bar and the home indicator. */
+    padding-bottom: calc(var(--nf-space-5xl) + env(safe-area-inset-bottom, 0px));
+    color: var(--nf-content-primary);
+  }
+
+  .nf-visit__main {
+    display: grid;
+    gap: var(--nf-space-lg);
+    min-width: 0;
+  }
+
+  .nf-visit__aside {
+    min-width: 0;
+    margin-bottom: var(--nf-space-lg);
+  }
+
+  @media (min-width: 1024px) {
+    .nf-visit {
+      max-width: 60rem;
+      display: grid;
+      grid-template-columns: minmax(0, 35rem) minmax(0, 21rem);
+      column-gap: var(--nf-space-2xl);
+      align-items: start;
+    }
+    .nf-visit__head {
+      grid-column: 1;
+      grid-row: 1;
+    }
+    .nf-visit__main {
+      grid-column: 1;
+      grid-row: 2;
+    }
+    .nf-visit__aside {
+      grid-column: 2;
+      grid-row: 1 / span 2;
+      position: sticky;
+      top: calc(var(--nf-header-height) + var(--nf-space-lg));
+      margin-bottom: 0;
+      padding-top: var(--nf-space-sm);
+    }
+  }
+
+  /* ---------------------------------------------------------- the header */
+
+  .nf-visit__head {
+    display: grid;
+    grid-template-columns: 2.75rem minmax(0, 1fr) 2.75rem;
+    align-items: center;
+    padding-block: var(--nf-space-xs) var(--nf-space-md);
+  }
+
+  .nf-visit__title {
+    margin: 0;
+    text-align: center;
+    font-size: var(--nf-text-body-lg);
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--nf-content-primary);
+  }
+
+  /* Two steps, drawn as two marks: the current one long, the other a dot. */
+  .nf-visit__progress {
+    grid-column: 1 / -1;
+    justify-self: center;
+    display: flex;
+    gap: var(--nf-space-2xs);
+    margin: var(--nf-space-xs) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .nf-visit__dot {
+    width: 0.5rem;
+    height: 0.375rem;
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-border-strong);
+    transition: background-color var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  .nf-visit__dot[data-on="true"] {
+    width: 1.5rem;
+    background: var(--nf-brand-primary);
+  }
+
+  /* -------------------------------------------------------- the sections */
+
+  .nf-visit__section {
+    display: grid;
+    gap: var(--nf-space-sm);
+    min-width: 0;
+  }
+
+  .nf-visit__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-space-sm);
+    min-width: 0;
+  }
+
+  .nf-visit__heading {
+    margin: 0;
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-visit__heading-aside {
+    font-weight: 400;
+    color: var(--nf-content-muted);
+  }
+
+  .nf-visit__lead {
+    margin: 0;
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.5;
+    color: var(--nf-content-secondary);
+  }
+
+  .nf-visit__muted {
+    margin: 0;
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-muted);
+  }
+
+  .nf-visit__error {
+    margin: 0;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-state-error);
+  }
+
+  /* A quiet text button: "Full view". The visible text is small; the hit
+     area is the full 44px. */
+  .nf-visit__link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    min-height: 2.75rem;
+    padding-inline: var(--nf-space-xs);
+    margin-inline-end: calc(-1 * var(--nf-space-xs));
+    border-radius: var(--nf-radius-control-sm);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-link);
+    background: none;
+    border: 0;
+  }
+
+  .nf-visit__tools {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    flex-shrink: 0;
+  }
+
+  .nf-visit__month {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-muted);
+  }
+
+  /* ------------------------------------------------------- the property */
+
+  .nf-visit-prop {
+    display: grid;
+    grid-template-columns: 5.5rem minmax(0, 1fr);
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-sm);
+    align-items: center;
+  }
+  .nf-visit-prop__photo {
+    position: relative;
+    width: 5.5rem;
+    height: 5.5rem;
+    overflow: hidden;
+    border-radius: var(--nf-radius-md);
+    background: var(--nf-surface-inset);
+  }
+  .nf-visit-prop__photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .nf-visit-prop__body {
+    display: grid;
+    gap: var(--nf-space-2xs);
+    min-width: 0;
+  }
+  .nf-visit-prop__top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--nf-space-xs);
+    min-width: 0;
+  }
+  .nf-visit-prop__title {
+    margin: 0;
+    min-width: 0;
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--nf-content-primary);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .nf-visit-prop__price {
+    margin: 0;
+    flex-shrink: 0;
+    font-size: var(--nf-text-body);
+    font-weight: 700;
+    color: var(--nf-content-primary);
+    white-space: nowrap;
+  }
+  .nf-visit-prop__period {
+    font-size: var(--nf-text-caption);
+    font-weight: 400;
+    color: var(--nf-content-muted);
+  }
+  .nf-visit-prop__place,
+  .nf-visit-prop__facts {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--nf-space-2xs) var(--nf-space-sm);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-muted);
+  }
+  .nf-visit-prop__fact {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+  }
+
+  @media (min-width: 1024px) {
+    .nf-visit__aside .nf-visit-prop {
+      grid-template-columns: minmax(0, 1fr);
+      padding: var(--nf-space-sm);
+    }
+    .nf-visit__aside .nf-visit-prop__photo {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 4 / 3;
+    }
+    .nf-visit__aside .nf-visit-prop__top {
+      flex-direction: column;
+      gap: var(--nf-space-2xs);
+    }
+  }
+
+  /* ------------------------------------------------- the choice cards */
+
+  .nf-visit-modes {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--nf-space-sm);
+  }
+
+  /* The icon and the radio mark share the top row; the words take the whole
+     width under them, so "In-person visit" never breaks at a phone width. */
+  .nf-visit-choice {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--nf-space-2xs);
+    align-content: start;
+    min-height: 4.75rem;
+    padding: var(--nf-space-sm);
+    border: var(--nf-border-width) solid var(--nf-border-default);
+    border-radius: var(--nf-radius-card-sm);
+    background: var(--nf-surface-raised);
+    color: var(--nf-content-primary);
+    text-align: start;
+    transition:
+      border-color var(--nf-duration-fast) var(--nf-ease-standard),
+      background-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-visit-choice:hover {
+    border-color: var(--nf-border-strong);
+  }
+  .nf-visit-choice[aria-checked="true"] {
+    border-color: var(--nf-brand-primary);
+    background: var(--nf-brand-tint-1);
+  }
+  .nf-visit-choice__icon {
+    color: var(--nf-brand-primary);
+    margin-bottom: var(--nf-space-2xs);
+  }
+  .nf-visit-choice__title {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    line-height: 1.3;
+  }
+  .nf-visit-choice__sub {
+    font-size: var(--nf-text-caption);
+    line-height: 1.35;
+    color: var(--nf-content-muted);
+  }
+  /* The radio mark, top right: an empty ring, or the brand disc with a tick. */
+  .nf-visit-choice__mark {
+    position: absolute;
+    top: var(--nf-space-sm);
+    right: var(--nf-space-sm);
+    display: grid;
+    place-items: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: var(--nf-radius-circle);
+    border: var(--nf-border-width-strong) solid var(--nf-border-strong);
+    color: var(--nf-content-on-brand);
+  }
+  .nf-visit-choice[aria-checked="true"] .nf-visit-choice__mark {
+    border-color: var(--nf-brand-primary);
+    background: var(--nf-brand-primary);
+  }
+
+  /* ------------------------------------------------------- the day strip */
+
+  .nf-visit-days {
+    display: flex;
+    gap: var(--nf-space-xs);
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    padding: var(--nf-space-3xs);
+    margin: calc(-1 * var(--nf-space-3xs));
+  }
+  .nf-visit-days::-webkit-scrollbar {
+    display: none;
+  }
+
+  .nf-visit-day {
+    flex: 0 0 auto;
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    gap: var(--nf-space-3xs);
+    width: 3.5rem;
+    min-height: 4.5rem;
+    padding: var(--nf-space-xs) 0;
+    scroll-snap-align: start;
+    border: var(--nf-border-width) solid var(--nf-border-default);
+    border-radius: var(--nf-radius-control);
+    background: var(--nf-surface-raised);
+    color: var(--nf-content-primary);
+    transition:
+      border-color var(--nf-duration-fast) var(--nf-ease-standard),
+      background-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-visit-day__name {
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--nf-content-muted);
+  }
+  .nf-visit-day__num {
+    font-size: var(--nf-text-body-lg);
+    font-weight: 700;
+    line-height: 1.1;
+  }
+  /* "Has open times": a small brand dot under the number. */
+  .nf-visit-day__dot {
+    width: 0.3125rem;
+    height: 0.3125rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-brand-primary);
+  }
+  .nf-visit-day__dot[data-empty="true"] {
+    background: transparent;
+  }
+  .nf-visit-day:disabled {
+    background: transparent;
+    border-style: dashed;
+    color: var(--nf-content-subtle);
+  }
+  .nf-visit-day:disabled .nf-visit-day__name {
+    color: var(--nf-content-subtle);
+  }
+  .nf-visit-day[aria-checked="true"],
+  .nf-visit-cal__day[aria-checked="true"],
+  .nf-visit-time[aria-checked="true"] {
+    border-color: var(--nf-selected-edge);
+    background: var(--nf-selected-fill);
+    box-shadow: var(--nf-selected-rim);
+    color: var(--nf-content-on-brand);
+  }
+  .nf-visit-day[aria-checked="true"] .nf-visit-day__name {
+    color: var(--nf-content-on-brand);
+  }
+  .nf-visit-day[aria-checked="true"] .nf-visit-day__dot {
+    background: var(--nf-content-on-brand);
+  }
+
+  /* ---------------------------------------------------- the month sheet */
+
+  .nf-visit-cal {
+    display: grid;
+    gap: var(--nf-space-sm);
+  }
+  .nf-visit-cal__nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .nf-visit-cal__month {
+    margin: 0;
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+  }
+  .nf-visit-cal__step {
+    display: inline-grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--nf-radius-circle);
+    border: 0;
+    background: none;
+    color: var(--nf-content-primary);
+  }
+  .nf-visit-cal__step:disabled {
+    color: var(--nf-content-subtle);
+  }
+  .nf-visit-cal__grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: var(--nf-space-2xs);
+    margin: 0;
+    padding: 0;
+  }
+  .nf-visit-cal__weekday {
+    text-align: center;
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-muted);
+  }
+  .nf-visit-cal__cell {
+    display: grid;
+    place-items: center;
+  }
+  .nf-visit-cal__day {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--nf-radius-circle);
+    border: var(--nf-border-width) solid transparent;
+    background: none;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-subtle);
+  }
+  .nf-visit-cal__day[data-times="true"] {
+    background: var(--nf-brand-tint-1);
+    border-color: var(--nf-brand-edge-soft);
+    color: var(--nf-content-primary);
+  }
+  .nf-visit-cal__legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--nf-space-xs) var(--nf-space-md);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-visit-cal__key {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+  }
+  .nf-visit-cal__swatch {
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: var(--nf-radius-circle);
+    border: var(--nf-border-width) solid var(--nf-border-strong);
+  }
+  .nf-visit-cal__swatch[data-kind="selected"] {
+    border-color: var(--nf-brand-primary);
+    background: var(--nf-brand-primary);
+  }
+  .nf-visit-cal__swatch[data-kind="times"] {
+    border-color: var(--nf-brand-edge-soft);
+    background: var(--nf-brand-tint-2);
+  }
+
+  /* ------------------------------------------------------------ the times */
+
+  .nf-visit-times {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(5rem, 1fr));
+    gap: var(--nf-space-xs);
+  }
+  .nf-visit-time {
+    min-height: 2.75rem;
+    padding-inline: var(--nf-space-xs);
+    border: var(--nf-border-width) solid var(--nf-border-default);
+    border-radius: var(--nf-radius-control);
+    background: var(--nf-surface-raised);
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    transition:
+      border-color var(--nf-duration-fast) var(--nf-ease-standard),
+      background-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-visit-time:hover,
+  .nf-visit-day:not(:disabled):hover {
+    border-color: var(--nf-border-strong);
+  }
+
+  /* -------------------------------------------------------- the lister */
+
+  .nf-visit-lister {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    min-width: 0;
+  }
+  .nf-visit-lister__text {
+    display: grid;
+    gap: var(--nf-space-3xs);
+    min-width: 0;
+    flex: 1;
+  }
+  .nf-visit-lister__name {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    min-width: 0;
+    margin: 0;
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-visit-lister__name > span:first-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .nf-visit-lister__role {
+    margin: 0;
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-muted);
+  }
+  .nf-visit-lister__actions {
+    display: flex;
+    gap: var(--nf-space-xs);
+    flex-shrink: 0;
+  }
+  .nf-visit-lister__note {
+    margin: 0;
+    padding: 0 var(--nf-space-md) var(--nf-space-sm);
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-muted);
+  }
+
+  /* The round monochrome control: message and call. */
+  .nf-visit-round {
+    display: inline-grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--nf-radius-circle);
+    border: var(--nf-border-width) solid var(--nf-border-default);
+    background: var(--nf-surface-raised);
+    color: var(--nf-content-primary);
+    transition: border-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-visit-round:hover {
+    border-color: var(--nf-border-strong);
+  }
+  .nf-visit-round:disabled {
+    color: var(--nf-content-subtle);
+  }
+
+  /* ------------------------------------------------------------ the note */
+
+  .nf-visit-note {
+    width: 100%;
+    min-height: 6rem;
+    resize: vertical;
+  }
+  .nf-visit-note__count {
+    justify-self: end;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* -------------------------------------------------------- the footer */
+
+  .nf-visit-bar {
+    display: flex;
+    gap: var(--nf-space-sm);
+    width: 100%;
+    max-width: 35rem;
+    margin-inline: auto;
+  }
+  .nf-visit-bar > * {
+    white-space: nowrap;
+  }
+  .nf-visit-bar > :first-child {
+    flex: 0 0 auto;
+    min-width: 7.5rem;
+  }
+  .nf-visit-bar > :last-child {
+    flex: 1 1 auto;
+  }
+  /* Two actions of equal weight (the status screen): halves. */
+  .nf-visit-bar--even > :first-child,
+  .nf-visit-bar--even > :last-child {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  /* ------------------------------------------------------ the review sheet */
+
+  .nf-visit-review {
+    display: grid;
+    gap: var(--nf-space-xs);
+    margin: 0;
+  }
+  .nf-visit-review__row {
+    display: grid;
+    grid-template-columns: 6.5rem minmax(0, 1fr);
+    gap: var(--nf-space-sm);
+    padding-block: var(--nf-space-xs);
+    border-bottom: var(--nf-border-width) solid var(--nf-border-subtle);
+  }
+  .nf-visit-review__row dt {
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-muted);
+  }
+  .nf-visit-review__row dd {
+    margin: 0;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+    overflow-wrap: anywhere;
+  }
+
+  /* ----------------------------------------------------- the status hero */
+
+  .nf-visit-hero {
+    display: grid;
+    justify-items: center;
+    gap: var(--nf-space-xs);
+    padding-block: var(--nf-space-md) var(--nf-space-xs);
+    text-align: center;
+  }
+  .nf-visit-hero__seal {
+    display: grid;
+    place-items: center;
+    width: 5.5rem;
+    height: 5.5rem;
+    margin-bottom: var(--nf-space-xs);
+    border-radius: var(--nf-radius-circle);
+    border: var(--nf-border-width-strong) solid var(--nf-brand-edge-soft);
+    background: var(--nf-brand-tint-1);
+    color: var(--nf-brand-primary);
+  }
+  .nf-visit-hero__seal[data-tone="good"] {
+    border-color: var(--nf-brand-edge);
+    background: var(--nf-brand-tint-2);
+  }
+  /* The states that earned no tick: a smaller plain glyph, never the seal. */
+  .nf-visit-hero__glyph {
+    display: grid;
+    place-items: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    margin-bottom: var(--nf-space-xs);
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-surface-raised);
+    border: var(--nf-border-width) solid var(--nf-border-default);
+    color: var(--nf-content-secondary);
+  }
+  .nf-visit-hero__glyph[data-tone="bad"] {
+    color: var(--nf-state-error);
+  }
+  .nf-visit-hero__glyph[data-tone="pending"] {
+    color: var(--nf-state-warning);
+  }
+  .nf-visit-hero__title {
+    margin: 0;
+    font-size: var(--nf-text-h3);
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--nf-content-primary);
+  }
+  .nf-visit-hero__sub {
+    margin: 0;
+    max-width: 26rem;
+    font-size: var(--nf-text-body);
+    line-height: 1.5;
+    color: var(--nf-content-secondary);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .nf-visit-hero__seal {
+      animation: nf-visit-seal var(--nf-duration-entrance) var(--nf-ease-spring) both;
+    }
+  }
+  @keyframes nf-visit-seal {
+    from {
+      opacity: 0;
+      transform: scale(0.86);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  /* ------------------------------------------------------------- tiles */
+
+  .nf-visit-tiles {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--nf-space-xs);
+    margin: 0;
+  }
+  .nf-visit-tile {
+    display: grid;
+    align-content: start;
+    gap: var(--nf-space-2xs);
+    padding: var(--nf-space-sm);
+    min-width: 0;
+  }
+  .nf-visit-tile__icon {
+    color: var(--nf-brand-primary);
+  }
+  .nf-visit-tile dt {
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--nf-content-muted);
+  }
+  .nf-visit-tile dd {
+    margin: 0;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--nf-content-primary);
+    overflow-wrap: anywhere;
+  }
+  .nf-visit-tile__zone {
+    display: block;
+    font-size: var(--nf-text-caption);
+    font-weight: 400;
+    color: var(--nf-content-muted);
+  }
+  .nf-visit-tile__was {
+    display: block;
+    font-weight: 400;
+    color: var(--nf-content-muted);
+    text-decoration: line-through;
+  }
+
+  /* ---------------------------------------------------- the sent note */
+
+  .nf-visit-quote {
+    display: flex;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    align-items: flex-start;
+  }
+  .nf-visit-quote__icon {
+    flex-shrink: 0;
+    margin-top: var(--nf-space-3xs);
+    color: var(--nf-content-muted);
+  }
+  .nf-visit-quote__label {
+    margin: 0;
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-muted);
+  }
+  .nf-visit-quote__text {
+    margin: var(--nf-space-3xs) 0 0;
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.5;
+    color: var(--nf-content-secondary);
+    overflow-wrap: anywhere;
+    white-space: pre-line;
+  }
+
+  /* ------------------------------------------------------ the timeline */
+
+  .nf-visit-steps {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .nf-visit-step {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1.5rem minmax(0, 1fr);
+    gap: var(--nf-space-sm);
+    padding-bottom: var(--nf-space-md);
+  }
+  /* The rail between two marks: brand once the step above it is done. */
+  .nf-visit-step:not(:last-child)::before {
+    content: "";
+    position: absolute;
+    left: calc(0.75rem - 1px);
+    top: 1.625rem;
+    bottom: var(--nf-space-3xs);
+    width: 2px;
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-border-default);
+  }
+  .nf-visit-step[data-status="done"]:not(:last-child)::before {
+    background: var(--nf-brand-primary);
+  }
+  .nf-visit-step__mark {
+    display: grid;
+    place-items: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: var(--nf-radius-circle);
+    border: var(--nf-border-width-strong) solid var(--nf-border-strong);
+    background: var(--nf-surface-primary);
+    color: var(--nf-content-on-brand);
+  }
+  .nf-visit-step[data-status="done"] .nf-visit-step__mark {
+    border-color: var(--nf-brand-primary);
+    background: var(--nf-brand-primary);
+  }
+  .nf-visit-step[data-status="current"] .nf-visit-step__mark {
+    border-color: var(--nf-brand-primary);
+  }
+  .nf-visit-step[data-status="current"] .nf-visit-step__mark::after {
+    content: "";
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-brand-primary);
+  }
+  .nf-visit-step[data-status="stopped"] .nf-visit-step__mark {
+    border-color: var(--nf-state-error);
+    color: var(--nf-state-error);
+  }
+  .nf-visit-step__title {
+    margin: 0;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-visit-step[data-status="upcoming"] .nf-visit-step__title {
+    color: var(--nf-content-secondary);
+  }
+  .nf-visit-step__sub {
+    margin: var(--nf-space-3xs) 0 0;
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.45;
+    color: var(--nf-content-muted);
+  }
+
+  /* --------------------------------------------------- in-page moves */
+
+  .nf-visit-moves {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--nf-space-xs);
+  }
+  .nf-visit-moves > * {
+    flex: 1 1 10rem;
+  }
+}
+
+
+/*
+  OUTSIDE THE LAYER ON PURPOSE: `ActionBar` positions itself with the
+  `fixed` utility, and a utility outranks anything in `@layer components`.
+*/
+/* From 1024px the actions close the column they belong to, instead of a
+   bar pinned across a screen that also carries the side rail and the
+   property card. */
+@media (min-width: 1024px) {
+  .nf-visit > .nf-action-bar-pinned {
+    position: static;
+    grid-column: 1;
+    margin-top: var(--nf-space-lg);
+    background: none;
+    border: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .nf-visit > .nf-action-bar-pinned > .nf-shell {
+    padding-inline: 0;
+  }
+  .nf-visit-bar {
+    max-width: none;
+  }
+  .nf-visit {
+    padding-bottom: var(--nf-space-2xl);
+  }
+}

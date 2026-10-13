@@ -76,6 +76,8 @@ export async function passcodeReady(context, page, { baseUrl = process.env.BASE_
 
   const setup = page.locator('[data-testid="passcode-setup-enter"]');
   if (await setup.isVisible().catch(() => false)) {
+    /* Setup opens at four digits (D18); a six-digit spec code switches first. */
+    if (code.length === 6) await page.locator('[data-testid="passcode-length-switch"]').click();
     await typeCode(page, code);
     await page.locator('[data-testid="passcode-setup-confirm"]').waitFor({ timeout: 15000 });
     await typeCode(page, code);

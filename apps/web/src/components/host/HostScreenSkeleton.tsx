@@ -50,7 +50,7 @@ export function HostScreenSkeleton({
             ))}
           </div>
         </header>
-        <LoadingShell label={label} className={wide ? "nf-host__body nf-host__body--wide" : "nf-host__body"}>
+        <LoadingShell label={label} className={`${wide ? "nf-host__body nf-host__body--wide" : "nf-host__body"} nf-host__body--docked nf-main--docked`}>
           {children}
         </LoadingShell>
       </div>

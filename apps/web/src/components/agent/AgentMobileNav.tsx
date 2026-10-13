@@ -41,7 +41,7 @@ export function AgentMobileNav({
       /* The workspace's marker heads the drawer. The Vallo lockup that sat
          here went with the one in the bar: inside a workspace nobody needs
          telling which product they are in. */
-      head={<AgentModePill label={t.agent.mode.agent} />}
+      head={<AgentModePill label={profile?.role === "owner" ? t.agent.mode.owner : t.agent.mode.agent} />}
     >
       {(close) => (
         <>
@@ -56,7 +56,7 @@ export function AgentMobileNav({
           <div className="mt-md space-y-xs">
             <AgentIdentityCard
               profile={profile}
-              verifiedLabel={t.agent.mode.verifiedAgent}
+              verifiedLabel={profile?.role === "owner" ? t.agent.mode.verifiedOwner : t.agent.mode.verifiedAgent}
               door={noWorkspaceDoor(t.agent.mode)}
             />
             <ModeSwitcher t={t} current="working" variant="menu" />

@@ -1,0 +1,304 @@
+@layer theme, base, components, utilities;
+
+/*
+ * A FEATURE'S FIRST RUN (north star 14.1, D11). Drawn by FirstRunPanels.tsx,
+ * which imports this sheet (the C12 route-sheet pattern), so it is paid for
+ * only on `/first-run/*`.
+ *
+ * THE PAGE IS THE MEMBER'S THEME (D28.1). No forced night: a member on Light
+ * meets their first run on paper, and the clay object gets the paper ground
+ * 14.7 asks for (a radius-14 plate at about four per cent brand, lifted by a
+ * soft blue contact shadow) so it never floats on white. At night the object
+ * sits on the canvas with nothing behind it.
+ *
+ * LAYOUT. One column, no scroll on a phone: Skip at the top, the panel in the
+ * middle taking the free height, the dots and the one button at the foot
+ * above the safe area. Panels are stacked in one grid cell, so the stage is
+ * as tall as the tallest panel and turning a page never moves anything else
+ * (no layout shift). From 48rem the column simply centres with more air.
+ *
+ * MOTION (MOTION_SYSTEM 2, "Tab change", with the overlap of craft doctrine 5).
+ * The arriving panel travels 32px from the side it was asked from on `land`
+ * (`--nf-ease-entrance`) at `slow` 380ms; the leaving one fades on `leave` at
+ * `base` 240ms (entrances fast and decisive, exits unhurried is for screens,
+ * and a page turn is browsing rhythm). Object, title and body overlap 60ms
+ * apart. A drag writes `--nf-frun-drag` and the panel follows it with no
+ * transition. Quiet readers (reduced motion, Calm, Off) get a 160ms fade and
+ * no travel. Transform and opacity only.
+ */
+@layer components {
+  .nf-frun {
+    --nf-frun-drag: 0px;
+    --nf-frun-shift: 2rem;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    min-block-size: 100dvh;
+    inline-size: 100%;
+    max-inline-size: 34rem;
+    margin-inline: auto;
+    padding-block: calc(env(safe-area-inset-top) + var(--nf-space-xs))
+      calc(env(safe-area-inset-bottom) + var(--nf-space-lg));
+    padding-inline: var(--nf-space-md);
+    background: var(--nf-surface-canvas);
+    color: var(--nf-content-primary);
+    overflow-x: clip;
+  }
+
+  .nf-frun__top {
+    display: flex;
+    justify-content: flex-end;
+    min-block-size: 2.75rem;
+  }
+
+  /* The stage: every panel in one cell. */
+  .nf-frun__stage {
+    display: grid;
+    align-content: center;
+    padding-block: var(--nf-space-xl);
+    touch-action: pan-y;
+  }
+
+  .nf-frun__panel {
+    grid-area: 1 / 1;
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    gap: var(--nf-space-md);
+    text-align: center;
+    opacity: 0;
+    transform: translateX(var(--nf-frun-shift));
+    transition:
+      opacity var(--nf-duration-base) var(--nf-ease-exit),
+      transform var(--nf-duration-base) var(--nf-ease-exit);
+    pointer-events: none;
+  }
+  .nf-frun__panel[data-state="before"] {
+    transform: translateX(calc(var(--nf-frun-shift) * -1));
+  }
+  .nf-frun__panel[data-state="active"] {
+    opacity: 1;
+    transform: translateX(var(--nf-frun-drag));
+    pointer-events: auto;
+    transition:
+      opacity var(--nf-duration-slow) var(--nf-ease-entrance),
+      transform var(--nf-duration-slow) var(--nf-ease-entrance);
+  }
+  /* A drag follows the finger with no lag. */
+  .nf-frun__stage[data-dragging] .nf-frun__panel[data-state="active"] {
+    transition: none;
+  }
+
+  /* The overlap: each part of the arriving panel starts 60ms after the last. */
+  .nf-frun__panel > * {
+    opacity: 0;
+    transform: translateY(0.75rem);
+    transition:
+      opacity var(--nf-duration-base) var(--nf-ease-exit),
+      transform var(--nf-duration-base) var(--nf-ease-exit);
+  }
+  .nf-frun__panel[data-state="active"] > * {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity var(--nf-duration-slow) var(--nf-ease-entrance),
+      transform var(--nf-duration-slow) var(--nf-ease-entrance);
+  }
+  .nf-frun__panel[data-state="active"] > :nth-child(2) {
+    transition-delay: 60ms;
+  }
+  .nf-frun__panel[data-state="active"] > :nth-child(3) {
+    transition-delay: 120ms;
+  }
+
+  /* The object. On night it sits on the canvas; on paper, on its plate. */
+  .nf-frun__art {
+    display: grid;
+    place-items: center;
+    inline-size: clamp(8.5rem, 36vw, 11rem);
+    aspect-ratio: 1;
+    margin-block-end: var(--nf-space-xs);
+    border-radius: var(--nf-radius-plate);
+  }
+  :root[data-theme="light"] .nf-frun__art {
+    padding: var(--nf-space-md);
+    background: color-mix(in oklab, var(--nf-brand-primary) 4%, var(--nf-surface-primary));
+    box-shadow: var(--nf-elevation-raised);
+  }
+
+  .nf-frun__title {
+    margin: 0;
+    max-inline-size: 18ch;
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h1);
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: var(--nf-tracking-display-sm);
+    text-wrap: balance;
+    overflow-wrap: anywhere;
+  }
+
+  .nf-frun__body {
+    margin: 0;
+    max-inline-size: 34ch;
+    font-size: var(--nf-text-body);
+    line-height: 1.55;
+    color: var(--nf-content-secondary);
+    text-wrap: pretty;
+    overflow-wrap: anywhere;
+  }
+
+  /*
+   * A PANEL THAT CARRIES ROWS (promotion's tiers, its ten figures, what
+   * happens after paying). The object shrinks so the words fit a phone, the
+   * rows read left to right as prose, and the fourth part joins the overlap.
+   */
+  .nf-frun__panel[data-detail] {
+    gap: var(--nf-space-sm);
+  }
+  .nf-frun__panel[data-detail] .nf-frun__art {
+    inline-size: clamp(4.5rem, 20vw, 6rem);
+    margin-block-end: 0;
+  }
+  :root[data-theme="light"] .nf-frun__panel[data-detail] .nf-frun__art {
+    padding: var(--nf-space-xs);
+  }
+  .nf-frun__panel[data-state="active"] > :nth-child(4) {
+    transition-delay: 180ms;
+  }
+  .nf-frun__detail {
+    display: grid;
+    gap: var(--nf-space-xs);
+    inline-size: 100%;
+    text-align: start;
+  }
+  .nf-frun__caption {
+    margin: 0;
+    font-size: var(--nf-text-caption);
+    line-height: 1.45;
+    color: var(--nf-content-muted);
+    overflow-wrap: anywhere;
+  }
+  .nf-frun__rows {
+    display: grid;
+    gap: var(--nf-space-xs);
+    margin: 0;
+  }
+  .nf-frun__rows[data-layout="grid"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--nf-space-2xs) var(--nf-space-sm);
+  }
+  .nf-frun__row {
+    display: grid;
+    gap: var(--nf-space-3xs);
+    padding-block-start: var(--nf-space-xs);
+    border-block-start: var(--nf-border-width) solid var(--nf-border-subtle);
+    min-inline-size: 0;
+  }
+  .nf-frun__term {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--nf-space-3xs) var(--nf-space-xs);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+    overflow-wrap: anywhere;
+  }
+  .nf-frun__meta {
+    font-weight: 400;
+    color: var(--nf-content-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+  .nf-frun__text {
+    margin: 0;
+    font-size: var(--nf-text-caption);
+    line-height: 1.45;
+    color: var(--nf-content-secondary);
+    overflow-wrap: anywhere;
+  }
+
+  .nf-frun__foot {
+    display: grid;
+    gap: var(--nf-space-md);
+    justify-items: center;
+  }
+
+  /*
+   * THE PAGER. Each dot is a 44px target holding an 8px mark; the current one
+   * widens into a 24px pill (the sliding-pill grammar of the welcome pager),
+   * on `drift` so it settles rather than snaps. Width is animated through
+   * scale, never width, so it stays transform-only.
+   */
+  .nf-frun__dots {
+    display: flex;
+    gap: 0;
+  }
+  .nf-frun__dot {
+    display: grid;
+    place-items: center;
+    inline-size: 2.75rem;
+    block-size: 2.75rem;
+    border: 0;
+    padding: 0;
+    background: none;
+    border-radius: var(--nf-radius-circle);
+    cursor: pointer;
+  }
+  .nf-frun__dot:focus-visible {
+    outline: 2px solid var(--nf-brand-primary);
+    outline-offset: -4px;
+  }
+  .nf-frun__dot-mark {
+    display: block;
+    inline-size: 0.5rem;
+    block-size: 0.5rem;
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-content-muted);
+    opacity: 0.5;
+    transition:
+      transform var(--nf-duration-base) var(--nf-ease-spring),
+      opacity var(--nf-duration-base) var(--nf-ease-standard),
+      background-color var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  .nf-frun__dot[aria-current="step"] .nf-frun__dot-mark {
+    background: var(--nf-brand-primary);
+    opacity: 1;
+    transform: scaleX(3);
+  }
+
+  .nf-frun__action {
+    inline-size: 100%;
+  }
+
+  @media (min-width: 48rem) {
+    .nf-frun {
+      padding-inline: var(--nf-space-xl);
+    }
+    .nf-frun__action {
+      max-inline-size: 22rem;
+    }
+  }
+
+  /* Quiet readers: a 160ms fade, no travel, no stagger. */
+  @media (prefers-reduced-motion: reduce) {
+    .nf-frun__panel,
+    .nf-frun__panel > *,
+    .nf-frun__panel[data-state="active"],
+    .nf-frun__panel[data-state="active"] > * {
+      transform: none;
+      transition: opacity 160ms var(--nf-ease-standard);
+      transition-delay: 0ms;
+      /* The floor in animation.css would make this fade instant; this opts in. */
+      --nf-reduced-transition: 160ms;
+    }
+  }
+  .nf-frun[data-quiet] .nf-frun__panel,
+  .nf-frun[data-quiet] .nf-frun__panel > *,
+  .nf-frun[data-quiet] .nf-frun__panel[data-state="active"],
+  .nf-frun[data-quiet] .nf-frun__panel[data-state="active"] > * {
+    transform: none;
+    transition: opacity 160ms var(--nf-ease-standard);
+    transition-delay: 0ms;
+  }
+}

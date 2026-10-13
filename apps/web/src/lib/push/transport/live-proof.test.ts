@@ -267,19 +267,26 @@ describe("web push, carried the whole way to a real browser", () => {
          size), and those still fail. So a missing registration is waited on
          briefly, and if it never appears the proof reports NOT RUN, exactly
          as the preflight does: nothing was proved and nothing disproved. */
+      /* A 5xx is the push service's own fault (seen on a GitHub runner, 6
+         October 2026: 502 from its gateway). It says nothing about what this
+         code sent, so it is waited on the same way and, if it persists,
+         reported NOT RUN; the 4xx answers above still fail. */
+      const unanswered = (status: number) => status === 404 || status === 410 || status >= 500;
       let response = await send();
-      for (let attempt = 1; attempt <= 4 && (response.status === 404 || response.status === 410); attempt += 1) {
+      for (let attempt = 1; attempt <= 4 && unanswered(response.status); attempt += 1) {
         await new Promise((resolve) => setTimeout(resolve, attempt * 2_000));
         response = await send();
       }
       console.warn(`  push service answered ${response.status} from ${new URL(subscription.endpoint).host}`);
-      if (response.status === 404 || response.status === 410) {
+      if (unanswered(response.status)) {
         console.warn(
           [
             "",
             "  NOT RUN: the live web push proof did not run on this host.",
-            `  Reason: the push service answered ${response.status} for the subscription Chrome had just`,
-            "  made, so the registration never reached it. Nothing was sent to a browser.",
+            response.status >= 500
+              ? `  Reason: the push service answered ${response.status}, its own failure, on every try.`
+              : `  Reason: the push service answered ${response.status} for the subscription Chrome had just made, so the registration never reached it.`,
+            "  Nothing was sent to a browser.",
             "  This is not a failure. Nothing was proved and nothing was disproved.",
             "",
           ].join("\n"),

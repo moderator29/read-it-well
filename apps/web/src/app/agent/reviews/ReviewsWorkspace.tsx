@@ -115,7 +115,7 @@ function ReviewCard({ review }: { review: AgentReview }) {
 
       <Link
         href={`/listing/${review.listingId}`}
-        className="mt-xs flex min-w-0 items-center gap-xs text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)] hover:text-[var(--nf-content-secondary)]"
+        className="nf-tap mt-xs flex min-w-0 items-center gap-xs text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)] hover:text-[var(--nf-content-secondary)]"
       >
         {/* `min-w-0` on both, or the truncate never fires: a flex child's
             minimum width is its content by default, so "Luxury 2 bedroom

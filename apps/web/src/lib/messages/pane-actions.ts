@@ -2,6 +2,8 @@
 
 import { resolveSession } from "../actions/session";
 import { isFeatureEnabled } from "../flags";
+import type { BadgeTier } from "../trust/badge-tier";
+import { previewLine } from "@/components/app/messages/preview";
 import { loadConversationSummaries } from "./live";
 
 /**
@@ -20,6 +22,10 @@ export type PaneRow = {
   last: string;
   when: string;
   unread: number;
+  /** Their photo, or null for their initial on the brand tint. Absent in older fixtures. */
+  avatarUrl?: string | null;
+  /** Their published badge. Absent reads as none. */
+  tier?: BadgeTier;
 };
 
 export async function readInboxPane(): Promise<PaneRow[] | null> {
@@ -35,9 +41,11 @@ export async function readInboxPane(): Promise<PaneRow[] | null> {
         id: c.id,
         name: c.counterpartName,
         title: c.listingTitle,
-        last: c.lastMessage,
+        last: previewLine(c.lastMessage),
         when: c.whenLabel,
         unread: c.unread,
+        avatarUrl: c.counterpartAvatarUrl ?? null,
+        tier: c.counterpartTier,
       }));
   } catch {
     return null;

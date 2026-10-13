@@ -32,12 +32,14 @@
   }
   .nf-decision__label {
     margin: 0;
+    /* The label is a muted section label on the warm tint, 4.3:1 in paper. */
+    color: var(--nf-content-muted-on-tint);
   }
   .nf-decision__when {
     margin: 0;
     font-size: var(--nf-text-caption);
     font-variant-numeric: tabular-nums;
-    color: var(--nf-content-muted);
+    color: var(--nf-content-muted-on-tint);
   }
   .nf-decision__title {
     margin: 0;

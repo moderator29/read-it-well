@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { formatMoney, getDictionary, plural, type Locale } from "@vallo/i18n";
+import { formatMoney, getDictionary, plural, type Dictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { authHref, returnHref } from "@/components/auth/auth-intent";
 import { EmptyState, TYPE } from "@/components/app/Screen";
@@ -8,13 +8,20 @@ import { ButtonLink } from "@/components/ui/Button";
 import { Amount } from "@/components/ui/Amount";
 import { HostShell } from "@/components/host/HostShell";
 import { readHostRoomBookings, type HostRoomBooking } from "@/lib/host/room-bookings";
+import { readHotelDesk } from "@/lib/host/tape-chart-read";
+import { HotelDashboard } from "@/components/host/dashboard/HotelDashboard";
 import { stayDateLabel } from "@/lib/stays/date-label";
 import { RoomRequestAnswer } from "./RoomRequestAnswer";
 import { DecideClock } from "@/components/host/DecideClock";
 import { requestNow, roomDeadline } from "@/lib/host/decide";
+import { HOST_ROOM_BOOKING_PAYMENT } from "@/lib/money/copy";
+import { hotelFeeSentence } from "@/lib/host/hotel-fee";
+import "@/components/host/dashboard/dashboard.css";
 import "../host-desk.css";
 
-export const metadata: Metadata = { title: "Room bookings", robots: { index: false, follow: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: getDictionary(await getLocale()).experienceHost.bookings.title, robots: { index: false, follow: false } };
+}
 
 export const dynamic = "force-dynamic";
 
@@ -31,18 +38,20 @@ export const dynamic = "force-dynamic";
 export default async function HostRoomBookingsPage() {
   const locale = await getLocale();
   const t = getDictionary(locale);
-  const read = await readHostRoomBookings();
+  /* The requests and the hotel's two weeks are separate reads and start together. */
+  const [read, hotel] = await Promise.all([readHostRoomBookings(), readHotelDesk()]);
+  const words = t.experienceHost.bookings;
 
   if (read.state === "signed-out") {
     return (
       <HostShell logoLabel={t.a11y.logoHome} fallback="/host">
         <EmptyState
           icon="hotel-bed"
-          title="Your room bookings"
-          body="Sign in to see the rooms guests have asked for at your hotel, and to accept or decline them."
+          title={words.signedOutTitle}
+          body={words.signedOutBody}
           action={
             <ButtonLink href={authHref(returnHref("/host/bookings", "", "list"), "sign-in")} variant="primary" size="lg">
-              Sign in
+              {t.common.signIn}
             </ButtonLink>
           }
         />
@@ -50,73 +59,81 @@ export default async function HostRoomBookingsPage() {
     );
   }
 
+  const requests = read.state === "ok" ? read.waiting.length + read.upcoming.length + read.past.length : 0;
+  const hotelUp = hotel.state === "ok";
+
   return (
-    <HostShell logoLabel={t.a11y.logoHome} fallback="/host">
-      <div className="mx-auto max-w-2xl">
-        <h1 className="nf-h2">Room bookings</h1>
-        <p className={`mt-xs mb-block ${TYPE.body}`}>
-          Accept a request and the stay agreement is drawn up for you and the guest to confirm. Once it is approved on
-          Vallo, the guest pays by card and your share goes straight to your default bank account.
-        </p>
-        {read.state === "unavailable" ? (
-          <p className="nf-body" role="alert">
-            Your room bookings could not be read just now. Nothing has changed. Refresh to try again.
+    <HostShell logoLabel={t.a11y.logoHome} fallback="/host" wide>
+      <div className="nf-dash">
+        <div>
+          <h1 className="nf-h2">{words.title}</h1>
+          <p className={`mt-xs max-w-2xl ${TYPE.body}`}>
+            {words.lede} {HOST_ROOM_BOOKING_PAYMENT}
           </p>
-        ) : read.waiting.length + read.upcoming.length + read.past.length === 0 ? (
-          <EmptyState
-            icon="hotel-bed"
-            title="No room requests yet"
-            body="When a guest asks for one of your rooms, the request appears here and we tell you straight away."
-          />
-        ) : (
-          <>
-            <Section title="Waiting for you" rows={read.waiting} locale={locale} answer />
-            <Section title="Accepted" rows={read.upcoming} locale={locale} />
-            <Section title="Past and closed" rows={read.past} locale={locale} />
-          </>
-        )}
+          {/* Vallo's fee on a paid room, said plainly where the host reads their bookings. */}
+          <p className={`mt-xs max-w-2xl ${TYPE.body}`} data-testid="hotel-fee">
+            {hotelFeeSentence()}
+          </p>
+        </div>
+
+        {read.state === "unavailable" || hotel.state === "unavailable" ? (
+          <p className="nf-body" role="alert">
+            {words.unavailable}
+          </p>
+        ) : null}
+
+        {/* Answering a request has a clock on it, so it comes before the day's desk. */}
+        {read.state === "ok" && read.waiting.length > 0 ? (
+          <div className="max-w-2xl">
+            <Section title={words.sections.waiting} rows={read.waiting} locale={locale} words={words} answer />
+          </div>
+        ) : null}
+
+        {hotelUp ? <HotelDashboard read={hotel} locale={locale} variant="page" t={t} /> : null}
+
+        {read.state === "ok" ? (
+          requests === 0 ? (
+            <div className="max-w-2xl">
+              <EmptyState icon="hotel-bed" title={words.emptyTitle} body={words.emptyBody} />
+            </div>
+          ) : (
+            <div className="max-w-2xl">
+              <Section title={words.sections.accepted} rows={read.upcoming} locale={locale} words={words} />
+              <Section title={words.sections.past} rows={read.past} locale={locale} words={words} />
+            </div>
+          )
+        ) : null}
       </div>
     </HostShell>
   );
 }
 
-const STATUS_WORD: Record<string, string> = {
-  PENDING: "Waiting for you",
-  CONFIRMED: "Accepted",
-  CANCELLED: "Cancelled",
-  COMPLETED: "Stayed",
-  NO_SHOW: "No-show",
-};
-
-const AGREEMENT_WORD: Record<string, string> = {
-  awaiting_parties: "Agreement waiting for you or the guest to confirm",
-  in_review: "Agreement with Vallo for checking",
-  approved: "Agreement approved: the guest can pay",
-  rejected: "Agreement sent back",
-  cancelled: "Agreement cancelled",
-  paid: "Paid",
-};
+type Words = Dictionary["experienceHost"]["bookings"];
 
 function Section({
   title,
   rows,
   locale,
+  words,
   answer,
 }: {
   title: string;
   rows: HostRoomBooking[];
   locale: Locale;
+  words: Words;
   answer?: boolean;
 }) {
   if (rows.length === 0) return null;
   const counts = getDictionary(locale).counts;
   const now = requestNow();
+  const range = (b: HostRoomBooking) =>
+    words.dateRange.replace("{from}", stayDateLabel(b.checkIn) ?? b.checkIn).replace("{to}", stayDateLabel(b.checkOut) ?? b.checkOut);
   return (
     <section className="mt-block" aria-label={title}>
       <h2 className="nf-h4">{title}</h2>
       <ul className="mt-xs grid gap-xs">
         {rows.map((b) => (
-          <li key={b.id} className="nf-panel nf-panel--card p-card" data-testid="host-room-booking">
+          <li key={b.id} id={`booking-${b.id}`} className="nf-panel nf-panel--card scroll-mt-24 p-card" data-testid="host-room-booking">
             <div className="flex items-start justify-between gap-sm">
               <p className="font-semibold">
                 {b.room} &middot; {plural(b.rooms, counts.rooms, locale)} &middot; {b.hotel}
@@ -125,33 +142,42 @@ function Section({
               {answer ? <DecideClock openedAt={b.createdAt} deadline={roomDeadline(b.createdAt)} serverNow={now} /> : null}
             </div>
             <p className={TYPE.rowMeta}>
-              {stayDateLabel(b.checkIn) ?? b.checkIn} to {stayDateLabel(b.checkOut) ?? b.checkOut} &middot;{" "}
+              {range(b)} &middot;{" "}
               {plural(b.nights, counts.nights, locale)} &middot; {plural(b.guests, counts.guests, locale)}
             </p>
             <p className={TYPE.rowMeta}>
               {b.guestName}
-              {b.arrivingName ? `, for ${b.arrivingName}` : ""} &middot; <Amount minorUnits={b.totalMinor} locale={locale} />
+              {b.arrivingName ? words.forSomebody.replace("{name}", b.arrivingName) : ""} &middot; <Amount minorUnits={b.totalMinor} locale={locale} />
             </p>
+            {/* Under "Waiting for you" a request's own status is the heading
+                again, so it is drawn only once something has moved on it. */}
+            {answer && !b.paid && !b.agreement ? null : (
             <p className="nf-caption mt-2xs">
-              {b.paid ? "Paid" : b.agreement ? (AGREEMENT_WORD[b.agreement.status] ?? b.agreement.status) : STATUS_WORD[b.status] ?? b.status}
+              {b.paid
+                ? words.paid
+                : b.agreement
+                  ? (words.agreement[b.agreement.status as keyof Words["agreement"]] ?? b.agreement.status)
+                  : (words.status[b.status as keyof Words["status"]] ?? b.status)}
               {b.agreement && !b.paid ? (
                 <>
                   {" "}
                   &middot;{" "}
                   <Link href={`/agreements/${b.agreement.id}`} className="underline">
-                    Open the agreement
+                    {words.openAgreement}
                   </Link>
                 </>
               ) : null}
             </p>
+            )}
             {answer ? (
               <RoomRequestAnswer
                 bookingId={b.id}
+                words={words.answer}
                 summary={{
                   guestName: b.guestName,
                   room: b.room,
                   hotel: b.hotel,
-                  dates: `${stayDateLabel(b.checkIn) ?? b.checkIn} to ${stayDateLabel(b.checkOut) ?? b.checkOut}`,
+                  dates: range(b),
                   stay: `${plural(b.nights, counts.nights, locale)} · ${plural(b.guests, counts.guests, locale)}`,
                   total: formatMoney(b.totalMinor, locale),
                   listingTitle: b.hotel,

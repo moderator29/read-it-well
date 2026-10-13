@@ -5,6 +5,7 @@ import { getLocale } from "@/lib/locale";
 import { getSide } from "@/lib/side";
 import { getMyBookings } from "@/lib/bookings/queries";
 import { getMyReservations } from "@/lib/reservations/queries";
+import { BillReturnCheck } from "@/components/app/reservations/TableSeatingPanel";
 import { resolveSession } from "@/lib/actions/session";
 import {
   readInspectionsForLister,
@@ -33,6 +34,7 @@ import {
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { IconPlate } from "@/components/ui/IconPlate";
 import { PullToRefresh } from "@/components/ui/PullToRefresh";
+import { isBillReference } from "@/lib/payments/references";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: getDictionary(await getLocale()).shape.plans.title };
@@ -77,6 +79,9 @@ export default async function PlansPage({
   const copy = t.shape.plans;
   const { filter, inspectionsOnly } = planFilterFrom(params, shellSide);
   const justBooked = typeof params.justBooked === "string" ? params.justBooked : undefined;
+  /* Founder decision D: back from paying a restaurant bill on Paystack. */
+  const billReturn =
+    typeof params.bill === "string" && isBillReference(params.bill) ? params.bill : undefined;
   const changedRaw = Array.isArray(params.changed) ? params.changed[0] : params.changed;
   const changed = changedRaw && UUID_RE.test(changedRaw) ? changedRaw : null;
 
@@ -171,6 +176,7 @@ export default async function PlansPage({
       </div>
 
       <FilterLinks filter={inspectionsOnly ? "property" : filter} copy={copy} />
+      {billReturn && <BillReturnCheck reference={billReturn} />}
 
       {nothing ? (
         <EmptyState
@@ -214,11 +220,11 @@ export default async function PlansPage({
                 <Section title={copy.tenanciesTitle}>
                   {/* B10: when the rent is due again, for the tenant. */}
                   <RentCountdowns tenancies={rent} locale={locale} />
-                  <div className="flex flex-col gap-md">
+                  <ul className="flex flex-col gap-md">
                     {rent.map((tenancy) => (
                       <TenancyCard key={tenancy.id} tenancy={tenancy} locale={locale} />
                     ))}
-                  </div>
+                  </ul>
                 </Section>
               )}
               <InspectionsBoard

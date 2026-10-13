@@ -12,6 +12,8 @@ import {
   type KycSubmitResult,
 } from "@/components/verification/kyc";
 import { resolveSession } from "@/lib/actions/session";
+import { documentToSupersede, type FiledDocument } from "@/lib/agent/supersedes";
+import { ACCEPT_PAY_REQUIRED, ACCEPT_TERMS_REQUIRED, withWorkspaceAcceptance } from "@/lib/legal/workspace-acceptance";
 
 /**
  * Send a verification submission for review.
@@ -114,6 +116,28 @@ export async function submitVerification(submission: KycSubmission): Promise<Kyc
     if (!isSubtypeOf(kind, doc.subtype)) return { ok: false, message: FAILED };
   }
 
+  /* --------------------------- ruling 6, before anything is written */
+  /* A submission that files or resends a workspace application records the
+     Terms, the Privacy Policy and the pay-on-Vallo statement on it (pov07),
+     and the database refuses it without them (pov08). Asked here first, so
+     nothing is half written. */
+  {
+    const { data: current, error: currentError } = await supabase
+      .from("agent_applications")
+      .select("id, status")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (currentError) return { ok: false, message: FAILED };
+    const currentStatus = typeof current?.status === "string" ? current.status : null;
+    const sendsApplication = current
+      ? currentStatus === "DRAFT" || currentStatus === "MORE_INFO_REQUIRED"
+      : submission.business;
+    if (sendsApplication && submission.acceptTerms !== true) return { ok: false, message: ACCEPT_TERMS_REQUIRED };
+    if (sendsApplication && submission.acceptPayOnVallo !== true) return { ok: false, message: ACCEPT_PAY_REQUIRED };
+  }
+
   /* ------------------------------------------------ the three agreements */
   const consentWrite = await supabase
     .from("kyc_consents")
@@ -123,7 +147,7 @@ export async function submitVerification(submission: KycSubmission): Promise<Kyc
   /* ------------------------------------------------ the application, if any */
   const { data: application, error: readError } = await supabase
     .from("agent_applications")
-    .select("id, status")
+    .select("id, status, consents")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
     .limit(1)
@@ -137,7 +161,12 @@ export async function submitVerification(submission: KycSubmission): Promise<Kyc
   } else if (!application && submission.business) {
     const { data: opened, error } = await supabase
       .from("agent_applications")
-      .insert({ user_id: user.id, status: "SUBMITTED", ...businessColumns(submission.businessDetails) })
+      .insert({
+        user_id: user.id,
+        status: "SUBMITTED",
+        consents: withWorkspaceAcceptance(null, new Date().toISOString()),
+        ...businessColumns(submission.businessDetails),
+      })
       .select("id")
       .single();
     if (error || !opened) return { ok: false, message: FAILED };
@@ -145,16 +174,23 @@ export async function submitVerification(submission: KycSubmission): Promise<Kyc
   }
 
   /* ------------------------------------------------ what each one replaces */
+  /* The refused document first, then the newest current one. "The newest of
+     that kind" alone could retire the approved back of an ID card while the
+     refused front stayed current (lib/agent/supersedes.ts). */
   const { data: earlier } = await supabase
     .from("agent_documents")
-    .select("id, kind, uploaded_at")
+    .select("id, kind, review_status, supersedes_id, uploaded_at")
     .eq("uploader_id", user.id)
     .in("kind", KINDS)
     .order("uploaded_at", { ascending: false });
-  const latestOf = (kind: DocumentKind): string | null => {
-    const row = (earlier ?? []).find((r) => r.kind === kind);
-    return row ? String(row.id) : null;
-  };
+  const filed: FiledDocument[] = (earlier ?? []).map((row) => ({
+    id: String(row.id),
+    kind: String(row.kind),
+    review_status: typeof row.review_status === "string" ? row.review_status : null,
+    supersedes_id: typeof row.supersedes_id === "string" ? row.supersedes_id : null,
+  }));
+  const latestOf = (kind: DocumentKind): string | null =>
+    documentToSupersede(filed, kind, { fallbackToLatest: true });
 
   /* ------------------------------------------------ the documents */
   const rows = KINDS.map((kind) => {
@@ -184,6 +220,7 @@ export async function submitVerification(submission: KycSubmission): Promise<Kyc
       .from("agent_applications")
       .update({
         status: "SUBMITTED",
+        consents: withWorkspaceAcceptance((application as { consents?: unknown } | null)?.consents ?? null, new Date().toISOString()),
         ...(submission.business ? businessColumns(submission.businessDetails) : {}),
       })
       .eq("id", applicationId)

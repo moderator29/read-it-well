@@ -13,6 +13,8 @@ const state = vi.hoisted(() => ({
 }));
 
 vi.mock("next/cache", () => ({ revalidatePath: () => undefined }));
+/* The refusals are read in the request's language (`hostRefusals`); a test has no request. */
+vi.mock("../locale", () => ({ getLocale: async () => "en" }));
 vi.mock("../payments/payee-subaccount", () => ({ ensureHostSubaccount: async () => { state.ensured += 1; return null; } }));
 vi.mock("../actions/session", () => ({
   NOT_CONFIGURED_MESSAGE: "not configured",
@@ -95,6 +97,7 @@ describe("the host answers a room request", () => {
     const { acceptRoomRequest } = await import("./room-booking-actions");
     const result = await acceptRoomRequest(BOOKING);
     expect(result.ok).toBe(false);
+    expect(!result.ok && result.error).toBe("This request has already been answered or has lapsed. Refresh to see where it stands.");
     expect(state.events).toHaveLength(0);
   });
 });

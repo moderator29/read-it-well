@@ -901,8 +901,15 @@
     align-items: center;
     gap: var(--nf-space-xs);
   }
-  /* Always dark (the night door): the day lockup never shows. */
+  /* Night by default; on light (Get started follows the reader's theme
+     since 7 October) the day lockup takes its place. */
   .nf-gs-lockup__set--day {
+    display: none;
+  }
+  :root[data-theme="light"] .nf-gs-lockup__set--day {
+    display: inline-flex;
+  }
+  :root[data-theme="light"] .nf-gs-lockup__set--night {
     display: none;
   }
   .nf-gs-question {

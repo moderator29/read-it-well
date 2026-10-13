@@ -1,3 +1,4 @@
+import "@/app/css/auth.css";
 import type { Metadata } from "next";
 import { publicPageMetadata } from "@/lib/i18n/public-metadata";
 import { getDictionary } from "@vallo/i18n";

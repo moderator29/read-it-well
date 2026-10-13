@@ -9,6 +9,7 @@ import {
   type DiscoveryQuery,
 } from "./search-params";
 import type { Listing, ListingKind } from "./types";
+import { getDictionary } from "@vallo/i18n";
 
 /**
  * The category, after it stopped being navigation and became a filter.
@@ -145,7 +146,15 @@ describe("the order the markets are offered in", () => {
   });
 
   it("reads a category the way a person would write it", () => {
-    expect(kindLabel("hotel")).toBe("Hotels");
-    expect(kindLabel("land")).toBe("Plots");
+    const nouns = getDictionary("en").experienceLabels.kinds;
+    expect(kindLabel("hotel", nouns)).toBe("Hotels");
+    expect(kindLabel("land", nouns)).toBe("Plots");
+  });
+
+  it("counts in the dictionary's English exactly as the syndication title's English", () => {
+    /* `KIND_NOUN` stays English for the link preview; members read the
+       dictionary. One set of words in two places, pinned together. */
+    expect(getDictionary("en").experienceLabels.kinds).toEqual(KIND_NOUN);
+    expect(getDictionary("en").experienceLabels.anyKind).toEqual({ one: "place", many: "places" });
   });
 });

@@ -3,6 +3,7 @@ import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   BANNED_IN_EXAMPLE_COPY,
+  BANNED_EVERYWHERE,
   BANNED_SYNONYMS,
   SCHEDULE_PROMISES,
   UNREAL_WORDS,
@@ -86,6 +87,12 @@ describe("the banned copy vocabulary", () => {
     ]) {
       expect(firstBannedPhrase(allowed), allowed).toBeNull();
     }
+  });
+
+  it("bans 'not live' everywhere, in the words the host screens used to say", () => {
+    expect(BANNED_EVERYWHERE.map((word) => word.label)).toEqual(["not live"]);
+    expect(firstBannedPhrase("Not live yet", BANNED_EVERYWHERE)).toBe("not live");
+    expect(firstBannedPhrase("Not on the shelf yet", BANNED_EVERYWHERE)).toBeNull();
   });
 
   it("keeps the example-copy words out of the platform-wide sweep", () => {
@@ -256,12 +263,12 @@ describe("no screen in this product promises a date it cannot keep", () => {
     expect(files.some((path) => path.endsWith("locales/ig.ts"))).toBe(true);
   });
 
-  it("finds no banned schedule promise in any of them", { timeout: 60_000 }, () => {
+  it("finds no banned schedule promise, and no 'not live', in any of them", { timeout: 60_000 }, () => {
     const offences: string[] = [];
     for (const path of files) {
       const lines = withoutComments(readOnce(path)).split("\n");
       lines.forEach((text, index) => {
-        const phrase = firstBannedPhrase(text);
+        const phrase = firstBannedPhrase(text, [...SCHEDULE_PROMISES, ...BANNED_EVERYWHERE]);
         if (phrase) {
           offences.push(`${label(path)}:${index + 1}  [${phrase}]  ${text.trim()}`);
         }

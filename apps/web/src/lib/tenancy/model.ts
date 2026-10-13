@@ -130,6 +130,41 @@ export function cautionState(facts: CautionFacts): CautionReading {
   return { state, returnedMinor, deductedMinor, guaranteedMinor, inDoubtMinor, outstandingMinor, claimableMinor };
 }
 
+/** `guarantee_bps` from a `deal_agreements` row's frozen terms, or null when absent or unreadable. */
+export function guaranteeBpsOf(row: unknown): number | null {
+  const terms = row && typeof row === "object" ? (row as Record<string, unknown>).terms : null;
+  const bps = terms && typeof terms === "object" ? (terms as Record<string, unknown>).guarantee_bps : null;
+  const value = typeof bps === "number" ? bps : typeof bps === "string" && bps.trim() !== "" ? Number(bps) : NaN;
+  return Number.isFinite(value) ? value : null;
+}
+
+/**
+ * Whether the tenancy file offers "Claim it from the Vallo Guarantee".
+ *
+ * D51 retired the Guarantee: a payment made since carries no contribution,
+ * so there is nothing to claim on. The offer stands only where the payment's
+ * frozen terms carried a non-zero `guarantee_bps` (a payment made while it
+ * ran), the same gate the agreement page puts on its claim section, and a
+ * claim already filed is always shown. The database still decides for real
+ * (`escalate_caution_to_guarantee`); this only decides whether to ask.
+ */
+export function canAskGuarantee(input: {
+  viewer: "tenant" | "lister" | "staff";
+  today: string;
+  dueOn: string;
+  claimableMinor: number;
+  /** `guarantee_bps` in the payment's frozen agreement terms; null when unread. */
+  guaranteeBps: number | null;
+  /** Any Guarantee claim already on this caution, whatever its status. */
+  claimFiled: boolean;
+  /** A claim waiting for staff: the screen shows that instead of the button. */
+  claimOpen: boolean;
+}): boolean {
+  const contribution = input.guaranteeBps !== null && input.guaranteeBps > 0;
+  if (!contribution && !input.claimFiled) return false;
+  return input.viewer === "tenant" && input.today > input.dueOn && input.claimableMinor > 0 && !input.claimOpen;
+}
+
 /* -------------------------------------------------------------- reports */
 
 export const COUNTERSIGN_DAYS = 7;

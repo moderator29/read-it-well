@@ -18,6 +18,7 @@ import { z } from "zod";
 
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../actions/session";
+import { phoneGateFor } from "../phone-otp/gate";
 import { guardMoney } from "../security/money-limits";
 import { getAdminClient } from "../supabase/service";
 import { guaranteeReserveSubaccount } from "../payments/paystack";
@@ -100,6 +101,11 @@ export async function startCryptoPayment(input: {
 
   const parsed = validate(startSchema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+
+  /* FULL GATE (13 October 2026): the first payment needs a confirmed phone,
+     flag on; a payment fails closed on a failed read (`phone-otp/core.ts`). */
+  const phoneGate = await phoneGateFor(session.supabase, session.user.id, "payment");
+  if (phoneGate) return phoneGate;
 
   const loose = session.supabase as unknown as SupabaseClient;
   const closed = await openFor(loose, session.user.id);

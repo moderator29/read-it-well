@@ -5,12 +5,14 @@ import {
   DOCUMENT_SPECS,
   documentPathBelongsTo,
   emptyHostDraft,
+  mergeServerDraft,
   missingFrom,
   progressLabel,
   rejectFile,
   stepsFor,
   type HostDraft,
 } from "./onboarding";
+import { HOST_AGREEMENT_VERSION, PAY_ON_VALLO_VERSION } from "../legal/versions";
 
 /**
  * The host wizard's model, pinned.
@@ -70,6 +72,15 @@ function complete(over: Partial<HostDraft> = {}): HostDraft {
       terms: "2026-09-18T08:00:00Z",
       processing: "2026-09-18T08:00:00Z",
     },
+    hostAgreementVersion: HOST_AGREEMENT_VERSION,
+    payOnValloVersion: PAY_ON_VALLO_VERSION,
+    arrivalCharges: {
+      caution: { minor: 5_000_000, per: "stay" },
+      power: { none: true },
+      cleaning: { none: true },
+      extra_guest: { none: true },
+      visitor: { none: true },
+    },
     ...over,
   };
 }
@@ -97,6 +108,7 @@ describe("stepsFor", () => {
       "room-types",
       "rates",
       "facilities",
+      "extra-charges",
       "payout",
       "consent",
       "review",
@@ -112,6 +124,7 @@ describe("stepsFor", () => {
       "place",
       "house-rules",
       "facilities",
+      "extra-charges",
       "payout",
       "consent",
       "review",
@@ -167,6 +180,15 @@ describe("missingFrom", () => {
 
   it("is empty for a complete individual host", () => {
     expect(missingFrom(complete())).toEqual([]);
+  });
+
+  /* Ruling 6 (13 October 2026): a host setup is not sent without the
+     pay-on-Vallo statement, an older draft included. */
+  it("asks for the pay-on-Vallo statement until it is on record at its version", () => {
+    const want = "Your statement that every payment for a deal you make on Vallo happens inside Vallo";
+    expect(missingFrom(complete({ payOnValloVersion: null }))).toEqual([want]);
+    expect(missingFrom(complete({ payOnValloVersion: undefined }))).toEqual([want]);
+    expect(missingFrom(complete({ payOnValloVersion: "2026-01-01" }))).toEqual([want]);
   });
 
   it("names the pin and the photos separately", () => {
@@ -225,7 +247,7 @@ describe("missingFrom", () => {
       accommodation: null,
       roomTypeCount: 0,
       ratePlanCount: 0,
-      restaurant: { priceBand: 2, cuisineCount: 1, cuisines: ["nigerian"] },
+      restaurant: { priceBand: 2, cuisineCount: 1, cuisines: ["nigerian"], sittingMinutes: null, holdMinutes: null, cancelNoticeHours: null },
       serviceWindowCount: 1,
       hygieneAttestedAt: "2026-09-18T08:00:00Z",
     };
@@ -273,5 +295,85 @@ describe("rejectFile", () => {
     expect(rejectFile({ type: "image/jpeg", size: 1024 })).toBeNull();
     expect(rejectFile({ type: "image/gif", size: 1024 })).toContain("JPG, PNG, WEBP, HEIC or PDF");
     expect(rejectFile({ type: "image/jpeg", size: 9 * 1024 * 1024 })).toContain("8MB");
+  });
+});
+
+describe("mergeServerDraft", () => {
+  /* The wizard's own copy, as it stood before a save: the business row exists
+     and the person is typing, but nothing below the business is on record. */
+  const local = (over: Partial<HostDraft> = {}): HostDraft => ({
+    ...emptyHostDraft(),
+    businessId: "biz-1",
+    status: "DRAFT",
+    hostType: "business",
+    kind: "hotel",
+    name: "Eko Suites typed after the save",
+    phone: "+2348031234567",
+    documents: { identity: true },
+    ...over,
+  });
+  /* What `router.refresh()` brings back once the property and a room are saved. */
+  const server = (over: Partial<HostDraft> = {}): HostDraft =>
+    complete({
+      businessId: "biz-1",
+      status: "DRAFT",
+      hostType: "business",
+      kind: "hotel",
+      name: "Eko Suites",
+      documents: { registration: true },
+      hygieneAttestedAt: "2026-10-12T09:00:00Z",
+      businessPhotoCount: 1,
+      businessPhotos: [{ id: "bp1", url: "/brand/photos/dining-01.jpg" }],
+      reviewNotes: "The CAC certificate is blurry, please upload it again.",
+      ...over,
+    });
+
+  it("takes what only the server writes: the property, its rooms and rates, photographs, attestations and the note", () => {
+    const merged = mergeServerDraft(local(), server());
+    expect(merged.accommodation?.id).toBe("a");
+    expect(merged.roomTypes.map((room) => room.id)).toEqual(["rt1"]);
+    expect(merged.roomTypeCount).toBe(1);
+    expect(merged.ratePlanCount).toBe(1);
+    expect(merged.businessPhotos).toHaveLength(1);
+    expect(merged.hygieneAttestedAt).toBe("2026-10-12T09:00:00Z");
+    expect(merged.reviewNotes).toContain("blurry");
+    expect(missingFrom(merged)).not.toContain("At least one room type");
+  });
+
+  it("keeps the words the person is typing, which are newer than the read", () => {
+    const merged = mergeServerDraft(local(), server());
+    expect(merged.name).toBe("Eko Suites typed after the save");
+    expect(merged.hostType).toBe("business");
+  });
+
+  it("only ever adds documents and the bank account, and takes consents from the record", () => {
+    const merged = mergeServerDraft(
+      local({ hasBankAccount: true, consents: { terms: "2026-10-12T09:00:00Z" } }),
+      server({ hasBankAccount: false, consents: {}, consentWithdrawals: [{ id: "terms", at: "2026-10-12T10:00:00Z" }] }),
+    );
+    expect(merged.documents).toEqual({ identity: true, registration: true });
+    expect(merged.hasBankAccount).toBe(true);
+    /* A withdrawal is a write now, so the read is the truth. */
+    expect(merged.consents).toEqual({});
+    expect(merged.consentWithdrawals).toHaveLength(1);
+  });
+
+  it("asks a stay for its charges at the door before it can be sent", () => {
+    expect(missingFrom(complete({ arrivalCharges: null }))).toEqual(["The charges at the door, all five answered"]);
+  });
+
+  it("changes nothing when the read came back empty, so a failed refresh cannot wipe the screen", () => {
+    const before = local({ roomTypeCount: 2 });
+    expect(mergeServerDraft(before, emptyHostDraft())).toBe(before);
+  });
+
+  it("changes nothing when the read is somebody else's application", () => {
+    const before = local();
+    expect(mergeServerDraft(before, server({ businessId: "biz-2" }))).toBe(before);
+  });
+
+  it("adopts the business id the first save created", () => {
+    const merged = mergeServerDraft(local({ businessId: null }), server());
+    expect(merged.businessId).toBe("biz-1");
   });
 });

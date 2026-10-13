@@ -181,12 +181,6 @@
     letter-spacing: var(--nf-tracking-tight);
     color: var(--nf-content-primary);
   }
-  .nf-row-title {
-    font-size: var(--nf-text-row);
-    line-height: var(--nf-leading-row);
-    font-weight: 500;
-    color: var(--nf-content-primary);
-  }
   .nf-section-label {
     font-size: var(--nf-text-label);
     line-height: var(--nf-leading-label);
@@ -198,16 +192,8 @@
   .nf-figure {
     font-size: var(--nf-text-figure);
     line-height: var(--nf-leading-figure);
-    font-weight: 500;
+    font-weight: 600;
     letter-spacing: var(--nf-tracking-figure);
-    font-variant-numeric: tabular-nums;
-    color: var(--nf-content-primary);
-  }
-  .nf-figure-xl {
-    font-size: var(--nf-text-figure-xl);
-    line-height: 1;
-    font-weight: 500;
-    letter-spacing: var(--nf-tracking-figure-xl);
     font-variant-numeric: tabular-nums;
     color: var(--nf-content-primary);
   }

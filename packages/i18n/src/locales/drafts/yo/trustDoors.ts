@@ -21,7 +21,6 @@ export const trustDoorsYo = {
     yesRole: { agent: "Aṣojú", owner: "Onílé", firm: "Ilé iṣẹ́" },
     yesIdentity: "Vallo ṣàyẹ̀wò ìdánimọ̀ ní {date}.",
     yesTalk: "Bá wọn sọ̀rọ̀ lórí Vallo",
-    yesWhy: "Jẹ́ kí ìfọ̀rọ̀wérọ̀ àti ìsanwó èyíkéyìí wà nínú Vallo, níbi tí ẹ̀yin méjèèjì ti ní ààbò.",
     noTitle: "Kò sí aṣojú tí ó forúkọ nọ́mbà yìí sílẹ̀ pẹ̀lú Vallo",
     noCodeTitle: "Kò sí aṣojú lórí Vallo tí ó ní kóòdù yìí",
     noBody: "Béèrè kóòdù Vallo wọn, kí o sì sanwó nínú Vallo nìkan.",

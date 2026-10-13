@@ -1,5 +1,13 @@
 # Glass 3D objects still on screen: inventory for the clay replacement (30 September 2026)
 
+> **SUPERSEDED on 5 October 2026 by [`docs/design/VISUAL_NORTH_STAR_2026-10-05.md`](/docs/design/VISUAL_NORTH_STAR_2026-10-05.md).**
+> That document carries the founder's four locked decisions for the
+> platform-wide next-generation upgrade: theme leading by surface, matte clay 3D
+> for content with line glyphs for chrome (glossy 3D banned), full redesign
+> surface by surface, and oversized live figures as the signature. Where this
+> file disagrees with it, this file is history. It is kept because code comments
+> cite it. Do not take icon, container, glow or motion direction from here.
+
 The founder wants every glossy glass 3D object replaced with the new clay style: matte royal-blue clay, soft rounded forms, white details, one coral-orange accent, and a soft blue glow on navy. The style reference is `apps/web/assets-src/3d-2026-09-30/icon-sheet-stays-and-actions.png`. The old style is the translucent neon-blue glass, like the bell in `notifications-3d-bell-store.png`.
 
 This file lists what is **rendered today** at `HEAD` c18441f8, not what is on disk. It was traced from code and then checked with playwright-core against `localhost:3000` at 390 px wide, in both themes.

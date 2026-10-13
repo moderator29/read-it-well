@@ -1,5 +1,7 @@
 "use client";
 
+import { PhoneGateLink } from "@/components/app/PhoneGateLink";
+import { isPhoneGate } from "@/lib/actions/envelope";
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Sheet } from "@/components/ui/Sheet";
@@ -26,17 +28,22 @@ export function MessageVenue({
   const [open, setOpen] = useState(false);
   const [body, setBody] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [phoneGate, setPhoneGate] = useState(false);
   const [pending, startTransition] = useTransition();
   const field = useRef<HTMLTextAreaElement | null>(null);
 
   function send() {
     setError(null);
+    setPhoneGate(false);
     startTransition(async () => {
       const result = await messageVenue({ businessId, body });
       if (result.ok) {
         setOpen(false);
         router.push(`/messages/${result.data.conversationId}`);
-      } else setError(result.error);
+      } else {
+        setError(result.error);
+        setPhoneGate(isPhoneGate(result));
+      }
     });
   }
 
@@ -92,6 +99,7 @@ export function MessageVenue({
               {error}
             </p>
           )}
+          <PhoneGateLink show={phoneGate} full />
           <p className="nf-caption">Keep every chat and payment inside Vallo so it stays on the record.</p>
         </form>
       </Sheet>

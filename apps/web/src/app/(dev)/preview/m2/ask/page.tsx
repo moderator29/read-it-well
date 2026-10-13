@@ -34,12 +34,14 @@ export default async function PreviewAsk() {
         listingTitle="Example 2 bedroom flat, Yaba"
         questions={bare}
         questionsTitle={t.memberKit.questions.title}
+        copy={t.experienceInbox.newMessage}
       />
       <FirstMessage
         listingId="00000000-0000-4000-8000-00000000a002"
         listingTitle="Example mini flat that states its water, meter and term"
         questions={answered}
         questionsTitle={t.memberKit.questions.title}
+        copy={t.experienceInbox.newMessage}
       />
     </div>
   );

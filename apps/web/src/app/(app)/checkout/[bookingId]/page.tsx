@@ -12,6 +12,7 @@ import { CancellationTimeline } from "@/lib/trust/CancellationTimeline";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { panelClass } from "@/components/ui/Panel";
 import { CheckoutSummary } from "./CheckoutSummary";
+import { CheckoutPaidMoment } from "./CheckoutPaidMoment";
 import { ArrivalChargesLine } from "@/components/stays/ArrivalChargesLine";
 import { bookingChargeKind } from "@/lib/after-gate/is-rent-charge";
 import { HoldCountdown } from "./HoldCountdown";
@@ -21,6 +22,14 @@ import { chargeSavedCardFor } from "./saved-card-action";
 import { listPaymentMethods } from "@/lib/payments/methods-actions";
 import type { PaymentMethod } from "@/lib/payments/methods";
 import { cryptoOfferForViewer } from "@/lib/crypto/offer";
+import { TransactionCheckout } from "@/components/money/TransactionCheckout";
+import { CHECKOUT_CONDITION_APPROVED, CHECKOUT_CONDITION_CANCEL } from "@/lib/money/copy";
+import { LIVE_RAIL } from "@/lib/money/rails";
+import type { MoneyReference } from "@/lib/money/references";
+import { withNext } from "@/lib/auth/next-link";
+import { readBookedPolicyTerms } from "@/lib/stays/booked-policy";
+import { readAgreementPayChoice } from "@/lib/payments/rail-choice-read";
+import { PayChoiceCard } from "@/components/money/pay-choice/PayChoiceCard";
 
 export const metadata: Metadata = { title: "Checkout" };
 
@@ -88,11 +97,12 @@ export default async function CheckoutPage({
     return (
       <Shell>
         <ResultScreen
-          state="confirmed"
-          mark="shield-check"
+          state="sign-in"
           verdict={c.signInToPayStay}
           consequence={c.signInKeptStay}
-          actions={[{ label: c.signIn, href: "/sign-in", tone: "primary" }]}
+          /* The sentence above promises a return here, so the link carries it:
+             sign-in reads only `next` (Round 3 sweep, C3). */
+          actions={[{ label: c.signIn, href: withNext("/sign-in", `/checkout/${encodeURIComponent(bookingId)}`), tone: "primary" }]}
         />
       </Shell>
     );
@@ -138,12 +148,26 @@ export default async function CheckoutPage({
   /* PERF-SWEEP 2: the saved cards, the crypto offer and the charge kind are
      three independent reads; they run together rather than in series, and
      the charge kind is read once rather than once per use below. */
-  const [cardsRead, cryptoOffer, chargeKind] = await Promise.all([
+  const [cardsRead, cryptoOffer, chargeKind, bookedTerms, payChoice] = await Promise.all([
     listPaymentMethods(),
     /* Crypto, decided here on the server: null while it is off for the platform. */
     cryptoOfferForViewer(),
     bookingChargeKind(view.bookingId),
+    /* The cancellation policy on the rate being booked (Flexible to Strict),
+       drawn against these dates; null draws the platform schedule. */
+    readBookedPolicyTerms(view.bookingId),
+    /* Ruling 2 (13 October 2026): escrow or card, the payer's pick, on an
+       approved agreement not yet paid. Null draws today's screen. */
+    view.agreement?.status === "approved" && !view.paid ? readAgreementPayChoice(view.agreement.id) : Promise.resolve(null),
   ]);
+  /* Escrow (the default, or the payer's pick) is paid on the escrow step, so
+     the card panel is drawn only when card is the rail. */
+  const escrowChosen =
+    payChoice !== null &&
+    ((payChoice.options.length > 1 && payChoice.rail === "escrow") ||
+      /* Escrow paused (protectedRailLive false): card is offered instead, and
+         the card panel opens once the payer has stored card as their choice. */
+      (payChoice.escrowPaused === true && payChoice.chosen !== "card"));
   const savedCards: PaymentMethod[] = cardsRead.ok ? cardsRead.data : [];
   const savedCardKey = crypto.randomUUID();
   const chargeSavedCard = chargeSavedCardFor.bind(null, bookingId, savedCardKey);
@@ -183,7 +207,7 @@ export default async function CheckoutPage({
         confirmation follows. Not rendered while settling - a payment coming
         back from Paystack is past the point where a progress bar helps.
       */}
-      {!settling && (
+      {!settling && !view.paid && (
         <Reveal>
           <div className="mb-md">
             <SegmentedProgress
@@ -195,24 +219,39 @@ export default async function CheckoutPage({
         </Reveal>
       )}
 
-      <Reveal>
+      {/* Paid: the moment first, then the receipt (references 4 and 7), with
+          "Download receipt" and the quiet way back to the stays under it. */}
+      {view.paid ? (
+        <Reveal>
+          <CheckoutPaidMoment view={view} locale={locale} />
+        </Reveal>
+      ) : null}
+
+      <Reveal delay={view.paid ? 80 : 0}>
         {/* What is being bought, as one component the preview harness draws
             with fixture props and this route draws with the real read. */}
         {/* No stay terms on a rent charge, nor when that could not be read. */}
-        <CheckoutSummary view={view} locale={locale} tenancy={chargeKind !== "stay"} />
+        <CheckoutSummary view={view} locale={locale} tenancy={chargeKind !== "stay"} back={view.paid ? staysAction : undefined} />
       </Reveal>
 
-      {view.paid ? (
-        <Reveal delay={80} className="mt-md">
-          <ResultScreen
-            state="received"
-            mark="receipt-check"
-            verdict={c.stayPaidFor}
-            consequence={c.stayPaidBody.replace("{total}", view.totalDisplay)}
-            actions={[{ label: staysAction.label, href: staysAction.href, tone: "primary" }]}
+      {/* V-57 and product rule 2: every cost before the action that pays.
+          What the host declared for the door, worked out for these nights and
+          this party, with the all-in figure, straight under the total and
+          above the pay action (it used to sit under the pay panel, where a
+          guest could pay without having scrolled to it). */}
+      {view.status !== "CANCELLED" && chargeKind === "stay" && (
+        <div className="mt-md">
+          <ArrivalChargesLine
+            listingId={view.listingId}
+            accommodationId={view.accommodationId}
+            bookingId={view.bookingId}
+            locale={view.locale}
+            stay={{ nights: view.nights, guests: view.guests, priceMinor: view.totalMinor }}
           />
-        </Reveal>
-      ) : view.status === "CANCELLED" ? (
+        </div>
+      )}
+
+      {view.paid ? null : view.status === "CANCELLED" ? (
         <Reveal delay={80} className="mt-md">
           {/* EXPIRED, NOT FAILED, AND NOT A TICK. A cancellation is terminal
               and it is not a failure: nothing went wrong, a window closed.
@@ -243,6 +282,11 @@ export default async function CheckoutPage({
             */}
             {view.status === "PENDING" ? (
               <HoldCountdown expiresAt={view.holdExpiresAt} locale={locale} />
+            ) : view.status === "CONFIRMED" && view.instantPayBy && !view.paid ? (
+              /* D73: booked instantly at the published price. The room is
+                 held for a short window while the guest pays, and the sweep
+                 gives it back after, so here the clock is real. */
+              <HoldCountdown expiresAt={view.instantPayBy} locale={locale} />
             ) : view.status === "CONFIRMED" ? (
               /* Confirmed and still unpaid means the agent accepted a request to
                  book. There is no hold running out, so counting one down would
@@ -282,9 +326,48 @@ export default async function CheckoutPage({
             for, and content that only exists once an IntersectionObserver has
             fired is content that sometimes does not exist.
           */}
+          {/* D50: what this payment is, before the action that makes it. The
+              rail is the one live payments open on (lib/money/rails.ts), so a
+              direct payment is never described as held. */}
           <div className="mt-block">
-            <PayPanel view={view} savedCards={savedCards} chargeSavedCard={chargeSavedCard} plansAction={staysAction} crypto={cryptoOffer} />
+            <TransactionCheckout
+              rail={LIVE_RAIL}
+              space={{ title: view.title, location: view.location, href: view.stayHref }}
+              agreement={view.agreement ? { id: view.agreement.id, status: view.agreement.status } : null}
+              payeeName={view.payeeName ?? null}
+              amountMinor={view.totalMinor}
+              currency={view.currency}
+              locale={locale}
+              conditions={[
+                ...(view.agreement?.status === "approved" ? [CHECKOUT_CONDITION_APPROVED] : []),
+                ...(chargeKind === "stay" ? [CHECKOUT_CONDITION_CANCEL] : []),
+              ]}
+              references={[
+                ...(view.agreement
+                  ? [{ kind: "agreement", value: view.agreement.id, href: `/agreements/${view.agreement.id}` } satisfies MoneyReference]
+                  : []),
+                { kind: "space", value: view.listingId ?? view.accommodationId ?? "", href: view.stayHref } satisfies MoneyReference,
+              ]}
+            />
           </div>
+
+          {payChoice && view.agreement ? (
+            <div className="mt-block">
+              <PayChoiceCard
+                copy={getDictionary(locale).payChoice}
+                choice={payChoice}
+                agreement={{ id: view.agreement.id, kind: chargeKind === "stay" ? "stay" : "rent", bookingId: view.bookingId, inspectionId: null }}
+                here={`/checkout/${bookingId}`}
+                showContinue={payChoice.options.length > 1 || (payChoice.escrowPaused === true && payChoice.chosen !== "card")}
+              />
+            </div>
+          ) : null}
+
+          {escrowChosen ? null : (
+            <div className="mt-block">
+              <PayPanel view={view} savedCards={savedCards} chargeSavedCard={chargeSavedCard} plansAction={staysAction} crypto={cryptoOffer} />
+            </div>
+          )}
         </>
       )}
 
@@ -300,13 +383,6 @@ export default async function CheckoutPage({
         real rather than abstract. Not shown once a stay is paid or cancelled:
         by then the schedule is support's business and there is a person on it.
       */}
-      {/* V-57: what the host declared at the door, and the sentence for the gate. */}
-      {view.status !== "CANCELLED" && chargeKind === "stay" && (
-        <div className="mt-lg">
-          <ArrivalChargesLine listingId={view.listingId} accommodationId={view.accommodationId} bookingId={view.bookingId} locale={view.locale} />
-        </div>
-      )}
-
       {!view.paid && view.status !== "CANCELLED" && (
         <Reveal delay={180} className="mt-xl">
           <CancellationTimeline
@@ -314,6 +390,7 @@ export default async function CheckoutPage({
             totalMinor={view.totalMinor}
             locale={view.locale}
             headingLevel="h2"
+            terms={chargeKind === "stay" ? bookedTerms : null}
           />
         </Reveal>
       )}

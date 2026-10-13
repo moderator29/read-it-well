@@ -61,7 +61,7 @@ describe("recalling a stop (V-60)", () => {
 
   it("is on the stops desk, under a standing stop, and sends only from its confirm button", () => {
     const desk_ = readFileSync(join(__dirname, "../../app/admin/stops/StopsDesk.tsx"), "utf8");
-    expect(desk_).toContain("<RecallPanel suspensionId={stop.id} />");
+    expect(desk_).toContain("<RecallPanel suspensionId={stop.id} desk={recallCopy} />");
     const panel = readFileSync(join(__dirname, "../../app/admin/stops/RecallPanel.tsx"), "utf8");
     expect(panel.match(/sendRecall\(/g)?.length).toBe(1);
     expect(panel).toContain("onClick={send}");

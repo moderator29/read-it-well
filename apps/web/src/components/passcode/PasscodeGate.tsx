@@ -1,10 +1,27 @@
-import type { ReactNode } from "react";
+import { cache, type ReactNode } from "react";
 import type { Dictionary, Locale } from "@vallo/i18n";
 import { resolvePasscodeGate } from "@/lib/passcode/state";
 import { passkeyUnlockOffered } from "@/lib/passcode/passkey-unlock";
 import { PasscodeGuard } from "./PasscodeGuard";
 import { PasscodeLock } from "./PasscodeLock";
 import { PasscodeSetup } from "./PasscodeSetup";
+
+/**
+ * Whether this member holds a platform key, read once per request.
+ *
+ * THE (app) LAYOUT STARTS IT BESIDE THE GATE'S OWN READ (13 October 2026, the
+ * startup track), the way SPEED-3 starts `resolvePasscodeGate()`. It used to
+ * start only once the gate had decided, after the layout's other reads, so a
+ * signed-in render waited for it in series: a GoTrue round trip
+ * (`resolveSession`) and a `money_credentials` read, added to every member
+ * screen before the shell could stream. Memoised, so the gate awaits the same
+ * promise; a failed read is still "no".
+ */
+export const passkeyOfferedThisRequest = cache(
+  async function passkeyOfferedThisRequest(): Promise<boolean> {
+    return passkeyUnlockOffered().catch(() => false);
+  },
+);
 
 /**
  * THE GATE, IN THE (app) LAYOUT. docs/PASSCODE.md.
@@ -36,8 +53,12 @@ export async function PasscodeGate({
   const { view } = await resolvePasscodeGate();
   const copy = t.passcode;
   /* C14: one read of whether this member holds a platform key; only asked
-     when a lock can be drawn. A failed read is "no", which leaves the code. */
-  const passkey = view.kind === "unlocked" || view.kind === "locked" ? await passkeyUnlockOffered().catch(() => false) : false;
+     when a lock can be drawn, or a first passcode set (for the one-time Face
+     ID offer). A failed read is "no", which leaves the code. */
+  const passkey =
+    view.kind === "unlocked" || view.kind === "locked" || (view.kind === "setup" && view.mode === "first")
+      ? await passkeyOfferedThisRequest()
+      : false;
 
   switch (view.kind) {
     case "open":
@@ -57,7 +78,19 @@ export async function PasscodeGate({
         </PasscodeGuard>
       );
     case "setup":
-      return <PasscodeSetup copy={copy} locale={locale} mode={view.mode} name={name} avatarUrl={avatarUrl} overlay />;
+      /* A first passcode may be followed once by the Face ID offer, only for a
+         member who holds no key yet (`biometric-offer.ts`). */
+      return (
+        <PasscodeSetup
+          copy={copy}
+          locale={locale}
+          mode={view.mode}
+          name={name}
+          avatarUrl={avatarUrl}
+          overlay
+          offerBiometric={view.mode === "first" && !passkey}
+        />
+      );
     case "locked":
       return (
         <PasscodeLock

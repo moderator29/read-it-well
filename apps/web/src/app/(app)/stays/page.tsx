@@ -1,25 +1,24 @@
 import type { Metadata } from "next";
-import { forStayCard } from "@/lib/i18n/slice";
 import { marketOf } from "@/lib/listings/market";
-import { getDictionary, type Locale } from "@vallo/i18n";
+import { getDictionary, intlTag, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getListingRepository } from "@/lib/listings/repository";
 import { listStaysShelf } from "@/lib/stays/queries";
 import type { Listing, ListingKind } from "@/lib/listings/types";
-import { StayCard } from "@/components/app/stays/StayCard";
+import { StaysFeatured } from "@/components/app/stays/StaysFeatured";
 import { STAY_KINDS } from "@/components/app/stays/model";
 import { stayCardFromListing, stayCardFromRow, type StayCardData } from "@/components/app/stays/stay-card-model";
 import { CategoryRow, type HomeCategory } from "@/components/app/home/CategoryRow";
 import { CityRow } from "@/components/app/home/CityRow";
-import { FeaturedBand } from "@/components/app/home/FeaturedBand";
 import { HomeHero } from "@/components/app/home/HomeHero";
-import { DAYPART_GREETING, getHomeOverview } from "@/lib/app/home-queries";
+import { getHomeOverview } from "@/lib/app/home-queries";
 import { LogoMark } from "@/design-system/brand/Logo";
-import { EmptyState } from "@/components/app/Screen";
-import { ButtonLink } from "@/components/ui/Button";
+import { DiscoveryEmpty } from "@/components/app/search/DiscoveryEmpty";
+import { AreaFigure, type AreaShelfSummary } from "@/components/app/stays/AreaFigure";
 import { resolveSession } from "@/lib/actions/session";
 import { listSavedPlaces } from "@/lib/saved/places-actions";
 import { isSaved, savedKeySet } from "@/lib/saved/places";
+import "@/app/css/home.css";
 
 export const metadata: Metadata = {
   title: "Stays",
@@ -112,8 +111,18 @@ export default async function StaysHomePage() {
       ? projection.filter((row) => row.entity_kind !== "restaurant").map(stayCardFromRow)
       : (await readShelf(STAY_KINDS, 3)).map((listing) => stayCardFromListing(listing));
 
-  const greeting = DAYPART_GREETING[overview.daypart];
-  const name = overview.firstName || (overview.signedIn ? "there" : "");
+  /*
+   * THE AREA'S FIGURE HERO (`AreaFigure.tsx`) waits on a read Session 2 owns:
+   * the live stays in the reader's place and the lowest stated nightly rate
+   * among them, behind a sample floor (request W2-R3). Until it lands this is
+   * null and the greeting leads, rather than a figure summed from whichever
+   * six rows the shelf happened to read.
+   */
+  const areaSummary: AreaShelfSummary | null = null;
+
+  /* The greeting and the welcome are HomeScreen's words (`experienceDiscover.home`). */
+  const greeting = t.experienceDiscover.home.greeting[overview.daypart];
+  const name = overview.firstName || (overview.signedIn ? t.experienceDiscover.home.there : "");
   const stays = t.directHome.stays;
 
   /*
@@ -166,7 +175,7 @@ export default async function StaysHomePage() {
     <div className="nf-home">
       {/* ------------------------------------------- the greeting, as kept */}
       <section className="nf-rise">
-        <p className="nf-body-sm font-medium text-[var(--nf-content-secondary)]">{greeting}</p>
+        <p className="nf-body-sm font-normal text-[var(--nf-content-secondary)]">{greeting}</p>
         {name ? (
           <h1 className="nf-rise nf-rise-2 mt-inline-tight flex items-center gap-inline">
             <span className="nf-h1">{name}</span>
@@ -176,7 +185,7 @@ export default async function StaysHomePage() {
           </h1>
         ) : (
           <h1 className="nf-rise nf-rise-2 mt-inline-tight">
-            <span className="nf-h1">Welcome to Vallo</span>
+            <span className="nf-h1">{t.experienceDiscover.home.welcome}</span>
           </h1>
         )}
         <CityRow
@@ -186,6 +195,21 @@ export default async function StaysHomePage() {
           signedIn={overview.signedIn}
         />
       </section>
+
+      {/* ------------------------------------- the figure hero for the area */}
+      {areaSummary ? (
+        <AreaFigure
+          summary={areaSummary}
+          locale={locale}
+          tag={intlTag[locale]}
+          copy={{
+            caption: t.experienceDiscover.stays.areaCaption,
+            unitOne: t.experienceDiscover.stays.staysOne,
+            unitMany: t.experienceDiscover.stays.staysMany,
+            from: t.experienceDiscover.stays.fromNight,
+          }}
+        />
+      ) : null}
 
       {/* ------------------------------------------------ 1. the hero plate */}
       <div className="mt-md">
@@ -208,39 +232,25 @@ export default async function StaysHomePage() {
       <CategoryRow categories={doors} label={copy.title} columns={2} />
 
       {/* ----------------------------------------------- 3. featured stays */}
-      <FeaturedBand
+      {/* The featured shelf as a swipeable stack (the travel-app reference). */}
+      <StaysFeatured
+        stays={featured}
         title={stays.featured}
         seeAllHref="/stays/search"
-        seeAllLabel={copy.seeAll}
-        count={Math.min(featured.length, 6)}
-        testId="featured-stays"
+        locale={locale}
+        t={t}
+        isSaved={(stay) => (stay.place ? isSaved(savedKeys, stay.place.kind, stay.place.id) : false)}
+        canSavePlaces={canSavePlaces}
         empty={
-          <EmptyState
-            icon="hotel"
-            title={t.stays.shelfEmptyTitle}
-            body={t.stays.shelfEmptyBody}
-            action={
-              <ButtonLink href="/stays/search" variant="primary">
-                {t.stays.findStay}
-              </ButtonLink>
-            }
-          />
-        }
-      >
-        {featured.slice(0, 6).map((stay, index) => (
-          <li key={stay.id} className="nf-feature-row__item">
-            <StayCard
-              stay={stay}
-              locale={locale}
-              t={forStayCard(t)}
-              index={index}
-              eager={index === 0}
-              saved={stay.place ? isSaved(savedKeys, stay.place.kind, stay.place.id) : false}
-              canSavePlaces={canSavePlaces}
+          <DiscoveryEmpty
+              data-testid="stays-empty"
+              object="suitcase"
+              title={t.stays.shelfEmptyTitle}
+              body={t.stays.shelfEmptyBody}
+              primary={{ href: "/stays/search", label: t.stays.findStay }}
             />
-          </li>
-        ))}
-      </FeaturedBand>
+        }
+      />
     </div>
   );
 }

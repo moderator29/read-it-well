@@ -161,10 +161,26 @@ const config: CapacitorConfig = {
        that resolves `@/`. If the chrome colour moves, these three move with it,
        and that note is at the definition too. */
     backgroundColor: "#010118",
-    /* Links that are not ours open in the system browser rather than replacing
-       the application. See `src/lib/native/external-links.ts` for why that
-       matters to payments and to OAuth specifically. */
-    limitsNavigationsToAppBoundDomains: false,
+    /*
+     * APP-BOUND DOMAINS, ON (8 October 2026), BECAUSE IT IS WHAT TURNS ON THE
+     * SERVICE WORKER IN AN IPHONE'S WEB VIEW. WKWebView runs a service worker
+     * only for an app that lists its domains (`WKAppBoundDomains` in
+     * `ios/App/App/Info.plist`, which explains each entry), and Capacitor asks
+     * for this flag to be true whenever that list exists. With it, the pages a
+     * member has opened open again with no signal (`public/sw.js`) instead of
+     * the packaged offline card.
+     *
+     * Links that are not ours still open in the system browser rather than
+     * replacing the application: Capacitor's own navigation delegate hands any
+     * host outside `allowNavigation` to the operating system before WebKit's
+     * app-bound check is reached, and `src/lib/native/external-links.ts` does
+     * the same in the page for payments and OAuth. What this flag adds is a
+     * refusal of a top-level load to an unlisted host, which is a load that
+     * delegate already never lets happen.
+     *
+     * NEEDS A NATIVE REBUILD to take effect; `cap sync` copies it.
+     */
+    limitsNavigationsToAppBoundDomains: true,
   },
 
   plugins: {
@@ -184,7 +200,23 @@ const config: CapacitorConfig = {
          manifest reads `CHROME_COLOUR.dark` now; see the note on the iOS
          `backgroundColor` above for why this one is still written out. */
       backgroundColor: "#010118",
-      androidSplashResourceName: "splash",
+      /*
+       * NOTHING ON THE GROUND, on every platform (round 5). The web's first
+       * frame is the startup sequence's frame one, the bare navy ground with
+       * nothing on it yet (MOTION_SYSTEM.md section 3: "navy ground, matching
+       * the native splash exactly so the handoff is invisible"), and the mark
+       * then assembles at the optical centre. A native splash that drew the
+       * glass tile handed over to that frame by taking the tile away, and a
+       * smaller, flat mark appeared 120ms later somewhere else: the jump the
+       * hand-off exists to avoid. So the native side draws the ground only,
+       * as Android 12 and above already did (`styles.xml`): below Android 12
+       * this plugin draws `splash_blank`, a transparent drawable, over
+       * `backgroundColor`, and iOS draws the launch storyboard, which is now
+       * the same navy view with no image. Apple's own guidance for a launch
+       * screen is the same: the app's first frame, not a poster. The glass
+       * tile stays what it is, the app icon.
+       */
+      androidSplashResourceName: "splash_blank",
       showSpinner: false,
     },
     StatusBar: {

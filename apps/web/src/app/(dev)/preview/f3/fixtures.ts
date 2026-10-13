@@ -273,6 +273,8 @@ export const STAY: StayDetail = {
   starRating: 5,
   city: "Lagos",
   area: "Lekki Phase 1",
+  /* Rounded, as the route rounds it: the area, not the door. */
+  areaPoint: { lat: 6.45, lng: 3.47 },
   checkInFrom: "14:00:00",
   checkOutBy: "11:00:00",
   houseRules: "No parties. Quiet hours from 22:00.",
@@ -358,6 +360,8 @@ export const BOOKINGS: BookingView[] = [
     arrivingPhone: null,
     reviewed: false,
     reviewable: false,
+    paid: true,
+    payable: false,
   },
   {
     id: "00000000-0000-4000-8000-00000000f332",
@@ -380,6 +384,8 @@ export const BOOKINGS: BookingView[] = [
     arrivingPhone: null,
     reviewed: false,
     reviewable: true,
+    paid: true,
+    payable: false,
   },
 ];
 
@@ -475,6 +481,7 @@ export const CHECKOUT: CheckoutView = {
   paid: false,
   holdExpiresAt: new Date(Date.now() + 40 * 60_000).toISOString(),
   holdExpired: false,
+  instantPayBy: null,
   cardAvailable: true,
   agreement: { id: "00000000-0000-4000-8000-00000000a001", status: "approved", reason: null },
 };

@@ -3,6 +3,8 @@ import "server-only";
 import type { AdminClient } from "@/lib/supabase/service";
 import { currentPaystackMode, guaranteeReserveSubaccount, type PaystackMode, type PaystackSplit } from "./paystack";
 import { bookingReference } from "./references";
+import { escrowRailLive } from "./providers";
+import { railForBooking, railGate } from "./router";
 
 /**
  * Open a payment attempt with its split, or say in words why payment is not
@@ -29,9 +31,14 @@ export type AttemptRefusal = { refused: true; message: string };
 /** The sentence for each reason payment is not available. Exported for tests. */
 export const PAYMENT_NOT_AVAILABLE: Record<string, string> = {
   no_agreement:
-    "Payment is not open yet. The agreement for this booking has to be confirmed by both of you and approved by Vallo first.",
+    "Payment is not open yet. The agreement for this booking has to be confirmed by both of you first.",
   agreement_not_approved:
-    "Payment opens once Vallo approves the agreement. You will get an email and a notification the moment it is approved.",
+    "Payment opens as soon as both of you confirm the agreement. If Vallo needs to check this deal first, you will get an email and a notification the moment it is done.",
+  /* D68d: a risk signal on the direct rail, or the incident switch. */
+  review_required:
+    "A person at Vallo is checking this deal before payment opens, because this payment goes straight to the lister. Nothing has been charged. You will get an email and a notification the moment it is done.",
+  not_approved:
+    "Payment opens as soon as both of you confirm the agreement. Nothing has been charged.",
   payee_not_set_up:
     "Payment cannot open yet because the owner or agent has not finished setting up where they are paid. They have been told; please try again once they have.",
   amount_mismatch:
@@ -39,6 +46,8 @@ export const PAYMENT_NOT_AVAILABLE: Record<string, string> = {
   reserve_not_set_up:
     "Payments are paused while Vallo finishes setting up the Guarantee reserve account. Nothing has been charged.",
   not_found: "We could not find that booking on your account.",
+  rate_not_accepted:
+    "Payment is not open yet because the lister is still confirming Vallo's fee for this listing. Nothing has been charged.",
 };
 
 type SplitAnswer = {
@@ -60,19 +69,30 @@ export type SplitQuote = {
   split: PaystackSplit;
   commissionMinor: number;
   mode: PaystackMode;
+  /** The rail the policy resolved, and the policy row that said so. Written at insert, never altered. */
+  rail: "direct";
+  railPolicyId: string;
 };
 
 /**
  * Ask the database what this booking's charge is, and refuse in a sentence
  * when it cannot be paid yet. Writes nothing, so a retry can compare the live
  * attempt against it before deciding to open another.
+ *
+ * THE RAIL FIRST (Session 2, 7.4). The policy decides whether this booking
+ * may be paid by a Paystack split at all. Anything but a resolved DIRECT rail
+ * refuses here, before a row exists: no rail, an unreachable router, and an
+ * ESCROW answer, because this path can only open a direct charge and the
+ * escrow rail is not live (`router.ts`, railGate).
  */
 export async function quoteSplit(
   admin: AdminClient,
   booking: { id: string; total_minor: number; currency: string },
 ): Promise<SplitQuote | AttemptRefusal> {
-  const reserve = guaranteeReserveSubaccount();
-  if (!reserve) return { refused: true, message: PAYMENT_NOT_AVAILABLE.reserve_not_set_up! };
+  const gate = railGate(await railForBooking(admin, booking.id), "direct", await escrowRailLive());
+  if (!gate.open) return { refused: true, message: gate.message };
+  if (gate.rail !== "direct") return { refused: true, message: PAYMENT_NOT_AVAILABLE.not_found! };
+  const railPolicyId = gate.policyId;
 
   const { data, error } = await admin.rpc("payment_split_for_booking" as never, { p_booking: booking.id } as never);
   if (error) {
@@ -100,6 +120,25 @@ export async function quoteSplit(
   ) {
     return { refused: true, message: PAYMENT_NOT_AVAILABLE.amount_mismatch! };
   }
+  /* D68d: the rail and the risk signals decide whether payment opens
+     (`agreement_payable_for`, the same rule the payment gate enforces). Asked
+     first so the member reads a sentence; a failed read is left to the gate. */
+  const payable = await admin.rpc("agreement_payable_for" as never, { p_agreement: answer.agreement_id } as never);
+  const payableStatus = (payable.data as { status?: string } | null)?.status;
+  if (!payable.error && payableStatus && payableStatus !== "payable") {
+    return {
+      refused: true,
+      message:
+        payableStatus === "review_required"
+          ? PAYMENT_NOT_AVAILABLE.review_required!
+          : (PAYMENT_NOT_AVAILABLE[payableStatus] ?? PAYMENT_NOT_AVAILABLE.agreement_not_approved!),
+    };
+  }
+  /* D51: the Guarantee is retired at guarantee_bps = 0. The reserve account is
+     demanded only when the split actually has a reserve leg, so a missing
+     PAYSTACK_GUARANTEE_SUBACCOUNT no longer closes payment at zero. */
+  const reserve = guarantee > 0 ? guaranteeReserveSubaccount() : null;
+  if (guarantee > 0 && !reserve) return { refused: true, message: PAYMENT_NOT_AVAILABLE.reserve_not_set_up! };
 
   return {
     amountMinor,
@@ -107,6 +146,8 @@ export async function quoteSplit(
     payeeUserId: answer.payee_user_id ?? null,
     commissionMinor: commission,
     mode: currentPaystackMode(),
+    rail: "direct",
+    railPolicyId,
     split: {
       listerSubaccount: answer.payee_subaccount_code,
       listerShareMinor: listerShare,
@@ -141,6 +182,8 @@ export async function insertSplitAttempt(
     guarantee_minor: quote.split.guaranteeMinor,
     commission_minor: quote.commissionMinor,
     paystack_mode: quote.mode,
+    rail: quote.rail,
+    rail_policy_id: quote.railPolicyId,
     checkout_opened_at: new Date().toISOString(),
   } as never);
   if (attempt.error) {

@@ -164,7 +164,7 @@ export function Field({
         <p
           id={errorId}
           role="alert"
-          className="nf-arrive mt-xs text-[length:var(--nf-text-caption)] font-medium text-[var(--nf-state-error)]"
+          className="nf-arrive mt-xs text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-state-error)]"
         >
           {error}
         </p>

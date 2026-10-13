@@ -3,6 +3,7 @@ import type { MetadataRoute } from "next";
 import { buildSitemap } from "@/lib/listings/sitemap";
 import { areaPricePages } from "@/lib/areas/queries";
 import { siteUrl } from "@/lib/site";
+import { DOC_SLUGS } from "./(site)/docs/slugs";
 
 /**
  * `/sitemap.xml`.
@@ -50,5 +51,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return buildSitemap(
     siteUrl(),
     (pages ?? []).map((page) => ({ path: page.path, lastModified: page.newestAt })),
+    DOC_SLUGS,
   );
 }

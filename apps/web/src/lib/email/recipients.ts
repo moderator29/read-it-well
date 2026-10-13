@@ -2,6 +2,7 @@ import "server-only";
 
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { createAdminClient } from "../supabase/admin";
+import { settingsSwitchIsOff } from "../notify/in-app";
 import type { Database } from "../supabase/database.types";
 
 /**
@@ -59,11 +60,9 @@ export async function emailMuted(
       .select("settings")
       .eq("id", userId)
       .maybeSingle();
-    const settings = data?.settings;
-    if (!settings || typeof settings !== "object" || Array.isArray(settings)) return false;
-    const notifications = (settings as Record<string, unknown>)["notifications"];
-    if (!notifications || typeof notifications !== "object") return false;
-    return (notifications as Record<string, unknown>)[channel] === false;
+    /* The same reading the in-app door uses (lib/notify/in-app): only an
+       explicit false silences. */
+    return settingsSwitchIsOff(data?.settings, channel);
   } catch {
     return false;
   }

@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/Button";
 import { useState, useTransition } from "react";
 import { unblockUserSafely } from "@/lib/safety/blocks-actions";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -75,16 +76,17 @@ export function BlockedList({ rows, copy }: { rows: BlockedRow[]; copy: Copy }) 
                 <p className="nf-body truncate font-semibold text-content">{row.name}</p>
                 <p className="nf-caption mt-row text-muted">{row.when}</p>
               </div>
-              <button
-                type="button"
+              <Button
+                variant={isArmed ? "danger" : "secondary"}
+                size="sm"
                 onClick={() => press(row)}
                 disabled={pending}
                 aria-live="polite"
                 data-testid="blocked-unblock"
-                className={`nf-btn nf-btn--sm min-h-[44px] shrink-0 ${isArmed ? "nf-btn--danger" : "nf-btn--glass"}`}
+                className="shrink-0"
               >
                 {pending && isArmed ? copy.unblocking : copy.unblock}
-              </button>
+              </Button>
             </div>
             {isArmed && !pending && (
               <p className="nf-body-sm mt-row text-content-2" role="status">

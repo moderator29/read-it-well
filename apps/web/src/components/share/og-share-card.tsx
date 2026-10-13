@@ -1,6 +1,6 @@
+import { OgLogo } from "./og-logo";
 import {
   OG_BRAND,
-  OG_BRAND_QUIET,
   OG_CANVAS,
   OG_CARD,
   OG_CHIP,
@@ -37,8 +37,6 @@ export type OgShareCardInput = {
   height: number;
   title: string;
   chip?: string;
-  /** The sparkle before the chip's word: only for a figure a model estimated. */
-  chipGlyph?: boolean;
   figure?: string | null;
   meter?: { filled: number; word: string; qualifier?: string } | null;
   checks?: readonly OgCheck[];
@@ -58,20 +56,6 @@ export type OgShareCardInput = {
 };
 
 const METER_INK = { none: OG_HAIRLINE, low: OG_INK_MUTED, mid: OG_WARNING, high: OG_BRAND } as const;
-
-function Sparkle({ size }: { size: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24">
-      <path
-        d="M12 3.5 13.9 9.2 19.5 11 13.9 12.9 12 18.5 10.1 12.9 4.5 11 10.1 9.2Z"
-        fill="none"
-        stroke={OG_BRAND_QUIET}
-        strokeWidth="1.6"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
 
 function Mark({ tone, size }: { tone: OgCheck["tone"]; size: number }) {
   const fill = tone === "success" ? OG_SUCCESS : tone === "warning" ? OG_WARNING : "transparent";
@@ -157,8 +141,7 @@ export function ogShareCard(input: OgShareCardInput) {
                 fontSize: 24 * s,
               }}
             >
-              {input.chipGlyph ? <Sparkle size={26 * s} /> : null}
-              <div style={{ display: "flex", marginLeft: input.chipGlyph ? 10 * s : 0 }}>{input.chip}</div>
+              <div style={{ display: "flex" }}>{input.chip}</div>
             </div>
           ) : null}
         </div>
@@ -274,7 +257,7 @@ export function ogShareCard(input: OgShareCardInput) {
           </div>
         </div>
 
-        {/* The foot: the word mark, small, bottom left. */}
+        {/* The foot: the logo, small, bottom left (D81, `og-logo.tsx`). */}
         <div
           style={{
             display: "flex",
@@ -285,10 +268,7 @@ export function ogShareCard(input: OgShareCardInput) {
             fontSize: 22 * s,
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", color: OG_INK, letterSpacing: 3 }}>
-            <div style={{ display: "flex", width: 12 * s, height: 12 * s, borderRadius: 3 * s, background: OG_BRAND, marginRight: 10 * s }} />
-            VALLO
-          </div>
+          <OgLogo height={Math.round(20 * s)} />
           {input.footRight ? <div style={{ display: "flex" }}>{input.footRight}</div> : <div style={{ display: "flex" }} />}
         </div>
       </div>

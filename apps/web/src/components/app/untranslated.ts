@@ -41,7 +41,7 @@
  * English.
  */
 
-import type { Database } from "@/lib/supabase/database.types";
+import type { EscrowState } from "@/lib/admin/reads/money-types";
 
 /* ------------------------------------------------------------------ escrow */
 
@@ -67,10 +67,7 @@ import type { Database } from "@/lib/supabase/database.types";
  * escrow state a compile error in this file instead of `RELEASE_DENIED` in a
  * chip on the dispute desk.
  */
-export const ESCROW_STATE_WORDS: Record<
-  Database["public"]["Enums"]["escrow_state"],
-  string
-> = {
+export const ESCROW_STATE_WORDS: Record<EscrowState, string> = {
   INITIATED: "Agreed, not funded",
   FUNDED: "Funded",
   HELD: "Held",
@@ -93,6 +90,14 @@ export const KYC_DOCUMENT_KIND_WORDS: Record<string, string> = {
   identity: "Government issued ID",
   address: "Proof of address",
   business: "Business document",
+  /* The agent registration files a photo of the face beside the ID, and the
+     firm form a letter from the principal; both reached the KYC desk as the
+     raw kind. */
+  selfie: "Photo of their face",
+  association: "Letter from their principal",
+  /* The owner's title document or letter of authority, filed with the owner
+     registration; approving it earns "Ownership seen". */
+  ownership: "Proof of ownership",
 };
 
 /**

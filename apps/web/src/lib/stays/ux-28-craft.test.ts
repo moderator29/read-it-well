@@ -26,7 +26,7 @@ describe("flow craft", () => {
 
   it("(c) sign-in does not apply the sign-up length rule", () => {
     const actions = src("lib/auth/actions.ts");
-    expect(actions).toContain('validateCredentials(formData, "sign-in")');
+    expect(actions).toContain('validateCredentials(formData, w, "sign-in")');
     expect(actions).toContain('purpose === "sign-up" && password.length < 8');
   });
 });

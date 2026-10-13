@@ -83,13 +83,37 @@ export const ESCROW_PREFIX = "rm-esc-";
  * nobody should have to make by hand.
  */
 export const CRYPTO_PREFIX = "rm-yc-";
+/**
+ * D75: a restaurant table deposit (`public.reservation_deposits`). Its own
+ * prefix, like a promotion, because a reservation is not a booking: it settles
+ * through `reservation_deposit_settle`, never `settle_booking_charge`.
+ */
+export const DEPOSIT_PREFIX = "rm-dep-";
+/**
+ * A restaurant bill paid through Vallo (`public.restaurant_bills`), minted by
+ * `restaurant_bill_open`. Settled through `restaurant_bill_settle`, by the
+ * webhook or the diner's return, whichever arrives first.
+ */
+export const BILL_PREFIX = "rm-bill-";
 
 const REFERENCE_UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+/** True for a restaurant bill reference the database minted (shape-checked). */
+export function isBillReference(value: string): boolean {
+  if (!value.startsWith(BILL_PREFIX)) return false;
+  return REFERENCE_UUID_RE.test(value.slice(BILL_PREFIX.length));
+}
+
 /** A fresh reference for one payment attempt against a booking. */
 export function bookingReference(): string {
   return `${BOOKING_PREFIX}${randomUUID()}`;
+}
+
+/** True for a table deposit reference this platform made (shape-checked, like a booking's). */
+export function isDepositReference(value: string): boolean {
+  if (!value.startsWith(DEPOSIT_PREFIX)) return false;
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value.slice(DEPOSIT_PREFIX.length));
 }
 
 /** A fresh reference for one refund out of a cancellation decision. */

@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ReportSheet } from "@/components/social/ReportSheet";
+import type { ReportWords } from "@/components/social/sheet-words";
 import { useOverlay } from "@/lib/ui/use-overlay";
 import { Sheet } from "@/components/ui/Sheet";
 import {
@@ -13,12 +14,13 @@ import {
   unblockUser,
   unmuteTarget,
 } from "@/lib/social/posts-actions";
-import { POST_COPY, PROFILE_REPORT_REASONS } from "@/lib/social/posts-schema";
+import { POST_COPY, PROFILE_REPORT_REASONS } from "@/lib/social/posts-model";
 import { displayHost } from "@/lib/brand-domain";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Toast, useToast } from "@/components/ui/Toast";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import "./social-profile.css";
+import { useSignInHref } from "@/lib/auth/use-sign-in-href";
 
 /**
  * The `…` on a person's page. The sibling of the one on every card.
@@ -53,6 +55,7 @@ export function ProfileMenu({
   signedIn,
   initialMuted = false,
   onCover = false,
+  reportWords,
 }: {
   handle: string;
   userId: string;
@@ -62,7 +65,10 @@ export function ProfileMenu({
   initialMuted?: boolean;
   /** Floating on a cover photograph rather than sitting on the canvas. */
   onCover?: boolean;
+  /** The report sheet's reasons and words, from the server (`reportWordsOf`). */
+  reportWords: ReportWords;
 }) {
+  const signInHref = useSignInHref();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [muted, setMuted] = useState(initialMuted);
@@ -74,6 +80,34 @@ export function ProfileMenu({
   const menuRef = useRef<HTMLDivElement>(null);
   const openerRef = useRef<HTMLButtonElement>(null);
   const blockedRef = useRef<HTMLDivElement>(null);
+
+  /*
+   * THE MENU OPENS WHOLLY ON SCREEN (D79, founder: it "renders clipped off
+   * the right edge"). It hangs from the trigger's start edge; where that
+   * would run past the viewport it hangs from the end edge instead, and if a
+   * narrow screen still cuts it, it is slid back inside an 8px margin. Read
+   * and written before paint, so it never flashes in the wrong place.
+   */
+  useLayoutEffect(() => {
+    const menu = menuRef.current;
+    if (!open || !menu) return;
+    const MARGIN = 8;
+    const viewport = document.documentElement.clientWidth;
+    const fits = () => {
+      const box = menu.getBoundingClientRect();
+      return box.left >= MARGIN && box.right <= viewport - MARGIN;
+    };
+    menu.style.insetInlineStart = "";
+    menu.style.insetInlineEnd = "";
+    menu.style.translate = "";
+    if (fits()) return;
+    menu.style.insetInlineStart = "auto";
+    menu.style.insetInlineEnd = "0px";
+    if (fits()) return;
+    const box = menu.getBoundingClientRect();
+    const shift = box.left < MARGIN ? MARGIN - box.left : viewport - MARGIN - box.right;
+    menu.style.translate = `${shift}px 0`;
+  }, [open]);
 
   const who = displayLabel || `@${handle}`;
 
@@ -147,7 +181,7 @@ export function ProfileMenu({
 
   const requireSignIn = () => {
     if (signedIn) return false;
-    router.push("/sign-in");
+    router.push(signInHref);
     return true;
   };
 
@@ -314,7 +348,7 @@ export function ProfileMenu({
                       setReporting(true);
                     }}
                   >
-                    Report {who}
+                    {reportWords.reportWho.replace("{who}", () => who)}
                   </button>
                   <button
                     type="button"
@@ -386,9 +420,10 @@ export function ProfileMenu({
 
       {reporting ? (
         <ReportSheet
-          title={`Report ${who}`}
-          subject={`The account at @${handle}, not one thing they wrote. To report a single post, use the menu on that post.`}
+          title={reportWords.reportWho.replace("{who}", () => who)}
+          subject={reportWords.accountSubject.replace("{handle}", () => handle)}
           reasons={PROFILE_REPORT_REASONS}
+          words={reportWords}
           submit={({ reason, detail }) => reportProfile({ userId, reason, detail })}
           onClose={() => setReporting(false)}
         />

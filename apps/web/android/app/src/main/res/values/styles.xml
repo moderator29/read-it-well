@@ -16,7 +16,35 @@
     </style>
 
 
+    <!--
+        THE SYSTEM SPLASH MATCHES FRAME ONE OF THE STARTUP SEQUENCE (D31,
+        MOTION_SYSTEM.md section 3, north star section 8).
+
+        Android 12 and above draw their own splash from these two attributes
+        and ignore `android:background` for it. Neither was set, so the system
+        drew the launcher icon on its default ground, which no frame of Vallo
+        ever matched. Frame one of the web sequence (0 to 120ms) is the bare
+        navy ground: the mark only starts to assemble at 120ms, and it does so
+        in the web page, in its own place. So the system splash is the
+        same navy with NO icon (a transparent drawable), and the handoff from
+        the system to the page is the same colour on both sides of it.
+        `splash_ground` is the night canvas, the `nf-surface-artwork` token, written
+        as a literal because an Android resource cannot read a CSS token.
+
+        BELOW ANDROID 12 THE SAME RULE, which this theme did not keep until
+        round 5: the window background was the splash bitmap, the glass tile
+        centred on navy, drawn edge to edge over the window, and the splash
+        plugin then drew the same bitmap with its default FIT_XY scale. The
+        bitmap is cut for a 3:5 screen, so on the 20:9 phones most members
+        hold the tile was stretched a third taller, and either way it vanished
+        into a bare ground and a different, smaller mark assembled somewhere
+        else. The window background is now the ground itself, and the plugin
+        draws `splash_blank` on its own navy (capacitor.config.ts), so every
+        Android version hands the page the same empty navy frame.
+    -->
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
-        <item name="android:background">@drawable/splash</item>
+        <item name="android:background">@color/splash_ground</item>
+        <item name="windowSplashScreenBackground">@color/splash_ground</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_blank</item>
     </style>
 </resources>

@@ -1,3 +1,14 @@
+/**
+ * bookings-schema: the zod schemas the SERVER validates with.
+ *
+ * Everything a client component may import (the constants, labels, limits,
+ * copy and pure helpers) lives in `./bookings-model` and is re-exported here, so a server
+ * module still imports from this file as before. A client component imports
+ * the model, never this file, because this file builds zod schemas at import
+ * time and zod's classic API is 64 KB gzipped in every client chunk that
+ * reaches it (W13, chunk 2008felnqkn1d).
+ */
+
 import { z } from "zod";
 
 /**
@@ -10,19 +21,12 @@ import { z } from "zod";
  * refuses. bookings-actions.ts is a "use server" module and may only export
  * async functions, which is the other reason these constants live here.
  */
-
-/**
- * How long a PENDING request holds its nights.
- *
- * This is not a number this file chose. private.release_stale_booking_holds()
- * cancels PENDING bookings older than 48 hours, so the console must say the
- * same 48 hours the database will act on.
- */
-export const HOLD_WINDOW_HOURS = 48;
-
-/** A decline has to carry a reason the guest can read. */
-export const MIN_DECLINE_REASON_LENGTH = 4;
-export const MAX_DECLINE_REASON_LENGTH = 240;
+import {
+  MAX_DECLINE_REASON_LENGTH,
+  MAX_STAY_NOTE_LENGTH,
+  MIN_DECLINE_REASON_LENGTH,
+} from "./bookings-model";
+export * from "./bookings-model";
 
 const uuid = (message: string) => z.string().trim().uuid(message);
 
@@ -42,16 +46,6 @@ export const declineInputSchema = z.object({
     ),
 });
 
-/**
- * Recording what became of a confirmed stay.
- *
- * The note is optional, unlike a decline's reason, and the difference is who
- * reads it. A decline is an answer owed to a guest, so it has a floor. A stay
- * note is the agent's own record, shown to nobody, so requiring one would only
- * teach people to type a full stop.
- */
-export const MAX_STAY_NOTE_LENGTH = 500;
-
 export const recordStayInputSchema = z.object({
   bookingId: uuid("We could not identify that booking."),
   outcome: z.enum(["COMPLETED", "NO_SHOW"], {
@@ -65,5 +59,7 @@ export const recordStayInputSchema = z.object({
 });
 
 export type BookingIdInput = z.input<typeof bookingIdSchema>;
+
 export type DeclineInput = z.input<typeof declineInputSchema>;
+
 export type RecordStayInput = z.input<typeof recordStayInputSchema>;

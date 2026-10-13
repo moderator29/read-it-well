@@ -9,6 +9,9 @@ import { getReconciliationHealth, getRentCharges } from "@/lib/admin/reads/money
 import { readGuaranteeDesk } from "@/lib/admin/reads/agreements";
 import { readRefundClockBoard } from "@/lib/after-gate/refunds";
 import { adminUi } from "../_components/ui";
+import { DeskSections } from "../_components/DeskSections";
+import { rulingWords } from "../_components/rulings";
+import { DocFigure, DocHead, DocRow, DocRows, DocumentSheet } from "@/components/app/money/DocumentSheet";
 import { readQueueQuery } from "../_components/QueueFilters";
 import { PageHead, Panel } from "../_components/panels";
 import { RefundsPanel } from "./MoneyRows";
@@ -16,6 +19,8 @@ import { ReconciliationPanel } from "./_desk/Reconciliation";
 import { RefundClock } from "./RefundClock";
 import { GuaranteeClaims } from "./GuaranteeDesk";
 import { CautionRulings } from "./CautionDesk";
+import { LedgerBooks } from "./LedgerBooks";
+import { readLedgerBooks } from "@/lib/admin/desk-reads/ledger-books";
 import { readCautionDesk } from "@/lib/admin/reads/caution-desk";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import "./_desk/desk.css";
@@ -70,7 +75,7 @@ export default async function AdminMoneyPage({
     );
   }
 
-  const [guarantee, refunds, runs, rent, clock, caution] = await Promise.all([
+  const [guarantee, refunds, runs, rent, clock, caution, ledger] = await Promise.all([
     // The reserve's figures decide on auth.uid(), so they are asked as the operator.
     readGuaranteeDesk(access.supabase, access.userClient),
     getRefundConsole(query),
@@ -78,7 +83,22 @@ export default async function AdminMoneyPage({
     getRentCharges(),
     readRefundClockBoard(locale),
     readCautionDesk(access.userClient as unknown as SupabaseClient, access.supabase as unknown as SupabaseClient),
+    // A service-role view: read on the server, behind the same finance door.
+    readLedgerBooks(),
   ]);
+
+  const x = t.experienceAdmin;
+  const words = rulingWords(t);
+  const sections = [
+    { id: "guarantee", label: x.sections.guarantee, icon: "shield-stop" as const },
+    { id: "caution", label: x.sections.cautions, icon: "key" as const },
+    { id: "refunds", label: x.sections.refunds, icon: "wallet" as const },
+    { id: "reconciliation", label: x.sections.reconciliation, icon: "history" as const },
+    { id: "ledger", label: t.adminCoverage.ledger.title, icon: "document" as const },
+    ...(rent.state === "ok" ? [{ id: "rent", label: x.sections.tenancy, icon: "document" as const }] : []),
+    { id: "refund-clock", label: x.sections.refundClock, icon: "calendar-booking" as const },
+    { id: "history", label: x.sections.history, icon: "feed" as const },
+  ];
 
   return (
     <div className="nf-console nf-md">
@@ -87,44 +107,70 @@ export default async function AdminMoneyPage({
         lede="Vallo never holds customer money: every payment settles at the processor straight to the lister, the Guarantee reserve and Vallo in one transaction. This desk watches the Guarantee, refunds to the card, and the reconciliation job."
       />
 
-      <Panel title="The Vallo Guarantee" id="guarantee">
-        {guarantee.state !== "ok" ? (
-          <p className="nf-body">The Guarantee reserve could not be read just now. Refresh to try again.</p>
-        ) : (
-          <>
-            <ui.StatRow>
-              <ui.Stat label="In the reserve" value={formatMoney(guarantee.balanceMinor, locale)} hint="Contributions less approved claims" />
-              <ui.Stat label="Contributed" value={formatMoney(guarantee.contributedMinor, locale)} hint={`${guarantee.guaranteeBps / 100}% of each settled charge`} />
-              <ui.Stat label="Paid out" value={formatMoney(guarantee.paidOutMinor, locale)} hint={`Claims are raised within ${guarantee.claimWindowHours} hours of move-in or check-in`} />
-            </ui.StatRow>
-            <h3 className="nf-admin-panel__title mt-block">Claims</h3>
-            <GuaranteeClaims claims={guarantee.claims} locale={locale} />
-          </>
-        )}
-      </Panel>
+      {/* One desk, six questions: the glass pull lists them and scrolls to each. */}
+      <DeskSections sections={sections} label={x.sections.navLabel} toggleLabel={x.sections.toggle} />
 
-      <Panel title="Cautions" id="caution">
+      {/* THE RESERVE, AS A STATEMENT. A record (what the reserve holds, what
+          went in and what went out) is a light document sheet; the claims under
+          it are controls, so they stay in the console's own theme (D28.1). */}
+      <section id="guarantee" className="nf-admin-doc nf-admin-anchor">
+        <DocumentSheet aria-labelledby="guarantee-title" data-testid="guarantee-statement">
+          <DocHead label={x.money.statementOverline} title="The Vallo Guarantee" id="guarantee-title" />
+          {guarantee.state !== "ok" ? (
+            <p className="nf-body mt-sm">The Guarantee reserve could not be read just now. Refresh to try again.</p>
+          ) : (
+            <>
+              <p className="nf-doc__label mt-sm">In the reserve</p>
+              <DocFigure testId="guarantee-reserve">{formatMoney(guarantee.balanceMinor, locale)}</DocFigure>
+              <p className="nf-doc__note">Contributions less approved claims</p>
+              <DocRows>
+                <DocRow label="Contributed" numeric>
+                  {formatMoney(guarantee.contributedMinor, locale)}
+                </DocRow>
+                <DocRow label="Paid out" numeric>
+                  {formatMoney(guarantee.paidOutMinor, locale)}
+                </DocRow>
+              </DocRows>
+              <p className="nf-doc__note">
+                {guarantee.guaranteeBps / 100}% of each settled charge. Claims are raised within {guarantee.claimWindowHours} hours of
+                move-in or check-in.
+              </p>
+            </>
+          )}
+        </DocumentSheet>
+        {guarantee.state === "ok" && (
+          <Panel title="Claims" id="claims" className="mt-md">
+            <GuaranteeClaims claims={guarantee.claims} locale={locale} words={words} />
+          </Panel>
+        )}
+      </section>
+
+      <Panel title="Cautions" id="caution" className="nf-admin-anchor">
         <p className="nf-body">
           Vallo never holds a caution: it was paid to the lister with the move-in and is paid back between the parties. Rule on
           the record here. What is still owed after the due date, not in question, can be claimed from the Guarantee.
         </p>
         <div className="mt-block">
-          <CautionRulings desk={caution} locale={locale} />
+          <CautionRulings desk={caution} locale={locale} words={words} />
         </div>
       </Panel>
 
       <RefundsPanel refunds={refunds} narrowed={narrowed} locale={locale} ui={ui} />
 
-      <ReconciliationPanel
-        health={runs.state === "ok" ? runs.data : null}
-        now={requestTime()}
-        when={(iso) => (iso ? dateTimeLabel(iso) : "never")}
-        variant="check"
-        locale={locale}
-      />
+      <section id="reconciliation" className="nf-admin-anchor">
+        <ReconciliationPanel
+          health={runs.state === "ok" ? runs.data : null}
+          now={requestTime()}
+          when={(iso) => (iso ? dateTimeLabel(iso) : "never")}
+          variant="check"
+          locale={locale}
+        />
+      </section>
+
+      <LedgerBooks read={ledger} locale={locale} />
 
       {rent.state === "ok" ? (
-        <Panel title="Tenancy charges" id="rent">
+        <Panel title="Tenancy charges" id="rent" className="nf-admin-anchor">
           <p className="nf-body">
             {rent.data.total} move-in charges opened; the latest are listed on each tenancy. A move-in charge opens only on
             an approved agreement.
@@ -132,7 +178,9 @@ export default async function AdminMoneyPage({
         </Panel>
       ) : null}
 
-      <RefundClock board={clock} copy={t.afterTheGate.admin} />
+      <section id="refund-clock" className="nf-admin-anchor">
+        <RefundClock board={clock} copy={t.afterTheGate.admin} />
+      </section>
 
       {/* Every payment and refund that has already moved, platform-wide, read
           as the caller (the finance scope decides), with its CSV export. */}

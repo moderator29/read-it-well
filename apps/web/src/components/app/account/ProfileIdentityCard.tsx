@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/Button";
 import { initial as initialOf } from "@/lib/text/initial";
 import { useEffect, useId, useRef, useState } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -11,6 +12,7 @@ import {
   MAX_NAME,
   useDeviceIdentity,
 } from "./device-identity";
+import { useSignInHref } from "@/lib/auth/use-sign-in-href";
 
 /**
  * Identity card for the profile surface, before there is an account.
@@ -38,6 +40,7 @@ import {
  * opened the card, not when anybody joined.
  */
 export function ProfileIdentityCard() {
+  const signInHref = useSignInHref();
   const [editing, setEditing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const nameId = useId();
@@ -90,7 +93,7 @@ export function ProfileIdentityCard() {
           <span className="block rounded-full bg-[var(--nf-surface-canvas)] p-3xs">
             <span
               className="flex h-[3.75rem] w-[3.75rem] items-center justify-center rounded-full text-2xl font-bold text-[var(--nf-content-on-brand)] sm:h-16 sm:w-16"
-              style={{ background: "var(--nf-gradient-brand)" }}
+              style={{ background: "var(--nf-gradient-brand-ink)" }}
             >
               {initial}
             </span>
@@ -107,15 +110,15 @@ export function ProfileIdentityCard() {
           </p>
         </div>
 
-        <button
-          type="button"
+        <Button
+          variant="secondary"
+          size="sm"
           onClick={() => setEditing((v) => !v)}
           aria-expanded={editing}
-          /* `.nf-chip` sets the caption tier and the 44px floor itself. */
-          className="nf-chip shrink-0 cursor-pointer font-semibold"
+          className="shrink-0"
         >
           {editing ? "Done" : "Edit"}
-        </button>
+        </Button>
       </div>
 
       {editing && (
@@ -179,7 +182,7 @@ export function ProfileIdentityCard() {
           Sign in and this card shows what you have actually booked, saved and
           reviewed, on every device you use.
         </p>
-        <ButtonLink href="/sign-in" variant="primary" size="sm" className="mt-heading">
+        <ButtonLink href={signInHref} variant="primary" size="sm" className="mt-heading">
           Sign in
         </ButtonLink>
       </div>

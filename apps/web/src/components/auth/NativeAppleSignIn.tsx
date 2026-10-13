@@ -1,4 +1,5 @@
 "use client";
+import "@/app/css/auth.css";
 
 import { useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";

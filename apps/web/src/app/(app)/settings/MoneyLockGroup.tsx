@@ -2,7 +2,8 @@
 
 import { useEffect, useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { formatDate, getDictionary, plural, type Locale } from "@vallo/i18n";
+import { formatDate, plural, type Locale } from "@vallo/i18n/core";
+import { useScopedCopy } from "@/lib/i18n/copy-scope";
 import { RowButton, RowValue, SettingsGroup } from "@/components/app/account/rows";
 import { Sheet } from "@/components/ui/Sheet";
 import { Button } from "@/components/ui/Button";
@@ -11,6 +12,7 @@ import { useMoneyStepUp } from "@/components/app/money/MoneyStepUp";
 import { beginEnrol, finishEnrol, removeMoneyCredential, sendFallbackCode } from "@/lib/security/money-step-up-actions";
 import { createPlatformKey, platformLockAvailable } from "@/lib/security/webauthn-client";
 import type { MoneyCredentialList } from "@/lib/security/money-step-up";
+import { MONEY_LOCK_BODY, MONEY_LOCK_DONE, MONEY_LOCK_REMOVED } from "@/lib/money/copy";
 
 /**
  * LOCK MONEY WITH THIS PHONE. V-81.
@@ -27,9 +29,9 @@ import type { MoneyCredentialList } from "@/lib/security/money-step-up";
  * nothing it cannot do.
  */
 export function MoneyLockGroup({ list, locale }: { list: MoneyCredentialList; locale: Locale }) {
-  const copy = getDictionary(locale).platform.moneyLock;
+  const copy = useScopedCopy("moneyLock");
   const router = useRouter();
-  const lock = useMoneyStepUp(locale);
+  const lock = useMoneyStepUp();
   const [supported, setSupported] = useState<boolean | null>(null);
   const [enrolling, setEnrolling] = useState(false);
   const [password, setPassword] = useState("");
@@ -105,7 +107,7 @@ export function MoneyLockGroup({ list, locale }: { list: MoneyCredentialList; lo
       setEnrolling(false);
       setPassword("");
       setCode("");
-      setNote(copy.settingsDone);
+      setNote(MONEY_LOCK_DONE);
       router.refresh();
     });
 
@@ -121,13 +123,13 @@ export function MoneyLockGroup({ list, locale }: { list: MoneyCredentialList; lo
         setError(done.error === "rejected" ? (staff ? copy.staffKeyOnly : copy.rejected) : copy.failed);
         return;
       }
-      setNote(copy.settingsRemoved);
+      setNote(MONEY_LOCK_REMOVED);
       router.refresh();
     });
   };
 
   const rows = list.state === "ok" ? list.rows : [];
-  const groupNote = note ?? error ?? (list.state === "unreadable" ? copy.settingsUnknown : copy.settingsBody);
+  const groupNote = note ?? error ?? (list.state === "unreadable" ? copy.settingsUnknown : MONEY_LOCK_BODY);
 
   return (
     <SettingsGroup label={copy.settingsTitle} note={<span role={error ? "alert" : undefined}>{groupNote}</span>}>

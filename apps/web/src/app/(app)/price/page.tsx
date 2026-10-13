@@ -210,6 +210,7 @@ export default async function PriceCheckPage({
           /* One check is one id, minted per render rather than per session, so
              the stages of one check join to each other and to no person. */
           checkId={randomUUID()}
+          chartCopy={t.experienceDiscover.price.chart}
         />
       </div>
       {stateCode && (

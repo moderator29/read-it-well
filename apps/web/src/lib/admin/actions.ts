@@ -41,7 +41,9 @@ import type { Database } from "../supabase/database.types";
 /* ONE VOCABULARY, READ HERE TOO. The three doors narrow onto the two person
    values in exactly one place and this is a caller of it, not a second copy. */
 import { personRoleFrom } from "../supply/roles";
+import { sideOf } from "../agent/role-lock";
 import { CLOSED_LISTING_MESSAGE, isClosedListingRefusal } from "../landlord/closed";
+import { isRateAgreementRefusal } from "../pricing/rate-agreement";
 import { withDone } from "../ui/success-moments";
 import { MANDATE_NEEDED_MESSAGE, isMandateRefusal } from "../compliance/beneficial-ownership";
 import {
@@ -355,11 +357,23 @@ export async function reviewAgentApplication(input: {
   const parsed = validate(reviewAgentApplicationSchema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   const { applicationId, decision } = parsed.data;
-  const notes = parsed.data.notes ?? null;
+  /* An empty note is no note. The sheet sends "" when nothing was typed, and
+     "" slipped past every `?? fallback` below: a refusal reached the
+     applicant as a notification with an empty body and an email whose reason
+     was blank. */
+  const notes = parsed.data.notes && parsed.data.notes.length > 0 ? parsed.data.notes : null;
 
-  if (decision === "request_changes" && (notes === null || notes.length === 0)) {
+  if (decision === "request_changes" && notes === null) {
     return fail("Tell the applicant what to change.", {
       notes: "Write the change you need before sending it back.",
+    });
+  }
+  /* A refusal always says why, as a listing refusal already does: the
+     applicant reads it word for word on their application, and it is the only
+     explanation they get. The sheet said so and then let it be left blank. */
+  if (decision === "reject" && (notes === null || notes.length < 8)) {
+    return fail("Say why this application is not approved, in at least eight characters. The applicant reads it.", {
+      notes: "Write the reason for the refusal.",
     });
   }
 
@@ -388,6 +402,24 @@ export async function reviewAgentApplication(input: {
         ? "This application has not been submitted yet, so there is nothing to decide."
         : "This application has already been decided. Refresh the queue to see the current state.",
     );
+  }
+
+  /* ONE ACCOUNT, ONE SIDE (`lib/agent/role-lock.ts`). Approval never
+     overwrites a live agents row, so approving an agent application on an
+     owner's account said "approved" while the role stayed owner. It is
+     refused before anything is written, and the reviewer is told why. */
+  if (decision === "approve") {
+    const { data: existing } = await access.supabase
+      .from("agents")
+      .select("role")
+      .eq("user_id", application.user_id)
+      .maybeSingle();
+    const held = (existing as { role?: string | null } | null)?.role ?? null;
+    if (held !== null && sideOf(held) !== sideOf(application.supply_role)) {
+      return fail(
+        `This account is already ${sideOf(held) === "owner" ? "an owner's" : "an agent's"} account, and one account holds one side. Refuse this application with that reason; the person can apply from a separate account.`,
+      );
+    }
   }
 
   const nextStatus =
@@ -525,8 +557,52 @@ export async function reviewAgentApplication(input: {
     }
   }
 
+  let admin: ReturnType<typeof createAdminClient> | null = null;
   try {
-    const admin = createAdminClient();
+    admin = createAdminClient();
+  } catch {
+    admin = null;
+  }
+
+  /*
+   * THE AUDIT ROW FIRST, THEN THE ANNOUNCEMENT. Both used to sit in one try
+   * with the announcement first, so anything the announcement threw skipped
+   * the audit row and a committed decision left no trail. `writeAudit` never
+   * throws: it retries once and raises a critical alert when it cannot write.
+   */
+  if (admin) {
+    const detail: AuditDetail = {
+      before_status: application.status,
+      after_status: nextStatus,
+      decision,
+      reference: application.reference,
+      applicant_id: application.user_id,
+      notes,
+    };
+    await writeAudit(admin, {
+      actorId: access.user.id,
+      action: "agent_application.review",
+      entityType: "agent_application",
+      entityId: application.id,
+      detail,
+    });
+  }
+
+  /* What the person filed, in their words: the three registration forms file
+     an owner, an agent or a firm registration, and only the older six step
+     form is an "agent application". An owner was told their agent
+     application was approved. */
+  const filed =
+    application.supply_role === "owner"
+      ? "owner registration"
+      : application.supply_role === "agent"
+        ? "agent registration"
+        : application.supply_role === "firm"
+          ? "firm registration"
+          : "agent application";
+
+  try {
+    if (!admin) throw new Error("no service client");
 
     const notice =
       decision === "approve"
@@ -536,16 +612,16 @@ export async function reviewAgentApplication(input: {
                and at this instant nobody has: the ladder is at tier 0 and the
                verification queue has not seen a document. The body already
                said the true thing; the title now does too. */
-            title: "Your agent application is approved",
+            title: `Your ${filed} is approved`,
             body: "Your agent workspace is open, so you can list your first property. Verification is a separate step and you can start it from your dashboard.",
           }
         : decision === "reject"
           ? {
-              title: "Your agent application was not approved",
+              title: `Your ${filed} was not approved`,
               body: notes ?? "Open your application to read the reviewer's note.",
             }
           : {
-              title: "Your agent application needs more information",
+              title: `Your ${filed} needs more information`,
               body: notes ?? "Open your application to see what the reviewer needs.",
             };
 
@@ -588,24 +664,9 @@ export async function reviewAgentApplication(input: {
                   notes ?? "Open your application to see what the reviewer needs.",
               }),
     });
-
-    const detail: AuditDetail = {
-      before_status: application.status,
-      after_status: nextStatus,
-      decision,
-      reference: application.reference,
-      applicant_id: application.user_id,
-      notes,
-    };
-    await writeAudit(admin, {
-      actorId: access.user.id,
-      action: "agent_application.review",
-      entityType: "agent_application",
-      entityId: application.id,
-      detail,
-    });
   } catch {
-    // The decision itself has committed. The follow-on work is best effort.
+    // The decision itself has committed and is in the audit log. Telling the
+    // applicant is best effort.
   }
 
   revalidatePath("/admin/agents");
@@ -644,6 +705,21 @@ async function publishedReference(
 }
 
 /** ----------------------------------------------------------------- listings */
+
+/**
+ * A reviewer's note as the one line of a notification, under the listing it
+ * is about. The note used to be the whole body, so a lister with three
+ * listings read "Add at least five clear photos" and could not tell which
+ * one; the reason codes' checklist dashes are folded into one sentence run.
+ */
+function reviewNoticeLine(title: string, notes: string): string {
+  const flat = notes
+    .split("\n")
+    .map((line) => line.replace(/^\s*-\s*/, "").trim())
+    .filter(Boolean)
+    .join(" ");
+  return `${title}: ${flat}`;
+}
 
 export async function reviewListing(input: {
   listingId: string;
@@ -688,12 +764,34 @@ export async function reviewListing(input: {
   if (readError) return fail(SERVICE_DOWN);
   if (!listing) return fail(GONE);
 
-  /* Nobody reviews their own listing, whatever their access. */
-  if (listing.agents?.user_id && listing.agents.user_id === access.user.id) {
+  /* Nobody reviews their own listing, whatever their access. The rule used to
+     be skipped when the lister could not be read, which is the one case it
+     cannot vouch for, so a lister nobody can name is not decided at all. */
+  const listerUserId = listing.agents?.user_id ?? null;
+  if (!listerUserId) {
+    return fail("We could not confirm who listed this, so nothing was decided. Refresh and try again.");
+  }
+  if (listerUserId === access.user.id) {
     return fail("You cannot review your own listing. Leave it for another reviewer.");
   }
   if (listing.status === "DRAFT") {
     return fail("This listing is still a draft, so there is nothing to review yet.");
+  }
+  /* WHICH DECISIONS EACH STATUS TAKES. A rejected listing and one sent back
+     for changes are with the lister, who can be editing them at this moment
+     (both are editable); approving either passed a version nobody had sent,
+     and the desk's page already offered no decision on a rejected one. They
+     come back here when the lister sends them again. An approved listing is
+     published or sent back, not approved a second time, which wrote a second
+     audit row and told the lister twice. */
+  if (listing.status === "REJECTED") {
+    return fail("This listing was rejected and is with the lister. It comes back here when they send it again.");
+  }
+  if (decision === "approve" && listing.status === "MORE_INFO_REQUIRED") {
+    return fail("This listing is with the lister for changes. Approve it once they send it back.");
+  }
+  if (decision === "approve" && listing.status === "APPROVED") {
+    return fail("This listing is already approved. Publish it, or send it back to the lister.");
   }
   if (decision === "publish" && listing.status !== "APPROVED") {
     return fail("Approve this listing first, then publish it.");
@@ -738,6 +836,12 @@ export async function reviewListing(input: {
   if (isClosedListingRefusal(updateError)) return fail(CLOSED_LISTING_MESSAGE);
   /* SCUML item 15: a high-risk lister's listing waits for a cleared EDD review. */
   if (isEddGateRefusal(updateError)) return fail(eddGateMessage("admin"));
+  /* D51: no publish without the lister's recorded acceptance of the fee on this price. */
+  if (isRateAgreementRefusal(updateError)) {
+    return fail(
+      "The lister has not accepted the current fee on this listing's price, so it cannot go live yet. Ask them to review and accept it.",
+    );
+  }
   /* SCUML item 17: the publish gate refuses an agent or firm listing without an approved mandate. */
   if (isMandateRefusal(updateError)) return fail(MANDATE_NEEDED_MESSAGE);
   if (updateError) return fail(claimRefusal(updateError) ?? SERVICE_DOWN);
@@ -745,7 +849,7 @@ export async function reviewListing(input: {
 
   try {
     const admin = createAdminClient();
-    const ownerId = listing.agents?.user_id ?? null;
+    const ownerId = listerUserId;
 
     if (ownerId) {
       /*
@@ -786,11 +890,15 @@ export async function reviewListing(input: {
             : decision === "reject"
               ? {
                   title: "Listing not approved",
-                  body: notes ?? `${listing.title} did not pass review. Open it to read the note.`,
+                  body: notes
+                    ? reviewNoticeLine(listing.title, notes)
+                    : `${listing.title} did not pass review. Open it to read the note.`,
                 }
               : {
                   title: "Listing needs changes",
-                  body: notes ?? `${listing.title} needs a change before it can go live.`,
+                  body: notes
+                    ? reviewNoticeLine(listing.title, notes)
+                    : `${listing.title} needs a change before it can go live.`,
                 };
 
       /*

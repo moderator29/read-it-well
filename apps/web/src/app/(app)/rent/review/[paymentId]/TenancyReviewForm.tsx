@@ -1,5 +1,7 @@
 "use client";
 
+import { PhoneGateLink } from "@/components/app/PhoneGateLink";
+import { isPhoneGate } from "@/lib/actions/envelope";
 import { useState, useTransition } from "react";
 import type { Dictionary } from "@vallo/i18n/core";
 import { panelClass } from "@/components/ui/Panel";
@@ -9,7 +11,7 @@ import { Button } from "@/components/ui/Button";
 import { SuccessSheet } from "@/components/ui/SuccessSheet";
 import { successCopy, type SuccessWords } from "@/lib/ui/success-moments";
 import { submitTenancyReview } from "@/lib/tenancy/review-actions";
-import { EXTRA_TO } from "@/lib/tenancy/review";
+import { EXTRA_TO } from "@/lib/tenancy/review-model";
 
 type Tri = "yes" | "no" | "not_sure";
 
@@ -38,6 +40,7 @@ export function TenancyReviewForm({
   const [rating, setRating] = useState<"1" | "2" | "3" | "4" | "5" | "">("");
   const [body, setBody] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [phoneGate, setPhoneGate] = useState(false);
   const [done, setDone] = useState(false);
   const [successClosed, setSuccessClosed] = useState(false);
   const sent = success ? successCopy(success, "tenancyReviewSent") : null;
@@ -63,6 +66,7 @@ export function TenancyReviewForm({
             if (!open) setSuccessClosed(true);
           }}
           variant={sent.variant}
+          haptic={sent.haptic}
           object={sent.object}
           title={sent.title}
           body={sent.body}
@@ -75,6 +79,7 @@ export function TenancyReviewForm({
 
   function send() {
     setError(null);
+    setPhoneGate(false);
     const naira = Number(extraNaira.replace(/[^\d]/g, ""));
     if (
       paidExtra === "" ||
@@ -100,6 +105,7 @@ export function TenancyReviewForm({
       });
       if (!result.ok) {
         setError(result.error);
+        setPhoneGate(isPhoneGate(result));
         return;
       }
       setDone(true);
@@ -179,6 +185,7 @@ export function TenancyReviewForm({
           {error}
         </p>
       )}
+      <PhoneGateLink show={phoneGate} full />
       <Button type="button" variant="primary" full loading={pending} onClick={send}>
         {pending ? copy.sending : copy.submit}
       </Button>

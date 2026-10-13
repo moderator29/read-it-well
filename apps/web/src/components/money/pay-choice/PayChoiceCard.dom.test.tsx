@@ -1,0 +1,91 @@
+import { renderToStaticMarkup } from "react-dom/server";
+import { afterAll, describe, expect, it, vi } from "vitest";
+import { getDictionary } from "@vallo/i18n";
+import { axe, closeAxe, hasBrowser } from "@/lib/a11y/axe";
+import {
+  PAY_CHOICE_CARD_REASON,
+  PAY_CHOICE_ESCROW_REASON,
+  PAY_CHOICE_ROOM_ONLY,
+  PAY_CHOICE_SALE_ONLY,
+  PAY_ONLY_THROUGH_VALLO,
+} from "@/lib/money/copy";
+import type { PayChoice } from "@/lib/payments/rail-choice";
+
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: () => undefined, refresh: () => undefined }) }));
+vi.mock("@/lib/payments/rail-choice-actions", () => ({ choosePaymentRail: async () => ({ ok: false, error: "unavailable" }) }));
+
+const { PayChoiceCard } = await import("./PayChoiceCard");
+
+afterAll(closeAxe);
+
+const copy = getDictionary("en").payChoice;
+const agreement = { id: "ag-1", kind: "stay", bookingId: "bk-1", inspectionId: null };
+const both: PayChoice = { options: ["escrow", "card"], defaultRail: "escrow", chosen: null, rail: "escrow", payer: true, locked: null };
+
+const html = (choice: PayChoice | null, over: Record<string, unknown> = {}) =>
+  renderToStaticMarkup(<PayChoiceCard copy={copy} choice={choice} agreement={agreement} here="/agreements/ag-1" {...over} />);
+/** The radio for one rail, as rendered. */
+const radio = (s: string, rail: string) => s.match(new RegExp(`<input[^>]*value="${rail}"[^>]*>`))?.[0] ?? "";
+const words = (s: string) => s.replace(/<[^>]+>/g, " ").replace(/&#x27;|&#39;/g, "'").replace(/\s+/g, " ");
+
+describe("the payment step's choice (ruling 2)", () => {
+  it("draws two options, Escrow first, preselected and marked recommended, each with its reason", () => {
+    const out = html(both);
+    const text = words(out);
+    expect(out).toContain('data-mode="choose"');
+    expect(text.indexOf("Escrow")).toBeLessThan(text.indexOf("Pay by card"));
+    expect(text).toContain("Recommended");
+    expect(text).toContain(PAY_CHOICE_ESCROW_REASON.replace(/'/g, "'"));
+    expect(text).toContain(PAY_CHOICE_CARD_REASON);
+    expect(out).toMatch(/data-testid="pay-choice-escrow"[^>]*data-selected="true"|data-selected="true"[^>]*data-testid="pay-choice-escrow"/);
+    expect(radio(out, "escrow")).toContain("checked");
+    expect(radio(out, "card")).not.toContain("checked");
+    expect(text).toContain("Continue");
+  });
+
+  it("preselects card when the payer chose it", () => {
+    const out = html({ ...both, chosen: "card", rail: "card" });
+    expect(radio(out, "card")).toContain("checked");
+    expect(radio(out, "escrow")).not.toContain("checked");
+  });
+
+  it("a sale shows escrow only, as a fact, with no radio and no recommended badge", () => {
+    const out = html({ ...both, options: ["escrow"] });
+    const text = words(out);
+    expect(out).toContain('data-mode="escrow_only"');
+    expect(out).not.toContain('type="radio"');
+    expect(out).not.toContain("pay-choice-card");
+    expect(text).toContain(PAY_CHOICE_SALE_ONLY);
+    expect(text).not.toContain("Recommended");
+  });
+
+  it("a hotel room shows card only, as a fact", () => {
+    const out = html({ ...both, options: ["card"], defaultRail: "card", rail: "card" }, { showContinue: false });
+    expect(out).toContain('data-mode="card_only"');
+    expect(out).not.toContain("pay-choice-escrow");
+    expect(words(out)).toContain(PAY_CHOICE_ROOM_ONLY);
+    expect(out).not.toContain("pay-choice-continue");
+  });
+
+  it("always says to pay only through Vallo", () => {
+    expect(words(html(both))).toContain(PAY_ONLY_THROUGH_VALLO);
+  });
+
+  it("the lister sees no Continue, and the choice is not theirs", () => {
+    const out = html({ ...both, payer: false });
+    expect(out).not.toContain("pay-choice-continue");
+    expect(words(out)).toContain(copy.notPayerNote);
+  });
+
+  it("draws nothing when no rail resolves", () => {
+    expect(html(null)).toBe("");
+    expect(html({ ...both, options: [] })).toBe("");
+  });
+
+});
+
+describe.skipIf(!hasBrowser && !process.env.CI)("the payment step's choice (axe)", () => {
+  it("has no axe violations", async () => {
+    expect(await axe(`<h1>Pay</h1>${html(both)}`)).toEqual([]);
+  });
+});

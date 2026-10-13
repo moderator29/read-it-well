@@ -39,6 +39,7 @@ import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { writeAudit } from "../admin/audit";
 import { adminRefusal, requireAdmin } from "../admin/guard";
 import { createAdminClient } from "../supabase/admin";
+import { writeInAppNotice } from "../notify/in-app";
 
 /**
  * Both Around surfaces.
@@ -129,7 +130,7 @@ export async function decideArea(input: {
     // Tell the person who asked. They took the trouble to suggest a place; a
     // decision they have to go looking for is not a decision they received.
     if (area.created_by) {
-      await admin.from("notifications").insert({
+      await writeInAppNotice(admin, {
         user_id: area.created_by,
         kind: "system",
         title: approving
@@ -255,7 +256,7 @@ export async function decideModeratorApplication(input: {
 
   try {
     const admin = createAdminClient();
-    await admin.from("notifications").insert({
+    await writeInAppNotice(admin, {
       user_id: application.user_id,
       kind: "system",
       title: approving

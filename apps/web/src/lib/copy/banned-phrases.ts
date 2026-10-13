@@ -149,6 +149,18 @@ export const UNREAL_WORDS: { label: string; pattern: RegExp }[] = [
   { label: "lorem", pattern: /\blorem\b/i },
 ];
 
+/**
+ * The one word of `UNREAL_WORDS` that is banned in every piece of live copy, not
+ * only on the example surfaces. `PRODUCT.md` section 7 bans "not live" in UI
+ * copy, and unlike "preview" it has no honest use in a screen: a room or a
+ * listing that is not on the shelf says so in the shelf's own words. The sweep in
+ * `banned-phrases.test.ts` reads it with `SCHEDULE_PROMISES`. It is taken from
+ * `UNREAL_WORDS` so the pattern is written once.
+ */
+export const BANNED_EVERYWHERE: { label: string; pattern: RegExp }[] = UNREAL_WORDS.filter(
+  (word) => word.label === "not live",
+);
+
 /** Both lists, for the surfaces that are subject to the whole ban. */
 export const BANNED_IN_EXAMPLE_COPY = [...UNREAL_WORDS, ...SCHEDULE_PROMISES];
 

@@ -1,7 +1,9 @@
 import type { CSSProperties, ReactNode } from "react";
 import { formatDate, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { StatusPill, toneForStatus, type StatusTone } from "@/components/ui/StatusPill";
+import { CountUp } from "@/components/motion/CountUp";
+import { toneForStatus, type StatusTone } from "@/components/ui/StatusPill";
+import { ConsoleStatus } from "./chip-state";
 import { QUEUE_EMPTY_MARK, queueEmptyKind, type QueueEmptyKind } from "./queue-empty";
 import { fill, type AdminCommon } from "./copy";
 
@@ -259,9 +261,9 @@ export function adminUi(t: Dictionary, locale: Locale) {
     tone?: StatusTone;
   }) {
     return (
-      <StatusPill tone={tone ?? toneForStatus(status ?? "")} className="shrink-0">
+      <ConsoleStatus tone={tone ?? toneForStatus(status ?? "")} className="shrink-0">
         {label ?? statusLabel(status ?? "")}
-      </StatusPill>
+      </ConsoleStatus>
     );
   }
 
@@ -376,7 +378,11 @@ export function adminUi(t: Dictionary, locale: Locale) {
           className="nf-numeric nf-h3 mt-inline-tight"
           style={{ color: STAT_VALUE_COLOUR[tone] }}
         >
-          {value}
+          {/* A whole count arrives counting up (north star 12, point 7), as
+              the overview's figures do; a formatted figure (money, a date)
+              stays the string it was given. The server prints the final
+              number either way. */}
+          {/^\d+$/.test(value) ? <CountUp value={Number(value)} eager /> : value}
           {flagged && <span className="sr-only"> {statToneWord[tone]}</span>}
         </p>
         {hint && <p className="nf-caption mt-inline-tight">{hint}</p>}
@@ -517,10 +523,15 @@ export function adminUi(t: Dictionary, locale: Locale) {
     );
   }
 
-  /** Label and value, stacked on a phone, paired on wider screens. */
+  /**
+   * Label and value, stacked on a phone, paired on wider screens. Each row is
+   * its own `dl` with the `dt` and `dd` as direct children, so a section can
+   * hold a list or a paragraph between rows without a `ul` ever sitting inside
+   * a `dl` (axe: definition-list, W12 F28).
+   */
   function DetailRow({ label, value }: { label: string; value: ReactNode }) {
     return (
-      <div className="flex flex-col gap-inline-tight border-t border-[var(--nf-brand-edge-soft)] py-row sm:flex-row sm:gap-group">
+      <dl className="flex flex-col gap-inline-tight border-t border-[var(--nf-brand-edge-soft)] py-row sm:flex-row sm:gap-group">
         <dt className="nf-overline shrink-0 sm:w-48">{label}</dt>
         <dd className="nf-body min-w-0 break-words text-content">
           {value === null || value === "" ? (
@@ -529,7 +540,7 @@ export function adminUi(t: Dictionary, locale: Locale) {
             value
           )}
         </dd>
-      </div>
+      </dl>
     );
   }
 
@@ -537,7 +548,7 @@ export function adminUi(t: Dictionary, locale: Locale) {
     return (
       <section className="mt-group first:mt-0">
         <h3 className="nf-overline">{title}</h3>
-        <dl className="mt-inline">{children}</dl>
+        <div className="mt-inline">{children}</div>
       </section>
     );
   }

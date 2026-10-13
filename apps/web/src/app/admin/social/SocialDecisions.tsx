@@ -206,7 +206,7 @@ export function PauseToggle({
         disabled={pending}
         placeholder={paused ? `Why ${name} is coming back.` : `Why ${name} is pausing.`}
       />
-      <div className="mt-xs flex gap-xs">
+      <div className="mt-xs flex flex-wrap gap-xs">
         <Button
           variant={paused ? "primary" : "danger"}
           size="sm"

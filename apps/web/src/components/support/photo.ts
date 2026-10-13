@@ -1,7 +1,7 @@
 "use client";
 
 import { reencodeToJpeg } from "@/components/social/profile/reencode";
-import { createClient } from "@/lib/supabase/client";
+import { loadBrowserClient } from "@/lib/supabase/load-client";
 import { attachToMyTicket } from "@/lib/support/ticket-reply";
 
 /**
@@ -46,7 +46,8 @@ export async function uploadTicketPhoto(
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   const failed = "The photo could not be attached just now. Add it again from the conversation.";
   try {
-    const supabase = createClient();
+    const supabase = await loadBrowserClient();
+    if (!supabase) return { ok: false, error: failed };
     const { data } = await supabase.auth.getSession();
     const userId = data.session?.user.id;
     if (!userId) return { ok: false, error: "Sign in again to attach a photo." };

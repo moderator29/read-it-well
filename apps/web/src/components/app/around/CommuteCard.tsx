@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/Button";
 import { useState, useTransition } from "react";
 import type { Dictionary } from "@vallo/i18n/core";
 import type { Anchor, CommuteResult } from "@/lib/listings/commute";
@@ -69,9 +70,9 @@ export function CommuteCard({
               data-testid="commute-minutes"
             />
           </label>
-          <button type="submit" disabled={pending || minutes === ""} className="nf-btn nf-btn--primary nf-btn--md min-h-11">
+          <Button type="submit" variant="primary" disabled={pending || minutes === ""}>
             {copy.reportSend}
-          </button>
+          </Button>
           {result && (
             <p role="status" className="nf-body-sm text-[var(--nf-content-secondary)]">
               {fill(copy.results[result])}

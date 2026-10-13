@@ -1,4 +1,6 @@
 import type { PostView } from "@/components/social/feed/PostCard";
+import { getDictionary } from "@vallo/i18n";
+import { sheetWordsOf } from "@/components/social/sheet-words";
 import { Feed } from "@/components/social/feed/Feed";
 import { ProfilePosts } from "@/components/social/profile/ProfilePosts";
 import { ThreadView } from "@/app/(app)/post/[id]/ThreadView";
@@ -126,17 +128,17 @@ export default function PostsPreview() {
   return (
     <main className="mx-auto flex max-w-[640px] flex-col gap-xl px-md py-lg">
       <Panel n={1} title="Feed, handed one live and two deleted posts">
-        <Feed initial={HANDED} locale="en" signedIn emptyMessage="" />
+        <Feed initial={HANDED} locale="en" sheet={sheetWordsOf(getDictionary("en"))} signedIn emptyMessage="" />
       </Panel>
       <Panel n={2} title="Own profile, Posts tab, handed the same">
-        <ProfilePosts tab="posts" handle={PERSON.handle} posts={HANDED} isOwner signedIn hasBio />
+        <ProfilePosts tab="posts" handle={PERSON.handle} posts={HANDED} isOwner signedIn sheet={sheetWordsOf(getDictionary("en"))} hasBio />
       </Panel>
       <Panel n={3} title="Thread: one deleted reply nobody answered, one somebody did">
-        <ThreadView thread={{ root: LIVE, replies: prune(threadRows) }} signedIn />
+        <ThreadView thread={{ root: LIVE, replies: prune(threadRows) }} signedIn sheet={sheetWordsOf(getDictionary("en"))} />
       </Panel>
       {conversationIsGone(true, answeredRootReplies.length) ? null : (
         <Panel n={4} title="Thread opened on a deleted post somebody answered">
-          <ThreadView thread={{ root: DELETED_ANSWERED, replies: answeredRootReplies }} signedIn />
+          <ThreadView thread={{ root: DELETED_ANSWERED, replies: answeredRootReplies }} signedIn sheet={sheetWordsOf(getDictionary("en"))} />
         </Panel>
       )}
     </main>

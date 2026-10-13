@@ -32,7 +32,7 @@ export type Bundle<T extends BundleInput> = {
 /** The body a photo-only message carries, as `attachImage` writes it. */
 const PHOTO_BODY = "\u{1F4F7} Photo";
 
-function isPhotoOnly(m: BundleInput): boolean {
+export function isPhotoOnly(m: BundleInput): boolean {
   return m.imageUrl !== null && (m.body.trim().length === 0 || m.body === PHOTO_BODY);
 }
 
@@ -60,6 +60,8 @@ function sameAct(prev: BundleInput, next: BundleInput): boolean {
 function joins(run: BundleInput[], next: BundleInput): boolean {
   const prev = run[run.length - 1]!;
   if (!sameAct(prev, next)) return false;
+  /* VC1: a call marker is its own row, never a photo's caption. */
+  if ((next as { call?: unknown }).call) return false;
   if (!isPhotoOnly(prev)) return false;
   return isPhotoOnly(next) || isCaption(next);
 }

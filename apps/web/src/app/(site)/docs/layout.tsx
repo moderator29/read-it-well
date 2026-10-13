@@ -1,6 +1,7 @@
 import { CHAPTER_INDEX } from "./chapters";
 import { DocsSidebar } from "./DocsSidebar";
 import { SiteHead } from "@/components/site/SiteHead";
+import { DocsSearch } from "@/components/site/support/SupportSearch";
 
 /**
  * The documentation frame.
@@ -12,7 +13,7 @@ import { SiteHead } from "@/components/site/SiteHead";
  *
  * The rail is handed the index, not the chapters themselves. `CHAPTER_INDEX` is
  * plain data, so the client component that needs the current pathname carries
- * twelve titles into the browser and not the entire document.
+ * the titles into the browser and not the entire document.
  *
  * `min-w-0` on the content column is load bearing. A flex child defaults to
  * `min-width: auto`, so one wide code span or one long reference would push the
@@ -28,10 +29,11 @@ export default function DocsLayout({ children }: Readonly<{ children: React.Reac
         plate="bg-blue-wave"
         icon="listing-review"
         chip="Documentation"
-        title="How Vallo works, in full"
+        title="Vallo docs"
         heading="p"
       />
       <div className="nf-shell pb-section">
+        <DocsSearch />
         <div className="mx-auto flex max-w-6xl flex-col gap-heading lg:flex-row lg:items-start lg:gap-block">
           <DocsSidebar items={CHAPTER_INDEX} />
           <div className="min-w-0 flex-1">{children}</div>

@@ -3,6 +3,7 @@
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { formatDate, type Dictionary, type Locale } from "@vallo/i18n/core";
+import { Button } from "@/components/ui/Button";
 import { createClient } from "@/lib/supabase/client";
 import { useDataSaver } from "@/lib/ui/data-saver";
 import { answerShowMe, requestShowMe } from "@/lib/messages/show-me-actions";
@@ -17,6 +18,7 @@ import {
   type ShowMeRequest,
   type ShowMeResult,
 } from "@/lib/messages/show-me";
+import "@/app/css/catalogue.css";
 
 /** The clip's length, read by the browser from the file's own metadata. */
 function durationOf(file: File): Promise<number | null> {
@@ -124,15 +126,15 @@ export function ShowMePanel({
       <div className="flex items-center justify-between gap-sm">
         <h2 className="text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">{copy.title}</h2>
         {role === "guest" && canAsk && (
-          <button
-            type="button"
-            className="nf-btn nf-btn--glass nf-btn--sm min-h-11"
+          <Button
+            variant="secondary"
+            size="sm"
             aria-expanded={open}
             onClick={() => setOpen((v) => !v)}
             data-testid="show-me-open"
           >
             {copy.ask}
-          </button>
+          </Button>
         )}
       </div>
       <p className="nf-caption mt-2xs text-[var(--nf-content-muted)]">
@@ -162,14 +164,14 @@ export function ShowMePanel({
               aria-label={copy.items.other}
               onChange={(event) => setOther(event.target.value)}
             />
-            <button
-              type="button"
+            <Button
+              variant="secondary"
+              size="sm"
               disabled={pending || other.trim().length < 3}
-              className="nf-btn nf-btn--glass nf-btn--sm min-h-11"
               onClick={() => ask("other")}
             >
               {copy.send}
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -192,14 +194,15 @@ export function ShowMePanel({
                         tap says what it costs. A clip the renter asked for; it
                         has no captions to offer. */}
                     {saver && !played.includes(request.id) ? (
-                      <button
-                        type="button"
-                        className="nf-btn nf-btn--glass nf-btn--sm mt-xs min-h-11"
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        className="mt-xs"
                         onClick={() => setPlayed((ids) => [...ids, request.id])}
                         data-testid="show-me-play"
                       >
                         {playLabel(request.clipBytes, copy, locale)}
-                      </button>
+                      </Button>
                     ) : (
                       <video
                         className="mt-xs w-full rounded-[var(--nf-radius-md)]"
@@ -222,10 +225,11 @@ export function ShowMePanel({
                   <p className="nf-caption mt-2xs text-[var(--nf-content-muted)]">{copy.waiting.replace("{time}", time(request.expiresAt))}</p>
                 )}
                 {state === "open" && role === "host" && (
-                  <button
-                    type="button"
+                  <Button
+                    variant="primary"
+                    size="sm"
                     disabled={pending}
-                    className="nf-btn nf-btn--primary nf-btn--sm mt-xs min-h-11"
+                    className="mt-xs"
                     onClick={() => {
                       fileFor.current = request.id;
                       input.current?.click();
@@ -233,7 +237,7 @@ export function ShowMePanel({
                     data-testid="show-me-answer"
                   >
                     {copy.answer}
-                  </button>
+                  </Button>
                 )}
                 {state === "expired" && <p className="nf-caption mt-2xs text-[var(--nf-content-muted)]">{copy.expired}</p>}
               </li>

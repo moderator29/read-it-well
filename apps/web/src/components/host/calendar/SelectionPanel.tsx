@@ -16,6 +16,7 @@ import {
   type NightCell,
   type RatePlanLite,
 } from "@/lib/host/rate-calendar";
+import { useHostPageCopy } from "../host-copy";
 
 /**
  * WHAT A HOST CAN DO TO THE NIGHTS THEY SELECTED: price them, put a number
@@ -46,6 +47,7 @@ export function SelectionPanel({
   onClear: () => void;
 }) {
   const router = useRouter();
+  const w = useHostPageCopy().calendarUi;
   const [pending, start] = useTransition();
   const [price, setPrice] = useState("");
   const floor = bookedFloor(cells);
@@ -59,11 +61,8 @@ export function SelectionPanel({
         <span className="nf-rcal-panel__icon" aria-hidden="true">
           <UiIcon name="calendar-check" size={20} />
         </span>
-        <p className="nf-rcal-panel__title">Select nights to change them</p>
-        <p className="nf-caption">
-          Tap a night, then tap another to take in the run between. Drag across nights with a mouse, or hold a
-          night for a moment and drag with a finger.
-        </p>
+        <p className="nf-rcal-panel__title">{w.selectTitle}</p>
+        <p className="nf-caption">{w.selectHow}</p>
       </div>
     );
   }
@@ -99,43 +98,47 @@ export function SelectionPanel({
       <div className="nf-rcal-panel__head">
         <div className="min-w-0">
           <p className="nf-rcal-panel__title">{nights}</p>
-          <p className="nf-caption">{describeSelection(dates)}</p>
+          <p className="nf-caption">{describeSelection(dates, w.selection)}</p>
         </div>
         <Button variant="quiet" size="sm" onClick={onClear} disabled={pending}>
-          Clear
+          {w.clear}
         </Button>
       </div>
 
       <dl className="nf-rcal-panel__facts">
         <div>
-          <dt>A night now</dt>
+          <dt>{w.nightNow}</dt>
           <dd className="nf-numeric">
-            {low === null ? "No rate" : low === high ? formatMoney(low, locale) : `${formatMoney(low, locale)} to ${formatMoney(high ?? low, locale)}`}
+            {low === null
+              ? w.noRateShort
+              : low === high
+                ? formatMoney(low, locale)
+                : w.priceRange.replace("{low}", formatMoney(low, locale)).replace("{high}", formatMoney(high ?? low, locale))}
           </dd>
         </div>
         {cells.some((c) => c.held > 0) ? (
           <div>
-            <dt>Held by other sites</dt>
+            <dt>{w.heldByOthers}</dt>
             <dd className="nf-numeric">
               {(() => {
                 const top = cells.reduce((best, c) => (c.held > best.held ? c : best), cells[0]!);
-                return `Up to ${top.held} a night${top.imported ? `, ${top.imported}` : ""}`;
+                return `${w.upToANight.replace("{count}", String(top.held))}${top.imported ? `, ${top.imported}` : ""}`;
               })()}
             </dd>
           </div>
         ) : null}
         <div>
-          <dt>Already booked</dt>
-          <dd className="nf-numeric">{floor === 0 ? "None" : `Up to ${floor} a night`}</dd>
+          <dt>{w.alreadyBooked}</dt>
+          <dd className="nf-numeric">{floor === 0 ? w.none : w.upToANight.replace("{count}", String(floor))}</dd>
         </div>
       </dl>
 
       {plan ? (
-        <section className="nf-rcal-panel__block" aria-label="Price">
-          <h3 className="nf-section-label">Price a night</h3>
+        <section className="nf-rcal-panel__block" aria-label={w.priceLabel}>
+          <h3 className="nf-section-label">{w.priceANight}</h3>
           <div className="nf-rcal-panel__row">
             <TextField
-              label={`Price for ${nights}`}
+              label={w.priceFor.replace("{nights}", nights)}
               hideLabel
               inputMode="decimal"
               placeholder={formatMoney(plan.rateMinor, locale)}
@@ -152,11 +155,15 @@ export function SelectionPanel({
               onClick={() =>
                 run(
                   () => setNightPrice({ roomTypeId: room.id, ratePlanId: plan.id, dates, rateMinor: priceMinor }),
-                  (n) => `${count(n)} now ${formatMoney(priceMinor ?? 0, locale)} on ${plan.name}.`,
+                  (n) =>
+                    w.pricedDone
+                      .replace("{nights}", count(n))
+                      .replace("{price}", formatMoney(priceMinor ?? 0, locale))
+                      .replace("{plan}", plan.name),
                 )
               }
             >
-              Set price
+              {w.setPrice}
             </Button>
           </div>
           {overrides ? (
@@ -167,31 +174,31 @@ export function SelectionPanel({
               onClick={() =>
                 run(
                   () => setNightPrice({ roomTypeId: room.id, ratePlanId: plan.id, dates, rateMinor: null }),
-                  (n) => `${count(n)} back on the rate, ${formatMoney(plan.rateMinor, locale)}.`,
+                  (n) => w.backOnRateDone.replace("{nights}", count(n)).replace("{rate}", formatMoney(plan.rateMinor, locale)),
                 )
               }
             >
-              {`Back to the rate, ${formatMoney(plan.rateMinor, locale)}`}
+              {w.backToRate.replace("{rate}", formatMoney(plan.rateMinor, locale))}
             </Button>
           ) : null}
         </section>
       ) : null}
 
-      <section className="nf-rcal-panel__block" aria-label="Rooms on sale">
-        <h3 className="nf-section-label">Rooms on sale</h3>
+      <section className="nf-rcal-panel__block" aria-label={w.roomsOnSale}>
+        <h3 className="nf-section-label">{w.roomsOnSale}</h3>
         <div className="nf-rcal-panel__row">
           <span className="inline-flex items-center gap-2xs">
             <Quantity
               value={units}
               min={floor}
               max={room.unitsTotal}
-              label="Rooms on sale each night"
-              decreaseLabel="One fewer"
-              increaseLabel="One more"
+              label={w.roomsEachNight}
+              decreaseLabel={w.oneFewer}
+              increaseLabel={w.oneMore}
               disabled={pending}
               onChange={setUnits}
             />
-            <span className="nf-caption nf-numeric text-[var(--nf-content-muted)]">of {room.unitsTotal}</span>
+            <span className="nf-caption nf-numeric text-[var(--nf-content-muted)]">{w.ofTotal.replace("{total}", String(room.unitsTotal))}</span>
           </span>
           <Button
             variant="secondary"
@@ -202,21 +209,21 @@ export function SelectionPanel({
                 () => setNightsRooms({ roomTypeId: room.id, dates, unitsOpen: units }),
                 (n, extra) =>
                   units === 0
-                    ? `No rooms on sale for ${count(n)}.`
-                    : `${units} on sale for ${count(n)}.${extra?.heldBack ? ` On ${count(extra.heldBack)}, fewer: another site holds a room there.` : ""}`,
+                    ? w.noRoomsDone.replace("{nights}", count(n))
+                    : `${w.roomsDone.replace("{units}", String(units)).replace("{nights}", count(n))}${extra?.heldBack ? w.heldBackDone.replace("{nights}", count(extra.heldBack)) : ""}`,
               )
             }
           >
-            Set rooms
+            {w.setRooms}
           </Button>
         </div>
         {floor > 0 ? (
-          <p className="nf-caption">At least {floor}, because that many are already booked on one of these nights.</p>
+          <p className="nf-caption">{w.atLeast.replace("{floor}", String(floor))}</p>
         ) : null}
       </section>
 
-      <section className="nf-rcal-panel__block" aria-label="Open or close">
-        <h3 className="nf-section-label">Open or close</h3>
+      <section className="nf-rcal-panel__block" aria-label={w.openOrClose}>
+        <h3 className="nf-section-label">{w.openOrClose}</h3>
         <div className="nf-rcal-panel__row nf-rcal-panel__row--split">
           {!allClosed ? (
             <Button
@@ -225,10 +232,10 @@ export function SelectionPanel({
               leadingIcon="lock"
               disabled={pending || !plan}
               onClick={() =>
-                run(() => setNightsClosed({ roomTypeId: room.id, dates, closed: true }), (n) => `${count(n)} closed. Guests cannot ask for them.`)
+                run(() => setNightsClosed({ roomTypeId: room.id, dates, closed: true }), (n) => w.closeDone.replace("{nights}", count(n)))
               }
             >
-              Close
+              {w.close}
             </Button>
           ) : null}
           {closed ? (
@@ -237,19 +244,16 @@ export function SelectionPanel({
               size="md"
               disabled={pending}
               onClick={() =>
-                run(() => setNightsClosed({ roomTypeId: room.id, dates, closed: false }), (n) => `${count(n)} open again.`)
+                run(() => setNightsClosed({ roomTypeId: room.id, dates, closed: false }), (n) => w.reopenDone.replace("{nights}", count(n)))
               }
             >
-              Reopen
+              {w.reopen}
             </Button>
           ) : null}
         </div>
-        <p className="nf-caption">Closing stops new requests. A stay already asked for or booked is kept.</p>
+        <p className="nf-caption">{w.closingKeeps}</p>
         {cells.some((c) => c.held > 0) ? (
-          <p className="nf-caption">
-            Rooms held by another site stay off sale here whatever you set, and come back when that booking leaves its
-            calendar.
-          </p>
+          <p className="nf-caption">{w.heldStayOff}</p>
         ) : null}
       </section>
 

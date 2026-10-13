@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { getDictionary } from "@vallo/i18n";
 import { buildFeed, checkFeedUrl, icalDate, isFeedToken, isPrivateAddress, readFeed, runsOfNights, unfold } from "./ical";
 
 const AIRBNB = [
@@ -65,6 +66,22 @@ describe("which links may be added", () => {
     expect(checkFeedUrl("https://user:pw@airbnb.com/x.ics").ok).toBe(false);
     expect(checkFeedUrl("https://airbnb.com:8443/x.ics").ok).toBe(false);
     expect(checkFeedUrl("not a link").ok).toBe(false);
+  });
+
+  it("names why by a key, and the host's dictionary says it in the words the module once spelled", () => {
+    const feed = getDictionary("en").experienceHost.refusals.sync.feed;
+    const said = (raw: string) => {
+      const checked = checkFeedUrl(raw);
+      return checked.ok ? null : feed[checked.reason];
+    };
+    expect(said("not a link")).toBe("That is not a link. Copy the calendar link from the other site and paste it here.");
+    expect(said("http://www.airbnb.com/calendar/ical/1.ics")).toBe("The link has to start with https://.");
+    expect(said("https://user:pw@airbnb.com/x.ics")).toBe("That link cannot be used. Copy the calendar export link from the other site.");
+    expect(said("https://127.0.0.1/x.ics")).toBe("Use the calendar link the site gives you, not an address.");
+    expect(said("https://evilairbnb.com/x.ics")).toBe(
+      "We can read calendars from Airbnb, Booking.com, Vrbo, Expedia, Google and Outlook calendars, and the main channel managers. Paste the export link from one of those.",
+    );
+    expect(said(`https://www.airbnb.com/${"a".repeat(2001)}`)).toBe("That link is too long to be a calendar link.");
   });
 });
 

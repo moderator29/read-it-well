@@ -2,6 +2,7 @@
 
 import { useRef, type KeyboardEvent } from "react";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { BrandIcon, type BrandIconProp } from "@/design-system/icons/BrandIcon";
 import { Icon3D } from "@/components/ui/Icon3D";
 import type { Icon3DName } from "@/components/ui/icon-3d";
 
@@ -12,6 +13,9 @@ export type IconTileOption<T extends string> = {
   /** The founder's 3D object (30 September) for a property type; drawn in
       the glyph's place, 40px, in a fixed box. */
   art?: Icon3DName | undefined;
+  /** The realistic 3D object of a property type (the "Spaces for you" set),
+      drawn in the same 40px box as `art`; it wins over `art` when both are set. */
+  object?: BrandIconProp | undefined;
 };
 
 /**
@@ -100,7 +104,11 @@ export function IconTiles<T extends string>({
             onClick={() => onToggle(option.value)}
             className="nf-icon-tile-option"
           >
-            {option.art ? (
+            {option.object ? (
+              <span className="grid size-16 place-items-center" aria-hidden="true" data-object={option.object} data-host-plate>
+                <BrandIcon name={option.object} size={64} preferRender />
+              </span>
+            ) : option.art ? (
               <span className="grid size-10 place-items-center" aria-hidden="true" data-art={option.art}>
                 <Icon3D name={option.art} size={40} />
               </span>

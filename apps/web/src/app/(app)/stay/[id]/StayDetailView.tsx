@@ -1,43 +1,43 @@
-import Image from "next/image";
 import { countOf, formatMoney, formatNumber, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { Amount } from "@/components/ui/Amount";
+import type { ReactNode } from "react";
+import { policyFootLines, refundLines, refundTiers } from "@/lib/host/cancellation-presets";
+import type { DoorCharge } from "@/lib/stays/door-total";
 import { formatMoneyDate } from "@/lib/money/dates";
 import { freeToCancelUntil, termsFromPolicyRules } from "@/lib/trust/cancellation";
 import { ReportSheet } from "@/components/app/ReportSheet";
-import { ExampleNotice } from "@/components/app/listing/ExampleNotice";
 import { ButtonLink } from "@/components/ui/Button";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { DetailGlyph } from "@/components/app/listing/DetailGlyph";
 import { ListingGallery } from "@/components/app/listing/ListingGallery";
-import { MediaFrame } from "@/components/app/MediaFrame";
 import { ICON, Section, Stack, TYPE } from "@/components/app/Screen";
 import { RoomTypes } from "./RoomTypes";
 import { StayDatesForm } from "./StayDatesForm";
+import { StayCostLive, StayFootLive, StayPickProvider } from "./StayPick";
 import { stayDateLabel } from "@/lib/stays/date-label";
 import {
   DetailAboutCard,
-  DetailAvailabilityCard,
   DetailCapsules,
   DetailPriceRow,
   DetailSpecStrip,
-  type DetailDateField,
   type SpecPair,
 } from "@/components/app/listing/DetailAnatomy";
 import {
-  ROOM_CATEGORY_KEY,
   bookNowChoice,
   maxSleeps,
-  reserveHref,
-  roomFromMinor,
   stayFromMinor,
   type ReserveBase,
   type StayDetail,
 } from "./detail-model";
 import { panelClass } from "@/components/ui/Panel";
+import { Unfold } from "@/components/ui/Unfold";
+import { PlaceTabs } from "@/components/app/listing/PlaceTabs";
+import { PlaceMapPanel } from "@/components/app/listing/PlaceMapPanel";
+import { PhotoViewerProvider } from "@/components/app/listing/PhotoViewer";
+import "@/app/css/catalogue.css";
 
 type StaysCopy = Dictionary["stayDetail"];
 
-const STAR_LABEL: Record<number, string> = { 1: "1 star", 2: "2 star", 3: "3 star", 4: "4 star", 5: "5 star" };
 
 /* The property type as a plated line glyph (29 September 2026), the detail
    page's one row treatment, rather than a glass object at 48px. */
@@ -49,13 +49,6 @@ const BUSINESS_GLYPH: Record<string, UiIconName> = {
   shortlet_operator: "key",
 };
 
-const BUSINESS_LABEL: Record<string, string> = {
-  hotel: "Hotel",
-  serviced_apartments: "Serviced apartment",
-  guest_house: "Guest house",
-  resort: "Resort",
-  shortlet_operator: "Shortlet",
-};
 
 /**
  * The glyph for an amenity the read names in words ("Air conditioning",
@@ -65,7 +58,7 @@ const BUSINESS_LABEL: Record<string, string> = {
  */
 const AMENITY_GLYPHS: [RegExp, UiIconName][] = [
   [/wi-?fi|internet/i, "wifi"],
-  [/air|a\/c|cool/i, "sparkle"],
+  [/air|a\/c|cool/i, "snowflake"],
   [/kitchen|cook/i, "kitchen"],
   [/park/i, "parking"],
   [/pool|swim/i, "pool"],
@@ -76,7 +69,7 @@ const AMENITY_GLYPHS: [RegExp, UiIconName][] = [
   [/bath|shower|tub/i, "bath"],
   [/balcon|terrace|view/i, "building-apartment"],
   [/desk|work/i, "document"],
-  [/laundry|clean/i, "sparkle"],
+  [/laundry|clean/i, "washing-machine"],
 ];
 
 export function amenityGlyph(label: string): UiIconName {
@@ -109,7 +102,18 @@ export function StayDetailView({
   reserve,
   saved = false,
   signedIn,
+  instant = false,
+  arrival = null,
+  door = [],
 }: {
+  /** The declared charges at the door, for the all-in cost before booking. */
+  door?: readonly DoorCharge[];
+  /**
+   * The charges at the door this stay has declared (V-57), drawn by the page
+   * with `ArrivalChargesLine`, so a guest reads them before they book, as
+   * Booking.com and Airbnb require. Null where there is nothing to draw.
+   */
+  arrival?: ReactNode;
   detail: StayDetail;
   nights: number | null;
   checkIn?: string;
@@ -127,13 +131,21 @@ export function StayDetailView({
   /** Whether the reader is signed in. When given, the page carries a report
       control for the place (STORE-P2-01); a static preview passes nothing. */
   signedIn?: boolean;
+  /**
+   * D73 (`stays_instant_pay`): the foot reads "Book and pay" only when a
+   * room is booked and paid in one flow; with the switch off a booking still
+   * waits for the host, so it keeps "Book now". Words only.
+   */
+  instant?: boolean;
 }) {
   const from = stayFromMinor(detail, nights);
   const total = from !== null && nights !== null ? from * nights : null;
   const where = [detail.area, detail.city].filter(Boolean).join(", ");
   const catalogue = t.catalogue.stays;
   const businessKind = detail.businessKind ?? "hotel";
+  const kindLabel = (t.experienceDetail.stay.kinds as Record<string, string>)[businessKind];
   const detailCopy = t.catalogue.detail;
+  const sx = t.experienceDetail;
 
   /*
    * THE SPEC STRIP, from what this record actually states.
@@ -169,8 +181,8 @@ export function StayDetailView({
   if (detail.starRating) {
     specCandidates.push({
       key: "class",
-      icon: "sparkle",
-      label: STAR_LABEL[detail.starRating] ?? `${detail.starRating} star`,
+      icon: "star",
+      label: t.experienceDetail.stay.stars.replace("{count}", formatNumber(detail.starRating, locale)),
     });
   }
   if (detail.checkInFrom) {
@@ -228,39 +240,33 @@ export function StayDetailView({
       .replace("{flex}", formatMoney(flexPlan.rateMinor * nights, locale))
       .replace("{date}", untilLabel);
   })();
-  const action = bookable
-    ? {
-        label: detailCopy.bookNow,
-        href: reserveHref(reserve, bookable.room.id, bookable.plan.id),
-        gate: "pay" as const,
-      }
-    : datesPicked
-      ? { label: catalogue.seeRooms, href: "#rooms", gate: null }
-      : { label: copy.pickDates, href: datesHref, gate: null };
-
-  const fields: DetailDateField[] = [
-    {
-      key: "check-in",
-      label: catalogue.checkIn,
-      value: dateLabel(checkIn) ?? detailCopy.selectDate,
-      href: datesHref,
-    },
-    {
-      key: "check-out",
-      label: catalogue.checkOut,
-      value: dateLabel(checkOut) ?? detailCopy.selectDate,
-      href: datesHref,
-    },
-    {
-      key: "guests",
-      label: catalogue.guests,
-      value: copy.guests.replace("{count}", formatNumber(guests, locale)),
-      href: datesHref,
-      icon: "user",
-    },
+  /* THE INSTANT BOOKING (D73). The page starts on the rate Book now always
+     chose (`bookNowChoice`); the rate cards let the guest choose another, and
+     the cost card and the anchored foot follow the choice (`StayPick`). The
+     notes say why the starting rate was chosen, in the policy's own words;
+     they used to be a separate "Cancelling this stay" section beside
+     "Cancellation", and they are drawn only while that rate is chosen. */
+  const initialPick = bookable && !detail.isExample ? { roomId: bookable.room.id, planId: bookable.plan.id } : null;
+  const costStrip = {
+    checkIn: { label: catalogue.checkIn, value: dateLabel(checkIn) ?? detailCopy.selectDate },
+    checkOut: { label: catalogue.checkOut, value: dateLabel(checkOut) ?? detailCopy.selectDate },
+    totalLabel: copy.totalLabel,
+  };
+  /* Getting there, as the place published it: its area and its times. */
+  const placeFacts = [
+    ...(where ? [{ key: "area", icon: "location" as const, label: catalogue.place.area, value: where }] : []),
+    ...(detail.checkInFrom
+      ? [{ key: "in", icon: "key" as const, label: catalogue.place.checkIn, value: detail.checkInFrom.slice(0, 5) }]
+      : []),
+    ...(detail.checkOutBy
+      ? [{ key: "out", icon: "door" as const, label: catalogue.place.checkOut, value: detail.checkOutBy.slice(0, 5) }]
+      : []),
   ];
+  const pickNotes = [bothRates, choiceNote].filter((note): note is string => Boolean(note));
 
   return (
+    <StayPickProvider initial={initialPick}>
+    <PhotoViewerProvider title={detail.name} photos={detail.photos.map((photo) => photo.url)} hue={0} kind="hotel">
     <div className="nf-cat-surface">
       <ListingGallery
         listingId={detail.id}
@@ -289,11 +295,8 @@ export function StayDetailView({
             and overlaps the photograph, as every lead card here does. */}
         <div className={panelClass({ variant: "card", className: "nf-detail-lead relative z-10 -mt-xl block sm:-mt-2xl" })}>
           <h1 className="nf-h2 [text-wrap:balance]">{detail.name}</h1>
-          {/* UX-09 / UI-P2-01: said here, one tap deeper than the shelf card,
-              where the booking would have happened. */}
-          {detail.isExample && (
-            <ExampleNotice variant="page" className="mt-row" statement={t.examples.statement} />
-          )}
+          {/* D24: no example label here; the stay simply offers no booking
+              (below) and draws no trust it did not earn (page.tsx). */}
           {where && (
             <p className={`mt-inline-tight flex items-center gap-inline-tight ${TYPE.body}`}>
               <UiIcon name="location" size={ICON.inline} className="shrink-0 text-[var(--nf-brand-secondary)]" />
@@ -310,11 +313,25 @@ export function StayDetailView({
                   <Amount
                     minorUnits={from}
                     locale={locale}
-                    secondaryClassName="text-[0.6em] font-semibold opacity-70"
+                    secondaryClassName="text-[length:max(0.6em,0.75rem)] font-semibold opacity-70"
                   />
                 </span>
               }
               unit={catalogue.perNight}
+              /* THE NIGHTLY RATE LEADS AND THE TOTAL FOR THE DATES SITS
+                 BENEATH IT (north star 10 C): the same total Book now opens,
+                 never the cheapest rate on the property, so the figure and
+                 the button cannot disagree. Absent until dates are picked,
+                 and absent when nothing can be booked for them: the total
+                 then falls back to the property's own, which no button
+                 opens, so it is not said under the nightly rate. */
+              sub={
+                bookable !== null && bookNowTotal !== null && nights !== null && nights > 0 && !detail.isExample
+                  ? sx.stay.forDates
+                      .replace("{total}", formatMoney(bookNowTotal, locale))
+                      .replace("{nights}", countOf(nights, "nights", locale))
+                  : null
+              }
               /* Drawn only where real review rows stand behind it. */
               rating={
                 detail.rating && detail.rating.count > 0
@@ -347,7 +364,7 @@ export function StayDetailView({
               detail.hostName
                 ? {
                     name: detail.hostName,
-                    role: BUSINESS_LABEL[businessKind] ?? "Host",
+                    role: kindLabel ?? t.experienceDetail.stay.host,
                     verified: detail.hostVerified === true,
                     verifiedLabel: detailCopy.verifiedHost,
                     /* An accommodation id is not a listing id, so the old
@@ -365,40 +382,62 @@ export function StayDetailView({
           />
         </div>
 
+        {/* THE STAY AND ITS MAP (the travel-app reference): one switch, the
+            booking on one side and the area, getting there and the photo
+            tour on the other. */}
+        <div className="mt-block">
+        <PlaceTabs
+          label={detail.name}
+          labels={{ main: catalogue.place.tabStay, map: catalogue.place.tabMap }}
+          map={
+            <PlaceMapPanel
+              lead={catalogue.place.mapLead}
+              coords={detail.areaPoint ?? null}
+              area={where}
+              unavailable={catalogue.place.mapUnavailable.replace("{area}", where)}
+              facts={placeFacts}
+              photoTour={
+                detail.photos.length > 0
+                  ? {
+                      label: catalogue.place.photoTour,
+                      caption: catalogue.place.photos.replace("{count}", formatNumber(detail.photos.length, locale)),
+                      count: detail.photos.length,
+                    }
+                  : null
+              }
+            />
+          }
+          main={
+            <>
         {/* --------------------------------------- dates and the party */}
         {detail.isExample ? (
-          /* An example has nothing to book, so there is no Book now to press
-             and be refused at checkout. The same consequence line the
-             property page draws. */
+          /* A stay that takes no bookings has no Book now to press and be
+             refused at checkout. The same consequence line the property page
+             draws, with no label on it (D24). */
           <div className="mt-block" data-testid="stay-not-bookable">
             <div className={panelClass({ variant: "card", className: "block p-card" })}>
               <p className={TYPE.rowMeta}>
-                {t.examples.stayNotBookable}
+                {sx.closed.stayBody}
               </p>
               <ButtonLink href="/stays" variant="primary" className="mt-block w-full">
-                {t.examples.browseStays}
+                {sx.closed.stayAction}
               </ButtonLink>
             </div>
           </div>
         ) : (
-        <div className="mt-block" data-testid="stay-dates-row">
-          <DetailAvailabilityCard
-            title={detailCopy.checkAvailability}
-            fields={fields}
-            action={action}
-            note={
-              bookNowTotal !== null && nights !== null
-                ? `${copy.totalFor.replace("{count}", formatNumber(nights, locale))}: ${formatMoney(bookNowTotal, locale)}`
-                : copy.pickDatesForTotal
-            }
-          />
+        <div className="mt-block grid gap-block" data-testid="stay-dates-row">
+          {/* ONE dates card: the form is the availability card (it used to be
+              a card of links to this form, drawn above the form). Without
+              dates it asks for them; with them, the cost below says the
+              total, so the card does not say it a second time. */}
           <StayDatesForm
             action={`/stay/${detail.id}`}
             checkIn={checkIn}
             checkOut={checkOut}
             guests={guests}
+            note={nights === null ? copy.pickDatesForTotal : undefined}
             copy={{
-              title: copy.datesTitle,
+              title: detailCopy.checkAvailability,
               checkIn: catalogue.checkIn,
               checkOut: catalogue.checkOut,
               guests: catalogue.guests,
@@ -409,79 +448,11 @@ export function StayDetailView({
         )}
 
         <Stack className="mt-block">
-          {/* ------------------------------------------------ amenities */}
-          {detail.amenities.length > 0 && (
-            <Section title={t.catalogue.detail.amenities}>
-              <ul className="nf-amenity-grid" data-testid="stay-amenities">
-                {detail.amenities.map((amenity) => (
-                  <li key={amenity} className={panelClass({ variant: "card", className: "nf-amenity-tile" })}>
-                    <UiIcon name={amenityGlyph(amenity)} size={ICON.inline} />
-                    <span>{amenity}</span>
-                  </li>
-                ))}
-              </ul>
-            </Section>
-          )}
-
-          {/* The description and the host row moved up into the About card
-              above, which is where B047A0CE puts them. A second copy here
-              would be the same paragraph twice on one screen. */}
-
-          {/* ---------------------------------------------- property type */}
-          <div className="nf-stay-type" data-testid="stay-type">
-            <DetailGlyph
-              name={BUSINESS_GLYPH[businessKind] ?? "building-hotel"}
-              className="nf-stay-type__object"
-            />
-            <span className="min-w-0">
-              <span className={`block ${TYPE.label}`}>{catalogue.propertyType}</span>
-              <span className={`block ${TYPE.rowTitle}`}>{BUSINESS_LABEL[businessKind] ?? "Hotel"}</span>
-              <span className={`mt-3xs block ${TYPE.rowMeta}`}>
-                {detail.roomTypes.length > 0
-                  ? countOf(detail.roomTypes.length, "roomTypes", locale)
-                  : copy.noRoomsYet}
-                {detail.checkInFrom ? `\u00a0· ${copy.checkIn} ${detail.checkInFrom.slice(0, 5)}` : ""}
-                {detail.checkOutBy ? `\u00a0· ${copy.checkOut} ${detail.checkOutBy.slice(0, 5)}` : ""}
-              </span>
-            </span>
-          </div>
-
-          {/* ------------------------------------------------ room tiles */}
-          {detail.roomTypes.length > 0 && (
-            <ul className="nf-room-tiles" data-testid="room-tiles">
-              {detail.roomTypes.map((room, index) => {
-                const photo = detail.photos[index % Math.max(1, detail.photos.length)];
-                const rate = roomFromMinor(room, nights);
-                return (
-                  <li key={room.id}>
-                    <a href="#rooms" className="nf-room-tile">
-                      <span className="nf-room-tile__media block">
-                        <MediaFrame hue={index} index={index} kind="hotel" sizes="(max-width: 640px) 50vw, 25vw" />
-                        {photo && detail.photos.length > 0 && (
-                          <Image src={photo.url} alt="" fill sizes="(max-width: 640px) 50vw, 25vw" className="object-cover" />
-                        )}
-                      </span>
-                      <span className="nf-room-tile__body">
-                        <UiIcon name="bed" size={16} />
-                        <span className="min-w-0">
-                          <span className="nf-room-tile__name">{copy.category[ROOM_CATEGORY_KEY[room.category]]}</span>
-                          <span className="nf-room-tile__value">
-                            {room.name}
-                            {rate !== null ? "" : ""}
-                          </span>
-                        </span>
-                      </span>
-                    </a>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-
-          <Section id="rooms" title={copy.roomsTitle} description={copy.roomsDescription} className="scroll-mt-28">
+          {/* ------------------------------------- rooms and their rates */}
+          <Section id="rooms" title={copy.roomsTitle} description={detail.isExample ? copy.roomsDescription : copy.ratesDescription} className="scroll-mt-28">
             {detail.isExample ? (
               <p className={TYPE.rowMeta} data-testid="rooms-example">
-                {t.examples.roomsExample}
+                {sx.closed.rooms}
               </p>
             ) : detail.roomTypes.length > 0 ? (
               <RoomTypes
@@ -490,44 +461,115 @@ export function StayDetailView({
                 nights={nights}
                 locale={locale}
                 copy={copy}
-                reserve={reserve}
               />
             ) : (
               <p className={TYPE.rowMeta}>{copy.noRoomsYet}</p>
             )}
           </Section>
 
-          {/* The policy, in its own words. A refund rule this screen rewrote
-              is a refund rule nobody can be held to. */}
-          {(bothRates || choiceNote) && (
-            <Section title={gateCopy.heading}>
-              <div className="nf-detail-panel" data-testid="stay-book-now-choice">
-                {bothRates && <p className={`${TYPE.rowTitle} nf-numeric`}>{bothRates}</p>}
-                {choiceNote && <p className={`${bothRates ? "mt-inline" : ""} ${TYPE.body}`}>{choiceNote}</p>}
-              </div>
-            </Section>
+          {/* TRUE COST (reference 8) for the chosen rate: only the figures
+              Book and pay will charge, and nothing until a rate is chosen. */}
+          {detail.isExample ? null : (
+            <StayCostLive
+              detail={detail}
+              nights={nights}
+              locale={locale}
+              strip={costStrip}
+              totalFor={copy.totalFor}
+              notesForInitial={pickNotes}
+              door={door}
+              doorCopy={t.afterTheGate.arrival}
+              guests={guests}
+            />
           )}
 
-          {detail.policy && (
-            <Section title={copy.policyTitle}>
-              <div className="nf-detail-panel">
-                <p className={TYPE.rowTitle}>{detail.policy.name}</p>
-                <p className={`mt-inline ${TYPE.body} leading-relaxed`}>{detail.policy.summary}</p>
-                {detail.policy.freeUntilHours !== null && (
-                  <p className={`mt-row flex items-start gap-inline-tight ${TYPE.rowMeta}`}>
-                    <UiIcon name="verified" size={ICON.inline} className="mt-3xs shrink-0 text-[var(--nf-state-success)]" />
-                    <span className="min-w-0">{copy.freeUntil.replace("{hours}", String(detail.policy.freeUntilHours))}</span>
-                  </p>
-                )}
-              </div>
-            </Section>
-          )}
+          {/* CLEAN SPACES (the unify recommendations, 7 October): the page
+              is for one thing, choosing a rate and booking it. The amenities
+              are already the capsules on the lead card, so their second grid
+              is gone; the property's type and times, its cancellation policy
+              and its house rules fold one tap deeper, in their own words. */}
+          {(() => {
+            const items = [
+              {
+                id: "details",
+                icon: BUSINESS_GLYPH[businessKind] ?? "building-hotel",
+                title: copy.theDetails,
+                hint: kindLabel ?? t.experienceDetail.stay.kinds.hotel,
+                content: (
+                  <div className="nf-stay-type" data-testid="stay-type">
+                    <DetailGlyph
+                      name={BUSINESS_GLYPH[businessKind] ?? "building-hotel"}
+                      className="nf-stay-type__object"
+                    />
+                    <span className="min-w-0">
+                      <span className={`block ${TYPE.label}`}>{catalogue.propertyType}</span>
+                      <span className={`block ${TYPE.rowTitle}`}>{kindLabel ?? t.experienceDetail.stay.kinds.hotel}</span>
+                      <span className={`mt-3xs block ${TYPE.rowMeta}`}>
+                        {detail.roomTypes.length > 0
+                          ? countOf(detail.roomTypes.length, "roomTypes", locale)
+                          : copy.noRoomsYet}
+                        {detail.checkInFrom ? ` · ${copy.checkIn} ${detail.checkInFrom.slice(0, 5)}` : ""}
+                        {detail.checkOutBy ? ` · ${copy.checkOut} ${detail.checkOutBy.slice(0, 5)}` : ""}
+                      </span>
+                    </span>
+                  </div>
+                ),
+              },
+              ...(detail.policy
+                ? [
+                    {
+                      id: "cancellation",
+                      icon: "verified" as const,
+                      title: copy.policyTitle,
+                      hint: detail.policy.name,
+                      /* The policy, in its own words. A refund rule this screen
+                         rewrote is a refund rule nobody can be held to. */
+                      content: (
+                        <div>
+                          <p className={`${TYPE.body} leading-relaxed`}>{detail.policy.summary}</p>
+                          {/* Each refund tier in plain words, from the tiers the
+                              refund is computed from, so the sentence and the
+                              money cannot disagree. */}
+                          {refundTiers(detail.policy.rules).length > 0 && (
+                            <ul className="mt-row grid gap-inline-tight" data-testid="stay-refund-lines">
+                              {refundLines(detail.policy, locale).map((line) => (
+                                <li key={line} className={TYPE.rowMeta}>
+                                  {line}
+                                </li>
+                              ))}
+                              {policyFootLines(detail.checkInFrom).map((line) => (
+                                <li key={line} className={TYPE.rowMeta}>
+                                  {line}
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                          {detail.policy.freeUntilHours !== null && (
+                            <p className={`mt-row flex items-start gap-inline-tight ${TYPE.rowMeta}`}>
+                              <UiIcon name="verified" size={ICON.inline} className="mt-3xs shrink-0 text-[var(--nf-state-success)]" />
+                              <span className="min-w-0">{copy.freeUntil.replace("{hours}", String(detail.policy.freeUntilHours))}</span>
+                            </p>
+                          )}
+                        </div>
+                      ),
+                    },
+                  ]
+                : []),
+              ...(detail.houseRules
+                ? [
+                    {
+                      id: "rules",
+                      icon: "document" as const,
+                      title: copy.houseRulesTitle,
+                      content: <p className={`${TYPE.body} leading-relaxed`}>{detail.houseRules}</p>,
+                    },
+                  ]
+                : []),
+            ];
+            return <Unfold items={items} headingLevel={2} data-testid="stay-more" />;
+          })()}
 
-          {detail.houseRules && (
-            <Section title={copy.houseRulesTitle}>
-              <p className={`${TYPE.body} leading-relaxed`}>{detail.houseRules}</p>
-            </Section>
-          )}
+          {arrival ? <div className="py-md">{arrival}</div> : null}
 
           {signedIn !== undefined && (
             <div className="py-md" data-testid="stay-report">
@@ -540,19 +582,45 @@ export function StayDetailView({
             </div>
           )}
         </Stack>
+            </>
+          }
+        />
+        </div>
       </div>
 
       {/*
-        NO PINNED FOOT ON THIS FACE.
+        THE ANCHORED FOOT IS BACK, AND THE TWO FAULTS THAT TOOK IT AWAY ARE NOT.
 
-        It used to carry one, and an audit caught the fault: the
-        foot painted over the amenity tiles at 390, and it quoted a total a
-        second time under a card that already stated it. Neither B047A0CE nor
-        BB0C2C85 ends on a pinned bar; both end on the availability card's own
-        full-width action, which is where the decision now lives. Nothing was
-        lost with it: the same three destinations (the checkout, the dates, the
-        rooms) are on the card above.
+        An audit removed an earlier foot because it painted over the amenity
+        tiles at 390 and quoted a total a second time under a card that
+        already stated it. The premium standard (7 October) asks for one
+        detail anatomy across both markets and one anchored primary action,
+        and the Property side ends on `ListingStickyBar`. So: the foot ships
+        its own measured spacer (nothing is painted under it), and it is now
+        the page's ONLY Book now: the dates card submits as a secondary and
+        no longer carries a total or a Book now of its own. An example stay
+        books nothing, so it draws no foot.
       */}
+      {detail.isExample ? null : (
+        <StayFootLive
+          detail={detail}
+          nights={nights}
+          locale={locale}
+          reserve={reserve}
+          fromMinor={from}
+          datesHref={datesHref}
+          labels={{
+            book: instant ? copy.bookAndPay : detailCopy.bookNow,
+            pickDates: copy.pickDates,
+            seeRooms: catalogue.seeRooms,
+            perNight: catalogue.perNight,
+            totalFor: copy.totalFor,
+            noRate: copy.noRate,
+          }}
+        />
+      )}
     </div>
+    </PhotoViewerProvider>
+    </StayPickProvider>
   );
 }

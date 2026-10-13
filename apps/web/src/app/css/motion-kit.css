@@ -291,3 +291,216 @@
     }
   }
 }
+
+/*
+ * THE FIGURE SIGNATURE IN MOTION (Session 3, 6 October 2026; north star
+ * motions 4, 5, 6 and 16, MOTION_SYSTEM.md "Figures and data", "Controls").
+ *
+ *   .nf-odo     a changed figure: each changed digit rolls, `land` 380ms,
+ *               20ms apart left to right (components/ui/Odometer.tsx).
+ *   .nf-fade-swap  content arriving in place of a skeleton or a segment's
+ *               previous view: a 160ms `glide` crossfade (Skeleton, Segmented).
+ *
+ * Transform and opacity only, and every one has its quiet answer below.
+ */
+@layer components {
+  .nf-odo {
+    --nf-odo-stagger: 20ms;
+    display: inline-block;
+    font-variant-numeric: tabular-nums;
+  }
+  .nf-odo__figure {
+    display: inline-block;
+    white-space: nowrap;
+  }
+  /*
+   * A cell is the size of its resting digit, and clips the wheel above and
+   * below it. The wheel is two digits stacked, the old over the new when the
+   * figure grew (it rolls up, the new digit arriving from below) and the
+   * reverse when it shrank, so the digits travel the way the number did.
+   */
+  .nf-odo__cell {
+    position: relative;
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: bottom;
+  }
+  .nf-odo__rest {
+    visibility: hidden;
+  }
+  .nf-odo__wheel {
+    position: absolute;
+    inset-inline: 0;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    animation: nf-odo-up var(--nf-duration-slow) var(--nf-ease-entrance) both;
+    animation-delay: calc(var(--nf-odo-i, 0) * var(--nf-odo-stagger));
+  }
+  .nf-odo__figure[data-direction="down"] .nf-odo__wheel {
+    animation-name: nf-odo-down;
+  }
+  @keyframes nf-odo-up {
+    from {
+      transform: translateY(0);
+    }
+    to {
+      transform: translateY(-50%);
+    }
+  }
+  @keyframes nf-odo-down {
+    from {
+      transform: translateY(-50%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  /* A status that changed: label, colour and shape together, `glide` 240ms
+     (north star motion 20; StatusChip). */
+  .nf-status-swap {
+    animation: nf-fade-swap var(--nf-duration-base) var(--nf-ease-standard) both;
+  }
+
+  /* The crossfade: a skeleton's content, a segment's next view. */
+  .nf-fade-swap {
+    animation: nf-fade-swap var(--nf-duration-fast) var(--nf-ease-standard) both;
+  }
+  @keyframes nf-fade-swap {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-odo {
+      --nf-odo-stagger: 0ms;
+    }
+    .nf-odo__wheel,
+    .nf-fade-swap,
+    .nf-status-swap {
+      animation: none;
+    }
+    /* With no roll the wheel rests on its new digit. */
+    .nf-odo__figure[data-direction="up"] .nf-odo__wheel {
+      transform: translateY(-50%);
+    }
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-odo {
+    --nf-odo-stagger: 0ms;
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) :is(.nf-odo__wheel, .nf-fade-swap, .nf-status-swap) {
+    animation: none;
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-odo__figure[data-direction="up"] .nf-odo__wheel {
+    transform: translateY(-50%);
+  }
+}
+
+/*
+ * THE MEMBER AREAS' ARRIVALS (Session 3, C1; MOTION_SYSTEM section 2,
+ * "List stagger" and "Tab change", north star 7.1 numbers 3 and 10).
+ *
+ *   .nf-arrive-list  a list's rows: the FIRST SIX only, 40ms apart, each a
+ *               12px lift and fade on `land` 240ms (the seventh arrives with
+ *               the sixth). A row that joins later (a new notification
+ *               prepended while the page is open, a filter showing more)
+ *               plays the same arrival, so "a notice arrived" and "the list
+ *               arrived" are one motion. Written for the containers below by
+ *               their own class, so no component needed editing.
+ *   .nf-tab-swap  the panel under a tab strip when the tab CHANGES: a
+ *               crossfade with a 12px lift on `glide` 240ms. The component
+ *               adds it only after the first change, so a page that opens on
+ *               a tab does not animate its own panel.
+ *
+ * THE WORKSPACES USE IT TOO (the host desk's lists and decide rows, the agent
+ * desk's lists, the admin console's lists and its queue table). The console
+ * is a working tool, so its rows take the quicker rung (`--nf-arrive-d` is
+ * `fast`, 160ms, set on `.nf-admin` below): the same first six, 40ms apart,
+ * and the desk is never waiting on its own entrance. Money tables (the
+ * statement) are not in the list.
+ *
+ * Transform and opacity only, nothing loops, nothing sits on a money figure
+ * (a row's amount arrives with its row; no value counts or rolls). Reduced
+ * motion lands everything at once (the tokens are 1ms and the stagger delays
+ * are dropped), Calm makes each a plain fade with no delay
+ * (motion-pref.css names them), and Off lands the final state.
+ */
+@layer components {
+  .nf-admin {
+    --nf-arrive-d: var(--nf-duration-fast);
+  }
+  :is(
+    .nf-inbox-list,
+    .nf-notif__group .nf-list-group,
+    .nf-pf-rows,
+    .nf-arrive-list,
+    .nf-host :is(.nf-list-group, .nf-decide__list),
+    .nf-agent :is(.nf-list-group, [aria-labelledby="health-recs"] > ul),
+    .nf-admin :is(.nf-list-group, .nf-admin-table > ul)
+  ) {
+    & > * {
+      --nf-arrive-i: 5;
+      animation: nf-arrive-in var(--nf-arrive-d, var(--nf-duration-base)) var(--nf-ease-entrance) both;
+      animation-delay: calc(var(--nf-splash-hold, 0s) + var(--nf-arrive-i) * 40ms);
+    }
+    & > :nth-child(1) {
+      --nf-arrive-i: 0;
+    }
+    & > :nth-child(2) {
+      --nf-arrive-i: 1;
+    }
+    & > :nth-child(3) {
+      --nf-arrive-i: 2;
+    }
+    & > :nth-child(4) {
+      --nf-arrive-i: 3;
+    }
+    & > :nth-child(5) {
+      --nf-arrive-i: 4;
+    }
+  }
+  @keyframes nf-arrive-in {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 12px, 0);
+    }
+  }
+
+  .nf-tab-swap {
+    animation: nf-tab-swap var(--nf-duration-base) var(--nf-ease-standard) both;
+  }
+  @keyframes nf-tab-swap {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 12px, 0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :is(
+      .nf-inbox-list,
+      .nf-notif__group .nf-list-group,
+      .nf-pf-rows,
+      .nf-arrive-list,
+      .nf-host :is(.nf-list-group, .nf-decide__list),
+      .nf-agent :is(.nf-list-group, [aria-labelledby="health-recs"] > ul),
+      .nf-admin :is(.nf-list-group, .nf-admin-table > ul)
+    ) > *,
+    .nf-tab-swap {
+      animation: none;
+    }
+  }
+  :root[data-motion="off"] :is(:is(
+      .nf-inbox-list,
+      .nf-notif__group .nf-list-group,
+      .nf-pf-rows,
+      .nf-arrive-list,
+      .nf-host :is(.nf-list-group, .nf-decide__list),
+      .nf-agent :is(.nf-list-group, [aria-labelledby="health-recs"] > ul),
+      .nf-admin :is(.nf-list-group, .nf-admin-table > ul)
+    ) > *, .nf-tab-swap) {
+    animation: none;
+  }
+}

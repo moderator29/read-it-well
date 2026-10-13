@@ -36,6 +36,8 @@
   opacity and the path only. Under reduced motion (the OS setting, or the
   app's own through the duration tokens) nothing moves.
 */
+@layer theme, base, components, utilities;
+
 @layer components {
   /* =========================================================== THE ROLES */
   .nf-slate {
@@ -341,31 +343,27 @@
     border-radius: var(--nf-radius-sm);
     transition: margin-top var(--nf-duration-slow) var(--nf-ease-standard);
   }
+  /* THE LOGO'S PLATE (D82): the lockup in its own colours on white, the
+     same in both themes, because the block behind it is the brand blue. */
+  .nf-slate-top__plate {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    padding: var(--nf-space-xs) var(--nf-space-sm);
+    border-radius: var(--nf-radius-md);
+    background: var(--nf-logo-plate);
+    box-shadow: var(--nf-elev-1);
+  }
   .nf-slate-top__mark {
     display: block;
     width: 1.875rem;
     height: auto;
   }
-  /* The artwork for the ground: the night mark on the navy block (light
-     mode), the day mark on the paper block (dark mode). */
-  .nf-slate-top__mark--on-navy {
-    display: none;
-  }
-  :root[data-theme="light"] .nf-slate-top__mark--on-navy {
-    display: block;
-  }
-  :root[data-theme="light"] .nf-slate-top__mark--on-paper {
-    display: none;
-  }
+  /* The wordmark artwork (D81), at the cap height the tracked name had. */
   .nf-slate-top__word {
-    font-family: var(--nf-font-display);
-    font-size: 1.625rem;
-    font-weight: 500;
-    line-height: 1;
-    letter-spacing: 0.34em;
-    /* The tracking trails the last letter; pull it back so the word's box
-       ends where the O does. */
-    margin-right: -0.34em;
+    display: block;
+    width: auto;
+    height: 1.125rem;
   }
   .nf-slate-top__line {
     max-width: 17rem;
@@ -1280,6 +1278,10 @@
   :root:is([data-motion="calm"], [data-motion="off"]) .nf-slate-top__obj {
     animation: nf-calm-fade var(--nf-duration-base) var(--nf-ease-standard) both;
   }
+  /* Calm and Off hold the waiting cell's caret still, as reduced motion does. */
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-code__cell[data-next]::after {
+    animation: none;
+  }
 
   /* The block drops in from above the screen. */
   @keyframes nf-slate-drop {
@@ -1518,13 +1520,6 @@
       0 0 22px 2px color-mix(in oklab, var(--nf-brand-primary) 45%, transparent),
       0 12px 24px -10px color-mix(in oklab, color-mix(in oklab, var(--nf-brand-primary) 62%, var(--nf-surface-artwork)) 55%, transparent);
   }
-  /* The block is blue in both themes, so it always carries the night mark. */
-  .nf-slate-top__mark--on-navy {
-    display: block;
-  }
-  .nf-slate-top__mark--on-paper {
-    display: none;
-  }
   /* A brighter thread of light along the bowl. */
   .nf-slate-top__edge {
     stroke-width: 2px;
@@ -1575,10 +1570,17 @@
     background: linear-gradient(180deg, color-mix(in oklab, var(--nf-content-on-brand) 26%, transparent), transparent 42%);
     pointer-events: none;
   }
+  /* The mark in the ring stands on the logo's white plate, the same in both
+     themes (D82): the ring's blue glass would swallow its blue towers. */
+  .nf-slate-focal__ring:has(> .nf-slate-focal__mark) {
+    background: var(--nf-logo-plate);
+  }
+  .nf-slate-focal__ring:has(> .nf-slate-focal__mark)::after {
+    content: none;
+  }
   .nf-slate-focal__mark {
-    width: 56%;
+    width: 60%;
     height: auto;
-    filter: drop-shadow(0 4px 8px color-mix(in oklab, var(--nf-surface-artwork) 55%, transparent));
   }
   .nf-slate-focal__icon {
     width: 76%;

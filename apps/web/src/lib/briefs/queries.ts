@@ -1,4 +1,5 @@
 import "server-only";
+import { reportReadError } from "@/lib/observability/read-error";
 
 import { resolveSession } from "../actions/session";
 import type { BriefView } from "./brief";
@@ -64,6 +65,7 @@ export async function readMyBriefs(): Promise<MyBrief[] | null> {
       .select("id, state_code, areas, intent, property_type, bedrooms_min, max_minor, move_from, created_at, expires_at, closed_at")
       .order("created_at", { ascending: false })
       .limit(20);
+    await reportReadError("read.briefs.readMyBriefs", error);
     if (error || !Array.isArray(data)) return null;
     const rpc = session.supabase.rpc.bind(session.supabase) as unknown as Rpc;
     return await Promise.all(
@@ -93,6 +95,7 @@ export async function readBriefsForMe(): Promise<DeskBrief[] | null> {
   try {
     const rpc = session.supabase.rpc.bind(session.supabase) as unknown as Rpc;
     const { data, error } = await rpc("briefs_for_me");
+    await reportReadError("read.briefs.readBriefsForMe", error);
     if (error || !Array.isArray(data)) return null;
     return (data as BriefRow[]).map((row) => ({ ...view(row), answered: Number(row.answered ?? 0) }));
   } catch {

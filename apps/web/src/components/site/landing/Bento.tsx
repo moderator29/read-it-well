@@ -15,41 +15,40 @@ import { BENTO_OBJECTS, LANDING_OBJECT_SIZE } from "./landing-objects";
  * size, in place of the flat plates. The object sits top left and the words
  * at the foot of the card, so a tall cell is never half empty.
  *
- * FROM 40REM THE CARDS FAN IN LIKE A DECK as the grid scrolls into view
- * (the founder's reference 51; landing-3d.css, scroll-driven, transform
- * only). Under 40rem the bento is a swipe row and keeps the plain stagger.
+ * RESTORED ON 7 OCTOBER at the founder's request ("my landing page is even
+ * still the same, no upgrade"), straight after the hero, so his 3D art is
+ * the first thing under the fold. The cards float in one after another as
+ * the grid enters the viewport (the shared stagger); a desktop pointer
+ * lifts a card 4px with its shadow and lifts and turns its object; a touch
+ * presses the card in (landing-3d.css, "the 3D pass"). Under 40rem the
+ * bento is a swipe row, so seven doors cost one card's height on a phone.
  *
  * EVERY DOOR IS HONEST (UIUX item 12): a door a stranger cannot open goes
- * to the sign-up door carrying the destination (`doors.ts`).
- *
- * STILL SINCE THE CLEAN PASS (29 September). The scenes used to loop (the
- * tag swung, the calendar turned, the assistant bobbed) and a desktop pointer
- * got a spotlight and a four degree tilt (BentoFx). Seven loops in one grid
- * were the busiest thing on the page, so the scenes are drawn at rest and
- * the card answers the pointer with the landing's one hover: a 2px lift and
- * a brighter edge.
+ * to the sign-up door carrying the destination (`doors.ts`). Around is left
+ * out when the social switch is off, as the platform band and the app's
+ * navigation drop it.
  *
  * Every card is a real link to the surface it describes, and every sentence
  * on it describes what that surface does today.
  *
  * THE SIZES TILE EXACTLY. Four columns by three rows from 64rem is twelve
  * cells: two wide (2), two tall (2), two base (1) and the closing wide pair
- * (2 + 2). With the assistant as a base card and Around as a base card the
- * grid held ten, and the last row ended half empty beside the Guarantee.
+ * (2 + 2); without Around the agreements card takes the whole last row.
  * The cards are in reading order (no `grid-auto-flow: dense`), so the tab
  * order runs row by row, and the same order tiles two columns too.
  */
-export function Bento({ t, door }: { t: Dictionary; door: Door }) {
+export function Bento({ t, door, social = true }: { t: Dictionary; door: Door; social?: boolean }) {
   const b = t.landingRooms.bento;
-  const cards: { key: keyof typeof b.cards & keyof typeof BENTO_OBJECTS; href: string; size: "wide" | "tall" | "base" }[] = [
+  const all: { key: keyof typeof b.cards & keyof typeof BENTO_OBJECTS; href: string; size: "wide" | "tall" | "base" | "full" }[] = [
     { key: "rent", href: "/search", size: "wide" },
     { key: "stays", href: "/stays", size: "tall" },
     { key: "ai", href: "/assistant", size: "tall" },
     { key: "price", href: "/price", size: "base" },
     { key: "messages", href: "/messages", size: "base" },
-    { key: "agree", href: "/safety", size: "wide" },
+    { key: "agree", href: "/safety", size: social ? "wide" : "full" },
     { key: "feed", href: "/around", size: "wide" },
   ];
+  const cards = all.filter((c) => social || c.key !== "feed");
   return (
     <section className="nf-shell nf-room" data-chapter="bento" aria-labelledby="nf-landing-bento-title">
       <SectionHead id="nf-landing-bento-title" eyebrow={b.overline} title={b.title} lede={b.body} align="center" />

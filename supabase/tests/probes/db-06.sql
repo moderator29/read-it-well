@@ -14,6 +14,19 @@
 -- viewing_windows idu, admin_saved_views id (admins insert, owner deletes).
 -- agent_verification_checks lost its delete; wallet_pots
 -- and wallet_entries went with custody (Track A).
+--
+-- 6 October 2026: first_runs_seen i, from b4_first_run_store. Insert only, no
+-- update and no delete by design, behind first_runs_seen_write_own
+-- (`for insert to authenticated with check (user_id = (select auth.uid()))`),
+-- read behind first_runs_seen_read_own. Declared here because the grant is
+-- deliberate: this probe reads the live database, so from the moment the
+-- migration was applied it failed on every branch and on main, not only on the
+-- branch that added it.
+--
+-- 7 October 2026: restaurant_deposit_rules idu, from d75a_restaurant_deposits.
+-- A restaurant owner sets their own table deposit rule, behind
+-- restaurant_deposit_rules_owner_insert / _owner_update / _owner_delete (all
+-- `to authenticated`, scoped by private.owns_business(business_id)).
 do $$
 declare
   member constant uuid := '957b3bd2-cce3-425d-bba9-5cd876ca3d62';
@@ -68,6 +81,7 @@ begin
       ('feature_flags', 'idu'),
       ('firm_members', 'idu'),
       ('follows', 'id'),
+      ('first_runs_seen', 'i'),
       ('inspection_confirmations', 'i'),
       ('inspection_report_items', 'iu'),
       ('inspection_report_photos', 'i'),
@@ -105,6 +119,7 @@ begin
       ('refund_requests', 'i'),
       ('reports', 'idu'),
       ('reservations', 'iu'),
+      ('restaurant_deposit_rules', 'idu'),
       ('restaurant_profiles', 'idu'),
       ('review_responses', 'idu'),
       ('reviews', 'i'),

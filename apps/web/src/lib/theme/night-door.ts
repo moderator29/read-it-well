@@ -7,6 +7,10 @@
  * password, forgot password and the new password page follow the member's
  * theme like every other screen.
  *
+ * GET STARTED LEFT THE NIGHT DOORS on 7 October 2026: the one onboarding
+ * (`/welcome`) follows the reader's theme, dark by default, so a light reader
+ * meets it in light like everything else ("light mode must look right too").
+ *
  * HOW A DOOR IS DARK, in three layers, so no one of them has to be perfect:
  *   1. an ISLAND: the door's wrapper carries `data-theme="dark"`, which
  *      redeclares the night palette for its subtree (tokens.css, the note on
@@ -26,11 +30,11 @@
  */
 
 /** The door routes, as a regular expression source the boot script shares. */
-export const NIGHT_DOOR_PATH_SOURCE = "^\\/(welcome|sign-up)(\\/|$)";
+export const NIGHT_DOOR_PATH_SOURCE = "^\\/(sign-up)(\\/|$)";
 
 const NIGHT_DOOR_PATH = new RegExp(NIGHT_DOOR_PATH_SOURCE);
 
-/** True for a path that is always dark (`/welcome`, `/sign-up` and below). */
+/** True for a path that is always dark (`/sign-up` and below). */
 export function isNightDoorPath(pathname: string | null | undefined): boolean {
   return typeof pathname === "string" && NIGHT_DOOR_PATH.test(pathname);
 }

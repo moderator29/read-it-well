@@ -1,3 +1,4 @@
+import "@/app/css/auth.css";
 import Link from "next/link";
 import type { Dictionary } from "@vallo/i18n/core";
 import { UiIcon } from "@/design-system/icons/UiIcon";

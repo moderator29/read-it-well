@@ -11,12 +11,11 @@ import { GateHandshake } from "./GateHandshake";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { IconPlate } from "@/components/ui/IconPlate";
+import { icon3dSrc } from "@/components/ui/icon-3d";
 import { panelClass } from "@/components/ui/Panel";
-import { Sheet } from "@/components/ui/Sheet";
 import { SuccessSheet } from "@/components/ui/SuccessSheet";
 import { successCopy, type SuccessWords } from "@/lib/ui/success-moments";
 import { MediaFrame } from "@/components/app/MediaFrame";
-import { TYPE } from "@/components/app/Screen";
 import { formatPhone } from "@/lib/phone";
 import { BackControl } from "@/components/ui/BackControl";
 import type { ListingKind } from "@/lib/listings/types";
@@ -28,7 +27,7 @@ import {
   createInspectionPhotoUpload,
   saveInspectionReport,
 } from "@/lib/inspections/actions";
-import { createClient } from "@/lib/supabase/client";
+import { loadBrowserClient } from "@/lib/supabase/load-client";
 import {
   EMPTY_REPORT,
   ROOM_COPY,
@@ -43,6 +42,8 @@ import {
 } from "@/lib/inspections/report";
 import {
   INSPECTION_OUTCOMES,
+  NO_SHOW_DISPUTE_MS,
+  type NoShow,
   waitingOn,
   type Inspection,
   type InspectionOutcome,
@@ -58,7 +59,20 @@ import { DrawUpAgreement } from "@/components/app/agreements/DrawUpAgreement";
 import { AGREEMENT_STATUS_LABEL } from "@/components/app/agreements/status";
 import { NO_INSPECTION_FEE, PRIVATE_FEE_NOTE, NO_INSPECTION_FEE_HEADLINE } from "@/lib/money/copy";
 import { ViewingDayKit } from "./ViewingDayKit";
-import { earliestLagosInput, lagosWallClockToIso } from "@/lib/inspections/when";
+import { ViewingStepSheet, ViewingTimeSheet, type StepResult } from "./ViewingSheets";
+import {
+  DECLINE_WORDS,
+  LISTER_CANCEL_WORDS,
+  PROPOSE_WORDS,
+  RENTER_CANCEL_WORDS,
+  RESCHEDULE_WORDS,
+  VIEWING_WORDS,
+  WITHDRAW_WORDS,
+  DISPUTE_WORDS,
+  NO_SHOW_WORDS,
+  noShowWords,
+} from "./viewing-words";
+import { disputeNoShow, reportNoShow } from "@/lib/inspections/no-show-actions";
 
 /**
  * ONE INSPECTION, EXACTLY IN THE ANATOMY OF F6A8A482 / founder/inspection-target.jpg.
@@ -109,6 +123,7 @@ const STATE_LABEL: Record<InspectionState, string> = {
   DECLINED: "Declined",
   COMPLETED: "Inspected",
   WITHDRAWN: "Withdrawn",
+  NO_SHOW: NO_SHOW_WORDS.badge,
 };
 
 const STATE_TONE: Record<InspectionState, BadgeTone> = {
@@ -118,6 +133,7 @@ const STATE_TONE: Record<InspectionState, BadgeTone> = {
   DECLINED: "bad",
   COMPLETED: "good",
   WITHDRAWN: "quiet",
+  NO_SHOW: "bad",
 };
 
 /** The lifecycle, in four words, as a strip above the checklist. */
@@ -188,9 +204,15 @@ export function InspectionSheet({
   agreement = null,
   success,
   dayKit,
+  now,
+  noShow = null,
 }: {
+  /** The no-show record, on a NO_SHOW inspection this reader is a party to. */
+  noShow?: NoShow | null;
   /** B5: the viewing day kit's words. Absent, no kit. */
   dayKit?: Dictionary["memberKit"]["dayKit"];
+  /** The render's clock, so a preview or a test can pin "before" and "after" the viewing. */
+  now?: number;
   /** The page's `t.success`, for "report submitted" and "recorded". Absent, no sheet. */
   success?: SuccessWords;
   inspection: Inspection;
@@ -227,7 +249,16 @@ export function InspectionSheet({
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const [proposing, setProposing] = useState(false);
+  /* The one sheet open over the card, if any: a time to offer, or a final
+     move asked before it is made. */
+  const [sheet, setSheet] = useState<
+    null | "propose" | "reschedule" | "decline" | "cancelLister" | "withdraw" | "cancelRenter" | "noShow" | "dispute"
+  >(null);
+  /* A second tap while the first is in flight is dropped, not sent twice. */
+  const inFlight = useRef(false);
+  /* Read once, when the card mounts, as the day kit does: whether the agreed
+     time is still ahead decides what can be moved and what can be recorded. */
+  const [clock] = useState(() => now ?? Date.now());
   /* V-35: whether the card is open, so the gate section mounts only then. */
   const [expanded, setExpanded] = useState(open);
   const [outcome, setOutcome] = useState<InspectionOutcome | null>(null);
@@ -248,21 +279,56 @@ export function InspectionSheet({
   const rooms = checkedCount(saved.items);
   const isRental = facts?.isRental === true;
   const photoNeed = isRental ? needPhotos : 0;
-  const submittable = canSubmit(reportLive, inspection.state, saved, outcome, photoNeed);
+  /* The agreed time has come: only then can a viewing be recorded as done
+     (the server holds the same rule), and until then a booked one can still
+     be moved or called off. */
+  const timeCome = Date.parse(shown) <= clock;
+  /* Declined or withdrawn: nobody went, so there is no report to open. */
+  const noViewing =
+    inspection.state === "DECLINED" || inspection.state === "WITHDRAWN" || inspection.state === "NO_SHOW";
+  /* The party marked absent may dispute, once, within 48 hours. */
+  const mayDispute =
+    inspection.state === "NO_SHOW" &&
+    noShow !== null &&
+    !noShow.reportedByMe &&
+    noShow.disputedAt === null &&
+    clock <= Date.parse(noShow.reportedAt) + NO_SHOW_DISPUTE_MS;
+  const submittable = canSubmit(reportLive, inspection.state, saved, outcome, photoNeed) && timeCome;
   const photosMissing = photosShort(saved, photoNeed);
 
   function run(work: () => Promise<{ ok: boolean; error?: string }>, after?: () => void) {
+    if (inFlight.current) return;
+    inFlight.current = true;
     setError(null);
     startTransition(async () => {
-      const result = await work();
-      if (!result.ok) {
-        setError(result.error ?? "That did not go through.");
-        return;
+      try {
+        const result = await work();
+        if (!result.ok) {
+          setError(result.error ?? "That did not go through.");
+          return;
+        }
+        after?.();
+        router.refresh();
+      } finally {
+        inFlight.current = false;
       }
-      after?.();
-      router.refresh();
     });
   }
+
+  /* A move made from a sheet: the sheet draws the refusal itself, and on
+     success the card re-reads. */
+  function settle(result: StepResult): StepResult {
+    if (result.ok) startTransition(() => router.refresh());
+    return result;
+  }
+  const answerWith = (state: "PROPOSED" | "DECLINED", when: string | null, note: string) =>
+    answerInspection({
+      id: inspection.id,
+      state,
+      ...(when ? { when } : {}),
+      ...(note ? { note } : {}),
+    }).then(settle);
+  const withdraw = () => closeInspection({ id: inspection.id, state: "WITHDRAWN" }).then(settle);
 
   /*
    * A tick is drawn only from what the action read back, never
@@ -305,7 +371,12 @@ export function InspectionSheet({
         setError(target.error);
         return;
       }
-      const upload = await createClient()
+      const client = await loadBrowserClient();
+      if (!client) {
+        setError("That photo did not upload. Try again in a moment.");
+        return;
+      }
+      const upload = await client
         .storage.from("inspection-photos")
         .uploadToSignedUrl(target.data.path, target.data.token, file, { contentType: file.type });
       if (upload.error) {
@@ -400,15 +471,25 @@ export function InspectionSheet({
 
       <div className="nf-ix-body">
         {/* ---------------------------------------------- date, party, state */}
-        <dl className={panelClass({ variant: "card", className: "nf-ix-facts" })}>
+        {/* Three label-and-value cells, not a definition list: each cell carries
+            its glyph beside the words, and a dl may hold only dt and dd in its
+            groups (axe definition-list and dlitem, 9 findings on the agent's
+            inspections at 390, C1 sweep). The words read in the same order. */}
+        <div className={panelClass({ variant: "card", className: "nf-ix-facts" })}>
           <div className="nf-ix-fact">
             <span className="nf-ix-fact__glyph" aria-hidden="true">
               <Crop name="glyph-calendar" width={44} height={44} />
             </span>
             <div className="nf-ix-fact__text">
-              <dt className="nf-ix-fact__label">Inspection Date</dt>
-              <dd className="nf-ix-fact__value">{when.day}</dd>
-              <dd className="nf-ix-fact__sub">{when.time}</dd>
+              <p className="nf-ix-fact__label">Inspection date</p>
+              <p className="nf-ix-fact__value">{when.day}</p>
+              {/* The hour somebody has to be at the gate, said on whose
+                  clock: a renter reading this abroad sees Lagos time, as the
+                  picker that set it said. */}
+              <p className="nf-ix-fact__sub">
+                {when.time}
+                {when.time && <span className="nf-ix-fact__zone">{VIEWING_WORDS.lagosTime}</span>}
+              </p>
             </div>
           </div>
           <div className="nf-ix-fact">
@@ -420,15 +501,15 @@ export function InspectionSheet({
                   assigned agent: `inspection_requests` names the requester
                   and the lister (owner or agent) and nobody else, so the
                   label says what the row holds (CLAIMS_RULE; ledger 9). */}
-              <dt className="nf-ix-fact__label">{side === "requester" ? "Listed by" : "Requested by"}</dt>
-              <dd className="nf-ix-fact__value">
+              <p className="nf-ix-fact__label">{side === "requester" ? "Listed by" : "Requested by"}</p>
+              <p className="nf-ix-fact__value">
                 {inspection.counterpartName ?? "Not named yet"}
                 {inspection.counterpartBadge ? <TierBadge tier={inspection.counterpartBadge} size={14} className="nf-ix-name-tier" /> : null}
-              </dd>
+              </p>
               {/* The number, visible under the name and itself the tel: link,
                   when `lib/security/counterpart-contact.ts` hands one over. */}
               {inspection.counterpartPhone && (
-                <dd>
+                <p>
                   <a
                     href={`tel:${inspection.counterpartPhone}`}
                     className="nf-ix-fact__phone nf-numeric"
@@ -437,7 +518,7 @@ export function InspectionSheet({
                   >
                     {formatPhone(inspection.counterpartPhone)}
                   </a>
-                </dd>
+                </p>
               )}
             </div>
           </div>
@@ -446,13 +527,13 @@ export function InspectionSheet({
               <Crop name="glyph-clock" width={46} height={44} />
             </span>
             <div className="nf-ix-fact__text">
-              <dt className="nf-ix-fact__label">Status</dt>
-              <dd className="nf-ix-fact__badge">
+              <p className="nf-ix-fact__label">Status</p>
+              <p className="nf-ix-fact__badge">
                 <Badge tone={status.tone}>{status.label}</Badge>
-              </dd>
+              </p>
             </div>
           </div>
-        </dl>
+        </div>
 
         {/* -------------------------------------------------------- lifecycle */}
         {/* The shared status track (spec section 14): the four rungs the
@@ -475,7 +556,9 @@ export function InspectionSheet({
                 step.state === "failed"
                   ? inspection.state === "DECLINED"
                     ? "Declined"
-                    : "Withdrawn"
+                    : inspection.state === "NO_SHOW"
+                      ? NO_SHOW_WORDS.badge
+                      : "Withdrawn"
                   : RUNG_LABEL[step.key],
               when: at && at.day ? `${at.day}, ${at.time}` : null,
               state: step.state,
@@ -504,15 +587,18 @@ export function InspectionSheet({
         )}
 
         {/* -------------------------------------------------------- checklist */}
+        {/* Not drawn on a request that was declined or withdrawn: nobody went,
+            and eight rooms that can never be ticked are a form with no use. */}
+        {!noViewing && (
         <section className={panelClass({ className: "nf-ix-check" })} aria-label="Inspection checklist">
           <div className="nf-ix-check__head">
             <p className="nf-ix-check__title">
               <Crop name="glyph-list" width={34} height={34} className="nf-ix-check__glyph" />
-              Inspection Checklist
+              Inspection checklist
             </p>
             <div className="nf-ix-check__count">
               <span className="nf-numeric">
-                {rooms.done} / {rooms.total} Completed
+                {rooms.done} of {rooms.total} done
               </span>
               <span
                 className="nf-ix-bar"
@@ -559,16 +645,24 @@ export function InspectionSheet({
             })}
           </ul>
         </section>
+        )}
 
         {/* ------------------------------------------------------------ notes */}
+        {/* On a closed request it carries only what each side wrote, and is
+            not drawn when neither wrote anything. */}
+        {(!noViewing || inspection.note || inspection.listerNote) && (
         <section className={panelClass({ className: "nf-ix-notes" })} aria-label="Notes">
           <span className="nf-ix-notes__glyph" aria-hidden="true">
             <Crop name="glyph-pencil" width={38} height={38} />
           </span>
           <div className="min-w-0 flex-1">
-            <label className="nf-ix-notes__label" htmlFor={`notes-${inspection.id}`}>
-              Notes
-            </label>
+            {noViewing ? (
+              <p className="nf-ix-notes__label">Notes</p>
+            ) : (
+              <label className="nf-ix-notes__label" htmlFor={`notes-${inspection.id}`}>
+                Notes
+              </label>
+            )}
             {inspection.note && (
               <p className="nf-ix-notes__said">
                 <span className="nf-ix-notes__who">{side === "requester" ? "You wrote" : "They wrote"}</span>
@@ -581,22 +675,25 @@ export function InspectionSheet({
                 {inspection.listerNote}
               </p>
             )}
-            <textarea
-              id={`notes-${inspection.id}`}
-              className="nf-ix-notes__field"
-              rows={1}
-              maxLength={2000}
-              placeholder="Add any additional notes or observations..."
-              value={notes}
-              disabled={!editable || pending}
-              onChange={(event) => setNotes(event.target.value)}
-              onBlur={() => {
-                if (editable && notes !== (saved.notes ?? "")) saveReport({});
-              }}
-              data-testid="inspection-notes"
-            />
+            {!noViewing && (
+              <textarea
+                id={`notes-${inspection.id}`}
+                className="nf-ix-notes__field"
+                rows={1}
+                maxLength={2000}
+                placeholder="Add any additional notes or observations..."
+                value={notes}
+                disabled={!editable || pending}
+                onChange={(event) => setNotes(event.target.value)}
+                onBlur={() => {
+                  if (editable && notes !== (saved.notes ?? "")) saveReport({});
+                }}
+                data-testid="inspection-notes"
+              />
+            )}
           </div>
         </section>
+        )}
 
         {/* The outcome is recorded by the close action, so it is drawn only
             while report storage is off; with it on, submitting the report
@@ -621,7 +718,9 @@ export function InspectionSheet({
           <GateHandshake inspectionId={inspection.id} locale={locale} copy={gateCopy} />
         )}
 
-        {inspection.state === "CONFIRMED" && !reportLive && (
+        {/* Asked only once the agreed time has come: before it there is
+            nothing to say about how it went, and the server refuses it. */}
+        {inspection.state === "CONFIRMED" && !reportLive && timeCome && (
           <section className={panelClass({ className: "nf-ix-outcome" })} aria-label="How did it go?">
             <p className="nf-ix-outcome__head" id={`outcome-${inspection.id}`}>
               How did it go?
@@ -657,24 +756,24 @@ export function InspectionSheet({
 
         {/* ---------------------------------------------------------- actions */}
         <div className="nf-ix-actions">
+          {/* Decline and Withdraw have no way back in the database, so each
+              asks first (the thread always did); a decline can carry the one
+              line the renter's notification shows. */}
           {yourMove && side === "lister" && (
             <div className="nf-ix-actions__row">
               <Button
                 variant="primary"
                 disabled={pending}
                 onClick={() => run(() => answerInspection({ id: inspection.id, state: "CONFIRMED" }))}
+                data-testid="inspection-confirm"
               >
-                Confirm
+                {VIEWING_WORDS.confirm}
               </Button>
-              <Button variant="secondary" disabled={pending} onClick={() => setProposing(true)}>
-                Offer another time
+              <Button variant="secondary" disabled={pending} onClick={() => setSheet("propose")}>
+                {VIEWING_WORDS.offerAnother}
               </Button>
-              <Button
-                variant="ghost"
-                disabled={pending}
-                onClick={() => run(() => answerInspection({ id: inspection.id, state: "DECLINED" }))}
-              >
-                Decline
+              <Button variant="quiet" disabled={pending} onClick={() => setSheet("decline")} data-testid="inspection-decline">
+                {VIEWING_WORDS.decline}
               </Button>
             </div>
           )}
@@ -684,28 +783,53 @@ export function InspectionSheet({
                 variant="primary"
                 disabled={pending}
                 onClick={() => run(() => acceptProposedTime({ id: inspection.id }))}
+                data-testid="inspection-accept-time"
               >
-                Take that time
+                {VIEWING_WORDS.acceptTime}
               </Button>
-              <Button
-                variant="ghost"
-                disabled={pending}
-                onClick={() => run(() => closeInspection({ id: inspection.id, state: "WITHDRAWN" }))}
-              >
-                Withdraw
+              <Button variant="quiet" disabled={pending} onClick={() => setSheet("withdraw")} data-testid="inspection-withdraw">
+                {VIEWING_WORDS.withdraw}
               </Button>
             </div>
           )}
           {side === "requester" && inspection.state === "REQUESTED" && (
-            <Button
-              variant="ghost"
-              disabled={pending}
-              onClick={() => run(() => closeInspection({ id: inspection.id, state: "WITHDRAWN" }))}
-            >
-              Withdraw the request
-            </Button>
+            <div className="nf-ix-actions__row">
+              <Button variant="quiet" disabled={pending} onClick={() => setSheet("withdraw")} data-testid="inspection-withdraw">
+                {VIEWING_WORDS.withdraw}
+              </Button>
+            </div>
           )}
 
+          {/* A request nobody went to: say so, and for the renter, the way to
+              ask again, instead of a report that can never open. */}
+          {noViewing && (
+            <>
+              <p className="nf-ix-hint" data-testid="inspection-closed-line">
+                {inspection.state === "NO_SHOW"
+                  ? noShowLine(noShow, side)
+                  : inspection.state === "DECLINED"
+                  ? side === "requester"
+                    ? "The lister declined this request, so there is no viewing to report on."
+                    : "You declined this request, so there is no viewing to report on."
+                  : side === "requester"
+                    ? "You withdrew this request, so there is no viewing to report on."
+                    : "They withdrew this request, so there is no viewing to report on."}
+              </p>
+              {mayDispute && (
+                <Button variant="secondary" full disabled={pending} onClick={() => setSheet("dispute")} data-testid="inspection-dispute">
+                  {NO_SHOW_WORDS.dispute}
+                </Button>
+              )}
+              {side === "requester" && inspection.state !== "NO_SHOW" && (
+                <ButtonLink href={`/listing/${inspection.listingId}`} variant="secondary" full>
+                  Open the listing to ask again
+                </ButtonLink>
+              )}
+            </>
+          )}
+
+          {!noViewing && (
+          <>
           {/*
             Add Photos, as the render draws it (the render's own camera). With
             the report on it uploads into the report through the report photo
@@ -720,14 +844,21 @@ export function InspectionSheet({
                 accept="image/jpeg,image/png,image/webp,image/heic,application/pdf"
                 className="sr-only"
                 tabIndex={-1}
+                /* Out of the tab order (the button below opens it), and still
+                   named for a screen reader's form list (axe label, C1 sweep). */
+                aria-label="Add a photo to the report"
                 onChange={(event) => {
                   const file = event.target.files?.[0];
                   event.target.value = "";
                   if (file) void addPhoto(file);
                 }}
               />
+              {/* Lit only once the report is open. Before a time is agreed the
+                  screen's one primary is the agreement (Confirm), and two lit
+                  buttons on one phone screen is two glows (north star 12,
+                  point 1; C1 sweep on the agent's inspections). */}
               <Button
-                variant="primary"
+                variant={editable ? "primary" : "secondary"}
                 full
                 className="nf-ix-cta"
                 disabled={!editable || uploading || pending}
@@ -735,7 +866,7 @@ export function InspectionSheet({
                 data-testid="inspection-add-photos"
               >
                 <Crop name="glyph-camera" width={38} height={34} className="nf-ix-cta__glyph" />
-                {uploading ? "Adding photo" : saved.photoCount > 0 ? `Add Photos (${saved.photoCount})` : "Add Photos"}
+                {uploading ? "Adding photo" : saved.photoCount > 0 ? `Add photos (${saved.photoCount})` : "Add photos"}
                 <UiIcon name="chevron-right" size={16} className="nf-ix-cta__end" />
               </Button>
             </>
@@ -743,11 +874,11 @@ export function InspectionSheet({
             <Link
               href={`/messages/${inspection.conversationId}?attach=1`}
               className="nf-btn nf-btn--primary nf-btn--md nf-btn--full nf-ix-cta"
-              aria-label="Add Photos, in the conversation about this inspection"
+              aria-label="Add photos, in the conversation about this inspection"
               data-testid="inspection-add-photos"
             >
               <Crop name="glyph-camera" width={38} height={34} className="nf-ix-cta__glyph" />
-              Add Photos
+              Add photos
               <UiIcon name="chevron-right" size={16} className="nf-ix-cta__end" />
             </Link>
           ) : null}
@@ -761,17 +892,64 @@ export function InspectionSheet({
             data-testid="inspection-submit"
           >
             <Crop name="glyph-plane" width={36} height={36} className="nf-ix-cta__glyph" />
-            Submit Inspection Report
+            Submit inspection report
           </Button>
           {/* The render draws no helper line: with the report on, the count
-              ("n / 8 Completed") already says why Submit waits. These two
-              carry states the render cannot show (report storage off, and an
-              inspection not yet agreed), so they stay; ledger 9, S12. */}
-          {!reportLive && inspection.state === "CONFIRMED" && !submittable && (
+              ("n of 8 done") already says why Submit waits. These carry
+              states the render cannot show (report storage off, a viewing
+              whose time has not come, and an inspection not yet agreed), so
+              they stay; ledger 9, S12. */}
+          {inspection.state === "CONFIRMED" && !timeCome && (
+            <p className="nf-ix-hint" data-testid="inspection-report-waits">
+              {reportLive
+                ? "Tick the rooms as you go round. The report can be sent once the viewing time has come."
+                : "How it went can be recorded once the viewing time has come."}
+            </p>
+          )}
+          {!reportLive && inspection.state === "CONFIRMED" && timeCome && !submittable && (
             <p className="nf-ix-hint">Choose how it went, and the report can be sent.</p>
           )}
-          {inspection.state !== "CONFIRMED" && inspection.state !== "COMPLETED" && (
+          {(inspection.state === "REQUESTED" || inspection.state === "PROPOSED") && (
             <p className="nf-ix-hint">The report opens once a time is agreed on both sides.</p>
+          )}
+
+          {/* Once the time has come, either side can say the other did not
+              come. The other side is told and can dispute it for 48 hours. */}
+          {inspection.state === "CONFIRMED" && timeCome && (
+            <div className="nf-ix-actions__row nf-ix-actions__row--change">
+              <Button
+                variant="quiet"
+                size="sm"
+                disabled={pending}
+                onClick={() => setSheet("noShow")}
+                data-testid="inspection-no-show"
+              >
+                {side === "lister" ? NO_SHOW_WORDS.markRenter : NO_SHOW_WORDS.markLister}
+              </Button>
+            </div>
+          )}
+
+          {/* A booked viewing that is still ahead can be moved or called off.
+              The database always allowed both (the lister to PROPOSED or
+              DECLINED, the renter to WITHDRAWN); no screen offered them, so a
+              confirmed viewing nobody could keep had no way out but a chat. */}
+          {inspection.state === "CONFIRMED" && !timeCome && (
+            <div className="nf-ix-actions__row nf-ix-actions__row--change" data-testid="inspection-change">
+              {side === "lister" && (
+                <Button variant="secondary" size="sm" disabled={pending} onClick={() => setSheet("reschedule")}>
+                  {VIEWING_WORDS.offerAnother}
+                </Button>
+              )}
+              <Button
+                variant="quiet"
+                size="sm"
+                disabled={pending}
+                onClick={() => setSheet(side === "lister" ? "cancelLister" : "cancelRenter")}
+                data-testid="inspection-cancel"
+              >
+                {VIEWING_WORDS.cancelViewing}
+              </Button>
+            </div>
           )}
           {/* A submitted report takes no more photos, and the agreement needs
               them, so this is said while there is still time to add them. */}
@@ -829,26 +1007,49 @@ export function InspectionSheet({
               </p>
             )
           ) : null}
+          </>
+          )}
         </div>
       </div>
 
-      {proposing && (
-        <ProposeSheet
-          open={proposing}
-          onOpenChange={setProposing}
-          pending={pending}
-          onSubmit={(when, note) =>
-            run(async () => {
-              const result = await answerInspection({
-                id: inspection.id,
-                state: "PROPOSED",
-                when,
-                ...(note ? { note } : {}),
-              });
-              if (result.ok) setProposing(false);
-              return result;
-            })
-          }
+      {(sheet === "propose" || sheet === "reschedule") && (
+        <ViewingTimeSheet
+          open
+          onOpenChange={(next) => setSheet(next ? sheet : null)}
+          words={sheet === "reschedule" ? RESCHEDULE_WORDS : PROPOSE_WORDS}
+          onSubmit={(when, note) => answerWith("PROPOSED", when, note)}
+        />
+      )}
+      {(sheet === "decline" || sheet === "cancelLister") && (
+        <ViewingStepSheet
+          open
+          onOpenChange={(next) => setSheet(next ? sheet : null)}
+          words={sheet === "decline" ? DECLINE_WORDS : LISTER_CANCEL_WORDS}
+          onConfirm={(note) => answerWith("DECLINED", null, note)}
+        />
+      )}
+      {sheet === "noShow" && (
+        <ViewingStepSheet
+          open
+          onOpenChange={(next) => setSheet(next ? sheet : null)}
+          words={noShowWords(side === "lister" ? "requester" : "lister")}
+          onConfirm={(note) => reportNoShow({ id: inspection.id, ...(note ? { note } : {}) }).then(settle)}
+        />
+      )}
+      {sheet === "dispute" && (
+        <ViewingStepSheet
+          open
+          onOpenChange={(next) => setSheet(next ? sheet : null)}
+          words={DISPUTE_WORDS}
+          onConfirm={(note) => disputeNoShow({ id: inspection.id, ...(note ? { note } : {}) }).then(settle)}
+        />
+      )}
+      {(sheet === "withdraw" || sheet === "cancelRenter") && (
+        <ViewingStepSheet
+          open
+          onOpenChange={(next) => setSheet(next ? sheet : null)}
+          words={sheet === "withdraw" ? WITHDRAW_WORDS : RENTER_CANCEL_WORDS}
+          onConfirm={() => withdraw()}
         />
       )}
     </details>
@@ -859,6 +1060,7 @@ export function InspectionSheet({
           if (!next) setDone(null);
         }}
         variant={doneWords.variant}
+        haptic={doneWords.haptic}
         object={doneWords.object}
         title={doneWords.title}
         body={doneWords.body}
@@ -870,60 +1072,20 @@ export function InspectionSheet({
   );
 }
 
-/** Offering another time, in a sheet so the list under it does not move. */
-function ProposeSheet({
-  open,
-  onOpenChange,
-  pending,
-  onSubmit,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  pending: boolean;
-  onSubmit: (when: string, note: string) => void;
-}) {
-  const [when, setWhen] = useState("");
-  const [note, setNote] = useState("");
-  return (
-    <Sheet open={open} onOpenChange={onOpenChange} title="Offer another time" detents={[0.55]}>
-      <p className={TYPE.body}>
-        They will see the time you offer and can take it in one tap. The time they asked for stays on the record.
-      </p>
-      <label className="mt-md block">
-        <span className="nf-label">When you can do it (Lagos time)</span>
-        <input
-          type="datetime-local"
-          value={when}
-          /* UX-20: Lagos time, two hours ahead at the earliest, as the request is. */
-          min={earliestLagosInput()}
-          suppressHydrationWarning
-          step={900}
-          onChange={(event) => setWhen(event.target.value)}
-          className="nf-field mt-2xs w-full"
-        />
-      </label>
-      <label className="mt-md block">
-        <span className="nf-label">A line for them, if you want one</span>
-        <input
-          type="text"
-          value={note}
-          maxLength={400}
-          onChange={(event) => setNote(event.target.value)}
-          className="nf-field mt-2xs w-full"
-        />
-      </label>
-      <Button
-        full
-        size="lg"
-        variant="primary"
-        className="mt-lg"
-        disabled={pending || when.length === 0}
-        onClick={() => onSubmit(lagosWallClockToIso(when) ?? when, note.trim())}
-      >
-        Send this time
-      </Button>
-    </Sheet>
-  );
+/** Where a no-show stands, from this reader's side of it. */
+function noShowLine(noShow: NoShow | null, side: "lister" | "requester"): string {
+  if (!noShow) return "This viewing was marked as a no-show.";
+  if (noShow.resolution === "overturned") return "This no-show was disputed and Vallo took it off the record.";
+  if (noShow.resolution === "upheld") return "This no-show was disputed and Vallo decided it stands.";
+  if (noShow.reportedByMe) {
+    const them = side === "lister" ? "the renter" : "the lister";
+    return noShow.disputedAt
+      ? `You marked ${them} as a no-show. They disputed it, and Vallo is looking at both sides.`
+      : `You marked ${them} as a no-show. They have 48 hours to dispute it.`;
+  }
+  return noShow.disputedAt
+    ? "You were marked as a no-show and you disputed it. Vallo is looking at both sides."
+    : "The other side says you did not come to this viewing. If that is not right, you can dispute it within 48 hours of their report.";
 }
 
 /**
@@ -933,7 +1095,7 @@ function ProposeSheet({
  * and the glass house with the tick at the right.
  */
 export function InspectionHero({
-  title = "Inspection",
+  title = "inspection",
   sub,
   fallback = "/home",
   back = true,
@@ -957,9 +1119,10 @@ export function InspectionHero({
           </h1>
           <p className="nf-ix-hero__sub">{sub}</p>
         </div>
-        {/* The render's own glass house, cropped and keyed (SOURCES.md). */}
+        {/* A solid house with its tick, never the render's glass house (the
+            founder, 7 October 2026: no glass anywhere). */}
         <span className="nf-ix-hero__mark" aria-hidden="true">
-          <Crop name="house-check" width={186} height={140} />
+          <Image src={icon3dSrc("home-verified")} alt="" width={140} height={140} unoptimized className="nf-ix-crop" />
         </span>
       </div>
     </div>

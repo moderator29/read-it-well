@@ -1,0 +1,42 @@
+@layer theme, base, components, utilities;
+
+/*
+ * HOW INVITES WORK (W6): four reasons in one Card, each a round tinted glyph
+ * plate beside a title and a sentence, hairline-separated.
+ */
+@layer components {
+  .nf-panel.nf-how {
+    display: grid;
+    margin: 0;
+    padding: var(--nf-space-xs) var(--nf-space-md);
+    list-style: none;
+  }
+  .nf-how__item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nf-space-sm);
+    padding-block: var(--nf-space-md);
+  }
+  .nf-how__item + .nf-how__item {
+    border-block-start: var(--nf-border-width) solid var(--nf-divider);
+  }
+  .nf-how__item > .nf-plate {
+    flex: none;
+  }
+  .nf-how__text {
+    display: grid;
+    gap: var(--nf-space-3xs);
+    min-inline-size: 0;
+  }
+  .nf-how__title {
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-how__body {
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.55;
+    color: var(--nf-content-secondary);
+    overflow-wrap: anywhere;
+  }
+}

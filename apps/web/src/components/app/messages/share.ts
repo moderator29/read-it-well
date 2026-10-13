@@ -35,31 +35,47 @@ export type SharedKind = "listing" | "booking" | "stay";
 
 export type SharedRef = { kind: SharedKind; id: string };
 
+/**
+ * A member's Vallo passport, shared into a chat. Its own kind, apart from
+ * `SharedKind`, because it is not a thing the picker offers or the forward
+ * control carries: it is the sender's own passport, posted from the options
+ * sheet, and the thread draws it as a card only for the member who sent it.
+ */
+export type PassportRef = { kind: "passport"; id: string };
+
+/** Every body the thread turns into a card. */
+export type ParsedShare = SharedRef | PassportRef;
+
 const UUID = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
 
 /** The first line of a share body, which is also its inbox preview. */
-export const SHARE_LEAD: Record<SharedKind, string> = {
+export const SHARE_LEAD: Record<SharedKind | "passport", string> = {
   listing: "Shared a listing",
   booking: "Shared a booking",
   stay: "Shared a stay",
+  passport: "Shared a passport",
 };
 
 /** Where each kind opens. `/bookings/<id>` is the trips hub's own detail route. */
-export function shareHref(ref: SharedRef): string {
+export function shareHref(ref: ParsedShare): string {
   if (ref.kind === "listing") return `/listing/${ref.id}`;
   if (ref.kind === "stay") return `/stay/${ref.id}`;
+  /* The Vallo passport of the account `id`. A card draws only for the member
+     who sent it (`cards.ts`), and the page it opens answers to the owner's
+     switches and to blocks, so the path is safe to carry in a body. */
+  if (ref.kind === "passport") return `/passport/${ref.id}`;
   return `/bookings/${ref.id}`;
 }
 
 /** The body a share sends. Two lines: what it is, then the path that opens it. */
-export function shareBody(ref: SharedRef): string {
+export function shareBody(ref: ParsedShare): string {
   return `${SHARE_LEAD[ref.kind]}\n${shareHref(ref)}`;
 }
 
 /* Each segment is written exactly as `shareHref` writes it, so `bookings`
    plural and `stay` singular are both spelled out rather than inferred. */
 const SHARE_RE = new RegExp(
-  `^(?:Shared a (?:listing|booking|stay)\\n)?/(listing|bookings|stay)/(${UUID})$`,
+  `^(?:Shared a (?:listing|booking|stay|passport)\\n)?/(listing|bookings|stay|passport)/(${UUID})$`,
   "i",
 );
 
@@ -70,13 +86,33 @@ const SHARE_RE = new RegExp(
  * bare path. A sentence that happens to mention a listing path is prose and
  * stays prose.
  */
-export function parseShare(body: string): SharedRef | null {
+export function parseShare(body: string): ParsedShare | null {
   const match = SHARE_RE.exec(body.trim());
   if (!match) return null;
   const segment = match[1]!.toLowerCase();
-  const kind: SharedKind =
-    segment === "listing" ? "listing" : segment === "stay" ? "stay" : "booking";
-  return { kind, id: match[2]!.toLowerCase() };
+  const id = match[2]!.toLowerCase();
+  if (segment === "passport") return { kind: "passport", id };
+  const kind: SharedKind = segment === "listing" ? "listing" : segment === "stay" ? "stay" : "booking";
+  return { kind, id };
+}
+
+/**
+ * THE ONE RULE FOR "DOES THIS MESSAGE DRAW AS A CARD". The thread page uses it
+ * when it expands the messages it loaded (`messages/[id]/cards.ts`) and the
+ * open thread uses it when a message arrives over realtime
+ * (`ThreadView.tsx`), so a message turns into a card on the same terms
+ * whichever way it reached the screen.
+ *
+ * A listing, a stay or a booking card draws for whoever the share reaches. A
+ * passport card is the SENDER'S own: a body that points at somebody else's
+ * passport (typed, or forwarded) is words and a path, never a card, so nobody
+ * can post another member's passport as if they were showing it.
+ */
+export function cardRefFor(message: { body: string; senderId?: string | null }): ParsedShare | null {
+  const ref = parseShare(message.body);
+  if (!ref) return null;
+  if (ref.kind === "passport" && message.senderId !== ref.id) return null;
+  return ref;
 }
 
 /** What the inbox row says for a share, instead of printing a path. */

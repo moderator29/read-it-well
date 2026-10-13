@@ -8,6 +8,7 @@ import { SUPABASE_URL } from "../supabase/env";
 import { resolveSession } from "../actions/session";
 import { loadUnreadCounts } from "../messages/unread";
 import type { AgentProfile } from "./types";
+import { hasBadge, toBadgeTier } from "../trust/badge-tier";
 import {
   AMENITY_CHOICES,
   type BuildCondition,
@@ -18,11 +19,12 @@ import {
   type RatePeriod,
   type RentPeriod,
   type SaleStatus,
+  feeToNairaInput,
   koboToNairaInput,
   type PowerBackup,
   type PowerGrid,
   type WaterSupply,
-} from "./listings-schema";
+} from "./listings-model";
 import { headlinePrice, headlinePeriod, type PricePeriod } from "../listings/pricing";
 import {
   COMPOUND_COLUMNS,
@@ -63,6 +65,8 @@ export type AgentIdentity = {
   displayName: string;
   status: Database["public"]["Enums"]["agent_application_status"];
   type: Database["public"]["Enums"]["agent_type"];
+  /** The account's side, `agents.role`: `owner` is a landlord, `agent` an agent. */
+  role: Database["public"]["Enums"]["supply_role"];
   verified: boolean;
   /**
    * Where they stand on the verification ladder, 0 to 4.
@@ -86,6 +90,12 @@ export type AgentContext =
       agent: AgentIdentity;
     };
 
+/** The published tier off an embedded `agent_badges` row, which PostgREST may hand back as an object or a one-row list. */
+function publishedTier(embed: unknown): unknown {
+  const row = Array.isArray(embed) ? embed[0] : embed;
+  return row && typeof row === "object" ? (row as { tier?: unknown }).tier : undefined;
+}
+
 /**
  * Who is asking, and are they an approved agent?
  *
@@ -99,7 +109,7 @@ export async function getAgentContext(): Promise<AgentContext> {
 
   const { data, error } = await session.supabase
     .from("agents")
-    .select("id, display_name, status, type, verification_tier")
+    .select("id, display_name, status, type, role, verification_tier, agent_badges(tier)")
     .eq("user_id", session.user.id)
     .maybeSingle();
 
@@ -116,18 +126,20 @@ export async function getAgentContext(): Promise<AgentContext> {
       displayName: data.display_name,
       status: data.status,
       type: data.type,
+      role: data.role,
       /*
-       * THE RAIL'S "VERIFIED AGENT" CHIP, DERIVED FROM THE LADDER AND NOT FROM
-       * A COLUMN SOMEBODY SET.
+       * THE RAIL'S "VERIFIED AGENT" CHIP, READ FROM THE PUBLISHED BADGE.
        *
-       * This used to read `agents.verified`, which the application approval
-       * wrote as true at tier 0. So an agent who had not sent us a single
-       * document was addressed as a verified agent in their own workspace
-       * chrome while `/agent/verification`, three centimetres away, told them
-       * they were at tier 0 and had not started. Tier 1 is the identity rung,
-       * and the identity rung is the badge.
+       * It first read `agents.verified`, which the application approval wrote
+       * as true at tier 0. It then derived the chip here from the ladder
+       * (`verification_tier >= 1`), which is the rule `lib/trust/badge-tier.ts`
+       * says may live nowhere in `src`: a second derivation that can disagree
+       * with the badge every other surface draws (audit A9, 6 October). So it
+       * reads `agent_badges.tier`, the same published answer a listing and a
+       * thread read, through `toBadgeTier`; a missing row or an unknown value
+       * is no chip. `lib/trust/promotion-trust.test.ts` holds the shape.
        */
-      verified: (data.verification_tier ?? 0) >= 1,
+      verified: hasBadge(toBadgeTier(publishedTier(data.agent_badges))),
       verificationTier: data.verification_tier ?? 0,
     },
   };
@@ -143,6 +155,7 @@ export function agentProfileFrom(agent: AgentIdentity): AgentProfile {
     displayName: agent.displayName,
     status: agent.status,
     type: agent.type,
+    role: agent.role,
     verified: agent.verified,
   };
 }
@@ -195,6 +208,8 @@ export type ListingSummary = {
   coverUrl: string | null;
   updatedAt: string;
   submittedAt: string | null;
+  /** When it last went live. Optional so older fixtures still type. */
+  publishedAt?: string | null;
   reviewNotes: string | null;
   /** SCUML item 17: owner, agent or firm. Optional so older fixtures still type. */
   listingRole?: "owner" | "agent" | "firm" | null;
@@ -207,6 +222,11 @@ export type OwnAnswers = "compound" | "service" | "unit" | "flood";
 export type WizardDraft = {
   id: string;
   status: ListingStatus;
+  /**
+   * When the review team received it, for a listing reopened in review (the
+   * wizard's "sent" chain prints the date). Optional so older fixtures type.
+   */
+  submittedAt?: string | null;
   title: string;
   description: string;
   propertyType: PropertyType | null;
@@ -297,7 +317,7 @@ const LISTING_SELECT =
   "sale_status, year_built, condition, size_sqm, toilets, parking_spaces, floor, total_floors, " +
   "sale_agency_fee_minor, sale_legal_fee_minor, governors_consent_fee_minor, " +
   "stamp_duty_minor, survey_registration_fee_minor, total_purchase_cost_minor, " +
-  "state_code, city, area, address, landmark, bedrooms, bathrooms, submitted_at, " +
+  "state_code, city, area, address, landmark, bedrooms, bathrooms, submitted_at, published_at, " +
   "review_notes, listing_role, updated_at, power_grid, power_backup, power_backup_hours, water_supply, " +
   "prepaid_meter, listing_photos(id, storage_path, position), " +
   "listing_videos(id, storage_path, poster_path, duration_seconds, position), " +
@@ -373,6 +393,8 @@ type ListingWithChildren = {
   bedrooms: number;
   bathrooms: number;
   submitted_at: string | null;
+  /** When it last went live: the lister's payoff reads it (lib/agent/lister-live.ts). */
+  published_at?: string | null;
   review_notes: string | null;
   /** SCUML item 17: who the lister is on this listing; an agent or firm files a mandate. */
   listing_role?: "owner" | "agent" | "firm" | null;
@@ -489,6 +511,7 @@ function toSummary(row: ListingWithChildren): ListingSummary {
     coverUrl: cover ? cover.url : null,
     updatedAt: row.updated_at,
     submittedAt: row.submitted_at,
+    publishedAt: row.published_at ?? null,
     reviewNotes: row.review_notes,
     listingRole: row.listing_role ?? null,
   };
@@ -527,12 +550,12 @@ async function toDraft(
     rentNaira: koboToNairaInput(row.rent_amount_minor),
     rentPeriod: row.rent_period ?? "",
     rentNegotiable: row.rent_negotiable ?? false,
-    cautionDepositNaira: koboToNairaInput(row.caution_deposit_minor),
-    serviceChargeNaira: koboToNairaInput(row.service_charge_minor),
+    cautionDepositNaira: feeToNairaInput(row.caution_deposit_minor),
+    serviceChargeNaira: feeToNairaInput(row.service_charge_minor),
     serviceChargePeriod: row.service_charge_period ?? "",
-    agencyFeeNaira: koboToNairaInput(row.agency_fee_minor),
-    legalFeeNaira: koboToNairaInput(row.legal_fee_minor),
-    agreementFeeNaira: koboToNairaInput(row.agreement_fee_minor),
+    agencyFeeNaira: feeToNairaInput(row.agency_fee_minor),
+    legalFeeNaira: feeToNairaInput(row.legal_fee_minor),
+    agreementFeeNaira: feeToNairaInput(row.agreement_fee_minor),
     totalMoveInNaira: koboToNairaInput(row.total_move_in_cost_minor),
     minimumTenancyMonths: numberInput(row.minimum_tenancy_months),
     availableFrom: row.available_from ?? "",
@@ -542,11 +565,11 @@ async function toDraft(
     ratePeriod: row.rate_period ?? "",
 
     salePriceNaira: koboToNairaInput(row.sale_price_minor),
-    saleAgencyFeeNaira: koboToNairaInput(row.sale_agency_fee_minor),
-    saleLegalFeeNaira: koboToNairaInput(row.sale_legal_fee_minor),
-    governorsConsentFeeNaira: koboToNairaInput(row.governors_consent_fee_minor),
-    stampDutyNaira: koboToNairaInput(row.stamp_duty_minor),
-    surveyRegistrationFeeNaira: koboToNairaInput(row.survey_registration_fee_minor),
+    saleAgencyFeeNaira: feeToNairaInput(row.sale_agency_fee_minor),
+    saleLegalFeeNaira: feeToNairaInput(row.sale_legal_fee_minor),
+    governorsConsentFeeNaira: feeToNairaInput(row.governors_consent_fee_minor),
+    stampDutyNaira: feeToNairaInput(row.stamp_duty_minor),
+    surveyRegistrationFeeNaira: feeToNairaInput(row.survey_registration_fee_minor),
     totalPurchaseNaira: koboToNairaInput(row.total_purchase_cost_minor),
     priceNegotiable: row.price_negotiable ?? false,
     tenure: row.tenure ?? "",
@@ -570,6 +593,7 @@ async function toDraft(
     photos: sortedPhotos(row),
     videos: await sortedVideos(supabase, row),
     reviewNotes: row.review_notes,
+    submittedAt: row.submitted_at,
   };
 }
 
@@ -892,4 +916,4 @@ export async function readAgentNumbers(
 // The status label and tone tables live in listings-schema, which carries no
 // server-only import, because the workspace renders them from a client
 // component. Re-exported here so server callers keep one import site.
-export { STATUS_LABEL, STATUS_TONE } from "./listings-schema";
+export { STATUS_LABEL, STATUS_TONE } from "./listings-model";

@@ -10,6 +10,7 @@ import { AwardButton, InviteForm, PitchForm, WithdrawButton } from "./PortfolioC
 import { SuccessFromFlag } from "@/components/ui/SuccessFromFlag";
 import { portfolioInviteArrival } from "@/lib/ui/arrival-moments";
 import { readDone } from "@/lib/ui/success-moments";
+import { gateFirstRun } from "@/components/app/feature-onboarding/first-run-store";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
@@ -58,6 +59,11 @@ export default async function PortfolioPage({
   }
 
   const [units, briefs] = await Promise.all([readMyBuildings(), readMandateBriefs()]);
+  /* THE OWNER'S FIRST RUN (north star 14.1, R3-12): once, and only for
+     somebody who lists at least one unit as its owner, since it explains
+     their buildings. An agent with only briefs to answer is never sent, and
+     neither is an arrival carrying a done flag, which the gate would drop. */
+  if ((units?.length ?? 0) > 0 && query.done === undefined) await gateFirstRun("portfolio", "/agent/portfolio", query);
   const open = (units ?? []).flatMap((u) => (u.invitationId && u.pitchCount > 0 ? [u.invitationId] : []));
   const pitches = await readPitchesFor(open);
   const groups = groupByPlace(units ?? []);

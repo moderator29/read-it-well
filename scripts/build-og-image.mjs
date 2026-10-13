@@ -33,9 +33,10 @@
  * without banding across the sky.
  */
 
-import { statSync } from "node:fs";
+import { readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { ImageResponse } from "next/og.js";
 import sharp from "sharp";
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -44,11 +45,11 @@ const PLATE = path.join(BRAND, "photos/villa-pool-skyline-02.jpg");
 const OUT = path.join(ROOT, "apps/web/src/app/opengraph-image.jpg");
 
 const W = 1200, H = 630;
-/* OPS-16: a JPEG of at most 120KB. The palette PNG this used to write was
-   294KB, a hair under the roughly 300KB some unfurlers drop previews above;
-   a photograph ground is what JPEG is for, and at this size every unfurler
-   and every metered connection takes it without thinking. */
-const BUDGET = 120 * 1024;
+/* OPS-16: a JPEG. The palette PNG this used to write was 294KB, a hair under
+   the roughly 300KB some unfurlers drop previews above; a photograph ground is
+   what JPEG is for. W3 (round 5): under 100KB, the budget every share card now
+   keeps (`apps/web/src/lib/share/og-encode.ts`); it was 117KB. */
+const BUDGET = 95 * 1024;
 
 /* The brand anchors from packages/design-tokens/src/tokens.css. Hex is
    correct here for the same reason it is correct in an email: this is a
@@ -99,18 +100,55 @@ const tint = Buffer.from(`<svg width="${W}" height="${H}">
 </svg>`);
 
 /*
- * The slogan is set as text here rather than taken from the wordmark render,
- * because it is a sentence and not a logo. It is the founder's slogan verbatim,
- * exclamation mark included: the card is the one surface that is allowed to be
- * the poster. The sub-line is the product in one sentence, the same one the
- * page description carries.
+ * THE SLOGAN, D1 (locked): "Space, without the runaround." It replaced
+ * "Real Estate reimagined!", which this card still carried, exclamation mark
+ * and all, on every link anybody pasted (W3, round 5). The sub-line is the
+ * share description's first clause, so the picture and the words under it say
+ * one thing.
+ *
+ * SET IN THE BRAND'S FACES, by the same renderer as every other card: the
+ * slogan in Poppins 600, the sub-line in Inter 400, from the files the share
+ * door's image route reads. It was Helvetica, by way of whatever font the
+ * build machine had.
  */
-const line = Buffer.from(`<svg width="${W}" height="130">
-  <text x="${W / 2}" y="46" text-anchor="middle" font-family="Helvetica, Arial, sans-serif"
-        font-size="44" font-weight="600" fill="${TEXT}" letter-spacing="0.4">Real Estate reimagined!</text>
-  <text x="${W / 2}" y="100" text-anchor="middle" font-family="Helvetica, Arial, sans-serif"
-        font-size="24" fill="${BODY}">Rent, buy or sell across Nigeria. The move-in total, printed.</text>
-</svg>`);
+const FONTS = path.join(ROOT, "apps/web/src/app/s/[token]");
+const font = (file) => {
+  const bytes = readFileSync(path.join(FONTS, file));
+  return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+};
+const lineImage = new ImageResponse(
+  {
+    type: "div",
+    props: {
+      style: { width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center" },
+      children: [
+        {
+          type: "div",
+          props: {
+            style: { display: "flex", color: TEXT, fontFamily: "Poppins", fontWeight: 600, fontSize: 40, letterSpacing: -0.5 },
+            children: "Space, without the runaround.",
+          },
+        },
+        {
+          type: "div",
+          props: {
+            style: { display: "flex", marginTop: 14, color: BODY, fontFamily: "Inter", fontSize: 25 },
+            children: "Homes, land, hotels and shortlets across Nigeria.",
+          },
+        },
+      ],
+    },
+  },
+  {
+    width: W,
+    height: 130,
+    fonts: [
+      { name: "Inter", data: font("Inter-Regular.woff"), weight: 400, style: "normal" },
+      { name: "Poppins", data: font("Poppins-SemiBold.ttf"), weight: 600, style: "normal" },
+    ],
+  },
+);
+const line = Buffer.from(await lineImage.arrayBuffer());
 
 const mark = await sharp(path.join(BRAND, "vallo-mark.png"))
   .resize(230, 230, { fit: "inside" })
@@ -144,7 +182,7 @@ const composed = sharp(plate)
  */
 const raw = await composed.png().toBuffer();
 let written = null;
-for (const quality of [86, 82, 78, 74, 70]) {
+for (const quality of [86, 82, 78, 74, 70, 66, 62]) {
   const info = await sharp(raw)
     .flatten({ background: "#010118" })
     .jpeg({ quality, mozjpeg: true, chromaSubsampling: "4:4:4" })

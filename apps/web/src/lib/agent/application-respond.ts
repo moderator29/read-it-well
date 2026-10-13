@@ -1,11 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { getDictionary } from "@vallo/i18n";
 import { fail, ok, type ActionResult } from "../actions/envelope";
 import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../actions/session";
 import { getLocale } from "../locale";
 import { pathsBelongTo, reviewResponseSchema } from "./application-respond-schema";
+import { documentToSupersede } from "./supersedes";
+import { ACCEPT_PAY_REQUIRED, ACCEPT_TERMS_REQUIRED, withWorkspaceAcceptance } from "../legal/workspace-acceptance";
 
 /**
  * SUP-05: answer a reviewer who sent the application back.
@@ -29,6 +32,9 @@ export async function respondToReview(input: unknown): Promise<ActionResult<{ re
     return fail(empty ? copy.needSomething : (parsed.error.issues[0]?.message ?? copy.failed));
   }
   const value = parsed.data;
+  /* Ruling 6: the two ticks, as on a first submission (the form asks first). */
+  if (!value.acceptTerms) return fail(ACCEPT_TERMS_REQUIRED);
+  if (!value.acceptPayOnVallo) return fail(ACCEPT_PAY_REQUIRED);
 
   const session = await resolveSession();
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
@@ -48,14 +54,34 @@ export async function respondToReview(input: unknown): Promise<ActionResult<{ re
     .maybeSingle();
   if (readError) return fail(copy.failed);
   if (!application || application.status !== "MORE_INFO_REQUIRED") return fail(copy.notWaiting);
+  /* The acceptance already on record (pending migration pov07 adds the
+     column; until the types are regenerated it is read untyped). */
+  const { data: consentRow } = await (supabase as unknown as SupabaseClient)
+    .from("agent_applications")
+    .select("consents")
+    .eq("id", application.id)
+    .maybeSingle();
+  const priorConsents = (consentRow as { consents?: unknown } | null)?.consents ?? null;
 
   if (value.documents.length > 0) {
+    /* A document sent in answer to a refusal REPLACES the refused one, and
+       says so: without `supersedes_id` the refused row stayed current, and a
+       rung that needs every current document approved could never pass. Only
+       a refused document is replaced here; anything else adds to the file. */
+    const { data: earlier, error: earlierError } = await supabase
+      .from("agent_documents")
+      .select("id, kind, review_status, supersedes_id")
+      .eq("uploader_id", user.id)
+      .order("uploaded_at", { ascending: false });
+    if (earlierError) return fail(copy.failed);
+
     const { error: documentError } = await supabase.from("agent_documents").insert(
       value.documents.map((doc) => ({
         application_id: application.id,
         uploader_id: user.id,
         kind: doc.kind,
         storage_path: doc.path,
+        supersedes_id: documentToSupersede(earlier ?? [], doc.kind, { fallbackToLatest: false }),
       })),
     );
     if (documentError) return fail(copy.failed);
@@ -67,8 +93,10 @@ export async function respondToReview(input: unknown): Promise<ActionResult<{ re
     .from("agent_applications")
     .update({
       status: "SUBMITTED",
+      /* The acceptance is appended (the record is a history) with its versions and the moment. */
+      consents: withWorkspaceAcceptance(priorConsents, new Date().toISOString()),
       ...(value.answer.length > 0 ? { applicant_response: value.answer } : {}),
-    })
+    } as never)
     .eq("id", application.id)
     .eq("status", "MORE_INFO_REQUIRED")
     .select("id");

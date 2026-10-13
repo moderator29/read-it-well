@@ -1,7 +1,7 @@
 "use client";
 
 import { useHostCopy } from "@/components/host/host-copy";
-import { useState } from "react";
+import { differs, useGuard, useHeld } from "../wizard-memory";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
 import { addAccommodationDraft } from "@/lib/host/actions";
@@ -48,8 +48,8 @@ export function HotelStep({
   set,
   pending,
   fieldErrors,
-  run,
-  saveText,
+  runAsync,
+  saveTextAsync,
   setNotice,
   goTo,
   advance,
@@ -67,8 +67,15 @@ export function HotelStep({
   onExpectedRooms(next: number): void;
 }) {
   const hw = useHostCopy();
-  const [name, setName] = useState(draft.accommodation?.name ?? draft.name ?? "");
-  const [stars, setStars] = useState<number | null>(draft.accommodation?.starRating ?? null);
+  /* Held in the wizard, so Back and a jump along the path keep what is typed;
+     the saved answer is what they start from and what "unsaved" is measured
+     against. */
+  const savedName = draft.accommodation?.name ?? draft.name ?? "";
+  const savedStars = draft.accommodation?.starRating ?? null;
+  const [name, setName] = useHeld("name", savedName);
+  const [stars, setStars] = useHeld<number | null>("stars", savedStars);
+  const save = () => runAsync(() => addAccommodationDraft({ name, starRating: stars }));
+  useGuard("hotel", differs({ name, stars }, { name: savedName, stars: savedStars }), save);
 
   /* The rooms actually on sale, which is the sum of the room types. Until
      there is one, the number is the hotelier's own stated total. */
@@ -83,14 +90,12 @@ export function HotelStep({
     .map((line) => line.trim())
     .filter(Boolean);
 
-  const save = () =>
-    run(
-      () => addAccommodationDraft({ name, starRating: stars }),
-      () => {
-        setNotice({ tone: "ok", text: "Your hotel is saved." });
-        advance();
-      },
-    );
+  const saveAndGo = async () => {
+    if (!(await saveTextAsync())) return;
+    if (!(await save())) return;
+    setNotice({ tone: "ok", text: "Your hotel is saved." });
+    advance();
+  };
 
   return (
     <>
@@ -106,21 +111,27 @@ export function HotelStep({
         />
       </StaysPlate>
 
-      <StaysPlate label={hw.steps.rcNumber} htmlFor="stays-hotel-rc">
-        <input
-          id="stays-hotel-rc"
-          className="nf-field nf-field--glass nf-stays-input"
-          value={draft.cacNumber}
-          inputMode="text"
-          aria-invalid={fieldErrors.cacNumber ? true : undefined}
-          onChange={(event) => set("cacNumber", event.target.value)}
-        />
-        {fieldErrors.cacNumber ? (
-          <p className="nf-stays-plate__note" role="alert">
-            {fieldErrors.cacNumber}
-          </p>
-        ) : null}
-      </StaysPlate>
+      {/* ONLY A REGISTERED BUSINESS IS ASKED FOR ITS RC NUMBER. A guest house
+          or serviced apartments let in somebody's own name take these screens
+          too, have no registration step, and were being asked for a number
+          they do not have under a label that did not say it was optional. */}
+      {draft.hostType === "business" && (
+        <StaysPlate label={hw.steps.rcNumber} htmlFor="stays-hotel-rc">
+          <input
+            id="stays-hotel-rc"
+            className="nf-field nf-field--glass nf-stays-input"
+            value={draft.cacNumber}
+            inputMode="text"
+            aria-invalid={fieldErrors.cacNumber ? true : undefined}
+            onChange={(event) => set("cacNumber", event.target.value)}
+          />
+          {fieldErrors.cacNumber ? (
+            <p className="nf-stays-plate__note" role="alert">
+              {fieldErrors.cacNumber}
+            </p>
+          ) : null}
+        </StaysPlate>
+      )}
 
       <StaysPlate label={hw.steps.address}>
         <button
@@ -200,7 +211,7 @@ export function HotelStep({
         size="lg"
         full
         trailingIcon="chevron-right"
-        onClick={() => saveText({}, save)}
+        onClick={() => void saveAndGo()}
         disabled={pending || name.trim().length < 2}
         loading={pending}
       >

@@ -1,4 +1,5 @@
 import "server-only";
+import { reportReadError } from "@/lib/observability/read-error";
 
 import { resolveSession } from "../actions/session";
 
@@ -34,6 +35,7 @@ export async function readDemandBoard(weeks = 4): Promise<DemandRow[] | null | "
     const rpc = session.supabase.rpc.bind(session.supabase) as unknown as Rpc;
     const { data, error } = await rpc("demand_board", { p_weeks: weeks });
     if (error?.code === "42501") return "approved_only";
+    await reportReadError("read.demand.readDemandBoard", error);
     if (error || !Array.isArray(data)) return null;
     return (data as Record<string, unknown>[]).map((row) => ({
       stateCode: typeof row.state_code === "string" ? row.state_code : null,

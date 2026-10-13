@@ -3,6 +3,7 @@
 import { addBusinessPhoto, removeBusinessPhoto } from "@/lib/host/actions";
 import { MAX_BUSINESS_PHOTOS } from "@/lib/host/photos";
 import { PhotoManager } from "./PhotoManager";
+import { useHostPageCopy } from "./host-copy";
 
 /**
  * The owner's photographs of their VENUE, on the `business_photos` spine.
@@ -24,17 +25,17 @@ export function BusinessPhotoManager({
   /** What is on record, cover first. */
   photos: { id: string; url: string }[];
 }) {
+  const words = useHostPageCopy().photoManager.venue;
   return (
     <PhotoManager
       subjectId={businessId}
       userId={userId}
       photos={photos}
       copy={{
-        title: "Photographs of the venue",
-        guidance:
-          "The room as a guest first sees it, a table laid, the frontage so somebody can recognise it from the street, and two or three plates you are known for. A phone camera in good light beats a bad professional shoot.",
-        ofSubject: "of your venue",
-        fullNote: `That is ${MAX_BUSINESS_PHOTOS} photographs, which is as many as a venue carries. Take one down to add another.`,
+        title: words.title,
+        guidance: words.guidance,
+        ofSubject: words.ofSubject,
+        fullNote: words.fullNote.replace("{max}", String(MAX_BUSINESS_PHOTOS)),
       }}
       add={({ storagePath }) => addBusinessPhoto({ businessId, storagePath })}
       remove={({ photoId }) => removeBusinessPhoto({ photoId })}

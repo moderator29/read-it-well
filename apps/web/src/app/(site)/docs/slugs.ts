@@ -1,0 +1,34 @@
+/**
+ * Every public docs chapter's slug, as plain data, for readers that cannot
+ * import the chapter files themselves (they hold JSX): the sitemap. Kept equal
+ * to the chapters by `slugs.test.ts`, so adding or retiring a chapter without
+ * updating this list fails the build.
+ */
+export const DOC_SLUGS = [
+  "what-vallo-is",
+  "getting-started",
+  "quick-start",
+  "getting-around",
+  "finding-a-place",
+  "understanding-a-listing",
+  "viewings",
+  "agreements-and-paying",
+  "paying-on-vallo",
+  "what-vallo-costs",
+  "refunds-and-cancellations",
+  "booking-a-stay",
+  "restaurants",
+  "reviews",
+  "messages-and-notifications",
+  "around",
+  "ai-assistant",
+  "price-check",
+  "listing-on-vallo",
+  "for-owners",
+  "for-agents",
+  "hosting",
+  "badges-and-verification",
+  "trust-and-safety",
+  "your-data-and-your-rights",
+  "troubleshooting",
+] as const;

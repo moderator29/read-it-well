@@ -1,4 +1,5 @@
 import { Suspense, type ReactNode } from "react";
+import { sheetWordsOf } from "@/components/social/sheet-words";
 import { getDictionary } from "@vallo/i18n";
 import { AppShell } from "@/components/app/AppShell";
 import { PageHeader } from "@/components/app/PageHeader";
@@ -7,6 +8,7 @@ import { StayCard } from "@/components/app/stays/StayCard";
 import { InspectionRows } from "@/components/app/inspections/InspectionRows";
 import { KycStatus, type KycStatusView } from "@/components/verification/KycStatus";
 import { SavedSearchBoard } from "@/components/app/saved-searches/SavedSearchBoard";
+import { searchChipCopyOf } from "@/lib/saved/searches";
 import { ModeratorApply } from "@/app/(app)/around/[slug]/ModeratorApply";
 import { ModeratorNote, PlaceAbout, PlaceNotes } from "@/app/(app)/around/[slug]/PlacePanels";
 import { ProposeAreaForm } from "@/app/(app)/around/new/ProposeAreaForm";
@@ -219,7 +221,7 @@ function View({ v, s }: { v: string; s?: string }) {
     case "kyc":
       return (
         <Frame title="Verification">
-          <KycFlowFixture />
+          <KycFlowFixture copy={t.experienceAccount.kyc} />
         </Frame>
       );
     case "kyc-status":
@@ -295,13 +297,13 @@ function View({ v, s }: { v: string; s?: string }) {
     case "saved-searches":
       return (
         <Frame title="Saved searches">
-          <SavedSearchBoard initial={SAVED_SEARCHES} locale={locale} />
+          <SavedSearchBoard initial={SAVED_SEARCHES} locale={locale} chipCopy={searchChipCopyOf(t.shape)} copy={t.experienceDiscover.saved.board} />
         </Frame>
       );
     case "post":
       return (
         <Frame title="Thread">
-          <ThreadView thread={THREAD} signedIn openReply={false} />
+          <ThreadView thread={THREAD} signedIn openReply={false} sheet={sheetWordsOf(t)} />
         </Frame>
       );
     case "inspection-rows":

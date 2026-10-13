@@ -1,5 +1,6 @@
 import { phoneConfirmationOn } from "@/lib/phone-otp/flag";
-import { forSettingsHub } from "@/lib/i18n/slice";
+import { isQaTester } from "@/lib/phone-otp/qa";
+import { forHub } from "@/components/app/account/settings-copy";
 import type { Metadata } from "next";
 import { distinctDeviceCount } from "@/lib/security/device-count";
 import { getDictionary } from "@vallo/i18n";
@@ -9,6 +10,9 @@ import { loadProfileState } from "@/lib/profile/queries";
 import { loadSessions } from "@/lib/security/sessions";
 import { getAgentContext } from "@/lib/agent/listings-queries";
 import { LogOutRow, SettingsHub } from "./SettingsHub";
+import { inviteRewards } from "@/lib/referral/rewards";
+import { readMyRewards } from "@/lib/referral/rewards-read";
+import { rewardsDoorSub } from "@/components/app/referral/rewards-door";
 
 export async function generateMetadata(): Promise<Metadata> {
   // Static metadata cannot read the locale cookie, so the tab said "Settings"
@@ -37,10 +41,12 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function SettingsPage() {
   const locale = await getLocale();
   const t = getDictionary(locale);
-  const [account, sessions, agentContext] = await Promise.all([
+  const [account, sessions, agentContext, rewardsRead] = await Promise.all([
     loadProfileState(),
     loadSessions(),
     getAgentContext(),
+    /* The Rewards row's line. Today the read answers not-live and calls nothing. */
+    readMyRewards(),
   ]);
   const signedIn = account.state === "signed-in";
   const profile = signedIn ? account.profile : null;
@@ -70,7 +76,7 @@ export default async function SettingsPage() {
 
       <div className="space-y-block">
         <SettingsHub
-          t={forSettingsHub(t)}
+          t={forHub(t)}
           locale={locale}
           signedIn={signedIn}
           person={
@@ -88,12 +94,21 @@ export default async function SettingsPage() {
           notifications={profile ? profile.settings.notifications : null}
           deviceCount={deviceCount}
           phoneRow={
-            signedIn && (await phoneConfirmationOn())
+            /* A QA account is never asked for a phone, so it is not shown the door. */
+            signedIn && (await phoneConfirmationOn()) && !(await isQaTester(profile?.userId))
               ? { label: t.trustVisible.phone.title, sub: t.trustVisible.phone.subtitle }
               : null
           }
           passportRow={
-            signedIn ? { label: t.trustVisible.passport.title, sub: t.trustVisible.passport.subtitle } : null
+            signedIn ? { label: t.passportV2.title, sub: t.passportV2.subtitle } : null
+          }
+          rewardsRow={
+            signedIn
+              ? {
+                  label: t.experienceRewards.title,
+                  sub: rewardsDoorSub(inviteRewards(rewardsRead), t.experienceRewards),
+                }
+              : null
           }
         />
 
@@ -102,7 +117,7 @@ export default async function SettingsPage() {
             same block: the hub is a list of doors, not a second copy of a
             screen (track G). */}
 
-        <LogOutRow t={forSettingsHub(t)} signedIn={signedIn} />
+        <LogOutRow t={forHub(t)} signedIn={signedIn} />
       </div>
     </div>
   );

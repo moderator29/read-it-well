@@ -2,7 +2,6 @@
 
 import { useActionState, useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { useClientLocale } from "@/lib/i18n/use-client-locale";
 import { useLockRecovery, useMoneyStepUp } from "@/components/app/money/MoneyStepUp";
 import { useRouter } from "next/navigation";
 import { SuccessSheet } from "@/components/ui/SuccessSheet";
@@ -16,7 +15,7 @@ import {
   type ResolvedName,
 } from "@/lib/agent/payout-actions";
 import type { PayoutAccount } from "@/lib/agent/payout-queries";
-import { NUBAN_LENGTH, digitsOnly, groupNuban } from "@/lib/agent/payout-schema";
+import { NUBAN_LENGTH, digitsOnly, groupNuban } from "@/lib/agent/payout-model";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 
@@ -57,7 +56,7 @@ export function PayoutAccounts({
     FormData
   >(resolvePayoutAccount, null);
   /* V-81: where payouts go asks for the phone lock, when there is one. */
-  const addLock = useMoneyStepUp(useClientLocale(), (form) => ({
+  const addLock = useMoneyStepUp((form) => ({
     kind: "payout_add",
     target: `${String(form.get("bankCode") ?? "")}:${String(form.get("accountNumber") ?? "")}`,
   }));
@@ -102,6 +101,7 @@ export function PayoutAccounts({
           if (!open) setAcknowledged(addState);
         }}
         variant={addedWords.variant}
+        haptic={addedWords.haptic}
         object={addedWords.object}
         title={addedWords.title}
         body={addedWords.body}
@@ -157,7 +157,7 @@ export function PayoutAccounts({
             <div>
               <label
                 htmlFor="payout-bank"
-                className="block text-[length:var(--nf-text-caption)] font-medium text-[var(--nf-content-secondary)]"
+                className="block text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-secondary)]"
               >
                 Bank
               </label>
@@ -179,7 +179,7 @@ export function PayoutAccounts({
             <div>
               <label
                 htmlFor="payout-number"
-                className="block text-[length:var(--nf-text-caption)] font-medium text-[var(--nf-content-secondary)]"
+                className="block text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-secondary)]"
               >
                 Account number
               </label>
@@ -204,13 +204,15 @@ export function PayoutAccounts({
             <form action={resolveAction} className="mt-md">
               <input type="hidden" name="bankCode" value={bankCode} />
               <input type="hidden" name="accountNumber" value={digitsOnly(accountNumber)} />
-              <button
+              <Button
                 type="submit"
+                variant="secondary"
+                full
                 disabled={!complete || resolving}
-                className="nf-btn nf-btn--glass w-full disabled:opacity-55"
+                className="disabled:opacity-55"
               >
                 {resolving ? "Checking with the bank..." : "Confirm account name"}
-              </button>
+              </Button>
             </form>
           ) : (
             <form action={addAction} className="mt-md" onSubmit={(event) => void addLock.pass(event)}>
@@ -237,13 +239,9 @@ export function PayoutAccounts({
                 </span>
               </p>
 
-              <button
-                type="submit"
-                disabled={adding}
-                className="nf-btn nf-btn--primary mt-sm w-full disabled:opacity-60"
-              >
+              <Button type="submit" variant="primary" full disabled={adding} className="mt-sm disabled:opacity-60">
                 {adding ? "Saving..." : "Save this account"}
-              </button>
+              </Button>
               <Button variant="quiet" size="sm" full className="mt-xs" onClick={() => setConfirmed(null)}>
                 Not my account, change it
               </Button>
@@ -275,8 +273,7 @@ export function PayoutAccounts({
 /** One saved account, with the two things an agent can do to it. */
 function AccountRow({ account }: { account: PayoutAccount }) {
   const router = useRouter();
-  const locale = useClientLocale();
-  const defaultLock = useMoneyStepUp(locale, (form) => ({ kind: "payout_default", target: String(form.get("accountId") ?? "") }));
+  const defaultLock = useMoneyStepUp((form) => ({ kind: "payout_default", target: String(form.get("accountId") ?? "") }));
   const [defaultState, defaultAction, settingDefault] = useActionState<
     ActionResult<null> | null,
     FormData
@@ -286,7 +283,7 @@ function AccountRow({ account }: { account: PayoutAccount }) {
     FormData
   >(removePayoutAccount, null);
   /* V-81: removing the account payouts go to promotes another one. */
-  const removeLock = useMoneyStepUp(locale, (form) => ({ kind: "payout_remove", target: `payout:${String(form.get("accountId") ?? "")}` }));
+  const removeLock = useMoneyStepUp((form) => ({ kind: "payout_remove", target: `payout:${String(form.get("accountId") ?? "")}` }));
   useLockRecovery(defaultLock, defaultState);
   useLockRecovery(removeLock, removeState);
 

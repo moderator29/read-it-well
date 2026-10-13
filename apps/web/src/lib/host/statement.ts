@@ -105,6 +105,18 @@ export function statementTotals(lines: readonly StatementLine[]): StatementTotal
   );
 }
 
+/**
+ * Whether the statement draws a Guarantee row and column at all (A9, D51).
+ *
+ * The Guarantee is retired and a new payment carries no contribution, so a
+ * month of new payments printed "Guarantee contribution ₦0" on every line, a
+ * charge that no longer exists. The row shows only where a line carried one:
+ * a payment made while it ran, or the reversal of one.
+ */
+export function statementCarriesGuarantee(lines: readonly StatementLine[]): boolean {
+  return lines.some((line) => line.guaranteeMinor !== 0);
+}
+
 /** Kobo to "12345.67", the way an accountant's spreadsheet reads money. */
 export function nairaPlain(minor: number): string {
   const sign = minor < 0 ? "-" : "";

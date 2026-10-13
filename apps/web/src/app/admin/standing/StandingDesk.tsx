@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, type ReactNode } from "react";
 import {
   grantStandingBadge,
   revokeStandingBadge,
@@ -32,9 +32,15 @@ import { TextField, SelectField, TextArea } from "@/components/ui/Field";
 export function StandingDesk({
   grants,
   manualBadges,
+  filters,
+  empty,
 }: {
   grants: ManualGrant[];
   manualBadges: { code: string; name: string }[];
+  /** The record's search and badge chips, drawn with the record they narrow rather than above the form. */
+  filters?: ReactNode;
+  /** The page's own empty state for the record (never granted, or nothing matched the search). */
+  empty?: ReactNode;
 }) {
   const [state, formAction, pending] = useActionState<ActionResult<GrantReceipt> | null, FormData>(
     grantStandingBadge,
@@ -101,11 +107,10 @@ export function StandingDesk({
           error={fieldError("reason")}
         />
 
+        {/* A refusal is said in the error ink, the way every other console
+            form says it, not in a fifth container drawn for one sentence. */}
         {state && !state.ok && (
-          <p
-            role="alert"
-            className="mt-sm rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-secondary)] p-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]"
-          >
+          <p role="alert" className="nf-body-sm mt-sm font-semibold text-[var(--nf-state-error)]">
             {state.error}
           </p>
         )}
@@ -133,7 +138,10 @@ export function StandingDesk({
       {/* -------------------------------------------------------- record */}
       <section>
         <h2 className="nf-h3 mb-sm text-[length:var(--nf-text-body)]">Every grant, and who signed for it</h2>
-        {grants.length === 0 ? (
+        {filters}
+        {grants.length === 0 && empty ? (
+          empty
+        ) : grants.length === 0 ? (
           <div className="nf-panel nf-panel--card nf-admin-card p-lg text-center">
             <p className="text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
               Nobody has been granted standing yet
@@ -187,7 +195,9 @@ export function StandingDesk({
           </ul>
         )}
         {revokeState && !revokeState.ok && (
-          <p role="alert" className="mt-xs text-[length:var(--nf-text-caption)] text-[var(--nf-state-warning)]">
+          /* The error ink, not `--nf-state-warning`: that resolves to the
+             pending cyan, which says "still going through" about a refusal. */
+          <p role="alert" className="nf-body-sm mt-xs font-semibold text-[var(--nf-state-error)]">
             {revokeState.error}
           </p>
         )}

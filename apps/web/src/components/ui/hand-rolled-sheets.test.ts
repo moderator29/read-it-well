@@ -17,6 +17,10 @@ import { withoutComments } from "@/lib/copy/source-scan";
 const KNOWN = [
   "components/app/AppShell.tsx",
   "components/app/assistant/AssistantChat.tsx",
+  /* VC1: the "End the review call?" card over the live call stage. The call
+     surface is its own full-screen modal above every sheet layer, and a
+     portalled Sheet would open UNDER it; the card is part of the stage. */
+  "components/calls/views.tsx",
 ];
 
 const SRC = join(__dirname, "..", "..");

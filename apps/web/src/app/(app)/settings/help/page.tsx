@@ -7,13 +7,14 @@ import { SupportChat } from "@/components/app/account/SupportChat";
 import { aiConsentForViewer } from "@/lib/ai/consent-server";
 import { loadMyReports } from "@/lib/reports/my-reports";
 import { MyReports } from "./MyReports";
+import { SettingsLede } from "@/components/app/account/SettingsLede";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: getDictionary(await getLocale()).settings.hub.help };
 }
 
 /**
- * Help & Support: the assistant, the help centre, the legal pages and the
+ * Help and support: the assistant, the help centre, the legal pages and the
  * about block, which were the last two cards of the old settings home.
  */
 export default async function HelpSettingsPage() {
@@ -28,9 +29,14 @@ export default async function HelpSettingsPage() {
         subtitle={t.settings.hub.helpSub}
         fallback="/settings"
       />
+      <SettingsLede
+        label={t.experienceAccount.settings.lede.what}
+        what={t.experienceAccount.settings.lede.help.what}
+        who={t.experienceAccount.settings.lede.help.who}
+      />
       <div className="space-y-block">
         <section id="settings-help" className="scroll-mt-28">
-          <SupportChat aiConsented={await aiConsentForViewer()} />
+          <SupportChat aiConsented={await aiConsentForViewer()} assistantCopy={t.experienceInbox.assistant} />
         </section>
         {/* V-89: what this person reported, where it stands, and a way to take it back. */}
         <section id="settings-reports" className="scroll-mt-28">
@@ -45,10 +51,11 @@ export default async function HelpSettingsPage() {
                 label={t.settings.about.help}
                 sub={t.settings.about.helpSub}
               />
+              <RowLink href="/docs" icon="file-text" label={t.settings.about.docs} sub={t.settings.about.docsSub} />
               <RowLink href="/terms" icon="grid" label={t.settings.about.terms} />
               <RowLink href="/privacy" icon="verified" label={t.settings.about.privacy} />
               <RowLink href="/disclaimer" icon="shield-stop" label={t.settings.about.disclaimer} />
-              <RowValue icon="sparkle" label={t.settings.about.version} value="0.1.0" />
+              <RowValue icon="info" label={t.settings.about.version} value="0.1.0" />
               {/* The library names are the products' own names and are not
                   translated, in any language. */}
               <RowValue

@@ -1,3 +1,5 @@
+import { BRAND_DOMAIN } from "@/lib/brand-domain";
+
 /**
  * THE ONE PLACE IN THIS PRODUCT WHERE THE REGULATED WORD APPEARS.
  *
@@ -86,8 +88,13 @@ export function disclaimerSentence(): string {
  * does NOT contain the regulated word, because a card is a fragment and a
  * fragment carrying the word without the sentence that disclaims it is the
  * implication the Act is about.
+ *
+ * The address is `BRAND_DOMAIN`. It read "vallo.ng", the domain nobody ever
+ * registered (`brand-domain.test.ts`), on the one artefact built to be
+ * forwarded to strangers: every Price Check card sent its readers to an
+ * address anybody could buy.
  */
-export const SHARE_CARD_FOOTER = "Asking prices, not sold prices. vallo.ng";
+export const SHARE_CARD_FOOTER = `Asking prices, not sold prices. ${BRAND_DOMAIN}`;
 
 /**
  * The sentence above the comparables, and the most valuable copy in the

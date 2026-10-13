@@ -1,71 +1,103 @@
 "use client";
 
 import type { ShellDictionary } from "@/lib/i18n/shell-dictionary";
+import type { Side } from "@/lib/side.constants";
 import { useState } from "react";
 import Link from "next/link";
 import { Sheet } from "@/components/ui/Sheet";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
-import { IconPlate } from "@/components/ui/IconPlate";
-import { Row, RowList, TYPE } from "@/components/app/Screen";
-import { openProfileSwitcher } from "@/components/supply/profile-switcher-event";
+import { Row, RowList } from "@/components/app/Screen";
+import { withNext } from "@/lib/auth/next-link";
 
 /**
- * THE DOCK'S CENTRE "+", AND THE SHEET IT OPENS (the founder, 29 September
- * 2026, reference `17-dock-plus-centre.png`).
+ * THE DOCK'S "+" AT THE RIGHT END, AND THE SHEET IT OPENS.
  *
- * The centre slot was the workspace switch: the account's photograph or the
- * current workspace's glyph in a container. The founder wants the centre to
- * be the one thing a person makes from anywhere: a round brand-blue button
- * with a bold white plus. It opens a sheet of what can be created (a
- * listing, a post, a viewing, and a stay listing for a host) and, as its
- * last row, Switch workspace, which fires the named event the switcher
- * listens for (`profile-switcher-event.ts`), so nothing the old centre did
- * is lost. The switcher's own sheet is still mounted by `AppShell`, with no
- * trigger of its own.
+ * It stood in the capsule's centre slot until the founder's swap of 13 October
+ * 2026 put the grid menu there and moved the "+" out to the round button at the
+ * right end, brand blue with its glow. The sheet does not move: it is a bottom
+ * sheet (`Sheet`, a portal on the body that joins the overlay registry, so the
+ * Android back button closes it) and opens the same from either place. Focus
+ * returns to this button when it closes.
+ *
+ * THE SHEET, SINCE 13 OCTOBER 2026 (the founder, replacing the plain titles of
+ * 7 October, handoff A.6): three clear options at the top, in this order, each
+ * with a clean monochrome icon, one line and a short line under it.
+ *
+ *   Post to story    the existing story composer (`/stories/new`)
+ *   Post to feed     the existing post composer for Around (`/around?compose=1`)
+ *   List a property  the existing listing route for the person's side (the
+ *                    agent wizard for an agent, the side's chooser otherwise);
+ *                    on the Stays side "Create a stay listing"
+ *
+ * Nothing the sheet offered is removed: "Book a viewing" (Property) and "Book a
+ * stay" (Stays) stay, below the three, as a quieter row. With the `social`
+ * switch off there is no feed and no story to post to, so those two are not
+ * offered rather than leading to a paused screen, and "List" stays. A GUEST
+ * cannot post or list, so each option goes through the existing sign-up door
+ * and returns to the destination afterwards (`withNext`); booking is public
+ * and goes straight there.
+ *
+ * Switch workspace LEFT this sheet. It is about accounts, not about making
+ * something, and it lives where accounts live: the Switch role row on
+ * `/profile` (`SwitchRoleRow`), which fires the same named event
+ * (`profile-switcher-event.ts`) that the workspace sheet in `AppShell`
+ * listens for. Nothing it did is lost; it is one place, not two.
+ *
+ * The disc turns a quarter into its own close as the sheet opens (north star
+ * 6.1, nav-island.css). That stays.
  *
  * `data-dock-create` marks the button for tests and screenshots, so neither
  * depends on a class name.
- *
- * Switch workspace is shown only when signed in, and the sheet's first
- * detent grows for a host's fifth row so nothing starts below the fold.
  */
 export function CreateDock({
   t,
   listHref,
+  side = "property",
   isHost = false,
-  signedIn = false,
+  signedIn = true,
+  socialOn = true,
 }: {
   t: ShellDictionary;
-  /** Where "List a property" goes: the agent wizard for an agent, the chooser otherwise. */
+  /** Where the listing option goes: the agent wizard for an agent, the side's chooser otherwise. */
   listHref: string;
+  /** Which side's three options to offer. */
+  side?: Side;
+  /** A host's stay listing goes straight to their rooms rather than the chooser. */
   isHost?: boolean;
-  /**
-   * Switch workspace is offered only to a signed-in account: a visitor holds
-   * no workspace, and the sheet it opens would be a list of nothing.
-   */
+  /** A guest cannot post or list: each option goes through the sign-up door and back. */
   signedIn?: boolean;
+  /** The `social` switch: off, the feed's composer is not offered. */
+  socialOn?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const copy = t.nav.create;
+  const stays = side === "stays";
 
-  /* Keyed by a fixed id, not the href: "List a property" goes to the same
-     chooser a later row might, and a key must not depend on a route. */
-  const items: { id: string; href: string; icon: UiIconName; title: string; sub: string }[] = [
-    { id: "list", href: listHref, icon: "house", title: copy.list, sub: copy.listSub },
-    /* The feed's own composer, opened on arrival (`/around?compose=1`,
-       read by the Around page and passed to `CreateBloom`). */
-    { id: "post", href: "/around?compose=1", icon: "chat-bubble", title: copy.post, sub: copy.postSub },
-    { id: "viewing", href: "/search", icon: "calendar-booking", title: copy.viewing, sub: copy.viewingSub },
-    ...(isHost
-      ? [{ id: "stay", href: "/host/rooms", icon: "bed" as const, title: copy.stay, sub: copy.staySub }]
+  /*
+   * The three top-level options, in the founder's order, then what the sheet
+   * already offered, below them. Keyed by a fixed id, not the href: a key must
+   * not depend on a route. A guest goes through the sign-up door and comes back.
+   */
+  const door = (href: string) => (signedIn ? href : withNext("/sign-up", href));
+  const more = t.homeV2;
+  const top: { id: string; href: string; title: string; sub: string; icon: UiIconName }[] = [
+    ...(socialOn
+      ? [
+          { id: "story", href: door("/stories/new"), title: more.createStory, sub: more.createStorySub, icon: "picture" as const },
+          { id: "post", href: door("/around?compose=1"), title: more.createPost, sub: more.createPostSub, icon: "pencil" as const },
+        ]
       : []),
+    stays
+      ? { id: "stay", href: door(isHost ? "/host/rooms" : listHref), title: more.createStay, sub: more.createStaySub, icon: "bed" }
+      : { id: "list", href: door(listHref), title: more.createList, sub: more.createListSub, icon: "house" },
   ];
-
-  const plate = (icon: UiIconName) => (
-    <IconPlate size="sm" tone="brand">
-      <UiIcon name={icon} size={20} />
-    </IconPlate>
-  );
+  /* Booking was always here and stays: public, so no sign-up door. */
+  const below: { id: string; href: string; title: string; sub?: string; icon: UiIconName }[] = [
+    stays
+      ? { id: "book-stay", href: "/stays/search", title: copy.bookStay, icon: "calendar-booking" }
+      : { id: "viewing", href: "/search", title: copy.viewing, sub: copy.viewingSub, icon: "calendar-booking" },
+  ];
+  const items = [...top.map((item) => ({ ...item, quiet: false })), ...below.map((item) => ({ ...item, quiet: true }))];
 
   return (
     <>
@@ -75,11 +107,19 @@ export function CreateDock({
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-label={copy.trigger}
-        className="nf-tab__link nf-tab__link--create"
+        className="nf-dock-create"
         data-dock-create=""
       >
+        {/* THE CENTRE TURNS INTO ITS OWN CLOSE (north star 6.1): the disc
+            rotates 90 degrees as its sheet opens while the plus crossfades
+            to a close mark (nav-island.css). */}
         <span className="nf-dock-plus" aria-hidden="true">
-          <UiIcon name="plus" size="md" />
+          <span className="nf-dock-plus__glyph nf-dock-plus__glyph--open">
+            <UiIcon name="plus" size="md" />
+          </span>
+          <span className="nf-dock-plus__glyph nf-dock-plus__glyph--close">
+            <UiIcon name="close" size="md" />
+          </span>
         </span>
       </button>
 
@@ -87,48 +127,29 @@ export function CreateDock({
         open={open}
         onOpenChange={setOpen}
         title={copy.title}
-        /* A host has a fifth row; the first detent grows to hold it. */
-        detents={isHost ? [0.72, 0.92] : [0.6, 0.92]}
+        /* Four rows with a short line each and a title: one detent that holds them. */
+        detents={[0.62]}
         closeLabel={t.pickers.close}
       >
-        <RowList inset className="nf-create-sheet [--nf-row-divider-lead:3.25rem]">
+        <RowList inset={false} className="nf-create-sheet" data-testid="create-options">
           {items.map((item) => (
             <Row key={item.id} className="p-0">
               <Link
                 data-testid={`create-${item.id}`}
                 href={item.href}
                 onClick={() => setOpen(false)}
-                className="nf-row nf-row--tap w-full px-2xs text-left"
+                className={`nf-row nf-row--tap nf-create-sheet__option${item.quiet ? " nf-create-sheet__option--quiet" : ""}`}
               >
-                {plate(item.icon)}
-                <span className="min-w-0 flex-1">
-                  <span className={`block ${TYPE.rowTitle}`}>{item.title}</span>
-                  <span className={`mt-inline-tight block ${TYPE.rowMeta}`}>{item.sub}</span>
+                <span className="nf-create-sheet__icon" aria-hidden="true">
+                  <UiIcon name={item.icon} size="md" />
                 </span>
-                <UiIcon name="chevron-right" size="sm" className="shrink-0 text-[var(--nf-content-muted)]" />
+                <span className="nf-create-sheet__text">
+                  <span className="nf-create-sheet__title">{item.title}</span>
+                  {item.sub ? <span className="nf-create-sheet__sub">{item.sub}</span> : null}
+                </span>
               </Link>
             </Row>
           ))}
-          {signedIn ? (
-            <Row className="p-0">
-              <button
-                type="button"
-                onClick={() => {
-                  setOpen(false);
-                  openProfileSwitcher();
-                }}
-                className="nf-row nf-row--tap w-full px-2xs text-left"
-                data-testid="create-switch-workspace"
-              >
-                {plate("switch-profile")}
-                <span className="min-w-0 flex-1">
-                  <span className={`block ${TYPE.rowTitle}`}>{copy.switch}</span>
-                  <span className={`mt-inline-tight block ${TYPE.rowMeta}`}>{copy.switchSub}</span>
-                </span>
-                <UiIcon name="chevron-right" size="sm" className="shrink-0 text-[var(--nf-content-muted)]" />
-              </button>
-            </Row>
-          ) : null}
         </RowList>
       </Sheet>
     </>

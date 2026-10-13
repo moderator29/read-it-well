@@ -7,6 +7,9 @@ import { HostNav } from "./HostNav";
 import { HostDeskSidebar } from "./HostDeskSidebar";
 import { HostDrawer, HostTitle } from "./HostDrawer";
 import { hostNavLabels } from "./host-nav-model";
+import { ProSwitch } from "@/components/app/pro/ProSwitch";
+import { WorkspaceDock } from "@/components/workspace/WorkspaceDock";
+import { workspaceDockShows } from "@/components/workspace/workspace-dock";
 
 /**
  * The Host surfaces' shell, for hotels, shortlets, guest houses, serviced
@@ -19,6 +22,15 @@ import { hostNavLabels } from "./host-nav-model";
  * outside the consumer shell on purpose, as the agent application does: a
  * person in the middle of uploading their CAC certificate does not need the
  * dock under their thumb.
+ *
+ * THE MAIN DOCK (13 October 2026, the founder). Below lg every other host
+ * screen draws the app's own bottom dock (`WorkspaceDock`: Home, Search, the
+ * menu, Feed, Profile and the "+", on the Stays side, which is where the host
+ * workspace lives), so a phone can get back to the rest of Vallo. One dock:
+ * the host's own navigation is the chip row and drawer in the bar and, from
+ * lg, the sidebar. It steps aside where the nav does (the wizard, `nav` off)
+ * and on the immersive assistant. Where it shows, the body carries the marker
+ * `nf-main--docked` and clears the dock by `--nf-tabbar-clearance`.
  */
 export async function HostShell({
   children,
@@ -74,6 +86,7 @@ export async function HostShell({
     getLocale().then(getDictionary),
   ]);
   const labels = hostNavLabels(t);
+  const docked = workspaceDockShows({ immersive, flow: !nav });
   return (
     <div className={immersive ? "nf-host nf-host--immersive" : "nf-host"}>
       {/* From 1024px the destinations are the shared workspace sidebar (plan
@@ -90,6 +103,9 @@ export async function HostShell({
         back={chromeBack ? fallback : false}
         menu={nav ? <HostDrawer labels={labels} /> : undefined}
         title={<HostTitle labels={labels} />}
+        /* The Pro switch (D12): present only for a member the server says
+           holds a plan, and absent, not locked, for everybody else. */
+        end={<ProSwitch scope="host" />}
         bell={{
           href: "/host/notifications",
           label: t.nav.notifications,
@@ -99,10 +115,18 @@ export async function HostShell({
       >
         {nav ? <HostNav labels={labels} /> : null}
       </WorkspaceHeader>
-      <main id="main" className={immersive ? "nf-host__fill" : wide ? "nf-host__body nf-host__body--wide" : "nf-host__body"}>
+      <main
+        id="main"
+        className={
+          immersive
+            ? "nf-host__fill"
+            : `${wide ? "nf-host__body nf-host__body--wide" : "nf-host__body"}${docked ? " nf-host__body--docked nf-main--docked" : ""}`
+        }
+      >
         {children}
       </main>
       </div>
+      {docked && <WorkspaceDock side="stays" active="/host" />}
     </div>
   );
 }

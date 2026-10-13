@@ -2,6 +2,7 @@ import { getLocale } from "@/lib/locale";
 import { getAuditActivity, getAuditLog } from "@/lib/admin/audit-queries";
 import { getRiskAlerts } from "@/lib/admin/queries";
 import { getPersonTiers } from "@/lib/admin/reads/shared";
+import { getOpsReads } from "@/lib/admin/reads/ops-panels";
 import { getAlertTrend, getInspectionActivity, getJobHealth, getPushActivity, getRunDays } from "@/lib/admin/reads/operations";
 import { LiveRefresh } from "../_components/LiveRefresh";
 import { getDictionary } from "@vallo/i18n";
@@ -28,7 +29,10 @@ function requestTime(): number {
  * queue and device attempts, under their staff read policies). In-app
  * notification volumes are not readable by an admin today (the
  * notifications table's only SELECT policy is the recipient's own, Request
- * A6), nor is the email outbox (Request A14); both panels say so.
+ * A6), nor is the email outbox (Request A14); both panels say so until the
+ * staff reads of op01_operations_reads.sql are applied, after which
+ * `getOpsReads` draws them (and the account deletions, business transfers,
+ * database jobs, reconciliation watch and held events panels on In flight).
  */
 export default async function AdminOperationsPage({
   searchParams,
@@ -53,7 +57,7 @@ export default async function AdminOperationsPage({
     }
   };
 
-  const [jobs, runDays, trend, alerts, audit, activity, inspections, push, store] = await Promise.all([
+  const [jobs, runDays, trend, alerts, audit, activity, inspections, push, store, ops] = await Promise.all([
     getJobHealth(now),
     getRunDays(now),
     getAlertTrend(now),
@@ -63,6 +67,7 @@ export default async function AdminOperationsPage({
     tab === "inflight" ? getInspectionActivity() : Promise.resolve(null),
     tab === "notifications" ? getPushActivity(now) : Promise.resolve(null),
     storeRun(),
+    getOpsReads(),
   ]);
 
   // B-BADGE: the published tier of every person the audit rows name.
@@ -89,6 +94,7 @@ export default async function AdminOperationsPage({
         tiers={tiers}
         inspections={inspections && inspections.state === "ok" ? inspections.data : null}
         store={store}
+        ops={ops}
       />
     </>
   );

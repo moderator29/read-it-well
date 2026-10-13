@@ -26,9 +26,12 @@ import { LoadingShell } from "@/components/app/ScreenSkeleton";
 export function AgentScreenSkeleton({
   label,
   children,
+  inner = true,
 }: {
   label: string;
   children: ReactNode;
+  /** False for an immersive page (the assistant), which draws no inner navigation. */
+  inner?: boolean;
 }) {
   return (
     <div className="flex min-h-dvh">
@@ -45,7 +48,10 @@ export function AgentScreenSkeleton({
         </div>
       </aside>
 
-      <main id="main" className="min-w-0 flex-1">
+      {/* The same bottom the shell now leaves for the main dock below lg
+          (`AgentShell`, `nf-main--docked`), so the page does not grow a foot
+          when it lands. An immersive page (`inner` false) has no dock. */}
+      <main id="main" className={inner ? "nf-main--docked min-w-0 flex-1 lg:pb-0" : "min-w-0 flex-1"}>
         {/* Real chrome, not a skeleton: the header is glass and sticky whether
             or not the page beneath it has arrived, and drawing a grey slab in
             its place would be a bigger change than leaving it empty. */}
@@ -64,8 +70,12 @@ export function AgentScreenSkeleton({
 
         <LoadingShell
           label={label}
-          className="px-md pb-[calc(2.5rem+env(safe-area-inset-bottom))] pt-lg sm:px-5 md:px-xl md:pt-7 lg:pb-10"
+          className={`px-md pt-lg sm:px-5 md:px-xl md:pt-7 lg:pb-10 ${inner ? "pb-lg" : "pb-[calc(2.5rem+env(safe-area-inset-bottom))]"}`}
         >
+          {/* The inner navigation's 44px toggle, which AgentShell draws above
+              every page (R3-08): held here so the title does not drop by a row
+              when the page lands. */}
+          {inner ? <Skeleton circle width="2.75rem" className="mb-xs" /> : null}
           {children}
         </LoadingShell>
       </main>

@@ -304,7 +304,6 @@ async function addBankAccountWork(
 
   revalidatePath("/settings");
   revalidatePath("/settings/payments");
-  revalidatePath("/wallet");
   return ok(account);
 }
 
@@ -352,7 +351,6 @@ export async function setDefaultBankAccount(id: string, stepUp?: string): Promis
   if (account.is_default) {
     revalidatePath("/settings");
     revalidatePath("/settings/payments");
-    revalidatePath("/wallet");
     return ok(null);
   }
   /* V-81: this changes where money is paid out. */
@@ -384,7 +382,6 @@ export async function setDefaultBankAccount(id: string, stepUp?: string): Promis
 
   revalidatePath("/settings");
   revalidatePath("/settings/payments");
-  revalidatePath("/wallet");
   return ok(null);
 }
 
@@ -451,7 +448,6 @@ export async function removeBankAccount(id: string, stepUp?: string): Promise<Ac
 
   revalidatePath("/settings");
   revalidatePath("/settings/payments");
-  revalidatePath("/wallet");
   return ok(null);
 }
 

@@ -1,5 +1,7 @@
 "use client";
 
+import { PhoneGateLink } from "@/components/app/PhoneGateLink";
+import { isPhoneGate } from "@/lib/actions/envelope";
 import { useActionState, useId, useMemo, useState } from "react";
 import Link from "next/link";
 import { reserveTable } from "@/lib/reservations/actions";
@@ -9,6 +11,14 @@ import { Button } from "@/components/ui/Button";
 import { SuccessSheet } from "@/components/ui/SuccessSheet";
 import { successCopy, type SuccessWords } from "@/lib/ui/success-moments";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { slotsFor, type ServiceWindow } from "./table-windows";
+import { useClientMount } from "@/lib/ui/client-mount";
+import type { Dictionary, Locale } from "@vallo/i18n/core";
+import type { ReservedDeposit } from "@/lib/reservations/actions";
+import { lagosIso, matchDepositRule, type DepositRule, type DepositWindow } from "@/lib/reservations/deposit-rules";
+import { DepositSummary } from "@/components/app/reservations/DepositSummary";
+import { DepositStep } from "@/components/app/reservations/DepositStep";
+import "@/app/css/catalogue.css";
 
 /**
  * Asking a restaurant to hold a table.
@@ -44,12 +54,10 @@ function lagosDayIso(offset: number): string {
   return lagos.toISOString().slice(0, 10);
 }
 
-/** The times people actually book, rather than a free clock. */
-const SLOTS = [
-  "12:00", "12:30", "13:00", "13:30", "14:00",
-  "17:00", "17:30", "18:00", "18:30", "19:00",
-  "19:30", "20:00", "20:30", "21:00", "21:30",
-];
+/** The current time in Lagos as HH:MM, so today never offers a past table. */
+function lagosClockNow(): string {
+  return new Date(Date.now() + 60 * 60 * 1_000).toISOString().slice(11, 16);
+}
 
 /** "Today", "Tomorrow", then a short weekday. Anchored at midday, see below. */
 function dayLabel(iso: string, todayIso: string): string {
@@ -71,7 +79,41 @@ export function ReserveTable({
   businessId,
   messageHref,
   success,
+  windows,
+  windowCopy,
+  title = "Book a table",
+  formId,
+  deposit = null,
 }: {
+  /**
+   * D75 (track/restaurant-deposits): the venue's active deposit rules, when
+   * `restaurant_deposits` is on and a deposit can reach the venue (read on
+   * the server, `readVenueDeposit`). With them the form says, for the day,
+   * time and party picked, whether a deposit applies and how much, before
+   * the guest asks; without them the form is exactly the free form it was.
+   */
+  deposit?: {
+    rules: DepositRule[];
+    windows: DepositWindow[];
+    words: Dictionary["tableDeposits"]["guest"];
+    locale: Locale;
+  } | null;
+  /**
+   * The card's own heading. A page that already heads the section (a
+   * restaurant's "Hold a table") passes null, so one card does not carry two
+   * titles. Defaults to the heading it always had.
+   */
+  title?: string | null;
+  /** The form's element id, for an anchored foot that scrolls to it. */
+  formId?: string;
+  /**
+   * The venue's published service windows. With them, the time row offers
+   * only the half hours inside the picked day's windows (`table-windows.ts`);
+   * without them, the familiar times, and the venue confirms.
+   */
+  windows?: readonly ServiceWindow[];
+  /** The picker's two lines (`t.experienceDetail.window`). */
+  windowCopy?: { closedThatDay: string; noTimesLeftToday?: string; withinHours: string };
   /** The page's `t.success`, for "Table request sent". Absent, no sheet. */
   success?: SuccessWords;
   /**
@@ -95,6 +137,22 @@ export function ReserveTable({
 
   const [date, setDate] = useState(todayIso);
   const [time, setTime] = useState("19:00");
+  /* The times on offer for the picked day. A time that is not on offer for
+     the new day moves to the first one that is, so the hidden field never
+     submits a time the picker is not showing. */
+  /* Past times are dropped only once mounted: the server and the phone read
+     the clock at different moments, and the first paint must match. */
+  const mounted = useClientMount();
+  const slots = useMemo(
+    () => slotsFor(date, windows, mounted && date === todayIso ? lagosClockNow() : undefined),
+    [date, windows, todayIso, mounted],
+  );
+  /* Empty with the clock ignored, the venue does not seat on this weekday;
+     empty only with it applied, today's last seating has passed. Those are
+     different news, so they are told apart rather than both saying closed. */
+  const seatsThisWeekday = useMemo(() => slotsFor(date, windows).length > 0, [date, windows]);
+  const shownTime = slots.includes(time) ? time : (slots[0] ?? "");
+  const hasHours = (windows?.length ?? 0) > 0;
   const [party, setParty] = useState(2);
 
   const dateId = useId();
@@ -103,11 +161,37 @@ export function ReserveTable({
   const noteId = useId();
 
   const [state, formAction, pending] = useActionState<
-    ActionResult<{ reservationId: string; status: "PENDING" }> | null,
+    ActionResult<{ reservationId: string; status: "PENDING"; deposit?: ReservedDeposit | null }> | null,
     FormData
   >(reserveTable, null);
+  /* What the restaurant's rule asks of this party at this time, on the
+     screen, before anything is sent. The database quotes again once the
+     request exists, and that is the figure the guest pays. */
+  const preview = useMemo(
+    () =>
+      deposit && shownTime
+        ? matchDepositRule(deposit.rules, deposit.windows, party, lagosIso(date, shownTime))
+        : null,
+    [deposit, party, date, shownTime],
+  );
   /* The success sheet over the "Request sent" panel, once per request. */
   const [successClosed, setSuccessClosed] = useState(false);
+
+  if (state?.ok && state.data.deposit && deposit) {
+    /* THE ONE STEP LEFT. The request exists and the restaurant's rule asks a
+       deposit of it: the database's own quote, its refund rule, and the card
+       button. No success sheet over it: the request is not done until this
+       is paid, and the venue cannot confirm before. */
+    return (
+      <DepositStep
+        reservationId={state.data.reservationId}
+        due={state.data.deposit}
+        party={party}
+        words={deposit.words}
+        locale={deposit.locale}
+      />
+    );
+  }
 
   if (state?.ok) {
     /* "Table request sent", never "booked": nothing is held until the
@@ -125,7 +209,7 @@ export function ReserveTable({
           object={words.object}
           title={words.title}
           body={words.body}
-          details={[{ label: success.detail.when, value: `${dayLabel(date, todayIso)}, ${time}` }]}
+          details={[{ label: success.detail.when, value: `${dayLabel(date, todayIso)}, ${shownTime}` }]}
           primary={{ label: success.continue }}
           secondary={{ label: SEE_BOOKINGS, href: "/bookings?side=stays&from=stays" }}
         />
@@ -139,7 +223,7 @@ export function ReserveTable({
             put somebody at a door with no table. */}
         <p className="mt-xs text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           The restaurant has your request for {party} on {dayLabel(date, todayIso)} at{" "}
-          {time}. They will confirm or decline it, and you will see the answer in
+          {shownTime}. They will confirm or decline it, and you will see the answer in
           your bookings.
         </p>
         <Link
@@ -153,19 +237,19 @@ export function ReserveTable({
   }
 
   return (
-    <form action={formAction} className="nf-panel nf-panel--card isolate p-lg">
+    <form id={formId} action={formAction} className="nf-panel nf-panel--card isolate scroll-mt-28 p-lg">
       {/* One target, never both: the field that is not this venue's is simply
           not in the form, which is what `reserveSchema`'s refine asks for. */}
       {listingId && <input type="hidden" name="listingId" value={listingId} />}
       {businessId && <input type="hidden" name="businessId" value={businessId} />}
       <input type="hidden" name="date" value={date} />
-      <input type="hidden" name="time" value={time} />
+      <input type="hidden" name="time" value={shownTime} />
 
-      <p className="text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
-        Book a table
-      </p>
+      {title ? (
+        <p className="text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">{title}</p>
+      ) : null}
 
-      <div className="mt-md">
+      <div className={title ? "mt-md" : undefined}>
         <span className="nf-label" id={dateId}>
           Day
         </span>
@@ -200,8 +284,8 @@ export function ReserveTable({
           aria-labelledby={timeId}
           className="-mx-2xs mt-2xs flex gap-2xs overflow-x-auto px-2xs pb-2xs"
         >
-          {SLOTS.map((slot) => {
-            const active = slot === time;
+          {slots.map((slot) => {
+            const active = slot === shownTime;
             return (
               <button
                 key={slot}
@@ -215,6 +299,15 @@ export function ReserveTable({
             );
           })}
         </div>
+        {slots.length === 0 ? (
+          <p className="mt-2xs text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)]" data-testid="table-closed-day">
+            {seatsThisWeekday
+              ? (windowCopy?.noTimesLeftToday ?? "No times left today. Pick another day.")
+              : (windowCopy?.closedThatDay ?? "Not seating on this day. Pick another day.")}
+          </p>
+        ) : hasHours && windowCopy ? (
+          <p className="mt-2xs text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">{windowCopy.withinHours}</p>
+        ) : null}
       </div>
 
       <div className="mt-md">
@@ -226,15 +319,17 @@ export function ReserveTable({
             a circle survives the shape law only where a governing reference
             draws that control round, and none draws a stepper. */}
         <div className="mt-2xs flex items-center gap-sm">
-          <button
-            type="button"
+          <Button
+            variant="glass"
+            size="sm"
+            iconOnly
             onClick={() => setParty((n) => Math.max(1, n - 1))}
             aria-label="One fewer guest"
-            className="nf-btn nf-btn--glass nf-btn--sm nf-btn--icon grid h-9 w-9 rounded-[var(--nf-radius-sm)] place-items-center text-[var(--nf-content-secondary)] disabled:opacity-40"
+            className="grid h-11 w-11 rounded-[var(--nf-radius-sm)] place-items-center text-[var(--nf-content-secondary)] disabled:opacity-40"
             disabled={party <= 1}
           >
             <UiIcon name="minus" size={16} aria-hidden />
-          </button>
+          </Button>
           <input
             id={partyId}
             name="partySize"
@@ -249,15 +344,17 @@ export function ReserveTable({
             }}
             className="h-11 w-16 nf-glass--well rounded-[var(--nf-radius-sm)] border px-xs py-0 text-center text-[length:var(--nf-text-body-sm)] tabular-nums text-[var(--nf-content-primary)]"
           />
-          <button
-            type="button"
+          <Button
+            variant="glass"
+            size="sm"
+            iconOnly
             onClick={() => setParty((n) => Math.min(MAX_PARTY, n + 1))}
             aria-label="One more guest"
-            className="nf-btn nf-btn--glass nf-btn--sm nf-btn--icon grid h-9 w-9 rounded-[var(--nf-radius-sm)] place-items-center text-[var(--nf-content-secondary)] disabled:opacity-40"
+            className="grid h-11 w-11 rounded-[var(--nf-radius-sm)] place-items-center text-[var(--nf-content-secondary)] disabled:opacity-40"
             disabled={party >= MAX_PARTY}
           >
             <UiIcon name="plus" size={16} aria-hidden />
-          </button>
+          </Button>
         </div>
         {/* Said before somebody counts to fifty and is refused, rather than
             after. The database enforces the same number. */}
@@ -291,13 +388,37 @@ export function ReserveTable({
         />
       </div>
 
+      {/* D75: a deposit, when this venue asks one of this party at this time;
+          otherwise one quiet line that the table is free. Only drawn for a
+          venue that sets deposits at all. */}
+      {deposit && slots.length > 0 ? (
+        <div className="mt-md" aria-live="polite">
+          {preview ? (
+            <DepositSummary
+              amountMinor={preview.amountMinor}
+              perGuest={preview.rule.perGuest}
+              ratePerGuestMinor={preview.rule.perGuest ? preview.rule.amountMinor : null}
+              refundUntilHours={preview.rule.refundUntilHours}
+              words={deposit.words}
+              locale={deposit.locale}
+              testId="deposit-preview"
+            />
+          ) : (
+            <p className="text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]" data-testid="deposit-free">
+              {deposit.words.free}
+            </p>
+          )}
+        </div>
+      ) : null}
+
       {state && !state.ok && (
         <p role="alert" className="mt-sm text-[length:var(--nf-text-caption)] text-[var(--nf-state-error)]">
           {state.error}
         </p>
       )}
+      <PhoneGateLink show={isPhoneGate(state)} full className="mt-sm" />
 
-      <Button type="submit" variant="primary" full className="mt-md" disabled={pending}>
+      <Button type="submit" variant="primary" full className="mt-md" disabled={pending || slots.length === 0}>
         {pending ? "Sending" : "Request a table"}
       </Button>
 

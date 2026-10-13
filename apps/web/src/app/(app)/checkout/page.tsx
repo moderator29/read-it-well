@@ -14,9 +14,11 @@ import { Panel } from "@/components/ui/Panel";
 import { ICON, TYPE } from "@/components/app/Screen";
 import { formatMoneyDate } from "@/lib/money/dates";
 import { cancelStanding, termsFromPolicyRules } from "@/lib/trust/cancellation";
-import { ROOM_BOOKINGS_FLAG, flagIsOn } from "@/lib/flags/read";
+import { ROOM_BOOKINGS_FLAG, STAYS_INSTANT_PAY_FLAG, flagIsOn } from "@/lib/flags/read";
+import { INSTANT_ROOM_COPY } from "@/lib/bookings/instant-pay";
 import { resolveSession } from "@/lib/actions/session";
-import { authHref, returnHref } from "@/components/auth/auth-intent";
+import { returnHref } from "@/components/auth/auth-intent";
+import { withNext } from "@/lib/auth/next-link";
 import { ButtonLink } from "@/components/ui/Button";
 import { RoomRequestForm } from "./RoomRequestForm";
 
@@ -51,10 +53,12 @@ export default async function RoomCheckoutPage({
   const rateId = typeof query.rate === "string" ? query.rate : "";
   if (!stayId) redirect("/stays");
 
-  const [locale, detail, roomsOn, session] = await Promise.all([
+  const [locale, detail, roomsOn, instantOn, session] = await Promise.all([
     getLocale(),
     getStayDetail(stayId),
     flagIsOn(ROOM_BOOKINGS_FLAG),
+    /* D73: words only. The database decides whether each booking is instant. */
+    flagIsOn(STAYS_INSTANT_PAY_FLAG),
     resolveSession(),
   ]);
   const t = getDictionary(locale);
@@ -120,7 +124,8 @@ export default async function RoomCheckoutPage({
               <dd className={`text-right ${TYPE.rowTitle}`}>{copy.guests.replace("{count}", String(guests))}</dd>
             </div>
             <div className="flex items-start justify-between gap-md">
-              <dt className={TYPE.rowMeta}>{copy.perNight}</dt>
+              {/* The catalogue's row label ("Per night"); stayDetail.perNight is the suffix after a price ("a night"). */}
+              <dt className={TYPE.rowMeta}>{t.catalogue.card.perNight}</dt>
               <dd className={`text-right ${TYPE.rowTitle}`}>
                 <Amount minorUnits={plan.rate_minor} locale={locale} />
               </dd>
@@ -155,15 +160,15 @@ export default async function RoomCheckoutPage({
             maxRooms={room.units_total}
             copy={{
               roomsLabel: t.checkout.roomsLabel,
-              requestRoom: t.checkout.requestRoom,
-              requestRoomBody: t.checkout.requestRoomBody,
+              requestRoom: instantOn ? INSTANT_ROOM_COPY.action : t.checkout.requestRoom,
+              requestRoomBody: instantOn ? INSTANT_ROOM_COPY.body : t.checkout.requestRoomBody,
               roomChoices: Array.from({ length: Math.min(10, room.units_total) }, (_, i) => plural(i + 1, t.counts.rooms, locale)),
             }}
           />
         ) : (
           <div className="mt-row">
             <ButtonLink
-              href={authHref(returnHref("/checkout", new URLSearchParams(query as Record<string, string>).toString(), "list"), "sign-in")}
+              href={withNext("/sign-in", returnHref("/checkout", new URLSearchParams(query as Record<string, string>).toString(), "list"))}
               variant="primary"
               size="lg"
             >
@@ -190,7 +195,8 @@ export default async function RoomCheckoutPage({
       )}
 
       <p className={`flex items-start gap-inline ${TYPE.caption}`}>
-        <UiIcon name="verified" size={ICON.inline} className="mt-3xs shrink-0 text-[var(--nf-brand-secondary)]" />
+        {/* Advice, so a neutral glyph: the shield means an earned check (A9). */}
+        <UiIcon name="info" size={ICON.inline} className="mt-3xs shrink-0" />
         <span>{t.checkout.onlyYourBooking}</span>
       </p>
     </div>

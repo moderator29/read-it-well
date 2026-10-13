@@ -1,21 +1,26 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { forListingCard } from "@/lib/i18n/slice";
-import type { Dictionary, Locale } from "@vallo/i18n/core";
+import { intlTag, type Dictionary, type Locale } from "@vallo/i18n/core";
 import type { Listing } from "@/lib/listings/types";
-import { DAYPART_GREETING, type HomeOverview } from "@/lib/app/home-queries";
-import { ListingCard } from "@/components/app/ListingCard";
+import type { HomeOverview } from "@/lib/app/home-queries";
+import { FeaturedStack } from "@/components/app/home/FeaturedStack";
 import { CityRow } from "@/components/app/home/CityRow";
+import { withNext } from "@/lib/auth/next-link";
 import { CategoryRow, type HomeCategory } from "@/components/app/home/CategoryRow";
 import { FeaturedBand } from "@/components/app/home/FeaturedBand";
 import { HomeHero } from "@/components/app/home/HomeHero";
 import { LookedAtRecently } from "@/components/app/home/LookedAtRecently";
+import { HomeFigure, type HomeLeadFigure } from "@/components/app/home/HomeFigure";
+import { SpaceTypeRow } from "@/components/app/home/SpaceTypeRow";
+import { FeaturedListings } from "@/components/app/home/HomeLists";
+import { homeCardCopyOf } from "@/components/app/home/home-card-copy";
+import { DiscoveryEmpty } from "@/components/app/search/DiscoveryEmpty";
+import type { PropertyType } from "@/lib/interests/property-types";
 import { HeroBand } from "@/components/ui/HeroBand";
 import { LogoMark } from "@/design-system/brand/Logo";
 import { VerifyPrompt } from "@/components/roles/VerifyPrompt";
 import type { RoleState } from "@/components/roles/roles";
-import { EmptyActions } from "@/components/app/EmptyActions";
-import { EmptyState } from "@/components/app/Screen";
+import "@/app/css/home.css";
 
 /**
  * The property home page, to `GOVERNING-01` SCREEN ONE.
@@ -82,6 +87,12 @@ export function HomeScreen({
   roles,
   manageHref,
   upNext = null,
+  lead = null,
+  interests = [],
+  intentApplied = false,
+  featuredMore = [],
+  bestMatches = null,
+  newListings = null,
 }: {
   t: Dictionary;
   locale: Locale;
@@ -102,10 +113,33 @@ export function HomeScreen({
    * preview harness leaves it out.
    */
   upNext?: ReactNode;
+  /**
+   * The figure home leads with (`HomeFigure.tsx`), or null when there is no
+   * real one to draw and the greeting leads instead. Session 3, W2.
+   */
+  lead?: HomeLeadFigure | null;
+  /** What this person said they came for (`profiles.interests`); empty is a real answer. */
+  interests?: readonly PropertyType[];
+  /** True when the featured shelf was ordered by `interests`, so it says so. */
+  intentApplied?: boolean;
+  /**
+   * "Featured listings": more of the ranked shelf, one card per row, under the
+   * Premium carousel. Empty draws nothing.
+   */
+  featuredMore?: Listing[];
+  /**
+   * "Best matches": the route's streamed row (`BestMatchesStream`), for a
+   * signed-in reader only. Null for a guest, who sees Premium, Featured and
+   * New listings.
+   */
+  bestMatches?: ReactNode;
+  /** "New listings": the route's streamed list, newest published first. */
+  newListings?: ReactNode;
 }) {
-  const greeting = DAYPART_GREETING[overview.daypart];
-  const name = overview.firstName || (overview.signedIn ? "there" : "");
+  const greeting = t.experienceDiscover.home.greeting[overview.daypart];
+  const name = overview.firstName || (overview.signedIn ? t.experienceDiscover.home.there : "");
   const copy = t.directHome;
+  const dx = t.experienceDiscover.home;
 
   /*
    * THE PARAMETER IS `market`, AND IT IS NOT THE ONE THE OLD TILES SPENT.
@@ -157,6 +191,13 @@ export function HomeScreen({
    * line glyph, read as nothing on a phone, and List now carries the page
    * with the house on it.
    */
+  /*
+   * THE DOORS DRAW THE FOUNDER'S ORIGINAL 3D ART (`art`, `/brand/3d`). They
+   * carried tiered objects for a while (D29); the founder asked for the
+   * original 3D icons back, so no door passes `object` and the row draws its
+   * `Icon3D`. The words, the order and the destinations are unchanged (D28:
+   * the four doors stay four doors).
+   */
   const categories: HomeCategory[] = [
     /* Buy, Rent and Pay open with no skeleton: their pages are fetched whole
        ahead of the tap (about 35, 35 and 11 KB on the wire). List opens the
@@ -197,7 +238,7 @@ export function HomeScreen({
       <HeroBand as="div" className="nf-home-top">
       {/* ---------------------------------------------------- the greeting */}
       <section className="nf-rise">
-        <p className="nf-body-sm font-medium text-[var(--nf-content-secondary)]">{greeting}</p>
+        <p className="nf-body-sm font-normal text-[var(--nf-content-secondary)]">{greeting}</p>
         {name ? (
           <h1 className="nf-rise nf-rise-2 mt-inline-tight flex items-center gap-inline">
             <span className="nf-h1">{name}</span>
@@ -207,15 +248,15 @@ export function HomeScreen({
           </h1>
         ) : (
           <h1 className="nf-rise nf-rise-2 mt-inline-tight">
-            <span className="nf-h1">Welcome to Vallo</span>
+            <span className="nf-h1">{t.experienceDiscover.home.welcome}</span>
           </h1>
         )}
         {!overview.signedIn && (
           <p className="nf-body mt-row text-[var(--nf-content-secondary)]">
-            <Link href="/sign-in" className="nf-link-quiet text-[var(--nf-content-link)]">
-              Sign in
+            <Link href={withNext("/sign-in", "/home")} className="nf-link-quiet text-[var(--nf-content-link)]">
+              {t.experienceDiscover.home.signIn}
             </Link>{" "}
-            and this screen becomes yours: your city, your places, your name.
+            {t.experienceDiscover.home.signInRest}
           </p>
         )}
 
@@ -226,6 +267,21 @@ export function HomeScreen({
           signedIn={overview.signedIn}
         />
       </section>
+
+      {/* ---------------------------------------------- the lead figure */}
+      {lead ? (
+        <HomeFigure
+          figure={lead}
+          tag={intlTag[locale]}
+          copy={{
+            savedCaption: dx.savedCaption,
+            savedUnitOne: dx.savedUnitOne,
+            savedUnitMany: dx.savedUnitMany,
+            savedOpen: dx.savedOpen,
+            savedCompare: dx.savedCompare,
+          }}
+        />
+      ) : null}
 
       {/* ------------------------------------------------ 1. the hero plate */}
       <div className="mt-md">
@@ -258,59 +314,91 @@ export function HomeScreen({
           title: t.catalogue.recent.lookedAt,
           clear: t.catalogue.recent.clear,
           clearLabel: t.catalogue.recent.lookedAtClearLabel,
-          example: t.catalogue.card.example,
           verified: t.common.verified,
+        }}
+      />
+
+      {/* ------------------------- space types, ordered by what they came for */}
+      <SpaceTypeRow
+        interests={interests}
+        copy={{
+          title: dx.typesTitle,
+          forYou: dx.typesForYou,
+          label: dx.typesLabel,
+          mine: dx.typesMine,
+          edit: dx.typesEdit,
+          types: dx.types,
         }}
       />
 
       {/* ------------------------------------------- 3. featured properties */}
       <FeaturedBand
-        title={copy.featured}
+        title={t.homeV2.premiumTitle}
         seeAllHref="/search"
         seeAllLabel={t.common.seeAll}
         count={listings.length}
         testId="featured-properties"
+        note={intentApplied ? dx.featuredForYou : undefined}
+        body={
+          /* The travel-app set (7 October): the featured listings as a card
+             stack, one tall photograph at a time, not a sideways row. */
+          <FeaturedStack
+            listings={listings}
+            locale={locale}
+            testId="featured-properties"
+            copy={{
+              label: t.experienceDiscover.stack.label,
+              position: t.experienceDiscover.stack.position,
+              previous: t.experienceDiscover.stack.previous,
+              next: t.experienceDiscover.stack.next,
+              reviews: t.experienceDiscover.stack.reviews,
+              mapOf: t.experienceDiscover.stack.mapOf,
+              mapCredits: t.homeV2.mapCredits,
+              card: homeCardCopyOf(t),
+            }}
+          />
+        }
         empty={
           /*
-            THE ONE PLATFORM EMPTY STATE, and it ends somewhere. The only thing
-            that resolves an empty shelf is supply, so that is the action.
-          */
-          <EmptyState
-            icon="home-search"
-            /*
-             * FOUR INLINE ENGLISH STRINGS, NOW FOUR KEYS. This is the surface
-             * every signed-in person lands on and it broke the dictionary rule
-             * four times in one block.
-             *
-             * AND IT DOES NOT NAME AGENTS. The sibling empty state on search
-             * still reads "Agents are still listing", on a brief whose entire
-             * point is that OWNERS LIST TOO. Naming agents on an empty property
-             * shelf tells a landlord that filling it is somebody else's job,
-             * which is the same thing the "Become an agent" door was telling
-             * him. "Somebody" is true of all three of them, and the action
-             * underneath offers him the owner door.
-             */
+           * THE ONE PLATFORM EMPTY STATE, and it ends somewhere (Stage 5:
+           * empty states ARE the current product). The object settles in, the
+           * reason is the true one, the only thing that resolves an empty
+           * shelf is supply so that is the action, and the person who came
+           * looking is not lost: a brief captures what they needed.
+           *
+           * IT DOES NOT NAME AGENTS. Owners list too, and the action offers
+           * the owner door (the words are the existing `home.empty` keys).
+           */
+          <DiscoveryEmpty
+            data-testid="home-empty"
+            object="apartment-block"
             title={t.home.empty.title}
             body={t.home.empty.body}
-            action={
-              <EmptyActions
-                primary={{ label: t.home.empty.action, href: "/profile?switch=owner" }}
-              />
-            }
-            secondary={
-              <p className="nf-caption text-[var(--nf-content-muted)]">{t.home.empty.free}</p>
+            primary={{ label: t.home.empty.action, href: "/profile?switch=owner" }}
+            secondary={<p className="nf-caption text-[var(--nf-content-muted)]">{t.home.empty.free}</p>}
+            capture={
+              <p>
+                {t.experienceDiscover.empty.captureLead}
+                <Link
+                  href="/saved/searches?brief=1#briefs"
+                  className="nf-dempty__capture-link nf-link-quiet"
+                  data-testid="home-empty-brief"
+                >
+                  {t.frontDoor.briefs.post}
+                </Link>
+              </p>
             }
           />
         }
       >
-        {listings.map((listing, index) => (
-          <li key={listing.id} className="nf-feature-row__item">
-            {/* The catalogue's card is F3's and is never forked here, so home
-                and search show one object. */}
-            <ListingCard listing={listing} locale={locale} t={forListingCard(t)} index={index} eager={index === 0} />
-          </li>
-        ))}
+        {/* The stack above is the body; the band no longer draws a row. */}
+        {null}
       </FeaturedBand>
+
+      {/* ----------------- featured listings, best matches, new listings */}
+      <FeaturedListings listings={featuredMore} t={t} locale={locale} />
+      {bestMatches}
+      {newListings}
     </div>
   );
 }

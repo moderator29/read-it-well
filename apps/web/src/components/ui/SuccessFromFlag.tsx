@@ -100,7 +100,7 @@ export function SuccessFromFlag({
       details={latched.details}
       primary={latched.primary ?? { label: copy.continue }}
       secondary={latched.secondary}
-      haptic={latched.haptic}
+      haptic={latched.haptic ?? words.haptic}
     />
   );
 }

@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import type { Dictionary } from "@vallo/i18n/core";
+import { countOf, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { Button } from "@/components/ui/Button";
 import { removeViewingWindow, saveViewingWindow } from "@/lib/viewings/actions";
 import { windowProblem } from "@/lib/viewings/route";
@@ -14,6 +14,11 @@ import type { ViewingWindow } from "@/lib/viewings/queries";
  * slot length and the homes it covers (only the lister's published ones are
  * offered; the database checks ownership again). States: could not be read,
  * none yet, the list, adding, saving, a refused save in words.
+ *
+ * It sits beside the visit calendar (`VisitCalendar`), so a lister sets when
+ * they can show next to the visits those times produce. The count of homes a
+ * window covers goes through `countOf` ("1 home", "3 homes"); the line used
+ * to print "1 homes".
  */
 
 type Copy = Dictionary["frontDoor"]["viewings"];
@@ -23,11 +28,16 @@ export function ViewingWindows({
   windows,
   homes,
   copy,
+  locale,
+  className = "mt-lg",
 }: {
   windows: ViewingWindow[] | null;
   /** The lister's published homes; null when they could not be read. */
   homes: { id: string; title: string }[] | null;
   copy: Copy;
+  locale: Locale;
+  /** Spacing from the block above; the calendar's side column sets its own. */
+  className?: string;
 }) {
   const router = useRouter();
   const [adding, setAdding] = useState(false);
@@ -59,7 +69,7 @@ export function ViewingWindows({
   }
 
   return (
-    <section className="nf-panel nf-panel--card mt-lg p-card-sm" aria-labelledby="viewing-windows-title" data-testid="viewing-windows">
+    <section className={`nf-panel nf-panel--card p-card-sm ${className}`} aria-labelledby="viewing-windows-title" data-testid="viewing-windows">
       <h2 id="viewing-windows-title" className="nf-h4 text-[var(--nf-content-primary)]">
         {copy.windowsTitle}
       </h2>
@@ -79,7 +89,7 @@ export function ViewingWindows({
                   .replace("{starts}", w.starts)
                   .replace("{ends}", w.ends)
                   .replace("{minutes}", String(w.slotMinutes))
-                  .replace("{count}", String(w.listingIds.length))}
+                  .replace("{homes}", countOf(w.listingIds.length, "homes", locale))}
               </span>
               <Button
                 variant="ghost"
@@ -158,7 +168,7 @@ export function ViewingWindows({
                     ))}
                   </div>
                 </fieldset>
-                <div className="flex gap-sm">
+                <div className="flex flex-wrap gap-sm">
                   <Button variant="primary" loading={pending} onClick={save}>
                     {pending ? copy.saving : copy.save}
                   </Button>
@@ -176,7 +186,7 @@ export function ViewingWindows({
         ))}
 
       {error && (
-        <p className="mt-inline nf-body-sm font-medium text-[var(--nf-state-error)]" role="alert">
+        <p className="mt-inline nf-body-sm font-semibold text-[var(--nf-state-error)]" role="alert">
           {error}
         </p>
       )}

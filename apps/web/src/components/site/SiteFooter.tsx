@@ -2,7 +2,9 @@ import Link from "next/link";
 import type { Dictionary } from "@vallo/i18n/core";
 import { Logo } from "@/design-system/brand/Logo";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { COMPANY_REGISTERED_OFFICE } from "@/lib/legal/company";
 import { NewsletterForm } from "./NewsletterForm";
+import "@/app/css/site.css";
 
 /**
  * Site footer, to the governing fullpage image.
@@ -38,6 +40,14 @@ export function SiteFooter({ t }: { t: Dictionary }) {
   const columns = [
     {
       title: f.product,
+      /* NOT PREFETCHED (C6, R3-18 round 2). These four open the product,
+         and a footer link in view prefetches its whole route: on a short
+         public page (/check measured) the footer is on the first screen at
+         390, and the Buy link alone pulled the search screen's code, about
+         120 KB, into a stranger's first load. They load when tapped. Every
+         other footer link is a public page of a few KB and keeps its
+         prefetch. */
+      app: true,
       links: [
         /* Markets, not categories (V-26): `type=home` showed houses to let
            under Buy, and `type=rental` missed every flat to let. */
@@ -123,6 +133,24 @@ export function SiteFooter({ t }: { t: Dictionary }) {
             <p className="nf-body-sm mt-inline max-w-measure-lede text-[var(--nf-content-secondary)]">
               {face.footer.legalLine}
             </p>
+            {/*
+              THE REGISTERED OFFICE, IN AN <address> ELEMENT.
+
+              A marketplace that asks a stranger to send a deposit owes them
+              a real place the company can be found, so this is a trust
+              surface before it is a legal one, and it belongs in the brand
+              block rather than buried in Terms. The element is `address`
+              because that is what it is: a screen reader announces it as
+              contact information and a search engine reads it as the
+              business location, which a `p` gives neither.
+
+              `not-italic` because the user agent italicises `address` by
+              default and nothing else in this footer is italic.
+            */}
+            <address className="nf-caption mt-inline not-italic text-[var(--nf-content-muted)]">
+              <span className="sr-only">{face.footer.registeredOfficeLabel}: </span>
+              {COMPANY_REGISTERED_OFFICE}
+            </address>
           </div>
 
           {columns.map((col) => (
@@ -131,7 +159,7 @@ export function SiteFooter({ t }: { t: Dictionary }) {
               <ul>
                 {col.links.map((l) => (
                   <li key={`${l.href}-${l.label}`}>
-                    <Link href={l.href} className="nf-site-footer-link">
+                    <Link href={l.href} prefetch={"app" in col && col.app ? false : undefined} className="nf-site-footer-link">
                       {l.label}
                     </Link>
                   </li>

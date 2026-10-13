@@ -5,6 +5,7 @@ import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Sheet } from "@/components/ui/Sheet";
+import { Button } from "@/components/ui/Button";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import { Row, RowList, TYPE } from "@/components/app/Screen";
@@ -249,18 +250,19 @@ export function ProfileSwitcher({
              in the dock is the control people reach for when they want the
              other side; it opens the profile list, so the side is offered
              first here rather than only at the foot of the drawer. */
-          <button
-            type="button"
+          <Button
+            variant="secondary"
+            full
             disabled={flipApi.pending}
             onClick={() => {
               setOpen(false);
               flipApi.flip(otherSide(side));
             }}
-            className="nf-btn nf-btn--glass nf-btn--full mb-sm"
+            className="mb-sm"
             data-testid="switcher-side-flip"
           >
             {side === "stays" ? t.side.switchToProperty : t.side.switchToStays}
-          </button>
+          </Button>
         )}
         <RowList inset className="[--nf-row-divider-lead:3.25rem]">
           <Row className="p-0">

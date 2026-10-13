@@ -45,12 +45,20 @@ export const unitsEn = {
   places: { one: "1 place", other: "{count} places" },
   facilities: { one: "1 facility", other: "{count} facilities" },
   rooms: { one: "1 room", other: "{count} rooms" },
+  visits: { one: "1 visit", other: "{count} visits" },
+  referrals: { one: "1 referral", other: "{count} referrals" },
+  payouts: { one: "1 payout", other: "{count} payouts" },
+  invitations: { one: "1 invitation", other: "{count} invitations" },
+  people: { one: "1 person", other: "{count} people" },
+  homes: { one: "1 home", other: "{count} homes" },
   roomTypes: { one: "1 room type", other: "{count} room types" },
   ratePlans: { one: "1 rate", other: "{count} rates" },
   serviceWindows: { one: "1 service window", other: "{count} service windows" },
   windows: { one: "1 window", other: "{count} windows" },
   stars: { one: "1 star", other: "{count} stars" },
   photos: { one: "1 photo", other: "{count} photos" },
+  videos: { one: "1 video", other: "{count} videos" },
+  results: { one: "1 result", other: "{count} results" },
   cuisines: { one: "1 cuisine", other: "{count} cuisines" },
   reports: { one: "1 report", other: "{count} reports" },
   heldItems: { one: "1 held item", other: "{count} held items" },
@@ -208,6 +216,9 @@ export const unitsEn = {
   },
   usDollars: { one: "US dollar", other: "US dollars" },
   pounds: { one: "pound", other: "pounds" },
+  /* Schedule a visit: the note's counter and a day's open times. */
+  charactersLeft: { one: "1 character left", other: "{count} characters left" },
+  openTimes: { one: "1 open time", other: "{count} open times" },
 } satisfies Record<string, PluralForms>;
 
 export type UnitNoun = keyof typeof unitsEn;
@@ -215,6 +226,8 @@ export type UnitNoun = keyof typeof unitsEn;
 /** Yoruba: one category, `other`, for every count including one. */
 export const unitsYo = {
   nights: { other: "alẹ́ {count}" },
+  /* The word the viewing windows draft already used ("ilé {count}"); native review owed. */
+  homes: { other: "ilé {count}" },
   guests: { other: "àlejò {count}" },
   adults: { other: "àgbàlagbà {count}" },
   children: { other: "ọmọdé {count}" },
@@ -223,6 +236,8 @@ export const unitsYo = {
 /** Hausa: `one` and `other`. */
 export const unitsHa = {
   nights: { one: "dare ɗaya", other: "darare {count}" },
+  /* From the viewing windows draft ("gidaje {count}"); native review owed. */
+  homes: { one: "gida ɗaya", other: "gidaje {count}" },
   guests: { one: "baƙo ɗaya", other: "baƙi {count}" },
   adults: { one: "babba ɗaya", other: "manya {count}" },
   children: { one: "yaro ɗaya", other: "yara {count}" },
@@ -231,6 +246,8 @@ export const unitsHa = {
 /** Igbo: one category, `other`, for every count including one. */
 export const unitsIg = {
   nights: { other: "abalị {count}" },
+  /* The word the viewing windows draft already used ("ụlọ {count}"); native review owed. */
+  homes: { other: "ụlọ {count}" },
   guests: { other: "ọbịa {count}" },
   adults: { other: "okenye {count}" },
   children: { other: "nwa {count}" },

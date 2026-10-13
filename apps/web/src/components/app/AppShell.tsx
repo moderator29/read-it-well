@@ -4,22 +4,18 @@ import type { ShellDictionary } from "@/lib/i18n/shell-dictionary";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useOverlay } from "@/lib/ui/use-overlay";
 import { useSwipeToClose } from "@/lib/ui/use-swipe-to-close";
-import Link from "next/link";
 import { WholePrefetchLink } from "@/components/app/WholePrefetchLink";
+import { KeepWarm } from "@/components/app/KeepWarm";
 import { usePathname, useSearchParams } from "next/navigation";
 import { AppRail } from "./AppRail";
-import { MobileTabBar, isImmersiveRoute, showsTabBar } from "./MobileTabBar";
-import { Logo } from "@/design-system/brand/Logo";
+import { isFocusedRoute, isImmersiveRoute, showsTabBar } from "./MobileTabBar";
+import { ShellDock } from "./ShellDock";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { AuthGateProvider, SignedOutActions } from "@/components/auth/AuthGate";
-import { sideOfPath, sideOfPlansQuery, SIDE_HOME, type Side } from "@/lib/side.constants";
+import { sideOfPath, sideOfPlansQuery, type Side } from "@/lib/side.constants";
 import { SideFlip } from "./flip/SideFlip";
-import { CreateDock } from "./CreateDock";
 import { SideSync } from "./SideSync";
-import { useHydrated } from "@/components/motion/useInView";
-import { isDataSaver } from "@/lib/ui/data-saver";
 import { isDetailPath } from "@/lib/side.constants";
-import { ProfileSwitcher, type ProfileSwitcherCopy } from "@/components/supply/ProfileSwitcher";
 import type { ProfileSelection, Workspace } from "@/lib/supply/workspaces";
 
 /**
@@ -63,6 +59,15 @@ import type { ProfileSelection, Workspace } from "@/lib/supply/workspaces";
  * then either the bell and the avatar (signed in) or Sign up and Log in
  * (signed out).
  */
+/**
+ * WHERE THE BELL SHOWS (D78, 7 October 2026, evening). The founder: the
+ * notification bell belongs on the top bar of the dock's main places only,
+ * Home, Search and Feed (each side's own), and nowhere else: not on a
+ * profile, a listing, settings or any feature page. Notifications stay one
+ * tap away in the side navigation everywhere.
+ */
+const BELL_PATHS: ReadonlySet<string> = new Set(["/home", "/stays", "/search", "/stays/search", "/around"]);
+
 export function AppShell({
   t,
   side = "property",
@@ -77,6 +82,7 @@ export function AppShell({
   isHost = false,
   workspaces = [],
   currentProfile = { kind: "personal" },
+  socialOn = true,
   preview,
   children,
 }: {
@@ -104,6 +110,14 @@ export function AppShell({
   workspaces?: Workspace[];
   currentProfile?: ProfileSelection;
   /**
+   * The `social` switch (`lib/social/flag.ts`, read once in the layout).
+   * Off, Around leaves the dock, the side navigation and the Create sheet
+   * (north star 10 E: "hide the tab when the switch is off"); the routes
+   * themselves already say "Around is paused". Defaults on, as the switch
+   * fails open.
+   */
+  socialOn?: boolean;
+  /**
    * The dev preview harness, and nothing else, ever.
    *
    * Two facts the chrome takes from the browser rather than from a prop: the
@@ -125,10 +139,6 @@ export function AppShell({
   const searchParams = useSearchParams();
   const activeType = searchParams.get("type");
   const [drawer, setDrawer] = useState(preview?.drawer ?? false);
-  /* The dock prefetches its tabs whole once the page is live, and never under
-     data saving (Track M performance; see MobileTabBar's prefetchFull). */
-  const hydrated = useHydrated();
-
   const effectiveSide: Side = sideOfPath(active) ?? sideOfPlansQuery(active, searchParams) ?? side;
   const immersive = isImmersiveRoute(active);
   const edgeToEdge = /^\/(listing|stay|restaurant)\/[^/]+$/.test(active);
@@ -142,7 +152,7 @@ export function AppShell({
     anywhere. The one exception stays: a photo-first detail page reaches the
     top edge with its own controls riding the picture.
   */
-  const showsHeader = !immersive && !edgeToEdge;
+  const showsHeader = !immersive && !edgeToEdge && !isFocusedRoute(active);
 
   /* The drawer closes on navigation. State derived during render rather than
      in an effect, so there is no frame with the old page under an open panel. */
@@ -156,63 +166,6 @@ export function AppShell({
   const closeDrawer = useCallback(() => setDrawer(false), []);
   const openDrawer = useCallback(() => setDrawer(true), []);
 
-  /*
-   * THE WORKSPACE SHEET, MOUNTED ONCE, AND THE DOCK'S "+".
-   *
-   * The workspace switch was the dock's centre control; since 29 September
-   * the centre is the "+" (`CreateDock`) and the switch is its Create sheet's
-   * last row, which opens this sheet by the named event, as the profile's
-   * Switch role row does. The sheet is still built HERE rather than inside
-   * `MobileTabBar` because it needs the account's own workspace list, which
-   * the shell has already resolved once, and the dock is a server component
-   * that has no business fetching one.
-   *
-   * The copy is assembled from the dictionary rather than written inline,
-   * because this is new copy and new copy is going to be edited.
-   */
-  const switchCopy: ProfileSwitcherCopy = {
-    title: t.supply.switchTitle,
-    personal: t.supply.personal,
-    personalMeaning: t.supply.personalMeaning,
-    addTitle: t.supply.addTitle,
-    addMeaning: t.supply.addMeaning,
-    current: t.supply.current,
-    empty: t.supply.empty,
-    triggerLabel: t.supply.switchTrigger,
-    short: t.shape.workspace.short,
-    kinds: t.supply.kinds,
-    standings: t.supply.standings,
-  };
-
-  const switchControl = (
-    <ProfileSwitcher
-      t={t}
-      copy={switchCopy}
-      workspaces={workspaces}
-      current={currentProfile}
-      side={effectiveSide}
-      avatarUrl={avatarUrl}
-      /* The chooser is side dependent: three property doors or three stays
-         doors, which is the founder's ruling for Track O on both sides. */
-      addHref={effectiveSide === "stays" ? "/profile/setup?side=stays" : "/profile/setup"}
-      /* No trigger of its own any more: the dock's centre is the "+" (the
-         founder, 29 September 2026), and its sheet's Switch workspace row,
-         like the profile's Switch role row, opens this one by the named
-         event. The sheet stays mounted here, next to the list it needs. */
-      renderTrigger={() => null}
-    />
-  );
-  const createControl = (
-    <>
-      <CreateDock
-        t={t}
-        isHost={isHost}
-        signedIn={signedIn}
-        listHref={isAgent ? "/agent/list" : effectiveSide === "stays" ? "/profile/setup?side=stays" : "/profile/setup"}
-      />
-      {switchControl}
-    </>
-  );
   useOverlay({ open: drawer, onClose: closeDrawer, panelRef: drawerPanel });
   /* F-15: the drawer also closes on a swipe back towards the left edge. */
   const drawerSwipe = useSwipeToClose(closeDrawer);
@@ -268,7 +221,10 @@ export function AppShell({
     <AuthGateProvider signedIn={signedIn}>
     <SideFlip side={effectiveSide} t={t}>
     <SideSync side={effectiveSide} persist={!isDetailPath(active)} />
-    <div className="flex min-h-dvh" data-side={effectiveSide}>
+    {/* The startup track: the main tabs fetched ahead when idle and on return,
+        and the screen refreshed in place after time away (KeepWarm). */}
+    <KeepWarm side={effectiveSide} socialOn={socialOn} current={pathname ?? ""} enabled={signedIn && !preview} />
+    <div className="nf-app-shell flex min-h-dvh" data-side={effectiveSide}>
       <AppRail
         t={t}
         side={effectiveSide}
@@ -282,6 +238,7 @@ export function AppShell({
         isAdmin={isAdmin}
         isHost={isHost}
         signedIn={signedIn}
+        socialOn={socialOn}
       />
 
       {/*
@@ -328,6 +285,7 @@ export function AppShell({
               isAdmin={isAdmin}
               isHost={isHost}
               signedIn={signedIn}
+              socialOn={socialOn}
               variant="drawer"
               onNavigate={closeDrawer}
             />
@@ -353,7 +311,7 @@ export function AppShell({
           /* THE NAVY TOP BLOCK (founder reference 05, 29 September 2026). The
              header is a night island in both themes: in light it is the dark
              VALLO band over light content, painted by `app/css/light.css`,
-             and the logo inside it keeps the night artwork. In dark the
+             and the logo is its one artwork, as everywhere (D82). In dark the
              attribute changes nothing. */
           data-theme="dark"
           className={`nf-safe-top nf-app-header sticky top-0 z-40 ${
@@ -413,13 +371,10 @@ export function AppShell({
             >
               <UiIcon name="menu" size={20} />
             </button>
-            <Link
-              href={SIDE_HOME[effectiveSide]}
-              aria-label={t.a11y.logoHome}
-              className="nf-tap nf-app-header__brand min-w-0 lg:hidden"
-            >
-              <Logo size={40} wordSize={19} responsive />
-            </Link>
+            {/* D78 (7 October 2026, evening): no logo or wordmark in the app's
+                top bar. The founder: "in the platform top dashboard inside the
+                app, remove our logo and the VALLO text". The menu and the bell
+                are what the bar holds; the brand is the whole screen. */}
             {/* The fold slot (plan item 29): a `PageHeader variant="large"`
                 portals its title here once the large title has scrolled
                 under the bar. Empty, and invisible, on every other screen. */}
@@ -437,7 +392,7 @@ export function AppShell({
               </span>
             )}
             <SignedOutActions t={t} className="ms-auto" />
-            {signedIn && (
+            {signedIn && BELL_PATHS.has(pathname ?? "") && (
               <>
                 {/* Fetched whole, so the bell opens the list with no skeleton:
                     about 11 KB on the wire, kept for five minutes. */}
@@ -475,14 +430,18 @@ export function AppShell({
       </main>
 
       {!immersive && showsTabBar(active) && (
-        <MobileTabBar
+        <ShellDock
           t={t}
           side={effectiveSide}
           active={active}
           unreadNotifications={unreadNotifications}
           signedIn={signedIn}
-          switchSlot={createControl}
-          prefetchFull={hydrated && !isDataSaver()}
+          isAgent={isAgent}
+          isHost={isHost}
+          socialOn={socialOn}
+          workspaces={workspaces}
+          currentProfile={currentProfile}
+          avatarUrl={avatarUrl}
         />
       )}
     </div>

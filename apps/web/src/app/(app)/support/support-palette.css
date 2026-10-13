@@ -1,0 +1,140 @@
+@layer theme, base, components, utilities;
+
+/*
+  The help search as a command palette (reference 7067, adapted to Vallo's
+  tiers): ONE Card (hairline at night, the blue-tinted shadow on Paper), rows
+  that are Plates inside it, the lit row a tinted fill and a leading bar and
+  never a glow. Transform and opacity only; nothing animates but the answer
+  arriving, 160ms, and reduced motion removes that.
+*/
+@layer components {
+  .nf-palette {
+    display: grid;
+    padding: 0;
+    overflow: hidden;
+  }
+  .nf-palette__field {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    min-height: 3.5rem;
+    padding-inline: var(--nf-space-md);
+    border-bottom: var(--nf-border-width) solid var(--nf-divider);
+  }
+  .nf-palette__glyph {
+    flex: none;
+    color: var(--nf-content-muted);
+  }
+  .nf-palette__input {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 3.5rem;
+    border: 0;
+    background: transparent;
+    color: var(--nf-content-primary);
+    font: inherit;
+    font-size: var(--nf-text-body);
+  }
+  .nf-palette__input::placeholder {
+    color: var(--nf-content-muted);
+  }
+  .nf-palette__input:focus-visible {
+    outline: none;
+  }
+  .nf-palette__field:focus-within {
+    box-shadow: inset 0 -2px 0 var(--nf-brand-primary);
+  }
+  .nf-palette__status {
+    margin: 0;
+    padding: var(--nf-space-xs) var(--nf-space-md) var(--nf-space-2xs);
+    color: var(--nf-content-muted);
+  }
+  .nf-palette__list {
+    list-style: none;
+    margin: 0;
+    padding: var(--nf-space-2xs) var(--nf-space-xs) var(--nf-space-xs);
+    display: grid;
+    gap: var(--nf-space-3xs);
+  }
+  .nf-palette__row {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    min-height: 2.75rem;
+    padding: var(--nf-space-xs) var(--nf-space-sm);
+    border-radius: var(--nf-tier-plate-radius);
+    cursor: pointer;
+    color: var(--nf-content-primary);
+    transition: background var(--nf-duration-instant) var(--nf-ease-standard);
+  }
+  .nf-palette__row[data-active] {
+    background: var(--nf-tier-plate-hover);
+  }
+  .nf-palette__row:active {
+    background: var(--nf-tier-plate-press);
+  }
+  .nf-palette__plate {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 2rem;
+    height: 2rem;
+    border-radius: var(--nf-radius-sm);
+    background: var(--nf-brand-tint-2);
+    color: var(--nf-brand-primary);
+  }
+  .nf-palette__q {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    line-height: 1.35;
+  }
+  .nf-palette__enter {
+    flex: none;
+    color: var(--nf-content-muted);
+  }
+  .nf-palette__answer {
+    margin: var(--nf-space-3xs) var(--nf-space-sm) var(--nf-space-xs) 3.5rem;
+    padding-block: var(--nf-space-xs);
+    color: var(--nf-content-secondary);
+    animation: nf-palette-in var(--nf-duration-fast) var(--nf-ease-entrance) both;
+  }
+  @keyframes nf-palette-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+  }
+  .nf-palette__cat {
+    margin: 0 0 var(--nf-space-3xs);
+    color: var(--nf-content-muted);
+  }
+  .nf-palette__none {
+    margin: 0;
+    padding: var(--nf-space-sm) var(--nf-space-md) var(--nf-space-md);
+    color: var(--nf-content-secondary);
+  }
+  /* The keyboard hint is for a keyboard: a touch screen never draws it. */
+  .nf-palette__hint {
+    display: none;
+    margin: 0;
+    padding: var(--nf-space-xs) var(--nf-space-md);
+    border-top: var(--nf-border-width) solid var(--nf-divider);
+    color: var(--nf-content-muted);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .nf-palette__hint {
+      display: block;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-palette__answer {
+      animation: none;
+    }
+  }
+  :root:is([data-motion="calm"], [data-motion="off"]) .nf-palette__answer {
+    animation: none;
+  }
+}

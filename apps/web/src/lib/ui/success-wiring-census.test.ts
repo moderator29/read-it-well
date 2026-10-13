@@ -17,7 +17,9 @@ import { withoutComments } from "@/lib/copy/source-scan";
 const SRC = join(__dirname, "..", "..");
 
 const WIRED: [file: string, gate: RegExp][] = [
-  ["app/agent/list/ListingWizard.tsx", /setSubmitted\(true\);\s*setCelebrate\(true\)/],
+  /* Round 5: no sheet. The last step becomes the sent chain under the card,
+     in place, and only from the action's ok (ListingWizard.publish.dom.test). */
+  ["app/agent/list/ListingWizard.tsx", /if \(!result\.ok\) \{[\s\S]{0,800}\}\s*setNotice\(null\);\s*setFieldErrors\(\{\}\);\s*setSent\(\{ status: result\.data\.status/],
   ["components/agent/ApplyWizard.tsx", /open=\{state\.ok && !successClosed\}/],
   ["components/host/HostWizard.tsx", /if \(submitted\) setCelebrate\(true\)/],
   ["components/supply/OwnerRegisterForm.tsx", /if \(step === 3 && filed\)[\s\S]{0,200}RegistrationFiledSheet/],
@@ -43,13 +45,20 @@ const WIRED: [file: string, gate: RegExp][] = [
 describe("the success sheet is wired, and gated on ok, in every flow the DOM suite does not drive", () => {
   it.each(WIRED)("%s", (file, gate) => {
     const code = withoutComments(readFileSync(join(SRC, file), "utf8"));
-    expect(code).toMatch(/SuccessSheet|RegistrationFiledSheet|KycSentSheet|TicketFiledSheet|withDone|rememberSuccess/);
+    expect(code).toMatch(/SuccessSheet|PaymentStage|RegistrationFiledSheet|KycSentSheet|TicketFiledSheet|withDone|rememberSuccess|ListingSentForReview/);
     expect(code).toMatch(gate);
   });
 
   it("no success sheet is opened from a pending or failed phase in the pay panels", () => {
     for (const file of ["app/(app)/checkout/[bookingId]/PayPanel.tsx", "app/(app)/rent/pay/[inspectionId]/PayPanel.tsx"]) {
       const code = withoutComments(readFileSync(join(SRC, file), "utf8"));
+      if (code.includes("<PaymentStage")) {
+        /* The pay stage (round 5): one card whose face turns to "paid" in
+           exactly one place, and only from the paid phase. */
+        expect(code.match(/at: "paid"/g), file).toHaveLength(1);
+        expect(code, file).toMatch(/phase\.kind === "paid"\s*\?\s*\{\s*at: "paid",\s*settled: true/);
+        continue;
+      }
       const opens = [...code.matchAll(/<SuccessSheet\s+open=\{([^}]+)\}/g)].map((m) => m[1]);
       expect(opens, file).toEqual(['phase.kind === "paid"']);
     }

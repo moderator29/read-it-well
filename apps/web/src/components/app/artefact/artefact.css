@@ -1,0 +1,188 @@
+@layer theme, base, components, utilities;
+
+/*
+ * CREDENTIAL ARTEFACTS AND THE FAN (north star 14.4, D14). Imported by
+ * Credential.tsx and CredentialFan.tsx, so only screens with a tier pay for it.
+ *
+ * THE CREDENTIAL. Radius 18 (the Card tier), 7 by 5 (deliberately not the
+ * bank-card 1.586), matte: a soft key light from the upper left and nothing
+ * that could read as a reflection. Three materials, a quiet difference per
+ * tier rather than a colour per tier:
+ *
+ *   navy    the night ink ramp, deep to deeper
+ *   royal   the royal ramp
+ *   edge    navy with one thin warm line set 8px inside the edge, the
+ *           screen's single warm spark (D33), drawn as a line on the face
+ *           and never as the container's edge
+ *
+ * The slab is dark in both themes, so its ink is the on-brand white in both.
+ * ONE edge treatment, the shadow: its first layer is the 2px of thickness
+ * under the slab and the rest is the floating elevation (blue-tinted on
+ * paper by the token itself).
+ *
+ * THE FAN. Every credential sits in one grid cell and is placed by four
+ * custom properties `fanPose` computes (x, y, scale, turn) plus its opacity.
+ * The forward one also tilts to a slight three-quarter angle so its thickness
+ * reads. A change of pose travels on the spring at 380ms (`drift`). Quiet
+ * readers (reduced motion, Calm, Off, data saver) get the pose at once. Transform and opacity only.
+ */
+@layer components {
+  .nf-cred {
+    --nf-cred-ink: var(--nf-content-on-brand);
+    --nf-cred-ink-muted: color-mix(in oklab, var(--nf-content-on-brand) 72%, transparent);
+    --nf-cred-side: var(--nf-ink-950);
+    position: relative;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    gap: var(--nf-space-md);
+    inline-size: 100%;
+    aspect-ratio: 7 / 5;
+    padding: var(--nf-space-lg);
+    border-radius: var(--nf-radius-lg);
+    color: var(--nf-cred-ink);
+    text-align: start;
+    background:
+      radial-gradient(120% 90% at 0% 0%, var(--nf-wash-on-media-1, var(--nf-wash-2)) 0%, transparent 60%),
+      linear-gradient(155deg, var(--nf-ink-750), var(--nf-ink-950));
+    box-shadow:
+      0 0.125rem 0 var(--nf-cred-side),
+      var(--nf-elevation-floating);
+    overflow: hidden;
+  }
+  .nf-cred[data-material="royal"] {
+    --nf-cred-side: color-mix(in oklab, var(--nf-royal-700) 70%, var(--nf-ink-950));
+    background:
+      radial-gradient(120% 90% at 0% 0%, var(--nf-wash-on-media-1, var(--nf-wash-2)) 0%, transparent 60%),
+      linear-gradient(155deg, var(--nf-royal-500), var(--nf-royal-700));
+  }
+  /* The one warm line, inside the face. */
+  .nf-cred[data-material="edge"]::before {
+    content: "";
+    position: absolute;
+    inset: var(--nf-space-xs);
+    border: 1px solid var(--nf-spark);
+    border-radius: calc(var(--nf-radius-lg) - var(--nf-space-xs));
+    pointer-events: none;
+  }
+
+  .nf-cred__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-space-xs);
+  }
+  .nf-cred__eyebrow {
+    font-size: var(--nf-text-label);
+    font-weight: 600;
+    letter-spacing: var(--nf-tracking-label);
+    color: var(--nf-cred-ink-muted);
+  }
+  .nf-cred__glyph {
+    color: var(--nf-cred-ink-muted);
+  }
+  .nf-cred__foot {
+    display: grid;
+    align-content: end;
+    gap: var(--nf-space-2xs);
+    min-inline-size: 0;
+  }
+  .nf-cred__title {
+    margin: 0;
+    font-family: var(--nf-font-display);
+    font-size: clamp(1.25rem, 1rem + 1.4vw, 1.5rem);
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: var(--nf-tracking-display-sm);
+    overflow-wrap: anywhere;
+  }
+  .nf-cred__line {
+    margin: 0;
+    font-size: var(--nf-text-caption);
+    line-height: 1.4;
+    color: var(--nf-cred-ink-muted);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .nf-cred__state {
+    margin: 0;
+    font-size: var(--nf-text-label);
+    font-weight: 600;
+    color: var(--nf-cred-ink);
+  }
+
+  /* ------------------------------------------------------------- the fan */
+
+  .nf-fan {
+    display: grid;
+    gap: var(--nf-space-lg);
+    inline-size: 100%;
+  }
+  .nf-fan__stage {
+    display: grid;
+    place-items: center;
+    /* Room for the receding credentials either side and the turn below. */
+    padding-block: var(--nf-space-md) var(--nf-space-xl);
+    padding-inline: 14%;
+    overflow-x: clip;
+    touch-action: pan-y;
+    perspective: 60rem;
+  }
+  .nf-fan__slot,
+  .nf-fan--single .nf-fan__card {
+    grid-area: 1 / 1;
+    inline-size: min(100%, 19rem);
+  }
+  .nf-fan__slot {
+    display: block;
+    padding: 0;
+    border: 0;
+    background: none;
+    border-radius: var(--nf-radius-lg);
+    cursor: pointer;
+    opacity: var(--nf-fan-dim, 1);
+    transform: translate(var(--nf-fan-x, 0%), var(--nf-fan-y, 0%)) scale(var(--nf-fan-scale, 1))
+      rotate(var(--nf-fan-turn, 0deg));
+    transition:
+      transform var(--nf-duration-slow) var(--nf-ease-spring),
+      opacity var(--nf-duration-slow) var(--nf-ease-standard);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .nf-fan__slot:focus-visible {
+    outline: 2px solid var(--nf-brand-primary);
+    outline-offset: 4px;
+  }
+  .nf-fan__slot .nf-fan__card {
+    transition: transform var(--nf-duration-slow) var(--nf-ease-spring);
+  }
+  /* The forward credential tilts to three-quarters so its thickness reads. */
+  .nf-fan__slot[data-forward] .nf-fan__card {
+    transform: rotateX(6deg) rotateY(-8deg);
+  }
+  .nf-fan__slot:not([data-forward]):active {
+    transform: translate(var(--nf-fan-x, 0%), var(--nf-fan-y, 0%)) scale(calc(var(--nf-fan-scale, 1) * 0.985))
+      rotate(var(--nf-fan-turn, 0deg));
+  }
+
+  .nf-fan__detail {
+    min-block-size: 4.5rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-fan__slot,
+    .nf-fan__slot .nf-fan__card {
+      transition: none;
+    }
+  }
+  /* Data saver is a reader asking for less, and gets the same instant pose
+     as reduced motion (north star 9: both collapse to instant). */
+  :root[data-motion="calm"] .nf-fan__slot,
+  :root[data-motion="off"] .nf-fan__slot,
+  :root[data-save-data="on"] .nf-fan__slot,
+  :root[data-motion="calm"] .nf-fan__slot .nf-fan__card,
+  :root[data-motion="off"] .nf-fan__slot .nf-fan__card,
+  :root[data-save-data="on"] .nf-fan__slot .nf-fan__card {
+    transition: none;
+  }
+}

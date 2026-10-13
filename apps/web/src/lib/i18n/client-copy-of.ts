@@ -39,8 +39,11 @@ const AUTH_FLOW_KEYS = [
  *   platform.inflight          the offline tray
  *   trustVisible.state         the in-app error screen
  *   trustVisible.report        the report sheet
+ *   trustVisible.phone         the phone gate's button (`PhoneGateLink`), drawn
+ *     (requiredAction only)    beside any gated action's refusal
  *   counts, reserve            the listing page's booking bar and panel
  *   uiCommon.around, .inbox    a post's place line, the inbox tabs
+ *   feedV2.card, .composer     a post card's words, the post and story composers
  *   authFlow (the keys below)  Apple sign-in, the auth error, the verify screens
  *   catalogue.card             the listing gallery's empty frame
  *   frontDoor.share            the listing page's share control
@@ -48,6 +51,7 @@ const AUTH_FLOW_KEYS = [
  *   details                    the toast, copy, connection line, pull to
  *                              refresh, back to top, the card menu
  *   socialProfile.accountPage  the profile's hero and rows
+ *   fixesV2.offline            the error boundaries' calm offline words
  *   success (chrome, and the   the success sheet's own words, and only the
  *   moments below)             moments whose components have no server
  *                              parent to hand them copy: the account moments
@@ -63,16 +67,21 @@ export type ClientCopy = {
   common: Dictionary["common"];
   a11y: Dictionary["a11y"];
   platform: Pick<Dictionary["platform"], "outbox" | "inflight">;
-  trustVisible: Pick<Dictionary["trustVisible"], "state" | "report">;
+  trustVisible: Pick<Dictionary["trustVisible"], "state" | "report"> & {
+    phone: Pick<Dictionary["trustVisible"]["phone"], "requiredAction">;
+  };
   counts: Dictionary["counts"];
   reserve: Dictionary["reserve"];
   uiCommon: Pick<Dictionary["uiCommon"], "around" | "inbox">;
+  feedV2: Pick<Dictionary["feedV2"], "card" | "composer">;
   authFlow: Pick<Dictionary["authFlow"], (typeof AUTH_FLOW_KEYS)[number]>;
   catalogue: Pick<Dictionary["catalogue"], "card">;
   frontDoor: Pick<Dictionary["frontDoor"], "share">;
   offPlatform: Dictionary["offPlatform"];
   details: Dictionary["details"];
   socialProfile: Pick<Dictionary["socialProfile"], "accountPage">;
+  /** The error boundaries' calm offline words. */
+  fixesV2: Pick<Dictionary["fixesV2"], "offline">;
   success: Pick<Dictionary["success"], "continue" | "close" | "detail"> & {
     moments: Pick<Dictionary["success"]["moments"], (typeof SLICED_MOMENTS)[number]>;
   };
@@ -99,10 +108,12 @@ export function clientCopyOf(t: Dictionary): ClientCopy {
     trustVisible: {
       state: t.trustVisible.state,
       report: t.trustVisible.report,
+      phone: { requiredAction: t.trustVisible.phone.requiredAction },
     },
     counts: t.counts,
     reserve: t.reserve,
     uiCommon: { around: t.uiCommon.around, inbox: t.uiCommon.inbox },
+    feedV2: { card: t.feedV2.card, composer: t.feedV2.composer },
     authFlow: Object.fromEntries(
       AUTH_FLOW_KEYS.map((key) => [key, t.authFlow[key]])
     ) as ClientCopy["authFlow"],
@@ -111,6 +122,7 @@ export function clientCopyOf(t: Dictionary): ClientCopy {
     offPlatform: t.offPlatform,
     details: t.details,
     socialProfile: { accountPage: t.socialProfile.accountPage },
+    fixesV2: { offline: t.fixesV2.offline },
     success: {
       continue: t.success.continue,
       close: t.success.close,

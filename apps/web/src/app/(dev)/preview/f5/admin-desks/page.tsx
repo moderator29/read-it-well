@@ -1,7 +1,7 @@
 import { getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { adminUi } from "@/app/admin/_components/ui";
-import { SwitchRow } from "@/app/admin/switches/page";
+import { SwitchRow } from "@/app/admin/switches/SwitchRow";
 import { StandingDesk } from "@/app/admin/standing/StandingDesk";
 import { StopsDesk } from "@/app/admin/stops/StopsDesk";
 import { RetireExamples } from "@/app/admin/examples/RetireExamples";
@@ -67,7 +67,7 @@ export default async function PreviewAdminDesks() {
           </ui.Section>
 
           <ui.Section title="Stops" hint="Agents stopped from trading, and the ones still trading.">
-            <StopsDesk stopped={ADMIN_STOPPED} trading={ADMIN_TRADING} />
+            <StopsDesk stopped={ADMIN_STOPPED} trading={ADMIN_TRADING} recallCopy={t.trustVisible.desk} />
           </ui.Section>
 
           <ui.Section title="The example shelf" hint="Seeded listings and the day they come off.">

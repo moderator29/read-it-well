@@ -37,8 +37,8 @@ import { BANK_ACCOUNTS, NOTIFICATIONS, PAYMENT_CARDS } from "../../f4/fixtures";
 
 /**
  * The settings sweep's proof harness (rule R-G): the real settings
- * components, signed in, on fixture props, so the before and after shots in
- * `docs/design/proofs/session-b/sweep-settings/` can be re-run. FIXTURE
+ * components, signed in, on fixture props, so the browser checks under
+ * `apps/web/tests/` can open each settings screen without an account. FIXTURE
  * PROPS, NOT DATA: the person, the cards, the devices and the notifications
  * are invented for the picture and prove only the look.
  *
@@ -151,7 +151,7 @@ export function SweepSettingsHarness({ v }: { v: string }) {
             <RowLink href="/help" icon="ticket" label={t.settings.about.help} sub={t.settings.about.helpSub} />
             <RowLink href="/terms" icon="grid" label={t.settings.about.terms} />
             <RowLink href="/privacy" icon="verified" label={t.settings.about.privacy} />
-            <RowValue icon="sparkle" label={t.settings.about.version} value="0.1.0" />
+            <RowValue icon="info" label={t.settings.about.version} value="0.1.0" />
             <RowValue icon="share" label={t.settings.about.licences} value="Next.js, React, Tailwind CSS (MIT)" />
           </SettingsGroup>
         </div>

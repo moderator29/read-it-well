@@ -107,7 +107,7 @@ export function PageHeader({
             </h1>
             {subtitle &&
               (subtitleHref ? (
-                <Link href={subtitleHref} className="nf-ph-large__sub nf-ph-large__sub--link">
+                <Link href={subtitleHref} className="nf-tap nf-ph-large__sub nf-ph-large__sub--link">
                   <span className="min-w-0">{subtitle}</span>
                   <UiIcon name="chevron-right" size={ICON.inline} className="shrink-0" />
                 </Link>
@@ -156,7 +156,7 @@ export function PageHeader({
               (subtitleHref ? (
                 <Link
                   href={subtitleHref}
-                  className="nf-lede mt-inline flex items-center gap-inline-tight text-[var(--nf-content-link)] underline-offset-4 [overflow-wrap:anywhere] hover:underline"
+                  className="nf-tap nf-lede mt-inline flex items-center gap-inline-tight text-[var(--nf-content-link)] underline-offset-4 [overflow-wrap:anywhere] hover:underline"
                 >
                   <span className="min-w-0">{subtitle}</span>
                   <UiIcon name="chevron-right" size={ICON.inline} className="shrink-0" />
@@ -227,7 +227,7 @@ export function PageHeader({
           (subtitleHref ? (
             <Link
               href={subtitleHref}
-              className="nf-body-sm mt-inline-tight flex items-center gap-inline-tight font-medium leading-snug text-[var(--nf-content-link)] underline-offset-4 [overflow-wrap:anywhere] hover:underline"
+              className="nf-tap nf-body-sm mt-inline-tight flex items-center gap-inline-tight font-semibold leading-snug text-[var(--nf-content-link)] underline-offset-4 [overflow-wrap:anywhere] hover:underline"
             >
               {/* `min-w-0` stays so the flex child can shrink; `truncate` goes,
                   because it was clipping the subtitle to one line inside a

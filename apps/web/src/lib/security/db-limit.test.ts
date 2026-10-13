@@ -30,7 +30,7 @@ describe("the database's rate refusal", () => {
     expect(src("lib/messages/actions.ts").match(/dbLimitRefusal\(/g)?.length).toBeGreaterThanOrEqual(2);
     expect(src("lib/social/posts-actions.ts")).toContain("case DB_LIMIT_CODE:");
     expect(src("lib/social/posts-actions.ts").match(/dbLimitRefusal\(error\) \?\? POST_FAILURE\.down/g)?.length).toBe(2);
-    expect(src("lib/social/stories-schema.ts")).toContain("case DB_LIMIT_CODE:");
+    expect(src("lib/social/stories-model.ts")).toContain("case DB_LIMIT_CODE:");
     expect(src("lib/reports/actions.ts")).toContain("dbLimitRefusal(error)");
     expect(src("lib/reviews/actions.ts")).toContain("dbLimitRefusal(insertError)");
     expect(src("lib/agent/listings-actions.ts")).toContain("dbLimitRefusal(error) ?? SAVE_FAILED_MESSAGE");

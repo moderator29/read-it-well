@@ -11,11 +11,13 @@ import { LOCALE_COOKIE } from "@/lib/locale.constants";
 import { splitLocalePrefix } from "@/lib/i18n/public-locale";
 
 /**
- * The reader's locale, read on the client (the reasoning, and the SSR safety
- * argument, are at the top of `use-client-dictionary.ts`). In a module of its
+ * The reader's locale, read on the client. The server snapshot is
+ * `DEFAULT_LOCALE`, so the render that must match the server's never reads
+ * `document`, and the real value settles after hydration. In a module of its
  * own because most callers want the locale only, to format a number or a
- * date, and the dictionary hook's module imports all four dictionaries: a
- * component that needed "en" or "yo" shipped every word of every language.
+ * date. The words themselves are never read from a client-side dictionary
+ * (the hook that did that imported all four, and is gone): they arrive from
+ * the server through `client-copy.tsx`, or as props from a server parent.
  */
 
 /**

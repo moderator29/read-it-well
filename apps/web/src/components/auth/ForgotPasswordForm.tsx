@@ -1,4 +1,5 @@
 "use client";
+import "@/app/css/auth.css";
 
 import { useActionState } from "react";
 import Link from "next/link";

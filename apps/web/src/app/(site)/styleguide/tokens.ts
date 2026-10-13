@@ -16,7 +16,12 @@
  * stops painting.
  */
 
-export type Swatch = { name: string; note: string };
+export type Swatch = {
+  name: string;
+  note: string;
+  /** A text token's own ground, when it is meant for one fill only (C6: the on-brand ink was painted on a light panel and measured 1.04 to 1). */
+  on?: string;
+};
 
 /** Surfaces, darkest to lightest in the dark theme. */
 export const SURFACES: Swatch[] = [
@@ -34,7 +39,7 @@ export const CONTENT: Swatch[] = [
   { name: "--nf-content-primary", note: "Body text and anything a person reads to act." },
   { name: "--nf-content-secondary", note: "Supporting prose. Still comfortably readable." },
   { name: "--nf-content-muted", note: "Captions and counts. Never a sentence that matters." },
-  { name: "--nf-content-on-brand", note: "Text sitting on a brand fill." },
+  { name: "--nf-content-on-brand", note: "Text sitting on a brand fill.", on: "--nf-brand-primary" },
 ];
 
 export const BRAND: Swatch[] = [

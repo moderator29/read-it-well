@@ -118,9 +118,23 @@ export const trustVisibleEn = {
   phone: {
     title: "Phone",
     subtitle: "One confirmed mobile number per account",
-    why: "Vallo asks for a confirmed mobile number once, before your first inspection request, your first review and your first report. It is never shown to anybody. It keeps one person to one account, which is what makes reviews and reports worth trusting.",
+    why: "Vallo asks for a confirmed mobile number once, before your first message, visit, booking, payment or listing, and before your first review and your first report. It is never shown to anybody. It keeps one person to one account, which is what makes reviews and reports worth trusting.",
     closedTitle: "Nothing is needed from you",
     closedBody: "Vallo is not asking for phone numbers at the moment. Browsing, saving and messaging never need one.",
+    /* While codes are not sent: the number is saved to the profile unconfirmed,
+       for the things that need one on file (a wallet opened in the member's own name). */
+    profileTitle: "Your mobile number",
+    profileBody: "Saved to your profile so anything opened in your own name, like your payments account, can use it. It is never shown to anybody. We will ask you to confirm it with a code later.",
+    profileHint: "A Nigerian mobile number, for example 0803 123 4567.",
+    /** `{last}` is the last four digits. */
+    profileCurrent: "On your profile: the number ending {last}.",
+    profileSave: "Save number",
+    profileSaving: "Saving",
+    profileSaved: "Saved. Your number is on your profile.",
+    profileInvalid: "That is not a Nigerian mobile number. It has 11 digits and starts 070, 071, 080, 081, 090 or 091.",
+    profileRefused: "We could not use this number. Try a different number, or contact support.",
+    profileFailed: "We could not save your number just now. Nothing was changed. Try again in a moment.",
+    profileBack: "Continue",
     signedOutTitle: "Sign in to confirm your number",
     signedOutBody: "A number is confirmed for an account, so this needs yours.",
     signIn: "Sign in",
@@ -146,16 +160,21 @@ export const trustVisibleEn = {
     numberEmpty: "Enter your mobile number.",
     codeShape: "The code is six digits.",
     sendLimited: "That is a lot of codes in a short time. Wait an hour and try again.",
-    sendTaken: "That number is already confirmed on another Vallo account. One number can confirm one account.",
+    /** V-50 NO ENUMERATION: the one sentence for every refusal that could tell
+       somebody whether a number is on Vallo, so taken and invalid read the same. */
+    numberRefused: "We could not use this number. Try a different number, or contact support.",
     sendAlready: "That number is already confirmed on your account.",
-    sendInvalid: "That is not a Nigerian mobile number we can send to. Check the digits.",
     sendUnconfigured: "We could not send a code just now. Nothing was changed. Try again later.",
     sendFailed: "We could not send a code just now. Nothing was changed. Try again in a moment.",
     confirmWrong: "That code does not match. Check the message and try again.",
     confirmExpired: "That code has expired. Ask for a new one.",
     confirmLocked: "Too many wrong codes. Ask for a new one.",
     confirmNoCode: "There is no code waiting for this account. Ask for one first.",
-    confirmTaken: "That number was confirmed on another Vallo account in the meantime. One number can confirm one account.",
+    /** The button beside `required`: Settings, Phone, then back to where the member was. */
+    requiredAction: "Confirm my number",
+    /** A QA account (public.qa_accounts) is never asked for a phone. */
+    qaTitle: "This is a test account",
+    qaBody: "Vallo test accounts are never asked for a phone number. Nothing is needed from you.",
   },
   /** V-49: confirming identity with a NIMC virtual NIN. */
   vnin: {
@@ -425,45 +444,6 @@ export const trustVisibleEn = {
     footer: "The person you report is never told who reported them. If you are in danger,",
     call: "call 112 now",
   },
-  /** V-100: the renter passport. Opt in, never required, one thread at a time. */
-  passport: {
-    title: "Renter passport",
-    subtitle: "What Vallo recorded about you, shown only where you choose",
-    lede: "Instead of a guarantor letter, you can show a lister what Vallo itself recorded about you. It is off unless you turn it on, it is shown only in the conversations you choose, and you can take it back at any time. No lister may ask you for it.",
-    on: "Passport on",
-    off: "Passport off",
-    turnOn: "Turn it on",
-    turnOff: "Turn it off",
-    offNote: "Turning it off takes it back from every conversation it was shown in.",
-    preview: "What a lister would see",
-    previewEmpty: "Nothing yet. As you confirm your phone, attend inspections and rent through Vallo, it fills itself in.",
-    /** `{count}` conversations. */
-    sharedIn: "Shown in {count} conversations.",
-    sharedInOne: "Shown in 1 conversation.",
-    sharedInNone: "Not shown in any conversation yet. Open a conversation with a lister to show it there.",
-    phone: "Phone confirmed",
-    /** `{date}` is a date. */
-    nimc: "Identity matched with NIMC, {date}",
-    attendedOne: "1 inspection attended, recorded at the gate by both phones",
-    /** `{count}` inspections. */
-    attended: "{count} inspections attended, recorded at the gate by both phones",
-    tenancyOne: "1 tenancy paid through Vallo",
-    /** `{count}` tenancies. */
-    tenancies: "{count} tenancies paid through Vallo",
-    /** `{month}` is a month and year. */
-    since: "On Vallo since {month}",
-    heading: "Renter passport, shared by them",
-    share: "Show my renter passport to this lister",
-    shareHint: "Only what Vallo recorded. You can take it back.",
-    unshare: "Stop showing my renter passport here",
-    shared: "Shown here. You can take it back at any time.",
-    turnOnFirst: "Turn your passport on in Settings first.",
-    failed: "That did not save. Nothing changed. Try again.",
-    signedOut: "Sign in to see your renter passport.",
-    signIn: "Sign in",
-    readFailed: "Your passport did not load. Nothing was changed. Try again in a moment.",
-    working: "Saving",
-  },
   /**
    * V-97, the state kit's own screens. Written to `docs/design/VOICE.md`:
    * second person, one sentence of body, and nothing the code cannot prove.
@@ -473,14 +453,16 @@ export const trustVisibleEn = {
     lostTitle: "We could not find that page",
     lostBody: "The link may be old, or the page may have moved. Search for what you came for, or go back home.",
     /** A screen inside the app that failed to load. No promise that nothing was lost: no code checks it. */
-    screenErrorOverline: "Error",
+    screenErrorOverline: "Not loaded",
     screenErrorTitle: "That screen did not load",
-    /* The audit's claims sweep reworded this: nothing promises the reader lost nothing. */
-    screenErrorBody: "Something stopped part way through. Anything you had typed on this screen may need typing again, and trying again usually settles it.",
+    /* The audit's claims sweep reworded this: nothing promises the reader lost nothing. W2 (round 5)
+       says what is safe in the same spirit: a failed load cannot undo what was already sent or saved,
+       and it can lose what was being typed. What happened, what is safe, what to do. */
+    screenErrorBody: "A screen that fails to load undoes nothing you had already sent or saved. What you typed here may need typing again, and trying again usually settles it.",
     /** `{digest}` is the server's id for the failure, for support to find it. */
-    screenErrorRef: "Reference {digest}",
+    screenErrorRef: "Reference {digest}. If this keeps happening, quote it to support.",
     offlineOverline: "Connection",
     offlineTitle: "You are offline",
-    offlineBody: "The connection dropped before this page could load. Anything you had typed but not sent may need typing again. Your balance, messages and bookings are never shown from an old copy.",
+    offlineBody: "The connection dropped before this page could load. Pages you have opened before still open, and your balance is never shown from an old copy.",
   },
 };

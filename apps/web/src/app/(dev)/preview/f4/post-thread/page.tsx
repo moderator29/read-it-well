@@ -1,4 +1,6 @@
 import { PageHeader } from "@/components/app/PageHeader";
+import { getDictionary } from "@vallo/i18n";
+import { sheetWordsOf } from "@/components/social/sheet-words";
 import { ThreadView } from "@/app/(app)/post/[id]/ThreadView";
 import { CreateBloom } from "@/components/social/bloom/CreateBloom";
 import { FEED_PLACES, THREAD } from "../fixtures";
@@ -12,7 +14,7 @@ export default function PostThreadPreview() {
   return (
     <div className="nf-shell mx-auto w-full max-w-2xl pb-4xl pt-md">
       <PageHeader title="Thread" subtitle="Around Lekki Phase 1" fallback="/around" />
-      <ThreadView thread={THREAD} signedIn openReply={false} />
+      <ThreadView thread={THREAD} signedIn openReply={false} sheet={sheetWordsOf(getDictionary("en"))} />
       <CreateBloom
         signedIn
         areas={FEED_PLACES.map((place, index) => ({

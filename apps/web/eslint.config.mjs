@@ -5,6 +5,7 @@ import nfColour from "./eslint-rules/no-raw-colour.mjs";
 import nfSpacing from "./eslint-rules/no-raw-spacing.mjs";
 import nfFontSize from "./eslint-rules/no-arbitrary-font-size.mjs";
 import nfServerActions from "./eslint-rules/server-actions-export-only-actions.mjs";
+import nfDictionary from "./eslint-rules/no-dictionary-in-client.mjs";
 
 /**
  * The three design-system rules and one outage rule, under one plugin
@@ -30,6 +31,7 @@ const nf = {
     ...nfSpacing.rules,
     ...nfFontSize.rules,
     ...nfServerActions.rules,
+    ...nfDictionary.rules,
   },
 };
 
@@ -193,6 +195,46 @@ const config = [
    * comment, and that is the general shape: when a rule cannot be promoted, the
    * question is what the remaining sites are FOR, not how to excuse them.
    * ------------------------------------------------------------------ */
+  /* ------------------------------------------------------------------
+   * FRAMER-MOTION ONLY AS HOOKS (D34, D39, D49.1).
+   *
+   * The top-level `motion` component pulls roughly 50KB where `LazyMotion`
+   * with `domAnimation` and the `m` namespace costs about 18, and this app
+   * runs in a WebView on budget Android over Nigerian mobile data. So
+   * `motion`, `domMax` and the provider pieces are refused everywhere. A
+   * component that imports `motion` has not been ported, whatever it looks
+   * like on screen.
+   *
+   * D49.1: there is no provider either. Nothing renders an `m` element and
+   * the ported components use only hooks and `animate`, which need no feature
+   * bundle, so `LazyMotion` and `domAnimation` cost 31KB gz per route for
+   * nothing. If an `m` element is ever genuinely wanted, the provider comes
+   * back with it, with this rule's exemption, in the same commit.
+   * ------------------------------------------------------------------ */
+  {
+    files: ["src/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              name: "framer-motion",
+              importNames: ["motion", "domMax", "LazyMotion", "domAnimation"],
+              message:
+                "Use framer-motion's hooks and animate(). No LazyMotion or feature bundle is mounted (D39, D49.1).",
+            },
+          ],
+          patterns: [
+            {
+              regex: "^(framer-motion/|motion(/|$))",
+              message: "Import from \"framer-motion\" only, its hooks and animate() (D39, D49.1).",
+            },
+          ],
+        },
+      ],
+    },
+  },
   {
     files: ["src/design-system/**/*.{ts,tsx}", "src/components/**/*.{ts,tsx}"],
     plugins: { nf },
@@ -455,6 +497,28 @@ const config = [
     files: ["src/**/*.{ts,tsx}"],
     plugins: { nf },
     rules: { "nf/server-actions-export-only-actions": "error" },
+  },
+
+  /* ------------------------------------------------------------------
+   * NO DICTIONARY IN A CLIENT MODULE (Session 3, W13, measured).
+   *
+   * A "use client" module that imports `@vallo/i18n` ships the whole
+   * dictionary, 398KB gzipped, in its route's first load. See
+   * eslint-rules/no-dictionary-in-client.mjs for what to do instead.
+   *
+   * THE ALLOW-LIST ONLY SHRINKS. Each file below still breaks the rule and has
+   * a named owner fixing it; delete its line in the same change that fixes
+   * it. Never add one: fix the import instead.
+   * ------------------------------------------------------------------ */
+  {
+    files: ["src/**/*.{ts,tsx}"],
+    ignores: [
+      /* Held by F1. Read `cryptoPay` through useScopedCopy("cryptoPay"). */
+      /* Development harnesses, never in a production route. */
+      "src/app/(dev)/**",
+    ],
+    plugins: { nf },
+    rules: { "nf/no-dictionary-in-client": "error" },
   },
 ];
 

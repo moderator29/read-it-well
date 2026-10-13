@@ -26,7 +26,7 @@
  * together. A date rather than a number so a stored row says which text was on
  * screen without anybody keeping a separate table of what version meant what.
  */
-export const TERMS_VERSION = "2026-09-25";
+export const TERMS_VERSION = "2026-10-13";
 
 /**
  * The privacy notice moves with them today and has its own constant anyway,
@@ -36,9 +36,28 @@ export const TERMS_VERSION = "2026-09-25";
 /* 2026-09-24 (STORE-08 / SEC-13 / STORE-07): processors named, location,
    push tokens, device records, AI and crash data described, the analytics
    claim removed, the deletion section brought to the purge that now runs. */
+/* 2026-10-13: section 6 states the fee position in the product's own words (free to list, nothing added for
+   renters and guests, the platform fee comes out of the lister's share only on a completed deal, a fixed fee per
+   seated restaurant table) and the Host Agreement applies to hosts. */
 /* 2026-09-25 (Track A/B): no wallet or balance is held; payment data now
    describes split settlement, agreements and Guarantee claims. */
 export const PRIVACY_VERSION = "2026-09-25";
+
+/**
+ * The Host Agreement (`lib/legal/host-agreement.tsx`, page /host-agreement),
+ * agreed with the Terms and the Privacy policy before a host's business is
+ * created, and recorded with this version on the business
+ * (`consents.agreements`).
+ */
+export const HOST_AGREEMENT_VERSION = "2026-10-13";
+
+/**
+ * The founder's statement of 13 October 2026, ticked before any workspace
+ * application or setup is sent: "Every payment for a deal I make on Vallo
+ * happens inside Vallo." Recorded with this version beside the Terms and the
+ * Privacy policy (`lib/legal/workspace-acceptance.ts`).
+ */
+export const PAY_ON_VALLO_VERSION = "2026-10-13";
 
 /** The two documents a person accepts when they open an account. */
 export const ACCEPTED_AT_SIGNUP = [

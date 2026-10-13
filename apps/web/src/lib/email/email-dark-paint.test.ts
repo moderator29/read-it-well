@@ -1,6 +1,7 @@
 /**
- * EVERY EMAIL IS DARK, AND READS AS WRITTEN AND INVERTED (Track H, 25
- * September; dark by the founder's ruling of 29 September 2026).
+ * EVERY EMAIL READS AS WRITTEN, INVERTED AND IN THE DARK SCHEME (Track H, 25
+ * September; the inline layer dark by the founder's ruling of 29 September,
+ * then WHITE by directive D23 of 6 October 2026, W9).
  *
  * Gmail strips `@media (prefers-color-scheme)` and runs its own dark pass
  * (its apps invert), Outlook's Word engine reads `bgcolor` and ignores the
@@ -9,8 +10,9 @@
  * for every message the product sends (the whole catalogue, and the five
  * auth templates the generator writes), this holds:
  *
- *   1. the color-scheme and supported-color-schemes metas say "dark", so
- *      Apple Mail renders the design as written rather than inverting it;
+ *   1. the color-scheme metas say "light dark" for the catalogue (and still
+ *      "dark" for the five auth templates until R-24 moves their generator),
+ *      so Apple Mail applies the designed scheme rather than inverting it;
  *   2. every body, table and cell carries a `bgcolor` attribute AND an inline
  *      `background-color`, and the two agree (so nothing is left for a client
  *      to paint);
@@ -35,8 +37,9 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 import { EVERY_MESSAGE } from "./fixtures";
+import { everyComponent } from "./components-fixture";
 import { paintExplicit } from "./render";
-import { DARK, SKY } from "./theme";
+import { DARK, LIGHT, SCHEME_DARK_GROUND, SCHEME_DARK_INK } from "./theme";
 
 const HERE = fileURLToPath(new URL(".", import.meta.url));
 const TEMPLATES = join(HERE, "..", "..", "..", "..", "..", "supabase", "templates");
@@ -45,7 +48,13 @@ const AUTH = ["confirmation", "email-change", "invite", "magic-link", "recovery"
   html: readFileSync(join(TEMPLATES, `${name}.html`), "utf8"),
 }));
 
-const EVERY = [...EVERY_MESSAGE.map(({ name, message }) => ({ name, html: message.html })), ...AUTH];
+const CATALOGUE = [
+  ...EVERY_MESSAGE.map(({ name, message }) => ({ name, html: message.html, auth: false })),
+  /* Every component, in both registers, including the ones no message uses yet. */
+  { name: "components:paper", html: everyComponent("paymentReceipt").html, auth: false },
+  { name: "components:shell", html: everyComponent("newEnquiry").html, auth: false },
+];
+const EVERY = [...CATALOGUE, ...AUTH.map((a) => ({ ...a, auth: true }))];
 
 /** The body, without comments (MSO conditionals hold VML we do not measure). */
 function body(html: string): string {
@@ -79,38 +88,39 @@ function inverted(hex: string): string {
   return hexOf(m.map(([x, y, z]) => x! * r + y! * g + z! * b));
 }
 
-/** What the dark scheme repaints, by class. */
-const DARK_GROUND: Record<string, string> = {
-  "rm-base": DARK.ground,
-  "rm-card": DARK.card,
-  "rm-panel": DARK.panel,
-};
-const DARK_INK: Record<string, string> = {
-  "rm-title": DARK.text,
-  "rm-body": DARK.body,
-  "rm-muted": DARK.muted,
-  "rm-link": SKY,
-};
-const classOf = (attrs: string, table: Record<string, string>) =>
+/* What the dark scheme repaints, by class: one table, theme.ts's, which the
+   style block is written from too, so the test and the shell cannot disagree.
+   The shell classes go to night; the sheet classes stay paper (D28.1). */
+const DARK_GROUND = SCHEME_DARK_GROUND;
+const DARK_INK = SCHEME_DARK_INK;
+const classOf = (attrs: string, table: Readonly<Record<string, string>>) =>
   (/\bclass="([^"]*)"/.exec(attrs)?.[1] ?? "").split(/\s+/).find((c) => c in table) ?? null;
-
 type Ground = { light: string; dark: string; repainted: boolean };
 /* `light` is the ground as written (the name predates the dark redesign and
    means "the inline layer"); `dark` is what the style block re-asserts. */
 
-describe.each(EVERY)("$name", ({ html }) => {
-  it("declares itself dark in both colour-scheme metas", () => {
-    expect(html).toContain('<meta name="color-scheme" content="dark" />');
-    expect(html).toContain('<meta name="supported-color-schemes" content="dark" />');
+describe.each(EVERY)("$name", ({ html, auth }) => {
+  it("declares its schemes in both colour-scheme metas", () => {
+    const schemes = auth ? "dark" : "light dark";
+    expect(html).toContain(`<meta name="color-scheme" content="${schemes}" />`);
+    expect(html).toContain(`<meta name="supported-color-schemes" content="${schemes}" />`);
   });
 
-  it("paints the dark palette inline on the body, not a light one", () => {
+  it(auth ? "paints the dark palette inline on the body (until R-24)" : "paints white inline, with no dark ground anywhere (D23)", () => {
     const b = body(html);
-    expect(b).toMatch(new RegExp(`^<body[^>]*bgcolor="${DARK.ground}"`));
+    if (auth) {
+      expect(b).toMatch(new RegExp(`^<body[^>]*bgcolor="${DARK.ground}"`));
+      const painted = [...b.matchAll(/bgcolor="(#[0-9a-fA-F]{6})"/g)].map((m) => m[1]!.toUpperCase());
+      expect(painted.filter((hex) => lum(hex) > 0.2)).toEqual([]);
+      return;
+    }
+    expect(b).toMatch(new RegExp(`^<body[^>]*bgcolor="${LIGHT.ground}"`));
+    /* No grey wash and no dark card on light: every painted ground is white,
+       the inset panel, or the button's own blue. */
     const painted = [...b.matchAll(/bgcolor="(#[0-9a-fA-F]{6})"/g)].map((m) => m[1]!.toUpperCase());
-    /* Nothing but the navy rungs and the button blue ever paints a ground. */
-    const light = painted.filter((hex) => lum(hex) > 0.2);
-    expect(light).toEqual([]);
+    const allowed = new Set([LIGHT.ground, LIGHT.card, LIGHT.panel].map((hex) => hex.toUpperCase()));
+    expect(painted.filter((hex) => !allowed.has(hex) && lum(hex) < 0.2 && hex !== "#005FE8")).toEqual([]);
+    expect(painted.filter((hex) => !allowed.has(hex) && hex !== "#005FE8")).toEqual([]);
   });
 
   it("paints every body, table and cell with bgcolor and an inline background-color that agree", () => {
@@ -131,7 +141,8 @@ describe.each(EVERY)("$name", ({ html }) => {
     /* Walk the tags in order, keeping the painted ground of the nearest cell,
        and what the dark scheme makes of it. */
     const grounds: Ground[] = [];
-    const top = (): Ground => grounds.at(-1) ?? { light: DARK.ground, dark: DARK.ground, repainted: true };
+    const top = (): Ground =>
+      grounds.at(-1) ?? (auth ? { light: DARK.ground, dark: DARK.ground, repainted: true } : { light: LIGHT.ground, dark: DARK.ground, repainted: true });
     for (const m of body(html).matchAll(/<(\/?)(body|table|td|p|h1|li|a|span)\b([^>]*)>([^<]*)/gi)) {
       const [, close, tag, attrs = "", after = ""] = m;
       const t = tag!.toLowerCase();

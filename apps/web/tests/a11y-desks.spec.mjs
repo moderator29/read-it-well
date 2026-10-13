@@ -1,11 +1,27 @@
 /**
  * C16. ACCESSIBILITY OF THE THREE DESKS: host, agent and the admin console.
  *
- * The console's security key and the passcode stop a headless browser at the
- * door, so the desks are measured through the preview harness routes, which
- * draw the same components with fixtures (`app/(dev)/preview/f5/*`). A
- * production server opens them only with VALLO_PREVIEW_HARNESS=1, which CI
- * sets on its own throwaway server and nowhere else (lib/preview-harness.ts).
+ * TWO SURFACES, AND THE VERDICT SAYS WHICH ONE IT MEASURED.
+ *
+ * 1. THE REAL HOST AND AGENT DESKS (`/host`, `/agent/dashboard`,
+ *    `/agent/listings`), scanned whenever QA_MEMBER_EMAIL and
+ *    QA_MEMBER_PASSWORD are set. A member session plus the passcode is the
+ *    whole door, and `_gate.mjs` and `_passcode.mjs` already open both, so
+ *    there was never a reason this could not be measured. A route that answers
+ *    the sign-in door or stays behind the lock is a FAILURE here, never a
+ *    quiet skip: a desk that was not reached was not scanned.
+ * 2. THE PREVIEW HARNESS (`app/(dev)/preview/f5/*`), which draws the same
+ *    components with fixtures. A production server opens it only with
+ *    VALLO_PREVIEW_HARNESS=1, which CI sets on its own throwaway server and
+ *    nowhere else (lib/preview-harness.ts). It remains the ONLY measurement of
+ *    the admin console, because `lib/admin/guard.ts` requires a session that
+ *    has proved a security key and no spec can prove one.
+ *
+ * Before 6 October this spec scanned the harness alone and printed
+ * "a11y desks: pass", which read as a verdict on the product. The harness is a
+ * fixture: it is worth measuring, and it is not the desks. Without the two QA
+ * variables the real scan is now a named SKIP and the verdict says the real
+ * desks went unmeasured.
  *
  * For each route at 390 and 1440, dark and light, motion off:
  *   - axe-core; SERIOUS and CRITICAL fail, moderate and minor are printed;
@@ -24,6 +40,8 @@
 import { chromium } from "playwright-core";
 import { existsSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
+import { qaContext, qaCredentials, signInAsQa, skip } from "./_gate.mjs";
+import { passcodeReady } from "./_passcode.mjs";
 
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:3210";
 const EXECUTABLE = process.env.CHROMIUM_PATH ?? (existsSync("/opt/pw-browsers/chromium") ? "/opt/pw-browsers/chromium" : undefined);
@@ -38,6 +56,21 @@ export const DESK_ROUTES = [
   "/preview/f5/admin-queue",
   "/preview/f5/confirm",
 ];
+
+/* THE REAL DESKS, scanned when QA_MEMBER_EMAIL and QA_MEMBER_PASSWORD exist.
+   A member session plus the passcode is the whole door for these three, so a
+   headless browser can reach them. The admin console cannot be reached this
+   way at any price: `lib/admin/guard.ts` requires a session that has PROVED A
+   SECURITY KEY, and a proof is not something a spec can supply. The two
+   `admin-*` harness routes above therefore stay the only measurement of the
+   console, and the verdict says so rather than letting a reader assume
+   otherwise. */
+export const REAL_DESK_ROUTES = ["/host", "/agent/dashboard", "/agent/listings"];
+
+/* Which surfaces this run actually measured. The verdict line is built from
+   this, because the finding that produced it was a job that printed
+   "a11y desks: pass" while having scanned nothing but a fixture harness. */
+const scanned = { harness: false, real: false };
 const THEMES = QUICK ? ["dark"] : ["dark", "light"];
 const WIDTHS = QUICK ? [390] : [390, 1440];
 const FAILING = new Set(["serious", "critical"]);
@@ -78,12 +111,23 @@ async function newContext(browser, theme, width) {
   return context;
 }
 
-async function axePass(browser, theme, width) {
-  const context = await newContext(browser, theme, width);
+async function axePass(browser, theme, width, { routes = DESK_ROUTES, context: given = null, label = "" } = {}) {
+  const context = given ?? (await newContext(browser, theme, width));
   const page = await context.newPage();
-  for (const route of DESK_ROUTES) {
-    const where = `${route} [${theme} ${width}]`;
+  for (const route of routes) {
+    const where = `${label}${route} [${theme} ${width}]`;
     if (!(await load(page, BASE_URL + route))) continue;
+    /* A real desk that answered the sign-in door or the passcode lock was NOT
+       measured, and must never be counted as a clean scan. */
+    const landed = new URL(page.url()).pathname;
+    if (given && (landed.startsWith("/sign-in") || landed.startsWith("/welcome"))) {
+      failures.push(`${where}: landed on ${landed}, so the real desk was never scanned`);
+      continue;
+    }
+    if (given && (await page.locator("[data-passcode-lock], [data-testid=passcode-lock]").count()) > 0) {
+      failures.push(`${where}: the passcode lock is covering the page, so the real desk was never scanned`);
+      continue;
+    }
     const mains = await page.evaluate(() => document.querySelectorAll("main, [role=main]").length);
     if (mains < 1) failures.push(`${where}: no main landmark`);
     await page.addScriptTag({ content: AXE_SOURCE });
@@ -101,7 +145,8 @@ async function axePass(browser, theme, width) {
       if (overflow > 1) failures.push(`${where}: scrolls sideways by ${overflow}px at 390`);
     }
   }
-  await context.close();
+  await page.close();
+  if (!given) await context.close();
 }
 
 /** The confirm panel: focus in on open, Escape closes, focus back to the opener. */
@@ -168,15 +213,69 @@ async function keyboardWalk(browser) {
   await context.close();
 }
 
+/* The real host and agent desks, behind a real member session and the
+   passcode. Signed in once and the context reused across the matrix: a
+   sign-in per theme and width would be four round trips to GoTrue for no
+   extra coverage. */
+async function realDeskPass(browser) {
+  const state = await signInAsQa(browser);
+  for (const theme of THEMES) {
+    for (const width of WIDTHS) {
+      const context = await qaContext(browser, state, {
+        viewport: { width, height: width < 600 ? 844 : 900 },
+        reducedMotion: "reduce",
+        bypassCSP: true,
+      });
+      await context.addCookies(
+        [
+          ["nf_theme", theme],
+          ["nf_motion", "off"],
+          ["vallo_first_run", "seen"],
+        ].map(([name, value]) => ({ name, value, url: BASE_URL })),
+      );
+      const page = await context.newPage();
+      await passcodeReady(context, page, { baseUrl: BASE_URL });
+      await page.close();
+      console.log(`a11y desks (real): ${theme} ${width}`);
+      await axePass(browser, theme, width, { routes: REAL_DESK_ROUTES, context, label: "real " });
+      await context.close();
+    }
+  }
+  scanned.real = true;
+}
+
 async function main() {
   const browser = await chromium.launch({ executablePath: EXECUTABLE });
   try {
     for (const theme of THEMES) for (const width of WIDTHS) {
-      console.log(`a11y desks: ${theme} ${width}`);
+      console.log(`a11y desks (harness): ${theme} ${width}`);
       await axePass(browser, theme, width);
     }
+    scanned.harness = true;
     await confirmFocus(browser);
     await keyboardWalk(browser);
+
+    /* THE REAL DESKS. Without the two QA variables this is a named SKIP, not a
+       silent pass: the harness result stands on its own and the verdict below
+       states that the real desks went unmeasured. */
+    /* BOTH conditions, and the second one was learned by running this: with no
+       NEXT_PUBLIC_SUPABASE_ANON_KEY the proxy has no sign-in wall at all
+       (`host.spec.mjs` skips on the same variable for the same reason), so
+       `/host` answers 200 signed out. Scanning that page would measure a desk
+       with no session and no data behind an absent gate and report it as the
+       real desk, which is the exact fault this change exists to remove. */
+    if (qaCredentials() && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      try {
+        await realDeskPass(browser);
+      } catch (error) {
+        failures.push(`real desks: the signed-in scan could not run (${String(error).slice(0, 160)})`);
+      }
+    } else {
+      const missing = qaCredentials()
+        ? "NEXT_PUBLIC_SUPABASE_ANON_KEY is not set, so this build has no sign-in wall and a desk page would answer signed out"
+        : "QA_MEMBER_EMAIL and QA_MEMBER_PASSWORD are not set";
+      skip(`${missing}, so the REAL host and agent desks were not scanned; only the fixture harness was`);
+    }
   } finally {
     await browser.close();
   }
@@ -189,7 +288,15 @@ async function main() {
     for (const f of failures) console.error(`  FAIL  ${f}`);
     process.exit(1);
   }
-  console.log("\na11y desks: pass (no serious or critical findings).");
+  /* Never a bare "pass". The verdict names the surface it measured, because a
+     green tick that does not say what it looked at spends credibility it has
+     not earned. */
+  const surfaces = [scanned.harness ? "the fixture harness" : null, scanned.real ? "the real host and agent desks" : null].filter(Boolean);
+  console.log(`\na11y desks: pass on ${surfaces.join(" and ")} (no serious or critical findings).`);
+  if (!scanned.real) {
+    console.log("a11y desks: THE REAL DESKS WERE NOT SCANNED. Set QA_MEMBER_EMAIL and QA_MEMBER_PASSWORD to measure them.");
+  }
+  console.log("a11y desks: the admin console is measured only through the harness; its security key cannot be proved by a spec.");
 }
 
 if (process.argv[1] && import.meta.url.endsWith(process.argv[1].split("/").pop())) {

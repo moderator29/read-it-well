@@ -44,6 +44,7 @@ const STUBS: Record<string, string> = {
     export const useRouter = () => router;
     export const usePathname = () => window.location.pathname;
     export const useSearchParams = () => new URLSearchParams(window.location.search);
+    export const useParams = () => ({});
     export const redirect = () => { throw new Error("redirect"); };
     export const notFound = () => { throw new Error("notFound"); };
   `,

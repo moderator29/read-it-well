@@ -12,6 +12,13 @@ describe("Icon3D", () => {
     expect(existsSync(join(PUBLIC, `brand/3d/${name}@2x.webp`))).toBe(true);
   });
 
+  it("serves the founder's original 3D art for every name, with no redirect to another set", () => {
+    for (const name of ICON_3D_NAMES) {
+      expect(icon3dSrc(name)).not.toMatch(/tier-[ab]/);
+      expect(icon3dSrc(name).startsWith("/brand/3d/")).toBe(true);
+    }
+  });
+
   it.each(ICON_3D_NAMES)("%s has its email PNGs", (name) => {
     expect(icon3dEmailSrc(name)).toBe(`/brand/3d/email/${name}@2x.png`);
     expect(icon3dEmailSrc(name, 1)).toBe(`/brand/3d/email/${name}.png`);

@@ -3,9 +3,11 @@
 import { initial } from "@/lib/text/initial";
 import "./profile.css";
 import { useState } from "react";
-import Image from "next/image";
 import { Panel } from "@/components/ui/Panel";
-import { ButtonLink } from "@/components/ui/Button";
+import { IdentityHeader } from "@/components/app/identity/IdentityHeader";
+import { BackChevron } from "@/components/social/profile/BackChevron";
+import { useClientLocale } from "@/lib/i18n/use-client-locale";
+import { Button, ButtonLink } from "@/components/ui/Button";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { RowButton, RowValue, SettingsGroup, Sheet } from "@/components/app/account/rows";
 import {
@@ -15,6 +17,7 @@ import {
   MAX_NAME,
   useDeviceIdentity,
 } from "@/components/app/account/device-identity";
+import { useSignInHref } from "@/lib/auth/use-sign-in-href";
 
 /**
  * The profile before you sign in.
@@ -32,14 +35,15 @@ import {
  * signing in would change. The shape is the signed-in header, class for class,
  * so the page does not become a different design the moment somebody arrives.
  *
- * It wears the signed-in page's own anatomy from `50E032EA` (`profile.css`):
- * the dusk cover fading into the page, the round face on its lit ring, the
- * name and a line under it. There is no cover picker and no avatar picker,
+ * It wears the header every profile wears (`IdentityHeader`): the cover with
+ * Back in its corner, the round face on its lit ring, the name and a line
+ * under it. There is no cover picker and no avatar picker,
  * because neither can be stored for somebody with no account, and a control
  * that silently does nothing is the same lie in a different costume. No tick,
  * no counts: nothing here has been checked or counted.
  */
 export function SignedOutHero({ unconfigured }: { unconfigured: boolean }) {
+  const signInHref = useSignInHref();
   const [editing, setEditing] = useState(false);
 
   /*
@@ -57,6 +61,7 @@ export function SignedOutHero({ unconfigured }: { unconfigured: boolean }) {
    * which is what `useSyncExternalStore` exists for.
    */
   const { identity, save } = useDeviceIdentity();
+  const locale = useClientLocale();
   const name = identity.name || GUEST_NAME;
   const email = identity.email;
   const since = formatSince(identity.since);
@@ -64,39 +69,29 @@ export function SignedOutHero({ unconfigured }: { unconfigured: boolean }) {
   const monogram = initial(name, "G");
 
   return (
-    <header data-testid="signed-out-hero">
-      {/* The navy hero block (reference 05) is the cover, the face and the
-          name only: a night island in both themes, painted in light by
-          `profile.css`. The note, the sign-in and the device rows under it
-          stay on the page's own palette. */}
-      <div className="nf-pf-hero" data-theme="dark">
-      <div className="nf-pf-cover">
-        <Image
-          src="/brand/photos/villa-pool-skyline-02.jpg"
-          alt=""
-          fill
-          priority
-          sizes="(max-width: 768px) 100vw, 768px"
-          className="nf-pf-cover__photo nf-pf-cover__photo--plate"
-        />
-        <span className="nf-pf-cover__grade" aria-hidden="true" />
-        <span className="nf-pf-cover__fade" aria-hidden="true" />
-      </div>
-
-      <div className="nf-pf-id nf-hero-band" data-theme="dark">
-        <div className="nf-pf-avatar nf-pf-avatar--static">
-          <span className="nf-pf-avatar__disc">
-            <span aria-hidden="true">{monogram}</span>
-          </span>
-        </div>
-        <div className="nf-pf-id__text">
-          <h1 className="nf-pf-name">
-            <span className="nf-pf-name__text">{name}</span>
-          </h1>
-          <p className="nf-pf-handle">Not signed in</p>
-        </div>
-      </div>
-      </div>
+    <div data-testid="signed-out-hero">
+      {/* The same header every profile wears (`IdentityHeader`): the cover
+          with Back in its corner, the face, the name and one line under it.
+          No tick, no role, no counts, no pickers: nothing here has been
+          checked or counted, and nothing could be stored. */}
+      <IdentityHeader
+        state="mine"
+        testId="signed-out-identity"
+        name={name}
+        handle={null}
+        handleLine="Not signed in"
+        coverPlate="/brand/photos/villa-pool-skyline-02.jpg"
+        avatar={
+          <div className="nf-profile-avatar nf-pf-avatar--static">
+            <span className="nf-profile-avatar__disc">
+              <span aria-hidden="true">{monogram}</span>
+            </span>
+          </div>
+        }
+        counts={null}
+        locale={locale}
+        topStart={<BackChevron fallback="/home" />}
+      />
 
       {since && (
         <p className="nf-pf-since">
@@ -117,7 +112,7 @@ export function SignedOutHero({ unconfigured }: { unconfigured: boolean }) {
             : "Sign in and this page shows what you have actually booked, saved and reviewed, on every device you use, along with a handle, a cover and somewhere for what you write to live."}
         </p>
         {!unconfigured && (
-          <ButtonLink href="/sign-in" variant="primary" size="lg" full className="mt-md">
+          <ButtonLink href={signInHref} variant="primary" size="lg" full className="mt-md">
             Sign in
           </ButtonLink>
         )}
@@ -162,7 +157,7 @@ export function SignedOutHero({ unconfigured }: { unconfigured: boolean }) {
           setEditing(false);
         }}
       />
-    </header>
+    </div>
   );
 }
 
@@ -254,14 +249,14 @@ function DeviceDetailsSheet({
       </div>
 
       <div className="pt-md">
-        <button
-          type="button"
+        <Button
+          variant="primary"
+          full
           onClick={() => onSave(draftName, draftEmail)}
-          className="nf-btn nf-btn--primary w-full"
           data-testid="device-name-save"
         >
           Save
-        </button>
+        </Button>
       </div>
     </Sheet>
   );

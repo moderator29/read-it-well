@@ -59,6 +59,9 @@ export function ThreadContextBanner({
 }) {
   const words = copy.context;
 
+  /* A chat between two members has no context to card: no listing, stay or table. */
+  if (context.kind === "direct") return null;
+
   if (context.kind === "reservation") {
     if (!context.reservation) return null;
     const reservation = context.reservation;
@@ -195,6 +198,19 @@ export function ThreadContextBanner({
           <UiIcon name="chevron-right" size={20} className="nf-context-card__chev" />
         </Link>
       )}
+      {/* A renter in a listing thread with no viewing on it had nothing to
+          press: the request lives on the listing, and the chat's own
+          "When can I view it?" chip is only words. The way there, named. */}
+      {!inspection && listing && role === "guest" && (
+        <Link
+          href={`/listing/${listing.id}#reserve`}
+          className="nf-btn nf-btn--glass nf-btn--sm self-start"
+          data-testid="thread-ask-viewing"
+        >
+          <UiIcon name="calendar-booking" size={16} />
+          {ASK_VIEWING}
+        </Link>
+      )}
       {inspection && (
         <RentalFace
           key={`${inspection.id}:${inspection.state}:${inspection.slotAt ?? ""}`}
@@ -213,3 +229,6 @@ export function ThreadContextBanner({
     </div>
   );
 }
+
+/* English until `threads.context` carries it with its translations. */
+const ASK_VIEWING = "Ask to view this home";

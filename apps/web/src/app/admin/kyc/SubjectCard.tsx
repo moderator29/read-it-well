@@ -81,7 +81,7 @@ export function SubjectCard({
               key={rung.kind}
               className="rounded-[var(--nf-radius-sm)] border border-[var(--nf-border-subtle)] px-xs py-2xs"
             >
-              <span className="text-[length:var(--nf-text-overline)] font-medium text-[var(--nf-content-primary)]">
+              <span className="text-[length:var(--nf-text-overline)] font-semibold text-[var(--nf-content-primary)]">
                 {RUNG_LABEL[rung.kind] ?? rung.kind}
               </span>{" "}
               {/* THE FIFTH RAW COLUMN VALUE, AND IT SURVIVED THE OTHER FOUR.
@@ -129,10 +129,10 @@ export function SubjectCard({
       <ConsentReceipt subject={subject} ui={ui} />
 
       {/* V-87: dated credentials, recorded by the desk, never required. */}
-      {decidable && subject.userId && <CredentialForm subjectId={subject.userId} />}
+      {decidable && subject.userId && <CredentialForm subjectId={subject.userId} desk={DESK} />}
 
       {subject.business && (
-        <dl className="mt-sm">
+        <div className="mt-sm">
           <ui.DetailRow label="Business" value={subject.business.name} />
           <ui.DetailRow label="RC number" value={subject.business.registrationNumber} />
           <ui.DetailRow label="Tax id" value={subject.business.taxId} />
@@ -140,7 +140,7 @@ export function SubjectCard({
           <ui.DetailRow label="Business phone" value={subject.business.phone} />
           <ui.DetailRow label="Established" value={ui.day(subject.business.establishedOn)} />
           <ui.DetailRow label="Business address" value={subject.business.address} />
-        </dl>
+        </div>
       )}
 
       <ul className="mt-sm space-y-sm">
@@ -150,7 +150,7 @@ export function SubjectCard({
             className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-sm"
           >
             <div className="flex flex-wrap items-center gap-xs">
-              <span className="text-[length:var(--nf-text-body-sm)] font-medium text-[var(--nf-content-primary)]">
+              <span className="text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
                 {KIND_LABEL[doc.kind] ?? doc.kind}
               </span>
               {doc.subtype && (
@@ -204,7 +204,7 @@ export function SubjectCard({
               title={`${KIND_LABEL[doc.kind] ?? doc.kind}${
                 doc.subtype ? `, ${SUBTYPE_LABEL[doc.subtype] ?? doc.subtype}` : ""
               }`}
-              className="mt-xs inline-block text-[length:var(--nf-text-caption)] font-medium underline"
+              className="mt-xs inline-block text-[length:var(--nf-text-caption)] font-semibold underline"
             />
 
             {decidable && doc.reviewStatus === "pending" && (

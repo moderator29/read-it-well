@@ -1,5 +1,5 @@
-import { Skeleton, SkeletonCard } from "@/components/ui/Skeleton";
-import { panelClass } from "@/components/ui/Panel";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { ResultListSkeleton } from "@/components/app/search/ResultSkeleton";
 import { LoadingShell } from "@/components/app/ScreenSkeleton";
 
 /**
@@ -18,31 +18,28 @@ export default function LoadingSearch() {
   return (
     <LoadingShell label="Loading search results">
       <div className="nf-glass nf-glass--chrome -mx-gutter -mt-group border-b border-[var(--nf-panel-hair)] px-gutter py-row">
+        {/* The back control and the one search box (field, filters, order). */}
         <div className="mx-auto flex max-w-3xl items-center gap-xs">
-          <Skeleton height="3.5rem" radius="sm" />
-          <Skeleton width="3.5rem" height="3.5rem" radius="sm" className="shrink-0" />
+          <Skeleton width="2.75rem" height="2.75rem" radius="pill" className="shrink-0" />
+          <Skeleton height="3.25rem" radius="sm" />
         </div>
-      </div>
-
-      {/* The category tiles and the active-filter rail beneath the bar. */}
-      <div className="mt-md flex gap-xs overflow-hidden">
-        {Array.from({ length: 5 }, (_, i) => (
-          <Skeleton key={i} width="6.5rem" height="2.75rem" radius="sm" className="shrink-0" />
-        ))}
+        {/* The chip row: the quick chips, then the filter chips. */}
+        <div className="mx-auto mt-sm flex max-w-3xl gap-xs overflow-hidden">
+          {Array.from({ length: 5 }, (_, i) => (
+            <Skeleton key={i} width="6rem" height="2.75rem" radius="sm" className="shrink-0" />
+          ))}
+        </div>
       </div>
 
       <div className="mt-md flex items-center justify-between gap-md">
         <Skeleton width="11rem" height="1rem" radius="sm" />
-        <Skeleton width="8rem" height="2.75rem" radius="sm" className="shrink-0" />
       </div>
 
-      <ul className="mt-md grid grid-cols-1 gap-md sm:grid-cols-2 lg:grid-cols-3">
-        {Array.from({ length: 6 }, (_, i) => (
-          <li key={i}>
-            <SkeletonCard className={panelClass({ variant: "card", className: "p-0" })} />
-          </li>
-        ))}
-      </ul>
+      {/* The results as they will draw: one card per row on a phone, each
+          slot the row card's own shape (`ResultSkeleton.tsx`). */}
+      <div className="mt-md">
+        <ResultListSkeleton count={3} />
+      </div>
     </LoadingShell>
   );
 }

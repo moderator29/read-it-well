@@ -1,0 +1,328 @@
+/*
+ * THE CHARGEBACKS DESK (13 October 2026): /admin/chargebacks and one case at
+ * /admin/chargebacks/<id> (app/admin/chargebacks), and the lister's calm hold
+ * notice on /payouts, /agent/earnings and /host/earnings
+ * (components/money/ChargebackHoldNotice.tsx). Loaded by the components that
+ * draw them, not by globals.css.
+ *
+ * Semantic tokens only, so light and dark follow the theme on their own.
+ * Phone first: one column at 390px; the counts run as a two-up grid and the
+ * case's side column sits beside its record from 1024px.
+ */
+@layer theme, base, components, utilities;
+
+@layer components {
+  /* The counts per state, each a link that narrows the desk. */
+  .nf-cb-counts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--nf-space-xs);
+    margin-top: var(--nf-gap-group);
+  }
+  @media (min-width: 768px) {
+    .nf-cb-counts {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 1024px) {
+    .nf-cb-counts {
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+    }
+  }
+  .nf-cb-count {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-3xs);
+    min-height: 44px;
+    padding: var(--nf-space-sm);
+    text-decoration: none;
+    color: var(--nf-content-primary);
+  }
+  .nf-cb-count[aria-current="true"] {
+    border-color: var(--nf-border-brand);
+  }
+  .nf-cb-count__label {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+  }
+  .nf-cb-count__value {
+    font-size: var(--nf-text-h3);
+    font-weight: 700;
+    line-height: 1.1;
+  }
+  .nf-cb-count__note {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-cb-count--warn .nf-cb-count__value {
+    color: var(--nf-state-warning);
+  }
+
+  /* The filters: a GET form, so a filtered desk is an address. */
+  .nf-cb-filters {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--nf-space-xs);
+    margin-top: var(--nf-gap-group);
+    align-items: end;
+  }
+  .nf-cb-filters__wide {
+    grid-column: 1 / -1;
+  }
+  .nf-cb-filters__actions {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--nf-space-xs);
+  }
+  @media (min-width: 1024px) {
+    .nf-cb-filters {
+      grid-template-columns: repeat(6, minmax(0, 1fr)) auto;
+    }
+    .nf-cb-filters__wide {
+      grid-column: auto;
+    }
+    .nf-cb-filters__actions {
+      grid-column: auto;
+      flex-wrap: nowrap;
+    }
+  }
+
+  /* A row's secondary line under its main one. */
+  .nf-cb-sub {
+    display: block;
+    margin-top: var(--nf-space-3xs);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+  }
+  .nf-cb-due--overdue {
+    color: var(--nf-state-error);
+    font-weight: 600;
+  }
+  .nf-cb-ref {
+    overflow-wrap: anywhere;
+    user-select: all;
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+
+  /* One case: the record and, beside it from 1024px, the moves. */
+  .nf-cb-case {
+    display: grid;
+    gap: var(--nf-gap-block);
+    margin-top: var(--nf-space-md);
+  }
+  @media (min-width: 1024px) {
+    .nf-cb-case {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 22rem);
+      align-items: start;
+    }
+  }
+  .nf-cb-case__side {
+    display: grid;
+    gap: var(--nf-gap-block);
+  }
+  .nf-cb-hero {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--nf-space-xs) var(--nf-space-md);
+    margin-top: var(--nf-space-xs);
+  }
+  .nf-cb-hero__amount {
+    font-size: var(--nf-text-h1);
+    font-weight: 700;
+    line-height: 1.05;
+    color: var(--nf-content-primary);
+  }
+  .nf-cb-facts {
+    display: grid;
+    grid-template-columns: minmax(0, 9rem) minmax(0, 1fr);
+    gap: var(--nf-space-2xs) var(--nf-space-sm);
+    font-size: var(--nf-text-body-sm);
+  }
+  .nf-cb-facts dt {
+    color: var(--nf-content-secondary);
+  }
+  .nf-cb-facts dd {
+    margin: 0;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    color: var(--nf-content-primary);
+  }
+  .nf-cb-note {
+    margin-top: var(--nf-space-sm);
+    padding: var(--nf-space-sm);
+    border-radius: var(--nf-radius-md);
+    background: var(--nf-state-warning-surface);
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.5;
+  }
+  .nf-cb-note--info {
+    background: var(--nf-state-info-surface);
+  }
+
+  /* The timeline: one line per event, the note under it. */
+  .nf-cb-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-sm);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .nf-cb-timeline li {
+    display: grid;
+    grid-template-columns: 12px minmax(0, 1fr);
+    gap: var(--nf-space-sm);
+  }
+  .nf-cb-timeline__dot {
+    width: 12px;
+    height: 12px;
+    margin-top: 4px;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-content-muted);
+  }
+  .nf-cb-timeline__dot--note {
+    background: var(--nf-state-info);
+  }
+  .nf-cb-timeline__dot--won {
+    background: var(--nf-state-success);
+  }
+  .nf-cb-timeline__dot--lost {
+    background: var(--nf-state-error);
+  }
+  .nf-cb-timeline__head {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-cb-timeline__meta {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+  }
+  .nf-cb-timeline__note {
+    margin-top: var(--nf-space-3xs);
+    padding: var(--nf-space-xs) var(--nf-space-sm);
+    border-radius: var(--nf-radius-sm);
+    background: var(--nf-surface-inset);
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.5;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    color: var(--nf-content-primary);
+  }
+
+  /* What the payout rule holds for the lister: one row each, Override at the end. */
+  .nf-cb-held {
+    display: grid;
+    gap: var(--nf-space-xs);
+    margin: var(--nf-space-sm) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .nf-cb-held__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-sm);
+    border-radius: var(--nf-radius-md);
+    background: var(--nf-surface-inset);
+  }
+  .nf-cb-held__head {
+    margin: 0;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-cb-held__meta {
+    margin: var(--nf-space-3xs) 0 0;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+    overflow-wrap: anywhere;
+  }
+  .nf-cb-held__done {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: var(--nf-space-3xs);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+  }
+
+  /* The next moves, one full-width button each. */
+  .nf-cb-moves {
+    display: grid;
+    gap: var(--nf-space-xs);
+  }
+
+  /* THE LISTER'S HOLD NOTICE: calm, in the warning surface, never an alarm. */
+  .nf-cb-hold {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--nf-space-sm) var(--nf-space-md);
+    padding: var(--nf-space-md);
+    margin-bottom: var(--nf-gap-block);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-state-warning-surface);
+    color: var(--nf-content-primary);
+    scroll-margin-top: var(--nf-space-4xl);
+  }
+  .nf-cb-hold--open {
+    background: var(--nf-state-info-surface);
+  }
+  .nf-cb-hold__overline {
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--nf-content-secondary);
+  }
+  .nf-cb-hold__title {
+    margin-top: var(--nf-space-3xs);
+    font-size: var(--nf-text-body-lg);
+    font-weight: 700;
+    color: var(--nf-content-primary);
+  }
+  .nf-cb-hold__body {
+    margin-top: var(--nf-space-2xs);
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.55;
+    color: var(--nf-content-primary);
+  }
+  .nf-cb-hold__pair {
+    display: grid;
+    gap: var(--nf-space-sm);
+    margin-top: var(--nf-space-sm);
+  }
+  @media (min-width: 768px) {
+    .nf-cb-hold__pair {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .nf-cb-hold__pair h3 {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 700;
+    color: var(--nf-content-primary);
+  }
+  .nf-cb-hold__pair p {
+    margin-top: var(--nf-space-3xs);
+    font-size: var(--nf-text-body-sm);
+    line-height: 1.55;
+    color: var(--nf-content-secondary);
+  }
+  .nf-cb-hold__help {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    margin-top: var(--nf-space-xs);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-link);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+}

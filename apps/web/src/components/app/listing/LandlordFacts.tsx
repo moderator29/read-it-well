@@ -73,7 +73,7 @@ export function OwnerAvailabilityView({
   return (
     <p className="mt-row flex items-center gap-xs text-[length:var(--nf-text-body-sm)]" data-testid="landlord-owner-confirmed">
       <UiIcon name="history" size={20} className="shrink-0 text-[var(--nf-status-verified)]" />
-      <span className="font-medium text-[var(--nf-content-secondary)]">{line}</span>
+      <span className="font-normal text-[var(--nf-content-secondary)]">{line}</span>
     </p>
   );
 }

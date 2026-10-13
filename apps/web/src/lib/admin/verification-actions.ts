@@ -25,6 +25,7 @@ import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { writeAudit } from "./audit";
 import { adminRefusal, requireAdmin } from "./guard";
 import { createAdminClient } from "../supabase/admin";
+import { writeInAppNotice } from "../notify/in-app";
 import {
   VERIFICATION_LADDER,
   VERIFICATION_RUNGS,
@@ -77,6 +78,15 @@ export async function recordVerificationCheck(
   if (readError) return fail(SERVICE_DOWN);
   if (!agent) return fail(GONE);
 
+  /* Nobody records a check on their own verification. The application and
+     every document already refuse their own reviewer (the action, the
+     `refuse_self_review` trigger and `review_kyc_document`); the four rungs
+     were the one decision a member of staff who is also an agent could take
+     about themselves, and each one raises the tier guests read. */
+  if (agent.user_id === access.user.id) {
+    return fail("You cannot record a check on your own verification. Leave it for another reviewer.");
+  }
+
   const before = asTier(agent.verification_tier);
 
   const { error: writeError } = await access.supabase
@@ -111,7 +121,7 @@ export async function recordVerificationCheck(
     // that leaves them where they were is console housekeeping, not news.
     if (now !== before) {
       const climbed = now > before;
-      await admin.from("notifications").insert({
+      await writeInAppNotice(admin, {
         user_id: agent.user_id,
         kind: "agent",
         title: climbed

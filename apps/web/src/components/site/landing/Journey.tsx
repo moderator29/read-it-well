@@ -80,8 +80,11 @@ export function Journey({ t }: { t: Dictionary }) {
       <SectionHead id="nf-landing-journey-title" eyebrow={j.overline} title={j.title} lede={j.body} align="center" flourish />
       {/* Under 40rem the steps are a sideways swipe row, and this is its
           scroller: focusable and named, so a keyboard can move it (the cards
-          hold no links to tab through). From 40rem nothing scrolls here. */}
-      <div className="nf-steps" tabIndex={0} role="region" aria-label={j.title}>
+          hold no links to tab through). From 40rem nothing scrolls here. It is a
+          group, never a region: a region named like its own section repeats a
+          landmark role and name (axe landmark-unique), and the section is
+          already the landmark. */}
+      <div className="nf-steps" tabIndex={0} role="group" aria-label={j.title}>
         <span className="nf-steps__line" aria-hidden="true">
           <span className="nf-steps__fill" />
         </span>

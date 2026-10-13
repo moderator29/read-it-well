@@ -3,56 +3,59 @@ import { DEFAULT_LOCALE, getDictionary } from "@vallo/i18n";
 import { RetryButton } from "./RetryButton";
 import { OfflinePacks } from "./OfflinePacks";
 import { OfflineShelf } from "./OfflineShelf";
-import { StateMoment } from "@/components/ui/StateMoment";
+import { OfflineScreen } from "./OfflineScreen";
 
 /**
- * The offline shell: the brand moment with the real retry.
+ * The offline fallback: one calm card (`OfflineScreen`, `offline.css`).
  *
- * Precached by `public/sw.js` at install and served whenever a navigation
- * cannot reach the network. Two constraints shape it:
+ * Precached by `public/sw.js` at install and served ONLY when a navigation
+ * cannot reach the network AND this phone has no kept copy of that page
+ * (every page a member has opened opens again from the phone instead). Two
+ * constraints shape it:
  *
  *   1. It must render with no network at all, so it uses no optimised
- *      `next/image` URL and no data source. `SystemMoment` in `offline` mode
- *      draws the tile from `/pwa/icon-192.png`, which the worker precaches
- *      beside this document, and the plate and wordmark from `/brand/`,
- *      which the worker runtime-caches on an allowlist; when a first visit
- *      has not fetched them, the CSS aurora is the designed ground.
- *   2. The copy has to be honest. Vallo never answers a question about
- *      money, messages or bookings from an old copy, so this screen says
- *      that plainly rather than implying more works offline than really
- *      does.
+ *      `next/image` URL and no data source: the mark is the precached brand
+ *      file and the ground is two gradients.
+ *   2. The copy has to be honest. It says this page has not been opened here
+ *      yet, and that the pages that have been still open, which is what
+ *      the worker does. "Go to Home" is a full load, so the worker answers it
+ *      from the phone.
  */
 export const metadata: Metadata = {
   title: "You are offline",
-  description: "Vallo could not reach the network. Reconnect to carry on.",
+  description: "This page needs a connection. Pages you have opened still work offline.",
   robots: { index: false, follow: false },
 };
 
 export default function OfflinePage() {
-  /* V-97: the state kit's full-screen form. The words are the kit's, and the
-     retry pair is the RetryButton's own actions block. */
-  const copy = getDictionary(DEFAULT_LOCALE).trustVisible.state;
+  const t = getDictionary(DEFAULT_LOCALE);
+  const copy = t.experienceEntry;
+  /* The page is precached and static, so the copy is English, the same as
+     every other sentence on it. */
   return (
-    <StateMoment
-      kind="offline"
-      home="/home"
-      offline
-      aside="Worth checking: mobile data switched on, aeroplane mode off, and enough left on your bundle."
-      overline={copy.offlineOverline}
+    <OfflineScreen
       title={copy.offlineTitle}
       body={copy.offlineBody}
-      actions={<RetryButton />}
+      action={
+        <RetryButton
+          label={copy.offlineRetry}
+          statusOnline={copy.offlineStatusOnline}
+          statusOffline={copy.offlineStatusOffline}
+        />
+      }
+      secondary={
+        /* A plain anchor, never `Link`: the client router cannot fetch with
+           no network, and a full load is what the worker answers from the
+           phone. */
+        <a href="/home" className="nf-offline__home nf-tap">
+          {copy.offlineHome}
+        </a>
+      }
     >
-      {/* V-35: this phone's inspection packs, with their gate codes. The
-          page is precached and static, so the copy is English, the same as
-          every other sentence on it. */}
-      <OfflinePacks copy={getDictionary(DEFAULT_LOCALE).platform.gate} locale={DEFAULT_LOCALE} />
+      {/* V-35: this phone's inspection packs, with their gate codes. */}
+      <OfflinePacks copy={t.platform.gate} locale={DEFAULT_LOCALE} />
       {/* V-77: the shortlist this phone holds, with a compare. */}
-      <OfflineShelf
-        copy={getDictionary(DEFAULT_LOCALE).platform.shelf}
-        exampleLabel={getDictionary(DEFAULT_LOCALE).catalogue.card.example}
-        locale={DEFAULT_LOCALE}
-      />
-    </StateMoment>
+      <OfflineShelf copy={t.platform.shelf} locale={DEFAULT_LOCALE} />
+    </OfflineScreen>
   );
 }

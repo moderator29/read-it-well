@@ -61,6 +61,11 @@ import {
   registrationSchema,
   type Registration,
 } from "./registration";
+import { OPEN_STATUSES } from "../agent/open-application";
+import { otherSideMessage } from "../agent/role-lock";
+import { otherSideHeld } from "../agent/role-lock-read";
+import { withWorkspaceAcceptance } from "../legal/workspace-acceptance";
+import { writeInAppNotice } from "../notify/in-app";
 
 export type RegistrationFiled = {
   /** The VL-AGT-##### the person quotes to support. */
@@ -91,6 +96,10 @@ const DOCUMENT_KINDS = {
   idPath: "identity",
   selfiePath: "selfie",
   letterPath: "association",
+  /* The owner's proof of ownership or of authority to let, filed against
+     the registration rather than a listing (pending migration
+     20261013120000 lets an ownership document name its application). */
+  ownershipPath: "ownership",
 } as const;
 
 export async function submitSupplyRegistration(
@@ -131,13 +140,44 @@ export async function submitSupplyRegistration(
   for (const [field, kind] of Object.entries(DOCUMENT_KINDS)) {
     const path = (value as Record<string, unknown>)[field];
     if (typeof path !== "string" || path === "") continue;
-    if (!path.startsWith(prefix)) {
+    /* `..` refused as the other two filing actions refuse it: a first segment
+       that is the caller's own uid does not make `<uid>/../<other>/id.jpg`
+       their own file. */
+    if (!path.startsWith(prefix) || path.includes("..")) {
       return fail("Those uploads did not come from your own account, so we did not file them.", {
         [field]: "Please choose the file again.",
       });
     }
     documents.push({ kind, path });
   }
+
+  /*
+   * ONE OPEN APPLICATION PER PERSON. Nothing stopped a second form being
+   * filed while the first was still with a reviewer: two references for
+   * support to be asked about, two queue items describing one person, and an
+   * approval of either one opening the same single workspace. The setup pages
+   * say so before the form is filled in (`OpenApplicationNotice`); this is the
+   * gate. A read that fails does not block a filing.
+   */
+  const { data: open } = await supabase
+    .from("agent_applications")
+    .select("reference")
+    .eq("user_id", user.id)
+    .in("status", [...OPEN_STATUSES])
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (open) {
+    return fail(
+      `You already have an application waiting, filed as ${open.reference}. Follow that one from your profile; a second would only queue behind it.`,
+    );
+  }
+
+  /* ONE ACCOUNT, ONE SIDE (`role-lock.ts`): an owner's account does not
+     become an agent's, nor the other way round. */
+  const wanted = value.role === "owner" ? "owner" : "agent";
+  const held = await otherSideHeld(supabase, user.id, wanted);
+  if (held) return fail(otherSideMessage(held));
 
   const row = rowFor(value, user.id, user.email ?? null);
 
@@ -227,14 +267,19 @@ function rowFor(
   userId: string,
   email: string | null,
 ): ApplicationInsert {
+  const now = new Date().toISOString();
   const base = {
     user_id: userId,
     email,
     status: "SUBMITTED" as const,
     supply_role: value.role,
     agree_terms: true,
-    submitted_at: new Date().toISOString(),
-  };
+    submitted_at: now,
+    /* Ruling 6: the two ticks the schema demanded, recorded with each version
+       and the moment, as the host publish step records its agreement
+       (`agent_applications.consents`, pending migration pov07). */
+    consents: withWorkspaceAcceptance(null, now),
+  } as ApplicationInsert & { consents: Record<string, unknown> };
 
   if (value.role === "owner") {
     return {
@@ -302,7 +347,7 @@ async function tellThem(userId: string, reference: string, role: Registration["r
         : "Your firm registration is filed";
   try {
     const admin = createAdminClient();
-    await admin.from("notifications").insert({
+    await writeInAppNotice(admin, {
       user_id: userId,
       kind: "agent",
       title: what,

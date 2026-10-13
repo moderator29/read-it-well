@@ -5,6 +5,7 @@ import { Sheet } from "@/components/ui/Sheet";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { TYPE } from "@/components/app/Screen";
 import { VERIFICATION_ORDER } from "@/lib/trust/verification";
+import "@/app/css/catalogue.css";
 
 /**
  * THE VERIFIED PILL, WITH SOMEWHERE TO GO.

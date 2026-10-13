@@ -79,10 +79,13 @@ describe.skipIf(!hasBrowser && !process.env.CI)("SuccessSheet", () => {
       expect(await page.getByTestId("success-title").getAttribute("aria-hidden")).toBe("true");
       expect(await page.getByTestId("success-amount").textContent()).toContain("485,000");
       expect(await page.locator(".nf-success__mono").textContent()).toBe("rm-book-7f3a9c21e4");
-      /* The object, decorative, with eight sparks round it (three orange). */
+      /* The object, decorative, on its wash, with the tick seal (motion 13).
+         No sparks: the first version's eight (three of them orange) broke the
+         one-spark-per-screen rule and were removed with the float (W9). */
       expect(await page.locator(".nf-success__mark img").getAttribute("alt")).toBe("");
-      expect(await page.locator(".nf-success__bit").count()).toBe(8);
-      expect(await page.locator('.nf-success__bit[data-tone="spark"]').count()).toBe(3);
+      expect(await page.locator(".nf-success__wash").count()).toBe(1);
+      expect(await page.locator(".nf-success__seal").count()).toBe(1);
+      expect(await page.locator(".nf-success__bit").count()).toBe(0);
     } finally {
       await close();
     }
@@ -105,7 +108,11 @@ describe.skipIf(!hasBrowser && !process.env.CI)("SuccessSheet", () => {
       await page.getByTestId("success-primary").click();
       await page.waitForFunction(() => (window as unknown as { __open: boolean }).__open === false);
       expect(await page.evaluate(() => (window as unknown as { __continued: number }).__continued)).toBe(1);
-      expect(await page.getByRole("dialog").count()).toBe(0);
+      /* The sheet now plays its leave before it unmounts (Sheet.tsx, A7 N1),
+         so it is gone a moment after the state says closed, not in the same
+         frame. */
+      await page.locator("[role=dialog]").waitFor({ state: "detached" });
+      expect(await page.locator("[role=dialog]").count()).toBe(0);
     } finally {
       await close();
     }
@@ -126,17 +133,47 @@ describe.skipIf(!hasBrowser && !process.env.CI)("SuccessSheet", () => {
     }
   });
 
-  it("animates by default: the object pops, the sparks burst and the words rise", async () => {
+  it("animates by default: the wash opens, the object lands, the seal pops once at 620ms and the words rise", async () => {
     const { page, close } = await mountInBrowser({ entry: entry(), css: CSS });
     try {
       await page.waitForSelector('.nf-success[data-quiet="false"]');
-      const names = await page.evaluate(() => ({
-        pop: getComputedStyle(document.querySelector(".nf-success__pop")!).animationName,
-        bit: getComputedStyle(document.querySelector(".nf-success__bit")!).animationName,
-        title: getComputedStyle(document.querySelector(".nf-success__title")!).animationName,
-        float: getComputedStyle(document.querySelector(".nf-success__float")!).animationName,
-      }));
-      expect(names).toEqual({ pop: "nf-success-pop", bit: "nf-success-burst", title: "nf-success-rise", float: "nf-success-float" });
+      const names = await page.evaluate(() => {
+        const cs = (sel: string) => getComputedStyle(document.querySelector(sel)!);
+        return {
+          wash: cs(".nf-success__wash").animationName,
+          pop: cs(".nf-success__pop").animationName,
+          payoff: cs(".nf-success__payoff").animationName,
+          payoffDelay: cs(".nf-success__payoff").animationDelay,
+          payoffDuration: cs(".nf-success__payoff").animationDuration,
+          title: cs(".nf-success__title").animationName,
+          /* Nothing repeats: the moment settles and stays still. */
+          iterations: [".nf-success__wash", ".nf-success__pop", ".nf-success__payoff", ".nf-success__seal"].map(
+            (sel) => cs(sel).animationIterationCount,
+          ),
+        };
+      });
+      expect(names).toEqual({
+        wash: "nf-success-wash",
+        pop: "nf-success-land",
+        payoff: "nf-success-payoff",
+        payoffDelay: "0.62s",
+        payoffDuration: "0.18s",
+        title: "nf-success-rise",
+        iterations: ["1", "1", "1", "1"],
+      });
+    } finally {
+      await close();
+    }
+  });
+
+  it("lands a submission with no seal and no pop, because it waits on a person", async () => {
+    const { page, close } = await mountInBrowser({ entry: entry("submitted"), css: CSS });
+    try {
+      await page.waitForSelector('.nf-success[data-quiet="false"]');
+      expect(await page.locator(".nf-success__seal").count()).toBe(0);
+      expect(
+        await page.evaluate(() => getComputedStyle(document.querySelector(".nf-success__payoff")!).animationName),
+      ).toBe("none");
     } finally {
       await close();
     }
@@ -155,8 +192,8 @@ describe.skipIf(!hasBrowser && !process.env.CI)("SuccessSheet", () => {
         const cs = (sel: string) => getComputedStyle(document.querySelector(sel)!);
         return {
           pop: cs(".nf-success__pop").animationName,
-          float: cs(".nf-success__float").animationName,
-          bit: cs(".nf-success__bit").animationName,
+          wash: cs(".nf-success__wash").animationName,
+          seal: cs(".nf-success__seal").animationName,
           title: cs(".nf-success__title").animationName,
           actions: cs(".nf-success__actions").animationName,
           /* Everything in its final place, fully drawn. */
@@ -167,32 +204,14 @@ describe.skipIf(!hasBrowser && !process.env.CI)("SuccessSheet", () => {
       });
       expect(state).toEqual({
         pop: "none",
-        float: "none",
-        bit: "none",
+        wash: "none",
+        seal: "none",
         title: "none",
         actions: "none",
         popOpacity: "1",
         titleOpacity: "1",
         pulseOpacity: "0",
       });
-    } finally {
-      await close();
-    }
-  });
-
-  it("keeps the float off when ambient motion is off, while the arrival still runs", async () => {
-    const { page, close } = await mountInBrowser({
-      entry: entry(),
-      css: CSS,
-      init: `document.documentElement.dataset.motionAmbient = "off";`,
-    });
-    try {
-      await page.waitForSelector('.nf-success[data-quiet="false"]');
-      const names = await page.evaluate(() => ({
-        pop: getComputedStyle(document.querySelector(".nf-success__pop")!).animationName,
-        float: getComputedStyle(document.querySelector(".nf-success__float")!).animationName,
-      }));
-      expect(names).toEqual({ pop: "nf-success-pop", float: "none" });
     } finally {
       await close();
     }
@@ -209,7 +228,7 @@ describe.skipIf(!hasBrowser && !process.env.CI)("SuccessSheet", () => {
       const secondary = (await page.getByTestId("success-secondary").boundingBox())!;
       expect(primary.height).toBeGreaterThanOrEqual(44);
       expect(secondary.height).toBeGreaterThanOrEqual(44);
-      /* The pills sit in the lower part of the screen, under the object. */
+      /* The actions sit in the lower part of the screen, under the object. */
       const mark = (await page.locator(".nf-success__mark").boundingBox())!;
       expect(primary.y).toBeGreaterThan(mark.y + mark.height);
       expect(secondary.y + secondary.height).toBeGreaterThan(740 * 0.8);

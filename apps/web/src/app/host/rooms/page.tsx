@@ -1,26 +1,19 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { countOf, getDictionary, type Dictionary, type Locale } from "@vallo/i18n";
+import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { resolveSession } from "@/lib/actions/session";
-import {
-  getMyBusinesses,
-  getMyRoomTypes,
-  getPrimaryAccommodation,
-  type MyAccommodation,
-  type MyBusiness,
-  type MyRoomType,
-} from "@/lib/host/queries";
+import { getMyBusinesses, getMyRoomTypes, getPrimaryAccommodation } from "@/lib/host/queries";
 import { authHref, returnHref } from "@/components/auth/auth-intent";
-import { EmptyState, TYPE } from "@/components/app/Screen";
+import { EmptyState } from "@/components/app/Screen";
 import { ButtonLink } from "@/components/ui/Button";
 import { HostShell } from "@/components/host/HostShell";
-import { RoomNightsEditor } from "@/components/host/RoomNightsEditor";
+import { HostInnerNav } from "@/components/host/HostInnerNav";
+import { hostInnerNavCopy } from "@/components/host/host-inner-nav";
+import { HostRoomsBody } from "./HostRoomsBody";
 
-export const metadata: Metadata = {
-  title: "Rooms and nights",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: getDictionary(await getLocale()).experienceHost.rooms.title, robots: { index: false, follow: false } };
+}
 
 export const dynamic = "force-dynamic";
 
@@ -63,7 +56,7 @@ export default async function HostRoomsPage({
           body={t.hostWorkspace.rooms.signedOutBody}
           action={
             <ButtonLink href={authHref(next, "sign-in")} variant="primary" size="lg">
-              Sign in
+              {t.common.signIn}
             </ButtonLink>
           }
         />
@@ -82,8 +75,10 @@ export default async function HostRoomsPage({
 
   return (
     <HostShell logoLabel={t.a11y.logoHome} fallback="/host">
+      <HostInnerNav active="rooms" {...hostInnerNavCopy(t)} />
       <HostRoomsBody
         copy={t.hostWorkspace}
+        words={t.experienceHost.rooms}
         businesses={businesses}
         chosen={chosen}
         accommodation={accommodation}
@@ -91,109 +86,5 @@ export default async function HostRoomsPage({
         locale={locale}
       />
     </HostShell>
-  );
-}
-
-/**
- * The screen, apart from its reads, so the whole thing can be drawn from
- * fixtures in the preview harness and read against the register at 390 dark.
- */
-export function HostRoomsBody({
-  businesses,
-  chosen,
-  accommodation,
-  rooms,
-  locale,
-  copy = getDictionary("en").hostWorkspace,
-}: {
-  businesses: MyBusiness[];
-  chosen: MyBusiness | null;
-  accommodation: MyAccommodation | null;
-  rooms: MyRoomType[];
-  locale: Locale;
-  /** The host workspace words in the reader's language; English in the previews. */
-  copy?: Dictionary["hostWorkspace"];
-}) {
-  if (!chosen) {
-    return (
-      <EmptyState
-        icon="hotel"
-        title={copy.rooms.noPropertyTitle}
-        body={copy.rooms.noPropertyBody}
-        action={
-          <ButtonLink href="/host/apply" variant="primary" size="lg">
-            {copy.doors.startApplication}
-          </ButtonLink>
-        }
-      />
-    );
-  }
-
-  if (!accommodation) {
-    return (
-      <EmptyState
-        icon="hotel"
-        title={copy.rooms.saveFirstTitle}
-        body={copy.rooms.saveFirstBody}
-        action={
-          <ButtonLink href="/host/apply" variant="primary" size="lg">
-            {copy.doors.openApplication}
-          </ButtonLink>
-        }
-      />
-    );
-  }
-
-  const onSale = rooms.filter((room) => room.nightsOnSale > 0).length;
-
-  return (
-    <>
-      <div className="nf-agent-head">
-        <div>
-          <h1 className="nf-agent-head__title">Rooms and nights</h1>
-          <p className={`mt-row ${TYPE.bodyLg}`}>
-            {rooms.length === 0
-              ? `${accommodation.name} has no room types yet, so there is nothing a guest could book.`
-              : onSale === 0
-                ? `${accommodation.name} has ${countOf(rooms.length, "roomTypes", locale)} and no nights on sale, so a search with dates on it will not find it.`
-                : `${accommodation.name} has ${countOf(rooms.length, "roomTypes", locale)}, ${onSale} of them on sale.`}
-          </p>
-        </div>
-      </div>
-
-      {/* Only drawn where there is a choice to make. One property is the
-          common case and a picker above it would be furniture. */}
-      {businesses.length > 1 && (
-        <nav className="mt-block flex flex-wrap gap-inline" aria-label={copy.rooms.propertiesLabel}>
-          {businesses.map((business) => (
-            <Link
-              key={business.id}
-              href={`/host/rooms?business=${business.id}`}
-              className={`nf-chip${business.id === chosen.id ? " nf-chip--active" : ""}`}
-              aria-current={business.id === chosen.id ? "page" : undefined}
-            >
-              {business.name}
-            </Link>
-          ))}
-        </nav>
-      )}
-
-      <div className="mt-block">
-        {rooms.length === 0 ? (
-          <EmptyState
-            icon="hotel"
-            title={copy.rooms.noRoomTypesTitle}
-            body={copy.rooms.noRoomTypesBody}
-            action={
-              <ButtonLink href="/host/apply" variant="primary" size="lg">
-                Add a room type
-              </ButtonLink>
-            }
-          />
-        ) : (
-          <RoomNightsEditor rooms={rooms} locale={locale} />
-        )}
-      </div>
-    </>
   );
 }

@@ -17,11 +17,11 @@ import { requireSupabasePublicEnv } from "@/lib/supabase/env";
  *
  * The native shell is excluded by the door: a WebView needs associated
  * domains for passkeys, which are not set up.
+ *
+ * Imported only at the moment of the tap (`PasskeySignIn`), never statically
+ * by a screen: this module carries supabase-js. The flag lives apart, in
+ * `passkey-flag.ts`.
  */
-export function passkeySignInEnabled(): boolean {
-  return process.env.NEXT_PUBLIC_PASSKEY_SIGNIN_ENABLED === "true";
-}
-
 export function passkeyClient() {
   const { url, anonKey } = requireSupabasePublicEnv();
   return createBrowserClient<Database>(url, anonKey, {

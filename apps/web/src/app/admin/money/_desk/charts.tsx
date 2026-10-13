@@ -146,7 +146,8 @@ export type Series = {
   dash?: string;
 };
 
-const PAD = { left: 64, right: 16, top: 16, bottom: 30 };
+/* The y figures sit inside the plot on their gridlines (HTML, see SeriesChart), so the left gutter is only air. */
+const PAD = { left: 16, right: 16, top: 16, bottom: 30 };
 
 export function SeriesChart({
   id,
@@ -195,6 +196,13 @@ export function SeriesChart({
   const y = (v: number) => PAD.top + plotH - (v / max) * plotH;
   const ticks = [0, 0.25, 0.5, 0.75, 1].map((f) => f * max);
   const labelEvery = n > 8 ? Math.ceil(n / 8) : 1;
+  const drawnSeries = series.filter((s) => s.values.length > 0);
+  const labelYs = spreadLabels(
+    drawnSeries.map((d) => y(d.values[n - 1] ?? 0) - 8),
+    14,
+    PAD.top + 8,
+    PAD.top + plotH - 2,
+  );
 
   return (
     <figure className="nf-md-chart">
@@ -209,28 +217,10 @@ export function SeriesChart({
         </defs>
 
         {ticks.map((t) => (
-          <g key={t}>
-            <line x1={PAD.left} x2={W - PAD.right} y1={y(t)} y2={y(t)} className="nf-md-chart__grid" strokeWidth="1" />
-            <text x={PAD.left - 10} y={y(t) + 4} textAnchor="end" className="nf-md-chart__axis">
-              {ghost && t !== 0 ? "" : yLabel(t)}
-            </text>
-          </g>
+          <line key={t} x1={PAD.left} x2={W - PAD.right} y1={y(t)} y2={y(t)} className="nf-md-chart__grid" strokeWidth="1" />
         ))}
-        {xLabels.map((l, i) =>
-          i === n - 1 || (i % labelEvery === 0 && n - 1 - i >= labelEvery * 0.7) ? (
-            <text key={`${l}-${i}`} x={x(i)} y={H - 8} textAnchor="middle" className="nf-md-chart__axis">
-              {l}
-            </text>
-          ) : null,
-        )}
 
-        {series.filter((s) => s.values.length > 0).map((s, si, drawn) => {
-          const labelYs = spreadLabels(
-            drawn.map((d) => y(d.values[n - 1] ?? 0) - 8),
-            14,
-            PAD.top + 8,
-            PAD.top + plotH - 2,
-          );
+        {drawnSeries.map((s) => {
           const line = smoothPath(s.values.map((v, i) => [x(i), y(v)] as [number, number]));
           const area = `${line} L${x(n - 1).toFixed(1)},${y(0)} L${x(0).toFixed(1)},${y(0)} Z`;
           const colour = rampColor(s.rank);
@@ -257,20 +247,59 @@ export function SeriesChart({
                   style={{ fill: colour }}
                 />
               ))}
-              {directLabels && n > 0 && (
-                <text
-                  x={x(n - 1) - 4}
-                  y={labelYs[si]}
-                  textAnchor="end"
-                  className="nf-md-chart__axis"
-                >
-                  {s.name}
-                </text>
-              )}
             </g>
           );
         })}
       </svg>
+      {/*
+        THE AXIS WORDS ARE HTML, NOT SVG TEXT. In the drawing they were sized
+        in its own units, and the drawing is 720 wide: on a phone it scales to
+        about 330px and every axis figure drew at about 5px, under the 12px floor
+        (C1 sweep, measured on the stays desk at 390). Placed by the same
+        fractions over a box with the drawing's aspect ratio, they stay 12px at
+        every width. The y figures sit on their gridline at the plot's left; on
+        a narrow card every other x label steps aside so the rest never collide.
+      */}
+      <div className="nf-md-chart__ticks" aria-hidden="true" style={{ aspectRatio: `${W} / ${H}` }}>
+        {ticks.map((t) =>
+          ghost && t !== 0 ? null : (
+            <span
+              key={t}
+              className="nf-md-chart__tick nf-md-chart__tick--y"
+              style={{ left: `${(PAD.left / W) * 100}%`, top: `${(y(t) / H) * 100}%` }}
+            >
+              {yLabel(t)}
+            </span>
+          ),
+        )}
+        {xLabels
+          .map((l, i) => ({ l, i }))
+          .filter(({ i }) => i === n - 1 || (i % labelEvery === 0 && n - 1 - i >= labelEvery * 0.7))
+          .map(({ l, i }, k, shownLabels) => (
+            <span
+              key={`${l}-${i}`}
+              className={`nf-md-chart__tick nf-md-chart__tick--x${i === n - 1 ? " nf-md-chart__tick--end" : i === 0 ? " nf-md-chart__tick--start" : ""}${
+                (k % 2 === 1 || k === shownLabels.length - 2) && k !== shownLabels.length - 1 ? " nf-md-chart__tick--minor" : ""
+              }`}
+              style={{ left: `${(x(i) / W) * 100}%`, top: `${((H - PAD.bottom) / H) * 100}%` }}
+            >
+              {l}
+            </span>
+          ))}
+        {/* Each series' name at its last point, as HTML for the same reason as
+            the axis; on a narrow card the legend beside the chart names them. */}
+        {directLabels && n > 0
+          ? drawnSeries.map((s, si) => (
+              <span
+                key={s.name}
+                className="nf-md-chart__tick nf-md-chart__tick--series"
+                style={{ left: `${((x(n - 1) - 4) / W) * 100}%`, top: `${((labelYs[si] ?? 0) / H) * 100}%` }}
+              >
+                {s.name}
+              </span>
+            ))
+          : null}
+      </div>
       {!ghost && <ChartReadout columns={readout} plotLeft={PAD.left / W} plotRight={(W - PAD.right) / W} />}
       {/* The table is for a screen reader. A table sizes to its content
           whatever width `sr-only` gives it, so on a phone it widened the page
@@ -404,7 +433,9 @@ export function Donut({
             ) : null,
           )}
         </g>
-        <text x="70" y="62" textAnchor="middle" fontSize="11" className="nf-md-donut__caption">
+        {/* 12 in the drawing's units: the donut is drawn 152px for a 140 box, so
+            this lands at 13px; at 11 it drew 11.9px, under the floor (C1 sweep). */}
+        <text x="70" y="62" textAnchor="middle" fontSize="12" className="nf-md-donut__caption">
           {totalLabel}
         </text>
         <text x="70" y="84" textAnchor="middle" fontSize="22" className="nf-md-donut__total">
@@ -519,7 +550,12 @@ export function StatusBar({
             className={`nf-md-statusbar__seg nf-md-statusbar__seg--${s.tone}`}
             style={{ flexGrow: s.count, flexBasis: 0 }}
           >
-            {s.count / total >= 0.07 ? s.label : s.count / total >= 0.025 ? s.count : ""}
+            {/* THE COUNT, NOT THE WORD. The key under the bar names every
+                segment, and a word inside a share-wide segment was clipped on
+                every narrow one: 3 of 3 labels cut at 390 and at 1440 on the
+                stays desk (C1 sweep, measured). A count is short enough for any
+                segment it is drawn in. */}
+            {s.count / total >= 0.07 ? s.count : ""}
           </span>
         ))}
       </div>

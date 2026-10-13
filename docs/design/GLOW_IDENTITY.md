@@ -1,5 +1,13 @@
 # The glow identity, measured
 
+> **SUPERSEDED on 5 October 2026 by [`docs/design/VISUAL_NORTH_STAR_2026-10-05.md`](/docs/design/VISUAL_NORTH_STAR_2026-10-05.md).**
+> That document carries the founder's four locked decisions for the
+> platform-wide next-generation upgrade: theme leading by surface, matte clay 3D
+> for content with line glyphs for chrome (glossy 3D banned), full redesign
+> surface by surface, and oversized live figures as the signature. Where this
+> file disagrees with it, this file is history. It is kept because code comments
+> cite it. Do not take icon, container, glow or motion direction from here.
+
 Written 22 September 2026 by Session B (worker "identity") on the founder's
 instruction, with `docs/design/references/roles/` GOVERNING-01, 02, 04, 05 and
 06 open: "The glowing shiny etc should be across the platform, platform wide.
@@ -7,12 +15,11 @@ This is the identity and that should flow, the glowing, the reflection,
 shining etc on the platform. All areas, containers, like these images."
 
 **Every number here was read off the render's pixels, not described.** The
-tools: `scripts/design/measure-glow.mjs` for the lit buttons (fill row by row,
-rim, bloom walked outward), and a pixel sampler with sharp for everything else
-(rows and columns across each edge, a corner tracer for radii, top-4-per-cent
-pixel means for text colour). `scripts/design/sample-reference.mjs` is
-hard-wired to the landing hero and the phone home target, so it was read for
-method and not run on these images. The proof that the values reproduce the
+lit buttons were measured fill row by row, rim, and bloom walked outward, and
+everything else with a pixel sampler (rows and columns across each edge, a
+corner tracer for radii, top-4-per-cent pixel means for text colour). The
+reference renders and the measuring scripts were removed on 13 October 2026;
+the readings below stand as recorded. The proof that the values reproduce the
 look is `docs/design/proofs/session-b/identity/identity-side-by-side.jpg`
 (removed from the tree with the other build proofs; it is in git history at
 `77cf90ad`): the render on the left, the values below built in plain CSS in the middle,
@@ -176,7 +183,7 @@ artwork, and it says so in `SOURCES.md`. See the right-hand column of the proof.
 
 ## 5. The lit primary button
 
-Three buttons measured with `measure-glow.mjs`:
+Three buttons measured off the reference pixels:
 
 | | 02 Continue as an owner | 03 Continue | 06 Continue |
 | --- | --- | --- | --- |

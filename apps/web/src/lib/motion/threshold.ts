@@ -14,7 +14,7 @@
  *
  * Client only.
  */
-export type ThresholdKind = "door" | "leave";
+export type ThresholdKind = "door" | "leave" | "open";
 
 export const THRESHOLD_EVENT = "nf:threshold";
 
@@ -22,7 +22,34 @@ export const THRESHOLD_EVENT = "nf:threshold";
 export const THRESHOLD_GOING_MS: Record<ThresholdKind, number> = {
   door: 1500,
   leave: 650,
+  open: 1500,
 };
+
+/**
+ * THE `open` KIND: THE APP OPENING (Session 3).
+ *
+ * MOTION_SYSTEM.md section 3 specifies a 1,500ms cold-start sequence and says
+ * this file "gains an `open` kind beside `door` and `leave`". The sequence is
+ * built (`components/startup`, after Session 2 bounded `app/open/route.ts`)
+ * and it is CSS keyed on the root flag, so it never dispatches this kind: it
+ * starts on the first painted frame, before any script could ask. The kind is
+ * for a caller that wants the same door later (the passcode unlock), and the
+ * stage draws nothing for it: the arrival is threshold.css's
+ * `:root[data-arrive="open"]` hook.
+ *
+ * The beats are written here as data rather than only as keyframe delays, so
+ * the sequence the spec describes and the sequence that ships can be compared
+ * by a test instead of by eye. Each beat is [start, end] in milliseconds from
+ * the first frame, with the designer's curve name.
+ */
+export const OPEN_BEATS = [
+  { beat: "ground", from: 0, to: 120, curve: "none" },
+  { beat: "mark", from: 120, to: 480, curve: "land" },
+  { beat: "wordmark", from: 380, to: 720, curve: "glide" },
+  { beat: "edge-light", from: 640, to: 900, curve: "glide" },
+  { beat: "breath", from: 900, to: 1150, curve: "drift" },
+  { beat: "door", from: 1150, to: 1500, curve: "leave" },
+] as const;
 
 export function thresholdAllowed(): boolean {
   if (typeof window === "undefined") return false;

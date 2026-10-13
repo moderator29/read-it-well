@@ -37,11 +37,11 @@ afterEach(() => {
 });
 
 describe("isNightDoorPath", () => {
-  it("names Get started and the sign-up flow, and nothing else", () => {
-    for (const path of ["/welcome", "/sign-up", "/sign-up/verify", "/sign-up/email", "/sign-up/finish"]) {
+  it("names the sign-up flow, and nothing else (Get started follows the theme since 7 October)", () => {
+    for (const path of ["/sign-up", "/sign-up/verify", "/sign-up/email", "/sign-up/finish"]) {
       expect(isNightDoorPath(path)).toBe(true);
     }
-    for (const path of ["/", "/sign-in", "/sign-in/code", "/forgot-password", "/reset-password", "/settings/passcode", "/welcomes", null, undefined]) {
+    for (const path of ["/", "/welcome", "/sign-in", "/sign-in/code", "/forgot-password", "/reset-password", "/settings/passcode", "/welcomes", null, undefined]) {
       expect(isNightDoorPath(path)).toBe(false);
     }
   });

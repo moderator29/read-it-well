@@ -29,7 +29,7 @@ function Refusal({ message }: { message: string | null }) {
   return (
     <p
       role="alert"
-      className="nf-body-sm mt-row font-medium text-[var(--nf-state-error)]"
+      className="nf-body-sm mt-row font-semibold text-[var(--nf-state-error)]"
     >
       {message}
     </p>
@@ -62,7 +62,7 @@ export function DocumentDecision({ documentId }: { documentId: string }) {
   }
 
   return (
-    <div className="mt-row">
+    <div className="nf-admin-decision mt-row">
       {showReason && (
         <label className="block">
           <span className="nf-label">What is wrong with it</span>
@@ -79,8 +79,8 @@ export function DocumentDecision({ documentId }: { documentId: string }) {
           </span>
         </label>
       )}
-      <div className="mt-row flex flex-wrap gap-inline">
-        <Button type="button" size="sm" disabled={pending} onClick={() => decide(true)}>
+      <div className="nf-admin-decision__buttons mt-row flex flex-wrap gap-inline">
+        <Button type="button" size="md" disabled={pending} onClick={() => decide(true)}>
           Approve
         </Button>
         {showReason ? (
@@ -307,7 +307,7 @@ export function FeeRateForm({
         />
       </Sheet>
       {done && (
-        <p className="nf-body-sm mt-row font-medium text-[var(--nf-state-success)]">
+        <p className="nf-body-sm mt-row font-semibold text-[var(--nf-state-success)]">
           Recorded, with your name on it.
         </p>
       )}

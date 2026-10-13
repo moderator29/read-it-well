@@ -30,11 +30,21 @@ const LISTING = "33333333-3333-4333-8333-333333333333";
 
 type Booking = { id: string; listing_id: string | null; accommodation_id?: string | null; status: string; check_out: string };
 
-function fakeClient(booking: Booking | null, tenancy: boolean, inserts: unknown[], insertError: { code: string } | null = null) {
+function fakeClient(
+  booking: Booking | null,
+  tenancy: boolean,
+  inserts: unknown[],
+  insertError: { code: string } | null = null,
+  paid = true,
+) {
   return {
     from(table: string) {
       const chain: Record<string, unknown> = {};
       for (const method of ["select", "eq", "limit"]) chain[method] = () => chain;
+      /* D75: the settled payment the review needs, awaited as a list. */
+      if (table === "transactions") {
+        chain.then = (resolve: (v: unknown) => unknown) => resolve({ data: paid ? [{ id: "t" }] : [], error: null });
+      }
       chain.maybeSingle = async () => {
         if (table === "bookings") return { data: booking, error: null };
         if (table === "rent_payments") return { data: tenancy ? { id: "rp" } : null, error: null };
@@ -57,12 +67,12 @@ function form(): FormData {
   return f;
 }
 
-function signedIn(booking: Booking | null, tenancy = false, insertError: { code: string } | null = null) {
+function signedIn(booking: Booking | null, tenancy = false, insertError: { code: string } | null = null, paid = true) {
   const inserts: unknown[] = [];
   session.resolveSession.mockResolvedValue({
     state: "signed-in",
     user: { id: GUEST },
-    supabase: fakeClient(booking, tenancy, inserts, insertError),
+    supabase: fakeClient(booking, tenancy, inserts, insertError, paid),
   });
   return inserts;
 }
@@ -134,5 +144,13 @@ describe("submitReview (NEW-A1-03)", () => {
     const result = await submitReview(null, form());
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error).toMatch(/not open yet/);
+  });
+
+  it("D75: refuses a finished stay that was never paid for, before writing", async () => {
+    const inserts = signedIn(stay("COMPLETED"), false, null, false);
+    const result = await submitReview(null, form());
+    expect(result.ok).toBe(false);
+    expect(JSON.stringify(result)).toMatch(/paid for/);
+    expect(inserts).toHaveLength(0);
   });
 });

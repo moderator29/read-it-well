@@ -9,14 +9,18 @@ import { ScrollToTop } from "@/components/site/ScrollToTop";
 import { LivingCanvas } from "@/components/site/LivingCanvas";
 import { ThemeSync } from "@/components/site/ThemeControl";
 import { ServiceWorkerRegistrar } from "@/components/app/ServiceWorkerRegistrar";
-import { BrandAssemble } from "@/components/motion/BrandAssemble";
+import { VIEWER_HEADER, viewerMeta } from "@/lib/offline/viewer-stamp";
+import { NativeRuntime } from "@/components/app/NativeRuntime";
+import { STARTUP_GATE_SCRIPT, STARTUP_NATIVE_SCRIPT } from "@/components/startup/startup-script";
 import { ThresholdStage } from "@/components/motion/ThresholdStage";
 import { MOTION_COOKIE, motionAttributes, parseMotion } from "@/lib/motion/motion-pref";
 import "./globals.css";
+import "@/components/startup/startup.css";
 import { siteUrl } from "@/lib/site";
 import { CHROME_COLOUR } from "@/lib/theme/chrome";
 import { THEME_BOOT_SCRIPT, THEME_KEY, parseThemeChoice, serverTheme } from "@/lib/theme/theme";
 import { ITERATION_QUIET_SCRIPT } from "@/lib/motion/iteration-quiet";
+import { RECENT_FLAG_SCRIPT } from "@/lib/search/recent-flag";
 import { ClientCopyProvider } from "@/lib/i18n/client-copy";
 import { clientCopyOf } from "@/lib/i18n/client-copy-of";
 import { SuccessFlagHost } from "@/components/ui/SuccessFlagHost";
@@ -53,11 +57,18 @@ import { DetailsHost } from "@/components/ui/DetailsHost";
  * sign's own 1.2 KB face, `inter-naira` (V-78), is not preloaded either: the
  * stylesheet fetches it the first time a price is drawn, so English no longer
  * pulls the 85 KB latin-ext file for one glyph.
+ *
+ * THE HEADING FACE IS POPPINS 600 NOW, NOT 700 (C6, R3-18 round 2). The three
+ * weights pass made headings 600, and measured on the eight signed-out routes
+ * the first screen draws Poppins 600 on six of them and Poppins 700 on two
+ * (the plate head of /move-in-cost and /for-agents). Preloading 700 fetched
+ * an 8 KB face six pages never painted, while the 600 they did paint waited
+ * for the stylesheet. The files live under /fonts/v2/ (fonts.css says why).
  */
 const PRELOADED_FONTS: Record<string, readonly string[]> = {
   yo: ["inter-latin", "inter-vietnamese"],
   ig: ["inter-latin", "inter-vietnamese"],
-  default: ["inter-latin", "poppins-700-latin"],
+  default: ["inter-latin", "poppins-600-latin"],
 };
 
 const baseMetadata: Metadata = {
@@ -152,11 +163,17 @@ const baseMetadata: Metadata = {
     locale: "en_NG",
     type: "website",
   },
+  /*
+   * THE CARD TYPE ONLY (W3, round 5). A title and description here were
+   * inherited by every page that set its own Open Graph words and no Twitter
+   * ones, which is every page: /terms, /check, a share door all unfurled on X,
+   * Telegram and Slack as "Vallo. Space, without the runaround." over their
+   * own picture. With only the card type here, Next fills the Twitter title,
+   * description and image from each page's own Open Graph (`postProcessMetadata`),
+   * so the two can never disagree again.
+   */
   twitter: {
     card: "summary_large_image",
-    title: "Vallo. Rent, buy or stay, without the runaround.",
-    description:
-      "Homes, land, hotels and shortlets across Nigeria, with the cost of moving in written down before you call anybody. Hotels, apartments and restaurant tables on Vallo Stays. One account, one inbox.",
   },
   /* UI-16: no site-wide robots tag. Indexable is the default with no tag at
      all; stating "index, follow" here put it beside the "noindex" that a
@@ -229,7 +246,7 @@ export async function generateMetadata(): Promise<Metadata> {
       description: site.shareDescription,
       ...openGraphLocales(locale),
     },
-    twitter: { ...baseMetadata.twitter, title: site.title, description: site.shareDescription },
+    twitter: { ...baseMetadata.twitter },
   };
 }
 
@@ -289,6 +306,11 @@ export default async function RootLayout({
      writing `nonce="undefined"`, and no policy is being served on those paths
      either, so the two absences agree. */
   const nonce = (await headers()).get(NONCE_HEADER) ?? undefined;
+  /* Whose page this is, for the service worker that keeps it for offline
+     (`lib/offline/viewer-stamp.ts`): the copy in the head is the one the
+     Android app's worker can read. Null on every render the proxy did not
+     stamp, and then nothing is drawn. */
+  const offlineStamp = viewerMeta(await headers());
   /* The theme the person chose, from the cookie, so an explicit Light is
      rendered light by the server and never flashes dark. "system" renders
      dark here and the before-paint script below resolves it. */
@@ -309,6 +331,15 @@ export default async function RootLayout({
     >
       <head>
         {/*
+          THE NATIVE SPLASH GOES FIRST, AND THE BOOT TRACE STARTS (D68c, A.2).
+          The very first script in the document: it tells the native splash
+          to hide through the raw bridge, with no import and no frame waited
+          for, and starts the stage-by-stage trace a founder's device can
+          report back. Silent on the website. See components/startup.
+        */}
+        <script nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{ __html: STARTUP_NATIVE_SCRIPT }} />
+        {offlineStamp ? <meta name={VIEWER_HEADER} content={offlineStamp.viewer} data-path={offlineStamp.path} /> : null}
+        {/*
           The face arrives with the stylesheet rather than after it. `crossorigin`
           is not optional even though these are our own files: a font is always
           fetched in CORS mode, so a preload without it is a second, separate
@@ -320,7 +351,7 @@ export default async function RootLayout({
             rel="preload"
             as="font"
             type="font/woff2"
-            href={`/fonts/${name}.woff2`}
+            href={`/fonts/v2/${name}.woff2`}
             crossOrigin="anonymous"
           />
         ))}
@@ -387,6 +418,14 @@ export default async function RootLayout({
           suppressHydrationWarning
           dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }}
         />
+        {/* Whether this phone remembers any opened listing, before paint, so
+            Home holds the Recently viewed row's height open instead of jumping
+            when it hydrates (`lib/search/recent-flag.ts`). */}
+        <script
+          nonce={nonce}
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{ __html: RECENT_FLAG_SCRIPT }}
+        />
         <script
           nonce={nonce}
           suppressHydrationWarning
@@ -422,24 +461,24 @@ export default async function RootLayout({
           }}
         />
         {/*
-          THE SPLASH, DECIDED BEFORE PAINT (Track M, 25 September 2026).
+          THE OPENING, DECIDED BEFORE PAINT (D68c, 7 October 2026).
 
-          The app opening is the first threshold: the mark turns, the wordmark
-          assembles letter by letter, and a door opens on the page. It plays
-          once per browser session, which on the native shell is once per cold
-          start, and never under reduced motion, never with data saving on,
-          never when the motion setting is Calm or Off or the splash is
-          switched off,
-          and never on the console, the auth callback or a shared link. It is
-          decided here, before the first frame, because deciding it after
-          hydration would show the page and then cover it.
+          The logo never appears by itself on app open. The opening is this
+          page arriving: the header and the dock resolving from frame one, the
+          content rising into them, about 1,500ms on the first open of the day
+          and about 400ms on a returning one, a tap anywhere settling it at
+          once. Once per browser session, which on the native shell is once per
+          cold start. Never under reduced motion, Calm, Off, the splash switch
+          or data saving (one settled frame), and never on the console, the
+          auth callback or a shared link. The gate and its controller are
+          STARTUP_GATE_SCRIPT, tested in components/startup. Decided here,
+          before the first frame, so nothing is shown and then changed.
         */}
         <script
           nonce={nonce}
           suppressHydrationWarning
           dangerouslySetInnerHTML={{
-            __html:
-              "try{var d=document.documentElement;if(!sessionStorage.getItem('nf_entered')&&d.dataset.saveData!=='on'&&d.dataset.motionSplash!=='off'&&d.dataset.motion!=='calm'&&d.dataset.motion!=='off'&&!matchMedia('(prefers-reduced-motion: reduce)').matches&&!/^\\/(admin|auth|api|offline|open|s|r)(\\/|$)/.test(location.pathname))d.dataset.splash='on';sessionStorage.setItem('nf_entered','1')}catch(e){}",
+            __html: STARTUP_GATE_SCRIPT,
           }}
         />
         {/*
@@ -469,6 +508,21 @@ export default async function RootLayout({
         <ThemeSync />
         {/* Installs the offline shell after load, in production only. Renders nothing. */}
         <ServiceWorkerRegistrar />
+        {/*
+          THE NATIVE RUNTIME, MOUNTED (3 October 2026): this was the whole bug.
+
+          `lib/native/boot.ts` has said for a while that this component "mounts
+          this once from the root layout". It never did. No `<NativeRuntime />`
+          existed anywhere in the tree -- not here, not in the (app) layout, not
+          anywhere -- which meant `startNativeRuntime()` was never called, on
+          any page, on any device, ever. Every plugin it starts, splash-hiding
+          included, is reached only from inside that one call, so not one of
+          them had run in production. A cold start on the native shell showed
+          the branded splash and then nothing: not a hang, not a crash, not a
+          slow network -- the one piece of code that could ever have taken it
+          down was simply never in the page.
+        */}
+        <NativeRuntime />
         <a href="#main" className="nf-skip-link">
           {t.common.skipToContent}
         </a>
@@ -476,6 +530,9 @@ export default async function RootLayout({
             language, so no route ships the whole dictionary for them
             (`lib/i18n/client-copy.tsx`). */}
         <ClientCopyProvider copy={clientCopyOf(t)}>
+          {/* No framer-motion provider (D49.1): nothing renders an `m`
+              element, and the hooks the ported components use (motion
+              values, `animate`) need no feature bundle. */}
           {children}
           {/* The account's success moments (sign-up, email, password,
               passcode), wherever they land: docs/SUCCESS_MOMENTS.md. */}
@@ -483,14 +540,6 @@ export default async function RootLayout({
           {/* The one toast, the connection line and back to top. */}
           <DetailsHost />
         </ClientCopyProvider>
-        {/* The splash itself: hidden unless the script above said so, gone
-            for good once its door has opened. Pure CSS; see threshold.css. */}
-        <div className="nf-splash" aria-hidden="true">
-          <div className="nf-splash__leaf nf-splash__leaf--a" />
-          <div className="nf-splash__leaf nf-splash__leaf--b" />
-          <div className="nf-splash__glow" />
-          <BrandAssemble size={68} className="nf-splash__brand" />
-        </div>
         <ThresholdStage welcome={t.authFlow.welcomeThrough} />
       </body>
     </html>

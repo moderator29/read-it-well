@@ -41,4 +41,9 @@
         ways round.
     -->
     <color name="vallo_notification">#0C39EF</color>
+
+    <!-- The Android 12+ system splash ground (styles.xml): the night canvas,
+         the `nf-surface-artwork` token, the colour of frame one of the startup
+         sequence and of `backgroundColor` in capacitor.config.ts. -->
+    <color name="splash_ground">#010118</color>
 </resources>

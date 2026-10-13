@@ -1,6 +1,6 @@
 import { countOf } from "@vallo/i18n/core";
 import { OFF_PLATFORM_SENTENCE } from "../money/copy";
-import { appUrl, button, clip, compose, fitSubject, heading, hello, money, note, paragraph, quoteLine, prettyDate, rows, type Block } from "./render";
+import { appUrl, button, clip, compose, dateRange, fitSubject, greetingName, heading, hello, money, note, paragraph, prettyDate, quoteLine, rows, shortTitle, type Block } from "./render";
 import type { EmailKind } from "./icons";
 import type { EmailMessage } from "./messages";
 
@@ -400,5 +400,172 @@ export function refundRequested(data: RefundRequestedData): EmailMessage {
     ],
     "You are receiving this because you asked for a refund on Vallo.",
     BOOKINGS_SWITCH,
+  );
+}
+
+/* ----------------------------------------------------- money and the stay */
+
+export type PaymentHostReceivedData = {
+  name: string | null;
+  /** The listing, or the hotel and room. */
+  place: string;
+  /** "YYYY-MM-DD". */
+  checkIn: string | null;
+  checkOut: string | null;
+  /** What the guest paid, in kobo. */
+  amountMinor: number;
+  /** The host's share of it, in kobo, when the charge recorded one. */
+  shareMinor: number | null;
+  /** Which rail the guest paid on. Only the protected rail holds anything. */
+  rail: "direct" | "protected";
+  /** Which screen lists the booking: a listing's agent, or a business host. */
+  side: "agent" | "host";
+};
+
+/** A guest paid for a stay the person hosts. To the host. */
+export function paymentHostReceived(data: PaymentHostReceivedData): EmailMessage {
+  const share = data.shareMinor !== null && data.shareMinor > 0 ? data.shareMinor : null;
+  return message(
+    "paymentHostReceived",
+    fitSubject("Payment received", data.place),
+    share
+      ? `${money(data.amountMinor)} paid. Your share is ${money(share)}.`
+      : `${money(data.amountMinor)} for ${shortTitle(data.place, 40)} is paid.`,
+    [
+      heading("Payment received"),
+      paragraph(`${hello(data.name)} A guest paid for ${data.place}.`),
+      rows([
+        { label: "Stay", value: data.place },
+        ...(data.checkIn && data.checkOut ? [{ label: "Dates", value: dateRange(data.checkIn, data.checkOut) }] : []),
+        { label: "The guest paid", value: money(data.amountMinor) },
+        ...(share ? [{ label: "Your share", value: money(share), strong: true }] : []),
+      ]),
+      paragraph(
+        data.rail === "protected"
+          ? "Your share is held by Vallo's licensed payment partner and released to you under the agreed terms. Vallo does not hold it."
+          : "Your share goes straight to the bank account on your payout details, through our payment processor. Vallo never holds it.",
+      ),
+      button("See the booking", appUrl(data.side === "agent" ? "/agent/bookings" : "/host/bookings")),
+    ],
+    "You are receiving this because a guest paid for a stay you host on Vallo.",
+  );
+}
+
+export type PaymentRentReceiptData = {
+  name: string | null;
+  place: string;
+  /** What this charge was, in kobo. */
+  amountMinor: number;
+  /** True when this was one flatmate's share of the move-in. */
+  share: boolean;
+  rentPaymentId: string;
+};
+
+/** A rent charge settled. To the person who paid it, as a receipt. */
+export function paymentRentReceipt(data: PaymentRentReceiptData): EmailMessage {
+  const what = data.share ? "Your share of the move-in is paid" : "Your move-in payment is paid";
+  return message(
+    "paymentRentReceipt",
+    fitSubject(data.share ? "Share paid" : "Payment received", data.place),
+    `${money(data.amountMinor)} is paid. Keep this email as your receipt.`,
+    [
+      heading(data.share ? "Share paid" : "Payment received"),
+      paragraph(`${hello(data.name)} ${what}. Keep this email as your receipt.`),
+      rows([
+        { label: "Home", value: data.place },
+        { label: data.share ? "Your share" : "Paid", value: money(data.amountMinor), strong: true },
+      ]),
+      paragraph("Every payment and share stays on your tenancy file, where you can see what is still to pay."),
+      button("Open your tenancy", appUrl(`/tenancy/${data.rentPaymentId}`)),
+    ],
+    "You are receiving this because you paid rent through Vallo.",
+  );
+}
+
+export type BookingRequestClosedData = {
+  name: string | null;
+  place: string;
+  /** "YYYY-MM-DD". */
+  checkIn: string | null;
+  checkOut: string | null;
+  bookingId: string;
+};
+
+/**
+ * A stay request that did not go ahead because the host (or Vallo) closed it.
+ * To the guest. It carries no reason: the host's own words are in the app, and
+ * the button opens them. Nothing was charged, and it says so.
+ */
+export function bookingRequestClosed(data: BookingRequestClosedData): EmailMessage {
+  return message(
+    "bookingRequestClosed",
+    fitSubject("Request not accepted", data.place),
+    "Nothing was charged. Open your booking to see why.",
+    [
+      heading("Your request was not accepted"),
+      paragraph(
+        `${hello(data.name)} The host could not take your request for ${data.place}. Nothing was charged, and your dates are free again.`,
+      ),
+      rows([
+        { label: "Stay", value: data.place },
+        ...(data.checkIn && data.checkOut ? [{ label: "Dates", value: dateRange(data.checkIn, data.checkOut) }] : []),
+      ]),
+      button("See why and find another stay", appUrl(`/bookings/${data.bookingId}`)),
+    ],
+    "You are receiving this because you asked to book a stay on Vallo.",
+    BOOKINGS_SWITCH,
+  );
+}
+
+export type StayReviewRequestData = {
+  name: string | null;
+  place: string;
+  bookingId: string;
+};
+
+/** The day after check-out. To the guest, once, while no review exists. */
+export function stayReviewRequest(data: StayReviewRequestData): EmailMessage {
+  return message(
+    "stayReviewRequest",
+    fitSubject("How was your stay?", data.place),
+    "Tell other guests what it was like. It takes a minute.",
+    [
+      heading("How was your stay?"),
+      paragraph(`${hello(data.name)} Tell other guests what it was like at ${data.place}. Honest reviews help the next person choose well.`),
+      button("Write a review", appUrl(`/bookings/${data.bookingId}/review`)),
+    ],
+    "You are receiving this because you stayed somewhere through Vallo.",
+    BOOKINGS_SWITCH,
+  );
+}
+
+export type UnreadMessagesData = {
+  name: string | null;
+  senderName: string | null;
+  /** How many are waiting. Shown as a figure, never pluralised in a sentence. */
+  count: number;
+  /** Where the thread opens, such as "/messages/<id>". */
+  conversationPath: string;
+};
+
+/** Messages nobody has opened for a while. To the person they were sent to. */
+export function unreadMessages(data: UnreadMessagesData): EmailMessage {
+  const from = greetingName(data.senderName);
+  return message(
+    "unreadMessages",
+    fitSubject(from ? `Unread messages from ${from}` : "Unread messages on Vallo"),
+    from ? `${from} is waiting for your reply.` : "Somebody is waiting for your reply.",
+    [
+      heading("You have unread messages"),
+      paragraph(`${hello(data.name)} ${from ?? "Somebody"} wrote to you on Vallo, and the conversation has not been opened yet.`),
+      rows([
+        ...(from ? [{ label: "From", value: from }] : []),
+        ...(data.count > 0 ? [{ label: "Unread", value: String(data.count), strong: true }] : []),
+      ]),
+      button("Open the conversation", appUrl(data.conversationPath)),
+      note("Reply inside Vallo, so the conversation stays on the record for both of you."),
+    ],
+    "You are receiving this because messages to you on Vallo are unread.",
+    { label: "Change what Vallo emails you", href: appUrl("/settings/notifications") },
   );
 }

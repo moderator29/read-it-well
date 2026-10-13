@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getLocale } from "@/lib/locale";
+import { getDictionary } from "@vallo/i18n";
 import { BackButton } from "@/components/site/BackButton";
 import { RowLink, SettingsGroup } from "@/components/app/account/rows";
 import { MessagesGroup } from "@/components/support/MessagesRow";
@@ -41,6 +42,9 @@ const TRUST_ICON: Record<string, UiIconName> = {
  */
 export default async function SupportPage() {
   const locale = await getLocale();
+  /* The client islands get their words from here, never from a client
+     dictionary read (W13: that read shipped the whole index on /support). */
+  const inboxWords = getDictionary(locale).experienceInbox;
   const [identity, tickets, reports, aiConsented] = await Promise.all([
     getShellIdentity(),
     loadMyTickets(50),
@@ -52,7 +56,10 @@ export default async function SupportPage() {
      name, and falls back to "Guest" when a profile has none of them: a member
      is never greeted as a guest, so that fallback reads as no name at all. */
   const name = signedIn && identity.userName !== "Guest" ? identity.userName : "";
-  const promise = `A person replies ${RESPONSE_COMMITMENTS.standard.label.toLowerCase()}, and ${RESPONSE_COMMITMENTS.urgent.label.toLowerCase()} when money or safety is at stake.`;
+  const home = inboxWords.support.home;
+  const promise = home.promise
+    .replace("{standard}", RESPONSE_COMMITMENTS.standard.label.toLowerCase())
+    .replace("{urgent}", RESPONSE_COMMITMENTS.urgent.label.toLowerCase());
   const popular = popularArticles(FAQS, POPULAR_QUESTIONS);
 
   return (
@@ -61,19 +68,21 @@ export default async function SupportPage() {
 
       <div className="mt-row space-y-block">
         <SupportHero
-          greeting={name ? `Hi ${name}, how can we help?` : "Hi there, how can we help?"}
+          greeting={name ? home.greetingNamed.replace("{name}", name) : home.greeting}
           promise={promise}
           aiConsented={aiConsented}
           signedIn={signedIn}
+          assistantCopy={inboxWords.assistant}
+          copy={home}
         />
 
-        <MessagesGroup tickets={tickets} signedIn={signedIn} />
+        <MessagesGroup tickets={tickets} signedIn={signedIn} copy={home} locale={locale} />
 
-        <SupportSearch articles={FAQS} popular={popular} />
+        <SupportSearch articles={FAQS} popular={popular} supportCopy={inboxWords.support} />
 
         <MyReports list={reports} locale={locale} />
 
-        <SettingsGroup label="Safety and policies">
+        <SettingsGroup label={home.safety}>
           {TRUST_LINKS.map((link) => (
             <RowLink
               key={link.href}
@@ -85,10 +94,10 @@ export default async function SupportPage() {
           ))}
         </SettingsGroup>
 
-        <SettingsGroup label="Legal">
-          <RowLink href="/terms" icon="document" label="Terms" />
-          <RowLink href="/privacy" icon="eye-off" label="Privacy" />
-          <RowLink href="/delete-account" icon="trash" label="Delete account" sub="How to delete your account and data" />
+        <SettingsGroup label={home.legal}>
+          <RowLink href="/terms" icon="document" label={home.terms} />
+          <RowLink href="/privacy" icon="eye-off" label={home.privacy} />
+          <RowLink href="/delete-account" icon="trash" label={home.deleteAccount} sub={home.deleteAccountSub} />
         </SettingsGroup>
       </div>
     </div>

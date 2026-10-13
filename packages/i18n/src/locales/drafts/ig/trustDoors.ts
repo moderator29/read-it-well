@@ -21,7 +21,6 @@ export const trustDoorsIg = {
     yesRole: { agent: "Onye nnọchiteanya", owner: "Onye nwe ụlọ", firm: "Ụlọ ọrụ" },
     yesIdentity: "Vallo lelere njirimara na {date}.",
     yesTalk: "Kparịta ụka na ha na Vallo",
-    yesWhy: "Mee ka mkparịta ụka na ịkwụ ụgwọ ọ bụla nọrọ n'ime Vallo, ebe unu abụọ nwere nchekwa.",
     noTitle: "Ọ dịghị onye nnọchiteanya debanyere nọmba a na Vallo",
     noCodeTitle: "Ọ dịghị onye nnọchiteanya na Vallo nwere koodu a",
     noBody: "Rịọ ha koodu Vallo ha, ma kwụọ ụgwọ naanị n'ime Vallo.",

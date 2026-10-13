@@ -166,7 +166,7 @@ export function Switch({
         */}
         <p
           id={labelId}
-          className="text-[length:var(--nf-text-body-sm)] font-medium text-[var(--nf-content-primary)]"
+          className="text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]"
         >
           {label}
         </p>

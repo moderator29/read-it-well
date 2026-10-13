@@ -1,5 +1,3 @@
-import { getDictionary } from "@vallo/i18n";
-
 /**
  * What a payment failure is allowed to say to the person who tried to pay.
  *
@@ -44,6 +42,13 @@ import { getDictionary } from "@vallo/i18n";
  *
  * "Something went wrong" is never returned from here, on purpose. It answers
  * nothing and costs the reader the one fact they need.
+ *
+ * NO DICTIONARY IN THIS MODULE (Session 3, W13, measured). It is imported by
+ * the client pay panels, and its old module-scope `getDictionary("en")` put
+ * the whole dictionary, 398KB gzipped, in the first load of /checkout and
+ * /rent/pay. The rewrite's words now come from the caller's own `checkout`
+ * slice (`FailureWords`), and the paid-screen sentences moved to
+ * `paid-copy.ts`, which no client module imports.
  */
 
 /**
@@ -51,7 +56,10 @@ import { getDictionary } from "@vallo/i18n";
  * dropped: they are known strings that say a true thing in the wrong words, so
  * each is answered with the same fact in words that belong to the reader.
  */
-const REWRITES: { pattern: RegExp; sentence: string }[] = [
+/** The checkout words a rewrite answers in, from the caller's dictionary slice. */
+export type FailureWords = { cannotTakePayment: string };
+
+const rewrites = (words: FailureWords): { pattern: RegExp; sentence: string }[] => [
   {
     /*
      * `CARD_UNCONFIGURED_MESSAGE` in `lib/bookings/checkout.ts`,
@@ -67,7 +75,7 @@ const REWRITES: { pattern: RegExp; sentence: string }[] = [
      * money sentence follows it either way.
      */
     pattern: /\b(payment|platform|paystack)\s+keys?\b|\bswitch(es)?\s+on\b/i,
-    sentence: getDictionary("en").checkout.cannotTakePayment,
+    sentence: words.cannotTakePayment,
   },
 ];
 
@@ -118,12 +126,12 @@ const MAX_LENGTH = 400;
  * is nothing safe to show. The caller always states what happened to the money
  * either way, so returning null costs the reader nothing they needed.
  */
-export function vettedFailureSentence(raw: string | undefined | null): string | null {
+export function vettedFailureSentence(raw: string | undefined | null, words: FailureWords): string | null {
   if (!raw) return null;
   const text = raw.trim();
   if (text.length === 0 || text.length > MAX_LENGTH) return null;
 
-  for (const { pattern, sentence } of REWRITES) {
+  for (const { pattern, sentence } of rewrites(words)) {
     if (pattern.test(text)) return sentence;
   }
   for (const pattern of NOT_PROSE) {
@@ -138,29 +146,7 @@ export function vettedFailureSentence(raw: string | undefined | null): string | 
  * The money sentence is last because it is the one that has to survive being
  * skim-read.
  */
-export function failureConsequence(raw: string | undefined | null, money: string): string {
-  const reason = vettedFailureSentence(raw);
+export function failureConsequence(raw: string | undefined | null, money: string, words: FailureWords): string {
+  const reason = vettedFailureSentence(raw, words);
   return reason ? `${reason} ${money}` : money;
 }
-
-/* ------------------------------------------------------------ paid screens */
-
-/*
- * V-33: WHAT A SUCCESS SCREEN MAY SAY ABOUT WHERE THE MONEY WENT.
- *
- * These screens used to tell the payer the agent had been paid. Nothing paid
- * the agent: no payout to a bank exists, and the charge credited nobody. A
- * success screen is read at the most anxious second of the transaction, so it
- * states only what the ledger already proves (the charge is recorded to the
- * kobo) and what the reader should do next. It never claims a payout, and
- * `payment-copy.test.ts` fails if any of these sentences starts to.
- */
-
-/** The rent page when it is opened again after a paid charge. */
-export const RENT_PAID_PAGE_CONSEQUENCE = getDictionary("en").checkout.paidRent;
-
-/** The sheet that opens the moment a rent payment confirms. */
-export const RENT_PAID_SHEET_CONSEQUENCE = getDictionary("en").checkout.paidRent;
-
-/** The sheet that opens the moment a stay payment confirms. */
-export const STAY_PAID_SHEET_CONSEQUENCE = getDictionary("en").checkout.paidStay;

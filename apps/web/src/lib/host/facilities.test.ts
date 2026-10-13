@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
+import { getDictionary } from "@vallo/i18n";
 
 import { STAY_FACILITIES, STAY_FACILITY_CODES, orderFacilities } from "./facilities";
 import { accommodationFacilitiesSchema } from "./schema";
+
+/* The field messages the server action builds the schema from, in English. */
+const W = getDictionary("en").experienceHost.refusals.schema;
 
 const UUID = "00000000-0000-4000-8000-000000000001";
 
@@ -80,12 +84,12 @@ describe("orderFacilities", () => {
 describe("accommodationFacilitiesSchema", () => {
   it("accepts an empty set, because claiming nothing is an answer", () => {
     expect(
-      accommodationFacilitiesSchema.safeParse({ accommodationId: UUID, codes: [] }).success,
+      accommodationFacilitiesSchema(W).safeParse({ accommodationId: UUID, codes: [] }).success,
     ).toBe(true);
   });
 
   it("refuses a code the amenities table does not carry, in words", () => {
-    const parsed = accommodationFacilitiesSchema.safeParse({
+    const parsed = accommodationFacilitiesSchema(W).safeParse({
       accommodationId: UUID,
       codes: ["pool", "helipad"],
     });

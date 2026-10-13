@@ -22,8 +22,9 @@ import {
   linkLabel,
   type ContactPolicy,
   type SocialProfileSaved,
-} from "@/lib/social/profiles-schema";
+} from "@/lib/social/profiles-model";
 import { useDisplayHost } from "@/lib/ui/use-display-host";
+import "@/app/css/catalogue.css";
 
 /**
  * The profile editor, as a full page.
@@ -103,7 +104,7 @@ export function ProfileEditor({
           className="nf-panel nf-panel--card nf-panel--held p-md"
         >
           <p className="flex items-center gap-xs text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-status-pending)]">
-            <UiIcon name="sparkle" size={15} className="shrink-0" />
+            <UiIcon name="hourglass" size={15} className="shrink-0" />
             {BIO_HELD_TITLE}
           </p>
           <p className="mt-2xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
@@ -297,7 +298,7 @@ export function ProfileEditor({
                 key={policy}
                 /* The shared choice card: panel at rest, the selected edge
                    and glow when its radio is checked (`social-profile.css`). */
-                className="nf-choice"
+                className="nf-pchoice"
               >
                 <input
                   type="radio"
@@ -318,7 +319,7 @@ export function ProfileEditor({
           })}
         </div>
 
-        <label className="nf-choice mt-sm">
+        <label className="nf-pchoice mt-sm">
           {/* The hidden field posts first, so an unticked box still sends a
               value and the last one written wins. */}
           <input type="hidden" name="pidginOk" value="off" />

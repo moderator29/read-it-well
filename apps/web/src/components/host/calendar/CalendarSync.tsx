@@ -2,7 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { countOf, type Locale } from "@vallo/i18n/core";
+import { countOf, type Dictionary, type Locale } from "@vallo/i18n/core";
+import { useHostPageCopy } from "../host-copy";
 import { Button } from "@/components/ui/Button";
 import { SelectField, TextField } from "@/components/ui/Field";
 import { Switch } from "@/components/ui/Switch";
@@ -32,18 +33,20 @@ import type { CalendarImport, SyncState } from "@/lib/host/rate-calendar-queries
  * offers nothing to press, rather than buttons that fail.
  */
 
-function ago(iso: string | null, now: number): string {
-  if (!iso) return "not pulled yet";
+type CalendarWords = Dictionary["experienceHost"]["calendarUi"];
+
+function ago(iso: string | null, now: number, w: CalendarWords): string {
+  if (!iso) return w.notPulled;
   const minutes = Math.max(0, Math.round((now - Date.parse(iso)) / 60_000));
-  if (minutes < 1) return "synced just now";
-  if (minutes < 60) return `synced ${minutes} min ago`;
+  if (minutes < 1) return w.justNow;
+  if (minutes < 60) return w.minAgo.replace("{n}", String(minutes));
   const hours = Math.round(minutes / 60);
-  if (hours < 48) return `synced ${hours} h ago`;
-  return `synced ${Math.round(hours / 24)} days ago`;
+  if (hours < 48) return w.hAgo.replace("{n}", String(hours));
+  return w.daysAgo.replace("{n}", String(Math.round(hours / 24)));
 }
 
-function siteName(source: string): string {
-  return FEED_SOURCES.find((s) => s.value === source)?.label ?? "Another site";
+function siteName(source: string, w: CalendarWords): string {
+  return FEED_SOURCES.find((s) => s.value === source)?.label ?? w.anotherSite;
 }
 
 export function CalendarSync({
@@ -58,6 +61,7 @@ export function CalendarSync({
   locale: Locale;
 }) {
   const router = useRouter();
+  const w = useHostPageCopy().calendarUi;
   const [pending, start] = useTransition();
   const [message, setMessage] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
   const [source, setSource] = useState<FeedSource>("airbnb");
@@ -74,7 +78,7 @@ export function CalendarSync({
       setMessage(null);
       const result = await fn();
       if (!result.ok) {
-        setMessage({ tone: "error", text: result.error ?? "That did not go through." });
+        setMessage({ tone: "error", text: result.error ?? w.failed });
         return;
       }
       setMessage({ tone: "ok", text: success });
@@ -101,12 +105,12 @@ export function CalendarSync({
         </span>
         <div className="min-w-0">
           <h3 id={`sync-${room.id}`} className="nf-rcal-panel__title">
-            Sync with Airbnb and Booking.com
+            {w.syncTitle}
           </h3>
           <p className="nf-caption">
             {sync.ready
-              ? "A booking there takes one room here, and nights taken here show as taken there."
-              : "Calendar sync is not switched on yet. Until it is, close nights you sell elsewhere by hand."}
+              ? w.syncOn
+              : w.syncOff}
           </p>
         </div>
       </div>
@@ -114,30 +118,25 @@ export function CalendarSync({
       {sync.ready ? (
         <>
           <div className="nf-rcal-sync__block">
-            <h4 className="nf-section-label">Your Vallo calendar link</h4>
+            <h4 className="nf-section-label">{w.feedTitle}</h4>
             {feedUrl ? (
               <>
                 <div className="nf-rcal-sync__link">
                   <code className="nf-rcal-sync__url">{feedUrl}</code>
                   <Button variant="secondary" size="sm" leadingIcon={copied ? "check" : "link"} onClick={copy}>
-                    {copied ? "Copied" : "Copy"}
+                    {copied ? w.copied : w.copy}
                   </Button>
                 </div>
-                <p className="nf-caption">
-                  Paste it into the other site&apos;s calendar import. It shows only which nights are taken, never a
-                  guest&apos;s name.
-                </p>
-                <Disclosure label="Make a new link" inline>
-                  <p className="nf-caption">
-                    The old link stops working at once. Use this if the link was shared somewhere it should not be.
-                  </p>
+                <p className="nf-caption">{w.feedHow}</p>
+                <Disclosure label={w.newLink} inline>
+                  <p className="nf-caption">{w.newLinkWarn}</p>
                   <Button
                     variant="dangerQuiet"
                     size="sm"
                     disabled={pending}
-                    onClick={() => act(() => makeCalendarFeed({ roomTypeId: room.id, fresh: true }), "A new link is ready. Paste it into the other site again.")}
+                    onClick={() => act(() => makeCalendarFeed({ roomTypeId: room.id, fresh: true }), w.newLinkDone)}
                   >
-                    Replace the link
+                    {w.replaceLink}
                   </Button>
                 </Disclosure>
               </>
@@ -148,23 +147,23 @@ export function CalendarSync({
                 leadingIcon="link"
                 loading={pending}
                 disabled={pending}
-                onClick={() => act(() => makeCalendarFeed({ roomTypeId: room.id }), "Your link is ready to copy.")}
+                onClick={() => act(() => makeCalendarFeed({ roomTypeId: room.id }), w.linkReady)}
               >
-                Make a calendar link
+                {w.makeLink}
               </Button>
             )}
           </div>
 
           <div className="nf-rcal-sync__block">
-            <h4 className="nf-section-label">Calendars from other sites</h4>
+            <h4 className="nf-section-label">{w.importsTitle}</h4>
             {imports.length > 0 ? (
               <ul className="nf-rcal-sync__imports">
                 {imports.map((imp) => (
-                  <ImportRow key={imp.id} imp={imp} now={now} pending={pending} act={act} locale={locale} />
+                  <ImportRow key={imp.id} imp={imp} now={now} pending={pending} act={act} locale={locale} w={w} />
                 ))}
               </ul>
             ) : (
-              <p className="nf-caption">None linked yet.</p>
+              <p className="nf-caption">{w.noneLinked}</p>
             )}
             {imports.length < 5 ? (
               <form
@@ -173,20 +172,20 @@ export function CalendarSync({
                   event.preventDefault();
                   act(
                     () => addCalendarImport({ roomTypeId: room.id, source, url }),
-                    "Linked. The first sync runs within half an hour.",
+                    w.linked,
                     () => setUrl(""),
                   );
                 }}
               >
-                <SelectField label="From" value={source} onChange={(event) => setSource(event.target.value as FeedSource)}>
+                <SelectField label={w.from} value={source} onChange={(event) => setSource(event.target.value as FeedSource)}>
                   {FEED_SOURCES.map((s) => (
                     <option key={s.value} value={s.value}>
-                      {s.label}
+                      {s.label ?? w.anotherSite}
                     </option>
                   ))}
                 </SelectField>
                 <TextField
-                  label="Calendar link (.ics)"
+                  label={w.icsLabel}
                   inputMode="url"
                   autoComplete="off"
                   placeholder="https://www.airbnb.com/calendar/ical/..."
@@ -194,7 +193,7 @@ export function CalendarSync({
                   onChange={(event) => setUrl(event.target.value)}
                 />
                 <Button type="submit" variant="secondary" size="md" disabled={pending || url.trim().length === 0}>
-                  Link this calendar
+                  {w.linkCalendar}
                 </Button>
               </form>
             ) : null}
@@ -217,8 +216,10 @@ function ImportRow({
   pending,
   act,
   locale,
+  w,
 }: {
   imp: CalendarImport;
+  w: CalendarWords;
   now: number;
   pending: boolean;
   locale: Locale;
@@ -229,36 +230,36 @@ function ImportRow({
     <li className="nf-rcal-sync__import">
       <div className="min-w-0 flex-1">
         <p className="nf-rcal-sync__import-name">
-          From {siteName(imp.source)}
+          {w.fromSite.replace("{site}", siteName(imp.source, w))}
           {failing ? (
             <StatusBadge tone="error" kind="dot" className="ml-xs">
-              Needs a look
+              {w.needsLook}
             </StatusBadge>
           ) : !imp.enabled ? (
             <StatusBadge tone="neutral" className="ml-xs">
-              Paused
+              {w.paused}
             </StatusBadge>
           ) : null}
         </p>
         <p className="nf-caption">
-          {imp.lastError && imp.failures > 0 ? imp.lastError : `${ago(imp.lastSyncedAt, now)}, ${countOf(imp.nightsBlocked, "nightsClosed", locale)}`}
+          {imp.lastError && imp.failures > 0 ? imp.lastError : `${ago(imp.lastSyncedAt, now, w)}, ${countOf(imp.nightsBlocked, "nightsClosed", locale)}`}
         </p>
       </div>
       <Switch
         checked={imp.enabled}
-        aria-label={`Sync from ${siteName(imp.source)}`}
+        aria-label={w.syncFrom.replace("{site}", siteName(imp.source, w))}
         disabled={pending}
         onCheckedChange={(next) =>
-          act(() => setCalendarImportEnabled({ importId: imp.id, enabled: next }), next ? "Sync resumed." : "Sync paused. Its nights stay as they are.")
+          act(() => setCalendarImportEnabled({ importId: imp.id, enabled: next }), next ? w.resumed : w.pausedDone)
         }
       />
       <Button
         variant="quiet"
         size="sm"
         iconOnly
-        aria-label={`Unlink the ${siteName(imp.source)} calendar`}
+        aria-label={w.unlink.replace("{site}", siteName(imp.source, w))}
         disabled={pending}
-        onClick={() => act(() => removeCalendarImport({ importId: imp.id }), "Unlinked. The nights it closed are open again.")}
+        onClick={() => act(() => removeCalendarImport({ importId: imp.id }), w.unlinked)}
       >
         <UiIcon name="trash" size={16} />
       </Button>

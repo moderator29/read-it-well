@@ -1,4 +1,5 @@
 import "server-only";
+import { reportReadError } from "@/lib/observability/read-error";
 import { COMPOUND_COLUMNS, readCompound, type Compound, type CompoundRow } from "@/lib/listings/compound";
 
 import { cache } from "react";
@@ -6,8 +7,10 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "../supabase/admin";
 import { Constants, type Database } from "../supabase/database.types";
 import { documentMedia, type DocumentMedia } from "./documents";
+import { countReferralWork } from "./reads/referrals";
 import { requireAdmin, requireConsole } from "./guard";
 import type { StaffScope } from "./guard";
+import { qualityChecks, type QualityCheck } from "./listing-checks";
 import {
   lagosDayEnd,
   lagosDayStart,
@@ -18,7 +21,6 @@ import {
   type AdminQueueFilter,
 } from "./queue-filter";
 import {
-  PERIOD_SUFFIX,
   headlinePeriod,
   headlinePrice,
   moveInParts,
@@ -59,7 +61,12 @@ async function adminClient(scope?: StaffScope): Promise<SupabaseClient<Database>
  * a staff member who has acknowledged the handbook reads on the service role
  * too, but only the queues their scopes open (`may`).
  */
-async function queueReach(): Promise<{ db: SupabaseClient<Database>; may: (scope: StaffScope) => boolean } | null> {
+async function queueReach(): Promise<{
+  db: SupabaseClient<Database>;
+  may: (scope: StaffScope) => boolean;
+  /** An admin or super admin, as opposed to a scoped staff member. The referral desk is the first queue only an admin counts. */
+  isAdmin: boolean;
+} | null> {
   const access = await requireAdmin();
   const console = access.state === "admin" ? null : await requireConsole();
   let may: (scope: StaffScope) => boolean;
@@ -69,7 +76,7 @@ async function queueReach(): Promise<{ db: SupabaseClient<Database>; may: (scope
     may = (scope) => held.has(scope);
   } else return null;
   try {
-    return { db: createAdminClient(), may };
+    return { db: createAdminClient(), may, isAdmin: access.state === "admin" };
   } catch {
     return null;
   }
@@ -94,6 +101,10 @@ export type QueueCounts = {
   agreements: number;
   /** Track A: Guarantee claims waiting for a decision. */
   claims: number;
+  /** The referral desk: referrals sent to a person (status under_review). Admins only. */
+  referrals: number;
+  /** The referral desk: reward payouts sent to a person (status under_review). Admins only. */
+  payouts: number;
 };
 
 /**
@@ -135,7 +146,7 @@ export const getQueueCounts = cache(async (): Promise<AdminRead<QueueCounts>> =>
      of saying "unavailable" because one count was not theirs. */
   const reach = await queueReach();
   if (!reach) return UNAVAILABLE;
-  const { db: admin, may } = reach;
+  const { db: admin, may, isAdmin } = reach;
   const none = Promise.resolve({ count: 0 });
 
   try {
@@ -153,6 +164,7 @@ export const getQueueCounts = cache(async (): Promise<AdminRead<QueueCounts>> =>
       heldEvents,
       agreements,
       claims,
+      referralWork,
     ] = await Promise.all([
       !may("moderation") ? none : admin.from("message_flags").select("id", { count: "exact", head: true }).eq("status", "open"),
       !may("operations") ? none : admin.from("risk_alerts").select("id", { count: "exact", head: true }).eq("status", "open"),
@@ -186,6 +198,8 @@ export const getQueueCounts = cache(async (): Promise<AdminRead<QueueCounts>> =>
       !may("moderation") ? none : admin.from("events").select("id", { count: "exact", head: true }).eq("status", "HELD"),
       !may("agreements") ? none : admin.from("deal_agreements").select("id", { count: "exact", head: true }).eq("status", "in_review"),
       !may("guarantee") ? none : admin.from("guarantee_claims").select("id", { count: "exact", head: true }).eq("status", "submitted"),
+      /* The referral desk's two queues. The deciding functions need an admin role, so a scoped staff member counts zero. */
+      !isAdmin ? Promise.resolve(null) : countReferralWork(admin),
     ]);
 
     return {
@@ -205,6 +219,9 @@ export const getQueueCounts = cache(async (): Promise<AdminRead<QueueCounts>> =>
           (heldEvents.count ?? 0),
         agreements: agreements.count ?? 0,
         claims: claims.count ?? 0,
+        /* An unreadable referral count is 0 on the badge, never a number made up; the desk itself says when it cannot read. */
+        referrals: referralWork?.referrals ?? 0,
+        payouts: referralWork?.payouts ?? 0,
       },
     };
   } catch {
@@ -273,6 +290,7 @@ export async function getMessageFlags(
     const { data, error } = await select
       .order("created_at", { ascending: false })
       .range(page.from, page.to);
+    await reportReadError("read.admin.getMessageFlags", error);
     if (error) return UNAVAILABLE;
 
     const { rows: page1, full } = takePage(data ?? []);
@@ -392,6 +410,7 @@ async function readAcknowledgements(
       .from("risk_alerts")
       .select("id, acknowledged_by, acknowledged_at")
       .in("id", ids);
+    await reportReadError("read.admin.readAcknowledgements", error);
     if (error || !data) return null;
     const out = new Map<string, Acknowledgement>();
     for (const row of data) out.set(row.id, { at: row.acknowledged_at, by: row.acknowledged_by });
@@ -434,6 +453,7 @@ export async function getRiskAlerts(
     const { data, error } = await select
       .order("created_at", { ascending: false })
       .range(page.from, page.to);
+    await reportReadError("read.admin.getRiskAlerts", error);
     if (error) return UNAVAILABLE;
 
     const { rows, full } = takePage(data ?? []);
@@ -562,6 +582,7 @@ export async function getReports(
     const { data, error } = await select
       .order("created_at", { ascending: false })
       .range(page.from, page.to);
+    await reportReadError("read.admin.getReports", error);
     if (error) return UNAVAILABLE;
 
     const { rows, full } = takePage(data ?? []);
@@ -645,10 +666,26 @@ export type ApplicationView = {
   /** SUP-05: the applicant's answer to a MORE_INFO_REQUIRED note. */
   applicantResponse: string | null;
   createdAt: string;
+  /**
+   * WHAT THE THREE REGISTRATION FORMS ASK, WHICH THIS DESK NEVER READ.
+   *
+   * `supply_role` says which door the person came through (owner, agent or
+   * firm; null for the older six step form). The owner's one question is what
+   * they hold on the property, and the agent's are how long they have done
+   * this and what they charge. None of it was selected, so a reviewer
+   * deciding an owner saw "Individual agent" and no ownership answer, and
+   * deciding an agent never saw the fees the form exists to publish.
+   */
+  supplyRole: string | null;
+  ownershipDocument: string | null;
+  area: string | null;
+  yearsExperience: string | null;
+  agencyFeeBps: number | null;
+  legalFeeBps: number | null;
 };
 
 const APPLICATION_COLUMNS =
-  "id, reference, status, type, full_name, phone, email, residential_address, state_code, city, id_type, id_number, business_name, business_rc, bank_name, account_number, account_name, agree_terms, submitted_at, reviewed_at, review_notes, applicant_response, created_at, agent_documents ( id, kind, storage_path )";
+  "id, reference, status, type, full_name, phone, email, residential_address, state_code, city, id_type, id_number, business_name, business_rc, bank_name, account_number, account_name, agree_terms, submitted_at, reviewed_at, review_notes, applicant_response, created_at, supply_role, ownership_document, area, years_experience, agency_fee_bps, legal_fee_bps, agent_documents ( id, kind, storage_path )";
 
 type ApplicationRow = {
   id: string;
@@ -674,6 +711,12 @@ type ApplicationRow = {
   review_notes: string | null;
   applicant_response: string | null;
   created_at: string;
+  supply_role: string | null;
+  ownership_document: string | null;
+  area: string | null;
+  years_experience: string | null;
+  agency_fee_bps: number | null;
+  legal_fee_bps: number | null;
   agent_documents: { id: string; kind: string; storage_path: string }[];
 };
 
@@ -738,6 +781,12 @@ function toApplicationView(
     reviewNotes: row.review_notes,
     applicantResponse: row.applicant_response,
     createdAt: row.created_at,
+    supplyRole: row.supply_role,
+    ownershipDocument: row.ownership_document,
+    area: row.area,
+    yearsExperience: row.years_experience,
+    agencyFeeBps: row.agency_fee_bps,
+    legalFeeBps: row.legal_fee_bps,
   };
 }
 
@@ -824,6 +873,7 @@ export async function getAgentApplications(
         .order("reviewed_at", { ascending: false, nullsFirst: false })
         .limit(10),
     ]);
+    await reportReadError("read.admin.getAgentApplications", waiting.error, decided.error);
     if (waiting.error || decided.error) return UNAVAILABLE;
 
     /* Described rather than signed: nothing here touches storage any more, so
@@ -845,7 +895,7 @@ export async function getAgentApplications(
 
 /** ----------------------------------------------------------------- listings */
 
-export type QualityCheck = { label: string; pass: boolean; detail: string };
+export type { QualityCheck } from "./listing-checks";
 
 export type ListingReviewView = {
   id: string;
@@ -891,7 +941,7 @@ export type ListingReviewView = {
    * a public URL. The signing is batched for the whole queue in one storage
    * call, the same shape the agent document read already uses.
    */
-  videos: { url: string | null; posterUrl: string | null; durationSeconds: number | null }[];
+  videos: { url: string | null; posterUrl: string | null; durationSeconds: number | null; position?: number }[];
   /**
    * WHAT THE LISTER ACTUALLY ANSWERED ABOUT LIGHT AND WATER.
    *
@@ -931,6 +981,8 @@ export type ListingReviewView = {
   amenityCount: number;
   submittedAt: string | null;
   reviewedAt: string | null;
+  /** The FIRST time it went live (kept across a re-publish); null when it never has. Dates the status track's Live step. */
+  publishedAt?: string | null;
   reviewNotes: string | null;
   createdAt: string;
   checks: QualityCheck[];
@@ -939,7 +991,7 @@ export type ListingReviewView = {
 };
 
 const LISTING_COLUMNS =
-  "id, reference, title, status, property_type, listing_intent, rent_amount_minor, rent_period, rate_minor, rate_period, sale_price_minor, tenure, sale_status, caution_deposit_minor, service_charge_minor, service_charge_period, agency_fee_minor, legal_fee_minor, agreement_fee_minor, total_move_in_cost_minor, city, area, state_code, address, description, bedrooms, bathrooms, submitted_at, reviewed_at, review_notes, created_at, sale_agency_fee_minor, sale_legal_fee_minor, governors_consent_fee_minor, stamp_duty_minor, survey_registration_fee_minor, total_purchase_cost_minor, power_grid, power_backup, power_backup_hours, water_supply, prepaid_meter, size_sqm, toilets, parking_spaces, floor, total_floors, condition, year_built, furnished, agents!listings_agent_id_fkey( display_name ), listing_photos ( storage_path, position ), listing_videos ( storage_path, poster_path, duration_seconds, position ), listing_amenities ( amenity_id ), listing_access ( estate_name, gate_directions, security_phone, access_code )";
+  "id, reference, title, status, property_type, listing_intent, rent_amount_minor, rent_period, rate_minor, rate_period, sale_price_minor, tenure, sale_status, caution_deposit_minor, service_charge_minor, service_charge_period, agency_fee_minor, legal_fee_minor, agreement_fee_minor, total_move_in_cost_minor, city, area, state_code, address, description, bedrooms, bathrooms, submitted_at, reviewed_at, published_at, review_notes, created_at, sale_agency_fee_minor, sale_legal_fee_minor, governors_consent_fee_minor, stamp_duty_minor, survey_registration_fee_minor, total_purchase_cost_minor, power_grid, power_backup, power_backup_hours, water_supply, prepaid_meter, size_sqm, toilets, parking_spaces, floor, total_floors, condition, year_built, furnished, agents!listings_agent_id_fkey( display_name ), listing_photos ( storage_path, position ), listing_videos ( storage_path, poster_path, duration_seconds, position ), listing_amenities ( amenity_id ), listing_access ( estate_name, gate_directions, security_phone, access_code )";
 
 type ListingRow = {
   id: string;
@@ -971,6 +1023,7 @@ type ListingRow = {
   bathrooms: number;
   submitted_at: string | null;
   reviewed_at: string | null;
+  published_at: string | null;
   review_notes: string | null;
   created_at: string;
   sale_agency_fee_minor: number | null;
@@ -1009,97 +1062,8 @@ type ListingRow = {
   } | null;
 };
 
-const SMALL_WORDS = new Set([
-  "a", "an", "and", "at", "by", "for", "in", "of", "on", "or", "the", "to", "with",
-]);
-
-/** Does the title read as title case, ignoring the small words style allows? */
-function isTitleCase(title: string): boolean {
-  const words = title.trim().split(/\s+/).filter(Boolean);
-  if (words.length === 0) return false;
-  return words.every((word, index) => {
-    const first = word[0];
-    if (!first) return false;
-    if (index > 0 && SMALL_WORDS.has(word.toLowerCase())) return true;
-    return first === first.toUpperCase();
-  });
-}
-
-const CONTACT_PATTERN = /\d{10}|(?:payment|transfer|pay me|account number|acct|bank)/i;
-
-/**
- * The admission checklist from HYBRID_INVENTORY section 5, computed rather than
- * recited: the reviewer sees which lines the submission actually passes before
- * they decide. Nothing here blocks a decision; it informs one.
- */
-function qualityChecks(row: ListingRow): QualityCheck[] {
-  const photoCount = row.listing_photos.length;
-  const hasCover = row.listing_photos.some((photo) => photo.position === 0);
-  const words = (row.description ?? "").trim().split(/\s+/).filter(Boolean).length;
-  const text = `${row.title} ${row.description ?? ""}`;
-
-  return [
-    {
-      label: "Four photos or more",
-      pass: photoCount >= 4,
-      detail: `${photoCount} uploaded`,
-    },
-    {
-      label: "Cover photo set",
-      pass: hasCover,
-      detail: hasCover ? "First photo is the cover" : "No photo in the cover position",
-    },
-    {
-      label: "Title in title case",
-      pass: isTitleCase(row.title),
-      detail: row.title,
-    },
-    {
-      label: "Area and city recorded",
-      pass: Boolean(row.area) && Boolean(row.city),
-      detail: [row.area, row.city].filter(Boolean).join(", ") || "Not given",
-    },
-    {
-      /* Three markets, one line. A sale passes on an asking price, a tenancy on
-         a rent, a shortlet on a nightly rate, and the detail says which of the
-         three the reviewer is looking at so they can tell a 4.5m yearly rent
-         from a 4.5m asking price at a glance. */
-      label: row.listing_intent === "sale" ? "Asking price recorded" : "Price recorded in naira",
-      pass: headlinePrice(row).minor > 0,
-      detail: PERIOD_SUFFIX[headlinePeriod(headlinePrice(row))],
-    },
-    {
-      label: "Title deed stated",
-      pass: row.listing_intent !== "sale" || row.tenure !== null,
-      detail:
-        row.listing_intent !== "sale"
-          ? "Not asked of a listing to let"
-          : (row.tenure ?? "Not stated"),
-    },
-    {
-      label: "Bedrooms and bathrooms recorded",
-      pass: row.bathrooms > 0,
-      detail: `${row.bedrooms} bedrooms, ${row.bathrooms} bathrooms`,
-    },
-    {
-      label: "Amenities chosen",
-      pass: row.listing_amenities.length > 0,
-      detail: `${row.listing_amenities.length} selected`,
-    },
-    {
-      label: "Description of 40 words or more",
-      pass: words >= 40,
-      detail: `${words} words`,
-    },
-    {
-      label: "No contact or payment details in the text",
-      pass: !CONTACT_PATTERN.test(text),
-      detail: CONTACT_PATTERN.test(text)
-        ? "The trust scanner matched something in the title or description"
-        : "Clean",
-    },
-  ];
-}
+/* The admission checklist lives in `./listing-checks`, measured the way the
+   lister's own submit gate measured the submission. */
 
 function photoUrl(admin: SupabaseClient<Database>, path: string): string {
   if (path.startsWith("http://") || path.startsWith("https://")) return path;
@@ -1158,6 +1122,7 @@ function toListingView(
          and keeps working after the video URL expires. */
       posterUrl: video.poster_path ? photoUrl(admin, video.poster_path) : null,
       durationSeconds: video.duration_seconds,
+      position: video.position,
     }));
 
   const access = row.listing_access;
@@ -1224,6 +1189,7 @@ function toListingView(
     amenityCount: row.listing_amenities.length,
     submittedAt: row.submitted_at,
     reviewedAt: row.reviewed_at,
+    publishedAt: row.published_at,
     reviewNotes: row.review_notes,
     createdAt: row.created_at,
     checks: qualityChecks(row),
@@ -1322,6 +1288,7 @@ export async function getListingSubmissions(
           .limit(10);
       })(),
     ]);
+    await reportReadError("read.admin.getListingSubmissions", waiting.error, decided.error);
     if (waiting.error || decided.error) return UNAVAILABLE;
 
     const waitingPage = takePage((waiting.data ?? []) as ListingRow[]);
@@ -1358,6 +1325,7 @@ async function readCompounds(admin: SupabaseClient<Database>, ids: string[]): Pr
   if (ids.length === 0) return out;
   try {
     const { data, error } = await admin.from("listings").select(`id, ${COMPOUND_COLUMNS}`).in("id", ids);
+    await reportReadError("read.admin.readCompounds", error);
     if (error || !data) return out;
     for (const row of data as unknown as (CompoundRow & { id: string })[]) {
       const compound = readCompound(row);
@@ -1435,6 +1403,7 @@ export async function getSupportTickets(
       .order("queue_at", { ascending: false })
       .order("created_at", { ascending: false })
       .range(page.from, page.to);
+    await reportReadError("read.admin.getSupportTickets", error);
     if (error) return UNAVAILABLE;
 
     const { rows, full } = takePage(data ?? []);
@@ -1477,6 +1446,7 @@ export async function getTicketThread(
       .eq("ticket_id", ticketId)
       .order("created_at", { ascending: true })
       .limit(100);
+    await reportReadError("read.admin.getTicketThread", error);
     if (error) return UNAVAILABLE;
 
     return {
@@ -1511,6 +1481,7 @@ export async function getFeatureFlags(): Promise<AdminRead<SwitchView[]>> {
       .from("feature_flags")
       .select("key, enabled, note, updated_at")
       .order("key", { ascending: true });
+    await reportReadError("read.admin.getFeatureFlags", error);
     if (error) return UNAVAILABLE;
 
     return {
@@ -1586,6 +1557,7 @@ export async function getInventoryDriftAlerts(): Promise<AdminRead<DriftAlerts>>
         .eq("status", "resolved")
         .or("entity_type.eq.inventory_drift,title.ilike.%inventory drift%"),
     ]);
+    await reportReadError("read.admin.getInventoryDriftAlerts", openRes.error, resolvedRes.error);
     if (openRes.error || resolvedRes.error) return UNAVAILABLE;
 
     const open: AlertView[] = (openRes.data ?? [])
@@ -1692,6 +1664,7 @@ export async function findAdminSubject(raw: string): Promise<AdminRead<SubjectLo
         .select("user_id")
         .eq("handle", value)
         .maybeSingle();
+      await reportReadError("read.admin.findAdminSubject", error);
       if (error) return UNAVAILABLE;
       userId = data?.user_id ?? null;
     } else {
@@ -1702,6 +1675,8 @@ export async function findAdminSubject(raw: string): Promise<AdminRead<SubjectLo
         if (error.code === "42883" || error.code === "PGRST202") {
           return { state: "ok", data: { state: "email-unavailable" } };
         }
+        /* The pending migration above is expected and said on screen; anything else is a fault. */
+        await reportReadError("read.admin.findAdminSubject", error);
         return UNAVAILABLE;
       }
       userId = typeof data === "string" && UUID_RE.test(data) ? data : null;
@@ -1713,6 +1688,7 @@ export async function findAdminSubject(raw: string): Promise<AdminRead<SubjectLo
       admin.from("profiles").select("id, display_name").eq("id", userId).maybeSingle(),
       admin.from("social_profiles").select("handle").eq("user_id", userId).maybeSingle(),
     ]);
+    await reportReadError("read.admin.findAdminSubject", profileRes.error);
     if (profileRes.error) return UNAVAILABLE;
     if (!profileRes.data) return { state: "ok", data: { state: "none", by } };
 

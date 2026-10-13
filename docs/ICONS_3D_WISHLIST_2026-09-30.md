@@ -1,5 +1,13 @@
 # 3D icons still wanted (30 September)
 
+> **SUPERSEDED on 5 October 2026 by [`docs/design/VISUAL_NORTH_STAR_2026-10-05.md`](/docs/design/VISUAL_NORTH_STAR_2026-10-05.md).**
+> That document carries the founder's four locked decisions for the
+> platform-wide next-generation upgrade: theme leading by surface, matte clay 3D
+> for content with line glyphs for chrome (glossy 3D banned), full redesign
+> surface by surface, and oversized live figures as the signature. Where this
+> file disagrees with it, this file is history. It is kept because code comments
+> cite it. Do not take icon, container, glow or motion direction from here.
+
 The two sheets we have cover 29 objects: the actions (Buy, Rent, Pay, List), Stays (hotel, shortlet, restaurant, local talks), and the 21 on sheet 2. The objects below fill the places those don't reach. They are grouped into three sheets of eight, so each sheet comes out as one 4 x 2 grid.
 
 Keep them on a transparent background, as sheet 2 was. Sheet 2 looks black and glowing in some viewers, but it is truly transparent underneath, so it cuts cleanly.

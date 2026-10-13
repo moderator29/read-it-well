@@ -25,7 +25,7 @@ export function RevokeDoor({ token, copy }: { token: string; copy: Copy }) {
       {confirming ? (
         <>
           <p className="nf-body-sm text-[var(--nf-content-secondary)]">{copy.revokeNote}</p>
-          <div className="flex gap-sm">
+          <div className="flex flex-wrap gap-sm">
             <Button
               variant="secondary"
               loading={pending}
@@ -55,7 +55,7 @@ export function RevokeDoor({ token, copy }: { token: string; copy: Copy }) {
         </Button>
       )}
       {error && (
-        <p className="nf-body-sm font-medium text-[var(--nf-state-error)]" role="alert">
+        <p className="nf-body-sm font-semibold text-[var(--nf-state-error)]" role="alert">
           {error}
         </p>
       )}

@@ -21,16 +21,21 @@ import {
 import {
   agreementCancelled,
   agreementSubmitted,
+  bookingRequestClosed,
   guaranteeClaimOpened,
   inspectionCompleted,
   inspectionDeclined,
   inspectionProposed,
   inspectionWithdrawn,
   listingSubmitted,
+  paymentHostReceived,
+  paymentRentReceipt,
   refundRequested,
   reservationCancelled,
   reservationConfirmed,
+  stayReviewRequest,
   supportReplied,
+  unreadMessages,
   verificationRungFailed,
   type AgreementChangeData,
   type ReservationData,
@@ -646,12 +651,102 @@ export const OUTBOX_TEMPLATES: Readonly<Record<string, OutboxTemplate>> = {
   },
 
   /*
-   * PAYMENT EMAILS ARE NOT HERE YET, AND THE KEYS ARE KEPT FOR THEM.
-   * `payment.received` and `payment.receipt` belong to the crypto payment
-   * work, which writes them from its own trigger and registers its builders
-   * in this object under exactly those keys. Until it does, nothing enqueues
-   * them, so there is no row the drain could drop.
+   * PAYMENT EMAILS. `payment.received` and `payment.receipt` stay reserved for
+   * the crypto payment work. The two below are written by migration nt02
+   * (`private.tell_payment_received`) when a card charge settles: the host is
+   * told money reached them, and the payer of a rent charge gets a receipt.
+   * Neither answers to a switch: money that moved is not a preference. The
+   * guest of a stay is not here because `announceConfirmedStay` already sends
+   * the booking confirmation.
    */
+  "payment.host_received": {
+    needs: () => ({}),
+    build: (payload, context) => {
+      const place = str(payload, "place");
+      const amount = num(payload, "amount_minor");
+      if (!place || amount === null || amount <= 0) return null;
+      return paymentHostReceived({
+        name: context.recipient.name,
+        place,
+        checkIn: str(payload, "check_in"),
+        checkOut: str(payload, "check_out"),
+        amountMinor: amount,
+        shareMinor: num(payload, "share_minor"),
+        rail: str(payload, "rail") === "protected" ? "protected" : "direct",
+        side: str(payload, "side") === "host" ? "host" : "agent",
+      });
+    },
+  },
+  "payment.rent_receipt": {
+    needs: () => ({}),
+    build: (payload, context) => {
+      const place = str(payload, "place");
+      const amount = num(payload, "amount_minor");
+      const rentPaymentId = str(payload, "rent_payment_id");
+      if (!place || amount === null || amount <= 0 || !rentPaymentId) return null;
+      return paymentRentReceipt({
+        name: context.recipient.name,
+        place,
+        amountMinor: amount,
+        share: payload.share === true,
+        rentPaymentId,
+      });
+    },
+  },
+
+  /* Written by migration nt06 (`private.tell_booking_request_closed`) when a
+     stay request is closed by somebody other than the guest. The Bookings
+     switch governs it, like every other stay mail. */
+  "booking.request_closed": {
+    channel: "bookings",
+    needs: () => ({}),
+    build: (payload, context) => {
+      const place = str(payload, "place");
+      const bookingId = str(payload, "booking_id");
+      if (!place || !bookingId) return null;
+      return bookingRequestClosed({
+        name: context.recipient.name,
+        place,
+        checkIn: str(payload, "check_in"),
+        checkOut: str(payload, "check_out"),
+        bookingId,
+      });
+    },
+  },
+
+  /* ----------------------------------------- stays and messages (nt05) */
+
+  /* Written by `private.tell_stay_event` the day after check-out, once, while
+     no review exists. The Bookings switch governs it, like the other stay mail. */
+  "stay.review_request": {
+    channel: "bookings",
+    needs: () => ({}),
+    build: (payload, context) => {
+      const place = str(payload, "place");
+      const bookingId = str(payload, "booking_id");
+      if (!place || !bookingId) return null;
+      return stayReviewRequest({ name: context.recipient.name, place, bookingId });
+    },
+  },
+  /* Written by `private.send_unread_message_emails` for a run of messages left
+     unread for two hours. The words are not carried: the button opens them.
+     The Messages switch governs it. */
+  "message.unread": {
+    channel: "messages",
+    needs: (payload) => ({ users: ids(str(payload, "sender_id")) }),
+    build: (payload, context) => {
+      const conversationId = str(payload, "conversation_id");
+      if (!conversationId) return null;
+      const senderId = str(payload, "sender_id");
+      return unreadMessages({
+        name: context.recipient.name,
+        senderName: senderId ? context.lookups.userName(senderId) : null,
+        count: Math.max(0, num(payload, "count") ?? 0),
+        conversationPath:
+          str(payload, "side") === "agent" ? `/agent/messages/${conversationId}` : `/messages/${conversationId}`,
+      });
+    },
+  },
 
   /* ------------------------------------------------------------ enquiries */
 

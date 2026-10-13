@@ -76,9 +76,14 @@ export const VERCEL_JOBS: readonly VercelJob[] = [
   { name: "risk-classes", cron: "50 3 * * *", schedule: "Daily at 04:50", maxGapHours: 26, audit: { entityType: "cron_job", term: "risk-classes" } },
   /* Crypto payments read back from the provider (lib/crypto/reconcile.ts). A no-op while nothing is moving. */
   { name: "crypto-reconcile", cron: "3,18,33,48 * * * *", schedule: "Every 15 minutes", maxGapHours: 2, audit: { entityType: "cron_job", term: "crypto-reconcile" } },
+  /* Escrow arrangements still waiting on the payment partner, read back (lib/money/provider-arrangements.ts). At most 3 per run: the key allows 10 requests a minute. */
+  { name: "arrangements-reconcile", cron: "8,18,28,38,48,58 * * * *", schedule: "Every 10 minutes", maxGapHours: 2, audit: { entityType: "cron_job", term: "arrangements-reconcile" } },
   { name: "rent-share-refunds", cron: "35 * * * *", schedule: "Hourly at :35", maxGapHours: 2, audit: { entityType: "cron_job", term: "rent-share-refunds" } },
   /* C2: hosts' Airbnb and Booking.com calendars pulled in. A no-op while CALENDAR_SYNC_ENABLED is off. */
   { name: "calendar-sync", cron: "2,17,32,47 * * * *", schedule: "Every 15 minutes", maxGapHours: 2, audit: { entityType: "cron_job", term: "calendar-sync" } },
+  { name: "reservation-deposit-refunds", cron: "40 * * * *", schedule: "Hourly at :40", maxGapHours: 2, audit: { entityType: "cron_job", term: "reservation-deposit-refunds" } },
+  /* VC1: closes the provider rooms of finished calls. Skipped while `video_calls` is off. */
+  { name: "calls-sweep", cron: "*/5 * * * *", schedule: "Every 5 minutes", maxGapHours: 1, audit: { entityType: "cron_job", term: "calls-sweep" } },
 ];
 
 /**
@@ -96,15 +101,19 @@ export const PG_CRON_JOBS: readonly PgCronJob[] = [
   { name: "vallo_push_drain", cron: "*/5 * * * *", when: "every 5 min", what: "asks the app to drain the push queue" },
   { name: "vallo_safety_share_sweep", cron: "*/10 * * * *", when: "every 10 min", what: "reminds a renter who has not checked in after an inspection they shared" },
   { name: "vallo_hold_claims_sweep", cron: "* * * * *", when: "every minute", what: "lets compliance hold claims take over within a minute of a this-was-not-me hold ending (SCUML items 6 and 8)" },
+  { name: "vallo_calls_sweep", cron: "* * * * *", when: "every minute", what: "applies every call deadline (missed, failed, connection lost, expired reviews) and writes the missed-call notice (VC1)" },
+  { name: "vallo_referral_qualify", cron: "3,18,33,48 * * * *", when: "every 15 min", what: "retries qualification for every invited member who has finished a step (Invite and Earn, D85)" },
+  { name: "vallo_referral_flag_clusters", cron: "26 * * * *", when: "hourly at :26", what: "flags clusters of referrals that look like one person, for review before any reward is released (D85)" },
+  { name: "vallo_referral_release_due", cron: "11,41 * * * *", when: "every 30 min", what: "makes a referral reward available once its review window has passed (D85)" },
+  { name: "vallo_subscriptions_sweep", cron: "9,24,39,54 * * * *", when: "every 15 min", what: "moves Pro and Business subscriptions with the clock: trials end, lapsed and cancelled plans close, unpaid checkouts are abandoned" },
   { name: "vallo_release_stale_holds", cron: "*/15 * * * *", when: "every 15 min", what: "database side of the hold release" },
   { name: "vallo_remind_hosts_to_decide", cron: "4,19,34,49 * * * *", when: "every 15 min", what: "reminds a host once when a room or table request has used three quarters of its window (C3)" },
-  { name: "vallo_send_member_reminders", cron: "7,22,37,52 * * * *", when: "every 15 min", what: "sends each viewing reminder (the evening before, two hours before) and rent-due reminder (180, 90, 30, 7 days) once (B5, B10)" },
+  { name: "vallo_send_member_reminders", cron: "7,22,37,52 * * * *", when: "every 15 min", what: "sends each viewing reminder (the evening before, 8am on the day, two hours before) and rent-due reminder (180, 90, 30, 7 days) once (B5, B10)" },
+  { name: "vallo_send_reservation_reminders", cron: "1,16,31,46 * * * *", when: "every 15 min", what: "reminds a diner once the evening before and once two hours before a confirmed restaurant table" },
+  { name: "vallo_ask_diners_unmarked_tables", cron: "17 * * * *", when: "hourly at :17", what: "asks a diner \"Did you dine at X?\" about a confirmed restaurant table the restaurant never marked after 24 hours" },
   { name: "vallo_alert_overdue_refunds", cron: "12 * * * *", when: "hourly at :12", what: "alerts on refunds past their due-by date" },
-  { name: "vallo_escrow_sweep_timeouts", cron: "17 * * * *", when: "hourly at :17", what: "escrow timeouts" },
   { name: "vallo_str_nudge_overdue", cron: "17 * * * *", when: "hourly at :17", what: "reminds staff of an STR case past its clock, once a day each (SCUML item 6)" },
-  { name: "vallo_escrow_invariants", cron: "23 * * * *", when: "hourly at :23", what: "asserts the escrow float identity" },
   { name: "vallo_purge_rate_limits", cron: "30 * * * *", when: "hourly at :30", what: "clears old rate limit rows" },
-  { name: "vallo_escrow_age_watch", cron: "41 * * * *", when: "hourly at :41", what: "alerts on old disputes, expires unfunded proposals" },
   { name: "vallo_purge_view_marks", cron: "41 * * * *", when: "hourly at :41", what: "forgets the day's listing view marks and salt once the day ends (V-73)" },
   { name: "vallo_reconcile_payments", cron: "47 * * * *", when: "hourly at :47", what: "database side of reconciliation" },
   { name: "vallo_purge_idempotency", cron: "10 2 * * *", when: "daily 03:10", what: "clears old idempotency records" },
@@ -115,12 +124,12 @@ export const PG_CRON_JOBS: readonly PgCronJob[] = [
   { name: "vallo_purge_job_runs", cron: "55 2 * * *", when: "daily 03:55", what: "forgets counted scheduled runs older than 90 days (C7)" },
   { name: "vallo_purge_money_step_ups", cron: "45 2 * * *", when: "daily 03:45", what: "forgets used money-lock challenges and proofs after a day" },
   { name: "vallo_purge_funnel_events", cron: "50 2 * * *", when: "daily 03:50", what: "forgets front door funnel counts older than 90 days (A6)" },
-  { name: "vallo_escrow_book_the_float", cron: "5 3 * * *", when: "daily 04:05", what: "books the day's escrow float as a liability" },
   { name: "vallo_sweep_price_check_events", cron: "40 3 * * *", when: "daily 04:40", what: "deletes price check events older than 24 months" },
   { name: "vallo_announce_completed_stays", cron: "20 5 * * *", when: "daily 06:20", what: "announces completed stays" },
   { name: "vallo_scuml17_mandate_grace_sweep", cron: "25 5 * * *", when: "daily 06:25", what: "SCUML item 17: after the grace date, takes down agent listings without a current mandate and tells the agent" },
   { name: "vallo_scuml17_mandate_expiry_reminders", cron: "30 5 * * *", when: "daily 06:30", what: "SCUML item 17: clears the confirmation date of listings whose mandate has lapsed, and tells an agent 30 days and again 7 days before a mandate runs out" },
   { name: "vallo_scuml17_purge_stale_mandates", cron: "35 5 * * *", when: "daily 06:35", what: "SCUML item 17: deletes waiting or refused mandates of listings that never went live, five years after they were last touched" },
+  { name: "vallo_send_followup_reminders", cron: "13 7,8,9,10,11,12 * * *", when: "hourly at :13, 08:13 to 13:13", what: "tells a lister, once and from 08:00 on the day, that it is the follow-up date they set on an enquiry thread" },
   { name: "vallo_landlord_not_reconfirmed", cron: "35 4 * * *", when: "daily 05:35", what: "marks a listing Not reconfirmed after 21 days of owner silence" },
   { name: "vallo_owner_heartbeat", cron: "15 8 * * *", when: "daily 09:15", what: "asks an owner lister in the app whether the flat is still available" },
   { name: "vallo_sweep_price_check_watches", cron: "50 5 * * *", when: "daily 06:50", what: "tells a price check watcher once the area opens" },

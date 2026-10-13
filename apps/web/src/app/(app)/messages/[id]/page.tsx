@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { ShowMePanel } from "@/components/app/messages/ShowMePanel";
 import { readShowMe } from "@/lib/messages/show-me-queries";
+import { readChatHintGaps } from "@/lib/messages/hints-read";
 import { notFound } from "next/navigation";
+import { withNext } from "@/lib/auth/next-link";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
@@ -17,14 +19,16 @@ import { readAccountMoment } from "@/lib/messages/account-moment-read";
 import { counterpartFactsFrom, personFacts } from "@/lib/messages/person-line";
 import { recordLines } from "@/lib/trust/record";
 import { readThreadRecord } from "@/lib/trust/record-read";
-import { passportLines } from "@/lib/trust/passport";
-import { readPassportShareState, readThreadPassport } from "@/lib/trust/passport-read";
+import { readMyPassportOn } from "@/lib/passport/passport-read";
 import { InboxEmpty } from "../Inbox";
 import { readDeskStage } from "@/lib/enquiry/queries";
-import { quickReplies } from "@/lib/enquiry/quick-replies";
+import { readFollowup } from "@/lib/enquiry/followup-queries";import { quickReplies } from "@/lib/enquiry/quick-replies";
 import { renterQuestions } from "@/lib/enquiry/renter-questions";
 import { loadListingsByIds } from "@/lib/listings/supabase-repository";
 import { StageControl } from "@/components/app/messages/StageControl";
+import { videoCallsOn } from "@/lib/calls/flags";
+import { readThreadCalls } from "@/lib/calls/thread-calls";
+import { callIdFromParam, callMarkerView } from "@/lib/calls/screen";
 
 /**
  * A single conversation thread.
@@ -86,7 +90,7 @@ export async function generateMetadata({
      a tab title is the one piece of a private page that gets screenshotted,
      read over a shoulder and restored by the browser months later. */
   await params;
-  return { title: "Conversation" };
+  return { title: getDictionary(await getLocale()).experienceInbox.threadPage.title };
 }
 
 /**
@@ -110,25 +114,52 @@ async function readIds(
   return new Set((data ?? []).map((row) => row.id));
 }
 
+/**
+ * What this reader had not read when they arrived: how many messages from the
+ * other side have no `read_at`, and which one is first (for the unread divider).
+ *
+ * Read on the server BEFORE the thread's own mark-read runs in the browser,
+ * which is the only moment the answer exists: one bounded select under the
+ * caller's own RLS, ids in time order. Null when nothing is unread, and on any
+ * failed read, because a divider that is wrong is worse than none.
+ */
+async function readUnread(
+  supabase: Parameters<typeof loadThread>[0],
+  conversationId: string,
+  me: string,
+): Promise<{ count: number; firstId: string } | null> {
+  const { data, error } = await supabase
+    .from("messages")
+    .select("id")
+    .eq("conversation_id", conversationId)
+    .neq("sender_id", me)
+    .is("read_at", null)
+    .order("created_at", { ascending: true })
+    .limit(200);
+  if (error || !data || data.length === 0) return null;
+  return { count: data.length, firstId: data[0]!.id };
+}
+
 export default async function ConversationPage({
   params,
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ attach?: string | string[]; showme?: string | string[] }>;
+  searchParams: Promise<{ attach?: string | string[]; showme?: string | string[]; call?: string | string[] }>;
 }) {
   const { id } = await params;
-  const { attach, showme: showMeParam } = await searchParams;
+  const { attach, showme: showMeParam, call: callParam } = await searchParams;
   const session = await resolveSession();
+
+  const inboxWords = getDictionary(await getLocale()).experienceInbox;
 
   if (session.state === "signed-in") {
     if (!(await isFeatureEnabled("messaging"))) {
       return (
         <div className="mx-auto max-w-2xl">
-          <PageHeader title="Inbox" fallback="/messages" />
+          <PageHeader title={inboxWords.inbox.title} fallback="/messages" />
           <p className="nf-panel nf-panel--card p-lg text-center text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
-            Messaging is paused for maintenance. Your conversations are stored on
-            your account, not on this device. Try again in a few minutes.
+            {inboxWords.inbox.paused}
           </p>
         </div>
       );
@@ -137,11 +168,15 @@ export default async function ConversationPage({
     if (!UUID_RE.test(id)) notFound();
     const locale = await getLocale();
     const t = getDictionary(locale);
-    const [thread, contextRead, role, read] = await Promise.all([
+    const [thread, contextRead, role, read, unread, callsOn, threadCalls] = await Promise.all([
       loadThread(session.supabase, session.user, id),
       getThreadContext(id),
       viewerRole(session.supabase, session.user.id, id),
       readIds(session.supabase, id),
+      readUnread(session.supabase, id, session.user.id),
+      /* VC1: whether to draw the call buttons, and which rows are calls. */
+      videoCallsOn(),
+      readThreadCalls(session.supabase, id),
     ]);
     if (!thread) notFound();
     /*
@@ -173,16 +208,21 @@ export default async function ConversationPage({
       cards,
       inspection,
       availability,
-      [stage, deskListing],
+      [stage, deskListing, followup],
       counterpartFactsLine,
-      passportRead,
-      passportShare,
+      passportOn,
       recordRead,
       accountMoment,
       showMe,
+      chatHintGaps,
     ] = await Promise.all([
       /* The shared listings and bookings, expanded into cards for this reader. */
-      resolveCards(session.supabase, thread.messages, locale),
+      resolveCards(
+        session.supabase,
+        /* Who sent each message, so a passport card draws only for its owner. */
+        thread.messages.map((m) => ({ id: m.id, body: m.body, senderId: m.mine ? thread.meId : thread.counterpartId })),
+        locale,
+      ),
       /* Only a listing thread can carry a live inspection; the other faces
          never ask, structurally. */
       listingThread ? readOpenInspectionForConversation(id) : null,
@@ -196,8 +236,10 @@ export default async function ConversationPage({
                   .then((found) => found.get(thread.listing!.id) ?? null)
                   .catch(() => null)
               : Promise.resolve(null),
+            /* AGENT-01: the follow-up date beside the stage, the lister's own. */
+            desk ? readFollowup(session.supabase, id) : Promise.resolve(null),
           ])
-        : ([null, null] as const),
+        : ([null, null, null] as const),
       /* V-23: the dated facts about the other person, for the line under the
          header. One RPC that answers only to a party; a failure is no line. */
       (async (): Promise<{ key: string; text: string }[]> => {
@@ -211,11 +253,9 @@ export default async function ConversationPage({
           return [];
         }
       })(),
-      /* V-100: the renter passport. The lister sees it here only when the
-         renter chose to show it in THIS thread; the renter gets the switch. A
-         listing thread only, where the guest is the renter. */
-      listingThread && role === "host" ? readThreadPassport(id) : null,
-      listingThread && role === "guest" ? readPassportShareState(id) : null,
+      /* The Vallo passport: whether the reader's own is on, so the options
+         sheet offers "Show my passport" or the way to turn it on. */
+      readMyPassportOn(),
       /* V-34: when the other party is a lister, their Record, counted, under
          the person line. */
       readThreadRecord(id),
@@ -233,20 +273,27 @@ export default async function ConversationPage({
         : null,
       /* V-69: a listing thread's clip asks, when the flag is open. */
       listingThread ? readShowMe(session.supabase, id) : null,
+      /* The renter's hint card and chips: the gaps in this listing's own data.
+         Null for anybody else, and for a stay, a table or a failed read. */
+      readChatHintGaps(session.supabase, {
+        contextKind: context.kind,
+        role,
+        listingId: thread.listing?.id ?? null,
+      }),
     ]);
-    const passportLine =
-      listingThread && role === "host"
-        ? passportLines(passportRead, t.trustVisible.passport, locale).filter((l) => l.key !== "since")
-        : [];
-    /* "On Vallo since" is already on the person line, so the Record's copy of
-       it is not drawn twice. No row, no line. */
+    /* "On Vallo since" is drawn once, small, under the line that keeps chats
+       and payments inside Vallo (founder, 11 October 2026): taken out of the
+       person line, and the Record's copy of it is not drawn either. No row,
+       no line. */
+    const sinceLine = counterpartFactsLine.find((fact) => fact.key === "since")?.text ?? null;
+    const personLine = counterpartFactsLine.filter((fact) => fact.key !== "since");
     const counterpartRecordLine = recordLines(recordRead, t.trustVisible.record, locale).filter(
       (line) => line.key !== "since",
     );
 
     return (
       <ThreadView
-        sheetCopy={{ passport: t.trustVisible.passport, unsafe: t.trustVisible.unsafe }}
+        sheetCopy={{ unsafe: t.trustVisible.unsafe }}
         live
         conversationId={thread.conversationId}
         meId={thread.meId}
@@ -254,6 +301,7 @@ export default async function ConversationPage({
         inspection={inspection}
         role={role}
         threadCopy={t.threads}
+        inboxThreadCopy={t.experienceInbox.thread}
         locale={locale}
         /*
           THE COUNTERPART'S BADGE, AND THE DEFECT THAT USED TO BE ON THIS LINE.
@@ -285,6 +333,12 @@ export default async function ConversationPage({
            that made this reader a party at all. It exists so the options
            sheet can offer Block, which before this had no id to act on. */
         counterpartId={thread.counterpartId}
+        counterpartHandle={thread.counterpartHandle}
+        /* The photos at the head of each run of bubbles and in the header:
+           theirs and the reader's own, or the initial on the brand tint. */
+        counterpartAvatarUrl={thread.counterpartAvatarUrl}
+        meName={thread.meName}
+        meAvatarUrl={thread.meAvatarUrl}
         listing={
           thread.listing
             ? {
@@ -309,7 +363,19 @@ export default async function ConversationPage({
             />
           ) : null
         }
-        stageSlot={stage ? <StageControl conversationId={id} stage={stage} copy={t.frontDoor.desk} /> : null}
+        stageSlot={
+          stage ? (
+            <StageControl
+              conversationId={id}
+              stage={stage}
+              copy={t.frontDoor.desk}
+              followup={{ dueOn: followup?.dueOn ?? null, note: followup?.note ?? null }}
+              today={lagosToday}
+              followupCopy={t.workspaceDash.followup}
+              locale={locale}
+            />
+          ) : null
+        }
         quickReplies={
           desk
             ? quickReplies(deskListing, t.frontDoor.desk.quick, locale)
@@ -318,13 +384,38 @@ export default async function ConversationPage({
               : []
         }
         quickRepliesTitle={desk ? t.frontDoor.desk.quickTitle : t.memberKit.questions.title}
+        chatHints={
+          chatHintGaps && thread.listing
+            ? {
+                data: {
+                  gaps: chatHintGaps,
+                  visitOpen: inspection !== null && inspection !== undefined,
+                  visitHref: `/listing/${thread.listing.id}/visit`,
+                },
+                copy: t.chatHints,
+              }
+            : null
+        }
         openAttach={(Array.isArray(attach) ? attach[0] : attach) === "1"}
         accountMoment={accountMoment}
-        personLine={counterpartFactsLine}
+        personLine={personLine}
+        sinceLine={sinceLine}
         recordLine={counterpartRecordLine}
-        passportLine={passportLine}
-        passportShare={passportShare}
-        passportLabel={t.trustVisible.passport.heading}
+        passport={{
+          /* Unknown counts as off: the sheet then points at the passport page
+             rather than posting a card that could not open. */
+          on: passportOn === true,
+          words: {
+            show: t.passportV2.showInChat,
+            hint: t.passportV2.showInChatHint,
+            offTitle: t.passportV2.showInChatOff,
+            offHint: t.passportV2.showInChatOffHint,
+            sent: t.passportV2.shownInChat,
+            failed: t.passportV2.sendFailed,
+            viewTheirs: t.passportV2.viewTheirs,
+            viewTheirsHint: t.passportV2.viewTheirsHint,
+          },
+        }}
         recordLabel={t.trustVisible.record.title}
         showMe={
           showMe ? (
@@ -341,17 +432,27 @@ export default async function ConversationPage({
           ) : null
         }
         personLabel={t.trustVisible.person.label}
+        unread={unread}
+        nowMs={Date.parse(renderedAt())}
         accountCopy={t.trustVisible.account}
         scamCopy={t.memberKit.scam}
         dayKitCopy={t.memberKit.dayKit}
+        calls={{ copy: t.calls, enabled: callsOn, words: t.chatPolish.calls }}
+        viewerCopy={t.chatPolish.viewer}
         messages={thread.messages.map((m): ThreadBubble => {
           const card = cards.get(m.id);
+          const callId = threadCalls.markers.get(m.id);
+          const callView = callId
+            ? callMarkerView({ body: m.body, mine: m.mine, snapshot: threadCalls.calls.get(callId) ?? null })
+            : null;
           return {
+            ...(callId && callView ? { call: { callId, view: callView } } : {}),
             id: m.id,
             mine: m.mine,
             body: m.body,
             timeLabel: m.timeLabel,
             imageUrl: m.imageUrl,
+            imageSize: m.imageSize ?? null,
             read: read.has(m.id),
             ...(m.createdAt ? { createdAt: m.createdAt } : {}),
             ...(card ? { card } : {}),
@@ -364,12 +465,22 @@ export default async function ConversationPage({
   // -------------------------------------------------------- nobody signed in
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeader title="Conversation" fallback="/messages" />
+      <PageHeader title={inboxWords.threadPage.title} fallback="/messages" />
+      {/* "Sign in and it opens where you left it": so the link carries this
+          conversation back (it went to a bare /sign-in, Round 3 sweep). */}
       <InboxEmpty
-        title="Sign in to read this conversation"
-        body="A conversation is only ever readable by the two people in it, so this one needs your account. Sign in and it opens where you left it."
-        action={{ href: "/sign-in", label: "Sign in" }}
-        secondary={{ href: "/search", label: "Explore places" }}
+        title={inboxWords.threadPage.signedOutTitle}
+        body={inboxWords.threadPage.signedOutBody}
+        action={{
+          /* A push tap for a call carries `?call=`; it survives the sign in,
+             so the call opens after auth (the call layer resolves it). */
+          href: withNext(
+            "/sign-in",
+            `/messages/${encodeURIComponent(id)}${callIdFromParam(callParam) ? `?call=${callIdFromParam(callParam)}` : ""}`,
+          ),
+          label: inboxWords.inbox.signIn,
+        }}
+        secondary={{ href: "/search", label: inboxWords.inbox.explore }}
       />
     </div>
   );

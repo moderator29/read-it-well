@@ -1,10 +1,11 @@
 "use client";
 
 import { useHostCopy } from "@/components/host/host-copy";
-import { useState } from "react";
+import { differs, useGuard, useHeld } from "../wizard-memory";
 import { formatNumber } from "@vallo/i18n/core";
 import { Button } from "@/components/ui/Button";
-import { addAccommodationDraft } from "@/lib/host/actions";
+import { addAccommodationDraft, setAccommodationFacilities } from "@/lib/host/actions";
+import { branchFor, pinFrom } from "@/lib/host/stays-setup";
 import { AccommodationPhotoManager } from "../AccommodationPhotoManager";
 import { FacilitiesPicker } from "../FacilitiesPicker";
 import { StaysNote, StaysPlate } from "./StaysParts";
@@ -33,12 +34,18 @@ const coordinateText = (value: number) =>
  * over a Nigerian mobile connection, which is the most expensive possible
  * moment to fail.
  */
-export function FacilitiesStep({ draft, userId, pending, run, setNotice, advance }: StaysStepProps & {
+export function FacilitiesStep({ draft, userId, pending, runAsync, setNotice, advance, goTo }: StaysStepProps & {
   userId: string;
 }) {
   const hw = useHostCopy();
-  const [lat, setLat] = useState("");
-  const [lng, setLng] = useState("");
+  /* Held in the wizard: the ticked facilities and a typed pin survive Back,
+     and the wizard asks before either is left unsaved. */
+  const chosen = draft.accommodation?.facilities ?? [];
+  const [picked, setPicked] = useHeld<string[]>("facilities", chosen);
+  const [lat, setLat] = useHeld("lat", "");
+  const [lng, setLng] = useHeld("lng", "");
+  const facilitiesChanged = differs([...picked].sort(), [...chosen].sort());
+  const pinTyped = lat.trim() !== "" || lng.trim() !== "";
 
   const locate = () => {
     if (!navigator.geolocation) {
@@ -54,22 +61,61 @@ export function FacilitiesStep({ draft, userId, pending, run, setNotice, advance
     );
   };
 
-  const savePin = () =>
-    run(
-      () =>
-        addAccommodationDraft({
-          name: draft.accommodation?.name ?? draft.name,
-          latitude: Number(lat),
-          longitude: Number(lng),
-        }),
-      () => setNotice({ tone: "ok", text: "The pin is saved." }),
+  /* Null until both boxes hold a real coordinate, so a typo is caught here
+     in words instead of reaching the server as NaN. */
+  const pin = pinFrom(lat, lng);
+  const typedBadPin = lat.trim() !== "" && lng.trim() !== "" && pin === null;
+
+  const savePinAsync = async () => {
+    if (!pin) {
+      setNotice({ tone: "error", text: "Those are not two coordinates, so the pin cannot be saved." });
+      return false;
+    }
+    const saved = await runAsync(() =>
+      addAccommodationDraft({
+        name: draft.accommodation?.name ?? draft.name,
+        latitude: pin.latitude,
+        longitude: pin.longitude,
+      }),
     );
+    if (saved) {
+      setLat("");
+      setLng("");
+      setNotice({ tone: "ok", text: "The pin is saved." });
+    }
+    return saved;
+  };
+  const savePin = () => void savePinAsync();
+
+  /* What "Save and go back" saves: the facilities if they changed, then the
+     pin if one was typed. */
+  const accommodationId = draft.accommodation?.id ?? null;
+  const save = async () => {
+    if (facilitiesChanged && accommodationId) {
+      const saved = await runAsync(() => setAccommodationFacilities({ accommodationId, codes: picked }));
+      if (!saved) return false;
+    }
+    if (pinTyped) return savePinAsync();
+    return true;
+  };
+  useGuard("facilities", facilitiesChanged || pinTyped, save);
 
   if (!draft.accommodation) {
+    /* A way out rather than an instruction: the property's own screen is a
+       hotel's first or a shortlet's first, and this opens whichever it is. */
     return (
-      <StaysNote>
-        Save the property first and the facilities and photographs hang on it. Go back one screen.
-      </StaysNote>
+      <>
+        <StaysNote>Save the property first and the facilities and photographs hang on it.</StaysNote>
+        <Button
+          variant="primary"
+          size="lg"
+          full
+          leadingIcon="arrow-left"
+          onClick={() => goTo(branchFor(draft.kind) === "shortlet" ? "place" : "hotel")}
+        >
+          Open the property
+        </Button>
+      </>
     );
   }
 
@@ -78,6 +124,8 @@ export function FacilitiesStep({ draft, userId, pending, run, setNotice, advance
       <FacilitiesPicker
         accommodationId={draft.accommodation.id}
         chosen={draft.accommodation.facilities}
+        picked={picked}
+        onPick={setPicked}
       />
 
       <AccommodationPhotoManager
@@ -141,12 +189,18 @@ export function FacilitiesStep({ draft, userId, pending, run, setNotice, advance
           <Button
             variant="secondary"
             onClick={savePin}
-            disabled={pending || lat.trim() === "" || lng.trim() === ""}
+            disabled={pending || pin === null}
             loading={pending}
           >
             Save the pin
           </Button>
         </div>
+        {typedBadPin ? (
+          <p className="nf-stays-plate__note" role="alert">
+            Those are not two coordinates. Latitude is a number from -90 to 90 and longitude from
+            -180 to 180, like 6.4281 and 3.4219 for Victoria Island.
+          </p>
+        ) : null}
       </StaysPlate>
 
       <Button
@@ -154,7 +208,9 @@ export function FacilitiesStep({ draft, userId, pending, run, setNotice, advance
         size="lg"
         full
         trailingIcon="chevron-right"
-        onClick={advance}
+        onClick={async () => {
+          if (await save()) advance();
+        }}
         disabled={pending}
       >
         Continue

@@ -23,7 +23,12 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
-  return { title: t.trustDoors.check.metaTitle, description: t.trustDoors.check.lede };
+  const title = t.trustDoors.check.metaTitle;
+  const description = t.trustDoors.check.lede;
+  /* Its own Open Graph words, or the unfurl reads the home page's title and
+     description over this page's card. No `images`: the card is the file
+     beside this page. */
+  return { title, description, openGraph: { type: "website", siteName: "Vallo", title, description } };
 }
 
 export default async function CheckPage({ searchParams }: { searchParams: Promise<{ q?: string | string[] }> }) {
@@ -36,7 +41,10 @@ export default async function CheckPage({ searchParams }: { searchParams: Promis
   return (
     <div className="nf-shell pb-section">
       <div className="mx-auto max-w-xl pt-block">
-        <section className="nf-panel nf-panel--card block p-lg">
+        {/* The page's one subject is one Island (Session 3, stage 9): the same navy
+            glass as the landing's hero card, the question asked once and
+            answered once, in the answer card CheckForm draws under the field. */}
+        <section className="nf-island p-lg">
           <p className="nf-overline text-[var(--nf-content-muted)]">{copy.chip}</p>
           <h1 className="nf-h2 mt-xs">{copy.title}</h1>
           <p className="nf-body mt-sm leading-relaxed text-[var(--nf-content-secondary)]">{copy.lede}</p>

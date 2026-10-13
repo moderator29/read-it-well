@@ -48,26 +48,8 @@ export default async function AdminAnalyticsPage({
         supply={supply.state === "ok" ? supply.data : null}
         thin={thin.state === "ok" ? thin.data : null}
         demand={demand.state === "ok" ? demand.data : null}
+        sentBack={reasons.state === "ok" ? reasons.data.filter((r) => r.count > 0) : null}
       />
-      {/* C8: why listings were sent back, counted from the reason codes. */}
-      {reasons.state === "ok" && reasons.data.some((r) => r.count > 0) ? (
-        <section className="nf-panel nf-panel--card mt-block p-card" aria-labelledby="sendback-title">
-          <h2 id="sendback-title" className="nf-h3">
-            Why listings were sent back, last 30 days
-          </h2>
-          <ul className="nf-body-sm mt-xs grid gap-2xs">
-            {reasons.data
-              .filter((r) => r.count > 0)
-              .map((r) => (
-                <li key={r.code} className="flex justify-between gap-md">
-                  <span>{r.label}</span>
-                  <span className="nf-numeric font-semibold">{r.count}</span>
-                </li>
-              ))}
-          </ul>
-          <p className="nf-caption mt-xs">Counted since reason codes began on 30 September 2026. A review can carry several.</p>
-        </section>
-      ) : null}
       {/* C10: the figures above leave these accounts out; the count is read, not assumed. */}
       <p className="nf-caption mt-block">
         Internal activity excluded: {countOf(internal.length, "accounts", locale)} (QA, staff and

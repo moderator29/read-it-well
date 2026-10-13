@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { subscribeToUpdates } from "@/lib/site/newsletter";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import "@/app/css/site.css";
 
 /**
  * The footer's email field. One input, one round submit, and the honest

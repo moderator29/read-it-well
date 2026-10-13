@@ -2,9 +2,12 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import type { Dictionary } from "@vallo/i18n/core";
+import { formatDate, type Dictionary, type Locale } from "@vallo/i18n/core";
+import "@/components/workspace/dashboard/dashboard.css";
 import { Button } from "@/components/ui/Button";
 import { setEnquiryStage } from "@/lib/enquiry/actions";
+import { setEnquiryFollowup } from "@/lib/enquiry/followup-actions";
+import { addDays, FOLLOWUP_MAX_DAYS, FOLLOWUP_NOTE_MAX } from "@/lib/enquiry/followup";
 import { LOST_REASONS, STAGES, type DeskStage, type LostReason, type Stage } from "@/lib/enquiry/stage";
 
 /**
@@ -26,14 +29,144 @@ export function stageText(stage: DeskStage, copy: Copy): string {
   return copy.stages[stage.stage];
 }
 
+type FollowupCopy = Dictionary["workspaceDash"]["followup"];
+
+/**
+ * AGENT-01: THE FOLLOW-UP DATE AND NOTE, BESIDE THE STAGE.
+ *
+ * "Follow up on <date>" with a short note. On that morning the lister gets
+ * one notice that opens this thread. The date runs from today to a year
+ * ahead (the input's own min and max, then the server action's rule, then the
+ * database's); clearing sends no date and drops the note. Every state is
+ * drawn: none set, set, editing, saving, and a failed save that says nothing
+ * changed.
+ */
+function FollowupRow({
+  conversationId,
+  followup,
+  today,
+  copy,
+  locale,
+}: {
+  conversationId: string;
+  followup: { dueOn: string | null; note: string | null };
+  today: string;
+  copy: FollowupCopy;
+  locale: Locale;
+}) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [dueOn, setDueOn] = useState(followup.dueOn ?? "");
+  const [note, setNote] = useState(followup.note ?? "");
+  const [error, setError] = useState<string | null>(null);
+  const [pending, start] = useTransition();
+
+  function send(nextDue: string | null, nextNote: string | null) {
+    setError(null);
+    start(async () => {
+      const result = await setEnquiryFollowup({ conversationId, dueOn: nextDue, note: nextNote });
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      setOpen(false);
+      if (nextDue === null) {
+        setDueOn("");
+        setNote("");
+      }
+      router.refresh();
+    });
+  }
+
+  const max = addDays(today, FOLLOWUP_MAX_DAYS);
+  const dateWords = followup.dueOn
+    ? formatDate(new Date(`${followup.dueOn}T12:00:00Z`), locale, { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" })
+    : null;
+
+  return (
+    <div className="wsd-followup" data-testid="enquiry-followup" aria-live="polite">
+      <div className="wsd-followup__row">
+        <div className="min-w-0">
+          <p className="nf-caption text-[var(--nf-content-muted)]">{copy.label}</p>
+          <p className="mt-3xs nf-body-sm font-semibold" data-testid="enquiry-followup-now">
+            {followup.dueOn ? copy.set.replace("{date}", dateWords ?? followup.dueOn) : copy.none}
+          </p>
+          {followup.dueOn && followup.note ? <p className="nf-caption text-[var(--nf-content-muted)]">{followup.note}</p> : null}
+        </div>
+        {!open && (
+          <Button variant="secondary" size="sm" onClick={() => setOpen(true)}>
+            {copy.change}
+          </Button>
+        )}
+      </div>
+      {open && (
+        <div className="wsd-followup__form">
+          <label className="block">
+            <span className="nf-label">{copy.label}</span>
+            <input
+              className="nf-field"
+              type="date"
+              min={today}
+              max={max}
+              value={dueOn}
+              onChange={(e) => setDueOn(e.target.value)}
+              data-testid="enquiry-followup-date"
+            />
+          </label>
+          <label className="block">
+            <span className="nf-label">{copy.noteLabel}</span>
+            <textarea
+              className="nf-field"
+              rows={2}
+              maxLength={FOLLOWUP_NOTE_MAX}
+              placeholder={copy.notePlaceholder}
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              data-testid="enquiry-followup-note"
+            />
+          </label>
+          <div className="flex flex-wrap gap-sm">
+            <Button variant="primary" loading={pending} disabled={dueOn === ""} onClick={() => send(dueOn, note)}>
+              {copy.save}
+            </Button>
+            {followup.dueOn ? (
+              <Button variant="secondary" disabled={pending} onClick={() => send(null, null)}>
+                {copy.clear}
+              </Button>
+            ) : null}
+            <Button variant="ghost" disabled={pending} onClick={() => setOpen(false)}>
+              {copy.cancel}
+            </Button>
+          </div>
+        </div>
+      )}
+      {error && (
+        <p className="nf-body-sm font-semibold text-[var(--nf-state-error)]" role="alert">
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
 export function StageControl({
   conversationId,
   stage,
   copy,
+  followup,
+  today,
+  followupCopy,
+  locale,
 }: {
   conversationId: string;
   stage: DeskStage;
   copy: Copy;
+  /** AGENT-01: the thread's follow-up (nulls when none is set). Absent draws no follow-up row. */
+  followup?: { dueOn: string | null; note: string | null };
+  /** Today in Lagos, `YYYY-MM-DD`: the earliest date the input offers. */
+  today?: string;
+  followupCopy?: FollowupCopy;
+  locale?: Locale;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -112,7 +245,7 @@ export function StageControl({
               </div>
             </fieldset>
           )}
-          <div className="flex gap-sm">
+          <div className="flex flex-wrap gap-sm">
             <Button variant="primary" loading={pending} disabled={next === "lost" && reason === null} onClick={save}>
               {copy.save}
             </Button>
@@ -124,10 +257,20 @@ export function StageControl({
       )}
 
       {error && (
-        <p className="mt-inline nf-body-sm font-medium text-[var(--nf-state-error)]" role="alert">
+        <p className="mt-inline nf-body-sm font-semibold text-[var(--nf-state-error)]" role="alert">
           {error}
         </p>
       )}
+
+      {followup && today && followupCopy ? (
+        <FollowupRow
+          conversationId={conversationId}
+          followup={followup}
+          today={today}
+          copy={followupCopy}
+          locale={locale ?? "en"}
+        />
+      ) : null}
     </section>
   );
 }

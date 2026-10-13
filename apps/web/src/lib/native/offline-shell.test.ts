@@ -156,3 +156,66 @@ describe("the offline card takes the splash down itself", () => {
     expect(definitions).toMatch(/nativePromise:/);
   });
 });
+
+/*
+ * THE CARD THE FOUNDER SAW (8 October 2026). On TestFlight with a weak signal
+ * it said nothing could open, under a placeholder drawing of five towers. It
+ * is now reached only on a first launch with no signal (the service worker
+ * answers every launch after that, App-Bound Domains on iOS), it draws the
+ * real mark, says one calm thing, and keeps trying by itself.
+ */
+describe("the card is calm, branded and keeps trying", () => {
+  it("draws the real mark from the binary, not an inline placeholder", () => {
+    expect(html).toMatch(/<img class="mark" src="vallo-mark\.svg"/);
+    expect(html).not.toMatch(/<svg[^>]*class="mark"/);
+    const packaged = readFileSync(`${shellDir}vallo-mark.svg`, "utf8");
+    const brand = readFileSync(fileURLToPath(new URL("../../../public/brand/vallo-mark.svg", import.meta.url)), "utf8");
+    expect(packaged).toBe(brand);
+  });
+
+  it("does not tell the reader that nothing can open", () => {
+    const text = visibleText(html);
+    expect(text).not.toMatch(/none of them can open|could not reach the network|aeroplane mode/i);
+    expect(text).toContain("Waiting for a connection");
+  });
+
+  it("tries again by itself on a slow backoff after a failed probe, without waiting for an online event", async () => {
+    const timers: Array<{ fn: () => void; ms: number }> = [];
+    const shell = run({ origin: "https://www.vallospaces.com", reachable: false });
+    /* The harness window has no timers of its own: give it scripted ones and start the card again. */
+    const win = shell.win as Record<string, unknown>;
+    win.setTimeout = (fn: () => void, ms: number) => {
+      timers.push({ fn, ms });
+      return timers.length;
+    };
+    win.clearTimeout = () => undefined;
+    const api = (win as { __valloShell?: { start: (w: unknown, d: unknown) => unknown; backoffAt: (n: number) => number } }).__valloShell!;
+    api.start(win, win.document);
+    expect(timers.map((t) => t.ms)).toEqual([2000]);
+    timers.shift()!.fn();
+    await settle();
+    expect(shell.fetch).toHaveBeenCalledTimes(1);
+    expect(shell.elements.still!.hidden).toBe(false);
+    expect(timers.map((t) => t.ms)).toEqual([4000]);
+    expect([0, 1, 2, 3, 4, 9].map(api.backoffAt)).toEqual([2000, 4000, 8000, 15000, 30000, 30000]);
+  });
+});
+
+describe("the iOS app may run the service worker", () => {
+  const plist = readFileSync(fileURLToPath(new URL("../../../ios/App/App/Info.plist", import.meta.url)), "utf8");
+  const config = readFileSync(fileURLToPath(new URL("../../../capacitor.config.ts", import.meta.url)), "utf8");
+
+  it("names its app-bound domains, the live origin and the packaged shell among them", () => {
+    const block = /<key>WKAppBoundDomains<\/key>\s*<array>([\s\S]*?)<\/array>/.exec(plist)?.[1] ?? "";
+    const domains = [...block.matchAll(/<string>([^<]+)<\/string>/g)].map((m) => m[1]);
+    for (const host of ["www.vallospaces.com", "vallospaces.com", "localhost", "checkout.paystack.com", "checkout.paystack.co"]) {
+      expect(domains).toContain(host);
+    }
+    /* WebKit honours at most ten. */
+    expect(domains.length).toBeLessThanOrEqual(10);
+  });
+
+  it("limits navigation to them, as Capacitor requires once the list exists", () => {
+    expect(config).toMatch(/limitsNavigationsToAppBoundDomains: true/);
+  });
+});

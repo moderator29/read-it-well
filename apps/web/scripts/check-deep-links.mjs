@@ -24,6 +24,14 @@
  * `--warn` downgrades the exit code to 0 and still prints everything, for a
  * web-only deployment where the association files are served but no binary is
  * being cut.
+ *
+ * `--platform=ios` or `--platform=android` scopes the gate to one native
+ * target, so a release build for one platform is never blocked on the other
+ * platform's values. A staged launch (iOS first, Play Store later, or the
+ * reverse) needs this: shipping iOS must not wait on a Play Console upload
+ * key that is deliberately not set up yet. Omit the flag to check both files,
+ * which is what a full production `cap:sync` and the CI "Deep links (founder
+ * values)" step still do.
  */
 
 import { readFileSync } from "node:fs";
@@ -40,6 +48,15 @@ const wellKnown = join(here, "..", "public", ".well-known");
 const SHA256_FINGERPRINT = /^(?:[0-9A-F]{2}:){31}[0-9A-F]{2}$/;
 const TEAM_ID = /^[0-9A-Z]{10}$/;
 
+const platformArg = process.argv.find((a) => a.startsWith("--platform="));
+const platform = platformArg ? platformArg.slice("--platform=".length) : null;
+if (platform !== null && platform !== "ios" && platform !== "android") {
+  console.error(`--platform must be "ios" or "android", got "${platform}"`);
+  process.exit(1);
+}
+const checkIOS = platform !== "android";
+const checkAndroid = platform !== "ios";
+
 const problems = [];
 
 function readJson(name) {
@@ -55,76 +72,86 @@ function readJson(name) {
   }
 }
 
-const aasa = readJson("apple-app-site-association");
-const assetlinks = readJson("assetlinks.json");
+const aasa = checkIOS ? readJson("apple-app-site-association") : null;
+const assetlinks = checkAndroid ? readJson("assetlinks.json") : null;
 
-const appIDs = (aasa?.applinks?.details ?? []).flatMap((d) => d?.appIDs ?? []);
-if (aasa && appIDs.length === 0) {
-  problems.push({
-    file: "apple-app-site-association",
-    what: "no appIDs at all, so nothing can be associated",
-    who: "fix the file",
-  });
-}
-for (const appID of appIDs) {
-  const teamID = String(appID).split(".")[0] ?? "";
-  if (!TEAM_ID.test(teamID)) {
+if (checkIOS) {
+  const appIDs = (aasa?.applinks?.details ?? []).flatMap((d) => d?.appIDs ?? []);
+  if (aasa && appIDs.length === 0) {
     problems.push({
       file: "apple-app-site-association",
-      what: `"${teamID}" is not an Apple Team ID (ten alphanumeric characters)`,
-      who: "THE FOUNDER: Apple Developer, Membership details, or beside the selected team in Xcode, Signing and Capabilities. It is not the Apple ID email and not the bundle identifier.",
+      what: "no appIDs at all, so nothing can be associated",
+      who: "fix the file",
     });
+  }
+  for (const appID of appIDs) {
+    const teamID = String(appID).split(".")[0] ?? "";
+    if (!TEAM_ID.test(teamID)) {
+      problems.push({
+        file: "apple-app-site-association",
+        what: `"${teamID}" is not an Apple Team ID (ten alphanumeric characters)`,
+        who: "THE FOUNDER: Apple Developer, Membership details, or beside the selected team in Xcode, Signing and Capabilities. It is not the Apple ID email and not the bundle identifier.",
+      });
+    }
+  }
+
+  /* The callback include, and its ORDER, which is the half that decides whether
+     an auth return reaches the app. An AASA components array is read in
+     order, so an include after a blanket exclusion never runs. */
+  if (aasa) {
+    const components = (aasa.applinks?.details ?? []).flatMap((d) => d?.components ?? []);
+    const include = components.findIndex(
+      (c) => typeof c?.["/"] === "string" && c["/"].startsWith("/auth/callback") && c.exclude !== true,
+    );
+    const exclude = components.findIndex((c) => c?.["/"] === "/auth/*" && c.exclude === true);
+    if (include === -1) {
+      problems.push({
+        file: "apple-app-site-association",
+        what: "/auth/callback* is not included, so an auth return (email confirmation, reset) goes to the browser and cannot complete for an account made in the app",
+        who: "a code fix, not a founder value. See src/lib/native/deep-links.ts.",
+      });
+    } else if (exclude !== -1 && exclude < include) {
+      problems.push({
+        file: "apple-app-site-association",
+        what: "/auth/* is excluded BEFORE /auth/callback* is included, and order decides, so the include never runs",
+        who: "a code fix: move the include above the exclusion.",
+      });
+    }
   }
 }
 
-/* The callback include, and its ORDER, which is the half that decides whether
-   an auth return reaches the app. An AASA components array is read in
-   order, so an include after a blanket exclusion never runs. */
-if (aasa) {
-  const components = (aasa.applinks?.details ?? []).flatMap((d) => d?.components ?? []);
-  const include = components.findIndex(
-    (c) => typeof c?.["/"] === "string" && c["/"].startsWith("/auth/callback") && c.exclude !== true,
+if (checkAndroid) {
+  const fingerprints = (Array.isArray(assetlinks) ? assetlinks : []).flatMap(
+    (s) => s?.target?.sha256_cert_fingerprints ?? [],
   );
-  const exclude = components.findIndex((c) => c?.["/"] === "/auth/*" && c.exclude === true);
-  if (include === -1) {
-    problems.push({
-      file: "apple-app-site-association",
-      what: "/auth/callback* is not included, so an auth return (email confirmation, reset) goes to the browser and cannot complete for an account made in the app",
-      who: "a code fix, not a founder value. See src/lib/native/deep-links.ts.",
-    });
-  } else if (exclude !== -1 && exclude < include) {
-    problems.push({
-      file: "apple-app-site-association",
-      what: "/auth/* is excluded BEFORE /auth/callback* is included, and order decides, so the include never runs",
-      who: "a code fix: move the include above the exclusion.",
-    });
-  }
-}
-
-const fingerprints = (Array.isArray(assetlinks) ? assetlinks : []).flatMap(
-  (s) => s?.target?.sha256_cert_fingerprints ?? [],
-);
-if (assetlinks && fingerprints.length < 2) {
-  problems.push({
-    file: "assetlinks.json",
-    what: `${fingerprints.length} fingerprint(s). Both the Play app signing key and the upload key are needed.`,
-    who: "THE FOUNDER. Leaving either one out is the failure people spend a day on.",
-  });
-}
-for (const fingerprint of fingerprints) {
-  if (!SHA256_FINGERPRINT.test(String(fingerprint))) {
+  if (assetlinks && fingerprints.length < 2) {
     problems.push({
       file: "assetlinks.json",
-      what: `"${String(fingerprint).slice(0, 45)}" is not a SHA-256 fingerprint (32 uppercase hex pairs separated by colons)`,
-      who: "THE FOUNDER: Play Console, the app, Release, Setup, App signing, for the app signing key; `keytool -list -v -keystore upload-keystore.jks -alias upload` for the upload key.",
+      what: `${fingerprints.length} fingerprint(s). Both the Play app signing key and the upload key are needed.`,
+      who: "THE FOUNDER. Leaving either one out is the failure people spend a day on.",
     });
+  }
+  for (const fingerprint of fingerprints) {
+    if (!SHA256_FINGERPRINT.test(String(fingerprint))) {
+      problems.push({
+        file: "assetlinks.json",
+        what: `"${String(fingerprint).slice(0, 45)}" is not a SHA-256 fingerprint (32 uppercase hex pairs separated by colons)`,
+        who: "THE FOUNDER: Play Console, the app, Release, Setup, App signing, for the app signing key; `keytool -list -v -keystore upload-keystore.jks -alias upload` for the upload key.",
+      });
+    }
   }
 }
 
 const warnOnly = process.argv.includes("--warn");
 
 if (problems.length === 0) {
-  console.log("Deep links: both association files are real. Universal links and app links can verify.");
+  const scope =
+    platform === "ios"
+      ? "the iOS association file is"
+      : platform === "android"
+        ? "the Android association file is"
+        : "both association files are";
+  console.log(`Deep links: ${scope} real. Universal links and app links can verify.`);
   process.exit(0);
 }
 
