@@ -6,6 +6,7 @@ import { fail, ok, type ActionResult } from "../actions/envelope";
 import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../actions/session";
 import { getLocale } from "../locale";
 import { pathsBelongTo, reviewResponseSchema } from "./application-respond-schema";
+import { documentToSupersede } from "./supersedes";
 
 /**
  * SUP-05: answer a reviewer who sent the application back.
@@ -50,12 +51,24 @@ export async function respondToReview(input: unknown): Promise<ActionResult<{ re
   if (!application || application.status !== "MORE_INFO_REQUIRED") return fail(copy.notWaiting);
 
   if (value.documents.length > 0) {
+    /* A document sent in answer to a refusal REPLACES the refused one, and
+       says so: without `supersedes_id` the refused row stayed current, and a
+       rung that needs every current document approved could never pass. Only
+       a refused document is replaced here; anything else adds to the file. */
+    const { data: earlier, error: earlierError } = await supabase
+      .from("agent_documents")
+      .select("id, kind, review_status, supersedes_id")
+      .eq("uploader_id", user.id)
+      .order("uploaded_at", { ascending: false });
+    if (earlierError) return fail(copy.failed);
+
     const { error: documentError } = await supabase.from("agent_documents").insert(
       value.documents.map((doc) => ({
         application_id: application.id,
         uploader_id: user.id,
         kind: doc.kind,
         storage_path: doc.path,
+        supersedes_id: documentToSupersede(earlier ?? [], doc.kind, { fallbackToLatest: false }),
       })),
     );
     if (documentError) return fail(copy.failed);

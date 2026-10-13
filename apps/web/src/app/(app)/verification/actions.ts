@@ -12,6 +12,7 @@ import {
   type KycSubmitResult,
 } from "@/components/verification/kyc";
 import { resolveSession } from "@/lib/actions/session";
+import { documentToSupersede, type FiledDocument } from "@/lib/agent/supersedes";
 
 /**
  * Send a verification submission for review.
@@ -145,16 +146,23 @@ export async function submitVerification(submission: KycSubmission): Promise<Kyc
   }
 
   /* ------------------------------------------------ what each one replaces */
+  /* The refused document first, then the newest current one. "The newest of
+     that kind" alone could retire the approved back of an ID card while the
+     refused front stayed current (lib/agent/supersedes.ts). */
   const { data: earlier } = await supabase
     .from("agent_documents")
-    .select("id, kind, uploaded_at")
+    .select("id, kind, review_status, supersedes_id, uploaded_at")
     .eq("uploader_id", user.id)
     .in("kind", KINDS)
     .order("uploaded_at", { ascending: false });
-  const latestOf = (kind: DocumentKind): string | null => {
-    const row = (earlier ?? []).find((r) => r.kind === kind);
-    return row ? String(row.id) : null;
-  };
+  const filed: FiledDocument[] = (earlier ?? []).map((row) => ({
+    id: String(row.id),
+    kind: String(row.kind),
+    review_status: typeof row.review_status === "string" ? row.review_status : null,
+    supersedes_id: typeof row.supersedes_id === "string" ? row.supersedes_id : null,
+  }));
+  const latestOf = (kind: DocumentKind): string | null =>
+    documentToSupersede(filed, kind, { fallbackToLatest: true });
 
   /* ------------------------------------------------ the documents */
   const rows = KINDS.map((kind) => {
