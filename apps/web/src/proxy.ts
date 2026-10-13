@@ -318,6 +318,8 @@ const PUBLIC_API_PATHS = new Set([
   "/api/cron/complete-stays",
   /* Crypto payments read back from the provider, behind the cron bearer. */
   "/api/cron/crypto-reconcile",
+  /* Escrow arrangements read back from the payment partner, behind the cron bearer. */
+  "/api/cron/arrangements-reconcile",
   "/api/cron/email-outbox",
   "/api/cron/hold-sweep",
   "/api/cron/rent-share-refunds",

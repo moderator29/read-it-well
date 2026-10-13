@@ -1,9 +1,13 @@
 -- POV04 (pending migrations pov01 to pov04): the choice RPC's rules.
 --   only the payer; only a known word; a sale refuses card; a hotel room
---   refuses escrow; not once a payment is moving or the agreement is closed;
---   card on a system-approved agreement waits while a signal (here the
---   incident switch) fires; the options read says what may be picked; the
---   router's read answers the same rail as the gate; grants are explicit.
+--   refuses escrow; not once a payment is moving (any PENDING card attempt,
+--   whatever its age, or a live arrangement) or the agreement is closed;
+--   card on a system-approved agreement while a signal (here the incident
+--   switch) fires goes to a person (in_review), never a dead end, and going
+--   back to escrow is approved by the system again; the options read says
+--   what may be picked; the router's read answers the same rail as the gate;
+--   a card charge on a deal the partner holds is refund-due, never settled;
+--   grants are explicit.
 -- Everything is rolled back by the final raise.
 do $$
 declare
@@ -15,6 +19,10 @@ declare
   a_sys uuid := gen_random_uuid();
   b_sys uuid := gen_random_uuid();
   a_sale uuid; insp uuid;
+  a_pend uuid := gen_random_uuid();
+  b_pend uuid := gen_random_uuid();
+  ref text;
+  st text;
   start_day date := (now() at time zone 'Africa/Lagos')::date + 40;
   r jsonb;
 begin
@@ -26,19 +34,22 @@ begin
   end if;
   insert into public.listing_mandates (listing_id, kind, principal_name, review_status, reviewed_by, reviewed_at,
          principal_relationship, principal_verified_how, principal_verified_by, principal_verified_at)
-  select id, 'letting', 'Probe Principal', 'approved', host, now(), 'owner', 'call_back', host, now()
-    from public.listings where id = v_rental and listing_role <> 'owner' and not private.listing_has_live_mandate(id);
-  update public.listings set is_demo = false where id = v_rental;
+  select id, case when listing_intent = 'sale' then 'sale' else 'letting' end, 'Probe Principal', 'approved', host, now(),
+         'owner', 'call_back', host, now()
+    from public.listings where id in (v_rental, v_sale) and listing_role <> 'owner' and not private.listing_has_live_mandate(id);
+  update public.listings set is_demo = false where id in (v_rental, v_sale);
   update public.feature_flags set enabled = false where key = 'agreement_review_all';
 
   perform set_config('vallo.rent_charge', 'true', true);
   insert into public.bookings (id, listing_id, guest_id, check_in, check_out, nights, price_per_night_minor, subtotal_minor, total_minor)
   values (b_rent, v_rental, guest, start_day, start_day + 1, 1, 200000, 200000, 200000),
-         (b_sys, v_rental, guest, start_day + 5, start_day + 6, 1, 200000, 200000, 200000);
+         (b_sys, v_rental, guest, start_day + 5, start_day + 6, 1, 200000, 200000, 200000),
+         (b_pend, v_rental, guest, start_day + 9, start_day + 10, 1, 200000, 200000, 200000);
   perform set_config('vallo.rent_charge', '', true);
   insert into public.deal_agreements (id, kind, listing_id, booking_id, renter_id, owner_id, amount_minor, terms, status, decided_by, decided_at)
   values (a_rent, 'stay', v_rental, b_rent, guest, host, 200000, '{}'::jsonb, 'approved', host, now()),
-         (a_sys, 'stay', v_rental, b_sys, guest, host, 200000, '{}'::jsonb, 'approved', null, now());
+         (a_sys, 'stay', v_rental, b_sys, guest, host, 200000, '{}'::jsonb, 'approved', null, now()),
+         (a_pend, 'stay', v_rental, b_pend, guest, host, 200000, '{}'::jsonb, 'approved', host, now());
   insert into public.inspection_requests (listing_id, requester_id, lister_id, requested_at)
   values (v_sale, guest, v_sale_owner, now()) returning id into insp;
   insert into public.deal_agreements (kind, listing_id, inspection_id, renter_id, owner_id, amount_minor, terms)
@@ -80,15 +91,40 @@ begin
   end if;
   reset role;
 
-  -- 6. Card on a system-approved agreement waits while a signal fires.
+  -- 6. Card on a system-approved agreement while a signal fires: a person
+  --    looks (in_review), and escrow again is approved by the system.
   update public.feature_flags set enabled = true where key = 'agreement_review_all';
   set local role authenticated;
   perform set_config('request.jwt.claims', json_build_object('sub', guest, 'role', 'authenticated')::text, true);
-  if public.payment_rail_choose(a_sys, 'card') ->> 'status' <> 'card_needs_review' then
-    raise exception 'PROBE_FAIL pov04-payer-rail-choice-rpcs: card was set where nobody could approve it';
+  r := public.payment_rail_choose(a_sys, 'card');
+  reset role;
+  if r ->> 'status' <> 'ok' or (r ->> 'review')::boolean is not true
+     or (select status::text from public.deal_agreements where id = a_sys) <> 'in_review' then
+    raise exception 'PROBE_FAIL pov04-payer-rail-choice-rpcs: card under a signal did not go to a person: %', r;
+  end if;
+  update public.feature_flags set enabled = false where key = 'agreement_review_all';
+  update public.deal_agreements set renter_confirmed_version = terms_version, owner_confirmed_version = terms_version where id = a_sys;
+  set local role authenticated;
+  perform set_config('request.jwt.claims', json_build_object('sub', guest, 'role', 'authenticated')::text, true);
+  r := public.payment_rail_choose(a_sys, 'escrow');
+  reset role;
+  if r ->> 'status' <> 'ok' or (select status::text from public.deal_agreements where id = a_sys) <> 'approved'
+     or (select decided_by from public.deal_agreements where id = a_sys) is not null then
+    raise exception 'PROBE_FAIL pov04-payer-rail-choice-rpcs: going back to escrow was not approved by the system: %', r;
+  end if;
+
+  -- 6b. Any PENDING card attempt locks the choice, however old.
+  update public.deal_agreements set payer_rail_choice = 'card', payer_rail_chosen_at = now() where id = a_pend;
+  insert into public.transactions (booking_id, agreement_id, provider, provider_ref, amount_minor, currency, status, created_at,
+                                   lister_share_minor, guarantee_minor, commission_minor, payee_subaccount_code)
+  values (b_pend, a_pend, 'paystack', 'rm-book-probe-' || replace(gen_random_uuid()::text, '-', ''), 200000, 'NGN', 'PENDING',
+          now() - interval '3 days', 200000, 0, 0, 'ACCT_probe');
+  set local role authenticated;
+  perform set_config('request.jwt.claims', json_build_object('sub', guest, 'role', 'authenticated')::text, true);
+  if public.payment_rail_choose(a_pend, 'escrow') ->> 'status' <> 'payment_started' then
+    raise exception 'PROBE_FAIL pov04-payer-rail-choice-rpcs: an old PENDING card attempt did not lock the choice';
   end if;
   reset role;
-  update public.feature_flags set enabled = false where key = 'agreement_review_all';
 
   -- 7. Not once a payment is moving.
   insert into public.provider_arrangements (agreement_id, kind, reference, amount_minor, buyer_user_id, seller_user_id,
@@ -117,12 +153,29 @@ begin
     raise exception 'PROBE_FAIL pov04-payer-rail-choice-rpcs: the router read disagrees with the gate: %', r;
   end if;
 
+  -- 9b. Settlement never takes a card charge on a deal the partner holds.
+  ref := 'rm-book-probe-' || replace(gen_random_uuid()::text, '-', '');
+  insert into public.transactions (booking_id, agreement_id, provider, provider_ref, amount_minor, currency, status,
+                                   lister_share_minor, guarantee_minor, commission_minor, payee_subaccount_code)
+  values (b_pend, a_pend, 'paystack', ref, 200000, 'NGN', 'PENDING', 200000, 0, 0, 'ACCT_probe');
+  insert into public.provider_arrangements (agreement_id, kind, reference, amount_minor, buyer_user_id, seller_user_id,
+                                            buyer_customer_id, seller_customer_id, status)
+  values (a_pend, 'standard', 'vallo-arr-probe-' || replace(gen_random_uuid()::text, '-', ''), 200000, guest, host,
+          'probe-b', 'probe-s', 'protected');
+  r := private.settle_booking_charge(ref, 200000, 0, null);
+  select t.status into st from public.transactions t where t.provider_ref = ref;
+  if r ->> 'outcome' <> 'refund-due' or r ->> 'reason' <> 'partner_holds_payment' or st <> 'FAILED'
+     or (select status::text from public.deal_agreements where id = a_pend) = 'paid' then
+    raise exception 'PROBE_FAIL pov04-payer-rail-choice-rpcs: a card charge was settled on a deal the partner holds: %', r;
+  end if;
+
   -- 10. Grants.
   if not has_function_privilege('authenticated', 'public.payment_rail_choose(uuid, text)', 'execute')
      or has_function_privilege('anon', 'public.payment_rail_choose(uuid, text)', 'execute')
      or has_function_privilege('anon', 'public.payment_rail_options(uuid)', 'execute')
      or has_function_privilege('authenticated', 'public.payment_rail_for_booking(uuid)', 'execute')
-     or not has_function_privilege('service_role', 'public.payment_rail_for_booking(uuid)', 'execute') then
+     or not has_function_privilege('service_role', 'public.payment_rail_for_booking(uuid)', 'execute')
+     or has_function_privilege('authenticated', 'private.settle_booking_charge(text, bigint, bigint, uuid)', 'execute') then
     raise exception 'PROBE_FAIL pov04-payer-rail-choice-rpcs: grants are not as written';
   end if;
   if not exists (select 1 from public.audit_log where action = 'agreement.rail_chosen' and entity_id = a_rent::text) then

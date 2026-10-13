@@ -329,7 +329,13 @@ export default async function VerificationPage({
         )}
         {pep}
         {vnin}
-        <KycFlow submit={submitVerification} success={getDictionary(locale).success} copy={t.experienceAccount.kyc} askBusiness={askBusiness} />
+        <KycFlow
+          submit={submitVerification}
+          success={getDictionary(locale).success}
+          copy={t.experienceAccount.kyc}
+          askBusiness={askBusiness}
+          acceptCopy={t.payChoice}
+        />
       </div>
     );
   }

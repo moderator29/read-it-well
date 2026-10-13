@@ -19,15 +19,18 @@ export function RefundsView({
   nextBefore,
   before,
   locale,
+  protectedRailOpen = false,
 }: {
   /** The page's payment history; the refunds are picked from it here. */
   entries: HistoryEntry[];
   nextBefore: string | null;
   before: string | null;
   locale: Locale;
+  /** The server's `protectedRailLive()` answer, read by the page; the preview passes a fixture. */
+  protectedRailOpen?: boolean;
 }) {
   const refunds = refundEntries(entries);
-  const protectedLive = railIsLive("protected");
+  const protectedLive = railIsLive("protected", protectedRailOpen);
   return (
     <div className="mt-inline space-y-block">
       <p className={TYPE.body}>{REFUNDS_LEDE}</p>

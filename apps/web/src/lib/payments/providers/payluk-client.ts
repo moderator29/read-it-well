@@ -93,7 +93,7 @@ export class PaylukRateGate {
 export type PaylukContext = { config: PaylukMerchantConfig; fetch: PaylukFetch; gate: PaylukRateGate };
 
 type RequestSpec = {
-  method: "GET" | "POST";
+  method: "GET" | "POST" | "DELETE";
   path: string;
   customerId?: string;
   body?: Record<string, unknown>;

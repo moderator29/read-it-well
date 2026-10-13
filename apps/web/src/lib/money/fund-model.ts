@@ -21,8 +21,10 @@ export type FundFacts = {
   viewerIsRenter: boolean;
   kind: string;
   /**
-   * A stay at a listing (a shortlet), which since ruling 2 (13 October 2026)
-   * is paid into escrow by default. A hotel room is never (card only).
+   * A stay that may be paid into escrow (ruling 2, 13 October 2026): a
+   * shortlet listing or a shortlet operator's room, escrow by default. The
+   * server sets it for every stay and the rail decides: a hotel's room reads
+   * `rail: "direct"` and closes as paid by card.
    */
   listingStay?: boolean;
   agreementStatus: string;

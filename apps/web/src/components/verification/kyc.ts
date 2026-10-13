@@ -393,6 +393,13 @@ export type KycSubmission = {
   business: boolean;
   businessDetails: Record<string, string>;
   consents: ConsentId[];
+  /**
+   * Ruling 6 (13 October 2026): when this submission files or resubmits a
+   * workspace application, the Terms and Privacy Policy tick and the
+   * pay-on-Vallo tick, recorded on the application (pov07, pov08).
+   */
+  acceptTerms?: boolean;
+  acceptPayOnVallo?: boolean;
 };
 
 export type KycSubmitResult = { ok: true } | { ok: false; message: string };

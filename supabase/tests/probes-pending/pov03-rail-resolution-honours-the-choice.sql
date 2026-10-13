@@ -4,10 +4,13 @@
 --   shortlet at a nightly rate         escrow by default (ruling 4), card when chosen
 --   sale                               escrow, even with card stored
 --   hotel room                         direct (card), whatever is stored
+--   guest house room                   direct (card): hotel, guest_house,
+--                                      resort and serviced_apartments
+--   shortlet operator's room           escrow by default, card when chosen
 --   restaurant                         card only
 -- and the gate follows: an escrow agreement needs no review, a card one is
 -- reviewed when a signal fires (agreement_review_required reads the rail).
--- Live fixtures: rental and shortlet listings are is_demo and bookings refuse
+-- Live fixtures: the rental, shortlet, sale and restaurant listings are is_demo and bookings refuse
 -- a demo listing, so the probe clears is_demo on its listings first, and
 -- files a mandate where the listing needs one, as b2-rail-at-open does.
 -- Everything is rolled back by the final raise.
@@ -24,6 +27,7 @@ declare
   a_room uuid := gen_random_uuid();
   a_sale uuid; a_rest uuid; insp uuid;
   biz uuid; acc uuid; rt uuid; rp uuid; pol uuid; dd date;
+  k text; b_k uuid; a_k uuid; biz_k uuid; acc_k uuid; rt_k uuid; rp_k uuid;
   start_day date := (now() at time zone 'Africa/Lagos')::date + 30;
   r record;
   opts text[];
@@ -42,10 +46,11 @@ begin
 
   insert into public.listing_mandates (listing_id, kind, principal_name, review_status, reviewed_by, reviewed_at,
          principal_relationship, principal_verified_how, principal_verified_by, principal_verified_at)
-  select id, 'letting', 'Probe Principal', 'approved', host, now(), 'owner', 'call_back', host, now()
-    from public.listings where id in (v_rental, v_short) and listing_role <> 'owner'
+  select id, case when listing_intent = 'sale' then 'sale' else 'letting' end, 'Probe Principal', 'approved', host, now(),
+         'owner', 'call_back', host, now()
+    from public.listings where id in (v_rental, v_short, v_sale, v_rest) and listing_role <> 'owner'
      and not private.listing_has_live_mandate(id);
-  update public.listings set is_demo = false where id in (v_rental, v_short);
+  update public.listings set is_demo = false where id in (v_rental, v_short, v_sale, v_rest);
 
   -- RENT: the booking a rent charge opens.
   perform set_config('vallo.rent_charge', 'true', true);
@@ -140,6 +145,66 @@ begin
   if private.rail_options_for_agreement(a_room) <> array['card'] then
     raise exception 'PROBE_FAIL pov03-rail-resolution-honours-the-choice: a hotel room offers more than card';
   end if;
+  -- The fixture hold is let go so the next rooms stay under the guest's hold limit.
+  update public.bookings set status = 'CANCELLED' where id = b_room;
+
+  -- 4b. A room at each other business kind: the four hotel kinds are card
+  --     only; a shortlet operator's room is escrow with the card choice.
+  foreach k in array array['guest_house', 'resort', 'serviced_apartments', 'shortlet_operator'] loop
+    insert into public.businesses (owner_id, kind, name, slug, status, source)
+    values (host, k::public.business_kind, 'Probe POV03 ' || k, 'probe-pov03-' || replace(k, '_', '-') || '-' || gen_random_uuid(), 'PUBLISHED', 'first_party')
+    returning id into biz_k;
+    insert into public.accommodations (business_id, name, slug, status)
+    values (biz_k, 'Probe POV03 ' || k, 'probe-pov03-a-' || replace(k, '_', '-') || '-' || gen_random_uuid(), 'PUBLISHED') returning id into acc_k;
+    insert into public.room_types (accommodation_id, name, category, sleeps, units_total, base_rate_minor, status)
+    values (acc_k, 'Probe double', 'double', 2, 4, 5000000, 'PUBLISHED') returning id into rt_k;
+    insert into public.rate_plans (room_type_id, name, cancellation_policy_id, rate_minor, currency, min_stay_nights, active)
+    values (rt_k, 'Probe room only', pol, 5000000, 'NGN', 1, true) returning id into rp_k;
+    for dd in select generate_series(start_day, start_day + 2, interval '1 day')::date loop
+      insert into public.room_inventory (room_type_id, date, units_open) values (rt_k, dd, 4);
+    end loop;
+    set local role authenticated;
+    perform set_config('request.jwt.claims', json_build_object('sub', guest, 'role', 'authenticated')::text, true);
+    insert into public.bookings (guest_id, accommodation_id, room_type_id, rate_plan_id, rooms, check_in, check_out, adults)
+    values (guest, acc_k, rt_k, rp_k, 1, start_day, start_day + 1, 2) returning id into b_k;
+    reset role;
+    perform set_config('request.jwt.claims', '{"role":"service_role"}', true);
+    a_k := gen_random_uuid();
+    insert into public.deal_agreements (id, kind, accommodation_id, booking_id, renter_id, owner_id, amount_minor, terms, status,
+                                        decided_by, decided_at)
+    select a_k, 'stay', acc_k, b_k, guest, host, b.total_minor, '{}'::jsonb, 'approved', host, now()
+      from public.bookings b where b.id = b_k;
+    if k = 'shortlet_operator' then
+      if (private.rail_for_booking(b_k)).rail is distinct from 'escrow'
+         or private.rail_options_for_agreement(a_k) <> array['escrow', 'card'] then
+        raise exception 'PROBE_FAIL pov03-rail-resolution-honours-the-choice: a shortlet operator''s room is not escrow with the choice';
+      end if;
+      update public.deal_agreements set payer_rail_choice = 'card', payer_rail_chosen_at = now() where id = a_k;
+      if (private.rail_for_booking(b_k)).rail is distinct from 'direct' then
+        raise exception 'PROBE_FAIL pov03-rail-resolution-honours-the-choice: a shortlet operator''s room with card chosen is not card';
+      end if;
+    else
+      update public.deal_agreements set payer_rail_choice = 'escrow', payer_rail_chosen_at = now() where id = a_k;
+      if (private.rail_for_booking(b_k)).rail is distinct from 'direct'
+         or private.rail_options_for_agreement(a_k) <> array['card'] then
+        raise exception 'PROBE_FAIL pov03-rail-resolution-honours-the-choice: a % room is not card only', k;
+      end if;
+    end if;
+    update public.bookings set status = 'CANCELLED' where id = b_k;
+  end loop;
+
+  -- 4c. An instant stay at the published price, approved by the system, that
+  --     the payer moved to card is payable at once: only the fraud radar
+  --     (or the incident switch) still asks a person.
+  update public.deal_agreements
+     set decided_by = null, payer_rail_choice = 'card', payer_rail_chosen_at = now(),
+         terms = jsonb_build_object('instant_booking', true, 'priced_by', 'database')
+   where id = a_short;
+  rv := private.agreement_review_required(a_short);
+  if (rv ->> 'required')::boolean or rv ->> 'rail' is distinct from 'direct'
+     or exists (select 1 from jsonb_array_elements_text(rv -> 'reasons') x where x <> 'fraud_radar') then
+    raise exception 'PROBE_FAIL pov03-rail-resolution-honours-the-choice: an instant stay on card was not payable at once: %', rv;
+  end if;
 
   -- 5. Restaurant: card only.
   if v_rest is not null then
@@ -164,6 +229,8 @@ begin
   -- 6. No member can call the helpers.
   if has_function_privilege('authenticated', 'private.rail_base_for_booking(uuid)', 'execute')
      or has_function_privilege('authenticated', 'private.rail_options_for_agreement(uuid)', 'execute')
+     or has_function_privilege('authenticated', 'private.rail_base_for_accommodation(uuid)', 'execute')
+     or has_function_privilege('authenticated', 'private.agreement_review_required(uuid)', 'execute')
      or has_function_privilege('anon', 'private.rail_for_agreement(uuid)', 'execute') then
     raise exception 'PROBE_FAIL pov03-rail-resolution-honours-the-choice: a member can call a rail helper';
   end if;

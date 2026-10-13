@@ -124,12 +124,54 @@ export function listedAnswer(input: FixtureEscrowInput) {
   };
 }
 
+/** `GET /v1/escrow/verify/{token}`, 200, once the payer has paid (held). */
+export function verifiedHeldAnswer(input: FixtureEscrowInput) {
+  return {
+    status: 200,
+    message: "Escrow resolved",
+    data: escrowRecord(input, "ONGOING", "OPENED", { paidAt: "1791363900", paymentId: PAYMENT_ID, isSeller: false }),
+  };
+}
+
+/** `DELETE /v1/escrow/delete/{token}` as the seller while AWAITING_PAYMENT, 200 (api-reference_escrow_delete-escrow). */
+export function withdrawnAnswer() {
+  return { status: 200, message: "Escrow deleted successfully", data: {} };
+}
+
+/** The same call on a funded escrow, 400 (api-reference_escrow_delete-escrow). */
+export function withdrawRefusedAnswer() {
+  return { status: 400, message: "Action not allowed", data: {} };
+}
+
+/** `POST /v1/escrow/submit-dispute/{token}` as the buyer, 200 (disputes/submit-dispute): OPENED / DISPUTED. */
+export function disputedAnswer(input: FixtureEscrowInput) {
+  return {
+    status: 200,
+    message: "Escrow dispute submitted successfully",
+    data: escrowRecord(input, "DISPUTED", "OPENED", { paidAt: "1791363900", paymentId: PAYMENT_ID }),
+  };
+}
+
+/** `POST /v1/escrow/dispute/resolve/{id}`, 200 (disputes/resolve-dispute): CLOSED / REFUNDED or COMPLETED. */
+export function resolvedAnswer(input: FixtureEscrowInput, outcome: "REFUNDED" | "COMPLETED") {
+  return {
+    status: 200,
+    message: "Dispute resolution submitted successfully",
+    data: escrowRecord(input, outcome, "CLOSED", { paidAt: "1791363900", paymentId: PAYMENT_ID, split: null }),
+  };
+}
+
 /** The escrow webhook envelope, as concepts_webhooks shows it. */
-export function escrowWebhook(event: "escrow.created" | "escrow.ongoing" | "escrow.completed", input: FixtureEscrowInput) {
+export function escrowWebhook(
+  event: "escrow.created" | "escrow.ongoing" | "escrow.completed" | "escrow.disputed" | "escrow.refunded",
+  input: FixtureEscrowInput,
+) {
   const shape = {
     "escrow.created": ["PENDING", "AWAITING_PAYMENT", {}],
     "escrow.ongoing": ["ONGOING", "OPENED", { paidAt: "1791363900", paymentId: PAYMENT_ID }],
     "escrow.completed": ["COMPLETED", "CLOSED", { paidAt: "1791363900", paymentId: PAYMENT_ID, completedAt: "2026-10-07T10:00:00.000Z" }],
+    "escrow.disputed": ["DISPUTED", "OPENED", { paidAt: "1791363900", paymentId: PAYMENT_ID }],
+    "escrow.refunded": ["REFUNDED", "CLOSED", { paidAt: "1791363900", paymentId: PAYMENT_ID }],
   } as const;
   const [status, state, extra] = shape[event];
   return { event, data: escrowRecord(input, status, state, extra), timestamp: "2026-10-07T10:00:00.000Z" };

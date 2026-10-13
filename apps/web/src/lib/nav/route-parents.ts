@@ -705,6 +705,7 @@ export const NON_NAVIGABLE: Readonly<Record<string, string>> = {
   "/host/earnings/statement/csv": "C9: one month's payout statement as a CSV download, not a page.",
   "/api/cron/complete-stays": "scheduled job, bearer token.",
   "/api/cron/crypto-reconcile": "scheduled job, bearer token.",
+  "/api/cron/arrangements-reconcile": "scheduled job, bearer token.",
   "/api/cron/email-outbox": "scheduled job, bearer token.",
   "/api/cron/hold-sweep": "scheduled job, bearer token.",
   "/api/cron/rent-share-refunds": "scheduled job, bearer token.",

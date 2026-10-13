@@ -128,14 +128,30 @@ describe("POST /api/payluk/webhook", () => {
     expect(store.observed).toHaveLength(0);
   });
 
-  it("D73 Part B: with the escrow flows not switched on, escrow.* is stored and parked exactly as before", async () => {
+  it("D73 Part B: escrow.* is applied even while the switch is off (recording is never gated); an unknown escrow is stored and set aside", async () => {
+    /* No feature_flags row here, so `payments_payluk_on` reads off. Before
+       13 October 2026 the event was parked as "escrow_flows_not_built" and
+       never retried, so money the partner held could go unrecorded during an
+       outage. Now the record is attempted on the key alone. */
     const escrow = JSON.stringify({
       event: "escrow.ongoing",
       data: { id: "esc_parked", amount: 500000, status: "ONGOING", state: "OPENED", environment: "test" },
     });
-    expect(await (await post(escrow, sign(escrow))).json()).toMatchObject({ received: true, ignored: "escrow" });
+    expect(await (await post(escrow, sign(escrow))).json()).toMatchObject({ received: true, outcome: "unknown_arrangement" });
     const row = (store.tables.provider_webhook_events ?? []).find((r) => r.event_key === "escrow:esc_parked:escrow.ongoing");
-    expect(row).toMatchObject({ processing_status: "ignored", error: "escrow_flows_not_built" });
+    expect(row).toMatchObject({ processing_status: "ignored", error: "unknown_arrangement" });
     expect(store.observed).toHaveLength(0);
+  });
+
+  it("D73 Part B: with no key for this deployment, escrow.* cannot be recorded and is parked", async () => {
+    const escrow = JSON.stringify({
+      event: "escrow.ongoing",
+      data: { id: "esc_nokey", amount: 500000, status: "ONGOING", state: "OPENED", environment: "test" },
+    });
+    const signature = sign(escrow);
+    vi.stubEnv("PAYLUK_TEST_SECRET_KEY", "");
+    /* Without a key the signature cannot be checked, so nothing is stored. */
+    expect((await post(escrow, signature)).status).toBe(503);
+    expect((store.tables.provider_webhook_events ?? []).some((r) => r.event_key === "escrow:esc_nokey:escrow.ongoing")).toBe(false);
   });
 });

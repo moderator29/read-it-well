@@ -2,8 +2,11 @@
 -- carries Vallo's 10 percent (1,000 bps), from the hotel's share. The
 -- commission is exactly floor(amount * 1000 / 10000); the split's three
 -- parts add up to the charge to the kobo; the guest's total is the booking's
--- own and is never moved; a rate earlier than the agreement is the one used;
--- a listing stay is not touched; the rates are history.
+-- own and is never moved; the rate in force when the BOOKING was made is the
+-- one used; only the four hotel kinds (hotel, guest_house, resort,
+-- serviced_apartments) carry it, a shortlet operator's room does not; a
+-- listing stay is not touched; the rates are history (no edit, no removal,
+-- no truncation, no backdating) and only the service role reads or adds.
 -- Everything is rolled back by the final raise.
 do $$
 declare
@@ -16,6 +19,7 @@ declare
   s jsonb;
   amt bigint;
   refused boolean;
+  biz_s uuid; acc_s uuid; rt_s uuid; rp_s uuid; b_s uuid; ag_s uuid;
 begin
   if private.scoped_commission_bps('hotel_room', now()) is distinct from 1000 then
     raise exception 'PROBE_FAIL pov06-hotel-room-commission: the hotel-room rate is not 1000 bps';
@@ -75,14 +79,48 @@ begin
     raise exception 'PROBE_FAIL pov06-hotel-room-commission: the guest''s total moved';
   end if;
 
-  -- 3. An agreement drawn up before the rate keeps its own terms.
-  update public.deal_agreements set created_at = '2026-10-01'::timestamptz where id = ag;
+  -- 3. A booking made before the rate keeps its agreement's terms (the
+  --    rate is keyed on the booking, not on the agreement).
+  update public.bookings set created_at = '2026-10-01'::timestamptz where id = b_room;
   c := private.b3_commission_for_booking(b_room, 1000000, ag);
   if c ->> 'source' <> 'terms' or (c ->> 'commission_bps')::int <> 200 then
-    raise exception 'PROBE_FAIL pov06-hotel-room-commission: an older agreement took the new rate: %', c;
+    raise exception 'PROBE_FAIL pov06-hotel-room-commission: an older booking took the new rate: %', c;
+  end if;
+  update public.bookings set created_at = now() where id = b_room;
+  update public.deal_agreements set created_at = '2026-10-01'::timestamptz where id = ag;
+  c := private.b3_commission_for_booking(b_room, 1000000, ag);
+  if c ->> 'source' <> 'scope:hotel_room' then
+    raise exception 'PROBE_FAIL pov06-hotel-room-commission: the rate was keyed on the agreement, not the booking: %', c;
   end if;
 
-  -- 4. The rates are history.
+  -- 3b. A shortlet operator's room carries no room fee.
+  insert into public.businesses (owner_id, kind, name, slug, status, source)
+  values (host, 'shortlet_operator', 'Probe POV06 Shortlets', 'probe-pov06-s-' || gen_random_uuid(), 'PUBLISHED', 'first_party') returning id into biz_s;
+  insert into public.accommodations (business_id, name, slug, status)
+  values (biz_s, 'Probe POV06 Shortlets', 'probe-pov06-sa-' || gen_random_uuid(), 'PUBLISHED') returning id into acc_s;
+  insert into public.room_types (accommodation_id, name, category, sleeps, units_total, base_rate_minor, status)
+  values (acc_s, 'Probe studio', 'double', 2, 4, 5000000, 'PUBLISHED') returning id into rt_s;
+  insert into public.rate_plans (room_type_id, name, cancellation_policy_id, rate_minor, currency, min_stay_nights, active)
+  values (rt_s, 'Probe room only', pol, 5000000, 'NGN', 1, true) returning id into rp_s;
+  for dd in select generate_series(start_day, start_day + 3, interval '1 day')::date loop
+    insert into public.room_inventory (room_type_id, date, units_open) values (rt_s, dd, 4);
+  end loop;
+  set local role authenticated;
+  perform set_config('request.jwt.claims', json_build_object('sub', guest, 'role', 'authenticated')::text, true);
+  insert into public.bookings (guest_id, accommodation_id, room_type_id, rate_plan_id, rooms, check_in, check_out, adults)
+  values (guest, acc_s, rt_s, rp_s, 1, start_day, start_day + 3, 2) returning id into b_s;
+  reset role;
+  perform set_config('request.jwt.claims', '{"role":"service_role"}', true);
+  insert into public.deal_agreements (kind, accommodation_id, booking_id, renter_id, owner_id, amount_minor, terms, status, decided_by, decided_at)
+  select 'stay', acc_s, b_s, guest, host, b.total_minor, '{"commission_bps": 0}'::jsonb, 'approved', host, now()
+    from public.bookings b where b.id = b_s
+  returning id into ag_s;
+  c := private.b3_commission_for_booking(b_s, 1000000, ag_s);
+  if c ->> 'source' = 'scope:hotel_room' or (c ->> 'commission_minor')::bigint <> 0 then
+    raise exception 'PROBE_FAIL pov06-hotel-room-commission: a shortlet operator''s room took the room fee: %', c;
+  end if;
+
+  -- 4. The rates are history: never edited, removed, truncated or backdated.
   refused := false;
   begin
     update public.scoped_commission_rates set basis_points = 0 where scope = 'hotel_room';
@@ -91,9 +129,44 @@ begin
   if not refused then
     raise exception 'PROBE_FAIL pov06-hotel-room-commission: a rate was edited in place';
   end if;
+  refused := false;
+  begin
+    execute 'delete from public.scoped_commission_rates where scope = ''hotel_room''';
+  exception when insufficient_privilege then refused := true;
+  end;
+  if not refused then
+    raise exception 'PROBE_FAIL pov06-hotel-room-commission: a rate was removed';
+  end if;
+  refused := false;
+  begin
+    execute 'truncate public.scoped_commission_rates';
+  exception when insufficient_privilege then refused := true;
+  end;
+  if not refused then
+    raise exception 'PROBE_FAIL pov06-hotel-room-commission: the rates were truncated';
+  end if;
+  refused := false;
+  begin
+    insert into public.scoped_commission_rates (scope, basis_points, effective_from, reason)
+    values ('hotel_room', 0, now() - interval '1 day', 'PROBE pov06: a backdated rate, rolled back');
+  exception when insufficient_privilege then refused := true;
+  end;
+  if not refused then
+    raise exception 'PROBE_FAIL pov06-hotel-room-commission: a rate was backdated';
+  end if;
+  insert into public.scoped_commission_rates (scope, basis_points, effective_from, reason)
+  values ('hotel_room', 1200, now() + interval '1 day', 'PROBE pov06: a future rate, rolled back');
+  if private.scoped_commission_bps('hotel_room', now()) <> 1000
+     or private.scoped_commission_bps('hotel_room', now() + interval '2 days') <> 1200 then
+    raise exception 'PROBE_FAIL pov06-hotel-room-commission: a future rate is not read from its moment';
+  end if;
   if has_table_privilege('authenticated', 'public.scoped_commission_rates', 'select')
-     or has_table_privilege('anon', 'public.scoped_commission_rates', 'select') then
-    raise exception 'PROBE_FAIL pov06-hotel-room-commission: members can read the rates table';
+     or has_table_privilege('anon', 'public.scoped_commission_rates', 'select')
+     or has_table_privilege('service_role', 'public.scoped_commission_rates', 'update')
+     or has_table_privilege('service_role', 'public.scoped_commission_rates', 'truncate')
+     or has_table_privilege('service_role', 'public.scoped_commission_rates', 'delete')
+     or not has_table_privilege('service_role', 'public.scoped_commission_rates', 'insert') then
+    raise exception 'PROBE_FAIL pov06-hotel-room-commission: the rates table grants are not select and insert for the service role only';
   end if;
 
   raise exception 'PROBE_OK pov06-hotel-room-commission';

@@ -1,6 +1,5 @@
 import { formatMoney } from "@vallo/i18n/core";
 import { SEATED_FEE_MINOR_DEFAULT } from "@/lib/reservations/seating";
-import { railIsLive } from "@/lib/money/rails";
 
 /**
  * THE FACTS THE DOCS REPEAT, IN ONE PLACE.
@@ -24,8 +23,6 @@ export const HOTEL_COMMISSION_SENTENCE = `Vallo's commission on a hotel room is 
 /** What Vallo bills a restaurant for each table seated from a Vallo booking, formatted. */
 export const SEATED_TABLE_FEE = formatMoney(SEATED_FEE_MINOR_DEFAULT);
 
-/** Whether the escrow route is open today (`lib/money/rails.ts`). */
-export const ESCROW_OPEN = railIsLive("protected");
 
 /* ------------------------------------------------------- the money rules */
 
@@ -66,6 +63,11 @@ export const COMMISSION_FROM_SHARE =
 /** Rule 8: viewings and listing. */
 export const VIEWINGS_AND_LISTING_FREE = "Viewings never take money, and listing is free.";
 
-/** Said only while the escrow route is closed. */
-export const ESCROW_NOT_OPEN_YET =
-  "Escrow is not open on Vallo yet. Until it is, a payment that must go through escrow does not open, and nothing is charged.";
+/**
+ * What happens when escrow cannot be used at the moment (its partner is
+ * switched off or unreachable). The docs are static pages, so this states
+ * the rule rather than today's state; the payment step itself offers escrow
+ * only when the server reads it as working (`protectedRailLive()`).
+ */
+export const ESCROW_PAUSED =
+  "If escrow is paused, a payment that must go through escrow does not open, and nothing is charged. For rent and shortlets you can pay by card instead.";

@@ -72,6 +72,8 @@ describe("answering a reviewer who asked for more (SUP-05)", () => {
     const result = await respondToReview({
       answer: "My BVN is on the identity document attached.",
       documents: [{ kind: "identity", path: `${USER}/batch/response-identity.jpg` }],
+      acceptTerms: true,
+      acceptPayOnVallo: true,
     });
     expect(result.ok).toBe(true);
     const doc = calls.find((c) => c.table === "agent_documents" && c.op === "insert");
@@ -85,7 +87,17 @@ describe("answering a reviewer who asked for more (SUP-05)", () => {
       },
     ]);
     const update = calls.find((c) => c.table === "agent_applications" && c.op === "update");
-    expect(update?.payload).toEqual({ status: "SUBMITTED", applicant_response: "My BVN is on the identity document attached." });
+    expect(update?.payload).toEqual({
+      status: "SUBMITTED",
+      applicant_response: "My BVN is on the identity document attached.",
+      consents: {
+        agreements: [
+          expect.objectContaining({ document: "terms" }),
+          expect.objectContaining({ document: "privacy" }),
+          expect.objectContaining({ document: "pay_on_vallo" }),
+        ],
+      },
+    });
     expect(update?.filters).toContainEqual(["status", "MORE_INFO_REQUIRED"]);
     // Never writes a reviewer column or a decided status.
     expect(JSON.stringify(update?.payload)).not.toMatch(/APPROVED|reviewer_id|reviewed_at|review_notes/);
@@ -102,6 +114,8 @@ describe("answering a reviewer who asked for more (SUP-05)", () => {
         { kind: "identity", path: `${USER}/batch/response-identity.jpg` },
         { kind: "address", path: `${USER}/batch/response-address.pdf` },
       ],
+      acceptTerms: true,
+      acceptPayOnVallo: true,
     });
     expect(result.ok).toBe(true);
     const doc = calls.find((c) => c.table === "agent_documents" && c.op === "insert");
@@ -114,6 +128,14 @@ describe("answering a reviewer who asked for more (SUP-05)", () => {
     ]);
   });
 
+  it("refuses a resubmission without the Terms and the pay-on-Vallo ticks (ruling 6)", async () => {
+    const noPay = await respondToReview({ answer: "Attached.", acceptTerms: true });
+    expect(noPay.ok).toBe(false);
+    const noTerms = await respondToReview({ answer: "Attached.", acceptPayOnVallo: true });
+    expect(noTerms.ok).toBe(false);
+    expect(calls.filter((c) => c.op !== "select")).toEqual([]);
+  });
+
   it("refuses an empty send-back", async () => {
     const result = await respondToReview({ answer: "   ", documents: [] });
     expect(result.ok).toBe(false);
@@ -124,6 +146,8 @@ describe("answering a reviewer who asked for more (SUP-05)", () => {
     const result = await respondToReview({
       answer: "here",
       documents: [{ kind: "identity", path: "someone-else/batch/id.jpg" }],
+      acceptTerms: true,
+      acceptPayOnVallo: true,
     });
     expect(result.ok).toBe(false);
     expect(calls.filter((c) => c.op !== "select")).toEqual([]);
@@ -131,7 +155,7 @@ describe("answering a reviewer who asked for more (SUP-05)", () => {
 
   it("does nothing when the application is not waiting on the applicant", async () => {
     applicationStatus = "SUBMITTED";
-    const result = await respondToReview({ answer: "again" });
+    const result = await respondToReview({ answer: "again", acceptTerms: true, acceptPayOnVallo: true });
     expect(result.ok).toBe(false);
     expect(calls.filter((c) => c.op !== "select")).toEqual([]);
   });

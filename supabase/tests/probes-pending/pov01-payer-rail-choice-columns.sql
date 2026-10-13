@@ -5,6 +5,8 @@
 -- Everything is rolled back by the final raise.
 do $$
 declare
+  guest constant uuid := '957b3bd2-cce3-425d-bba9-5cd876ca3d62';
+  v_sale uuid; v_owner uuid; insp uuid;
   ag uuid;
   pol uuid;
   refused boolean;
@@ -19,6 +21,20 @@ begin
   end if;
 
   select id into ag from public.deal_agreements order by created_at desc limit 1;
+  if ag is null then
+    -- No agreement yet on this database: draw one up on a sale listing (rolled back).
+    select l.id, a.user_id into v_sale, v_owner from public.listings l join public.agents a on a.id = l.agent_id
+     where l.listing_intent = 'sale' and a.user_id is not null and a.user_id <> guest limit 1;
+    insert into public.listing_mandates (listing_id, kind, principal_name, review_status, reviewed_by, reviewed_at,
+           principal_relationship, principal_verified_how, principal_verified_by, principal_verified_at)
+    select id, 'sale', 'Probe Principal', 'approved', v_owner, now(), 'owner', 'call_back', v_owner, now()
+      from public.listings where id = v_sale and listing_role <> 'owner' and not private.listing_has_live_mandate(id);
+    update public.listings set is_demo = false where id = v_sale;
+    insert into public.inspection_requests (listing_id, requester_id, lister_id, requested_at)
+    values (v_sale, guest, v_owner, now()) returning id into insp;
+    insert into public.deal_agreements (kind, listing_id, inspection_id, renter_id, owner_id, amount_minor, terms)
+    values ('rent', v_sale, insp, guest, v_owner, 900000000, '{"total_minor": 900000000}') returning id into ag;
+  end if;
   if ag is null then
     raise exception 'PROBE_FAIL pov01-payer-rail-choice-columns: fixtures missing (an agreement)';
   end if;

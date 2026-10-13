@@ -33,6 +33,12 @@ export const reviewResponseSchema = z
       )
       .max(RESPONSE_MAX_DOCUMENTS)
       .default([]),
+    /* Ruling 6 (13 October 2026): a resubmission records the Terms, the
+       Privacy Policy and the pay-on-Vallo statement again, as a first
+       submission does (the action refuses without both ticks, pov08 in the
+       database too). */
+    acceptTerms: z.boolean().default(false),
+    acceptPayOnVallo: z.boolean().default(false),
   })
   .refine((value) => value.answer.length > 0 || value.documents.length > 0, {
     message: "empty",

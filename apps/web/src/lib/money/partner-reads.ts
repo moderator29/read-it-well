@@ -1,6 +1,6 @@
 import "server-only";
 
-import { railIsLive } from "./rails";
+import { protectedRailLive } from "./rail-live";
 import { readMyBalance } from "./member-wallet";
 import type { Balances, Payment, WithdrawalQuote } from "./vallo";
 
@@ -9,7 +9,7 @@ import type { Balances, Payment, WithdrawalQuote } from "./vallo";
  *
  * Each one is Session 2's, through the D50 adapter that turns a partner's
  * answer into Vallo's vocabulary (`lib/money/vallo.ts`). Until it lands, and
- * until the protected rail is live (`lib/money/rails.ts`, D50 condition 3),
+ * until the protected rail is live (`protectedRailLive()`, read on the server),
  * every read answers `absent` without calling anything, and every surface
  * draws its honest absent state. Nothing here ever fabricates a figure: there
  * is no fixture path in this file, and the dev previews pass their fixtures
@@ -45,11 +45,11 @@ export async function readMyBalances(): Promise<PartnerRead<Balances>> {
 
 export async function prepareWithdrawalQuote(input: { amountMinor: number; accountId: string }): Promise<PartnerRead<WithdrawalQuote>> {
   void input;
-  if (!railIsLive("protected")) return ABSENT;
+  if (!(await protectedRailLive())) return ABSENT;
   return ABSENT;
 }
 
 export async function readMyProtectedPayments(): Promise<PartnerRead<Payment[]>> {
-  if (!railIsLive("protected")) return ABSENT;
+  if (!(await protectedRailLive())) return ABSENT;
   return ABSENT;
 }

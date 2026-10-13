@@ -30,11 +30,19 @@ export type PaylukMerchantConfig = { key: string; baseUrl: string; environment: 
  * the host, so a test key can never reach production (Payluk refuses that
  * with 403 anyway). `PAYLUK_SECRET_KEY` is the name Payluk's own docs use;
  * `PAYLUK_TEST_SECRET_KEY` is the staging name in SESSION-2-RESPONSE.md.
+ *
+ * The live key is used in production only. On a Vercel deployment that is
+ * not production (`VERCEL_ENV` preview or development) the live key is
+ * ignored even if it is present, so a preview can never move real money;
+ * it uses the test key or nothing. Off Vercel (`VERCEL_ENV` unset) the key's
+ * prefix decides, as before.
  */
 export function paylukMerchantConfig(env: Readonly<Record<string, string | undefined>>): PaylukMerchantConfig | null {
   const live = (env.PAYLUK_SECRET_KEY ?? "").trim();
   const test = (env.PAYLUK_TEST_SECRET_KEY ?? "").trim();
-  if (live.startsWith("sk_live_")) return { key: live, baseUrl: "https://api.payluk.ng", environment: "production" };
+  const vercelEnv = (env.VERCEL_ENV ?? "").trim();
+  const liveAllowed = vercelEnv === "" || vercelEnv === "production";
+  if (liveAllowed && live.startsWith("sk_live_")) return { key: live, baseUrl: "https://api.payluk.ng", environment: "production" };
   if (test.startsWith("sk_test_")) return { key: test, baseUrl: "https://staging.api.payluk.ng", environment: "staging" };
   return null;
 }

@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { formatMoney, type Locale } from "@vallo/i18n/core";
-import { pauseRelease, resumeRelease } from "@/lib/admin/agreements-actions";
+import { pauseRelease, resolveHeldPayment, resumeRelease } from "@/lib/admin/agreements-actions";
 import { signalWords, type WatchRow } from "@/lib/admin/watch-list";
 
 /**
@@ -28,6 +28,11 @@ function WatchItem({ row, locale }: { row: WatchRow; locale: Locale }) {
   const [message, setMessage] = useState<string | null>(null);
   const [reason, setReason] = useState("");
   const held = row.arrangementId !== null && ["protected", "release_requested", "payment_processing"].includes(row.heldStatus ?? "");
+  /* A person decides a held payment (refund or dispute): only once the
+     partner has said it holds the money. */
+  const decidable = row.arrangementId !== null && ["protected", "release_requested", "disputed"].includes(row.heldStatus ?? "");
+  const [note, setNote] = useState("");
+  const [resolveMessage, setResolveMessage] = useState<string | null>(null);
   return (
     <li className="nf-admin-queue-row" data-risk={row.riskScore}>
       <p className="font-semibold">
@@ -93,6 +98,48 @@ function WatchItem({ row, locale }: { row: WatchRow; locale: Locale }) {
           {message && (
             <span role="status" className="nf-caption">
               {message}
+            </span>
+          )}
+        </div>
+      )}
+      {decidable && row.arrangementId && (
+        <div className="mt-row flex flex-wrap items-center gap-sm" data-testid="watch-resolve">
+          <input
+            aria-label="Why refund or release this held payment"
+            className="nf-input"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="Your decision, in a sentence both parties read"
+          />
+          <button
+            type="button"
+            className="nf-btn nf-btn--glass nf-btn--sm"
+            disabled={pending || note.trim().length < 10}
+            onClick={() =>
+              start(async () => {
+                const r = await resolveHeldPayment({ arrangementId: row.arrangementId!, outcome: "refund", note });
+                setResolveMessage(r.ok ? "Refund asked of the partner. It shows as refunded when the partner confirms." : r.error);
+              })
+            }
+          >
+            Refund to payer
+          </button>
+          <button
+            type="button"
+            className="nf-btn nf-btn--glass nf-btn--sm"
+            disabled={pending || note.trim().length < 10}
+            onClick={() =>
+              start(async () => {
+                const r = await resolveHeldPayment({ arrangementId: row.arrangementId!, outcome: "release", note });
+                setResolveMessage(r.ok ? "Release asked of the partner. It shows as released when the partner confirms." : r.error);
+              })
+            }
+          >
+            Release to lister
+          </button>
+          {resolveMessage && (
+            <span role="status" className="nf-caption">
+              {resolveMessage}
             </span>
           )}
         </div>

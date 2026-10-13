@@ -14,6 +14,7 @@ import { DocumentUploader } from "./DocumentUploader";
 import { SuccessSheet } from "@/components/ui/SuccessSheet";
 import { successCopy, type SuccessWords } from "@/lib/ui/success-moments";
 import type { Dictionary } from "@vallo/i18n/core";
+import { WorkspaceAcceptance } from "@/components/legal/WorkspaceAcceptance";
 
 /** The flow's words (`experienceAccount.kyc`), from the server page (Round 3 sweep, C3). */
 export type KycCopy = Dictionary["experienceAccount"]["kyc"];
@@ -65,6 +66,7 @@ export function KycFlow({
   success,
   copy,
   askBusiness = true,
+  acceptCopy,
 }: {
   /** The flow's words, from the server page. */
   copy: KycCopy;
@@ -82,6 +84,13 @@ export function KycFlow({
    * them. See `stepsFor`.
    */
   askBusiness?: boolean;
+  /**
+   * Ruling 6: the Terms, Privacy Policy and pay-on-Vallo ticks, drawn on the
+   * consent step when this flow can file or resend a workspace application.
+   * Absent, the ticks are not drawn (and the server asks for them only when
+   * an application is actually sent).
+   */
+  acceptCopy?: Pick<Dictionary["payChoice"], "accept">;
 }) {
   const [at, setAt] = useState(0);
   const [business, setBusiness] = useState<boolean | null>(null);
@@ -97,13 +106,21 @@ export function KycFlow({
   });
   const [businessDetails, setBusinessDetails] = useState<Record<string, string>>({});
   const [consents, setConsents] = useState<ConsentId[]>([]);
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [acceptPay, setAcceptPay] = useState(false);
   const [sending, setSending] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
 
   const steps = stepsFor(business, askBusiness);
   const step = steps[Math.min(at, steps.length - 1)]!;
-  const submission: KycSubmission = { documents, business: business === true, businessDetails, consents };
+  const submission: KycSubmission = {
+    documents,
+    business: business === true,
+    businessDetails,
+    consents,
+    ...(acceptCopy ? { acceptTerms, acceptPayOnVallo: acceptPay } : {}),
+  };
 
   /* `sent` is set only by the action's own ok, so the sheet opens once, at
      filing, over the "in review" screen it leaves behind. */
@@ -148,7 +165,7 @@ export function KycFlow({
           ),
         );
       case "consent":
-        return CONSENTS.every((c) => consents.includes(c.id));
+        return CONSENTS.every((c) => consents.includes(c.id)) && (!acceptCopy || (acceptTerms && acceptPay));
       default:
         return true;
     }
@@ -372,6 +389,16 @@ export function KycFlow({
             })}
           </ul>
         )}
+        {step.id === "consent" && acceptCopy ? (
+          <WorkspaceAcceptance
+            copy={acceptCopy}
+            terms={acceptTerms}
+            pay={acceptPay}
+            onTerms={setAcceptTerms}
+            onPay={setAcceptPay}
+            className="mt-sm"
+          />
+        ) : null}
 
         {step.id === "review" && (
           <>

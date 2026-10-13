@@ -17,7 +17,8 @@ import { fail, ok, type ActionResult } from "../actions/envelope";
 import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../actions/session";
 import { readChoiceRefusal, type ChoiceRefusal, type PayRail } from "./rail-choice";
 
-export type ChoiceSaved = { choice: PayRail };
+/** `review`: a person at Vallo looks at the deal before this rail is paid (the gate re-read the new rail). */
+export type ChoiceSaved = { choice: PayRail; review?: boolean };
 
 const input = z.object({ agreementId: z.string().uuid(), choice: z.enum(["escrow", "card"]) });
 
@@ -38,10 +39,10 @@ export async function choosePaymentRail(raw: unknown): Promise<ActionResult<Choi
       p_choice: parsed.data.choice,
     });
     if (error) return fail("unavailable" satisfies ChoiceRefusal);
-    const answer = (data ?? {}) as { status?: unknown; choice?: unknown };
+    const answer = (data ?? {}) as { status?: unknown; choice?: unknown; review?: unknown };
     if (answer.status !== "ok") return fail(readChoiceRefusal(answer.status));
     revalidatePath(`/agreements/${parsed.data.agreementId}`);
-    return ok({ choice: parsed.data.choice });
+    return ok(answer.review === true ? { choice: parsed.data.choice, review: true } : { choice: parsed.data.choice });
   } catch {
     return fail("unavailable" satisfies ChoiceRefusal);
   }
