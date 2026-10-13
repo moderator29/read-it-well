@@ -66,7 +66,7 @@ export type SettingsHubProps = {
    * "nothing is needed" is not drawn).
    */
   phoneRow?: { label: string; sub: string } | null;
-  /** V-100: the renter passport row, for a signed-in person. Absent draws nothing. */
+  /** The Vallo passport row, for a signed-in person. Absent draws nothing. */
   passportRow?: { label: string; sub: string } | null;
   /**
    * The Rewards row, for a signed-in person: the Rewards page's title, and a

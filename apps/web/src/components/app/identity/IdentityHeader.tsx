@@ -262,7 +262,7 @@ export function IdentityHeader({
 /**
  * THE CREDENTIALS SECTION under a person's header, on both profiles: what
  * vouches for them (their badges, their Vallo Record, an agent's reviews, and
- * on your own page your renter passport), under one quiet label. A section
+ * on your own page your Vallo passport), under one quiet label. A section
  * with nothing in it draws nothing, label included, so a person with no
  * credentials yet is not shown an empty box.
  */

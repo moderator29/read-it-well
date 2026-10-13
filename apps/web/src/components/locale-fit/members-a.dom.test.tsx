@@ -2,7 +2,7 @@
  * Locale fit, the surfaces members use most, part one (north star checklist
  * point 22): the inbox list, a thread with its composer, the notifications list,
  * the settings rows (the hub, appearance with its language row, and the help
- * rows) and the Space Passport, each mounted in Chromium at 390px in English,
+ * rows) and the Vallo passport card, each mounted in Chromium at 390px in English,
  * Hausa, Igbo and Yorùbá, from the real dictionaries, on the product's real
  * compiled cascade.
  *
@@ -54,7 +54,7 @@ describe.skipIf(!hasBrowser && !process.env.CI)("locale fit: inbox, thread, noti
       body: `
         <div className="flex h-dvh flex-col">
           <ThreadView
-            sheetCopy={{ passport: t.trustVisible.passport, unsafe: t.trustVisible.unsafe }}
+            sheetCopy={{ unsafe: t.trustVisible.unsafe }}
             live={false}
             conversationId={CONVERSATION_ID}
             meId={PERSON.id}
@@ -153,15 +153,27 @@ describe.skipIf(!hasBrowser && !process.env.CI)("locale fit: inbox, thread, noti
 
   fitCases(
     {
-      name: "Space Passport credential, switched on and off",
+      name: "Vallo passport card in a chat, full and sparse",
       imports: `
-        import { PassportCredential } from "@/components/app/account/PassportCredential";
-        import { PassportShareButton } from "@/components/app/account/PassportShareButton";`,
-      setup: `const copy = t.experienceAccount.passport;`,
+        import { PassportChatCard } from "@/components/passport/PassportChatCard";
+        import { factsFrom } from "@/lib/passport/model";
+        import { buildPassportView } from "@/lib/passport/view";`,
+      setup: `
+        const ID = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
+        const row = (over) => ({
+          subject_id: ID, handle: "ada", display_name: "Ada Okafor", photo: null, roles: ["renter"],
+          joined_at: "2026-03-02T09:00:00Z", verification: "none", rentals: null, stays: null,
+          review_count: null, review_average: null, reply_band: null, pidgin_ok: null, ...over,
+        });
+        const card = (over) => ({
+          kind: "passport", id: ID,
+          view: buildPassportView(factsFrom(row(over)), t.passportV2, t.socialProfile.roleLine, locale),
+          copy: { title: t.passportV2.title, open: t.passportV2.cardOpen, joined: t.passportV2.cardJoined },
+        });`,
       body: `
         <div className="nf-shell pt-xl"><div className="mx-auto max-w-2xl space-y-block">
-          <PassportCredential copy={copy} enabled since={null} action={<PassportShareButton copy={copy} dismissLabel={t.experienceUi.notNow} />} />
-          <PassportCredential copy={copy} enabled={false} since={null} />
+          <PassportChatCard card={card({ roles: ["landlord", "agent"], verification: "gold", rentals: 12, stays: 48, review_count: 31, review_average: 4.8, reply_band: "hour", pidgin_ok: true })} />
+          <PassportChatCard card={card({})} />
         </div></div>`,
       bleed: true,
       css: CSS,

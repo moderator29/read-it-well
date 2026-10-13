@@ -293,7 +293,7 @@ export default async function ConversationPage({
 
     return (
       <ThreadView
-        sheetCopy={{ passport: t.trustVisible.passport, unsafe: t.trustVisible.unsafe }}
+        sheetCopy={{ unsafe: t.trustVisible.unsafe }}
         live
         conversationId={thread.conversationId}
         meId={thread.meId}

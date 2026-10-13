@@ -183,7 +183,7 @@ export default async function PreviewPassport({ searchParams }: { searchParams: 
     return (
       <div className="flex h-dvh flex-col">
         <ThreadView
-          sheetCopy={{ passport: t.trustVisible.passport, unsafe: t.trustVisible.unsafe }}
+          sheetCopy={{ unsafe: t.trustVisible.unsafe }}
           live={false}
           conversationId="00000000-0000-4000-8000-0000000000c1"
           meId={OTHER_ID}

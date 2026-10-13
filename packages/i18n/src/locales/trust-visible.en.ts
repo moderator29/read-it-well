@@ -439,35 +439,6 @@ export const trustVisibleEn = {
     footer: "The person you report is never told who reported them. If you are in danger,",
     call: "call 112 now",
   },
-  /** The Vallo passport (13 October 2026): Vallo facts only, members only, every line on by default, the owner can hide lines. Never phone, email, ID, date of birth or address. (Sharing keys of V-100 were removed.) */
-  passport: {
-    title: "Vallo passport",
-    subtitle: "What Vallo recorded about you, for members to see",
-    lede: "Your passport shows what Vallo itself recorded about you. Every line is on by default and only signed-in members can open it. You can hide any line, or the whole passport, at any time. Your phone number, email, ID numbers, date of birth and address are never on it.",
-    on: "Passport on",
-    off: "Passport off",
-    turnOn: "Turn it on",
-    turnOff: "Turn it off",
-    offNote: "While it is off, nobody can open your passport and cards in chats stop opening.",
-    preview: "What members see",
-    previewEmpty: "Nothing yet. As you rent, host and take part through Vallo, it fills itself in.",
-    phone: "Phone confirmed",
-    /** `{date}` is a date. */
-    nimc: "Identity matched with NIMC, {date}",
-    attendedOne: "1 inspection attended, recorded at the gate by both phones",
-    /** `{count}` inspections. */
-    attended: "{count} inspections attended, recorded at the gate by both phones",
-    tenancyOne: "1 tenancy paid through Vallo",
-    /** `{count}` tenancies. */
-    tenancies: "{count} tenancies paid through Vallo",
-    /** `{month}` is a month and year. */
-    since: "On Vallo since {month}",
-    failed: "That did not save. Nothing changed. Try again.",
-    signedOut: "Sign in to see your passport.",
-    signIn: "Sign in",
-    readFailed: "Your passport did not load. Nothing was changed. Try again in a moment.",
-    working: "Saving",
-  },
   /**
    * V-97, the state kit's own screens. Written to `docs/design/VOICE.md`:
    * second person, one sentence of body, and nothing the code cannot prove.

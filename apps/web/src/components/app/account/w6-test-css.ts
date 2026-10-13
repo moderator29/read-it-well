@@ -22,6 +22,5 @@ export const W6_CSS = [
     : [read("app", "css", "glass.css"), read("app", "css", "chips.css"), read("app", "settings-rows.css")]),
   read("components", "app", "account", "invite-reveal.css"),
   read("components", "app", "account", "referral.css"),
-  read("components", "app", "account", "passport.css"),
   read("components", "verification", "verification-path.css"),
 ].join("\n");

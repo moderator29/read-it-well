@@ -94,15 +94,6 @@ describe("a read that Supabase refuses by returning { error } is reported, and s
     expect(sent()).toEqual([["read.passport.readPhoneConfirmedAt", "42501"]]);
   });
 
-  it("two reads at once, either failing: the passport share state", async () => {
-    const { readPassportShareState } = await import("@/lib/trust/passport-read");
-    expect(await readPassportShareState(ID)).toBeNull();
-    expect(sent()).toEqual([
-      ["read.passport.readPassportShareState", "42501"],
-      ["read.passport.readPassportShareState", "42501"],
-    ]);
-  });
-
   it("a ternary fallback: the agreement record's party read", async () => {
     const { readAgreementRecord } = await import("@/components/app/agreements/record-read");
     await readAgreementRecord(ID);
@@ -127,9 +118,7 @@ describe("a read that Supabase refuses by returning { error } is reported, and s
 
   it("a genuinely empty answer is not reported", async () => {
     current = answering(() => ({ data: null, error: null }));
-    const { readPassportShareState } = await import("@/lib/trust/passport-read");
     const { readPhoneConfirmedAt } = await import("@/app/(app)/settings/passport/passport-reads");
-    expect(await readPassportShareState(ID)).toEqual({ enabled: false, shared: false });
     expect(await readPhoneConfirmedAt()).toBeNull();
     expect(sent()).toEqual([]);
   });

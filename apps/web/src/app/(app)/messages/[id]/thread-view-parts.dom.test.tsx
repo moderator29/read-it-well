@@ -52,7 +52,7 @@ const entry = (live: boolean) => `
   mount(
     <div style={{ height: 900, display: "flex", flexDirection: "column" }}>
       <ThreadView
-        sheetCopy={{ passport: t.trustVisible.passport, unsafe: t.trustVisible.unsafe }}
+        sheetCopy={{ unsafe: t.trustVisible.unsafe }}
         live={${live}}
         conversationId="00000000-0000-4000-8000-00000000c001"
         meId="00000000-0000-4000-8000-000000000001"
