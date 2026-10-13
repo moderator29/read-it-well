@@ -141,13 +141,15 @@ describe("bookViewingSlot writes the visit mode and books once per tap", () => {
     const result = await bookViewingSlot({ listingId: LISTING, slotAt: slot });
     expect(result).toEqual({ ok: true, data: { id: REQUEST } });
     expect(rpcCalls).toHaveLength(1);
+    expect(rpcCalls[0]![0]).toBe("book_viewing_slot");
     expect(rpcCalls[0]![1]).not.toHaveProperty("p_mode");
   });
 
-  it("books video in the same insert when the database takes p_mode", async () => {
+  it("books video in the same insert through book_viewing_slot_mode", async () => {
     const { rpcCalls, payloads } = mount({});
     await bookViewingSlot({ listingId: LISTING, slotAt: slot, mode: "video" });
     expect(rpcCalls).toHaveLength(1);
+    expect(rpcCalls[0]![0]).toBe("book_viewing_slot_mode");
     expect(rpcCalls[0]![1]).toMatchObject({ p_mode: "video" });
     expect(payloads.some((p) => p.payload["visit_mode"] !== undefined)).toBe(false);
   });
@@ -155,12 +157,13 @@ describe("bookViewingSlot writes the visit mode and books once per tap", () => {
   it("falls back to booking then writing the mode before the migration is applied", async () => {
     const { rpcCalls, payloads } = mount({}, (_fn, args) =>
       "p_mode" in args
-        ? { data: null, error: { code: "PGRST202", message: "Could not find the function public.book_viewing_slot" } }
+        ? { data: null, error: { code: "PGRST202", message: "Could not find the function public.book_viewing_slot_mode" } }
         : { data: REQUEST, error: null },
     );
     const result = await bookViewingSlot({ listingId: LISTING, slotAt: slot, mode: "video" });
     expect(result.ok).toBe(true);
     expect(rpcCalls).toHaveLength(2);
+    expect(rpcCalls.map((c) => c[0])).toEqual(["book_viewing_slot_mode", "book_viewing_slot"]);
     expect(payloads.find((p) => p.table === "inspection_requests" && p.payload["visit_mode"] === "video")).toBeTruthy();
   });
 

@@ -6,25 +6,25 @@ import type { VisitMode } from "../inspections/visit";
  * BOOKING AN OPEN SLOT WITH A VISIT MODE, AGAINST EITHER DATABASE.
  *
  * `public.book_viewing_slot` writes the CONFIRMED row in one transaction and
- * notifies both sides from its insert trigger. Until the pending migration
- * `supabase/migrations/pending/visit_mode_on_booking.sql` is applied it takes
- * three arguments and every booking it writes is in person (the column's
- * default). After it, a fourth, `p_mode`, writes the mode in the same insert,
- * so the lister's "Viewing booked" notification can say it is a video visit.
+ * notifies both sides from its insert trigger; every booking it writes is in
+ * person. `public.book_viewing_slot_mode` (migration
+ * `visit_mode_on_booking_notices_and_calls`) takes the mode as a fourth
+ * argument and writes it in the same insert, so the lister's "Viewing booked"
+ * notification can say it is a video visit. The three-argument function
+ * passes through to it, so there is one booking rule.
  *
- * So: an in-person booking calls with three arguments, which both versions
- * answer. A video booking calls with four; if PostgREST answers that no such
- * function exists (PGRST202, the live database before the migration), it
- * books with three and then writes the mode onto the row it just booked,
- * under the caller's own RLS (the requester may update their own row, and
- * nothing in `private.inspection_columns_belong` refuses the column today).
+ * So: an in-person booking calls `book_viewing_slot`. A video booking calls
+ * `book_viewing_slot_mode`; if PostgREST answers that no such function exists
+ * (PGRST202, a database before the migration), it books in person and then
+ * writes the mode onto the row it just booked, under the caller's own RLS
+ * (the requester may update their own row's mode).
  *
  * Kept out of the "use server" module because it is not an action: it is
  * handed the caller's own client by one.
  */
 
 export type BookRpc = (
-  fn: "book_viewing_slot",
+  fn: "book_viewing_slot" | "book_viewing_slot_mode",
   args: Record<string, unknown>,
 ) => PromiseLike<{ data: unknown; error: { code?: string; hint?: string; message?: string } | null }>;
 
@@ -47,7 +47,7 @@ export async function bookWithMode(
 ): Promise<BookAnswer> {
   if (mode === "in_person") return rpc("book_viewing_slot", args);
 
-  const withMode = await rpc("book_viewing_slot", { ...args, p_mode: mode });
+  const withMode = await rpc("book_viewing_slot_mode", { ...args, p_mode: mode });
   if (!isMissingSignature(withMode.error)) return withMode;
 
   const booked = await rpc("book_viewing_slot", args);
