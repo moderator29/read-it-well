@@ -67,7 +67,7 @@ const entry = (live: boolean) => `
         context={{ kind: "direct" }}
         threadCopy={t.threads}
         locale="en"
-        sinceLine="On Vallo since October 2026"
+        sinceLine="On Vallo since 9 October 2026"
         messages={${JSON.stringify(MESSAGES)}}
       />
     </div>,
@@ -79,7 +79,7 @@ describe.skipIf(!hasBrowser && !process.env.CI)("the thread's new parts", () => 
     const { page, close } = await mountInBrowser({ entry: entry(false), css: CSS });
     try {
       const since = page.getByTestId("thread-since");
-      expect((await since.textContent())?.trim()).toBe("Ada Eze: On Vallo since October 2026");
+      expect((await since.textContent())?.trim()).toBe("Ada Eze: On Vallo since 9 October 2026");
       const placed = await since.evaluate((el) => ({
         after: el.previousElementSibling?.className,
         size: parseFloat(getComputedStyle(el).fontSize),

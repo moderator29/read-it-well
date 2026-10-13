@@ -31,7 +31,7 @@ describe("the Vallo Record (V-34)", () => {
       "Inspections kept: 29 of 31, counted from the code at the gate, last 12 months",
       "Found as described at inspection: 27 of 29 renters, last 12 months",
       "Let through Vallo: 9 in the last 12 months",
-      "On Vallo since March 2026",
+      "On Vallo since 2 March 2026",
     ]);
   });
 

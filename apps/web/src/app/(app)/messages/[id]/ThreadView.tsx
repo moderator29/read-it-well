@@ -247,7 +247,7 @@ export type ThreadViewProps = {
   personLine?: { key: string; text: string }[];
   personLabel?: string;
   /**
-   * "On Vallo since October 2026": when the other person joined, already
+   * "On Vallo since 9 October 2026": when the other person joined, already
    * worded (`trustVisible.person.memberSince`). Drawn small under the line
    * that keeps chats and payments inside Vallo (founder, 11 October 2026),
    * and so left out of the person line. Absent or null draws nothing.
