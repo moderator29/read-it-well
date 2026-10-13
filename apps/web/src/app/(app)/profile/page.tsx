@@ -29,7 +29,7 @@ import { readProfileBadges } from "@/components/social/profile/badges-read";
 import { IdentityCredentials } from "@/components/app/identity/IdentityHeader";
 import { ValloRecord } from "@/components/app/trust/ValloRecord";
 import { readUserRecord } from "@/lib/trust/record-read";
-import { readMyPassport } from "@/lib/trust/passport-read";
+import { readMyPassportOn } from "@/lib/passport/passport-read";
 import { readOwnRoleWords } from "@/lib/profile/role-facts";
 import { roleLine } from "@/lib/profile/role-line";
 import { PassportRows } from "./PassportRows";
@@ -153,13 +153,13 @@ export default async function ProfilePage({
   const signedIn = account.state === "signed-in";
   const userId = signedIn ? account.profile.userId : null;
   const client = signedIn ? await createClient() : null;
-  const [posts, badges, roleWords, passport, record] = await Promise.all([
+  const [posts, badges, roleWords, passportOn, record] = await Promise.all([
     social.state === "claimed" ? getProfileFeed(social.userId) : Promise.resolve([]),
     client && userId ? readProfileBadges(client, userId, locale) : Promise.resolve(null),
     client && userId
       ? readOwnRoleWords(client, userId, agentContext.state === "agent" ? agentContext.agent : null)
       : Promise.resolve(null),
-    signedIn ? readMyPassport() : Promise.resolve(null),
+    signedIn ? readMyPassportOn() : Promise.resolve(null),
     userId && agentContext.state === "agent" ? readUserRecord(userId) : Promise.resolve(null),
   ]);
   const copy = {
@@ -275,11 +275,10 @@ export default async function ProfilePage({
               </>
             ) : null}
             <PassportRows
-              passport={passport}
-              copy={t.experienceAccount.passport}
+              on={passportOn}
+              copy={t.passportV2}
               memberSinceLabel={t.socialProfile.accountPage.memberSince}
               memberSince={monthAndYear(profile.memberSince, locale)}
-              locale={locale}
             />
             {record ? <ValloRecord record={record} t={t} locale={locale} /> : null}
           </IdentityCredentials>

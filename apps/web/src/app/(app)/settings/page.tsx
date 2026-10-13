@@ -98,7 +98,7 @@ export default async function SettingsPage() {
               : null
           }
           passportRow={
-            signedIn ? { label: t.trustVisible.passport.title, sub: t.trustVisible.passport.subtitle } : null
+            signedIn ? { label: t.passportV2.title, sub: t.passportV2.subtitle } : null
           }
           rewardsRow={
             signedIn

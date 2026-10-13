@@ -1,0 +1,388 @@
+@layer theme, base, components, utilities;
+
+/*
+ * THE VALLO PASSPORT. The document, the card in a chat, and the owner's
+ * switches. Every colour is a token, so the same rules draw it on paper and
+ * at night; the security pattern is drawn from the brand blue at low strength,
+ * which keeps the page readable in both.
+ *
+ * The document is a container (`container-type: inline-size`) so its machine
+ * lines can size themselves to the width they are given: forty-four characters
+ * across a 390px phone and across a desktop column, never wrapped.
+ */
+@layer components {
+  .nf-vp {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    container-type: inline-size;
+    display: grid;
+    gap: var(--nf-space-lg);
+    padding: var(--nf-space-lg);
+    border-radius: var(--nf-radius-2xl);
+    border: var(--nf-border-width) solid var(--nf-border-default);
+    background:
+      linear-gradient(
+        160deg,
+        color-mix(in oklab, var(--nf-brand-primary) 9%, var(--nf-surface-elevated)),
+        var(--nf-surface-elevated) 46%,
+        color-mix(in oklab, var(--nf-brand-primary) 6%, var(--nf-surface-elevated))
+      );
+    box-shadow: var(--nf-elev-3);
+    color: var(--nf-content-primary);
+  }
+
+  /* The security pattern: waves and a rosette, drawn in the brand blue at a
+     strength that never competes with the words. */
+  .nf-vp__lace {
+    position: absolute;
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100%;
+    z-index: -1;
+    color: var(--nf-brand-primary);
+    pointer-events: none;
+  }
+  .nf-vp__wave {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 0.6;
+    opacity: 0.2;
+  }
+  .nf-vp__rosette {
+    position: absolute;
+    inset-block-start: calc(var(--nf-space-xl) * -1);
+    inset-inline-end: calc(var(--nf-space-xl) * -1);
+    inline-size: 11rem;
+    block-size: 11rem;
+    z-index: -1;
+    color: var(--nf-brand-primary);
+    pointer-events: none;
+  }
+  .nf-vp__ring {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 0.5;
+    opacity: 0.3;
+  }
+  .nf-vp__seal {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 0.9;
+    opacity: 0.4;
+  }
+
+  .nf-vp--off {
+    opacity: 0.55;
+    filter: saturate(0.4);
+  }
+
+  .nf-vp__top {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    min-inline-size: 0;
+  }
+  .nf-vp__brand {
+    display: grid;
+    gap: var(--nf-space-3xs);
+    min-inline-size: 0;
+  }
+  .nf-vp__brand-name {
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    letter-spacing: var(--nf-tracking-overline);
+    text-transform: uppercase;
+    color: var(--nf-brand-primary);
+  }
+  .nf-vp__kind {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    letter-spacing: var(--nf-tracking-tight);
+    color: var(--nf-content-primary);
+  }
+
+  .nf-vp__main {
+    display: grid;
+    grid-template-columns: minmax(0, 7.25rem) minmax(0, 1fr);
+    gap: var(--nf-space-md);
+    align-items: start;
+  }
+  .nf-vp__photo {
+    display: grid;
+    place-items: center;
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+    border-radius: var(--nf-radius-md);
+    border: var(--nf-border-width) solid var(--nf-border-default);
+    background: var(--nf-brand-tint-2);
+    color: var(--nf-brand-primary);
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h1);
+    font-weight: 600;
+  }
+  .nf-vp__photo img {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+  .nf-vp__fields {
+    display: grid;
+    gap: var(--nf-space-sm);
+    min-inline-size: 0;
+    margin: 0;
+  }
+  .nf-vp__field {
+    display: grid;
+    gap: var(--nf-space-3xs);
+    min-inline-size: 0;
+  }
+  .nf-vp__label {
+    font-size: var(--nf-text-overline);
+    font-weight: 400;
+    letter-spacing: var(--nf-tracking-overline);
+    text-transform: uppercase;
+    color: var(--nf-content-muted);
+  }
+  .nf-vp__value {
+    margin: 0;
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    line-height: var(--nf-leading-row);
+    color: var(--nf-content-primary);
+    overflow-wrap: anywhere;
+  }
+  .nf-vp__value--name {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h3);
+    letter-spacing: var(--nf-tracking-tight);
+  }
+  .nf-vp__value--number {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.08em;
+  }
+
+  .nf-vp__level {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--nf-space-sm);
+    align-items: center;
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    border-radius: var(--nf-radius-md);
+    border: var(--nf-border-width) solid var(--nf-border-subtle);
+    background: color-mix(in oklab, var(--nf-brand-primary) 6%, transparent);
+  }
+  .nf-vp__level-mark {
+    display: grid;
+    place-items: center;
+    inline-size: 2rem;
+    block-size: 2rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-brand-tint-2);
+    color: var(--nf-brand-primary);
+  }
+  .nf-vp__level-text {
+    display: grid;
+    gap: var(--nf-space-3xs);
+    min-inline-size: 0;
+  }
+  .nf-vp__level-name {
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-vp__level-meaning {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+  }
+
+  .nf-vp__stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--nf-space-sm);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .nf-vp__stat {
+    display: grid;
+    gap: var(--nf-space-3xs);
+    align-content: start;
+    min-inline-size: 0;
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    border-radius: var(--nf-radius-md);
+    border: var(--nf-border-width) solid var(--nf-border-subtle);
+    background: color-mix(in oklab, var(--nf-surface-elevated) 72%, transparent);
+  }
+  .nf-vp__stat--wide,
+  .nf-vp__stat--odd {
+    grid-column: 1 / -1;
+  }
+  .nf-vp__stat-value {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h2);
+    font-weight: 600;
+    line-height: var(--nf-leading-figure);
+    letter-spacing: var(--nf-tracking-figure);
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-content-primary);
+  }
+  .nf-vp__stat-value--text {
+    font-family: var(--nf-font-sans);
+    font-size: var(--nf-text-body);
+    letter-spacing: var(--nf-tracking-normal);
+    line-height: var(--nf-leading-row);
+  }
+  .nf-vp__stat-sub {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+
+  /* The machine-readable lines. Sized from the document's own width. */
+  .nf-vp__mrz {
+    margin: 0 calc(var(--nf-space-lg) * -1) calc(var(--nf-space-lg) * -1);
+    padding: var(--nf-space-sm) var(--nf-space-lg);
+    border-block-start: var(--nf-border-width) dashed var(--nf-border-default);
+    background: color-mix(in oklab, var(--nf-brand-primary) 8%, transparent);
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: min(0.8125rem, calc((100cqw - 2 * var(--nf-space-lg)) / 44 / 0.62));
+    line-height: 1.45;
+    letter-spacing: 0;
+    white-space: pre;
+    overflow: hidden;
+    color: var(--nf-content-secondary);
+    user-select: none;
+  }
+
+  @container (min-width: 30rem) {
+    .nf-vp__main {
+      grid-template-columns: minmax(0, 9rem) minmax(0, 1fr);
+    }
+    .nf-vp__stats {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .nf-vp__stat--odd {
+      grid-column: auto;
+    }
+  }
+
+  /* ------------------------------------------------ the card in a chat */
+  .nf-vpc {
+    display: grid;
+    gap: var(--nf-space-sm);
+    inline-size: min(100%, 20rem);
+    padding: var(--nf-space-md);
+    border-radius: var(--nf-radius-xl);
+    border: var(--nf-border-width) solid var(--nf-border-default);
+    background: linear-gradient(
+      160deg,
+      color-mix(in oklab, var(--nf-brand-primary) 9%, var(--nf-surface-elevated)),
+      var(--nf-surface-elevated)
+    );
+    box-shadow: var(--nf-elev-2);
+    color: var(--nf-content-primary);
+  }
+  .nf-vpc__head {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--nf-space-sm);
+    align-items: center;
+    min-inline-size: 0;
+  }
+  .nf-vpc__photo {
+    display: grid;
+    place-items: center;
+    inline-size: 3.25rem;
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+    border-radius: var(--nf-radius-sm);
+    border: var(--nf-border-width) solid var(--nf-border-default);
+    background: var(--nf-brand-tint-2);
+    color: var(--nf-brand-primary);
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h3);
+    font-weight: 600;
+  }
+  .nf-vpc__photo img {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+  .nf-vpc__who {
+    display: grid;
+    gap: var(--nf-space-3xs);
+    min-inline-size: 0;
+  }
+  .nf-vpc__kind {
+    font-size: var(--nf-text-overline);
+    letter-spacing: var(--nf-tracking-overline);
+    text-transform: uppercase;
+    color: var(--nf-brand-primary);
+    font-weight: 600;
+  }
+  .nf-vpc__name {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-body-lg);
+    font-weight: 600;
+    letter-spacing: var(--nf-tracking-tight);
+    overflow-wrap: anywhere;
+  }
+  .nf-vpc__meta {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-vpc__level {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-vpc__counts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--nf-space-xs);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .nf-vpc__count {
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--nf-space-2xs);
+    padding: var(--nf-space-3xs) var(--nf-space-sm);
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-brand-tint-1);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+  }
+  .nf-vpc__count strong {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-content-primary);
+  }
+  .nf-vpc__action {
+    display: grid;
+  }
+
+  /* --------------------------------------------- the owner's page */
+  .nf-vps {
+    display: grid;
+    gap: var(--nf-space-xl);
+    padding-block-end: var(--nf-space-4xl);
+  }
+  .nf-vps__preview-label {
+    margin: 0 0 var(--nf-space-sm);
+    font-size: var(--nf-text-overline);
+    letter-spacing: var(--nf-tracking-overline);
+    text-transform: uppercase;
+    color: var(--nf-content-muted);
+  }
+  .nf-vps__off-note {
+    margin: var(--nf-space-sm) 0 0;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+  }
+}

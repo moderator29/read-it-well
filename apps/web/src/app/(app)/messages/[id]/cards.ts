@@ -2,10 +2,12 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { formatDate, formatMoney, getDictionary, type Locale } from "@vallo/i18n";
-import type { ChatCardData } from "@/components/app/messages/ChatCard";
-import { parseShare, type SharedRef } from "@/components/app/messages/share";
+import type { ChatCardData, ThreadCardData } from "@/components/app/messages/ChatCard";
+import { parseShare, type ParsedShare, type SharedRef } from "@/components/app/messages/share";
 import { getListingRepository } from "@/lib/listings/repository";
 import { getStayDetail } from "@/lib/stays/queries";
+import { readPassportCard } from "@/lib/passport/passport-read";
+import { buildPassportView } from "@/lib/passport/view";
 import { accommodationPhotoUrl } from "@/lib/stays/photos";
 import type { Listing, ListingKind } from "@/lib/listings/types";
 import type { Database } from "@/lib/supabase/database.types";
@@ -174,6 +176,25 @@ async function stayCard(id: string, locale: Locale): Promise<ChatCardData | null
   };
 }
 
+/**
+ * A member's passport as a card. The read is the same one the passport page
+ * makes, so it answers to the owner's switches, to blocks and to being signed
+ * in: a passport that is off, or between two people who blocked each other,
+ * resolves to nothing and the bubble falls back to its words and path.
+ */
+async function passportCard(ownerId: string, locale: Locale): Promise<ThreadCardData | null> {
+  const facts = await readPassportCard(ownerId);
+  if (!facts) return null;
+  const t = getDictionary(locale);
+  const copy = t.passportV2;
+  return {
+    kind: "passport",
+    id: ownerId,
+    view: buildPassportView(facts, copy, t.socialProfile.roleLine, locale),
+    copy: { title: copy.title, open: copy.cardOpen, joined: copy.cardJoined },
+  };
+}
+
 /** One card for one reference, or null when it does not resolve for this reader. */
 export async function resolveCard(
   db: Db,
@@ -198,25 +219,29 @@ export async function resolveCard(
  */
 export async function resolveCards(
   db: Db,
-  messages: { id: string; body: string }[],
+  messages: { id: string; body: string; senderId?: string | null }[],
   locale: Locale,
-): Promise<Map<string, ChatCardData>> {
-  const refs = new Map<string, SharedRef>();
+): Promise<Map<string, ThreadCardData>> {
+  const refs = new Map<string, ParsedShare>();
   const wanted = new Map<string, string>();
   for (const message of messages) {
     const ref = parseShare(message.body);
     if (!ref) continue;
+    /* A passport card is the SENDER'S own. A body that points at somebody
+       else's passport (typed, or forwarded) is not drawn as a card, so nobody
+       can post another member's passport as if they were showing it. */
+    if (ref.kind === "passport" && message.senderId !== ref.id) continue;
     const key = `${ref.kind}:${ref.id}`;
     refs.set(key, ref);
     wanted.set(message.id, key);
   }
-  const resolved = new Map<string, ChatCardData | null>();
+  const resolved = new Map<string, ThreadCardData | null>();
   await Promise.all(
     [...refs.entries()].map(async ([key, ref]) => {
-      resolved.set(key, await resolveCard(db, ref, locale));
+      resolved.set(key, ref.kind === "passport" ? await passportCard(ref.id, locale) : await resolveCard(db, ref, locale));
     }),
   );
-  const out = new Map<string, ChatCardData>();
+  const out = new Map<string, ThreadCardData>();
   for (const [messageId, key] of wanted) {
     const card = resolved.get(key);
     if (card) out.set(messageId, card);

@@ -44,4 +44,18 @@ describe("a share body", () => {
     expect(sharePreview(shareBody({ kind: "booking", id: ID }))).toBe("Shared a booking");
     expect(sharePreview("Are you free on Saturday?")).toBeNull();
   });
+
+  it("round-trips a member's Vallo passport onto its own route", () => {
+    const body = shareBody({ kind: "passport", id: ID });
+    expect(body).toBe(`Shared a passport\n/passport/${ID}`);
+    expect(shareHref({ kind: "passport", id: ID })).toBe(`/passport/${ID}`);
+    expect(parseShare(body)).toEqual({ kind: "passport", id: ID });
+    expect(parseShare(`/PASSPORT/${ID.toUpperCase()}`)).toEqual({ kind: "passport", id: ID });
+    expect(sharePreview(body)).toBe("Shared a passport");
+  });
+
+  it("does not read a passport address with a handle in it as a share (cards carry account ids)", () => {
+    expect(parseShare("/passport/ada")).toBeNull();
+    expect(parseShare(`Look at /passport/${ID} please`)).toBeNull();
+  });
 });

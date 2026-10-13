@@ -17,7 +17,7 @@ import { MediaFrame } from "@/components/app/MediaFrame";
 import { InitialsTile } from "@/components/ui/InitialsTile";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { ChatCard, type ChatCardData } from "@/components/app/messages/ChatCard";
+import { ChatCard, type ThreadCardData } from "@/components/app/messages/ChatCard";
 import { bundlePhotos, isCaption, isPhotoOnly } from "@/components/app/messages/bundle";
 import { parseShare, shareHref, SHARE_LEAD } from "@/components/app/messages/share";
 import {
@@ -50,6 +50,7 @@ import { OUTBOX_SENT_EVENT, type OutboxSentDetail } from "@/lib/offline/outbox";
 import { sendOrKeep } from "@/lib/offline/send-or-keep";
 import { BackControl } from "@/components/ui/BackControl";
 import { ThreadOptionsSheet, type SheetListing, type ThreadSheetCopy } from "./ThreadOptionsSheet";
+import type { PassportSheet } from "@/components/passport/PassportThreadRows";
 import { Button } from "@/components/ui/Button";
 import { Chip, ChipRow } from "@/components/ui/Chip";
 import { AccountMomentCard } from "@/components/app/messages/AccountMomentCard";
@@ -115,7 +116,7 @@ export type ThreadBubble = {
    */
   read?: boolean;
   /** The card a share expands into, resolved by the page. Absent otherwise. */
-  card?: ChatCardData;
+  card?: ThreadCardData;
   /** The row's timestamp, when known. Read by the account card's "checking" window. */
   createdAt?: string;
   /** Deleted for everyone by the sender: the words and photos are gone for both sides. */
@@ -259,11 +260,12 @@ export type ThreadViewProps = {
    */
   recordLine?: { key: string; text: string }[];
   recordLabel?: string;
-  /** V-100: the renter's passport, for the lister, when the renter shows it here. */
-  passportLine?: { key: string; text: string }[];
-  /** V-100: the renter's own switch for this thread. Null for anybody else. */
-  passportShare?: { enabled: boolean; shared: boolean } | null;
-  passportLabel?: string;
+  /**
+   * The Vallo passport in this thread: whether the reader's own is on, and the
+   * words for the two rows in the options sheet ("Show my passport", "View
+   * their passport"). Absent draws neither row.
+   */
+  passport?: PassportSheet | null;
   /** V-69: the "Show me" panel for a listing thread, when it is open. */
   showMe?: React.ReactNode;
   /**
@@ -446,9 +448,7 @@ export function ThreadView({
   sinceLine = null,
   recordLine = [],
   recordLabel,
-  passportLine = [],
-  passportShare = null,
-  passportLabel,
+  passport = null,
   showMe = null,
   unread = null,
   nowMs,
@@ -1140,7 +1140,7 @@ export function ThreadView({
           names the flat, so the person gets their own slim line: the avatar
           with their one published mark, their name, and only the dated facts
           Vallo holds about them. Nothing that is null is drawn. */}
-      {live && (propertyFace || personLine.length > 0 || recordLine.length > 0 || passportLine.length > 0) && (
+      {live && (propertyFace || personLine.length > 0 || recordLine.length > 0) && (
         <div className="nf-thread__person flex items-center gap-sm px-gutter py-xs" aria-label={personLabel} data-testid="thread-person">
           {propertyFace && (
             <VerifiedAvatar
@@ -1161,15 +1161,6 @@ export function ThreadView({
               <p className="nf-caption text-[var(--nf-content-muted)]">
                 {personLine.map((fact) => fact.text).join(" · ")}
               </p>
-            )}
-            {passportLine.length > 0 && (
-              <ul className="mt-3xs grid gap-3xs" aria-label={passportLabel} data-testid="thread-passport">
-                {passportLine.map((line) => (
-                  <li key={line.key} className="nf-caption text-[var(--nf-content-secondary)]">
-                    {line.text}
-                  </li>
-                ))}
-              </ul>
             )}
             {recordLine.length > 0 && (
               <ul className="mt-3xs grid gap-3xs" aria-label={recordLabel} data-testid="thread-record">
@@ -1203,7 +1194,8 @@ export function ThreadView({
         canShare={live}
         onConfirmInspection={() => void handleConfirmInspection()}
         onClose={closeSheet}
-        passportShare={live ? passportShare : null}
+        passport={live ? passport : null}
+        meId={meId ?? null}
         sheetCopy={sheetCopy}
         unsafeAsLister={context?.kind === "listing" && role === "host"}
       />

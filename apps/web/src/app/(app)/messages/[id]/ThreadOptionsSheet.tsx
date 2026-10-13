@@ -12,7 +12,7 @@ import { SAFETY_EDUCATION_COPY } from "@/lib/messages/education";
 import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
 import { UnsafeSheet } from "@/components/app/safety/UnsafeSheet";
-import { PassportShareRow } from "@/components/app/safety/PassportShareRow";
+import { PassportThreadRows, type PassportSheet } from "@/components/passport/PassportThreadRows";
 import { IconPlate } from "@/components/ui/IconPlate";
 
 /**
@@ -72,7 +72,8 @@ export function ThreadOptionsSheet({
   canShare,
   onConfirmInspection,
   onClose,
-  passportShare = null,
+  passport = null,
+  meId = null,
   unsafeAsLister = false,
   sheetCopy,
 }: {
@@ -99,8 +100,10 @@ export function ThreadOptionsSheet({
   canShare: boolean;
   onConfirmInspection: () => void;
   onClose: () => void;
-  /** V-100: the renter's own passport switch for this thread. Null draws nothing. */
-  passportShare?: { enabled: boolean; shared: boolean } | null;
+  /** The Vallo passport rows ("Show my passport", "View their passport"). Null draws neither. */
+  passport?: PassportSheet | null;
+  /** The reader's own account id: the owner of the card "Show my passport" posts. */
+  meId?: string | null;
   /** V-63: the viewer is the lister on this listing thread. */
   unsafeAsLister?: boolean;
   /** The passport switch's and the safety sheet's words, from the page's `t`:
@@ -227,6 +230,18 @@ export function ThreadOptionsSheet({
         </Link>
       )}
 
+      {/* ------------------------------------------------- the Vallo passport */}
+      {canShare && passport && (
+        <PassportThreadRows
+          passport={passport}
+          conversationId={conversationId}
+          meId={meId}
+          counterpartId={counterpartId}
+          counterpartName={counterpartName}
+          onDone={closeEverything}
+        />
+      )}
+
       {/* --------------------------------------------- inspection and safety */}
       <div className="mt-md flex items-start gap-md">
         <IconPlate size="md" className="shrink-0">
@@ -240,14 +255,6 @@ export function ThreadOptionsSheet({
       {/* ------------------------------------------- report, and then block */}
       {counterpartId && (
         <div data-testid="thread-safety-controls">
-          {/* V-100: show or take back the renter passport, in this thread only. */}
-          {passportShare && (
-            <PassportShareRow
-              copy={sheetCopy.passport}
-              conversationId={conversationId}
-              initial={passportShare}
-            />
-          )}
           {/* V-63: the moment of fear first, before any report category. */}
           {signedIn && (
             <UnsafeSheet

@@ -8,6 +8,7 @@ import type { ListingKind } from "@/lib/listings/types";
 import { shareHref, type SharedRef } from "./share";
 import { AreaMapTile } from "@/components/app/maps/AreaMapTile";
 import { areaPoint } from "@/components/app/search/mapGeo";
+import { PassportChatCard, type PassportChatCardData } from "@/components/passport/PassportChatCard";
 
 /**
  * The card a listing or a booking becomes inside a chat.
@@ -84,6 +85,13 @@ export type ChatCardBooking = {
 
 export type ChatCardData = ChatCardListing | ChatCardBooking;
 
+/**
+ * Every card the thread draws. The picker and the forward control only ever
+ * see `ChatCardData`; a member's Vallo passport (`components/passport`) is
+ * posted from the options sheet and drawn here, in the thread, and nowhere else.
+ */
+export type ThreadCardData = ChatCardData | PassportChatCardData;
+
 function Stars({ rating }: { rating: number | null }) {
   if (rating === null || rating <= 0) return null;
   const full = Math.round(Math.min(5, Math.max(0, rating)));
@@ -154,7 +162,10 @@ function Forward({ target }: { target: SharedRef }) {
  */
 const CARD = panelClass({ variant: "card", glass: true, className: "nf-chat-card" });
 
-export function ChatCard({ card, forwardable = true }: { card: ChatCardData; forwardable?: boolean }) {
+export function ChatCard({ card, forwardable = true }: { card: ThreadCardData; forwardable?: boolean }) {
+  /* A passport is never forwarded: it is the sender's own, shown in this
+     conversation, so it carries no forward control whatever `forwardable` says. */
+  if (card.kind === "passport") return <PassportChatCard card={card} />;
   if (card.kind === "listing") {
     /* What this card IS, decided once, so the primary link, the forward and
        the foot cannot disagree about it. */
