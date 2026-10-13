@@ -1,5 +1,7 @@
 "use client";
 
+import { PhoneGateLink } from "@/components/app/PhoneGateLink";
+import { isPhoneGate } from "@/lib/actions/envelope";
 import { useActionState, useId, useState } from "react";
 import { Sheet } from "@/components/ui/Sheet";
 import { Button } from "@/components/ui/Button";
@@ -222,6 +224,7 @@ export function ReportSheetPanel({
                         {state.error}
                       </p>
                     )}
+                    <PhoneGateLink show={isPhoneGate(state)} full className="mt-sm" />
 
                     <div className="grid gap-xs">
                       <Button

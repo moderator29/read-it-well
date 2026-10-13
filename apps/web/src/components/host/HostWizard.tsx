@@ -1,5 +1,6 @@
 "use client";
 
+import { PhoneGateLink } from "@/components/app/PhoneGateLink";
 import { useHostCopy, useHostPageCopy } from "@/components/host/host-copy";
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
@@ -105,7 +106,7 @@ export type PolicyOption = {
   preset?: string | null;
 };
 
-type Notice = { tone: "ok" | "error"; text: string } | null;
+type Notice = { tone: "ok" | "error"; text: string; phoneGate?: boolean } | null;
 
 const STORAGE_KEY = "nf_host_draft";
 
@@ -394,7 +395,7 @@ export function HostWizard({
       start(async () => {
         const result = await work();
         if (!result.ok) {
-          setNotice({ tone: "error", text: result.error });
+          setNotice({ tone: "error", text: result.error, phoneGate: result.gate === "phone" });
           if (result.fieldErrors) setFieldErrors(result.fieldErrors);
           return;
         }
@@ -418,7 +419,7 @@ export function HostWizard({
           try {
             const result = await work();
             if (!result.ok) {
-              setNotice({ tone: "error", text: result.error });
+              setNotice({ tone: "error", text: result.error, phoneGate: result.gate === "phone" });
               if (result.fieldErrors) setFieldErrors(result.fieldErrors);
               resolve(false);
               return;
@@ -834,6 +835,7 @@ export function HostWizard({
           {notice.text}
         </p>
       )}
+      <PhoneGateLink show={notice?.phoneGate === true} full className="mt-sm" />
 
       {/*
         THE FOOT IS ONLY FOR THE STEPS THAT ARE NOT DRAWN. Every drawn panel
@@ -1329,7 +1331,7 @@ function PayoutStep({ draft, pending, runAsync, setNotice, set }: StepProps) {
     const result = await resolveBankAccount({ bankCode: bank, accountNumber: number });
     setResolving(false);
     if (!result.ok) {
-      setNotice({ tone: "error", text: result.error });
+      setNotice({ tone: "error", text: result.error, phoneGate: result.gate === "phone" });
       return;
     }
     setResolved(result.data.accountName);

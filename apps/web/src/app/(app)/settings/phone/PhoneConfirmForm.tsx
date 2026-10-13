@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import type { Dictionary } from "@vallo/i18n/core";
 import { panelClass } from "@/components/ui/Panel";
 import { TextField } from "@/components/ui/Field";
-import { Button } from "@/components/ui/Button";
+import { Button, ButtonLink } from "@/components/ui/Button";
 import { maskNational } from "@/lib/phone";
 import { feedback } from "@/lib/ui/feedback";
 import { confirmPhoneCode, sendPhoneCode } from "@/lib/phone-otp/actions";
@@ -34,8 +35,22 @@ const POP = "nf-btn-pop";
  * A REFUSAL IS IMMEDIATE. The words arrive with no motion, one error haptic,
  * and focus goes to the next action: back into the code to retype it, or to
  * "Send a new code" when the code itself is spent.
+ *
+ * BACK TO WHERE THEY WERE (FULL GATE, 13 October 2026). A gated action's
+ * button (`PhoneGateLink`) opens this page with `?next=` the screen the
+ * member was on; the page checks it is a same-site path (`safeReturnPath`)
+ * and hands it here. Once the confirmed face has settled the member is taken
+ * back, and a Continue link stays for a reader who wants to press it.
  */
-export function PhoneConfirmForm({ copy }: { copy: Dictionary["trustVisible"]["phone"] }) {
+export function PhoneConfirmForm({
+  copy,
+  next: returnTo = null,
+}: {
+  copy: Dictionary["trustVisible"]["phone"];
+  /** Where to return once confirmed: already a safe same-site path, or null. */
+  next?: string | null;
+}) {
+  const router = useRouter();
   const [phone, setPhone] = useState("");
   const [code, setCode] = useState("");
   const [sentTo, setSentTo] = useState<string | null>(null);
@@ -71,6 +86,13 @@ export function PhoneConfirmForm({ copy }: { copy: Dictionary["trustVisible"]["p
       window.clearTimeout(timer);
     };
   }, [done, settled]);
+
+  /* Settled with somewhere to go back to: go, a beat after the words land. */
+  useEffect(() => {
+    if (!settled || !returnTo) return;
+    const timer = window.setTimeout(() => router.push(returnTo), 900);
+    return () => window.clearTimeout(timer);
+  }, [settled, returnTo, router]);
 
   /* The next action after a refusal, once the words are on screen and the
      wait has let go of the controls (a disabled button cannot take focus). */
@@ -118,6 +140,11 @@ export function PhoneConfirmForm({ copy }: { copy: Dictionary["trustVisible"]["p
             </svg>
           </span>
           <p className="nf-body text-[var(--nf-content-primary)]">{copy.done}</p>
+          {returnTo && (
+            <ButtonLink href={returnTo} variant="secondary" full data-testid="phone-return">
+              {copy.profileBack}
+            </ButtonLink>
+          )}
         </div>
       ) : sentTo === null ? (
         <>

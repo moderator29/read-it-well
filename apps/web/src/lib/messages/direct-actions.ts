@@ -3,6 +3,7 @@
 import { fail, ok, type ActionResult } from "../actions/envelope";
 import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../actions/session";
 import { isFeatureEnabled } from "../flags";
+import { phoneGateFor } from "../phone-otp/gate";
 import { BLOCKED_THREAD_MESSAGE, blockedBetween } from "./blocks";
 import { readDirectTarget } from "./direct";
 import { sendMessage } from "./actions";
@@ -57,6 +58,10 @@ export async function sendDirectMessage(input: {
 
   let conversationId = read.conversationId;
   if (!conversationId) {
+    /* FULL GATE: a new chat's first message needs a confirmed phone, flag
+       on, asked before the chat is made so a refusal leaves nothing behind. */
+    const phoneGate = await phoneGateFor(session.supabase, session.user.id, "message");
+    if (phoneGate) return phoneGate;
     const { data, error } = await (session.supabase as unknown as Rpc).rpc("start_direct_conversation", {
       p_other: read.target.userId,
     });
@@ -69,6 +74,6 @@ export async function sendDirectMessage(input: {
   }
 
   const sent = await sendMessage({ conversationId, body });
-  if (!sent.ok) return fail(sent.error, sent.fieldErrors);
+  if (!sent.ok) return sent;
   return ok({ conversationId });
 }

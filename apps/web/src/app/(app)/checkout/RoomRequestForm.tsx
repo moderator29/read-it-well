@@ -1,5 +1,7 @@
 "use client";
 
+import { PhoneGateLink } from "@/components/app/PhoneGateLink";
+import { isPhoneGate } from "@/lib/actions/envelope";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
@@ -33,6 +35,7 @@ export function RoomRequestForm({
 }) {
   const [rooms, setRooms] = useState(1);
   const [error, setError] = useState<string | null>(null);
+  const [phoneGate, setPhoneGate] = useState(false);
   const [pending, start] = useTransition();
   const router = useRouter();
   const choices = Array.from({ length: Math.max(1, Math.min(10, maxRooms)) }, (_, i) => i + 1);
@@ -44,10 +47,12 @@ export function RoomRequestForm({
       onSubmit={(event) => {
         event.preventDefault();
         setError(null);
+        setPhoneGate(false);
         start(async () => {
           const result = await requestRoomStay({ stayId, roomTypeId, ratePlanId, checkIn, checkOut, guests, rooms });
           if (!result.ok) {
             setError(result.error);
+            setPhoneGate(isPhoneGate(result));
             return;
           }
           /* Replace, not push (navigation audit): the request is made, so
@@ -84,6 +89,7 @@ export function RoomRequestForm({
           {error}
         </p>
       )}
+      <PhoneGateLink show={phoneGate} full />
     </form>
   );
 }

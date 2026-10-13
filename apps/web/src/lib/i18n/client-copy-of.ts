@@ -39,6 +39,8 @@ const AUTH_FLOW_KEYS = [
  *   platform.inflight          the offline tray
  *   trustVisible.state         the in-app error screen
  *   trustVisible.report        the report sheet
+ *   trustVisible.phone         the phone gate's button (`PhoneGateLink`), drawn
+ *     (requiredAction only)    beside any gated action's refusal
  *   counts, reserve            the listing page's booking bar and panel
  *   uiCommon.around, .inbox    a post's place line, the inbox tabs
  *   feedV2.card, .composer     a post card's words, the post and story composers
@@ -65,7 +67,9 @@ export type ClientCopy = {
   common: Dictionary["common"];
   a11y: Dictionary["a11y"];
   platform: Pick<Dictionary["platform"], "outbox" | "inflight">;
-  trustVisible: Pick<Dictionary["trustVisible"], "state" | "report">;
+  trustVisible: Pick<Dictionary["trustVisible"], "state" | "report"> & {
+    phone: Pick<Dictionary["trustVisible"]["phone"], "requiredAction">;
+  };
   counts: Dictionary["counts"];
   reserve: Dictionary["reserve"];
   uiCommon: Pick<Dictionary["uiCommon"], "around" | "inbox">;
@@ -104,6 +108,7 @@ export function clientCopyOf(t: Dictionary): ClientCopy {
     trustVisible: {
       state: t.trustVisible.state,
       report: t.trustVisible.report,
+      phone: { requiredAction: t.trustVisible.phone.requiredAction },
     },
     counts: t.counts,
     reserve: t.reserve,

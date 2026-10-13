@@ -234,6 +234,17 @@ export type MemberExtras = {
   reportsAgainst: { id: string; category: string | null; status: string; createdAt: string }[];
   devices: { words: string | null; firstSeenAt: string | null; lastSeenAt: string | null }[];
   notes: { id: string; body: string; authorName: string | null; createdAt: string }[];
+  /**
+   * The phone, for staff (no-enumeration ruling, 13 October 2026). The member
+   * is told one neutral sentence when a number is refused; the real reason
+   * (`phone.number_refused` in the audit trail) is said here. Null when it
+   * could not be read.
+   */
+  phone: {
+    confirmedAt: string | null;
+    qa: boolean;
+    lastRefusal: { reason: string; at: string } | null;
+  } | null;
   /** Which sections could not be read, so the page says so instead of "none". */
   failed: string[];
 };
@@ -373,6 +384,9 @@ export async function readMemberExtras(userId: string): Promise<Read<MemberExtra
     const titleOf = new Map((titles.data ?? []).map((l) => [l.id, l.title]));
     const authorOf = new Map((authors.data ?? []).map((p) => [p.id, personName(p)]));
 
+    const phone = await readPhoneForStaff(db, service, userId);
+    if (!phone) failed.push("phone");
+
     const grantRow = grant.data as { scopes?: unknown; granted_at?: string; revoked_at?: string | null; revoke_reason?: string | null } | null;
 
     return {
@@ -456,10 +470,47 @@ export async function readMemberExtras(userId: string): Promise<Read<MemberExtra
           authorName: n.author_id ? (authorOf.get(n.author_id) ?? null) : null,
           createdAt: n.created_at,
         })),
+        phone,
         failed,
       },
     };
   } catch {
     return UNAVAILABLE;
+  }
+}
+
+/**
+ * Confirmed phone (service role: a member's row is their own under RLS),
+ * the QA mark and the latest refused number with its real reason (staff read
+ * `qa_accounts` and `audit_log` under their own admin policies).
+ */
+async function readPhoneForStaff(
+  db: SupabaseClient<Database>,
+  service: SupabaseClient<Database> | null,
+  userId: string,
+): Promise<MemberExtras["phone"]> {
+  try {
+    const [confirmed, qa, refused] = await Promise.all([
+      service
+        ? loose(service).from("confirmed_phones").select("confirmed_at").eq("user_id", userId).maybeSingle()
+        : Promise.resolve({ data: null, error: "no service client" }),
+      loose(db).from("qa_accounts").select("user_id").eq("user_id", userId).maybeSingle(),
+      loose(db)
+        .from("audit_log")
+        .select("metadata, created_at")
+        .eq("entity_id", userId)
+        .eq("action", "phone.number_refused")
+        .order("created_at", { ascending: false })
+        .limit(1),
+    ]);
+    if (confirmed.error || refused.error) return null;
+    const last = rowsOf<{ metadata: { reason?: unknown } | null; created_at: string }>(refused)[0];
+    return {
+      confirmedAt: (confirmed.data as { confirmed_at?: string } | null)?.confirmed_at ?? null,
+      qa: !qa.error && Boolean(qa.data),
+      lastRefusal: last ? { reason: String(last.metadata?.reason ?? "unknown"), at: last.created_at } : null,
+    };
+  } catch {
+    return null;
   }
 }

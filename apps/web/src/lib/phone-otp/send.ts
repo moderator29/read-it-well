@@ -20,9 +20,18 @@ export type SendDeps = {
   allow(userId: string, phone: string): Promise<boolean>;
 };
 
+/**
+ * NO ENUMERATION (founder's ruling, 13 October 2026). A number on another
+ * account and a number the database will not take are ONE answer for the
+ * member, `refused`, in the same shape and after the same work (one
+ * allowance, one database call, nothing sent), so neither the words nor the
+ * shape says which. `staffReason` keeps the database's own word for the audit
+ * trail (`phone.number_refused`) and is never shown to the member.
+ */
 export type SendOutcome =
   | { ok: true }
-  | { ok: false; reason: "limited" | "taken" | "already" | "invalid" | "unconfigured" | "failed" };
+  | { ok: false; reason: "refused"; staffReason: "taken" | "invalid" }
+  | { ok: false; reason: "limited" | "already" | "unconfigured" | "failed" };
 
 export async function runSendCode(deps: SendDeps, userId: string, phoneE164: string): Promise<SendOutcome> {
   if (!(await deps.allow(userId, phoneE164))) return { ok: false, reason: "limited" };
@@ -34,7 +43,8 @@ export async function runSendCode(deps: SendDeps, userId: string, phoneE164: str
   } catch {
     return { ok: false, reason: "failed" };
   }
-  if (issued !== "issued") return { ok: false, reason: issued };
+  if (issued === "already") return { ok: false, reason: "already" };
+  if (issued === "taken" || issued === "invalid") return { ok: false, reason: "refused", staffReason: issued };
   const sent = await deps.transport.send(phoneE164, otpMessage(code));
   return sent.ok ? { ok: true } : { ok: false, reason: sent.reason };
 }

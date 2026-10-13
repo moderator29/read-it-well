@@ -21,6 +21,14 @@ import { NoteForm } from "./NoteForm";
 
 const LINK = "inline-flex min-h-11 items-center underline underline-offset-2";
 
+/* The database's own reason for a refused number (`phone.number_refused`),
+   in staff words. The member only ever saw "We could not use this number". */
+const PHONE_REFUSAL_WORDS: Record<string, string> = {
+  taken: "the number is already confirmed on another account (see the shared-phone match above)",
+  taken_on_confirm: "the number was confirmed on another account while the code was out",
+  invalid: "the number is not one Vallo can send a code to",
+};
+
 function Section({ title, id, failed, children }: { title: string; id: string; failed: boolean; children: ReactNode }) {
   return (
     <section
@@ -100,6 +108,26 @@ export function MemberSections({
             <dt className="nf-caption text-[var(--nf-content-muted)]">Phone on file</dt>
             <dd>{extras.profile ? (extras.profile.phoneOnFile ? "Yes (not shown here)" : "No") : "Not recorded"}</dd>
           </div>
+          <div>
+            <dt className="nf-caption text-[var(--nf-content-muted)]">Phone confirmation</dt>
+            <dd data-testid="person-phone">
+              {!extras.phone
+                ? "Could not be read"
+                : extras.phone.qa
+                  ? "Test account: never asked for a phone"
+                  : extras.phone.confirmedAt
+                    ? `Confirmed ${ui.when(extras.phone.confirmedAt)}`
+                    : "Not confirmed"}
+            </dd>
+          </div>
+          {extras.phone?.lastRefusal && (
+            <div>
+              <dt className="nf-caption text-[var(--nf-content-muted)]">Last number refused</dt>
+              <dd data-testid="person-phone-refused">
+                {`${ui.when(extras.phone.lastRefusal.at)}: ${PHONE_REFUSAL_WORDS[extras.phone.lastRefusal.reason] ?? extras.phone.lastRefusal.reason}. The member was told only that the number could not be used.`}
+              </dd>
+            </div>
+          )}
           <div>
             <dt className="nf-caption text-[var(--nf-content-muted)]">Staff access</dt>
             <dd>

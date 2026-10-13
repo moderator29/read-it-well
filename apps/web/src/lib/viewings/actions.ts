@@ -64,7 +64,7 @@ async function bookViewingSlotWork(
      inspection request too, so it needs a confirmed phone when the
      phone_confirmation flag is on. Booking a slot used to skip this gate. */
   const phoneGate = await phoneGateFor(session.supabase, session.user.id, "inspection");
-  if (phoneGate) return fail(phoneGate);
+  if (phoneGate) return phoneGate;
   const mode = parsed.data.mode ?? "in_person";
   if (mode === "video" && !(await videoCallsOn())) return fail(getDictionary(locale).visit.problems.videoOff);
 

@@ -81,7 +81,7 @@ async function submitReviewWork(
 
   /* V-50: the first review needs a confirmed phone, when the flag is on. */
   const phoneGate = await phoneGateFor(session.supabase, session.user.id, "review");
-  if (phoneGate) return fail(phoneGate);
+  if (phoneGate) return phoneGate;
 
   const parsed = validate(reviewInputSchema, formDataToObject(formData));
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);

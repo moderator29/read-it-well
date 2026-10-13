@@ -25,6 +25,7 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { fail, ok, type ActionResult } from "../actions/envelope";
 import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../actions/session";
+import { phoneGateFor } from "../phone-otp/gate";
 import {
   PaystackError,
   PaystackUnknownOutcome,
@@ -172,6 +173,9 @@ export async function payTableBill(billId: string): Promise<ActionResult<BillChe
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
   if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
   if (!UUID.test(billId ?? "")) return fail(seatingRefusal("not_found"));
+  /* FULL GATE (13 October 2026): paying the table's bill is a payment. */
+  const phoneGate = await phoneGateFor(session.supabase, session.user.id, "payment");
+  if (phoneGate) return phoneGate;
   const email = session.user.email ?? null;
   if (!email) return fail("Paying by card needs an email address on your account. Add one to your profile and try again.");
   if (!isPaystackConfigured()) return fail(PAY_BILL_NOT_AVAILABLE);

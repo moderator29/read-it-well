@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { fail, ok, type ActionResult } from "../actions/envelope";
 import { resolveSession } from "../actions/session";
+import { phoneGateFor } from "../phone-otp/gate";
 import { guardMoney } from "../security/money-limits";
 import { accountNumberSchema, sameAccountName } from "../payments/bank-resolve";
 import { needsOtp } from "../payments/providers/payluk-client";
@@ -458,6 +459,10 @@ export async function prepareDeposit(input: unknown): Promise<ActionResult<Depos
   if (!amount.ok) return fail(amount.error);
   const r = await ready();
   if (!r.ok) return fail(r.error);
+  /* FULL GATE (13 October 2026): the first payment needs a confirmed phone,
+     flag on; a payment fails closed on a failed read (`phone-otp/core.ts`). */
+  const depositGate = await phoneGateFor(r.ctx.db, r.ctx.userId, "payment");
+  if (depositGate) return depositGate;
   const limit = await guardMoney("balanceMove", r.ctx.userId);
   if (!limit.allowed) return fail(limit.message);
   const staged = await stage(r.ctx, parsed.data.clientKey, { kind: "deposit", amountMinor: amount.minor, counterparty: {}, narration: null }, (reference) => ({
@@ -579,6 +584,10 @@ export async function prepareSend(input: unknown): Promise<ActionResult<Quote>> 
 
   const prior = await existingByKey(ctx.db, ctx.userId, parsed.data.clientKey);
   if (prior) return ok(quoteFrom(prior));
+
+  /* FULL GATE: sending money to somebody is a payment. */
+  const sendGate = await phoneGateFor(ctx.db, ctx.userId, "payment");
+  if (sendGate) return sendGate;
 
   const found = await findRecipientRow(ctx.db, parsed.data.phone, ctx.userId);
   if ("error" in found) return fail(found.error);

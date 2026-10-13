@@ -26,7 +26,7 @@ export async function submitTenancyReview(input: unknown): Promise<ActionResult<
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
   const phoneGate = await phoneGateFor(session.supabase, session.user.id, "review");
-  if (phoneGate) return fail(phoneGate);
+  if (phoneGate) return phoneGate;
 
   const { error } = await (session.supabase as unknown as Untyped)
     .from("tenancy_reviews")

@@ -1,5 +1,7 @@
 "use client";
 
+import { PhoneGateLink } from "@/components/app/PhoneGateLink";
+import { isPhoneGate } from "@/lib/actions/envelope";
 import { useActionState, useId, useState, useMemo } from "react";
 import Link from "next/link";
 import { withNext } from "@/lib/auth/next-link";
@@ -756,6 +758,7 @@ export function ReservePanel({
                 Sign in
               </Link>
             )}
+            <PhoneGateLink show={isPhoneGate(state)} full className="mt-sm" />
           </div>
         )}
 

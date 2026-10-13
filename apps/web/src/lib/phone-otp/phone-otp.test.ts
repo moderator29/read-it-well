@@ -110,7 +110,8 @@ describe("send then confirm, end to end with the capturing stub", () => {
     const db = fakeDatabase();
     db.confirmed.set(OTHER, PHONE);
     const outbox: CapturedMessage[] = [];
-    expect(await runSendCode(deps(db, outbox), USER, PHONE)).toEqual({ ok: false, reason: "taken" });
+    /* Refused in the member's words (no enumeration); the real reason is kept for staff. */
+    expect(await runSendCode(deps(db, outbox), USER, PHONE)).toEqual({ ok: false, reason: "refused", staffReason: "taken" });
     expect(outbox).toEqual([]);
   });
 

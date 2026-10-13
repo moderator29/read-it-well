@@ -33,6 +33,7 @@
 import { revalidatePath } from "next/cache";
 import { withBusinessPrivate } from "../supabase/private-fields";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
+import { phoneGateFor } from "../phone-otp/gate";
 import {
   NOT_CONFIGURED_MESSAGE,
   SIGNED_OUT_MESSAGE,
@@ -407,6 +408,12 @@ export async function submitHostApplication(): Promise<ActionResult<{ businessId
     return fail((await words()).alreadyWithTeam);
   }
   if (draft.status !== null && !EDITABLE.includes(draft.status)) return fail((await words()).notEditable);
+
+  /* FULL GATE (13 October 2026): the first hotel, shortlet or restaurant sent for publishing needs a
+     confirmed phone, flag on; a listing fails closed on a failed read
+     (`phone-otp/core.ts`). */
+  const phoneGate = await phoneGateFor(session.supabase, session.user.id, "listing");
+  if (phoneGate) return phoneGate;
 
   const missing = missingFrom(draft);
   if (missing.length > 0) {

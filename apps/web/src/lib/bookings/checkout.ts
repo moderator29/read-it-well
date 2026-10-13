@@ -52,6 +52,7 @@ import { IN_FLIGHT_MESSAGE, withIdempotency, type IdempotentRun } from "../secur
 import { bookingPaymentSubject } from "./payment-subject";
 import { checkoutReturnPath } from "../rent/return-path";
 import { guardMoney } from "../security/money-limits";
+import { phoneGateFor } from "../phone-otp/gate";
 import { getAdminClient } from "@/lib/supabase/service";
 import { announceConfirmedStay } from "./arrival";
 import { cancelInputSchema } from "./schema";
@@ -241,6 +242,10 @@ async function guardPayable(bookingId: string): Promise<Guarded> {
      requires (pay_booking_from_wallet: guest_id = payer). */
   if (booking.guest_id !== session.user.id) return { ok: false, result: fail<never>(NOT_FOUND_MESSAGE) };
   if (booking.status === "CANCELLED") return { ok: false, result: fail<never>(CANCELLED_MESSAGE) };
+  /* FULL GATE (13 October 2026): the first payment needs a confirmed phone,
+     flag on. Payment fails closed on a failed read (`core.ts`). */
+  const phoneGate = await phoneGateFor(session.supabase, session.user.id, "payment");
+  if (phoneGate) return { ok: false, result: phoneGate };
   // CONFIRMED is deliberately payable. A request-to-book stay is confirmed by
   // the host accepting it, not by money arriving, so refusing CONFIRMED here
   // meant an accepted stay could never be paid on the platform at all: the

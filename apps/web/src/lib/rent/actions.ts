@@ -27,6 +27,7 @@
 import { revalidatePath } from "next/cache";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../actions/session";
+import { phoneGateFor } from "../phone-otp/gate";
 import { payWithSavedCard } from "../bookings/checkout";
 import { isFeatureEnabled } from "../flags";
 import type { ChargeSavedCardOutcome } from "../payments/charge-saved-card";
@@ -71,6 +72,11 @@ export async function startRentPayment(input: {
 
   const parsed = validate(startRentPaymentSchema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+
+  /* FULL GATE (13 October 2026): the first payment needs a confirmed phone,
+     flag on; a payment fails closed on a failed read (`phone-otp/core.ts`). */
+  const phoneGate = await phoneGateFor(session.supabase, session.user.id, "payment");
+  if (phoneGate) return phoneGate;
 
   const moveIn = parsed.data.moveIn ?? lagosToday();
   const problem = whyNotMoveIn(moveIn);

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useScopedCopy } from "@/lib/i18n/copy-scope";
+import { usePhoneGateAction } from "@/components/app/PhoneGateLink";
 import { startCardCheckout } from "@/lib/bookings/checkout";
 import { PaymentGate } from "@/components/app/agreements/PaymentGate";
 import { NO_CUSTODY_SENTENCE } from "@/lib/money/copy";
@@ -119,7 +120,7 @@ type Phase =
      "paid", never "not charged" (docs/SUCCESS_MOMENTS.md). */
   | { kind: "applying"; reference: string }
   | { kind: "stalled"; method: "card" }
-  | { kind: "error"; message: string };
+  | { kind: "error"; message: string; phoneGate?: boolean };
 
 /**
  * One way to pay.
@@ -223,6 +224,7 @@ export function PayPanel({
   const paid = successCopy(s, "stayPaidRecorded");
   const router = useRouter();
   const [phase, setPhase] = useState<Phase>({ kind: "idle" });
+  const phoneGateAction = usePhoneGateAction();
   const [slow, setSlow] = useState(false);
   /* Where the in-page checkout is (PaystackCheckout, staged), and the control
      the pay stage grows out of. */
@@ -294,7 +296,7 @@ export function PayPanel({
     clearTimers();
 
     if (!result.ok) {
-      setPhase({ kind: "error", message: result.error });
+      setPhase({ kind: "error", message: result.error, phoneGate: result.gate === "phone" });
       return;
     }
     if (result.data.kind === "needs_hosted_checkout") {
@@ -353,6 +355,7 @@ export function PayPanel({
       message: result.ok
         ? c.pageNotOpened
         : result.error,
+      phoneGate: !result.ok && result.gate === "phone",
     });
   };
 
@@ -652,10 +655,18 @@ export function PayPanel({
                          anything that is not prose a person wrote, and always
                          leaves the money sentence standing. */
                       consequence: failureConsequence(phase.message, c.nothingTaken, c),
-                      actions: [
-                        { label: c.tryAgain, onClick: () => setPhase({ kind: "idle" }), tone: "primary" },
-                        { label: c.getHelp, href: "/help", tone: "quiet" },
-                      ],
+                      /* The phone gate's refusal says the one step that works:
+                         confirm the number, then come straight back here. */
+                      actions:
+                        phase.phoneGate && phoneGateAction
+                          ? [
+                              { label: phoneGateAction.label, href: phoneGateAction.href, tone: "primary" },
+                              { label: c.getHelp, href: "/help", tone: "quiet" },
+                            ]
+                          : [
+                              { label: c.tryAgain, onClick: () => setPhase({ kind: "idle" }), tone: "primary" },
+                              { label: c.getHelp, href: "/help", tone: "quiet" },
+                            ],
                     }
                   : null;
   const stageAmount = { minorUnits: view.totalMinor, currency: view.currency, locale: view.locale };

@@ -1,5 +1,7 @@
 "use client";
 
+import { PhoneGateLink } from "@/components/app/PhoneGateLink";
+import { isPhoneGate } from "@/lib/actions/envelope";
 import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { ActionResult } from "@/lib/actions/envelope";
@@ -228,6 +230,7 @@ export function ReviewForm({
           {state.error}
         </p>
       )}
+      <PhoneGateLink show={isPhoneGate(state)} full className="mt-sm" />
 
       <Button type="submit" variant="primary" full disabled={pending} className="mt-block">
         {pending ? "Sharing your review..." : "Share review"}

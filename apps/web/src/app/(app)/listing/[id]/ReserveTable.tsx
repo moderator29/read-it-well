@@ -1,5 +1,7 @@
 "use client";
 
+import { PhoneGateLink } from "@/components/app/PhoneGateLink";
+import { isPhoneGate } from "@/lib/actions/envelope";
 import { useActionState, useId, useMemo, useState } from "react";
 import Link from "next/link";
 import { reserveTable } from "@/lib/reservations/actions";
@@ -346,6 +348,7 @@ export function ReserveTable({
           {state.error}
         </p>
       )}
+      <PhoneGateLink show={isPhoneGate(state)} full className="mt-sm" />
 
       <Button type="submit" variant="primary" full className="mt-md" disabled={pending || slots.length === 0}>
         {pending ? "Sending" : "Request a table"}

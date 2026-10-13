@@ -51,6 +51,7 @@ import {
   startReservationThreadSchema,
 } from "./schema";
 import { dbLimitRefusal } from "../security/db-limit";
+import { phoneGateFor } from "../phone-otp/gate";
 import { attributeConversation } from "../share/attribution";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -176,7 +177,8 @@ export async function startConversationWithMessage(input: {
   const session = await resolveSession();
   if (session.state === "signed-in") await attributeConversation(session.supabase, started.data.conversationId);
   const sent = await sendMessage({ conversationId: started.data.conversationId, body });
-  if (!sent.ok) return fail(sent.error, sent.fieldErrors);
+  /* Whole, so a phone-gate refusal keeps its button. */
+  if (!sent.ok) return sent;
   return ok({ conversationId: started.data.conversationId });
 }
 
@@ -269,6 +271,12 @@ async function findOrStartConversation(
   if (findError) return fail("Messaging is unavailable just now. Please try again shortly.");
   if (existing) return ok({ conversationId: existing.id });
   if (!create) return ok({ conversationId: null });
+
+  /* FULL GATE (13 October 2026): the first message that opens a new
+     conversation needs a confirmed phone, flag on. Before the thread is made,
+     so a refusal leaves nothing in either inbox and costs no daily count. */
+  const phoneGate = await phoneGateFor(session.supabase, session.user.id, "message");
+  if (phoneGate) return phoneGate;
 
   // A row is genuinely about to be created, so this is the moment the daily
   // count applies. The limiter fails open, so a limiter outage can never stop a
@@ -537,6 +545,14 @@ async function sendMessageWork(
     return fail(SEND_FAILED_MESSAGE);
   }
 
+  /* FULL GATE: the first words in a conversation nobody has written in yet
+     (a booking or table thread, a direct chat). A reply in a thread somebody
+     else started is never held. */
+  const phoneGate = await phoneGateFor(session.supabase, session.user.id, "message", {
+    conversationId: parsed.data.conversationId,
+  });
+  if (phoneGate) return phoneGate;
+
   const { data: row, error } = await session.supabase
     .from("messages")
     .insert({
@@ -626,6 +642,11 @@ export async function attachImage(input: {
 
   let messageId = data.messageId ?? null;
   if (!messageId) {
+    /* A photo can be the first message of a conversation too. */
+    const phoneGate = await phoneGateFor(session.supabase, session.user.id, "message", {
+      conversationId: data.conversationId,
+    });
+    if (phoneGate) return phoneGate;
     const { data: message, error: messageError } = await session.supabase
       .from("messages")
       .insert({

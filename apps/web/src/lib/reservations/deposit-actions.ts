@@ -15,6 +15,7 @@ import { headers } from "next/headers";
 import { z } from "zod";
 import { fail, ok, type ActionResult } from "../actions/envelope";
 import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../actions/session";
+import { phoneGateFor } from "../phone-otp/gate";
 import { flagIsOn } from "../flags/read";
 import { PaystackError, PaystackUnknownOutcome, currentPaystackMode } from "../payments/paystack";
 import { assertProviderEnabled, openCheckout, paystackSeam } from "../payments/providers";
@@ -52,6 +53,10 @@ export async function payReservationDeposit(reservationId: string): Promise<Acti
   if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
   if (!idSchema.safeParse(reservationId).success) return fail(depositRefusal("not_found"));
   if (!(await flagIsOn(RESTAURANT_DEPOSITS_FLAG))) return fail(depositRefusal("switched_off"));
+  /* FULL GATE (13 October 2026): the first payment needs a confirmed phone,
+     flag on; a payment fails closed on a failed read (`phone-otp/core.ts`). */
+  const phoneGate = await phoneGateFor(session.supabase, session.user.id, "payment");
+  if (phoneGate) return phoneGate;
   const email = session.user.email ?? null;
   if (!email) return fail("Card payment needs an email address on your account. Add one to your profile and try again.");
 
