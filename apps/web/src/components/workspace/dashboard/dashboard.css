@@ -85,6 +85,22 @@
     color: var(--nf-content-primary);
     overflow-wrap: anywhere;
   }
+  /* Money in a tile: one line, a step smaller, so a long figure is never cut mid-number. */
+  .wsd-tile__figure--text {
+    font-size: var(--nf-text-h3);
+    white-space: nowrap;
+    overflow-wrap: normal;
+    padding-block: 0.15em;
+  }
+  .wsd-donut__label {
+    max-inline-size: 6.5rem;
+    font-family: var(--nf-font-numeric);
+    font-size: var(--nf-text-h3);
+    font-weight: 700;
+    line-height: 1.15;
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-content-primary);
+  }
   .wsd-tile__sub {
     font-size: var(--nf-text-caption);
     color: var(--nf-content-muted);
@@ -206,6 +222,12 @@
     gap: var(--nf-space-sm);
     color: inherit;
     text-decoration: none;
+  }
+  /* On a phone the row is one door: the name and the chevron, not a second label squeezing the name. */
+  @media (max-width: 29.99rem) {
+    .wsd-lease__open {
+      display: none;
+    }
   }
   .wsd-lease__title {
     font-weight: 700;
@@ -387,7 +409,7 @@
   }
   .wsd-feat__photo {
     inline-size: 100%;
-    aspect-ratio: 4 / 3;
+    aspect-ratio: 16 / 9;
     border-radius: var(--nf-radius-card-sm);
     object-fit: cover;
     background: var(--nf-brand-tint-2);
@@ -396,6 +418,11 @@
     display: grid;
     place-items: center;
     color: var(--nf-content-subtle);
+  }
+  @media (min-width: 40rem) {
+    .wsd-feat__photo {
+      aspect-ratio: 4 / 3;
+    }
   }
   .wsd-feat__stats {
     display: grid;

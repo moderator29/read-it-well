@@ -22,7 +22,7 @@ import { passportLines } from "@/lib/trust/passport";
 import { readPassportShareState, readThreadPassport } from "@/lib/trust/passport-read";
 import { InboxEmpty } from "../Inbox";
 import { readDeskStage } from "@/lib/enquiry/queries";
-import { quickReplies } from "@/lib/enquiry/quick-replies";
+import { readFollowup } from "@/lib/enquiry/followup-queries";import { quickReplies } from "@/lib/enquiry/quick-replies";
 import { renterQuestions } from "@/lib/enquiry/renter-questions";
 import { loadListingsByIds } from "@/lib/listings/supabase-repository";
 import { StageControl } from "@/components/app/messages/StageControl";
@@ -208,7 +208,7 @@ export default async function ConversationPage({
       cards,
       inspection,
       availability,
-      [stage, deskListing],
+      [stage, deskListing, followup],
       counterpartFactsLine,
       passportRead,
       passportShare,
@@ -231,8 +231,10 @@ export default async function ConversationPage({
                   .then((found) => found.get(thread.listing!.id) ?? null)
                   .catch(() => null)
               : Promise.resolve(null),
+            /* AGENT-01: the follow-up date beside the stage, the lister's own. */
+            desk ? readFollowup(session.supabase, id) : Promise.resolve(null),
           ])
-        : ([null, null] as const),
+        : ([null, null, null] as const),
       /* V-23: the dated facts about the other person, for the line under the
          header. One RPC that answers only to a party; a failure is no line. */
       (async (): Promise<{ key: string; text: string }[]> => {
@@ -355,7 +357,19 @@ export default async function ConversationPage({
             />
           ) : null
         }
-        stageSlot={stage ? <StageControl conversationId={id} stage={stage} copy={t.frontDoor.desk} /> : null}
+        stageSlot={
+          stage ? (
+            <StageControl
+              conversationId={id}
+              stage={stage}
+              copy={t.frontDoor.desk}
+              followup={{ dueOn: followup?.dueOn ?? null, note: followup?.note ?? null }}
+              today={lagosToday}
+              followupCopy={t.workspaceDash.followup}
+              locale={locale}
+            />
+          ) : null
+        }
         quickReplies={
           desk
             ? quickReplies(deskListing, t.frontDoor.desk.quick, locale)

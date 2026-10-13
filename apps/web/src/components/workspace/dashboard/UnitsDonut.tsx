@@ -87,7 +87,7 @@ export function UnitsDonut({
             ))}
           </svg>
           <div className="wsd-donut__centre" aria-hidden="true">
-            <span className="wsd-big">{plural(split.total, u.total, locale)}</span>
+            <span className="wsd-donut__label">{plural(split.total, u.total, locale)}</span>
           </div>
         </div>
         <ul className="wsd-donut__legend">

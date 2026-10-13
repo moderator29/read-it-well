@@ -31,7 +31,7 @@ export function LeaseTodayCard({ refs, t, area }: Base & { refs: readonly Tenanc
             <span className="wsd-lease__sub">{w.endsToday}</span>
           </span>
           <span className="wsd-row__end">
-            <span className="wsd-card__action">{w.open}</span>
+            <span className="wsd-card__action wsd-lease__open">{w.open}</span>
             <UiIcon name="chevron-right" size={16} />
           </span>
         </Link>
@@ -265,7 +265,7 @@ export function PropertyCard({
       ? fillWords(w.letUntil, { date: dayLabel(property.tenancyEndsOn, locale, true) })
       : live
         ? w.vacant
-        : w.notLive;
+        : w.offMarket;
   const actions: { href: string; label: string; icon: "key" | "wallet" | "house" | "calendar-booking" }[] = [
     ...(tenancyId ? [{ href: tenancyHref(tenancyId), label: w.tenancy, icon: "key" as const }] : []),
     { href: "/agent/earnings", label: w.earnings, icon: "wallet" },

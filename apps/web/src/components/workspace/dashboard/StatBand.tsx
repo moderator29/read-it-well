@@ -53,7 +53,9 @@ export function StatTile({
           </span>
         ) : null}
       </p>
-      <p className="wsd-tile__figure">{typeof count === "number" ? <CountUp value={count} tag={tag} eager /> : text}</p>
+      <p className={["wsd-tile__figure", typeof count === "number" ? "" : "wsd-tile__figure--text"].filter(Boolean).join(" ")}>
+        {typeof count === "number" ? <CountUp value={count} tag={tag} eager /> : text}
+      </p>
       {sub ? <p className="wsd-tile__sub">{sub}</p> : null}
     </>
   );

@@ -3730,7 +3730,7 @@ export const ha: Dictionary = withFallback({
         title: "Kadara",
         letUntil: "An ba da haya har {date}",
         vacant: "A kan shafi, babu mai zama",
-        notLive: "Ba a kan shafi ba tukuna",
+        offMarket: "Ba a kan shafi ba tukuna",
         tenancy: "Fayil ɗin haya",
         earnings: "Kuɗin da ka samu",
         listing: "Sanarwar gida",

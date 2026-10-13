@@ -3759,7 +3759,7 @@ export const ig: Dictionary = withFallback({
         title: "Ngwongwo",
         letUntil: "Egbazinyere ya ruo {date}",
         vacant: "Dị n'saịtị, efu",
-        notLive: "Adịghị n'saịtị ka",
+        offMarket: "Adịghị n'saịtị ka",
         tenancy: "Faịlụ nkwekọrịta ụlọ",
         earnings: "Ego ị nwetara",
         listing: "Ndepụta",

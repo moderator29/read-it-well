@@ -3773,7 +3773,7 @@ export const yo: Dictionary = withFallback({
         title: "Ohun-ìní",
         letUntil: "A yá a títí di {date}",
         vacant: "Lórí ìkànnì, ó ṣófo",
-        notLive: "Kò tíì wà lórí ìkànnì",
+        offMarket: "Kò tíì wà lórí ìkànnì",
         tenancy: "Fáìlì àdéhùn ilé",
         earnings: "Owó tí o gbà",
         listing: "Àkọsílẹ̀ ilé",

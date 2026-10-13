@@ -6289,7 +6289,7 @@ export const en = {
         title: "Property",
         letUntil: "Let until {date}",
         vacant: "Live and vacant",
-        notLive: "Not live yet",
+        offMarket: "Not on the market yet",
         tenancy: "Tenancy file",
         earnings: "Earnings",
         listing: "Listing",

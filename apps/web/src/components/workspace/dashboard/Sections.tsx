@@ -1,4 +1,4 @@
-import { formatMoney, type Dictionary, type Locale } from "@vallo/i18n/core";
+import { formatMoneyGlance, type Dictionary, type Locale } from "@vallo/i18n/core";
 import type { Featured } from "@/lib/workspace/dashboard-agent";
 import {
   agentMonthly,
@@ -27,7 +27,7 @@ export function OwnerBand({ view, t, locale, tag }: Common & { view: OwnerView; 
   return (
     <StatBand label={t.workspaceDash.owner.upcoming.title}>
       {view.paidThisMonthMinor !== null ? (
-        <StatTile label={b.paid} icon="banknote" text={formatMoney(view.paidThisMonthMinor, locale)} sub={b.paidSub} href="/agent/earnings" tag={tag} />
+        <StatTile label={b.paid} icon="banknote" text={formatMoneyGlance(view.paidThisMonthMinor, locale)} sub={b.paidSub} href="/agent/earnings" tag={tag} />
       ) : null}
       {view.renewals !== null ? (
         <StatTile label={b.renewals} icon="calendar-clock" count={view.renewals.length} sub={b.renewalsSub} href="/agent/portfolio" tag={tag} />
