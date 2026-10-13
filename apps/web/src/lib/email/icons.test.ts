@@ -13,6 +13,7 @@ import {
   EMAIL_OBJECTS,
   EMAIL_OBJECT_SIZE,
   EMAIL_PLAN,
+  EMAIL_SHOWS_OBJECT,
   FAMILY,
   emailGlyphPath,
   emailObjectFor,
@@ -126,9 +127,13 @@ describe("every rendered message", () => {
     }
   });
 
-  it("gives every message an object today", () => {
+  it("gives every message an object when the layout shows one, and none when it does not", () => {
+    /* The quiet layout of 13 October 2026 switches the object off
+       (EMAIL_SHOWS_OBJECT in icons.ts). Either way it is all or nothing: a
+       message with an object while its sibling has none is the inconsistency
+       the redesign exists to end. */
     const withObject = EVERY_MESSAGE.filter(({ message }) => sortEmailImages(message.html).object.length === 1);
-    expect(withObject.length).toBe(EVERY_MESSAGE.length);
+    expect(withObject.length).toBe(EMAIL_SHOWS_OBJECT ? EVERY_MESSAGE.length : 0);
   });
 
   it.each(EVERY_MESSAGE)("$name keeps its inbox line first", ({ message }) => {

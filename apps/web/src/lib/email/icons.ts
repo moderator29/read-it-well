@@ -36,6 +36,20 @@ import type { Icon3DName } from "@/components/ui/icon-3d";
  * module) carry the same 3D marks from `public/brand/3d/email/`.
  */
 
+/**
+ * THE QUIET LAYOUT (13 October 2026, the email redesign). One layout for every
+ * message: the lockup, one headline, a short body, one button, a quiet details
+ * block and the footer. The two decorations below are switched OFF so the page
+ * has one thing to look at; the art, the mapping and the rendering code are all
+ * kept, so putting either back is changing one of these two flags and nothing
+ * else.
+ *
+ *   EMAIL_SHOWS_OBJECT      the founder's 3D object above the headline
+ *   EMAIL_SHOWS_ROW_GLYPHS  the 16px line glyph before a details row's label
+ */
+export const EMAIL_SHOWS_OBJECT = false;
+export const EMAIL_SHOWS_ROW_GLYPHS = false;
+
 /** Every 3D object an email carries. Each has a PNG pair on disk (icons.test.ts). */
 export const EMAIL_OBJECTS = [
   "envelope",

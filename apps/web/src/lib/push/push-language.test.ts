@@ -146,9 +146,58 @@ describe("the push catalogue", () => {
         "Refund on its way",
         "NGN 25,000.00 for Lekki Loft is being returned to the card or account you paid with. Banks usually show it within 5 to 10 working days.",
       ],
+      /* 13 October 2026: the notices written by migrations nt02 to nt05, as the
+         probes in supabase/tests/probes-pending read them back. */
+      ["Payment received", "Lekki Loft: NGN 300,000.00 is paid. Your booking is confirmed."],
+      [
+        "Payment received",
+        "Lekki Loft for 16 Oct to 19 Oct is paid. Your share, NGN 270,000.00, goes straight to the bank account on your payout details.",
+      ],
+      ["Payment received", "Lekki Loft for 16 Oct to 19 Oct is paid."],
+      ["Check-in tomorrow", "Lekki Loft: you check in on Friday 16 Oct. Open your booking for the arrival details."],
+      ["Check-in today", "Lekki Loft: check-in is today. Open your booking for the arrival details."],
+      ["A guest arrives today", "Ada Obi arrives today at Lekki Loft."],
+      ["Check-out today", "Lekki Loft: today is your check-out day. Open your booking if you need to message the host."],
+      ["How was your stay?", "Tell other guests what it was like at Lekki Loft. It takes a minute."],
+      ["How was your meal?", "Rate your table at Terra Kulture. It takes a minute and helps other diners choose."],
+      [
+        "Someone joined with your invite",
+        "They need to finish a few steps, such as confirming a phone number, before the invite counts. We will tell you when it does.",
+      ],
+      ["Your invite counts", "NGN 1,000.00 is waiting out its review period. We will tell you when it is available."],
+      ["Your referral reward is available", "NGN 1,000.00 is ready in Rewards."],
+      ["Your payout is on its way", "NGN 2,500.00 was sent to your bank account ending 1234. Banks usually show it the same day."],
+      ["Your payout arrived", "NGN 2,500.00 reached your bank account ending 1234."],
+      [
+        "Your payout did not go through",
+        "NGN 2,500.00 did not reach your bank account ending 1234. The reward is still yours: open Rewards to try again, or contact support.",
+      ],
+      [
+        "Your password was changed",
+        "If this was you, there is nothing to do. If it was not, open Devices to sign out other devices, then reset your password.",
+      ],
+      ["Phone number confirmed", "The number ending 5678 is now confirmed on your account."],
+      [
+        "Both of you confirmed",
+        "Lekki Loft is with Vallo for a check before payment opens. We will tell you the moment it is done.",
+      ],
+      ["Agreement cancelled", "The agreement for Lekki Loft was cancelled."],
     ];
     for (const [title, body] of samples) {
       expect(pushRuleFor({ title, body }), `${title}: ${body}`).not.toBeNull();
     }
+  });
+
+  it("translates the new payout words with the amount and the last four digits carried across", () => {
+    const out = localizePush(
+      { title: "Your payout arrived", body: "NGN 2,500.00 reached your bank account ending 1234." },
+      "yo",
+    );
+    expect(out).toEqual({ title: "Owó rẹ ti dé", body: "NGN 2,500.00 ti dé àkọọ́lẹ̀ báńkì rẹ tó parí ní 1234." });
+  });
+
+  it("leaves a payout notice without a last four in English, whole, rather than half translated", () => {
+    const english = { title: "Your payout arrived", body: "NGN 2,500.00 reached your bank account." };
+    expect(localizePush(english, "ha")).toEqual(english);
   });
 });

@@ -263,6 +263,198 @@ export const PUSH_TEXT_RULES: readonly PushTextRule[] = [
       },
     },
   },
+  /* 13 October 2026, track/notifications: the notices migrations nt02 to nt05
+     write. Same machine-draft state as the rest of this file. */
+  {
+    id: "payment.received_guest",
+    title: "Payment received",
+    body: /^(.+): (NGN [\d,]+\.\d{2}) is paid\. Your booking is confirmed\.$/,
+    copy: {
+      ha: { title: "An karɓi biyan kuɗi", body: "{b1}: an biya {b2}. An tabbatar da ajiyarka." },
+      yo: { title: "A ti gba owó rẹ", body: "{b1}: a ti san {b2}. A ti fìdí ìfilọ́lẹ̀ rẹ múlẹ̀." },
+      ig: { title: "Anabatala ụgwọ", body: "{b1}: akwụọla {b2}. Akwadoro ndebe gị." },
+    },
+  },
+  {
+    id: "payment.received_host_share",
+    title: "Payment received",
+    body: /^(.+) for (\d{2} \w{3}) to (\d{2} \w{3}) is paid\. Your share, (NGN [\d,]+\.\d{2}), goes straight to the bank account on your payout details\.$/,
+    copy: {
+      ha: { title: "An karɓi biyan kuɗi", body: "An biya {b1} na {b2} zuwa {b3}. Kason ka, {b4}, zai tafi kai tsaye zuwa asusun bankinka." },
+      yo: { title: "A ti gba owó rẹ", body: "A ti san owó fún {b1}, {b2} sí {b3}. Ìpín rẹ, {b4}, lọ taara sí àkọọ́lẹ̀ báńkì rẹ." },
+      ig: { title: "Anabatala ụgwọ", body: "Akwụọla ụgwọ maka {b1}, {b2} ruo {b3}. Òkè gị, {b4}, na-aga ozugbo n'akaụntụ ụlọ akụ gị." },
+    },
+  },
+  {
+    id: "payment.received_host",
+    title: "Payment received",
+    body: /^(.+) for (\d{2} \w{3}) to (\d{2} \w{3}) is paid\.$/,
+    copy: {
+      ha: { title: "An karɓi biyan kuɗi", body: "An biya {b1} na {b2} zuwa {b3}." },
+      yo: { title: "A ti gba owó rẹ", body: "A ti san owó fún {b1}, {b2} sí {b3}." },
+      ig: { title: "Anabatala ụgwọ", body: "Akwụọla ụgwọ maka {b1}, {b2} ruo {b3}." },
+    },
+  },
+  {
+    id: "stay.checkin_eve",
+    title: "Check-in tomorrow",
+    body: /^(.+): you check in on (.+)\. Open your booking for the arrival details\.$/,
+    copy: {
+      ha: { title: "Shigowa gobe", body: "{b1}: za ka shiga ranar {b2}. Buɗe ajiyarka don ganin bayanan isowa." },
+      yo: { title: "Ìwọlé ni ọ̀la", body: "{b1}: o máa wọlé ní {b2}. Ṣí ìfilọ́lẹ̀ rẹ láti rí ìsọfúnni dídé." },
+      ig: { title: "Mbata echi", body: "{b1}: ị ga-abata na {b2}. Meghee ndebe gị ka ị hụ ozi oge ọbịbịa." },
+    },
+  },
+  {
+    id: "stay.checkin_day",
+    title: "Check-in today",
+    body: /^(.+): check-in is today\. Open your booking for the arrival details\.$/,
+    copy: {
+      ha: { title: "Shigowa yau", body: "{b1}: shigowa yau ne. Buɗe ajiyarka don ganin bayanan isowa." },
+      yo: { title: "Ìwọlé ni òní", body: "{b1}: ìwọlé ni òní. Ṣí ìfilọ́lẹ̀ rẹ láti rí ìsọfúnni dídé." },
+      ig: { title: "Mbata taa", body: "{b1}: taa bụ ụbọchị mbata. Meghee ndebe gị ka ị hụ ozi oge ọbịbịa." },
+    },
+  },
+  {
+    id: "stay.host_arrival_day",
+    title: "A guest arrives today",
+    body: /^(.+) arrives today at (.+)\.$/,
+    copy: {
+      ha: { title: "Baƙo yana zuwa yau", body: "{b1} zai iso yau a {b2}." },
+      yo: { title: "Àlejò máa dé lónìí", body: "{b1} máa dé lónìí ní {b2}." },
+      ig: { title: "Onye ọbịa ga-abịa taa", body: "{b1} ga-abịa taa na {b2}." },
+    },
+  },
+  {
+    id: "stay.checkout_day",
+    title: "Check-out today",
+    body: /^(.+): today is your check-out day\. Open your booking if you need to message the host\.$/,
+    copy: {
+      ha: { title: "Fita yau", body: "{b1}: yau ne ranar fitarka. Buɗe ajiyarka idan kana son aika wa mai masauki saƙo." },
+      yo: { title: "Ìjáde ni òní", body: "{b1}: òní ni ọjọ́ ìjáde rẹ. Ṣí ìfilọ́lẹ̀ rẹ tí o bá fẹ́ fi ìfiránṣẹ́ ránṣẹ́ sí onílé." },
+      ig: { title: "Ọpụpụ taa", body: "{b1}: taa bụ ụbọchị ọpụpụ gị. Meghee ndebe gị ma ịchọrọ izi onye nnabata ozi." },
+    },
+  },
+  {
+    id: "stay.review_request",
+    title: "How was your stay?",
+    body: /^Tell other guests what it was like at (.+)\. It takes a minute\.$/,
+    copy: {
+      ha: { title: "Yaya zamanka ya kasance?", body: "Gaya wa sauran baƙi yadda {b1} yake. Minti ɗaya kawai." },
+      yo: { title: "Báwo ni ìgbà tí o dé?", body: "Sọ fún àwọn àlejò mìíràn bí {b1} ṣe rí. Ó gba ìṣẹ́jú kan." },
+      ig: { title: "Olee otú nnọkọ gị dị?", body: "Gwa ndị ọbịa ndị ọzọ ka {b1} dị. Ọ na-ewe nkeji otu." },
+    },
+  },
+  {
+    id: "table.review_request",
+    title: "How was your meal?",
+    body: /^Rate your table at (.+)\. It takes a minute and helps other diners choose\.$/,
+    copy: {
+      ha: { title: "Yaya abincin ya kasance?", body: "Ba da ƙima ga teburinka a {b1}. Minti ɗaya ne kuma yana taimaka wa sauran masu cin abinci su zaɓa." },
+      yo: { title: "Báwo ni oúnjẹ rẹ?", body: "Fún tábìlì rẹ ní {b1} ní ìdíwọ̀n. Ó gba ìṣẹ́jú kan, ó sì ń ran àwọn onjẹ mìíràn lọ́wọ́ láti yàn." },
+      ig: { title: "Olee nri gị dị?", body: "Nye tebụl gị na {b1} ọkwa. Ọ na-ewe nkeji otu ma na-enyere ndị ọzọ na-eri nri aka ịhọrọ." },
+    },
+  },
+  {
+    id: "referral.joined",
+    title: "Someone joined with your invite",
+    body: /^They need to finish a few steps, such as confirming a phone number, before the invite counts\. We will tell you when it does\.$/,
+    copy: {
+      ha: { title: "Wani ya shiga da gayyatarka", body: "Yana buƙatar kammala wasu matakai, kamar tabbatar da lambar waya, kafin gayyatar ta ƙidayu. Za mu gaya maka idan ta ƙidayu." },
+      yo: { title: "Ẹnìkan darapọ̀ mọ́ ìkésíni rẹ", body: "Wọ́n gbọ́dọ̀ parí àwọn ìgbésẹ̀ díẹ̀, bíi ìmúdájú nọ́mbà fóònù, kí ìkésíni tó ṣiṣẹ́. A ó sọ fún ọ nígbà tí ó bá ṣiṣẹ́." },
+      ig: { title: "Mmadụ sonyere site n'oku gị", body: "Ha kwesịrị imecha ụfọdụ usoro, dị ka ịkwado nọmba ekwentị, tupu oku ahụ guzosie. Anyị ga-agwa gị mgbe ọ gụsiri." },
+    },
+  },
+  {
+    id: "referral.counts",
+    title: "Your invite counts",
+    body: /^(NGN [\d,]+\.\d{2}) is waiting out its review period\. We will tell you when it is available\.$/,
+    copy: {
+      ha: { title: "Gayyatarka ta ƙidayu", body: "{b1} yana jiran lokacin dubawa. Za mu gaya maka idan ya samu." },
+      yo: { title: "Ìkésíni rẹ ṣiṣẹ́", body: "{b1} ń dúró de àkókò àyẹ̀wò. A ó sọ fún ọ nígbà tí ó bá wà." },
+      ig: { title: "Oku gị gụsiri", body: "{b1} na-eche oge nlele. Anyị ga-agwa gị mgbe ọ dị." },
+    },
+  },
+  {
+    id: "referral.available",
+    title: "Your referral reward is available",
+    body: /^(NGN [\d,]+\.\d{2}) is ready in Rewards\.$/,
+    copy: {
+      ha: { title: "Kyautar gayyatarka tana nan", body: "{b1} yana shirye a Kyaututtuka." },
+      yo: { title: "Ẹ̀bùn ìkésíni rẹ ti wà", body: "{b1} ti ṣetán nínú Ẹ̀bùn." },
+      ig: { title: "Onyinye oku gị adịla", body: "{b1} dị njikere na Onyinye." },
+    },
+  },
+  {
+    id: "payout.sent",
+    title: "Your payout is on its way",
+    body: /^(NGN [\d,]+\.\d{2}) was sent to your bank account ending (\d{4})\. Banks usually show it the same day\.$/,
+    copy: {
+      ha: { title: "Biyanka yana hanya", body: "An aika {b1} zuwa asusun bankinka mai ƙarewa da {b2}. Bankuna kan nuna shi a rana ɗaya." },
+      yo: { title: "Owó rẹ ń bọ̀", body: "A ti fi {b1} ránṣẹ́ sí àkọọ́lẹ̀ báńkì rẹ tó parí ní {b2}. Àwọn báńkì sábà máa ń fi hàn ní ọjọ́ kan náà." },
+      ig: { title: "Ụgwọ gị na-abịa", body: "E zigara {b1} n'akaụntụ ụlọ akụ gị nke na-ejedebe na {b2}. Ụlọ akụ na-egosikarị ya n'otu ụbọchị." },
+    },
+  },
+  {
+    id: "payout.arrived",
+    title: "Your payout arrived",
+    body: /^(NGN [\d,]+\.\d{2}) reached your bank account ending (\d{4})\.$/,
+    copy: {
+      ha: { title: "Biyanka ya isa", body: "{b1} ya isa asusun bankinka mai ƙarewa da {b2}." },
+      yo: { title: "Owó rẹ ti dé", body: "{b1} ti dé àkọọ́lẹ̀ báńkì rẹ tó parí ní {b2}." },
+      ig: { title: "Ụgwọ gị abịala", body: "{b1} ruru akaụntụ ụlọ akụ gị nke na-ejedebe na {b2}." },
+    },
+  },
+  {
+    id: "payout.failed",
+    title: "Your payout did not go through",
+    body: /^(NGN [\d,]+\.\d{2}) did not reach your bank account ending (\d{4})\. The reward is still yours: open Rewards to try again, or contact support\.$/,
+    copy: {
+      ha: { title: "Biyanka bai wuce ba", body: "{b1} bai isa asusun bankinka mai ƙarewa da {b2} ba. Kyautar har yanzu taka ce: buɗe Kyaututtuka don sake gwadawa, ko ka tuntuɓi tallafi." },
+      yo: { title: "Owó rẹ kò dé", body: "{b1} kò dé àkọọ́lẹ̀ báńkì rẹ tó parí ní {b2}. Ẹ̀bùn náà ṣì jẹ́ tìrẹ: ṣí Ẹ̀bùn láti tún gbìyànjú, tàbí kàn sí ìrànlọ́wọ́." },
+      ig: { title: "Ụgwọ gị agafeghị", body: "{b1} erughị akaụntụ ụlọ akụ gị nke na-ejedebe na {b2}. Onyinye ahụ ka bụ nke gị: meghee Onyinye ka ịnwaa ọzọ, ma ọ bụ kpọtụrụ nkwado." },
+    },
+  },
+  {
+    id: "security.password_changed",
+    title: "Your password was changed",
+    body: /^If this was you, there is nothing to do\. If it was not, open Devices to sign out other devices, then reset your password\.$/,
+    copy: {
+      ha: { title: "An canza kalmar sirrinka", body: "Idan kai ne, babu abin da za ka yi. Idan ba kai ba, buɗe Na'urori don fitar da sauran na'urori, sannan ka sake saita kalmar sirrinka." },
+      yo: { title: "A ti yí ọ̀rọ̀ aṣínà rẹ padà", body: "Tí ìwọ ni, kò sí ohun tí o nílò láti ṣe. Tí kì í ṣe ìwọ, ṣí Àwọn ẹ̀rọ láti jáde kúrò lórí àwọn ẹ̀rọ mìíràn, lẹ́yìn náà tún ọ̀rọ̀ aṣínà rẹ ṣe." },
+      ig: { title: "Agbanweela paswọọdụ gị", body: "Ọ bụrụ na ọ bụ gị, ọ nweghị ihe ị ga-eme. Ọ bụrụ na ọ bụghị gị, meghee Ngwaọrụ ka ị pụọ na ngwaọrụ ndị ọzọ, wee tọgharịa paswọọdụ gị." },
+    },
+  },
+  {
+    id: "security.phone_confirmed",
+    title: "Phone number confirmed",
+    body: /^The number ending (\d{4}) is now confirmed on your account\.$/,
+    copy: {
+      ha: { title: "An tabbatar da lambar waya", body: "Lambar da ke ƙarewa da {b1} yanzu an tabbatar da ita a asusunka." },
+      yo: { title: "A ti fìdí nọ́mbà fóònù múlẹ̀", body: "A ti fìdí nọ́mbà tó parí ní {b1} múlẹ̀ lórí àkọọ́lẹ̀ rẹ." },
+      ig: { title: "Akwadoro nọmba ekwentị", body: "Akwadoro nọmba na-ejedebe na {b1} na akaụntụ gị." },
+    },
+  },
+  {
+    id: "agreement.both_confirmed",
+    title: "Both of you confirmed",
+    body: /^(.+) is with Vallo for a check before payment opens\. We will tell you the moment it is done\.$/,
+    copy: {
+      ha: { title: "Ku biyu kun tabbatar", body: "{b1} yana wurin Vallo don dubawa kafin a buɗe biyan kuɗi. Za mu gaya muku da zarar an gama." },
+      yo: { title: "Ẹ̀yin méjèèjì ti fìdí rẹ̀ múlẹ̀", body: "{b1} wà lọ́dọ̀ Vallo fún àyẹ̀wò kí ìsanwó tó ṣí. A ó sọ fún yín gẹ́gẹ́ bí ó ti parí." },
+      ig: { title: "Unu abụọ akwadola", body: "{b1} nọ n'aka Vallo maka nlele tupu ịkwụ ụgwọ meghee. Anyị ga-agwa unu ozugbo ọ gụsịrị." },
+    },
+  },
+  {
+    id: "agreement.cancelled",
+    title: "Agreement cancelled",
+    body: /^The agreement for (.+) was cancelled\.$/,
+    copy: {
+      ha: { title: "An soke yarjejeniya", body: "An soke yarjejeniya ta {b1}." },
+      yo: { title: "A ti fagilé àdéhùn", body: "A ti fagilé àdéhùn fún {b1}." },
+      ig: { title: "Akagburu nkwekọrịta", body: "Akagburu nkwekọrịta maka {b1}." },
+    },
+  },
 ];
 
 /** The drain's own summary when a backlog is folded into one push. {count} is a number. */

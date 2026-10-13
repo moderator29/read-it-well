@@ -2,12 +2,9 @@ import { formatDate, formatMoney } from "@vallo/i18n/core";
 
 import {
   BRAND,
-  BUTTON_GLOW,
-  BUTTON_GRADIENT,
   DARK,
   FONT_MONO,
   FONT_SANS,
-  GRADIENT_CAP,
   LEGAL_LINE,
   LIGHT,
   LINK,
@@ -30,6 +27,8 @@ import type { ReceiptModel } from "@/components/app/money/receipt-model";
 import {
   EMAIL_GLYPH_SIZE,
   EMAIL_OBJECT_SIZE,
+  EMAIL_SHOWS_OBJECT,
+  EMAIL_SHOWS_ROW_GLYPHS,
   FAMILY,
   emailFamilyOf,
   emailGlyphPath,
@@ -560,27 +559,43 @@ function glyphHtml(glyph: EmailGlyph): string {
  * so a table of plain facts is not indented for nothing.
  */
 function rowsHtml(list: readonly ReceiptRow[], ink: Ink, options: { first?: boolean } = {}): string {
-  const glyphs = list.some((row) => row.icon);
+  const glyphs = EMAIL_SHOWS_ROW_GLYPHS && list.some((row) => row.icon);
   return list
     .map((row, index) => {
       const top = index === 0 && options.first !== false ? "0" : `1px solid ${LIGHT.edge}`;
-      const weight = row.strong ? "700" : "500";
-      const valueClass = row.strong ? ink.title : ink.body;
-      const valueColour = row.strong ? LIGHT.text : LIGHT.body;
+      /* Labels in body ink and values in title ink: the muted ink measures
+         4.45:1 on the details panel, a hair under AA, and a label is read, so
+         the hierarchy is carried by size and weight rather than by a paler ink. */
+      const weight = row.strong ? "700" : "400";
+      const valueClass = ink.title;
+      const valueColour = LIGHT.text;
       const glyphCell = glyphs
         ? `<td width="28" valign="top" style="width:28px;padding:15px 0 0;border-top:${top};vertical-align:top;font-size:0;line-height:0;">${row.icon ? glyphHtml(row.icon) : "&nbsp;"}</td>`
         : "";
       return `<tr>
-                          ${glyphCell}<td width="40%" class="${ink.muted}" style="width:40%;padding:13px 12px 13px 0;border-top:${top};${TEXT}font-size:13px;line-height:1.5;vertical-align:top;color:${LIGHT.muted};">${escapeHtml(row.label)}</td>
+                          ${glyphCell}<td width="40%" class="${ink.body}" style="width:40%;padding:13px 12px 13px 0;border-top:${top};${TEXT}font-size:13px;line-height:1.5;vertical-align:top;color:${LIGHT.body};">${escapeHtml(row.label)}</td>
                           <td align="right" class="${valueClass}" style="padding:13px 0;border-top:${top};${TEXT}${TABULAR}font-size:15px;line-height:1.5;font-weight:${weight};vertical-align:top;color:${valueColour};">${escapeHtml(row.value)}</td>
                         </tr>`;
     })
     .join("\n                        ");
 }
 
+/**
+ * THE DETAILS BLOCK (the redesign of 13 October 2026): the facts of the
+ * message (when, where, how much) in one quiet panel, a step off the card's
+ * white, label left and value right with a hairline between rows. No glyphs
+ * and no heavy rules: the headline and the one button carry the message, and
+ * this is what a reader glances at to be sure it is the right booking.
+ */
 function rowsTable(list: readonly ReceiptRow[], ink: Ink, margin = "0 0 26px"): string {
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;margin:${margin};">
+                    <tr>
+                      <td class="${ink.panel}" bgcolor="${LIGHT.panel}" style="background-color:${LIGHT.panel};border-radius:12px;padding:4px 18px;">
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;">
                     ${rowsHtml(list, ink)}
+                        </table>
+                      </td>
+                    </tr>
                   </table>`;
 }
 
@@ -770,6 +785,46 @@ function receiptHtml(receipt: ReceiptModel, ink: Ink): string {
                   </table>`;
 }
 
+/**
+ * THE ONE PRIMARY BUTTON (the redesign of 13 October 2026): the product's
+ * brand blue as a SOLID fill, white label, a rounded rectangle (never a
+ * capsule, D2: 12px of radius on a 50px button is a ratio of 0.24). No
+ * gradient, no glow: a flat button is the same in every client, and the one
+ * action in the message needs no ornament to be found.
+ *
+ * BULLETPROOF, in the specific sense the word has in email. Outlook's Word
+ * engine ignores padding on an inline-block and draws no radius, so it gets a
+ * VML round rectangle with the same fill and an anchor lock; every other
+ * client gets a table cell carrying the fill as both a `bgcolor` attribute and
+ * an inline colour, with the padding on the anchor so the whole button is the
+ * tap target on a phone. On a phone the button runs the full width of the
+ * card (`rm-btn`, the style block's narrow rule).
+ *
+ * The colour is written #FFFFFF rather than through the palette because it is
+ * the text ON the brand blue in both schemes, not a themed value.
+ */
+export function buttonHtml(label: string, url: string, options: { arrow?: boolean; margin?: string } = {}): string {
+  const safeUrl = escapeHtml(url);
+  const safeLabel = escapeHtml(label);
+  const shown = options.arrow ? `${safeLabel}&nbsp;&nbsp;&rarr;` : safeLabel;
+  const width = Math.min(380, Math.max(190, Math.round(label.length * 9.6 + 72)));
+  return `<!--[if mso]>
+                  <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${safeUrl}" style="height:50px;v-text-anchor:middle;width:${width}px;" arcsize="24%" strokecolor="${BRAND}" strokeweight="1px" fillcolor="${BRAND}">
+                    <w:anchorlock/>
+                    <center style="color:#FFFFFF;font-family:'Segoe UI',Arial,sans-serif;font-size:16px;font-weight:600;">${shown}</center>
+                  </v:roundrect>
+                  <![endif]-->
+                  <!--[if !mso]><!-->
+                  <table role="presentation" class="rm-btn" cellpadding="0" cellspacing="0" style="margin:${options.margin ?? "10px 0 12px"};">
+                    <tr>
+                      <td align="center" bgcolor="${BRAND}" style="border-radius:12px;background-color:${BRAND};">
+                        <a href="${safeUrl}" target="_blank" style="display:inline-block;padding:15px 34px;${TEXT}font-size:16px;line-height:20px;font-weight:600;letter-spacing:-0.01em;color:#FFFFFF;text-decoration:none;border-radius:12px;">${shown}</a>
+                      </td>
+                    </tr>
+                  </table>
+                  <!--<![endif]-->`;
+}
+
 function htmlBlock(block: Block, ink: Ink): string {
   switch (block.kind) {
     case "heading":
@@ -829,38 +884,13 @@ function htmlBlock(block: Block, ink: Ink): string {
 
     case "button":
       /*
-       * Bulletproof, in the specific sense the word has in email.
-       *
-       * The gradient is a background IMAGE over a solid brand blue declared
-       * FIRST, so Outlook's Word engine, which drops background images and
-       * keeps colours, still draws a blue button with white text rather than
-       * white text on nothing.
-       *
-       * The padding is on the anchor rather than on the cell, so the whole
-       * button is a tap target on a phone, which is where most of these are
-       * opened. mso-padding-alt repeats the geometry for Word, which ignores
-       * padding on an inline-block.
-       *
-       * IT IS A ROUNDED RECTANGLE AND NEVER A CAPSULE (D2). 14px of radius on
-       * a 52px tall button is a ratio of 0.27 against the short side, well
-       * under the 0.5 that makes a capsule however it was spelled, and 14px
-       * is --nf-radius-control. Classic Outlook drops the radius and draws a
-       * rectangle, which is a squarer version of the same shape.
-       *
-       * AND A PLAIN LINK BENEATH IT, ALWAYS (16.5): the address as text in
-       * the link blue, for the clients and gateways that strip a styled
-       * anchor, so no button is ever the only way through.
-       *
-       * The colour is written #FFFFFF rather than through the palette because
-       * it is the text ON the brand blue in both schemes, not a themed value.
+       * The button itself is `buttonHtml` (one button for every message,
+       * including the welcome). What stays here is the plain link beneath it,
+       * ALWAYS (16.5): the address as text in the link blue, for the clients
+       * and gateways that strip a styled anchor, so no button is ever the only
+       * way through.
        */
-      return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:12px 0 10px;">
-                    <tr>
-                      <td align="center" style="border-radius:14px;background-color:${BRAND};background-image:${BUTTON_GRADIENT};box-shadow:${BUTTON_GLOW};mso-padding-alt:16px 34px;">
-                        <a href="${escapeHtml(block.href)}" target="_blank" style="display:inline-block;padding:16px 34px;${TEXT}font-size:16px;line-height:20px;font-weight:600;letter-spacing:-0.01em;color:#FFFFFF;text-decoration:none;border-radius:14px;">${escapeHtml(block.label)}</a>
-                      </td>
-                    </tr>
-                  </table>${
+      return `${buttonHtml(block.label, block.href)}${
                     block.showUrl
                       ? `
                   <p class="${ink.muted}" style="margin:0 0 6px;${TEXT}font-size:13px;line-height:1.6;color:${LIGHT.muted};">If the button does not work, copy this address into your browser:</p>
@@ -868,7 +898,7 @@ function htmlBlock(block: Block, ink: Ink): string {
                       : /* The whole address, scheme included, as the copy-this line above
                            prints it: a bare "vallo.ng/messages/<id>" reads as copy and
                            puts a record's id in the visible text (outbox-delivery). */ `
-                  <p class="${ink.link}" style="margin:0 0 24px;${TEXT}font-size:13px;line-height:1.6;word-break:break-all;color:${LINK};"><a class="${ink.link}" href="${escapeHtml(block.href)}" target="_blank" style="color:${LINK};text-decoration:underline;">${escapeHtml(block.href)}</a></p>`
+                  <p class="${ink.link}" style="margin:0 0 22px;${TEXT}font-size:12px;line-height:1.6;word-break:break-all;color:${LINK};"><a class="${ink.link}" href="${escapeHtml(block.href)}" target="_blank" style="color:${LINK};text-decoration:underline;">${escapeHtml(block.href)}</a></p>`
                   }`;
 
     case "code":
@@ -1072,6 +1102,8 @@ ${ogsc}
       @media only screen and (max-width: 480px) {
         .rm-pad    { padding-left: 22px !important; padding-right: 22px !important; }
         .rm-outer  { padding-left: 8px !important; padding-right: 8px !important; }
+        .rm-btn    { width: 100% !important; }
+        .rm-btn a  { display: block !important; }
       }${extra}`;
 }
 
@@ -1121,14 +1153,14 @@ export function preheaderHtml(text: string): string {
  */
 export function brandBandRow(ink: Ink = SHELL_INK): string {
   return `<tr>
-              <td class="${ink.card} rm-pad" style="padding:28px ${PAD_X}px 0;">
+              <td class="${ink.card} rm-pad" style="padding:28px ${PAD_X}px 0;border-radius:19px 19px 0 0;">
                 <img src="${siteUrl()}${LOCKUP_PATH}" width="${LOCKUP_WIDTH}" height="${LOCKUP_HEIGHT}" alt="${WORDMARK_ALT}" style="display:block;width:${LOCKUP_WIDTH}px;height:${LOCKUP_HEIGHT}px;border:0;outline:none;text-decoration:none;${TEXT}font-size:22px;line-height:${LOCKUP_HEIGHT}px;font-weight:700;letter-spacing:-0.025em;color:${LIGHT.text};" />
                 <p class="${ink.muted}" style="margin:10px 0 0;${TEXT}font-size:13px;line-height:18px;letter-spacing:0.01em;color:${LIGHT.muted};">${escapeHtml(SLOGAN)}</p>
               </td>
             </tr>
             <tr>
               <td class="${ink.card} rm-pad" style="padding:22px ${PAD_X}px 0;">
-                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;"><tr><td style="height:2px;line-height:2px;font-size:0;background-color:${BRAND};background-image:${GRADIENT_CAP};border-radius:2px;mso-line-height-rule:exactly;">&nbsp;</td></tr></table>
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;"><tr><td style="height:0;line-height:0;font-size:0;border-top:1px solid ${LIGHT.edge};mso-line-height-rule:exactly;">&nbsp;</td></tr></table>
               </td>
             </tr>`;
 }
@@ -1157,37 +1189,57 @@ export function heroMarkHtml(kind: EmailKind, ink: Ink = SHELL_INK): string {
                   </table>`;
 }
 
-/** The pages every footer links, by the same three names everywhere. */
+/**
+ * The pages every footer links, by the same names everywhere: where the
+ * person changes what Vallo tells them, where they get help, and the two legal
+ * pages. The first is the notification settings screen. It is offered on every
+ * message, security mail included, under a name that promises only what the
+ * screen does ("Notification settings", not "turn this off"): a security
+ * notice says on its own that it cannot be switched off.
+ */
+export const SETTINGS_LINK = { label: "Notification settings", path: "/settings/notifications" } as const;
+
 export const FOOTER_LINKS: readonly { label: string; path: string }[] = [
+  SETTINGS_LINK,
   { label: "Help and support", path: "/support" },
   { label: "Privacy", path: "/legal/privacy" },
   { label: "Terms", path: "/legal/terms" },
 ];
 
-/** The footer links in the text part, one "Label: url" per line. */
-export function footerLinksText(): string {
-  return FOOTER_LINKS.map((l) => `${l.label}: ${appUrl(l.path)}`).join("\n");
+/**
+ * The footer links in the text part, one "Label: url" per line. When a message
+ * supplies its own settings line (`footerLink`, the Bookings and Messages
+ * wording) the default settings line is left out so the same address is not
+ * printed twice under two names.
+ */
+export function footerLinksText(options: { skipSettings?: boolean } = {}): string {
+  return FOOTER_LINKS.filter((l) => !(options.skipSettings && l.path === SETTINGS_LINK.path))
+    .map((l) => `${l.label}: ${appUrl(l.path)}`)
+    .join("\n");
 }
 
 /**
- * The footer: why this arrived, the one switch if there is one, the support
- * and legal links, the sign-off and the legal line. It sits on the ground
- * outside the card, so it reads as small print by position as well as size,
- * and it takes the shell classes in both registers because the ground is
- * the shell's: a dark-mode client turns it to night under any card.
+ * THE FOOTER (the redesign of 13 October 2026): why this arrived, then ONE
+ * row of links (notification settings, help, privacy, terms), then who sent
+ * it: the sign-off and the company's full legal line with its registered
+ * address. It sits on the ground outside the card, so it reads as small print
+ * by position as well as size, and it takes the shell classes in both
+ * registers because the ground is the shell's: a dark-mode client turns it to
+ * night under any card.
  */
 export function footerRows(lines: readonly string[], link?: { label: string; href: string }): string {
   const p = (inner: string, margin = "0 0 8px") =>
     `<p class="rm-muted" style="margin:${margin};${TEXT}font-size:13px;line-height:20px;color:${LIGHT.muted};">${inner}</p>`;
   const a = (label: string, href: string) =>
-    `<a class="rm-link" href="${escapeHtml(href)}" target="_blank" style="color:${LINK};text-decoration:underline;">${escapeHtml(label)}</a>`;
+    `<a class="rm-link" href="${escapeHtml(href)}" target="_blank" style="color:${LINK};text-decoration:underline;white-space:nowrap;">${escapeHtml(label)}</a>`;
   const reason = lines.map((line) => p(escapeHtml(line))).join("\n                ");
-  const switchLine = link ? `\n                ${p(a(link.label, link.href))}` : "";
-  const links = FOOTER_LINKS.map((l) => a(l.label, appUrl(l.path))).join("&nbsp;&nbsp;&middot;&nbsp;&nbsp;");
+  const settings = link ? a(link.label, link.href) : a(SETTINGS_LINK.label, appUrl(SETTINGS_LINK.path));
+  const rest = FOOTER_LINKS.filter((l) => l.path !== SETTINGS_LINK.path).map((l) => a(l.label, appUrl(l.path)));
+  const links = [settings, ...rest].join(" &nbsp;&middot;&nbsp; ");
   return `<tr>
               <td class="rm-pad" style="padding:26px ${PAD_X}px 0;">
-                ${reason}${switchLine}
-                ${p(links, "14px 0 14px")}
+                ${reason}
+                ${p(links, "6px 0 18px")}
                 <p class="rm-title" style="margin:0;${TEXT}font-size:13px;line-height:20px;font-weight:700;letter-spacing:0.02em;color:${LIGHT.text};">${SIGN_OFF}</p>
                 <p class="rm-muted" style="margin:4px 0 0;${TEXT}font-size:12px;line-height:18px;color:${LIGHT.muted};">${LEGAL_LINE}</p>
               </td>
@@ -1204,6 +1256,12 @@ export function footerRows(lines: readonly string[], link?: { label: string; hre
  * card on light"). Classic Outlook drops the radius and draws a square card,
  * which is the same design with corners.
  */
+/** The namespaces and the pixel density Outlook's Word engine needs to draw the VML button. */
+export const OFFICE_HTML_ATTRS =
+  ' xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office"';
+export const OFFICE_HEAD =
+  "\n    <!--[if mso]><noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript><![endif]-->";
+
 export function documentHtml(options: {
   title: string;
   preheader: string;
@@ -1217,8 +1275,8 @@ export function documentHtml(options: {
 }): string {
   const ink = inkFor(options.register ?? "shell");
   return `<!doctype html>
-<html lang="en"${options.htmlAttrs ?? ""} style="color-scheme:light dark;background-color:${LIGHT.ground};">
-  ${documentHead(options.title, options.extraStyle, options.headExtra)}
+<html lang="en"${options.htmlAttrs ?? OFFICE_HTML_ATTRS} style="color-scheme:light dark;background-color:${LIGHT.ground};">
+  ${documentHead(options.title, options.extraStyle, options.headExtra ?? OFFICE_HEAD)}
   <body class="rm-base" bgcolor="${LIGHT.ground}" style="margin:0;padding:0;width:100%;background-color:${LIGHT.ground};color:${LIGHT.body};${TEXT}-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%;">
     ${preheaderHtml(options.preheader)}
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="rm-base" bgcolor="${LIGHT.ground}" style="width:100%;background-color:${LIGHT.ground};">
@@ -1229,7 +1287,7 @@ export function documentHtml(options: {
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:${MAX_WIDTH}px;width:100%;">
             <tr>
               <td class="${ink.card}" bgcolor="${LIGHT.card}" style="background-color:${LIGHT.card};border:1px solid ${LIGHT.edge};border-radius:20px;">
-                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;border-radius:19px;">
                   ${brandBandRow(ink)}
                   <tr>
                     <td class="${ink.card} rm-pad${options.cardClass ? " " + options.cardClass : ""}" bgcolor="${LIGHT.card}" style="background-color:${LIGHT.card};border-radius:0 0 19px 19px;padding:30px ${PAD_X}px 36px;">
@@ -1263,7 +1321,7 @@ export function compose(options: ComposeOptions): Composed {
   const register = emailRegisterOf(options.icon);
   const ink = inkFor(register);
 
-  const mark = heroMarkHtml(options.icon, ink);
+  const mark = EMAIL_SHOWS_OBJECT ? heroMarkHtml(options.icon, ink) : "";
   const body = (mark ? mark + "\n                " : "") + blocks.map((block) => htmlBlock(block, ink)).join("\n                ");
 
   const html = documentHtml({
@@ -1295,7 +1353,7 @@ export function compose(options: ComposeOptions): Composed {
       ...(options.footerLink
         ? [`${options.footerLink.label}: ${options.footerLink.href}`, ""]
         : []),
-      footerLinksText(),
+      footerLinksText({ skipSettings: options.footerLink !== undefined }),
       "",
       SIGN_OFF,
       LEGAL_LINE,
