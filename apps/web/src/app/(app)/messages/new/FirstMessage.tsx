@@ -1,5 +1,7 @@
 "use client";
 
+import { PhoneGateLink } from "@/components/app/PhoneGateLink";
+import { isPhoneGate } from "@/lib/actions/envelope";
 import { Button } from "@/components/ui/Button";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
@@ -43,15 +45,20 @@ export function FirstMessage({
   const router = useRouter();
   const [body, setBody] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [phoneGate, setPhoneGate] = useState(false);
   const [pending, startTransition] = useTransition();
 
   function send(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
+    setPhoneGate(false);
     startTransition(async () => {
       const result = await startConversationWithMessage({ listingId, body });
       if (result.ok) router.replace(`/messages/${result.data.conversationId}${suffix}`);
-      else setError(result.error);
+      else {
+        setError(result.error);
+        setPhoneGate(isPhoneGate(result));
+      }
     });
   }
 
@@ -99,6 +106,7 @@ export function FirstMessage({
           {error}
         </p>
       )}
+      <PhoneGateLink show={phoneGate} full />
       <Button type="submit" variant="primary" full disabled={pending || body.trim().length === 0}>
         {copy.send}
       </Button>

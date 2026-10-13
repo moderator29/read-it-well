@@ -8,6 +8,7 @@ import { panelClass } from "@/components/ui/Panel";
 import { resolveSession } from "@/lib/actions/session";
 import { withNext } from "@/lib/auth/next-link";
 import { phoneConfirmationOn } from "@/lib/phone-otp/flag";
+import { isQaTester } from "@/lib/phone-otp/qa";
 import { PhoneConfirmForm } from "./PhoneConfirmForm";
 import { ProfilePhoneForm } from "./ProfilePhoneForm";
 import { safeReturnPath } from "@/lib/security/return-path";
@@ -19,11 +20,13 @@ export async function generateMetadata(): Promise<Metadata> {
 /**
  * SETTINGS, PHONE (V-50): confirm one mobile number for this account.
  *
- * The page the three moments point to. Its states: signed out (sign in),
- * the flag off (nothing is needed, said plainly, and no form that cannot
- * send), a failed read (said, nothing changed), already confirmed (the last
- * four digits and the date, with a way to change it), and the form. Loading
- * is the settings route's own skeleton.
+ * The page every phone-gated moment points to (`PhoneGateLink`, with
+ * `?next=` where the member was, which the form returns them to). Its
+ * states: signed out (sign in), the flag off (nothing is needed, said
+ * plainly, and no form that cannot send), a QA account (never asked: said,
+ * with the way back), a failed read (said, nothing changed), already
+ * confirmed (the last four digits and the date, with a way to change it),
+ * and the form. Loading is the settings route's own skeleton.
  */
 export default async function PhoneSettingsPage({ searchParams }: { searchParams: Promise<{ next?: string | string[] }> }) {
   const rawNext = (await searchParams).next;
@@ -49,6 +52,30 @@ export default async function PhoneSettingsPage({ searchParams }: { searchParams
             </ButtonLink>
           }
         />
+      </div>
+    );
+  }
+
+  /* TESTERS ARE NEVER ASKED (13 October 2026), read on the server from the
+     session's own user id. */
+  if (await isQaTester(session.user.id)) {
+    return (
+      <div className="mx-auto max-w-2xl">
+        {header}
+        <div data-testid="phone-qa">
+          <EmptyState
+            icon="user-verified"
+            title={copy.qaTitle}
+            body={copy.qaBody}
+            action={
+              next ? (
+                <ButtonLink href={next} variant="primary" size="lg">
+                  {copy.profileBack}
+                </ButtonLink>
+              ) : undefined
+            }
+          />
+        </div>
       </div>
     );
   }
@@ -103,7 +130,7 @@ export default async function PhoneSettingsPage({ searchParams }: { searchParams
               </div>
             )}
             {data && <h2 className="nf-group-label">{copy.change}</h2>}
-            <PhoneConfirmForm copy={copy} />
+            <PhoneConfirmForm copy={copy} next={next} />
           </>
         )}
       </div>

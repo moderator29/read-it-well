@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { usePhoneGateAction } from "@/components/app/PhoneGateLink";
 import { startCardCheckout } from "@/lib/bookings/checkout";
 import { PaymentGate } from "@/components/app/agreements/PaymentGate";
 import { NO_CUSTODY_SENTENCE, RAIL_COPY } from "@/lib/money/copy";
@@ -78,7 +79,7 @@ type Phase =
      "not charged" (docs/SUCCESS_MOMENTS.md). */
   | { kind: "applying"; reference: string }
   | { kind: "stalled"; method: "card" }
-  | { kind: "error"; message: string };
+  | { kind: "error"; message: string; phoneGate?: boolean };
 
 function Option({
   icon,
@@ -138,6 +139,7 @@ export function PayPanel({
   const paid = successCopy(s, "rentPaid");
   const router = useRouter();
   const [phase, setPhase] = useState<Phase>({ kind: "idle" });
+  const phoneGateAction = usePhoneGateAction();
   const [slow, setSlow] = useState(false);
   const cardKey = useMemo(() => newKey(), []);
   const timers = useRef<number[]>([]);
@@ -184,7 +186,7 @@ export function PayPanel({
     const opened = await startRentPayment({ inspectionId: view.inspectionId, moveIn: view.moveIn });
     if (!opened.ok) {
       clearTimers();
-      setPhase({ kind: "error", message: opened.error });
+      setPhase({ kind: "error", message: opened.error, phoneGate: opened.gate === "phone" });
       return null;
     }
     return opened.data.bookingId;
@@ -199,7 +201,7 @@ export function PayPanel({
     const result = await chargeSavedCard(chosenCard);
     clearTimers();
     if (!result.ok) {
-      setPhase({ kind: "error", message: result.error });
+      setPhase({ kind: "error", message: result.error, phoneGate: result.gate === "phone" });
       return;
     }
     if (result.data.kind === "needs_hosted_checkout") {
@@ -525,10 +527,18 @@ export function PayPanel({
           c.nothingTaken,
           c,
         )}
-        actions={[
-          { label: c.tryAgain, onClick: () => setPhase({ kind: "idle" }), tone: "primary" },
-          { label: c.getHelp, href: "/help", tone: "quiet" },
-        ]}
+        actions={
+          /* The phone gate's refusal: confirm the number, then come back. */
+          phase.kind === "error" && phase.phoneGate && phoneGateAction
+            ? [
+                { label: phoneGateAction.label, href: phoneGateAction.href, tone: "primary" },
+                { label: c.getHelp, href: "/help", tone: "quiet" },
+              ]
+            : [
+                { label: c.tryAgain, onClick: () => setPhase({ kind: "idle" }), tone: "primary" },
+                { label: c.getHelp, href: "/help", tone: "quiet" },
+              ]
+        }
       />
 
       {panel}

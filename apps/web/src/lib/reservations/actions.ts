@@ -10,6 +10,7 @@ import { lagosInstant, reserveSchema, reserveTarget, respondSchema, whyNotBookab
 import { countOf } from "@vallo/i18n/core";
 import { seatingRefusal } from "./seating";
 import { seatingMissing } from "./seating-missing";
+import { phoneGateFor } from "../phone-otp/gate";
 
 /**
  * Asking a restaurant to hold a table, and the restaurant answering.
@@ -121,6 +122,10 @@ export async function reserveTable(
 
   const parsed = validate(reserveSchema, formDataToObject(formData));
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+
+  /* FULL GATE (13 October 2026): a table reservation is a booking. */
+  const phoneGate = await phoneGateFor(session.supabase, session.user.id, "booking");
+  if (phoneGate) return phoneGate;
 
   const at = lagosInstant(parsed.data.date, parsed.data.time);
   if (!at) {

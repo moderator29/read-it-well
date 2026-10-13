@@ -53,7 +53,7 @@ export async function reportSomething(
      confirmed phone, when the flag is on. A report that somebody is unsafe
      is never delayed by a code. */
   const phoneGate = await phoneGateFor(session.supabase, session.user.id, "report", category);
-  if (phoneGate) return fail(phoneGate);
+  if (phoneGate) return phoneGate;
 
   const verdict = await consume({
     bucket: "report",

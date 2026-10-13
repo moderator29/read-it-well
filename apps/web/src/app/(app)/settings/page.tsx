@@ -1,4 +1,5 @@
 import { phoneConfirmationOn } from "@/lib/phone-otp/flag";
+import { isQaTester } from "@/lib/phone-otp/qa";
 import { forHub } from "@/components/app/account/settings-copy";
 import type { Metadata } from "next";
 import { distinctDeviceCount } from "@/lib/security/device-count";
@@ -93,7 +94,8 @@ export default async function SettingsPage() {
           notifications={profile ? profile.settings.notifications : null}
           deviceCount={deviceCount}
           phoneRow={
-            signedIn && (await phoneConfirmationOn())
+            /* A QA account is never asked for a phone, so it is not shown the door. */
+            signedIn && (await phoneConfirmationOn()) && !(await isQaTester(profile?.userId))
               ? { label: t.trustVisible.phone.title, sub: t.trustVisible.phone.subtitle }
               : null
           }

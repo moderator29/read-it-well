@@ -35,7 +35,7 @@ export type VisitSubmitOutcome =
   | { state: "done"; id: string }
   | { state: "kept" }
   | { state: "notKept" }
-  | { state: "failed"; error: string }
+  | { state: "failed"; error: string; phoneGate?: boolean }
   | { state: "busy" };
 
 type Sent<T> = { state: "sent"; result: ActionResult<T> } | { state: "kept"; key: string } | { state: "not_kept" };
@@ -65,7 +65,7 @@ export function createVisitSubmitter(deps: VisitSubmitDeps): (choice: VisitChoic
     try {
       if (choice.kind === "slot") {
         const result = await deps.book({ listingId: choice.listingId, slotAt: choice.at, mode: choice.mode, tapKey, ...(note ? { note } : {}) });
-        if (!result.ok) return { state: "failed", error: result.error };
+        if (!result.ok) return { state: "failed", error: result.error, ...(result.gate === "phone" ? { phoneGate: true } : {}) };
         held = null;
         return { state: "done", id: result.data.id };
       }
@@ -76,7 +76,7 @@ export function createVisitSubmitter(deps: VisitSubmitDeps): (choice: VisitChoic
         return { state: "kept" };
       }
       if (sent.state === "not_kept") return { state: "notKept" };
-      if (!sent.result.ok) return { state: "failed", error: sent.result.error };
+      if (!sent.result.ok) return { state: "failed", error: sent.result.error, ...(sent.result.gate === "phone" ? { phoneGate: true } : {}) };
       held = null;
       return { state: "done", id: sent.result.data.id };
     } catch {

@@ -1,5 +1,6 @@
 "use client";
 
+import { PhoneGateLink } from "@/components/app/PhoneGateLink";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { countOf, formatDate, formatMoney, type Dictionary, type Locale } from "@vallo/i18n/core";
@@ -1195,6 +1196,7 @@ export function ListingWizard({
 
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [phoneGate, setPhoneGate] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [photoNotice, setPhotoNotice] = useState<string | null>(null);
   /** One line per file the last pick refused, naming the file. */
@@ -2355,6 +2357,7 @@ export function ListingWizard({
   /* --------------------------------------------------------------- submit */
 
   function send() {
+    setPhoneGate(false);
     startTransition(async () => {
       /* Saved first, always: the draft and its unconfirmed set (V-09) must be
          what the server checks, not what it held before the last tap. */
@@ -2395,6 +2398,7 @@ export function ListingWizard({
            words, rather than leaving a green checklist under a refusal. */
         const reasons = Object.entries(result.fieldErrors ?? {}).map(([field, message]) => gateText(field, message));
         setNotice([result.error, ...new Set(reasons)].join(" "));
+        setPhoneGate(result.gate === "phone");
         setFieldErrors(result.fieldErrors ?? {});
         feedback("error");
         return;
@@ -4489,6 +4493,7 @@ export function ListingWizard({
                     </Note>
                   </div>
                 )}
+                <PhoneGateLink show={phoneGate && notice !== null} full className="mt-sm" />
                 <Button
                   variant="primary"
                   full

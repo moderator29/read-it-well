@@ -14,6 +14,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { fail, ok, type ActionResult } from "../actions/envelope";
 import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../actions/session";
+import { phoneGateFor } from "../phone-otp/gate";
 import { recordAlert } from "../alerts";
 import { lagosToday } from "../bookings/schema";
 import { paylukContext } from "../payments/providers/payluk";
@@ -41,6 +42,10 @@ export async function fundEscrowPayment(input: { agreementId: string }): Promise
   const session = await resolveSession();
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
   if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
+  /* FULL GATE (13 October 2026): the first payment needs a confirmed phone,
+     flag on; a payment fails closed on a failed read (`phone-otp/core.ts`). */
+  const phoneGate = await phoneGateFor(session.supabase, session.user.id, "payment");
+  if (phoneGate) return phoneGate;
   const db = adminDb();
   const ctx = paylukContext();
   if (!db || !ctx) return fail(FUND_REFUSED.switched_off!);

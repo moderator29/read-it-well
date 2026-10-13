@@ -45,6 +45,7 @@ import {
   resolveSession,
 } from "../actions/session";
 import { isFeatureEnabled } from "../flags";
+import { phoneGateFor } from "../phone-otp/gate";
 import { checkConstraintMessage, NOT_LIVE_MESSAGE } from "./reserve-refusals";
 import { getListingRepository } from "../listings/repository";
 import { createAdminClient } from "../supabase/admin";
@@ -136,6 +137,11 @@ export async function reserve(
   const parsed = validate(reserveInputSchema, formDataToObject(formData));
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   const input = parsed.data;
+
+  /* FULL GATE (13 October 2026): the first booking needs a confirmed phone,
+     flag on. Asked before anything is read or held. */
+  const phoneGate = await phoneGateFor(session.supabase, session.user.id, "booking");
+  if (phoneGate) return phoneGate;
 
   // ------------------------------------------------- resolve the listing
   // A bookable listing lives in public.listings and carries its own price

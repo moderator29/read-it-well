@@ -1,5 +1,7 @@
 "use client";
 
+import { PhoneGateLink } from "@/components/app/PhoneGateLink";
+import { isPhoneGate } from "@/lib/actions/envelope";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { BackControl } from "@/components/ui/BackControl";
@@ -29,16 +31,21 @@ export function DirectFirstMessage({
   const router = useRouter();
   const [body, setBody] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [phoneGate, setPhoneGate] = useState(false);
   const [pending, start] = useTransition();
 
   const send = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (body.trim().length === 0 || pending) return;
     setError(null);
+    setPhoneGate(false);
     start(async () => {
       const result = await sendDirectMessage({ handle, body });
       if (result.ok) router.replace(`/messages/${result.data.conversationId}`);
-      else setError(result.error);
+      else {
+        setError(result.error);
+        setPhoneGate(isPhoneGate(result));
+      }
     });
   };
 
@@ -62,9 +69,12 @@ export function DirectFirstMessage({
       <div className="nf-direct__body">
         <p className="nf-direct__hint">{copy.hint}</p>
         {error ? (
-          <p role="alert" className="nf-caption text-[var(--nf-state-error)]">
-            {error}
-          </p>
+          <>
+            <p role="alert" className="nf-caption text-[var(--nf-state-error)]">
+              {error}
+            </p>
+            <PhoneGateLink show={phoneGate} full />
+          </>
         ) : null}
       </div>
 

@@ -11,10 +11,37 @@ import type { z } from "zod";
  */
 export type ActionResult<T = null> =
   | { ok: true; data: T }
-  | { ok: false; error: string; fieldErrors?: Record<string, string> };
+  | {
+      ok: false;
+      error: string;
+      fieldErrors?: Record<string, string>;
+      /**
+       * The refusal is the phone gate (`lib/phone-otp/gate.ts`): the screen
+       * draws the button to Settings, Phone beside the words
+       * (`components/app/PhoneGateLink.tsx`), which brings the member back.
+       */
+      gate?: "phone";
+    };
 
 export function ok<T>(data: T): ActionResult<T> {
   return { ok: true, data };
+}
+
+/** A refusal from the phone gate. Assignable to any `ActionResult<T>`. */
+export type PhoneGateRefusal = { ok: false; error: string; gate?: "phone" };
+
+/**
+ * The phone gate's refusal. `link` is false for the try-again sentence a
+ * fail-closed moment answers with when its read failed: there is nothing to
+ * confirm, so there is no button.
+ */
+export function phoneGateRefusal(error: string, link = true): PhoneGateRefusal {
+  return link ? { ok: false, error, gate: "phone" } : { ok: false, error };
+}
+
+/** Did this result come back from the phone gate? For the screen's button. */
+export function isPhoneGate(result: { ok: boolean; gate?: "phone" } | null | undefined): boolean {
+  return Boolean(result && !result.ok && result.gate === "phone");
 }
 
 export function fail<T = null>(

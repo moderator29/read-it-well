@@ -118,7 +118,7 @@ export const trustVisibleEn = {
   phone: {
     title: "Phone",
     subtitle: "One confirmed mobile number per account",
-    why: "Vallo asks for a confirmed mobile number once, before your first inspection request, your first review and your first report. It is never shown to anybody. It keeps one person to one account, which is what makes reviews and reports worth trusting.",
+    why: "Vallo asks for a confirmed mobile number once, before your first message, visit, booking, payment or listing, and before your first review and your first report. It is never shown to anybody. It keeps one person to one account, which is what makes reviews and reports worth trusting.",
     closedTitle: "Nothing is needed from you",
     closedBody: "Vallo is not asking for phone numbers at the moment. Browsing, saving and messaging never need one.",
     /* While codes are not sent: the number is saved to the profile unconfirmed,
@@ -132,7 +132,7 @@ export const trustVisibleEn = {
     profileSaving: "Saving",
     profileSaved: "Saved. Your number is on your profile.",
     profileInvalid: "That is not a Nigerian mobile number. It has 11 digits and starts 070, 071, 080, 081, 090 or 091.",
-    profileRefused: "That number cannot be used on Vallo. Use your own mobile number.",
+    profileRefused: "We could not use this number. Try a different number, or contact support.",
     profileFailed: "We could not save your number just now. Nothing was changed. Try again in a moment.",
     profileBack: "Continue",
     signedOutTitle: "Sign in to confirm your number",
@@ -160,16 +160,21 @@ export const trustVisibleEn = {
     numberEmpty: "Enter your mobile number.",
     codeShape: "The code is six digits.",
     sendLimited: "That is a lot of codes in a short time. Wait an hour and try again.",
-    sendTaken: "That number is already confirmed on another Vallo account. One number can confirm one account.",
+    /** V-50 NO ENUMERATION: the one sentence for every refusal that could tell
+       somebody whether a number is on Vallo, so taken and invalid read the same. */
+    numberRefused: "We could not use this number. Try a different number, or contact support.",
     sendAlready: "That number is already confirmed on your account.",
-    sendInvalid: "That is not a Nigerian mobile number we can send to. Check the digits.",
     sendUnconfigured: "We could not send a code just now. Nothing was changed. Try again later.",
     sendFailed: "We could not send a code just now. Nothing was changed. Try again in a moment.",
     confirmWrong: "That code does not match. Check the message and try again.",
     confirmExpired: "That code has expired. Ask for a new one.",
     confirmLocked: "Too many wrong codes. Ask for a new one.",
     confirmNoCode: "There is no code waiting for this account. Ask for one first.",
-    confirmTaken: "That number was confirmed on another Vallo account in the meantime. One number can confirm one account.",
+    /** The button beside `required`: Settings, Phone, then back to where the member was. */
+    requiredAction: "Confirm my number",
+    /** A QA account (public.qa_accounts) is never asked for a phone. */
+    qaTitle: "This is a test account",
+    qaBody: "Vallo test accounts are never asked for a phone number. Nothing is needed from you.",
   },
   /** V-49: confirming identity with a NIMC virtual NIN. */
   vnin: {

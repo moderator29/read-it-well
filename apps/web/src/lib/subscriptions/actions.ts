@@ -28,6 +28,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { fail, ok, type ActionResult } from "../actions/envelope";
 import { NOT_CONFIGURED_MESSAGE, resolveSession } from "../actions/session";
+import { phoneGateFor } from "../phone-otp/gate";
 import { SUBSCRIPTIONS_CHECKOUT_FLAG, flagIsOn } from "../flags/read";
 import { recordMoneyAudit } from "../money/audit";
 import { logMoney } from "../payments/observability";
@@ -116,6 +117,10 @@ export async function startSubscriptionCheckout(planKey: string): Promise<Action
   if (!(await flagIsOn(SUBSCRIPTIONS_CHECKOUT_FLAG))) return ok({ opened: false, reason: "closed" });
   const email = session.user.email ?? "";
   if (!email.includes("@")) return ok({ opened: false, reason: "no_email" });
+  /* FULL GATE (13 October 2026): the first payment needs a confirmed phone,
+     flag on; a payment fails closed on a failed read (`phone-otp/core.ts`). */
+  const phoneGate = await phoneGateFor(session.supabase, session.user.id, "payment");
+  if (phoneGate) return phoneGate;
 
   const limit = await guardMoney("startSubscriptionCheckout", session.user.id);
   if (!limit.allowed) return fail(limit.message);

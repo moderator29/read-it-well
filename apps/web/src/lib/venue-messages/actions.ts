@@ -5,6 +5,7 @@ import { fail, ok, type ActionResult } from "../actions/envelope";
 import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../actions/session";
 import { isFeatureEnabled } from "../flags";
 import { sendMessage } from "../messages/actions";
+import { phoneGateFor } from "../phone-otp/gate";
 import { createAdminClient } from "../supabase/admin";
 import { businessThreadRefusal, isUuid, normaliseBody } from "./rules";
 
@@ -87,6 +88,9 @@ export async function messageVenue(input: {
 
   let conversationId: string | null = (existing.data as { id: string } | null)?.id ?? null;
   if (!conversationId) {
+    /* FULL GATE: the first message to a venue opens a new conversation. */
+    const phoneGate = await phoneGateFor(session.supabase, session.user.id, "message");
+    if (phoneGate) return phoneGate;
     const created = await db
       .from("conversations")
       .insert({
@@ -122,7 +126,7 @@ export async function messageVenue(input: {
   if (!conversationId) return fail("We could not open this conversation just now. Please try again.");
 
   const sent = await sendMessage({ conversationId, body });
-  if (!sent.ok) return fail(sent.error, sent.fieldErrors);
+  if (!sent.ok) return sent;
   return ok({ conversationId });
 }
 

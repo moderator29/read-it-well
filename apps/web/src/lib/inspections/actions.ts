@@ -137,7 +137,7 @@ async function requestInspectionWork(
   /* V-50: the first inspection request needs a confirmed phone, when the
      phone_confirmation flag is on. Null, and nothing read, when it is off. */
   const phoneGate = await phoneGateFor(session.supabase, session.user.id, "inspection");
-  if (phoneGate) return fail(phoneGate);
+  if (phoneGate) return phoneGate;
 
   const modeRefusal = await visitModeRefusal(parsed.data.mode);
   if (modeRefusal) return fail(modeRefusal, { mode: modeRefusal });

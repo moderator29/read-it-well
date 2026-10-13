@@ -25,6 +25,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../actions/session";
+import { phoneGateFor } from "../phone-otp/gate";
 import { getAdminClient } from "@/lib/supabase/service";
 import {
   PaystackError,
@@ -95,6 +96,10 @@ export async function startShareCheckout(input: {
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
   if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
   if (!isPaystackConfigured()) return fail("We cannot reach card payment right now. Nothing has been charged.");
+  /* FULL GATE (13 October 2026): the first payment needs a confirmed phone,
+     flag on; a payment fails closed on a failed read (`phone-otp/core.ts`). */
+  const phoneGate = await phoneGateFor(session.supabase, session.user.id, "payment");
+  if (phoneGate) return phoneGate;
   const email = session.user.email ?? null;
   if (!email) return fail("Your account has no email address, which card payment needs. Add one to your profile and try again.");
   const admin = getAdminClient();

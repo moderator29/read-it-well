@@ -1,5 +1,6 @@
 "use client";
 
+import { PhoneGateLink } from "@/components/app/PhoneGateLink";
 import "@/app/css/visit.css";
 import { useMemo, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
@@ -100,6 +101,7 @@ export function VisitPlanner({
   const [reviewOpen, setReviewOpen] = useState(false);
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
+  const [phoneGate, setPhoneGate] = useState(false);
   const [kept, setKept] = useState(false);
 
   /* ----------------------------------------------------------- the times */
@@ -140,6 +142,7 @@ export function VisitPlanner({
     if (!time || sending) return;
     setSending(true);
     setSendError(null);
+    setPhoneGate(false);
     const choice: VisitChoice = { listingId, mode, kind: open ? "slot" : "ask", at: time, note };
     const outcome = await submitter.current(choice);
     if (outcome.state === "busy") return;
@@ -156,6 +159,7 @@ export function VisitPlanner({
       return;
     }
     setSendError(outcome.state === "notKept" ? copy.problems.notKept : outcome.error || copy.problems.failed);
+    setPhoneGate(outcome.state === "failed" && outcome.phoneGate === true);
   }
 
   /* ---------------------------------------------------------- rendering */
@@ -417,6 +421,7 @@ export function VisitPlanner({
                 {sendError}
               </p>
             ) : null}
+            <PhoneGateLink show={phoneGate} full />
             <Button variant="primary" size="lg" full loading={sending} onClick={() => void send()} data-testid="visit-send">
               {sending ? copy.footer.sending : open ? copy.footer.book : copy.footer.send}
             </Button>

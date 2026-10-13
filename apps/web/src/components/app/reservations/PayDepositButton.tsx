@@ -1,5 +1,7 @@
 "use client";
 
+import { PhoneGateLink } from "@/components/app/PhoneGateLink";
+import { isPhoneGate } from "@/lib/actions/envelope";
 import { useState, useTransition } from "react";
 import { payReservationDeposit } from "@/lib/reservations/deposit-actions";
 
@@ -9,6 +11,7 @@ import { payReservationDeposit } from "@/lib/reservations/deposit-actions";
  */
 export function PayDepositButton({ reservationId, label }: { reservationId: string; label: string }) {
   const [error, setError] = useState<string | null>(null);
+  const [phoneGate, setPhoneGate] = useState(false);
   const [pending, start] = useTransition();
   return (
     <span className="inline-flex flex-col gap-inline">
@@ -20,9 +23,11 @@ export function PayDepositButton({ reservationId, label }: { reservationId: stri
         onClick={() =>
           start(async () => {
             setError(null);
+            setPhoneGate(false);
             const result = await payReservationDeposit(reservationId);
             if (!result.ok) {
               setError(result.error);
+              setPhoneGate(isPhoneGate(result));
               return;
             }
             window.location.assign(result.data.authorizationUrl);
@@ -36,6 +41,7 @@ export function PayDepositButton({ reservationId, label }: { reservationId: stri
           {error}
         </span>
       )}
+      <PhoneGateLink show={phoneGate} full />
     </span>
   );
 }

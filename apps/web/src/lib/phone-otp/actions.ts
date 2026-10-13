@@ -2,6 +2,7 @@
 
 import { randomInt } from "node:crypto";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { getDictionary, type Dictionary } from "@vallo/i18n";
 import { z } from "zod";
 import { getLocale } from "../locale";
@@ -11,9 +12,10 @@ import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../a
 import { consume, subjectForUser } from "../security/rate-limit";
 import { hasServiceRole } from "../security/service-rpc";
 import { createAdminClient } from "../supabase/admin";
-import { isConfirmOutcome, type ConfirmOutcome } from "./core";
+import { isConfirmOutcome, memberConfirmRefusal, type MemberConfirmRefusal } from "./core";
 import { phoneConfirmationOn } from "./flag";
 import { runSendCode, type SendOutcome } from "./send";
+import { recordNumberRefused } from "./staff-trail";
 import { otpTransport } from "./transport";
 
 /**
@@ -34,6 +36,15 @@ import { otpTransport } from "./transport";
  *   handset. A stranger would need several accounts to reach it, and the
  *   owner can still confirm the next day.
  *
+ * NO ENUMERATION (founder's ruling, 13 October 2026). Nothing here tells
+ * anybody that a number is on Vallo or on another account. A number on
+ * another account and a number that cannot be used are one sentence
+ * (`numberRefused`), one shape (the words, and the same words on the
+ * number field) and the same work before the answer; the real reason goes
+ * to the audit trail for staff (`staff-trail.ts`), after the reply. A
+ * number already confirmed on the member's OWN account is their own data
+ * and is said plainly.
+ *
  * The words come from the dictionary, in the reader's locale.
  */
 
@@ -42,23 +53,27 @@ type PhoneCopy = Dictionary["trustVisible"]["phone"];
 function sendMessages(copy: PhoneCopy): Record<Exclude<SendOutcome, { ok: true }>["reason"], string> {
   return {
     limited: copy.sendLimited,
-    taken: copy.sendTaken,
+    refused: copy.numberRefused,
     already: copy.sendAlready,
-    invalid: copy.sendInvalid,
     unconfigured: copy.sendUnconfigured,
     failed: copy.sendFailed,
   };
 }
 
-function confirmMessages(copy: PhoneCopy): Record<Exclude<ConfirmOutcome, "confirmed">, string> {
+function confirmMessages(copy: PhoneCopy): Record<MemberConfirmRefusal, string> {
   return {
     wrong: copy.confirmWrong,
     expired: copy.confirmExpired,
     locked: copy.confirmLocked,
     no_code: copy.confirmNoCode,
-    taken: copy.confirmTaken,
+    refused: copy.numberRefused,
     signed_out: SIGNED_OUT_MESSAGE,
   };
+}
+
+/** The one shape every number refusal has: the words, on the number field too. */
+function refusedNumber<T>(copy: PhoneCopy): ActionResult<T> {
+  return fail(copy.numberRefused, { phone: copy.numberRefused });
 }
 
 async function phoneCopy(): Promise<PhoneCopy> {
@@ -86,9 +101,10 @@ export async function sendPhoneCode(input: unknown): Promise<ActionResult<{ sent
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   const reading = readPhone(parsed.data.phone);
   if (reading.state !== "valid") {
-    return fail(reading.state === "invalid" ? reading.reason : messages.invalid, {
-      phone: reading.state === "invalid" ? reading.reason : messages.invalid,
-    });
+    /* The shape of a Nigerian number, said about the digits typed: it is the
+       same for every person and says nothing about who holds the number. */
+    const words = reading.state === "invalid" ? reading.reason : copy.profileInvalid;
+    return fail(words, { phone: words });
   }
   if (!hasServiceRole()) return fail(messages.unconfigured);
 
@@ -110,7 +126,15 @@ export async function sendPhoneCode(input: unknown): Promise<ActionResult<{ sent
     session.user.id,
     reading.e164,
   );
-  if (!result.ok) return fail(messages[result.reason]);
+  if (!result.ok) {
+    if (result.reason === "refused") {
+      const userId = session.user.id;
+      const reason = result.staffReason;
+      after(() => recordNumberRefused(userId, reason));
+      return refusedNumber(copy);
+    }
+    return fail(messages[result.reason]);
+  }
   return ok({ sentTo: reading.e164 });
 }
 
@@ -128,7 +152,13 @@ export async function confirmPhoneCode(input: unknown): Promise<ActionResult<{ c
     p_code: parsed.data.code,
   });
   if (error || !isConfirmOutcome(data)) return fail(copy.sendFailed);
-  if (data !== "confirmed") return fail(confirmMessages(copy)[data]);
+  if (data !== "confirmed") {
+    if (data === "taken") {
+      const userId = session.user.id;
+      after(() => recordNumberRefused(userId, "taken_on_confirm"));
+    }
+    return fail(confirmMessages(copy)[memberConfirmRefusal(data)]);
+  }
   revalidatePath("/settings/phone");
   return ok({ confirmed: true });
 }

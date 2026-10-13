@@ -27,6 +27,7 @@ import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 import { hashListingPhotos } from "../photo-hash/hash-server";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
+import { phoneGateFor } from "../phone-otp/gate";
 import {
   NOT_CONFIGURED_MESSAGE,
   SIGNED_OUT_MESSAGE,
@@ -1427,6 +1428,11 @@ export async function submitListing(input: {
   if (listing.status === "SUBMITTED" || listing.status === "UNDER_REVIEW") {
     return fail(REVIEW_PENDING_MESSAGE);
   }
+  /* FULL GATE (13 October 2026): the first listing sent for publishing needs a
+     confirmed phone, flag on; a listing fails closed on a failed read
+     (`phone-otp/core.ts`). */
+  const phoneGate = await phoneGateFor(gate.supabase, gate.user.id, "listing");
+  if (phoneGate) return phoneGate;
   if (!EDITABLE.includes(listing.status)) {
     return fail("This listing has already been through review. Return it to a draft to change it.");
   }

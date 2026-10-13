@@ -27,6 +27,7 @@ import { lagosToday } from "../bookings/schema";
 import { readInstantOutcome } from "../bookings/instant-pay";
 import { ROOM_BOOKINGS_FLAG, STAYS_INSTANT_PAY_FLAG, flagIsOn } from "../flags/read";
 import { ROOMS_OFF_MESSAGE, roomRefusalMessage } from "./room-refusals";
+import { phoneGateFor } from "../phone-otp/gate";
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -68,6 +69,10 @@ export async function requestRoomStay(input: RoomRequestInput): Promise<ActionRe
   const parsed = validate(requestSchema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   const value = parsed.data;
+
+  /* FULL GATE: a room request is a booking. */
+  const phoneGate = await phoneGateFor(session.supabase, session.user.id, "booking");
+  if (phoneGate) return phoneGate;
 
   /* The generated types predate the room columns (and still say listing_id
      is required), so the row is named here; the database checks every part. */

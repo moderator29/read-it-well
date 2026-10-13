@@ -13,6 +13,7 @@
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../actions/session";
 import { isFeatureEnabled } from "../flags";
+import { phoneGateFor } from "../phone-otp/gate";
 import { deleteMessageSchema, forwardMessageSchema } from "./schema";
 
 const PAUSED_MESSAGE = "Messaging is paused for maintenance. Please try again in a little while.";
@@ -51,6 +52,13 @@ export async function forwardMessage(input: {
 
   const parsed = validate(forwardMessageSchema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+
+  /* FULL GATE: forwarding into a conversation nobody has written in yet is
+     that conversation's first message. */
+  const phoneGate = await phoneGateFor(session.supabase, session.user.id, "message", {
+    conversationId: parsed.data.conversationId,
+  });
+  if (phoneGate) return phoneGate;
 
   const { data, error } = await session.supabase.rpc("forward_message", {
     p_message_id: parsed.data.messageId,
