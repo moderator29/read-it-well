@@ -1,4 +1,4 @@
--- PENDING, NOT APPLIED. Four preset cancellation policies a host picks from:
+-- APPLIED 13 October 2026. Four preset cancellation policies a host picks from:
 -- Flexible, Moderate, Firm and Strict, the shape Airbnb and Booking.com use.
 --
 -- WHAT IT CHANGES.

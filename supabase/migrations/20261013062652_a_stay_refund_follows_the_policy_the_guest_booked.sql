@@ -1,4 +1,4 @@
--- PENDING, NOT APPLIED. MONEY: a stay's refund terms are the cancellation
+-- APPLIED 13 October 2026. MONEY: a stay's refund terms are the cancellation
 -- policy on the rate the guest booked, not the platform schedule.
 --
 -- WHY. Hosts now pick Flexible, Moderate, Firm or Strict in the wizard, the

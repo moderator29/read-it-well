@@ -1,4 +1,4 @@
--- PENDING, NOT APPLIED. A restaurant's own sitting length, how long it holds a
+-- APPLIED 13 October 2026. A restaurant's own sitting length, how long it holds a
 -- late table, and how much notice it asks for a cancellation.
 --
 -- WHAT IT CHANGES. Three nullable columns on public.restaurant_profiles, each
