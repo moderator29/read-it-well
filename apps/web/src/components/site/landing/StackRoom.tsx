@@ -5,8 +5,8 @@ import { Amount } from "@/components/ui/Amount";
 import { IconPlate } from "@/components/ui/IconPlate";
 import { StatusChip, type ChipState } from "@/components/ui/StatusChip";
 import { LogoMark } from "@/design-system/brand/Logo";
-import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
-import { passportLines, type PassportFacts, type PassportLine } from "@/lib/trust/passport";
+import { UiIcon } from "@/design-system/icons/UiIcon";
+import { examplePassportLines } from "./example-passport";
 import { SUPPLY_DOORS } from "@/lib/site/supply-doors";
 import { photo } from "@/lib/site/photos";
 import { EXAMPLE_MOVE_IN } from "./example-move-in";
@@ -28,32 +28,12 @@ import { EXAMPLE_MOVE_IN } from "./example-move-in";
  * inventory, not a person and not a price anybody is asking; each carries the
  * Example mark in its own head, as every example card in the product does
  * (spec section 0, rule 5). They are built from what is real: the passport's
- * lines come out of `passportLines`, the function the real passport is drawn
- * with, fed example facts; the desk's rows are the supply page's example
+ * lines come out of `buildPassportView`, the function the real passport is
+ * worded with, fed example facts; the desk's rows are the supply page's example
  * desk; the figures are the one example flat (`example-move-in.ts`); the
  * gate's words are the journey's product labels. No trust signal is drawn on
  * an example: no Verified mark anywhere in this file.
  */
-
-/* The example renter's facts: activity only (attended inspections, a tenancy,
-   a member-since date). NO IDENTITY SIGNAL is drawn for an invented person
-   (D24): no phone confirmed and no NIMC match, so the example never shows a
-   check a person did not earn. Labelled Example on the credential. */
-const EXAMPLE_PASSPORT: PassportFacts = {
-  phoneConfirmed: false,
-  nimcMatchedAt: null,
-  inspectionsAttended: 3,
-  tenancies: 1,
-  memberSince: "2026-03-02T09:00:00Z",
-};
-
-const PASSPORT_GLYPH: Record<PassportLine["key"], UiIconName> = {
-  phone: "phone",
-  nimc: "id-card",
-  attended: "calendar-check",
-  tenancies: "house",
-  since: "clock",
-};
 
 /* The example desk's states (`lib/site/supply-doors.ts` words them), as the
    chip's state: waiting on somebody is pending, done is success, a draft is
@@ -72,8 +52,10 @@ export function landingMoments(t: Dictionary, locale: Locale): LandingMoments {
       {u.example}
     </span>
   );
-  const passport = t.trustVisible.passport;
-  const lines = passportLines(EXAMPLE_PASSPORT, passport, locale);
+  const passport = t.passportV2;
+  /* The Vallo passport's own example, worded by the function the real one is
+     worded with (`example-passport.ts`). */
+  const lines = examplePassportLines(t, locale);
   const [script] = ai.scripts;
   const desk = SUPPLY_DOORS.agent.example;
 
@@ -118,7 +100,9 @@ export function landingMoments(t: Dictionary, locale: Locale): LandingMoments {
       /* THE SPACE PASSPORT, DEMONSTRATED (north star 14.4; D14). A credential
          at the plate proportion, matte navy, radius 18: never a bank card, so
          no chip, no network mark and no long number. Its facts are dates and
-         counts, never ticks (north star 12, point 15). */
+         counts, never ticks (north star 12, point 15). It is the Vallo
+         passport's example: Vallo facts only, and no phone, email, ID, date
+         of birth or address. */
       moment: (
         <div className="nf-mo nf-mo--passport">
           <div className="nf-mo__head">
@@ -137,9 +121,11 @@ export function landingMoments(t: Dictionary, locale: Locale): LandingMoments {
             {lines.map((line) => (
               <li key={line.key}>
                 <IconPlate size="sm" shape="round" tone="brand">
-                  <UiIcon name={PASSPORT_GLYPH[line.key]} size={16} />
+                  <UiIcon name={line.icon} size={16} />
                 </IconPlate>
-                <span>{line.text}</span>
+                <span>
+                  {line.label}: {line.value}
+                </span>
               </li>
             ))}
           </ul>

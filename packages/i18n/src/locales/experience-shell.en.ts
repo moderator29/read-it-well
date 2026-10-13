@@ -28,9 +28,8 @@ export const experienceShellEn = {
   /* D76: the public leaderboards (referrals, and the top on Vallo), beside
      Rewards in the money group. The page's own title. */
   navLeaderboard: "Leaderboard",
-  /* D78: the Space Passport is a feature with its own row in the side
-     navigation, not only a settings page. */
-  navPassport: "Space Passport",
+  /* The passport's row in the side navigation takes its label from
+     `passportV2.navLabel`, which is translated; there is no copy of it here. */
   /* D78: the platform's documents, beside the registered name at the foot of
      the side navigation. Each is its page's own short name. */
   navDocsLabel: "Documents",

@@ -5,7 +5,7 @@ import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 /**
  * A CREDENTIAL ARTEFACT (north star 14.4, founder directive D14).
  *
- * The object a member holds for a tier: the Space Passport's tier, a trust
+ * The object a member holds for a tier: the Vallo passport's tier, a trust
  * tier, a Pro plan, a promotion tier. Reference 38's fanned cards, taken as
  * MATTE credentials rather than mirror-finished cards, because a mirror
  * finish reads as a crypto product here.

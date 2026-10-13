@@ -1,5 +1,5 @@
 /**
- * Session 3's copy for settings, the referral hub, the Space Passport and verification (W6).
+ * Session 3's copy for settings, the referral hub, the passport and verification (W6).
  *
  * One module per owner so nine agents can add strings without editing en.ts
  * at the same time. English only: ha, ig and yo fall back to it through
@@ -10,7 +10,7 @@
  * Every sentence below says only what the code can prove today. In particular
  * the referral lines promise no reward (none exists: `public.referral_codes`
  * records who brought whom and nothing else), and the passport lines are
- * about records Vallo wrote itself (`public.my_renter_passport`).
+ * about records Vallo wrote itself (`public.my_renter_passport`, the old credential).
  */
 export const experienceAccountEn = {
   /* ------------------------------------------------------------ settings */
@@ -59,8 +59,8 @@ export const experienceAccountEn = {
         who: "Whoever opens your link sees your first name and nothing else about you.",
       },
       passport: {
-        what: "What Vallo itself recorded about you, shown to a lister only in the conversations you choose.",
-        who: "It is off until you turn it on, and no lister may ask you for it.",
+        what: "What Vallo itself recorded about you, for signed-in members to see.",
+        who: "Every line is on until you hide it. Your phone number, email, ID numbers, date of birth and address are never on it.",
       },
     },
     /** The glass navigation inside a settings screen with sections. */
@@ -143,37 +143,37 @@ export const experienceAccountEn = {
     },
   },
 
-  /* ---------------------------------------------------- the Space Passport */
+  /* ------------------------------------------- the old passport credential (V-100) */
   passport: {
-    credentialLabel: "Renter passport",
+    credentialLabel: "Member passport",
     on: "On",
     off: "Off",
     /** `{month}` is a month and year. */
     credentialSince: "On Vallo since {month}",
     factsLabel: "What it says",
     factsLede: "Each line is something Vallo recorded itself, with the date where there is one.",
-    factsEmpty: "Nothing yet. As you confirm your phone, attend inspections and rent through Vallo, it fills itself in.",
+    factsEmpty: "Nothing yet. As you rent, host and take part through Vallo, it fills itself in.",
     shareLabel: "Sharing",
     switchLabel: "Show my passport",
-    switchOnSub: "Shown only in the conversations you choose",
-    switchOffSub: "Off. No lister can see it.",
-    cardLabel: "What a lister would see",
+    switchOnSub: "Signed-in members can open it",
+    switchOffSub: "Off. Nobody can open it.",
+    cardLabel: "What members see",
     cardLede: "This is the whole of it. Nothing else is shown.",
-    cardShare: "Show it in a conversation",
+    cardShare: "Show it in this chat",
     sheetTitle: "Show your passport",
-    sheetBody: "A passport is shown one conversation at a time, and only to the lister in it.",
-    sheetOpen: "Open a conversation",
-    sheetOpenHint: "Choose the lister you want to show it to",
+    sheetBody: "Posts your passport as a card in this chat. Signed-in members can also open it from your profile.",
+    sheetOpen: "Open a chat",
+    sheetOpenHint: "Choose the chat to show it in",
     sheetTurnOff: "Turn it off",
-    sheetTurnOffHint: "Takes it back from every conversation",
+    sheetTurnOffHint: "Nobody can open it, and cards in chats stop opening",
     /** Shown on the share sheet when "Turn it off" throws (a dropped request). */
     sheetTurnOffFailed: "That did not go through. Your passport is still on.",
     evidenceBack: "Back to your passport",
     evidenceCheckedLabel: "How it was checked",
     evidenceDateLabel: "Date",
     evidenceCountLabel: "Recorded so far",
-    evidenceSeenLabel: "Where a lister sees it",
-    evidenceSeen: "As one line on your passport, only in a conversation where you chose to show it.",
+    evidenceSeenLabel: "Where members see it",
+    evidenceSeen: "As one line on your passport, unless you hide it.",
     evidenceNotFoundTitle: "That is not on your passport",
     evidenceNotFoundBody: "A line only appears once Vallo has recorded something behind it. Your passport is one step back.",
     facts: {

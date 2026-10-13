@@ -34,7 +34,7 @@ export const experienceSettingsEn = {
       passcode: "Passcode",
       phone: "Phone number",
       devices: "Devices",
-      passport: "Space Passport",
+      passport: "Vallo passport",
       place: "Your place",
       interests: "Interests",
       invite: "Invite",

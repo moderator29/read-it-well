@@ -1,6 +1,6 @@
 /**
  * The artefact cards (north star 14.4, D14), for every surface that has a
- * tier: the Space Passport's tier (W6), trust tiers, Pro plans, promotion
+ * tier: the Vallo passport's tier (W6), trust tiers, Pro plans, promotion
  * tiers. One definition each; import from here rather than forking a card.
  *
  *   Credential       one matte credential, server-safe

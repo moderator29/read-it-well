@@ -204,8 +204,10 @@ export function buildNav({
         },
         { href: "/saved", label: t.nav.saved, icon: "heart" },
         { href: "/agreements", label: t.nav.agreements, icon: "document" },
-        /* D78: the Space Passport is a feature, with its own row. */
-        { href: "/settings/passport", label: t.experienceShell.navPassport, icon: "id-card" },
+        /* D78: the passport is a feature, with its own row. Its name is the
+           passport's own (`passportV2.navLabel`, translated in all four
+           languages), so the row and the page it opens cannot drift. */
+        { href: "/settings/passport", label: t.passportV2.navLabel, icon: "id-card" },
         /* No crypto row: V-83 took the deferred crypto market out of the
            shipped tree (parked on `claude/parked-crypto-deferred`). */
         /*
