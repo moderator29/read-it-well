@@ -76,44 +76,15 @@
      they start under it (social.shared.css). */
 
   /* ------------------------------------------------------------------
-   * THE HOME TOP BLOCK (references 05 and 07; the clean unified sweep of
-   * 29 September 2026). The greeting, the place, the hero and the four doors
-   * are a night island in both themes (`HomeScreen`); in light this paints
-   * it as THE HERO BAND (below): the same navy, bloom, radius and inner
-   * spacing, a rounded block on the warm canvas under the paper header. At
-   * night the attribute changes nothing and none of this applies.
+   * THE HOME TOP BLOCK AND EVERY HERO BAND IN DAYLIGHT (October 2026). They
+   * were night islands painted navy here, a block of blue the height of
+   * Home's top on the warm paper, which the founder found too heavy. The
+   * band now takes the paper palette itself (`HeroBand` no longer carries
+   * `data-theme="dark"`) and its fill is the white card with a whisper of
+   * brand in its corner (`brand-glass.css`); the brand blue is left to the
+   * actions and the chosen state inside it. The box is the night rule's
+   * (controls.css), so nothing moves between themes.
    * ---------------------------------------------------------------- */
-  :root[data-theme="light"] .nf-home-top[data-theme="dark"] {
-    margin-inline: 0;
-    padding: 1.25rem;
-    border-radius: var(--nf-radius-xl);
-    background:
-      radial-gradient(90% 70% at 0% 0%, color-mix(in oklab, var(--nf-container-ink) 22%, transparent), transparent 70%),
-      var(--nf-surface-primary);
-    box-shadow: 0 18px 36px -24px color-mix(in oklab, var(--nf-surface-canvas) 70%, transparent);
-  }
-  @media (min-width: 40rem) {
-    :root[data-theme="light"] .nf-home-top[data-theme="dark"] {
-      padding: var(--nf-space-xl);
-    }
-  }
-
-  /* ------------------------------------------------------------------
-   * THE HERO BAND IN DAYLIGHT (`components/ui/HeroBand.tsx`; spec section
-   * 16, Q2 as the founder widened it on 29 September 2026). The light
-   * theme's one signature moment: the navy block on the warm paper, with a
-   * soft brand bloom in its upper corner and no rim, no glass. The element
-   * is a night island, so `--nf-surface-primary` here is the night card
-   * navy, and its type is white. The radius and spacing are the night
-   * rule's (controls.css), so the band has the same box in both themes.
-   * ---------------------------------------------------------------- */
-  :root[data-theme="light"] .nf-hero-band[data-theme="dark"] {
-    border-color: transparent;
-    background:
-      radial-gradient(90% 70% at 0% 0%, color-mix(in oklab, var(--nf-container-ink) 22%, transparent), transparent 70%),
-      var(--nf-surface-primary);
-    box-shadow: 0 18px 36px -24px color-mix(in oklab, var(--nf-surface-canvas) 70%, transparent);
-  }
 
   /* ------------------------------------------------------------------
    * THE GLASS OBJECTS IN DAYLIGHT: EVERY ONE ON A NAVY TILE (the founder,
@@ -235,7 +206,11 @@
        3.7:1 on the white capsule and 3.4:1 on the warm canvas (graphics
        need 3:1), so the chosen tab, full brand on its tint pill with its
        word, still leads. */
-    --nf-dock-glyph: color-mix(in oklab, var(--nf-brand-primary) 80%, var(--nf-surface-primary));
+    /* October 2026, superseding F-h for the dock: the brand blue is for
+       actions and the chosen state only, so the glyphs at rest are the
+       secondary ink (7:1 on the white capsule) and only the chosen tab,
+       on its tint pill, and the "+" are blue. */
+    --nf-dock-glyph: var(--nf-content-secondary);
     --nf-dock-pill: color-mix(in oklab, var(--nf-brand-primary) 11%, var(--nf-surface-primary));
     --nf-dock-glyph-glow: none;
     --nf-dock-dot-glow: none;
@@ -350,10 +325,13 @@
    * THE FEED. The post card built its own lit gradient from the canvas;
    * in light it is the reference card: white on a soft hairline.
    * ---------------------------------------------------------------- */
+  /* The Card tier on Paper, as every other card by day: white with ONE edge,
+     the raised shadow. It carried a grey hairline as well, the one card
+     family drawing two edges. */
   :root[data-theme="light"] .nf-post:not(:where([data-theme="dark"] *)) {
     background: var(--nf-surface-primary);
-    border-color: var(--nf-border-default);
-    box-shadow: var(--nf-elev-1);
+    border-color: transparent;
+    box-shadow: var(--nf-tier-card-shadow);
   }
   :root[data-theme="light"] :is(.nf-post__handle, .nf-post__when):not(:where([data-theme="dark"] *)) {
     color: var(--nf-content-muted);
