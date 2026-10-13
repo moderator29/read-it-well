@@ -94,17 +94,7 @@ export const hostWorkspaceEn = {
       representative: "Representative",
       property: "Property",
       service: "Service",
-      photos: "Photographs",
       payouts: "Payouts",
-    },
-    /* A reviewer sent the application back (MORE_INFO_REQUIRED). Drawn at the
-       top of every step, so the question is where the host answers it. */
-    sentBack: {
-      title: "A reviewer asked for a change",
-      /** `{note}` is the reviewer's own words, printed as typed. */
-      wrote: "The reviewer wrote: {note}",
-      noNote: "No note came with it. Contact us and a person will tell you what is needed.",
-      next: "Change what they asked for, then send it again from the last step.",
     },
   },
   nights: {

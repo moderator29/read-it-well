@@ -1,6 +1,6 @@
 "use client";
 
-import { useHostCopy } from "@/components/host/host-copy";
+import { useHostCopy, useHostPageCopy } from "@/components/host/host-copy";
 import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -274,7 +274,7 @@ export function HostWizard({
   }
   /* The page's CopyScope carries these (W13): no client dictionary read. */
   const successWords = useScopedCopy("success");
-  const hw = useHostCopy();
+  const hostPage = useHostPageCopy();
   /* The progress path's words: the same ones the agent's listing wizard uses
      (`experienceFeatures.wizard`). */
   const pathWords = useScopedCopy("featuresWizard");
@@ -470,13 +470,17 @@ export function HostWizard({
           role="status"
           data-testid="host-sent-back"
         >
-          <h2 className="nf-host-group__title">{hw.wizard.sentBack.title}</h2>
+          {/* The host page's own words for this state and this note, so the
+              two screens say the same thing. */}
+          <h2 className="nf-host-group__title">{hostPage.businessStatus.MORE_INFO_REQUIRED}</h2>
           <p className="nf-host-group__note whitespace-pre-wrap">
             {draft.reviewNotes
-              ? hw.wizard.sentBack.wrote.replace("{note}", draft.reviewNotes)
-              : hw.wizard.sentBack.noNote}
+              ? hostPage.home.reviewerWrote.replace("{note}", draft.reviewNotes)
+              : hostPage.home.noReason}
           </p>
-          <p className="mt-2xs nf-caption">{hw.wizard.sentBack.next}</p>
+          <p className="mt-2xs nf-caption">
+            Change what they asked for, then send it again from the last step.
+          </p>
         </section>
       )}
 
@@ -1070,6 +1074,7 @@ function ConsentStep({ draft, pending, saveText, set }: StepProps) {
 
 function ReviewStep({ draft, pending, run, goTo, set, locale }: StepProps) {
   const hw = useHostCopy();
+  const hostPage = useHostPageCopy();
   const missing = missingFrom(draft);
   const send = () =>
     run(
@@ -1108,7 +1113,7 @@ function ReviewStep({ draft, pending, run, goTo, set, locale }: StepProps) {
               different step from the property's name, so they get their own
               row and their own way back to where they are added. */}
           <Fact
-            label={hw.wizard.review.photos}
+            label={hostPage.businessDoors.photos}
             value={(() => {
               const count = accommodation ? (draft.accommodation?.photos.length ?? 0) : draft.businessPhotoCount;
               return count > 0 ? countOf(count, "photos", locale) : "";
