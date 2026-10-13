@@ -6350,6 +6350,51 @@ export const en = {
       aside: "Map of these homes",
     },
   },
+  /**
+   * PAY ON VALLO (founder rulings, 13 October 2026). The payment step's
+   * choice card (escrow preselected, or card; a sale is escrow only, a hotel
+   * room card only) and the acceptance every workspace application and setup
+   * asks for before it is sent. The sentences about where money goes are in
+   * `lib/money/copy.ts`; these are the labels, the actions and the refusals.
+   */
+  payChoice: {
+    title: "How would you like to pay?",
+    label: "Choose how to pay",
+    escrow: "Escrow",
+    card: "Pay by card",
+    recommended: "Recommended",
+    continue: "Continue",
+    saving: "Saving your choice",
+    escrowOnlyTitle: "Paid into escrow",
+    cardOnlyTitle: "Paid by card",
+    lockedNote: "Your payment has started, so the way you pay stays as it is.",
+    notPayerNote: "The renter or guest chooses how to pay.",
+    refused: {
+      not_found: "We could not find that agreement on your account.",
+      not_payer: "Only the person paying can choose how to pay.",
+      bad_choice: "Choose Escrow or Pay by card.",
+      closed: "This agreement is closed, so there is nothing to pay on it.",
+      already_paid: "This is already paid.",
+      payment_started: "A payment is already under way, so the way you pay cannot change now.",
+      sale_escrow_only: "A purchase is paid into escrow only.",
+      card_only: "This is paid by card only.",
+      escrow_only: "This is paid into escrow only.",
+      no_rail: "Payment is not open for this yet. Nothing has been charged.",
+      card_needs_review: "Paying by card is not open on this deal now, because it would need a person at Vallo to check it first. Escrow is open.",
+      unavailable: "That could not be saved just now. Nothing has been charged; try again in a moment.",
+    },
+    accept: {
+      title: "Before you send this",
+      termsLead: "I have read and accept the",
+      termsLink: "Terms of Service",
+      and: "and the",
+      privacyLink: "Privacy Policy",
+      newTab: "opens in a new tab",
+      payInside: "Every payment for a deal I make on Vallo happens inside Vallo.",
+      required: "Tick both boxes to send this.",
+      done: "You accepted the Terms of Service and the Privacy Policy, and that every payment for a deal happens inside Vallo.",
+    },
+  },
 
 };
 

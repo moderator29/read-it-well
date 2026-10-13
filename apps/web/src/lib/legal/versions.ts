@@ -51,6 +51,14 @@ export const PRIVACY_VERSION = "2026-09-25";
  */
 export const HOST_AGREEMENT_VERSION = "2026-10-13";
 
+/**
+ * The founder's statement of 13 October 2026, ticked before any workspace
+ * application or setup is sent: "Every payment for a deal I make on Vallo
+ * happens inside Vallo." Recorded with this version beside the Terms and the
+ * Privacy policy (`lib/legal/workspace-acceptance.ts`).
+ */
+export const PAY_ON_VALLO_VERSION = "2026-10-13";
+
 /** The two documents a person accepts when they open an account. */
 export const ACCEPTED_AT_SIGNUP = [
   { document: "terms" as const, version: TERMS_VERSION },

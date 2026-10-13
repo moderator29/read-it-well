@@ -155,3 +155,20 @@ export function offPlatformAsk(body: string | null | undefined): OffPlatformAsk 
   const sorted = order.filter((r) => reasons.includes(r));
   return { reason: sorted[0]!, reasons: sorted };
 }
+
+/* "Transfer" in any of its forms, said by either side. */
+const TRANSFER_RE = /\btransfer(?:s|red|ring)?\b/i;
+
+/**
+ * Founder ruling 7 (13 October 2026): in a listing chat, when EITHER side
+ * mentions an account number or a transfer, the thread says one calm line
+ * where it was said: pay only through Vallo. Wider than `offPlatformAsk` on
+ * purpose (a mention, not an ask, and on both sides), and quieter: the line
+ * is the founder's sentence and the shield's own steps. A phone number is
+ * not an account number (`accountNumbersIn` refuses one).
+ */
+export function mentionsPayingOutside(body: string | null | undefined): boolean {
+  const text = (body ?? "").replace(/\s+/g, " ").trim();
+  if (text.length < 6) return false;
+  return accountNumbersIn(text).length > 0 || TRANSFER_RE.test(text);
+}

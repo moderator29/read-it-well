@@ -22,7 +22,7 @@
 
 import type { Database } from "../supabase/database.types";
 import type { ArrivalCharges } from "../stays/arrival-charges";
-import { HOST_AGREEMENT_VERSION } from "../legal/versions";
+import { HOST_AGREEMENT_VERSION, PAY_ON_VALLO_VERSION } from "../legal/versions";
 
 export type BusinessKind = Database["public"]["Enums"]["business_kind"];
 
@@ -612,6 +612,12 @@ export type HostDraft = {
    * business is created; a business on an older version is asked again.
    */
   hostAgreementVersion: string | null;
+  /**
+   * Ruling 6 (13 October 2026): the version of "Every payment for a deal I
+   * make on Vallo happens inside Vallo." this host ticked, or null. Optional
+   * so a draft written before it reads as not yet ticked.
+   */
+  payOnValloVersion?: string | null;
 };
 
 /** A draft with nothing in it, for a host who has not started. */
@@ -652,6 +658,7 @@ export function emptyHostDraft(): HostDraft {
     arrivalCharges: null,
     consentWithdrawals: [],
     hostAgreementVersion: null,
+    payOnValloVersion: null,
   };
 }
 
@@ -708,6 +715,7 @@ export function mergeServerDraft(local: HostDraft, server: HostDraft): HostDraft
     consents: server.consents,
     consentWithdrawals: server.consentWithdrawals,
     hostAgreementVersion: server.hostAgreementVersion,
+    payOnValloVersion: server.payOnValloVersion ?? null,
   };
 }
 
@@ -775,6 +783,10 @@ export function missingFrom(draft: HostDraft): string[] {
      agreed with their versions, before anything is sent or published. */
   if (draft.hostAgreementVersion !== HOST_AGREEMENT_VERSION) {
     missing.push("Your agreement to the Terms, the Privacy policy and the Host Agreement");
+  }
+  /* Ruling 6: and that every payment for a deal happens inside Vallo. */
+  if (draft.payOnValloVersion !== PAY_ON_VALLO_VERSION) {
+    missing.push("Your statement that every payment for a deal you make on Vallo happens inside Vallo");
   }
 
   for (const consent of CONSENTS) {

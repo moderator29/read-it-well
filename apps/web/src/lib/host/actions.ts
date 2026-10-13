@@ -63,7 +63,7 @@ import {
   shortletPlaceDraftSchema,
 } from "./schema";
 import { SHORTLET_RATE_NAME, bedsArray, placeTypeUnavailable } from "./stays-setup";
-import { HOST_AGREEMENT_VERSION, PRIVACY_VERSION, TERMS_VERSION } from "../legal/versions";
+import { HOST_AGREEMENT_VERSION, PAY_ON_VALLO_VERSION, PRIVACY_VERSION, TERMS_VERSION } from "../legal/versions";
 import { countOf } from "@vallo/i18n/core";
 import { fill, hostRefusals } from "./refusals";
 
@@ -231,7 +231,13 @@ export async function saveHostDraft(input: unknown): Promise<ActionResult<HostDr
     ];
     consents.terms = now;
   }
-  const consentsChanged = Boolean(data.consents) || withdrawn.length > 0 || Boolean(data.agreeToHostTerms);
+  /* Ruling 6: the pay-on-Vallo statement, appended the same way. */
+  if (data.agreeToPayOnVallo) {
+    const record = Array.isArray(consents.agreements) ? consents.agreements : [];
+    consents.agreements = [...record, { document: "pay_on_vallo", version: PAY_ON_VALLO_VERSION, at: now }];
+  }
+  const consentsChanged =
+    Boolean(data.consents) || withdrawn.length > 0 || Boolean(data.agreeToHostTerms) || Boolean(data.agreeToPayOnVallo);
 
   const fields = {
     ...(data.hostType ? { host_type: data.hostType } : {}),

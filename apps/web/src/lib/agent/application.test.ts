@@ -71,6 +71,8 @@ function form(documents: { kind: string; path: string }[]): FormData {
     accountNumber: "0123456789",
     accountName: "Ada Obi",
     agreeTerms: "on",
+    acceptTerms: "on",
+    acceptPayOnVallo: "on",
   };
   for (const [name, value] of Object.entries(fields)) data.set(name, value);
   data.set("documents", JSON.stringify(documents));
@@ -114,5 +116,27 @@ describe("submitAgentApplication", () => {
     expect(result.ok).toBe(false);
     expect(result.fieldErrors?.documents).toBeTruthy();
     expect(writes()).toEqual([]);
+  });
+
+  /* Ruling 6 (13 October 2026): both ticks, checked on the server. */
+  it("refuses the application without the Terms and pay-on-Vallo ticks, and writes nothing", async () => {
+    for (const field of ["acceptTerms", "acceptPayOnVallo"]) {
+      seam.calls = [];
+      const data = form(MANIFEST);
+      data.delete(field);
+      const result = await submitAgentApplication({ ok: false }, data);
+      expect(result.ok).toBe(false);
+      expect(result.fieldErrors?.[field as "acceptTerms" | "acceptPayOnVallo"]).toBeTruthy();
+      expect(writes()).toEqual([]);
+    }
+  });
+
+  it("records the acceptance on the application", async () => {
+    await submitAgentApplication({ ok: false }, form(MANIFEST));
+    const insert = writes().find((c) => c.table === "agent_applications");
+    const docs = ((insert?.payload as { consents?: { agreements?: { document: string }[] } }).consents?.agreements ?? []).map(
+      (a) => a.document,
+    );
+    expect(docs).toEqual(["terms", "privacy", "pay_on_vallo"]);
   });
 });
