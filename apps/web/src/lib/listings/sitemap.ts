@@ -86,6 +86,7 @@ export const PUBLIC_PAGES: readonly {
   { path: "/delete-account", changeFrequency: "yearly" },
   { path: "/eula", changeFrequency: "yearly" },
   { path: "/terms", changeFrequency: "yearly" },
+  { path: "/host-agreement", changeFrequency: "yearly" },
   { path: "/privacy", changeFrequency: "yearly" },
 ];
 

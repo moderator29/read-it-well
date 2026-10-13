@@ -42,6 +42,7 @@ export const LOCALIZABLE_SEGMENTS: ReadonlySet<string> = new Set([
   "cancellations",
   "disclaimer",
   "eula",
+  "host-agreement",
   "privacy",
   "safety",
   "standards",
