@@ -1,7 +1,6 @@
 -- AGENT-01 (13 October 2026): a lister's follow-up date on an enquiry thread.
--- Run after supabase/migrations/pending/p1_e_enquiry_followups.sql is applied;
--- until then it lives here and the db-probes job does not run it. The whole
--- probe rolls back (PROBE_OK is raised at the end).
+-- Needs supabase/migrations/20261013111606_enquiry_followups.sql applied. The
+-- whole probe rolls back (PROBE_OK is raised at the end).
 --
 --  * the thread's lister sets a date and a note, and reads them back;
 --  * the other party to the thread cannot read the follow-up or set one;

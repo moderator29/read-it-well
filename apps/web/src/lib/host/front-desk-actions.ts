@@ -5,7 +5,7 @@
  *
  * One call to `record_stay_event` under the HOST'S OWN session. The database
  * decides everything that matters (that this person hosts the booking, that
- * the stay is confirmed, that check-in is within the stay's days and check-out
+ * the stay is confirmed and paid through Vallo, that check-in is within the stay's days and check-out
  * follows check-in) and is idempotent: a second tap returns the first time.
  * Nothing here uses the service role, so there is no second copy of the rules
  * to drift, and nothing here moves money.

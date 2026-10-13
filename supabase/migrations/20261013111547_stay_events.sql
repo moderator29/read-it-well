@@ -15,6 +15,9 @@
 -- private.booking_host (the one live definition of who hosts a booking, both
 -- the listing-agent and the business-owner side) instead of restating it, and
 -- the policy is created only when it is missing, so a second run is harmless.
+-- Founder rule (every payment happens inside Vallo): record_stay_event refuses
+-- 'checked_in' unless private.booking_is_paid(booking) (a SUCCESSFUL
+-- transaction), with hint 'stay_not_paid'. That helper is live and unchanged.
 set lock_timeout = '5s';
 
 create table if not exists public.stay_events (
@@ -92,6 +95,10 @@ begin
 
   if b.status not in ('CONFIRMED', 'COMPLETED') then
     raise exception 'only a confirmed stay can be checked in or out' using errcode = '22023';
+  end if;
+  if p_kind = 'checked_in' and not private.booking_is_paid(p_booking) then
+    raise exception 'this stay is not paid through Vallo yet, so it cannot be checked in'
+      using errcode = '22023', hint = 'stay_not_paid';
   end if;
   if p_kind = 'checked_in' and (today < b.check_in or today > b.check_out) then
     raise exception 'a guest is checked in from the arrival day to the departure day' using errcode = '22023';

@@ -1103,6 +1103,7 @@ a fall is emerald. The line is alerts raised per day.
 | vallo_scuml17_mandate_expiry_reminders | pg_cron `30 5 * * *` | daily 06:30 | | SCUML item 17: tells an agent 30 days and again 7 days before a mandate runs out, once each, unless a renewal is already waiting |
 | vallo_scuml17_purge_stale_mandates | pg_cron `35 5 * * *` | daily 06:35 | | SCUML item 17: deletes waiting or refused mandates of listings that never went live, five years after they were last touched |
 | vallo_sweep_price_check_watches | pg_cron `50 5 * * *` | daily 06:50 | | re-runs the price check gate at each pending watch and tells the watcher once when it opens |
+| vallo_send_followup_reminders | pg_cron `13 7,8,9,10,11,12 * * *` | hourly at :13, 08:13 to 13:13 | | tells a lister once, from 08:00 on the day, that it is the follow-up date they set on an enquiry thread; never for a date already past, or a thread marked Let or Lost (AGENT-01, `private.send_followup_reminders`) |
 | vallo_landlord_not_reconfirmed | pg_cron `35 4 * * *` | daily 05:35 | | marks a listing Not reconfirmed after a delivered owner question goes 21 days unanswered, and clears every mark while the line is off (V-31) |
 | vallo_owner_heartbeat | pg_cron `15 8 * * *` | daily 09:15 | | asks a lister who says they own the flat, in the app, whether it is still available, once a fortnight (V-31); a no-op while `landlord_line` is off |
 | vallo-daily-note | pg_cron `0 6 * * *` | daily 07:00 | | the daily note |
@@ -1111,7 +1112,7 @@ a fall is emerald. The line is alerts raised per day.
 | vallo_sweep_rent_splits | pg_cron `25 7 * * *` | daily 08:25 | | refunds the paid shares of a flatmate split still short on move-in day, or cancelled (V-86) |
 | vallo_threshold_reminders | pg_cron `5 * * * *` | hourly at :05 | | tells staff three days and one day before a threshold report to the NFIU is due (SCUML item 7) |
 
-20 Vercel Cron jobs and 39 pg_cron jobs in all. The numbers are derived,
+20 Vercel Cron jobs and 40 pg_cron jobs in all. The numbers are derived,
 not remembered: the Vercel list is `VERCEL_JOBS` in
 `lib/admin/reads/jobs.ts`, held equal to `vercel.json` by a test, and the
 database list is `PG_CRON_JOBS` in the same file, held equal by

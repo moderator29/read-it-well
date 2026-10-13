@@ -4,7 +4,7 @@ const BOOKING = "22222222-2222-4222-8222-222222222222";
 
 const state = vi.hoisted(() => ({
   signedIn: true,
-  reply: { data: "2026-10-13T09:00:00+00:00" as unknown, error: null as null | { code?: string; message?: string } },
+  reply: { data: "2026-10-13T09:00:00+00:00" as unknown, error: null as null | { code?: string; message?: string; hint?: string } },
   calls: [] as [string, Record<string, unknown>][],
   revalidated: [] as string[],
 }));
@@ -54,6 +54,16 @@ describe("marking a guest checked in or out", () => {
     state.reply = { data: null, error: { code: "22023", message: "check the guest in first" } };
     const { markStay } = await import("./front-desk-actions");
     expect(await markStay({ bookingId: BOOKING, kind: "checked_out" })).toEqual({ ok: false, reason: "check_in_first" });
+  });
+
+  it("passes a refusal to check in a stay not paid through Vallo on as not_paid", async () => {
+    state.reply = {
+      data: null,
+      error: { code: "22023", message: "this stay is not paid through Vallo yet, so it cannot be checked in", hint: "stay_not_paid" },
+    };
+    const { markStay } = await import("./front-desk-actions");
+    expect(await markStay({ bookingId: BOOKING, kind: "checked_in" })).toEqual({ ok: false, reason: "not_paid" });
+    expect(state.revalidated).toEqual([]);
   });
 
   it("refuses a signed-out caller and a malformed request before calling anything", async () => {

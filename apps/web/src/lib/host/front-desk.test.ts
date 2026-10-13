@@ -189,6 +189,10 @@ describe("the RPC wrapper", () => {
     expect(refusalFor({ code: "22023", message: "check the guest in first" })).toBe("check_in_first");
     expect(refusalFor({ code: "22023", message: "only a confirmed stay can be checked in or out" })).toBe("not_confirmed");
     expect(
+      refusalFor({ code: "22023", message: "this stay is not paid through Vallo yet, so it cannot be checked in", hint: "stay_not_paid" }),
+    ).toBe("not_paid");
+    expect(refusalFor({ code: "22023", message: "anything", hint: "stay_not_paid" })).toBe("not_paid");
+    expect(
       refusalFor({ code: "22023", message: "a guest is checked in from the arrival day to the departure day" }),
     ).toBe("outside_dates");
     expect(refusalFor({ code: "XX000", message: "boom" })).toBe("failed");

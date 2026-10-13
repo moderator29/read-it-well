@@ -153,13 +153,14 @@ export type StayEventRefusal =
   | "not_yours"
   | "sign_in"
   | "not_confirmed"
+  | "not_paid"
   | "outside_dates"
   | "check_in_first"
   | "failed";
 
 export type StayEventResult = { ok: true; at: string } | { ok: false; reason: StayEventRefusal };
 
-type RpcError = { code?: string | null; message?: string | null } | null;
+type RpcError = { code?: string | null; message?: string | null; hint?: string | null } | null;
 
 /** The one corner of the client this file needs, so a test can stand in for it. */
 export type StayEventClient = {
@@ -181,6 +182,8 @@ export function refusalFor(error: NonNullable<RpcError>): StayEventRefusal {
   if (code === "22023") {
     if (message.includes("check the guest in first")) return "check_in_first";
     if (message.includes("only a confirmed stay")) return "not_confirmed";
+    // Every payment happens inside Vallo: no check-in on a stay not paid through it.
+    if ((error.hint ?? "") === "stay_not_paid" || message.includes("not paid through vallo")) return "not_paid";
     if (message.includes("arrival day")) return "outside_dates";
   }
   return "failed";

@@ -6628,6 +6628,7 @@ export const en = {
         not_yours: "That booking is not at one of your hotels.",
         sign_in: "Sign in again to continue.",
         not_confirmed: "Check in and check out work only for a confirmed stay.",
+        not_paid: "This stay is not paid through Vallo yet, so it cannot be checked in.",
         outside_dates: "Check in is open from the guest's arrival day to their departure day.",
         check_in_first: "Check the guest in first.",
         failed: "That did not go through. Nothing was changed. Try again.",

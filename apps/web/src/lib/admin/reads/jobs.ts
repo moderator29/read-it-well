@@ -127,6 +127,7 @@ export const PG_CRON_JOBS: readonly PgCronJob[] = [
   { name: "vallo_scuml17_mandate_grace_sweep", cron: "25 5 * * *", when: "daily 06:25", what: "SCUML item 17: after the grace date, takes down agent listings without a current mandate and tells the agent" },
   { name: "vallo_scuml17_mandate_expiry_reminders", cron: "30 5 * * *", when: "daily 06:30", what: "SCUML item 17: clears the confirmation date of listings whose mandate has lapsed, and tells an agent 30 days and again 7 days before a mandate runs out" },
   { name: "vallo_scuml17_purge_stale_mandates", cron: "35 5 * * *", when: "daily 06:35", what: "SCUML item 17: deletes waiting or refused mandates of listings that never went live, five years after they were last touched" },
+  { name: "vallo_send_followup_reminders", cron: "13 7,8,9,10,11,12 * * *", when: "hourly at :13, 08:13 to 13:13", what: "tells a lister, once and from 08:00 on the day, that it is the follow-up date they set on an enquiry thread" },
   { name: "vallo_landlord_not_reconfirmed", cron: "35 4 * * *", when: "daily 05:35", what: "marks a listing Not reconfirmed after 21 days of owner silence" },
   { name: "vallo_owner_heartbeat", cron: "15 8 * * *", when: "daily 09:15", what: "asks an owner lister in the app whether the flat is still available" },
   { name: "vallo_sweep_price_check_watches", cron: "50 5 * * *", when: "daily 06:50", what: "tells a price check watcher once the area opens" },
