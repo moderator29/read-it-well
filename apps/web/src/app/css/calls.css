@@ -641,6 +641,113 @@
     outline-offset: var(--nf-focus-ring-offset);
   }
 
+  /* ------------------------------------------- a call, as a thread pill
+     A compact system row centred in the thread (`CallHistoryRow`): glyph,
+     one line, the time, and a call-back button. The visible circle on the
+     button is 28px; the button itself is the full 44px target, pulled back
+     into the pill with negative margins so the pill stays slim. */
+  .nf-call-event-row {
+    display: flex;
+    justify-content: center;
+    min-width: 0;
+    margin-block: var(--nf-space-xs);
+    padding-inline: var(--nf-space-xs);
+  }
+  .nf-call-event {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    min-width: 0;
+    max-width: min(100%, 24rem);
+    padding: var(--nf-space-2xs) var(--nf-space-sm);
+    padding-inline-end: var(--nf-space-xs);
+    border: var(--nf-border-width) solid var(--nf-border-subtle);
+    border-radius: var(--nf-radius-xl);
+    background: var(--nf-surface-elevated);
+    color: var(--nf-content-secondary);
+  }
+  .nf-call-event:not(:has(.nf-call-event__back)) {
+    padding-inline-end: var(--nf-space-sm);
+  }
+  .nf-call-event__glyph {
+    display: grid;
+    place-items: center;
+    flex: none;
+    color: var(--nf-brand-quiet);
+  }
+  .nf-call-event[data-missed] {
+    border-color: color-mix(in oklab, var(--nf-state-error) 28%, var(--nf-border-subtle));
+    background: var(--nf-state-error-surface);
+  }
+  .nf-call-event[data-missed] .nf-call-event__glyph,
+  .nf-call-event[data-missed] .nf-call-event__line {
+    color: var(--nf-state-error);
+  }
+  .nf-call-event__text {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: var(--nf-space-xs);
+    min-width: 0;
+    font-size: var(--nf-text-caption);
+    line-height: 1.35;
+    text-wrap: balance;
+  }
+  .nf-call-event__line {
+    min-width: 0;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+    color: var(--nf-content-primary);
+  }
+  .nf-call-event__time {
+    flex: none;
+    color: var(--nf-content-muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .nf-call-event__back {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 2.75rem;
+    height: 2.75rem;
+    margin-block: -0.625rem;
+    margin-inline: calc(-1 * var(--nf-space-2xs)) calc(-1 * var(--nf-space-2xs));
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .nf-call-event__go {
+    display: grid;
+    place-items: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-brand-primary-soft);
+    color: var(--nf-brand-quiet);
+    transition: background-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-call-event[data-missed] .nf-call-event__go {
+    background: var(--nf-surface-elevated);
+    color: var(--nf-state-error);
+  }
+  .nf-call-event__back:hover .nf-call-event__go {
+    background: var(--nf-brand-tint-1);
+  }
+  .nf-call-event__back:active .nf-call-event__go {
+    transform: scale(0.94);
+  }
+  .nf-call-event__back:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+  .nf-call-event__back:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: calc(-1 * var(--nf-space-2xs));
+    border-radius: var(--nf-radius-circle);
+  }
+
   /* -------------------------------------------------- review call pages */
   .nf-review-call {
     display: grid;

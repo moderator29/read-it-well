@@ -221,19 +221,19 @@ const historyEntry = `
   import { CallHistoryRow } from "@/components/calls/CallHistoryRow";
   import { placeCall } from "@/components/calls/place-call";
   import { callMarkerView } from "@/lib/calls/screen";
-  const copy = getDictionary("en").calls;
+  const words = getDictionary("en").chatPolish.calls;
   const missed = callMarkerView({ body: "Voice call, missed", mine: false });
   const talked = callMarkerView({ body: "Video call, 4 min 12 s", mine: true });
   mount(
     <div>
-      <CallHistoryRow view={missed} timeLabel="15:40" copy={copy} onCallBack={() => placeCall({ conversationId: "0e6d2a7c-5b44-4f7e-8f6c-2d9a1c3b5e77", kind: missed.kind })} />
-      <CallHistoryRow view={talked} timeLabel="13:02" copy={copy} />
+      <CallHistoryRow view={missed} name="Nora" timeLabel="15:40" words={words} onCallBack={() => placeCall({ conversationId: "0e6d2a7c-5b44-4f7e-8f6c-2d9a1c3b5e77", kind: missed.kind })} />
+      <CallHistoryRow view={talked} name="Nora" timeLabel="13:02" words={words} />
     </div>,
   );
 `;
 
 describe.skipIf(!hasBrowser)("call rows in a thread", () => {
-  it("draws missed and talked calls as rows, and call back starts a call of the same kind", async () => {
+  it("draws missed and talked calls as compact centred pills that say who, and call back starts a call of the same kind", async () => {
     const { page, close } = await mountInBrowser({
       entry: historyEntry,
       css: CSS,
@@ -243,12 +243,29 @@ describe.skipIf(!hasBrowser)("call rows in a thread", () => {
       const rows = page.getByTestId("call-history-row");
       expect(await rows.count()).toBe(2);
       expect(await rows.nth(0).getAttribute("data-missed")).toBe("");
-      expect(await rows.nth(0).getAttribute("aria-label")).toBe("Missed voice call, 15:40");
+      expect(await rows.nth(0).getAttribute("aria-label")).toBe("Voice call. Missed voice call from Nora. 15:40");
+      expect(await rows.nth(0).textContent()).toBe("Missed voice call from Nora15:40");
       expect(await rows.nth(1).getAttribute("data-missed")).toBeNull();
-      expect(await rows.nth(1).getAttribute("aria-label")).toBe("Video call, Outgoing, 4 min 12 s, 13:02");
-      /* Only the first row was given a call back. */
+      expect(await rows.nth(1).getAttribute("aria-label")).toBe("Video call. Video call with Nora, 4 min. 13:02");
+      expect(await rows.nth(1).textContent()).toBe("Video call with Nora, 4 min13:02");
+      /* A pill, not a card: slim, centred in its row and far narrower than the screen. */
+      const geometry = await rows.nth(1).evaluate((el) => {
+        const box = el.getBoundingClientRect();
+        const row = el.parentElement!.getBoundingClientRect();
+        return { height: box.height, width: box.width, off: Math.abs(box.left + box.width / 2 - (row.left + row.width / 2)) };
+      });
+      expect(geometry.height).toBeLessThan(48);
+      expect(geometry.width).toBeLessThan(330);
+      expect(geometry.off).toBeLessThan(1);
+      /* The missed one is the red one. */
+      const ink = (index: number) => rows.nth(index).locator(".nf-call-event__line").evaluate((el) => getComputedStyle(el).color);
+      expect(await ink(0)).not.toBe(await ink(1));
+      /* Only the first row was given a call back, and its target is 44px. */
       expect(await page.getByTestId("call-history-callback").count()).toBe(1);
-      await page.getByRole("button", { name: "Call back with voice call" }).click();
+      const target = await page.getByTestId("call-history-callback").boundingBox();
+      expect(target!.width).toBeGreaterThanOrEqual(44);
+      expect(target!.height).toBeGreaterThanOrEqual(44);
+      await page.getByRole("button", { name: "Call Nora back, voice call" }).click();
       await page.waitForFunction(() => ((window as unknown as { __calls?: unknown[][] }).__calls ?? []).length > 0);
       const calls = await page.evaluate(() => (window as unknown as { __calls: [string, Record<string, unknown>][] }).__calls);
       expect(calls[0]![0]).toBe("startCall");

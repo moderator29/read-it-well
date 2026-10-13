@@ -4169,5 +4169,54 @@ export const yo: Dictionary = withFallback({
       chip: "Ṣètò ìbẹ̀wò",
     },
   },
+  /**
+   * Chat polish (apps/web/src/components/calls/call-pill-words.ts and
+   * components/app/messages/MediaViewer.tsx): the call pills that sit in a
+   * thread (who called, what happened, how long) and the full-screen viewer for
+   * photos and videos. A duration is only ever one the call recorded.
+   */
+  chatPolish: {
+    calls: {
+      video: "ìpè fídíò",
+      voice: "ìpè ohùn",
+      videoTitle: "Ìpè fídíò",
+      voiceTitle: "Ìpè ohùn",
+      missedFrom: "{Call} tí o kò gbà láti ọ̀dọ̀ {name}",
+      callWith: "{Call} pẹ̀lú {name}, {duration}",
+      callWithNoTime: "{Call} pẹ̀lú {name}",
+      youCalled: "O pe {name}, {outcome}",
+      youDeclined: "O kọ̀ {call} láti ọ̀dọ̀ {name}",
+      callFrom: "{Call} láti ọ̀dọ̀ {name}, {outcome}",
+      outcomeCancelled: "a fagilé e",
+      outcomeNoAnswer: "kò sí ìdáhùn",
+      outcomeDeclined: "a kọ̀ ọ́",
+      outcomeBusy: "ó wà lórí ìpè mìíràn",
+      outcomeFailed: "kò lè sopọ̀",
+      outcomeExpired: "àkókò rẹ̀ parí",
+      minutes: "ìṣẹ́jú {n}",
+      seconds: "ìṣẹ́jú àáyá {n}",
+      callBack: "Pe {name} padà, {call}",
+    },
+    viewer: {
+      label: "Àwọn fọ́tò àti fídíò inú ìjíròrò yìí",
+      close: "Ti",
+      save: "Fi pamọ́",
+      share: "Pín",
+      previous: "Ti tẹ́lẹ̀",
+      next: "Tó kàn",
+      position: "{n} nínú {total}",
+      you: "Ìwọ",
+      photo: "Fọ́tò",
+      video: "Fídíò",
+      openPhoto: "Ṣí fọ́tò ní ojú-ìwé kíkún",
+      openVideo: "Ṣe fídíò ní ojú-ìwé kíkún",
+      zoomIn: "Sún mọ́",
+      zoomOut: "Sún kúrò",
+      downloadStarted: "Ìgbàsílẹ̀ ti bẹ̀rẹ̀",
+      saveFailed: "Kò lè fi èyí pamọ́. Tún gbìyànjú.",
+      loadFailed: "Kò lè ṣí fọ́tò yìí.",
+      shareTitle: "Fọ́tò láti ọ̀dọ̀ {name}",
+    },
+  },
 
 } satisfies Translation, yoDrafts);

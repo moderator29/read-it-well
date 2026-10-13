@@ -14,6 +14,7 @@ import {
   type CallsCopy,
 } from "@/components/calls/views";
 import { CallHistoryRow } from "@/components/calls/CallHistoryRow";
+import type { CallPillWords } from "@/components/calls/call-pill-words";
 import { ReviewDesk } from "@/components/calls/admin/ReviewDesk";
 import { ReviewOutcomeForm } from "@/components/calls/admin/ReviewOutcomeForm";
 import { RequestReviewCall } from "@/components/calls/admin/RequestReviewCall";
@@ -78,7 +79,7 @@ function useFakeVideo(label: string, tone: "remote" | "self") {
   );
 }
 
-export function CallsPreview({ state, copy }: { state: CallPreviewState; copy: CallsCopy }) {
+export function CallsPreview({ state, copy, words }: { state: CallPreviewState; copy: CallsCopy; words: CallPillWords }) {
   const remote = useFakeVideo("Preview: their camera", "remote");
   const local = useFakeVideo("You", "self");
   const base = snapshot();
@@ -148,7 +149,7 @@ export function CallsPreview({ state, copy }: { state: CallPreviewState; copy: C
     case "gone":
       return <RecoveryView copy={copy} title={copy.recovery.goneTitle} body={copy.recovery.goneBody} primaryLabel={copy.recovery.openMessages} onPrimary={noop} onClose={noop} />;
     case "history":
-      return <HistoryPreview copy={copy} />;
+      return <HistoryPreview copy={copy} words={words} />;
     case "admin-list":
       return (
         <Page title={copy.staff.title}>
@@ -208,7 +209,7 @@ function Page({ title, children }: { title: string; children: React.ReactNode })
 }
 
 /** A conversation with its call rows between ordinary bubbles, as the thread draws them. */
-function HistoryPreview({ copy }: { copy: CallsCopy }) {
+function HistoryPreview({ copy, words }: { copy: CallsCopy; words: CallPillWords }) {
   const talked = callMarkerView({ body: "Video call, 4 min 12 s", mine: true });
   const missed = callMarkerView({ body: "Voice call, missed", mine: false });
   const noAnswer = callMarkerView({ body: "Video call, missed", mine: true });
@@ -221,10 +222,10 @@ function HistoryPreview({ copy }: { copy: CallsCopy }) {
           <p className="nf-bubble__body">Can we do a quick video walkthrough this afternoon?</p>
         </div>
       </div>
-      {talked ? <CallHistoryRow view={talked} timeLabel="13:02" copy={copy} onCallBack={noop} /> : null}
-      {missed ? <CallHistoryRow view={missed} timeLabel="15:40" copy={copy} onCallBack={noop} /> : null}
-      {noAnswer ? <CallHistoryRow view={noAnswer} timeLabel="16:05" copy={copy} onCallBack={noop} /> : null}
-      {declined ? <CallHistoryRow view={declined} timeLabel="16:30" copy={copy} /> : null}
+      {talked ? <CallHistoryRow view={talked} name="Adaeze" timeLabel="13:02" words={words} onCallBack={noop} /> : null}
+      {missed ? <CallHistoryRow view={missed} name="Adaeze" timeLabel="15:40" words={words} onCallBack={noop} /> : null}
+      {noAnswer ? <CallHistoryRow view={noAnswer} name="Adaeze" timeLabel="16:05" words={words} onCallBack={noop} /> : null}
+      {declined ? <CallHistoryRow view={declined} name="Adaeze" timeLabel="16:30" words={words} /> : null}
       <div className="nf-msg nf-msg--mine">
         <div className="nf-bubble nf-bubble--mine">
           <p className="nf-bubble__body">Sorry I missed you, calling back now.</p>

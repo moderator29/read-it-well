@@ -62,6 +62,230 @@
       max(var(--nf-space-sm), env(safe-area-inset-right, 0px));
   }
 
+
+  /* ================================================ the chat's media viewer
+     `components/app/messages/MediaViewer.tsx`: a dark full-screen surface for
+     a thread's photos and videos. The ground is its own layer (so it fades with
+     a dismissing drag), the slides sit side by side on `--nf-mv-i` and follow
+     the finger by transform only, and the photograph inside carries the zoom. */
+  .nf-media-viewer {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    isolation: isolate;
+    display: block;
+    overflow: hidden;
+    color: var(--nf-content-on-media);
+    outline: none;
+    animation: nf-media-viewer-in var(--nf-duration-base) var(--nf-ease-entrance) both;
+  }
+  .nf-media-viewer::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--nf-surface-artwork);
+    opacity: var(--nf-mv-fade, 1);
+  }
+  @keyframes nf-media-viewer-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  .nf-media-viewer__stage {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    /* Every gesture is the viewer's own: swipe, pinch, pan and drag down. */
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+    cursor: grab;
+  }
+  .nf-media-viewer[data-zoomed] .nf-media-viewer__stage {
+    cursor: move;
+  }
+  .nf-media-viewer__slide {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    transform: translate3d(calc(var(--nf-mv-i, 0) * 100% + var(--nf-mv-x, 0px)), var(--nf-mv-y, 0px), 0) scale(var(--nf-mv-shrink, 1));
+    transition: transform var(--nf-duration-base) var(--nf-ease-standard);
+    will-change: transform;
+  }
+  .nf-media-viewer[data-gesturing] .nf-media-viewer__slide,
+  .nf-media-viewer[data-gesturing] .nf-media-viewer__zoom {
+    transition: none;
+  }
+  .nf-media-viewer__zoom {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    transform-origin: 50% 50%;
+    transition: transform var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  .nf-media-viewer__media {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    -webkit-user-drag: none;
+  }
+  .nf-media-viewer__still {
+    display: grid;
+    place-items: center;
+    color: var(--nf-content-on-media-muted);
+  }
+  .nf-media-viewer__broken {
+    max-width: 18rem;
+    padding: var(--nf-space-md);
+    text-align: center;
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-on-media-secondary);
+  }
+
+  /* The top bar clears the notch: the safe-area inset once, then a small gap. */
+  .nf-media-viewer__top {
+    position: absolute;
+    inset-inline: 0;
+    top: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    padding-top: calc(env(safe-area-inset-top, 0px) + var(--nf-space-xs));
+    padding-inline: max(var(--nf-space-sm), env(safe-area-inset-left, 0px)) max(var(--nf-space-sm), env(safe-area-inset-right, 0px));
+    padding-bottom: var(--nf-space-md);
+    background: linear-gradient(180deg, var(--nf-overlay-media-strong), transparent);
+    pointer-events: none;
+  }
+  .nf-media-viewer__top > * {
+    pointer-events: auto;
+  }
+  .nf-media-viewer__who {
+    display: grid;
+    flex: 1;
+    min-width: 0;
+    line-height: 1.25;
+    pointer-events: none;
+  }
+  .nf-media-viewer__name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-on-media);
+  }
+  .nf-media-viewer__when {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--nf-text-caption);
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-content-on-media-muted);
+  }
+  .nf-media-viewer__btn {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-btn-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-btn-glass-blur));
+    backdrop-filter: blur(var(--nf-btn-glass-blur));
+    color: var(--nf-content-on-media);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-media-viewer__btn:active {
+    transform: scale(0.92);
+  }
+  .nf-media-viewer__btn:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+  .nf-media-viewer__btn:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-content-on-media);
+    outline-offset: 2px;
+  }
+  /* The side buttons are for a pointer and a keyboard; a phone swipes. */
+  .nf-media-viewer__side {
+    position: absolute;
+    top: 50%;
+    z-index: 2;
+    display: none;
+    translate: 0 -50%;
+  }
+  .nf-media-viewer__side--prev {
+    inset-inline-start: var(--nf-space-md);
+  }
+  .nf-media-viewer__side--next {
+    inset-inline-end: var(--nf-space-md);
+  }
+  .nf-media-viewer__foot {
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    padding: var(--nf-space-md) var(--nf-space-sm) calc(env(safe-area-inset-bottom, 0px) + var(--nf-space-sm));
+    background: linear-gradient(0deg, var(--nf-overlay-media-strong), transparent);
+    pointer-events: none;
+  }
+  .nf-media-viewer__foot > * {
+    pointer-events: auto;
+  }
+  .nf-media-viewer__zoomers {
+    display: none;
+    gap: var(--nf-space-xs);
+  }
+  .nf-media-viewer__position {
+    margin: 0;
+    padding: var(--nf-space-3xs) var(--nf-space-sm);
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-btn-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-btn-glass-blur));
+    backdrop-filter: blur(var(--nf-btn-glass-blur));
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-on-media);
+    pointer-events: none;
+  }
+  .nf-media-viewer__note {
+    margin: 0;
+    padding: var(--nf-space-2xs) var(--nf-space-sm);
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-overlay-media-deep);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-on-media);
+  }
+  @media (min-width: 640px) {
+    .nf-media-viewer__side {
+      display: grid;
+    }
+    .nf-media-viewer__zoomers {
+      display: flex;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-media-viewer {
+      animation: none;
+    }
+  }
+
   /*
    * The back control that stays after the photograph scrolls away
    * (`ListingGallery`, stays and restaurants). Fixed, so appearing moves
