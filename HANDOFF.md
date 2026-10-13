@@ -34,7 +34,7 @@ Written 13 October 2026. This is the only handoff in the repository. Read it fir
 ## 3. Company facts
 
 - VALLO SPACES LTD, RC 9870413, TIN 2623712661609, incorporated 18 September 2026. Office: Plot 5, Zone 6, Dutse Alhaji, Bwari Area Council, FCT, Abuja. Share capital 1,000,000 naira.
-- Co-founders agreement dated 13 October 2026, with the lawyer for review, not yet signed: Seyi 45 percent (CEO and CTO), Samuel Soledayo Babatola 35 percent (Chief Growth Officer, UK; invests US$20,000, of which US$6,000 is received; leads investor funding), Kareem Adetiba Tunde 20 percent (Chief Operating Officer, Akure). Four-year vesting with a one-year cliff from 18 September 2026. Major decisions need all three. Two of three approve every bank payment. CAC still shows 523,000 / 297,000 / 180,000 shares until the transfers are filed after signing.
+- Co-founders agreement dated 13 October 2026, with the lawyer for review, not yet signed: Seyi 45 percent (CEO and CTO), Samuel Soledayo Babatola 35 percent (Chief Growth Officer, UK; invests US$20,000, of which US$6,000 is received; leads investor funding), Kareem Adetiba Tunde 20 percent (Chief Operating Officer, Akure). Four-year vesting with a one-year cliff from 18 September 2026. Major decisions need all three. All three approve every bank payment before money leaves. CAC still shows 523,000 / 297,000 / 180,000 shares until the transfers are filed after signing.
 - Order for the bank: CAC certificate, then SCUML, then the corporate account.
 
 ## 4. Where things live
