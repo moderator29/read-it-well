@@ -249,6 +249,49 @@ export async function addChargebackNote(input: z.input<typeof noteSchema>): Prom
   }
 }
 
+/* -------------------------------------------------------------- override */
+
+const overrideSchema = z.object({
+  kind: z.enum(["arrangement", "rewards_payout"]),
+  subjectId: z.string().uuid("We could not identify that payment."),
+  reason: z.string().trim().min(12, "Give a reason of at least 12 characters.").max(1000, "Keep it under 1,000 characters."),
+});
+
+/**
+ * THE PAYOUT RULE'S ONE EXCEPTION (draft cbh01): finance lets ONE held escrow
+ * payment or ONE Rewards Balance payout go while the lister still owes a lost
+ * chargeback. `public.admin_chargeback_hold_override` checks the finance
+ * scope on a proved session, refuses the staffer's own hold, records the
+ * override and its reason, writes `chargeback.hold_overridden` to the audit
+ * log and lifts the pause the rule set. Nothing moves here: the release is
+ * asked for again through its own road.
+ */
+export async function overrideChargebackHold(input: z.input<typeof overrideSchema>): Promise<ActionResult<null>> {
+  const access = await requireAdmin("finance");
+  if (access.state !== "admin") return fail(adminRefusal(access));
+  const results = (await words()).override.results as Record<string, string>;
+  const parsed = validate(overrideSchema, input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+  try {
+    const { data, error } = await (access.userClient as unknown as Rpc).rpc("admin_chargeback_hold_override", {
+      p_kind: parsed.data.kind,
+      p_subject: parsed.data.subjectId,
+      p_reason: parsed.data.reason,
+    });
+    if (error) return fail(results.failed!);
+    const status = statusOf(data);
+    if (status === "ok") {
+      revalidatePath("/admin/chargebacks");
+      revalidatePath("/admin/agreements");
+      revalidatePath("/admin/referrals");
+      return ok(null);
+    }
+    return fail(results[status] ?? results.failed!);
+  } catch {
+    return fail(results.failed!);
+  }
+}
+
 /* --------------------------------------------------------------- notices */
 
 /** The people around a charge, read on the service client after the function has already answered. */

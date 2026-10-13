@@ -285,7 +285,7 @@ export const chargebacksEn = {
     body: "The payer's bank reversed a card payment you received. The payment partner took it back from Vallo, so {amount} is owed back from your account.",
     bodyNoAmount: "The payer's bank reversed a card payment you received. The payment partner took it back from Vallo, so the amount is owed back from your account.",
     meansTitle: "What it means",
-    means: "While it is owed, new payments to you may be paused. Nothing else on your account changes.",
+    means: "While it is owed, Vallo pauses the release of payments Payluk holds for you, and withdrawals from your Rewards Balance. Card payments still reach your payout account at the moment of payment. Nothing else on your account changes.",
     nextTitle: "What happens next",
     next: "Vallo's finance team will contact you to settle it. Once it is settled or closed, this notice goes away by itself.",
     help: "Ask support about it",
@@ -310,7 +310,7 @@ export const chargebacksEn = {
     },
     lost: {
       title: "A disputed payment was reversed",
-      body: "The payer's bank reversed {amount}. It is owed back, and new payments to you may be paused until it is settled.",
+      body: "The payer's bank reversed {amount}. It is owed back. Until it is settled, Vallo pauses the release of payments Payluk holds for you, and withdrawals from your Rewards Balance.",
     },
     lostRecovered: {
       title: "A disputed payment was reversed",
@@ -322,11 +322,26 @@ export const chargebacksEn = {
     },
     reowed: {
       title: "A reversed payment is owed again",
-      body: "The reversed {amount} is owed again, and new payments to you may be paused until it is settled.",
+      body: "The reversed {amount} is owed again. Until it is settled, Vallo pauses the release of payments Payluk holds for you, and withdrawals from your Rewards Balance.",
     },
     payerDecided: {
       title: "Your card dispute is closed",
       body: "The dispute on your payment of {amount} is decided. Your bank tells you the outcome.",
+    },
+  },
+
+  /** The finance override of the payout rule, for one payment or one payout (draft cbh01). */
+  override: {
+    results: {
+      forbidden: "Only finance staff on a proved session can override the payout rule.",
+      bad_kind: "Choose a held escrow payment or a Rewards Balance payout.",
+      reason_required: "Give a reason of at least 12 characters. It is kept on the audit log.",
+      reason_too_long: "Keep the reason under 1,000 characters.",
+      not_found: "That payment or payout no longer exists.",
+      own_hold: "This hold is on your own account, so somebody else in finance has to decide it.",
+      not_held: "The payout rule does not hold this lister now, so there is nothing to override.",
+      already: "This one is already overridden. The release can be asked for again.",
+      failed: "The override could not be recorded. Nothing changed. Try again.",
     },
   },
 };

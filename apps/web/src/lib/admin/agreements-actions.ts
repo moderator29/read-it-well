@@ -153,6 +153,9 @@ const RESOLVE_WORDS: Record<string, string> = {
   unknown: "The payment partner did not answer. Do not try again until its record says what happened.",
   own_payment: "You are a party to this payment, so somebody else has to decide it.",
   store: "That could not be recorded. Nothing moved. Try again.",
+  chargeback_hold:
+    "The lister has a lost chargeback still owed, so the release is paused. Nothing moved. Finance can override it for this payment, with a reason, on the chargebacks desk.",
+  release_paused: "The release of this payment is paused. Resume it first, then decide. Nothing moved.",
 };
 
 export async function resolveHeldPayment(input: {

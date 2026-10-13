@@ -26,6 +26,7 @@ const state = {
   openAnswer: { status: "ok", id: "arr-1", reference: REF } as Record<string, unknown>,
   rpcs: [] as { name: string; args: Record<string, unknown> }[],
   alerts: [] as string[],
+  gate: { data: { status: "clear" }, error: null } as { data: unknown; error: { code?: string; message?: string } | null },
 };
 
 /** A stand-in for the service-role client: just the chains this module uses. */
@@ -56,6 +57,7 @@ function fakeDb() {
     rpc: async (name: string, args: Record<string, unknown>) => {
       state.rpcs.push({ name, args });
       if (name === "provider_arrangement_open") return { data: state.openAnswer, error: null };
+      if (name === "chargeback_release_gate") return state.gate;
       if (name === "provider_arrangement_observe") {
         state.row = { ...state.row, status: String(args.p_to_status) };
         return { data: "changed", error: null };
@@ -111,6 +113,7 @@ beforeEach(() => {
   state.openAnswer = { status: "ok", id: "arr-1", reference: REF };
   state.rpcs = [];
   state.alerts = [];
+  state.gate = { data: { status: "clear" }, error: null };
 });
 
 const OPEN = { agreementId: "ag-1", kind: "standard" as const, purpose: "Rent" };
@@ -209,6 +212,50 @@ describe("protected rental payments (D73 Part B)", () => {
     const { deps, calls } = harness([{ status: 200, body: { status: 200, message: "ok", data: {} } }]);
     expect(await requestRelease(deps, "arr-1", "renter")).toEqual({ outcome: "submitted" });
     expect(state.row.status).toBe("release_requested");
+    expect(calls[0]!.url).toContain("/v1/escrow/confirm-payment/esc_1");
+  });
+
+  it("the payout rule: a lister holding a lost chargeback still owed is not released to; nothing is asked of the partner", async () => {
+    state.row = { ...ROW, status: "protected", provider_arrangement_id: "esc_1", provider_payment_token: "PY_1" };
+    state.gate = { data: { status: "held" }, error: null };
+    const { requestRelease } = await import("./provider-arrangements");
+    const { deps, calls } = harness([{ status: 200, body: { status: 200, message: "ok", data: {} } }]);
+    expect(await requestRelease(deps, "arr-1", "renter")).toEqual({ outcome: "refused", reason: "release_paused" });
+    expect(state.rpcs.map((r) => r.name)).toEqual(["chargeback_release_gate"]);
+    expect(state.rpcs[0]!.args).toEqual({ p_arrangement: "arr-1" });
+    expect(state.row.status).toBe("protected");
+    expect(calls).toHaveLength(0);
+  });
+
+  it("a milestone is gated like a standard release, and a pause by a person holds it too", async () => {
+    state.row = { ...ROW, kind: "milestone", status: "protected", provider_arrangement_id: "esc_1", provider_payment_token: "PY_1" };
+    const { requestRelease } = await import("./provider-arrangements");
+    for (const status of ["held", "paused"]) {
+      state.gate = { data: { status }, error: null };
+      const { deps, calls } = harness([]);
+      expect(await requestRelease(deps, "arr-1", "renter", 1)).toEqual({ outcome: "refused", reason: "release_paused" });
+      expect(calls).toHaveLength(0);
+    }
+  });
+
+  it("an unreadable gate fails closed; a gate not yet applied reads clear", async () => {
+    state.row = { ...ROW, status: "protected", provider_arrangement_id: "esc_1", provider_payment_token: "PY_1" };
+    const { requestRelease } = await import("./provider-arrangements");
+    state.gate = { data: null, error: { code: "57014", message: "timeout" } };
+    const first = harness([]);
+    expect(await requestRelease(first.deps, "arr-1", "renter")).toEqual({ outcome: "refused", reason: "store_unavailable" });
+    expect(first.calls).toHaveLength(0);
+    state.gate = { data: null, error: { code: "PGRST202", message: "Could not find the function" } };
+    const second = harness([{ status: 200, body: { status: 200, message: "ok", data: {} } }]);
+    expect(await requestRelease(second.deps, "arr-1", "renter")).toEqual({ outcome: "submitted" });
+  });
+
+  it("released once finance overrides: the gate answers clear and the release goes", async () => {
+    state.row = { ...ROW, status: "protected", provider_arrangement_id: "esc_1", provider_payment_token: "PY_1" };
+    state.gate = { data: { status: "clear", overridden: true }, error: null };
+    const { requestRelease } = await import("./provider-arrangements");
+    const { deps, calls } = harness([{ status: 200, body: { status: 200, message: "ok", data: {} } }]);
+    expect(await requestRelease(deps, "arr-1", "renter")).toEqual({ outcome: "submitted" });
     expect(calls[0]!.url).toContain("/v1/escrow/confirm-payment/esc_1");
   });
 });

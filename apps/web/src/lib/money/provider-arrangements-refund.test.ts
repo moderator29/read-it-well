@@ -45,6 +45,7 @@ const state = {
   alerts: [] as string[],
   calls: [] as { method: string; path: string; headers: Record<string, string>; body: unknown }[],
   deleteRefused: false,
+  gate: "clear",
 };
 
 function baseRow(status: string): Row {
@@ -106,6 +107,7 @@ function fakeDb() {
         return { data: before === args.p_to_status ? "same" : "changed", error: null };
       }
       if (name === "partner_hold_unwind_cancel") return { data: "ok", error: null };
+      if (name === "chargeback_release_gate") return { data: { status: state.gate }, error: null };
       return { data: null, error: { message: "unknown rpc" } };
     },
   } as never;
@@ -153,6 +155,7 @@ beforeEach(() => {
   state.rows = [];
   state.bookingId = "booking-1";
   state.rpcs = [];
+  state.gate = "clear";
   state.audits = [];
   state.alerts = [];
   state.calls = [];
@@ -226,6 +229,20 @@ describe("a person at Vallo deciding a held payment", () => {
     expect((state.calls[1]!.body as FormData).get("status")).toBe("COMPLETED");
     expect(state.row!.status).toBe("released");
     expect(state.rpcs.some((r) => r.name === "partner_hold_unwind_cancel")).toBe(false);
+  });
+
+  it("the payout rule: a staff release to a held lister is refused before the partner is asked; a refund is not held", async () => {
+    const { staffResolve } = await import("./provider-arrangements");
+    state.row = baseRow("protected");
+    state.gate = "held";
+    expect(await staffResolve(deps(), "arr-1", "COMPLETED", "The guest checked in as agreed.", "staff-1")).toEqual({
+      outcome: "refused",
+      reason: "chargeback_hold",
+    });
+    expect(state.calls).toHaveLength(0);
+    expect(state.row!.status).toBe("protected");
+    expect(await staffResolve(deps(), "arr-1", "REFUNDED", "The host cancelled the stay.", "staff-1")).toMatchObject({ outcome: "submitted" });
+    expect(state.rpcs.filter((r) => r.name === "chargeback_release_gate")).toHaveLength(1);
   });
 
   it("an already disputed payment goes straight to the resolve", async () => {
