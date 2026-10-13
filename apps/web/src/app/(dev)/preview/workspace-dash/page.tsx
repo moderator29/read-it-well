@@ -53,7 +53,8 @@ export default async function PreviewWorkspaceDash({
       t={t}
       locale={locale}
       active="/agent/dashboard"
-      profile={{ id: COUNTERPART.id, displayName: COUNTERPART.name, status: "APPROVED", type: "individual", verified: true }}
+      profile={{ id: COUNTERPART.id, displayName: COUNTERPART.name, status: "APPROVED", type: "individual",
+  role: "agent" as const, verified: true }}
     >
       <RealDashboard
         t={t}

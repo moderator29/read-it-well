@@ -31,6 +31,7 @@ export const AGENT_PROFILE = {
   displayName: COUNTERPART.name,
   status: "APPROVED" as const,
   type: "individual" as const,
+  role: "agent" as const,
   verified: true,
 };
 

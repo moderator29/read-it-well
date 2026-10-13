@@ -2358,6 +2358,9 @@ export const en = {
       personalDesc: "Discover and book amazing places across Nigeria.",
       agentDesc: "Manage your listings, bookings, customers and earnings.",
       verifiedAgent: "Verified agent",
+      /* The same workspace for an account whose side is owner (agents.role). */
+      owner: "Owner workspace",
+      verifiedOwner: "Verified owner",
       noWorkspace: "You are not listing yet",
       applyToList: "Apply to list",
       workspaceLabel: "Your listings",

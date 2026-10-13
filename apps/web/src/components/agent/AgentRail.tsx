@@ -35,7 +35,7 @@ export function AgentRail({
     <DeskSidebar
       label={t.agent.mode.workspaceLabel}
       switcher={{
-        name: t.desk.sidebar.agentDesk,
+        name: profile?.role === "owner" ? t.desk.sidebar.ownerDesk : t.desk.sidebar.agentDesk,
         icon: "building-apartment",
       }}
       sections={buildAgentNav(t, unreadMessages)}
@@ -45,7 +45,7 @@ export function AgentRail({
         <>
           <AgentIdentityCard
             profile={profile}
-            verifiedLabel={t.agent.mode.verifiedAgent}
+            verifiedLabel={profile?.role === "owner" ? t.agent.mode.verifiedOwner : t.agent.mode.verifiedAgent}
             door={noWorkspaceDoor(t.agent.mode)}
           />
           {/* This rail only renders inside Agent Mode, so the switch always

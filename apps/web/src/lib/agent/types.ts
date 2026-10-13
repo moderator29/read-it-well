@@ -29,6 +29,8 @@ export type AgentProfile = {
   displayName: string;
   status: AgentApplicationStatus;
   type: AgentType;
+  /** The account's side, `agents.role`: an owner is a landlord, an agent an agent. */
+  role: "owner" | "agent";
   verified: boolean;
 };
 

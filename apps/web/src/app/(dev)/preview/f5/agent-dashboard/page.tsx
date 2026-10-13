@@ -64,6 +64,7 @@ export default async function PreviewAgentDashboard() {
         displayName: COUNTERPART.name,
         status: "APPROVED",
         type: "individual",
+  role: "agent" as const,
         verified: true,
       }}
     >

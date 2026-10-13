@@ -155,6 +155,7 @@ export function agentProfileFrom(agent: AgentIdentity): AgentProfile {
     displayName: agent.displayName,
     status: agent.status,
     type: agent.type,
+    role: agent.role,
     verified: agent.verified,
   };
 }

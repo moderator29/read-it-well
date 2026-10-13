@@ -1234,6 +1234,8 @@ export const ig: Dictionary = withFallback({
       applyToList: "Rịọ ka i depụta ụlọ",
       workspaceLabel: "Ebe ọrụ onye nnọchi",
       notApproved: "A ka na-enyocha arịrịọ onye nnọchi gị.",
+      owner: "Ebe ọrụ onye nwe ụlọ",
+      verifiedOwner: "Onye nwe ụlọ enyochara",
     },
     nav: {
       dashboard: "Dashboard",

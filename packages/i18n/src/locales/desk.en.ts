@@ -9,6 +9,8 @@ export const deskEn = {
     main: "Main",
     hostDesk: "Host workspace",
     agentDesk: "Agent workspace",
+    /* The same desk for an account whose side is owner (agents.role). */
+    ownerDesk: "Owner workspace",
   },
   today: {
     title: "Today",

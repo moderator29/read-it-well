@@ -1232,6 +1232,8 @@ export const yo: Dictionary = withFallback({
       applyToList: "Bèèrè láti ta ilé",
       workspaceLabel: "Ibi iṣẹ́ aṣojú",
       notApproved: "Ìbéèrè aṣojú rẹ wa labẹ atunyẹwo.",
+      owner: "Ibi iṣẹ́ onílé",
+      verifiedOwner: "Onílé tí a fọwọ́sí",
     },
     nav: {
       dashboard: "Pátákó",

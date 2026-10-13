@@ -1205,6 +1205,8 @@ export const ha: Dictionary = withFallback({
       applyToList: "Nemi ka saka gida",
       workspaceLabel: "Wurin aikin wakili",
       notApproved: "Ana ci gaba da nazarin bukatar wakilcin ka.",
+      owner: "Wurin aikin mai gida",
+      verifiedOwner: "Tabbataccen mai gida",
     },
     nav: {
       dashboard: "Dashboard",
