@@ -618,6 +618,9 @@ export function ThreadView({
     const callId = (row as { call_id?: unknown }).call_id;
     const view =
       typeof callId === "string" ? callMarkerView({ body: row.body, mine: row.sender_id === meId }) : null;
+    /* A reply and a forward arriving live carry their quote and their label
+       at once, as they do after a reload (the row's own columns). */
+    const extra = row as { reply_to_id?: unknown; forwarded?: unknown };
     setItems((prev) =>
       mergeEcho(prev, {
         id: row.id,
@@ -626,6 +629,8 @@ export function ThreadView({
         timeLabel: lagosTimeLabel(row.created_at),
         imageUrl: null,
         createdAt: row.created_at,
+        ...(typeof extra.reply_to_id === "string" ? { replyToId: extra.reply_to_id } : {}),
+        ...(extra.forwarded === true ? { forwarded: true } : {}),
         ...(view && typeof callId === "string" ? { call: { callId, view } } : {}),
       }),
     );
