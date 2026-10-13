@@ -17,6 +17,11 @@ import { gateFirstRun } from "@/components/app/feature-onboarding/first-run-stor
 import { DeskFigure } from "@/components/workspace/DeskFigure";
 import { readHostBookingSeries } from "./booking-series";
 import { HostStandingBody } from "./HostStandingBody";
+import { readHotelDesk } from "@/lib/host/tape-chart-read";
+import { readRestaurantExtras } from "@/components/host/dashboard/restaurant-reads";
+import { buildRestaurantFigures } from "@/components/host/dashboard/restaurant-figures";
+import { HotelDashboard } from "@/components/host/dashboard/HotelDashboard";
+import { RestaurantSummary } from "@/components/host/dashboard/RestaurantSummary";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: getDictionary(await getLocale()).experienceHost.home.metaTitle, robots: { index: false, follow: false } };
@@ -66,6 +71,10 @@ export default async function HostPage({
     loadUnreadCounts(session.supabase).then((counts) => counts?.total ?? null, () => null),
     /* The figure card (reference 5): room bookings made at this host's places. */
     readHostBookingSeries(figureNow),
+    /* The hotel's two weeks and the restaurant's week: each answers "none" or
+       an empty read quickly for a host without that kind of business. */
+    readHotelDesk(figureNow),
+    readRestaurantExtras(figureNow),
   ]);
   rest.catch(() => {});
   const businesses = await getMyBusinesses();
@@ -77,7 +86,7 @@ export default async function HostPage({
   if (businesses.length > 0) await gateFirstRun("host", "/host", await searchParams);
   /* The workspace home's figures (plan item 14): the host's own rows. A read
      that fails comes back as null and its tile is left out. */
-  const [draft, rooms, tables, unread, bookingRows] = await rest;
+  const [draft, rooms, tables, unread, bookingRows, hotel, restaurantExtras] = await rest;
   const openDraft = draft.businessId ? draft : null;
   const today = hostToday({
     now: new Date(requestNow()),
@@ -92,6 +101,31 @@ export default async function HostPage({
   /* A business approved or published in the staff console, whose notice
      lands here: once per device, while it is news (docs/SUCCESS_MOMENTS.md). */
   const approval = businessArrival(businesses, requestNow());
+
+  /* The hospitality dashboards (track/hospitality-workspace). A hotel shows
+     where a hotel, serviced apartment or guest house exists and its read
+     answered; a restaurant where a restaurant business exists. A read that
+     failed leaves its dashboard out rather than drawing zeros. */
+  const hasRestaurant = businesses.some((b) => b.kind === "restaurant");
+  const dashboard = (
+    <>
+      {hotel.state === "ok" ? <HotelDashboard read={hotel} locale={locale} variant="home" t={t} /> : null}
+      {hasRestaurant && tables.state === "ok" ? (
+        <RestaurantSummary
+          figures={buildRestaurantFigures({
+            board: tables.board,
+            now: figureNow,
+            week: restaurantExtras.week,
+            noShowsMonth: restaurantExtras.noShowsMonth,
+          })}
+          words={t.hostDash.restaurant}
+          locale={locale}
+        />
+      ) : null}
+    </>
+  );
+  /* The room-bookings figure counts rooms; a restaurant-only host has none. */
+  const showRoomFigure = businesses.length > 0 && (hotel.state === "ok" || !hasRestaurant);
 
   return (
     <HostShell logoLabel={t.a11y.logoHome} wide>
@@ -109,8 +143,9 @@ export default async function HostPage({
         locale={locale}
         today={today}
         t={t}
+        dashboard={hotel.state === "ok" || (hasRestaurant && tables.state === "ok") ? dashboard : null}
         figure={
-          businesses.length > 0 ? (
+          showRoomFigure ? (
             <DeskFigure rows={bookingRows} kind="bookings" t={t} locale={locale} now={figureNow} />
           ) : null
         }

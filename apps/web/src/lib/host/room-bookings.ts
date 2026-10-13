@@ -1,6 +1,8 @@
 import "server-only";
 
 import { resolveSession } from "../actions/session";
+import { lagosDayOf } from "./tape-chart";
+import { readGuestNames, readPaidBookingIds } from "./tape-chart-read";
 
 /**
  * ROOM BOOKINGS 1: the room requests at a host's hotels, read under the
@@ -59,6 +61,9 @@ export async function readHostRoomBookings(): Promise<HostRoomBookingsRead> {
         "id, status, check_in, check_out, nights, rooms, adults, children, total_minor, created_at, guest_id, guest_name, accommodation_id, room_type_id",
       )
       .not("accommodation_id", "is", null)
+      /* A hotel owner who has also booked a stay elsewhere sees that trip
+         through the guest policy too; it is not business here. */
+      .neq("guest_id", session.user.id)
       .order("check_in", { ascending: true })
       .limit(200);
     if (error) return { state: "unavailable" };
@@ -71,27 +76,25 @@ export async function readHostRoomBookings(): Promise<HostRoomBookingsRead> {
       rows.length
         ? db.from("room_types").select("id, name").in("id", [...new Set(rows.map((r) => r.room_type_id))])
         : Promise.resolve({ data: [] }),
-      rows.length
-        ? db.from("profiles").select("id, display_name").in("id", [...new Set(rows.map((r) => r.guest_id))])
-        : Promise.resolve({ data: [] }),
+      readGuestNames(rows.map((r) => r.guest_id)),
       ids.length ? db.from("deal_agreements").select("id, status, booking_id").in("booking_id", ids) : Promise.resolve({ data: [] }),
-      ids.length
-        ? db.from("transactions").select("booking_id").in("booking_id", ids).eq("status", "SUCCESSFUL")
-        : Promise.resolve({ data: [] }),
+      readPaidBookingIds(ids),
     ]);
     const nameOf = (list: { data: unknown }, key: "name" | "display_name") =>
       new Map(((list.data ?? []) as Record<string, string | null>[]).map((x) => [x.id as string, (x[key] ?? "") as string]));
     const hotel = nameOf(places, "name");
     const room = nameOf(rooms, "name");
-    const person = nameOf(people, "display_name");
+    const person = people;
     const agreementOf = new Map(
       ((agreements.data ?? []) as { id: string; status: string; booking_id: string }[]).map((a) => [
         a.booking_id,
         { id: a.id, status: a.status },
       ]),
     );
-    const paidSet = new Set(((paid.data ?? []) as { booking_id: string }[]).map((t) => t.booking_id));
-    const today = new Date().toISOString().slice(0, 10);
+    const paidSet = paid ?? new Set<string>();
+    /* The Lagos day, not the server's: at 00:30 in Lagos it is still
+       yesterday in UTC and a stay leaving "today" moved to Past an hour early. */
+    const today = lagosDayOf(new Date());
     const view = rows.map<HostRoomBooking>((r) => ({
       id: r.id,
       status: r.status,

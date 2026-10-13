@@ -5,6 +5,16 @@
 -- in their own append-only table rather than as new statuses or columns.
 -- One row per booking and kind; a second tap returns the first time
 -- (idempotent). Each mark writes an audit_log row. No money moves.
+--
+-- REVIEWED AGAINST LIVE (13 October 2026, read only): bookings, audit_log,
+-- private.owns_business, private.listing_agent_is_me and private.booking_host
+-- read as written here; stay_events, private.hosts_booking and
+-- public.record_stay_event do not exist yet; booking_status has no in-house
+-- value; audit_log is append-only by trigger and takes the five columns used
+-- below. Two changes from the first draft: hosts_booking now answers through
+-- private.booking_host (the one live definition of who hosts a booking, both
+-- the listing-agent and the business-owner side) instead of restating it, and
+-- the policy is created only when it is missing, so a second run is harmless.
 set lock_timeout = '5s';
 
 create table if not exists public.stay_events (
@@ -26,27 +36,28 @@ create or replace function private.hosts_booking(p_booking uuid)
  security definer
  set search_path to ''
 as $fn$
-  select exists (
-    select 1
-      from public.bookings b
-      left join public.accommodations a on a.id = b.accommodation_id
-      left join public.listings l on l.id = b.listing_id
-     where b.id = p_booking
-       and ((a.business_id is not null and private.owns_business(a.business_id))
-            or (l.agent_id is not null and private.listing_agent_is_me(l.agent_id)))
-  );
+  select coalesce(private.booking_host(p_booking) = (select auth.uid()), false);
 $fn$;
 revoke all on function private.hosts_booking(uuid) from public, anon;
 grant execute on function private.hosts_booking(uuid) to authenticated;
 
-create policy stay_events_party_reads on public.stay_events
-  for select to authenticated
-  using (
-    exists (select 1 from public.bookings b
-             where b.id = stay_events.booking_id
-               and b.guest_id = (select auth.uid()))
-    or private.hosts_booking(stay_events.booking_id)
-  );
+do $do$
+begin
+  if not exists (
+    select 1 from pg_policies
+     where schemaname = 'public' and tablename = 'stay_events' and policyname = 'stay_events_party_reads'
+  ) then
+    create policy stay_events_party_reads on public.stay_events
+      for select to authenticated
+      using (
+        exists (select 1 from public.bookings b
+                 where b.id = stay_events.booking_id
+                   and b.guest_id = (select auth.uid()))
+        or private.hosts_booking(stay_events.booking_id)
+      );
+  end if;
+end
+$do$;
 
 create or replace function public.record_stay_event(p_booking uuid, p_kind text)
  returns timestamptz
