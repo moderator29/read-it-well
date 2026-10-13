@@ -26,6 +26,7 @@ export function HostStandingBody({
   locale = DEFAULT_LOCALE,
   today,
   figure,
+  dashboard,
   t = getDictionary(locale),
 }: {
   businesses: MyBusiness[];
@@ -36,6 +37,8 @@ export function HostStandingBody({
   today: HostToday;
   /** The figure card (reference 5); omitted, none is drawn. */
   figure?: ReactNode;
+  /** The hotel and restaurant dashboards, drawn under the band. */
+  dashboard?: ReactNode;
   t?: ReturnType<typeof getDictionary>;
 }) {
   const missing = open ? missingFrom(open) : [];
@@ -51,6 +54,7 @@ export function HostStandingBody({
         t={t}
         locale={locale}
         figure={figure}
+        dashboard={dashboard}
         sub={
           businesses.length === 0
             ? t.hostWorkspace.nothingYet.home

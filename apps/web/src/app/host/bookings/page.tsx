@@ -8,11 +8,14 @@ import { ButtonLink } from "@/components/ui/Button";
 import { Amount } from "@/components/ui/Amount";
 import { HostShell } from "@/components/host/HostShell";
 import { readHostRoomBookings, type HostRoomBooking } from "@/lib/host/room-bookings";
+import { readHotelDesk } from "@/lib/host/tape-chart-read";
+import { HotelDashboard } from "@/components/host/dashboard/HotelDashboard";
 import { stayDateLabel } from "@/lib/stays/date-label";
 import { RoomRequestAnswer } from "./RoomRequestAnswer";
 import { DecideClock } from "@/components/host/DecideClock";
 import { requestNow, roomDeadline } from "@/lib/host/decide";
 import { HOST_ROOM_BOOKING_PAYMENT } from "@/lib/money/copy";
+import "@/components/host/dashboard/dashboard.css";
 import "../host-desk.css";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -34,7 +37,8 @@ export const dynamic = "force-dynamic";
 export default async function HostRoomBookingsPage() {
   const locale = await getLocale();
   const t = getDictionary(locale);
-  const read = await readHostRoomBookings();
+  /* The requests and the hotel's two weeks are separate reads and start together. */
+  const [read, hotel] = await Promise.all([readHostRoomBookings(), readHotelDesk()]);
   const words = t.experienceHost.bookings;
 
   if (read.state === "signed-out") {
@@ -54,30 +58,46 @@ export default async function HostRoomBookingsPage() {
     );
   }
 
+  const requests = read.state === "ok" ? read.waiting.length + read.upcoming.length + read.past.length : 0;
+  const hotelUp = hotel.state === "ok";
+
   return (
-    <HostShell logoLabel={t.a11y.logoHome} fallback="/host">
-      <div className="mx-auto max-w-2xl">
-        <h1 className="nf-h2">{words.title}</h1>
-        <p className={`mt-xs mb-block ${TYPE.body}`}>
-          {words.lede} {HOST_ROOM_BOOKING_PAYMENT}
-        </p>
-        {read.state === "unavailable" ? (
+    <HostShell logoLabel={t.a11y.logoHome} fallback="/host" wide>
+      <div className="nf-dash">
+        <div>
+          <h1 className="nf-h2">{words.title}</h1>
+          <p className={`mt-xs max-w-2xl ${TYPE.body}`}>
+            {words.lede} {HOST_ROOM_BOOKING_PAYMENT}
+          </p>
+        </div>
+
+        {read.state === "unavailable" || hotel.state === "unavailable" ? (
           <p className="nf-body" role="alert">
             {words.unavailable}
           </p>
-        ) : read.waiting.length + read.upcoming.length + read.past.length === 0 ? (
-          <EmptyState
-            icon="hotel-bed"
-            title={words.emptyTitle}
-            body={words.emptyBody}
-          />
-        ) : (
-          <>
+        ) : null}
+
+        {/* Answering a request has a clock on it, so it comes before the day's desk. */}
+        {read.state === "ok" && read.waiting.length > 0 ? (
+          <div className="max-w-2xl">
             <Section title={words.sections.waiting} rows={read.waiting} locale={locale} words={words} answer />
-            <Section title={words.sections.accepted} rows={read.upcoming} locale={locale} words={words} />
-            <Section title={words.sections.past} rows={read.past} locale={locale} words={words} />
-          </>
-        )}
+          </div>
+        ) : null}
+
+        {hotelUp ? <HotelDashboard read={hotel} locale={locale} variant="page" t={t} /> : null}
+
+        {read.state === "ok" ? (
+          requests === 0 ? (
+            <div className="max-w-2xl">
+              <EmptyState icon="hotel-bed" title={words.emptyTitle} body={words.emptyBody} />
+            </div>
+          ) : (
+            <div className="max-w-2xl">
+              <Section title={words.sections.accepted} rows={read.upcoming} locale={locale} words={words} />
+              <Section title={words.sections.past} rows={read.past} locale={locale} words={words} />
+            </div>
+          )
+        ) : null}
       </div>
     </HostShell>
   );
@@ -108,7 +128,7 @@ function Section({
       <h2 className="nf-h4">{title}</h2>
       <ul className="mt-xs grid gap-xs">
         {rows.map((b) => (
-          <li key={b.id} className="nf-panel nf-panel--card p-card" data-testid="host-room-booking">
+          <li key={b.id} id={`booking-${b.id}`} className="nf-panel nf-panel--card scroll-mt-24 p-card" data-testid="host-room-booking">
             <div className="flex items-start justify-between gap-sm">
               <p className="font-semibold">
                 {b.room} &middot; {plural(b.rooms, counts.rooms, locale)} &middot; {b.hotel}

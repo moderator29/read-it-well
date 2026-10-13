@@ -1,0 +1,221 @@
+@layer theme, base, components, utilities;
+
+/*
+ * THE HOTEL AND RESTAURANT DASHBOARDS (track/hospitality-workspace): summary
+ * cards, the front desk and the restaurant's week. They sit inside the host
+ * workspace's own pages and use its card, list and chip language; this sheet
+ * adds only the grids that arrange them. Tokens only.
+ */
+@layer components {
+  .nf-dash {
+    display: grid;
+    gap: var(--nf-space-lg);
+    min-width: 0;
+  }
+  .nf-dash__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--nf-space-2xs) var(--nf-space-sm);
+  }
+  .nf-dash__title {
+    font-size: var(--nf-text-h4);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-dash__lede {
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-muted);
+  }
+
+  /* ----------------------------------------------------------- the tiles */
+  .nf-dash__tiles {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--nf-space-sm);
+  }
+  @media (min-width: 40rem) {
+    .nf-dash__tiles--five {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 64rem) {
+    .nf-dash__tiles--five {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+    .nf-dash__tiles--four {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+  .nf-dash__tile--money .nf-kpi__figure {
+    font-size: 1.625rem;
+  }
+  @media (max-width: 39.99rem) {
+    .nf-dash__tile--money {
+      grid-column: 1 / -1;
+    }
+  }
+  .nf-dash__tile-sub {
+    font-size: var(--nf-text-caption);
+    line-height: 1.4;
+    color: var(--nf-content-muted);
+  }
+
+  /* ---------------------------------------------------------- front desk */
+  .nf-fd {
+    display: grid;
+    gap: var(--nf-space-md);
+    min-width: 0;
+  }
+  .nf-fd__lists {
+    display: grid;
+    gap: var(--nf-space-md);
+    min-width: 0;
+  }
+  @media (min-width: 64rem) {
+    .nf-fd__lists--cols {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      align-items: start;
+    }
+    /* Three narrow columns: the button drops under the name, in the text column. */
+    .nf-fd__lists--cols .nf-fd__row .nf-list-row__text {
+      flex-basis: calc(100% - var(--nf-plate-size-sm) - var(--nf-space-sm));
+    }
+    .nf-fd__lists--cols .nf-fd__row .nf-list-row__trail {
+      margin-inline-start: calc(var(--nf-plate-size-sm) + var(--nf-space-sm));
+    }
+  }
+  .nf-fd__note {
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    border: var(--nf-border-width) solid var(--nf-border-subtle);
+    border-radius: var(--nf-radius-card-sm);
+    background: var(--nf-surface-secondary);
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+  }
+  .nf-fd__empty {
+    padding: var(--nf-space-md);
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-muted);
+  }
+  .nf-fd__row {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+  .nf-fd__row .nf-list-row__text {
+    flex-basis: 6rem;
+  }
+  .nf-fd__sub {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--nf-space-3xs) var(--nf-space-xs);
+  }
+  .nf-fd__done {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-state-success);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .nf-fd__error {
+    flex-basis: 100%;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-state-error);
+  }
+  .nf-fd__more {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-link);
+  }
+
+  /* ------------------------------------------------------ restaurant home */
+  .nf-dash__split {
+    display: grid;
+    gap: var(--nf-space-md);
+    min-width: 0;
+  }
+  @media (min-width: 64rem) {
+    .nf-dash__split {
+      grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+      align-items: start;
+    }
+  }
+  .nf-week {
+    display: grid;
+    gap: var(--nf-space-xs);
+    padding: var(--nf-space-md);
+    border: var(--nf-border-width) solid var(--nf-tier-card-edge);
+    border-radius: var(--nf-radius-card);
+    background: var(--nf-surface-primary);
+    box-shadow: var(--nf-card-shadow);
+    min-width: 0;
+  }
+  .nf-week__title {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+  }
+  .nf-week__figure {
+    font-size: var(--nf-text-figure);
+    font-weight: 600;
+    letter-spacing: var(--nf-tracking-figure);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+    color: var(--nf-content-primary);
+  }
+  .nf-week__chart {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+  .nf-week__grid {
+    stroke: var(--nf-chart-grid);
+    stroke-width: 1;
+  }
+  .nf-week__area {
+    fill: var(--nf-brand-tint-2);
+  }
+  .nf-week__line {
+    fill: none;
+    stroke: var(--nf-chart-series);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .nf-week__dot {
+    fill: var(--nf-surface-primary);
+    stroke: var(--nf-chart-series);
+    stroke-width: 2;
+  }
+  .nf-week__dot--today {
+    fill: var(--nf-chart-series);
+  }
+  .nf-week__value {
+    fill: var(--nf-content-primary);
+    font-size: 12px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    text-anchor: middle;
+  }
+  .nf-week__days {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    text-align: center;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-week__day--today {
+    font-weight: 600;
+    color: var(--nf-content-link);
+  }
+  .nf-week__empty {
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-muted);
+  }
+  .nf-today__time {
+    font-variant-numeric: tabular-nums;
+  }
+}

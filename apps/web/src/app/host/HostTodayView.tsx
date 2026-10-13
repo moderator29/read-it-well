@@ -54,6 +54,7 @@ export function HostTodayView({
   sub,
   action,
   figure,
+  dashboard,
   children,
 }: {
   today: HostToday;
@@ -65,6 +66,8 @@ export function HostTodayView({
   action: ReactNode;
   /** The figure card (reference 5), drawn under the band. */
   figure?: ReactNode;
+  /** The hotel and restaurant dashboards (summary cards, front desk, week), under the band. */
+  dashboard?: ReactNode;
   /** The rest of the page: the application in progress, the businesses. */
   children?: ReactNode;
 }) {
@@ -114,6 +117,8 @@ export function HostTodayView({
           </div>
         ) : null}
       </HeroBand>
+
+      {dashboard}
 
       {figure}
 
