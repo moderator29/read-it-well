@@ -34,6 +34,7 @@ import {
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { IconPlate } from "@/components/ui/IconPlate";
 import { PullToRefresh } from "@/components/ui/PullToRefresh";
+import { isBillReference } from "@/lib/payments/references";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: getDictionary(await getLocale()).shape.plans.title };
@@ -80,7 +81,7 @@ export default async function PlansPage({
   const justBooked = typeof params.justBooked === "string" ? params.justBooked : undefined;
   /* Founder decision D: back from paying a restaurant bill on Paystack. */
   const billReturn =
-    typeof params.bill === "string" && /^rm-bill-[0-9a-f-]{36}$/i.test(params.bill) ? params.bill : undefined;
+    typeof params.bill === "string" && isBillReference(params.bill) ? params.bill : undefined;
   const changedRaw = Array.isArray(params.changed) ? params.changed[0] : params.changed;
   const changed = changedRaw && UUID_RE.test(changedRaw) ? changedRaw : null;
 

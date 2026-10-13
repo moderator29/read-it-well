@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
+  BILL_PREFIX,
   BOOKING_PREFIX,
   ESCROW_PREFIX,
   FUND_PREFIX,
   escrowReference,
+  isBillReference,
   isBookingReference,
   escrowIdFromReference,
   isEscrowReference,
@@ -94,5 +96,14 @@ describe("escrowIdFromReference (ESC-P2-03)", () => {
     expect(escrowIdFromReference(`escrow:commission:${ID}`)).toBeNull();
     expect(escrowIdFromReference("escrow:release:not-a-uuid")).toBeNull();
     expect(escrowIdFromReference(`rm-fund-${ID}`)).toBeNull();
+  });
+});
+
+describe("restaurant bill references", () => {
+  it("accepts the shape restaurant_bill_open mints and nothing looser", () => {
+    expect(isBillReference(`${BILL_PREFIX}${UUID}`)).toBe(true);
+    expect(isBillReference(`${BILL_PREFIX}not-a-uuid`)).toBe(false);
+    expect(isBillReference(`${BILL_PREFIX}${UUID}-extra`)).toBe(false);
+    expect(isBillReference(`${BOOKING_PREFIX}${UUID}`)).toBe(false);
   });
 });

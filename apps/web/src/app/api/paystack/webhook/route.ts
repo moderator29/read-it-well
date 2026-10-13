@@ -17,7 +17,8 @@ import { markChargeFailed, settleBookingCharge } from "@/lib/bookings/settlement
 import { savePaymentMethodFromCharge } from "@/lib/payments/methods";
 import { recordAlert } from "@/lib/alerts";
 import { ROUTE_FAILURE_LIMITS, countRouteFailure } from "@/lib/security/money-limits";
-import { BOOKING_PREFIX, DEPOSIT_PREFIX, FUND_PREFIX, isBookingReference } from "@/lib/payments/references";
+import { BILL_PREFIX, BOOKING_PREFIX, DEPOSIT_PREFIX, FUND_PREFIX, isBookingReference } from "@/lib/payments/references";
+import { handleBillChargeFailed, handleBillChargeSuccess } from "@/lib/reservations/bill-settlement";
 import { refundChargeToCard } from "@/lib/payments/refund";
 import { handleRefundEvent, readRefundEvent } from "@/lib/payments/refund-events";
 import { REFUND_ALREADY_CLAIMED } from "@/lib/payments/refund-outcomes";
@@ -80,6 +81,11 @@ import { handleSubscriptionEvent } from "@/lib/subscriptions/webhook";
  *  - rm-fund-<uuid>: a wallet top-up from before the wallet was retired. If
  *    one ever arrives, it is refunded to the card in full; it is never
  *    credited anywhere.
+ *  - rm-dep-<uuid>: a restaurant table deposit (lib/reservations/deposit-settlement.ts).
+ *  - rm-bill-<uuid>: a restaurant bill paid through Vallo, settled through
+ *    `restaurant_bill_settle`, the same function the diner's return calls
+ *    (lib/reservations/bill-settlement.ts). Whichever arrives first settles
+ *    it; the second is a duplicate.
  *  - transfer.* events for a Rewards Balance payout (`vallo-rw-`, from the
  *    marketing float) go to `settleRewardsTransferEvent`, the only path that
  *    marks one paid (D62). Every other transfer.* is acknowledged and ignored.
@@ -312,6 +318,8 @@ async function dispatch(
     if (reference.startsWith(PROMOTION_PREFIX)) return handlePromotionChargeSuccess(admin, data);
     // D75: a restaurant table deposit, split to the venue at the charge.
     if (reference.startsWith(DEPOSIT_PREFIX)) return handleDepositChargeSuccess(admin, data);
+    // Founder decision D: a restaurant bill paid through Vallo, split to the venue at the charge.
+    if (reference.startsWith(BILL_PREFIX)) return handleBillChargeSuccess(admin, data);
     if (reference.startsWith(FUND_PREFIX)) {
       // A retired wallet top-up. Nothing credits it: it goes back to the card.
       const refund = await refundChargeToCard(admin, {
@@ -335,6 +343,7 @@ async function dispatch(
     if (reference.startsWith(BOOKING_PREFIX)) return handleBookingChargeFailed(admin, data);
     if (reference.startsWith(PROMOTION_PREFIX)) return handlePromotionChargeFailed(admin, data);
     if (reference.startsWith(DEPOSIT_PREFIX)) return handleDepositChargeFailed(admin, data);
+    if (reference.startsWith(BILL_PREFIX)) return handleBillChargeFailed(admin, data);
     // A subscription checkout whose card was declined: the checkout simply
     // stays unpaid (the member can try again); nothing was granted.
     if (reference.startsWith(SUBSCRIPTION_PREFIX)) return verdict("rejected", "subscription_charge_failed", 200);
