@@ -6,6 +6,7 @@ import { demandRecorder } from "@/lib/demand/record";
 import { demandCell } from "@/lib/demand/cell";
 import { readListingFactsFor } from "@/lib/landlord/queries";
 import { readPhotographedCaptions } from "@/lib/listings/photographed";
+import { ownershipSeenForListings } from "@/lib/trust/ownership-seen";
 import { collapseByProperty, ownerConfirmedLine, requestNow, sinkNotReconfirmed } from "@/lib/landlord/facts";
 import { LandlordCardLine } from "@/components/app/listing/LandlordCardLine";
 import Link from "next/link";
@@ -424,7 +425,13 @@ export default async function SearchPage({
   const moreHref =
     drawn.length < listings.length ? `${shelfHref}${shelfHref.includes("?") ? "&" : "?"}more=${shelfSteps + 1}` : null;
   /* V-70: "Photographed: kitchen, prepaid meter" under a card whose lister labelled its photos. */
-  const photographedCaptions = captionsAhead ?? (await readPhotographedCaptions(listings.map((l) => l.id), locale));
+  /* "Ownership seen" for the cards drawn, in one read for the page (never one
+     per card), alongside the captions. */
+  const [photographedCaptions, ownershipSeen] = await Promise.all([
+    captionsAhead ?? readPhotographedCaptions(listings.map((l) => l.id), locale),
+    ownershipSeenForListings(drawn.filter((l) => !l.isDemo).map((l) => l.id)),
+  ]);
+  const ownershipLabel = t.supply.register.owner.proof.seenMark;
   const landlordNow = requestNow();
   const intentApplied = !codeHit && ordered !== sorted;
   const intentKinds: ListingKind[] = intentApplied
@@ -734,6 +741,9 @@ export default async function SearchPage({
                     messageAgent
                     commute={anchor ? commuteLine(commuteOf(l), anchor.name, t.shape.commute) : null}
                     photographed={photographedCaptions.get(l.id) ?? null}
+                    ownershipSeen={
+                      ownershipSeen.has(l.id) ? { seenAt: ownershipSeen.get(l.id)!, label: ownershipLabel } : null
+                    }
                   />
                   <LandlordCardLine
                     notReconfirmed={notReconfirmed.has(l.id)}

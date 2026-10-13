@@ -57,6 +57,7 @@ import { ProofStrip } from "@/components/app/listing/ProofStrip";
 import { CardPhotos } from "@/components/app/search/CardPhotos";
 import { proofFactsOf, proofLines } from "@/lib/trust/proof-strip";
 import { CardMenu, useCardMenu } from "@/components/app/listing/CardMenu";
+import { OwnershipSeenMark } from "@/components/trust/OwnershipSeenMark";
 import "@/app/css/catalogue.css";
 import "@/app/css/list-views.css";
 
@@ -132,10 +133,17 @@ export function ListingCard({
   dense = false,
   brief = false,
   photographed = null,
+  ownershipSeen = null,
   messageAgent = false,
   commute = null,
   eager = false,
 }: {
+  /**
+   * "Ownership seen": the date a reviewer approved the owner's proof, read for
+   * the whole shelf at once by the page (`ownershipSeenForListings`), and the
+   * word for it. Null draws nothing; an example never carries it.
+   */
+  ownershipSeen?: { seenAt: string; label: string } | null;
   /** V-70: "Photographed: kitchen, prepaid meter", when the lister labelled photos. */
   photographed?: string | null;
   listing: Listing;
@@ -818,6 +826,15 @@ export function ListingCard({
                 </li>
               )}
             </ul>
+          )}
+
+          {/* "Ownership seen", the owner's own mark, as on the listing page
+              and the profile. A trust mark, so the short grid card keeps it
+              as it keeps Verified. */}
+          {ownershipSeen && !listing.isDemo && (
+            <p className="nf-pcard__sub mt-inline-tight">
+              <OwnershipSeenMark seenAt={ownershipSeen.seenAt} label={ownershipSeen.label} />
+            </p>
           )}
 
           {/* V-43. The rush-hour band to where the reader goes every day, with

@@ -25,7 +25,7 @@ export function OwnershipSeenMark({
   if (!seenAt) return null;
   return (
     <span
-      className={`inline-flex items-center gap-2xstext-[length:var(--nf-text-caption)] font-semibold leading-none text-[var(--nf-content-secondary)]${className ? ` ${className}` : ""}`}
+      className={`inline-flex items-center gap-2xs text-[length:var(--nf-text-caption)] font-semibold leading-none text-[var(--nf-content-secondary)]${className ? ` ${className}` : ""}`}
       data-testid="ownership-seen"
     >
       <svg
