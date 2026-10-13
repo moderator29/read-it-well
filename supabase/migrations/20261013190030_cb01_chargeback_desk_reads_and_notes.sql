@@ -1,4 +1,4 @@
--- DRAFT, not applied. CHARGEBACKS DESK 1 of 1 (track/chargebacks, 13 Oct 2026).
+-- Applied 13 October 2026. CHARGEBACKS DESK 1 of 1 (track/chargebacks, 13 Oct 2026).
 -- Needs 20261006093655_chargebacks_record_state_recovery_and_payout_hold.
 -- Probe: supabase/tests/probes-pending/cb01-chargeback-desk.sql
 --

@@ -1,4 +1,4 @@
--- DRAFT, not applied. ADMIN COVERAGE 1 of 1: THE MONEY-RECORD RETENTION TOOL.
+-- Applied 13 October 2026. ADMIN COVERAGE 1 of 1: THE MONEY-RECORD RETENTION TOOL.
 --
 -- WHY. public.destroy_expired_money_records(limit) (AML-11, migration
 -- 20260924095920) redacts a purged account's bank accounts, payout accounts

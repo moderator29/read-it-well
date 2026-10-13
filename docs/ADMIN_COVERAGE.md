@@ -14,7 +14,7 @@ All other staff functions are called from the app and sit on a desk the rail rea
 | Blocked terms (AR-11) | `staff_blocked_terms`, `staff_blocked_term_put`, `staff_blocked_term_retire` | `/admin/blocked-terms` (Moderation) | The actions existed with no screen; the Moderation panel that said the list could not be read now links here. Moderation scope, so scoped staff get it too. |
 | Call usage | `call_usage_summary` | `/admin/call-usage` (Operations) | 7, 30, 90 day range. Operations scope. |
 | Ledger books | view `ledger_balances_by_book` (service role only) | panel on `/admin/money` | Read on the server with the service client behind the finance door. Unreadable is shown as unreadable, never zero. |
-| Money record retention | `destroy_expired_money_records` (service role only, never called) | `/admin/retention` (Operations) | Needs pending `ac01_money_retention_tool.sql` (dry run + super admin destroy with typed `DESTROY` and the shown count). The page says so until it is applied. |
+| Money record retention | `destroy_expired_money_records` (service role only, never called) | `/admin/retention` (Operations) | Live since 13 October 2026 (`20261013190011_ac01_money_retention_tool.sql`): dry run, then super admin destroy with typed `DESTROY` and the shown count. Not scheduled; runs only by hand. |
 | Withdrawal fee schedule and quote | `withdrawal_fee_quote`, money policy tables | panel on `/admin/fees` | Flags the top band as unconfirmed. |
 | Fee terms the lister accepted | `current_fee_acceptance` | panel on `/admin/listings/[id]` | |
 | Lister's promotion purchases | `promotion_my_purchases` | `/agent/promotion` | Shown only when there are purchases. |
