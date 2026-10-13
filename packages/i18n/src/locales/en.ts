@@ -3683,6 +3683,9 @@ export const en = {
       submittedWhen: "Submitted {when}",
       decidedWhen: "Decided {when}.",
       sections: {
+        /* Drawn above the six numbered sections, only for the three
+           registration forms (owner, agent, firm). */
+        registration: "What they registered as",
         personal: "1. Personal",
         identity: "2. Identity",
         business: "3. Business",
@@ -3690,7 +3693,18 @@ export const en = {
         payout: "5. Payout",
         review: "6. Review",
       },
+      roleNames: {
+        owner: "Owner",
+        agent: "Agent",
+        firm: "Firm",
+      },
       fields: {
+        registeredAs: "Registered as",
+        holds: "Holds on the property",
+        area: "Area",
+        experience: "Time as an agent",
+        agencyFee: "Agency fee",
+        legalFee: "Legal fee",
         fullName: "Full name",
         phone: "Phone",
         email: "Email",
@@ -3717,10 +3731,19 @@ export const en = {
       documentsNone: "No documents uploaded, so this application cannot be verified yet",
       documentOpen: "Open",
       documentUnavailable: "Link unavailable",
+      /* Keyed by `agent_documents.kind`, which is what the desk reads. The
+         first three are the wizard's slot names, which are never stored
+         (`lib/agent/application-document-kinds.ts` maps them), so every chip
+         used to print the raw kind: "identity", "selfie". */
       documentKinds: {
         idFront: "ID, front",
         idBack: "ID, back",
         registration: "CAC registration",
+        identity: "ID",
+        address: "Proof of address",
+        business: "Business registration",
+        selfie: "Photo of their face",
+        association: "Letter from their principal",
       },
       termsAgreed: "Agreed to the platform terms",
       termsNotAgreed: "Not agreed",
