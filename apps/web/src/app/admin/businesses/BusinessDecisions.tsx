@@ -11,6 +11,7 @@ import {
   requestMoreInfo,
 } from "@/lib/admin/business-actions";
 import type { BusinessRung } from "@/lib/admin/business-queries";
+import type { BusinessDecision } from "@/lib/admin/business-decision";
 import { Button } from "@/components/ui/Button";
 
 /**
@@ -51,9 +52,16 @@ function Refusal({ message }: { message: string | null }) {
 export function BusinessReviewDecision({
   businessId,
   name,
+  offered = ["approve", "more_info", "reject"],
 }: {
   businessId: string;
   name: string;
+  /**
+   * The hands the server would accept for this business's state
+   * (`decisionsOffered`). An approved business is not offered Approve again:
+   * pressing it changed nothing but sent the owner a second approval.
+   */
+  offered?: readonly BusinessDecision[];
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -97,33 +105,40 @@ export function BusinessReviewDecision({
       />
 
       <div className="mt-row flex flex-wrap gap-inline">
-        <Button variant="primary" size="sm" disabled={pending} onClick={() => run("approve")}>
-          {pending ? "Working" : "Approve"}
-        </Button>
-        <Button
-          variant="secondary"
-          size="sm"
-          disabled={pending || !canWrite}
-          title={canWrite ? undefined : "Say what needs changing first"}
-          onClick={() => run("more_info")}
-        >
-          Ask for a change
-        </Button>
-        <Button
-          variant="danger"
-          size="sm"
-          disabled={pending || !canWrite}
-          title={canWrite ? undefined : "Say why first"}
-          onClick={() => run("reject")}
-        >
-          Refuse
-        </Button>
+        {offered.includes("approve") && (
+          <Button variant="primary" size="sm" disabled={pending} onClick={() => run("approve")}>
+            {pending ? "Working" : "Approve"}
+          </Button>
+        )}
+        {offered.includes("more_info") && (
+          <Button
+            variant="secondary"
+            size="sm"
+            disabled={pending || !canWrite}
+            title={canWrite ? undefined : "Say what needs changing first"}
+            onClick={() => run("more_info")}
+          >
+            Ask for a change
+          </Button>
+        )}
+        {offered.includes("reject") && (
+          <Button
+            variant="danger"
+            size="sm"
+            disabled={pending || !canWrite}
+            title={canWrite ? undefined : "Say why first"}
+            onClick={() => run("reject")}
+          >
+            Refuse
+          </Button>
+        )}
       </div>
 
       {!canWrite && (
         <p className="nf-caption mt-row">
-          Approving needs no words. Sending it back or refusing needs a sentence the host can
-          answer, and they are shown it exactly as it is typed.
+          {offered.includes("approve")
+            ? "Approving needs no words. Sending it back or refusing needs a sentence the host can answer, and they are shown it exactly as it is typed."
+            : "Already approved. Sending it back or refusing needs a sentence the host can answer, and they are shown it exactly as it is typed."}
         </p>
       )}
       <Refusal message={error} />
