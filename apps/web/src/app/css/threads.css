@@ -249,7 +249,9 @@
     max-width: min(100%, 25rem);
   }
 
-  /* The small avatar beside a bubble, in a thinner ring than the header's. */
+  /* The small avatar beside a bubble, in a thinner ring than the header's:
+     the person's photo, or their initial on the brand tint (founder, 11
+     October 2026). */
   .nf-msg__avatar {
     display: grid;
     place-items: center;
@@ -259,7 +261,7 @@
     border-radius: var(--nf-radius-circle);
     border: var(--nf-border-width) solid var(--nf-plate-edge);
     border-color: var(--nf-plate-edges);
-    background: var(--nf-plate-fill);
+    background: var(--nf-brand-tint-2);
     color: var(--nf-content-primary);
     font-size: var(--nf-text-caption);
     font-weight: 700;

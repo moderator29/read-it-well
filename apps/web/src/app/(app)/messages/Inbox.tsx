@@ -21,7 +21,7 @@ import { formatNumber, plural } from "@vallo/i18n/core";
 import { useClientLocale } from "@/lib/i18n/use-client-locale";
 import { TextField } from "@/components/ui/Field";
 import { EmptyState, ICON, TYPE } from "@/components/app/Screen";
-import { sharePreview } from "@/components/app/messages/share";
+import { previewLine } from "@/components/app/messages/preview";
 import { type BadgeTier } from "@/lib/trust/badge-tier";
 
 /**
@@ -55,6 +55,8 @@ export type InboxRow = {
   counterpartVerified: boolean;
   /** The counterpart's published badge, `public.person_badge.tier`. */
   counterpartTier: BadgeTier;
+  /** Their photo; absent or null draws their initial on the brand tint. */
+  counterpartAvatarUrl?: string | null;
   /**
    * What the thread is for. A listing thread carries no glyph, because it is
    * the ordinary case; a table or a stay carries a small one beside its
@@ -140,8 +142,9 @@ function Row({
   archivePending?: boolean;
 }) {
   const glyph = row.contextKind ? CONTEXT_GLYPH[row.contextKind] : undefined;
-  /* A shared card previews as its words, never as the path it carries. */
-  const preview = sharePreview(row.lastMessage) ?? row.lastMessage;
+  /* One short line (founder, 11 October 2026): line breaks folded, cut at a
+     word. A shared card previews as its words, never as the path it carries. */
+  const preview = previewLine(row.lastMessage);
   return (
     <li className="flex items-center gap-3xs">
       <Link
@@ -157,6 +160,7 @@ function Row({
             name={row.counterpartName}
             tier={row.counterpartTier}
             kind={row.counterpartKind}
+            photoUrl={row.counterpartAvatarUrl ?? undefined}
             size="md"
           />
           {row.presence === "online" ? (

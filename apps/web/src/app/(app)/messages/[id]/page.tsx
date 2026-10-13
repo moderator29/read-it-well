@@ -322,6 +322,11 @@ export default async function ConversationPage({
            sheet can offer Block, which before this had no id to act on. */
         counterpartId={thread.counterpartId}
         counterpartHandle={thread.counterpartHandle}
+        /* The photos at the head of each run of bubbles and in the header:
+           theirs and the reader's own, or the initial on the brand tint. */
+        counterpartAvatarUrl={thread.counterpartAvatarUrl}
+        meName={thread.meName}
+        meAvatarUrl={thread.meAvatarUrl}
         listing={
           thread.listing
             ? {

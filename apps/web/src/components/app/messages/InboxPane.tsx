@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { readInboxPane, type PaneRow } from "@/lib/messages/pane-actions";
-import { initial } from "@/lib/text/initial";
+import { VerifiedAvatar } from "@/components/messages/VerifiedAvatar";
 
 /**
  * B17: THE MESSAGES SPLIT, FROM 64REM. The inbox list on the left of an open
@@ -67,9 +67,14 @@ export function InboxPane({ fixture, currentId }: { fixture?: PaneRow[]; current
                 data-testid="inbox-pane-row"
                 data-kb-row=""
               >
-                <span className="nf-msg-pane__avatar" aria-hidden="true">
-                  {initial(row.name)}
-                </span>
+                {/* The person's photo, or their initial on the brand tint,
+                    as on the inbox row. */}
+                <VerifiedAvatar
+                  name={row.name}
+                  tier={row.tier ?? "none"}
+                  photoUrl={row.avatarUrl ?? undefined}
+                  size="sm"
+                />
                 <span className="nf-msg-pane__body">
                   <span className="nf-msg-pane__top">
                     <span className={`nf-msg-pane__name${unread ? " is-unread" : ""}`}>{row.name}</span>

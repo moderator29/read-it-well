@@ -466,18 +466,8 @@
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
     outline-offset: 2px;
   }
-  .nf-msg-pane__avatar {
-    flex: 0 0 auto;
-    display: grid;
-    place-items: center;
-    width: 2.25rem;
-    height: 2.25rem;
-    border-radius: var(--nf-radius-circle);
-    background: var(--nf-surface-secondary);
-    color: var(--nf-content-primary);
-    font-weight: 700;
-    font-size: var(--nf-text-body-sm);
-  }
+  /* The row's avatar is the shared `VerifiedAvatar` (photo, or the initial on
+     the brand tint), as on the inbox row; it carries its own box. */
   .nf-msg-pane__body {
     display: grid;
     gap: 2px;

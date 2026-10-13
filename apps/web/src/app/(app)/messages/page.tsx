@@ -105,6 +105,7 @@ export default async function InboxPage() {
       counterpartKind: c.counterpartKind,
       counterpartVerified: c.counterpartVerified,
       counterpartTier: c.counterpartTier,
+      counterpartAvatarUrl: c.counterpartAvatarUrl ?? null,
       contextKind: c.contextKind,
       side: c.side ?? "property",
       archived: views.archived.has(c.id),

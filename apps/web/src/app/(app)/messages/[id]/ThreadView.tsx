@@ -15,6 +15,7 @@ import { TierBadge } from "@/components/trust/TierBadge";
 import type { BadgeTier } from "@/lib/trust/badge-tier";
 import { MediaFrame } from "@/components/app/MediaFrame";
 import { InitialsTile } from "@/components/ui/InitialsTile";
+import { RemoteImage } from "@/components/ui/RemoteImage";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ChatCard, type ChatCardData } from "@/components/app/messages/ChatCard";
 import { bundlePhotos, isCaption, isPhotoOnly } from "@/components/app/messages/bundle";
@@ -157,6 +158,15 @@ export type ThreadViewProps = {
   counterpartId?: string | null;
   /** The other person's public handle, so their avatar and name open their profile. */
   counterpartHandle?: string | null;
+  /**
+   * The other person's photo (`profiles.avatar_url`). Null or absent draws
+   * their initial on the brand tint, in the header and at the head of their
+   * bubbles.
+   */
+  counterpartAvatarUrl?: string | null;
+  /** The reader's own name and photo, for the head of their own bubbles. */
+  meName?: string | null;
+  meAvatarUrl?: string | null;
   /**
    * The counterpart's REAL verification state, from `agents.verified`.
    *
@@ -353,6 +363,25 @@ function roleTags(context: ThreadContext | undefined, role: ThreadRole): { mine:
     : { mine: "Tenant", theirs: "Vallo Agent" };
 }
 
+/**
+ * The head of a run of bubbles: the person's photo, or their initial on the
+ * brand tint when there is no photo (founder, 11 October 2026). Decorative:
+ * the name is in the row above the bubble, and the run is announced by it.
+ */
+function BubbleHead({ name, photoUrl }: { name: string | null; photoUrl: string | null }) {
+  return (
+    <span className="nf-msg__avatar" aria-hidden="true">
+      {photoUrl ? (
+        <RemoteImage src={photoUrl} alt="" width={36} height={36} sizes="36px" className="h-full w-full object-cover" />
+      ) : name ? (
+        initial(name)
+      ) : (
+        <UiIcon name="user" size={20} />
+      )}
+    </span>
+  );
+}
+
 export function ThreadView({
   live,
   conversationId,
@@ -361,6 +390,9 @@ export function ThreadView({
   counterpartPhone = null,
   counterpartId = null,
   counterpartHandle = null,
+  counterpartAvatarUrl = null,
+  meName = null,
+  meAvatarUrl = null,
   counterpartTier,
   listing,
   inspected: inspectedInitial,
@@ -930,11 +962,21 @@ export function ThreadView({
               className="nf-thread__ring"
               aria-label={`${counterpartName}, open profile`}
             >
-              <VerifiedAvatar name={counterpartName} tier={counterpartTier} size="md" />
+              <VerifiedAvatar
+                name={counterpartName}
+                tier={counterpartTier}
+                photoUrl={counterpartAvatarUrl ?? undefined}
+                size="md"
+              />
             </a>
           ) : (
             <span className="nf-thread__ring">
-              <VerifiedAvatar name={counterpartName} tier={counterpartTier} size="md" />
+              <VerifiedAvatar
+                name={counterpartName}
+                tier={counterpartTier}
+                photoUrl={counterpartAvatarUrl ?? undefined}
+                size="md"
+              />
             </span>
           )
         )}
@@ -1031,7 +1073,14 @@ export function ThreadView({
           Vallo holds about them. Nothing that is null is drawn. */}
       {live && (propertyFace || personLine.length > 0 || recordLine.length > 0 || passportLine.length > 0) && (
         <div className="nf-thread__person flex items-center gap-sm px-gutter py-xs" aria-label={personLabel} data-testid="thread-person">
-          {propertyFace && <VerifiedAvatar name={counterpartName} tier={counterpartTier} size="sm" />}
+          {propertyFace && (
+            <VerifiedAvatar
+              name={counterpartName}
+              tier={counterpartTier}
+              photoUrl={counterpartAvatarUrl ?? undefined}
+              size="sm"
+            />
+          )}
           <div className="min-w-0 flex-1">
             {propertyFace && (
               <p className="flex items-center gap-inline-tight nf-body-sm font-semibold text-[var(--nf-content-primary)]">
@@ -1224,15 +1273,11 @@ export function ThreadView({
             >
               {m.mine ? (
                 <span className="nf-msg__side" aria-hidden="true">
-                  <span className="nf-msg__avatar">
-                    <UiIcon name="user" size={20} />
-                  </span>
+                  <BubbleHead name={meName} photoUrl={meAvatarUrl} />
                   {tags && <span>{tags.mine}</span>}
                 </span>
               ) : (
-                <span className="nf-msg__avatar" aria-hidden="true">
-                  {initial(counterpartName)}
-                </span>
+                <BubbleHead name={counterpartName} photoUrl={counterpartAvatarUrl} />
               )}
 
               <div className={`nf-msg__stack${wide ? " nf-msg__stack--wide" : ""}`}>
@@ -1381,9 +1426,7 @@ export function ThreadView({
             a reply lands in, driven by the real broadcast above. */}
         {counterpartTyping && (
           <div className="nf-msg nf-msg-in--theirs">
-            <span className="nf-msg__avatar" aria-hidden="true">
-              {initial(counterpartName)}
-            </span>
+            <BubbleHead name={counterpartName} photoUrl={counterpartAvatarUrl} />
             <div
               className="nf-bubble nf-bubble--theirs flex items-center gap-inline-tight"
               role="status"
