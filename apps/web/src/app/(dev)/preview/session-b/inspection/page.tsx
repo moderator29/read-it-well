@@ -20,6 +20,7 @@ export default async function SessionBInspectionPreview({
     submitted?: string;
     agreement?: string;
     ahead?: string;
+    noshow?: string;
   }>;
 }) {
   const params = await searchParams;

@@ -6,7 +6,7 @@ import { InspectionsLive } from "@/components/app/inspections/InspectionsLive";
 import { readRentGateFor, readReportsFor } from "@/lib/inspections/report-queries";
 import { reportStorageLive } from "@/lib/inspections/report-flag";
 import { groupInspections, tagSide } from "@/components/app/inspections/grouping";
-import type { InspectionList } from "@/lib/inspections/queries";
+import { readNoShowsFor, type InspectionList } from "@/lib/inspections/queries";
 import { readListingFacts } from "./inspection-facts";
 import { readQuoteLinesFor } from "@/lib/after-gate/quotes";
 import { readTruthAnsweredFor } from "@/lib/inspections/truth-queries";
@@ -62,7 +62,7 @@ export async function InspectionsBoard({
   const all = [...groups.open, ...groups.closed];
   if (!readFailed && all.length === 0) return null;
 
-  const [facts, reports, quotes, truthAnswered, tenancyDue, shares, rentGate] = await Promise.all([
+  const [facts, reports, quotes, truthAnswered, tenancyDue, shares, rentGate, noShows] = await Promise.all([
     readListingFacts(
       all.map((row) => row.listingId),
       locale,
@@ -79,6 +79,8 @@ export async function InspectionsBoard({
     readMyLiveSafetyShares(),
     /* Track A: the photos a rental report needs, and the agreement it led to. */
     readRentGateFor(all.map((row) => row.id)),
+    /* Who reported a no-show, and where its dispute stands. */
+    readNoShowsFor(all.filter((row) => row.state === "NO_SHOW").map((row) => row.id)),
   ]);
   /* V-62: every inspection of the renter's with a share still live, whatever
      its state now, so "I'm done" and "Stop sharing" stay while the contact's
@@ -111,6 +113,7 @@ export async function InspectionsBoard({
         needPhotos={rentGate.needPhotos}
         agreement={rentGate.agreements.get(row.id) ?? null}
         quoteLine={quotes.get(row.id) ?? null}
+        noShow={noShows.get(row.id) ?? null}
         truth={truthFor(row)}
         tenancyReview={tenancyFor(row)}
         unsafe={t.trustVisible.unsafe}

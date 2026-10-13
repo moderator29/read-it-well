@@ -30,7 +30,10 @@ import {
   RESCHEDULE_WORDS,
   VIEWING_WORDS,
   WITHDRAW_WORDS,
+  NO_SHOW_WORDS,
+  noShowWords,
 } from "@/components/app/inspections/viewing-words";
+import { reportNoShow } from "@/lib/inspections/no-show-actions";
 
 /**
  * THE RENTAL FACE: the inspection request, inside the chat it was made in.
@@ -56,7 +59,18 @@ import {
 
 type RentalCopy = Dictionary["threads"]["rental"];
 
-type OpenSheet = null | "propose" | "reschedule" | "decline" | "cancelLister" | "withdraw" | "cancelRenter" | "outcome";
+type OpenSheet =
+  | null
+  | "propose"
+  | "reschedule"
+  | "decline"
+  | "cancelLister"
+  | "withdraw"
+  | "cancelRenter"
+  | "outcome"
+  | "noShow";
+
+const NO_SHOW_SETTLED = "Marked as a no-show. They can dispute it within 48 hours.";
 
 export function RentalFace({
   inspection,
@@ -177,6 +191,13 @@ export function RentalFace({
     fromSheet(await closeInspection({ id: inspection.id, state: "WITHDRAWN" }), () => {
       setState("WITHDRAWN");
       setSettled(booked ? VIEWING_WORDS.cancelled : copy.withdrawn);
+    });
+
+  /* Once the time has come: the other side did not turn up. */
+  const noShow = async (note: string) =>
+    fromSheet(await reportNoShow({ id: inspection.id, ...(note ? { note } : {}) }), () => {
+      setState("NO_SHOW");
+      setSettled(NO_SHOW_SETTLED);
     });
 
   const complete = async (outcome: InspectionOutcome) =>
@@ -316,9 +337,20 @@ export function RentalFace({
                 </Link>
               )}
               {timeCome ? (
-                <Button size="sm" variant="secondary" disabled={pending} onClick={() => setSheet("outcome")}>
-                  {copy.markInspected}
-                </Button>
+                <>
+                  <Button size="sm" variant="secondary" disabled={pending} onClick={() => setSheet("outcome")}>
+                    {copy.markInspected}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="quiet"
+                    disabled={pending}
+                    onClick={() => setSheet("noShow")}
+                    data-testid="thread-no-show"
+                  >
+                    {role === "lister" ? NO_SHOW_WORDS.markRenter : NO_SHOW_WORDS.markLister}
+                  </Button>
+                </>
               ) : (
                 <>
                   {role === "lister" && (
@@ -376,6 +408,14 @@ export function RentalFace({
           onOpenChange={closeSheet}
           words={stepWords[sheet]}
           onConfirm={() => withdraw(sheet === "cancelRenter")}
+        />
+      )}
+      {sheet === "noShow" && (
+        <ViewingStepSheet
+          open
+          onOpenChange={closeSheet}
+          words={{ ...noShowWords(role === "lister" ? "requester" : "lister"), keep: copy.keep }}
+          onConfirm={noShow}
         />
       )}
       {sheet === "outcome" && <OutcomeSheet open onOpenChange={closeSheet} copy={copy} onSubmit={complete} />}

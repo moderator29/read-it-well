@@ -42,6 +42,8 @@ import {
 } from "@/lib/inspections/report";
 import {
   INSPECTION_OUTCOMES,
+  NO_SHOW_DISPUTE_MS,
+  type NoShow,
   waitingOn,
   type Inspection,
   type InspectionOutcome,
@@ -66,7 +68,11 @@ import {
   RESCHEDULE_WORDS,
   VIEWING_WORDS,
   WITHDRAW_WORDS,
+  DISPUTE_WORDS,
+  NO_SHOW_WORDS,
+  noShowWords,
 } from "./viewing-words";
+import { disputeNoShow, reportNoShow } from "@/lib/inspections/no-show-actions";
 
 /**
  * ONE INSPECTION, EXACTLY IN THE ANATOMY OF F6A8A482 / founder/inspection-target.jpg.
@@ -117,6 +123,7 @@ const STATE_LABEL: Record<InspectionState, string> = {
   DECLINED: "Declined",
   COMPLETED: "Inspected",
   WITHDRAWN: "Withdrawn",
+  NO_SHOW: NO_SHOW_WORDS.badge,
 };
 
 const STATE_TONE: Record<InspectionState, BadgeTone> = {
@@ -126,6 +133,7 @@ const STATE_TONE: Record<InspectionState, BadgeTone> = {
   DECLINED: "bad",
   COMPLETED: "good",
   WITHDRAWN: "quiet",
+  NO_SHOW: "bad",
 };
 
 /** The lifecycle, in four words, as a strip above the checklist. */
@@ -197,7 +205,10 @@ export function InspectionSheet({
   success,
   dayKit,
   now,
+  noShow = null,
 }: {
+  /** The no-show record, on a NO_SHOW inspection this reader is a party to. */
+  noShow?: NoShow | null;
   /** B5: the viewing day kit's words. Absent, no kit. */
   dayKit?: Dictionary["memberKit"]["dayKit"];
   /** The render's clock, so a preview or a test can pin "before" and "after" the viewing. */
@@ -241,7 +252,7 @@ export function InspectionSheet({
   /* The one sheet open over the card, if any: a time to offer, or a final
      move asked before it is made. */
   const [sheet, setSheet] = useState<
-    null | "propose" | "reschedule" | "decline" | "cancelLister" | "withdraw" | "cancelRenter"
+    null | "propose" | "reschedule" | "decline" | "cancelLister" | "withdraw" | "cancelRenter" | "noShow" | "dispute"
   >(null);
   /* A second tap while the first is in flight is dropped, not sent twice. */
   const inFlight = useRef(false);
@@ -273,7 +284,15 @@ export function InspectionSheet({
      be moved or called off. */
   const timeCome = Date.parse(shown) <= clock;
   /* Declined or withdrawn: nobody went, so there is no report to open. */
-  const noViewing = inspection.state === "DECLINED" || inspection.state === "WITHDRAWN";
+  const noViewing =
+    inspection.state === "DECLINED" || inspection.state === "WITHDRAWN" || inspection.state === "NO_SHOW";
+  /* The party marked absent may dispute, once, within 48 hours. */
+  const mayDispute =
+    inspection.state === "NO_SHOW" &&
+    noShow !== null &&
+    !noShow.reportedByMe &&
+    noShow.disputedAt === null &&
+    clock <= Date.parse(noShow.reportedAt) + NO_SHOW_DISPUTE_MS;
   const submittable = canSubmit(reportLive, inspection.state, saved, outcome, photoNeed) && timeCome;
   const photosMissing = photosShort(saved, photoNeed);
 
@@ -537,7 +556,9 @@ export function InspectionSheet({
                 step.state === "failed"
                   ? inspection.state === "DECLINED"
                     ? "Declined"
-                    : "Withdrawn"
+                    : inspection.state === "NO_SHOW"
+                      ? NO_SHOW_WORDS.badge
+                      : "Withdrawn"
                   : RUNG_LABEL[step.key],
               when: at && at.day ? `${at.day}, ${at.time}` : null,
               state: step.state,
@@ -784,7 +805,9 @@ export function InspectionSheet({
           {noViewing && (
             <>
               <p className="nf-ix-hint" data-testid="inspection-closed-line">
-                {inspection.state === "DECLINED"
+                {inspection.state === "NO_SHOW"
+                  ? noShowLine(noShow, side)
+                  : inspection.state === "DECLINED"
                   ? side === "requester"
                     ? "The lister declined this request, so there is no viewing to report on."
                     : "You declined this request, so there is no viewing to report on."
@@ -792,7 +815,12 @@ export function InspectionSheet({
                     ? "You withdrew this request, so there is no viewing to report on."
                     : "They withdrew this request, so there is no viewing to report on."}
               </p>
-              {side === "requester" && (
+              {mayDispute && (
+                <Button variant="secondary" full disabled={pending} onClick={() => setSheet("dispute")} data-testid="inspection-dispute">
+                  {NO_SHOW_WORDS.dispute}
+                </Button>
+              )}
+              {side === "requester" && inspection.state !== "NO_SHOW" && (
                 <ButtonLink href={`/listing/${inspection.listingId}`} variant="secondary" full>
                   Open the listing to ask again
                 </ButtonLink>
@@ -883,6 +911,22 @@ export function InspectionSheet({
           )}
           {(inspection.state === "REQUESTED" || inspection.state === "PROPOSED") && (
             <p className="nf-ix-hint">The report opens once a time is agreed on both sides.</p>
+          )}
+
+          {/* Once the time has come, either side can say the other did not
+              come. The other side is told and can dispute it for 48 hours. */}
+          {inspection.state === "CONFIRMED" && timeCome && (
+            <div className="nf-ix-actions__row nf-ix-actions__row--change">
+              <Button
+                variant="quiet"
+                size="sm"
+                disabled={pending}
+                onClick={() => setSheet("noShow")}
+                data-testid="inspection-no-show"
+              >
+                {side === "lister" ? NO_SHOW_WORDS.markRenter : NO_SHOW_WORDS.markLister}
+              </Button>
+            </div>
           )}
 
           {/* A booked viewing that is still ahead can be moved or called off.
@@ -984,6 +1028,22 @@ export function InspectionSheet({
           onConfirm={(note) => answerWith("DECLINED", null, note)}
         />
       )}
+      {sheet === "noShow" && (
+        <ViewingStepSheet
+          open
+          onOpenChange={(next) => setSheet(next ? sheet : null)}
+          words={noShowWords(side === "lister" ? "requester" : "lister")}
+          onConfirm={(note) => reportNoShow({ id: inspection.id, ...(note ? { note } : {}) }).then(settle)}
+        />
+      )}
+      {sheet === "dispute" && (
+        <ViewingStepSheet
+          open
+          onOpenChange={(next) => setSheet(next ? sheet : null)}
+          words={DISPUTE_WORDS}
+          onConfirm={(note) => disputeNoShow({ id: inspection.id, ...(note ? { note } : {}) }).then(settle)}
+        />
+      )}
       {(sheet === "withdraw" || sheet === "cancelRenter") && (
         <ViewingStepSheet
           open
@@ -1010,6 +1070,22 @@ export function InspectionSheet({
     ) : null}
     </>
   );
+}
+
+/** Where a no-show stands, from this reader's side of it. */
+function noShowLine(noShow: NoShow | null, side: "lister" | "requester"): string {
+  if (!noShow) return "This viewing was marked as a no-show.";
+  if (noShow.resolution === "overturned") return "This no-show was disputed and Vallo took it off the record.";
+  if (noShow.resolution === "upheld") return "This no-show was disputed and Vallo decided it stands.";
+  if (noShow.reportedByMe) {
+    const them = side === "lister" ? "the renter" : "the lister";
+    return noShow.disputedAt
+      ? `You marked ${them} as a no-show. They disputed it, and Vallo is looking at both sides.`
+      : `You marked ${them} as a no-show. They have 48 hours to dispute it.`;
+  }
+  return noShow.disputedAt
+    ? "You were marked as a no-show and you disputed it. Vallo is looking at both sides."
+    : "The other side says you did not come to this viewing. If that is not right, you can dispute it within 48 hours of their report.";
 }
 
 /**
