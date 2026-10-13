@@ -97,8 +97,20 @@ export const ADMIN_PRIMARY: AdminDestination[] = [
     href: "/admin/money",
     icon: glyph("naira-square"),
     label: "Money",
+    /* Chargebacks (13 October): undecided card reversals badge the Money row
+       too, so they are seen with the section closed. */
+    countKeys: ["chargebacks"],
+    countLabel: "chargebacks open, waiting on evidence or a decision",
     children: [
       { key: "payments", href: "/admin/payments", icon: ui("wallet"), label: "Payments" },
+      {
+        key: "chargebacks",
+        href: "/admin/chargebacks",
+        icon: ui("credit-card"),
+        label: "Chargebacks",
+        countKeys: ["chargebacks"],
+        countLabel: "chargebacks open, waiting on evidence or a decision",
+      },
       { key: "fees", href: "/admin/fees", icon: ui("document"), label: "Fees" },
     ],
   },

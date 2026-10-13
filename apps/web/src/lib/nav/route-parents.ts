@@ -458,6 +458,9 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   /* V-80: field speed, one panel read from real phones. */
   "/admin/field-speed": "/admin/operations",
   "/admin/payments": "/admin",
+  /* Chargebacks: the finance desk, and one case. */
+  "/admin/chargebacks": "/admin",
+  "/admin/chargebacks/[chargebackId]": "/admin/chargebacks",
   "/admin/people": "/admin",
   /*
    * `/admin/queue` is a DESK, not the console's landing screen, and that is the

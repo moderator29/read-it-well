@@ -13,6 +13,7 @@ import { ActingFor } from "../../_components/ActingFor";
 import { CaseHistory } from "../../_components/CaseHistory";
 import { PaperLedger, PaperLedgerRow, PaperStatus } from "../../_components/paper";
 import { DocHead, DocRow, DocRows, DocSection, DocumentSheet } from "@/components/app/money/DocumentSheet";
+import { BookingChargebacks } from "../../chargebacks/BookingChargebacks";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
@@ -247,6 +248,14 @@ export default async function AdminBookingPage({
           </DocSection>
         </DocumentSheet>
       </section>
+
+      {/* Chargebacks on this stay's payments, and recording one: finance only
+          (the panel draws nothing for anybody the chargeback functions refuse). */}
+      <BookingChargebacks
+        bookingId={stay.id}
+        payments={stay.payments.map((p) => ({ reference: p.reference, provider: p.provider, amountMinor: p.amountMinor, status: p.status }))}
+        locale={locale}
+      />
 
       <div className="nf-panel nf-panel--card nf-admin-card mt-md p-md sm:p-lg">
         <CaseHistory

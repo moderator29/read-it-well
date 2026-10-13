@@ -66,6 +66,8 @@ import { detailsEn } from "./details.en";
 import { onboardingMotionEn } from "./onboarding-motion.en";
 /* Visit ops: the lister's and the console's visit calendars (13 October). */
 import { visitOpsEn } from "./visit-ops.en";
+/* The chargebacks desk and the lister's hold notice (13 October 2026). */
+import { chargebacksEn } from "./chargebacks.en";
 /* Get Started as four cards (reference 3, 7 October). */
 
 /**
@@ -7022,6 +7024,13 @@ export const en = {
       body: "Vallo cannot reach the network right now. This screen loads again by itself when you are back online.",
     },
   },
+
+  /*
+   * Chargebacks (13 October 2026, track/chargebacks): the finance desk, the
+   * stay panel, the lister's hold notice and the desk's in-app notices.
+   * `chargebacks.en.ts` carries the words and the reasons.
+   */
+  chargebacks: chargebacksEn,
 
 };
 

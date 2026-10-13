@@ -18,6 +18,7 @@ import { getLocale } from "@/lib/locale";
 import { requireAdmin, requireConsole } from "@/lib/admin/guard";
 import { StaffFrame } from "./_components/StaffFrame";
 import { getQueueCounts } from "@/lib/admin/queries";
+import { getOpenChargebackCount } from "@/lib/admin/reads/chargebacks";
 import { getShellIdentity } from "@/lib/app/shell-queries";
 import { AccessScreen } from "./_components/AccessScreen";
 import { ConsoleStepUp } from "./_components/ConsoleStepUp";
@@ -88,16 +89,20 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     );
   }
 
-  const [counts, shell, jar, tiers] = await Promise.all([
+  const [counts, shell, jar, tiers, chargebacks] = await Promise.all([
     getQueueCounts(),
     getShellIdentity(),
     cookies(),
     // B-BADGE: the operator's published tier, for the shared slot beside their name.
     getPersonTiers([access.user.id]),
+    /* Chargebacks not yet decided, read on the operator's own session
+       (`staff_chargebacks` checks the finance scope itself). */
+    getOpenChargebackCount(access.userClient),
   ]);
   /* R-E: has this browser session opened the overview as this operator? */
   const entered = jar.get(ENTRY_COOKIE)?.value === access.user.id;
   const badges: Record<string, number> = counts.state === "ok" ? { ...counts.data } : {};
+  if (chargebacks > 0) badges.chargebacks = chargebacks;
 
   const email = access.user.email ?? "";
   const name = shell.userName && shell.userName !== "Guest" ? shell.userName : email.split("@")[0] || "Admin";

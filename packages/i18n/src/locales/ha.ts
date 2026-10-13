@@ -4390,4 +4390,22 @@ export const ha: Dictionary = withFallback({
     },
   },
 
+  /* The lister's chargeback hold notice (13 October 2026). */
+  chargebacks: {
+    hold: {
+      overline: "Biyan kati da aka mayar",
+      title: "Ana bin ka kuɗin biyan da aka mayar",
+      body: "Bankin wanda ya biya ya mayar da biyan kati da ka karɓa. Abokin biyan kuɗi ya karɓe shi daga Vallo, don haka ana bin asusunka {amount}.",
+      bodyNoAmount: "Bankin wanda ya biya ya mayar da biyan kati da ka karɓa. Abokin biyan kuɗi ya karɓe shi daga Vallo, don haka ana bin asusunka kuɗin.",
+      meansTitle: "Abin da yake nufi",
+      means: "Muddin ana bin kuɗin, za a iya dakatar da sabbin biyan kuɗi zuwa gare ka. Babu wani abu da zai canza a asusunka.",
+      nextTitle: "Abin da zai biyo baya",
+      next: "Ƙungiyar kuɗi ta Vallo za ta tuntuɓe ka don a daidaita shi. Da zarar an daidaita ko an rufe shi, wannan sanarwar za ta tafi da kanta.",
+      help: "Tambayi tallafi game da shi",
+      openTitle: "Ana jayayya kan biyan kati",
+      openBody: "Bankin wanda ya biya ya buɗe jayayya kan biyan da ka karɓa. Babu abin da aka dakatar yayin da ake yanke hukunci. Ƙungiyar kuɗi ta Vallo na iya neman shaidar ajiyar daga gare ka.",
+      openMore: "Jayayya a buɗe: {count}",
+    },
+  },
+
 } satisfies Translation, haDrafts);
