@@ -186,6 +186,11 @@ export async function decidePayout(input: {
     if (data === "no_recipient") {
       return fail("This payout has no recipient with the payout partner yet, so it cannot be released. Nothing was changed.");
     }
+    if (data === "chargeback_hold") {
+      return fail(
+        "This member has a lost chargeback still owed, so the payout stays held. Nothing was changed. Finance can override it for this payout, with a reason, on the chargebacks desk.",
+      );
+    }
     if (data === "refused") {
       return fail(
         parsed.data.decision === "fail_unsent"

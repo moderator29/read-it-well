@@ -213,6 +213,12 @@ describe("decidePayout", () => {
     expect(seam.revalidate).not.toHaveBeenCalled();
   });
 
+  it("the payout rule: a held member's payout is not released, and finance's override is named", async () => {
+    seam.rpc.mockResolvedValue({ data: "chargeback_hold", error: null });
+    expect(await decidePayout(INPUT)).toMatchObject({ ok: false, error: expect.stringMatching(/lost chargeback still owed.*Finance can override/) });
+    expect(seam.revalidate).not.toHaveBeenCalled();
+  });
+
   it("says a payout that is not waiting, or not old enough, is unchanged", async () => {
     seam.rpc.mockResolvedValue({ data: "refused", error: null });
     expect(await decidePayout(INPUT)).toMatchObject({ ok: false, error: expect.stringMatching(/no longer waiting/) });

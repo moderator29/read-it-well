@@ -44,7 +44,7 @@ vi.mock("./guard", () => ({
   adminRefusal: () => "This area is for the Vallo operations team.",
 }));
 
-const { moveChargeback, openChargeback, addChargebackNote } = await import("./chargeback-actions");
+const { moveChargeback, openChargeback, addChargebackNote, overrideChargebackHold } = await import("./chargeback-actions");
 
 const ID = "11111111-1111-4111-8111-111111111111";
 const base = {
@@ -143,5 +143,42 @@ describe("addChargebackNote", () => {
     const result = await addChargebackNote({ chargebackId: ID, note: REASON });
     expect(result.ok).toBe(true);
     expect(calls.find((c) => c.fn === "chargeback_add_note")).toMatchObject({ client: "user", args: { p_chargeback: ID, p_note: REASON } });
+  });
+});
+
+describe("overrideChargebackHold", () => {
+  const SUBJECT = "22222222-2222-4222-8222-222222222222";
+  it("records one override with its reason on the caller's own client, never the service role", async () => {
+    answers.admin_chargeback_hold_override = { status: "ok", override_id: "o-1" };
+    const result = await overrideChargebackHold({ kind: "arrangement", subjectId: SUBJECT, reason: "Recovery plan agreed with the lister" });
+    expect(result).toEqual({ ok: true, data: null });
+    expect(calls.find((c) => c.fn === "admin_chargeback_hold_override")).toMatchObject({
+      client: "user",
+      args: { p_kind: "arrangement", p_subject: SUBJECT, p_reason: "Recovery plan agreed with the lister" },
+    });
+    expect(calls.some((c) => c.client === "service")).toBe(false);
+  });
+
+  it("refuses a short reason before asking, and says the database's refusals in words", async () => {
+    expect((await overrideChargebackHold({ kind: "rewards_payout", subjectId: SUBJECT, reason: "too short" })).ok).toBe(false);
+    expect(calls).toHaveLength(0);
+    for (const [status, words] of [
+      ["own_hold", /your own account/],
+      ["not_held", /nothing to override/],
+      ["forbidden", /finance staff/],
+      ["mystery", /could not be recorded/],
+    ] as const) {
+      answers.admin_chargeback_hold_override = { status };
+      const result = await overrideChargebackHold({ kind: "rewards_payout", subjectId: SUBJECT, reason: "Repaid by bank transfer today" });
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.error).toMatch(words);
+    }
+  });
+
+  it("is finance's alone", async () => {
+    access = { state: "forbidden" };
+    const result = await overrideChargebackHold({ kind: "arrangement", subjectId: SUBJECT, reason: "Recovery plan agreed with the lister" });
+    expect(result.ok).toBe(false);
+    expect(calls).toHaveLength(0);
   });
 });

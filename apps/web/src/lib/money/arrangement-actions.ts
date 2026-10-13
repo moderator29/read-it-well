@@ -21,6 +21,8 @@ import { requestRelease } from "./provider-arrangements";
 const REFUSED: Record<string, string> = {
   switched_off: "Releasing a protected payment is not open yet. The money stays held; nothing has moved.",
   not_found: "We could not find that payment on your account.",
+  release_paused:
+    "Vallo has paused the release of this payment for now. The money stays held with Payluk and nothing has moved. Ask support if you need to know more.",
   unknown:
     "We could not confirm the release went through. The money stays held until Payluk confirms; check back in a few minutes.",
 };

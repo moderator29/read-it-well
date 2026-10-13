@@ -46,6 +46,7 @@ import {
 } from "../payments/providers/payluk-arrangements";
 import type { RailFailure } from "../payments/provider";
 import { deliveryWindowDays, valloStateFor, type ArrangementStatus } from "./arrangement-states";
+import { isMissingFunction } from "../admin/reads/chargebacks-model";
 import type { Db } from "./member-wallet";
 
 /**
@@ -342,6 +343,33 @@ export async function payArrangement(deps: ArrangementDeps, arrangementId: strin
   return { outcome: "unknown" };
 }
 
+/* ------------------------------------------------- the chargeback hold */
+
+export type ReleaseGate = "clear" | "held" | "paused" | "not_found" | "error";
+
+/**
+ * THE PAYOUT RULE at the moment Vallo would instruct a release to the lister
+ * (`public.chargeback_release_gate`, draft cbh01). `held`: the lister has a
+ * lost chargeback still owed and finance has not overridden it for this
+ * payment; the database has audited the refusal and paused the release
+ * where the agreements desk shows it. `paused`: a person at Vallo paused it.
+ * Fails closed on any other error. Until the draft is applied the function
+ * is missing and the gate reads `clear`: the hold was never enforced before
+ * it, and the existing pause trigger still refuses a paused release.
+ */
+export async function releaseGate(db: Db, arrangementId: string): Promise<ReleaseGate> {
+  try {
+    const { data, error } = await (db as unknown as {
+      rpc: (fn: string, args: Record<string, unknown>) => PromiseLike<{ data: unknown; error: { code?: string; message?: string } | null }>;
+    }).rpc("chargeback_release_gate", { p_arrangement: arrangementId });
+    if (error) return isMissingFunction(error) ? "clear" : "error";
+    const status = data && typeof data === "object" ? (data as Record<string, unknown>).status : undefined;
+    return status === "clear" || status === "held" || status === "paused" || status === "not_found" ? status : "error";
+  } catch {
+    return "error";
+  }
+}
+
 /* --------------------------------------------------------------- release */
 
 /**
@@ -358,6 +386,11 @@ export async function requestRelease(
   const row = await loadRow(deps.db, "id", arrangementId);
   if (!row || row.buyer_user_id !== actorUserId) return { outcome: "refused", reason: "not_found" };
   if (row.status !== "protected" || !row.provider_arrangement_id) return { outcome: "refused", reason: `not_releasable:${row.status}` };
+  /* Asked before either road, so a milestone is held and paused exactly as a
+     standard release is (a paused milestone used to go through). */
+  const gate = await releaseGate(deps.db, row.id);
+  if (gate === "held" || gate === "paused") return { outcome: "refused", reason: "release_paused" };
+  if (gate !== "clear") return { outcome: "refused", reason: "store_unavailable" };
 
   if (row.kind === "standard") {
     if (milestonePosition !== undefined) return { outcome: "refused", reason: "no_milestones" };
@@ -479,7 +512,7 @@ export async function withdrawForCard(deps: ArrangementDeps, agreementId: string
 
 export type ResolveOutcome =
   | { outcome: "submitted"; to: "refunded" | "released" }
-  | { outcome: "refused"; reason: "not_found" | "not_held" | "provider_refused" | "unknown" | "switched_off" | "store" };
+  | { outcome: "refused"; reason: "not_found" | "not_held" | "provider_refused" | "unknown" | "switched_off" | "store" | "chargeback_hold" | "release_paused" };
 
 /**
  * A person at Vallo decides a held payment: back to the payer (REFUNDED) or
@@ -502,6 +535,14 @@ export async function staffResolve(
   const row = await loadRow(deps.db, "id", arrangementId);
   if (!row || !row.provider_arrangement_id || !row.provider_payment_token) return { outcome: "refused", reason: "not_found" };
   if (!["protected", "release_requested", "disputed"].includes(row.status)) return { outcome: "refused", reason: "not_held" };
+  /* Money on to the lister follows the payout rule; money back to the payer
+     never waits on it. Finance overrides one payment with a reason. */
+  if (outcome === "COMPLETED") {
+    const gate = await releaseGate(deps.db, row.id);
+    if (gate === "held") return { outcome: "refused", reason: "chargeback_hold" };
+    if (gate === "paused") return { outcome: "refused", reason: "release_paused" };
+    if (gate !== "clear") return { outcome: "refused", reason: "store" };
+  }
 
   if (row.status !== "disputed") {
     const opened = await openDispute(
