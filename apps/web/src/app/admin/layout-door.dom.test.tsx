@@ -40,6 +40,7 @@ vi.mock("next/headers", () => ({ cookies: async () => ({ get: () => undefined })
 vi.mock("@/lib/locale", () => ({ getLocale: async () => "en" }));
 vi.mock("@/lib/app/shell-queries", () => ({ getShellIdentity: async () => ({ userName: "Ada", avatarUrl: null, unreadNotifications: 0 }) }));
 vi.mock("@/lib/admin/queries", () => ({ getQueueCounts: async () => ({ state: "unavailable" }) }));
+vi.mock("@/lib/admin/desk-reads/extra-counts", () => ({ getCoverageCounts: async () => ({}) }));
 vi.mock("@/lib/admin/reads/shared", () => ({ getPersonTiers: async () => new Map() }));
 vi.mock("@/app/css/admin.css", () => ({}));
 vi.mock("./_components/StaffFrame", () => ({ StaffFrame: () => "staff-frame" }));

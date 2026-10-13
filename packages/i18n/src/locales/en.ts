@@ -66,6 +66,8 @@ import { detailsEn } from "./details.en";
 import { onboardingMotionEn } from "./onboarding-motion.en";
 /* Visit ops: the lister's and the console's visit calendars (13 October). */
 import { visitOpsEn } from "./visit-ops.en";
+/* The console desks that had a database function and no screen (13 October). */
+import { adminCoverageEn } from "./admin-coverage.en";
 /* Get Started as four cards (reference 3, 7 October). */
 
 /**
@@ -7022,6 +7024,11 @@ export const en = {
       body: "Vallo cannot reach the network right now. This screen loads again by itself when you are back online.",
     },
   },
+
+  /* Admin coverage (13 October 2026): withheld weight, blocked terms, call
+     usage, ledger books, retention, withdrawal fees, fee acceptance and the
+     lister's promotion purchases. English only; the others fall back. */
+  adminCoverage: adminCoverageEn,
 
 };
 

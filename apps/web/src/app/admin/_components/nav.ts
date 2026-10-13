@@ -97,6 +97,8 @@ export const ADMIN_PRIMARY: AdminDestination[] = [
     href: "/admin/money",
     icon: glyph("naira-square"),
     label: "Money",
+    countKeys: ["claims"],
+    countLabel: "Guarantee claims waiting on a decision",
     children: [
       { key: "payments", href: "/admin/payments", icon: ui("wallet"), label: "Payments" },
       { key: "fees", href: "/admin/fees", icon: ui("document"), label: "Fees" },
@@ -111,6 +113,8 @@ export const ADMIN_PRIMARY: AdminDestination[] = [
     label: "Agreements",
     countKeys: ["agreements"],
     countLabel: "agreements waiting for review before payment opens",
+    /* The review threshold, the signals and the incident switch. */
+    children: [{ key: "agreement-settings", href: "/admin/agreements/settings", icon: ui("sliders"), label: "Risk settings" }],
   },
   {
     key: "bookings",
@@ -118,7 +122,13 @@ export const ADMIN_PRIMARY: AdminDestination[] = [
     icon: ui("calendar-booking"),
     label: "Bookings",
     /* Visit ops: every inspection request as a week or month calendar. */
-    children: [{ key: "visits", href: "/admin/bookings/visits", icon: ui("calendar-check"), label: "Visits" }],
+    children: [
+      { key: "visits", href: "/admin/bookings/visits", icon: ui("calendar-check"), label: "Visits" },
+      /* Restaurant reservations, and the fees a seated table owes. Both were
+         reached only by the Control K box or a link inside another desk. */
+      { key: "reservations", href: "/admin/bookings/reservations", icon: ui("utensils"), label: "Reservations" },
+      { key: "restaurant-fees", href: "/admin/restaurant-fees", icon: ui("receipt"), label: "Restaurant fees", countKeys: ["seatings"], countLabel: "seatings the restaurant and the diner disagree about" },
+    ],
   },
   {
     /* V-88: Moderation keeps what is not a queue. Its three queues (message
@@ -130,6 +140,10 @@ export const ADMIN_PRIMARY: AdminDestination[] = [
     children: [
       { key: "social", href: "/admin/social", icon: ui("compass"), label: "Around" },
       { key: "standing", href: "/admin/standing", icon: ui("star"), label: "Standing" },
+      /* AR-11: the words the safety scan acts on. */
+      { key: "blocked-terms", href: "/admin/blocked-terms", icon: ui("block"), label: "Blocked terms" },
+      /* V-58: reviews and reports that do not count, and clearing a stamp. */
+      { key: "weight-withheld", href: "/admin/weight-withheld", icon: ui("scale"), label: "Withheld weight" },
     ],
   },
   {
@@ -143,7 +157,7 @@ export const ADMIN_PRIMARY: AdminDestination[] = [
        typed address or a link from another desk. Both are support's work. */
     children: [
       { key: "people", href: "/admin/people", icon: ui("user"), label: "People" },
-      { key: "account-recovery", href: "/admin/account-recovery", icon: ui("key"), label: "Account recovery" },
+      { key: "account-recovery", href: "/admin/account-recovery", icon: ui("key"), label: "Account recovery", countKeys: ["recovery"], countLabel: "email recoveries opened and not yet finished" },
     ],
   },
   {
@@ -159,6 +173,10 @@ export const ADMIN_PRIMARY: AdminDestination[] = [
       { key: "oversight", href: "/admin/oversight", icon: ui("user"), label: "Team oversight" },
       /* Read-only checks of each provider key (Payluk, LiveKit, Apple push, Termii, MapTiler). */
       { key: "providers", href: "/admin/operations/providers", icon: ui("key"), label: "Provider checks" },
+      /* Video and audio calls: volume, connect rate, minutes. */
+      { key: "call-usage", href: "/admin/call-usage", icon: ui("phone"), label: "Call usage" },
+      /* Money records past their retention date, and the typed-confirmation tool. */
+      { key: "retention", href: "/admin/retention", icon: ui("archive"), label: "Record retention", countKeys: ["retention"], countLabel: "accounts whose money records are past retention" },
     ],
   },
   {
@@ -167,7 +185,11 @@ export const ADMIN_PRIMARY: AdminDestination[] = [
     icon: glyph("bars"),
     label: "Analytics",
     /* A6: the first-party front door funnel and the invite codes (A5). */
-    children: [{ key: "front-door", href: "/admin/front-door", icon: ui("trending-up"), label: "Front door" }],
+    children: [
+      { key: "front-door", href: "/admin/front-door", icon: ui("trending-up"), label: "Front door" },
+      /* V-80: how fast the app is on the phones people use. */
+      { key: "field-speed", href: "/admin/field-speed", icon: ui("bolt"), label: "Field speed" },
+    ],
   },
 ];
 

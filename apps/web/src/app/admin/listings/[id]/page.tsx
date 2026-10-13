@@ -20,6 +20,8 @@ import { PropertyMatchPanel } from "./PropertyMatchPanel";
 import { ReopenControl } from "./PropertyMatchButtons";
 import { readClosedReasons } from "@/lib/landlord/queries";
 import { PhotoProvenance } from "./PhotoProvenance";
+import { FeeAcceptancePanel } from "./FeeAcceptancePanel";
+import { readFeeAcceptance } from "@/lib/admin/desk-reads/fee-acceptance-read";
 import { readPhotoProvenance } from "@/lib/photo-hash/matches-read";
 import "../../_review/review.css";
 
@@ -104,6 +106,8 @@ export default async function ListingUnderReviewPage({
   /* V-45: compared at review, whatever the status, so a published listing can
      still be checked after a report. */
   const provenance = await readPhotoProvenance(found.id);
+  /* The fee terms the lister accepted (D61), for the reviewer who is asked. */
+  const feeAcceptance = await readFeeAcceptance(found.id);
   const dark = tileProvider("dark");
   const nextId = extra?.nextId ?? null;
   const { offset: _offset, ...carried } = query;
@@ -172,6 +176,7 @@ export default async function ListingUnderReviewPage({
               </p>
             </Panel>
           )}
+          <FeeAcceptancePanel read={feeAcceptance} locale={locale} />
           {/* V-37: the listings that may be this same flat, proposed for the
               reviewer to join or keep apart. Never decided automatically. */}
           {extra?.isDemo ? null : (

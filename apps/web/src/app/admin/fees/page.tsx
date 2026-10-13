@@ -9,6 +9,8 @@ import { adminUi, type AdminUi } from "../_components/ui";
 import { FeeRateForm } from "../_components/MoneyDecisions";
 import { PaperLedger, PaperLedgerRow, PaperStatus } from "../_components/paper";
 import { DocFigure, DocHead, DocRow, DocRows, DocSection, DocState, DocumentSheet } from "@/components/app/money/DocumentSheet";
+import { readWithdrawalFees } from "@/lib/admin/desk-reads/withdrawal-fees-read";
+import { WithdrawalFees } from "./WithdrawalFees";
 
 export const metadata: Metadata = {
   title: "Fees",
@@ -50,14 +52,20 @@ const SOURCE_LABEL: Record<string, string> = {
  * visible: a rate above zero with nothing earned beside it is now a question an
  * operator can see rather than one nobody could ask.
  */
-export default async function AdminFeesPage() {
+export default async function AdminFeesPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const locale = await getLocale();
   const t = getDictionary(locale);
   const ui = adminUi(t, locale);
 
-  const [read, revenue] = await Promise.all([
+  const asked = (await searchParams)["withdraw"];
+  const [read, revenue, withdrawal] = await Promise.all([
     getFeeConsole(),
     getRevenueSummary(REVENUE_WINDOW_DAYS),
+    readWithdrawalFees(typeof asked === "string" ? asked.slice(0, 20) : null),
   ]);
 
   if (read.state !== "ok") {
@@ -103,6 +111,8 @@ export default async function AdminFeesPage() {
         ui={ui}
         locale={locale}
       />
+
+      <WithdrawalFees read={withdrawal} locale={locale} />
     </div>
   );
 }

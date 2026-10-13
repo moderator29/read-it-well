@@ -479,6 +479,11 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/admin/review-calls": "/admin",
   "/admin/review-calls/[id]": "/admin/review-calls",
   "/admin/switches": "/admin/settings",
+  /* Admin coverage (13 October 2026): desks that had a function and no screen. */
+  "/admin/blocked-terms": "/admin/queue",
+  "/admin/weight-withheld": "/admin/social",
+  "/admin/call-usage": "/admin/operations",
+  "/admin/retention": "/admin/operations",
 
   /* ---------------------------------------------------- the agent console */
   "/agent/dashboard": "/home",

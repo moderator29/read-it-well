@@ -251,10 +251,9 @@ export function ModerationDesk(props: ModerationDeskProps) {
 
           <Panel title="Blocked terms" labelledBy="rv-blocked">
             <CalmNote
-              kind="unwired"
-              title="This list cannot be read from the console"
-              fills="The scan holds words that match the platform's blocked terms. Session A's ledger records that the list ships empty until the founder approves one, so today only account numbers and payment language hold anything."
-              creates="Reading the list here needs an admin read on public.blocked_terms, which has none: request AR-11."
+              title="The words the scan acts on"
+              fills="Each term can hold a post until a person reads it, flag it to the desk, or refuse it. The list ships empty until the founder approves a term, so today only account numbers and payment language hold anything."
+              action={{ href: "/admin/blocked-terms", label: "Open the blocked terms" }}
             />
           </Panel>
 
