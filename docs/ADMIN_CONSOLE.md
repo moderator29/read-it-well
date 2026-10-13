@@ -878,7 +878,8 @@ no rows, so the rosters panel reads 0 pending, 0 active, 0 revoked.
 ## 11. Bookings
 
 **Route:** `/admin/bookings` (the stays desk), `/admin/bookings/[bookingId]`
-(one stay) and `/admin/bookings/reservations` (restaurant tables). **Who:**
+(one stay), `/admin/bookings/reservations` (restaurant tables) and
+`/admin/bookings/visits` (the visit calendar, section 11.1). **Who:**
 `admin` or `super_admin`; every read repeats `requireAdmin()` and goes
 through the admin's RLS client (`bookings_admin_all`, `listings_admin_all`,
 `transactions_admin_select`, `booking_refunds_select_admin`,
@@ -938,6 +939,50 @@ bookings; its agreement reaches Money > Agreements like any stay. Nothing is
 bookable until `room_bookings` is on in Settings > Switches. The whole flow,
 the host's payout and how to switch it on are in
 [ROOM_CHECKOUT.md](ROOM_CHECKOUT.md).
+
+### 11.1 Visits (Bookings > Visits, `/admin/bookings/visits`)
+
+Visit ops, 13 October 2026. Every inspection request on the platform as a
+calendar, on the Lagos day it is for: the agreed time, or the time the renter
+asked for until one is agreed. Reached from the rail (a child of Bookings),
+from the Bookings desk's head ("Visit calendar") and from Operations > In
+flight's newest requests panel.
+
+**Route:** `/admin/bookings/visits`. The whole desk is its address: `view`
+(`week`, the default, or `month`), `day` (the Lagos day it is anchored on and
+the day listed), `state`, `mode`, `city`, `lister` and `visit` (the one open).
+**Who:** `admin`, `super_admin`, or a staff member holding the `operations`
+scope (it is among that scope's desks in the staff frame). The page calls
+`requireAdmin("operations")` before anything is read and answers anybody else
+with the site's ordinary 404, as Provider checks does. **Reads:**
+`lib/admin/reads/visits.ts` through `adminReader("operations")`
+(`inspection_requests_select_admin`, `profiles` and `listings` admin reads,
+`inspection_no_shows_select_admin`, and `viewing_reminders_select_admin` once
+the pending migration is applied); the pure half (the address, the filters,
+the counts, the history) is `visits-model.ts`.
+
+| Panel | What it shows | Source |
+|---|---|---|
+| Filters | State (Requested, Proposed, Confirmed, Done, Missed), visit mode (In person, Video call), city and lister, as a plain GET form; the city and lister choices list everything in the range | `getVisitCalendar()`, URL `state`, `mode`, `city`, `lister` |
+| Week | Seven day buttons, Monday first, each with its count, then every day of the week listed with its visits | same, `groupByDay` in `lib/visit-calendar/model.ts` |
+| Month | The month as whole weeks with the count on each day; the picked day listed under it | same, `monthGrid` |
+| A visit row | The Lagos time ("asked for" while nobody has agreed one), the visit mode as a glyph, the renter and the lister by display name, the listing and its city, and the state chip | same |
+| Visit detail | The state and mode; when it is for; the listing (linked to `/admin/listings/<id>`, with its area and city); the lister and the renter by display name, each linked to their member file (`/admin/people/<id>`); the history from the record's own timestamps (requested, answered, confirmed, recorded as done, and a no-show's report, dispute and decision); the reminders sent, each with its stage, its audience and when; and any no-show with who is said to have stayed away and how it was decided | `getVisitDetail()`: `viewing_reminders`, `inspection_no_shows` |
+
+**What it does not read.** No email, phone or address of anybody, no message,
+no note a member wrote (the request's note, the lister's note and a no-show's
+dispute note are left out on purpose), and nothing from the account record but
+the display name. `visits.test.ts` holds the selected columns to that.
+
+**What it cannot do.** Anything. It is read only, with the read-only line under
+its head; a no-show is decided on Operations > In flight, as before. A range
+holding more than 5,000 visits is refused with a line saying so rather than
+drawn as a part.
+
+**Today's reality.** No inspection request has ever been made, so both views
+say what will fill them. Until the pending migration
+`visit_reminders_both_sides.sql` is applied, the detail says the reminders
+cannot be read from the console yet (the ledger has no admin read policy).
 
 ## 12. Payments
 
@@ -1031,7 +1076,7 @@ a fall is emerald. The line is alerts raised per day.
 | vallo_release_stale_holds | pg_cron `*/15 * * * *` | every 15 min | | database side of the hold release |
 | vallo_remind_hosts_to_decide | pg_cron `4,19,34,49 * * * *` | every 15 min | | reminds a host once, in the app and by push, when a room or table request has used three quarters of its window (C3, `private.remind_hosts_to_decide`) |
 | vallo_ask_diners_unmarked_tables | pg_cron `17 * * * *` | hourly at :17 | | asks a diner "Did you dine at X?" about a confirmed restaurant table the restaurant never marked after 24 hours (`private.ask_diners_about_unmarked_tables`) |
-| vallo_send_member_reminders | pg_cron `7,22,37,52 * * * *` | every 15 min | | sends each viewing reminder (7pm the evening before, two hours before) and each rent-due reminder (180, 90, 30 and 7 days) once, through the booking notifications (B5, B10, `private.send_member_reminders`) |
+| vallo_send_member_reminders | pg_cron `7,22,37,52 * * * *` | every 15 min | | sends each viewing reminder (7pm the evening before, two hours before; a third, 8am on the day, and the visit mode in every message are in the pending draft `visit_reminders_both_sides.sql`) to the renter and the lister, recorded in `viewing_reminders` (Bookings > Visits shows them), and each rent-due reminder (180, 90, 30 and 7 days) once, through the booking notifications (B5, B10, `private.send_member_reminders`) |
 | vallo_purge_rate_limits | pg_cron `30 * * * *` | hourly at :30 | | clears old rate limit rows |
 | vallo_purge_view_marks | pg_cron `41 * * * *` | hourly at :41 | | forgets the day's listing view marks and salt once the day ends (V-73) |
 | vallo_alert_overdue_refunds | pg_cron `12 * * * *` | hourly at :12 | | alerts on refunds past their due-by date (V-24) |
@@ -1618,7 +1663,8 @@ proposal, and the card says so.
 
 ### 15.24 What no desk shows yet
 
-Inspections are on Operations > In flight, push notifications on Operations >
+Inspections are on Operations > In flight (counts) and Bookings > Visits (the
+calendar, section 11.1), push notifications on Operations >
 Notifications, price checks on Analytics. Account deletions (A12), business
 transfers (A13), the database's jobs one by one with their runs (A5) and the
 money reconciliation watch (admin-money's request 10) each have a panel on

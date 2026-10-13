@@ -604,7 +604,7 @@ export const frontDoorYo = {
     windowsTitle: "Àkókò wíwo ilé",
     windowsNote: "Ṣètò àwọn àkókò tí o ń fi ilé hàn. Àwọn tí ń wá ilé ń ṣètò àyè kan nínú àkókò náà, ọjọ́ rẹ sì di ìrìnàjò kan.",
     windowsEmpty: "Kò tíì sí àkókò wíwo ilé. Àwọn tí ń wá ilé ṣì lè béèrè fún àkókò kan, ìwọ yóò sì dáhùn ọ̀kọ̀ọ̀kan.",
-    windowLine: "Ní ọjọ́ {day}, {starts} sí {ends}, àyè ìṣẹ́jú {minutes}, ilé {count}",
+    windowLine: "Ní ọjọ́ {day}, {starts} sí {ends}, àyè ìṣẹ́jú {minutes}, {homes}",
     addWindow: "Fi àkókò kún un",
     weekday: "Ọjọ́",
     starts: "Láti",

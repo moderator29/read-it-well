@@ -3,7 +3,7 @@ import { formatDate, formatNumber, getDictionary, type Locale } from "@vallo/i18
 import { tx } from "@/app/admin/_components/shell-text";
 import { MeterBar } from "@/components/agent/charts/MeterBar";
 import type { InspectionActivity, InspectionState } from "@/lib/admin/reads/shapes";
-import { Badge, CalmNote, NotWired, Panel, PanelUnavailable, type BadgeTone } from "../_components/panels";
+import { Badge, CalmNote, NotWired, Panel, PanelLink, PanelUnavailable, type BadgeTone } from "../_components/panels";
 import { NoShowDecide } from "./NoShowDecide";
 
 /**
@@ -85,7 +85,11 @@ export function InFlight({ locale, inspections }: { locale: Locale; inspections:
             </>
           )}
         </Panel>
-        <Panel id="ops-inspections-recent" title={c.newestRequests}>
+        <Panel
+          id="ops-inspections-recent"
+          title={c.newestRequests}
+          action={<PanelLink href="/admin/bookings/visits">{getDictionary(locale).visitOps.admin.openCalendar}</PanelLink>}
+        >
           {!inspections ? (
             <PanelUnavailable what={tx(locale, "inflightTheInspections")} locale={locale} />
           ) : inspections.recent.length === 0 ? (

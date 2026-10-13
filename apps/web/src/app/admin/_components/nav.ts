@@ -112,7 +112,14 @@ export const ADMIN_PRIMARY: AdminDestination[] = [
     countKeys: ["agreements"],
     countLabel: "agreements waiting for review before payment opens",
   },
-  { key: "bookings", href: "/admin/bookings", icon: ui("calendar-booking"), label: "Bookings" },
+  {
+    key: "bookings",
+    href: "/admin/bookings",
+    icon: ui("calendar-booking"),
+    label: "Bookings",
+    /* Visit ops: every inspection request as a week or month calendar. */
+    children: [{ key: "visits", href: "/admin/bookings/visits", icon: ui("calendar-check"), label: "Visits" }],
+  },
   {
     /* V-88: Moderation keeps what is not a queue. Its three queues (message
        flags, reports, held content) are lanes of the unified queue. */

@@ -656,7 +656,7 @@ export const frontDoorEn = {
     windowsTitle: "Viewing windows",
     windowsNote: "Set the times you show homes. Renters book a slot inside a window, and your day becomes a route.",
     windowsEmpty: "No viewing windows yet. Renters can still ask for a time, and you answer each one.",
-    windowLine: "{day}s, {starts} to {ends}, {minutes} minute slots, {count} homes",
+    windowLine: "{day}s, {starts} to {ends}, {minutes} minute slots, {homes}",
     addWindow: "Add a window",
     weekday: "Day",
     starts: "From",

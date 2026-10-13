@@ -45,6 +45,8 @@ export const unitsEn = {
   places: { one: "1 place", other: "{count} places" },
   facilities: { one: "1 facility", other: "{count} facilities" },
   rooms: { one: "1 room", other: "{count} rooms" },
+  visits: { one: "1 visit", other: "{count} visits" },
+  homes: { one: "1 home", other: "{count} homes" },
   roomTypes: { one: "1 room type", other: "{count} room types" },
   ratePlans: { one: "1 rate", other: "{count} rates" },
   serviceWindows: { one: "1 service window", other: "{count} service windows" },
@@ -220,6 +222,8 @@ export type UnitNoun = keyof typeof unitsEn;
 /** Yoruba: one category, `other`, for every count including one. */
 export const unitsYo = {
   nights: { other: "alẹ́ {count}" },
+  /* The word the viewing windows draft already used ("ilé {count}"); native review owed. */
+  homes: { other: "ilé {count}" },
   guests: { other: "àlejò {count}" },
   adults: { other: "àgbàlagbà {count}" },
   children: { other: "ọmọdé {count}" },
@@ -228,6 +232,8 @@ export const unitsYo = {
 /** Hausa: `one` and `other`. */
 export const unitsHa = {
   nights: { one: "dare ɗaya", other: "darare {count}" },
+  /* From the viewing windows draft ("gidaje {count}"); native review owed. */
+  homes: { one: "gida ɗaya", other: "gidaje {count}" },
   guests: { one: "baƙo ɗaya", other: "baƙi {count}" },
   adults: { one: "babba ɗaya", other: "manya {count}" },
   children: { one: "yaro ɗaya", other: "yara {count}" },
@@ -236,6 +242,8 @@ export const unitsHa = {
 /** Igbo: one category, `other`, for every count including one. */
 export const unitsIg = {
   nights: { other: "abalị {count}" },
+  /* The word the viewing windows draft already used ("ụlọ {count}"); native review owed. */
+  homes: { other: "ụlọ {count}" },
   guests: { other: "ọbịa {count}" },
   adults: { other: "okenye {count}" },
   children: { other: "nwa {count}" },

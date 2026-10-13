@@ -67,12 +67,18 @@ export function BookingsDesk({
         aside={
           /* THE RESERVATION OVERSIGHT LINK, kept: restaurant tables reuse the
              booking enum but are a different loop with their own queue. */
-          <Link href="/admin/bookings/reservations" className="nf-md-toggle">
-            Restaurant tables
-            <span className="nf-numeric">
-              {waitingTables === null ? " · count unavailable" : waitingTables === 0 ? " · none waiting" : ` · ${waitingTables} waiting`}
-            </span>
-          </Link>
+          <span className="flex flex-wrap gap-xs">
+            <Link href="/admin/bookings/reservations" className="nf-md-toggle">
+              Restaurant tables
+              <span className="nf-numeric">
+                {waitingTables === null ? " · count unavailable" : waitingTables === 0 ? " · none waiting" : ` · ${waitingTables} waiting`}
+              </span>
+            </Link>
+            {/* Visit ops: the inspection requests, as a calendar. */}
+            <Link href="/admin/bookings/visits" className="nf-md-toggle">
+              {t.visitOps.admin.openCalendar}
+            </Link>
+          </span>
         }
       />
 
