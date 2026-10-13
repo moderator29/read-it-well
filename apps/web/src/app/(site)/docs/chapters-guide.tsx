@@ -73,13 +73,13 @@ export const QUICK_START: DocChapter = {
               and pick the owner door.
             </li>
             <li>Tell Vallo who you are. A person at Vallo reviews it.</li>
-            <li>Post the listing with clear photos, the price and every cost the tenant will meet.</li>
+            <li>Post the listing with clear photos and videos, the price and every cost the tenant will meet.</li>
             <li>Vallo reviews the listing before it is published. If it needs more, you are told what, and you can edit and send it again.</li>
             <li>Answer viewing requests and messages from the thread.</li>
           </ol>
           <p>
-            Listing is free. An owner account and an agent account are separate accounts: if you
-            are both, you use two.
+            Listing is free. An account is either an owner (landlord) account or an agent account,
+            never both. If you are both, you use two accounts.
           </p>
         </>
       ),
@@ -111,12 +111,25 @@ export const QUICK_START: DocChapter = {
             <li>Choose the hotel, shortlet or restaurant door and work through the host setup.</li>
             <li>Add your identity and business papers. Vallo reviews them.</li>
             <li>Set your rooms, rates and calendar, or your tables and hours.</li>
-            <li>Agree to the Terms and the Privacy Policy, then publish.</li>
+            <li>Agree to the Terms, the Privacy Policy and the <Link href="/host-agreement" className={A}>Host Agreement</Link>, then publish.</li>
           </ol>
           <p>
             Read <Link href="/docs/hosting" className={A}>Hosting a hotel, shortlet or restaurant</Link>.
           </p>
         </>
+      ),
+    },
+    {
+      id: "photos-and-videos",
+      heading: "Photos and videos for a listing",
+      body: (
+        <ul role="list">
+          <li>Photos and videos go in one uploader.</li>
+          <li>A listing needs at least 3 items. 5 is recommended.</li>
+          <li>The first item is the cover, and the cover must be a photo.</li>
+          <li>You can add up to 3 videos. Each can be up to 100MB and 60 seconds, as MP4, MOV or WebM.</li>
+          <li>Sale prices can be up to 50 billion naira.</li>
+        </ul>
       ),
     },
     {
@@ -273,8 +286,8 @@ export const VIEWINGS: DocChapter = {
       heading: "Reminders",
       body: (
         <p>
-          Both sides are reminded twice: in the evening before the viewing, from 19:00 Lagos
-          time, and again two hours before it.
+          The renter and the lister are both reminded twice: in the evening before the viewing,
+          from 19:00 Lagos time, and again two hours before it.
         </p>
       ),
     },
@@ -301,6 +314,19 @@ export const VIEWINGS: DocChapter = {
             added to the record.
           </p>
           <p>{PAYMENT_GATE_SENTENCE}</p>
+        </>
+      ),
+    },
+    {
+      id: "no-show",
+      heading: "If somebody does not come",
+      body: (
+        <>
+          <p>
+            Either side can report a no-show once the viewing time has come, and for up to 14 days
+            after it. The person reported can dispute it within 48 hours. If it is disputed, a
+            person at Vallo looks at both sides and decides.
+          </p>
         </>
       ),
     },
@@ -357,7 +383,8 @@ export const HOSTING: DocChapter = {
       body: (
         <p>
           If something is missing or unclear, Vallo tells you what to fix. You edit the same
-          application and send it again; you do not start over.
+          application and send it again; you do not start over. While you set up, Vallo asks
+          before you leave a step with changes you have not saved.
         </p>
       ),
     },
@@ -367,10 +394,10 @@ export const HOSTING: DocChapter = {
       body: (
         <>
           <ul role="list">
-            <li>You agree to the <Link href="/terms" className={A}>Terms</Link> and the <Link href="/privacy" className={A}>Privacy Policy</Link> before you create a host account or publish.</li>
+            <li>You agree to the <Link href="/terms" className={A}>Terms</Link>, the <Link href="/privacy" className={A}>Privacy Policy</Link> and the <Link href="/host-agreement" className={A}>Host Agreement</Link> before you create a host account or publish.</li>
             <li>You do not charge anything that is not listed on Vallo.</li>
             <li>You do not add a charge without a stated reason.</li>
-            <li>Every cost a guest will meet, including any charge at the door, is listed before they book, so they see the full total before they confirm.</li>
+            <li>Every cost a guest will meet, including any charge at the door (a caution deposit, power, cleaning, an extra guest or a visitor), is listed before they book, so they see the full total before they confirm.</li>
           </ul>
         </>
       ),
@@ -381,7 +408,7 @@ export const HOSTING: DocChapter = {
       body: (
         <p>
           You set your rooms or units, your nightly rates and your calendar, and choose a
-          cancellation policy for your stays. The refund schedule that applies to a paid stay is
+          cancellation policy for your stays: Flexible, Moderate, Firm or Strict. The refund schedule that applies to a paid stay is
           on the{" "}
           <Link href="/cancellations" className={A}>Cancellations</Link> page, and the guest sees
           it before they pay.
@@ -392,12 +419,24 @@ export const HOSTING: DocChapter = {
       id: "restaurants",
       heading: "Restaurants",
       body: (
-        <p>
-          A guest asks for a table and the restaurant answers. Asking for a table is free and no
-          money moves when a table is requested. See{" "}
-          <Link href="/docs/booking-and-paying" className={A}>Booking and paying</Link> for how a
-          table request works today.
-        </p>
+        <>
+          <p>
+            A guest asks for a table, which is free, and no money is paid in advance. You confirm
+            the table when you have one, and the diner pays the bill at your restaurant.
+          </p>
+          <p>
+            Each booking has a check-in code. After the time, you mark the table seated, for
+            example by entering the diner&apos;s code, or mark it a no-show. If you do not answer,
+            Vallo asks the diner the next day whether they dined. If you and the diner disagree,
+            Vallo decides.
+          </p>
+          <p>
+            Only diners whose table was seated can review the restaurant. Listing is free; Vallo
+            charges a restaurant a fixed fee only for each guest seated from a Vallo booking, shown
+            in your host settings before it applies. See the{" "}
+            <Link href="/host-agreement" className={A}>Host Agreement</Link>.
+          </p>
+        </>
       ),
     },
   ],

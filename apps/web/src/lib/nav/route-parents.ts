@@ -134,6 +134,7 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/r/[code]": "/r",
   "/privacy": "/",
   "/disclaimer": "/",
+  "/host-agreement": "/",
   "/safety": "/",
   "/check": "/",
   /* Recommendations A: the supply doors, the calculator, the guides, the
@@ -439,6 +440,7 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/admin/handbook": "/admin/settings",
   "/admin/handbook/position": "/admin/handbook",
   "/admin/fees": "/admin",
+  "/admin/restaurant-fees": "/admin",
   "/admin/account-recovery": "/admin",
   "/admin/kyc": "/admin",
   "/admin/compliance": "/admin/kyc",
