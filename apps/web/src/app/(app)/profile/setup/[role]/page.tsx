@@ -7,6 +7,9 @@ import { getLocale } from "@/lib/locale";
 import { ApplyWizard, type SetupRole } from "@/components/agent/ApplyWizard";
 import { ROLE_COPY } from "@/components/roles/roles";
 import { PageHeader } from "@/components/app/PageHeader";
+import { OpenApplicationNotice } from "@/components/supply/OpenApplicationNotice";
+import { readMyApplication } from "@/lib/agent/application-status";
+import { isOpenApplication } from "@/lib/agent/open-application";
 
 export const metadata: Metadata = {
   title: "Set up your profile",
@@ -61,9 +64,21 @@ export default async function ProfileSetupPage({
   if (!isSetupRole(role)) notFound();
   await requireSignedInPage(`/profile/setup/${role}`);
 
-  const locale = await getLocale();
+  const [locale, mine] = await Promise.all([getLocale(), readMyApplication()]);
   const t = getDictionary(locale);
   const copy = ROLE_COPY[role];
+
+  /* An application still open is followed, not filed again. */
+  if (mine.state === "found" && isOpenApplication(mine.application.status)) {
+    const r = t.supply.register;
+    return (
+      <OpenApplicationNotice
+        heading={copy.setup.title}
+        reference={mine.application.reference}
+        copy={{ title: r.openTitle, body: r.openBody, action: r.trackIt }}
+      />
+    );
+  }
 
   return (
     <div className="mx-auto max-w-3xl">

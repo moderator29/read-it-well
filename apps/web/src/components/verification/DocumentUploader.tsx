@@ -12,6 +12,7 @@ import {
   DOCUMENT_SUBTYPES,
   MAX_FILE_LABEL,
   addressDateIssue,
+  documentExtension,
   lagosToday,
   rejectFileIssue,
   type DocumentKind,
@@ -26,24 +27,6 @@ import type { KycCopy } from "./KycFlow";
  * so the review desk finds every identity document in one place.
  */
 const DOCUMENT_BUCKET = "agent-documents";
-
-/** The file extension to store under, from the type rather than the name. */
-function extensionFor(type: string): string {
-  switch (type) {
-    case "application/pdf":
-      return "pdf";
-    case "image/png":
-      return "png";
-    case "image/webp":
-      return "webp";
-    case "image/heic":
-      return "heic";
-    case "image/heif":
-      return "heif";
-    default:
-      return "jpg";
-  }
-}
 
 function randomId(): string {
   try {
@@ -130,7 +113,7 @@ export function DocumentUploader({
       }
       /* A new object for every file chosen, never an overwrite: a filed
          document is fixed, so choosing again is a new path. */
-      const path = `${user.id}/kyc-${batchId}/${kind}-${randomId()}.${extensionFor(chosen.type)}`;
+      const path = `${user.id}/kyc-${batchId}/${kind}-${randomId()}.${documentExtension(chosen.type)}`;
       const upload = await supabase.storage
         .from(DOCUMENT_BUCKET)
         .upload(path, chosen, { contentType: chosen.type, upsert: false });

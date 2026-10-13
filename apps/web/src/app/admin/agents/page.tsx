@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { getDictionary } from "@vallo/i18n";
+import { getDictionary, type Dictionary } from "@vallo/i18n";
+import { intlTag, type Locale } from "@vallo/i18n/core";
 import { getLocale } from "@/lib/locale";
 import { getAgentApplications, type ApplicationView } from "@/lib/admin/queries";
 import { getVerificationLadders, type AgentLadder } from "@/lib/admin/verification-queries";
@@ -137,6 +138,78 @@ function VerificationLadderPanel({
   );
 }
 
+/**
+ * The words for what the three registration forms asked, from the forms' own
+ * dictionary entries, so the reviewer reads the answer exactly as the
+ * applicant chose it ("I have none of these", "Three to five years").
+ */
+type RegistrationWords = {
+  holds: Dictionary["supply"]["register"]["owner"]["proof"]["docs"];
+  bands: Dictionary["supply"]["register"]["agent"]["you"]["bands"];
+  notDeclared: string;
+  percent: Intl.NumberFormat;
+};
+
+function registrationWords(t: Dictionary, locale: Locale): RegistrationWords {
+  return {
+    holds: t.supply.register.owner.proof.docs,
+    bands: t.supply.register.agent.you.bands,
+    notDeclared: t.supply.register.notDeclared,
+    percent: new Intl.NumberFormat(intlTag[locale], { style: "percent", maximumFractionDigits: 2 }),
+  };
+}
+
+/**
+ * WHAT THEY REGISTERED AS, AND THE ANSWERS ONLY THAT FORM ASKS.
+ *
+ * Drawn only for the three registration forms (`supply_role` set). An
+ * owner's ownership answer is the fact the owner form exists to collect, and
+ * `none` is shown as the ordinary answer it is. An agent's fees are shown as
+ * declared, and an undeclared fee reads "Not declared", never zero.
+ */
+function RegistrationSection({
+  application,
+  copy,
+  words,
+  ui,
+}: {
+  application: ApplicationView;
+  copy: AdminCopy["applications"];
+  words: RegistrationWords;
+  ui: AdminUi;
+}) {
+  const role = application.supplyRole;
+  if (!role) return null;
+  const f = copy.fields;
+  const roleName = copy.roleNames[role as keyof typeof copy.roleNames] ?? role;
+  const fee = (bps: number | null) => (bps === null ? words.notDeclared : words.percent.format(bps / 10_000));
+  const holds = application.ownershipDocument
+    ? (words.holds[application.ownershipDocument as keyof typeof words.holds] ?? application.ownershipDocument)
+    : null;
+  const band = application.yearsExperience
+    ? (words.bands[application.yearsExperience as keyof typeof words.bands] ?? application.yearsExperience)
+    : null;
+
+  return (
+    <ui.DetailSection title={copy.sections.registration}>
+      <ui.DetailRow label={f.registeredAs} value={roleName} />
+      {role === "owner" ? (
+        <>
+          <ui.DetailRow label={f.holds} value={holds} />
+          <ui.DetailRow label={f.area} value={application.area} />
+        </>
+      ) : null}
+      {role === "agent" ? (
+        <>
+          <ui.DetailRow label={f.experience} value={band} />
+          <ui.DetailRow label={f.agencyFee} value={fee(application.agencyFeeBps)} />
+          <ui.DetailRow label={f.legalFee} value={fee(application.legalFeeBps)} />
+        </>
+      ) : null}
+    </ui.DetailSection>
+  );
+}
+
 function ApplicationCard({
   application,
   ladder,
@@ -144,6 +217,7 @@ function ApplicationCard({
   verificationCopy,
   common,
   ui,
+  words,
 }: {
   application: ApplicationView;
   ladder: AgentLadder | null;
@@ -151,6 +225,7 @@ function ApplicationCard({
   verificationCopy: AdminCopy["verification"];
   common: AdminCommon;
   ui: AdminUi;
+  words: RegistrationWords;
 }) {
   const decidable =
     application.status === "SUBMITTED" ||
@@ -163,7 +238,13 @@ function ApplicationCard({
       <div className="flex flex-wrap items-center gap-xs">
         <ui.StatusChip status={application.status} />
         <ui.StatusChip
-          label={application.type === "business" ? copy.business : copy.individual}
+          label={
+            application.supplyRole
+              ? (copy.roleNames[application.supplyRole as keyof typeof copy.roleNames] ?? application.supplyRole)
+              : application.type === "business"
+                ? copy.business
+                : copy.individual
+          }
           tone="neutral"
         />
         <span className="nf-numeric text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
@@ -177,6 +258,8 @@ function ApplicationCard({
       <p className="mt-3xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
         {fill(copy.submittedWhen, { when: ui.when(application.submittedAt) })}
       </p>
+
+      <RegistrationSection application={application} copy={copy} words={words} ui={ui} />
 
       <ui.DetailSection title={copy.sections.personal}>
         <ui.DetailRow label={f.fullName} value={application.fullName} />
@@ -319,6 +402,7 @@ export default async function AdminAgentsPage({
   const verificationCopy = t.admin.verification;
   const common = t.admin.common;
   const ui = adminUi(t, locale);
+  const words = registrationWords(t, locale);
 
   /* The shared queue frame. This queue read the newest thirty waiting and ten
      decided and printed all of them, with no way to search a name, so an
@@ -413,6 +497,7 @@ export default async function AdminAgentsPage({
                   verificationCopy={verificationCopy}
                   common={common}
                   ui={ui}
+                  words={words}
                 />
               </ul>
             ),
@@ -438,6 +523,7 @@ export default async function AdminAgentsPage({
                     verificationCopy={verificationCopy}
                     common={common}
                     ui={ui}
+                    words={words}
                   />
               </ul>
             ),
@@ -458,7 +544,17 @@ function applicationRow(application: ApplicationView, ui: AdminUi): QueueRowData
     icon: "user",
     title: application.fullName ?? application.businessName ?? application.reference,
     place: [application.city, application.stateCode].filter(Boolean).join(", "),
-    detail: application.type === "business" ? "Business agent" : "Individual agent",
+    /* The door they came through first: an owner is not an "individual agent". */
+    detail:
+      application.supplyRole === "owner"
+        ? "Owner registration"
+        : application.supplyRole === "agent"
+          ? "Agent registration"
+          : application.supplyRole === "firm"
+            ? "Firm registration"
+            : application.type === "business"
+              ? "Business agent"
+              : "Individual agent",
     detailSub: application.email ?? undefined,
     status: application.status,
     statusLabel: ui.statusLabel(application.status),

@@ -67,6 +67,7 @@ export type ApplicationResult = {
  */
 
 import { DOCUMENT_KINDS, STORED_DOCUMENT_KIND, type DocumentKind } from "./application-document-kinds";
+import { OPEN_STATUSES } from "./open-application";
 
 type UploadedDocument = { kind: DocumentKind; path: string };
 
@@ -199,13 +200,34 @@ export async function submitAgentApplication(
   // same rule on the upload itself, so a path that fails here was never written
   // by this user and has no business being recorded against their application.
   const prefix = `${user.id}/`;
-  if (documents.some((d) => !d.path.startsWith(prefix))) {
+  if (documents.some((d) => !d.path.startsWith(prefix) || d.path.includes(".."))) {
     return {
       ok: false,
       fieldErrors: {
         documents:
           "Those uploads did not come from your own account, so we did not file them. Please choose the files again.",
       },
+    };
+  }
+
+  /* One open application per person (`open-application.ts`). The Submit
+     button is disabled once this form has filed, but a second visit to the
+     form filed a second row behind the first. A read that fails does not
+     block a filing. */
+  const { data: open } = await supabase
+    .from("agent_applications")
+    .select("reference")
+    .eq("user_id", user.id)
+    .in("status", [...OPEN_STATUSES])
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (open) {
+    return {
+      ok: false,
+      message:
+        `You already have an application waiting, filed as ${open.reference}. ` +
+        "Follow that one from your profile; a second would only queue behind it.",
     };
   }
 

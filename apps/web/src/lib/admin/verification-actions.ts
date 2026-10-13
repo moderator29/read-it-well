@@ -77,6 +77,15 @@ export async function recordVerificationCheck(
   if (readError) return fail(SERVICE_DOWN);
   if (!agent) return fail(GONE);
 
+  /* Nobody records a check on their own verification. The application and
+     every document already refuse their own reviewer (the action, the
+     `refuse_self_review` trigger and `review_kyc_document`); the four rungs
+     were the one decision a member of staff who is also an agent could take
+     about themselves, and each one raises the tier guests read. */
+  if (agent.user_id === access.user.id) {
+    return fail("You cannot record a check on your own verification. Leave it for another reviewer.");
+  }
+
   const before = asTier(agent.verification_tier);
 
   const { error: writeError } = await access.supabase

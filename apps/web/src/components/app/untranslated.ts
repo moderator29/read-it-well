@@ -90,6 +90,11 @@ export const KYC_DOCUMENT_KIND_WORDS: Record<string, string> = {
   identity: "Government issued ID",
   address: "Proof of address",
   business: "Business document",
+  /* The agent registration files a photo of the face beside the ID, and the
+     firm form a letter from the principal; both reached the KYC desk as the
+     raw kind. */
+  selfie: "Photo of their face",
+  association: "Letter from their principal",
 };
 
 /**

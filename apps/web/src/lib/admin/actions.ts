@@ -356,11 +356,23 @@ export async function reviewAgentApplication(input: {
   const parsed = validate(reviewAgentApplicationSchema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   const { applicationId, decision } = parsed.data;
-  const notes = parsed.data.notes ?? null;
+  /* An empty note is no note. The sheet sends "" when nothing was typed, and
+     "" slipped past every `?? fallback` below: a refusal reached the
+     applicant as a notification with an empty body and an email whose reason
+     was blank. */
+  const notes = parsed.data.notes && parsed.data.notes.length > 0 ? parsed.data.notes : null;
 
-  if (decision === "request_changes" && (notes === null || notes.length === 0)) {
+  if (decision === "request_changes" && notes === null) {
     return fail("Tell the applicant what to change.", {
       notes: "Write the change you need before sending it back.",
+    });
+  }
+  /* A refusal always says why, as a listing refusal already does: the
+     applicant reads it word for word on their application, and it is the only
+     explanation they get. The sheet said so and then let it be left blank. */
+  if (decision === "reject" && (notes === null || notes.length < 8)) {
+    return fail("Say why this application is not approved, in at least eight characters. The applicant reads it.", {
+      notes: "Write the reason for the refusal.",
     });
   }
 
@@ -526,8 +538,52 @@ export async function reviewAgentApplication(input: {
     }
   }
 
+  let admin: ReturnType<typeof createAdminClient> | null = null;
   try {
-    const admin = createAdminClient();
+    admin = createAdminClient();
+  } catch {
+    admin = null;
+  }
+
+  /*
+   * THE AUDIT ROW FIRST, THEN THE ANNOUNCEMENT. Both used to sit in one try
+   * with the announcement first, so anything the announcement threw skipped
+   * the audit row and a committed decision left no trail. `writeAudit` never
+   * throws: it retries once and raises a critical alert when it cannot write.
+   */
+  if (admin) {
+    const detail: AuditDetail = {
+      before_status: application.status,
+      after_status: nextStatus,
+      decision,
+      reference: application.reference,
+      applicant_id: application.user_id,
+      notes,
+    };
+    await writeAudit(admin, {
+      actorId: access.user.id,
+      action: "agent_application.review",
+      entityType: "agent_application",
+      entityId: application.id,
+      detail,
+    });
+  }
+
+  /* What the person filed, in their words: the three registration forms file
+     an owner, an agent or a firm registration, and only the older six step
+     form is an "agent application". An owner was told their agent
+     application was approved. */
+  const filed =
+    application.supply_role === "owner"
+      ? "owner registration"
+      : application.supply_role === "agent"
+        ? "agent registration"
+        : application.supply_role === "firm"
+          ? "firm registration"
+          : "agent application";
+
+  try {
+    if (!admin) throw new Error("no service client");
 
     const notice =
       decision === "approve"
@@ -537,16 +593,16 @@ export async function reviewAgentApplication(input: {
                and at this instant nobody has: the ladder is at tier 0 and the
                verification queue has not seen a document. The body already
                said the true thing; the title now does too. */
-            title: "Your agent application is approved",
+            title: `Your ${filed} is approved`,
             body: "Your agent workspace is open, so you can list your first property. Verification is a separate step and you can start it from your dashboard.",
           }
         : decision === "reject"
           ? {
-              title: "Your agent application was not approved",
+              title: `Your ${filed} was not approved`,
               body: notes ?? "Open your application to read the reviewer's note.",
             }
           : {
-              title: "Your agent application needs more information",
+              title: `Your ${filed} needs more information`,
               body: notes ?? "Open your application to see what the reviewer needs.",
             };
 
@@ -589,24 +645,9 @@ export async function reviewAgentApplication(input: {
                   notes ?? "Open your application to see what the reviewer needs.",
               }),
     });
-
-    const detail: AuditDetail = {
-      before_status: application.status,
-      after_status: nextStatus,
-      decision,
-      reference: application.reference,
-      applicant_id: application.user_id,
-      notes,
-    };
-    await writeAudit(admin, {
-      actorId: access.user.id,
-      action: "agent_application.review",
-      entityType: "agent_application",
-      entityId: application.id,
-      detail,
-    });
   } catch {
-    // The decision itself has committed. The follow-on work is best effort.
+    // The decision itself has committed and is in the audit log. Telling the
+    // applicant is best effort.
   }
 
   revalidatePath("/admin/agents");

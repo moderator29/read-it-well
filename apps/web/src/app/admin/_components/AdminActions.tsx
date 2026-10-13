@@ -451,6 +451,9 @@ export function ApplicationDecision({
           successTitle={copy.rejectSheet.successTitle}
           successBody={copy.rejectSheet.successBody}
           withNotes
+          /* The sheet says the reason is the only explanation the applicant
+             gets; the server refuses a refusal without one. */
+          notesRequired
           notesLabel={copy.rejectSheet.notesLabel}
           destructive
           run={(notes) => reviewAgentApplication({ applicationId, decision: "reject", notes })}

@@ -1244,7 +1244,7 @@ export const ha: Dictionary = withFallback({
         idBack: "Katin shaida, baya",
         registration: "Rajistar kasuwanci",
         upload: "Loda",
-        chooseFile: "Zabi fayil, PNG ko JPG ko PDF, har 10MB",
+        chooseFile: "Zabi fayil, PNG ko JPG ko PDF, har 8MB",
       },
       review: {
         title: "Duba ka aika",
@@ -3382,7 +3382,7 @@ export const ha: Dictionary = withFallback({
       replaceFile: "Zabi wani fayil dabam",
       uploading: "Ana lodawa",
       fileReady: "A shirye don aikawa",
-      fileTooBig: "Fayil ɗin ya haura 10MB. Ka zabi ƙaramin hoto ko PDF.",
+      fileTooBig: "Fayil ɗin ya haura 8MB. Ka zabi ƙaramin hoto ko PDF.",
       fileFailed: "Lodin bai yi nasara ba. Ka sake gwadawa.",
       signInFirst: "Ka shiga kafin ka loda, don a shigar da fayil ɗin cikin asusunka.",
       owner: {

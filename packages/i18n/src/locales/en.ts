@@ -2405,7 +2405,7 @@ export const en = {
         idBack: "ID card, back",
         registration: "Business registration",
         upload: "Upload",
-        chooseFile: "Choose a file, PNG or JPG or PDF, up to 10MB",
+        chooseFile: "Choose a file, PNG or JPG or PDF, up to 8MB",
       },
       review: {
         title: "Review and submit",
@@ -2415,7 +2415,15 @@ export const en = {
     },
     status: {
       submittedTitle: "Application submitted",
-      submittedBody: "We are reviewing your application. You will be notified once it is approved.",
+      submittedBody: "We are reviewing your application, and we will tell you the moment it is decided.",
+      /* The line under the heading, one per state. `submittedBody` used to be
+         the line for every state, so a refused applicant read "you will be
+         notified once it is approved" above the refusal. */
+      draftBody: "This application has not been sent yet.",
+      moreInfoBody: "The reviewer needs something from you before they can decide. Their note, and the way to answer it, are below.",
+      approvedBody: "Your workspace is open, so you can start listing. The identity checks are a separate step, started from your dashboard.",
+      rejectedBody: "This application was not approved. The reviewer's note says why, and you can apply again.",
+      suspendedBody: "This account is suspended. Contact support with your reference and a person will explain.",
       status: "Status",
       draft: "Draft",
       pendingReview: "Pending review",
@@ -2423,6 +2431,8 @@ export const en = {
       moreInfo: "More information required",
       approved: "Approved",
       rejected: "Rejected",
+      suspended: "Suspended",
+      applyAgain: "Apply again",
       submittedOn: "Submitted on",
       applicationId: "Application ID",
       reviewNote: "Our team typically reviews applications within 24 to 48 hours.",
@@ -2434,8 +2444,8 @@ export const en = {
       signIn: "Sign in",
       noneTitle: "No application on file",
       noneBody:
-        "You have not applied to become an agent yet. It takes about ten minutes and you need one photo ID.",
-      startApplication: "Apply to become an agent",
+        "You have not applied to list on Vallo yet. Say whether you own the property or act for an owner; the form takes about ten minutes.",
+      startApplication: "Start an application",
       unconfiguredTitle: "We cannot reach your application right now",
       unconfiguredBody:
         "This is on our side, not yours. Nothing you have submitted is lost. Try again in a few minutes.",
@@ -2448,7 +2458,8 @@ export const en = {
         answerHint: "Up to 2,000 characters.",
         attachIdentityTitle: "An identity document",
         attachAddressTitle: "Proof of address",
-        attachBody: "Optional. A photo or a PDF, up to 10 MB.",
+        attachBusinessTitle: "Business registration (CAC certificate)",
+        attachBody: "Optional. Add one when it answers what the reviewer asked for.",
         send: "Send it back",
         sending: "Sending",
         sent: "Sent back. It is with the reviewer again.",
@@ -3703,6 +3714,9 @@ export const en = {
       submittedWhen: "Submitted {when}",
       decidedWhen: "Decided {when}.",
       sections: {
+        /* Drawn above the six numbered sections, only for the three
+           registration forms (owner, agent, firm). */
+        registration: "What they registered as",
         personal: "1. Personal",
         identity: "2. Identity",
         business: "3. Business",
@@ -3710,7 +3724,18 @@ export const en = {
         payout: "5. Payout",
         review: "6. Review",
       },
+      roleNames: {
+        owner: "Owner",
+        agent: "Agent",
+        firm: "Firm",
+      },
       fields: {
+        registeredAs: "Registered as",
+        holds: "Holds on the property",
+        area: "Area",
+        experience: "Time as an agent",
+        agencyFee: "Agency fee",
+        legalFee: "Legal fee",
         fullName: "Full name",
         phone: "Phone",
         email: "Email",
@@ -3737,10 +3762,19 @@ export const en = {
       documentsNone: "No documents uploaded, so this application cannot be verified yet",
       documentOpen: "Open",
       documentUnavailable: "Link unavailable",
+      /* Keyed by `agent_documents.kind`, which is what the desk reads. The
+         first three are the wizard's slot names, which are never stored
+         (`lib/agent/application-document-kinds.ts` maps them), so every chip
+         used to print the raw kind: "identity", "selfie". */
       documentKinds: {
         idFront: "ID, front",
         idBack: "ID, back",
         registration: "CAC registration",
+        identity: "ID",
+        address: "Proof of address",
+        business: "Business registration",
+        selfie: "Photo of their face",
+        association: "Letter from their principal",
       },
       termsAgreed: "Agreed to the platform terms",
       termsNotAgreed: "Not agreed",
@@ -5640,6 +5674,9 @@ export const en = {
       documentsMissed:
         "Your application is filed, but the files did not attach. Contact us with that reference and we will add them.",
       trackIt: "See how it stands",
+      /* Shown instead of a setup form while an application is still open. */
+      openTitle: "You already have an application waiting",
+      openBody: "It is filed as {reference}. A second one would only queue behind it, so follow that one instead.",
       backHome: "Back to home",
       reviewDays: "Usually two working days",
       reviewDaysFirm: "Usually three working days",
@@ -5647,7 +5684,11 @@ export const en = {
       replaceFile: "Choose a different file",
       uploading: "Uploading",
       fileReady: "Ready to send",
-      fileTooBig: "That file is over 10MB. Please choose a smaller photo or PDF.",
+      fileTooBig: "That file is over 8MB. Please choose a smaller photo or PDF.",
+      fileType: "That file is not a photo or a PDF, so it cannot be sent. Choose a JPG, PNG, HEIC or PDF.",
+      /* `{size}` is the bucket's ceiling, "8MB" (components/verification/kyc.ts). */
+      fileLimit: "A photo or a PDF, up to {size}.",
+      photoLimit: "A photo, up to {size}.",
       fileFailed: "That upload did not go through. Please try again.",
       signInFirst: "Please sign in before uploading, so the file is filed to your account.",
       owner: {
@@ -5726,7 +5767,10 @@ export const en = {
           title: "Your fees, in the open",
           sub: "Set what you charge. Every client sees it before they ever ring you.",
           agency: "Agency fee",
-          agencyMeaning: "What you charge the landlord.",
+          /* The tenant pays it: the live total below adds it to what a tenant
+             pays to move in. This read "What you charge the landlord", which
+             contradicted the total on the same screen. */
+          agencyMeaning: "What the tenant pays you for finding them the place.",
           legal: "Legal fee",
           legalMeaning: "What you charge for the legal work.",
           less: "Less",

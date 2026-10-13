@@ -650,10 +650,26 @@ export type ApplicationView = {
   /** SUP-05: the applicant's answer to a MORE_INFO_REQUIRED note. */
   applicantResponse: string | null;
   createdAt: string;
+  /**
+   * WHAT THE THREE REGISTRATION FORMS ASK, WHICH THIS DESK NEVER READ.
+   *
+   * `supply_role` says which door the person came through (owner, agent or
+   * firm; null for the older six step form). The owner's one question is what
+   * they hold on the property, and the agent's are how long they have done
+   * this and what they charge. None of it was selected, so a reviewer
+   * deciding an owner saw "Individual agent" and no ownership answer, and
+   * deciding an agent never saw the fees the form exists to publish.
+   */
+  supplyRole: string | null;
+  ownershipDocument: string | null;
+  area: string | null;
+  yearsExperience: string | null;
+  agencyFeeBps: number | null;
+  legalFeeBps: number | null;
 };
 
 const APPLICATION_COLUMNS =
-  "id, reference, status, type, full_name, phone, email, residential_address, state_code, city, id_type, id_number, business_name, business_rc, bank_name, account_number, account_name, agree_terms, submitted_at, reviewed_at, review_notes, applicant_response, created_at, agent_documents ( id, kind, storage_path )";
+  "id, reference, status, type, full_name, phone, email, residential_address, state_code, city, id_type, id_number, business_name, business_rc, bank_name, account_number, account_name, agree_terms, submitted_at, reviewed_at, review_notes, applicant_response, created_at, supply_role, ownership_document, area, years_experience, agency_fee_bps, legal_fee_bps, agent_documents ( id, kind, storage_path )";
 
 type ApplicationRow = {
   id: string;
@@ -679,6 +695,12 @@ type ApplicationRow = {
   review_notes: string | null;
   applicant_response: string | null;
   created_at: string;
+  supply_role: string | null;
+  ownership_document: string | null;
+  area: string | null;
+  years_experience: string | null;
+  agency_fee_bps: number | null;
+  legal_fee_bps: number | null;
   agent_documents: { id: string; kind: string; storage_path: string }[];
 };
 
@@ -743,6 +765,12 @@ function toApplicationView(
     reviewNotes: row.review_notes,
     applicantResponse: row.applicant_response,
     createdAt: row.created_at,
+    supplyRole: row.supply_role,
+    ownershipDocument: row.ownership_document,
+    area: row.area,
+    yearsExperience: row.years_experience,
+    agencyFeeBps: row.agency_fee_bps,
+    legalFeeBps: row.legal_fee_bps,
   };
 }
 

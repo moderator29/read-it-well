@@ -19,6 +19,7 @@ import {
   type KycStatusView,
 } from "@/components/verification/KycStatus";
 import { resolveSession } from "@/lib/actions/session";
+import { readMyApplication } from "@/lib/agent/application-status";
 import { submitVerification } from "./actions";
 
 /**
@@ -36,17 +37,22 @@ async function ownDocumentState(): Promise<
   if (session.state !== "signed-in") return { state: "none" };
   const { data, error } = await session.supabase
     .from("agent_documents")
-    .select("kind, review_status, rejection_reason, uploaded_at")
+    .select("id, kind, review_status, rejection_reason, supersedes_id, uploaded_at")
     .eq("uploader_id", session.user.id)
     .in("kind", ["identity", "address"])
     .order("uploaded_at", { ascending: false })
     .limit(20);
   if (error || !data || data.length === 0) return { state: "none" };
-  const latest = new Map<string, { review_status: string; rejection_reason: string | null }>();
-  for (const row of data as { kind: string; review_status: string; rejection_reason: string | null }[]) {
-    if (!latest.has(row.kind)) latest.set(row.kind, row);
-  }
-  const rows = [...latest.values()];
+  /* EVERY CURRENT DOCUMENT, NOT THE NEWEST OF EACH KIND. The professional
+     application files both sides of an ID as two identity rows in one
+     statement, so "the newest identity row" was whichever the database
+     returned first, and a refused front could hide behind an approved back.
+     A row a later row supersedes is history (lib/agent/supersedes.ts). */
+  type DocRow = { id: string; kind: string; review_status: string; rejection_reason: string | null; supersedes_id: string | null };
+  const all = data as DocRow[];
+  const replaced = new Set(all.map((row) => row.supersedes_id).filter(Boolean));
+  const rows = all.filter((row) => !replaced.has(row.id));
+  const latest = new Set(rows.map((row) => row.kind));
   const rejected = rows.find((row) => row.review_status === "rejected");
   if (rejected) return { state: "rejected", reason: rejected.rejection_reason };
   if (rows.some((row) => row.review_status === "pending")) return { state: "pending" };
@@ -107,7 +113,23 @@ export default async function VerificationPage({
         merchantCode={merchantCode}
       />
     ) : null;
-  const [ladder, documents] = await Promise.all([getOwnLadder(context), ownDocumentState()]);
+  const [ladder, documents, mine] = await Promise.all([
+    getOwnLadder(context),
+    ownDocumentState(),
+    readMyApplication(),
+  ]);
+  /* THE BUSINESS QUESTION IS ASKED ONLY WHERE THE ANSWERS CAN BE FILED.
+     `submitVerification` writes the business details onto the application,
+     and an applicant can change their application only while it is a draft
+     or sent back to them (`agent_applications_update_own`). With no
+     application it opens one carrying them. Anything else (submitted, under
+     review, approved, refused) took eight answers, printed them on the
+     review step and dropped them, and an approved agent is who this page
+     mostly serves. */
+  const askBusiness =
+    mine.state !== "found" ||
+    mine.application.status === "DRAFT" ||
+    mine.application.status === "MORE_INFO_REQUIRED";
   /* THE PATH (W6, reference 7110): four rungs, each naming what is actually
      checked, built only from the reviewers' own decisions and the documents'
      own review state. See `components/verification/verification-path.ts`. */
@@ -307,7 +329,7 @@ export default async function VerificationPage({
         )}
         {pep}
         {vnin}
-        <KycFlow submit={submitVerification} success={getDictionary(locale).success} copy={t.experienceAccount.kyc} />
+        <KycFlow submit={submitVerification} success={getDictionary(locale).success} copy={t.experienceAccount.kyc} askBusiness={askBusiness} />
       </div>
     );
   }
@@ -345,7 +367,7 @@ export default async function VerificationPage({
           <div className="mb-block">{path}</div>
           {pep}
           {vnin}
-          <KycFlow submit={submitVerification} success={getDictionary(locale).success} copy={t.experienceAccount.kyc} />
+          <KycFlow submit={submitVerification} success={getDictionary(locale).success} copy={t.experienceAccount.kyc} askBusiness={askBusiness} />
         </>
       )}
     </div>

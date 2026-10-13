@@ -14,6 +14,7 @@ const seam = vi.hoisted(() => ({
   calls: [] as Call[],
   results: {} as Record<string, { data?: unknown; error: unknown }>,
   announce: vi.fn(),
+  audit: vi.fn(),
 }));
 
 function client() {
@@ -52,7 +53,7 @@ vi.mock("./guard", () => ({
 }));
 vi.mock("../supabase/admin", () => ({ createAdminClient: () => client() }));
 vi.mock("../notify/junction", () => ({ announce: seam.announce }));
-vi.mock("./audit", () => ({ writeAudit: vi.fn() }));
+vi.mock("./audit", () => ({ writeAudit: seam.audit }));
 
 const { reviewAgentApplication } = await import("./actions");
 
@@ -75,6 +76,8 @@ const updates = () => seam.calls.filter((c) => c.table === "agent_applications" 
 beforeEach(() => {
   seam.calls = [];
   seam.announce.mockReset();
+  seam.audit.mockReset();
+  seam.audit.mockResolvedValue(true);
   seam.results = {
     "agent_applications.select": { data: APPLICATION, error: null },
     "agent_applications.update": { data: [{ id: APPLICATION.id }], error: null },
@@ -141,5 +144,58 @@ describe("reviewAgentApplication approval side effects (SUP-14)", () => {
     const result = await approve();
     expect(result.ok).toBe(false);
     expect(seam.calls.some((c) => c.table === "agents" && c.op === "delete")).toBe(false);
+  });
+});
+
+describe("reviewAgentApplication reasons, records and words", () => {
+  const decide = (decision: "approve" | "reject" | "request_changes", notes?: string) =>
+    reviewAgentApplication({ applicationId: APPLICATION.id, decision, ...(notes === undefined ? {} : { notes }) });
+
+  it("refuses a rejection with no reason and writes nothing", async () => {
+    for (const notes of [undefined, "", "   ", "no"]) {
+      const result = await decide("reject", notes);
+      expect(result.ok, `notes ${JSON.stringify(notes)}`).toBe(false);
+    }
+    expect(updates()).toHaveLength(0);
+    expect(seam.announce).not.toHaveBeenCalled();
+    expect(seam.audit).not.toHaveBeenCalled();
+  });
+
+  it("treats an empty note as no note when asking for changes", async () => {
+    const result = await decide("request_changes", "");
+    expect(result.ok).toBe(false);
+    expect(updates()).toHaveLength(0);
+  });
+
+  it("files a rejection with its reason, records it and tells the applicant the reason", async () => {
+    const result = await decide("reject", "The ID photo is too blurred to read.");
+    expect(result.ok).toBe(true);
+    expect(updates()[0]?.payload).toMatchObject({ status: "REJECTED", review_notes: "The ID photo is too blurred to read." });
+    expect(seam.audit).toHaveBeenCalledTimes(1);
+    const notice = seam.announce.mock.calls[0]?.[1]?.notice;
+    expect(notice?.body).toBe("The ID photo is too blurred to read.");
+  });
+
+  it("stores no empty note on an approval", async () => {
+    await decide("approve", "");
+    expect(updates()[0]?.payload).toMatchObject({ status: "APPROVED", review_notes: null });
+  });
+
+  it("writes the audit row even when telling the applicant fails", async () => {
+    seam.announce.mockRejectedValue(new Error("mail down"));
+    const result = await approve();
+    expect(result.ok).toBe(true);
+    expect(seam.audit).toHaveBeenCalledTimes(1);
+    expect(seam.audit.mock.calls[0]?.[1]).toMatchObject({ action: "agent_application.review", entityId: APPLICATION.id });
+  });
+
+  it("names what the person filed: an owner is not told about an agent application", async () => {
+    await approve();
+    expect(seam.announce.mock.calls[0]?.[1]?.notice?.title).toBe("Your owner registration is approved");
+    seam.announce.mockReset();
+    seam.calls = [];
+    seam.results["agent_applications.select"] = { data: { ...APPLICATION, supply_role: null }, error: null };
+    await approve();
+    expect(seam.announce.mock.calls[0]?.[1]?.notice?.title).toBe("Your agent application is approved");
   });
 });

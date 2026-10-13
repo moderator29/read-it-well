@@ -211,7 +211,7 @@ export function OwnerRegisterForm({
       if (!result.ok) {
         setErrors(result.fieldErrors ?? {});
         setScreenError(result.error);
-        const walkBack = earliestStep(result.fieldErrors);
+        const walkBack = earliestStep(result.fieldErrors, "owner");
         if (walkBack !== null) setStep(walkBack);
         return;
       }

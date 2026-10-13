@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   BUSINESS_SECTIONS,
@@ -51,6 +53,28 @@ describe("stepsFor", () => {
     for (const answer of [null, true, false] as const) {
       const steps = stepsFor(answer);
       expect(steps[steps.length - 1]?.id).toBe("review");
+    }
+  });
+
+  it("is four steps, with no business question, when the answers could not be filed", () => {
+    for (const answer of [null, true, false] as const) {
+      expect(stepsFor(answer, false).map((s) => s.id)).toEqual([
+        "identity-document",
+        "address-document",
+        "consent",
+        "review",
+      ]);
+    }
+  });
+});
+
+describe("the business answers", () => {
+  /* A field the flow asks for and the action never files is lost data: the
+     website was asked, shown on the review step and dropped. */
+  it("are each filed onto the application by submitVerification", () => {
+    const action = readFileSync(join(process.cwd(), "src/app/(app)/verification/actions.ts"), "utf8");
+    for (const field of BUSINESS_SECTIONS.flatMap((section) => section.fields)) {
+      expect(action, field.name).toContain(`value("${field.name}")`);
     }
   });
 });

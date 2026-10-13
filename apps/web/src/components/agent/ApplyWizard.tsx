@@ -19,13 +19,25 @@ import { PhoneField } from "@/components/app/PhoneField";
 import { SegmentedProgress } from "@/components/ui/Progress";
 import { Switch } from "@/components/ui/Switch";
 import { TextField, SelectField as UiSelectField } from "@/components/ui/Field";
+import {
+  MAX_FILE_LABEL,
+  documentExtension,
+  rejectFileIssue,
+} from "@/components/verification/kyc";
 
 const EMPTY: ApplicationResult = { ok: false };
 const DRAFT_KEY = "nf_agent_application_draft";
 const DOCUMENT_BUCKET = "agent-documents";
 
-/** Refuse a file too big to be a photo of an ID, before it leaves the phone. */
-const MAX_DOCUMENT_BYTES = 10 * 1024 * 1024;
+/*
+ * Refuse a file the bucket would refuse, before it leaves the phone. The
+ * ceiling and the types are the bucket's own (`kyc.ts`): this used to allow
+ * 10MB against the bucket's 8MB, so a 9MB photo failed in storage and the slot
+ * said "try again" about a file that could never go through.
+ */
+const TOO_BIG = `That file is over ${MAX_FILE_LABEL}. Please choose a smaller photo or PDF.`;
+const NOT_A_DOCUMENT = "That file is not a photo or a PDF. Choose a JPG, PNG, HEIC or PDF.";
+const UPLOAD_FAILED = "That upload did not go through. Please try again.";
 
 type Values = Record<string, string>;
 type AgentType = "individual" | "business";
@@ -99,13 +111,6 @@ function newBatchId(): string {
   } catch {
     return `b-${Date.now()}-${Math.floor(Math.random() * 1e9)}`;
   }
-}
-
-/** The file extension to store under, from the type rather than the name. */
-function extensionFor(file: File): string {
-  if (file.type === "application/pdf") return "pdf";
-  if (file.type === "image/png") return "png";
-  return "jpg";
 }
 
 const TEXT_FIELDS = [
@@ -303,44 +308,46 @@ export function ApplyWizard({ t, role }: { t: ApplyCopy; role?: SetupRole }) {
    * bucket, under `<auth uid>/<batch>/<kind>.<ext>`, which storage RLS restricts
    * to this user's own folder. The preview is shown immediately so the wizard
    * feels instant, but the slot only counts as filled once the object exists and
-   * a real path came back. Every failure says what happened in one sentence and
-   * leaves the slot empty, so nobody submits believing a document went through.
+   * a real path came back. Every failure says what happened in one sentence,
+   * so nobody submits believing a document went through.
+   *
+   * A REFUSED OR FAILED REPLACEMENT KEEPS THE FILE THAT WAS ALREADY UP. The
+   * slot used to be overwritten the moment a new file was chosen, so a
+   * too-big replacement or a dropped connection wiped the path of an ID that
+   * had uploaded perfectly well: the manifest lost it, Submit refused with
+   * "upload both sides of your ID", and the earlier object sat orphaned in the
+   * bucket. The earlier upload is now dropped only once its replacement is in.
    */
   async function onFile(name: string, file: File | undefined) {
     if (!file) return;
+    const previous = docs[name];
 
-    if (file.size > MAX_DOCUMENT_BYTES) {
+    /* Fails back to whatever the slot held before this file was chosen, with
+       the reason beside it. A slot that held nothing shows the chosen file's
+       name with the reason, as before. */
+    const refuse = (message: string, isPdf: boolean, preview?: string) => {
+      if (preview) URL.revokeObjectURL(preview);
       setDocs((prev) => ({
         ...prev,
-        [name]: {
-          fileName: file.name,
-          isPdf: false,
-          uploading: false,
-          error: "That file is over 10MB. Please choose a smaller photo or PDF.",
-        },
+        [name]: previous?.path
+          ? { ...previous, uploading: false, error: message }
+          : { fileName: file.name, isPdf, uploading: false, error: message },
       }));
+    };
+
+    const issue = rejectFileIssue(file);
+    if (issue) {
+      refuse(issue === "size" ? TOO_BIG : NOT_A_DOCUMENT, false);
       return;
     }
 
     const isPdf = file.type === "application/pdf";
     const preview = isPdf ? undefined : URL.createObjectURL(file);
 
-    setDocs((prev) => {
-      const old = prev[name];
-      if (old?.preview) URL.revokeObjectURL(old.preview);
-      return {
-        ...prev,
-        [name]: { fileName: file.name, isPdf, uploading: true, ...(preview ? { preview } : {}) },
-      };
-    });
-
-    const finish = (patch: Partial<DocumentSlot>) => {
-      setDocs((prev) => {
-        const slot = prev[name];
-        if (!slot) return prev;
-        return { ...prev, [name]: { ...slot, uploading: false, ...patch } };
-      });
-    };
+    setDocs((prev) => ({
+      ...prev,
+      [name]: { fileName: file.name, isPdf, uploading: true, ...(preview ? { preview } : {}) },
+    }));
 
     try {
       /* The browser client loads now, when a file is chosen, not with the
@@ -348,7 +355,7 @@ export function ApplyWizard({ t, role }: { t: ApplyCopy; role?: SetupRole }) {
          is the same failure the slot already says for an upload. */
       const supabase = await loadBrowserClient();
       if (!supabase) {
-        finish({ error: "That upload did not go through. Please try again." });
+        refuse(UPLOAD_FAILED, isPdf, preview);
         return;
       }
       const {
@@ -356,9 +363,7 @@ export function ApplyWizard({ t, role }: { t: ApplyCopy; role?: SetupRole }) {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        finish({
-          error: "Please sign in before uploading, so the file is filed to your account.",
-        });
+        refuse("Please sign in before uploading, so the file is filed to your account.", isPdf, preview);
         return;
       }
 
@@ -366,25 +371,28 @@ export function ApplyWizard({ t, role }: { t: ApplyCopy; role?: SetupRole }) {
          document is filed against the application it cannot be replaced, so
          re-choosing a slot is a new object, and only the path handed to the
          submit is filed. */
-      const path = `${user.id}/${batchId.current}/${name}-${crypto.randomUUID()}.${extensionFor(file)}`;
+      const path = `${user.id}/${batchId.current}/${name}-${crypto.randomUUID()}.${documentExtension(file.type)}`;
       const upload = await supabase.storage
         .from(DOCUMENT_BUCKET)
         .upload(path, file, { contentType: file.type, upsert: false });
 
       if (upload.error) {
-        finish({ error: "That upload did not go through. Please try again." });
+        refuse(UPLOAD_FAILED, isPdf, preview);
         return;
       }
 
-      const replaced = docs[name]?.path;
-      if (replaced && replaced !== path) {
+      if (previous?.preview) URL.revokeObjectURL(previous.preview);
+      if (previous?.path && previous.path !== path) {
         /* Best effort: the storage policy allows removing an upload that was
            never filed, and refuses one that was. */
-        void supabase.storage.from(DOCUMENT_BUCKET).remove([replaced]);
+        void supabase.storage.from(DOCUMENT_BUCKET).remove([previous.path]);
       }
-      finish({ path });
+      setDocs((prev) => ({
+        ...prev,
+        [name]: { fileName: file.name, isPdf, uploading: false, path, ...(preview ? { preview } : {}) },
+      }));
     } catch {
-      finish({ error: "That upload did not go through. Please try again." });
+      refuse(UPLOAD_FAILED, isPdf, preview);
     }
   }
 
@@ -708,7 +716,10 @@ export function ApplyWizard({ t, role }: { t: ApplyCopy; role?: SetupRole }) {
         </div>
       </form>
 
-      <p className="mt-sm text-center text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">{a.draftSaved}</p>
+      {/* Once filed, the draft is deleted (above), so "draft saved" would be false. */}
+      {state.ok ? null : (
+        <p className="mt-sm text-center text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">{a.draftSaved}</p>
+      )}
     </div>
   );
 }
@@ -859,7 +870,11 @@ function UploadZone({
         accept="image/png,image/jpeg,application/pdf"
         className="sr-only"
         onChange={(e) => {
-          void onFile(id, e.target.files?.[0]);
+          const chosen = e.target.files?.[0];
+          /* Cleared at once: a file input fires no change event for the same
+             file twice, so retrying a failed upload with that file did nothing. */
+          e.target.value = "";
+          void onFile(id, chosen);
         }}
       />
     </div>

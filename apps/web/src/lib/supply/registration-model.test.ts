@@ -17,4 +17,10 @@ describe("the register forms' client-safe model", () => {
     expect(earliestStep({ "team.0": "x", fullName: "y" })).toBe(0);
     expect(earliestStep({ agencyFeeBps: "x" })).toBe(2);
   });
+
+  it("walks an owner's NIN refusal back to the screen the owner form asks it on", () => {
+    expect(earliestStep({ nin: "x" }, "owner")).toBe(0);
+    expect(earliestStep({ nin: "x" }, "agent")).toBe(1);
+    expect(earliestStep({ nin: "x", phone: "y" }, "owner")).toBe(0);
+  });
 });

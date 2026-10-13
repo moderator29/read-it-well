@@ -1272,7 +1272,7 @@ export const ig: Dictionary = withFallback({
         idBack: "Kaadị njirimara, azụ",
         registration: "Ndebanye aha azụmahịa",
         upload: "Bulite",
-        chooseFile: "Họrọ faịlụ, PNG ma ọ bụ JPG ma ọ bụ PDF, ruo 10MB",
+        chooseFile: "Họrọ faịlụ, PNG ma ọ bụ JPG ma ọ bụ PDF, ruo 8MB",
       },
       review: {
         title: "Nyochaa ma zipu",
@@ -3411,7 +3411,7 @@ export const ig: Dictionary = withFallback({
       replaceFile: "Họrọ faịlụ ọzọ",
       uploading: "Na-ebulite",
       fileReady: "Njikere izipu",
-      fileTooBig: "Faịlụ ahụ karịrị 10MB. Biko họrọ foto ma ọ bụ PDF dị obere.",
+      fileTooBig: "Faịlụ ahụ karịrị 8MB. Biko họrọ foto ma ọ bụ PDF dị obere.",
       fileFailed: "Nbulite ahụ agaghị. Biko nwaa ọzọ.",
       signInFirst: "Biko banye tupu ị bulite, ka edebe faịlụ ahụ n'akaụntụ gị.",
       owner: {
