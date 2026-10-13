@@ -128,6 +128,11 @@ export type EmailKind =
   | "bookingCancelled"
   | "bookingRefunded"
   | "refundRequested"
+  | "paymentHostReceived"
+  | "paymentRentReceipt"
+  | "stayReviewRequest"
+  // Messages
+  | "unreadMessages"
   // Tables
   | "reservationConfirmed"
   | "reservationCancelled"
@@ -244,6 +249,11 @@ export const EMAIL_PLAN: Readonly<Record<EmailKind, Plan>> = {
   /* Money coming back to somebody: the open hand with the naira coin. */
   bookingRefunded: p("payment", "earnings"),
   refundRequested: p("payment", "earnings"),
+  /* Money reaching a host: the open hand with the naira coin. */
+  paymentHostReceived: p("payment", "earnings"),
+  paymentRentReceipt: p("payment", "pay"),
+  stayReviewRequest: p("stay", "calendar-booked"),
+  unreadMessages: p("message", "local-talks"),
 
   reservationConfirmed: p("table", "restaurant"),
   reservationCancelled: p("table", "restaurant"),

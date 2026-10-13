@@ -458,6 +458,70 @@ export const EVERY_MESSAGE: NamedMessage[] = [
     }),
   },
   {
+    name: "paymentHostReceived",
+    message: lifecycle.paymentHostReceived({
+      name: "Chidi Okafor",
+      place: LISTING,
+      checkIn: "2026-11-14",
+      checkOut: "2026-11-17",
+      amountMinor: 30_000_050,
+      shareMinor: 27_000_045,
+      rail: "direct",
+      side: "agent",
+    }),
+  },
+  {
+    name: "paymentHostReceived:protected",
+    message: lifecycle.paymentHostReceived({
+      name: null,
+      place: "Transcorp Hilton, Deluxe double",
+      checkIn: "2026-11-14",
+      checkOut: "2026-11-16",
+      amountMinor: 18_500_000,
+      shareMinor: null,
+      rail: "protected",
+      side: "host",
+    }),
+  },
+  {
+    name: "paymentRentReceipt",
+    message: lifecycle.paymentRentReceipt({
+      name: "Ada",
+      place: LISTING,
+      amountMinor: 450_000_000,
+      share: false,
+      rentPaymentId: "6a6a6a6a-6a6a-4a6a-8a6a-6a6a6a6a6a6a",
+    }),
+  },
+  {
+    name: "paymentRentReceipt:share",
+    message: lifecycle.paymentRentReceipt({
+      name: "Ada",
+      place: LISTING,
+      amountMinor: 150_000_000,
+      share: true,
+      rentPaymentId: "6a6a6a6a-6a6a-4a6a-8a6a-6a6a6a6a6a6a",
+    }),
+  },
+  {
+    name: "stayReviewRequest",
+    message: lifecycle.stayReviewRequest({
+      name: "Ada",
+      place: LISTING,
+      bookingId: "7b7b7b7b-7b7b-4b7b-8b7b-7b7b7b7b7b7b",
+    }),
+  },
+  {
+    name: "unreadMessages",
+    message: lifecycle.unreadMessages({
+      name: "Ada",
+      senderName: "Chidi Okafor",
+      count: 3,
+      conversationPath: "/messages/8c8c8c8c-8c8c-4c8c-8c8c-8c8c8c8c8c8c",
+    }),
+  },
+  { name: "unreadMessages:anonymous", message: lifecycle.unreadMessages({ name: null, senderName: null, count: 0, conversationPath: "/agent/messages/8c8c8c8c-8c8c-4c8c-8c8c-8c8c8c8c8c8c" }) },
+  {
     name: "supportTicketFiled",
     message: messages.supportTicketFiled({
       name: "Ada",

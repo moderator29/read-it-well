@@ -76,4 +76,33 @@ export const LIFECYCLE_PAYLOADS: Record<string, Payload> = {
     rung: "identity",
     note: "The photo of the card is too blurred to read.",
   },
+  /* 13 October (nt02, nt05): the payment and stay templates. */
+  "payment.host_received": {
+    transaction_id: "9a9a9a9a-9a9a-4a9a-8a9a-9a9a9a9a9a9a",
+    booking_id: "9b9b9b9b-9b9b-4b9b-8b9b-9b9b9b9b9b9b",
+    place: "2 bedroom flat, Yaba",
+    check_in: "2026-11-14",
+    check_out: "2026-11-17",
+    amount_minor: 30_000_000,
+    share_minor: 27_000_000,
+    rail: "direct",
+    side: "agent",
+  },
+  "payment.rent_receipt": {
+    transaction_id: "9a9a9a9a-9a9a-4a9a-8a9a-9a9a9a9a9a9b",
+    rent_payment_id: "9c9c9c9c-9c9c-4c9c-8c9c-9c9c9c9c9c9c",
+    place: "2 bedroom flat, Yaba",
+    amount_minor: 450_000_000,
+    share: false,
+  },
+  "stay.review_request": {
+    booking_id: "9b9b9b9b-9b9b-4b9b-8b9b-9b9b9b9b9b9b",
+    place: "2 bedroom flat, Yaba",
+  },
+  "message.unread": {
+    conversation_id: "88888888-8888-4888-8888-888888888888",
+    count: 3,
+    sender_id: "22222222-2222-4222-8222-222222222222",
+    side: "guest",
+  },
 };
