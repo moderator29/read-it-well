@@ -1,4 +1,4 @@
-import { koboToNairaInput, MAX_PRICE_KOBO } from "./listings-model";
+import { koboToNairaInput, MAX_PRICE_KOBO, MAX_SALE_PRICE_KOBO } from "./listings-model";
 import { findNeighbourhood as findPlace } from "../places/neighbourhoods";
 import { CUT_MARK_RE, stripContacts } from "./contacts";
 
@@ -97,6 +97,13 @@ export const BROADCAST_MONEY_KEYS: readonly BroadcastKey[] = [
   "saleAgencyFeeNaira",
   "saleLegalFeeNaira",
 ];
+
+/** The figures the draft holds to the sale ceiling (`MAX_SALE_PRICE_KOBO`). */
+const SALE_MONEY_KEYS: ReadonlySet<BroadcastKey> = new Set<BroadcastKey>([
+  "salePriceNaira",
+  "saleAgencyFeeNaira",
+  "saleLegalFeeNaira",
+]);
 
 export type NotCarriedKind =
   | "phone"
@@ -619,7 +626,9 @@ export function parseBroadcast(message: string): BroadcastParse {
   const priceKobo = found.rent?.kobo ?? found.sale?.kobo ?? unlabelledRent?.kobo ?? null;
   const setMoney = (key: BroadcastKey, value: number) => {
     if (kobo[key] !== undefined) return;
-    if (value > MAX_PRICE_KOBO) {
+    /* The sale side has its own, higher ceiling in the draft validator. */
+    const ceiling = SALE_MONEY_KEYS.has(key) ? MAX_SALE_PRICE_KOBO : MAX_PRICE_KOBO;
+    if (value > ceiling) {
       /* Above the draft's own ceiling. The validator would refuse it, so it
          is handed back to the agent to type, never trimmed to fit. */
       notCarried.push({ kind: "tooLarge", text: koboToNairaInput(value) });

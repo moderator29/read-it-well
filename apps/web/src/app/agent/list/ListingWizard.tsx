@@ -265,6 +265,11 @@ function digitsOnly(raw: string, max: number): string {
   return raw.replace(/[^0-9]/g, "").slice(0, max);
 }
 
+/** A box as the save sends it: what was typed, or null for a box left empty. */
+function cleared(raw: string): string | null {
+  return raw.trim() === "" ? null : raw;
+}
+
 const EMPTY: Values = {
   title: "",
   description: "",
@@ -1594,54 +1599,56 @@ export function ListingWizard({
       /* V-09: the unconfirmed set goes to the server in the same save. */
       broadcastUnconfirmed: marksUnread ? undefined : [...fromMessage],
       title: values.title,
-      description: values.description,
+      /* EVERY BOX THE LISTER EMPTIED IS SENT AS NULL, which the action reads as
+         "clear the column". An empty box used to be left out of the save, and
+         the server keeps what it is not sent, so a deleted fee, address or
+         count stayed on the listing that went to review and came back here on
+         the next visit. Undefined is now only ever "not this save's business". */
+      description: cleared(values.description),
       propertyType: values.propertyType,
-      stateCode: values.stateCode,
-      city: values.city,
-      area: values.area,
-      address: values.address,
-      landmark: values.landmark,
+      stateCode: values.stateCode === "" ? null : values.stateCode,
+      city: cleared(values.city),
+      area: cleared(values.area),
+      address: cleared(values.address),
+      landmark: cleared(values.landmark),
       bedrooms: values.bedrooms,
       bathrooms: values.bathrooms,
-      toilets: values.toilets === "" ? undefined : values.toilets,
-      parkingSpaces: values.parkingSpaces === "" ? undefined : values.parkingSpaces,
-      floor: values.floor === "" ? undefined : values.floor,
-      totalFloors: values.totalFloors === "" ? undefined : values.totalFloors,
-      sizeSqm: values.sizeSqm === "" ? undefined : values.sizeSqm,
+      toilets: cleared(values.toilets),
+      parkingSpaces: cleared(values.parkingSpaces),
+      floor: cleared(values.floor),
+      totalFloors: cleared(values.totalFloors),
+      sizeSqm: cleared(values.sizeSqm),
       intent: values.intent,
-      rentNaira: values.rentNaira === "" ? undefined : values.rentNaira,
+      rentNaira: cleared(values.rentNaira),
       rentPeriod: values.rentPeriod,
       rentNegotiable: values.rentNegotiable,
-      cautionDepositNaira:
-        values.cautionDepositNaira === "" ? undefined : values.cautionDepositNaira,
-      serviceChargeNaira:
-        values.serviceChargeNaira === "" ? undefined : values.serviceChargeNaira,
+      cautionDepositNaira: cleared(values.cautionDepositNaira),
+      serviceChargeNaira: cleared(values.serviceChargeNaira),
       serviceChargePeriod: values.serviceChargePeriod,
-      agencyFeeNaira: values.agencyFeeNaira === "" ? undefined : values.agencyFeeNaira,
-      legalFeeNaira: values.legalFeeNaira === "" ? undefined : values.legalFeeNaira,
-      agreementFeeNaira: values.agreementFeeNaira === "" ? undefined : values.agreementFeeNaira,
-      totalMoveInNaira: values.totalMoveInNaira === "" ? undefined : values.totalMoveInNaira,
-      minimumTenancyMonths:
-        values.minimumTenancyMonths === "" ? undefined : values.minimumTenancyMonths,
-      availableFrom: values.availableFrom === "" ? undefined : values.availableFrom,
-      furnished: values.furnished === "" ? undefined : values.furnished,
-      rateNaira: values.rateNaira === "" ? undefined : values.rateNaira,
-      salePriceNaira: values.salePriceNaira === "" ? undefined : values.salePriceNaira,
-      saleAgencyFeeNaira: values.saleAgencyFeeNaira === "" ? undefined : values.saleAgencyFeeNaira,
-      saleLegalFeeNaira: values.saleLegalFeeNaira === "" ? undefined : values.saleLegalFeeNaira,
-      governorsConsentFeeNaira: values.governorsConsentFeeNaira === "" ? undefined : values.governorsConsentFeeNaira,
-      stampDutyNaira: values.stampDutyNaira === "" ? undefined : values.stampDutyNaira,
-      surveyRegistrationFeeNaira: values.surveyRegistrationFeeNaira === "" ? undefined : values.surveyRegistrationFeeNaira,
-      totalPurchaseNaira: values.totalPurchaseNaira === "" ? undefined : values.totalPurchaseNaira,
+      agencyFeeNaira: cleared(values.agencyFeeNaira),
+      legalFeeNaira: cleared(values.legalFeeNaira),
+      agreementFeeNaira: cleared(values.agreementFeeNaira),
+      totalMoveInNaira: cleared(values.totalMoveInNaira),
+      minimumTenancyMonths: cleared(values.minimumTenancyMonths),
+      availableFrom: cleared(values.availableFrom),
+      furnished: values.furnished === "" ? null : values.furnished,
+      rateNaira: cleared(values.rateNaira),
+      salePriceNaira: cleared(values.salePriceNaira),
+      saleAgencyFeeNaira: cleared(values.saleAgencyFeeNaira),
+      saleLegalFeeNaira: cleared(values.saleLegalFeeNaira),
+      governorsConsentFeeNaira: cleared(values.governorsConsentFeeNaira),
+      stampDutyNaira: cleared(values.stampDutyNaira),
+      surveyRegistrationFeeNaira: cleared(values.surveyRegistrationFeeNaira),
+      totalPurchaseNaira: cleared(values.totalPurchaseNaira),
       priceNegotiable: values.priceNegotiable,
-      tenure: values.tenure === "" ? undefined : values.tenure,
+      tenure: values.tenure === "" ? null : values.tenure,
       saleStatus: values.saleStatus,
-      yearBuilt: values.yearBuilt === "" ? undefined : values.yearBuilt,
-      condition: values.condition === "" ? undefined : values.condition,
-      powerGrid: values.powerGrid === "" ? undefined : values.powerGrid,
-      powerBackup: values.powerBackup === "" ? undefined : values.powerBackup,
-      powerBackupHours: values.powerBackupHours === "" ? undefined : values.powerBackupHours,
-      waterSupply: values.waterSupply === "" ? undefined : values.waterSupply,
+      yearBuilt: cleared(values.yearBuilt),
+      condition: values.condition === "" ? null : values.condition,
+      powerGrid: values.powerGrid === "" ? null : values.powerGrid,
+      powerBackup: values.powerBackup === "" ? null : values.powerBackup,
+      powerBackupHours: cleared(values.powerBackupHours),
+      waterSupply: values.waterSupply === "" ? null : values.waterSupply,
       prepaidMeter: values.prepaidMeter,
       /* A group whose saved answers could not be read, and which the lister
          has not touched, is left out: sending its empty form would write

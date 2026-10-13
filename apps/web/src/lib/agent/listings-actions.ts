@@ -185,7 +185,8 @@ export type SavedDraft = { id: string; status: ListingStatus };
  * Insert when no id arrives, update when one does. Only the title is required,
  * because the alternative is losing a listing to an interruption. Fields the
  * wizard omits are left exactly as they were rather than being cleared, so a
- * partial save can never eat earlier work.
+ * partial save can never eat earlier work; a field sent as null is one the
+ * lister emptied, and its column is emptied with it.
  */
 export async function saveDraft(input: DraftInput): Promise<ActionResult<SavedDraft>> {
   const gate = await requireAgent();
@@ -219,10 +220,10 @@ export async function saveDraft(input: DraftInput): Promise<ActionResult<SavedDr
      obvious one: a rent defaults to yearly, which is what the Nigerian tenancy
      market quotes, and a service charge follows the rent it sits beside. */
   const rentPeriod: RentPeriod | undefined =
-    value.rentPeriod ?? existing?.rent_period ?? (value.rentNaira !== undefined ? "year" : undefined);
+    value.rentPeriod ?? existing?.rent_period ?? (typeof value.rentNaira === "number" ? "year" : undefined);
   const serviceChargePeriod: RentPeriod | undefined =
     value.serviceChargePeriod ??
-    (value.serviceChargeNaira !== undefined ? (rentPeriod ?? "year") : undefined);
+    (typeof value.serviceChargeNaira === "number" ? (rentPeriod ?? "year") : undefined);
 
   /*
    * The total to find at the door, checked against its own parts here rather
@@ -236,15 +237,17 @@ export async function saveDraft(input: DraftInput): Promise<ActionResult<SavedDr
    * parts are resolved against the stored row for anything this request did not
    * send, because a forgiving draft save sends only what changed.
    */
-  const settled = (sent: number | undefined, stored: number | null | undefined) =>
-    sent !== undefined ? sent : Number(stored ?? 0);
+  /* Sent wins; a part this save cleared (null) counts as nothing; a part it did
+     not send keeps what is stored. */
+  const settled = (sent: number | null | undefined, stored: number | null | undefined) =>
+    sent === undefined ? Number(stored ?? 0) : (sent ?? 0);
   const partsSum =
     settled(value.rentNaira, existing?.rent_amount_minor) +
     settled(value.cautionDepositNaira, existing?.caution_deposit_minor) +
     settled(value.agencyFeeNaira, existing?.agency_fee_minor) +
     settled(value.legalFeeNaira, existing?.legal_fee_minor) +
     settled(value.agreementFeeNaira, existing?.agreement_fee_minor);
-  if (value.totalMoveInNaira !== undefined && value.totalMoveInNaira < partsSum) {
+  if (typeof value.totalMoveInNaira === "number" && value.totalMoveInNaira < partsSum) {
     return fail(
       "The total to move in is less than the fees you listed, so one of the two figures is wrong.",
       {
@@ -267,7 +270,7 @@ export async function saveDraft(input: DraftInput): Promise<ActionResult<SavedDr
     settled(value.governorsConsentFeeNaira, existing?.governors_consent_fee_minor) +
     settled(value.stampDutyNaira, existing?.stamp_duty_minor) +
     settled(value.surveyRegistrationFeeNaira, existing?.survey_registration_fee_minor);
-  if (value.totalPurchaseNaira !== undefined && value.totalPurchaseNaira < purchaseSum) {
+  if (typeof value.totalPurchaseNaira === "number" && value.totalPurchaseNaira < purchaseSum) {
     return fail(
       "The total to buy is less than the price and the fees you listed, so one of the figures is wrong.",
       {
@@ -320,11 +323,13 @@ export async function saveDraft(input: DraftInput): Promise<ActionResult<SavedDr
        The period is never asked for: a restaurant is per head and everything
        else on this side is per night, and asking somebody to confirm the
        category they already chose is a question with one answer. */
-    rate_minor: tenancy ? undefined : value.rateNaira,
+    /* `rate_minor` is NOT NULL, so a rate the lister cleared is stored as the
+       zero the column has always meant "no rate set". */
+    rate_minor: tenancy || value.rateNaira === undefined ? undefined : (value.rateNaira ?? 0),
     rate_period:
       tenancy || value.rateNaira === undefined
         ? undefined
-        : value.rateNaira > 0
+        : (value.rateNaira ?? 0) > 0
           ? ratePeriodFor(propertyType)
           : null,
 
@@ -357,7 +362,7 @@ export async function saveDraft(input: DraftInput): Promise<ActionResult<SavedDr
     // the hours here rather than letting the write bounce with a 23514 the
     // host cannot act on.
     power_backup_hours:
-      value.powerBackup === "NONE" ? null : value.powerBackupHours,
+      value.powerBackup === "NONE" || value.powerBackup === null ? null : value.powerBackupHours,
     water_supply: value.waterSupply,
     prepaid_meter: value.prepaidMeter,
   };
