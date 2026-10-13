@@ -320,6 +320,17 @@ export const draftInputSchema = z.object({
 
   /* V-41. The lister's flooding answer; null clears, undefined leaves alone. */
   flooding: z.enum(FLOODING).nullable().optional(),
+}).superRefine((value, ctx) => {
+  /* `listings_floor_within_building`: a sixth floor in a five floor building
+     is refused by the database, which reached the lister as "We could not save
+     this listing" with nothing pointing at the two boxes. */
+  if (typeof value.floor === "number" && typeof value.totalFloors === "number" && value.floor > value.totalFloors) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["floor"],
+      message: `The floor is above the top of the building. It has ${value.totalFloors} floors.`,
+    });
+  }
 });
 
 export type DraftInput = z.input<typeof draftInputSchema>;

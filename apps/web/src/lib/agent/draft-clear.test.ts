@@ -146,6 +146,16 @@ describe("the sale side has its own ceiling", () => {
   });
 });
 
+describe("the floor and the building agree before the database is asked", () => {
+  it("names the floor box when the floor is above the top of the building", () => {
+    const parsed = draftInputSchema.safeParse({ ...base, floor: "6", totalFloors: "5" });
+    expect(parsed.success).toBe(false);
+    expect(parsed.success ? null : parsed.error.issues[0]?.path).toEqual(["floor"]);
+    expect(draftInputSchema.safeParse({ ...base, floor: "5", totalFloors: "5" }).success).toBe(true);
+    expect(draftInputSchema.safeParse({ ...base, floor: "6", totalFloors: null }).success).toBe(true);
+  });
+});
+
 describe("a stored fee comes back to the box as it was stated", () => {
   it("restores a declared zero as 0, never as an empty box", () => {
     expect(feeToNairaInput(0)).toBe("0");

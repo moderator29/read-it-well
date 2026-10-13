@@ -292,6 +292,11 @@ export async function saveDraft(input: DraftInput): Promise<ActionResult<SavedDr
     address: value.address,
     landmark: value.landmark,
     bedrooms: value.bedrooms,
+    /* The en-suite count travels with the bedrooms it is capped by
+       (`listings_ensuite_count_within_bedrooms`). Written only by
+       `writeUnit`, after this update, lowering the bedrooms below the stored
+       count broke the check and the whole save failed. */
+    ensuite_count: value.ensuiteCount,
     bathrooms: value.bathrooms,
     toilets: value.toilets,
     parking_spaces: value.parkingSpaces,
