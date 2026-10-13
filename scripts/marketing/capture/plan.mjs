@@ -85,7 +85,7 @@ const BASE_CAPTURES = [
   { id: "welcome-first", auth: false, steps: [{ goto: "/welcome" }, { clickIf: "[data-testid=welcome-dot-1]" }, { wait: 1800 }] },
   { id: "home-recent", steps: [{ goto: LISTING_BANANA }, { goto: LISTING_SALE }, { goto: LISTING_RENT }, ...HOME, { reveal: "h2:text-is('Looked at recently')", offset: 60 }] },
   { id: "drawer", steps: [...HOME, { click: "button[aria-label='Open menu']" }, { wait: 1200 }] },
-  { id: "search", full: true, steps: go("/search?market=rent") },
+  { id: "search", steps: go("/search?market=rent") },
   { id: "search-buy", steps: go("/search?market=buy") },
   { id: "filters", steps: go("/search?filters=open") },
   { id: "filters-set", steps: FILTERS_SET },
@@ -255,8 +255,54 @@ const LIGHT_TWINS = [
 ];
 /* Twins that keep their whole-page capture, for the films' scrolls. */
 const FULL_TWINS = ["search", "d-search-full"];
+
+/* The showcase set (October 2026): the screens the two films, the device
+   showcase and the launch graphics use, each in dark (sc-<name>) and light
+   (sc-<name>-lt). Routes are those on main on 13 October 2026. */
+const SHOWCASE_BASE = [
+  { id: "sc-home", steps: HOME },
+  { id: "sc-search", steps: go("/search?market=rent") },
+  { id: "sc-filters", steps: go("/search?filters=open") },
+  { id: "sc-listing", steps: go(LISTING_RENT) },
+  { id: "sc-listing-cost", steps: reveal(LISTING_RENT, "h2:text-is('What you will actually pay')", 96) },
+  { id: "sc-price", steps: go(PRICE) },
+  { id: "sc-stays", steps: go("/stays") },
+  { id: "sc-stay", steps: go(STAY) },
+  { id: "sc-restaurants", steps: go("/restaurants") },
+  { id: "sc-restaurant", steps: go(RESTAURANT) },
+  { id: "sc-around", steps: go("/around") },
+  { id: "sc-saved", steps: go("/saved") },
+  { id: "sc-messages", steps: INBOX },
+  { id: "sc-thread", steps: go(THREAD) },
+  { id: "sc-inspections", steps: go("/inspections") },
+  { id: "sc-assistant", steps: ask("What documents should I ask for before I rent a flat?") },
+  { id: "sc-assistant-start", steps: [{ goto: "/assistant" }, { clear: ["nf_ai_threads", "nf_ai_thread"] }, { goto: "/assistant" }, { clickIf: "button:has-text('I understand, continue')" }, { wait: 1500 }] },
+  { id: "sc-payments", steps: go("/payments") },
+  { id: "sc-receipts", steps: go("/receipts") },
+  { id: "sc-rewards", steps: go("/rewards") },
+  { id: "sc-profile", steps: go("/profile") },
+  { id: "sc-host", steps: go("/host") },
+  { id: "sc-host-rooms", steps: go("/host/rooms") },
+  { id: "sc-host-bookings", steps: go("/host/bookings") },
+  { id: "sc-host-reservations", steps: go("/host/reservations") },
+  { id: "sc-host-calendar", steps: go("/host/calendar") },
+  { id: "sc-agent", steps: go("/agent/dashboard") },
+  { id: "sc-agent-listings", steps: go("/agent/listings") },
+  { id: "sc-verification", steps: go("/verification") },
+  { id: "sc-calls", steps: go("/calls") },
+  { id: "d-sc-home", kind: "desktop", steps: HOME },
+  { id: "d-sc-search", kind: "desktop", steps: go("/search?market=rent") },
+  { id: "d-sc-listing", kind: "desktop", steps: go(LISTING_RENT) },
+  { id: "d-sc-stays", kind: "desktop", steps: go("/stays") },
+  { id: "d-sc-assistant", kind: "desktop", steps: ask("What documents should I ask for before I rent a flat?") },
+];
+const SHOWCASE = [
+  ...SHOWCASE_BASE,
+  ...SHOWCASE_BASE.map((c) => ({ ...c, id: `${c.id}-lt`, theme: "light" })),
+];
 export const CAPTURES = [
   ...BASE_CAPTURES,
+  ...SHOWCASE,
   ...LIGHT_TWINS.map((id) => {
     const cap = BASE_CAPTURES.find((c) => c.id === id);
     if (!cap) throw new Error(`no capture ${id} to twin`);

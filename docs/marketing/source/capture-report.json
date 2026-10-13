@@ -43,7 +43,7 @@
   },
   "assistant": {
     "url": "/assistant",
-    "at": "2026-09-30T15:30:11.624Z",
+    "at": "2026-10-13T22:29:30.031Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
@@ -391,6 +391,70 @@
     "theme": "dark",
     "signedIn": true
   },
+  "d-sc-assistant": {
+    "url": "/assistant",
+    "at": "2026-10-13T22:39:49.179Z",
+    "kind": "desktop",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "d-sc-assistant-lt": {
+    "url": "/assistant",
+    "at": "2026-10-13T22:46:25.911Z",
+    "kind": "desktop",
+    "theme": "light",
+    "signedIn": true
+  },
+  "d-sc-home": {
+    "url": "/home",
+    "at": "2026-10-13T22:38:29.360Z",
+    "kind": "desktop",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "d-sc-home-lt": {
+    "url": "/home",
+    "at": "2026-10-13T22:44:39.848Z",
+    "kind": "desktop",
+    "theme": "light",
+    "signedIn": true
+  },
+  "d-sc-listing": {
+    "url": "/listing/ed000000-0000-4000-8000-00000000003e",
+    "at": "2026-10-13T22:38:57.763Z",
+    "kind": "desktop",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "d-sc-listing-lt": {
+    "url": "/listing/ed000000-0000-4000-8000-00000000003e",
+    "at": "2026-10-13T22:45:01.320Z",
+    "kind": "desktop",
+    "theme": "light",
+    "signedIn": true
+  },
+  "d-sc-search": {
+    "failed": "broken image: https://api.maptiler.com/maps/dataviz-dark/7/65/61@2x.png?key=MUgGg3Xq20ET03cDPD0Y, https://api.maptiler.com/maps/dataviz-dark/7/65/62@2x.png?key=MUgGg3Xq20ET03cDPD0Y, https://api.maptiler.com/maps/dataviz-dark/7/64/61@2x.png?key=MUgGg3Xq20ET03cDPD0Y",
+    "at": "2026-10-13T22:38:41.658Z"
+  },
+  "d-sc-search-lt": {
+    "failed": "broken image: https://api.maptiler.com/maps/dataviz-light/7/65/61@2x.png?key=MUgGg3Xq20ET03cDPD0Y, https://api.maptiler.com/maps/dataviz-light/7/65/62@2x.png?key=MUgGg3Xq20ET03cDPD0Y, https://api.maptiler.com/maps/dataviz-light/7/64/61@2x.png?key=MUgGg3Xq20ET03cDPD0Y",
+    "at": "2026-10-13T22:44:52.185Z"
+  },
+  "d-sc-stays": {
+    "url": "/stays",
+    "at": "2026-10-13T22:39:11.392Z",
+    "kind": "desktop",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "d-sc-stays-lt": {
+    "url": "/stays",
+    "at": "2026-10-13T22:45:31.190Z",
+    "kind": "desktop",
+    "theme": "light",
+    "signedIn": true
+  },
   "d-search": {
     "url": "/search?market=rent",
     "at": "2026-09-30T15:20:51.138Z",
@@ -644,7 +708,7 @@
   },
   "home": {
     "url": "/home",
-    "at": "2026-10-09T06:31:37.930Z",
+    "at": "2026-10-13T22:30:35.226Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
@@ -721,7 +785,7 @@
   },
   "listing": {
     "url": "/listing/ed000000-0000-4000-8000-00000000003e",
-    "at": "2026-10-09T06:32:53.435Z",
+    "at": "2026-10-13T22:27:58.065Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
@@ -924,14 +988,14 @@
   },
   "restaurants": {
     "url": "/restaurants",
-    "at": "2026-10-09T06:22:59.055Z",
+    "at": "2026-10-13T22:29:21.669Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
   },
   "saved": {
     "url": "/saved",
-    "at": "2026-10-09T06:33:33.061Z",
+    "at": "2026-10-13T22:28:48.100Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
@@ -943,9 +1007,426 @@
     "theme": "light",
     "signedIn": true
   },
+  "sc-agent": {
+    "url": "/agent/dashboard",
+    "at": "2026-10-13T22:37:32.850Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "sc-agent-listings": {
+    "url": "/agent/listings",
+    "at": "2026-10-13T22:37:42.463Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "sc-agent-listings-lt": {
+    "url": "/agent/listings",
+    "at": "2026-10-13T22:44:02.793Z",
+    "kind": "mobile",
+    "theme": "light",
+    "signedIn": true
+  },
+  "sc-agent-lt": {
+    "url": "/agent/dashboard",
+    "at": "2026-10-13T22:43:55.055Z",
+    "kind": "mobile",
+    "theme": "light",
+    "signedIn": true
+  },
+  "sc-around": {
+    "url": "/around",
+    "at": "2026-10-13T22:34:14.342Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "sc-around-lt": {
+    "url": "/around",
+    "at": "2026-10-13T22:41:52.707Z",
+    "kind": "mobile",
+    "theme": "light",
+    "signedIn": true
+  },
+  "sc-assistant": {
+    "url": "/assistant",
+    "at": "2026-10-13T22:36:10.554Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "sc-assistant-lt": {
+    "url": "/assistant",
+    "at": "2026-10-13T22:42:55.358Z",
+    "kind": "mobile",
+    "theme": "light",
+    "signedIn": true
+  },
+  "sc-assistant-start": {
+    "url": "/assistant",
+    "at": "2026-10-13T22:49:33.838Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "sc-assistant-start-lt": {
+    "url": "/assistant",
+    "at": "2026-10-13T22:50:12.619Z",
+    "kind": "mobile",
+    "theme": "light",
+    "signedIn": true
+  },
+  "sc-calls": {
+    "url": "/calls",
+    "at": "2026-10-13T22:37:59.405Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "sc-calls-lt": {
+    "failed": "the light twin is as dark as its dark capture: this page keeps one theme",
+    "at": "2026-10-13T22:44:18.664Z"
+  },
+  "sc-filters": {
+    "url": "/search?filters=open",
+    "at": "2026-10-13T22:32:53.404Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "sc-filters-lt": {
+    "url": "/search?filters=open",
+    "at": "2026-10-13T22:40:40.667Z",
+    "kind": "mobile",
+    "theme": "light",
+    "signedIn": true
+  },
+  "sc-home": {
+    "url": "/home",
+    "at": "2026-10-13T22:32:35.064Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "sc-home-lt": {
+    "url": "/home",
+    "at": "2026-10-13T22:40:23.949Z",
+    "kind": "mobile",
+    "theme": "light",
+    "signedIn": true
+  },
+  "sc-host": {
+    "url": "/host",
+    "at": "2026-10-13T22:37:00.733Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "sc-host-bookings": {
+    "url": "/host/bookings",
+    "at": "2026-10-13T22:37:21.486Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "sc-host-bookings-lt": {
+    "url": "/host/bookings",
+    "at": "2026-10-13T22:43:46.479Z",
+    "kind": "mobile",
+    "theme": "light",
+    "signedIn": true
+  },
+  "sc-host-calendar": {
+    "url": "/host/calendar",
+    "at": "2026-10-13T22:49:49.119Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "sc-host-calendar-lt": {
+    "url": "/host/calendar",
+    "at": "2026-10-13T22:50:30.258Z",
+    "kind": "mobile",
+    "theme": "light",
+    "signedIn": true
+  },
+  "sc-host-lt": {
+    "url": "/host",
+    "at": "2026-10-13T22:43:32.721Z",
+    "kind": "mobile",
+    "theme": "light",
+    "signedIn": true
+  },
+  "sc-host-reservations": {
+    "url": "/host/reservations",
+    "at": "2026-10-13T22:49:41.791Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "sc-host-reservations-lt": {
+    "url": "/host/reservations",
+    "at": "2026-10-13T22:50:23.161Z",
+    "kind": "mobile",
+    "theme": "light",
+    "signedIn": true
+  },
+  "sc-host-rooms": {
+    "url": "/host/rooms",
+    "at": "2026-10-13T22:37:11.529Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "sc-host-rooms-lt": {
+    "url": "/host/rooms",
+    "at": "2026-10-13T22:43:39.844Z",
+    "kind": "mobile",
+    "theme": "light",
+    "signedIn": true
+  },
+  "sc-inspections": {
+    "url": "/bookings?kind=inspection&from=property",
+    "at": "2026-10-13T22:35:24.107Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "sc-inspections-lt": {
+    "url": "/bookings?kind=inspection&from=property",
+    "at": "2026-10-13T22:42:27.955Z",
+    "kind": "mobile",
+    "theme": "light",
+    "signedIn": true
+  },
+  "sc-listing": {
+    "url": "/listing/ed000000-0000-4000-8000-00000000003e",
+    "at": "2026-10-13T22:33:02.367Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "sc-listing-cost": {
+    "url": "/listing/ed000000-0000-4000-8000-00000000003e",
+    "at": "2026-10-13T22:33:15.138Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "sc-listing-cost-lt": {
+    "url": "/listing/ed000000-0000-4000-8000-00000000003e",
+    "at": "2026-10-13T22:40:58.185Z",
+    "kind": "mobile",
+    "theme": "light",
+    "signedIn": true
+  },
+  "sc-listing-lt": {
+    "url": "/listing/ed000000-0000-4000-8000-00000000003e",
+    "at": "2026-10-13T22:40:47.259Z",
+    "kind": "mobile",
+    "theme": "light",
+    "signedIn": true
+  },
+  "sc-messages": {
+    "url": "/messages",
+    "at": "2026-10-13T22:34:32.728Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "sc-messages-lt": {
+    "url": "/messages",
+    "at": "2026-10-13T22:42:09.327Z",
+    "kind": "mobile",
+    "theme": "light",
+    "signedIn": true
+  },
+  "sc-payments": {
+    "url": "/payments",
+    "at": "2026-10-13T22:36:22.157Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "sc-payments-lt": {
+    "url": "/payments",
+    "at": "2026-10-13T22:43:03.294Z",
+    "kind": "mobile",
+    "theme": "light",
+    "signedIn": true
+  },
+  "sc-price": {
+    "url": "/price?state=LA&area=Lekki&lat=6.44&lng=3.47&type=apartment&intent=rent&period=year&beds=2",
+    "at": "2026-10-13T22:33:27.659Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "sc-price-lt": {
+    "url": "/price?state=LA&area=Lekki&lat=6.44&lng=3.47&type=apartment&intent=rent&period=year&beds=2",
+    "at": "2026-10-13T22:41:09.848Z",
+    "kind": "mobile",
+    "theme": "light",
+    "signedIn": true
+  },
+  "sc-profile": {
+    "url": "/profile",
+    "at": "2026-10-13T22:36:49.173Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "sc-profile-lt": {
+    "url": "/profile",
+    "at": "2026-10-13T22:43:25.548Z",
+    "kind": "mobile",
+    "theme": "light",
+    "signedIn": true
+  },
+  "sc-receipts": {
+    "url": "/receipts",
+    "at": "2026-10-13T22:36:30.601Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "sc-receipts-lt": {
+    "url": "/receipts",
+    "at": "2026-10-13T22:43:10.040Z",
+    "kind": "mobile",
+    "theme": "light",
+    "signedIn": true
+  },
+  "sc-restaurant": {
+    "url": "/restaurant/eb000000-0000-4000-8000-000000000006",
+    "at": "2026-10-13T22:34:03.897Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "sc-restaurant-lt": {
+    "url": "/restaurant/eb000000-0000-4000-8000-000000000006",
+    "at": "2026-10-13T22:41:45.221Z",
+    "kind": "mobile",
+    "theme": "light",
+    "signedIn": true
+  },
+  "sc-restaurants": {
+    "url": "/restaurants",
+    "at": "2026-10-13T22:33:54.505Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "sc-restaurants-lt": {
+    "url": "/restaurants",
+    "at": "2026-10-13T22:41:37.681Z",
+    "kind": "mobile",
+    "theme": "light",
+    "signedIn": true
+  },
+  "sc-rewards": {
+    "url": "/rewards",
+    "at": "2026-10-13T22:36:39.558Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "sc-rewards-lt": {
+    "url": "/rewards",
+    "at": "2026-10-13T22:43:17.621Z",
+    "kind": "mobile",
+    "theme": "light",
+    "signedIn": true
+  },
+  "sc-saved": {
+    "url": "/saved",
+    "at": "2026-10-13T22:34:23.411Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "sc-saved-lt": {
+    "url": "/saved",
+    "at": "2026-10-13T22:41:59.988Z",
+    "kind": "mobile",
+    "theme": "light",
+    "signedIn": true
+  },
+  "sc-search": {
+    "url": "/search?market=rent",
+    "at": "2026-10-13T22:32:44.119Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "sc-search-lt": {
+    "url": "/search?market=rent",
+    "at": "2026-10-13T22:40:32.879Z",
+    "kind": "mobile",
+    "theme": "light",
+    "signedIn": true
+  },
+  "sc-stay": {
+    "url": "/stay/ea000000-0000-4000-8000-000000000003",
+    "at": "2026-10-13T22:33:45.929Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "sc-stay-lt": {
+    "url": "/stay/ea000000-0000-4000-8000-000000000003",
+    "at": "2026-10-13T22:41:30.102Z",
+    "kind": "mobile",
+    "theme": "light",
+    "signedIn": true
+  },
+  "sc-stays": {
+    "url": "/stays",
+    "at": "2026-10-13T22:33:37.400Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "sc-stays-lt": {
+    "url": "/stays",
+    "at": "2026-10-13T22:41:23.015Z",
+    "kind": "mobile",
+    "theme": "light",
+    "signedIn": true
+  },
+  "sc-thread": {
+    "url": "/messages/d140e186-9fa3-41f4-8234-32ef75a1060e",
+    "at": "2026-10-13T22:34:53.736Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "sc-thread-lt": {
+    "url": "/messages/d140e186-9fa3-41f4-8234-32ef75a1060e",
+    "at": "2026-10-13T22:42:18.759Z",
+    "kind": "mobile",
+    "theme": "light",
+    "signedIn": true
+  },
+  "sc-verification": {
+    "url": "/verification",
+    "at": "2026-10-13T22:37:50.956Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "sc-verification-lt": {
+    "url": "/verification",
+    "at": "2026-10-13T22:44:11.620Z",
+    "kind": "mobile",
+    "theme": "light",
+    "signedIn": true
+  },
   "search": {
     "url": "/search?market=rent",
-    "at": "2026-10-09T06:32:29.145Z",
+    "at": "2026-10-13T22:30:46.163Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
@@ -1022,7 +1503,7 @@
   },
   "stays": {
     "url": "/stays",
-    "at": "2026-10-09T06:22:39.655Z",
+    "at": "2026-10-13T22:29:04.782Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
@@ -1127,7 +1608,7 @@
   },
   "wallet": {
     "url": "/wallet",
-    "at": "2026-10-09T07:00:21.008Z",
+    "at": "2026-10-13T22:27:02.501Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true

@@ -18,7 +18,7 @@ export const SIZES = { mobile: { W: 1080, H: 1920 }, desktop: { W: 1920, H: 1080
 const NODE = "/node_modules";
 const REPO = "/repo";
 
-export async function createContext({ film, stage }) {
+export async function createContext({ film, stage, timeline = "/video/timeline.json" }) {
   gsap.registerPlugin(CustomEase);
   gsap.config({ force3D: false, nullTargetWarn: true });
   gsap.defaults({ ease: "power3.out", duration: 0.6, autoRound: false, overwrite: false });
@@ -30,7 +30,7 @@ export async function createContext({ film, stage }) {
   CustomEase.create("whip", "M0,0 C0.78,0 0.08,1 1,1"); // a snap move, for handoffs
   CustomEase.create("drift", "M0,0 C0.3,0.2 0.7,0.8 1,1"); // slow push, almost even but never linear
 
-  const T = await fetch("/video/timeline.json", { cache: "no-store" }).then((r) => r.json());
+  const T = await fetch(timeline, { cache: "no-store" }).then((r) => r.json());
   const { W, H } = SIZES[film];
   stage.style.width = `${W}px`;
   stage.style.height = `${H}px`;

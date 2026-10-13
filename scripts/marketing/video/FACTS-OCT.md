@@ -1,0 +1,53 @@
+# Facts file: the October 2026 films (Video One and Video Two)
+
+The only source for words, claims and status badges in `reels/v1` and `reels/v2`. Product state as of 13 October 2026, from `HANDOFF.md`, the app code on `main`, and live captures of https://www.vallospaces.com made with the QA member account (docs/marketing/source/sc-*).
+
+## Rules
+
+- No voiceover: the words are on screen (no speech key was available). Music and sound cues are original (scripts/marketing/audio).
+- Listings, stays and restaurants on screen are the platform's own example stock; the screens label them as examples. No customer names, counts, totals or testimonials.
+- Never name the payments provider. "Licensed partners" only. "Vallo never holds your money" is the platform's own statement.
+- No dates. No promise of escrow, financing, guarantees or provider integrations.
+- Apps: iOS 1.0.0 and Android are in store review, so the films end "iPhone and Android apps coming soon" and never "download".
+- Status badges (Video Two): Live now / Rolling out / In development / Direction.
+
+## Claims and where they come from
+
+| On screen | Source | Badge |
+|---|---|---|
+| Homes, stays, restaurants, one app, one account | home and stays captures (tiles: Hotels, Shortlets, Restaurants, Local talk); HANDOFF section 2 | Live |
+| Search, filters, "52 homes match" | sc-filters ("See 52 homes"), sc-search | Live |
+| For you, Near me, New listed | sc-search chips | Live |
+| Whole cost: rent, agency and legal fees, agreement fee, refundable caution deposit | sc-listing-cost (example listing, "Vallo Examples") | Live |
+| Price check by area | sc-price ("What are properties near here asking?"; says so when there is not enough to be sure) | Live |
+| Save and compare | sc-saved | Live |
+| Message the owner or agent, ask to view, schedule a visit | sc-thread ("Ask to view this home", "Schedule a visit") | Live |
+| Viewings never take money | HANDOFF section 2 | Live |
+| Verification: four steps a person at Vallo checks | sc-verification | Live |
+| A named person behind every listing | sc-agent-listings | Live |
+| List it yourself, no agency fee | host-start ("I own the property: List it yourself. No agency fee.") | Live |
+| Approved agents apply, a person reads every application | sc-agent-listings | Live |
+| Restaurant reservations: the restaurant confirms, the conversation lives in the reservation | sc-restaurants | Live |
+| Restaurant table deposits | handoff (code built, switch off) | In development |
+| Hotels and shortlets: rooms, nights, requests, bookings | sc-host-rooms, sc-host-bookings, sc-host-calendar | Live |
+| Vallo never holds your money; licensed partners hold it | sc-payments, HANDOFF section 2 | Live |
+| Receipts for every payment | sc-receipts ("Every payment you made through Vallo ... each with its receipt") | Live |
+| Wallet | wallet screens need profile details and the partner's account opening | Rolling out |
+| Referrals and rewards | sc-rewards (first-run introduction) | Rolling out |
+| Video calls from the chat | call button in the thread header; calls cannot be verified from this environment | Rolling out |
+| The assistant answers questions, says it is an AI, asks agreement first | sc-assistant-start, store listing copy | Live |
+| The assistant helping to finish tasks, with approval | not built | Direction |
+| Dark and light themes; English, Hausa, Yorùbá, Igbo | sc-home / sc-home-lt; welcome in four languages | Live |
+| Infrastructure for discovering, understanding, transacting around and operating spaces | company direction | Direction |
+
+## Left out on purpose
+
+- The wallet's setup screen (it names the payments provider).
+- The local feed (the only post is the founder's own account).
+- The assistant's long answer (raw markdown asterisks show; a product issue to fix, then recapture).
+- Admin and operations screens (the capture harness has no admin login; the console shows internal data).
+- A map of live property pins (the map tiles cannot load in this environment).
+
+## Not demonstrable from this environment
+
+Calls (LiveKit), maps (MapTiler), payments and wallet (the payments partner), SMS (Termii). Each needs a real device or a production check before a claim is made in a post.
