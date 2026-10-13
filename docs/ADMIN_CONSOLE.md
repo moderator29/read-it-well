@@ -1035,7 +1035,6 @@ a fall is emerald. The line is alerts raised per day.
 | vallo_purge_rate_limits | pg_cron `30 * * * *` | hourly at :30 | | clears old rate limit rows |
 | vallo_purge_view_marks | pg_cron `41 * * * *` | hourly at :41 | | forgets the day's listing view marks and salt once the day ends (V-73) |
 | vallo_alert_overdue_refunds | pg_cron `12 * * * *` | hourly at :12 | | alerts on refunds past their due-by date (V-24) |
-| vallo_escrow_sweep_timeouts | pg_cron `17 * * * *` | hourly at :17 | | escrow timeouts |
 | vallo_hold_claims_sweep | pg_cron `* * * * *` | every minute | | recomputes every person with a live compliance hold claim, so pending STR and sanctions claims take over within a minute of a "this was not me" hold ending; skips and cleans up deleted accounts (`private.hold_claims_sweep`, SCUML items 6 and 8) |
 | vallo_calls_sweep | pg_cron `* * * * *` | every minute | | VC1: applies every call deadline and writes missed-call notices (`private.calls_sweep`) |
 | vallo_referral_qualify | pg_cron `3,18,33,48 * * * *` | every 15 min | | D85: retries qualification for invited members who finished a step (`public.referral_qualify_pending`) |
@@ -1043,8 +1042,6 @@ a fall is emerald. The line is alerts raised per day.
 | vallo_referral_release_due | pg_cron `11,41 * * * *` | every 30 min | | D85: makes a referral reward available once its review window has passed (`public.referral_release_due`) |
 | vallo_subscriptions_sweep | pg_cron `9,24,39,54 * * * *` | every 15 min | | Pro and Business subscriptions follow the clock: trials end, lapsed and cancelled plans close, unpaid checkouts are abandoned (`private.subscriptions_sweep`) |
 | vallo_str_nudge_overdue | pg_cron `17 * * * *` | hourly at :17 | | reminds staff of a Suspicious Transaction Report case past its clock, once a day per case (`private.str_nudge_overdue`, SCUML item 6) |
-| vallo_escrow_invariants | pg_cron `23 * * * *` | hourly at :23 | | asserts the escrow float identity (`private.escrow_invariants_check`), six minutes after the sweeper |
-| vallo_escrow_age_watch | pg_cron `41 * * * *` | hourly at :41 | | alerts on a dispute older than 48 hours and cancels a proposal nobody funded in 14 days (`private.escrow_age_watch`, ESC-09) |
 | vallo_reconcile_payments | pg_cron `47 * * * *` | hourly at :47 | | database side of reconciliation |
 | vallo_purge_idempotency | pg_cron `10 2 * * *` | daily 03:10 | | clears old idempotency records |
 | vallo-nightly-badges | pg_cron `20 2 * * *` | daily 03:20 | | awards earned badges |
@@ -1054,7 +1051,6 @@ a fall is emerald. The line is alerts raised per day.
 | vallo_purge_job_runs | pg_cron `55 2 * * *` | daily 03:55 | | forgets counted scheduled runs older than 90 days (C7) |
 | vallo_purge_money_step_ups | pg_cron `45 2 * * *` | daily 03:45 | | forgets used money-lock challenges and proofs after a day (V-81) |
 | vallo_purge_funnel_events | pg_cron `50 2 * * *` | daily 03:50 | | forgets front door funnel counts (`public.funnel_events`) older than 90 days (A6) |
-| vallo_escrow_book_the_float | pg_cron `5 3 * * *` | daily 04:05 | | books the day's escrow float snapshot as a liability (`private.escrow_float_snapshot_take`) |
 | vallo_sweep_price_check_events | pg_cron `40 3 * * *` | daily 04:40 | | deletes price check events older than 24 months (the retention schedule, run) |
 | vallo_announce_completed_stays | pg_cron `20 5 * * *` | daily 06:20 | | announces completed stays |
 | vallo_scuml17_mandate_grace_sweep | pg_cron `25 5 * * *` | daily 06:25 | | SCUML item 17: after the grace date, takes down agent and firm listings without a current mandate and tells the agent why |
@@ -1069,7 +1065,7 @@ a fall is emerald. The line is alerts raised per day.
 | vallo_sweep_rent_splits | pg_cron `25 7 * * *` | daily 08:25 | | refunds the paid shares of a flatmate split still short on move-in day, or cancelled (V-86) |
 | vallo_threshold_reminders | pg_cron `5 * * * *` | hourly at :05 | | tells staff three days and one day before a threshold report to the NFIU is due (SCUML item 7) |
 
-20 Vercel Cron jobs and 42 pg_cron jobs in all. The numbers are derived,
+20 Vercel Cron jobs and 38 pg_cron jobs in all. The numbers are derived,
 not remembered: the Vercel list is `VERCEL_JOBS` in
 `lib/admin/reads/jobs.ts`, held equal to `vercel.json` by a test, and the
 database list is `PG_CRON_JOBS` in the same file, held equal by

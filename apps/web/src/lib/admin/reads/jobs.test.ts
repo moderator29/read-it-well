@@ -18,6 +18,12 @@ function scheduledInMigrations(): Map<string, string> {
   for (const file of readdirSync(dir).filter((f) => f.endsWith(".sql")).sort()) {
     const sql = readFileSync(new URL(file, dir), "utf8");
     for (const m of sql.matchAll(/cron\.unschedule\s*\(\s*'([^']+)'\s*\)/g)) jobs.delete(rename(m[1]!));
+    // A loop over a literal list, as the custody retirement does:
+    // `foreach j in array array['a', 'b'] loop ... cron.unschedule(j)`.
+    for (const m of sql.matchAll(/foreach\s+(\w+)\s+in\s+array\s+array\[([^\]]+)\]\s+loop[\s\S]*?cron\.unschedule\s*\(\s*(\w+)\s*\)/gi)) {
+      if (m[1] !== m[3]) continue;
+      for (const n of m[2]!.matchAll(/'([^']+)'/g)) jobs.delete(rename(n[1]!));
+    }
     for (const m of sql.matchAll(/cron\.schedule\s*\(\s*'([^']+)'\s*,\s*'([^']+)'/g)) jobs.set(rename(m[1]!), m[2]!);
   }
   return jobs;
