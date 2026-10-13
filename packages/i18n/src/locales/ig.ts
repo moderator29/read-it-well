@@ -4272,5 +4272,54 @@ export const ig: Dictionary = withFallback({
       unavailableBody: "A pụghị ịgụ ibe a. A naghị egosi ihe ọ bụla kama iche echiche. Nwaa ọzọ n'oge na-adịghị anya.",
     },
   },
+  /**
+   * Chat polish (apps/web/src/components/calls/call-pill-words.ts and
+   * components/app/messages/MediaViewer.tsx): the call pills that sit in a
+   * thread (who called, what happened, how long) and the full-screen viewer for
+   * photos and videos. A duration is only ever one the call recorded.
+   */
+  chatPolish: {
+    calls: {
+      video: "ịkpọ vidiyo",
+      voice: "ịkpọ olu",
+      videoTitle: "Ịkpọ vidiyo",
+      voiceTitle: "Ịkpọ olu",
+      missedFrom: "Ị nabataghị {call} site n'aka {name}",
+      callWith: "{Call} na {name}, {duration}",
+      callWithNoTime: "{Call} na {name}",
+      youCalled: "Ị kpọrọ {name}, {outcome}",
+      youDeclined: "Ị jụrụ {call} site n'aka {name}",
+      callFrom: "{Call} site n'aka {name}, {outcome}",
+      outcomeCancelled: "a kagbuola ya",
+      outcomeNoAnswer: "onweghị onye nabatara",
+      outcomeDeclined: "a jụrụ ya",
+      outcomeBusy: "ọ nọ n'ịkpọ ọzọ",
+      outcomeFailed: "ọ jikọtaghị",
+      outcomeExpired: "oge ya agwụla",
+      minutes: "nkeji {n}",
+      seconds: "sekọnd {n}",
+      callBack: "Kpọghachi {name}, {call}",
+    },
+    viewer: {
+      label: "Foto na vidiyo dị n'mkparịta ụka a",
+      close: "Mechie",
+      save: "Chekwaa",
+      share: "Kekọrịta",
+      previous: "Nke gara aga",
+      next: "Nke ọzọ",
+      position: "{n} n'ime {total}",
+      you: "Gị",
+      photo: "Foto",
+      video: "Vidiyo",
+      openPhoto: "Mepee foto n'ihuenyo zuru oke",
+      openVideo: "Kpọọ vidiyo n'ihuenyo zuru oke",
+      zoomIn: "Gbasaa",
+      zoomOut: "Belata",
+      downloadStarted: "Ebudatala amalitela",
+      saveFailed: "Enweghị ike ichekwa ya. Nwaa ọzọ.",
+      loadFailed: "Enweghị ike imepe foto a.",
+      shareTitle: "Foto site n'aka {name}",
+    },
+  },
 
 } satisfies Translation, igDrafts);

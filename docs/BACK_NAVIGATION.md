@@ -99,6 +99,13 @@ Android goes through `lib/nav/in-page-step.ts`:
 - Sheets and overlays: browser back closes the top sheet
   (`use-sheet-history.ts`). Android's back dispatches Escape to the top overlay.
   Neither changes the page.
+- The chat's full-screen media viewer (`components/app/messages/MediaViewer.tsx`)
+  is one of these overlays: it joins the overlay registry through `useOverlay`
+  (Escape, the Tab trap, the scroll lock, focus back on the photo that was
+  tapped) and takes one sheet history entry through `useSheetHistory`. So the
+  browser's back, the iPhone edge swipe and Android's back button close the
+  viewer first and leave the thread where it was; the X, a swipe down and
+  Escape close it and take the entry back off.
 
 ### Unsaved changes
 

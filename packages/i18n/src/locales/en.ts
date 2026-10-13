@@ -6860,6 +6860,55 @@ export const en = {
       unavailableBody: "This page could not be read. Nothing is shown rather than a guess. Try again in a moment.",
     },
   },
+  /**
+   * Chat polish (apps/web/src/components/calls/call-pill-words.ts and
+   * components/app/messages/MediaViewer.tsx): the call pills that sit in a
+   * thread (who called, what happened, how long) and the full-screen viewer for
+   * photos and videos. A duration is only ever one the call recorded.
+   */
+  chatPolish: {
+    calls: {
+      video: "video call",
+      voice: "voice call",
+      videoTitle: "Video call",
+      voiceTitle: "Voice call",
+      missedFrom: "Missed {call} from {name}",
+      callWith: "{Call} with {name}, {duration}",
+      callWithNoTime: "{Call} with {name}",
+      youCalled: "You called {name}, {outcome}",
+      youDeclined: "You declined a {call} from {name}",
+      callFrom: "{Call} from {name}, {outcome}",
+      outcomeCancelled: "cancelled",
+      outcomeNoAnswer: "no answer",
+      outcomeDeclined: "declined",
+      outcomeBusy: "on another call",
+      outcomeFailed: "could not connect",
+      outcomeExpired: "expired",
+      minutes: "{n} min",
+      seconds: "{n} s",
+      callBack: "Call {name} back, {call}",
+    },
+    viewer: {
+      label: "Photos and videos in this chat",
+      close: "Close",
+      save: "Save",
+      share: "Share",
+      previous: "Previous",
+      next: "Next",
+      position: "{n} of {total}",
+      you: "You",
+      photo: "Photo",
+      video: "Video",
+      openPhoto: "Open photo full screen",
+      openVideo: "Play video full screen",
+      zoomIn: "Zoom in",
+      zoomOut: "Zoom out",
+      downloadStarted: "Download started",
+      saveFailed: "Could not save this file. Try again.",
+      loadFailed: "This photo could not be loaded.",
+      shareTitle: "Photo from {name}",
+    },
+  },
 
 };
 

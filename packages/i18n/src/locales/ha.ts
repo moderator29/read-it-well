@@ -4243,5 +4243,54 @@ export const ha: Dictionary = withFallback({
       unavailableBody: "Ba a iya karanta wannan shafi ba. Ba a nuna komai maimakon zato. Ka sake gwadawa nan da ɗan lokaci.",
     },
   },
+  /**
+   * Chat polish (apps/web/src/components/calls/call-pill-words.ts and
+   * components/app/messages/MediaViewer.tsx): the call pills that sit in a
+   * thread (who called, what happened, how long) and the full-screen viewer for
+   * photos and videos. A duration is only ever one the call recorded.
+   */
+  chatPolish: {
+    calls: {
+      video: "kiran bidiyo",
+      voice: "kiran murya",
+      videoTitle: "Kiran bidiyo",
+      voiceTitle: "Kiran murya",
+      missedFrom: "An rasa {call} daga {name}",
+      callWith: "{Call} tare da {name}, {duration}",
+      callWithNoTime: "{Call} tare da {name}",
+      youCalled: "Ka kira {name}, {outcome}",
+      youDeclined: "Ka ƙi amsa {call} daga {name}",
+      callFrom: "{Call} daga {name}, {outcome}",
+      outcomeCancelled: "an soke",
+      outcomeNoAnswer: "ba a amsa ba",
+      outcomeDeclined: "an ƙi",
+      outcomeBusy: "yana kan wani kira",
+      outcomeFailed: "ba a haɗu ba",
+      outcomeExpired: "lokaci ya kure",
+      minutes: "mintuna {n}",
+      seconds: "daƙiƙa {n}",
+      callBack: "Sake kiran {name}, {call}",
+    },
+    viewer: {
+      label: "Hotuna da bidiyo a cikin wannan tattaunawa",
+      close: "Rufe",
+      save: "Ajiye",
+      share: "Raba",
+      previous: "Na baya",
+      next: "Na gaba",
+      position: "{n} cikin {total}",
+      you: "Kai",
+      photo: "Hoto",
+      video: "Bidiyo",
+      openPhoto: "Buɗe hoto a cikakken allo",
+      openVideo: "Kunna bidiyo a cikakken allo",
+      zoomIn: "Kusanto",
+      zoomOut: "Nesanta",
+      downloadStarted: "An fara saukewa",
+      saveFailed: "Ba a iya ajiye wannan ba. Sake gwadawa.",
+      loadFailed: "Ba a iya buɗe wannan hoton ba.",
+      shareTitle: "Hoto daga {name}",
+    },
+  },
 
 } satisfies Translation, haDrafts);

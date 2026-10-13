@@ -24,11 +24,20 @@ export function PhotoGroup({
   photos,
   alt,
   locale = "en",
+  onOpen,
+  openLabel,
 }: {
   photos: readonly GroupPhoto[];
   alt: string;
   /** For the group's counted name ("5 photos"), from the dictionary's own counts. */
   locale?: Locale;
+  /**
+   * Tapping a photo opens it full screen (`MediaViewer`), at that photo. Absent:
+   * the photos are pictures only, as they were.
+   */
+  onOpen?: (id: string) => void;
+  /** The tap target's name ("Open photo full screen"); the photo's own alt follows it. */
+  openLabel?: string;
 }) {
   /* Sizes measured in the browser, by photo id, for rows that carried none. */
   const [measured, setMeasured] = useState<Record<string, number>>({});
@@ -92,15 +101,34 @@ export function PhotoGroup({
               style={style}
               data-page-start={paged && i % PHOTOS_PER_ROW === 0 ? "" : undefined}
             >
-              {/* Signed and object URLs cannot go through the optimiser. */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={photo.url}
-                alt={alt}
-                draggable={false}
-                ref={(img) => measure(photo.id, img)}
-                onLoad={(event) => measure(photo.id, event.currentTarget)}
-              />
+              {onOpen ? (
+                <button
+                  type="button"
+                  className="nf-photo-group__open"
+                  onClick={() => onOpen(photo.id)}
+                  aria-label={openLabel ? `${openLabel}. ${alt}` : alt}
+                  data-testid="photo-open"
+                >
+                  {/* Signed and object URLs cannot go through the optimiser. */}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={photo.url}
+                    alt=""
+                    draggable={false}
+                    ref={(img) => measure(photo.id, img)}
+                    onLoad={(event) => measure(photo.id, event.currentTarget)}
+                  />
+                </button>
+              ) : (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  src={photo.url}
+                  alt={alt}
+                  draggable={false}
+                  ref={(img) => measure(photo.id, img)}
+                  onLoad={(event) => measure(photo.id, event.currentTarget)}
+                />
+              )}
             </span>
           );
         })}

@@ -86,6 +86,9 @@ export function BubbleGestures({
         pressTimer.current = null;
         gesture.current = null;
         setDx(0);
+        /* The finger lifting after a hold must not also tap what is under it
+           (a photo opening full screen behind the message menu). */
+        swiped.current = true;
         onLongPress();
       }, LONG_PRESS_MS);
     }

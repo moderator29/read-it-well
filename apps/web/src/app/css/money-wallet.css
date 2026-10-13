@@ -15,7 +15,8 @@
   The reference is dark; the light version keeps the card a night island
   (the same object in both themes, D80) on Paper's own containers. Tokens
   only, inside `@layer components`. Shadows read the elevation rungs and the
-  spark glow; the two hand-written lifts are the card's blue under-light and
+  spark glow; the two hand-written lifts are the card's own tight contact
+  shadow (no spreading glow: the card has a defined edge and stops there) and
   the Withdraw capsule's bloom in its own blue (one-light.test.ts).
 */
 @layer components {
@@ -25,14 +26,15 @@
     --nf-mw-white: var(--nf-content-on-brand);
     --nf-mw-in: var(--nf-state-success);
     --nf-mw-out: var(--nf-spark-ink);
+    /* One clean diagonal from deep navy into the Vallo blue, and a faint sheen
+       across the top third. No radial blooms: those read as ink spreading. */
     --nf-mw-card-fill:
-      radial-gradient(110% 90% at 100% 0%, color-mix(in oklab, var(--nf-mw-blue) 46%, transparent) 0%, transparent 62%),
-      radial-gradient(80% 60% at 0% 0%, color-mix(in oklab, var(--nf-mw-white) 6%, transparent) 0%, transparent 55%),
+      linear-gradient(180deg, color-mix(in oklab, var(--nf-mw-white) 7%, transparent) 0%, transparent 46%),
       linear-gradient(
-        155deg,
-        color-mix(in oklab, var(--nf-mw-blue) 22%, var(--nf-mw-navy)) 0%,
-        color-mix(in oklab, var(--nf-mw-blue) 40%, var(--nf-mw-navy)) 55%,
-        color-mix(in oklab, var(--nf-mw-blue) 70%, var(--nf-mw-navy)) 100%
+        158deg,
+        color-mix(in oklab, var(--nf-mw-blue) 20%, var(--nf-mw-navy)) 0%,
+        color-mix(in oklab, var(--nf-mw-blue) 40%, var(--nf-mw-navy)) 58%,
+        color-mix(in oklab, var(--nf-mw-blue) 62%, var(--nf-mw-navy)) 100%
       );
     --nf-mw-edge: color-mix(in oklab, var(--nf-brand-primary) 30%, transparent);
     --nf-mw-surface: var(--nf-platform-card-fill);
@@ -180,13 +182,16 @@
     gap: var(--nf-space-xs);
     overflow: hidden;
     padding: var(--nf-space-md) var(--nf-space-md) var(--nf-space-md);
-    border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-brand-primary) 55%, transparent);
+    /* The edge: one crisp 1px line, a shade darker than the fill, so the card
+       is cut out of the page in both themes. The hairline just inside it is
+       the inner ring; the only outer shadow is a tight contact shadow. */
+    border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-mw-blue) 52%, var(--nf-mw-navy));
     border-radius: var(--nf-radius-xl);
     background: var(--nf-mw-card-fill);
     box-shadow:
-      inset 0 1px 0 color-mix(in oklab, var(--nf-mw-white) 16%, transparent),
-      var(--nf-elevation-floating),
-      0 24px 48px -28px color-mix(in oklab, var(--nf-mw-blue) 70%, transparent);
+      inset 0 0 0 1px color-mix(in oklab, var(--nf-mw-white) 9%, transparent),
+      inset 0 1px 0 color-mix(in oklab, var(--nf-mw-white) 14%, transparent),
+      0 2px 6px -2px color-mix(in oklab, var(--nf-mw-navy) 42%, transparent);
     color: var(--nf-mw-white);
   }
   .nf-mw-card::after {
@@ -245,16 +250,25 @@
     gap: var(--nf-space-2xs);
     min-height: 2.75rem;
     padding-inline: var(--nf-space-sm) var(--nf-space-md);
-    border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-mw-white) 22%, transparent);
+    /* A solid white pill with a crisp edge: the one bright thing on the card.
+       The ink is the card's own navy, the plus sits in a blue dot. */
+    border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-mw-white) 62%, var(--nf-mw-blue));
     border-radius: var(--nf-radius-pill);
-    background: color-mix(in oklab, var(--nf-mw-navy) 40%, transparent);
+    background: var(--nf-mw-white);
+    box-shadow: inset 0 -1px 0 color-mix(in oklab, var(--nf-mw-blue) 16%, transparent);
     font-size: var(--nf-text-body-sm);
     font-weight: 600;
-    color: var(--nf-mw-white);
+    color: var(--nf-mw-navy);
     -webkit-tap-highlight-color: transparent;
+    transition:
+      background-color var(--nf-duration-fast) var(--nf-ease-standard),
+      transform var(--nf-duration-fast) var(--nf-ease-standard);
   }
   .nf-mw-add:hover {
-    background: color-mix(in oklab, var(--nf-mw-white) 12%, transparent);
+    background: color-mix(in oklab, var(--nf-mw-white) 90%, var(--nf-mw-blue));
+  }
+  .nf-mw-add:active {
+    transform: scale(0.97);
   }
   .nf-mw-add__plus {
     display: grid;
@@ -262,8 +276,8 @@
     width: 1.5rem;
     height: 1.5rem;
     border-radius: var(--nf-radius-circle);
-    background: var(--nf-act-fill);
-    color: var(--nf-act-on);
+    background: var(--nf-mw-blue);
+    color: var(--nf-mw-white);
   }
 
   .nf-mw-card__main {
@@ -325,11 +339,13 @@
   .nf-mw-card__art {
     position: absolute;
     z-index: -1;
-    inset-inline-end: calc(-1 * var(--nf-space-2xs));
-    top: 58%;
-    width: 6.25rem;
+    /* Inside the card with its own breathing room: nothing of the object is
+       cut by the edge or leans over it. */
+    inset-inline-end: 0;
+    bottom: calc(-1 * var(--nf-space-2xs));
+    width: 4.75rem;
     height: auto;
-    transform: translateY(-50%) rotate(-6deg);
+    transform: rotate(-4deg);
     pointer-events: none;
   }
 
@@ -339,14 +355,18 @@
     gap: var(--nf-space-xs);
     margin-top: var(--nf-space-xs);
   }
+  /* The two inner boxes: one radius (the card's medium), one padding, one
+     hairline, and a light glass fill over the blue, so they read as part of
+     the card and not as holes cut in it. */
   .nf-mw-total {
     display: grid;
-    gap: var(--nf-space-3xs);
+    gap: var(--nf-space-2xs);
     min-width: 0;
     padding: var(--nf-space-sm);
-    border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-mw-white) 14%, transparent);
+    border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-mw-white) 13%, transparent);
     border-radius: var(--nf-radius-md);
-    background: color-mix(in oklab, var(--nf-mw-navy) 46%, transparent);
+    background: color-mix(in oklab, var(--nf-mw-white) 7%, transparent);
+    box-shadow: inset 0 1px 0 color-mix(in oklab, var(--nf-mw-white) 10%, transparent);
   }
   .nf-mw-total__label {
     display: flex;
@@ -356,11 +376,19 @@
     font-weight: 600;
     color: color-mix(in oklab, var(--nf-mw-white) 72%, transparent);
   }
+  /* The direction mark sits in a small tinted disc in its own colour. */
   .nf-mw-total__label svg {
     flex: none;
+    box-sizing: border-box;
+    width: 1.25rem;
+    height: 1.25rem;
+    padding: 0.1875rem;
+    border-radius: var(--nf-radius-circle);
+    background: color-mix(in oklab, currentColor 18%, transparent);
   }
   .nf-mw-total[data-way="in"] .nf-mw-total__label svg {
-    color: var(--nf-mw-in);
+    /* The success green lifted toward white, so it reads on the blue. */
+    color: color-mix(in oklab, var(--nf-mw-in) 38%, var(--nf-mw-white));
   }
   .nf-mw-total[data-way="out"] .nf-mw-total__label svg {
     color: var(--nf-spark);
@@ -383,21 +411,31 @@
   }
 
   /* --------------------------------------------- where the money is */
+  /* The three figures under the card: the same hairline and the same inner
+     padding as the card's boxes, with short dividers that stop short of the
+     edge instead of cutting the strip in three. */
   .nf-mw-strip {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
+    overflow: hidden;
     border: var(--nf-border-width) solid var(--nf-mw-surface-edge);
     border-radius: var(--nf-radius-lg);
     background: var(--nf-mw-surface);
   }
   .nf-mw-strip > div {
+    position: relative;
     display: grid;
-    gap: var(--nf-space-3xs);
+    gap: var(--nf-space-2xs);
     min-width: 0;
     padding: var(--nf-space-sm);
   }
-  .nf-mw-strip > div + div {
-    border-inline-start: var(--nf-border-width) solid var(--nf-mw-surface-edge);
+  .nf-mw-strip > div + div::before {
+    content: "";
+    position: absolute;
+    inset-block: var(--nf-space-sm);
+    inset-inline-start: 0;
+    width: var(--nf-border-width);
+    background: var(--nf-mw-surface-edge);
   }
   .nf-mw-strip dt {
     overflow: hidden;
@@ -1272,9 +1310,11 @@
       justify-content: space-between;
       padding-block: var(--nf-space-xs);
     }
-    .nf-mw-strip > div + div {
-      border-inline-start: 0;
-      border-top: var(--nf-border-width) solid var(--nf-mw-surface-edge);
+    .nf-mw-strip > div + div::before {
+      inset-block: 0 auto;
+      inset-inline: var(--nf-space-sm);
+      width: auto;
+      height: var(--nf-border-width);
     }
     .nf-mw-summary {
       grid-template-columns: 1fr;
