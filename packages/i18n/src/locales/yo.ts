@@ -4339,4 +4339,10 @@ export const yo: Dictionary = withFallback({
     },
   },
 
+  fixesV2: {
+    referral: {
+      countsOnPhone: "A óò ka ìpè rẹ nígbà tí ẹni tí o pè bá jẹ́rìí sí nọ́mbà fóònù rẹ̀.",
+    },
+  },
+
 } satisfies Translation, yoDrafts);

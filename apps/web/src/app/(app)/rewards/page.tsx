@@ -67,6 +67,7 @@ export default async function RewardsPage() {
         hrefs={REWARDS_HREFS}
         dismissLabel={t.experienceUi.notNow}
         now={new Date().getTime()}
+        phoneLine={t.fixesV2.referral.countsOnPhone}
       />
     </div>
   );

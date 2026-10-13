@@ -74,6 +74,7 @@ export function RewardsDashboard({
   hrefs,
   dismissLabel,
   now,
+  phoneLine,
 }: {
   snapshot: RewardsSnapshot;
   invite: { url: string; code: string } | null;
@@ -86,6 +87,8 @@ export function RewardsDashboard({
   dismissLabel: string;
   /** The server's clock at render. With it, the earned curve (reference 5) is drawn from the history. */
   now?: number;
+  /** `fixesV2.referral.countsOnPhone`: the invited person counts once they verify their phone. */
+  phoneLine?: string;
 }) {
   const { policy, balance } = snapshot;
   const number = new Intl.NumberFormat(intlTag[locale]);
@@ -107,7 +110,7 @@ export function RewardsDashboard({
             {
               key: "earn",
               title: fill(copy.earn.headline, { amount: reward }),
-              body: qualifySentence(policy, locale),
+              body: qualifySentence(policy, locale, phoneLine),
               screenTone: "platinum",
               screen: (
                 <>
@@ -188,7 +191,7 @@ export function RewardsDashboard({
         </div>
       ) : null}
 
-      {paused || policy.rewardPerReferralMinor <= 0 ? null : <EarnCard snapshot={snapshot} copy={copy} locale={locale} />}
+      {paused || policy.rewardPerReferralMinor <= 0 ? null : <EarnCard snapshot={snapshot} copy={copy} locale={locale} phoneLine={phoneLine} />}
 
       {snapshot.campaign && !paused ? <CampaignCard campaign={snapshot.campaign} copy={copy.campaign} locale={locale} /> : null}
 
@@ -244,7 +247,7 @@ export function RewardsDashboard({
         <ListRow title={copy.policy.minimum} value={<span className="nf-rewards-amount">{minimum}</span>} data-testid="rewards-policy-minimum" />
       </ListGroup>
       <div className="grid gap-xs">
-        {paused ? null : <p className="nf-rewards-note">{qualifySentence(policy, locale)}</p>}
+        {paused ? null : <p className="nf-rewards-note">{qualifySentence(policy, locale, phoneLine)}</p>}
         <p className="nf-rewards-note">{words.notInvestment}</p>
       </div>
     </div>

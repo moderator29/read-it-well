@@ -4322,4 +4322,10 @@ export const ig: Dictionary = withFallback({
     },
   },
 
+  fixesV2: {
+    referral: {
+      countsOnPhone: "A ga-agụta oku gị mgbe onye i kpọrọ kwadoro nọmba ekwentị ya.",
+    },
+  },
+
 } satisfies Translation, igDrafts);

@@ -281,7 +281,7 @@ function invitePanels(t: Dictionary, invite: InviteRewards, locale?: Locale): Fi
     case "running":
       return [
         { object: "ticket", title: c.running.p1Title, body: door.doorBody },
-        { object: "gift-box", title: c.running.p2Title, body: qualifySentence(invite.policy, locale ?? "en") },
+        { object: "gift-box", title: c.running.p2Title, body: qualifySentence(invite.policy, locale ?? "en", t.fixesV2.referral.countsOnPhone) },
         {
           object: "calendar-page",
           title: c.running.p3Title,

@@ -4293,4 +4293,10 @@ export const ha: Dictionary = withFallback({
     },
   },
 
+  fixesV2: {
+    referral: {
+      countsOnPhone: "Za a ƙidaya gayyatarka da zarar wanda ka gayyata ya tabbatar da lambar wayarsa.",
+    },
+  },
+
 } satisfies Translation, haDrafts);
