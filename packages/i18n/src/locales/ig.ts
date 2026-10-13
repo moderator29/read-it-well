@@ -4326,6 +4326,10 @@ export const ig: Dictionary = withFallback({
     referral: {
       countsOnPhone: "A ga-agụta oku gị mgbe onye i kpọrọ kwadoro nọmba ekwentị ya.",
     },
+    offline: {
+      title: "Ị nọghị n'ịntanetị",
+      body: "Vallo enweghị ike ịnweta netwọk ugbu a. Ihuenyo a ga-ebuli onwe ya ọzọ mgbe i jikọrọ ọzọ n'ịntanetị.",
+    },
   },
 
 } satisfies Translation, igDrafts);

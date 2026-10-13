@@ -6916,10 +6916,17 @@ export const en = {
    * referral    the founder's ruling: an invited person counts only after they
    *             verify their phone number. Said plainly on the referral
    *             surfaces beside what the campaign's own steps say.
+   * offline     what an error boundary says when the phone has no signal: a
+   *             calm fact about the place, not a failure (the same words in
+   *             the app, agent and host boundaries).
    */
   fixesV2: {
     referral: {
       countsOnPhone: "Your invite counts once they verify their phone number.",
+    },
+    offline: {
+      title: "You are offline",
+      body: "Vallo cannot reach the network right now. This screen loads again by itself when you are back online.",
     },
   },
 

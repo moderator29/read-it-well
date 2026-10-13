@@ -1,6 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { useHydrated } from "@/components/motion/useInView";
 import { Button } from "@/components/ui/Button";
 import { SpaceCard } from "@/components/ui/space-card/SpaceCard";
 import { SaveButton, useSaveControl } from "@/components/app/SaveControl";
@@ -39,7 +40,36 @@ export function LookedAtRecently({
   copy: { title: string; clear: string; clearLabel: string; verified: string };
 }) {
   const entries = useSyncExternalStore(subscribeRecent, recentListingsSnapshot, recentListingsServerSnapshot);
-  if (entries.length === 0) return null;
+  const hydrated = useHydrated();
+  const filled = entries.length > 0;
+  /*
+   * THE SLOT HOLDS THE ROW'S HEIGHT OPEN BEFORE THE ROW EXISTS (13 October
+   * 2026, layout stability). The row reads the phone's memory, so the server
+   * draws none of it and it used to arrive after hydration and push Home down.
+   * Now the server always draws this empty slot; `member-loop.css` gives it
+   * the row's height from the first frame when the head script has seen a
+   * remembered listing (`data-recent-listings` on the root), the row fills the
+   * space it was holding, and a phone that turns out to have nothing collapses
+   * the slot (`data-empty`, set only once hydrated and still empty).
+   */
+  return (
+    <div
+      className="nf-lookback-slot"
+      data-filled={filled ? "" : undefined}
+      data-empty={hydrated && !filled ? "" : undefined}
+    >
+      {filled ? <LookedAtRow entries={entries} copy={copy} /> : null}
+    </div>
+  );
+}
+
+function LookedAtRow({
+  entries,
+  copy,
+}: {
+  entries: RecentListing[];
+  copy: { title: string; clear: string; clearLabel: string; verified: string };
+}) {
   return (
     <section className="nf-lookback mt-group" aria-labelledby="lookback-title" data-testid="looked-at-recently">
       <div className="nf-lookback__head">

@@ -25,6 +25,7 @@
 
 import type { ViewKey } from "@/lib/listings/search-params";
 import { isSafePhoto, type CardGlanceMark } from "@/lib/listings/card-glance";
+import { syncRecentFlag } from "./recent-flag";
 
 /* --------------------------------------------------------------- the view */
 
@@ -120,6 +121,10 @@ function clearKey(key: string): void {
 const recentListeners = new Set<() => void>();
 
 function notifyRecent(): void {
+  /* The root's "this phone has opened listings" mark follows the store, so the
+     Recently viewed row reserves its height correctly on a client-side visit
+     to Home too (`recent-flag.ts`). */
+  syncRecentFlag(readRecentListings().length);
   for (const listener of recentListeners) listener();
 }
 
