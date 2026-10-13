@@ -1358,6 +1358,7 @@ export function ThreadView({
                       <PhotoGroup
                         photos={photos.map((p) => ({ id: p.id, url: p.imageUrl ?? "", size: p.imageSize ?? null }))}
                         alt={m.mine ? "Photo you attached" : `Photo from ${counterpartName}`}
+                        locale={locale}
                       />
                     ) : null}
                     {m.forwarded ? <span className="nf-bubble__forwarded">Forwarded</span> : null}

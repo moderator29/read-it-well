@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useRef, useState, type CSSProperties } from "react";
+import { countOf, type Locale } from "@vallo/i18n/core";
 import { PHOTOS_PER_ROW, pageAt, photoLayout, ratioOf, type PhotoSize } from "./photo-layout";
 
 /**
@@ -19,7 +20,16 @@ import { PHOTOS_PER_ROW, pageAt, photoLayout, ratioOf, type PhotoSize } from "./
 
 export type GroupPhoto = { id: string; url: string; size?: PhotoSize | null };
 
-export function PhotoGroup({ photos, alt }: { photos: readonly GroupPhoto[]; alt: string }) {
+export function PhotoGroup({
+  photos,
+  alt,
+  locale = "en",
+}: {
+  photos: readonly GroupPhoto[];
+  alt: string;
+  /** For the group's counted name ("5 photos"), from the dictionary's own counts. */
+  locale?: Locale;
+}) {
   /* Sizes measured in the browser, by photo id, for rows that carried none. */
   const [measured, setMeasured] = useState<Record<string, number>>({});
   const [page, setPage] = useState(0);
@@ -29,6 +39,8 @@ export function PhotoGroup({ photos, alt }: { photos: readonly GroupPhoto[]; alt
   const ratioKey = ratios.join(",");
   const layout = useMemo(() => photoLayout(ratioKey.split(",").map((r) => (r === "" ? null : Number(r)))), [ratioKey]);
   const paged = layout.pages > 1;
+  /* A lone photo is named by its own alt; a group is named as a group. */
+  const grouped = photos.length >= 2;
 
   const measure = useCallback((id: string, img: HTMLImageElement | null) => {
     if (!img || !img.complete || img.naturalWidth === 0) return;
@@ -64,8 +76,8 @@ export function PhotoGroup({ photos, alt }: { photos: readonly GroupPhoto[]; alt
   return (
     <div
       className="nf-photo-group"
-      role={photos.length > 1 ? "group" : undefined}
-      aria-label={photos.length > 1 ? `${photos.length} photos` : undefined}
+      role={grouped ? "group" : undefined}
+      aria-label={grouped ? countOf(photos.length, "photos", locale) : undefined}
       style={{ width: layout.width }}
       data-count={photos.length}
     >
@@ -105,14 +117,14 @@ export function PhotoGroup({ photos, alt }: { photos: readonly GroupPhoto[]; alt
       {paged ? (
         <div className="nf-photo-group__dots">
           {Array.from({ length: layout.pages }, (_, i) => {
-            const from = i * PHOTOS_PER_ROW + 1;
-            const to = Math.min(photos.length, from + PHOTOS_PER_ROW - 1);
+            /* Each dot goes to the first photo of its three, and says which. */
+            const first = i * PHOTOS_PER_ROW + 1;
             return (
               <button
                 key={i}
                 type="button"
                 className="nf-photo-group__dot"
-                aria-label={from === to ? `Photo ${from} of ${photos.length}` : `Photos ${from} to ${to} of ${photos.length}`}
+                aria-label={`Photo ${first} of ${photos.length}`}
                 aria-current={page === i || undefined}
                 onClick={() => goTo(i)}
                 data-testid="photo-dot"

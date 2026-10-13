@@ -167,7 +167,7 @@ describe.skipIf(!hasBrowser && !process.env.CI)("photos in a bubble", () => {
         document.querySelectorAll('[data-testid="nine"] .nf-photo-group__dot')[2]?.getAttribute("aria-current") === "true",
       );
       /* A tap on the first dot goes back to the start. */
-      await page.getByTestId("nine").getByRole("button", { name: "Photos 1 to 3 of 9" }).click();
+      await page.getByTestId("nine").getByRole("button", { name: "Photo 1 of 9" }).click();
       await page.waitForFunction(() => {
         const s = document.querySelector<HTMLElement>('[data-testid="nine"] .nf-photo-group__strip')!;
         return s.scrollLeft === 0;
