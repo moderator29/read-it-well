@@ -283,7 +283,8 @@ export function MediaViewer({
       beginPinch();
       return;
     }
-    begin(zoomRef.current.scale > 1 ? "pan" : "pending", event.clientX, event.clientY);
+    const zoomedIn = zoomRef.current.scale > 1;
+    begin(zoomedIn ? "pan" : "pending", event.clientX, event.clientY);
   };
 
   const onPointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
@@ -330,7 +331,8 @@ export function MediaViewer({
     if (g.mode === "pinch") {
       if (zoomRef.current.scale < 1.05) setZoom(REST);
       const rest = [...points.current.values()][0];
-      if (rest) begin(zoomRef.current.scale > 1 ? "pan" : "none", rest.x, rest.y);
+      const zoomedIn = zoomRef.current.scale > 1;
+      if (rest) begin(zoomedIn ? "pan" : "none", rest.x, rest.y);
       else gesture.current = { ...gesture.current, mode: "idle" };
       if (points.current.size === 0) setGesturing(false);
       return;

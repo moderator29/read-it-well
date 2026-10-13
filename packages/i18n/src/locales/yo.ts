@@ -4181,7 +4181,7 @@ export const yo: Dictionary = withFallback({
       voice: "ìpè ohùn",
       videoTitle: "Ìpè fídíò",
       voiceTitle: "Ìpè ohùn",
-      missedFrom: "{Call} tí o kò gbà láti ọ̀dọ̀ {name}",
+      missedFrom: "O kò gbà {call} láti ọ̀dọ̀ {name}",
       callWith: "{Call} pẹ̀lú {name}, {duration}",
       callWithNoTime: "{Call} pẹ̀lú {name}",
       youCalled: "O pe {name}, {outcome}",

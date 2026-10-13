@@ -4135,7 +4135,7 @@ export const ha: Dictionary = withFallback({
       voice: "kiran murya",
       videoTitle: "Kiran bidiyo",
       voiceTitle: "Kiran murya",
-      missedFrom: "{Call} da ba a amsa ba daga {name}",
+      missedFrom: "An rasa {call} daga {name}",
       callWith: "{Call} tare da {name}, {duration}",
       callWithNoTime: "{Call} tare da {name}",
       youCalled: "Ka kira {name}, {outcome}",

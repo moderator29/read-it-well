@@ -4164,7 +4164,7 @@ export const ig: Dictionary = withFallback({
       voice: "ịkpọ olu",
       videoTitle: "Ịkpọ vidiyo",
       voiceTitle: "Ịkpọ olu",
-      missedFrom: "{Call} ị nabataghị site n'aka {name}",
+      missedFrom: "Ị nabataghị {call} site n'aka {name}",
       callWith: "{Call} na {name}, {duration}",
       callWithNoTime: "{Call} na {name}",
       youCalled: "Ị kpọrọ {name}, {outcome}",
