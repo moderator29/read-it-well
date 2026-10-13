@@ -3,6 +3,7 @@
 import { fail, ok, type ActionResult } from "../actions/envelope";
 import { isSocialEnabled } from "./flag";
 import { findPeople } from "./people-queries";
+import { hitsOf, type PersonHit } from "./people-hits";
 
 /**
  * The live "find people by @username" box (9 October 2026): the first few
@@ -14,30 +15,21 @@ import { findPeople } from "./people-queries";
  * not publish. Fewer than two characters answers nothing rather than listing
  * everybody on every keystroke.
  */
-export type PersonHit = {
-  handle: string;
-  displayLabel: string;
-  avatarUrl: string;
-  isAgent: boolean;
-  isViewer: boolean;
-};
-
 const MAX_HITS = 6;
+const PAGE_HITS = 24;
 
-export async function searchPeople(query: string): Promise<ActionResult<{ query: string; hits: PersonHit[] }>> {
+/**
+ * `page` asks for the people page's longer answer (every row there carries a
+ * Follow button and a badge), the dropdown's default is the first few.
+ */
+export async function searchPeople(
+  query: string,
+  page?: boolean,
+): Promise<ActionResult<{ query: string; hits: PersonHit[]; signedIn: boolean }>> {
   const typed = typeof query === "string" ? query.trim().replace(/^@+/, "").slice(0, 40) : "";
-  if (typed.length < 2) return ok({ query: typed, hits: [] });
+  if (typed.length < 2) return ok({ query: typed, hits: [], signedIn: false });
   if (!(await isSocialEnabled())) return fail("People search is paused for now. Try again in a little while.");
   const view = await findPeople(typed);
   if (view.state !== "ready") return fail("We could not search just now. Try again in a moment.");
-  return ok({
-    query: typed,
-    hits: view.people.slice(0, MAX_HITS).map((p) => ({
-      handle: p.handle,
-      displayLabel: p.displayLabel,
-      avatarUrl: p.avatarUrl,
-      isAgent: p.isAgent,
-      isViewer: p.isViewer,
-    })),
-  });
+  return ok({ query: typed, hits: hitsOf(view.people, page === true ? PAGE_HITS : MAX_HITS), signedIn: view.signedIn });
 }

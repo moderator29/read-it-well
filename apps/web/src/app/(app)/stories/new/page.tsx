@@ -4,6 +4,7 @@ import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
 import { resolveSession } from "@/lib/actions/session";
 import { listMyAreas } from "@/lib/social/areas-queries";
+import { loadProfileState } from "@/lib/profile/queries";
 import { StoryComposer } from "@/components/social/story/StoryComposer";
 import { EmptyPanel } from "@/components/social/profile/EmptyPanel";
 import { SocialPaused } from "@/components/social/SocialPaused";
@@ -42,7 +43,17 @@ export default async function NewStoryPage() {
   }
 
   const signedIn = session.state === "signed-in";
-  const mine = signedIn ? await listMyAreas() : [];
+  const [mine, account] = await Promise.all([signedIn ? listMyAreas() : Promise.resolve([]), loadProfileState()]);
+  const profile = account.state === "signed-in" ? account.profile : null;
+  const you = profile
+    ? {
+        label:
+          profile.displayName ||
+          [profile.firstName, profile.surname].filter(Boolean).join(" ") ||
+          profile.email,
+        avatarUrl: profile.avatarUrl,
+      }
+    : null;
   const areas = mine
     .filter((area) => area.status === "ACTIVE")
     .map((area) => ({ id: area.id, name: area.name, city: area.city }));
@@ -58,6 +69,7 @@ export default async function NewStoryPage() {
         areas={areas}
         userId={signedIn ? session.user.id : null}
         signedIn={signedIn}
+        you={you}
       />
     </div>
   );

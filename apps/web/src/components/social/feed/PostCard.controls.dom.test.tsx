@@ -39,6 +39,7 @@ const CSS = [
   read("src", "app", "social-feed.shared.css"),
   read("src", "app", "social-feed.css"),
   read("src", "app", "css", "feed-m.css"),
+  read("src", "components", "social", "feed", "feed-v2.css"),
 ].join("\n");
 
 const entry = `
@@ -155,10 +156,10 @@ describe.skipIf(!hasBrowser && !process.env.CI)("a post's controls on a phone", 
     }
   });
 
-  it("the action row carries no wrapper: each glyph has no fill and no edge", async () => {
+  it("the glyphs in the action rows carry no wrapper: each has no fill and no edge", async () => {
     const { page, close } = await mountInBrowser({ entry, css: CSS });
     try {
-      const looks = await page.$$eval(".nf-post__actions .nf-act-pill", (pills) =>
+      const looks = await page.$$eval(".nf-pc__actions .nf-act-pill", (pills) =>
         pills.map((pill) => {
           const style = getComputedStyle(pill);
           /* No fill: no background image and a fully transparent colour. */
@@ -166,7 +167,9 @@ describe.skipIf(!hasBrowser && !process.env.CI)("a post's controls on a phone", 
           return { bare, border: style.borderTopWidth, height: pill.getBoundingClientRect().height };
         }),
       );
-      expect(looks).toHaveLength(5);
+      /* The heart, the repost, the share and the save. The comment is the
+         rounded pill, which has its own fill by design. */
+      expect(looks).toHaveLength(4);
       for (const look of looks) {
         expect(look.bare).toBe(true);
         expect(look.border).toBe("0px");

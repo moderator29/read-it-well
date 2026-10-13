@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation";
 import { TextField } from "@/components/ui/Field";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import { initial } from "@/lib/text/initial";
-import { searchPeople, type PersonHit } from "@/lib/social/people-search-actions";
+import { searchPeople } from "@/lib/social/people-search-actions";
+import type { PersonHit } from "@/lib/social/people-hits";
 import "./people-search.css";
 
 type Copy = {

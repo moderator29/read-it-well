@@ -155,6 +155,7 @@ export function buildNav({
             { href: "/stays", label: t.nav.stays, icon: "bed" },
             { href: "/stays/search", label: t.nav.search, icon: "search" },
             { href: "/around", label: t.nav.feed, icon: "feed" },
+            { href: "/around/people", label: t.feedV2.people.navPeople, icon: "users" },
           ]
         : [
             { href: "/home", label: t.nav.home, icon: "home" },
@@ -163,6 +164,7 @@ export function buildNav({
                feed, place or neighbourhood: it was the one destination in the set
                a person could not guess from its glyph. `feed` exists now. */
             { href: "/around", label: t.nav.feed, icon: "feed" },
+            { href: "/around/people", label: t.feedV2.people.navPeople, icon: "users" },
           ],
     },
   ];

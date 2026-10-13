@@ -18,7 +18,7 @@ vi.setConfig({ testTimeout: BROWSER_TEST_TIMEOUT });
 beforeAll(warmBrowser);
 afterAll(closeBrowser);
 
-const SURFACES: { name: string; imports: string; body: string; bleed?: boolean }[] = [
+const SURFACES: { name: string; imports: string; body: string; bleed?: boolean; setup?: string }[] = [
   {
     name: "the feed's post card",
     imports: `
@@ -74,6 +74,33 @@ const SURFACES: { name: string; imports: string; body: string; bleed?: boolean }
     ]} />`,
   },
   {
+    name: "the feed's For you and Friends tabs",
+    imports: `import { FeedTabs } from "@/components/social/feed/FeedMasthead";`,
+    body: `<FeedTabs active="for-you" t={t} />`,
+  },
+  {
+    name: "the people page: rows of cards and the list",
+    bleed: true,
+    imports: `
+      import { PeopleFinder } from "@/components/social/find/PeopleFinder";
+      import { PeopleSections } from "@/components/social/find/PeopleSections";
+      import { directoryRow, mostFollowedRow, visibleRows } from "@/lib/social/people-discovery-model";
+      import { DIRECTORY_PROPERTY, DIRECTORY_STAYS, FACTS, POPULAR } from "@/app/(dev)/preview/feed-v2/fixtures";
+      import { FOLLOW_SAMPLE } from "@/app/(dev)/preview/f4/fixtures";`,
+    setup: `const ROWS = visibleRows([
+      directoryRow("top-landlords", DIRECTORY_PROPERTY, FACTS), directoryRow("top-agents", DIRECTORY_PROPERTY, FACTS),
+      directoryRow("top-hotels", DIRECTORY_STAYS, FACTS), mostFollowedRow(POPULAR),
+    ]);`,
+    body: `<div className="nf-ppl"><PeopleFinder words={{
+        searchLabel: t.feedV2.people.searchLabel, searchPlaceholder: t.feedV2.people.searchPlaceholder, clear: t.feedV2.people.clear,
+        searching: t.feedV2.people.searching, resultsFor: t.feedV2.people.resultsFor, noResultsTitle: t.feedV2.people.noResultsTitle,
+        noResultsBody: t.feedV2.people.noResultsBody, unavailable: t.feedV2.people.unavailableTitle, roleLandlord: t.feedV2.people.roleLandlord,
+        roleAgent: t.feedV2.people.roleAgent, openProfile: t.feedV2.people.openProfile, you: t.feedV2.people.you }}
+        initialQuery="" initialHits={null} signedIn>
+        <PeopleSections rows={ROWS} suggestions={FOLLOW_SAMPLE} signedIn words={t.feedV2.people} locale="en" />
+      </PeopleFinder></div>`,
+  },
+  {
     name: "the story rail",
     imports: `
       import { StoryRing } from "@/components/social/feed/StoryRing";
@@ -89,7 +116,8 @@ describe.skipIf(!hasBrowser && !process.env.CI)("social surfaces: tap targets at
         locale: "en",
         imports: surface.imports,
         body: surface.body,
-        css: await appCss(),
+        css: await appCss("components/social/feed/feed-v2.css", "components/social/find/people-v2.css"),
+        setup: surface.setup,
         bleed: surface.bleed,
       });
       try {

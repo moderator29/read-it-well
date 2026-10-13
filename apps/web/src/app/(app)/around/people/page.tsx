@@ -1,171 +1,112 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { getDictionary } from "@vallo/i18n";
 import { PageHeader } from "@/components/app/PageHeader";
-import { FollowRow } from "@/components/social/follow/WhoToFollow";
+import { PeopleFinder, typedOf } from "@/components/social/find/PeopleFinder";
+import { PeopleSections } from "@/components/social/find/PeopleSections";
 import { EmptyPanel } from "@/components/social/profile/EmptyPanel";
 import { SocialPaused } from "@/components/social/SocialPaused";
-import { UiIcon } from "@/design-system/icons/UiIcon";
+import { getLocale } from "@/lib/locale";
 import { isSocialEnabled } from "@/lib/social/flag";
 import { listMyAreas } from "@/lib/social/areas-queries";
-import {
-  isFollowKind,
-  readFollowSuggestions,
-  type FollowKind,
-} from "@/lib/social/follow-suggestions";
+import { findPeople } from "@/lib/social/people-queries";
+import { hitsOf, type PersonHit } from "@/lib/social/people-hits";
+import { readPeopleDiscovery } from "@/lib/social/people-discovery";
 
 export const metadata: Metadata = {
-  title: "Find people to follow",
+  title: "Find people",
 };
 
-const PAGE = 20;
-
-/** The filter chips, in the order a member looking for a place thinks. */
-const KINDS: { kind: FollowKind | null; label: string }[] = [
-  { kind: null, label: "All" },
-  { kind: "agent", label: "Agents" },
-  { kind: "landlord", label: "Landlords" },
-  { kind: "hotel", label: "Hotels" },
-  { kind: "restaurant", label: "Restaurants" },
-  { kind: "agency", label: "Agencies" },
-];
+export const dynamic = "force-dynamic";
 
 function first(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;
 }
 
 /**
- * THE SOCIAL SEARCH (the founder, 7 October): a full page to find people and
- * businesses to follow, City or Global, filtered by kind.
+ * FIND PEOPLE (founder, 13 October 2026): the feed's search icon opens this.
  *
- * Every control is a link or a GET form, so the page is its own address
- * (shareable, Back steps through the filters, works before JavaScript), and
- * the list is the same `FollowRow` the feed's block draws. City is the one
- * the member is reading or joined, never a guess; with none, the City half
- * says so and the list is everyone on Vallo.
+ * A big search field on top (handle and display name, through the existing
+ * people search), then sideways rows of profile cards (Top landlords, Top
+ * agents, Top hotels, Most followed) and "People to follow" as a list. Every
+ * rank comes from a number the database holds (`lib/social/people-discovery`
+ * says which), and a row with nobody in it is not drawn: this page never
+ * invents a rank, a count or a person.
+ *
+ * It is signed-in only, like the feed it hangs off (`/around` is not a public
+ * segment in `proxy.ts`). The address carries the search (`?q=`), so a search
+ * can be sent, reloaded or gone back to, and works before any script has
+ * loaded; with script the field answers as you type.
  */
 export default async function FindPeoplePage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string | string[]; scope?: string | string[]; city?: string | string[]; kind?: string | string[]; page?: string | string[] }>;
+  searchParams: Promise<{ q?: string | string[] }>;
 }) {
   if (!(await isSocialEnabled())) return <SocialPaused />;
+  const locale = await getLocale();
+  const t = getDictionary(locale);
+  const w = t.feedV2.people;
+
   const params = await searchParams;
+  const query = typedOf(first(params.q) ?? "");
   const mine = await listMyAreas();
+  const city = mine.find((area) => area.status === "ACTIVE")?.city ?? null;
 
-  const query = (first(params.q) ?? "").trim().slice(0, 40);
-  const askedCity = (first(params.city) ?? "").trim().slice(0, 60);
-  const homeCity = mine.find((area) => area.status === "ACTIVE")?.city ?? null;
-  const global = first(params.scope) === "global";
-  const city = global ? null : askedCity || homeCity;
-  const rawKind = first(params.kind);
-  const kind = isFollowKind(rawKind) ? rawKind : null;
-  const page = Math.max(0, Math.min(20, Number.parseInt(first(params.page) ?? "0", 10) || 0));
+  const [discovery, found] = await Promise.all([
+    readPeopleDiscovery({ city }),
+    query.length >= 2 ? findPeople(query) : Promise.resolve(null),
+  ]);
 
-  const read = await readFollowSuggestions({ city, kind, query, limit: PAGE, offset: page * PAGE });
-
-  const href = (next: { scope?: "global" | "city"; kind?: FollowKind | null; page?: number }) => {
-    const out = new URLSearchParams();
-    if (query) out.set("q", query);
-    const scope = next.scope ?? (global ? "global" : "city");
-    if (scope === "global") out.set("scope", "global");
-    else if (askedCity) out.set("city", askedCity);
-    const k = next.kind === undefined ? kind : next.kind;
-    if (k) out.set("kind", k);
-    if (next.page) out.set("page", String(next.page));
-    const s = out.toString();
-    return `/around/people${s ? `?${s}` : ""}`;
-  };
+  const signedIn = discovery.state === "ready" ? discovery.signedIn : found?.state === "ready" ? found.signedIn : false;
+  const initialHits: PersonHit[] | null = found && found.state === "ready" ? hitsOf(found.people, 24) : null;
 
   return (
-    <div className="mx-auto w-full max-w-2xl pb-4xl pt-md">
-      <PageHeader title="Find people" fallback="/around" />
+    <div className="nf-ppl" data-testid="people-page">
+      <PageHeader title={w.title} fallback="/around" />
 
-      <form action="/around/people" method="get" className="nf-people-search" role="search">
-        <UiIcon name="search" size={16} />
-        <input
-          type="search"
-          name="q"
-          defaultValue={query}
-          maxLength={40}
-          placeholder="Agents, landlords, hotels, restaurants"
-          aria-label="Search people and businesses by name"
-          className="nf-people-search__field"
-        />
-        {global ? <input type="hidden" name="scope" value="global" /> : null}
-        {!global && askedCity ? <input type="hidden" name="city" value={askedCity} /> : null}
-        {kind ? <input type="hidden" name="kind" value={kind} /> : null}
-      </form>
-
-      {/* City or everywhere: a two-way switch drawn as links. */}
-      <nav className="nf-people-scope" aria-label="Where">
-        <Link
-          href={href({ scope: "city", page: 0 })}
-          aria-current={!global ? "page" : undefined}
-          className="nf-people-scope__half"
-        >
-          {city ? city : "Your city"}
-        </Link>
-        <Link
-          href={href({ scope: "global", page: 0 })}
-          aria-current={global ? "page" : undefined}
-          className="nf-people-scope__half"
-        >
-          Everywhere
-        </Link>
-      </nav>
-
-      <nav className="nf-people-kinds" aria-label="Kind of account">
-        {KINDS.map((option) => (
-          <Link
-            key={option.label}
-            href={href({ kind: option.kind, page: 0 })}
-            aria-current={option.kind === kind ? "page" : undefined}
-            className="nf-people-kind"
-          >
-            {option.label}
-          </Link>
-        ))}
-      </nav>
-
-      {!global && !city ? (
-        <p className="nf-people-note">
-          Join a place on Vallo and this shows who is working there. Until then, here is everyone.
-        </p>
-      ) : null}
-
-      {read.state === "unavailable" ? (
-        <EmptyPanel
-          icon="people-ring"
-          title="Finding people is not open yet"
-          body="This list is read from published listings and businesses, and that read is not switched on here yet. Nothing is shown rather than a guess."
-          action={{ href: "/around", label: "Back to the feed" }}
-        />
-      ) : read.people.length === 0 ? (
-        <EmptyPanel
-          icon="people-ring"
-          title={query ? `Nobody called "${query}" yet` : "Nobody here yet"}
-          body={
-            city
-              ? `No ${kind ? KINDS.find((k) => k.kind === kind)?.label.toLowerCase() : "agents, landlords, hotels or restaurants"} have published work in ${city} yet. Everywhere may have more.`
-              : "Nobody with published work matches this yet."
-          }
-          action={city ? { href: href({ scope: "global", page: 0 }), label: "Look everywhere" } : { href: "/around", label: "Back to the feed" }}
-        />
-      ) : (
-        <>
-          <ul className="nf-follow__list nf-people-list">
-            {read.people.map((person) => (
-              <FollowRow key={person.userId} person={person} signedIn={read.signedIn} />
-            ))}
-          </ul>
-          {read.more ? (
-            <Link href={href({ page: page + 1 })} className="nf-follow__more">
-              Show more
-              <UiIcon name="chevron-right" size={12} />
-            </Link>
-          ) : null}
-        </>
-      )}
+      <PeopleFinder
+        words={{
+          searchLabel: w.searchLabel,
+          searchPlaceholder: w.searchPlaceholder,
+          clear: w.clear,
+          searching: w.searching,
+          resultsFor: w.resultsFor,
+          noResultsTitle: w.noResultsTitle,
+          noResultsBody: w.noResultsBody,
+          unavailable: w.unavailableTitle,
+          roleLandlord: w.roleLandlord,
+          roleAgent: w.roleAgent,
+          openProfile: w.openProfile,
+          you: w.you,
+        }}
+        initialQuery={query}
+        initialHits={initialHits}
+        signedIn={signedIn}
+      >
+        {discovery.state === "unavailable" ? (
+          <EmptyPanel
+            icon="people-ring"
+            title={w.unavailableTitle}
+            body={w.unavailableBody}
+            action={{ href: "/around", label: w.back }}
+          />
+        ) : discovery.rows.length === 0 && discovery.suggestions.length === 0 ? (
+          <EmptyPanel
+            icon="people-ring"
+            title={w.emptyTitle}
+            body={w.emptyBody}
+            action={{ href: "/around", label: w.back }}
+          />
+        ) : (
+          <PeopleSections
+            rows={discovery.rows}
+            suggestions={discovery.suggestions}
+            signedIn={discovery.signedIn}
+            words={w}
+            locale={locale}
+          />
+        )}
+      </PeopleFinder>
     </div>
   );
 }

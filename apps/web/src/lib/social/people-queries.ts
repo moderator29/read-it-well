@@ -40,6 +40,8 @@ export type PersonRow = {
   avatarUrl: string;
   /** A role marker, never an earned badge. It draws no mark. */
   isAgent: boolean;
+  /** The side of that account (`social_profiles.supply_role`): a landlord or an agent, or null. */
+  supplyRole: "owner" | "agent" | null;
   /** The published badge. The only thing a mark may be drawn from. */
   badgeTier: BadgeTier;
   bio: string;
@@ -105,7 +107,7 @@ export async function findPeople(rawQuery: string): Promise<PeopleDirectory> {
      * each row's occupation and place come from `profile_public_facts_many`,
      * which returns a name only for a field its member published.
      */
-    const columns = "user_id, handle, display_label, avatar_path, is_agent, bio, bio_status";
+    const columns = "user_id, handle, display_label, avatar_path, is_agent, supply_role, bio, bio_status";
 
     let read = supabase.from("social_profiles").select(columns).limit(LIMIT);
 
@@ -130,6 +132,7 @@ export async function findPeople(rawQuery: string): Promise<PeopleDirectory> {
       display_label: string | null;
       avatar_path: string | null;
       is_agent: boolean;
+      supply_role: string | null;
       bio: string | null;
       bio_status: string | null;
     }[];
@@ -177,6 +180,7 @@ export async function findPeople(rawQuery: string): Promise<PeopleDirectory> {
           displayLabel: row.display_label || `@${row.handle}`,
           avatarUrl: row.avatar_path ?? "",
           isAgent: row.is_agent,
+          supplyRole: row.supply_role === "owner" ? "owner" : row.supply_role === "agent" ? "agent" : null,
           badgeTier: badges.get(row.user_id) ?? "none",
           /* A bio the scanner is holding is shown to nobody but its author, and
              a directory is nobody's own page. */

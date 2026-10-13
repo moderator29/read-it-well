@@ -114,6 +114,7 @@ export function CreateBloom({
   reviewable,
   initialOpen = false,
   initialCompose = false,
+  you = null,
 }: {
   signedIn: boolean;
   areas: BloomArea[];
@@ -132,6 +133,8 @@ export function CreateBloom({
    * nothing opens: the composer would only refuse.
    */
   initialCompose?: boolean;
+  /** Who is writing, for the composer's top line. */
+  you?: { label: string; avatarUrl: string } | null;
 }) {
   const signInHref = useSignInHref();
   const router = useRouter();
@@ -472,6 +475,7 @@ export function CreateBloom({
                     see the post. */}
                 <Composer
                   page
+                  you={you}
                   audience={
                     <button
                       type="button"

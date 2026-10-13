@@ -510,8 +510,12 @@ async function readFeedPage(
     cursor,
     muteAreas,
     includePublic = false,
-  }: { cursor?: string; muteAreas: boolean; includePublic?: boolean },
+    authorIds,
+  }: { cursor?: string; muteAreas: boolean; includePublic?: boolean; authorIds?: string[] },
 ): Promise<FeedPage> {
+  /* Posts by these people only (the Friends timeline). An empty list is a
+     question with no rows behind it, so it never reaches Postgres. */
+  if (authorIds && authorIds.length === 0) return EMPTY_PAGE;
   // No places is not an error and not an empty read: it is a question with no
   // rows behind it, and asking Postgres `in ()` would be a wasted round trip.
   // Unless public posts are wanted too, in which case there is still a feed to
@@ -535,6 +539,8 @@ async function readFeedPage(
   } else {
     query = query.in("area_id", areaIds);
   }
+
+  if (authorIds) query = query.in("author_id", authorIds);
 
   /* A TOTAL order, newest first. `id` is the primary key, so the pair can
      never tie and a keyset cursor over it can never skip or repeat a row. */
@@ -664,6 +670,39 @@ export async function getEverywhereFeed(cursor?: string): Promise<FeedPage> {
   if (!isSupabaseConfigured()) return EMPTY_PAGE;
   const { supabase, viewerId } = await feedClient();
   return readFeedPage(supabase, viewerId, null, { cursor, muteAreas: true });
+}
+
+/**
+ * FRIENDS: what the people this member follows have written, newest first.
+ *
+ * The second half of the feed's For you / Friends pair. The follows are read
+ * back through the viewer's own client (`follows_select` is public, and a
+ * `userId` that is not the signed-in person returns nothing), then the same
+ * read as every other timeline runs over those authors, so `posts_select`
+ * still decides what may be seen and a person who blocked you is still absent.
+ * A person's own posts are not mixed in: this is the people you follow.
+ *
+ * Capped at the same 200 follows a timeline `in` list can carry; somebody who
+ * follows more than that reads their newest 200 follows, not an error.
+ */
+export async function getFriendsFeed(userId: string, cursor?: string): Promise<FeedPage> {
+  if (!isSupabaseConfigured()) return EMPTY_PAGE;
+  const { supabase, viewerId } = await feedClient();
+  if (!viewerId || viewerId !== userId) return EMPTY_PAGE;
+
+  const { data, error } = await supabase
+    .from("follows")
+    .select("followee_id")
+    .eq("follower_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(200);
+  if (error || !data) return FAILED_PAGE;
+
+  const authorIds = (data as { followee_id: string }[])
+    .map((row) => row.followee_id)
+    .filter((id): id is string => Boolean(id));
+
+  return readFeedPage(supabase, viewerId, null, { cursor, muteAreas: true, authorIds });
 }
 
 export type ThreadReply = PostView & {

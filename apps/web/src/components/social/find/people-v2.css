@@ -1,0 +1,283 @@
+/*
+ * THE PEOPLE PAGE (13 October 2026): a big search field, then rows of profile
+ * cards (Top landlords, Top agents, Top hotels, Most followed) and a list of
+ * people to follow. Tokens only; light and dark come from the tokens.
+ */
+@layer components {
+  .nf-ppl {
+    display: grid;
+    gap: var(--nf-space-lg);
+    inline-size: 100%;
+    max-inline-size: 56rem;
+    margin-inline: auto;
+    padding-block: var(--nf-space-md) var(--nf-space-3xl);
+  }
+
+  /* The big field. */
+  .nf-ppl__search {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    min-block-size: 3.5rem;
+    padding-inline: var(--nf-space-md) var(--nf-space-xs);
+    border-radius: var(--nf-radius-xl);
+    border: var(--nf-border-width) solid var(--nf-border-default);
+    background: var(--nf-surface-secondary);
+    color: var(--nf-content-muted);
+    transition: border-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-ppl__search:focus-within {
+    border-color: var(--nf-brand-secondary);
+    box-shadow: 0 0 0 var(--nf-space-3xs) var(--nf-brand-tint-2);
+  }
+  .nf-ppl__field {
+    flex: 1;
+    min-inline-size: 0;
+    min-block-size: 3.25rem;
+    border: 0;
+    background: transparent;
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-body-lg);
+    outline: none;
+    --nf-focus-ring-width: 0px;
+  }
+  .nf-ppl__field::placeholder {
+    color: var(--nf-content-muted);
+  }
+  .nf-ppl__clear {
+    display: grid;
+    flex: none;
+    place-items: center;
+    inline-size: 2.75rem;
+    block-size: 2.75rem;
+    border-radius: var(--nf-radius-circle);
+    color: var(--nf-content-muted);
+  }
+  .nf-ppl__clear:hover {
+    background: var(--nf-surface-raised);
+    color: var(--nf-content-primary);
+  }
+
+  /* A section: its title and a sideways row of cards. */
+  .nf-ppl__section {
+    display: grid;
+    gap: var(--nf-space-sm);
+    min-inline-size: 0;
+  }
+  .nf-ppl__title {
+    margin: 0;
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-h4);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .nf-ppl__row {
+    display: flex;
+    gap: var(--nf-space-sm);
+    margin: 0 calc(-1 * var(--nf-space-md));
+    padding: var(--nf-space-3xs) var(--nf-space-md) var(--nf-space-xs);
+    overflow-x: auto;
+    list-style: none;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: var(--nf-space-md);
+    scrollbar-width: none;
+  }
+  .nf-ppl__row::-webkit-scrollbar {
+    display: none;
+  }
+  @media (min-width: 640px) {
+    .nf-ppl__row {
+      margin-inline: 0;
+      padding-inline: 0;
+      scroll-padding-inline: 0;
+    }
+  }
+
+  /* A profile card. The whole card opens the profile; its action keeps its
+     own tap above the link. */
+  .nf-pcard {
+    position: relative;
+    display: grid;
+    flex: none;
+    justify-items: center;
+    align-content: start;
+    gap: var(--nf-space-2xs);
+    inline-size: 10.5rem;
+    padding: var(--nf-space-md) var(--nf-space-sm) var(--nf-space-sm);
+    border-radius: var(--nf-radius-xl);
+    border: var(--nf-border-width) solid var(--nf-card-border);
+    background: var(--nf-surface-primary);
+    box-shadow: var(--nf-card-shadow);
+    text-align: center;
+    scroll-snap-align: start;
+  }
+  .nf-pcard__open {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    border-radius: var(--nf-radius-xl);
+  }
+  .nf-pcard__open:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: var(--nf-focus-ring-offset);
+  }
+  .nf-pcard__face {
+    display: grid;
+    place-items: center;
+    inline-size: 4rem;
+    block-size: 4rem;
+    margin-block-end: var(--nf-space-2xs);
+    overflow: hidden;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-surface-raised);
+  }
+  .nf-pcard__face img {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+  .nf-pcard__monogram {
+    display: grid;
+    place-items: center;
+    inline-size: 100%;
+    block-size: 100%;
+    background: var(--nf-gradient-brand-ink);
+    color: var(--nf-content-on-brand);
+    font-size: var(--nf-text-h4);
+    font-weight: 700;
+  }
+  .nf-pcard__name {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--nf-space-2xs);
+    max-inline-size: 100%;
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 700;
+    line-height: 1.3;
+  }
+  .nf-pcard__name > span:first-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .nf-pcard__role {
+    padding: var(--nf-space-3xs) var(--nf-space-xs);
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-brand-tint-1);
+    color: var(--nf-brand-secondary);
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    line-height: 1.3;
+  }
+  .nf-pcard__handle {
+    max-inline-size: 100%;
+    overflow: hidden;
+    color: var(--nf-content-muted);
+    font-size: var(--nf-text-caption);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .nf-pcard__facts {
+    display: grid;
+    gap: var(--nf-space-3xs);
+    min-block-size: 2.5rem;
+    align-content: start;
+    color: var(--nf-content-secondary);
+    font-size: var(--nf-text-caption);
+    line-height: 1.3;
+  }
+  .nf-pcard__act {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+    inline-size: 100%;
+    margin-block-start: auto;
+  }
+  .nf-pcard__act > *,
+  .nf-pcard__act :is(button, a) {
+    inline-size: 100%;
+  }
+  .nf-pcard__you {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-block-size: 2.75rem;
+    color: var(--nf-content-muted);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+  }
+
+  /* The vertical list. */
+  .nf-ppl__list {
+    display: grid;
+    gap: var(--nf-space-2xs);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .nf-ppl__rowitem {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    min-block-size: 4rem;
+    padding: var(--nf-space-xs) var(--nf-space-sm);
+    border-radius: var(--nf-radius-xl);
+    border: var(--nf-border-width) solid var(--nf-card-border);
+    background: var(--nf-surface-primary);
+  }
+  .nf-ppl__rowitem .nf-pcard__face {
+    flex: none;
+    inline-size: 3rem;
+    block-size: 3rem;
+    margin: 0;
+  }
+  .nf-ppl__who {
+    display: grid;
+    flex: 1;
+    gap: var(--nf-space-3xs);
+    min-inline-size: 0;
+    text-align: start;
+  }
+  .nf-ppl__who .nf-pcard__name {
+    justify-content: flex-start;
+  }
+  .nf-ppl__who .nf-pcard__handle {
+    max-inline-size: 100%;
+  }
+  .nf-ppl__rowitem .nf-pcard__open {
+    border-radius: var(--nf-radius-xl);
+  }
+  .nf-ppl__rowitem .nf-pcard__act {
+    flex: none;
+    inline-size: auto;
+    margin: 0;
+  }
+  .nf-ppl__rowitem .nf-pcard__act > *,
+  .nf-ppl__rowitem .nf-pcard__act :is(button, a) {
+    inline-size: auto;
+  }
+  .nf-ppl__note {
+    margin: 0;
+    color: var(--nf-content-muted);
+    font-size: var(--nf-text-body-sm);
+  }
+  .nf-ppl__status {
+    margin: 0;
+    color: var(--nf-content-secondary);
+    font-size: var(--nf-text-body-sm);
+  }
+  .nf-ppl__more {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 2.75rem;
+    color: var(--nf-brand-secondary);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    text-decoration: none;
+  }
+}

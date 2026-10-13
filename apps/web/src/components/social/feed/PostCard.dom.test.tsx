@@ -39,7 +39,7 @@ describe.skipIf(!hasBrowser && !process.env.CI)("a post's picture", () => {
     const { page, close } = await mountInBrowser({ entry, init });
     try {
       const id = await page.evaluate(() => (window as unknown as { __postId: string }).__postId);
-      await page.locator(".nf-post__media").first().click({ modifiers: ["ControlOrMeta"] });
+      await page.locator(".nf-pc__media").first().click({ modifiers: ["ControlOrMeta"] });
       const calls = await opened(page);
       expect(calls).toHaveLength(1);
       expect(new URL(calls[0]![0]).pathname).toBe(`/post/${id}`);
@@ -53,7 +53,7 @@ describe.skipIf(!hasBrowser && !process.env.CI)("a post's picture", () => {
   it("opens the post in a new tab on a middle click", async () => {
     const { page, close } = await mountInBrowser({ entry, init });
     try {
-      await page.locator(".nf-post__media").first().click({ button: "middle" });
+      await page.locator(".nf-pc__media").first().click({ button: "middle" });
       expect(await opened(page)).toHaveLength(1);
       expect(new URL(page.url()).pathname).toBe("/");
     } finally {
@@ -67,7 +67,7 @@ describe.skipIf(!hasBrowser && !process.env.CI)("a post's picture", () => {
       const id = await page.evaluate(() => (window as unknown as { __postId: string }).__postId);
       /* The card opens the post through the router now (D79: no overlay
          anchor), so the plain tap is one `push` to the post. */
-      await page.locator(".nf-post__media").first().click();
+      await page.locator(".nf-pc__media").first().click();
       const pushes = await page.evaluate(() =>
         ((window as unknown as { __router?: { calls: unknown[][] } }).__router?.calls ?? [])
           .filter((call) => call[0] === "push")
