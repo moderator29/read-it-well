@@ -5767,6 +5767,7 @@ export type Database = {
           state: Database["public"]["Enums"]["inspection_state"]
           updated_at: string
           window_id: string | null
+          visit_mode: string
         }
         Insert: {
           completed_at?: string | null
@@ -5786,6 +5787,7 @@ export type Database = {
           state?: Database["public"]["Enums"]["inspection_state"]
           updated_at?: string
           window_id?: string | null
+          visit_mode?: string
         }
         Update: {
           completed_at?: string | null
@@ -5805,6 +5807,7 @@ export type Database = {
           state?: Database["public"]["Enums"]["inspection_state"]
           updated_at?: string
           window_id?: string | null
+          visit_mode?: string
         }
         Relationships: [
           {
