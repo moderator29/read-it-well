@@ -19,6 +19,7 @@ import { mailHa } from "./mail";
 import { compliancePepHa } from "./compliancePep";
 import { complianceRiskHa } from "./complianceRisk";
 import { complianceBeneficialOwnershipHa } from "./complianceBeneficialOwnership";
+import { visitHa } from "./visit";
 
 /**
  * Every machine-drafted namespace for this locale, laid under the locale
@@ -47,4 +48,5 @@ export const haDrafts = {
   compliancePep: compliancePepHa,
   complianceRisk: complianceRiskHa,
   complianceBeneficialOwnership: complianceBeneficialOwnershipHa,
+  visit: visitHa,
 } satisfies Translation;

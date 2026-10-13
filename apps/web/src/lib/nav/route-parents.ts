@@ -245,6 +245,12 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   /* D25 inner page: the "why trust this space" record of one listing. It
      answers one question about the listing, so its way up is the listing. */
   "/listing/[id]/trust": "/listing/[id]",
+  /* Schedule a visit: step 1 is a flow (resolve.ts FLOWS), so Back never
+     returns into a submitted form; both steps go up to the listing they
+     belong to. The status screen opened from a notification or Plans goes
+     back there through history, as every screen does. */
+  "/listing/[id]/visit": "/listing/[id]",
+  "/listing/[id]/visit/[inspectionId]": "/listing/[id]",
   "/saved": "/home",
   "/saved/searches": "/saved",
   /* V-35: the gate code for one inspection, where a named delegate lands.

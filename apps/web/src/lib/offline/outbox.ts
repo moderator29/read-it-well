@@ -35,7 +35,9 @@ export type CreateKind = (typeof CREATE_KINDS)[number];
  */
 const PAYLOAD_FIELDS: Record<CreateKind, { required: readonly string[]; optional: readonly string[] }> = {
   send_message: { required: ["conversationId", "body"], optional: [] },
-  request_inspection: { required: ["listingId", "when"], optional: ["note"] },
+  /* `mode` is the visit mode (`in_person` or `video`): without it a video
+     visit asked with no signal could not be kept at all. */
+  request_inspection: { required: ["listingId", "when"], optional: ["note", "mode"] },
   submit_review: { required: ["bookingId", "rating"], optional: ["body"] },
   drop_post: { required: ["kind", "body"], optional: ["areaId"] },
 };

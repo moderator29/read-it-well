@@ -24,7 +24,7 @@ function icsStamp(ms: number): string {
 
 /** RFC 5545 text escaping. */
 export function icsEscape(text: string): string {
-  return text.replace(/\\/g, "\\\\").replace(/;/g, "\;").replace(/,/g, "\\,").replace(/\r?\n/g, "\\n");
+  return text.replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\r?\n/g, "\\n");
 }
 
 /** Lines longer than 75 octets fold with CRLF and a space (RFC 5545 3.1). */
