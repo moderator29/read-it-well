@@ -42,6 +42,8 @@ import { createClient } from "@/lib/supabase/server";
 import { badgeCopyOf } from "@/components/social/badges/badge-copy";
 import { readProfileBadges } from "@/components/social/profile/badges-read";
 import { isSocialEnabled } from "@/lib/social/flag";
+import { readPublicRoleWords } from "@/lib/profile/role-facts";
+import { roleLine } from "@/lib/profile/role-line";
 
 /**
  * `/u/[handle]`: a person's page.
@@ -159,7 +161,8 @@ export default async function SocialProfilePage({
     const isAgentPage = view.profile.isAgent && Boolean(agentId);
     const tabs = isAgentPage ? AGENT_TABS : MEMBER_TABS;
 
-    const [posts, replies, media, activity, properties, reviews, stories, record, badges] =
+    const supabase = await createClient();
+    const [posts, replies, media, activity, properties, reviews, stories, record, badges, roleWords] =
       await Promise.all([
         isAgentPage ? Promise.resolve([]) : getProfileFeed(userId),
         isAgentPage ? Promise.resolve([]) : getProfileReplies(userId),
@@ -171,9 +174,12 @@ export default async function SocialProfilePage({
         /* V-34: a lister's Record. No row for a member who is not one, or for
            a reader who is signed out, and then nothing is drawn. */
         view.profile.isAgent ? readUserRecord(userId) : Promise.resolve(null),
-        /* Their badges, earned and given, for the row under the hero. Null
+        /* Their badges, earned and given, for the credentials section. Null
            when the read failed, and then the older chips stand in. */
-        createClient().then((supabase) => readProfileBadges(supabase, userId, locale, view.signedIn)),
+        readProfileBadges(supabase, userId, locale, view.signedIn),
+        /* The one role line under their name: what their published listings
+           and businesses say they are (`lib/profile/role-facts.ts`). */
+        readPublicRoleWords(supabase, userId, view.profile.isAgent),
       ]);
 
     return (
@@ -197,6 +203,10 @@ export default async function SocialProfilePage({
           badges={badges}
           badgeCopy={badgeCopyOf(t)}
           shareUrl={`${siteUrl().replace(/\/+$/, "")}/u/${view.profile.handle}`}
+          roleLine={roleLine(roleWords, t.socialProfile.roleLine)}
+          /* V-34: a lister's Record, in the credentials section. Null for a
+             member who is not one, and then nothing is drawn. */
+          record={record ? <ValloRecord record={record} t={t} locale={locale} /> : null}
           follow={
             view.isOwner ? undefined : (
               <FollowButton
@@ -239,8 +249,6 @@ export default async function SocialProfilePage({
             />
           }
         />
-
-        <ValloRecord record={record} t={t} locale={locale} className="mx-gutter mt-block" />
 
         <ProfileTabs
           handle={view.profile.handle}

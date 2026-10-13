@@ -49,8 +49,10 @@ import { COVER_INPUT_ID } from "./AccountHero";
  *
  * NOTHING THE PAGE USED TO REACH HAS GONE. The render ends at Switch role
  * because the dock is under it; below the fold the rest of the account keeps
- * its rows: editing the profile, the public page, your details, where you are
- * and what you do, reviews, messages, notifications and help.
+ * its rows: the public page, the cover photo, your details, where you are and
+ * what you do, messages, notifications and help. Editing the profile is the
+ * header's own button and the joining month is in the credentials section,
+ * so neither is repeated here.
  *
  * Posts is the public page's own panel (`ProfilePosts`), reading the same
  * `getProfileFeed` rows, so a post looks the same wherever it is read and an
@@ -136,7 +138,6 @@ export function AccountBody({
   sheet,
   facts = NO_FACTS,
   switchLine,
-  memberSince,
 }: {
   counts: AccountCounts;
   copy: AccountRowsCopy;
@@ -157,7 +158,11 @@ export function AccountBody({
   facts?: BelongingsFacts;
   /** The line under Switch role, built from the workspaces this account holds. */
   switchLine?: string;
-  /** "Month Year", already worded by the page. */
+  /**
+   * "Month Year". Accepted for callers that still pass it and no longer drawn
+   * here: the joining month is a row of the credentials section now, so the
+   * page says it once.
+   */
   memberSince?: string;
   /**
    * The old role switch row. Accepted for callers that still pass it and no
@@ -251,16 +256,10 @@ export function AccountBody({
 
           <div className="nf-pf-more">
             <SettingsGroup label={COPY.more}>
+              {/* No "Edit profile" row: the header's own Edit profile button
+                  is the one way in, and the page carried both. */}
               {handle ? (
                 <>
-                  {/* The person and not the settings mark: this row edits the
-                      public profile, and the settings mark means Settings. */}
-                  <RowLink
-                    href={`/u/${handle}/edit`}
-                    icon="user"
-                    label={COPY.editProfile}
-                    sub={COPY.editProfileSub}
-                  />
                   <RowLink
                     href={`/u/${handle}`}
                     icon="link"
@@ -302,9 +301,6 @@ export function AccountBody({
                 label="What you do"
                 value={occupationName || "Not set"}
               />
-              {memberSince ? (
-                <RowValue icon="calendar-booking" label={COPY.memberSince} value={memberSince} />
-              ) : null}
             </SettingsGroup>
 
             <SettingsGroup

@@ -1,24 +1,18 @@
 /*
- * profile: the signed-in person's own page, `/profile`, built to `50E032EA`.
- * Imported by the route
- * and by the three components that draw it, so `globals.css` is not touched.
+ * profile: the signed-in person's own page, `/profile`, under its header.
+ * Imported by the route and by the components that draw it, so `globals.css`
+ * is not touched.
  *
- * EVERY NUMBER HERE IS MEASURED OFF THE RENDER, not eyeballed. The phone's
- * screen is 658 image pixels wide (inner edge 182 to 840), so one CSS pixel at
- * 390 is 1.687 image pixels. The full measurement table is in
- * docs/archive/BUILD_SESSION_B_LEDGER.md, section 1; the values that set
- * geometry are repeated beside each rule.
- *
- * TYPE AT THE RENDER'S SIZE, PER ROLE (rule R-A). Each size below is
- * the render's cap height converted at 0.593 and divided by the face's own
- * cap ratio (Poppins 0.697, Inter 0.727): names, titles and figures ship at
- * exactly that; a body, subtitle, caption or label role that measures under
- * 11px ships at 11px and no larger. No whole-surface factor. Container
- * geometry (radii, plates, row heights, gaps, the avatar) is shipped at 1x.
+ * THE HEADER IS NOT HERE. The cover, the face, the name with its tier mark,
+ * the role line, the bio, the counts and the credentials section are
+ * `IdentityHeader` (`components/app/identity/`), the one header both profiles
+ * wear. What is here is the column they sit in, the photo picker's mark on
+ * the face, the notes under the header, and the body: the Belongings and
+ * Posts tabs, the belongings rows and the account rows.
  *
  * Shape law: every text-bearing control here is a rounded rectangle on
- * `--nf-radius-control`; the only circles are the avatar, its ring and its
- * badge, which are shapes.
+ * `--nf-radius-control`; the only circles are the avatar's mark and the
+ * face's wait, which are shapes.
  *
  * Nothing here is a raw colour. Every value is a token or a mix of tokens.
  */
@@ -27,14 +21,6 @@
     /* 30 image px of gutter in the render: 18 CSS. The shell carries 24, so
        the column steps out by the difference on a phone. */
     --nf-pf-gutter: 1.125rem;
-    /* The blue-white the render uses for every second line: handle, bio,
-       count labels, row subtitles (sampled 148 to 164 red, 193 to 201 green,
-       231 to 242 blue). One step down in presence, never towards grey. */
-    --nf-pf-mist: color-mix(in oklab, var(--nf-brand-quiet) 52%, var(--nf-content-primary));
-    /* How far the cover runs up: the app header's height plus the shell's
-       top padding, so the photograph starts at the top of the screen and the
-       header's transparent glass floats on it as the render's status bar does. */
-    --nf-pf-lift: calc(3.75rem + var(--nf-gap-section-tight) + env(safe-area-inset-top, 0px));
     margin-inline: calc(var(--nf-pf-gutter) - var(--nf-pad-shell));
     color: var(--nf-content-primary);
   }
@@ -46,214 +32,9 @@
     }
   }
 
-  /* ------------------------------------------------------------ the cover */
-
-  /*
-   * Screen top to the fade: 276 image px (164 CSS) in the render, which
-   * starts under a 44px status bar. Here the app header takes that band, so
-   * the cover is the header's height taller and every point on it sits where
-   * the render puts it relative to the person.
-   */
-  .nf-pf-cover {
-    position: relative;
-    margin-inline: calc(-1 * var(--nf-pf-gutter));
-    margin-block-start: calc(-1 * var(--nf-pf-lift));
-    block-size: calc(var(--nf-pf-lift) + 7.125rem);
-    overflow: hidden;
-    /* No `isolation`: the gear inside must stack above the app header (z 40)
-       so its row is tappable while the header's glass is clear over it. */
-    background: var(--nf-surface-canvas);
-  }
-  @media (min-width: 640px) {
-    .nf-pf-cover {
-      margin-block-start: 0;
-      block-size: 15rem;
-      border-radius: var(--nf-radius-xl);
-    }
-  }
-  .nf-pf-cover__photo {
-    position: absolute;
-    inset: 0;
-    inline-size: 100%;
-    block-size: 100%;
-    object-fit: cover;
-    object-position: center 42%;
-  }
-  /*
-   * THE DUSK GRADE. The render's cover is blue night with warm windows; the
-   * plate is a sunset with an orange sky. A brand wash in the `color` blend
-   * mode takes the hue of the sky into the blue family while keeping the
-   * photograph's own light, so the windows stay lit and nothing orange ships.
-   */
-  .nf-pf-cover__grade {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      180deg,
-      color-mix(in oklab, var(--nf-brand-primary-strong) 70%, transparent) 0%,
-      color-mix(in oklab, var(--nf-brand-primary-strong) 38%, transparent) 55%,
-      transparent 100%
-    );
-    mix-blend-mode: color;
-  }
-  /*
-   * THE FADE. The render's photograph holds to about 290 image px and is gone
-   * by 340 (sampled rgb 18 41 102 at 340 on the water, against page 0 8 36).
-   * A top wash keeps the header legible; the lower third melts into canvas.
-   */
-  /* Since the person moved onto the band (plan item 16) the photograph no
-     longer melts into the page under them: the band laps its foot, so only
-     the top wash stays, for the header over it. */
-  .nf-pf-cover__fade {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      180deg,
-      color-mix(in oklab, var(--nf-surface-canvas) 55%, transparent) 0%,
-      transparent 30%
-    );
-  }
-
-  /*
-   * THE GEAR, ON THE APP HEADER'S ROW. On a phone the cover runs behind the
-   * header, whose row is 60px with 44px controls 8px from its top, a gutter of
-   * `--nf-pad-shell`, then the 44px bell. The gear is the header's own control
-   * (`nf-icon-btn`) and it sits directly UNDER the bell, 8px below it, on the
-   * cover. It stood on the header row left of the bell until Track M; with the
-   * side tag beside the lockup that row has no 52px to spare at 390, and a
-   * gear touching "Property" reads as a collision, not a row.
-   * Measured against the header at 360, 390 and 430: it clears the lockup.
-   * Named under the cover so it outranks `.nf-icon-btn`'s own `position`;
-   * not `.nf-tap`, which is unlayered and would win (`.nf-icon-btn` carries
-   * its own 44px hit area).
-   */
-  .nf-pf-cover .nf-pf-gear {
-    position: absolute;
-    z-index: 41;
-    /* The settings mark in brand blue, as the tray and the drawer draw it. */
-    color: var(--nf-brand-secondary);
-    inset-block-start: calc(env(safe-area-inset-top, 0px) + 0.5rem + 2.75rem + var(--nf-space-xs));
-    inset-inline-end: var(--nf-pad-shell);
-  }
-  /* SECTION 17's round header button (gap audit UIUX-13): the gear wears
-     `nf-icon-btn--round`, the 44px circle on the soft float shadow the bell
-     wears, and `data-theme="light"` so it is white on the night cover by
-     day. That attribute's token block is unlayered and sets the ink on the
-     button, so the brand blue goes on the glyph itself. */
-  .nf-pf-cover .nf-pf-gear > svg {
-    color: var(--nf-brand-secondary);
-  }
-  @media (min-width: 640px) {
-    .nf-pf-cover .nf-pf-gear {
-      inset-block-start: var(--nf-space-sm);
-      inset-inline-end: var(--nf-space-sm);
-    }
-  }
-
-  /* ------------------------------------------------------- the identity */
-
-  /*
-   * Face 88 (149 image px), left edge on the gutter, top 17 CSS above the
-   * fade's end so it overlaps the photograph as the render does. Words start
-   * 17 to the right of the ring (28 image px), the name's cap 28 below the
-   * ring's top.
-   */
-  /*
-   * THE PERSON ON THE HERO BAND (plan item 16, 30 September 2026). The face,
-   * the name and tier, the handle, the bio and the counts sit on the shared
-   * hero band (`.nf-hero-band`, controls.css; navy in light by light.css),
-   * lapping the cover's foot by 40px, so the photograph reads as a picture
-   * and the person as one clean block. `--nf-pf-band` is the band's own
-   * ground, for the seam round the face and its mark.
-   */
-  /*
-   * THE HERO IS AN ISLAND (north star 10 F, tier 3): navy glass at 72 per
-   * cent over a 16px blur, its one edge the light on the border box, radius
-   * 28, lapping the cover's foot so the photograph reads as a picture and the
-   * person as one hero block. It was a `.nf-hero-band` (a raised surface on a
-   * hairline); the Island is that same block made the real hero container.
-   * The cover behind it is the blur's reason to exist.
-   */
-  .nf-pf-id.nf-island {
-    --nf-pf-band: var(--nf-surface-elevated);
-    display: grid;
-    position: relative;
-    z-index: 1;
-    grid-template-columns: 5.5rem minmax(0, 1fr);
-    column-gap: 1rem;
-    row-gap: 0;
-    align-items: center;
-    margin-block-start: -2.5rem;
-    padding: var(--nf-space-md);
-  }
-  :root[data-theme="light"] .nf-pf-id.nf-island[data-theme="dark"] {
-    --nf-pf-band: var(--nf-surface-primary);
-  }
-  @media (min-width: 640px) {
-    .nf-pf-id.nf-island {
-      margin-block-start: -3rem;
-      margin-inline: var(--nf-space-md);
-      padding: 1.25rem var(--nf-space-lg);
-    }
-  }
-
-  /*
-   * THE RING. Six image px of lit blue around the photograph (3.5 CSS), the
-   * brightest point at the top (rgb 149 224 255 at the rim) and a soft glow
-   * thrown around it. A 1px seam of canvas between light and face.
-   */
-  .nf-pf-avatar {
-    position: relative;
-    display: grid;
-    place-items: center;
-    inline-size: 5.5rem;
-    block-size: 5.5rem;
-    padding: 1px;
-    border-radius: var(--nf-radius-circle);
-    border: 3px solid transparent;
-    background:
-      linear-gradient(var(--nf-pf-band, var(--nf-surface-canvas)), var(--nf-pf-band, var(--nf-surface-canvas))) padding-box,
-      linear-gradient(
-          160deg,
-          color-mix(in oklab, var(--nf-brand-accent) 55%, var(--nf-content-on-brand)) 0%,
-          var(--nf-brand-primary) 40%,
-          var(--nf-brand-accent) 100%
-        )
-        border-box;
-    box-shadow:
-      0 0 0 1px var(--nf-glow-2),
-      0 0 22px -2px var(--nf-glow-3),
-      0 0 44px -8px var(--nf-glow-2);
-    cursor: pointer;
-  }
-  .nf-pf-avatar:disabled {
-    cursor: wait;
-  }
-  .nf-pf-avatar:focus-visible {
-    outline: 2px solid var(--nf-brand-accent);
-    outline-offset: 3px;
-  }
-  .nf-pf-avatar__disc {
-    display: grid;
-    place-items: center;
-    inline-size: 100%;
-    block-size: 100%;
-    border-radius: var(--nf-radius-circle);
-    overflow: hidden;
-    background: var(--nf-gradient-brand-ink);
-    color: var(--nf-content-on-brand);
-    font-family: var(--nf-font-display);
-    font-size: 2.25rem;
-    font-weight: 600;
-    line-height: 1;
-  }
-  .nf-pf-avatar__disc img {
-    inline-size: 100%;
-    block-size: 100%;
-    object-fit: cover;
-  }
-  /* The tick at the ring's lower right: 36 image px, 21 CSS, a filled blue
-     disc with a white tick (sampled rgb 71 158 251), cut out of the canvas. */
+  /* The mark at the ring's lower right, cut out of the card's ground
+     (`--nf-pf-band`, identity.css): on your own face the quiet picture mark
+     (`--quiet`), which is what says the face is the photo picker. */
   .nf-pf-avatar__badge {
     position: absolute;
     inset-inline-end: -0.125rem;
@@ -273,9 +54,6 @@
     inline-size: 1.375rem;
     block-size: 1.375rem;
   }
-  .nf-pf-name__tier {
-    margin-inline-start: 0.375rem;
-  }
   .nf-pf-avatar__badge--quiet {
     background: var(--nf-surface-elevated);
     color: var(--nf-content-secondary);
@@ -286,109 +64,6 @@
     block-size: 0.75rem;
   }
 
-  .nf-pf-id__text {
-    min-inline-size: 0;
-  }
-  /* Name: cap 21 image px, 17px measured, 20 shipped; semibold. */
-  .nf-pf-name {
-    display: flex;
-    align-items: center;
-    gap: 0.375rem;
-    margin: 0;
-    font-family: var(--nf-font-display);
-    /* Cap 21 image px: 12.45 CSS / 0.697 = 17.9, shipped 18. Weight from the
-       O's stroke: 3.7 image px, 0.12 em, which is Poppins medium; semibold
-       measured 0.145 em beside it and read heavier than the render. */
-    font-size: 1.125rem;
-    font-weight: 600;
-    line-height: 1.15;
-    letter-spacing: -0.01em;
-    color: var(--nf-content-primary);
-  }
-  .nf-pf-name__text {
-    min-inline-size: 0;
-    overflow-wrap: anywhere;
-  }
-  /* Handle: about 10px measured (x-height 7 image px, 53 CSS wide), a
-     subtitle role under the floor, so 11. The mist blue. */
-  .nf-pf-handle {
-    margin: 0.0625rem 0 0;
-    font-size: var(--nf-text-overline);
-    line-height: 1.35;
-    color: var(--nf-pf-mist);
-  }
-  /* Bio: cap 12 image px: 7.1 CSS / 0.727 = 9.8, a body role under the floor,
-     so 11. A longer bio wraps rather than being cut: it is the person's own. */
-  .nf-pf-bio {
-    margin: 0.25rem 0 0;
-    font-size: var(--nf-text-overline);
-    line-height: 1.4;
-    color: var(--nf-pf-mist);
-  }
-  /* Counts: value cap 14 image px: 8.3 CSS / 0.727 = 11.4, a figure, shipped
-     at that, semibold (stem 0.11 em); label cap 12: 9.8, a label under the
-     floor, so 11; 24 either side of a 22px hairline. The
-     links keep a 44px target through a hit area, not through their drawing. */
-  .nf-pf-counts {
-    display: flex;
-    align-items: center;
-    /* Three counts share the 220px beside the face at 390, so the gap is
-       the small step either side of the rule. */
-    gap: var(--nf-space-sm);
-    margin-block-start: 0.625rem;
-  }
-  .nf-pf-count {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: 0.125rem;
-    border-radius: var(--nf-radius-xs);
-  }
-  /* The `.nf-tap` hit area, centred and floored at 44 in each axis. It was a
-     fixed inset of 6px, which left the two-line count at 42px tall. */
-  .nf-pf-count::before {
-    content: "";
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    translate: -50% -50%;
-    width: max(calc(100% + 1rem), 44px);
-    height: max(100%, 44px);
-  }
-  .nf-pf-count:focus-visible {
-    outline: 2px solid var(--nf-brand-accent);
-    outline-offset: 2px;
-  }
-  /* A count is a Figure (north star 10 F): tabular, set a size up from its
-     label so the number is the thing the eye lands on. */
-  .nf-pf-count__value {
-    font-size: var(--nf-text-body);
-    font-weight: 600;
-    line-height: 1.2;
-    letter-spacing: -0.01em;
-    color: var(--nf-content-primary);
-  }
-  /* Posts is a number, not a door: no hit area it could not honour. */
-  .nf-pf-count--static::before {
-    content: none;
-  }
-  .nf-pf-count__label {
-    font-size: var(--nf-text-overline);
-    line-height: 1.3;
-    color: var(--nf-pf-mist);
-  }
-  /* The rule between them: sampled rgb 15 134 203, a lit hairline, lighter
-     and a touch cyan against the brand. */
-  .nf-pf-counts__rule {
-    inline-size: 1px;
-    block-size: 1.375rem;
-    background: color-mix(in oklab, var(--nf-brand-quiet) 30%, var(--nf-brand-accent));
-    box-shadow: 0 0 4px var(--nf-glow-2);
-  }
-
-  .nf-pf-claim {
-    margin-block-start: var(--nf-space-md);
-  }
   .nf-pf-claim__note {
     margin: var(--nf-space-xs) 0 0;
     font-size: var(--nf-text-caption);
@@ -400,9 +75,6 @@
     font-size: var(--nf-text-caption);
     color: var(--nf-state-error);
   }
-  .nf-pf-verify {
-    margin-block-start: var(--nf-space-md);
-  }
   /* Signed out: the face is not a control, so it is not drawn as one. */
   .nf-pf-avatar--static {
     cursor: default;
@@ -413,7 +85,7 @@
     gap: var(--nf-space-xs);
     margin: var(--nf-space-md) 0 0;
     font-size: var(--nf-text-caption);
-    color: var(--nf-pf-mist);
+    color: var(--nf-content-muted);
   }
   /* The signed-out note is the shared Panel; only its place in the column. */
   .nf-pf-note {
@@ -624,8 +296,8 @@
   /* The face's slab is a shape, so it is round like the face it stands for. */
   .nf-pf-skel-face {
     display: block;
-    inline-size: 5.5rem;
-    block-size: 5.5rem;
+    inline-size: 5rem;
+    block-size: 5rem;
     border-radius: var(--nf-radius-circle);
     overflow: hidden;
   }
@@ -636,24 +308,6 @@
     gap: 0.875rem;
     min-block-size: 4.125rem;
     padding: 0.5rem 1.125rem 0.5rem 0.875rem;
-  }
-}
-
-/*
- * THE HERO IN DAYLIGHT. `AccountHero` and `SignedOutHero` are night islands
- * in both themes, so the ring, the name and the counts take the night
- * palette. Since plan item 16 (30 September 2026) the navy is the person's
- * band alone (`.nf-pf-id.nf-island`, above), not a block painted round
- * the whole hero: the cover is a photograph on the warm paper and the band
- * laps its foot.
- */
-@layer components {
-  /* `--nf-pf-mist` is derived on `.nf-pf` from the PAGE's palette, so in
-     light it arrived in the island as a dark ink on navy (1.59:1). The
-     island re-derives it from its own night tokens. */
-  .nf-pf-hero[data-theme="dark"] {
-    --nf-pf-mist: color-mix(in oklab, var(--nf-brand-quiet) 52%, var(--nf-content-primary));
-    color: var(--nf-content-primary);
   }
 }
 

@@ -192,10 +192,8 @@ const CASES: OverflowCase[] = [
  * turns red the day it is fixed and the entry must go. Key "<case> at <width>px".
  */
 const KNOWN: Record<string, string> = {
-  /* social.css is mid-move by another agent; the fix is a patch in the report
-     (flex-wrap on `.nf-profile-text .nf-social-counts`), measured to pass. */
-  "/u/[handle], the cover inside the daylight island (light theme) at 320px":
-    "the counts row beside the avatar: Posts spans 310 to 344 in a 320px window",
+  /* None open. The profile counts that ran past 320 now sit across the whole
+     card under the face (`IdentityHeader`), not in the column beside it. */
 };
 
 type Measured = { scrollWidth: number; innerWidth: number; culprits: string[]; scrolling: string[] };

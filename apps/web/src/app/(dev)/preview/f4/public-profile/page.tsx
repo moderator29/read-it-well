@@ -1,5 +1,6 @@
 import { getDictionary } from "@vallo/i18n";
 import { ProfileHeader } from "@/components/social/profile/ProfileHeader";
+import { roleLine, roleWords } from "@/lib/profile/role-line";
 import { PERSON } from "../../_fixtures/people";
 
 /**
@@ -64,6 +65,9 @@ export default function PublicProfilePreview() {
           averageRating: 4.8,
         }}
         joinedLabel="March 2025"
+        /* The role line their published listings would give a checked
+           agent (`role-facts.ts`), as a fixture. */
+        roleLine={roleLine(roleWords({ listers: ["agent"], businesses: [] }), t.socialProfile.roleLine)}
       />
     </main>
   );

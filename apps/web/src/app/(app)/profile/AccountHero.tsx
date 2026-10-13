@@ -80,8 +80,9 @@ export function AccountHero({
   avatarUrl,
   identity,
   badgeTier = null,
+  roleLine,
   locale,
-  badges = null,
+  credentials = null,
   postsLabel = "Posts",
 }: {
   userId: string;
@@ -92,16 +93,23 @@ export function AccountHero({
   identity: HeroIdentity | null;
   /** From `public.person_badge`, the one source. Null means no badge. */
   badgeTier?: BadgeTier;
+  /** The one line under the name (`lib/profile/role-line.ts`), worded by the server page. */
+  roleLine?: string;
   /**
    * Place and member-since. Accepted for the callers that still pass it; the
-   * render draws neither in the header, so both now live in the account rows
-   * under the belongings, where nothing is lost.
+   * header draws neither: the place is a row under the belongings and the
+   * joining month is in the credentials section, where nothing is lost.
    */
   metaLine?: { place: string; joined: string };
   /** The locale, NOT a formatter: a function cannot cross into a client component. */
   locale: Locale;
-  /** The badge row and the earned moment, built by the server page. Absent when there are none. */
-  badges?: React.ReactNode;
+  /**
+   * The credentials section (`IdentityCredentials`), built by the server
+   * page: the badge row and its earned moment, the renter passport and, for
+   * a lister, the Vallo Record. Drawn under the header's actions, as
+   * somebody else's page draws theirs.
+   */
+  credentials?: React.ReactNode;
   /** The word under the posts count, in the reader's language (`socialProfile.posts`). */
   postsLabel?: string;
 }) {
@@ -218,9 +226,11 @@ export function AccountHero({
       testId="account-hero"
       name={shownName}
       handle={identity?.handle ?? null}
-      handleLine={email}
+      /* No handle, no handle line: the email it used to print there is the
+         Email row under the belongings, so the page said it twice. */
       bio={identity?.bio || undefined}
       badgeTier={badgeTier}
+      roleLine={roleLine}
       coverUrl={cover || undefined}
       avatar={
         /* MINE: the face is the photo picker. Same disc, same ring as
@@ -286,12 +296,12 @@ export function AccountHero({
       }
     >
       {!identity ? <p className="nf-pf-claim__note">{COPY.claimHandleNote}</p> : null}
-      {badges}
       {error && (
         <p role="alert" className="nf-pf-error">
           {error}
         </p>
       )}
+      {credentials}
       {/* The cover's picker opens from the "Cover photo" row under the
           belongings (`COVER_INPUT_ID`), not from a third control here. */}
       <input

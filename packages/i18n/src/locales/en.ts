@@ -808,6 +808,30 @@ export const en = {
       claimHandleNote:
         "A handle is your address on Vallo. Claim one and this page gets a cover, a public page and somewhere for what you write to live.",
     },
+    /*
+     * The one line under a person's name on both profiles: what they are on
+     * Vallo, each word read from a row (`lib/profile/role-line.ts`), joined
+     * by a middle dot when there is more than one.
+     */
+    roleLine: {
+      renter: "Renter",
+      landlord: "Landlord",
+      agent: "Agent",
+      agency: "Agency",
+      hotel: "Hotel",
+      servicedApartments: "Serviced apartments",
+      guestHouse: "Guest house",
+      resort: "Resort",
+      shortletHost: "Shortlet host",
+      restaurant: "Restaurant",
+    },
+    /* The section under the header that holds what vouches for a person:
+       their badges, their Vallo Record, an agent's reviews and, on your own
+       page, your renter passport. */
+    credentials: "Credentials",
+    passportAndCredentials: "Passport and credentials",
+    /** The passport row's line when it is off, and the way into it. */
+    passportOpen: "Open your passport",
     back: "Back",
     verified: "Verified agent",
     verifiedTitle: "A verified Vallo agent",

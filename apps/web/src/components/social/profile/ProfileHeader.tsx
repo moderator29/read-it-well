@@ -15,7 +15,7 @@ import type { AgentTrust, Occupation, ProfilePlace, Standing } from "@/lib/socia
 import { BIO_HELD_DETAIL, BIO_HELD_TITLE, linkLabel } from "@/lib/social/profiles-model";
 import { ExternalLinkSheet } from "@/components/ui/ExternalLinkSheet";
 import "./social-profile.css";
-import { IdentityHeader } from "@/components/app/identity/IdentityHeader";
+import { IdentityCredentials, IdentityHeader } from "@/components/app/identity/IdentityHeader";
 import { lineGlyphFor } from "@/design-system/icons/glass-to-line";
 
 /**
@@ -87,6 +87,8 @@ export function ProfileHeader({
   badges = null,
   badgeCopy,
   shareUrl,
+  roleLine,
+  record = null,
 }: {
   profile: SocialProfileView;
   isOwner: boolean;
@@ -121,9 +123,16 @@ export function ProfileHeader({
   badgeCopy?: BadgeRowCopy;
   /** The person's public address, for the Share on the earned moment. */
   shareUrl?: string;
+  /** The one line under the name (`lib/profile/role-line.ts`), already worded. */
+  roleLine?: string;
+  /**
+   * The lister's Vallo Record (`ValloRecord`), built by the page, or null when
+   * there is none. Drawn in the credentials section with the badges and the
+   * agent's reviews.
+   */
+  record?: React.ReactNode;
 }) {
   const copy = t.socialProfile;
-  const visible = t.trustVisible.profile;
   const name = profile.displayLabel || `@${profile.handle}`;
   /*
    * One badge, not a stack of them. Somebody who looks after four areas would
@@ -142,6 +151,7 @@ export function ProfileHeader({
       pronouns={profile.pronouns || undefined}
       bio={profile.bio || undefined}
       badgeTier={profile.badgeTier}
+      roleLine={roleLine}
       role={
         mod ? (
           <span
@@ -193,8 +203,8 @@ export function ProfileHeader({
       }
     >
 
-      {/* -------------------------------------------------- what they are */}
-      {(occupation || (badges === null && standing.length > 0) || profile.pidginOk) && (
+      {/* ------------------------------------- what they do, what they speak */}
+      {(occupation || profile.pidginOk) && (
         <div className="nf-social-chips nf-profile-chips">
           {occupation ? (
             <span className="nf-social-chip">
@@ -202,12 +212,6 @@ export function ProfileHeader({
               {occupation.name}
             </span>
           ) : null}
-          {(badges === null ? standing : []).map((badge) => (
-            <span key={badge.code} className="nf-social-chip nf-social-chip--brand">
-              <UiIcon name={lineGlyphFor(objectFor(badge.objectName))} size={16} />
-              {badge.name}
-            </span>
-          ))}
           {profile.pidginOk ? (
             <span className="nf-social-chip">
               <UiIcon name="chat-bubble" size={12} />
@@ -216,14 +220,6 @@ export function ProfileHeader({
           ) : null}
         </div>
       )}
-
-      {/* ----------------------------------------- what they have earned */}
-      {badges && badges.length > 0 && badgeCopy ? (
-        <>
-          <BadgeRow badges={badges} isOwner={isOwner} copy={badgeCopy} shareUrl={shareUrl} />
-          {isOwner ? <BadgeEarnedHost viewerId={profile.userId} badges={badges} copy={badgeCopy} shareUrl={shareUrl} /> : null}
-        </>
-      ) : null}
 
       {/* --------------------------------------------------------- the bio */}
       {isOwner && profile.bioStatus === "HELD" && (
@@ -270,53 +266,95 @@ export function ProfileHeader({
         </p>
       ) : null}
 
-      {/* --------------------------------------------- agents only, ever */}
-      {trust ? (
-        /* V-21: NO SCORE. The "Trust score" cell was a number out of 100
-           nobody could explain, and it is gone with its column. The card
-           (spec section 10) prints plain facts, each only when there is one:
-           the average review with its count, the stays hosted (never a zero,
-           which told every rental agent their lets did not count), and the
-           reply time. The meter is the average out of five on ten bars, and
-           its word is the review count it came from. */
-        <ShareCardFrame
-          className="mt-md"
-          testId="profile-agent-record"
-          align="center"
-          title={visible.cardTitle}
-          chip={profile.badgeTier === "gold" ? { label: BADGE_TIER_LABEL.gold } : undefined}
-          {...(trust.reviewCount > 0 && trust.averageRating !== null
-            ? {
-                eyebrow: visible.ratingLabel,
-                figure: formatRating(trust.averageRating, locale),
-                figureUnit: visible.ratingUnit,
-                meter: {
-                  filled: ratingFill(trust.averageRating),
-                  word:
-                    trust.reviewCount === 1
-                      ? visible.reviewsWordOne
-                      : visible.reviewsWord.replace("{count}", formatNumber(trust.reviewCount, locale)),
-                },
-                honest: visible.honest,
-              }
-            : {
-                eyebrow: copy.responseTime,
-                figure: trust.responseTime,
-                figureSize: "lg" as const,
-                honest: visible.noReviews,
-              })}
-          stats={[
-            ...(trust.reviewCount > 0 && trust.averageRating !== null
-              ? [{ label: visible.reviews, value: formatNumber(trust.reviewCount, locale) }]
-              : []),
-            ...(trust.completedDeals > 0
-              ? [{ label: visible.staysHosted, value: formatNumber(trust.completedDeals, locale) }]
-              : []),
-            ...(trust.reviewCount > 0 ? [{ label: copy.responseTime, value: trust.responseTime }] : []),
-          ]}
-        />
-      ) : null}
+      {/* ------------------------------------------------- the credentials */}
+      {/* What vouches for them, in one section under one label: the badges
+          they hold (or, when that read failed, the standing an admin granted,
+          so a failed read never costs a badge), the lister's Vallo Record and
+          an agent's reviews. Nothing in it is drawn without a row behind it,
+          and with nothing to show the section and its label are absent. */}
+      <IdentityCredentials label={copy.credentials}>
+        {badges && badges.length > 0 && badgeCopy ? (
+          <>
+            <BadgeRow badges={badges} isOwner={isOwner} copy={badgeCopy} shareUrl={shareUrl} />
+            {isOwner ? <BadgeEarnedHost viewerId={profile.userId} badges={badges} copy={badgeCopy} shareUrl={shareUrl} /> : null}
+          </>
+        ) : null}
+        {badges === null && standing.length > 0 ? (
+          <div className="nf-social-chips nf-profile-chips">
+            {standing.map((badge) => (
+              <span key={badge.code} className="nf-social-chip nf-social-chip--brand">
+                <UiIcon name={lineGlyphFor(objectFor(badge.objectName))} size={16} />
+                {badge.name}
+              </span>
+            ))}
+          </div>
+        ) : null}
+        {record}
+        {trust ? <AgentTrustCard profile={profile} trust={trust} locale={locale} t={t} /> : null}
+      </IdentityCredentials>
     </IdentityHeader>
+  );
+}
+
+/**
+ * An agent's reviews, as plain facts (agents only, ever).
+ *
+ * V-21: NO SCORE. The "Trust score" cell was a number out of 100 nobody could
+ * explain, and it is gone with its column. The card (spec section 10) prints
+ * plain facts, each only when there is one: the average review with its
+ * count, the stays hosted (never a zero, which told every rental agent their
+ * lets did not count), and the reply time. The meter is the average out of
+ * five on ten bars, and its word is the review count it came from.
+ */
+function AgentTrustCard({
+  profile,
+  trust,
+  locale,
+  t,
+}: {
+  profile: SocialProfileView;
+  trust: AgentTrust;
+  locale: Locale;
+  t: Dictionary;
+}) {
+  const copy = t.socialProfile;
+  const visible = t.trustVisible.profile;
+  return (
+    <ShareCardFrame
+      testId="profile-agent-record"
+      align="center"
+      title={visible.cardTitle}
+      chip={profile.badgeTier === "gold" ? { label: BADGE_TIER_LABEL.gold } : undefined}
+      {...(trust.reviewCount > 0 && trust.averageRating !== null
+        ? {
+            eyebrow: visible.ratingLabel,
+            figure: formatRating(trust.averageRating, locale),
+            figureUnit: visible.ratingUnit,
+            meter: {
+              filled: ratingFill(trust.averageRating),
+              word:
+                trust.reviewCount === 1
+                  ? visible.reviewsWordOne
+                  : visible.reviewsWord.replace("{count}", formatNumber(trust.reviewCount, locale)),
+            },
+            honest: visible.honest,
+          }
+        : {
+            eyebrow: copy.responseTime,
+            figure: trust.responseTime,
+            figureSize: "lg" as const,
+            honest: visible.noReviews,
+          })}
+      stats={[
+        ...(trust.reviewCount > 0 && trust.averageRating !== null
+          ? [{ label: visible.reviews, value: formatNumber(trust.reviewCount, locale) }]
+          : []),
+        ...(trust.completedDeals > 0
+          ? [{ label: visible.staysHosted, value: formatNumber(trust.completedDeals, locale) }]
+          : []),
+        ...(trust.reviewCount > 0 ? [{ label: copy.responseTime, value: trust.responseTime }] : []),
+      ]}
+    />
   );
 }
 
