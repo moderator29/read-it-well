@@ -47,6 +47,8 @@ import { ListingGallery } from "@/components/app/listing/ListingGallery";
 import { RecordVisit } from "@/components/app/listing/RecordVisit";
 import { cardGlance } from "@/lib/listings/card-glance";
 import { ReservePanel } from "./ReservePanel";
+import { readDeclaration } from "@/lib/stays/arrival-queries";
+import { toDoorCharges } from "@/lib/stays/door-total";
 import { RentalPanel } from "./RentalPanel";
 import { ReserveTable } from "./ReserveTable";
 import { ListingAbout } from "@/components/app/listing/ListingAbout";
@@ -386,6 +388,7 @@ export default async function ListingDetailPage({
     neighboursFlag,
     access,
     recentlyLet,
+    doorDeclared,
   ] = await Promise.all([
     // Written reviews for this listing. Public by policy for a PUBLISHED
     // listing, so this read works for a signed-out visitor too.
@@ -433,6 +436,9 @@ export default async function ListingDetailPage({
     /* V-14's "recently let" line, for a rental. PERF-SWEEP 3: read with the
        rest rather than in series while the page renders. */
     isRental ? readRecentlyLet(listing.id) : Promise.resolve(null),
+    /* V-57: what a nightly stay declared for the door, so the reserve panel
+       states every cost before booking, as the hotel stay page does. */
+    isBookable && !listing.isDemo ? readDeclaration({ listingId: listing.id }) : Promise.resolve(null),
   ]);
   /* "Ownership seen": a reviewer approved the owner's proof of ownership.
      Only an owner's own listing can carry it; never an example. */
@@ -695,6 +701,8 @@ export default async function ListingDetailPage({
       instantBook={listing.instantBook}
       messageHref={messageHref}
       success={t.success}
+      door={toDoorCharges(doorDeclared, t.afterTheGate.arrival)}
+      doorCopy={t.afterTheGate.arrival}
     />
   );
 

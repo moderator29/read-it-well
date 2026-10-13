@@ -1,6 +1,7 @@
 "use client";
 
-import { allInMinor, doorLines, type DoorCharge } from "@/lib/stays/door-total";
+import type { DoorCharge } from "@/lib/stays/door-total";
+import { DoorTotal, type DoorTotalCopy } from "@/components/stays/DoorTotal";
 
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 import { countOf, formatMoney, formatNumber, type Locale } from "@vallo/i18n/core";
@@ -60,6 +61,7 @@ export function StayCostLive({
   totalFor,
   notesForInitial,
   door = [],
+  doorCopy,
   guests = 1,
 }: {
   detail: StayDetail;
@@ -76,13 +78,14 @@ export function StayCostLive({
    * dates and this party, and the all-in figure. Vallo adds nothing on top.
    */
   door?: readonly DoorCharge[];
+  /** The words for the door charges; without them nothing about the door is drawn. */
+  doorCopy?: DoorTotalCopy;
   guests?: number | null;
 }) {
   const ctx = useStayPick();
   const chosen = resolvePick(detail, ctx?.pick ?? null, nights);
   if (!chosen || nights === null) return null;
   const isInitial = ctx?.initial?.roomId === chosen.room.id && ctx?.initial?.planId === chosen.plan.id;
-  const lines = doorLines(door, nights, guests ?? 1);
   return (
     <>
     <StayCost
@@ -96,33 +99,8 @@ export function StayCostLive({
       total={{ label: totalFor.replace("{count}", formatNumber(nights, locale)), minor: chosen.total }}
       notes={isInitial ? notesForInitial : []}
     />
-    {lines.length > 0 && (
-      <section className="nf-panel nf-panel--card block p-md" data-testid="stay-all-in" aria-label="Every cost">
-        <p className="nf-body-sm font-semibold">At the door</p>
-        <ul className="mt-xs grid gap-2xs">
-          {lines.map((line) => (
-            <li key={line.key} className="flex items-start justify-between gap-sm nf-body-sm">
-              <span className="min-w-0">
-                {line.label}
-                <span className="block nf-caption">
-                  {formatMoney(line.minor, locale)} per {line.perLabel}
-                  {line.refundable ? ", returned under the listed rules" : ""}
-                </span>
-              </span>
-              <span className="shrink-0 nf-numeric">
-                {line.forStayMinor === null ? "As used" : formatMoney(line.forStayMinor, locale)}
-              </span>
-            </li>
-          ))}
-        </ul>
-        <p className="mt-sm flex items-start justify-between gap-sm nf-body-sm font-semibold">
-          <span>Everything for this stay</span>
-          <span className="nf-numeric">{formatMoney(allInMinor(chosen.total, lines), locale)}</span>
-        </p>
-        <p className="mt-2xs nf-caption">
-          The nights and every charge the host listed. Nothing else may be asked for at the door, and Vallo adds no fee.
-        </p>
-      </section>
+    {doorCopy && (
+      <DoorTotal charges={door} nights={nights} guests={guests ?? 1} priceMinor={chosen.total} locale={locale} copy={doorCopy} />
     )}
     </>
   );

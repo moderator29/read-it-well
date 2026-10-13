@@ -301,6 +301,12 @@ export const afterTheGateEn = {
     reportSubmit: "Report it",
     reportSent: "Reported. Support has it with your booking.",
     publishNeeds: "Declare the charges at the door first (all five, an amount or none), then publish.",
+    /** Every cost before booking: each declared charge worked out for the stay, and the all-in figure. */
+    perLine: "{amount} per {per}",
+    returned: "Returned under the listed rules",
+    asUsed: "As used",
+    allIn: "Everything for this stay",
+    allInNote: "The price and every charge the host listed. Nothing else may be asked for at the door.",
   },
   shots: {
     /** V-70, the wizard's shot list and the listing page's line. */

@@ -221,6 +221,23 @@ export default async function CheckoutPage({
         <CheckoutSummary view={view} locale={locale} tenancy={chargeKind !== "stay"} back={view.paid ? staysAction : undefined} />
       </Reveal>
 
+      {/* V-57 and product rule 2: every cost before the action that pays.
+          What the host declared for the door, worked out for these nights and
+          this party, with the all-in figure, straight under the total and
+          above the pay action (it used to sit under the pay panel, where a
+          guest could pay without having scrolled to it). */}
+      {view.status !== "CANCELLED" && chargeKind === "stay" && (
+        <div className="mt-md">
+          <ArrivalChargesLine
+            listingId={view.listingId}
+            accommodationId={view.accommodationId}
+            bookingId={view.bookingId}
+            locale={view.locale}
+            stay={{ nights: view.nights, guests: view.guests, priceMinor: view.totalMinor }}
+          />
+        </div>
+      )}
+
       {view.paid ? null : view.status === "CANCELLED" ? (
         <Reveal delay={80} className="mt-md">
           {/* EXPIRED, NOT FAILED, AND NOT A TICK. A cancellation is terminal
@@ -339,13 +356,6 @@ export default async function CheckoutPage({
         real rather than abstract. Not shown once a stay is paid or cancelled:
         by then the schedule is support's business and there is a person on it.
       */}
-      {/* V-57: what the host declared at the door, and the sentence for the gate. */}
-      {view.status !== "CANCELLED" && chargeKind === "stay" && (
-        <div className="mt-lg">
-          <ArrivalChargesLine listingId={view.listingId} accommodationId={view.accommodationId} bookingId={view.bookingId} locale={view.locale} />
-        </div>
-      )}
-
       {!view.paid && view.status !== "CANCELLED" && (
         <Reveal delay={180} className="mt-xl">
           <CancellationTimeline

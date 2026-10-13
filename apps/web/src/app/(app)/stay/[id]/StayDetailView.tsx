@@ -478,6 +478,7 @@ export function StayDetailView({
               totalFor={copy.totalFor}
               notesForInitial={pickNotes}
               door={door}
+              doorCopy={t.afterTheGate.arrival}
               guests={guests}
             />
           )}

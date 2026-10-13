@@ -18,6 +18,8 @@ import { addDaysIso, useStayDates } from "@/components/app/listing/StayDates";
 import { PhoneField } from "@/components/app/PhoneField";
 import { Chip, ChipRow } from "@/components/ui/Chip";
 import { Icon3D } from "@/components/ui/Icon3D";
+import { DoorTotal, type DoorTotalCopy } from "@/components/stays/DoorTotal";
+import type { DoorCharge } from "@/lib/stays/door-total";
 
 /**
  * The next fourteen days, as ISO dates.
@@ -145,9 +147,19 @@ export function ReservePanel({
   instantBook,
   success,
   messageHref,
+  door = [],
+  doorCopy,
 }: {
   /** The page's `t.success`, for "Dates held" or "Booking requested". Absent, no sheet. */
   success?: SuccessWords;
+  /**
+   * The charges this stay declared for the door (V-57). With them the guest
+   * reads the whole cost before booking: each charge for these dates and this
+   * party, and the all-in figure.
+   */
+  door?: readonly DoorCharge[];
+  /** The words for the door charges; without them nothing about the door is drawn. */
+  doorCopy?: DoorTotalCopy;
   listingId: string;
   currency: string;
   locale: Locale;
@@ -711,6 +723,20 @@ export function ReservePanel({
                   host&apos;s.
                 </p>
               </dl>
+            )}
+            {/* Every cost before booking, the charges at the door included,
+                open rather than behind the breakdown toggle. */}
+            {doorCopy && door.length > 0 && (
+              <div className="mt-block">
+                <DoorTotal
+                  charges={door}
+                  nights={nights}
+                  guests={adults + children}
+                  priceMinor={totalMinor}
+                  locale={locale}
+                  copy={doorCopy}
+                />
+              </div>
             )}
           </div>
         )}
