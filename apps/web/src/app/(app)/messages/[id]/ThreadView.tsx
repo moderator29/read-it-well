@@ -35,6 +35,7 @@ import { lagosTimeLabel } from "@/lib/messages/time";
 import { deleteMessage } from "@/lib/messages/message-actions";
 import { MessageMenu } from "@/components/app/messages/MessageMenu";
 import { ForwardSheet } from "@/components/app/messages/ForwardSheet";
+import { BubbleGestures } from "@/components/app/messages/BubbleGestures";
 import { asSentence, canForward } from "@/components/app/messages/forward";
 import {
   useThreadRealtime,
@@ -428,7 +429,8 @@ export function ThreadView({
   calls = null,
 }: ThreadViewProps) {
   const [items, setItems] = useState<ThreadBubble[]>(messages);
-  /* The message being answered, set by Reply in the message menu. Cleared on send. */
+  /* The message being answered, set by Reply in the message menu or by a
+     swipe on the bubble. Cleared on send. */
   const [replyTo, setReplyTo] = useState<ThreadBubble | null>(null);
   /* The message whose menu is open (a long press on the bubble). */
   const [actionMsg, setActionMsg] = useState<ThreadBubble | null>(null);
@@ -442,15 +444,6 @@ export function ThreadView({
     const timer = window.setTimeout(() => setActionNote(null), 4000);
     return () => window.clearTimeout(timer);
   }, [actionNote]);
-  const pressTimer = useRef<number | null>(null);
-  const startPress = (m: ThreadBubble) => {
-    if (m.id.startsWith("local-")) return;
-    pressTimer.current = window.setTimeout(() => setActionMsg(m), 450);
-  };
-  const endPress = () => {
-    if (pressTimer.current !== null) window.clearTimeout(pressTimer.current);
-    pressTimer.current = null;
-  };
   const menuReply = () => {
     if (actionMsg) setReplyTo(actionMsg);
     setActionMsg(null);
@@ -1323,15 +1316,13 @@ export function ThreadView({
                 {m.card ? (
                   <ChatCard card={m.card} />
                 ) : (
-                  <div
-                    onPointerDown={() => startPress(m)}
-                    onPointerUp={endPress}
-                    onPointerLeave={endPress}
-                    onPointerCancel={endPress}
-                    onContextMenu={(e) => {
-                      e.preventDefault();
-                      if (!m.id.startsWith("local-")) setActionMsg(m);
-                    }}
+                  /* Hold for the menu, swipe to reply (`BubbleGestures`). A
+                     bubble still on its way has neither: there is no message
+                     yet to act on. */
+                  <BubbleGestures
+                    side={m.mine ? "mine" : "theirs"}
+                    onLongPress={m.id.startsWith("local-") ? undefined : () => setActionMsg(m)}
+                    onSwipeReply={m.id.startsWith("local-") ? undefined : () => setReplyTo(m)}
                     className={`nf-bubble ${
                       m.state === "failed"
                         ? "nf-bubble--failed"
@@ -1404,7 +1395,7 @@ export function ThreadView({
                       )}
                       {m.mine && !m.state && <Ticks read={Boolean(last.read)} />}
                     </p>
-                  </div>
+                  </BubbleGestures>
                 )}
 
                 {shielded?.ask && scamCopy && (
