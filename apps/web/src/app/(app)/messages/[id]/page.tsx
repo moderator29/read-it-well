@@ -19,8 +19,7 @@ import { readAccountMoment } from "@/lib/messages/account-moment-read";
 import { counterpartFactsFrom, personFacts } from "@/lib/messages/person-line";
 import { recordLines } from "@/lib/trust/record";
 import { readThreadRecord } from "@/lib/trust/record-read";
-import { passportLines } from "@/lib/trust/passport";
-import { readPassportShareState, readThreadPassport } from "@/lib/trust/passport-read";
+import { readMyPassportOn } from "@/lib/passport/passport-read";
 import { InboxEmpty } from "../Inbox";
 import { readDeskStage } from "@/lib/enquiry/queries";
 import { readFollowup } from "@/lib/enquiry/followup-queries";import { quickReplies } from "@/lib/enquiry/quick-replies";
@@ -211,15 +210,19 @@ export default async function ConversationPage({
       availability,
       [stage, deskListing, followup],
       counterpartFactsLine,
-      passportRead,
-      passportShare,
+      passportOn,
       recordRead,
       accountMoment,
       showMe,
       chatHintGaps,
     ] = await Promise.all([
       /* The shared listings and bookings, expanded into cards for this reader. */
-      resolveCards(session.supabase, thread.messages, locale),
+      resolveCards(
+        session.supabase,
+        /* Who sent each message, so a passport card draws only for its owner. */
+        thread.messages.map((m) => ({ id: m.id, body: m.body, senderId: m.mine ? thread.meId : thread.counterpartId })),
+        locale,
+      ),
       /* Only a listing thread can carry a live inspection; the other faces
          never ask, structurally. */
       listingThread ? readOpenInspectionForConversation(id) : null,
@@ -250,11 +253,9 @@ export default async function ConversationPage({
           return [];
         }
       })(),
-      /* V-100: the renter passport. The lister sees it here only when the
-         renter chose to show it in THIS thread; the renter gets the switch. A
-         listing thread only, where the guest is the renter. */
-      listingThread && role === "host" ? readThreadPassport(id) : null,
-      listingThread && role === "guest" ? readPassportShareState(id) : null,
+      /* The Vallo passport: whether the reader's own is on, so the options
+         sheet offers "Show my passport" or the way to turn it on. */
+      readMyPassportOn(),
       /* V-34: when the other party is a lister, their Record, counted, under
          the person line. */
       readThreadRecord(id),
@@ -280,10 +281,6 @@ export default async function ConversationPage({
         listingId: thread.listing?.id ?? null,
       }),
     ]);
-    const passportLine =
-      listingThread && role === "host"
-        ? passportLines(passportRead, t.trustVisible.passport, locale).filter((l) => l.key !== "since")
-        : [];
     /* "On Vallo since" is drawn once, small, under the line that keeps chats
        and payments inside Vallo (founder, 11 October 2026): taken out of the
        person line, and the Record's copy of it is not drawn either. No row,
@@ -404,9 +401,21 @@ export default async function ConversationPage({
         personLine={personLine}
         sinceLine={sinceLine}
         recordLine={counterpartRecordLine}
-        passportLine={passportLine}
-        passportShare={passportShare}
-        passportLabel={t.trustVisible.passport.heading}
+        passport={{
+          /* Unknown counts as off: the sheet then points at the passport page
+             rather than posting a card that could not open. */
+          on: passportOn === true,
+          words: {
+            show: t.passportV2.showInChat,
+            hint: t.passportV2.showInChatHint,
+            offTitle: t.passportV2.showInChatOff,
+            offHint: t.passportV2.showInChatOffHint,
+            sent: t.passportV2.shownInChat,
+            failed: t.passportV2.sendFailed,
+            viewTheirs: t.passportV2.viewTheirs,
+            viewTheirsHint: t.passportV2.viewTheirsHint,
+          },
+        }}
         recordLabel={t.trustVisible.record.title}
         showMe={
           showMe ? (

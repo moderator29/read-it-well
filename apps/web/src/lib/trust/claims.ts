@@ -179,14 +179,21 @@ export const BACKED_CLAIMS: readonly BackedClaim[] = [
   {
     phrase: /\bvirtual NIN was checked with NIMC\b/i,
     mechanism:
-      "public.record_vnin_check (lib/identity/actions.ts, lib/identity/vnin-check.ts) stamps nimc_matched_at; the passport fact exists only when nimcMatchedAt is set (app/(app)/settings/passport/passport-facts.ts factViews)",
+      "public.record_vnin_check (lib/identity/actions.ts, lib/identity/vnin-check.ts) stamps nimc_matched_at on the V-100 renter passport (private.passport_facts). Since the Vallo passport (13 Oct 2026) no page draws this sentence: the evidence pages were removed and the copy stays in the catalogue unused until it is deleted",
   },
   /* experience-account.en.ts, headings on the passport evidence page and the
      verification path. Each sits over a record, never instead of one. */
   {
     phrase: /^how it was checked$|^what was checked$|^what will be checked$/i,
     mechanism:
-      "headings: the evidence page renders only facts Vallo recorded (passport-facts.ts factViews); 'What was checked' heads only a rung whose state is passed and 'What will be checked' one still ahead (components/verification/VerificationPath.tsx)",
+      "headings: 'What was checked' heads only a rung whose state is passed and 'What will be checked' one still ahead (components/verification/VerificationPath.tsx); the passport evidence pages that also used them were removed with the Vallo passport (13 Oct 2026)",
+  },
+  /* passportV2 (the Vallo passport, 13 October 2026): the verification line.
+     Its level is read, never decided, in the database. */
+  {
+    phrase: /^identity checked by a person at vallo\.$/i,
+    mechanism:
+      "the passport's verification line is public.person_badge (private.badge_tier_for) returned by public.passport_read (supabase/migrations/pending/pass02_vallo_passport_read.sql); 'gold' needs agent_badges.verified or businesses.verified, derived from rungs a named member of staff passed on the KYC desk (agent_verification_checks); an owner can hide the line but cannot set it, and 'Member' (none) makes no claim",
   },
   /* front-door.en.ts briefs (V-95). */
   {

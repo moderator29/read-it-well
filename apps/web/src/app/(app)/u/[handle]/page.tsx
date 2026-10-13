@@ -44,6 +44,7 @@ import { readProfileBadges } from "@/components/social/profile/badges-read";
 import { isSocialEnabled } from "@/lib/social/flag";
 import { readPublicRoleWords } from "@/lib/profile/role-facts";
 import { roleLine } from "@/lib/profile/role-line";
+import { passportIsOpen } from "@/lib/passport/passport-read";
 import { FOLLOW_TO_MESSAGE, messageDoor } from "@/lib/social/message-door";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ownershipSeenFor } from "@/lib/trust/ownership-seen";
@@ -171,7 +172,7 @@ export default async function SocialProfilePage({
     });
 
     const supabase = await createClient();
-    const [posts, replies, media, activity, properties, reviews, stories, record, badges, roleWords] =
+    const [posts, replies, media, activity, properties, reviews, stories, record, badges, roleWords, passportOpen] =
       await Promise.all([
         isAgentPage ? Promise.resolve([]) : getProfileFeed(userId),
         isAgentPage ? Promise.resolve([]) : getProfileReplies(userId),
@@ -189,7 +190,20 @@ export default async function SocialProfilePage({
         /* The one role line under their name: what their published listings
            and businesses say they are (`lib/profile/role-facts.ts`). */
         readPublicRoleWords(supabase, userId, view.profile.supplyRole),
+        /* The Vallo passport: a signed-in member sees "View passport" only when
+           it would open (on, and no block either way). Signed out: no button,
+           and no read. */
+        view.signedIn && !view.isOwner ? passportIsOpen(userId) : Promise.resolve(false),
       ]);
+    const passportAction = view.isOwner ? (
+      <ButtonLink href="/settings/passport" size="sm" variant="secondary" leadingIcon="id-card" data-testid="profile-your-passport">
+        {t.passportV2.yourPassport}
+      </ButtonLink>
+    ) : passportOpen ? (
+      <ButtonLink href={`/passport/${view.profile.handle}`} size="sm" variant="secondary" leadingIcon="id-card" data-testid="profile-view-passport">
+        {t.passportV2.viewPassport}
+      </ButtonLink>
+    ) : null;
     /* "Ownership seen": a reviewer approved this owner's proof of ownership. */
     const ownershipSeen = view.profile.isAgent ? await ownershipSeenFor(userId) : null;
 
@@ -217,7 +231,14 @@ export default async function SocialProfilePage({
           roleLine={roleLine(roleWords, t.socialProfile.roleLine)}
           /* V-34: a lister's Record, in the credentials section. Null for a
              member who is not one, and then nothing is drawn. */
-          record={record ? <ValloRecord record={record} t={t} locale={locale} /> : null}
+          record={
+            record || passportAction ? (
+              <>
+                {record ? <ValloRecord record={record} t={t} locale={locale} /> : null}
+                {passportAction ? <div className="mt-sm">{passportAction}</div> : null}
+              </>
+            ) : null
+          }
           follow={
             view.isOwner ? undefined : (
               <FollowButton

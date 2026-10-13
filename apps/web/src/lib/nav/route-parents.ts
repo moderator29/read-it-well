@@ -260,8 +260,8 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/rent/review/[paymentId]": "/bookings",
   "/record/[code]": "/search",
   "/settings/passport": "/settings",
-  /* W6, D25: one fact's evidence is an inner page of the passport. */
-  "/settings/passport/[fact]": "/settings/passport",
+  /* The Vallo passport of another member, opened from a profile or a chat. */
+  "/passport/[who]": "/around",
   "/settings/invite": "/settings",
   /* W6, D25: the referral hub's inner pages. */
   "/settings/invite/how-it-works": "/settings/invite",

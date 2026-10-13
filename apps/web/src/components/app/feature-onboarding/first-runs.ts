@@ -207,17 +207,21 @@ export function firstRunContent(
       };
     case "invite":
       return { feature, name: c.invite.name, action: c.invite.action, panels: invitePanels(t, invite, locale) };
-    case "passport":
+    case "passport": {
+      /* The Vallo passport (13 October 2026): on by default, line by line, for
+         every member. Its own words, not the renter passport's. */
+      const p = t.passportV2.firstRun;
       return {
         feature,
-        name: c.passport.name,
-        action: c.passport.action,
+        name: p.name,
+        action: p.action,
         panels: [
-          { object: "passport-book", title: c.passport.p1Title, body: c.passport.p1Body },
-          { object: "padlock", title: c.passport.p2Title, body: c.passport.p2Body },
-          { object: "refresh-arrows", title: c.passport.p3Title, body: t.trustVisible.passport.offNote },
+          { object: "passport-book", title: p.p1Title, body: p.p1Body },
+          { object: "padlock", title: p.p2Title, body: p.p2Body },
+          { object: "refresh-arrows", title: p.p3Title, body: p.p3Body },
         ],
       };
+    }
     case "analytics":
       return {
         feature,

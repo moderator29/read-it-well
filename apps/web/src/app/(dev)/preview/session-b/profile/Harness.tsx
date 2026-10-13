@@ -15,21 +15,9 @@ import { IdentityCredentials } from "@/components/app/identity/IdentityHeader";
 import { ValloRecord } from "@/components/app/trust/ValloRecord";
 import { PassportRows } from "@/app/(app)/profile/PassportRows";
 import { roleLine, roleWords } from "@/lib/profile/role-line";
-import type { MyPassport } from "@/lib/trust/passport-read";
 import type { RecordRow } from "@/lib/trust/record";
 
-/* A renter passport and a Vallo Record, as fixtures (fictional, never shipped). */
-const FIXTURE_PASSPORT: MyPassport = {
-  enabled: true,
-  sharedIn: 2,
-  facts: {
-    phoneConfirmed: true,
-    nimcMatchedAt: "2026-09-12T10:00:00.000Z",
-    inspectionsAttended: 3,
-    tenancies: 1,
-    memberSince: "2026-09-01T10:00:00.000Z",
-  },
-};
+/* A Vallo Record, as a fixture (fictional, never shipped). */
 const FIXTURE_RECORD: RecordRow = {
   recordCode: "VR-7KQ2-M4",
   displayName: PERSON.name,
@@ -141,11 +129,10 @@ export function ProfileHarness({ v = "full" }: { v?: string }) {
           <IdentityCredentials label={t.socialProfile.passportAndCredentials}>
             {v === "badges" ? <BadgeRow badges={FIXTURE_BADGES} isOwner copy={badgeCopyOf(t)} /> : null}
             <PassportRows
-              passport={FIXTURE_PASSPORT}
-              copy={t.experienceAccount.passport}
+              on
+              copy={t.passportV2}
               memberSinceLabel={t.socialProfile.accountPage.memberSince}
               memberSince="September 2026"
-              locale="en"
             />
             {v === "renter" || v === "host" ? null : <ValloRecord record={FIXTURE_RECORD} t={t} locale="en" />}
           </IdentityCredentials>
