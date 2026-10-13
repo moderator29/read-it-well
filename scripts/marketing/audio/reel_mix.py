@@ -66,7 +66,8 @@ def main() -> None:
         mix = mix * undb(-1.0 - tp)
     out = Path(a.out)
     write_wav(f"{out}.wav", mix)
-    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", f"{out}.wav", "-c:a", "aac", "-b:a", "256k", f"{out}.m4a"], check=True)
+    lufs_t = a.target_lufs if a.target_lufs <= -15 else -16.0
+    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", f"{out}.wav", "-af", f"loudnorm=I={lufs_t}:TP=-1.5:LRA=11", "-ar", "48000", "-c:a", "aac", "-b:a", "256k", f"{out}.m4a"], check=True)
     print(f"{placed} cues, {integrated_lufs(mix):.1f} LUFS, true peak {true_peak_db(mix):.1f} dBTP, {len(mix) / SR:.2f} s -> {out}.m4a")
 
 

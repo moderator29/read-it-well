@@ -71,8 +71,8 @@ async function layout(fmt, post) {
   const two = post.screen2;
   if (fmt.dir === "x" || fmt.dir === "telegram") {
     const ph = await phoneImg(post.screen, 780, rot);
-    body += place(ph, 1190, 450);
-    if (two) body += place(await phoneImg(post.screen2, 700, { x: 3, y: 12, z: -2 }), 1480, 500, 2);
+    body += place(ph, two ? 1030 : 1190, 450);
+    if (two) body += place(await phoneImg(post.screen2, 700, { x: 3, y: 12, z: -2 }), 1380, 500, 2);
     css += `.copy{position:absolute;left:100px;top:0;height:${H}px;width:900px;display:flex;flex-direction:column;justify-content:center}
             .h{font:700 92px/1.04 Poppins,sans-serif;letter-spacing:-0.03em;color:#fff}
             .s{margin-top:34px;font:500 34px/1.34 Inter,sans-serif;color:rgb(214 230 255 / .86);width:680px;letter-spacing:-0.01em}
@@ -83,8 +83,8 @@ async function layout(fmt, post) {
     css += `.h{font-size:${hSize}px}`;
   } else if (fmt.dir === "instagram-feed") {
     const ph = await phoneImg(post.screen, 740, rot);
-    body += place(ph, 540, 1010);
-    if (two) body += place(await phoneImg(post.screen2, 660, { x: 3, y: 12, z: -2 }), 800, 1000, 2);
+    body += place(ph, two ? 380 : 540, 1010);
+    if (two) body += place(await phoneImg(post.screen2, 660, { x: 3, y: 12, z: -2 }), 700, 1000, 2);
     css += `.copy{position:absolute;left:80px;top:140px;width:920px}
             .h{font:700 98px/1.04 Poppins,sans-serif;letter-spacing:-0.03em;color:#fff}
             .s{margin-top:24px;font:500 32px/1.34 Inter,sans-serif;color:rgb(214 230 255 / .86);width:820px}
@@ -93,8 +93,8 @@ async function layout(fmt, post) {
             .ic{position:absolute;left:800px;top:560px;width:190px;transform:rotate(8deg);z-index:4;filter:drop-shadow(0 24px 30px rgb(0 0 30 / .5))}`;
   } else {
     const ph = await phoneImg(post.screen, 960, rot);
-    body += place(ph, 540, 1230);
-    if (two) body += place(await phoneImg(post.screen2, 800, { x: 3, y: 12, z: -2 }), 800, 1190, 2);
+    body += place(ph, two ? 390 : 540, 1230);
+    if (two) body += place(await phoneImg(post.screen2, 860, { x: 3, y: 12, z: -2 }), 730, 1250, 2);
     css += `.copy{position:absolute;left:70px;top:300px;width:940px}
             .h{font:700 104px/1.04 Poppins,sans-serif;letter-spacing:-0.03em;color:#fff}
             .s{margin-top:22px;font:500 33px/1.32 Inter,sans-serif;color:rgb(214 230 255 / .86);width:840px}
@@ -143,7 +143,7 @@ const lines = [
   "# Vallo launch campaign, first month (October 2026)", "",
   `Destination link for every post: ${LINK}`, "",
   "Rules: the listings and stays on screen are the platform's own example listings; no testimonials, counts or totals are claimed; the iPhone and Android apps are in store review, so no post says \"download\". Post 16 (rewards) goes out only once Rewards is switched on for everyone.", "",
-  "Folders: `x/` 1600 x 900 (also fine for LinkedIn), `telegram/` 1280 x 720, `instagram-feed/` 1080 x 1350, `instagram-story/` 1080 x 1920. Each file is `NN-slug.png`.", "",
+  "Folders: `x/` 1600 x 900 (also fine for LinkedIn), `telegram/` 1280 x 720, `instagram-feed/` 1080 x 1350, `instagram-story/` 1080 x 1920. Each file is `NN-slug.jpg` (high-quality JPEG).", "",
 ];
 for (const p of POSTS) {
   lines.push(`## ${String(p.n).padStart(2, "0")}  ${p.topic}  (day ${p.day})`, "", `**Headline:** ${p.lines.join(" ")}`, `**Supporting text:** ${p.support}`, `**Call to action:** ${p.cta}`, `**Link:** ${LINK}`, "", "**X**", "", p.x, "", "**Instagram caption**", "", p.ig, "", "**Telegram**", "", p.tg, "");
