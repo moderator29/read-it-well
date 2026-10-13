@@ -280,6 +280,93 @@ export const FAQS: Faq[] = [
     a: "Where the business takes messages, its page carries a message button. The conversation goes to the business itself and stays in your inbox with your other conversations.",
   },
 
+  /*
+   * ADDED 13 OCTOBER 2026 from the founder's decisions
+   * (docs/DECISIONS_2026-10-13.md). Plain questions in the words people use.
+   * Every answer states only what is built; nothing promises a feature that
+   * is on another branch.
+   */
+  {
+    category: "Payments and refunds",
+    q: "Is Vallo free to use?",
+    a: "Yes. Making an account, searching, saving, messaging and asking to view a property are free, and listing a property is free. Vallo only charges when a deal is completed, and that fee is shown to the lister in naira. A renter or guest pays the price on the listing, with nothing added by Vallo. No one has to pay a monthly subscription.",
+  },
+  {
+    category: "Payments and refunds",
+    q: "What is the Pro plan, and do I have to pay for it?",
+    a: "The Pro plan is optional. You never need it to list, to book, to view a property or to get paid, and nothing is locked behind it.",
+  },
+  {
+    category: "Booking a stay",
+    q: "How do I cancel a booking?",
+    a: "Open the booking from Plans (or Trips on the Stays side) and choose cancel. What comes back to you depends on how long before check-in you cancel, and the refund schedule is written out on the Cancellations page. If the host cancels, or the place was materially not as listed, you get everything back. An unpaid hold can be let go at any time for nothing.",
+  },
+  {
+    category: "Booking a stay",
+    q: "Will I see every cost before I book?",
+    a: "Yes. You see the total before you confirm. A host must not charge anything that is not listed on Vallo, and must not add a charge without a stated reason. If someone asks you for a charge that is not listed, do not pay it, and report it.",
+  },
+  {
+    category: "Viewings",
+    q: "How do I book a viewing?",
+    a: "On a listing, pick a free slot and the viewing is booked at once. If no slot suits you, ask for a time: the lister confirms it, offers you another time, or declines, and you are told which. Times are Lagos time.",
+  },
+  {
+    category: "Viewings",
+    q: "Do I pay to view a property?",
+    a: `No. ${NO_INSPECTION_FEE} Money for a rental or a sale moves only after you have seen the property and decided.`,
+  },
+  {
+    category: "Viewings",
+    q: "Will I be reminded about a viewing?",
+    a: "Yes. Both the renter and the lister are reminded in the evening before (from 19:00 Lagos time) and again two hours before the viewing.",
+  },
+  {
+    category: "Viewings",
+    q: "How do I close a viewing after it happens?",
+    a: "Once the time has passed, either side can mark the viewing complete and say how it went: inspected, deal done or no deal.",
+  },
+  {
+    category: "Messages",
+    q: "Can I delete a message I sent?",
+    a: "Yes. Delete for me removes it from your own view. Delete for everyone removes it for both sides, and works for 2 days and 12 hours after the message was sent.",
+  },
+  {
+    category: "Messages",
+    q: "Can I reply to, forward or call from a conversation?",
+    a: "Yes. You can reply to a particular message, forward a message to another conversation, and start a voice or video call from inside the thread.",
+  },
+  {
+    category: "Messages",
+    q: "Why is a message in Requests?",
+    a: "Messages from people you do not follow arrive as Requests, so a stranger cannot fill your inbox. They wait in their own tab until you open them.",
+  },
+  {
+    category: "Listing your property",
+    q: "Is a listing reviewed before it is published?",
+    a: "Yes. Vallo reviews every listing before it is published. The reviewer can approve it, ask for more, or reject it with a reason. If it is sent back, you can edit it and send it again.",
+  },
+  {
+    category: "Listing your property",
+    q: "Can I be both a landlord and an agent?",
+    a: "Not on one account. An owner (landlord) account and an agent account are separate accounts.",
+  },
+  {
+    category: "Hosting",
+    q: "How do I set up a hotel, shortlet or restaurant?",
+    a: "Use the host wizard. You give your identity and business papers, and Vallo reviews them before you are published. If you are sent back, you edit the same application and send it again. You agree to the Terms and the Privacy Policy before you create a host account or publish.",
+  },
+  {
+    category: "Verification and trust",
+    q: "Does a badge mean a person cannot defraud me?",
+    a: "No. A badge shows what Vallo has checked or what a person has earned, such as a quick first reply. It is not a guarantee against fraud. Pay only inside Vallo, and only after you have seen the property.",
+  },
+  {
+    category: "Verification and trust",
+    q: "Why shouldn't I share an account number in chat?",
+    a: "Because it is the commonest way people are cheated. Messages that look like account numbers are flagged to the Vallo team. Pay only through Vallo, never into an account someone sends you.",
+  },
+
   // ---------------------------------------------------------- languages
   {
     category: "Languages and accessibility",

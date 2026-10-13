@@ -20,6 +20,12 @@ When somebody pays, Paystack splits the charge in the same transaction:
 | The Vallo Guarantee contribution | A separate Paystack subaccount for the reserve | `money_policy.guarantee_bps`: 150 today, allowed range 100 to 200 |
 | Vallo's commission | Vallo's main account | `fee_rates` commission: zero today |
 
+> **13 October 2026.** The founder confirmed: Vallo charges only on a completed
+> deal, no monthly subscription is required of anyone, and a Pro plan is
+> optional. Vallo's commission is data (`fee_rates`), zero until set; the table
+> above is the mechanism, not a rate. Public copy names no payment provider
+> except where the law requires it. See [DECISIONS_2026-10-13.md](DECISIONS_2026-10-13.md).
+
 The three parts always add up exactly to the charge. The `transactions` check refuses a row where they do not. The Guarantee contribution comes out of the lister's share and is never added to the price the renter or guest sees.
 
 Every sentence a person reads about money comes from `apps/web/src/lib/money/copy.ts`: the Terms, the Privacy policy, the Disclaimer, the help centre, the assistant's prompts, the emails and the screens.

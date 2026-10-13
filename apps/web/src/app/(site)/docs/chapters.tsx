@@ -29,6 +29,14 @@ import { MODERATOR_CAN, MODERATOR_CANNOT } from "@/lib/social/areas-model";
 import { REPORT_CATEGORY_COPY, REPORT_CATEGORY_ORDER } from "@/lib/reports/schema";
 import { SUPPLY_DOOR_HREF, doorsSentence } from "@/lib/supply/roles";
 import { AI_ASSISTANT, GETTING_AROUND, LISTING_ON_VALLO, MESSAGING_A_BUSINESS, PRICE_CHECK } from "./chapters-more";
+import {
+  BADGES_AND_VERIFICATION,
+  HOSTING,
+  MESSAGE_TOOLS,
+  QUICK_START,
+  VIEWINGS,
+  WHAT_VALLO_COSTS,
+} from "./chapters-guide";
 import { DocsFlow } from "./DocsFlow";
 
 /**
@@ -278,11 +286,14 @@ const WRITTEN: DocChapter[] = [
               any of them.
             </p>
             <p>
-              This is not a promotion with an end date. It is how the ledger is built:
-              every settled charge is split into the agent share, the payment processor
-              charge and the platform share, and the platform share is zero. If a card
-              processor charges for moving money, that is named as the processor
-              charge, because it is theirs.
+              Vallo is free to use and free to list on. It charges only when a deal is
+              completed, and that fee comes out of the lister&rsquo;s share, never as
+              something added to what you pay. If a card processor charges for moving
+              money, that is named as the processor charge, because it is theirs. See{" "}
+              <Link href="/docs/what-vallo-costs" className={A}>
+                What Vallo costs
+              </Link>
+              .
             </p>
             <p>
               So if anybody presents an agency fee, an inspection fee, a holding fee or
@@ -1563,6 +1574,7 @@ const WRITTEN: DocChapter[] = [
         ),
       },
       MESSAGING_A_BUSINESS,
+      MESSAGE_TOOLS,
       {
         id: "keep-it-here",
         heading: "Keep it on the platform",
@@ -1870,10 +1882,14 @@ const WRITTEN: DocChapter[] = [
         heading: "What it costs",
         body: (
           <p>
-            Nothing, and it stays nothing. There is no listing fee, no subscription, no
-            featured placement to buy, and nothing is taken out of what a guest pays you.
-            The whole amount is yours, less whatever the payment processor charges for
-            moving it, which is named as theirs.
+            Listing is free, and no one has to pay a monthly subscription. Vallo charges
+            only when a deal is completed, and that fee is shown to you in naira. The Pro
+            plan is optional and never required. The payment processor&rsquo;s own charge
+            for moving money is named as theirs. See{" "}
+            <Link href="/docs/what-vallo-costs" className={A}>
+              What Vallo costs
+            </Link>
+            .
           </p>
         ),
       },
@@ -2601,9 +2617,23 @@ function after(list: DocChapter[], slug: string, ...more: DocChapter[]): DocChap
 }
 
 export const CHAPTERS: DocChapter[] = after(
-  after(after(WRITTEN, "getting-started", GETTING_AROUND), "understanding-a-listing", PRICE_CHECK, AI_ASSISTANT),
-  "around",
-  LISTING_ON_VALLO,
+  after(
+    after(
+      after(
+        after(after(WRITTEN, "getting-started", GETTING_AROUND), "understanding-a-listing", PRICE_CHECK, AI_ASSISTANT),
+        "around",
+        LISTING_ON_VALLO,
+      ),
+      "what-vallo-is",
+      QUICK_START,
+      WHAT_VALLO_COSTS,
+    ),
+    "finding-a-place",
+    VIEWINGS,
+  ),
+  "for-agents",
+  HOSTING,
+  BADGES_AND_VERIFICATION,
 ).map((chapter, index) => ({ ...chapter, number: index + 1 }));
 
 /* ------------------------------------------------------------------ index */

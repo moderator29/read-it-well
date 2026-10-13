@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { MotionReveal } from "@/components/motion/Reveal";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { ButtonLink } from "@/components/ui/Button";
 import { topicId } from "./topics";
+import { NoResults, SupportResults, SupportSearchField, useSupportSearch } from "@/components/site/support/SupportSearch";
 
 export type Faq = {
   category: string;
@@ -49,16 +49,14 @@ export function HelpSearch({ faqs }: { faqs: Faq[] }) {
     return () => document.removeEventListener("click", onClick);
   }, [query]);
 
-  const visible = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return faqs;
-    return faqs.filter(
-      (f) =>
-        f.q.toLowerCase().includes(q) ||
-        f.a.toLowerCase().includes(q) ||
-        f.category.toLowerCase().includes(q),
-    );
-  }, [faqs, query]);
+  /* ONE SEARCH: while somebody is searching, the results come from the
+     unified index (Help, Docs, Guides, legal), each naming its section. With
+     no query the topic list below is exactly as it was. */
+  const listId = useId();
+  const [active, setActive] = useState(0);
+  const { hits, loading, failed, load } = useSupportSearch(query);
+  const searching = query.trim().length > 0;
+  const visible = faqs;
 
   const categories = useMemo(() => {
     const seen: string[] = [];
@@ -68,28 +66,45 @@ export function HelpSearch({ faqs }: { faqs: Faq[] }) {
 
   return (
     <div>
-      {/* Search field */}
-      <div className="relative">
-        <UiIcon
-          name="search"
-          size={20}
-          className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--nf-content-muted)]"
-        />
-        <input
-          type="search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search the help centre, e.g. refund, inspection, verify"
-          aria-label="Search help articles"
-          className="nf-field ps-[calc(0.875rem+1.25rem+var(--nf-gap-row))]"
-        />
-      </div>
+      <SupportSearchField
+        value={query}
+        onChange={setQuery}
+        hits={hits}
+        onFocus={load}
+        listId={listId}
+        activeIndex={active}
+        setActiveIndex={setActive}
+        placeholder="Search Help, Docs and guides, e.g. is Vallo free"
+        label="Search help, documentation, guides and policies"
+        onOpen={(hit) => {
+          /* A Help answer opens where it is; anything else is a page to go to. */
+          if (hit.entry.section === "help") {
+            const row = document.getElementById(`${listId}-${hits.indexOf(hit)}`);
+            row?.querySelector("details")?.setAttribute("open", "");
+            row?.scrollIntoView({ block: "nearest" });
+          } else {
+            window.location.assign(hit.entry.href);
+          }
+        }}
+      />
       <p className="mt-inline text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]" role="status">
-        {visible.length === faqs.length
-          ? `${faqs.length} answers`
-          : `${visible.length} of ${faqs.length} answers match`}
+        {!searching
+          ? `${faqs.length} answers, and the docs, guides and policies`
+          : loading
+            ? "Searching..."
+            : `${hits.length} ${hits.length === 1 ? "result" : "results"} across Help, Docs, Guides and policies`}
       </p>
 
+      {searching ? (
+        <div className="mt-heading">
+          {hits.length > 0 ? (
+            <SupportResults hits={hits} listId={listId} activeIndex={active} inline />
+          ) : loading ? null : (
+            <NoResults failed={failed} />
+          )}
+        </div>
+      ) : (
+        <>
       {/* Grouped results */}
       {visible.length > 0 ? (
         <div className="mt-heading space-y-block">
@@ -118,18 +133,8 @@ export function HelpSearch({ faqs }: { faqs: Faq[] }) {
             </MotionReveal>
           ))}
         </div>
-      ) : (
-        <div className="nf-panel nf-panel--card block mt-heading p-card text-center-lg">
-          <h2 className="nf-h3">Nothing matches that yet</h2>
-          <p className="mx-auto mt-inline max-w-[46ch] text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
-            Try a shorter word, or ask us directly. A person reads every message.
-          </p>
-          <div className="mt-heading flex justify-center">
-            <ButtonLink href="/contact" variant="secondary">
-              Contact support
-            </ButtonLink>
-          </div>
-        </div>
+      ) : null}
+        </>
       )}
     </div>
   );

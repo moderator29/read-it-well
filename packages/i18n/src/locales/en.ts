@@ -1364,6 +1364,8 @@ export const en = {
     termsLink: "Terms",
     privacyLink: "Privacy policy",
     rulesLink: "Community rules",
+    helpLink: "Help",
+    docsLink: "Docs",
   },
 
   auth: {
@@ -2150,6 +2152,8 @@ export const en = {
       note: "Preferences kept on this device stay on this device. Only you can see or change your account preferences.",
       help: "Help",
       helpSub: "FAQs, contact us",
+      docs: "Documentation",
+      docsSub: "How Vallo works, for renters, landlords, agents and hosts",
       terms: "Terms",
       privacy: "Privacy policy",
       disclaimer: "Disclaimer",

@@ -19,6 +19,9 @@ const TOPIC_GLYPH: Record<string, UiIconName> = {
   "Verification and trust": "shield-check",
   "Listing your property": "key",
   "Using the app": "sliders",
+  Viewings: "calendar-booking",
+  Messages: "chat-bubble",
+  Hosting: "key",
   "Languages and accessibility": "globe",
 };
 

@@ -14,7 +14,8 @@ For setup, architecture and the repository layout, start with the [repository RE
 | [THE_HUNDRED.md](THE_HUNDRED.md) | The hundred ranked recommendations of 23 September 2026 (V-01 to V-100). Code comments cite their IDs |
 | [RECOMMENDATIONS.md](RECOMMENDATIONS.md) | The register of findings and open work. Code comments cite its IDs |
 | [ONE_PERSON_MANY_ACCOUNTS.md](ONE_PERSON_MANY_ACCOUNTS.md) | How one person holding several accounts or workspaces is handled at each gate |
-| [BADGES.md](BADGES.md) | Earned badges for agents and members |
+| [DECISIONS_2026-10-13.md](DECISIONS_2026-10-13.md) | The founder's decisions of 13 October 2026, each with its status in the code (BUILT, PARTLY, NOT BUILT), plus how viewings, listing media, host setup, restaurants and no-show disputes work. Read before changing fees, viewings or host rules |
+| [BADGES.md](BADGES.md) | Earned badges for agents and members, and what a badge does and does not mean |
 | [SOCIAL_DESIGN.md](SOCIAL_DESIGN.md) | The design record for the social layer (Around) |
 | [PRICE_CHECK_STAGE_ONE_STATE.md](PRICE_CHECK_STAGE_ONE_STATE.md) | Price Check: what is built and what the numbers say |
 
