@@ -2,7 +2,7 @@
 
 Confirmed by the founder on 13 October 2026. This file lists each decision,
 says what the code does about it on the branch it was written against
-(`claude/rentme-v2-platform-audit-xuvg0a`; statuses re-read on 13 October 2026 after the round 2 merges at `e054552a3`),
+(`claude/rentme-v2-platform-audit-xuvg0a`; statuses re-read on 13 October 2026 after the round 2 merges at `e054552a3`, and rows 2, 6, 14, 15 and 20 to 23 by the docs track the same day against the live database),
 and says where the public documentation states it. When a decision's code
 lands, change its status here in the same commit.
 
@@ -16,11 +16,11 @@ merged" at the end.
 | # | Decision | Status | Where |
 |---|---|---|---|
 | 1 | Vallo is free to use. Listing is free. Vallo charges only on a completed deal. A Pro plan is optional and never required. No monthly subscription is required of anyone | PARTLY. Free listing and the optional plan (`lib/subscriptions`, flag `subscriptions_checkout`) exist. The fee itself is a separate matter, see "Open conflicts" | `/docs/what-vallo-costs`, help "Is Vallo free to use?" |
-| 2 | Vallo does not hold customer money. Payments and escrow sit with licensed payment partners. The UI stays Vallo-native; a provider is named only where the law requires it | BUILT (ADR 0003, `lib/money/copy.ts`). New public copy names no provider. Older chapters of `/docs/money-and-the-guarantee` still name the processor and should be reviewed against this rule | `/docs/what-vallo-costs`, ADR 0003 |
+| 2 | Vallo does not hold customer money. Payments and escrow sit with licensed payment partners. The UI stays Vallo-native; a provider is named only where the law requires it | BUILT (ADR 0003, `lib/money/copy.ts`). The public docs and help name no provider (docs track, 13 October 2026): `/docs/money-and-the-guarantee`, which named the processor, was retired and redirects to `/docs/paying-on-vallo` | `/docs/paying-on-vallo`, `/docs/what-vallo-costs`, ADR 0003 |
 | 3 | Money for a deal moves only after inspection and the renter's decision. Viewings never take money | BUILT (`PAYMENT_GATE_SENTENCE`, `NO_INSPECTION_FEE`) | `/docs/viewings` |
 | 4 | Every cost is shown before booking; the guest sees the full total, including every charge at the door, before confirming | BUILT. A host's charges at the door (caution deposit, power, cleaning, extra guest, visitor) are listed before booking and the Host Agreement says so | `/docs/what-vallo-costs`, `/docs/hosting`, help "Will I see every cost before I book?". Not re-verified by the docs track: that the all-in total is drawn on checkout with every door charge |
 | 5 | Hosts must not charge anything not listed on Vallo, and must not add a charge without a stated reason. Hosts agree to the Terms, the Privacy Policy and the Host Agreement before creating a host account or publishing | BUILT. Terms section 6, the Host Agreement page (`/host-agreement`, `lib/legal/host-agreement.tsx`), and the agreement tick on the wizard business step (`HOST_AGREEMENT_VERSION`) | Terms, `/host-agreement`, `/docs/hosting`. For the solicitor: the Host Agreement text was written by engineering |
-| 6 | Viewings: free slot is booked at once; or request a time and the lister confirms, offers another time, or declines | BUILT (`lib/viewings`, `lib/inspections`) | `/docs/viewings` |
+| 6 | Viewings: free slot is booked at once; or request a time and the lister confirms, offers another time, or declines | BUILT (`lib/viewings`, `lib/inspections`). Schedule a visit at `/listing/[id]/visit`, in person or by video (merged 13 October, `45bf26e7`) | `/docs/viewings#two-ways` |
 | 7 | Reminders to both sides the evening before (19:00 Lagos) and 2 hours before | BUILT for both sides. `private.send_viewing_reminders` writes `viewing_reminders` per audience (renter and lister), stages eve and soon | `/docs/viewings` |
 | 8 | Either side marks a viewing complete (inspected, deal done, no deal) or reports a no-show; the other side can dispute within 48 hours; admin sees disputes | BUILT. `lib/inspections/no-show-actions.ts`: either party reports from the agreed time to 14 days after; the person reported disputes within 48 hours; staff resolve (upheld or overturned) with an audit row. Admin view exists | `/docs/viewings`, help "What if the renter or the lister does not turn up" |
 | 9 | Listing media: photos and videos in one uploader, minimum 3 items, 5 recommended, cover must be a photo, up to 3 videos each up to 100 MB and 60 seconds (MP4, MOV, WebM) | BUILT. `MIN_MEDIA` 3, `RECOMMENDED_MEDIA` 5, cover must be a photo, `MAX_VIDEOS` 3, `MAX_VIDEO_SECONDS` 60, `MAX_UPLOAD_LABEL` 100MB; the video bucket limit was raised on the live database | `/docs/quick-start`, help "How many photos and videos does a listing need?" |
@@ -28,12 +28,16 @@ merged" at the end.
 | 11 | Listings are reviewed by Vallo before publishing (approve, ask for more, reject with a reason); a refused or sent-back lister can edit and resubmit | BUILT (`app/admin/listings/[id]/ReviewActionBar.tsx`; the wizard reopens with the reviewer's sentence) | `/docs/quick-start`, help "Is a listing reviewed before it is published?" |
 | 12 | Hotels, shortlets and restaurants set up through the host wizard with ID and business papers, reviewed by Vallo; refused hosts edit the same application and resend | BUILT. A sent-back or rejected host application reopens with the reviewer note and "Send it again" resubmits the same application. The wizard asks before leaving unsaved changes (`wizard-memory.tsx`) | `/docs/hosting` |
 | 13 | Cancellation presets Flexible, Moderate, Firm, Strict for stays | BUILT. Flexible, Moderate, Firm and Strict (`lib/host/cancellation-presets.ts`, migration `20261013090000`) | `/docs/hosting`, help "What cancellation policies can a host choose?" |
-| 14 | Restaurants: free table booking; restaurant confirms; diner pays the bill at the restaurant or through Vallo; Vallo bills the restaurant a fixed fee per seated table; restaurants confirm seated or no-show; only seated diners can review | BUILT except paying the bill through Vallo. Check-in code, restaurant marks seated or no-show, diner asked "Did you dine" a day later if the restaurant never answers, disputes to Vallo, seated-only reviews (`reservation_reviews`), a flat fee per seated table billed monthly (`lib/reservations/seating.ts`, admin `restaurant-fees`). Paying a bill through Vallo: the commission is set to 2 percent (200 basis points, 13 October 2026) but it still needs the Paystack keys and each restaurant's payout subaccount before it can run: NOT in public docs | `/docs/hosting`, help "What happens at a restaurant after I book a table?". The fee amount is a database row and is not stated publicly |
-| 15 | An owner (landlord) account cannot also be an agent account; the roles are separate accounts. Landlords can upload an ownership document and get a small ownership badge once Vallo has seen it | BUILT, with one caveat. One side per account is enforced (`private.one_side_per_account`, applied). The ownership document upload and the "Ownership seen" mark are built (`OwnerRegisterForm`, `OwnershipSeenMark`), but the upload needs two database constraints widened by the founder, so it is NOT in the public docs until enabled | `/docs/quick-start` and help state the one-side rule only |
+| 14 | Restaurants: free table booking; restaurant confirms; diner pays the bill at the restaurant or through Vallo; Vallo bills the restaurant a fixed fee per seated table; restaurants confirm seated or no-show; only seated diners can review | BUILT except paying the bill through Vallo. Check-in code, restaurant marks seated or no-show, diner asked "Did you dine" a day later if the restaurant never answers, disputes to Vallo, seated-only reviews (`reservation_reviews`), a flat fee per seated table billed monthly (`lib/reservations/seating.ts`, admin `restaurant-fees`). Paying a bill through Vallo: the commission is set to 2 percent (200 basis points, 13 October 2026) but it still needs the Paystack keys and each restaurant's payout subaccount before it can run: the public docs say it is not switched on yet | `/docs/restaurants`, `/docs/what-vallo-costs#restaurants`, help "What does Vallo charge a restaurant?". The fee (1,000 naira per seated table, `restaurant_money_settings.seated_fee_minor` = 100000 live, `SEATED_FEE_MINOR_DEFAULT` in code) is stated publicly at the lead's instruction of 13 October |
+| 15 | An owner (landlord) account cannot also be an agent account; the roles are separate accounts. Landlords can upload an ownership document and get a small ownership badge once Vallo has seen it | BUILT. One side per account is enforced (`private.one_side_per_account`, applied). The ownership document upload and the "Ownership seen" mark are built (`OwnerRegisterForm`, `OwnershipSeenMark`); the two constraints were widened and applied (`20261013070812_owner_proof_constraints_widened`), and the mark reaches search cards (`20261013090700_listings_ownership_seen_at_batch`) | `/docs/for-owners#ownership-document`, `/docs/badges-and-verification#ownership-seen`, help "What does the Ownership seen mark mean" |
 | 16 | Messaging: reply, forward, delete for me, delete for everyone within 2 days 12 hours, call (voice and video) from the thread, Requests for people you do not follow | BUILT (migrations `20261011142243` to `20261011142309`, `private.delete_for_everyone_window()`, `components/calls`) | `/docs/messages-and-notifications`, help "Messages" |
 | 17 | Verification ladder and badges, what they do and do not mean | BUILT (`docs/BADGES.md`, `lib/trust/verification.ts`) | `/docs/badges-and-verification` |
 | 18 | Safety: never pay outside Vallo, never share account numbers in chat (flagged) | BUILT | `/docs/trust-and-safety`, `/safety` |
 | 19 | The company is VALLO SPACES LTD (RC 9870413); the product is Vallo. RentMe and NaijaFinds never appear in anything new | BUILT (`lib/legal/company.ts`) | Terms, Privacy |
+| 20 | Every payment for a deal happens inside Vallo. Never pay outside Vallo; a payment made outside Vallo is not covered | BUILT as a rule (`OFF_PLATFORM_SENTENCE`, account numbers flagged in chat); recording rent paid outside Vallo (LANDLORD-01) was dropped | `/docs/paying-on-vallo#pay-inside`, `/docs/trust-and-safety` |
+| 21 | For rent and shortlets the payer picks Escrow (selected by default, held by a licensed partner until the deal is confirmed) or Pay by card. A sale is always escrow | NOT BUILT (PAY-01). The rail policy sends rent, sale and shortlets to escrow, which the router refuses while `PROTECTED_RAIL_LIVE` is false; the docs say so in one conditional line (`ESCROW_NOT_OPEN_YET`) | `/docs/paying-on-vallo`, stated as the rule, no screen claimed |
+| 22 | A hotel room is paid by card when booked, at the shown price. Vallo's commission on a hotel room is 10 percent, from the hotel's share, never added to the guest's price | PARTLY. Instant card payment for rooms is live (`room_bookings`, `stays_instant_pay` on). The 10 percent rate goes live with the payments track; the docs state it from one constant (`HOTEL_COMMISSION_PERCENT` in `app/(site)/docs/facts.ts`) | `/docs/what-vallo-costs#hotels`, `/docs/hosting#getting-paid` |
+| 23 | Every workspace application and setup accepts the Terms and Privacy Policy and the rule that every payment happens inside Vallo | NOT BUILT (PAY-02); hosts already tick the Terms, Privacy Policy and Host Agreement | `/docs/getting-started#workspaces`, stated as the rule |
 
 ## How it works, for the next engineer
 
@@ -50,9 +54,14 @@ merged" at the end.
   `outcome` of `inspected`, `deal_done` or `no_deal`, recorded once.
 - A BEFORE trigger (`20261013053148`) makes each column writable only by the
   party it belongs to.
-- Reminders: `private.send_member_reminders` (cron) sends the `eve` stage from
-  19:00 Lagos the evening before and the `soon` stage two hours before; the
-  ledger `member_reminders` makes each send once.
+- Reminders: the cron job `vallo_send_member_reminders` runs
+  `private.send_member_reminders`, which calls `private.send_viewing_reminders`
+  and then `private.send_rent_due_reminders`.
+  The viewing function sends the `eve` stage from 19:00 Lagos the evening before and the `soon`
+  stage two hours before, and the ledger `viewing_reminders` makes each send
+  once per audience (renter and lister). `member_reminders` is the ledger of
+  `send_rent_due_reminders` (rent due), not of viewings (read live, 13 October
+  2026).
 - No-show: `reportNoShow`, `disputeNoShow`, `resolveNoShow` in
   `lib/inspections/no-show-actions.ts`; each is a SECURITY DEFINER function that
   decides who, when and once from `auth.uid()`.
@@ -93,8 +102,12 @@ merged" at the end.
 ## To document when merged
 
 - Paying a restaurant bill through Vallo (off until the commission is set).
-- The ownership document upload and the "Ownership seen" mark, once the founder
-  has widened the two database constraints.
+- The escrow or card choice at checkout (PAY-01): add the screen to
+  `/docs/paying-on-vallo` when it merges, and drop `ESCROW_NOT_OPEN_YET`.
+- Workspace Terms and Privacy acceptance (PAY-02): name the screen in
+  `/docs/getting-started#workspaces` when it merges.
+- The hotel commission: point `HOTEL_COMMISSION_PERCENT` at the money policy
+  row when the payments track lands it.
 - A check that the all-in total on checkout shows every charge at the door.
 - The fee: wording and percentage, once the Terms are settled.
 

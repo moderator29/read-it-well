@@ -1,3 +1,5 @@
+> Archived 13 October 2026: a dated status report from the end of September, superseded by `docs/SESSION-1-RESPONSE.md` and `docs/DECISIONS_2026-10-13.md`. Kept as history; it does not describe the platform today.
+
 # Signed-in end-to-end run, 29 September 2026
 
 Target: local `next dev` on :3210 (Next 16.3.6, Turbopack) against the real Supabase project. Accounts: the founder's QA member and QA admin. Their credentials were loaded from a scratchpad env file and appear nowhere in the repo. Chromium is at `/opt/pw-browsers`.
