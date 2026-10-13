@@ -161,6 +161,7 @@ export function RatesStep({
         locale={locale}
         label={hw.steps.cancellationPolicy}
         disabled={pending}
+        checkInFrom={draft.accommodation?.checkInFrom ?? null}
       />
 
       <Button

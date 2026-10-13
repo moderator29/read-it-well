@@ -179,6 +179,7 @@ export function HouseRulesStep({
         locale={locale}
         label={hw.steps.cancellationPolicy}
         disabled={pending}
+        checkInFrom={checkIn}
       />
 
       {/* A POLICY IS REQUIRED TO GO ON, as the plate above already says. The

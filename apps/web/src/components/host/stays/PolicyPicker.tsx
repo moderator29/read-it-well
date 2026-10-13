@@ -1,7 +1,7 @@
 "use client";
 
 import type { Locale } from "@vallo/i18n/core";
-import { offeredPolicies, refundLines } from "@/lib/host/cancellation-presets";
+import { offeredPolicies, policyFootLines, refundLines } from "@/lib/host/cancellation-presets";
 import { StaysPlate, StaysTile, StaysTiles } from "./StaysParts";
 import type { StaysStepProps } from "./types";
 
@@ -29,7 +29,10 @@ export function PolicyPicker({
   locale,
   label,
   disabled = false,
+  checkInFrom = null,
 }: {
+  /** The property's stated check-in time, which the deadlines count from. */
+  checkInFrom?: string | null;
   policies: StaysStepProps["policies"];
   chosen: string;
   onChoose: (id: string) => void;
@@ -69,6 +72,11 @@ export function PolicyPicker({
       {picked ? (
         <ul className="mt-[var(--nf-space-sm)] grid gap-[var(--nf-space-2xs)]" data-testid="policy-lines">
           {refundLines(picked, locale).map((line) => (
+            <li key={line} className="nf-stays-plate__note mt-0">
+              {line}
+            </li>
+          ))}
+          {policyFootLines(checkInFrom).map((line) => (
             <li key={line} className="nf-stays-plate__note mt-0">
               {line}
             </li>

@@ -10,6 +10,10 @@
 -- their refund is computed from. This makes the frozen terms the booked
 -- rate's policy whenever there is one with readable tiers.
 --
+-- THE CLOCK. Deadlines count on the Lagos clock from check-in at the
+-- property's own stated hour (`accommodations.check_in_from`), 15:00 when it
+-- has none, which is the hour the frozen terms already carry.
+--
 -- WHAT IT CHANGES. One function body, nothing else. The trigger, the table,
 -- the freeze on acceptance and the payment backstop are unchanged; terms
 -- already frozen are never rewritten (the table refuses updates). A booking
@@ -32,6 +36,7 @@ as $function$
 declare
   policy_id uuid;
   policy_rules jsonb;
+  stated_hour int;
   tiers jsonb;
 begin
   if new.kind <> 'stay' or (new.terms ? 'cancellation') then
@@ -39,10 +44,12 @@ begin
   end if;
 
   if new.booking_id is not null then
-    select cp.id, cp.rules into policy_id, policy_rules
+    select cp.id, cp.rules, extract(hour from a.check_in_from)::int
+      into policy_id, policy_rules, stated_hour
       from public.bookings b
       join public.rate_plans rp on rp.id = b.rate_plan_id
       join public.cancellation_policies cp on cp.id = rp.cancellation_policy_id
+      left join public.accommodations a on a.id = b.accommodation_id
      where b.id = new.booking_id;
   end if;
 
@@ -62,7 +69,7 @@ begin
       into tiers
       from jsonb_array_elements(policy_rules) r;
     new.terms := new.terms || jsonb_build_object(
-      'cancellation', jsonb_build_object('version', 1, 'check_in_hour', 15, 'tiers', tiers),
+      'cancellation', jsonb_build_object('version', 1, 'check_in_hour', coalesce(stated_hour, 15), 'tiers', tiers),
       'cancellation_source', 'policy:' || policy_id::text);
   else
     new.terms := new.terms || jsonb_build_object(

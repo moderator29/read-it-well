@@ -90,6 +90,37 @@ export function refundLines(policy: Pick<PolicyLike, "rules" | "summary">, local
 }
 
 /**
+ * WHAT EVERY POLICY MEANS IN NIGERIA, said under its tiers to host and guest.
+ *
+ * The deadlines are counted on the Lagos clock from check-in at the
+ * property's own stated time (the frozen terms carry that hour), refunds are
+ * paid in naira back through the payment provider the guest paid with, and a
+ * caution deposit is never kept by a policy: it is returned under the rules
+ * listed with it.
+ */
+export function policyFootLines(checkInFrom?: string | null): string[] {
+  const time = checkInFrom && /^\d{2}:\d{2}/.test(checkInFrom) ? clock(checkInFrom.slice(0, 5)) : null;
+  return [
+    time
+      ? `Deadlines are counted in Lagos time from check-in at ${time}.`
+      : "Deadlines are counted in Lagos time from the property's check-in time.",
+    "Refunds are paid in naira to the card or account you paid with, through our payment provider.",
+    "A caution deposit is always returned under the rules listed with it, whatever the policy.",
+  ];
+}
+
+function clock(hhmm: string): string {
+  const [h, m] = hhmm.split(":").map(Number) as [number, number];
+  return `${h % 12 === 0 ? 12 : h % 12}:${String(m).padStart(2, "0")} ${h < 12 ? "AM" : "PM"}`;
+}
+
+/** The whole hour of a stated check-in time, for the frozen terms; 15 when unknown. */
+export function checkInHourOf(checkInFrom?: string | null): number {
+  const hour = checkInFrom ? Number(checkInFrom.slice(0, 2)) : Number.NaN;
+  return Number.isInteger(hour) && hour >= 0 && hour <= 23 ? hour : 15;
+}
+
+/**
  * The policies a host is offered: the four presets in their order when the
  * estate carries them, every policy otherwise (an estate where the preset
  * migration has not run still has something to choose).

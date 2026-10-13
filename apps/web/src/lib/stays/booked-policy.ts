@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { isSupabaseConfigured } from "../supabase/env";
 import { createClient } from "../supabase/server";
 import { termsFromPolicyRules, type CancellationTerms } from "../trust/cancellation";
+import { checkInHourOf } from "../host/cancellation-presets";
 
 /**
  * THE CANCELLATION POLICY ON THE RATE A GUEST IS BOOKING, as terms the
@@ -28,7 +29,7 @@ export async function readBookedPolicyTerms(bookingId: string): Promise<Cancella
     const supabase = (await createClient()) as unknown as SupabaseClient;
     const { data, error } = await supabase
       .from("bookings")
-      .select("rate_plan_id, rate_plans(cancellation_policies(id, rules))")
+      .select("rate_plan_id, accommodations(check_in_from), rate_plans(cancellation_policies(id, rules))")
       .eq("id", bookingId)
       .maybeSingle();
     if (error || !data) return null;
@@ -36,7 +37,9 @@ export async function readBookedPolicyTerms(bookingId: string): Promise<Cancella
       .rate_plans;
     const policy = plan?.cancellation_policies ?? null;
     if (!policy) return null;
-    return termsFromPolicyRules(policy.id, policy.rules);
+    /* Deadlines count from check-in at the property's own stated time. */
+    const checkInFrom = (data as { accommodations?: { check_in_from?: string | null } | null }).accommodations?.check_in_from;
+    return termsFromPolicyRules(policy.id, policy.rules, checkInHourOf(checkInFrom));
   } catch {
     return null;
   }

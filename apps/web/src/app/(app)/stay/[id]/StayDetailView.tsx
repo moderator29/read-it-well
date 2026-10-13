@@ -1,7 +1,8 @@
 import { countOf, formatMoney, formatNumber, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { Amount } from "@/components/ui/Amount";
 import type { ReactNode } from "react";
-import { refundLines, refundTiers } from "@/lib/host/cancellation-presets";
+import { policyFootLines, refundLines, refundTiers } from "@/lib/host/cancellation-presets";
+import type { DoorCharge } from "@/lib/stays/door-total";
 import { formatMoneyDate } from "@/lib/money/dates";
 import { freeToCancelUntil, termsFromPolicyRules } from "@/lib/trust/cancellation";
 import { ReportSheet } from "@/components/app/ReportSheet";
@@ -103,7 +104,10 @@ export function StayDetailView({
   signedIn,
   instant = false,
   arrival = null,
+  door = [],
 }: {
+  /** The declared charges at the door, for the all-in cost before booking. */
+  door?: readonly DoorCharge[];
   /**
    * The charges at the door this stay has declared (V-57), drawn by the page
    * with `ArrivalChargesLine`, so a guest reads them before they book, as
@@ -473,6 +477,8 @@ export function StayDetailView({
               strip={costStrip}
               totalFor={copy.totalFor}
               notesForInitial={pickNotes}
+              door={door}
+              guests={guests}
             />
           )}
 
@@ -526,6 +532,11 @@ export function StayDetailView({
                           {refundTiers(detail.policy.rules).length > 0 && (
                             <ul className="mt-row grid gap-inline-tight" data-testid="stay-refund-lines">
                               {refundLines(detail.policy, locale).map((line) => (
+                                <li key={line} className={TYPE.rowMeta}>
+                                  {line}
+                                </li>
+                              ))}
+                              {policyFootLines(detail.checkInFrom).map((line) => (
                                 <li key={line} className={TYPE.rowMeta}>
                                   {line}
                                 </li>
