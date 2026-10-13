@@ -8,6 +8,7 @@ import { flagIsOn } from "../flags/read";
 import { RESTAURANT_DEPOSITS_FLAG } from "./deposits";
 import type { Database } from "../supabase/database.types";
 import type { ReservationStatus } from "./db";
+import { readBill, readSeating, type BillView, type SeatingView } from "./seating";
 
 /**
  * Read side of restaurant reservations.
@@ -51,6 +52,14 @@ export type ReservationView = {
    * status (paid, applied, forfeited, refund_due, refunded, pending).
    */
   deposit?: { status: string; amountMinor: number; refundUntil: string | null } | null;
+  /**
+   * Founder decision D: the check-in code and how the table ended, the bill
+   * paid through Vallo, and whether the diner reviewed it. Absent until
+   * migration 20261013100000 is applied.
+   */
+  seating?: SeatingView | null;
+  bill?: BillView | null;
+  reviewed?: boolean;
 };
 
 /** The host's view of the same row, with the guest named. */
@@ -163,9 +172,58 @@ export async function getMyReservations(now: Date = new Date()): Promise<Reserva
     [...new Set(rows.map((r) => r.listing_id).filter((id): id is string => Boolean(id)))],
     [...new Set(rows.map((r) => r.business_id).filter((id): id is string => Boolean(id)))],
   );
-  const views = rows.map((row) => toView(row, venues, now));
+  const views = await withSeating(
+    supabase as unknown as SupabaseClient,
+    rows.map((row) => toView(row, venues, now)),
+    session.user.id,
+  );
   if (!(await flagIsOn(RESTAURANT_DEPOSITS_FLAG))) return views;
   return withDeposits(supabase as unknown as SupabaseClient, views);
+}
+
+/**
+ * Founder decision D: each table's seating, bill and (for the diner) review,
+ * read under the caller's own RLS. Before migration 20261013100000 the reads
+ * fail and the views are returned exactly as they were.
+ */
+async function withSeating<T extends ReservationView>(
+  db: SupabaseClient,
+  views: T[],
+  authorId: string | null,
+): Promise<T[]> {
+  if (views.length === 0) return views;
+  try {
+    const ids = views.map((v) => v.id);
+    const [seatRead, billRead, reviewRead] = await Promise.all([
+      db.from("reservation_seatings").select("*").in("reservation_id", ids),
+      db.from("restaurant_bills").select("*").in("reservation_id", ids).neq("status", "cancelled"),
+      authorId
+        ? db.from("reservation_reviews").select("reservation_id").in("reservation_id", ids).eq("author_id", authorId)
+        : Promise.resolve({ data: [] as { reservation_id: string }[], error: null }),
+    ]);
+    if (seatRead.error) return views;
+    const seats = new Map<string, SeatingView>();
+    for (const row of (seatRead.data ?? []) as unknown[]) {
+      const seat = readSeating(row);
+      if (seat) seats.set(seat.reservationId, seat);
+    }
+    const bills = new Map<string, BillView>();
+    for (const row of (billRead.error ? [] : (billRead.data ?? [])) as unknown[]) {
+      const bill = readBill(row);
+      if (bill) bills.set(bill.reservationId, bill);
+    }
+    const reviewed = new Set(
+      ((reviewRead.error ? [] : (reviewRead.data ?? [])) as { reservation_id: string }[]).map((r) => r.reservation_id),
+    );
+    return views.map((v) => ({
+      ...v,
+      seating: seats.get(v.id) ?? null,
+      bill: bills.get(v.id) ?? null,
+      reviewed: reviewed.has(v.id),
+    }));
+  } catch {
+    return views;
+  }
 }
 
 /**
@@ -247,10 +305,14 @@ export async function getHostReservations(
     if (name.length > 0) names.set(p.id, name);
   }
 
-  return rows.map((row) => ({
-    ...toView(row, venues, now),
-    guestId: row.guest_id,
-    guestName: names.get(row.guest_id) ?? "A guest",
-    awaitingAnswer: row.status === "PENDING" && Date.parse(row.reserved_for) > now.getTime(),
-  }));
+  return withSeating(
+    supabase as unknown as SupabaseClient,
+    rows.map((row) => ({
+      ...toView(row, venues, now),
+      guestId: row.guest_id,
+      guestName: names.get(row.guest_id) ?? "A guest",
+      awaitingAnswer: row.status === "PENDING" && Date.parse(row.reserved_for) > now.getTime(),
+    })),
+    null,
+  );
 }

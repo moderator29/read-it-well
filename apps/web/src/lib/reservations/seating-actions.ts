@@ -1,0 +1,282 @@
+"use server";
+
+/**
+ * FOUNDER DECISION D: restaurants pay only for completed deals.
+ *
+ * The restaurant seats a table by the diner's check-in code (or by tapping
+ * Seated, `markReservationOutcome`), the diner answers "Did you dine?" when
+ * the restaurant never did, only a seated table can be reviewed, and the
+ * bill can be paid through Vallo with the money split straight to the
+ * restaurant's own Paystack subaccount.
+ *
+ * Every decision is the database's (migration 20261013100000, pending): the
+ * functions check who the caller is and what the table allows, and these
+ * actions only call them through the caller's own client and turn the answer
+ * into a sentence. The bill's checkout is opened with the service client
+ * after `restaurant_bill_open` answers, the same shape as the table deposit.
+ *
+ * Paying the bill degrades to an honest "not available yet" when Paystack has
+ * no key, the Paystack switch is off, the founder has not set the commission,
+ * or the restaurant cannot be paid. No key is in this file and nothing here
+ * charges anybody by itself: the diner opens the checkout and pays there.
+ */
+
+import { headers } from "next/headers";
+import { revalidatePath } from "next/cache";
+import { fail, ok, type ActionResult } from "../actions/envelope";
+import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../actions/session";
+import {
+  PaystackError,
+  PaystackUnknownOutcome,
+  currentPaystackMode,
+  isPaystackConfigured,
+  verifyTransaction,
+} from "../payments/paystack";
+import { assertProviderEnabled, openCheckout, paystackSeam } from "../payments/providers";
+import { getAdminClient } from "@/lib/supabase/service";
+import {
+  PAY_BILL_NOT_AVAILABLE,
+  PAY_BILL_PAYEE_NOT_SET_UP,
+  SEATING_NOT_READY,
+  cleanCode,
+  nairaToMinor,
+  seatingRefusal,
+} from "./seating";
+import { seatingMissing } from "./seating-missing";
+
+type Rpc = {
+  rpc: (fn: string, args: Record<string, unknown>) => PromiseLike<{ data: unknown; error: { code?: string; message?: string } | null }>;
+};
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const BILL_REFERENCE = /^rm-bill-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+type Answer = { status?: string } & Record<string, unknown>;
+
+/** Call one seating function as the signed-in person. */
+async function callAsMe(fn: string, args: Record<string, unknown>): Promise<ActionResult<Answer>> {
+  const session = await resolveSession();
+  if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
+  if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
+  const { data, error } = await (session.supabase as unknown as Rpc).rpc(fn, args);
+  if (error) return fail(seatingMissing(error) ? SEATING_NOT_READY : "That did not go through. Please try again.");
+  return ok((data ?? {}) as Answer);
+}
+
+function touch() {
+  revalidatePath("/host/reservations");
+  revalidatePath("/bookings");
+}
+
+/** The restaurant types the six digits the diner shows. */
+export async function seatByCode(typed: string): Promise<ActionResult<{ partySize: number }>> {
+  const code = cleanCode(typeof typed === "string" ? typed : "");
+  if (!code) return fail(seatingRefusal("bad_code"));
+  const result = await callAsMe("reservation_seat_by_code", { p_code: code });
+  if (!result.ok) return result;
+  if (result.data.status !== "seated") return fail(seatingRefusal(result.data.status));
+  touch();
+  return ok({ partySize: Number(result.data.party_size) || 1 });
+}
+
+/** "Did you dine at X?", answered by the diner. */
+export async function answerDidYouDine(
+  reservationId: string,
+  dined: boolean,
+): Promise<ActionResult<{ status: "recorded" | "agreed" | "disputed" }>> {
+  if (!UUID.test(reservationId ?? "") || typeof dined !== "boolean") return fail(seatingRefusal("not_found"));
+  const result = await callAsMe("reservation_diner_answer", { p_reservation: reservationId, p_dined: dined });
+  if (!result.ok) return result;
+  const status = result.data.status;
+  if (status !== "recorded" && status !== "agreed" && status !== "disputed") return fail(seatingRefusal(status));
+  touch();
+  return ok({ status });
+}
+
+/** A review, only for a seated table. */
+export async function leaveTableReview(input: {
+  reservationId: string;
+  rating: number;
+  body: string;
+}): Promise<ActionResult<{ saved: true }>> {
+  const rating = Number(input?.rating);
+  const body = typeof input?.body === "string" ? input.body.trim().slice(0, 2000) : "";
+  if (!UUID.test(input?.reservationId ?? "")) return fail(seatingRefusal("not_found"));
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5) return fail(seatingRefusal("bad_rating"));
+  const result = await callAsMe("reservation_review_leave", {
+    p_reservation: input.reservationId,
+    p_rating: rating,
+    p_body: body,
+  });
+  if (!result.ok) return result;
+  if (result.data.status !== "saved") return fail(seatingRefusal(result.data.status));
+  touch();
+  return ok({ saved: true });
+}
+
+/** The bill, entered by the restaurant or by the diner, in naira as typed. */
+export async function enterTableBill(reservationId: string, naira: string): Promise<ActionResult<{ billId: string }>> {
+  if (!UUID.test(reservationId ?? "")) return fail(seatingRefusal("not_found"));
+  const minor = nairaToMinor(typeof naira === "string" ? naira : "");
+  if (minor === null) return fail(seatingRefusal("bad_amount"));
+  const result = await callAsMe("restaurant_bill_enter", { p_reservation: reservationId, p_amount_minor: minor });
+  if (!result.ok) return result;
+  if (result.data.status !== "saved") return fail(seatingRefusal(result.data.status));
+  touch();
+  return ok({ billId: String(result.data.bill_id ?? "") });
+}
+
+/** The restaurant confirms a bill the diner entered. */
+export async function confirmTableBill(billId: string): Promise<ActionResult<{ confirmed: true }>> {
+  if (!UUID.test(billId ?? "")) return fail(seatingRefusal("not_found"));
+  const result = await callAsMe("restaurant_bill_confirm", { p_bill: billId });
+  if (!result.ok) return result;
+  if (result.data.status !== "confirmed") return fail(seatingRefusal(result.data.status));
+  touch();
+  return ok({ confirmed: true });
+}
+
+/** Staff decide a disagreement between a restaurant and a diner. */
+export async function resolveSeatingDispute(
+  reservationId: string,
+  outcome: "SEATED" | "NO_SHOW",
+): Promise<ActionResult<{ resolved: true }>> {
+  if (!UUID.test(reservationId ?? "") || (outcome !== "SEATED" && outcome !== "NO_SHOW")) {
+    return fail(seatingRefusal("bad_outcome"));
+  }
+  const result = await callAsMe("reservation_resolve_seating", { p_reservation: reservationId, p_outcome: outcome });
+  if (!result.ok) return result;
+  if (result.data.status !== "resolved") return fail(seatingRefusal(result.data.status));
+  revalidatePath("/admin/restaurant-fees");
+  touch();
+  return ok({ resolved: true });
+}
+
+async function siteOrigin(): Promise<string> {
+  const explicit = process.env.NEXT_PUBLIC_SITE_URL ?? "";
+  if (explicit.length > 0) return explicit.replace(/\/+$/, "");
+  const h = await headers();
+  const host = h.get("x-forwarded-host") ?? h.get("host");
+  const proto = h.get("x-forwarded-proto") ?? "https";
+  return host ? `${proto}://${host}` : "http://localhost:3000";
+}
+
+export type BillCheckout = { reference: string; amountMinor: number; authorizationUrl: string };
+
+/**
+ * The diner pays a confirmed bill. Refused in words, before anything is
+ * written, when payment through Vallo is not available yet.
+ */
+export async function payTableBill(billId: string): Promise<ActionResult<BillCheckout>> {
+  const session = await resolveSession();
+  if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
+  if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
+  if (!UUID.test(billId ?? "")) return fail(seatingRefusal("not_found"));
+  const email = session.user.email ?? null;
+  if (!email) return fail("Paying by card needs an email address on your account. Add one to your profile and try again.");
+  if (!isPaystackConfigured()) return fail(PAY_BILL_NOT_AVAILABLE);
+  try {
+    await assertProviderEnabled("paystack");
+  } catch {
+    return fail(PAY_BILL_NOT_AVAILABLE);
+  }
+  const admin = getAdminClient();
+  if (!admin) return fail(PAY_BILL_NOT_AVAILABLE);
+  const db = admin as unknown as Rpc;
+
+  const { data, error } = await db.rpc("restaurant_bill_open", {
+    p_bill: billId,
+    p_guest: session.user.id,
+    p_mode: currentPaystackMode(),
+  });
+  if (error) return fail(seatingMissing(error) ? PAY_BILL_NOT_AVAILABLE : "Payment is temporarily unavailable. Nothing has been charged.");
+  const opened = (data ?? {}) as Answer;
+  if (opened.status === "pending" && typeof opened.authorization_url === "string" && typeof opened.reference === "string") {
+    return ok({ reference: opened.reference, amountMinor: Number(opened.amount_minor), authorizationUrl: opened.authorization_url });
+  }
+  if (opened.status === "not_priced") return fail(PAY_BILL_NOT_AVAILABLE);
+  if (opened.status === "payee_not_set_up") return fail(PAY_BILL_PAYEE_NOT_SET_UP);
+  if (opened.status !== "ok") return fail(seatingRefusal(opened.status));
+
+  const reference = String(opened.reference ?? "");
+  const amountMinor = Number(opened.amount_minor);
+  const shareMinor = Number(opened.restaurant_share_minor);
+  const subaccount = typeof opened.payee_subaccount_code === "string" ? opened.payee_subaccount_code : "";
+  if (
+    !BILL_REFERENCE.test(reference) ||
+    !Number.isSafeInteger(amountMinor) ||
+    amountMinor <= 0 ||
+    !Number.isSafeInteger(shareMinor) ||
+    shareMinor <= 0 ||
+    shareMinor > amountMinor ||
+    !subaccount
+  ) {
+    await db.rpc("restaurant_bill_reopen", { p_reference: reference });
+    return fail("Payment is temporarily unavailable. Nothing has been charged.");
+  }
+
+  try {
+    const tx = await openCheckout(paystackSeam(), {
+      reference,
+      amountMinor,
+      email,
+      callbackUrl: `${await siteOrigin()}/bookings?side=stays&bill=${encodeURIComponent(reference)}`,
+      metadata: { kind: "restaurant_bill", bill_id: billId, user_id: session.user.id },
+      /* The restaurant's share to its own subaccount; what is left is
+         Vallo's commission. No reserve leg. */
+      split: { listerSubaccount: subaccount, listerShareMinor: shareMinor, reserveSubaccount: null, guaranteeMinor: 0 },
+    });
+    await db.rpc("restaurant_bill_checkout_saved", {
+      p_reference: reference,
+      p_url: tx.authorizationUrl,
+      p_code: tx.accessCode,
+    });
+    return ok({ reference, amountMinor, authorizationUrl: tx.authorizationUrl });
+  } catch (e) {
+    if (e instanceof PaystackUnknownOutcome) {
+      /* The checkout may exist: the bill stays pending and the return settles it. */
+      return fail("We could not tell whether the payment page opened. Check your bill again in a minute. Nothing has been charged twice.");
+    }
+    if (e instanceof PaystackError) {
+      await db.rpc("restaurant_bill_reopen", { p_reference: reference });
+    }
+    return fail("Payment is temporarily unavailable. Nothing has been charged.");
+  }
+}
+
+/**
+ * The diner comes back from Paystack. The charge is read back from Paystack
+ * (never trusted from the address bar) and settled once: the bill is paid
+ * and the table seated. Safe to call twice.
+ */
+export async function confirmTableBillReturn(reference: string): Promise<ActionResult<{ paid: boolean }>> {
+  const session = await resolveSession();
+  if (session.state !== "signed-in") return fail(SIGNED_OUT_MESSAGE);
+  if (!BILL_REFERENCE.test(reference ?? "")) return fail(seatingRefusal("not_found"));
+  if (!isPaystackConfigured()) return fail(PAY_BILL_NOT_AVAILABLE);
+  const admin = getAdminClient();
+  if (!admin) return fail(PAY_BILL_NOT_AVAILABLE);
+  const db = admin as unknown as Rpc;
+
+  let verified;
+  try {
+    verified = await verifyTransaction(reference);
+  } catch {
+    return fail("We could not check the payment yet. It is safe to look again in a minute.");
+  }
+  if (verified.status === "failed" || verified.status === "abandoned" || verified.status === "reversed") {
+    await db.rpc("restaurant_bill_reopen", { p_reference: reference });
+    touch();
+    return ok({ paid: false });
+  }
+  if (verified.status !== "success") return ok({ paid: false });
+  const { data, error } = await db.rpc("restaurant_bill_settle", {
+    p_reference: reference,
+    p_amount_minor: verified.amountMinor,
+    p_currency: verified.currency,
+  });
+  if (error) return fail("We could not record the payment yet. It is safe to look again in a minute.");
+  const outcome = (data as { outcome?: string } | null)?.outcome;
+  touch();
+  return ok({ paid: outcome === "settled" || outcome === "duplicate" });
+}

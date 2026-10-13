@@ -8,6 +8,8 @@ import { consume, subjectForUser } from "../security/rate-limit";
 import type { ReservationStatus } from "./db";
 import { lagosInstant, reserveSchema, reserveTarget, respondSchema, whyNotBookable } from "./schema";
 import { countOf } from "@vallo/i18n/core";
+import { seatingRefusal } from "./seating";
+import { seatingMissing } from "./seating-missing";
 
 /**
  * Asking a restaurant to hold a table, and the restaurant answering.
@@ -359,6 +361,27 @@ export async function markReservationOutcome(input: {
   const outcome = input?.outcome;
   if (!/^[0-9a-f-]{36}$/i.test(id) || (outcome !== "COMPLETED" && outcome !== "NO_SHOW")) {
     return fail("That table could not be identified.");
+  }
+
+  /* Founder decision D: once migration 20261013100000 is applied the
+     seating function records the outcome with who decided it, and opens a
+     dispute when the diner already said otherwise. Before that, the plain
+     update below, which the guard already allows. */
+  const viaSeating = await (session.supabase as unknown as {
+    rpc: (fn: string, args: Record<string, unknown>) => PromiseLike<{ data: unknown; error: { code?: string } | null }>;
+  }).rpc("reservation_record_outcome", { p_reservation: id, p_outcome: outcome === "COMPLETED" ? "SEATED" : "NO_SHOW" });
+  if (!viaSeating.error || !seatingMissing(viaSeating.error)) {
+    if (viaSeating.error) return fail("That could not be saved. Try again.");
+    const status = (viaSeating.data as { status?: string } | null)?.status;
+    if (status === "disputed") {
+      revalidatePath("/host/reservations");
+      return fail("The guest told us something different about this table, so a person at Vallo will check it.");
+    }
+    if (status !== "recorded") return fail(seatingRefusal(status));
+    revalidatePath("/host/reservations");
+    revalidatePath("/host");
+    revalidatePath("/bookings");
+    return ok({ outcome });
   }
 
   const { data, error } = await session.supabase

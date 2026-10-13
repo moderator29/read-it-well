@@ -38,6 +38,12 @@ const EXTRA_DESKS: readonly AdminDestination[] = [
     icon: { tier: "ui", name: "calendar-booking" },
     label: "Reservations",
   },
+  {
+    key: "restaurant-fees",
+    href: "/admin/restaurant-fees",
+    icon: { tier: "ui", name: "calendar-booking" },
+    label: "Restaurant fees",
+  },
 ];
 
 export function deskIndex({
