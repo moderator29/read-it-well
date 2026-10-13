@@ -280,7 +280,7 @@ export async function loadConversationSummaries(
      together rather than one after another (Track M performance: the inbox
      finished 1.4 seconds after the tap on production). What each one reads
      is unchanged. */
-  const [{ data: recent }, { data: mine }, identities, exactUnread, { data: myProfile }, followed] = await Promise.all([
+  const [{ data: recent }, { data: mine }, identities, exactUnread, { data: myProfile }, followed, { data: myHidden }] = await Promise.all([
     supabase
       .from("messages")
       .select("id, conversation_id, sender_id, body, created_at, read_at")
@@ -310,7 +310,13 @@ export async function loadConversationSummaries(
        failed read answers "follows nobody", so nothing leaves Requests by
        accident. */
     readViewerFollowing(supabase, user.id, [...new Set(counterparts)]),
+    /* Delete for me: a message the caller hid is not the chat's preview
+       either, exactly as `loadThread` leaves it out of the thread. Their own
+       rows only (RLS). */
+    supabase.from("message_hidden").select("message_id").eq("user_id", user.id).limit(1000),
   ]);
+  const hiddenIds = new Set((myHidden ?? []).map((h) => h.message_id));
+  const withAnyMessage = new Set((recent ?? []).map((m) => m.conversation_id));
   const openToAnyone = (myProfile as { contact_policy?: string } | null)?.contact_policy === "OPEN";
 
   const lastByConversation = new Map<
@@ -319,7 +325,7 @@ export async function loadConversationSummaries(
   >();
   const unreadByConversation = new Map<string, number>();
   for (const m of recent ?? []) {
-    if (!lastByConversation.has(m.conversation_id)) {
+    if (!lastByConversation.has(m.conversation_id) && !hiddenIds.has(m.id)) {
       lastByConversation.set(m.conversation_id, {
         id: m.id,
         body: m.body,
@@ -347,7 +353,9 @@ export async function loadConversationSummaries(
     (c) =>
       !(
         sweepComplete &&
-        !lastByConversation.has(c.id) &&
+        /* Any message at all, hidden ones included: a chat whose messages the
+           caller hid is still a chat, not an abandoned tap. */
+        !withAnyMessage.has(c.id) &&
         ((c.context_kind ?? "listing") === "listing" || c.context_kind === "direct")
       ),
   );

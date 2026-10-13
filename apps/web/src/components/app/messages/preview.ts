@@ -13,9 +13,17 @@ import { sharePreview } from "./share";
  */
 export const PREVIEW_MAX = 64;
 
+/**
+ * What a message deleted for everyone previews as. A sent message always has
+ * words (the send refuses an empty one) and a photo carries its placeholder,
+ * so an empty body is only ever one that `delete_message` blanked.
+ */
+export const DELETED_PREVIEW = "This message was deleted";
+
 export function previewLine(body: string, max = PREVIEW_MAX): string {
   const shared = sharePreview(body);
   const flat = (shared ?? body).replace(/\s+/g, " ").trim();
+  if (flat.length === 0) return DELETED_PREVIEW;
   if (flat.length <= max) return flat;
   const cut = flat.slice(0, max);
   const space = cut.lastIndexOf(" ");

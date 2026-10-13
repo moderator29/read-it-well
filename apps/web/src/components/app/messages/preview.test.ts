@@ -25,6 +25,11 @@ describe("the inbox preview line", () => {
     expect(line).toBe(`${"x".repeat(PREVIEW_MAX)}…`);
   });
 
+  it("says a message deleted for everyone was deleted, rather than drawing an empty line", () => {
+    expect(previewLine("")).toBe("This message was deleted");
+    expect(previewLine("  \n ")).toBe("This message was deleted");
+  });
+
   it("says what a shared card is, never its path", () => {
     expect(previewLine(shareBody({ kind: "listing", id: "00000000-0000-4000-8000-00000000a001" }))).not.toContain("/listing/");
   });
