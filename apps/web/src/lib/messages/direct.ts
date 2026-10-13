@@ -3,6 +3,8 @@ import "server-only";
 import { resolveSession } from "../actions/session";
 import { createClient } from "../supabase/server";
 import { normaliseHandle } from "../social/profiles-queries";
+import { readViewerFollowing } from "../social/follows-queries";
+import { messageDoor } from "../social/message-door";
 
 /**
  * DIRECT MESSAGES (founder, 9 October 2026): a member can message any other
@@ -29,6 +31,12 @@ export type DirectRead =
   | { state: "malformed"; handle: string }
   | { state: "not-found"; handle: string }
   | { state: "self"; handle: string }
+  /**
+   * The person asks first (`contact_policy` REQUEST), the viewer does not
+   * follow them, and there is no chat between them yet: the same rule that
+   * hides the Message button on the profile (`message-door.ts`).
+   */
+  | { state: "follow-first"; handle: string; target: DirectTarget }
   | { state: "ready"; viewerId: string; target: DirectTarget; conversationId: string | null };
 
 const HANDLE_SHAPE = /^[a-z][a-z0-9_]{2,19}$/;
@@ -45,7 +53,7 @@ export async function readDirectTarget(rawHandle: string): Promise<DirectRead> {
   const supabase = session.supabase ?? (await createClient());
   const { data, error } = await supabase
     .from("social_profiles")
-    .select("user_id, handle, display_label, avatar_path, is_agent")
+    .select("user_id, handle, display_label, avatar_path, is_agent, contact_policy")
     .eq("handle", handle)
     .maybeSingle();
   if (error || !data) return { state: "not-found", handle };
@@ -68,16 +76,22 @@ export async function readDirectTarget(rawHandle: string): Promise<DirectRead> {
     conversationId = existing?.id ?? null;
   }
 
-  return {
-    state: "ready",
-    viewerId: me,
-    conversationId,
-    target: {
-      userId: other,
-      handle: data.handle,
-      displayLabel: data.display_label || `@${data.handle}`,
-      avatarUrl: data.avatar_path ?? "",
-      isAgent: Boolean(data.is_agent),
-    },
+  const target: DirectTarget = {
+    userId: other,
+    handle: data.handle,
+    displayLabel: data.display_label || `@${data.handle}`,
+    avatarUrl: data.avatar_path ?? "",
+    isAgent: Boolean(data.is_agent),
   };
+
+  /* A chat that already exists opens whatever the policy says. A new one
+     follows the profile's own rule: a person who asks first takes new
+     messages only from people who follow them. */
+  if (!conversationId && data.contact_policy !== "OPEN") {
+    const followed = await readViewerFollowing(supabase, me, [other]);
+    const door = messageDoor({ isOwner: false, contactPolicy: "REQUEST", viewerFollows: followed.has(other) });
+    if (door === "follow-first") return { state: "follow-first", handle: data.handle, target };
+  }
+
+  return { state: "ready", viewerId: me, conversationId, target };
 }

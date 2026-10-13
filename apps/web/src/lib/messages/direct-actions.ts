@@ -44,6 +44,11 @@ export async function sendDirectMessage(input: {
 
   const read = await readDirectTarget(typeof input?.handle === "string" ? input.handle : "");
   if (read.state === "self") return fail("That is you. Pick somebody else to message.");
+  /* The profile's own rule (`message-door.ts`): a person who asks first takes
+     a new chat only from somebody who follows them. */
+  if (read.state === "follow-first") {
+    return fail(`Follow ${read.target.displayLabel} to message them. They take new messages only from people who follow them.`);
+  }
   if (read.state !== "ready") return fail("We could not find that person. They may have changed their name.");
 
   if (await blockedBetween(session.supabase, session.user.id, read.target.userId)) {

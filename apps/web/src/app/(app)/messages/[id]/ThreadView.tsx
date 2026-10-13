@@ -15,6 +15,7 @@ import { TierBadge } from "@/components/trust/TierBadge";
 import type { BadgeTier } from "@/lib/trust/badge-tier";
 import { MediaFrame } from "@/components/app/MediaFrame";
 import { InitialsTile } from "@/components/ui/InitialsTile";
+import { RemoteImage } from "@/components/ui/RemoteImage";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ChatCard, type ChatCardData } from "@/components/app/messages/ChatCard";
 import { bundlePhotos, isCaption, isPhotoOnly } from "@/components/app/messages/bundle";
@@ -33,6 +34,10 @@ import {
 import { lagosTimeLabel } from "@/lib/messages/time";
 import { deleteMessage } from "@/lib/messages/message-actions";
 import { MessageMenu } from "@/components/app/messages/MessageMenu";
+import { ForwardSheet } from "@/components/app/messages/ForwardSheet";
+import { BubbleGestures } from "@/components/app/messages/BubbleGestures";
+import { PhotoGroup } from "@/components/app/messages/PhotoGroup";
+import { asSentence, canForward } from "@/components/app/messages/forward";
 import {
   useThreadRealtime,
   useThreadTyping,
@@ -96,6 +101,8 @@ export type ThreadBubble = {
   body: string;
   timeLabel: string;
   imageUrl: string | null;
+  /** The photo's pixel size when the row recorded it, so it is drawn at its proportions at once. */
+  imageSize?: { width: number; height: number } | null;
   /** `waiting`: tapped with no signal, kept in the outbox, sends by itself (V-40). */
   state?: "sending" | "failed" | "waiting";
   /**
@@ -157,6 +164,15 @@ export type ThreadViewProps = {
   counterpartId?: string | null;
   /** The other person's public handle, so their avatar and name open their profile. */
   counterpartHandle?: string | null;
+  /**
+   * The other person's photo (`profiles.avatar_url`). Null or absent draws
+   * their initial on the brand tint, in the header and at the head of their
+   * bubbles.
+   */
+  counterpartAvatarUrl?: string | null;
+  /** The reader's own name and photo, for the head of their own bubbles. */
+  meName?: string | null;
+  meAvatarUrl?: string | null;
   /**
    * The counterpart's REAL verification state, from `agents.verified`.
    *
@@ -221,6 +237,13 @@ export type ThreadViewProps = {
    */
   personLine?: { key: string; text: string }[];
   personLabel?: string;
+  /**
+   * "On Vallo since October 2026": when the other person joined, already
+   * worded (`trustVisible.person.memberSince`). Drawn small under the line
+   * that keeps chats and payments inside Vallo (founder, 11 October 2026),
+   * and so left out of the person line. Absent or null draws nothing.
+   */
+  sinceLine?: string | null;
   /**
    * V-34: the other party's Vallo Record when they are a lister, already
    * worded and gated at five. Empty draws nothing.
@@ -353,6 +376,25 @@ function roleTags(context: ThreadContext | undefined, role: ThreadRole): { mine:
     : { mine: "Tenant", theirs: "Vallo Agent" };
 }
 
+/**
+ * The head of a run of bubbles: the person's photo, or their initial on the
+ * brand tint when there is no photo (founder, 11 October 2026). Decorative:
+ * the name is in the row above the bubble, and the run is announced by it.
+ */
+function BubbleHead({ name, photoUrl }: { name: string | null; photoUrl: string | null }) {
+  return (
+    <span className="nf-msg__avatar" aria-hidden="true">
+      {photoUrl ? (
+        <RemoteImage src={photoUrl} alt="" width={36} height={36} sizes="36px" className="h-full w-full object-cover" />
+      ) : name ? (
+        initial(name)
+      ) : (
+        <UiIcon name="user" size={20} />
+      )}
+    </span>
+  );
+}
+
 export function ThreadView({
   live,
   conversationId,
@@ -361,6 +403,9 @@ export function ThreadView({
   counterpartPhone = null,
   counterpartId = null,
   counterpartHandle = null,
+  counterpartAvatarUrl = null,
+  meName = null,
+  meAvatarUrl = null,
   counterpartTier,
   listing,
   inspected: inspectedInitial,
@@ -382,6 +427,7 @@ export function ThreadView({
   sheetCopy,
   personLine = [],
   personLabel,
+  sinceLine = null,
   recordLine = [],
   recordLabel,
   passportLine = [],
@@ -394,23 +440,27 @@ export function ThreadView({
   calls = null,
 }: ThreadViewProps) {
   const [items, setItems] = useState<ThreadBubble[]>(messages);
-  /* The message being answered, set by Reply in the message menu. Cleared on send. */
+  /* The message being answered, set by Reply in the message menu or by a
+     swipe on the bubble. Cleared on send. */
   const [replyTo, setReplyTo] = useState<ThreadBubble | null>(null);
   /* The message whose menu is open (a long press on the bubble). */
   const [actionMsg, setActionMsg] = useState<ThreadBubble | null>(null);
-  /* A short line for a refused or finished action, shown above the composer. */
-  const [actionNote, setActionNote] = useState<string | null>(null);
-  const pressTimer = useRef<number | null>(null);
-  const startPress = (m: ThreadBubble) => {
-    if (m.id.startsWith("local-")) return;
-    pressTimer.current = window.setTimeout(() => setActionMsg(m), 450);
-  };
-  const endPress = () => {
-    if (pressTimer.current !== null) window.clearTimeout(pressTimer.current);
-    pressTimer.current = null;
-  };
+  /* The message being forwarded: the chooser is open over the thread. */
+  const [forwarding, setForwarding] = useState<ThreadBubble | null>(null);
+  /* A short line for a refused or finished action, shown above the composer.
+     A refusal stays until the next action; a confirmation clears itself. */
+  const [actionNote, setActionNote] = useState<{ tone: "error" | "done"; text: string } | null>(null);
+  useEffect(() => {
+    if (actionNote?.tone !== "done") return;
+    const timer = window.setTimeout(() => setActionNote(null), 4000);
+    return () => window.clearTimeout(timer);
+  }, [actionNote]);
   const menuReply = () => {
     if (actionMsg) setReplyTo(actionMsg);
+    setActionMsg(null);
+  };
+  const menuForward = () => {
+    if (actionMsg) setForwarding(actionMsg);
     setActionMsg(null);
   };
   const menuCopy = async () => {
@@ -424,7 +474,7 @@ export function ThreadView({
     if (!target) return;
     const result = await deleteMessage({ messageId: target.id, scope: "me" });
     if (result.ok) setItems((prev) => prev.filter((x) => x.id !== target.id));
-    else setActionNote(result.error);
+    else setActionNote({ tone: "error", text: asSentence(result.error) });
   };
   const menuDeleteForEveryone = async () => {
     const target = actionMsg;
@@ -435,7 +485,7 @@ export function ThreadView({
       setItems((prev) =>
         prev.map((x) => (x.id === target.id ? { ...x, body: "", imageUrl: null, deleted: true } : x)),
       );
-    } else setActionNote(result.error);
+    } else setActionNote({ tone: "error", text: asSentence(result.error) });
   };
   /* The messages the thread opened with. Only a message that arrives AFTER
      this (sent or received while the thread is open) plays the arrival
@@ -568,6 +618,9 @@ export function ThreadView({
     const callId = (row as { call_id?: unknown }).call_id;
     const view =
       typeof callId === "string" ? callMarkerView({ body: row.body, mine: row.sender_id === meId }) : null;
+    /* A reply and a forward arriving live carry their quote and their label
+       at once, as they do after a reload (the row's own columns). */
+    const extra = row as { reply_to_id?: unknown; forwarded?: unknown };
     setItems((prev) =>
       mergeEcho(prev, {
         id: row.id,
@@ -576,6 +629,8 @@ export function ThreadView({
         timeLabel: lagosTimeLabel(row.created_at),
         imageUrl: null,
         createdAt: row.created_at,
+        ...(typeof extra.reply_to_id === "string" ? { replyToId: extra.reply_to_id } : {}),
+        ...(extra.forwarded === true ? { forwarded: true } : {}),
         ...(view && typeof callId === "string" ? { call: { callId, view } } : {}),
       }),
     );
@@ -930,11 +985,21 @@ export function ThreadView({
               className="nf-thread__ring"
               aria-label={`${counterpartName}, open profile`}
             >
-              <VerifiedAvatar name={counterpartName} tier={counterpartTier} size="md" />
+              <VerifiedAvatar
+                name={counterpartName}
+                tier={counterpartTier}
+                photoUrl={counterpartAvatarUrl ?? undefined}
+                size="md"
+              />
             </a>
           ) : (
             <span className="nf-thread__ring">
-              <VerifiedAvatar name={counterpartName} tier={counterpartTier} size="md" />
+              <VerifiedAvatar
+                name={counterpartName}
+                tier={counterpartTier}
+                photoUrl={counterpartAvatarUrl ?? undefined}
+                size="md"
+              />
             </span>
           )
         )}
@@ -1031,7 +1096,14 @@ export function ThreadView({
           Vallo holds about them. Nothing that is null is drawn. */}
       {live && (propertyFace || personLine.length > 0 || recordLine.length > 0 || passportLine.length > 0) && (
         <div className="nf-thread__person flex items-center gap-sm px-gutter py-xs" aria-label={personLabel} data-testid="thread-person">
-          {propertyFace && <VerifiedAvatar name={counterpartName} tier={counterpartTier} size="sm" />}
+          {propertyFace && (
+            <VerifiedAvatar
+              name={counterpartName}
+              tier={counterpartTier}
+              photoUrl={counterpartAvatarUrl ?? undefined}
+              size="sm"
+            />
+          )}
           <div className="min-w-0 flex-1">
             {propertyFace && (
               <p className="flex items-center gap-inline-tight nf-body-sm font-semibold text-[var(--nf-content-primary)]">
@@ -1121,6 +1193,14 @@ export function ThreadView({
           <UiIcon name="verified" size={16} />
           Keep every chat and payment inside Vallo
         </p>
+        {sinceLine ? (
+          /* Whose date it is, for a screen reader; the line itself is the
+             founder's own words and says nothing more. */
+          <p className="nf-thread__since" data-testid="thread-since">
+            <span className="sr-only">{counterpartName}: </span>
+            {sinceLine}
+          </p>
+        ) : null}
 
         {/*
           * A THREAD NOBODY HAS SPOKEN IN DREW NOTHING AT ALL.
@@ -1224,18 +1304,18 @@ export function ThreadView({
             >
               {m.mine ? (
                 <span className="nf-msg__side" aria-hidden="true">
-                  <span className="nf-msg__avatar">
-                    <UiIcon name="user" size={20} />
-                  </span>
+                  <BubbleHead name={meName} photoUrl={meAvatarUrl} />
                   {tags && <span>{tags.mine}</span>}
                 </span>
               ) : (
-                <span className="nf-msg__avatar" aria-hidden="true">
-                  {initial(counterpartName)}
-                </span>
+                <BubbleHead name={counterpartName} photoUrl={counterpartAvatarUrl} />
               )}
 
-              <div className={`nf-msg__stack${wide ? " nf-msg__stack--wide" : ""}`}>
+              <div
+                className={`nf-msg__stack${wide ? " nf-msg__stack--wide" : ""}${
+                  !wide && photos.length > 0 ? " nf-msg__stack--media" : ""
+                }`}
+              >
                 {!m.mine && !continues && (
                   <p className="nf-msg__meta">
                     <span className="nf-msg__sender">{counterpartName}</span>
@@ -1264,47 +1344,32 @@ export function ThreadView({
                 {m.card ? (
                   <ChatCard card={m.card} />
                 ) : (
-                  <div
-                    onPointerDown={() => startPress(m)}
-                    onPointerUp={endPress}
-                    onPointerLeave={endPress}
-                    onPointerCancel={endPress}
-                    onContextMenu={(e) => {
-                      e.preventDefault();
-                      if (!m.id.startsWith("local-")) setActionMsg(m);
-                    }}
+                  /* Hold for the menu, swipe to reply (`BubbleGestures`). A
+                     bubble still on its way has neither: there is no message
+                     yet to act on. */
+                  <BubbleGestures
+                    side={m.mine ? "mine" : "theirs"}
+                    onLongPress={m.id.startsWith("local-") ? undefined : () => setActionMsg(m)}
+                    onSwipeReply={m.id.startsWith("local-") ? undefined : () => setReplyTo(m)}
                     className={`nf-bubble ${
                       m.state === "failed"
                         ? "nf-bubble--failed"
                         : m.mine
                           ? "nf-bubble--mine"
                           : "nf-bubble--theirs"
-                    }${m.state === "sending" ? " nf-bubble--sending" : ""}`}
+                    }${m.state === "sending" ? " nf-bubble--sending" : ""}${
+                      photos.length > 0 ? ` nf-bubble--media${words || share ? "" : " nf-bubble--photos"}` : ""
+                    }`}
                   >
-                    {photos.length > 1 ? (
-                      /* The bundle: three thumbnails and the count of the rest. */
-                      <div className="nf-photo-bundle" role="group" aria-label={`${photos.length} photos`}>
-                        {photos.slice(0, 3).map((p, i) => (
-                          <span key={p.id} className="nf-photo-bundle__cell">
-                            {/* Signed and object URLs cannot go through the optimiser. */}
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={p.imageUrl ?? ""} alt={m.mine ? "Photo you attached" : `Photo from ${counterpartName}`} />
-                            {i === 2 && photos.length > 3 && (
-                              <span className="nf-photo-bundle__more">+{photos.length - 3}</span>
-                            )}
-                          </span>
-                        ))}
-                      </div>
-                    ) : (
-                      photos[0]?.imageUrl && (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={photos[0].imageUrl}
-                          alt={m.mine ? "Photo you attached" : `Photo from ${counterpartName}`}
-                          className="nf-bubble__photo"
-                        />
-                      )
-                    )}
+                    {photos.length > 0 ? (
+                      /* One photo fills the bubble; more sit in a row at their
+                         own proportions, and past three the group swipes. */
+                      <PhotoGroup
+                        photos={photos.map((p) => ({ id: p.id, url: p.imageUrl ?? "", size: p.imageSize ?? null }))}
+                        alt={m.mine ? "Photo you attached" : `Photo from ${counterpartName}`}
+                        locale={locale}
+                      />
+                    ) : null}
                     {m.forwarded ? <span className="nf-bubble__forwarded">Forwarded</span> : null}
                     {m.deleted ? <p className="nf-bubble__deleted">This message was deleted</p> : null}
                     {m.audio ? <VoiceNote note={m.audio} mine={m.mine} copy={threadWords.voice} /> : null}
@@ -1345,7 +1410,7 @@ export function ThreadView({
                       )}
                       {m.mine && !m.state && <Ticks read={Boolean(last.read)} />}
                     </p>
-                  </div>
+                  </BubbleGestures>
                 )}
 
                 {shielded?.ask && scamCopy && (
@@ -1381,9 +1446,7 @@ export function ThreadView({
             a reply lands in, driven by the real broadcast above. */}
         {counterpartTyping && (
           <div className="nf-msg nf-msg-in--theirs">
-            <span className="nf-msg__avatar" aria-hidden="true">
-              {initial(counterpartName)}
-            </span>
+            <BubbleHead name={counterpartName} photoUrl={counterpartAvatarUrl} />
             <div
               className="nf-bubble nf-bubble--theirs flex items-center gap-inline-tight"
               role="status"
@@ -1460,8 +1523,14 @@ export function ThreadView({
         </div>
       )}
       {actionNote && (
-        <p role="status" className="px-md pb-xs nf-body-sm text-[var(--nf-state-error)]">
-          {actionNote}
+        <p
+          role={actionNote.tone === "error" ? "alert" : "status"}
+          className={`px-md pb-xs nf-body-sm ${
+            actionNote.tone === "error" ? "text-[var(--nf-state-error)]" : "text-[var(--nf-content-secondary)]"
+          }`}
+          data-testid="thread-action-note"
+        >
+          {actionNote.text}
         </p>
       )}
       {quickReplies.length > 0 && (
@@ -1529,13 +1598,27 @@ export function ThreadView({
         <MessageMenu
           canCopy={actionMsg.body.length > 0 && !actionMsg.deleted}
           canDeleteEveryone={actionMsg.mine && !actionMsg.deleted}
+          canForward={live && canForward(actionMsg)}
           onReply={menuReply}
+          onForward={menuForward}
           onCopy={() => void menuCopy()}
           onDeleteForMe={() => void menuDeleteForMe()}
           onDeleteForEveryone={() => void menuDeleteForEveryone()}
           onClose={() => setActionMsg(null)}
         />
       )}
+      {live ? (
+        <ForwardSheet
+          open={forwarding !== null}
+          messageId={forwarding?.id ?? null}
+          fromConversationId={conversationId}
+          onClose={() => setForwarding(null)}
+          onForwarded={(target) => {
+            setForwarding(null);
+            setActionNote({ tone: "done", text: `Forwarded to ${target.name}.` });
+          }}
+        />
+      ) : null}
     </div>
   );
 }

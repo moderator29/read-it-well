@@ -22,7 +22,9 @@ import type { Side } from "../side.constants";
 import { threadSide } from "./thread-side";
 import { lagosTimeLabel, lagosWhenLabel } from "./time";
 import { readPersonBadges, type BadgeTier } from "@/lib/trust/badge-tier";
+import { readViewerFollowing } from "../social/follows-queries";
 import { loadUnreadCounts } from "./unread";
+import { isRequestThread } from "./request-rule";
 
 type Db = SupabaseClient<Database>;
 
@@ -48,11 +50,20 @@ export type LiveConversationSummary = {
   /** The newest message's id: VC1 asks whether it is a call marker (the inbox's missed-call line). */
   lastMessageId?: string | null;
   /**
-   * True when this thread is a request: somebody the caller has never spoken
-   * to opened it, and the caller has never sent a message in it. The inbox
-   * holds these in their own tab so a stranger cannot land in the main list.
+   * True when this thread is a request: the caller does not follow the person
+   * on the other side, did not open it, and has never sent a message in it
+   * (`request-rule.ts`). The inbox holds these in their own tab so a stranger
+   * cannot land in the main list.
    */
   isRequest: boolean;
+  /**
+   * The caller follows the person on the other side (`public.follows`).
+   * Always set by `loadConversationSummaries`; optional only so fixtures
+   * written before it still type.
+   */
+  viewerFollows?: boolean;
+  /** The counterpart's photo (`profiles.avatar_url`, a public URL), or null. */
+  counterpartAvatarUrl?: string | null;
   /**
    * What the counterpart is, for the small dot on the avatar. "agent" is a
    * host, verified or not; "member" is everybody else.
@@ -81,6 +92,8 @@ export type LiveThreadMessage = {
   /** Preformatted Lagos "HH:MM". */
   timeLabel: string;
   imageUrl: string | null;
+  /** The photo's own pixel size, as `attachImage` recorded it, so it is drawn at its proportions. */
+  imageSize?: { width: number; height: number } | null;
   /** The row's own timestamp. V-04's account card reads it for its one-minute "checking" window. */
   createdAt?: string;
 };
@@ -106,6 +119,11 @@ export type LiveThreadData = {
   counterpartPhone: string | null;
   /** The other party's public handle, or null when they have not claimed one. */
   counterpartHandle: string | null;
+  /** The other party's photo, or null: their initial is drawn instead. */
+  counterpartAvatarUrl: string | null;
+  /** The reader's own name and photo, for the head of their own bubbles. */
+  meName: string | null;
+  meAvatarUrl: string | null;
   /**
    * The other party's user id.
    *
@@ -141,7 +159,7 @@ function hueOf(id: string): number {
   return acc;
 }
 
-type Identity = { name: string; verified: boolean; isAgent: boolean; tier: BadgeTier };
+type Identity = { name: string; verified: boolean; isAgent: boolean; tier: BadgeTier; avatarUrl: string | null };
 
 /**
  * Resolve display identities for counterpart user ids through the service
@@ -155,7 +173,10 @@ async function identitiesOf(userIds: string[]): Promise<Map<string, Identity>> {
   try {
     const admin = createAdminClient();
     const [profiles, agents] = await Promise.all([
-      admin.from("profiles").select("id, display_name").in("id", ids),
+      /* The photo rides the same read: `avatar_url` is the public URL the
+         profile editor writes, drawn in the inbox row, the thread header and
+         the head of the person's bubbles (their initial when it is empty). */
+      admin.from("profiles").select("id, display_name, avatar_url").in("id", ids),
       /*
        * THE TICK COMES OFF THE LADDER, NOT OFF `agents.verified`.
        *
@@ -195,6 +216,10 @@ async function identitiesOf(userIds: string[]): Promise<Map<string, Identity>> {
      * `private.badge_tier_for`, and neither helper is callable by a client.
      */
     const badges = await readPersonBadges(admin, ids);
+    const photos = new Map<string, string>();
+    for (const p of profiles.data ?? []) {
+      if (p.avatar_url) photos.set(p.id, p.avatar_url);
+    }
 
     for (const p of profiles.data ?? []) {
       if (p.display_name) {
@@ -203,6 +228,7 @@ async function identitiesOf(userIds: string[]): Promise<Map<string, Identity>> {
           verified: false,
           isAgent: false,
           tier: badges.get(p.id) ?? "none",
+          avatarUrl: photos.get(p.id) ?? null,
         });
       }
     }
@@ -212,6 +238,7 @@ async function identitiesOf(userIds: string[]): Promise<Map<string, Identity>> {
         verified: a.agent_badges?.verified ?? false,
         isAgent: true,
         tier: badges.get(a.user_id) ?? "none",
+        avatarUrl: photos.get(a.user_id) ?? null,
       });
     }
   } catch {
@@ -253,7 +280,7 @@ export async function loadConversationSummaries(
      together rather than one after another (Track M performance: the inbox
      finished 1.4 seconds after the tap on production). What each one reads
      is unchanged. */
-  const [{ data: recent }, { data: mine }, identities, exactUnread, { data: myProfile }] = await Promise.all([
+  const [{ data: recent }, { data: mine }, identities, exactUnread, { data: myProfile }, followed, { data: myHidden }] = await Promise.all([
     supabase
       .from("messages")
       .select("id, conversation_id, sender_id, body, created_at, read_at")
@@ -276,7 +303,20 @@ export async function loadConversationSummaries(
        you"): "Anyone" lets a new person's chat arrive in Primary instead of
        Requests. Read once for the whole inbox. */
     supabase.from("social_profiles").select("contact_policy").eq("user_id", user.id).maybeSingle(),
+    /* Who the caller follows among the people on the other side, from
+       `public.follows` through the follow list's own helper. A message from
+       somebody the caller does not follow waits in Requests (founder, 11
+       October 2026), and the forward chooser offers only these people. A
+       failed read answers "follows nobody", so nothing leaves Requests by
+       accident. */
+    readViewerFollowing(supabase, user.id, [...new Set(counterparts)]),
+    /* Delete for me: a message the caller hid is not the chat's preview
+       either, exactly as `loadThread` leaves it out of the thread. Their own
+       rows only (RLS). */
+    supabase.from("message_hidden").select("message_id").eq("user_id", user.id).limit(1000),
   ]);
+  const hiddenIds = new Set((myHidden ?? []).map((h) => h.message_id));
+  const withAnyMessage = new Set((recent ?? []).map((m) => m.conversation_id));
   const openToAnyone = (myProfile as { contact_policy?: string } | null)?.contact_policy === "OPEN";
 
   const lastByConversation = new Map<
@@ -285,7 +325,7 @@ export async function loadConversationSummaries(
   >();
   const unreadByConversation = new Map<string, number>();
   for (const m of recent ?? []) {
-    if (!lastByConversation.has(m.conversation_id)) {
+    if (!lastByConversation.has(m.conversation_id) && !hiddenIds.has(m.id)) {
       lastByConversation.set(m.conversation_id, {
         id: m.id,
         body: m.body,
@@ -313,7 +353,9 @@ export async function loadConversationSummaries(
     (c) =>
       !(
         sweepComplete &&
-        !lastByConversation.has(c.id) &&
+        /* Any message at all, hidden ones included: a chat whose messages the
+           caller hid is still a chat, not an abandoned tap. */
+        !withAnyMessage.has(c.id) &&
         ((c.context_kind ?? "listing") === "listing" || c.context_kind === "direct")
       ),
   );
@@ -322,6 +364,7 @@ export async function loadConversationSummaries(
     const counterpartId = c.guest_id === user.id ? c.agent_id : c.guest_id;
     const last = lastByConversation.get(c.id);
     const identity = identities.get(counterpartId);
+    const viewerFollows = followed.has(counterpartId);
     return {
       id: c.id,
       counterpartName: identity?.name ?? FALLBACK_NAME,
@@ -340,10 +383,19 @@ export async function loadConversationSummaries(
          nothing in it still reads as waiting rather than as answered. */
       lastFromMe: last ? last.senderId === user.id : false,
       lastAt: last?.at ?? c.last_message_at,
-      /* A request is a thread the caller has never spoken in AND did not open.
-         An enquiry the caller sent themselves is theirs even before the host
-         answers, so it belongs in Primary from the first second. */
-      isRequest: !spokenIn.has(c.id) && c.guest_id !== user.id && !(c.context_kind === "direct" && openToAnyone),
+      /* A request is a thread from somebody the caller does not follow, that
+         the caller has never spoken in AND did not open. An enquiry the
+         caller sent themselves is theirs even before the host answers, so it
+         belongs in Primary from the first second. The rule is `request-rule.ts`. */
+      isRequest: isRequestThread({
+        spokenIn: spokenIn.has(c.id),
+        openedByReader: c.guest_id === user.id,
+        readerFollows: viewerFollows,
+        direct: c.context_kind === "direct",
+        openToAnyone,
+      }),
+      viewerFollows,
+      counterpartAvatarUrl: identity?.avatarUrl ?? null,
       counterpartKind: identity?.isAgent ? "agent" : "member",
       counterpartVerified: identity?.verified ?? false,
       counterpartTier: identity?.tier ?? "none",
@@ -530,7 +582,7 @@ export async function loadThread(
     supabase
       .from("messages")
       .select(
-        "id, sender_id, body, created_at, reply_to_id, forwarded, deleted_for_everyone_at, message_attachments(storage_path)",
+        "id, sender_id, body, created_at, reply_to_id, forwarded, deleted_for_everyone_at, message_attachments(storage_path, width, height)",
       )
       .eq("conversation_id", conversationId)
       .order("created_at", { ascending: true })
@@ -570,7 +622,9 @@ export async function loadThread(
      that is too generic is a small loss and a number handed to the wrong
      reader is not. */
   const [identities, counterpartPhone, handleRow] = await Promise.all([
-    identitiesOf([counterpartId]),
+    /* The reader's own identity rides the same read, for the photo or the
+       initial at the head of their own bubbles. */
+    identitiesOf([counterpartId, user.id]),
     callableNumberFor(user.id, counterpartId),
     /* The public handle, so the person's avatar in the thread can open their profile. */
     createAdminClient()
@@ -581,11 +635,15 @@ export async function loadThread(
       .then((r) => r.data),
   ]);
   const counterpart = identities.get(counterpartId);
+  const me = identities.get(user.id);
 
   return {
     conversationId: conversation.id,
     meId: user.id,
     counterpartName: counterpart?.name ?? FALLBACK_NAME,
+    counterpartAvatarUrl: counterpart?.avatarUrl ?? null,
+    meName: me?.name ?? null,
+    meAvatarUrl: me?.avatarUrl ?? null,
     /* The person's published badge. `listing.verified` two lines below is a
        different fact about a PROPERTY and the two are never interchangeable. */
     counterpartTier: counterpart?.tier ?? "none",
@@ -604,7 +662,8 @@ export async function loadThread(
       : null,
     inspected: Boolean(myInspection),
     messages: (messages ?? []).map((m) => {
-      const path = m.message_attachments[0]?.storage_path;
+      const attachment = m.message_attachments[0];
+      const path = attachment?.storage_path;
       const deleted = m.deleted_for_everyone_at !== null;
       return {
         id: m.id,
@@ -612,6 +671,8 @@ export async function loadThread(
         body: m.body,
         timeLabel: lagosTimeLabel(m.created_at),
         imageUrl: deleted ? null : path ? (urlByPath.get(path) ?? null) : null,
+        imageSize:
+          attachment?.width && attachment?.height ? { width: attachment.width, height: attachment.height } : null,
         createdAt: m.created_at,
         replyToId: m.reply_to_id ?? null,
         forwarded: m.forwarded === true,

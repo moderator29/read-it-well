@@ -213,8 +213,13 @@ async function readProfiles(
   }
 }
 
-/** Which of these people the viewer already follows. One read for the page. */
-async function readViewerFollowing(
+/**
+ * Which of these people the viewer already follows. One read for the page.
+ * Also the inbox's read (`lib/messages/live.ts`): a message from somebody the
+ * reader does not follow waits in Requests, and the forward chooser offers
+ * only the people the reader follows.
+ */
+export async function readViewerFollowing(
   supabase: SupabaseClient<Database>,
   viewerId: string | null,
   ids: string[],

@@ -172,6 +172,9 @@
     flex: 1 1 auto;
     min-height: 0;
     overflow-y: auto;
+    /* A bubble swiped to reply moves by transform; the scroller clips its
+       own sides so the swipe can never scroll the thread sideways. */
+    overflow-x: hidden;
     display: flex;
     flex-direction: column;
     gap: var(--nf-gap-row);
@@ -186,6 +189,14 @@
     justify-content: center;
     gap: var(--nf-gap-inline-tight);
     font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+    text-align: center;
+  }
+  /* "On Vallo since October 2026", small and quiet, tucked under the safety
+     line rather than a whole row gap below it (founder, 11 October 2026). */
+  .nf-thread__since {
+    margin-top: calc(var(--nf-space-3xs) - var(--nf-gap-row));
+    font-size: var(--nf-text-overline);
     color: var(--nf-content-muted);
     text-align: center;
   }
@@ -249,7 +260,9 @@
     max-width: min(100%, 25rem);
   }
 
-  /* The small avatar beside a bubble, in a thinner ring than the header's. */
+  /* The small avatar beside a bubble, in a thinner ring than the header's:
+     the person's photo, or their initial on the brand tint (founder, 11
+     October 2026). */
   .nf-msg__avatar {
     display: grid;
     place-items: center;
@@ -259,7 +272,7 @@
     border-radius: var(--nf-radius-circle);
     border: var(--nf-border-width) solid var(--nf-plate-edge);
     border-color: var(--nf-plate-edges);
-    background: var(--nf-plate-fill);
+    background: var(--nf-brand-tint-2);
     color: var(--nf-content-primary);
     font-size: var(--nf-text-caption);
     font-weight: 700;
@@ -461,57 +474,9 @@
   .nf-bubble__ticks--read {
     color: var(--nf-content-on-brand);
   }
-  .nf-bubble__photo {
-    display: block;
-    width: 100%;
-    height: auto;
-    max-height: 22rem;
-    object-fit: contain;
-    border-radius: var(--nf-radius-md);
-    background: var(--nf-surface-inset);
-  }
-  /* A photo sent alone is the whole bubble: no inner padding, no white frame,
-     the picture at its own proportions. */
-  .nf-bubble:has(> .nf-bubble__photo:only-child),
-  .nf-bubble:has(> .nf-photo-bundle:only-child) {
-    padding: 0;
-    overflow: hidden;
-    background: transparent;
-  }
-  .nf-bubble:has(> .nf-bubble__photo:only-child) .nf-bubble__foot,
-  .nf-bubble:has(> .nf-photo-bundle:only-child) .nf-bubble__foot {
-    padding: var(--nf-space-2xs) var(--nf-space-xs) var(--nf-space-xs);
-  }
-
-  /* The photo bundle inside a bubble: three thumbnails and a +n plate. */
-  .nf-photo-bundle {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--nf-space-2xs);
-    margin-bottom: var(--nf-space-xs);
-  }
-  .nf-photo-bundle__cell {
-    position: relative;
-    aspect-ratio: 1;
-    overflow: hidden;
-    border-radius: var(--nf-radius-sm);
-    background: var(--nf-surface-inset);
-  }
-  .nf-photo-bundle__cell img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  .nf-photo-bundle__more {
-    position: absolute;
-    inset: 0;
-    display: grid;
-    place-items: center;
-    background: var(--nf-overlay-media-strong);
-    color: var(--nf-content-on-media);
-    font-weight: 700;
-    font-size: var(--nf-text-body);
-  }
+  /* The photos in a bubble are `PhotoGroup` and their rules are the "PHOTOS
+     IN A BUBBLE" block at the end of this sheet, after the row spec, so the
+     photo bubble's own fill wins over the row spec's bubble fills. */
 
   /* ------------------------------------------------------ the shared card */
 
@@ -1608,6 +1573,176 @@
     height: 3.75rem;
     border: var(--nf-border-width) solid var(--nf-smoked-glass-edge);
     border-radius: var(--nf-radius-control);
+  }
+}
+
+/* PHOTOS IN A BUBBLE (founder, 11 October 2026; `PhotoGroup.tsx`, the
+   arithmetic in `photo-layout.ts`). One photo fills the bubble; two or three
+   share one row at one height; more than three show three and the rest are
+   reached by swiping the strip, with a dot per three. Every photo at its own
+   proportions: the cell IS the photo's shape, so `cover` crops nothing, and
+   there is no padding and no letterbox fill around it. */
+@layer components {
+  .nf-bubble--media {
+    padding: 0;
+    overflow: hidden;
+  }
+  /* The column of a photo message has a set width and is the size container
+     the photos measure themselves against (`100cqw` in photo-layout.ts), so
+     a group is never wider than the column and never spills past it. */
+  .nf-msg__stack--media {
+    width: 84%;
+    container-type: inline-size;
+  }
+  /* The caption wraps to the photos' width rather than widening the bubble
+     past them: it adds nothing to the bubble's own width. */
+  .nf-bubble--media > .nf-bubble__body {
+    contain: inline-size;
+    padding: var(--nf-space-xs) var(--nf-space-sm) 0;
+  }
+  .nf-bubble--media > .nf-bubble__foot {
+    margin-top: 0;
+    padding: var(--nf-space-2xs) var(--nf-space-sm) var(--nf-space-xs);
+  }
+  /* Photos with no words: the photos are the whole bubble. The time rides on
+     the photo's lower corner on the media plate, so no strip of bubble fill is
+     left under the picture. */
+  .nf-bubble--photos {
+    background: transparent;
+  }
+  .nf-bubble--photos > .nf-bubble__foot {
+    position: absolute;
+    right: var(--nf-space-2xs);
+    bottom: var(--nf-space-2xs);
+    margin: 0;
+    padding: var(--nf-space-3xs) var(--nf-space-2xs);
+    border-radius: var(--nf-radius-xs);
+    background: var(--nf-overlay-media-strong);
+    color: var(--nf-content-on-media);
+    opacity: 1;
+  }
+  /* A received photo bubble hugs its photo rather than stretching to the
+     width of the name row above it. */
+  .nf-msg__stack > .nf-swipe-reply:has(> .nf-bubble--media) {
+    align-self: flex-start;
+  }
+  .nf-msg--mine .nf-msg__stack > .nf-swipe-reply:has(> .nf-bubble--media) {
+    align-self: flex-end;
+  }
+
+  .nf-photo-group {
+    position: relative;
+    max-width: 100%;
+  }
+  .nf-photo-group__strip {
+    position: relative;
+    display: flex;
+    /* Two pixels, and it must stay `PHOTO_GAP_PX` in photo-layout.ts: the row
+       widths are computed less exactly this gap. */
+    gap: 2px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+  .nf-photo-group__strip::-webkit-scrollbar {
+    display: none;
+  }
+  .nf-photo-group__cell {
+    flex-grow: 0;
+    flex-shrink: 0;
+    min-width: 0;
+    overflow: hidden;
+    background: var(--nf-surface-inset);
+  }
+  .nf-photo-group__cell[data-page-start] {
+    scroll-snap-align: start;
+  }
+  .nf-photo-group__cell img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    -webkit-user-drag: none;
+  }
+  /* The dots sit on the photos' lower middle, on the media plate: a 6px dot
+     per three photos, the current one in full ink. An indicator, not a
+     control, so it takes no pointer; the strip itself takes a finger, a
+     trackpad and, focused, the arrow keys. */
+  .nf-photo-group__dots {
+    position: absolute;
+    left: 50%;
+    bottom: var(--nf-space-2xs);
+    display: flex;
+    gap: var(--nf-space-2xs);
+    padding: var(--nf-space-2xs) var(--nf-space-xs);
+    transform: translateX(-50%);
+    border-radius: var(--nf-radius-xs);
+    background: var(--nf-overlay-media-strong);
+    pointer-events: none;
+  }
+  .nf-photo-group__dot {
+    width: 0.375rem;
+    height: 0.375rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-content-on-media-muted);
+  }
+  .nf-photo-group__dot[data-on] {
+    background: var(--nf-content-on-media);
+  }
+  .nf-photo-group__strip:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: -2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-photo-group__strip {
+      scroll-behavior: auto;
+    }
+  }
+}
+
+/* SWIPE TO REPLY (founder, 11 October 2026; `BubbleGestures.tsx`). The bubble
+   follows the finger by transform only; the reply glyph waits behind it at the
+   edge it leaves, fading in with the travel and taking the brand ink once a
+   release would set the reply. A vertical drag stays the browser's scroll. */
+@layer components {
+  .nf-swipe-reply {
+    position: relative;
+  }
+  .nf-swipe-reply > .nf-bubble {
+    touch-action: pan-y pinch-zoom;
+    transition: transform var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-swipe-reply > .nf-bubble[data-swiping] {
+    transition: none;
+  }
+  .nf-swipe-reply__glyph {
+    position: absolute;
+    top: 50%;
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    margin-top: -1rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-surface-raised);
+    color: var(--nf-content-secondary);
+    opacity: 0;
+    pointer-events: none;
+  }
+  .nf-swipe-reply[data-side="theirs"] > .nf-swipe-reply__glyph {
+    left: 0;
+  }
+  .nf-swipe-reply[data-side="mine"] > .nf-swipe-reply__glyph {
+    right: 0;
+  }
+  .nf-swipe-reply__glyph[data-armed] {
+    color: var(--nf-brand-primary);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-swipe-reply > .nf-bubble {
+      transition: none;
+    }
   }
 }
 
