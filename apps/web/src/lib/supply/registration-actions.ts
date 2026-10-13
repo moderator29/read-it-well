@@ -65,6 +65,7 @@ import { OPEN_STATUSES } from "../agent/open-application";
 import { otherSideMessage } from "../agent/role-lock";
 import { otherSideHeld } from "../agent/role-lock-read";
 import { withWorkspaceAcceptance } from "../legal/workspace-acceptance";
+import { writeInAppNotice } from "../notify/in-app";
 
 export type RegistrationFiled = {
   /** The VL-AGT-##### the person quotes to support. */
@@ -346,7 +347,7 @@ async function tellThem(userId: string, reference: string, role: Registration["r
         : "Your firm registration is filed";
   try {
     const admin = createAdminClient();
-    await admin.from("notifications").insert({
+    await writeInAppNotice(admin, {
       user_id: userId,
       kind: "agent",
       title: what,

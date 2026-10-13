@@ -1,4 +1,4 @@
--- DRAFT, not applied. NOTIFICATIONS 1 of 5 (track/notifications, 13 Oct 2026).
+-- DRAFT, not applied. NOTIFICATIONS 1 of 6 (track/notifications, 13 Oct 2026).
 -- Apply FIRST: nt02 to nt05 call private.notify_once.
 --
 -- The one helper every new notice goes through, so a notice is told once.
@@ -17,7 +17,15 @@
 -- A muted person still consumes the key: the event was handled, and turning a
 -- switch back on must not replay the past.
 --
--- Additive only, nothing is removed: one table, one function.
+-- ALSO HERE: private.notice_failed(what, entity type, entity id, sqlstate,
+-- message), the one place a swallowed notice failure is REPORTED. A trigger on
+-- a table that moves money (nt02) may never be the reason a payment fails to
+-- record, so it catches its own error; this is what it then does with it: a
+-- warning in the database log with the message, and one open medium risk alert
+-- per entity so staff see a notice that never went out. It never raises (its
+-- own write is caught too), so reporting a failure cannot become the failure.
+--
+-- Additive only, nothing is removed: one table, two functions.
 -- Probe: supabase/tests/probes-pending/nt01-notice-helpers.sql
 set lock_timeout = '5s';
 
@@ -66,5 +74,41 @@ begin
 end;
 $fn$;
 
-revoke all on function private.notify_once(text, uuid, public.notification_kind, text, text, text)
+create or replace function private.notice_failed(
+  p_what text,
+  p_entity_type text,
+  p_entity_id text,
+  p_state text,
+  p_message text
+)
+ returns void
+ language plpgsql
+ security definer
+ set search_path to ''
+as $fn$
+begin
+  raise warning '[notify] % failed (sqlstate %): %', p_what, coalesce(p_state, '?'), left(coalesce(p_message, ''), 300);
+  begin
+    if not exists (
+      select 1 from public.risk_alerts a
+       where a.status = 'open'
+         and a.title = 'A notice could not be sent'
+         and a.entity_type is not distinct from p_entity_type
+         and a.entity_id is not distinct from p_entity_id
+    ) then
+      insert into public.risk_alerts (severity, status, title, description, entity_type, entity_id)
+      values ('medium', 'open', 'A notice could not be sent',
+              format('The %s failed (sqlstate %s) and was skipped. The payment or change that caused it was recorded as normal; only the notice is missing. Detail: %s',
+                     coalesce(p_what, 'notice'), coalesce(p_state, '?'), left(coalesce(p_message, ''), 300)),
+              p_entity_type, p_entity_id);
+    end if;
+  exception when others then
+    raise warning '[notify] could not record the failed notice alert: %', sqlstate;
+  end;
+end;
+$fn$;
+
+revoke all on function
+  private.notify_once(text, uuid, public.notification_kind, text, text, text),
+  private.notice_failed(text, text, text, text, text)
   from public, anon, authenticated, service_role;

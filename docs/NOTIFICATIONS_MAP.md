@@ -17,10 +17,11 @@ event ──> private.email_outbox_enqueue(user, template, dedupe key, payload)
             └─> public.email_outbox ──> /api/cron/email-outbox (every 15 min) ──> Resend
 ```
 
-* **In app**: the bell and `/notifications`. A few server actions insert a row
-  straight into `public.notifications` (listing and application decisions, a
-  host declining a booking, staff notices). They skip the Bookings and Messages
-  switch that `private.notify` applies. See bug 1 below.
+* **In app**: the bell and `/notifications`. Server actions that have to write
+  with the service role (listing and application decisions, a host declining a
+  booking, the admin table notice, staff notices, the saved search crons) go
+  through `lib/notify/in-app.ts`, which applies the same Bookings and Messages
+  switches as `private.notify`. See bug 1 below.
 * **Push**: queued by a trigger on `public.notifications` when the person has a
   live device. Policy lives in `lib/push/policy.ts`: the per topic push switch
   (`settings.notifications.channels.<topic>.push`, falling back to the old
@@ -203,8 +204,8 @@ the reason. **By design**: deliberately silent.
 
 | Migration (pending) | What | Probe |
 |---|---|---|
-| `nt01_notice_helpers` | `private.notice_keys`, `private.notify_once` (one key per event) | `nt01-notice-helpers` |
-| `nt02_payment_and_protected_payment_notices` | payment received (host, guest) and the host and rent receipt emails; protected payment states | `nt02-...` |
+| `nt01_notice_helpers` | `private.notice_keys`, `private.notify_once` (one key per event), `private.notice_failed` (reports a swallowed notice failure as a log warning and one open alert) | `nt01-notice-helpers` |
+| `nt02_payment_and_protected_payment_notices` | payment received (host, guest) and the host and rent receipt emails; protected payment states. A failure in either trigger is caught and reported, never raised | `nt02-...` |
 | `nt03_referral_notices` | referral and reward payout notices | `nt03-referral-notices` |
 | `nt04_account_agreement_and_listing_notices` | password changed, phone confirmed, both confirmed and cancelled agreements, mandate decided, ownership seen | `nt04-...` |
 | `nt05_stay_reminders_and_unread_message_email` | check-in, check-out, host arrival, review requests, unread message email, folded into the existing `vallo_send_member_reminders` job | `nt05-...` |
@@ -212,7 +213,9 @@ the reason. **By design**: deliberately silent.
 
 Apply in order, before the app of this branch is deployed (the drain drops a
 row whose template the running code does not know): nt01, nt02, nt03, nt04,
-nt05, nt06. **The cron job count is unchanged** (`PG_CRON_JOBS` and the table in
+nt05, nt06. The order against the payment files (`pov01` to `pov07` first, then
+these, then the deploy), a check and an undo for each file, and the dry run
+evidence are in `docs/payments/RELEASE_RUNBOOK.md`. **The cron job count is unchanged** (`PG_CRON_JOBS` and the table in
 `docs/ADMIN_CONSOLE.md` keep their counts; the existing sweep
 `private.send_member_reminders` simply calls two more functions, each inside its
 own exception block). The description of `vallo_send_member_reminders` in
@@ -239,13 +242,24 @@ New outbox templates (all registered in `lib/notify/templates.ts`):
 
 ## Bugs and defects found
 
-1. **Direct inserts skip the person's switches.** `announce()` (listing and
+1. **Direct inserts skipped the person's switches.** `announce()` (listing and
    application decisions), the host's decline row, the admin reservation notice
-   and a few staff notices insert into `public.notifications` directly, so the
-   Bookings switch that `private.notify` applies does not apply to them. Not
-   fixed: it needs a small wrapper function exposed to the service role, and
-   those files belong to areas this track does not own. Push still honours the
-   per topic switch for them.
+   and the staff notices inserted into `public.notifications` directly, so the
+   Bookings and Messages switches that `private.notify` applies did not apply to
+   them. Fixed in the app, with no new SQL: `lib/notify/in-app.ts`
+   (`writeInAppNotice`, `writeInAppNotices`) reads the same switches the same
+   way (only an explicit false silences, a failed read writes the notice) and
+   is now the only place in the app that inserts into the table; a source scan
+   in `in-app.test.ts` keeps it so. Twelve writers in eleven files were moved: `announce`, the
+   host decline, the admin reservation notice, the admin business, payment
+   method, staff and verification notices, the registration filed notice, the
+   two Around notices, and the saved search and new match crons. Only the two
+   booking-kind writers were affected in practice, because no switch governs
+   the other kinds. Two database functions also insert directly
+   (`public.answer_brief`, kind `listing`, and `private.threshold_reminders_due`,
+   kind `system`); neither kind is governed by a switch, so nothing is bypassed
+   and they are left alone. Push still honours the per topic switch for all of
+   them.
 2. **Stay payment told nobody in app** (the gap behind the payment notice). A
    stay the host had already accepted, or an instant booking, is confirmed
    before the card is charged, so no status moves and the host heard nothing.

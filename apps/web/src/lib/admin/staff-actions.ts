@@ -7,6 +7,7 @@ import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../a
 import { findUserByEmail } from "../supabase/service";
 import { createAdminClient } from "../supabase/admin";
 import { writeAudit } from "./audit";
+import { writeInAppNotice } from "../notify/in-app";
 import { STAFF_SCOPE_LABEL, STAFF_SCOPES, type StaffScope } from "./guard";
 import { isNotInstalled } from "./support-queue";
 import { STAFF_HANDBOOK_VERSION } from "./staff-handbook";
@@ -234,7 +235,7 @@ export async function removeFromSupport(input: { userId: string; reason: string 
       detail: { reason: parsed.data.reason, kept: rest.join(",") },
     });
     const kept = rest.map((s) => STAFF_SCOPE_LABEL[s as StaffScope] ?? s).join(", ");
-    await service.from("notifications").insert({
+    await writeInAppNotice(service, {
       user_id: parsed.data.userId,
       kind: "system",
       title: "Support is no longer one of your desks",

@@ -5,6 +5,7 @@ import { loadListingsByIds } from "../../listings/supabase-repository";
 import { planAlerts, type AlertCandidate } from "../../saved/search-alerts";
 import { asSavedSearches, SAVED_SEARCH_COLUMNS } from "../../saved/searches-db";
 import { INSTANT_ALERTS_PER_DAY, lagosDay, splitByQuota } from "../../saved/instant-alerts";
+import { writeInAppNotices } from "../../notify/in-app";
 import type { AdminClient } from "../rpc";
 import { subjectOf, windowStart } from "./saved-search-alerts";
 
@@ -185,7 +186,8 @@ export async function newMatchAlerts(admin: AdminClient): Promise<JobVerdict> {
   };
 
   if (split.send.length > 0) {
-    const { error } = await admin.from("notifications").insert(
+    const { error } = await writeInAppNotices(
+      admin,
       split.send.map((notice) => ({
         user_id: notice.userId,
         kind: "listing" as const,

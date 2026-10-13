@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { createAdminClient } from "../supabase/admin";
+import { writeInAppNotice } from "../notify/in-app";
 import { writeAudit } from "./audit";
 import { adminRefusal, requireAdmin, ADMIN_FORBIDDEN_MESSAGE } from "./guard";
 import { removeSavedMethodSchema } from "./schema";
@@ -142,7 +143,7 @@ async function removeSavedMethod(
       entityId: row.id,
       detail: { owner_id: row.user_id, reason: parsed.data.reason },
     });
-    await admin.from("notifications").insert({
+    await writeInAppNotice(admin, {
       user_id: row.user_id,
       /* `system`: a saved method is an account setting. The wallet is
          retired and its notification kind with it. */
