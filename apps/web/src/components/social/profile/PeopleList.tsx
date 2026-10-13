@@ -200,7 +200,7 @@ export function PeopleList({
                   */}
                   {person.isAgent ? (
                     <span className="nf-role-tag shrink-0 uppercase tracking-[0.08em]">
-                      Agent
+                      {person.supplyRole === "owner" ? "Landlord" : "Agent"}
                     </span>
                   ) : null}
                 </p>

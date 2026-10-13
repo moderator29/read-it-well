@@ -3,8 +3,7 @@ import { getDictionary } from "@vallo/i18n";
 import {
   BUSINESS_KINDS,
   isBusinessKind,
-  listerKindFromAgentType,
-  listerKindsFromListingRoles,
+  listerKindFromSupplyRole,
   roleLine,
   roleWords,
 } from "./role-line";
@@ -17,20 +16,11 @@ describe("the one role line under a person's name", () => {
     expect(roleLine(["renter"], copy)).toBe("Renter");
   });
 
-  it("names an approved supply account by what its agents row says", () => {
-    expect(listerKindFromAgentType("individual")).toBe("owner");
-    expect(listerKindFromAgentType("business")).toBe("agent");
-    expect(listerKindFromAgentType(null)).toBe("owner");
+  it("names an approved supply account by its side, agents.role", () => {
+    expect(listerKindFromSupplyRole("owner")).toBe("owner");
+    expect(listerKindFromSupplyRole("agent")).toBe("agent");
     expect(roleLine(roleWords({ listers: ["owner"], businesses: [] }), copy)).toBe("Landlord");
     expect(roleLine(roleWords({ listers: ["agent"], businesses: [] }), copy)).toBe("Agent");
-  });
-
-  it("reads somebody else's listings: owner is a landlord, agent and firm are an agent, both is both", () => {
-    expect(listerKindsFromListingRoles(["owner", "owner"])).toEqual(["owner"]);
-    expect(listerKindsFromListingRoles(["firm"])).toEqual(["agent"]);
-    expect(listerKindsFromListingRoles(["agent", "owner"])).toEqual(["owner", "agent"]);
-    expect(listerKindsFromListingRoles([])).toEqual([]);
-    expect(listerKindsFromListingRoles([null, "unknown"])).toEqual([]);
   });
 
   it("names every business kind the database has, once each, after the person", () => {

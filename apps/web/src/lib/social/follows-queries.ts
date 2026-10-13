@@ -41,6 +41,8 @@ export type FollowRow = {
   avatarUrl: string;
   /** A role marker, never an earned badge. It draws no mark. */
   isAgent: boolean;
+  /** That account's side (`social_profiles.supply_role`): owner reads Landlord, agent reads Agent. */
+  supplyRole: "owner" | "agent" | null;
   /** The published badge. The only thing a mark may be drawn from. */
   badgeTier: BadgeTier;
   /** Empty when there is none, or when the scanner is holding it. */
@@ -186,7 +188,7 @@ async function readProfiles(
   try {
     const { data, error } = await supabase
       .from("social_profiles")
-      .select("user_id, handle, display_label, avatar_path, is_agent, bio, bio_status")
+      .select("user_id, handle, display_label, avatar_path, is_agent, supply_role, bio, bio_status")
       .in("user_id", ids);
     if (error || !data) return [];
     /* One read for the whole page, from the one published door. A follower row
@@ -201,6 +203,7 @@ async function readProfiles(
       displayLabel: row.display_label ?? "",
       avatarUrl: row.avatar_path ?? "",
       isAgent: row.is_agent,
+      supplyRole: row.supply_role,
       badgeTier: badges.get(row.user_id) ?? "none",
       /* A bio the scanner is holding is shown to nobody but its own author,
          which is the same rule the profile page follows and it is applied here

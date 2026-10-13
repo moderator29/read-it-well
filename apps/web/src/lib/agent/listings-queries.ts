@@ -65,6 +65,8 @@ export type AgentIdentity = {
   displayName: string;
   status: Database["public"]["Enums"]["agent_application_status"];
   type: Database["public"]["Enums"]["agent_type"];
+  /** The account's side, `agents.role`: `owner` is a landlord, `agent` an agent. */
+  role: Database["public"]["Enums"]["supply_role"];
   verified: boolean;
   /**
    * Where they stand on the verification ladder, 0 to 4.
@@ -107,7 +109,7 @@ export async function getAgentContext(): Promise<AgentContext> {
 
   const { data, error } = await session.supabase
     .from("agents")
-    .select("id, display_name, status, type, verification_tier, agent_badges(tier)")
+    .select("id, display_name, status, type, role, verification_tier, agent_badges(tier)")
     .eq("user_id", session.user.id)
     .maybeSingle();
 
@@ -124,6 +126,7 @@ export async function getAgentContext(): Promise<AgentContext> {
       displayName: data.display_name,
       status: data.status,
       type: data.type,
+      role: data.role,
       /*
        * THE RAIL'S "VERIFIED AGENT" CHIP, READ FROM THE PUBLISHED BADGE.
        *

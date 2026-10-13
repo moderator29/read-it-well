@@ -6,7 +6,7 @@ import type { Database } from "../supabase/database.types";
 import { resolveSessionClaims } from "../actions/session";
 import { getMode, getWorkspaceKey } from "../mode";
 import {
-  kindFromAgentType,
+  kindFromSupplyRole,
   makeWorkspace,
   orderWorkspaces,
   resolveCurrent,
@@ -105,7 +105,7 @@ type ShellContextRow = {
   profile: { first_name: string | null; nickname: string | null; display_name: string | null; avatar_url: string | null } | null;
   handle: string | null;
   unread: number | null;
-  agent: { id: string; display_name: string; type: "individual" | "business" | null; status: string } | null;
+  agent: { id: string; display_name: string; role: "owner" | "agent" | null; status: string } | null;
   businesses: { id: string; name: string; kind: string; status: string; is_demo: boolean | null }[] | null;
   roles: string[] | null;
   staff: unknown;
@@ -126,7 +126,7 @@ async function workspacesFrom(row: ShellContextRow): Promise<WorkspacesView> {
   if (row.agent) {
     workspaces.push(
       makeWorkspace({
-        kind: kindFromAgentType(row.agent.type ?? "individual"),
+        kind: kindFromSupplyRole(row.agent.role),
         id: row.agent.id,
         name: row.agent.display_name,
         standing: standingFromStatus(row.agent.status),

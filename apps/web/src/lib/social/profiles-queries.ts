@@ -60,6 +60,12 @@ export type SocialProfileView = {
    */
   isAgent: boolean;
   /**
+   * The side of that approved supply account (`social_profiles.supply_role`,
+   * projected from `agents.role`): `owner` reads as Landlord, `agent` as
+   * Agent. Null when there is no approved supply account.
+   */
+  supplyRole: "owner" | "agent" | null;
+  /**
    * The published badge, `public.person_badge.tier`. THE ONLY thing a surface
    * may draw a mark from. See `lib/trust/badge-tier.ts` for why `isAgent`
    * above must never stand in for it.
@@ -86,7 +92,7 @@ export type AreaOption = { id: string; name: string; city: string; stateCode: st
 
 /* Selected once so the row shape and the mapper can never drift apart. */
 const PROFILE_COLUMNS =
-  "user_id, handle, display_label, avatar_path, is_agent, bio, bio_status, pronouns, link, contact_policy, pidgin_ok, home_area_id, cover_path, follower_count, following_count, post_count, handle_claimed_at";
+  "user_id, handle, display_label, avatar_path, is_agent, supply_role, bio, bio_status, pronouns, link, contact_policy, pidgin_ok, home_area_id, cover_path, follower_count, following_count, post_count, handle_claimed_at";
 
 /**
  * UX-24: what a SIGNED-OUT reader of a profile may ask for.
@@ -114,6 +120,7 @@ type ProfileRow = {
   display_label: string | null;
   avatar_path: string | null;
   is_agent: boolean;
+  supply_role: string | null;
   bio: string | null;
   bio_status: string;
   pronouns: string | null;
@@ -163,6 +170,7 @@ function toView(row: ProfileRow, viewerIsOwner: boolean): SocialProfileView {
     displayLabel: row.display_label ?? "",
     avatarUrl: row.avatar_path ?? "",
     isAgent: row.is_agent,
+    supplyRole: row.supply_role === "owner" || row.supply_role === "agent" ? row.supply_role : null,
     /* Filled by the caller from the published view. Never derived here. */
     badgeTier: "none",
     bio: bioVisible ? (row.bio ?? "") : "",

@@ -366,14 +366,14 @@ function Ticks({ read }: { read: boolean }) {
  * "Vallo Agent" rather than "Agent" on the side doing the letting, which is
  * the render's own wording and is the more useful of the two: it says the
  * person answering is acting on this platform, which is exactly the fact a
- * renter is weighing. The other side is the Tenant. A stay thread gets none
+ * renter is weighing. A listing its owner listed says "Landlord" instead,
+ * because an owner is nobody's agent. The other side is the Tenant. A stay thread gets none
  * of this: there is no tenancy in it and nobody is anybody's agent.
  */
 function roleTags(context: ThreadContext | undefined, role: ThreadRole): { mine: string; theirs: string } | null {
   if (context?.kind !== "listing") return null;
-  return role === "host"
-    ? { mine: "Vallo Agent", theirs: "Tenant" }
-    : { mine: "Tenant", theirs: "Vallo Agent" };
+  const lister = context.listing?.listingRole === "owner" ? "Landlord" : "Vallo Agent";
+  return role === "host" ? { mine: lister, theirs: "Tenant" } : { mine: "Tenant", theirs: lister };
 }
 
 /**

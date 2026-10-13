@@ -13192,6 +13192,7 @@ export type Database = {
           post_count: number
           pronouns: string | null
           state_code: string | null
+          supply_role: Database["public"]["Enums"]["supply_role"] | null
           updated_at: string
           user_id: string
         }
@@ -13218,6 +13219,7 @@ export type Database = {
           post_count?: number
           pronouns?: string | null
           state_code?: string | null
+          supply_role?: Database["public"]["Enums"]["supply_role"] | null
           updated_at?: string
           user_id: string
         }
@@ -13244,6 +13246,7 @@ export type Database = {
           post_count?: number
           pronouns?: string | null
           state_code?: string | null
+          supply_role?: Database["public"]["Enums"]["supply_role"] | null
           updated_at?: string
           user_id?: string
         }

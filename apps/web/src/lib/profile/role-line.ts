@@ -5,15 +5,11 @@
  * is on Vallo: a renter, a landlord, an agent, a hotel, a restaurant, a
  * short-let host. Every word comes from a row, never from a guess:
  *
- *   landlord / agent   the person's approved supply account. On their own
- *                      page that is `agents.type` (`individual` is somebody
- *                      listing their own property, `business` an agent, the
- *                      mapping `kindFromAgentType` already carries). On
- *                      somebody else's page `agents` is not readable, so it
- *                      is the role their published listings were listed
- *                      under (`listings.listing_role`), and an approved
- *                      lister with nothing published reads as the agent the
- *                      public marker (`social_profiles.is_agent`) says.
+ *   landlord / agent   the person's approved supply account, by its side
+ *                      (`agents.role`, `owner` or `agent`). On their own
+ *                      page the row is readable; on somebody else's page
+ *                      `agents` is not, so it is the projection of the same
+ *                      column (`social_profiles.supply_role`).
  *   hotel and the rest the kind of each published business they own
  *                      (`businesses.kind`, the `business_kind` enum).
  *   renter             nothing above: "absent means renter only", the rule
@@ -66,21 +62,9 @@ export function isBusinessKind(value: unknown): value is BusinessKind {
   return typeof value === "string" && (BUSINESS_KINDS as readonly string[]).includes(value);
 }
 
-/** `agents.type` as a lister kind: the same mapping the workspace switch uses. */
-export function listerKindFromAgentType(type: string | null | undefined): ListerKind {
-  return type === "business" ? "agent" : "owner";
-}
-
-/**
- * The lister kind somebody else's published listings say, or null when they
- * say nothing. `owner` beside `agent` or `firm` reads as both, because a
- * person can let their own flat and agent another's.
- */
-export function listerKindsFromListingRoles(roles: readonly unknown[]): ListerKind[] {
-  const out: ListerKind[] = [];
-  if (roles.includes("owner")) out.push("owner");
-  if (roles.includes("agent") || roles.includes("firm")) out.push("agent");
-  return out;
+/** `agents.role` (or its projection) as a lister kind. Only `owner` is a landlord. */
+export function listerKindFromSupplyRole(role: string | null | undefined): ListerKind {
+  return role === "owner" ? "owner" : "agent";
 }
 
 /**

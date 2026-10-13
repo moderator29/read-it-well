@@ -188,7 +188,7 @@ export default async function SocialProfilePage({
         readProfileBadges(supabase, userId, locale, view.signedIn),
         /* The one role line under their name: what their published listings
            and businesses say they are (`lib/profile/role-facts.ts`). */
-        readPublicRoleWords(supabase, userId, view.profile.isAgent),
+        readPublicRoleWords(supabase, userId, view.profile.supplyRole),
       ]);
     /* "Ownership seen": a reviewer approved this owner's proof of ownership. */
     const ownershipSeen = view.profile.isAgent ? await ownershipSeenFor(userId) : null;

@@ -2,7 +2,6 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../../supabase/database.types";
-import { kindFromAgentType } from "../../supply/workspaces";
 import { requireAdmin } from "../guard";
 import type { AdminRead } from "../queries";
 import { exactCount, readEvery } from "./money";
@@ -17,7 +16,7 @@ import { SUPPLY_ROLE_KEYS, type SupplyConsole, type SupplyRoleKey, type SupplyRo
  *
  * THE FOUR ROLES are the product's own, from `lib/supply/workspaces-queries.ts`:
  * an `agents` row is an owner or an agent by its application's `supply_role`,
- * falling back to `kindFromAgentType` exactly as the workspace switch does; a
+ * falling back to its own side, `agents.role`, as the workspace switch reads; a
  * `businesses` row is a firm when `kind = 'agency'` and a host otherwise.
  *
  * EXAMPLES ARE NOT SUPPLY. On 22 September every listing, accommodation,
@@ -47,7 +46,7 @@ type AgentRow = {
   id: string;
   user_id: string;
   display_name: string;
-  type: "individual" | "business" | null;
+  role: "owner" | "agent" | null;
   /**
    * THE PUBLISHED BADGE, NOT THE COLUMN BESIDE IT. `agents.verified` still
    * exists and still holds the same answer, because `agents_derive_badge`
@@ -117,7 +116,7 @@ export function buildSupply(inputs: SupplyInputs, filter: SupplyDeskFilter, now:
     ...agents.map((a): SupplyRow => {
       const declared = a.application_id ? inputs.supplyRoleByApplication.get(a.application_id) : null;
       const role: SupplyRoleKey =
-        declared === "owner" || declared === "agent" ? declared : (kindFromAgentType(a.type ?? "individual") as SupplyRoleKey);
+        declared === "owner" || declared === "agent" ? declared : (a.role ?? "agent");
       return {
         id: a.id,
         kind: "agent",
@@ -219,7 +218,7 @@ export async function getSupplyDesk(
       readEvery<AgentRow>((f, t) =>
         db
           .from("agents")
-          .select("id, user_id, display_name, type, agent_badges(verified), is_demo, created_at, application_id")
+          .select("id, user_id, display_name, role, agent_badges(verified), is_demo, created_at, application_id")
           .order("id")
           .range(f, t),
       ),

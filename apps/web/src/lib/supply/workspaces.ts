@@ -85,18 +85,12 @@ export type WorkspacesView = {
 /* --------------------------------------------------------------- building */
 
 /**
- * The interim mapping from what the database can say today.
- *
- * `agents.role` does not exist yet: the person axis is still `agents.type`,
- * `individual` or `business`, which has never meant owner or agent and is
- * exactly the defect this direction closes. Until the column lands, an
- * individual reads as an owner workspace and a business as an agent one,
- * which is what the product already assumes on every screen. The mapping is
- * HERE, in one function, so the day the column ships there is one line to
- * change rather than a hunt.
+ * The workspace an agents row opens, by its side (`agents.role`): `owner` is
+ * the owner workspace, `agent` the agent one. `agents.type` (individual or
+ * business) never meant this and is not read for it.
  */
-export function kindFromAgentType(type: "individual" | "business"): WorkspaceKind {
-  return type === "business" ? "agent" : "owner";
+export function kindFromSupplyRole(role: "owner" | "agent" | null | undefined): WorkspaceKind {
+  return role === "owner" ? "owner" : "agent";
 }
 
 /**

@@ -6,7 +6,7 @@ const agent = (id: string, over: Partial<SupplyInputs["agents"][number]> = {}) =
   id,
   user_id: `u-${id}`,
   display_name: `Agent ${id}`,
-  type: "individual" as const,
+  role: "owner" as "owner" | "agent",
   agent_badges: { verified: true },
   is_demo: false,
   created_at: "2026-09-01T10:00:00Z",
@@ -39,7 +39,7 @@ function inputs(over: Partial<SupplyInputs> = {}): SupplyInputs {
   return {
     agents: [
       agent("a1", { application_id: "app1" }),
-      agent("a2", { type: "business", created_at: "2026-09-20T10:00:00Z" }),
+      agent("a2", { role: "agent", created_at: "2026-09-20T10:00:00Z" }),
       agent("demo", { is_demo: true }),
     ],
     supplyRoleByApplication: new Map([["app1", "agent"]]),
@@ -55,7 +55,7 @@ function inputs(over: Partial<SupplyInputs> = {}): SupplyInputs {
 describe("buildSupply", () => {
   const desk = buildSupply(inputs(), { examples: false, page: 1, pageSize: 10 }, NOW);
 
-  it("classifies by the application's declared role, then by agent type, then by business kind", () => {
+  it("classifies by the application's declared role, then by the account's side (agents.role), then by business kind", () => {
     const role = Object.fromEntries(desk.rows.map((r) => [r.id, r.role]));
     expect(role).toEqual({ a1: "agent", a2: "agent", b1: "firm", b2: "host" });
   });

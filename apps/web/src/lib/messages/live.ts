@@ -426,6 +426,8 @@ export type ThreadContext = {
     title: string;
     area: string;
     city: string;
+    /** Who listed it: `owner` is the landlord, `agent` or `firm` an agent. */
+    listingRole: "owner" | "agent" | "firm" | null;
   };
   reservation?: {
     id: string;
@@ -476,7 +478,7 @@ export async function getThreadContext(conversationId: string): Promise<ThreadCo
   const { data: conversation } = await session.supabase
     .from("conversations")
     .select(
-      "id, guest_id, agent_id, context_kind, listing_id, reservation_id, booking_id, listings(id, title, area, city)",
+      "id, guest_id, agent_id, context_kind, listing_id, reservation_id, booking_id, listings(id, title, area, city, listing_role)",
     )
     .eq("id", conversationId)
     .maybeSingle();
@@ -554,6 +556,7 @@ export async function getThreadContext(conversationId: string): Promise<ThreadCo
             title: conversation.listings.title,
             area: conversation.listings.area ?? "",
             city: conversation.listings.city ?? "",
+            listingRole: conversation.listings.listing_role ?? null,
           },
         }
       : {}),

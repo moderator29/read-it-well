@@ -4,7 +4,7 @@ import { cache } from "react";
 import { resolveSession } from "@/lib/actions/session";
 import { getMode, getWorkspaceKey } from "@/lib/mode";
 import {
-  kindFromAgentType,
+  kindFromSupplyRole,
   makeWorkspace,
   orderWorkspaces,
   resolveCurrent,
@@ -31,13 +31,7 @@ import {
  *                 is a stays workspace.
  *   `user_roles`  staff, for the console.
  *
- * WHAT IS NOT READ, AND IT IS NOT AN OVERSIGHT. `agents.role`, `agents.firm_id`
- * and `firm_members` are the person axis this direction adds, and none of the
- * three exists in the database yet. Selecting a column that is not there is a
- * 400 from PostgREST on every route that renders the shell, so this reads what
- * is there and `kindFromAgentType` carries the interim mapping in one place.
- * When the migration lands, the select list grows and that function changes;
- * nothing else here does.
+ * The agents row's side is `agents.role`, read through `kindFromSupplyRole`.
  *
  * EVERYTHING FAILS SOFT. Navigation chrome is never worth taking a page down
  * for: a read that failed is not a workspace, and the person sees the personal
@@ -54,7 +48,7 @@ export const resolveWorkspaces = cache(async function resolveWorkspaces(): Promi
       getWorkspaceKey(),
       session.supabase
         .from("agents")
-        .select("id, display_name, type, status")
+        .select("id, display_name, role, status")
         .eq("user_id", session.user.id)
         .maybeSingle(),
       session.supabase
@@ -74,7 +68,7 @@ export const resolveWorkspaces = cache(async function resolveWorkspaces(): Promi
     if (agent) {
       workspaces.push(
         makeWorkspace({
-          kind: kindFromAgentType(agent.type ?? "individual"),
+          kind: kindFromSupplyRole(agent.role),
           id: agent.id,
           name: agent.display_name,
           standing: standingFromStatus(agent.status),

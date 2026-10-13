@@ -90,7 +90,13 @@ function whenLabel(iso: string): string {
 type Enrichment = {
   authors: Map<
     string,
-    { handle: string | null; displayLabel: string | null; avatarPath: string | null; isAgent: boolean }
+    {
+      handle: string | null;
+      displayLabel: string | null;
+      avatarPath: string | null;
+      isAgent: boolean;
+      supplyRole: "owner" | "agent" | null;
+    }
   >;
   moderatorAreas: Map<string, string>;
   liked: Set<string>;
@@ -197,7 +203,7 @@ async function enrich(
     authorIds.length
       ? supabase
           .from("social_profiles")
-          .select("user_id, handle, display_label, avatar_path, is_agent")
+          .select("user_id, handle, display_label, avatar_path, is_agent, supply_role")
           .in("user_id", authorIds)
       : Promise.resolve({ data: [] as never[] }),
     areaIds.length
@@ -235,12 +241,14 @@ async function enrich(
     display_label: string | null;
     avatar_path: string | null;
     is_agent: boolean;
+    supply_role: "owner" | "agent" | null;
   }[]) {
     authors.set(p.user_id, {
       handle: p.handle,
       displayLabel: p.display_label,
       avatarPath: p.avatar_path,
       isAgent: p.is_agent,
+      supplyRole: p.supply_role,
     });
   }
 
@@ -335,6 +343,7 @@ function toView(row: RawPost, e: Enrichment, viewerId: string | null): PostView 
           displayLabel: author.displayLabel,
           avatarPath: author.avatarPath,
           isAgent: author.isAgent,
+          supplyRole: author.supplyRole,
           moderatorOf:
             row.author_id && row.area_id && e.moderatorAreas.has(`${row.author_id}:${row.area_id}`)
               ? (area?.name ?? null)

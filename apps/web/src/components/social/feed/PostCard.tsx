@@ -41,6 +41,8 @@ export type PostAuthor = {
   displayLabel: string | null;
   avatarPath: string | null;
   isAgent: boolean;
+  /** The side of that supply account: owner is a landlord, agent an agent. */
+  supplyRole?: "owner" | "agent" | null;
   /** Set when this person looks after the place the post is in. */
   moderatorOf: string | null;
   /**
@@ -768,5 +770,6 @@ function describe(post: PostView): string {
   if (post.authorKind === "SYSTEM") return "Posted by Vallo";
   if (post.authorKind === "BOT") return "Answered by the Vallo assistant";
   const who = post.author?.displayLabel ?? post.author?.handle ?? "someone";
-  return post.author?.isAgent ? `Posted by ${who}, an agent` : `Posted by ${who}`;
+  if (!post.author?.isAgent) return `Posted by ${who}`;
+  return post.author.supplyRole === "owner" ? `Posted by ${who}, a landlord` : `Posted by ${who}, an agent`;
 }
