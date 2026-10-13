@@ -4,6 +4,12 @@
  * lister's order, only the video slides carry the "Watch video" button, and
  * pressing it plays that video in place, muted, with its controls, fetching
  * the file only then. Swiping away stops it.
+ *
+ * THE COVER SAYS SO TOO (founder's reference, 13 October 2026): while the
+ * slide on screen is a photo, one "Watch video" pill floats over it and jumps
+ * straight to the first video, playing it. So at any moment exactly ONE
+ * "Watch video" is on the screen: the cover's on a photo slide, the slide's own
+ * on a video slide, and none while a video plays.
  */
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { BROWSER_TEST_TIMEOUT, closeBrowser, hasBrowser, mountInBrowser, warmBrowser } from "@/lib/testing/mount-in-browser";
@@ -45,9 +51,11 @@ describe.skipIf(!hasBrowser && !process.env.CI)("ListingGallery with videos", ()
       const kinds = await panes.evaluateAll((els) => els.map((el) => el.getAttribute("data-kind") ?? "photo"));
       expect(kinds).toEqual(["photo", "video", "photo", "photo", "video"]);
 
-      /* The pill is a real button named "Watch video", on the video slides only. */
-      const pills = page.getByRole("button", { name: "Watch video" });
-      expect(await pills.count()).toBe(2);
+      /* The slide pill is a real button named "Watch video", on the video
+         slides only; the cover carries the one extra, outside the panes. */
+      expect(await track.getByRole("button", { name: "Watch video" }).count()).toBe(2);
+      expect(await page.getByTestId("gallery-watch-cover").count()).toBe(1);
+      expect(await page.getByRole("button", { name: "Watch video" }).count()).toBe(3);
       for (const i of [0, 2, 3]) expect(await panes.nth(i).getByTestId("gallery-watch").count()).toBe(0);
       expect(await panes.nth(1).getByTestId("gallery-watch").count()).toBe(1);
       expect(await panes.nth(4).getByTestId("gallery-watch").count()).toBe(1);
@@ -79,10 +87,22 @@ describe.skipIf(!hasBrowser && !process.env.CI)("ListingGallery with videos", ()
       /* The counter steps off the player's controls while it plays. */
       expect(await page.getByTestId("gallery-counter").count()).toBe(0);
 
+      /* No cover pill while the slide on screen is a video. */
+      expect(await page.getByTestId("gallery-watch-cover").count()).toBe(0);
+
       /* Swiping away stops it: the player is gone and the pill is back. */
       await track.evaluate((el) => el.scrollTo({ left: el.clientWidth * 2, behavior: "instant" as ScrollBehavior }));
       await page.waitForFunction(() => document.querySelectorAll('[data-testid="gallery-video"]').length === 0, null, { timeout: 5000 });
       expect(await panes.nth(1).getByTestId("gallery-watch").count()).toBe(1);
+
+      /* Back on a photo, the cover pill is back, and it jumps to the FIRST
+         video and plays it in place. */
+      await page.getByTestId("gallery-watch-cover").click();
+      await page.getByTestId("gallery-video").waitFor();
+      expect(await page.getByTestId("gallery-video").getAttribute("src")).toBe("/v/a.mp4");
+      expect((await page.getByTestId("gallery-counter").count())).toBe(0);
+      expect(await track.evaluate((el) => Math.round(el.scrollLeft / el.clientWidth))).toBe(1);
+      expect(await page.getByTestId("gallery-watch-cover").count()).toBe(0);
     } finally {
       await close();
     }

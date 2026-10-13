@@ -14,7 +14,19 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
  * accessibility tree, so nothing is ever announced as half a sentence or
  * hidden from a screen reader while a sighted reader can see it.
  */
-export function ListingAbout({ paragraphs }: { paragraphs: string[] }) {
+export function ListingAbout({
+  paragraphs,
+  labels,
+}: {
+  paragraphs: string[];
+  /**
+   * "Read more" and "Show less" in the reader's language
+   * (`catalogue.detail.readMore` and `showLess`). The listing page passes
+   * them; the two English words stay only as the fallback for the stay and
+   * restaurant faces, which do not pass a dictionary down yet.
+   */
+  labels?: { readMore: string; showLess: string };
+}) {
   const [open, setOpen] = useState(false);
   const regionId = useId();
 
@@ -42,7 +54,7 @@ export function ListingAbout({ paragraphs }: { paragraphs: string[] }) {
           data-testid="about-toggle"
           className="mt-xs"
         >
-          {open ? "Show less" : "Read more"}
+          {open ? (labels?.showLess ?? "Show less") : (labels?.readMore ?? "Read more")}
           <UiIcon
             name="chevron-down"
             size={16}

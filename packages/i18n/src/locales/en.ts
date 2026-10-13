@@ -5003,6 +5003,7 @@ export const en = {
       rent: "Rent",
       sqm: "m²",
       noPhotos: "No photographs yet",
+      watchVideo: "Watch video",
       example: "Example",
     },
     /* B2: what the phone remembers, offered back (lib/search/memory.ts). */
@@ -5129,6 +5130,20 @@ export const en = {
       verifiedHost: "Verified host",
       selectDate: "Select date",
       bookNow: "Book now",
+      /* The listing page upgrade (13 October 2026): the founder's reference layout. */
+      scheduleVisit: "Schedule a visit",
+      gallery: "Gallery",
+      viewAll: "View all",
+      viewAllMedia: "View all {count} photos and videos",
+      messageLister: "Message {name}",
+      callByMessage: "Message {name} first to arrange a call",
+      openProfile: "Open the profile of {name}",
+      theLister: "the lister",
+      allFacts: "Show all details",
+      fewerFacts: "Show fewer details",
+      verifiedBeforeLive: "A person at Vallo checked their ID before this listing went live.",
+      managesListing: "Manages this listing on Vallo",
+      restaurantLede: "Listed on Vallo by the person who runs it. Message them to ask about a table, a large party or anything the page does not answer.",
     },
     ledger: {
       title: "Move-in cost",

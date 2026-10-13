@@ -1,69 +1,63 @@
-import { countOf, formatNumber, type Dictionary, type Locale } from "@vallo/i18n/core";
-import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
-import type { Listing } from "@/lib/listings/types";
-import { ICON } from "@/components/app/Screen";
+"use client";
+
+import { useId, useState } from "react";
+import { UiIcon } from "@/design-system/icons/UiIcon";
+import { splitChips, type SpecChip } from "./spec-chips";
 import "@/app/css/catalogue.css";
 
+export type { SpecChip } from "./spec-chips";
+
 /**
- * The spec chips under the price (7B5335E0): beds, baths, floor area,
- * parking, backup power. Each one is a fact the lister stated; a fact they
- * did not state is not drawn, so the row is as long as the truth.
+ * The fact chips under the title (7B5335E0, and the founder's reference of 13
+ * October 2026): a line icon and a few words each, wrapping onto a second row,
+ * with a "+N" chip that opens the rest in place. The chips are built on the
+ * server from the listing's own columns (`spec-chips.ts`); this file only
+ * draws them and owns the one toggle.
+ *
+ * The "+N" chip is a real button with `aria-expanded`, named in words for a
+ * screen reader ("Show all details"), so the number is never the only label.
+ * Opened, the rest join the row and the last chip says "Show fewer details".
  */
-export type SpecChip = { key: string; icon: UiIconName; label: string };
-
-export function specChips(listing: Listing, t: Dictionary, locale: Locale): SpecChip[] {
-  const chips: SpecChip[] = [];
-  const copy = t.catalogue.detail;
-  if (listing.bedrooms > 0) {
-    chips.push({
-      key: "beds",
-      icon: "bed",
-      label: countOf(listing.bedrooms, "beds", locale),
-    });
-  }
-  if (listing.bathrooms > 0) {
-    chips.push({
-      key: "baths",
-      icon: "bath",
-      label: countOf(listing.bathrooms, "baths", locale),
-    });
-  }
-  if (listing.sizeSqm !== undefined && listing.sizeSqm > 0) {
-    chips.push({
-      key: "size",
-      icon: "grid",
-      label: `${formatNumber(listing.sizeSqm, locale)} ${t.catalogue.card.sqm}`,
-    });
-  }
-  if (listing.parkingSpaces !== undefined && listing.parkingSpaces > 0) {
-    chips.push({ key: "parking", icon: "parking", label: copy.parking });
-  }
-  const backup = listing.utilities?.powerBackup;
-  if (backup && backup !== "NONE") {
-    chips.push({ key: "power", icon: "bolt", label: copy.generator });
-  }
-  if (listing.maxGuests !== undefined && listing.maxGuests > 0 && listing.pricePeriod === "night") {
-    chips.push({
-      key: "guests",
-      icon: "user",
-      label: countOf(listing.maxGuests, "guests", locale),
-    });
-  }
-  return chips;
-}
-
-export function ListingSpecChips({ chips }: { chips: SpecChip[] }) {
+export function ListingSpecChips({
+  chips,
+  labels,
+}: {
+  chips: SpecChip[];
+  /** "Show all details" and "Show fewer details", from the page's dictionary. */
+  labels?: { more: string; fewer: string };
+}) {
+  const [open, setOpen] = useState(false);
+  const listId = useId();
   if (chips.length === 0) return null;
-  /* Five or fewer share the width, as 7B5335E0 draws them; more scroll. */
-  const fit = chips.length <= 5;
+  /* Without the two labels there is no honest name for the toggle, so every
+     chip is drawn rather than any being hidden behind an unnamed control. */
+  const { shown, hidden } = labels ? splitChips(chips) : { shown: chips, hidden: [] };
+  const drawn = open ? [...shown, ...hidden] : shown;
   return (
-    <ul className={`nf-spec-row ${fit ? "nf-spec-row--fit" : "nf-scroll-x"}`} data-testid="spec-chips">
-      {chips.map((chip) => (
-        <li key={chip.key} className="nf-spec-tile">
-          <UiIcon name={chip.icon} size={ICON.inline} />
-          <span>{chip.label}</span>
-        </li>
-      ))}
-    </ul>
+    <div className="nf-spec-wrap">
+      <ul id={listId} className="nf-spec-row nf-spec-row--fit" data-testid="spec-chips">
+        {drawn.map((chip) => (
+          <li key={chip.key} className="nf-spec-tile" data-chip={chip.key}>
+            <UiIcon name={chip.icon} size={18} />
+            <span>{chip.label}</span>
+          </li>
+        ))}
+        {hidden.length > 0 && labels && (
+          <li className="nf-spec-more-cell">
+            <button
+              type="button"
+              className="nf-spec-more"
+              aria-expanded={open}
+              aria-controls={listId}
+              aria-label={open ? labels.fewer : `+${hidden.length} ${labels.more}`}
+              onClick={() => setOpen((current) => !current)}
+              data-testid="spec-chips-more"
+            >
+              {open ? <UiIcon name="minus" size={16} /> : <span className="nf-numeric">+{hidden.length}</span>}
+            </button>
+          </li>
+        )}
+      </ul>
+    </div>
   );
 }

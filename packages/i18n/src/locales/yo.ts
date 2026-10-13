@@ -3027,6 +3027,7 @@ export const yo: Dictionary = withFallback({
       rent: "Háyà",
       sqm: "m²",
       noPhotos: "Kò tíì sí fọ́tò",
+      watchVideo: "Wo fídíò",
       example: "Àpẹẹrẹ",
     },
     shelf: {
@@ -3105,6 +3106,20 @@ export const yo: Dictionary = withFallback({
       verifiedHost: "Ògbàlejò tí a ti jẹ́rìí sí",
       selectDate: "Yan ọjọ́",
       bookNow: "Ṣe ìforúkọsílẹ̀ báyìí",
+      /* The listing page upgrade (13 October 2026): the founder's reference layout. */
+      scheduleVisit: "Ṣètò ìbẹ̀wò",
+      gallery: "Àwòrán",
+      viewAll: "Wo gbogbo rẹ̀",
+      viewAllMedia: "Wo gbogbo fọ́tò àti fídíò {count}",
+      messageLister: "Fi ìránṣẹ́ ránṣẹ́ sí {name}",
+      callByMessage: "Kọ́kọ́ fi ìránṣẹ́ ránṣẹ́ sí {name} láti ṣètò ìpè",
+      openProfile: "Ṣí ojú-ìwé {name}",
+      theLister: "ẹni tó kọ ọ́ sílẹ̀",
+      allFacts: "Fi gbogbo àlàyé hàn",
+      fewerFacts: "Fi àlàyé díẹ̀ hàn",
+      verifiedBeforeLive: "Ẹnìkan ní Vallo ṣàyẹ̀wò ìdánimọ̀ wọn kí àkọsílẹ̀ yìí tó jáde.",
+      managesListing: "Ó ń bójútó àkọsílẹ̀ yìí lórí Vallo",
+      restaurantLede: "Ẹni tó ń ṣiṣẹ́ ibí ló kọ ọ́ sílẹ̀ lórí Vallo. Fi ìránṣẹ́ ránṣẹ́ sí wọn láti béèrè nípa tábìlì, àwùjọ ńlá tàbí ohunkóhun tí ojú-ìwé yìí kò dáhùn.",
     },
     ledger: {
       title: "Owó ìwọlé",

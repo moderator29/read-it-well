@@ -1,10 +1,16 @@
+import Link from "next/link";
+import type { ReactNode } from "react";
 import type { Dictionary } from "@vallo/i18n/core";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ButtonLink } from "@/components/ui/Button";
+import { iconPlateClass } from "@/components/ui/IconPlate";
+import { RemoteImage } from "@/components/ui/RemoteImage";
 import { AuthGate } from "@/components/auth/AuthGate";
+import { TierBadge } from "@/components/trust/TierBadge";
 import { VerifiedAgentBadge } from "./VerifiedAgentBadge";
 import { ListerRoleLine } from "./ListerRoleLine";
 import { listerHeading } from "./lister-role";
+import type { ListerCard } from "./lister-card";
 import type { ListingRole } from "@/lib/supply/roles";
 import "@/app/css/catalogue.css";
 
@@ -52,6 +58,33 @@ import "@/app/css/catalogue.css";
  * `public.listing_lister`, which publishes a display name and nothing else. It
  * says WHO, never whether anybody verified them. The badge beside it is the
  * only thing on this card that means a person here looked at a document.
+ *
+ * ---------------------------------------------------------------------------
+ * "LISTED BY", THE FOUNDER'S REFERENCE (13 October 2026)
+ *
+ * Given `lister` (the page's `readListerCard`), the card is the reference's
+ * row: the photograph, the name with the published badge beside it
+ * (`TierBadge`, from `person_badge`, never a guess), one role word under it
+ * (Landlord, Agent or Agency), and two round monochrome buttons on the right,
+ * call and message, on the solid plate: ink by day, paper at night. The person
+ * is a link to their profile when they have claimed a handle.
+ *
+ * The name on this row is the lister's PUBLIC profile name, the same one their
+ * `/u/<handle>` page already shows anybody, and the founder asked for it on the
+ * owner's listing too ("Listed by" with the owner's name and Landlord). A firm
+ * is drawn as the firm (see `lister-card.ts`).
+ *
+ *   Message   the listing's own conversation (`/messages/new?listing=`),
+ *             gated to sign in like every other action a guest may see. Not
+ *             governed by `contact_policy`, which is the profile's door only
+ *             (`lib/social/message-door.ts`), exactly as before.
+ *   Call      `call` when the page could place one (the `video_calls` switch,
+ *             a signed-in reader and a thread that exists); otherwise the same
+ *             conversation, labelled for what it is: message them first to
+ *             arrange a call. A phone number is never printed.
+ *
+ * No "Online" dot and no rating: there is no presence signal and no person
+ * rating behind either, so neither is drawn.
  */
 export function ListingAgentCard({
   verified,
@@ -59,6 +92,9 @@ export function ListingAgentCard({
   messageHref,
   name,
   listingRole,
+  lister,
+  call,
+  className,
 }: {
   verified: boolean;
   t: Dictionary;
@@ -74,8 +110,16 @@ export function ListingAgentCard({
    * its lister is must not be given a noun by this component.
    */
   listingRole?: ListingRole | null;
+  /** The "Listed by" row (`readListerCard`). Absent draws the older card. */
+  lister?: ListerCard | null;
+  /** A live call button (`ListerCallButton`), when the page can place a call. */
+  call?: ReactNode;
+  className?: string;
 }) {
   const copy = t.catalogue.detail;
+  if (lister) {
+    return <ListedByCard lister={lister} t={t} messageHref={messageHref} call={call} className={className} />;
+  }
   /* THE RULE LIVES IN `lister-role.ts` AND NOT HERE, because nothing that
      imports a `.tsx` file can be tested under this vitest config, and a rule
      that can only be grepped for is a rule that drifts. */
@@ -83,7 +127,7 @@ export function ListingAgentCard({
 
   return (
     <div
-      className="nf-agent-card"
+      className={`nf-agent-card ${className ?? ""}`.trimEnd()}
       data-testid="agent-card"
       /* THE AGENT NOUN, CARRIED SO A PROOF DOES NOT HAVE TO HARDCODE IT.
          `scripts/probes/track_g_the_sentence_on_a_screen.mjs` asserts the
@@ -125,8 +169,10 @@ export function ListingAgentCard({
           document, and the verified badge still means a checked human only.
         */}
         {listingRole ? <ListerRoleLine role={listingRole} name={name} className="mt-3xs" /> : null}
+        {/* In the reader's language: these two lines were English literals
+            on every locale (listing page upgrade, 13 October 2026). */}
         <p className="nf-caption mt-3xs text-[var(--nf-content-muted)]">
-          {verified ? `${t.common.verified} before this listing went live` : "Manages this listing on Vallo"}
+          {verified ? copy.verifiedBeforeLive : copy.managesListing}
         </p>
       </div>
       <AuthGate action="message">
@@ -134,6 +180,108 @@ export function ListingAgentCard({
           {copy.message}
         </ButtonLink>
       </AuthGate>
+    </div>
+  );
+}
+
+/** "Listed by": the reference's row. See the note at the head of this file. */
+function ListedByCard({
+  lister,
+  t,
+  messageHref,
+  call,
+  className,
+}: {
+  lister: ListerCard;
+  t: Dictionary;
+  messageHref: string;
+  call?: ReactNode;
+  className?: string;
+}) {
+  const copy = t.catalogue.detail;
+  const roleLabel = lister.role ? t.socialProfile.roleLine[lister.role] : null;
+  const heading = lister.name ?? roleLabel;
+  /* The name the buttons speak: theirs, or the role, or "the lister". */
+  const who = lister.name ?? roleLabel ?? copy.theLister;
+  const plate = iconPlateClass({ size: "md", tone: "solid", shape: "round", className: "nf-lister-act" });
+
+  const identity = (
+    <>
+      <span className="nf-agent-card__avatar nf-lister__avatar" aria-hidden="true">
+        {lister.avatarUrl ? (
+          <RemoteImage
+            src={lister.avatarUrl}
+            alt=""
+            width={48}
+            height={48}
+            sizes="48px"
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <span className="nf-detail-avatar-glyph">
+            <UiIcon name="user" size={22} />
+          </span>
+        )}
+      </span>
+      <span className="nf-lister__text">
+        {heading && (
+          <span className="nf-lister__name" data-testid="lister-name">
+            <span className="min-w-0 truncate">{heading}</span>
+            <TierBadge tier={lister.tier} size={16} />
+          </span>
+        )}
+        {roleLabel && lister.name && (
+          <span className="nf-lister__role" data-testid="lister-role-word" data-role={lister.role ?? undefined}>
+            {roleLabel}
+          </span>
+        )}
+      </span>
+    </>
+  );
+
+  return (
+    <div
+      className={`nf-agent-card nf-lister ${className ?? ""}`.trimEnd()}
+      data-testid="agent-card"
+      data-agent-noun={copy.agentRole}
+    >
+      {lister.handle ? (
+        <Link
+          href={`/u/${lister.handle}`}
+          className="nf-lister__who nf-tap"
+          title={copy.openProfile.replace("{name}", who)}
+          data-testid="lister-profile"
+        >
+          {identity}
+        </Link>
+      ) : (
+        <div className="nf-lister__who">{identity}</div>
+      )}
+      <span className="nf-lister__acts">
+        {call ?? (
+          <AuthGate action="message">
+            <Link
+              href={messageHref}
+              className={plate}
+              aria-label={copy.callByMessage.replace("{name}", who)}
+              data-testid="lister-call"
+              data-call="message"
+            >
+              <UiIcon name="phone" size={20} />
+            </Link>
+          </AuthGate>
+        )}
+        <AuthGate action="message">
+          <Link
+            href={messageHref}
+            className={plate}
+            aria-label={copy.messageLister.replace("{name}", who)}
+            data-testid="lister-message"
+          >
+            <UiIcon name="messages" size={20} />
+          </Link>
+        </AuthGate>
+      </span>
     </div>
   );
 }

@@ -30,7 +30,25 @@ import "@/app/css/catalogue.css";
  * focus restoration never nest.
  */
 
-const PREVIEW = 6;
+/*
+ * THE GALLERY STRIP (founder's reference, 13 October 2026): a "Gallery"
+ * heading with "View all" opposite it and one row of three frames under it,
+ * the third carrying "+N" when there are more. Six tiles in two rows was a
+ * second hero halfway down the page; one row says "there is more" and the
+ * sheet and the lightbox say the rest. Nothing is lost: "View all" opens the
+ * whole set and any frame opens the lightbox at that frame.
+ */
+const PREVIEW = 3;
+
+/** The strip's words, from the page's dictionary (`catalogue.detail`). */
+export type PhotoGridCopy = {
+  /** "Gallery" */
+  title: string;
+  /** "View all" */
+  viewAll: string;
+  /** "View all {count} photos and videos" */
+  viewAllMedia: string;
+};
 
 export function ListingPhotoGrid({
   photos,
@@ -39,7 +57,9 @@ export function ListingPhotoGrid({
   kind,
   /** Only used for the sheet's accessible name. */
   title,
+  copy,
 }: {
+  copy?: PhotoGridCopy;
   photos: string[];
   /**
    * Photos and videos in the lister's order (`gallery-media.ts`). A video is a
@@ -77,9 +97,15 @@ export function ListingPhotoGrid({
   return (
     <section data-testid="listing-photo-grid">
       <div className="mb-sm flex items-baseline justify-between gap-md">
-        <h2 className="nf-h3">Photos</h2>
-        <Button variant="quiet" size="sm" leadingIcon="grid" onClick={() => setShowAll(true)} data-testid="photos-show-all">
-          Show all {items.length}
+        <h2 className="nf-h3">{copy?.title ?? "Photos"}</h2>
+        <Button
+          variant="quiet"
+          size="sm"
+          onClick={() => setShowAll(true)}
+          aria-label={copy ? copy.viewAllMedia.replace("{count}", String(items.length)) : undefined}
+          data-testid="photos-show-all"
+        >
+          {copy?.viewAll ?? `Show all ${items.length}`}
         </Button>
       </div>
 
@@ -93,14 +119,16 @@ export function ListingPhotoGrid({
                 onClick={(event) => open(i, event.currentTarget)}
                 aria-label={
                   last
-                    ? `View all ${items.length} photos and videos`
+                    ? (copy?.viewAllMedia ?? "View all {count} photos and videos").replace("{count}", String(items.length))
                     : item.kind === "video"
                       ? `Play video ${i + 1} of ${items.length} full screen`
                       : `View photo ${i + 1} of ${items.length} full screen`
                 }
-                className="relative block aspect-square w-full overflow-hidden rounded-[var(--nf-container-radius)] transition-transform active:scale-[0.97] motion-reduce:transition-none"
+                className="relative block aspect-[4/3] w-full overflow-hidden rounded-[var(--nf-radius-md)] transition-transform active:scale-[0.97] motion-reduce:transition-none"
               >
-                <Tile item={item} hue={hue} kind={kind} index={i} sizes="(max-width: 640px) 33vw, 220px" />
+                {/* The "+N" cap stands for the rest of the set, so a video
+                    badge under it would be a second mark on one tile. */}
+                <Tile item={item} hue={hue} kind={kind} index={i} sizes="(max-width: 640px) 33vw, 220px" badge={!last} />
                 {last && (
                   <span className="nf-numeric absolute inset-0 grid place-items-center bg-[var(--nf-overlay-media-strong)] nf-media-chip nf-media-chip--lg font-bold backdrop-blur-[2px]">
                     +{remainder}
@@ -143,7 +171,9 @@ function Tile({
   kind,
   index,
   sizes,
+  badge = true,
 }: {
+  badge?: boolean;
   item: GalleryMedia;
   hue: number;
   kind: ListingKind;
@@ -165,11 +195,14 @@ function Tile({
           className="object-cover"
         />
       )}
-      {item.kind === "video" && (
+      {item.kind === "video" && badge && (
         /* The play badge: a video among the photos, which opens playing. */
         <span
           className="absolute bottom-2 left-2 z-[1] inline-flex items-center gap-3xs rounded-[var(--nf-radius-xs)] nf-media-chip px-2xs py-3xs font-semibold"
           data-testid="grid-video-badge"
+          /* A chip on a photograph keeps the night material in both themes:
+             on paper it painted a white box with a white glyph in it. */
+          data-theme="dark"
           aria-hidden="true"
         >
           <UiIcon name="circle-play" size={16} />
