@@ -43,6 +43,11 @@ describe("when an inspection may be asked for", () => {
   });
 
   it("is what every counter-offer picker uses too", () => {
+    /* One picker now, shared by the card, the dashboard rows and the thread. */
+    const picker = readFileSync(join(__dirname, "..", "..", "components/app/inspections/ViewingSheets.tsx"), "utf8");
+    expect(picker).not.toContain("new Date(when).toISOString()");
+    expect(picker).toContain("lagosWallClockToIso(when)");
+    expect(picker).toContain("min={earliestLagosInput()}");
     for (const file of [
       "components/app/inspections/InspectionSheet.tsx",
       "components/app/inspections/InspectionRows.tsx",
@@ -50,8 +55,8 @@ describe("when an inspection may be asked for", () => {
     ]) {
       const text = readFileSync(join(__dirname, "..", "..", file), "utf8");
       expect(text, file).not.toContain("new Date(when).toISOString()");
-      expect(text, file).toContain("lagosWallClockToIso(when)");
-      expect(text, file).toContain("min={earliestLagosInput()}");
+      expect(text, file).not.toContain('type="datetime-local"');
+      expect(text, file).toContain("<ViewingTimeSheet");
     }
   });
 });

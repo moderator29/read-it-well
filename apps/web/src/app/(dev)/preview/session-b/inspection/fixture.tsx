@@ -5,6 +5,11 @@ import type { InspectionState } from "@/lib/inspections/types";
 import { ROOM_ITEMS } from "@/lib/inspections/report";
 import { INSPECTION, INSPECTION_FACTS } from "../../f5/fixtures";
 
+/** Three days from the request, on the hour: a viewing still ahead. */
+function aheadOfNow(): string {
+  return new Date(Math.ceil(Date.now() / 3_600_000) * 3_600_000 + 3 * 86_400_000).toISOString();
+}
+
 const STATES: readonly InspectionState[] = ["REQUESTED", "CONFIRMED", "PROPOSED", "DECLINED", "COMPLETED", "WITHDRAWN"];
 
 /**
@@ -29,6 +34,7 @@ export async function InspectionFixture({
   rental: rentalParam,
   submitted: submittedParam,
   agreement: agreementParam,
+  ahead: aheadParam,
 }: {
   side?: string;
   state?: string;
@@ -37,6 +43,8 @@ export async function InspectionFixture({
   rental?: string;
   submitted?: string;
   agreement?: string;
+  /** `ahead=1`: the agreed time is three days away, so it can still be moved or called off. */
+  ahead?: string;
 }) {
   const photoCount = Math.max(0, Number.parseInt(photosParam ?? "0", 10) || 0);
   const live = roomsParam !== "off";
@@ -52,6 +60,7 @@ export async function InspectionFixture({
           inspection={{
             ...INSPECTION,
             state,
+            ...(aheadParam === "1" ? { slotAt: aheadOfNow(), requestedAt: aheadOfNow() } : {}),
             listingTitle: "Lekki Phase 1 Apartment",
             counterpartName: "Tunde Adebayo",
             listerNote: null,

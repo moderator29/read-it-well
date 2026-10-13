@@ -66,6 +66,9 @@ export function SaturdayRoute({
           variant="secondary"
           className="mt-group"
           loading={pending}
+          /* Once said, said: a second tap sent the renter the same "running
+             late" message again. */
+          disabled={said !== null}
           onClick={() => {
             setError(null);
             start(async () => {

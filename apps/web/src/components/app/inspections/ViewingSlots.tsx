@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { formatDate, type Dictionary, type Locale } from "@vallo/i18n/core";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Chip, ChipRow } from "@/components/ui/Chip";
@@ -18,6 +18,10 @@ import { successCopy, type SuccessWords } from "@/lib/ui/success-moments";
  */
 
 type Copy = Dictionary["frontDoor"]["viewings"];
+
+/* English, as every `frontDoor` string is today (front-door.en.ts has no
+   translations yet); it moves into `frontDoor.viewings` when they arrive. */
+const LAGOS_NOTE = "Times are Lagos time.";
 
 function when(iso: string, locale: Locale, withDay: boolean): string {
   return formatDate(new Date(iso), locale, {
@@ -53,6 +57,7 @@ export function ViewingSlots({
   const [error, setError] = useState<string | null>(null);
   const [booked, setBooked] = useState<{ at: string; id: string } | null>(null);
   const [pending, start] = useTransition();
+  const inFlight = useRef(false);
   /* Booked is CONFIRMED on the server (V-94), so it is a success, not a request. */
   const [celebrate, setCelebrate] = useState(false);
   const current = days.find((d) => d.day === day) ?? days[0];
@@ -92,7 +97,11 @@ export function ViewingSlots({
   return (
     <section className="nf-panel nf-panel--card p-card-sm" data-testid="viewing-slots" aria-live="polite">
       <h2 className="nf-body font-semibold text-[var(--nf-content-primary)]">{copy.pickTitle}</h2>
-      <p className="mt-inline nf-caption text-[var(--nf-content-muted)]">{copy.pickNote}</p>
+      {/* The chips print bare hours, so whose clock they are on is said
+          once here: a renter abroad would otherwise read them as their own. */}
+      <p className="mt-inline nf-caption text-[var(--nf-content-muted)]">
+        {copy.pickNote} {LAGOS_NOTE}
+      </p>
       <nav aria-label={copy.pickTitle} className="mt-row">
         <ChipRow bleed={false}>
           {days.map((d) => (
@@ -131,15 +140,23 @@ export function ViewingSlots({
             full
             loading={pending}
             onClick={() => {
+              /* A second tap inside one frame booked twice and came back
+                 "you already have a viewing" under a booking that worked. */
+              if (inFlight.current) return;
+              inFlight.current = true;
               setError(null);
               start(async () => {
-                const result = await bookViewingSlot({ listingId, slotAt: chosen, note });
-                if (!result.ok) {
-                  setError(result.error);
-                  return;
+                try {
+                  const result = await bookViewingSlot({ listingId, slotAt: chosen, note });
+                  if (!result.ok) {
+                    setError(result.error);
+                    return;
+                  }
+                  setBooked({ at: chosen, id: result.data.id });
+                  setCelebrate(true);
+                } finally {
+                  inFlight.current = false;
                 }
-                setBooked({ at: chosen, id: result.data.id });
-                setCelebrate(true);
               });
             }}
           >

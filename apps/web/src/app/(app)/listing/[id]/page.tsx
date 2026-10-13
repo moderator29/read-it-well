@@ -3,6 +3,7 @@ import { forProofStrip } from "@/lib/i18n/slice";
 import { StillAvailable } from "@/components/app/listing/StillAvailable";
 import { readRecentlyLet } from "@/lib/availability/queries";
 import { readViewingSlots } from "@/lib/viewings/queries";
+import { readOpenInspectionFor } from "@/lib/inspections/queries";
 import { ViewingSlots } from "@/components/app/inspections/ViewingSlots";
 import { Suspense } from "react";
 import { marketOf, type ListingMarket } from "@/lib/listings/market";
@@ -393,8 +394,14 @@ export default async function ListingDetailPage({
     /* V-34: the lister's Record under the agent card. An example listing has
        no Record, and a null draws nothing. */
     listing.isDemo ? Promise.resolve(null) : readListingRecord(listing.id),
-    /* V-94: free viewing slots, read only for a rental (null or empty draws nothing). */
-    isRental ? readViewingSlots(listing.id) : Promise.resolve(null),
+    /* V-94: free viewing slots, read only for a rental (null or empty draws
+       nothing), and not for a reader who already has a live viewing here:
+       the picker offered them times that `book_viewing_slot` then refused
+       ("you already have a viewing of this home"). The rental panel below
+       says where their viewing stands instead. */
+    isRental
+      ? readOpenInspectionFor(listing.id).then((mine) => (mine ? null : readViewingSlots(listing.id)))
+      : Promise.resolve(null),
     // Nights a guest cannot pick: booked or blocked dates from the platform
     // calendar. Empty for catalogue listings and when Supabase is not
     // configured, so the picker simply has nothing to refuse.

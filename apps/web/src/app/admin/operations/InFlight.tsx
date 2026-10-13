@@ -26,6 +26,14 @@ const STATE_WORD: Record<InspectionState, { word: string; tone: BadgeTone; means
 
 const ORDER: InspectionState[] = ["REQUESTED", "PROPOSED", "CONFIRMED", "COMPLETED", "DECLINED", "WITHDRAWN"];
 
+/* The outcome a completed viewing carries, in words: the row printed the
+   column's own value ("deal_done") beside the time. */
+const OUTCOME_WORD: Record<string, string> = {
+  inspected: "inspected",
+  deal_done: "deal done",
+  no_deal: "no deal",
+};
+
 export function InFlight({ locale, inspections }: { locale: Locale; inspections: InspectionActivity | null }) {
   const c = getDictionary(locale).admin.shell.operations;
   return (
@@ -94,7 +102,7 @@ export function InFlight({ locale, inspections }: { locale: Locale; inspections:
                         hour: "2-digit",
                         minute: "2-digit",
                       })}
-                      {row.outcome ? ` · ${row.outcome}` : ""}
+                      {row.outcome ? ` · ${OUTCOME_WORD[row.outcome] ?? row.outcome}` : ""}
                     </span>
                   </span>
                   <Badge tone={STATE_WORD[row.state].tone}>{STATE_WORD[row.state].word}</Badge>
