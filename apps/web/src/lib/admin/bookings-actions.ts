@@ -55,6 +55,7 @@ import {
   refundForReasonUnderTerms,
   type CancellationReason,
 } from "../trust/cancellation";
+import { writeInAppNotice } from "../notify/in-app";
 import { writeAudit } from "./audit";
 import {
   RESERVATION_ALREADY_ANSWERED,
@@ -590,7 +591,7 @@ export async function decideReservationAsAdmin(input: {
 
     if (transition.tells) {
       const notice = reservationNotice(decision, placeName, reason);
-      await admin.from("notifications").insert({
+      await writeInAppNotice(admin, {
         user_id: row.guest_id,
         kind: "booking",
         title: notice.title,

@@ -1,4 +1,4 @@
--- DRAFT, not applied. NOTIFICATIONS 3 of 5. Needs nt01.
+-- DRAFT, not applied. NOTIFICATIONS 3 of 6. Needs nt01.
 --
 -- GAP: the referral programme tells the person who invited nobody anything. A
 -- friend joins with their code, finishes the steps, the review window passes,

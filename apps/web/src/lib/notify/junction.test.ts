@@ -178,6 +178,63 @@ describe("announcing a decision", () => {
  * ever heard of the modules that send mail, so that is what this asks, the
  * same way `shell.test.ts` reads the auth generator as text.
  */
+/* The in-app half goes through the one door (lib/notify/in-app), which applies
+   the person's Bookings and Messages switches the way private.notify does. */
+describe("the in-app half honours the person's switches", () => {
+  function switchedAdmin(settings: unknown) {
+    const inserted: unknown[] = [];
+    const client = {
+      inserted,
+      from(table: string) {
+        if (table === "profiles") {
+          return { select: () => ({ in: async (_c: string, ids: string[]) => ({ data: ids.map((id) => ({ id, settings })), error: null }) }) };
+        }
+        return {
+          insert: async (row: unknown) => {
+            inserted.push(row);
+            return { error: null };
+          },
+        };
+      },
+    };
+    return client;
+  }
+
+  const bookingNotice = { ...notice, kind: "booking" as const, title: "Your table is confirmed", href: "/bookings" };
+
+  it("writes no row for a booking notice when Bookings is off, and still sends the email", async () => {
+    const admin = switchedAdmin({ notifications: { bookings: false } });
+    const result = await announce(admin as never, {
+      recipient: { kind: "user", userId: "user-1" },
+      notice: bookingNotice,
+      email: () => ({ subject: "s", html: "h", text: "t" }),
+    });
+    expect(result).toEqual({ notified: false, emailed: "sent" });
+    expect(admin.inserted).toEqual([]);
+  });
+
+  it("writes the booking row when Bookings is on", async () => {
+    const admin = switchedAdmin({ notifications: { bookings: true } });
+    const result = await announce(admin as never, {
+      recipient: { kind: "user", userId: "user-1" },
+      notice: bookingNotice,
+      email: null,
+    });
+    expect(result).toEqual({ notified: true, emailed: "skipped" });
+    expect(admin.inserted).toHaveLength(1);
+  });
+
+  it("a listing notice is not governed by Bookings or Messages", async () => {
+    const admin = switchedAdmin({ notifications: { bookings: false, messages: false } });
+    const result = await announce(admin as never, {
+      recipient: { kind: "user", userId: "user-1" },
+      notice,
+      email: null,
+    });
+    expect(result.notified).toBe(true);
+  });
+});
+
 describe("the decision paths are actually wired to the junction", () => {
   const read = async (path: string) => {
     const { readFile } = await import("node:fs/promises");

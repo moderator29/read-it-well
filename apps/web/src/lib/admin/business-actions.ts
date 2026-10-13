@@ -44,6 +44,7 @@ import { BUSINESS_LADDER, BUSINESS_TIER_NAME, asBusinessTier } from "./business-
 import { BUSINESS_RUNGS } from "./business-queries";
 import { SELF_REVIEW_REFUSAL, decisionRefusal, isOwnBusiness } from "./business-decision";
 import { adminRefusal, requireAdmin } from "./guard";
+import { writeInAppNotice } from "../notify/in-app";
 import { nightsToOpen } from "../stays/inventory";
 import { HOST_AGREEMENT_VERSION } from "../legal/versions";
 import { readHostAgreementVersion } from "../host/agreement";
@@ -105,7 +106,7 @@ async function announce(
   try {
     const admin = createAdminClient();
     if (notice && business.owner_id) {
-      await admin.from("notifications").insert({
+      await writeInAppNotice(admin, {
         user_id: business.owner_id,
         kind: "listing",
         title: notice.title,

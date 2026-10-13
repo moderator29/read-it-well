@@ -101,6 +101,51 @@ begin
     raise exception 'PROBE_FAIL nt02: the protected payment trigger is missing or not on update';
   end if;
 
+  /* ---- a failure in the notice path never blocks a payment ----
+     A throwaway table carries the REAL trigger function, and the notice
+     function is made to fail. Recording the SUCCESSFUL row must still work,
+     the row must be there, and the failure must be reported as one open alert
+     (the final raise rolls the replaced function and the table back). */
+  create temp table probe_payment (id uuid primary key default gen_random_uuid(), booking_id uuid, status text);
+  create trigger probe_payment_notify after insert or update of status on pg_temp.probe_payment
+    for each row execute function private.notify_payment_received();
+  create or replace function private.tell_payment_received(p_tx uuid) returns void language plpgsql as $f$
+  begin
+    raise exception 'forced failure in the notice path';
+  end;
+  $f$;
+  insert into pg_temp.probe_payment (booking_id, status) values (bk, 'SUCCESSFUL');
+  update pg_temp.probe_payment set status = 'PENDING' where booking_id = bk;
+  update pg_temp.probe_payment set status = 'SUCCESSFUL' where booking_id = bk;
+  select count(*) into n from pg_temp.probe_payment where booking_id = bk and status = 'SUCCESSFUL';
+  if n <> 1 then raise exception 'PROBE_FAIL nt02: a failing notice stopped the payment row from being recorded'; end if;
+  select count(*) into n from public.risk_alerts
+   where entity_type = 'booking' and entity_id = bk::text and status = 'open' and title = 'A notice could not be sent';
+  if n <> 1 then raise exception 'PROBE_FAIL nt02: the swallowed notice failure was not reported once (%)', n; end if;
+
+  /* The same for the protected payment trigger: the notice function fails, the
+     status change still lands, and the failure is reported once. */
+  create temp table probe_arrangement (
+    id uuid primary key default gen_random_uuid(), agreement_id uuid, buyer_user_id uuid, seller_user_id uuid,
+    amount_minor bigint, status text);
+  create trigger probe_arrangement_notify after update of status on pg_temp.probe_arrangement
+    for each row execute function private.notify_arrangement_change();
+  create or replace function private.tell_arrangement(
+    p_arrangement uuid, p_status text, p_buyer uuid, p_seller uuid, p_place text, p_amount_minor bigint, p_href text)
+    returns void language plpgsql as $f$
+  begin
+    raise exception 'forced failure in the notice path';
+  end;
+  $f$;
+  insert into pg_temp.probe_arrangement (agreement_id, buyer_user_id, seller_user_id, amount_minor, status)
+    values (arr, guest, host, 20000000, 'awaiting_payment');
+  update pg_temp.probe_arrangement set status = 'protected' where agreement_id = arr;
+  select count(*) into n from pg_temp.probe_arrangement where agreement_id = arr and status = 'protected';
+  if n <> 1 then raise exception 'PROBE_FAIL nt02: a failing notice stopped the arrangement status from changing'; end if;
+  select count(*) into n from public.risk_alerts
+   where entity_type = 'deal_agreement' and entity_id = arr::text and status = 'open' and title = 'A notice could not be sent';
+  if n <> 1 then raise exception 'PROBE_FAIL nt02: the swallowed protected payment failure was not reported once (%)', n; end if;
+
   if has_function_privilege('authenticated', 'private.tell_payment_received(uuid)', 'execute')
      or has_function_privilege('anon', 'private.tell_arrangement(uuid, text, uuid, uuid, text, bigint, text)', 'execute')
      or has_function_privilege('service_role', 'private.deliver_payment_received(uuid, uuid, uuid, uuid, text, date, date, bigint, bigint, text, boolean, boolean)', 'execute') then

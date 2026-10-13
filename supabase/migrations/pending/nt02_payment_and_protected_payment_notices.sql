@@ -1,4 +1,4 @@
--- DRAFT, not applied. NOTIFICATIONS 2 of 5. Needs nt01. Apply BEFORE the app
+-- DRAFT, not applied. NOTIFICATIONS 2 of 6. Needs nt01. Apply BEFORE the app
 -- of track/notifications is deployed: the two new email templates
 -- (payment.host_received, payment.rent_receipt) are written here and built
 -- there; a row the running code does not know is discarded by the drain for good.
@@ -29,7 +29,9 @@
 -- Every notice goes through private.notify_once (nt01), so a replayed webhook,
 -- a sweep and a return page cannot tell anybody twice. Both triggers swallow
 -- their own errors: they run inside the transaction that moves money and may
--- never be the reason it fails. Words follow lib/money/copy.ts: "protected
+-- never be the reason it fails. A swallowed error is reported through
+-- private.notice_failed (nt01): a log warning with the message and one open
+-- medium risk alert for the booking or agreement, so a lost notice is seen. Words follow lib/money/copy.ts: "protected
 -- payment" for members, nothing says Vallo holds money, no provider is named.
 --
 -- Additive only, nothing is removed: new functions and two new triggers.
@@ -163,8 +165,17 @@ begin
       perform private.tell_payment_received(new.id);
     end if;
   exception when others then
-    /* A notice may never be the reason a payment fails to record. */
-    raise warning '[notify] payment received notice failed: %', sqlstate;
+    /* A notice may never be the reason a payment fails to record. The error is
+       caught here and reported (a log warning and one open risk alert for the
+       booking); reporting is itself caught, so nothing escapes this trigger. */
+    declare
+      v_state text := sqlstate;
+      v_message text := sqlerrm;
+    begin
+      perform private.notice_failed('payment received notice', 'booking', new.booking_id::text, v_state, v_message);
+    exception when others then
+      raise warning '[notify] payment received notice failed: %', v_state;
+    end;
   end;
   return new;
 end;
@@ -258,7 +269,14 @@ begin
       new.id, new.status, new.buyer_user_id, new.seller_user_id, place,
       new.amount_minor, '/agreements/' || new.agreement_id::text);
   exception when others then
-    raise warning '[notify] protected payment notice failed: %', sqlstate;
+    declare
+      v_state text := sqlstate;
+      v_message text := sqlerrm;
+    begin
+      perform private.notice_failed('protected payment notice', 'deal_agreement', new.agreement_id::text, v_state, v_message);
+    exception when others then
+      raise warning '[notify] protected payment notice failed: %', v_state;
+    end;
   end;
   return new;
 end;

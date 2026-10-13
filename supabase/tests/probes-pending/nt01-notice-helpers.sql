@@ -40,6 +40,22 @@ begin
     raise exception 'PROBE_FAIL nt01-notice-helpers: a null user or an empty key notified';
   end if;
 
+  /* The failure reporter: one open alert per entity however often it is told,
+     and it never raises, even when handed nothing. */
+  perform private.notice_failed('probe notice', 'probe_entity', 'probe-nt01', '22000', 'first');
+  perform private.notice_failed('probe notice', 'probe_entity', 'probe-nt01', '22000', 'second');
+  perform private.notice_failed(null, null, null, null, null);
+  select count(*) into n from public.risk_alerts
+   where entity_type = 'probe_entity' and entity_id = 'probe-nt01' and status = 'open';
+  if n <> 1 then
+    raise exception 'PROBE_FAIL nt01-notice-helpers: expected one open alert for a failed notice, found %', n;
+  end if;
+  if has_function_privilege('anon', 'private.notice_failed(text, text, text, text, text)', 'execute')
+     or has_function_privilege('authenticated', 'private.notice_failed(text, text, text, text, text)', 'execute')
+     or has_function_privilege('service_role', 'private.notice_failed(text, text, text, text, text)', 'execute') then
+    raise exception 'PROBE_FAIL nt01-notice-helpers: an API role can run the failure reporter';
+  end if;
+
   if has_function_privilege('anon', 'private.notify_once(text, uuid, public.notification_kind, text, text, text)', 'execute')
      or has_function_privilege('authenticated', 'private.notify_once(text, uuid, public.notification_kind, text, text, text)', 'execute')
      or has_function_privilege('service_role', 'private.notify_once(text, uuid, public.notification_kind, text, text, text)', 'execute') then

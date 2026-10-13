@@ -25,6 +25,7 @@ import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { writeAudit } from "./audit";
 import { adminRefusal, requireAdmin } from "./guard";
 import { createAdminClient } from "../supabase/admin";
+import { writeInAppNotice } from "../notify/in-app";
 import {
   VERIFICATION_LADDER,
   VERIFICATION_RUNGS,
@@ -120,7 +121,7 @@ export async function recordVerificationCheck(
     // that leaves them where they were is console housekeeping, not news.
     if (now !== before) {
       const climbed = now > before;
-      await admin.from("notifications").insert({
+      await writeInAppNotice(admin, {
         user_id: agent.user_id,
         kind: "agent",
         title: climbed

@@ -42,6 +42,7 @@ import { isFeatureEnabled } from "../flags";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import type { Database } from "../supabase/database.types";
 import { createAdminClient } from "../supabase/admin";
+import { writeInAppNotice } from "../notify/in-app";
 // Read and called, never edited: lib/bookings is owned by the payments work.
 import { confirm } from "../bookings/actions";
 import {
@@ -298,7 +299,10 @@ export async function declineBooking(input: DeclineInput): Promise<ActionResult<
 
     // Kind, plain, and it names the reason, because "cancelled" on its own is
     // the worst thing a guest can read.
-    await admin.from("notifications").insert({
+    // Through the one in-app door, so a guest who has switched Bookings off is
+    // not sent this one either (private.notify does the same for the general
+    // "Booking cancelled" row the status change writes).
+    await writeInAppNotice(admin, {
       user_id: booking.guest_id,
       kind: "booking",
       title: "Your booking request was not accepted",
