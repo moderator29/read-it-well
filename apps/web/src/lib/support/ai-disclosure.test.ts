@@ -20,12 +20,21 @@ describe("the helper says what it is", () => {
   it("is told it is not a person, and that examples cannot be booked", () => {
     const support = src("app/api/support/route.ts");
     expect(support).toContain("You are Vallo's AI support helper. You are not a person");
-    for (const file of ["app/api/support/route.ts", "app/api/assistant/route.ts"]) {
+    /* The assistant's tools live one per file since AI-01; they are model
+       text too, so they are read with the route. */
+    for (const file of [
+      "app/api/support/route.ts",
+      "app/api/assistant/route.ts",
+      "lib/assistant/tools/search-listings.ts",
+      "lib/assistant/tools/compare-listings.ts",
+      "lib/assistant/tools/area-intel.ts",
+      "lib/assistant/tools/find-screen.ts",
+    ]) {
       const text = src(file);
       expect(text, file).not.toMatch(/put up by a real person/);
       expect(text, file).not.toMatch(/always somebody to message/);
     }
-    expect(src("app/api/assistant/route.ts")).toContain("...(l.isDemo ? { example: true } : {}),");
+    expect(src("lib/assistant/tools/search-listings.ts")).toContain("...(l.isDemo ? { example: true } : {}),");
   });
 
   it("labels the Help row as the FAQs it opens", () => {

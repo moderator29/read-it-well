@@ -2,23 +2,6 @@ import { requestSignal, roundWatchdog } from "@/lib/ai/upstream-deadline";
 import { parseAssistantWorkspace, WORKSPACE_FRAMES } from "@/lib/assistant/workspace";
 import { isSameOriginRequest } from "@/lib/security/request-origin";
 import { NextRequest } from "next/server";
-import { formatMoney } from "@vallo/i18n/core";
-import { getListingRepository } from "@/lib/listings/repository";
-import { listOpenAreas } from "@/lib/social/areas-queries";
-import { getAreaFeed } from "@/lib/social/posts-queries";
-import type { Listing, ListingKind } from "@/lib/listings/types";
-/*
- * THE SIDE LAW, FROM THE ONE PLACE THAT DECIDES IT.
- *
- * Both href call sites below used to hardcode `/listing/<id>` for every row
- * the catalogue returned, so every hotel, shortlet, villa and restaurant the
- * concierge found opened in the PROPERTY shell: property dock, property
- * chrome, and a Book Inspection footer under a room sold by the night (R2-3,
- * R3 F-03). `lib/listings/href.ts` already answers this for `ListingCard`,
- * and the answer is a function of `kind` and nothing else, so the assistant
- * imports it rather than carrying a second copy that can drift.
- */
-import { hrefForListing, marketFactsOf } from "@/lib/listings/href";
 import { isFeatureEnabled } from "@/lib/flags";
 import { supplyPrimer } from "@/lib/supply/roles";
 import {
@@ -41,11 +24,17 @@ import {
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 import { accountSetupOwed } from "@/lib/actions/session";
-import type {
-  AssistantListingItem,
-  AssistantStreamEvent,
-  AssistantTurn,
-} from "@/lib/assistant/types";
+import type { AssistantStreamEvent, AssistantTurn } from "@/lib/assistant/types";
+import {
+  endsWithSameUserTurn,
+  loadThreadTurns,
+  parseTurns,
+  sanitizeClientTurns,
+  serverThreadTurns,
+} from "@/lib/assistant/history";
+import { runTool, toolDefinitions } from "@/lib/assistant/tools/registry";
+import type { ToolDefinition, ToolFrame } from "@/lib/assistant/tools/types";
+import { fenceToolResult, UNTRUSTED_TOOL_LINE } from "@/lib/assistant/untrusted";
 import { consentRefusal } from "@/lib/ai/consent";
 import { hasAiConsent } from "@/lib/ai/consent-server";
 
@@ -58,10 +47,15 @@ import { hasAiConsent } from "@/lib/ai/consent-server";
  * conversation is persisted, then done. Without an ANTHROPIC_API_KEY the
  * route answers 200 JSON with a graceful message instead of pretending.
  *
- * The model talks to the Claude API directly over fetch with three tools:
+ * The model talks to the Claude API directly over fetch. Its tools live one
+ * per file in `lib/assistant/tools/` and are listed in `registry.ts` (AI-01):
  * search_listings and compare_listings, which both read the same repository
  * the discovery surface reads, so the assistant can only ever cite listings
- * that exist, and area_intel, which reads what residents posted about a place.
+ * that exist; area_intel, which reads what residents posted about a place;
+ * and find_screen, which names real screens from the route registry. Every
+ * tool result reaches the model fenced as data (`lib/assistant/untrusted.ts`),
+ * and a signed-in thread's history is read from the database, never taken
+ * from the browser (`lib/assistant/history.ts`, AI-02).
  */
 
 export const runtime = "nodejs";
@@ -74,8 +68,6 @@ const ANTHROPIC_VERSION = "2023-06-01";
 const DEFAULT_MODEL = "claude-sonnet-5";
 const MAX_TOKENS = 1024;
 const MAX_TOOL_ROUNDS = 3;
-const MAX_TURNS = 24;
-const MAX_TURN_CHARS = 8_000;
 
 /*
  * "WAKES THE MOMENT ITS KEY LANDS" WAS THE BANNED SENTENCE IN A DIFFERENT COAT.
@@ -180,456 +172,11 @@ const SYSTEM_PROMPT = [
   "Use search_listings whenever someone asks about property, prices or what is available, before you recommend anything. Where somebody is weighing two places, name the differences that decide it: the total cost of moving in, the light and water answers, the bedrooms, and how far the lister has climbed the verification ladder.",
   "Use compare_listings the moment somebody is choosing between places rather than browsing them. Do not re-run a search to compare: pass the ids you already showed them, so the answer is about the places they actually asked about. Where a fact comes back as unanswered, say the lister did not answer it rather than treating it as a no.",
   "Use area_intel whenever somebody asks what an area is LIKE, or is weighing one against another. It reads real posts by people who live there, which is the one thing no other website in Nigeria can tell them, so reach for it often. Where both tools help, use both: what is available, and what living there is actually like.",
+  "Use find_screen whenever somebody asks where to find or do something in the app, and point only at a screen it returns or one these instructions name; never build a path yourself.",
+  /* AI-02: the one line that says the fence is data. */
+  UNTRUSTED_TOOL_LINE,
   "Keep replies short.",
 ].join("\n");
-
-/* ----------------------------------------------------------------- tooling */
-
-/**
- * Every market the model may search, named for it.
- *
- * This is the full `ListingKind` union rather than a subset. It used to omit
- * shop, office and land, which meant somebody asking the concierge for a plot
- * in Epe or a shop in Aba got a search with no category on it and whatever the
- * free text happened to catch. Those three are the commercial and land market
- * and they are exactly the ones a person cannot browse casually, so they are
- * the ones an assistant is most useful for.
- */
-const LISTING_KINDS: ListingKind[] = [
-  "rental",
-  "apartment",
-  "home",
-  "shortlet",
-  "villa",
-  "hotel",
-  "restaurant",
-  "experience",
-  "shop",
-  "office",
-  "land",
-];
-
-const SEARCH_TOOL = {
-  name: "search_listings",
-  description:
-    "Search Vallo's catalogue of property listed by people on Vallo: rentals, property for sale, land, shops and offices, and shortlets, hotels and homes let by their owners, across Nigeria. Nothing comes from an outside feed; a result marked as an example cannot be rented, bought or booked, and you say so. Returns up to five listings with formatted naira prices, ratings and in-app links. Always call this before recommending any property.",
-  input_schema: {
-    type: "object",
-    properties: {
-      query: {
-        type: "string",
-        description: "Free text matched against title, area, city and state.",
-      },
-      city: {
-        type: "string",
-        description:
-          "Restrict to one city, e.g. Lagos, Abuja, Port Harcourt, Ibadan, Enugu or Calabar.",
-      },
-      kind: {
-        type: "string",
-        enum: LISTING_KINDS,
-        description:
-          "Restrict to one category. Use rental for annual and monthly tenancies, land for plots, shop and office for commercial space, and shortlet for a place let by the night.",
-      },
-      maxPricePerNightNaira: {
-        type: "number",
-        description:
-          "Upper price bound in naira, in whatever period the listing is priced by: per year for a tenancy, per night for a shortlet. This bounds the rent or asking price alone and does not account for caution deposit, agency, legal or agreement fees.",
-      },
-      bedrooms: {
-        type: "number",
-        description: "Minimum number of bedrooms.",
-      },
-    },
-    additionalProperties: false,
-  },
-} as const;
-
-/**
- * The tool that reads the neighbourhood, not the catalogue.
- *
- * Described plainly for the model, because a tool description is a prompt: it
- * has to make clear that this returns OPINIONS from residents rather than facts
- * from us, so the answer attributes them rather than asserting them.
- */
-const AREA_TOOL = {
-  name: "area_intel",
-  description:
-    "Read what people who live in a Nigerian area have actually posted about it on Vallo: what the roads, light, water and daily life are really like. Returns real posts by real residents, newest first, plus whether that place is open on Vallo at all. Use this whenever somebody asks what an area is LIKE to live in, or is choosing between areas. These are residents' own words and opinions, not facts Vallo has checked, so attribute them as such and never state them as our own.",
-  input_schema: {
-    type: "object",
-    properties: {
-      place: {
-        type: "string",
-        description:
-          "The area, neighbourhood or city to read about, e.g. Lekki Phase 1, Yaba, Wuse, Aba South.",
-      },
-    },
-    required: ["place"],
-    additionalProperties: false,
-  },
-} as const;
-
-/**
- * Two or three places, side by side, on the facts that actually decide it.
- *
- * The concierge could search and it could read an area, and between those two
- * it could not do the thing people spend most of their time doing on a
- * property site: holding two places against each other. Asked to compare, a
- * model with only a search tool re-runs the search, gets a differently ordered
- * five, and answers from whichever rows came back, which is how a listing that
- * was never mentioned ends up in a comparison.
- *
- * This resolves the exact ids it is given, one row each, and returns them in
- * the order asked for. A row that cannot be found comes back as an explicit
- * not-found entry rather than being dropped, so the model cannot quietly
- * compare two things when it was asked about three.
- */
-const COMPARE_TOOL = {
-  name: "compare_listings",
-  description:
-    "Put two to four Vallo listings side by side on the facts that decide between them: price and what period it covers, bedrooms, bathrooms, where it is, light and water, whether the lister is verified, and the rating with the number of reviews behind it. Pass the listing ids exactly as search_listings returned them. Use this whenever somebody is weighing places against each other rather than asking what is available. An id that cannot be found comes back marked not found; say so rather than leaving it out.",
-  input_schema: {
-    type: "object",
-    properties: {
-      ids: {
-        type: "array",
-        items: { type: "string" },
-        minItems: 2,
-        maxItems: 4,
-        description: "The listing ids to compare, exactly as search_listings returned them.",
-      },
-    },
-    required: ["ids"],
-    additionalProperties: false,
-  },
-} as const;
-
-function pricePeriod(l: Listing): string {
-  if (l.kind === "restaurant" || l.kind === "experience") return "guest";
-  return l.pricePeriod === "year" ? "year" : "night";
-}
-
-/**
- * What the model is allowed to say about a price, including when there is none.
- *
- * This used to be `formatMoney(l.priceMinor)` unconditionally, which states a
- * number whatever the row holds. Zero beside a currency symbol reads as free,
- * and the assistant is the surface where a wrong number is spoken as a
- * sentence rather than shown in a slot somebody can see is empty.
- *
- * "Not published" is the honest phrase. The place has a price, we were not
- * told it, and neither of those is the same as free.
- */
-function priceLine(l: Listing): string {
-  if (l.priceMinor <= 0) return "price not published on Vallo";
-  return `${formatMoney(l.priceMinor)} per ${pricePeriod(l)}`;
-}
-
-/**
- * What people who actually live there have said about a place.
- *
- * This is the one thing on this platform that cannot be bought, scraped or
- * replicated: the social layer holds real posts written by real residents about
- * real Nigerian areas, and until now no AI on the platform could read a word of
- * it. The concierge could tell somebody a flat in Lekki Phase 1 costs a certain
- * amount and had four stars. It could not tell them that three people who live
- * on that road said it floods in July, which is the thing that actually decides
- * whether you move there.
- *
- * Every rule of the layer is inherited rather than re-implemented.
- * `getAreaFeed` reads through the caller's own RLS-bound client, so a held
- * post, a removed post, a post from somebody who blocked this viewer and an
- * area that is not open are all invisible here for the same reason they are
- * invisible on the feed. Nothing is special cased for the assistant, which is
- * what makes it safe to hand to a model.
- *
- * Bodies are truncated and capped. A model given forty posts will summarise
- * forty posts; a model given six is answering a question.
- */
-const AREA_POST_LIMIT = 6;
-const AREA_POST_CHARS = 280;
-
-async function runAreaIntel(input: unknown): Promise<{
-  forModel: Record<string, unknown>;
-}> {
-  const raw = typeof input === "object" && input !== null ? (input as Record<string, unknown>) : {};
-  const wanted = typeof raw.place === "string" ? raw.place.trim().toLowerCase() : "";
-  if (wanted.length === 0) {
-    return { forModel: { found: false, reason: "No place was named." } };
-  }
-
-  const areas = await listOpenAreas();
-  if (areas.length === 0) {
-    return {
-      forModel: {
-        found: false,
-        /* An honest distinction the model must be able to make: nobody has
-           opened a room for this place YET is a different sentence from
-           nobody has anything to say about it. */
-        reason: "No places are open on Vallo yet, so nobody has posted about anywhere.",
-      },
-    };
-  }
-
-  const hit =
-    areas.find((a) => a.name.toLowerCase() === wanted || a.slug.toLowerCase() === wanted) ??
-    areas.find((a) => a.name.toLowerCase().includes(wanted) || wanted.includes(a.name.toLowerCase())) ??
-    areas.find((a) => a.city.toLowerCase() === wanted);
-
-  if (!hit) {
-    return {
-      forModel: {
-        found: false,
-        reason: `Nobody has opened a place for "${wanted}" on Vallo yet. Anybody can open one by searching for it.`,
-        openPlaces: areas.slice(0, 8).map((a) => `${a.name}, ${a.city}`),
-      },
-    };
-  }
-
-  const feed = await getAreaFeed(hit.id);
-  const said = feed.posts
-    .filter((post) => typeof post.body === "string" && post.body.trim().length > 0)
-    .slice(0, AREA_POST_LIMIT)
-    .map((post) => ({
-      /* Who is speaking matters. A SYSTEM post is Vallo's own voice and must
-         never be quoted back to somebody as though a neighbour said it. */
-      who: post.authorKind === "USER" ? "a resident" : "Vallo",
-      said: post.body!.slice(0, AREA_POST_CHARS),
-    }));
-
-  return {
-    forModel: {
-      found: true,
-      place: hit.name,
-      city: hit.city,
-      state: hit.stateCode,
-      memberCount: hit.memberCount,
-      href: `/around/${hit.slug}`,
-      /* Said explicitly, because an empty list and a quiet room are the same
-         array and completely different answers. */
-      ...(said.length > 0
-        ? { recentlySaid: said }
-        : { recentlySaid: [], note: "The place is open but nobody has posted in it yet." }),
-    },
-  };
-}
-
-/** Run the catalogue search server-side; the model only ever sees real rows. */
-async function runListingSearch(
-  input: unknown,
-): Promise<{
-  items: AssistantListingItem[];
-  forModel: Omit<AssistantListingItem, "photo">[];
-  /** True when the only rows matching this search were example listings. */
-  exampleOnly: boolean;
-}> {
-  const repo = getListingRepository();
-  const raw = typeof input === "object" && input !== null ? (input as Record<string, unknown>) : {};
-
-  const query = typeof raw.query === "string" && raw.query.trim() ? raw.query.trim() : undefined;
-  const city = typeof raw.city === "string" && raw.city.trim() ? raw.city.trim().toLowerCase() : undefined;
-  const kind = LISTING_KINDS.includes(raw.kind as ListingKind)
-    ? (raw.kind as ListingKind)
-    : undefined;
-  const maxNaira =
-    typeof raw.maxPricePerNightNaira === "number" && Number.isFinite(raw.maxPricePerNightNaira)
-      ? raw.maxPricePerNightNaira
-      : undefined;
-  const bedrooms =
-    typeof raw.bedrooms === "number" && Number.isFinite(raw.bedrooms) ? raw.bedrooms : undefined;
-
-  const narrow = (rows: Listing[]): Listing[] =>
-    rows.filter((l) => {
-      if (city && !l.city.toLowerCase().includes(city) && !l.state.toLowerCase().includes(city)) {
-        return false;
-      }
-      if (maxNaira !== undefined) {
-        /* Zero is "we were not told", not "free", so an unpriced listing is
-           not an answer to a budget question. This is the same ruling
-           `matchesFacts` already makes for the search page, said here because
-           this filter is hand written rather than shared. */
-        if (l.priceMinor <= 0) return false;
-        if (l.priceMinor > Math.round(maxNaira * 100)) return false;
-      }
-      if (bedrooms !== undefined && l.bedrooms < bedrooms) return false;
-      return true;
-    });
-
-  /*
-   * EXAMPLE LISTINGS ARE NOT ANSWERS, AND THIS IS THE FIFTH SURFACE.
-   *
-   * The example-listing sweep sealed the sitemap, the structured data, the
-   * Open Graph card and email. It missed this one, because the assistant is
-   * not a page and nobody thinks of a chat reply as a publication. It is the
-   * worst of the five: the others show a property, this one RECOMMENDS one, in
-   * a sentence, with a naira price and a link, to somebody who asked for help.
-   *
-   * The database refuses every transaction against these rows, so a person
-   * following that recommendation reaches a wall the assistant sent them to.
-   */
-  let rows = narrow(await repo.search({ q: query, kind, excludeDemo: true }));
-  if (rows.length === 0 && query) {
-    // Free text over-restricted; keep the structured filters and drop it.
-    rows = narrow(await repo.search({ kind, excludeDemo: true }));
-  }
-
-  /*
-   * Why the empty case is not simply empty.
-   *
-   * Today the catalogue is 42 example properties and no real ones, so
-   * excluding them correctly returns nothing for almost any question. "I found
-   * nothing" would be true and would also be a worse answer than the truth,
-   * because the search page visibly shows results for the same query and the
-   * assistant would look broken rather than careful.
-   *
-   * So when the exclusion is what emptied the result, say so. The model can
-   * then explain that the places shown in search are examples rather than
-   * pretending the catalogue is bare, and it never has to be trusted to
-   * remember a caveat about a row it was handed.
-   */
-  const exampleOnly = rows.length === 0 && narrow(await repo.search({ kind })).length > 0;
-
-  const top = rows
-    .sort((a, b) => b.rating - a.rating || b.reviewCount - a.reviewCount)
-    .slice(0, 5);
-
-  /*
-   * What the model is given about each place.
-   *
-   * This used to be seven fields, and the concierge could therefore only ever
-   * say "here is a hotel in Lagos for this much, rated 4.4". Everything that
-   * makes an answer worth reading was sitting on the row and being dropped:
-   * which part of the city it is in, how many people that rating is built on,
-   * whether it is open right now, whether anybody here has checked it, and
-   * where the facts came from.
-   *
-   * Every field below is read off a real row and none is inferred. Absent
-   * values are OMITTED rather than sent as nulls or empty strings, because a
-   * key with nothing behind it invites a model to describe the nothing.
-   */
-  const forModel = top.map((l) => ({
-    id: l.id,
-    title: l.title,
-    /* Area first: "Victoria Island, Lagos" is an answer, "Lagos" is a
-       postcode. It is the single most useful thing we were throwing away. */
-    ...(l.area && l.area !== l.city ? { area: l.area } : {}),
-    city: l.city,
-    state: l.state,
-    kind: l.kind,
-    price: priceLine(l),
-    rating: l.rating,
-    /* A rating with no count behind it is not evidence. 4.9 from two people
-       and 4.4 from twelve hundred are different claims, and the model cannot
-       weigh them without this. */
-    reviewCount: l.reviewCount,
-    /* The three facts the result card shows under the price, each read off
-       the row and omitted when the lister stated nothing: a zero bedroom
-       count on a restaurant is "does not apply", not a fact. */
-    ...(l.bedrooms > 0 ? { bedrooms: l.bedrooms } : {}),
-    ...(l.bathrooms > 0 ? { bathrooms: l.bathrooms } : {}),
-    ...(l.sizeSqm !== undefined && l.sizeSqm > 0 ? { sizeSqm: l.sizeSqm } : {}),
-    /* Facts the source actually stated: "Open now", "Hotel", light and water
-       where a first-party host answered. Never a guess. */
-    ...(l.amenities.length > 0 ? { facts: l.amenities.slice(0, 6) } : {}),
-    /*
-     * How far up the ladder the person behind this listing has climbed.
-     *
-     * This used to also carry a provenance field, because discovery held
-     * third-party stock that nobody at Vallo had checked and the model had to
-     * be able to say so. There is no third-party stock any more: every row
-     * here was listed by a person on this platform, so the only question left
-     * is how much of that person we have verified, which is what this flag
-     * answers.
-     */
-    verified: l.verified,
-    /* UX-25: an example says so, so the model can say it too. */
-    ...(l.isDemo ? { example: true } : {}),
-    href: hrefForListing(l.kind, l.id, marketFactsOf(l)),
-  }));
-  const items: AssistantListingItem[] = forModel.map((entry, i) => {
-    const photo = top[i]?.photos[0];
-    return photo ? { ...entry, photo } : { ...entry };
-  });
-  return { items, forModel, exampleOnly };
-}
-
-/**
- * The same row, described for a comparison rather than for a shelf.
- *
- * Deliberately a different shape from the search result. A search answer is
- * "here are five places"; a comparison answer is "these are the four numbers
- * that differ". So this carries the light and water answers, which search
- * summarises into an amenity list, and it carries them as `unanswered` where
- * the host skipped the question rather than omitting the key. That is the one
- * place omission would be wrong: in a side by side, a missing row reads as a
- * no, and "the host did not say" is not a no.
- */
-function comparisonOf(l: Listing): Record<string, unknown> {
-  const u = l.utilities;
-  return {
-    id: l.id,
-    title: l.title,
-    ...(l.area && l.area !== l.city ? { area: l.area } : {}),
-    city: l.city,
-    state: l.state,
-    kind: l.kind,
-    price: priceLine(l),
-    bedrooms: l.bedrooms,
-    bathrooms: l.bathrooms,
-    rating: l.rating,
-    reviewCount: l.reviewCount,
-    verified: l.verified,
-    powerGrid: u?.powerGrid ?? "unanswered",
-    powerBackup: u?.powerBackup ?? "unanswered",
-    waterSupply: u?.waterSupply ?? "unanswered",
-    prepaidMeter: u?.prepaidMeter ?? "unanswered",
-    href: hrefForListing(l.kind, l.id, marketFactsOf(l)),
-  };
-}
-
-/**
- * Resolve exactly the ids asked for, in the order asked for.
- *
- * Sequential rather than parallel on purpose: the cap is four, the repository
- * is one Postgres round trip per id, and four sequential reads behind a chat
- * turn cost less than the concurrency is worth. A miss is reported, never
- * skipped, so a model asked to compare three places cannot silently answer
- * about two.
- */
-async function runCompareListings(input: unknown): Promise<Record<string, unknown>[]> {
-  const raw = (input ?? {}) as Record<string, unknown>;
-  const ids = Array.isArray(raw.ids)
-    ? raw.ids.filter((v): v is string => typeof v === "string" && v.trim().length > 0).slice(0, 4)
-    : [];
-  if (ids.length < 2) {
-    return [{ error: "compare_listings needs at least two listing ids from search_listings." }];
-  }
-
-  const repo = getListingRepository();
-  const out: Record<string, unknown>[] = [];
-  for (const id of ids) {
-    const row = await repo.byId(id).catch(() => null);
-    /*
-     * The second door onto the same room, closed for the same reason.
-     *
-     * Search no longer returns example listings, so in the ordinary flow the
-     * model cannot have one of these ids to compare. It takes ids as input
-     * though, and an id can arrive from a stale turn earlier in the
-     * conversation or be invented outright, so the exclusion has to live where
-     * the row is read rather than only where it is found. Reported as
-     * `found: false` rather than with a reason, because a comparison table is
-     * not the place to explain what an example listing is and the search path
-     * already does that properly.
-     */
-    if (row?.isDemo) {
-      out.push({ id, found: false });
-      continue;
-    }
-    out.push(row ? comparisonOf(row) : { id, found: false });
-  }
-  return out;
-}
 
 /* -------------------------------------------------------------- rate limit */
 
@@ -706,6 +253,7 @@ async function streamOneRound(
   apiKey: string,
   model: string,
   system: string,
+  tools: ToolDefinition[],
   messages: unknown[],
   signal: AbortSignal,
   onText: (text: string) => void,
@@ -725,7 +273,7 @@ async function streamOneRound(
         max_tokens: MAX_TOKENS,
         stream: true,
         system,
-        tools: [SEARCH_TOOL, COMPARE_TOOL, AREA_TOOL],
+        tools,
         messages,
       }),
     });
@@ -798,6 +346,14 @@ type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 type Persistence = {
   supabase: SupabaseServerClient;
   conversationId: string;
+  /**
+   * AI-02: the turns already stored in a thread the caller owns, oldest
+   * first, read before this request's user turn was written. `null` for a
+   * thread created by this request. An existing thread whose read failed is
+   * `[]`, so the model then gets the newest user turn alone, never the
+   * browser's copy of the history.
+   */
+  storedTurns: AssistantTurn[] | null;
 };
 
 /**
@@ -830,15 +386,16 @@ async function resolveCaller(): Promise<Caller> {
 
 /**
  * Signed-in callers get durable threads under RLS: upsert the conversation,
- * append the user turn now, and the assistant turn after the stream ends.
- * Signed-out callers keep localStorage only; any failure here is swallowed
- * so persistence can never break the conversation itself.
+ * read what the thread already holds, append the user turn now, and the
+ * assistant turn after the stream ends. Signed-out callers keep localStorage
+ * only; any failure here is swallowed so persistence can never break the
+ * conversation itself.
  */
 async function beginPersistence(
   caller: Caller,
   threadId: string | undefined,
   title: string,
-  userText: string,
+  newest: AssistantTurn,
 ): Promise<Persistence | null> {
   if (!caller.signedIn) return null;
   try {
@@ -853,6 +410,10 @@ async function beginPersistence(
         .maybeSingle();
       conversationId = data?.id ?? null;
     }
+    let storedTurns: AssistantTurn[] | null = null;
+    if (conversationId) {
+      storedTurns = (await loadThreadTurns(supabase, conversationId)) ?? [];
+    }
     if (!conversationId) {
       const { data, error } = await supabase
         .from("ai_conversations")
@@ -863,11 +424,15 @@ async function beginPersistence(
       conversationId = data.id;
     }
 
-    await supabase
-      .from("ai_messages")
-      .insert({ conversation_id: conversationId, role: "user", content: userText });
+    /* A Retry after a failed answer sends the same user turn again; the
+       first attempt already stored it, so it is not stored twice. */
+    if (!storedTurns || !endsWithSameUserTurn(storedTurns, newest)) {
+      await supabase
+        .from("ai_messages")
+        .insert({ conversation_id: conversationId, role: "user", content: newest.content });
+    }
 
-    return { supabase, conversationId };
+    return { supabase, conversationId, storedTurns };
   } catch {
     return null;
   }
@@ -893,24 +458,6 @@ async function finishPersistence(p: Persistence, assistantText: string): Promise
 
 /* ------------------------------------------------------------------- route */
 
-function parseTurns(value: unknown): AssistantTurn[] | null {
-  if (!Array.isArray(value) || value.length === 0) return null;
-  const turns: AssistantTurn[] = [];
-  for (const entry of value) {
-    if (typeof entry !== "object" || entry === null) return null;
-    const role = (entry as Record<string, unknown>).role;
-    const content = (entry as Record<string, unknown>).content;
-    if ((role !== "user" && role !== "assistant") || typeof content !== "string") return null;
-    const trimmed = content.trim().slice(0, MAX_TURN_CHARS);
-    if (!trimmed) continue;
-    turns.push({ role, content: trimmed });
-  }
-  const bounded = turns.slice(-MAX_TURNS);
-  const last = bounded[bounded.length - 1];
-  if (!last || last.role !== "user") return null;
-  return bounded;
-}
-
 export async function POST(req: NextRequest) {
   if (!isSameOriginRequest(req)) {
     return Response.json({ message: "Forbidden." }, { status: 403 });
@@ -924,7 +471,9 @@ export async function POST(req: NextRequest) {
 
   const record = typeof body === "object" && body !== null ? (body as Record<string, unknown>) : {};
   const turns = parseTurns(record.messages);
-  if (!turns) {
+  /* `parseTurns` only answers a list that ends with a user turn. */
+  const lastUser = turns?.[turns.length - 1];
+  if (!turns || !lastUser) {
     return Response.json(
       { message: "messages must be user and assistant turns ending with a user turn." },
       { status: 400 },
@@ -935,6 +484,8 @@ export async function POST(req: NextRequest) {
      up in `lib/assistant/workspace.ts`, so nothing the browser writes reaches
      the system prompt. Anything that is not a known key is the plain one. */
   const workspace = parseAssistantWorkspace(record.workspace);
+  const frame: ToolFrame = workspace ?? "consumer";
+  const tools = toolDefinitions(frame);
   const system = workspace ? `${SYSTEM_PROMPT}\n\n${WORKSPACE_FRAMES[workspace].system}` : SYSTEM_PROMPT;
 
   const apiKey = process.env.ANTHROPIC_API_KEY ?? "";
@@ -979,8 +530,9 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const model = process.env.ASSISTANT_MODEL ?? DEFAULT_MODEL;
-  const lastUser = turns[turns.length - 1];
+  /* `||`, not `??`: an ASSISTANT_MODEL set to an empty string named no model
+     and every request failed upstream; it now means the default. */
+  const model = process.env.ASSISTANT_MODEL || DEFAULT_MODEL;
   const firstUser = turns.find((t) => t.role === "user");
   const title = (firstUser?.content ?? "New chat").slice(0, TITLE_LIMIT);
 
@@ -997,21 +549,28 @@ export async function POST(req: NextRequest) {
         }
       };
 
-      const persistence = await beginPersistence(
-        caller,
-        threadId,
-        title,
-        lastUser?.content ?? "",
-      );
+      const persistence = await beginPersistence(caller, threadId, title, lastUser);
       if (persistence) emit({ type: "thread", id: persistence.conversationId });
 
-      const convo: unknown[] = turns.map((t) => ({ role: t.role, content: t.content }));
+      /*
+       * AI-02 (defect D-04): what the model is told was said before. A
+       * signed-in thread that already existed is read from `ai_messages`
+       * and only the newest user turn comes from the request, so an
+       * assistant turn written by the browser never reaches the model.
+       * Otherwise the browser's turns are all there is, and an assistant
+       * turn that is too long or carries tool output is dropped.
+       */
+      const history =
+        persistence?.storedTurns != null
+          ? serverThreadTurns(persistence.storedTurns, lastUser)
+          : sanitizeClientTurns(turns);
+      const convo: unknown[] = history.map((t) => ({ role: t.role, content: t.content }));
       let fullText = "";
 
       try {
         const upstream = requestSignal(req.signal);
         for (let round = 0; round <= MAX_TOOL_ROUNDS; round += 1) {
-          const result = await streamOneRound(apiKey, model, system, convo, upstream, (t) => {
+          const result = await streamOneRound(apiKey, model, system, tools, convo, upstream, (t) => {
             fullText += t;
             emit({ type: "text", text: t });
           });
@@ -1026,72 +585,34 @@ export async function POST(req: NextRequest) {
             /*
              * Dispatch on the tool's NAME.
              *
-             * This ran `runListingSearch` for every tool_use block, which was
+             * This ran the search for every tool_use block, which was
              * correct while there was one tool and becomes silently wrong the
              * moment there are two: the model would ask about an area and be
-             * handed a list of hotels, then answer confidently from it. A
-             * second tool is exactly the change that turns an unchecked
-             * assumption into a wrong answer nobody can see the cause of.
+             * handed a list of hotels, then answer confidently from it.
              *
-             * Anything unrecognised is refused honestly rather than falling
-             * through to a search, because a model inventing a tool name and
-             * receiving plausible data is worse than one told it asked for
-             * something that does not exist.
+             * `runTool` (AI-01) finds the tool in the registry, refuses a name
+             * it does not know or a tool not offered in this frame, checks the
+             * input against the tool's schema, and never throws: every refusal
+             * comes back as a tool error the model reads. Every result, error
+             * or not, goes to the model inside the vallo_tool fence.
              */
             const name = typeof use["name"] === "string" ? use["name"] : "";
-
-            if (name === COMPARE_TOOL.name) {
-              const rows = await runCompareListings(use.input);
+            const run = await runTool(name, use.input, { frame });
+            if (!run.ok) {
               toolResults.push({
                 type: "tool_result",
                 tool_use_id: use.id,
-                content: JSON.stringify(rows),
+                is_error: true,
+                content: fenceToolResult({ error: run.error }),
               });
               continue;
             }
-
-            if (name === AREA_TOOL.name) {
-              const { forModel } = await runAreaIntel(use.input);
-              toolResults.push({
-                type: "tool_result",
-                tool_use_id: use.id,
-                content: JSON.stringify(forModel),
-              });
-              continue;
-            }
-
-            if (name !== SEARCH_TOOL.name) {
-              toolResults.push({
-                type: "tool_result",
-                tool_use_id: use.id,
-                content: JSON.stringify({ error: `There is no tool called ${name}.` }),
-              });
-              continue;
-            }
-
-            const { items, forModel, exampleOnly } = await runListingSearch(use.input);
-            if (items.length > 0) emit({ type: "listings", items });
+            const { data, note, listings } = run.outcome;
+            if (listings && listings.length > 0) emit({ type: "listings", items: listings });
             toolResults.push({
               type: "tool_result",
               tool_use_id: use.id,
-              content: JSON.stringify(
-                forModel.length > 0
-                  ? forModel
-                  : exampleOnly
-                    ? {
-                        results: [],
-                        /*
-                         * Written as an instruction rather than as data,
-                         * because the model has to do something specific with
-                         * it and "exampleOnly: true" invites paraphrase. It
-                         * also states the prohibition, since the tempting move
-                         * from here is to describe the examples helpfully.
-                         */
-                        note:
-                          "The only properties matching this search are example listings that Vallo uses to illustrate the catalogue. They do not exist and cannot be booked, inspected or paid for. Tell the person plainly that there is nothing real matching this yet, and that the places they may see while browsing are examples. Do NOT describe, name, price or recommend any of them.",
-                      }
-                    : { results: [], note: "No listings matched. Suggest widening the search." },
-              ),
+              content: fenceToolResult(data, note),
             });
           }
 

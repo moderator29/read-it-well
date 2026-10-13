@@ -99,6 +99,11 @@ describe("the templates and routes follow the market", () => {
     for (const file of ["components/app/ListingCard.tsx", "components/app/stays/stay-card-model.ts"]) {
       expect(src(file), file).toContain("hrefForListing(listing.kind, listing.id, marketFactsOf(listing))");
     }
-    expect(src("app/api/assistant/route.ts").match(/marketFactsOf\(l\)/g)?.length).toBe(2);
+    /* The assistant's search and compare tools moved out of its route into
+       one file each (AI-01); one call each, as before. */
+    const assistantTools = ["lib/assistant/tools/search-listings.ts", "lib/assistant/tools/compare-listings.ts"]
+      .map(src)
+      .join("\n");
+    expect(assistantTools.match(/marketFactsOf\(l\)/g)?.length).toBe(2);
   });
 });

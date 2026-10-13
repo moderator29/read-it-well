@@ -23,10 +23,14 @@ import { BANNED_IN_EXAMPLE_COPY, firstBannedPhrase } from "@/lib/copy/banned-phr
  * behaving oddly.
  */
 
-const ROUTE = readFileSync(
-  join(process.cwd(), "src/app/api/assistant/route.ts"),
-  "utf8",
-);
+/*
+ * The search and compare runners moved out of `route.ts` into one file per
+ * tool (AI-01, `lib/assistant/tools/`). The constraints below follow the code
+ * there, unchanged; `ROUTE` is the two tool files read as one source.
+ */
+const ROUTE = ["search-listings.ts", "compare-listings.ts"]
+  .map((file) => readFileSync(join(process.cwd(), "src/lib/assistant/tools", file), "utf8"))
+  .join("\n");
 const WIRE = readFileSync(
   join(process.cwd(), "src/lib/assistant/types.ts"),
   "utf8",
