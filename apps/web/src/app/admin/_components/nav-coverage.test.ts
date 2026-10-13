@@ -87,6 +87,6 @@ describe("the console map and the route tree agree", () => {
     expect(keysOf("/admin/retention")).toEqual(["retention"]);
     expect(keysOf("/admin/restaurant-fees")).toEqual(["seatings"]);
     expect(keysOf("/admin/account-recovery")).toEqual(["recovery"]);
-    expect(keysOf("/admin/money")).toEqual(["claims", "referrals", "payouts"]);
+    expect(keysOf("/admin/money")).toEqual(["claims", "referrals", "payouts", "chargebacks"]);
   });
 });

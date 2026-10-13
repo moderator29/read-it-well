@@ -15,6 +15,8 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { monthsWithLines } from "@/lib/host/statement";
 import { HostInnerNav } from "@/components/host/HostInnerNav";
 import { hostInnerNavCopy } from "@/components/host/host-inner-nav";
+import { readMyChargebackHold } from "@/lib/money/chargeback-hold";
+import { ChargebackHoldNotice } from "@/components/money/ChargebackHoldNotice";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: getDictionary(await getLocale()).experienceHost.earnings.title, robots: { index: false, follow: false } };
@@ -42,7 +44,7 @@ export default async function HostEarningsPage({
   const locale = await getLocale();
   const t = getDictionary(locale);
   const before = parseBefore((await searchParams).before);
-  const read = await readMyEarnings(before);
+  const [read, hold] = await Promise.all([readMyEarnings(before), readMyChargebackHold()]);
   /* C9: a statement for every month that has a payment in it, from the
      newest page of the same record. */
   const months = read.state === "ok" ? monthsWithLines(read.entries).slice(0, 12) : [];
@@ -55,6 +57,8 @@ export default async function HostEarningsPage({
         <HostInnerNav active="earnings" {...hostInnerNavCopy(t)} />
         <h1 className="nf-h2">{t.experienceHost.earnings.title}</h1>
         <p className={`mt-xs mb-block ${TYPE.body}`}>{PAYOUT_ANSWER}</p>
+        {/* Chargebacks: the payout rule, said calmly, only when it applies. */}
+        <ChargebackHoldNotice hold={hold} copy={t.chargebacks.hold} locale={locale} />
         {read.state === "signed-out" ? (
           <EmptyState
             icon="bank-column"

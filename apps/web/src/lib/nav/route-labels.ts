@@ -209,6 +209,8 @@ const NAMES: Readonly<Record<string, string>> = {
   "/admin/restaurant-fees": "Restaurant fees",
   "/admin/compliance": "Compliance",
   "/admin/payments": "Payments",
+  "/admin/chargebacks": "Chargebacks",
+  "/admin/chargebacks/[chargebackId]": "the chargeback",
   "/admin/reference": "Reference",
   "/admin/settings": "Settings",
   "/admin/social": "Social",

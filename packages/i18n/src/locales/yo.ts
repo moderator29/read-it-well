@@ -4436,4 +4436,22 @@ export const yo: Dictionary = withFallback({
     },
   },
 
+  /* The lister's chargeback hold notice (13 October 2026). */
+  chargebacks: {
+    hold: {
+      overline: "Ìsanwó káàdì tí wọ́n dá padà",
+      title: "O jẹ owó ìsanwó kan tí wọ́n dá padà",
+      body: "Báńkì ẹni tó sanwó dá ìsanwó káàdì kan tí o gbà padà. Alábàáṣiṣẹ́ ìsanwó gbà á padà lọ́wọ́ Vallo, nítorí náà àkọọ́lẹ̀ rẹ jẹ {amount}.",
+      bodyNoAmount: "Báńkì ẹni tó sanwó dá ìsanwó káàdì kan tí o gbà padà. Alábàáṣiṣẹ́ ìsanwó gbà á padà lọ́wọ́ Vallo, nítorí náà àkọọ́lẹ̀ rẹ jẹ owó náà.",
+      meansTitle: "Ohun tó túmọ̀ sí",
+      means: "Níwọ̀n ìgbà tí owó náà bá ṣì wà lọ́rùn rẹ, a lè dá àwọn ìsanwó tuntun sí ọ dúró. Kò sí ohun mìíràn tó yí padà lórí àkọọ́lẹ̀ rẹ.",
+      nextTitle: "Ohun tó kàn",
+      next: "Ẹgbẹ́ ìṣúná Vallo yóò kàn sí ọ láti yanjú rẹ̀. Nígbà tí a bá yanjú rẹ̀ tàbí tí a pa á dé, ìkéde yìí yóò lọ fúnra rẹ̀.",
+      help: "Béèrè lọ́wọ́ ẹ̀ka ìrànlọ́wọ́ nípa rẹ̀",
+      openTitle: "Wọ́n ń jiyàn lórí ìsanwó káàdì kan",
+      openBody: "Báńkì ẹni tó sanwó ṣí àríyànjiyàn lórí ìsanwó kan tí o gbà. Kò sí ohun tí a dá dúró nígbà tí wọ́n ń pinnu rẹ̀. Ẹgbẹ́ ìṣúná Vallo lè béèrè ẹ̀rí ìfiṣura náà lọ́wọ́ rẹ.",
+      openMore: "Àríyànjiyàn tó ṣí sílẹ̀: {count}",
+    },
+  },
+
 } satisfies Translation, yoDrafts);

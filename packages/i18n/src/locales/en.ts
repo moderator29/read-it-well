@@ -70,6 +70,8 @@ import { visitOpsEn } from "./visit-ops.en";
 import { adminCoverageEn } from "./admin-coverage.en";
 /* The referral desk: the console's /admin/referrals (13 October). */
 import { referralDeskEn } from "./referral-desk.en";
+/* The chargebacks desk and the lister's hold notice (13 October 2026). */
+import { chargebacksEn } from "./chargebacks.en";
 /* Get Started as four cards (reference 3, 7 October). */
 
 /**
@@ -7033,6 +7035,12 @@ export const en = {
      usage, ledger books, retention, withdrawal fees, fee acceptance and the
      lister's promotion purchases. English only; the others fall back. */
   adminCoverage: adminCoverageEn,
+  /*
+   * Chargebacks (13 October 2026, track/chargebacks): the finance desk, the
+   * stay panel, the lister's hold notice and the desk's in-app notices.
+   * `chargebacks.en.ts` carries the words and the reasons.
+   */
+  chargebacks: chargebacksEn,
 
 };
 

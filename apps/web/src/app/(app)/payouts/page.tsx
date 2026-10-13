@@ -9,6 +9,9 @@ import { ButtonLink } from "@/components/ui/Button";
 import { withNext } from "@/lib/auth/next-link";
 import { HistoryUnavailable } from "@/components/app/money-history/HistoryStates";
 import { PayoutsView } from "@/components/money/PayoutsView";
+import { getDictionary } from "@vallo/i18n";
+import { readMyChargebackHold } from "@/lib/money/chargeback-hold";
+import { ChargebackHoldNotice } from "@/components/money/ChargebackHoldNotice";
 
 export const metadata: Metadata = { title: "Payouts", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -31,11 +34,13 @@ export default async function PayoutsPage({
 }) {
   const locale = await getLocale();
   const before = parseBefore((await searchParams).before);
-  const read = await readMyEarnings(before);
+  const [read, hold] = await Promise.all([readMyEarnings(before), readMyChargebackHold()]);
 
   return (
     <main className="nf-page nf-md nf-history">
       <PageHeader title={PAYOUTS_TITLE} fallback="/home" />
+      {/* Chargebacks: the payout rule, said calmly, only when it applies. */}
+      <ChargebackHoldNotice hold={hold} copy={getDictionary(locale).chargebacks.hold} locale={locale} />
       {read.state === "signed-out" ? (
         <EmptyState
           icon="bank-column"

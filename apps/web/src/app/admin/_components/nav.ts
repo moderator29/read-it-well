@@ -97,12 +97,21 @@ export const ADMIN_PRIMARY: AdminDestination[] = [
     href: "/admin/money",
     icon: glyph("naira-square"),
     label: "Money",
-    /* Guarantee claims, plus referrals and payouts waiting on a person, so the
-       Money row shows every money decision without opening it first. */
-    countKeys: ["claims", "referrals", "payouts"],
-    countLabel: "Guarantee claims, referrals and payouts waiting on a decision",
+    /* Every money decision waiting on a person badges the Money row, so it is
+       seen with the section closed: Guarantee claims, referrals, payouts and
+       undecided chargebacks (13 October). */
+    countKeys: ["claims", "referrals", "payouts", "chargebacks"],
+    countLabel: "Guarantee claims, referrals, payouts and chargebacks waiting on a decision",
     children: [
       { key: "payments", href: "/admin/payments", icon: ui("wallet"), label: "Payments" },
+      {
+        key: "chargebacks",
+        href: "/admin/chargebacks",
+        icon: ui("credit-card"),
+        label: "Chargebacks",
+        countKeys: ["chargebacks"],
+        countLabel: "chargebacks open, waiting on evidence or a decision",
+      },
       { key: "fees", href: "/admin/fees", icon: ui("document"), label: "Fees" },
       /* The referral desk: rewards owed, the monthly budget, and the referrals and payouts a person has to decide. */
       {

@@ -16,6 +16,8 @@ import { EarningsHistory } from "@/components/app/money-history/EarningsHistory"
 import { PayoutList } from "@/components/money/PayoutList";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { IconPlate } from "@/components/ui/IconPlate";
+import { readMyChargebackHold } from "@/lib/money/chargeback-hold";
+import { ChargebackHoldNotice } from "@/components/money/ChargebackHoldNotice";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
@@ -78,10 +80,11 @@ export default async function Page({
   }
 
   const before = parseBefore((await searchParams).before);
-  const [earnings, payout, history] = await Promise.all([
+  const [earnings, payout, history, hold] = await Promise.all([
     readAgentEarnings(context).then((read) => read ?? UNREADABLE_EARNINGS),
     getPayoutAccounts(),
     readMyEarnings(before),
+    readMyChargebackHold(),
   ]);
 
   return (
@@ -95,6 +98,9 @@ export default async function Page({
         <h1 className="nf-h1">{t.agentEarnings.title}</h1>
         <p className="mt-2xs text-[var(--nf-content-secondary)]">{t.agentEarnings.lede}</p>
       </div>
+
+      {/* Chargebacks: the payout rule, said calmly, only when it applies. */}
+      <ChargebackHoldNotice hold={hold} copy={t.chargebacks.hold} locale={locale} />
 
       <EarningsWorkspace t={t.agentEarnings} earnings={earnings} locale={locale} />
 

@@ -4419,4 +4419,22 @@ export const ig: Dictionary = withFallback({
     },
   },
 
+  /* The lister's chargeback hold notice (13 October 2026). */
+  chargebacks: {
+    hold: {
+      overline: "Ịkwụ ụgwọ kaadị a tụgharịrị",
+      title: "Ị ji ụgwọ ịkwụ ụgwọ a tụgharịrị",
+      body: "Ụlọ akụ onye kwụrụ ụgwọ tụgharịrị ịkwụ ụgwọ kaadị ị natara. Onye mmekọ ịkwụ ụgwọ weghachiri ya n'aka Vallo, ya mere akaụntụ gị ji {amount}.",
+      bodyNoAmount: "Ụlọ akụ onye kwụrụ ụgwọ tụgharịrị ịkwụ ụgwọ kaadị ị natara. Onye mmekọ ịkwụ ụgwọ weghachiri ya n'aka Vallo, ya mere akaụntụ gị ji ego ahụ.",
+      meansTitle: "Ihe ọ pụtara",
+      means: "Ka ọ ka dị n'ụgwọ, a nwere ike ịkwụsịtụ ịkwụ gị ụgwọ ọhụrụ. Ọ dịghị ihe ọzọ na-agbanwe n'akaụntụ gị.",
+      nextTitle: "Ihe na-esote",
+      next: "Ndị otu ego Vallo ga-akpọtụrụ gị iji dozie ya. Ozugbo e doziri ya ma ọ bụ mechie ya, ọkwa a ga-apụ n'onwe ya.",
+      help: "Jụọ ndị nkwado maka ya",
+      openTitle: "A na-arụrịta ụka maka ịkwụ ụgwọ kaadị",
+      openBody: "Ụlọ akụ onye kwụrụ ụgwọ mepere arụmụka maka ịkwụ ụgwọ ị natara. Ọ dịghị ihe a kwụsịrị mgbe a na-ekpebi ya. Ndị otu ego Vallo nwere ike ịrịọ gị ihe akaebe nke ndokwa ahụ.",
+      openMore: "Arụmụka mepere emepe: {count}",
+    },
+  },
+
 } satisfies Translation, igDrafts);
