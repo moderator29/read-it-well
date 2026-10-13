@@ -74,6 +74,9 @@ export default async function RestaurantFeesPage() {
       {read.disputes.length > 0 && (
         <section className="mb-block">
           <h2 className="nf-h4">Disagreements to decide</h2>
+          <p className="nf-caption mt-inline-tight">
+            Counting a no-show as seated sends any table deposit kept for it back to the guest&apos;s card, through the hourly refund.
+          </p>
           <ul className="mt-row flex flex-col gap-row">
             {read.disputes.map((d) => (
               <li key={d.reservationId} className="nf-panel nf-panel--card nf-admin-card p-card">

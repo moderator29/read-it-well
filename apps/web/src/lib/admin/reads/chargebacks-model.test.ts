@@ -1,8 +1,10 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { getDictionary } from "@vallo/i18n";
 import {
   CHARGEBACK_STATES,
+  HELD_CLAIM_STATUSES,
   ageBucket,
   baseFromRpc,
   chargebacksHref,
@@ -196,5 +198,52 @@ describe("what the payout rule holds (migration cbh01)", () => {
       { kind: "arrangement", id: "a1", reference: "vallo-arr-1", amountMinor: 45_000_000, status: "protected", overridden: false },
       { kind: "rewards_payout", id: "p1", reference: "vallo-rw-1", amountMinor: 150_000, status: "under_review", overridden: true },
     ]);
+  });
+});
+
+describe("Guarantee claim payouts pause too (migration fm02)", () => {
+  const FM02 = readFileSync(
+    join(__dirname, "../../../../../../supabase/migrations/20261013205130_fm02_guarantee_claim_payouts_chargeback_hold.sql"),
+    "utf8",
+  );
+
+  it("holds the lister's unpaid claims: the approved amount once there is one, what was asked until then", () => {
+    const held = heldSubjectsFrom([], [], new Set(["c2"]), [
+      { id: "c1", status: "submitted", requested_minor: 2_000_000, approved_minor: null },
+      { id: "c2", status: "approved", requested_minor: 2_000_000, approved_minor: "1500000" },
+      { id: "c3", status: "submitted", requested_minor: "n/a", approved_minor: null },
+      null,
+    ]);
+    expect(held).toEqual([
+      { kind: "guarantee_claim", id: "c1", reference: "c1", amountMinor: 2_000_000, status: "submitted", overridden: false },
+      { kind: "guarantee_claim", id: "c2", reference: "c2", amountMinor: 1_500_000, status: "approved", overridden: true },
+    ]);
+    expect([...HELD_CLAIM_STATUSES]).toEqual(["submitted", "approved"]);
+  });
+
+  it("gates deciding to pay and marking paid in the database, behind a per-claim finance override", () => {
+    const decide = FM02.slice(FM02.indexOf("function public.admin_decide_guarantee_claim"), FM02.indexOf("function public.admin_mark_guarantee_claim_paid"));
+    const paid = FM02.slice(FM02.indexOf("function public.admin_mark_guarantee_claim_paid"), FM02.indexOf("function public.admin_chargeback_hold_override"));
+    for (const body of [decide, paid]) {
+      expect(body).toMatch(/private\.chargeback_hold_blocks\('guarantee_claim', c\.id, c\.claimant_id\)/);
+      expect(body).toMatch(/private\.chargeback_hold_refused\('guarantee_claim'/);
+      expect(body).toMatch(/'status', 'chargeback_hold'/);
+    }
+    // Rejecting pays nothing: the gate sits on the approve branch only.
+    expect(decide.indexOf("chargeback_hold_blocks")).toBeGreaterThan(decide.indexOf("if p_decision = 'reject' then\n    update"));
+    expect(FM02).toMatch(/p_kind not in \('arrangement', 'rewards_payout', 'guarantee_claim'\)/);
+    expect(FM02).not.toMatch(/\bdrop\s+(table|function|constraint|trigger|index)\b/i);
+    expect(FM02).not.toMatch(/\bdelete\s+from\b/i);
+  });
+
+  it("names the claim kind and its statuses on the desk, and tells the lister in four languages", () => {
+    const en = getDictionary("en").chargebacks;
+    expect(en.override.kinds.guarantee_claim).toBeTruthy();
+    for (const status of HELD_CLAIM_STATUSES) expect((en.override.statuses as Record<string, string>)[status]).toBeTruthy();
+    expect(en.override.claimHeld.approve).toMatch(/override this one claim/);
+    expect(en.override.claimHeld.markPaid).toMatch(/override this one claim/);
+    for (const locale of ["en", "yo", "ig", "ha"] as const) {
+      expect(getDictionary(locale).chargebacks.hold.means).toMatch(/Vallo Guarantee/);
+    }
   });
 });

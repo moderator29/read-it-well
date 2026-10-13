@@ -285,7 +285,7 @@ export const chargebacksEn = {
     body: "The payer's bank reversed a card payment you received. The payment partner took it back from Vallo, so {amount} is owed back from your account.",
     bodyNoAmount: "The payer's bank reversed a card payment you received. The payment partner took it back from Vallo, so the amount is owed back from your account.",
     meansTitle: "What it means",
-    means: "While it is owed, Vallo pauses the release of payments Payluk holds for you, and withdrawals from your Rewards Balance. Card payments still reach your payout account at the moment of payment. Nothing else on your account changes.",
+    means: "While it is owed, Vallo pauses the release of payments Payluk holds for you, withdrawals from your Rewards Balance, and Vallo Guarantee claim payouts to you. Card payments still reach your payout account at the moment of payment. Nothing else on your account changes.",
     nextTitle: "What happens next",
     next: "Vallo's finance team will contact you to settle it. Once it is settled or closed, this notice goes away by itself.",
     help: "Ask support about it",
@@ -310,7 +310,7 @@ export const chargebacksEn = {
     },
     lost: {
       title: "A disputed payment was reversed",
-      body: "The payer's bank reversed {amount}. It is owed back. Until it is settled, Vallo pauses the release of payments Payluk holds for you, and withdrawals from your Rewards Balance.",
+      body: "The payer's bank reversed {amount}. It is owed back. Until it is settled, Vallo pauses the release of payments Payluk holds for you, withdrawals from your Rewards Balance, and Vallo Guarantee claim payouts.",
     },
     lostRecovered: {
       title: "A disputed payment was reversed",
@@ -322,7 +322,7 @@ export const chargebacksEn = {
     },
     reowed: {
       title: "A reversed payment is owed again",
-      body: "The reversed {amount} is owed again. Until it is settled, Vallo pauses the release of payments Payluk holds for you, and withdrawals from your Rewards Balance.",
+      body: "The reversed {amount} is owed again. Until it is settled, Vallo pauses the release of payments Payluk holds for you, withdrawals from your Rewards Balance, and Vallo Guarantee claim payouts.",
     },
     payerDecided: {
       title: "Your card dispute is closed",
@@ -334,12 +334,13 @@ export const chargebacksEn = {
   override: {
     title: "Held by the payout rule",
     hint: "Payments Vallo would send this lister",
-    lede: "While this stays owed, Vallo does not release the lister's escrow payments or send their Rewards Balance payouts. Finance can let one go, with a reason the audit log keeps.",
+    lede: "While this stays owed, Vallo does not release the lister's escrow payments, send their Rewards Balance payouts, or pay their Guarantee claims. Finance can let one go, with a reason the audit log keeps.",
     empty: "Nothing is waiting for this lister right now. Anything new is held as it arrives.",
     unreadable: "What is held for this lister could not be read just now. Refresh to try again.",
     kinds: {
       arrangement: "Escrow payment",
       rewards_payout: "Rewards payout",
+      guarantee_claim: "Guarantee claim payout",
     },
     statuses: {
       protected: "Held with Payluk",
@@ -347,6 +348,8 @@ export const chargebacksEn = {
       disputed: "Disputed",
       under_review: "Under review",
       processing: "Waiting to send",
+      submitted: "Claim to decide",
+      approved: "Approved, not yet paid",
     },
     overridden: "Overridden",
     button: "Override",
@@ -359,14 +362,21 @@ export const chargebacksEn = {
     doneBody: "The audit log has it. The release or payout can now be asked for again.",
     results: {
       forbidden: "Only finance staff on a proved session can override the payout rule.",
-      bad_kind: "Choose a held escrow payment or a Rewards Balance payout.",
+      bad_kind: "Choose a held escrow payment, Rewards Balance payout or Guarantee claim.",
       reason_required: "Give a reason of at least 12 characters. It is kept on the audit log.",
       reason_too_long: "Keep the reason under 1,000 characters.",
-      not_found: "That payment or payout no longer exists.",
+      not_found: "That payment, payout or open Guarantee claim no longer exists.",
       own_hold: "This hold is on your own account, so somebody else in finance has to decide it.",
       not_held: "The payout rule does not hold this lister now, so there is nothing to override.",
       already: "This one is already overridden. The release can be asked for again.",
       failed: "The override could not be recorded. Nothing changed. Try again.",
+    },
+    /** The Guarantee claims desk's refusal while the claimant is held (migration fm02). */
+    claimHeld: {
+      approve:
+        "This claimant owes a lost card chargeback, so the payout rule holds their Guarantee claims. Nothing was approved. Finance can override this one claim, with a reason, from the chargeback in Chargebacks.",
+      markPaid:
+        "This claimant owes a lost card chargeback, so the payout rule holds their Guarantee claims. Nothing was recorded. If the transfer already went, ask finance to override this one claim from the chargeback in Chargebacks, then mark it paid.",
     },
   },
 };

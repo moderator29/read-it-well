@@ -9,7 +9,8 @@ import { sendDueDepositRefunds } from "../../reservations/deposit-settlement";
 /**
  * D75. Hourly: send every table deposit refund the restaurant's rule decided
  * (a guest who cancelled in time, a venue that cancelled, a charge that could
- * not be applied) back to the card, once each (the refund claim). And close
+ * not be applied, a no-show overturned to seated, migration fm01) back to the
+ * card, once each (the refund claim). And close
  * checkouts nobody paid within two hours as abandoned; a late payment on one
  * still settles, or goes back to the card.
  *

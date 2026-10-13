@@ -12,6 +12,7 @@ import {
   entryFromAudit,
   entryFromEvent,
   HELD_ARRANGEMENT_STATUSES,
+  HELD_CLAIM_STATUSES,
   HELD_PAYOUT_STATUSES,
   heldSubjectsFrom,
   holdsPayouts,
@@ -169,14 +170,15 @@ export type ChargebackDetail = {
 
 /**
  * What the payout rule is holding for this lister right now: escrow payments
- * still held for them and Rewards payouts not yet sent. Read on the service
- * client only after `staff_chargebacks` admitted the caller as finance. An
- * override is known from its own audit row (`chargeback.hold_overridden`):
- * the overrides table is closed to every app role.
+ * still held for them, Rewards payouts not yet sent, and Guarantee claims
+ * they made that are not yet paid. Read on the service client only after
+ * `staff_chargebacks` admitted the caller as finance. An override is known
+ * from its own audit row (`chargeback.hold_overridden`): the override tables
+ * are closed to every app role.
  */
 async function readHeld(service: Db, listerId: string): Promise<HeldSubject[] | null> {
   const loose = service as unknown as SupabaseClient;
-  const [arr, pay] = await Promise.all([
+  const [arr, pay, claims] = await Promise.all([
     loose
       .from("provider_arrangements")
       .select("id, reference, amount_minor, status")
@@ -191,9 +193,17 @@ async function readHeld(service: Db, listerId: string): Promise<HeldSubject[] | 
       .in("status", [...HELD_PAYOUT_STATUSES])
       .order("created_at", { ascending: false })
       .limit(50),
+    /* Guarantee claims the lister made, still to be paid (migration fm02). */
+    loose
+      .from("guarantee_claims")
+      .select("id, status, requested_minor, approved_minor")
+      .eq("claimant_id", listerId)
+      .in("status", [...HELD_CLAIM_STATUSES])
+      .order("created_at", { ascending: false })
+      .limit(50),
   ]);
-  if (arr.error || pay.error) return null;
-  const ids = [...(arr.data ?? []), ...(pay.data ?? [])].map((r) => (r as { id: string }).id);
+  if (arr.error || pay.error || claims.error) return null;
+  const ids = [...(arr.data ?? []), ...(pay.data ?? []), ...(claims.data ?? [])].map((r) => (r as { id: string }).id);
   let overridden = new Set<string>();
   if (ids.length > 0) {
     const { data, error } = await loose
@@ -204,7 +214,7 @@ async function readHeld(service: Db, listerId: string): Promise<HeldSubject[] | 
     if (error) return null;
     overridden = new Set((data ?? []).map((r) => String((r as { entity_id: string }).entity_id)));
   }
-  return heldSubjectsFrom(arr.data ?? [], pay.data ?? [], overridden);
+  return heldSubjectsFrom(arr.data ?? [], pay.data ?? [], overridden, claims.data ?? []);
 }
 
 async function readTimeline(door: Door, row: ChargebackBase): Promise<{ entries: TimelineEntry[]; source: "events" | "audit" }> {

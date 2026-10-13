@@ -118,7 +118,7 @@ describe("the draft SQL", () => {
     expect(code).not.toMatch(/\bj\.command\b|\bpayload\b|dedupe_key|decrypted_secret|\bphone\b|\bemail\b\s+as/i);
   });
 
-  it("ends its probe in a rolled back TEST_RESULT", () => {
-    expect(PROBE).toMatch(/raise exception 'TEST_RESULT op01-operations-reads/);
+  it("ends its probe in a rolled back success line that names its file", () => {
+    expect(PROBE).toMatch(/raise exception 'PROBE_OK op01-operations-reads'/);
   });
 });

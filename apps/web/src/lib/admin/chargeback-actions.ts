@@ -252,15 +252,15 @@ export async function addChargebackNote(input: z.input<typeof noteSchema>): Prom
 /* -------------------------------------------------------------- override */
 
 const overrideSchema = z.object({
-  kind: z.enum(["arrangement", "rewards_payout"]),
+  kind: z.enum(["arrangement", "rewards_payout", "guarantee_claim"]),
   subjectId: z.string().uuid("We could not identify that payment."),
   reason: z.string().trim().min(12, "Give a reason of at least 12 characters.").max(1000, "Keep it under 1,000 characters."),
 });
 
 /**
  * THE PAYOUT RULE'S ONE EXCEPTION (migration cbh01): finance lets ONE held escrow
- * payment or ONE Rewards Balance payout go while the lister still owes a lost
- * chargeback. `public.admin_chargeback_hold_override` checks the finance
+ * payment, ONE Rewards Balance payout or (migration fm02) ONE Guarantee claim
+ * go while the lister still owes a lost chargeback. `public.admin_chargeback_hold_override` checks the finance
  * scope on a proved session, refuses the staffer's own hold, records the
  * override and its reason, writes `chargeback.hold_overridden` to the audit
  * log and lifts the pause the rule set. Nothing moves here: the release is
@@ -284,6 +284,7 @@ export async function overrideChargebackHold(input: z.input<typeof overrideSchem
       revalidatePath("/admin/chargebacks");
       revalidatePath("/admin/agreements");
       revalidatePath("/admin/referrals");
+      revalidatePath("/admin/money");
       return ok(null);
     }
     return fail(results[status] ?? results.failed!);
