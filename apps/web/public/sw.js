@@ -221,6 +221,36 @@ const KEPT_MARK_ATTRIBUTE = "data-vallo-kept";
    when it was kept: only such a page may answer at once. */
 const WHOLE_HEADER = "x-vallo-whole";
 
+/*
+ * PAGES THE SERVER DRAWS TWO WAYS BY A COOKIE, and the cookie that decides.
+ * `/welcome` shows the slides, or only the sign-in and sign-up choice for a
+ * device that saw them in the last half hour (`vallo_first_run`, written by
+ * the page itself, so not httpOnly). A copy kept one way must not answer at
+ * once when the cookie now says the other, or the screen would open on the
+ * slides and jump to the choice. The worker reads the cookie with the Cookie
+ * Store API; where that is missing, such a page never answers at once.
+ */
+const COOKIE_VARIANT_PAGES = { "/welcome": "vallo_first_run" };
+const VARIANT_HEADER = "x-vallo-variant";
+
+/*
+ * The variant of a page right now: "" for a page drawn one way only, the
+ * cookie's value ("-" when absent) for a variant page, or null when the cookie
+ * cannot be read here.
+ */
+async function pageVariant(pathname) {
+  const name = Object.prototype.hasOwnProperty.call(COOKIE_VARIANT_PAGES, pathname) ? COOKIE_VARIANT_PAGES[pathname] : null;
+  if (!name) return "";
+  try {
+    const store = self.cookieStore;
+    if (!store || typeof store.get !== "function") return null;
+    const cookie = await store.get(name);
+    return cookie && typeof cookie.value === "string" && cookie.value ? cookie.value : "-";
+  } catch {
+    return null;
+  }
+}
+
 /* How many pages and photographs one phone keeps, oldest out first. */
 const MAX_PAGES_PER_VIEWER = 60;
 const MAX_IMAGES = 200;
@@ -719,6 +749,9 @@ async function keepPage(url, response) {
     const whole = assetPaths.length > 0 && (await assetsAllKept(assetPaths));
     const headers = keptHeaders(response.headers, viewer);
     if (whole) headers.set(WHOLE_HEADER, "1");
+    /* Which way a two-way page was drawn; unknown leaves it unable to answer at once. */
+    const variant = await pageVariant(url.pathname);
+    if (variant) headers.set(VARIANT_HEADER, variant);
     const cache = await caches.open(pageCacheName(viewer));
     const key = pageCacheKey(url);
     /* Delete first so a re-kept page moves to the back of the queue. */
@@ -764,6 +797,7 @@ function markKept(response, timing) {
   headers.set("server-timing", timing || FROM_CACHE_TIMING);
   headers.set("cache-control", "no-store");
   headers.delete(WHOLE_HEADER);
+  headers.delete(VARIANT_HEADER);
   return new Response(response.body, { status: 200, statusText: "OK", headers });
 }
 
@@ -902,7 +936,7 @@ let lastInstantAt = 0;
  * download, which is exactly what Save-Data asks us not to spend), and not
  * moments after the last instant answer.
  */
-function mayAnswerInstantly(request, kept, now) {
+async function mayAnswerInstantly(request, kept, now, pathname) {
   if (askedForNetwork(request)) return false;
   if (saveDataRequested(request)) return false;
   if (now - lastInstantAt < INSTANT_COOLDOWN_MS) return false;
@@ -910,7 +944,11 @@ function mayAnswerInstantly(request, kept, now) {
   if (headers.get(WHOLE_HEADER) !== "1") return false;
   const keptAt = Number(headers.get("x-vallo-kept-at") || "0");
   if (!keptAt || keptAt > now + 60 * 1000) return false;
-  return now - keptAt <= INSTANT_MAX_AGE_MS;
+  if (now - keptAt > INSTANT_MAX_AGE_MS) return false;
+  /* A two-way page answers at once only when it was kept the way it would be drawn now. */
+  const variant = await pageVariant(pathname);
+  if (variant === null) return false;
+  return variant === "" || headers.get(VARIANT_HEADER) === variant;
 }
 
 /*
@@ -948,18 +986,32 @@ function handleNavigation(event) {
   /* The network starts at once, beside the cache read, and the copy is kept
      in the background: the page gets its answer as it streams, never after
      the whole document has been read for keeping. */
+  /*
+   * The page on screen is the phone's copy, so it hears that the network has
+   * answered. A redirect counts (the session ended, say: the refresh follows
+   * it); an error page does not, and the copy stays on screen. Asked from both
+   * sides, because either can finish first: the network may have answered
+   * and been kept before the decision to show the copy was taken.
+   */
+  let worthTelling = false;
+  let told = false;
+  const tell = async () => {
+    if (told || !worthTelling || (settled !== "kept" && settled !== "instant")) return;
+    told = true;
+    await announceFresh(url);
+  };
+
+  /* The network's answer once it is in, untouched (the copy kept below is a clone). */
+  let reply = null;
   const network = networkAnswer(event);
   const keeping = network
     .then(async (response) => {
+      reply = response;
       const fresh = await keepPage(url, response.clone());
       /* Just kept: the page's own announcement need not fetch it again. */
       if (fresh) lastWarmed.set(key, Date.now());
-      /* The page on screen is the phone's copy, so it hears that the network
-         has answered. A redirect counts (the session ended, say: the refresh
-         follows it); an error page does not, and the copy stays on screen. */
-      if ((settled === "kept" || settled === "instant") && (fresh || response.ok || isRedirectAnswer(response))) {
-        await announceFresh(url);
-      }
+      worthTelling = fresh || response.ok || isRedirectAnswer(response);
+      await tell();
       if (response.ok) await refreshShellIfDue(saveDataRequested(request));
     })
     .catch(() => undefined);
@@ -985,9 +1037,15 @@ function handleNavigation(event) {
     }
 
     const now = Date.now();
-    if (kept.key === key && mayAnswerInstantly(request, kept.response, now)) {
+    if (kept.key === key && (await mayAnswerInstantly(request, kept.response, now, url.pathname))) {
+      /* The network was quicker than the cache after all: show the fresh page. */
+      if (reply && reply.ok && !reply.redirected) {
+        settled = "network";
+        return reply;
+      }
       settled = "instant";
       lastInstantAt = now;
+      event.waitUntil(tell());
       return markKept(kept.response, INSTANT_TIMING);
     }
 
@@ -1003,6 +1061,7 @@ function handleNavigation(event) {
       return outcome;
     }
     settled = "kept";
+    event.waitUntil(tell());
     return markKept(kept.response, FROM_CACHE_TIMING);
   })();
 }

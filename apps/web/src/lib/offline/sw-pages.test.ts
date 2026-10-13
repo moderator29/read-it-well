@@ -120,7 +120,7 @@ function withAssets(page: () => Response): (url: string) => Promise<Response> {
       : page();
 }
 
-function load(options: { saveData?: boolean } = {}) {
+function load(options: { saveData?: boolean; cookies?: Map<string, string> } = {}) {
   const caches = new FakeCacheStorage();
   const listeners = new Map<string, (event: unknown) => void>();
   const posted: Array<{ to: string; message: unknown }> = [];
@@ -134,6 +134,10 @@ function load(options: { saveData?: boolean } = {}) {
     location: { origin: ORIGIN },
     navigator: { connection: options.saveData ? { saveData: true } : {} },
     registration: {},
+    /* The Cookie Store API, where a test gives the worker one. */
+    ...(options.cookies
+      ? { cookieStore: { get: async (name: string) => (options.cookies!.has(name) ? { name, value: options.cookies!.get(name) } : null) } }
+      : {}),
     clients: {
       claim: async () => undefined,
       matchAll: async () => [{ url: `${ORIGIN}/home`, postMessage: (message: unknown) => posted.push({ to: "/home", message }) }],
@@ -466,6 +470,17 @@ describe("answering at once from the phone (the startup track)", () => {
     expect(sw.posted).toContainEqual({ to: "/home", message: { type: "vallo:page-fresh", path: "/home" } });
   });
 
+  it("shows the network's page when it answered before the phone's copy was even read", async () => {
+    const sw = load();
+    await keepWhole(sw, "/home", "old");
+    sw.setNetwork(withAssets(() => html(ALICE, { body: "fresh already", assets: ASSETS })));
+    const { response, settled } = await sw.request("/home");
+    expect(await response!.text()).toContain("fresh already");
+    expect(response!.headers.get("server-timing")).toBeNull();
+    await settled();
+    expect(sw.posted).toEqual([]);
+  });
+
   it("uses the browser's navigation preload rather than fetching the page a second time", async () => {
     const sw = load();
     sw.setNetwork(async () => {
@@ -539,15 +554,20 @@ describe("answering at once from the phone (the startup track)", () => {
     const sw = load();
     await keepWhole(sw, "/home", "old");
     await keepWhole(sw, "/search", "old search");
-    sw.setNetwork(withAssets(() => html(ALICE, { body: "new", assets: ASSETS })));
+    /* A network slower than the phone, so the copy is the quicker answer. */
+    let release: (r: Response) => void = () => undefined;
+    sw.setNetwork(() => new Promise<Response>((resolve) => (release = resolve)));
     const first = await sw.request("/home");
     expect(await first.response!.text()).toContain("old");
+    release(html(ALICE, { body: "new", assets: ASSETS }));
     await first.settled();
     vi.setSystemTime(new Date("2026-10-13T08:00:05Z"));
+    sw.setNetwork(withAssets(() => html(ALICE, { body: "new", assets: ASSETS })));
     const second = await sw.request("/search");
     expect(await second.response!.text()).toContain("new");
     await second.settled();
     vi.setSystemTime(new Date("2026-10-13T08:01:00Z"));
+    sw.setNetwork(() => new Promise<Response>(() => undefined));
     const later = await sw.request("/home");
     expect(later.response!.headers.get("server-timing")).toBe('vallo-kept;desc="instant"');
   });
@@ -565,6 +585,39 @@ describe("answering at once from the phone (the startup track)", () => {
     const home = await sw.request("/home");
     expect(await home.response!.text()).toContain("alice home");
     expect(home.response!.headers.get("server-timing")).toBe('vallo-kept;desc="instant"');
+  });
+
+  it("the welcome screen answers at once only when it was kept the way the first-run cookie draws it now", async () => {
+    const cookies = new Map<string, string>();
+    const sw = load({ cookies });
+    await keepWhole(sw, "/welcome", "the slides");
+    sw.setNetwork(() => new Promise<Response>(() => undefined));
+    const same = await sw.request("/welcome");
+    expect(await same.response!.text()).toContain("the slides");
+    expect(same.response!.headers.get("server-timing")).toBe('vallo-kept;desc="instant"');
+
+    /* The device saw the slides since: the server now draws the choice, so the network answers. */
+    const other = load({ cookies });
+    await keepWhole(other, "/welcome", "the slides");
+    cookies.set("vallo_first_run", "seen");
+    other.setNetwork(withAssets(() => html(ALICE, { body: "the choice", assets: ASSETS })));
+    const changed = await other.request("/welcome");
+    expect(await changed.response!.text()).toContain("the choice");
+    await changed.settled();
+    /* Kept again, the choice way: now it answers at once while the cookie says so. */
+    const third = load({ cookies });
+    await keepWhole(third, "/welcome", "the choice");
+    third.setNetwork(() => new Promise<Response>(() => undefined));
+    const again = await third.request("/welcome");
+    expect(again.response!.headers.get("server-timing")).toBe('vallo-kept;desc="instant"');
+  });
+
+  it("the welcome screen never answers at once where the worker cannot read cookies", async () => {
+    const sw = load();
+    await keepWhole(sw, "/welcome", "the slides");
+    sw.setNetwork(withAssets(() => html(ALICE, { body: "from the network", assets: ASSETS })));
+    const { response } = await sw.request("/welcome");
+    expect(await response!.text()).toContain("from the network");
   });
 
   it("the front door is never redirected at once: its own copy or the network", async () => {
