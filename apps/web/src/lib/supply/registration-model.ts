@@ -353,6 +353,9 @@ export const FIELD_STEP: Record<string, number> = {
   agencyFeeBps: 2,
   legalFeeBps: 2,
   team: 2,
+  /* Ruling 6: the two ticks sit on the last screen of every form. */
+  acceptTerms: 2,
+  acceptPayOnVallo: 2,
 };
 
 /** The earliest screen carrying any of these refusals, for the walk back. */

@@ -6,7 +6,7 @@ import { useId, useState } from "react";
 import type { Dictionary } from "@vallo/i18n/core";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ReportSheet } from "@/components/app/ReportSheet";
-import { PAYMENT_GATE_SENTENCE, PRIVATE_FEE_NOTE } from "@/lib/money/copy";
+import { PAYMENT_GATE_SENTENCE, PAY_ONLY_THROUGH_VALLO, PRIVATE_FEE_NOTE } from "@/lib/money/copy";
 import type { OffPlatformAsk } from "@/lib/messages/off-platform-ask";
 
 /**
@@ -24,6 +24,13 @@ import type { OffPlatformAsk } from "@/lib/messages/off-platform-ask";
  *
  * The money sentences are the constants in `lib/money/copy.ts`, so the shield
  * can never say something about payment that the Terms do not.
+ *
+ * THE MENTION (founder ruling 7, 13 October 2026). In a listing chat, when
+ * either side mentions an account number or a transfer (`mentionsPayingOutside`),
+ * the same row is drawn with the founder's line as its lead: "Pay only through
+ * Vallo. Payments made outside Vallo are not covered." On both sides and under
+ * the reader's own message too; Report is offered only on a message from the
+ * other side. One shield, two leads, never two rows on one message.
  */
 export function ScamShield({
   ask,
@@ -31,8 +38,12 @@ export function ScamShield({
   canReport,
   copy,
   quote,
+  mention = false,
 }: {
-  ask: OffPlatformAsk;
+  /** The ask `offPlatformAsk` found; absent on a mention. */
+  ask?: OffPlatformAsk | null;
+  /** A mention of an account number or a transfer, by either side (ruling 7). */
+  mention?: boolean;
   messageId: string;
   /** A real message on the platform. Seed threads have nothing to report. */
   canReport: boolean;
@@ -42,7 +53,7 @@ export function ScamShield({
 }) {
   const [open, setOpen] = useState(false);
   const stepsId = useId();
-  const fee = ask.reasons.includes("fee");
+  const fee = ask?.reasons.includes("fee") ?? false;
 
   /* One column of words beside the shield glyph: the lead, the private line,
      the steps and the actions all start on the same edge. */
@@ -51,12 +62,12 @@ export function ScamShield({
       aria-label={copy.label}
       className="nf-scam-shield"
       data-testid="scam-shield"
-      data-reason={ask.reason}
+      data-reason={ask?.reason ?? (mention ? "mention" : undefined)}
     >
       <UiIcon name="shield-check" size={18} className="nf-scam-shield__icon" />
       <div className="nf-scam-shield__body">
         <p className="nf-scam-shield__lead">
-          <strong>{copy.lead}</strong>
+          <strong>{ask ? copy.lead : PAY_ONLY_THROUGH_VALLO}</strong>
           {fee ? <> {copy.feeLead}</> : null}
         </p>
         <p className="nf-scam-shield__private">{copy.onlyYou}</p>

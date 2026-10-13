@@ -1,0 +1,120 @@
+/*
+  THE PAYMENT STEP'S CHOICE CARD (founder ruling 2, 13 October 2026): two
+  tiles, Escrow preselected and marked recommended, Pay by card beside it; a
+  sale or a hotel room draws its one rail as a fact, not a question. Mobile
+  first, tokens only, light and dark from the tokens themselves, inside
+  @layer components.
+*/
+@layer theme, base, components, utilities;
+
+@layer components {
+  .nf-paychoice {
+    display: grid;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-md);
+    border-radius: var(--nf-radius-card);
+    border: var(--nf-border-width) solid var(--nf-border-subtle);
+    background: var(--nf-surface-raised);
+    color: var(--nf-content-primary);
+  }
+
+  .nf-paychoice__title {
+    margin: 0;
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+  }
+
+  .nf-paychoice__options {
+    display: grid;
+    gap: var(--nf-space-xs);
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .nf-paychoice__option {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: start;
+    gap: var(--nf-space-sm);
+    min-height: 44px;
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    border-radius: var(--nf-radius-card);
+    border: var(--nf-border-width) solid var(--nf-border-subtle);
+    background: var(--nf-surface-primary);
+    cursor: pointer;
+    transition: border-color var(--nf-duration-fast) var(--nf-ease-standard),
+      background-color var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+
+  .nf-paychoice__option[data-selected="true"] {
+    border-color: var(--nf-brand-primary);
+    border-width: var(--nf-border-width-strong);
+    background: var(--nf-brand-primary-soft);
+  }
+
+  .nf-paychoice__option[data-fixed="true"] {
+    grid-template-columns: 1fr;
+    cursor: default;
+  }
+
+  .nf-paychoice__option:has(input:focus-visible) {
+    outline: 2px solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+
+  .nf-paychoice__option input {
+    margin-top: var(--nf-space-2xs);
+  }
+
+  .nf-paychoice__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--nf-space-xs);
+  }
+
+  .nf-paychoice__name {
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+  }
+
+  .nf-paychoice__badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 var(--nf-space-xs);
+    border-radius: var(--nf-radius-badge);
+    background: var(--nf-brand-primary);
+    color: var(--nf-content-on-brand);
+    font-size: var(--nf-text-overline);
+    font-weight: 600;
+    line-height: 1.6;
+  }
+
+  .nf-paychoice__reason {
+    margin: var(--nf-space-2xs) 0 0;
+    font-size: var(--nf-text-caption);
+    line-height: 1.45;
+    color: var(--nf-content-secondary);
+  }
+
+  .nf-paychoice__note {
+    margin: 0;
+    font-size: var(--nf-text-caption);
+    line-height: 1.45;
+    color: var(--nf-content-muted);
+  }
+
+  .nf-paychoice__error {
+    margin: 0;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-state-error);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-paychoice__option {
+      transition: none;
+    }
+  }
+}

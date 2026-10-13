@@ -108,7 +108,6 @@ export const BACKED_CLAIMS: readonly BackedClaim[] = [
   { phrase: /\bwhether the lister is verified\b|\bcalling everyone verified\b|^,\s*verified$|^tier \{tier\} of 4, verified$/i, mechanism: `${AGENT_KYC}; a business's ", verified" is businesses.verified, which only staff can set (the DB-01 guard)` },
   { phrase: /\bchecked (?:badge|lister)\b|^verified:\s*$|^checked$|^a person checked\.?$|\bchecked against the uploaded document\b/i, mechanism: AGENT_KYC },
   { phrase: /\bprepare that (?:photo|picture) safely\b/i, mechanism: "the client-side re-encode before upload (strips metadata); a process, not a claim" },
-  { phrase: /\btalking to an agent safely\b/i, mechanism: "advice heading in the docs, not a claim" },
   { phrase: /\brather than checked in passing\b|\bwhile it is checked\b|\brooms are checked\b/i, mechanism: "a process description (a database constraint; a report being read; the member's own checklist)" },
   /* The Vallo Guarantee (Track A, 25 September 2026): a product name, not a
      promise that money is guaranteed. What backs it is a real reserve and a

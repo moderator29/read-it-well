@@ -1,6 +1,7 @@
 import { Skeleton } from "@/components/ui/Skeleton";
 import { panelClass } from "@/components/ui/Panel";
 import "@/app/css/catalogue.css";
+import "./search-v2.css";
 
 /**
  * THE RESULT CARD'S OWN SKELETON (Session 3, W2; north star motion 16, Stage
@@ -36,6 +37,50 @@ export function ResultCardSkeleton({ dense = true }: { dense?: boolean }) {
         </div>
       </div>
     </div>
+  );
+}
+
+/**
+ * THE ROW CARD'S SKELETON (search-map track): the one-per-row result card's
+ * shape, in its order. The photograph's frame at 16:10, hatched, then the
+ * separate panel: the title and the place on the left, the figure and its
+ * period on the right, then the facts line.
+ */
+export function ResultRowSkeleton() {
+  return (
+    <div aria-hidden="true" className={panelClass({ variant: "card", className: "nf-rskel nf-rskel--row block overflow-hidden" })}>
+      <span className="nf-rskel__media" />
+      <div className="nf-pcard__panel">
+        <div className="nf-pcard__panel-top">
+          <div className="min-w-0 flex-1">
+            <Skeleton width="78%" height="1rem" radius="xs" />
+            <Skeleton className="mt-2xs" width="52%" height="0.75rem" radius="xs" />
+          </div>
+          <div className="flex shrink-0 flex-col items-end">
+            <Skeleton width="5.5rem" height="1.25rem" radius="sm" />
+            <Skeleton className="mt-2xs" width="3.5rem" height="0.625rem" radius="xs" />
+          </div>
+        </div>
+        <div className="flex gap-md">
+          <Skeleton width="3.5rem" height="0.75rem" radius="xs" />
+          <Skeleton width="3.5rem" height="0.75rem" radius="xs" />
+          <Skeleton width="3.5rem" height="0.75rem" radius="xs" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** The one-per-row list as it will draw: one across on a phone, two from a tablet. */
+export function ResultListSkeleton({ count = 3 }: { count?: number }) {
+  return (
+    <ul className="nf-results--one" aria-hidden="true">
+      {Array.from({ length: count }, (_, i) => (
+        <li key={i}>
+          <ResultRowSkeleton />
+        </li>
+      ))}
+    </ul>
   );
 }
 

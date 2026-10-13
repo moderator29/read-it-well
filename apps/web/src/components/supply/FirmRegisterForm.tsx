@@ -20,6 +20,7 @@ import { submitSupplyRegistration } from "@/lib/supply/registration-actions";
 import { RegField, RegFieldGroup } from "./RegisterField";
 import { CalmPanel, RegisterDone, RegisterShell } from "./RegisterShell";
 import { RegistrationFiledSheet } from "./RegistrationFiledSheet";
+import { WorkspaceAcceptance } from "@/components/legal/WorkspaceAcceptance";
 import { UploadCard, newBatchId, type UploadState } from "./UploadCard";
 import { IconPlate } from "@/components/ui/IconPlate";
 
@@ -103,6 +104,9 @@ export function FirmRegisterForm({
     attached: boolean;
   } | null>(null);
   const [pending, startTransition] = useTransition();
+  /* Ruling 6 (13 October 2026): the two ticks before this is sent. */
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [acceptPay, setAcceptPay] = useState(false);
 
   function back() {
     setScreenError(null);
@@ -128,7 +132,9 @@ export function FirmRegisterForm({
     }
     if (step === 1) return proof === null;
     /* The team screen never blocks. A firm with nobody added yet is the state
-       every firm starts in, and the screen says so rather than refusing. */
+       every firm starts in, and the screen says so rather than refusing. It
+       waits only for the two ticks (ruling 6). */
+    if (step === 2) return !acceptTerms || !acceptPay;
     return false;
   }
 
@@ -159,6 +165,8 @@ export function FirmRegisterForm({
         principalEmail: principalEmail.trim(),
         letterPath: letter?.path ?? "",
         team,
+        acceptTerms,
+        acceptPayOnVallo: acceptPay,
       });
       if (!result.ok) {
         setErrors(result.fieldErrors ?? {});
@@ -449,6 +457,17 @@ export function FirmRegisterForm({
       }}
     >
       {screen.body}
+      {step === 2 ? (
+        <WorkspaceAcceptance
+          className="mt-md"
+          copy={t.payChoice}
+          terms={acceptTerms}
+          pay={acceptPay}
+          onTerms={setAcceptTerms}
+          onPay={setAcceptPay}
+          showError={Boolean(errors.acceptTerms || errors.acceptPayOnVallo)}
+        />
+      ) : null}
     </RegisterShell>
   );
 }

@@ -6293,6 +6293,108 @@ export const en = {
       failed: "That did not go through. Please try again.",
     },
   },
+  /**
+   * Search, upgraded (track search-map, 13 October 2026): the one-per-row
+   * result card, the quick chips under the bar, Best matches and New
+   * listings, the filter sheet's market, price and room rows, and the map's
+   * photo pins, docked card and credit control. Every reason line names a
+   * real signal the person gave: a saved search, a saved home, what they
+   * said they came for, or a place they opened. Nothing here is a score.
+   */
+  searchV2: {
+    placeholder: "Search or describe your home",
+    sort: "Sort",
+    sortCurrent: "Sort, now {sort}",
+    quick: {
+      label: "Quick picks",
+      forYou: "For you",
+      nearMe: "Near me",
+      newListed: "New listed",
+      locating: "Finding your location",
+      denied: "Location is off for this site. Turn it on in your browser settings to search near you.",
+      failed: "Your location could not be found. Try again.",
+      unavailable: "This browser does not share location, so we cannot search near you.",
+    },
+    sections: {
+      bestMatches: "Best matches",
+      bestMatchesHint: "From your saved searches, saved homes, what you came for and the places you opened.",
+      newListings: "New listings",
+      allHomes: "All homes",
+    },
+    reasons: {
+      areaBudget: "In {area}, under your budget",
+      areaSaved: "In {area}, like your saved search",
+      budget: "Under your saved budget",
+      saved: "Matches your saved search",
+      nearSaved: "In {area}, near a home you saved",
+      recent: "In {area}, where you have been looking",
+      kind: "{kind}, what you came for",
+    },
+    filters: {
+      market: "Market",
+      forRent: "For rent",
+      forSale: "For sale",
+      shortlet: "Shortlet",
+      shortletNote: "Shortlets are stays, so they open on the Stays search with your words kept.",
+      price: "Price",
+      minBudget: "Min budget",
+      maxBudget: "Max budget",
+      minimumCount: "Minimum count",
+      seeHomes: "See {homes}",
+      seeNone: "No homes match yet",
+      seeShortlets: "See shortlets",
+    },
+    map: {
+      about: "About this map",
+      credits: "Map data",
+      aside: "Map of these homes",
+    },
+  },
+  /**
+   * PAY ON VALLO (founder rulings, 13 October 2026). The payment step's
+   * choice card (escrow preselected, or card; a sale is escrow only, a hotel
+   * room card only) and the acceptance every workspace application and setup
+   * asks for before it is sent. The sentences about where money goes are in
+   * `lib/money/copy.ts`; these are the labels, the actions and the refusals.
+   */
+  payChoice: {
+    title: "How would you like to pay?",
+    label: "Choose how to pay",
+    escrow: "Escrow",
+    card: "Pay by card",
+    recommended: "Recommended",
+    continue: "Continue",
+    saving: "Saving your choice",
+    escrowOnlyTitle: "Paid into escrow",
+    cardOnlyTitle: "Paid by card",
+    lockedNote: "Your payment has started, so the way you pay stays as it is.",
+    notPayerNote: "The renter or guest chooses how to pay.",
+    refused: {
+      not_found: "We could not find that agreement on your account.",
+      not_payer: "Only the person paying can choose how to pay.",
+      bad_choice: "Choose Escrow or Pay by card.",
+      closed: "This agreement is closed, so there is nothing to pay on it.",
+      already_paid: "This is already paid.",
+      payment_started: "A payment is already under way, so the way you pay cannot change now.",
+      sale_escrow_only: "A purchase is paid into escrow only.",
+      card_only: "This is paid by card only.",
+      escrow_only: "This is paid into escrow only.",
+      no_rail: "Payment is not open for this yet. Nothing has been charged.",
+      card_needs_review: "Paying by card is not open on this deal now, because it would need a person at Vallo to check it first. Escrow is open.",
+      unavailable: "That could not be saved just now. Nothing has been charged; try again in a moment.",
+    },
+    accept: {
+      title: "Before you send this",
+      termsLead: "I have read and accept the",
+      termsLink: "Terms of Service",
+      and: "and the",
+      privacyLink: "Privacy Policy",
+      newTab: "opens in a new tab",
+      payInside: "Every payment for a deal I make on Vallo happens inside Vallo.",
+      required: "Tick both boxes to send this.",
+      done: "You accepted the Terms of Service and the Privacy Policy, and that every payment for a deal happens inside Vallo.",
+    },
+  },
 
   /*
    * THE HOTEL AND RESTAURANT WORKSPACE (track/hospitality-workspace): the

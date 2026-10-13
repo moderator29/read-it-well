@@ -2,6 +2,31 @@
 
 Founder directive, 25 September 2026 (Track A). This page is the current truth. It supersedes every wallet, escrow and held-payment document, which are kept under `docs/archive/retired-custody/` only as history.
 
+> **Status, 13 October 2026 (docs track, read against the live database).**
+> - **Vallo still never takes custody**, but since ADR 0003 (7 October) a
+>   licensed partner may hold a payment in escrow; "no escrow" below means no
+>   escrow held by Vallo. The founder's rules of 13 October: every payment for
+>   a deal happens inside Vallo; for rent and shortlets the payer picks Escrow
+>   (the default) or Pay by card; a sale is always escrow; a hotel room is paid
+>   by card at once; the commission comes from the host's or lister's share.
+>   The escrow route is not open yet (`PROTECTED_RAIL_LIVE = false`,
+>   `rentals_protected_pay` off), so the rail policy's escrow answers are
+>   refused rather than opened as card payments.
+> - **The Guarantee is retired**: `money_policy.guarantee_bps` is 0 live, so
+>   the reserve leg in the table below carries nothing on a new payment.
+> - **Commission**: `fee_rates` commission is 0 basis points live. The hotel
+>   commission of 10 percent (founder, 13 October) goes live with the payments
+>   track. Restaurants: 1,000 naira per seated table
+>   (`restaurant_money_settings.seated_fee_minor` = 100000), and 200 basis
+>   points on a bill paid through Vallo, which stays off.
+> - **Switches live**: `stays_instant_pay` and `room_bookings` are ON;
+>   `restaurant_deposits`, `wallet`, `held_payments_payouts`,
+>   `rentals_protected_pay`, `crypto_payments` and `agreement_staff_review`
+>   are off; `payments_payluk_on` is on but no escrow adapter is registered.
+> - **Applied**: `d68d_the_rail_decides_the_gate` (`20261007154216`) and
+>   `d77_founder_rulings_on_the_gate` (`20261007154344`), with
+>   `d77x_risk_settings_read_by_staff` (`20261007164415`).
+
 ## The rule
 
 **Vallo never holds customer money.** Vallo has:
@@ -36,11 +61,11 @@ Payment opens only after an agreement is approved. The database enforces this wi
 
 1. **Rental.** The renter inspects and submits the inspection report: eight items, each with photographs. The minimum number of photos is `money_policy.min_inspection_photos`. `agreement_open_rent_as` then draws up the agreement from the listing's own figures and the report, including the move-in date and the handover date.
 2. **Stay.** The host accepts the booking. A trigger on bookings going from PENDING to CONFIRMED draws up the agreement.
-   **Instant booking (D73, off until `stays_instant_pay` is on):** a hotel room or nightly stay at the published price is accepted when the guest books, and its agreement is recorded approved by the system (`decided_by` empty, an event and an audit row saying "fixed price, instant booking"), so steps 3 and 4 do not apply and payment opens at once through the unchanged gate. See [ROOM_CHECKOUT.md](ROOM_CHECKOUT.md).
-   A hotel room is a stay too (ROOM BOOKINGS 1, off until `room_bookings` is switched on): the agreement names the accommodation, the owner is the hotel's business owner, and a host who is not an agent is paid through their default bank account's Paystack subaccount. See [ROOM_CHECKOUT.md](ROOM_CHECKOUT.md).
+   **Instant booking (D73; `stays_instant_pay` is ON live, 13 October 2026):** a hotel room or nightly stay at the published price is accepted when the guest books, and its agreement is recorded approved by the system (`decided_by` empty, an event and an audit row saying "fixed price, instant booking"), so steps 3 and 4 do not apply and payment opens at once through the unchanged gate. See [ROOM_CHECKOUT.md](ROOM_CHECKOUT.md).
+   A hotel room is a stay too (ROOM BOOKINGS 1; `room_bookings` is ON live, 13 October 2026): the agreement names the accommodation, the owner is the hotel's business owner, and a host who is not an agent is paid through their default bank account's Paystack subaccount. See [ROOM_CHECKOUT.md](ROOM_CHECKOUT.md).
 3. **Both parties confirm the same version** with `agreement_confirm_as`. An agent confirming for an owner must hold a live mandate for the listing. Any amendment (`agreement_amend_as`) moves the version, and both confirmations lapse.
-   **The rail decides the gate (D68d, migration `pending/d68d_the_rail_decides_the_gate.sql`, not yet applied).** When both have confirmed, `private.agreement_review_required` resolves from the rail plus risk signals. Escrow: approved by the system at once, and Vallo watches the hold with the power to pause a release. Direct: approved by the system unless a signal fires (no paid deal yet, amount over `agreement_risk_settings.amount_threshold_minor`, price or facts changed in the last few days, payout name mismatch, fraud radar), in which case it goes to `in_review` for step 4. The payment gate asks `private.agreement_payable` instead of demanding `approved` unconditionally, and the kill switch `agreement_review_all` (off) makes every deal need a person. The admin desk opens with a watch list over live deals, riskiest first.
-   **The founder's rulings (D77, `pending/d77_founder_rulings_on_the_gate.sql`, after d68d).** First deal is a signal only when the business behind the deal is not verified (`businesses.verified` with a `cac_number`) or the amount is over the threshold. The threshold is 500,000 naira (`agreement_risk_settings.amount_threshold_minor = 50000000`), still configuration. A sale never routes to direct: `private.rail_for_booking`, `private.rail_for_agreement` and the app router (`saleNeverDirect`) answer no rail rather than direct for a sale, and a nightly sale listing never takes the stay rule. Staff change the threshold, the change window, each signal and the incident switch at `/admin/agreements/settings` (`admin_update_risk_settings`, `admin_set_review_kill_switch`: `agreements` scope, validated, audited). Opening and funding a protected payment now ask the same gate (trigger `provider_arrangements_00_payable_gate`), so the incident switch stops escrow too; what Payluk reports afterwards is always recorded.
+   **The rail decides the gate (D68d, applied live as `20261007154216_d68d_the_rail_decides_the_gate`).** When both have confirmed, `private.agreement_review_required` resolves from the rail plus risk signals. Escrow: approved by the system at once, and Vallo watches the hold with the power to pause a release. Direct: approved by the system unless a signal fires (no paid deal yet, amount over `agreement_risk_settings.amount_threshold_minor`, price or facts changed in the last few days, payout name mismatch, fraud radar), in which case it goes to `in_review` for step 4. The payment gate asks `private.agreement_payable` instead of demanding `approved` unconditionally, and the kill switch `agreement_review_all` (off) makes every deal need a person. The admin desk opens with a watch list over live deals, riskiest first.
+   **The founder's rulings (D77, applied live as `20261007154344_d77_founder_rulings_on_the_gate`, after d68d).** First deal is a signal only when the business behind the deal is not verified (`businesses.verified` with a `cac_number`) or the amount is over the threshold. The threshold is 500,000 naira (`agreement_risk_settings.amount_threshold_minor = 50000000`), still configuration. A sale never routes to direct: `private.rail_for_booking`, `private.rail_for_agreement` and the app router (`saleNeverDirect`) answer no rail rather than direct for a sale, and a nightly sale listing never takes the stay rule. Staff change the threshold, the change window, each signal and the incident switch at `/admin/agreements/settings` (`admin_update_risk_settings`, `admin_set_review_kill_switch`: `agreements` scope, validated, audited). Opening and funding a protected payment now ask the same gate (trigger `provider_arrangements_00_payable_gate`), so the incident switch stops escrow too; what Payluk reports afterwards is always recorded.
 4. **An admin, or staff holding the `agreements` scope, approves or rejects** with `admin_decide_agreement`. A rejection needs a reason. Nobody decides an agreement they are a party to. The decision is written to `deal_agreement_events` (append-only) and to `audit_log`. Both parties are told in the app and by email: `agreement.approved` and `agreement.rejected`.
 5. **Payment opens.** `payment_split_for_booking` returns the split, and the app opens a split attempt (`lib/payments/split-attempt.ts`). Without `PAYSTACK_GUARANTEE_SUBACCOUNT`, or without a lister subaccount, nothing opens.
 6. **Settlement.** `settle_booking_charge` records:
@@ -50,6 +75,12 @@ Payment opens only after an agreement is approved. The database enforces this wi
    - the agreement as paid.
 
    Nothing is credited to any balance. A charge that cannot be applied is refunded to the card, with outcome `refund-due`.
+
+**Pay on Vallo (founder rulings of 13 October 2026; drafts `pending/pov01` to `pov08`, not yet applied).** Every payment for a deal happens inside Vallo, and Vallo never holds it.
+- **The payer picks the rail.** On a rent or a shortlet the payer chooses at the payment step between Escrow (preselected, recommended: a licensed partner holds the money until the deal is confirmed) and Pay by card (split by the processor straight to the lister's account). A sale is escrow only. A hotel room is card only. Restaurant bills stay card only and off. The choice is stored on `deal_agreements.payer_rail_choice` by `public.payment_rail_choose` (the payer only, only while nothing is paid or moving), the rent rows of `payment_rail_policy` carry `payer_may_choose`, and `private.rail_for_booking` and `private.rail_for_agreement` apply it, so the gate (`agreement_payable`), the card trigger (`transactions_01_rail_at_open`) and the escrow trigger read the same rail. A nightly shortlet no longer takes the hotel row. The app reads the same answer (`payment_rail_for_booking`, `lib/payments/rail-choice.ts`, the card `components/money/pay-choice/PayChoiceCard.tsx`).
+- **Escrow for a shortlet stay.** `provider_arrangement_open` takes a stay at a listing; money the partner holds counts as paid for the trip details (`private.booking_is_paid`), and the hold sweep cannot cancel such a stay (`bookings_00_escrow_keeps_the_stay`).
+- **Hotel rooms: 10 percent.** `public.scoped_commission_rates` (`hotel_room`, 1,000 bps, dated, append-only) feeds `private.b3_commission_for_booking` for a room booking, so `payment_split_for_booking` takes Vallo's share from the hotel's; the guest's price is unchanged and the three parts still add up exactly. Every other commission is as it was.
+- **Workspace acceptance.** Every owner, agent and firm registration, the professional application and the host setup record the Terms, the Privacy Policy and "Every payment for a deal I make on Vallo happens inside Vallo." in `consents.agreements` (`lib/legal/workspace-acceptance.ts`); the server actions refuse without them, and `pov08` refuses in the database (apply it after the app is live).
 
 **Payment attempts.** One payer and one charge have one open attempt: a retry resumes the live attempt's Paystack checkout (`lib/payments/attempts.ts`) instead of opening another. An attempt Paystack says was never completed becomes `ABANDONED`, at once when the payer closes the window (the server asks Paystack first) or, through the hourly hold sweep, 45 minutes after it was last opened. A payment counts as in flight, and so blocks cancelling the agreement or releasing the hold, only while it is `PENDING` and either opened in the last 45 minutes or reported by Paystack as still moving (`private.payment_attempt_in_flight`). A charge that completes on an abandoned attempt is still settled, or refunded, by the one settlement path.
 
@@ -103,7 +134,7 @@ The function checks the caller's own role, so the app calls it with the operator
 
 **V-56 and V-92 (held agency fee, held stay caution): not built, by decision.** Both would have Vallo hold a customer's money until something is released. The Vallo Guarantee covers the same risks instead.
 
-## Restaurant table deposits (D75, off until `restaurant_deposits` is on)
+## Restaurant table deposits (D75, OFF live since `20261013084935_restaurant_deposits_off`: booking a table is free)
 
 The OpenTable no-show pattern, on the direct rail. Migration `supabase/migrations/pending/d75a_restaurant_deposits.sql`, probe `d75a-restaurant-deposits.sql`.
 

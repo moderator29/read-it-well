@@ -6,13 +6,13 @@ import { useRouter } from "next/navigation";
 import { formatMoney, formatNumber } from "@vallo/i18n/core";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { IconTiles } from "./IconTiles";
+import { RadioPills } from "./RadioPills";
+import { PriceSpread } from "./PriceSpread";
+import { liveMatchCount, seeHomesLabel } from "./filter-count";
+import { priceFigures } from "@/lib/search/price-histogram";
 import type { Icon3DName } from "@/components/ui/icon-3d";
 import { priceScale } from "@/lib/listings/price-bounds";
-import {
-  hasBackupPower,
-  matchesFacts,
-  rentMeansTenancy,
-} from "@/lib/listings/filter";
+import { hasBackupPower, rentMeansTenancy } from "@/lib/listings/filter";
 
 import { UNIT_SHAPES, takesShape, type UnitShape } from "@/lib/listings/unit-shape";
 import { RUSH_WITHIN, commuteCount } from "@/lib/listings/commute";
@@ -44,6 +44,7 @@ import {
 import {
   clearedShelf,
   shelfFilter,
+  staySideHref,
   toShelfHref,
   type ShelfQuery,
 } from "@/components/app/search/shelf-query";
@@ -72,8 +73,10 @@ import "@/app/css/catalogue.css";
  * uses, so the number a person presses is the number they get.
  */
 
-/** The three markets the Market group offers; see `marketOptions`. */
+/** The markets the Market group offers; see `marketOptions`. */
 type Market = ListingIntent;
+/** The segmented control's answers: the two Property markets, and Shortlet, which opens the Stays search. */
+type MarketChoice = Market | "shortlet";
 
 type Draft = {
   q: string;
@@ -193,8 +196,12 @@ function queryFrom(base: ShelfQuery, draft: Draft): ShelfQuery {
   return next;
 }
 
-/* Any, then 1+ to 4+. Zero is "any", which the query does not carry. */
-const ROOM_STEPS: number[] = [0, 1, 2, 3, 4];
+/* Any, then 1+ to 5+, as the reference draws them. Zero is "any", which the
+   query does not carry. */
+const ROOM_STEPS: number[] = [0, 1, 2, 3, 4, 5];
+
+/* The segmented control's order, the reference's: rent, sale, shortlet. */
+const MARKET_ORDER: readonly string[] = ["rent", "sale", "shortlet"];
 
 const AMENITY_ICON: Record<string, UiIconName> = {
   pool: "pool",
@@ -305,41 +312,6 @@ function Group({
   );
 }
 
-function Tiles<T extends string | number>({
-  options,
-  value,
-  onPick,
-  testPrefix,
-  columns,
-}: {
-  options: { value: T; label: string; icon?: UiIconName }[];
-  value: T | undefined;
-  onPick: (next: T) => void;
-  testPrefix: string;
-  columns: 3 | 5;
-}) {
-  return (
-    <div className={`nf-filters__grid nf-filters__grid--${columns}`} role="group">
-      {options.map((option) => {
-        const on = option.value === value;
-        return (
-          <button
-            key={String(option.value)}
-            type="button"
-            aria-pressed={on}
-            data-testid={`${testPrefix}-${String(option.value)}`}
-            onClick={() => onPick(option.value)}
-            className="nf-filters__tile"
-          >
-            {option.icon && <UiIcon name={option.icon} size={16} />}
-            {option.label}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
 function SwitchRow({
   icon,
   label,
@@ -393,6 +365,7 @@ export function FilterDrawerPanel({
   commuteCopy,
   kindCopy,
   noFloodLabel,
+  searchCopy,
   open,
   onClose,
 }: FilterDrawerProps & {
@@ -548,10 +521,12 @@ export function FilterDrawerPanel({
   const commute = commuteCount(draft, query.to);
   const commutePending = commute.pending;
   const matchCount = useMemo(() => {
-    const filter = shelfFilter(pending);
     const counted = commuteCount({ to: draft.to, withinOn: draft.withinOn }, query.to);
-    return facts.filter((fact) => matchesFacts(fact, filter) && counted.passes(fact.commuteAmHigh)).length;
+    return liveMatchCount(facts, shelfFilter(pending), counted.passes);
   }, [facts, pending, draft.to, draft.withinOn, query.to]);
+  /* The figures the price bars are drawn from: every home the rest of the
+     draft keeps, judged at the figure the budget judges (V-65). */
+  const priceSpread = useMemo(() => priceFigures(facts, shelfFilter(pending)), [facts, pending]);
 
   /* THE PRICE CONTROL IS SCALED TO THE MARKET (V-67). A fixed range per
      market (`PRICE_BOUNDS`), the Rent scale when no market is chosen, so the
@@ -559,8 +534,6 @@ export function FilterDrawerPanel({
      it bounds is the cash at the door. */
   const cashMarket = rentMeansTenancy(draft);
   const scale = useMemo(() => priceScale(draft.intent), [draft.intent]);
-
-  const noun = draft.kind ? kindCopy.kinds[draft.kind] : kindCopy.anyKind;
 
   /* The basis of the ordering the reader is currently choosing, for the line
      under the control. Null on the orderings that are not about money. */
@@ -581,7 +554,42 @@ export function FilterDrawerPanel({
   const sliderMin = Math.min(Math.max(minInNaira ?? scale.floor, scale.floor), scale.ceiling);
   const sliderMax = Math.max(Math.min(maxInNaira ?? scale.ceiling, scale.ceiling), scale.floor);
 
+  /* The search copy (V2), when the bar passed it; older callers fall back to
+     the words this sheet always drew. */
+  const sv = searchCopy ?? null;
+  const shortlet = draft.kind === "shortlet";
+  const marketValue: MarketChoice | undefined = shortlet ? "shortlet" : market;
+  const marketChoices: { value: MarketChoice; label: string }[] = [
+    ...marketOptions.map((option) => ({
+      value: option.value as MarketChoice,
+      label: option.value === "sale" ? (sv?.forSale ?? option.label) : (sv?.forRent ?? option.label),
+    })),
+    ...(sv ? [{ value: "shortlet" as const, label: sv.shortlet }] : []),
+  ].sort((a, b) => MARKET_ORDER.indexOf(a.value) - MARKET_ORDER.indexOf(b.value));
+
+  function pickMarketChoice(next: MarketChoice | undefined) {
+    setDraft((current) => {
+      const { intent: _wasIntent, kind: wasKind, ...rest } = current;
+      void _wasIntent;
+      /* A kind chosen in the tiles survives a market change; Shortlet is not
+         a tile, it is the market, so it goes when another market is picked. */
+      const kept = wasKind && wasKind !== "shortlet" ? { kind: wasKind } : {};
+      if (next === undefined) return { ...rest, ...kept };
+      if (next === "shortlet") return { ...rest, kind: "shortlet" as const };
+      return { ...rest, ...kept, intent: next };
+    });
+  }
+
   function apply() {
+    if (shortlet) {
+      /* A shortlet is a stay (V-67): the Stays search, carrying the words and
+         every parameter that search reads, exactly as the shelf's own
+         redirect would, without the extra hop through /search. */
+      const params = Object.fromEntries(new URLSearchParams(target.includes("?") ? target.slice(target.indexOf("?") + 1) : ""));
+      router.push(staySideHref("shortlet", params) ?? target);
+      onClose();
+      return;
+    }
     router.push(target);
     onClose();
   }
@@ -597,16 +605,6 @@ export function FilterDrawerPanel({
     setDraft((current) => {
       const { kind: _was, ...rest } = current;
       return value === "all" ? rest : { ...rest, kind: value };
-    });
-  }
-
-  function pickMarket(value: Market) {
-    setDraft((current) => {
-      const { intent: _wasIntent, ...rest } = current;
-      /* Tapping the market you are already in clears it, which is how every
-         other group in this sheet behaves. */
-      if (current.intent === value) return rest;
-      return { ...rest, intent: value };
     });
   }
 
@@ -641,7 +639,7 @@ export function FilterDrawerPanel({
     }));
   }
 
-  const roomTiles = ROOM_STEPS.map((value) => ({
+  const roomOptions = ROOM_STEPS.map((value) => ({
     value,
     label: value === 0 ? copy.any : `${value}+`,
   }));
@@ -657,179 +655,55 @@ export function FilterDrawerPanel({
       fullPage
       sideOnWide
       testId="filters-drawer"
+      headAction={
+        /* The reference's Reset, top right; it clears every filter and the
+           market, as the footer's Reset did. */
+        <Button variant="quiet" size="sm" data-testid="filters-clear" onClick={clearAll} className="shrink-0">
+          {copy.reset}
+        </Button>
+      }
       footer={
-        /* minmax(0, ...) lets each column shrink below its label, and the buttons wrap a long word (Hausa "Babu wanda ya dace tukuna") instead of spilling out of the footer. */
-        <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] gap-xs border-t border-[var(--nf-panel-hair)] pt-sm">
-          <Button variant="secondary" data-testid="filters-clear" onClick={clearAll} full size="lg" className="whitespace-normal">
-            {copy.reset}
-          </Button>
-          <Button variant="primary" data-testid="filters-apply" onClick={apply} full size="lg" className="whitespace-normal">
-            {matchCount === 0
-              ? copy.applyNone
-              : copy.apply.replace("{count}", formatNumber(matchCount, locale))}
-            <span className="sr-only">
-              {" "}
-              {matchCount === 1 ? noun.one : noun.many}
-            </span>
+        /* One sticky action with the real live count, as the reference's
+           "See 231 homes": the same `matchesFacts` the shelf runs. The label
+           wraps a long word rather than spilling out of the footer. */
+        <div className="border-t border-[var(--nf-panel-hair)] pt-sm">
+          <Button variant="primary" data-testid="filters-apply" data-count={shortlet ? undefined : matchCount} onClick={apply} full size="lg" className="whitespace-normal">
+            {shortlet && sv
+              ? sv.seeShortlets
+              : sv
+                ? seeHomesLabel(matchCount, locale, sv)
+                : matchCount === 0
+                  ? copy.applyNone
+                  : copy.apply.replace("{count}", formatNumber(matchCount, locale))}
           </Button>
         </div>
       }
     >
           <div className="mx-auto max-w-2xl" data-select-pop="">
-            {/* ------------------------------------------- property type */}
-            {kindOptions.length > 0 && (
-              <Group
-                id="filter-kind"
-                title={copy.propertyType}
-                clearLabel={copy.clear}
-                onClear={draft.kind ? () => pickKind("all") : undefined}
-              >
-                <IconTiles<ListingKind | "all">
-                  label={copy.propertyType}
-                  mode="single"
-                  testPrefix="filter-kind"
-                  selected={[draft.kind ?? "all"]}
-                  onToggle={pickKind}
-                  options={[
-                    { value: "all" as const, label: copy.all, icon: KIND_ICON.all },
-                    ...kindOptions.map((kind) => ({ value: kind, label: kindLabel(kind, kindCopy.kinds), icon: KIND_ICON[kind], art: KIND_ART[kind] })),
-                  ]}
-                />
-              </Group>
-            )}
-
-            {/* ------------------------------------------ shape (V-66) */}
-            {(!draft.kind || takesShape(draft.kind)) && (shapeOptions.shapes.length > 0 || shapeOptions.bq) && (
-              <Group
-                id="filter-shape"
-                title={unitCopy.filterTitle}
-                clearLabel={copy.clear}
-                onClear={
-                  draft.shapes.length > 0 || draft.withBq
-                    ? () => setDraft((current) => ({ ...current, shapes: [], withBq: false }))
-                    : undefined
-                }
-              >
-                {shapeOptions.shapes.length > 0 && (
-                  <IconTiles<UnitShape>
-                    label={unitCopy.filterTitle}
-                    mode="multi"
-                    testPrefix="filter-shape"
-                    selected={draft.shapes}
-                    onToggle={toggleShape}
-                    options={shapeOptions.shapes.map((shape) => ({
-                      value: shape,
-                      label: unitCopy.shapes[shape],
-                      icon: SHAPE_ICON[shape],
-                    }))}
-                  />
-                )}
-                {shapeOptions.bq && (
-                  <div className="mt-sm divide-y divide-[var(--nf-panel-hair)]">
-                    <SwitchRow
-                      icon="key"
-                      label={unitCopy.filterBq}
-                      checked={draft.withBq}
-                      testId="filter-bq"
-                      onChange={(next) => setDraft((current) => ({ ...current, withBq: next }))}
-                    />
-                  </div>
-                )}
-              </Group>
-            )}
-
-            {/* -------------------------- no flooding reported (V-41) */}
-            {floodJudged && noFloodLabel && (
-              <Group
-                id="filter-flood"
-                title={noFloodLabel.label}
-                clearLabel={copy.clear}
-                onClear={draft.noFlood ? () => setDraft((current) => ({ ...current, noFlood: false })) : undefined}
-              >
-                <div className="divide-y divide-[var(--nf-panel-hair)]">
-                  <SwitchRow
-                    icon="sun"
-                    label={noFloodLabel.label}
-                    hint={noFloodLabel.hint}
-                    checked={draft.noFlood}
-                    testId="filter-no-flood"
-                    onChange={(next) => setDraft((current) => ({ ...current, noFlood: next }))}
-                  />
-                </div>
-              </Group>
-            )}
-
-            {/* --------------------------------- commute (V-43) */}
-            {anchors.length > 0 && (
-              <Group
-                id="filter-commute"
-                title={commuteCopy.filterTitle}
-                clearLabel={copy.clear}
-                onClear={draft.to ? () => setDraft((current) => ({ ...current, to: "", withinOn: false })) : undefined}
-              >
-                <label className="block">
-                  <span className="sr-only">{commuteCopy.filterTitle}</span>
-                  <select
-                    className="nf-field"
-                    value={draft.to}
-                    data-testid="filter-commute-to"
-                    onChange={(event) => {
-                      const to = event.target.value;
-                      setDraft((current) => ({ ...current, to, withinOn: to ? current.withinOn : false }));
-                    }}
-                  >
-                    <option value="">{commuteCopy.anywhere}</option>
-                    {anchors.map((anchor) => (
-                      <option key={anchor.id} value={anchor.slug}>
-                        {anchor.name}, {anchor.city}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                {draft.to && (
-                  <div className="mt-sm divide-y divide-[var(--nf-panel-hair)]">
-                    <SwitchRow
-                      icon="history"
-                      label={commuteCopy.within.replace("{n}", String(RUSH_WITHIN))}
-                      hint={commuteCopy.withinHint}
-                      checked={draft.withinOn}
-                      testId="filter-commute-within"
-                      onChange={(next) => setDraft((current) => ({ ...current, withinOn: next }))}
-                    />
-                  </div>
-                )}
-                {commutePending && (
-                  <p className="nf-filters__hint mt-inline-tight" role="status">
-                    {commuteCopy.countAfterApply}
-                  </p>
-                )}
-              </Group>
-            )}
-
-            {/* -------------------------------------------------- market */}
-            <Group
-              id="filter-market"
-              title={copy.market}
-              clearLabel={copy.clear}
-              onClear={
-                market
-                  ? () =>
-                      setDraft((current) => {
-                        const { intent: _wasIntent, ...rest } = current;
-                        return rest;
-                      })
-                  : undefined
-              }
-            >
-              <Tiles
-                columns={3}
+            {/* ------------------------------------------------- market
+                The reference's segmented control at the top: For rent, For
+                sale (where the pool holds a sale), Shortlet. A radio group;
+                tapping the chosen answer again takes it away (any market), as
+                the market tiles always did. Shortlet is a stay, so it opens
+                the Stays search with the words kept (V-67). */}
+            <div className="mb-lg">
+              <RadioPills<MarketChoice>
+                label={sv?.market ?? copy.market}
                 testPrefix="filter-market"
-                value={market}
-                onPick={pickMarket}
-                options={marketOptions}
+                allowClear
+                options={marketChoices}
+                value={marketValue}
+                onPick={pickMarketChoice}
               />
-            </Group>
+              {shortlet && sv && (
+                <p className="nf-filters__hint mt-sm mb-0" data-testid="filter-shortlet-note">
+                  {sv.shortletNote}
+                </p>
+              )}
+            </div>
 
+            {!shortlet && (
+              <>
             {/* --------------------------------------------------- price */}
             <Group
               id="filter-price"
@@ -841,6 +715,45 @@ export function FilterDrawerPanel({
                   : undefined
               }
             >
+              {/* The reference's two fields over the spread of prices: typed
+                  in naira, held as digits, shown grouped. */}
+              <div className="nf-price-fields">
+                <label className="nf-price-field">
+                  <span className="sr-only">{sv?.minBudget ?? "Minimum price"}</span>
+                  <span className="nf-price-field__unit" aria-hidden="true">₦</span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="off"
+                    data-testid="filter-price-min"
+                    placeholder={sv?.minBudget}
+                    value={draft.minNaira ? formatNumber(Number(draft.minNaira), locale) : ""}
+                    onChange={(event) => setDraft((current) => ({ ...current, minNaira: digits(event.target.value) }))}
+                    className="nf-price-field__input"
+                  />
+                </label>
+                <span className="nf-price-fields__dash" aria-hidden="true" />
+                <label className="nf-price-field">
+                  <span className="sr-only">{sv?.maxBudget ?? "Maximum price"}</span>
+                  <span className="nf-price-field__unit" aria-hidden="true">₦</span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="off"
+                    data-testid="filter-price-max"
+                    placeholder={sv?.maxBudget}
+                    value={draft.maxNaira ? formatNumber(Number(draft.maxNaira), locale) : ""}
+                    onChange={(event) => setDraft((current) => ({ ...current, maxNaira: digits(event.target.value) }))}
+                    className="nf-price-field__input"
+                  />
+                </label>
+              </div>
+              <PriceSpread
+                figures={priceSpread}
+                ceilingMinor={nairaToKobo(scale.ceiling)}
+                minMinor={nairaToKobo(sliderMin)}
+                maxMinor={sliderMax >= scale.ceiling ? Number.POSITIVE_INFINITY : nairaToKobo(sliderMax)}
+              />
               <div className="nf-range" data-testid="filter-range">
                 <span aria-hidden="true" className="nf-range__track" />
                 <span
@@ -926,6 +839,7 @@ export function FilterDrawerPanel({
             <Group
               id="filter-bedrooms"
               title={copy.bedrooms}
+              hint={sv?.minimumCount}
               clearLabel={copy.clear}
               onClear={
                 draft.bedrooms > 0
@@ -933,12 +847,12 @@ export function FilterDrawerPanel({
                   : undefined
               }
             >
-              <Tiles
-                columns={5}
+              <RadioPills<number>
+                labelledBy="filter-bedrooms"
                 testPrefix="filter-bedrooms"
+                options={roomOptions}
                 value={draft.bedrooms}
-                onPick={(value) => setDraft((current) => ({ ...current, bedrooms: value }))}
-                options={roomTiles}
+                onPick={(value) => setDraft((current) => ({ ...current, bedrooms: value ?? 0 }))}
               />
             </Group>
 
@@ -946,6 +860,7 @@ export function FilterDrawerPanel({
             <Group
               id="filter-bathrooms"
               title={copy.bathrooms}
+              hint={sv?.minimumCount}
               clearLabel={copy.clear}
               onClear={
                 draft.bathrooms > 0
@@ -953,14 +868,76 @@ export function FilterDrawerPanel({
                   : undefined
               }
             >
-              <Tiles
-                columns={5}
+              <RadioPills<number>
+                labelledBy="filter-bathrooms"
                 testPrefix="filter-bathrooms"
+                options={roomOptions}
                 value={draft.bathrooms}
-                onPick={(value) => setDraft((current) => ({ ...current, bathrooms: value }))}
-                options={roomTiles}
+                onPick={(value) => setDraft((current) => ({ ...current, bathrooms: value ?? 0 }))}
               />
             </Group>
+
+            {/* ------------------------------------------- property type */}
+            {kindOptions.length > 0 && (
+              <Group
+                id="filter-kind"
+                title={copy.propertyType}
+                clearLabel={copy.clear}
+                onClear={draft.kind ? () => pickKind("all") : undefined}
+              >
+                <IconTiles<ListingKind | "all">
+                  label={copy.propertyType}
+                  mode="single"
+                  testPrefix="filter-kind"
+                  selected={[draft.kind ?? "all"]}
+                  onToggle={pickKind}
+                  options={[
+                    { value: "all" as const, label: copy.all, icon: KIND_ICON.all },
+                    ...kindOptions.map((kind) => ({ value: kind, label: kindLabel(kind, kindCopy.kinds), icon: KIND_ICON[kind], art: KIND_ART[kind] })),
+                  ]}
+                />
+              </Group>
+            )}
+
+            {/* ------------------------------------------ shape (V-66) */}
+            {(!draft.kind || takesShape(draft.kind)) && (shapeOptions.shapes.length > 0 || shapeOptions.bq) && (
+              <Group
+                id="filter-shape"
+                title={unitCopy.filterTitle}
+                clearLabel={copy.clear}
+                onClear={
+                  draft.shapes.length > 0 || draft.withBq
+                    ? () => setDraft((current) => ({ ...current, shapes: [], withBq: false }))
+                    : undefined
+                }
+              >
+                {shapeOptions.shapes.length > 0 && (
+                  <IconTiles<UnitShape>
+                    label={unitCopy.filterTitle}
+                    mode="multi"
+                    testPrefix="filter-shape"
+                    selected={draft.shapes}
+                    onToggle={toggleShape}
+                    options={shapeOptions.shapes.map((shape) => ({
+                      value: shape,
+                      label: unitCopy.shapes[shape],
+                      icon: SHAPE_ICON[shape],
+                    }))}
+                  />
+                )}
+                {shapeOptions.bq && (
+                  <div className="mt-sm divide-y divide-[var(--nf-panel-hair)]">
+                    <SwitchRow
+                      icon="key"
+                      label={unitCopy.filterBq}
+                      checked={draft.withBq}
+                      testId="filter-bq"
+                      onChange={(next) => setDraft((current) => ({ ...current, withBq: next }))}
+                    />
+                  </div>
+                )}
+              </Group>
+            )}
 
             {/* ----------------------------------------------- amenities */}
             {amenityOptions.length > 0 && (
@@ -1124,6 +1101,74 @@ export function FilterDrawerPanel({
               </Group>
             )}
 
+            {/* -------------------------- no flooding reported (V-41) */}
+            {floodJudged && noFloodLabel && (
+              <Group
+                id="filter-flood"
+                title={noFloodLabel.label}
+                clearLabel={copy.clear}
+                onClear={draft.noFlood ? () => setDraft((current) => ({ ...current, noFlood: false })) : undefined}
+              >
+                <div className="divide-y divide-[var(--nf-panel-hair)]">
+                  <SwitchRow
+                    icon="sun"
+                    label={noFloodLabel.label}
+                    hint={noFloodLabel.hint}
+                    checked={draft.noFlood}
+                    testId="filter-no-flood"
+                    onChange={(next) => setDraft((current) => ({ ...current, noFlood: next }))}
+                  />
+                </div>
+              </Group>
+            )}
+
+            {/* --------------------------------- commute (V-43) */}
+            {anchors.length > 0 && (
+              <Group
+                id="filter-commute"
+                title={commuteCopy.filterTitle}
+                clearLabel={copy.clear}
+                onClear={draft.to ? () => setDraft((current) => ({ ...current, to: "", withinOn: false })) : undefined}
+              >
+                <label className="block">
+                  <span className="sr-only">{commuteCopy.filterTitle}</span>
+                  <select
+                    className="nf-field"
+                    value={draft.to}
+                    data-testid="filter-commute-to"
+                    onChange={(event) => {
+                      const to = event.target.value;
+                      setDraft((current) => ({ ...current, to, withinOn: to ? current.withinOn : false }));
+                    }}
+                  >
+                    <option value="">{commuteCopy.anywhere}</option>
+                    {anchors.map((anchor) => (
+                      <option key={anchor.id} value={anchor.slug}>
+                        {anchor.name}, {anchor.city}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                {draft.to && (
+                  <div className="mt-sm divide-y divide-[var(--nf-panel-hair)]">
+                    <SwitchRow
+                      icon="history"
+                      label={commuteCopy.within.replace("{n}", String(RUSH_WITHIN))}
+                      hint={commuteCopy.withinHint}
+                      checked={draft.withinOn}
+                      testId="filter-commute-within"
+                      onChange={(next) => setDraft((current) => ({ ...current, withinOn: next }))}
+                    />
+                  </div>
+                )}
+                {commutePending && (
+                  <p className="nf-filters__hint mt-inline-tight" role="status">
+                    {commuteCopy.countAfterApply}
+                  </p>
+                )}
+              </Group>
+            )}
+
             {/* ------------------------------------------------ trust */}
             <Group
               id="filter-booking"
@@ -1181,6 +1226,8 @@ export function FilterDrawerPanel({
               </div>
             </Group>
 
+              </>
+            )}
             {/* ------------------------------------------------ location */}
             <Group
               id="filter-location"
@@ -1208,6 +1255,8 @@ export function FilterDrawerPanel({
               </label>
             </Group>
 
+            {!shortlet && (
+              <>
             {/* ---------------------------------------------------- sort */}
             {/* Clearing a sort means going back to the order the shelf opens
                 in, which is the first entry in SORTS, so the control is live
@@ -1253,6 +1302,8 @@ export function FilterDrawerPanel({
                 </p>
               )}
             </Group>
+              </>
+            )}
           </div>
     </Sheet>
   );

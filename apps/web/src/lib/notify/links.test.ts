@@ -100,6 +100,7 @@ const WRITTEN: [string, string][] = [
   ["report_not_me", "/settings/devices"],
   ["notify_post_insert, notify_post_status, notify_reaction, notify_repost, fan_out_post, notify_report", `/post/${ID}`],
   ["notify_report, notify_review_response, answer_brief", `/listing/${ID}`],
+  ["notify_inspection_change, send_viewing_reminders (the renter side)", `/listing/${ID}/visit/${ID}`],
   ["notify_report", "/notifications"],
   ["notify_reservation", "/host/reservations"],
   ["notify_review", "/agent/reviews"],

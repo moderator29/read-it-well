@@ -46,6 +46,8 @@ export type ApplicationField =
   | "accountNumber"
   | "accountName"
   | "agreeTerms"
+  | "acceptTerms"
+  | "acceptPayOnVallo"
   | "documents";
 
 export type ApplicationResult = {
@@ -70,6 +72,7 @@ import { DOCUMENT_KINDS, STORED_DOCUMENT_KIND, type DocumentKind } from "./appli
 import { OPEN_STATUSES } from "./open-application";
 import { otherSideMessage } from "./role-lock";
 import { otherSideHeld } from "./role-lock-read";
+import { ACCEPT_PAY_REQUIRED, ACCEPT_TERMS_REQUIRED, withWorkspaceAcceptance } from "../legal/workspace-acceptance";
 
 type UploadedDocument = { kind: DocumentKind; path: string };
 
@@ -149,6 +152,10 @@ export async function submitAgentApplication(
   if (formData.get("agreeTerms") !== "on") {
     fieldErrors.agreeTerms = "You must accept the agent terms to continue.";
   }
+  /* Ruling 6 (13 October 2026): the Terms of Service and the Privacy Policy,
+     and that every payment for a deal happens inside Vallo, both ticked. */
+  if (formData.get("acceptTerms") !== "on") fieldErrors.acceptTerms = ACCEPT_TERMS_REQUIRED;
+  if (formData.get("acceptPayOnVallo") !== "on") fieldErrors.acceptPayOnVallo = ACCEPT_PAY_REQUIRED;
 
   const documents = readManifest(get("documents"));
   const has = (kind: DocumentKind) => documents.some((d) => d.kind === kind);
@@ -270,7 +277,10 @@ export async function submitAgentApplication(
       account_name: get("accountName"),
       agree_terms: true,
       submitted_at: new Date().toISOString(),
-    })
+      /* Ruling 6: recorded with each version and the moment, as the host
+         publish step records its agreement (pending migration pov07). */
+      consents: withWorkspaceAcceptance(null, new Date().toISOString()),
+    } as never)
     .select("id, reference")
     .single();
 

@@ -10,7 +10,7 @@ import { plural, type Locale, type PluralForms } from "@vallo/i18n/core";
  * never blocks anybody on it.
  *
  * The database answers through `public.reservation_guest_records(uuid[])`
- * (`supabase/migrations/pending/p1_d_reservation_guest_records.sql`), on the
+ * (`supabase/migrations/20261013100249_reservation_guest_records.sql`), on the
  * caller's own session: only reservations the caller hosts come back, so a
  * host never sees counts for another venue's request. Kept is a table marked
  * seated, missed is a table marked a no-show, and a table under an open

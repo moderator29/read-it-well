@@ -83,6 +83,10 @@ export type UiIconName =
   | "grid"
   | "key"
   | "sliders"
+  /* The search bar's order control: lines shortening downward [arrow-down-wide-narrow]. */
+  | "sort"
+  /* Open the chosen place, on the map's docked card [arrow-up-right]. */
+  | "arrow-up-right"
   | "share"
   /* The feed's send: a paper plane, "send this to somebody", where `share`
      is the outbound tray a sheet of destinations opens from. */
@@ -551,6 +555,23 @@ const PATHS: Record<UiIconName, React.ReactNode> = {
     <>
       <path d="M12 5v14" />
       <path d="m19 12-7 7-7-7" />
+    </>
+  ),
+  // [arrow-up-right]: out of the map, into the place.
+  "arrow-up-right": (
+    <>
+      <path d="M7 7h10v10" />
+      <path d="M7 17 17 7" />
+    </>
+  ),
+  // [arrow-down-wide-narrow]: the order of the results.
+  sort: (
+    <>
+      <path d="m3 16 4 4 4-4" />
+      <path d="M7 20V4" />
+      <path d="M11 4h10" />
+      <path d="M11 8h7" />
+      <path d="M11 12h4" />
     </>
   ),
   // [crown]: Pro, the paid tier.

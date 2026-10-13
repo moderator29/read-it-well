@@ -1,4 +1,4 @@
-import { FUND_CLOSED, FUND_OPEN_BALANCE, FUND_STEPS, FUND_TOP_UP } from "./copy";
+import { FUND_CLOSED, FUND_OPEN_BALANCE, FUND_STEPS, FUND_STEPS_STAY, FUND_TOP_UP } from "./copy";
 
 /**
  * STEP 7, FUND (D77): what the renter's funding screen shows, from facts the
@@ -20,6 +20,11 @@ export type FundBalance =
 export type FundFacts = {
   viewerIsRenter: boolean;
   kind: string;
+  /**
+   * A stay at a listing (a shortlet), which since ruling 2 (13 October 2026)
+   * is paid into escrow by default. A hotel room is never (card only).
+   */
+  listingStay?: boolean;
   agreementStatus: string;
   /** public.agreement_payable_for: 'payable', 'review_required', 'not_approved', or null when unread. */
   payable: string | null;
@@ -72,7 +77,8 @@ export function fundModel(f: FundFacts): FundModel {
   if (f.arrangementStatus !== null && PAST_FUNDING.has(f.arrangementStatus)) return { kind: "go_held" };
   const closed = (reason: keyof typeof FUND_CLOSED): FundModel => ({ kind: "closed", reason, body: FUND_CLOSED[reason] });
   if (!f.viewerIsRenter) return closed("not_renter");
-  if (f.kind !== "rent") return closed("not_rent");
+  const stay = f.kind === "stay" && f.listingStay === true;
+  if (f.kind !== "rent" && !stay) return closed("not_rent");
   if (f.agreementStatus !== "approved") return closed("not_approved");
   if (f.rail === "direct") return closed("direct");
   if (f.payable === "review_required") return closed("review_required");
@@ -89,7 +95,7 @@ export function fundModel(f: FundFacts): FundModel {
       ready: false,
       balanceAction: { label: FUND_OPEN_BALANCE, href: WALLET_HREF },
       balanceStale: false,
-      steps: FUND_STEPS,
+      steps: stay ? FUND_STEPS_STAY : FUND_STEPS,
     };
   }
   if (f.balance.state !== "ready") return closed(f.balance.state === "not-live" ? "not_live" : "balance_unreadable");
@@ -105,6 +111,6 @@ export function fundModel(f: FundFacts): FundModel {
     ready: short === 0,
     balanceAction: short > 0 ? { label: FUND_TOP_UP, href: WALLET_HREF } : null,
     balanceStale: !f.balance.live,
-    steps: FUND_STEPS,
+    steps: stay ? FUND_STEPS_STAY : FUND_STEPS,
   };
 }

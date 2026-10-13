@@ -1,10 +1,9 @@
 import Link from "next/link";
 import { formatNumber, type Dictionary, type Locale } from "@vallo/i18n/core";
-import { UiIcon } from "@/design-system/icons/UiIcon";
-import { SORTS, sortBasisOf } from "@/lib/listings/search-params";
+import { sortBasisOf } from "@/lib/listings/search-params";
 import { ViewToggle } from "@/components/app/filters/ViewToggle";
 import { Odometer } from "@/components/ui/Odometer";
-import { toShelfHref, toShelfViewHref, type ShelfQuery } from "./shelf-query";
+import { toShelfViewHref, type ShelfQuery } from "./shelf-query";
 import "@/app/css/catalogue.css";
 import "@/app/css/list-views.css";
 import "./results-motion.css";
@@ -43,7 +42,6 @@ export function ShelfCount({
     rows: toShelfViewHref(query, "rows"),
     map: toShelfViewHref(query, "map"),
   };
-  const current = SORTS.find((sort) => sort.key === query.sort) ?? SORTS[0]!;
   const currentBasis = sortBasisOf(query.sort);
   const basis =
     currentBasis === "price"
@@ -124,40 +122,9 @@ export function ShelfCount({
           className="nf-viewtoggle--bar"
         />
       )}
-      {(count > 1 || query.view === "map") && (
-        <details className="nf-shelf-sort shrink-0" data-testid="sort-control">
-          <summary>
-            <UiIcon name="sliders" size={16} />
-            {t.shape.sorts[current.key]}
-            <UiIcon name="chevron-down" size={16} />
-          </summary>
-          <ul className="nf-shelf-sort__menu" aria-label={copy.sort}>
-            {SORTS.map((sort) => {
-              const active = sort.key === query.sort;
-              return (
-                <li key={sort.key}>
-                  <Link
-                    href={toShelfHref({ ...query, sort: sort.key })}
-                    prefetch
-                    aria-current={active ? "true" : undefined}
-                    className="nf-shelf-sort__item"
-                  >
-                    {t.shape.sorts[sort.key]}
-                    {active && <UiIcon name="verified" size={16} />}
-                  </Link>
-                </li>
-              );
-            })}
-            <li className="mt-2xs border-t border-[var(--nf-panel-hair)] pt-2xs">
-              <ViewToggle
-                current={query.view}
-                hrefs={viewHrefs}
-                className="nf-viewtoggle--menu"
-              />
-            </li>
-          </ul>
-        </details>
-      )}
+      {/* The order moved to the bar, beside the filters, as the founder's
+          reference draws it (ShelfBar, "sort-control"), with the phone's
+          view switch still the last item of its menu. */}
       </div>
     </div>
   );

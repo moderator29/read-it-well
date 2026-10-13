@@ -179,7 +179,9 @@ export async function openArrangement(deps: ArrangementDeps, input: OpenInput): 
   /* The delivery window first: no record is made for an agreement whose
      move-in date cannot bound the provider's claim clock. */
   const { data: ag } = await deps.db.from("deal_agreements").select("terms").eq("id", input.agreementId).maybeSingle();
-  const moveIn = ((ag as { terms?: Record<string, unknown> } | null)?.terms?.move_in ?? null) as string | null;
+  /* A rental is bounded by its move-in; a stay at a listing (ruling 2) by its check-in. */
+  const agTerms = (ag as { terms?: Record<string, unknown> } | null)?.terms;
+  const moveIn = ((agTerms?.move_in ?? agTerms?.check_in) ?? null) as string | null;
   const windowDays = deliveryWindowDays(moveIn, deps.todayLagos());
   if (windowDays === null) return { outcome: "refused", reason: "move_in_unreadable" };
 

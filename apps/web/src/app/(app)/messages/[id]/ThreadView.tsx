@@ -54,7 +54,7 @@ import { Button } from "@/components/ui/Button";
 import { Chip, ChipRow } from "@/components/ui/Chip";
 import { AccountMomentCard } from "@/components/app/messages/AccountMomentCard";
 import { accountNumbersIn, isAccountMoment } from "@/lib/messages/account-moment";
-import { offPlatformAsk } from "@/lib/messages/off-platform-ask";
+import { mentionsPayingOutside, offPlatformAsk } from "@/lib/messages/off-platform-ask";
 import { ScamShield } from "@/components/app/messages/ScamShield";
 import { feedback } from "@/lib/ui/feedback";
 import type { AccountCheckView } from "@/lib/messages/account-check";
@@ -1264,6 +1264,14 @@ export function ThreadView({
             scamCopy && !m.mine && role === "guest" && !m.card && !accountMessage
               ? run.map((p) => ({ p, ask: offPlatformAsk(p.body) })).find((x) => x.ask)
               : undefined;
+          /* Ruling 7 (13 October 2026): in a listing chat, either side
+             mentioning an account number or a transfer gets the same shield,
+             led by "Pay only through Vallo". Never a second row: the ask
+             above, or the account card, already speaks for its message. */
+          const mentioned =
+            scamCopy && context?.kind === "listing" && !m.card && !accountMessage && !shielded?.ask
+              ? run.find((p) => mentionsPayingOutside(p.body))
+              : undefined;
           /* VC1: a finished call is a compact system row, never a bubble. */
           if (m.call && calls) {
             const kind = m.call.view.kind;
@@ -1420,6 +1428,15 @@ export function ThreadView({
                     canReport={live && !shielded.p.id.startsWith("local-")}
                     copy={scamCopy}
                     quote={shielded.p.body}
+                  />
+                )}
+                {mentioned && scamCopy && (
+                  <ScamShield
+                    mention
+                    messageId={mentioned.id}
+                    canReport={live && !m.mine && !mentioned.id.startsWith("local-")}
+                    copy={scamCopy}
+                    quote={mentioned.body}
                   />
                 )}
 

@@ -20,7 +20,11 @@ import { describe, expect, it } from "vitest";
 const root = new URL("../../../../../", import.meta.url);
 const migrations = new URL("supabase/migrations/", root);
 const pending = new URL("pending/", migrations);
-const DRAFT = new URL("visit_reminders_both_sides.sql", pending);
+/* The file, once applied as <version>_visit_reminders_both_sides.sql, or the draft before that. */
+const applied = readdirSync(migrations).filter((f) => f.endsWith("_visit_reminders_both_sides.sql")).sort();
+const DRAFT = applied.length > 0
+  ? new URL(applied[applied.length - 1]!, migrations)
+  : new URL("visit_reminders_both_sides.sql", pending);
 
 /** The newest definition of a function among the applied files and the drafts. */
 function newestDefinition(name: string): string {
@@ -41,7 +45,7 @@ function newestDefinition(name: string): string {
   return found;
 }
 
-describe("the pending reminders draft", () => {
+describe("the reminders migration", () => {
   const sql = readFileSync(DRAFT, "utf8");
 
   it("follows the house rules for a draft", () => {

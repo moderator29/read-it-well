@@ -18,6 +18,7 @@ import { successCopy } from "@/lib/ui/success-moments";
 import { PhoneField } from "@/components/app/PhoneField";
 import { SegmentedProgress } from "@/components/ui/Progress";
 import { Switch } from "@/components/ui/Switch";
+import { WorkspaceAcceptance } from "@/components/legal/WorkspaceAcceptance";
 import { TextField, SelectField as UiSelectField } from "@/components/ui/Field";
 import {
   MAX_FILE_LABEL,
@@ -102,6 +103,8 @@ const STEP_OF_FIELD: Record<ApplicationField, number> = {
   accountNumber: 4,
   accountName: 4,
   agreeTerms: 5,
+  acceptTerms: 5,
+  acceptPayOnVallo: 5,
 };
 
 /** A stable folder per wizard session, so retries do not scatter objects. */
@@ -178,6 +181,9 @@ export function ApplyWizard({ t, role }: { t: ApplyCopy; role?: SetupRole }) {
 
   const [step, setStep] = useState(0);
   const [agreed, setAgreed] = useState(false);
+  /* Ruling 6 (13 October 2026): the two ticks before the application is sent. */
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [acceptPay, setAcceptPay] = useState(false);
   const [agentType, setAgentType] = useState<AgentType>(
     role ? TYPE_OF_ROLE[role] : "individual",
   );
@@ -641,6 +647,17 @@ export function ApplyWizard({ t, role }: { t: ApplyCopy; role?: SetupRole }) {
           {err?.agreeTerms && (
             <p role="alert" className="text-[length:var(--nf-text-overline)] text-[var(--nf-state-error)]">{err.agreeTerms}</p>
           )}
+
+          {acceptTerms && <input type="hidden" name="acceptTerms" value="on" />}
+          {acceptPay && <input type="hidden" name="acceptPayOnVallo" value="on" />}
+          <WorkspaceAcceptance
+            copy={t.payChoice}
+            terms={acceptTerms}
+            pay={acceptPay}
+            onTerms={setAcceptTerms}
+            onPay={setAcceptPay}
+            showError={Boolean(err?.acceptTerms || err?.acceptPayOnVallo)}
+          />
 
           {/*
             One box, two meanings, and until now it painted both of them as a

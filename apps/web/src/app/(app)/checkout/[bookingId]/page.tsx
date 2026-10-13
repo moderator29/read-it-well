@@ -28,6 +28,8 @@ import { LIVE_RAIL } from "@/lib/money/rails";
 import type { MoneyReference } from "@/lib/money/references";
 import { withNext } from "@/lib/auth/next-link";
 import { readBookedPolicyTerms } from "@/lib/stays/booked-policy";
+import { readAgreementPayChoice } from "@/lib/payments/rail-choice-read";
+import { PayChoiceCard } from "@/components/money/pay-choice/PayChoiceCard";
 
 export const metadata: Metadata = { title: "Checkout" };
 
@@ -146,7 +148,7 @@ export default async function CheckoutPage({
   /* PERF-SWEEP 2: the saved cards, the crypto offer and the charge kind are
      three independent reads; they run together rather than in series, and
      the charge kind is read once rather than once per use below. */
-  const [cardsRead, cryptoOffer, chargeKind, bookedTerms] = await Promise.all([
+  const [cardsRead, cryptoOffer, chargeKind, bookedTerms, payChoice] = await Promise.all([
     listPaymentMethods(),
     /* Crypto, decided here on the server: null while it is off for the platform. */
     cryptoOfferForViewer(),
@@ -154,7 +156,13 @@ export default async function CheckoutPage({
     /* The cancellation policy on the rate being booked (Flexible to Strict),
        drawn against these dates; null draws the platform schedule. */
     readBookedPolicyTerms(view.bookingId),
+    /* Ruling 2 (13 October 2026): escrow or card, the payer's pick, on an
+       approved agreement not yet paid. Null draws today's screen. */
+    view.agreement?.status === "approved" && !view.paid ? readAgreementPayChoice(view.agreement.id) : Promise.resolve(null),
   ]);
+  /* Escrow (the default, or the payer's pick) is paid on the escrow step, so
+     the card panel is drawn only when card is the rail. */
+  const escrowChosen = payChoice !== null && payChoice.options.length > 1 && payChoice.rail === "escrow";
   const savedCards: PaymentMethod[] = cardsRead.ok ? cardsRead.data : [];
   const savedCardKey = crypto.randomUUID();
   const chargeSavedCard = chargeSavedCardFor.bind(null, bookingId, savedCardKey);
@@ -338,9 +346,23 @@ export default async function CheckoutPage({
             />
           </div>
 
-          <div className="mt-block">
-            <PayPanel view={view} savedCards={savedCards} chargeSavedCard={chargeSavedCard} plansAction={staysAction} crypto={cryptoOffer} />
-          </div>
+          {payChoice && view.agreement ? (
+            <div className="mt-block">
+              <PayChoiceCard
+                copy={getDictionary(locale).payChoice}
+                choice={payChoice}
+                agreement={{ id: view.agreement.id, kind: chargeKind === "stay" ? "stay" : "rent", bookingId: view.bookingId, inspectionId: null }}
+                here={`/checkout/${bookingId}`}
+                showContinue={payChoice.options.length > 1}
+              />
+            </div>
+          ) : null}
+
+          {escrowChosen ? null : (
+            <div className="mt-block">
+              <PayPanel view={view} savedCards={savedCards} chargeSavedCard={chargeSavedCard} plansAction={staysAction} crypto={cryptoOffer} />
+            </div>
+          )}
         </>
       )}
 

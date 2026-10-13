@@ -45,7 +45,10 @@ import { readIntentTuning } from "@/lib/interests/queries";
 import { getSavedListings } from "@/lib/saved/queries";
 import { canonicalSearch, describeSearch } from "@/lib/saved/searches";
 import { SearchMemory } from "@/components/app/search/SearchMemory";
-import { findSavedSearch } from "@/lib/saved/searches-queries";
+import { findSavedSearch, listSavedSearches } from "@/lib/saved/searches-queries";
+import { savedSearchSignal } from "@/lib/search/saved-search-signal";
+import { SearchForYou } from "@/components/app/search/SearchForYou";
+import { WideOnly } from "@/components/app/search/WideOnly";
 import { SaveSearchControl } from "@/components/app/saved-searches/SaveSearchControl";
 import { type SortKey } from "@/lib/listings/search-params";
 import { rankRecommended } from "@/lib/listings/ranking";
@@ -267,7 +270,7 @@ export default async function SearchPage({
    * reads another's answer, so awaiting them one by one only added up their
    * latencies before the first byte.
    */
-  const [rawResults, rawPool, whole, savedEntries, savedSearch, codeHit, tuning, anchors] = await Promise.all([
+  const [rawResults, rawPool, whole, savedEntries, savedSearch, codeHit, tuning, anchors, savedList] = await Promise.all([
     /* The move-in ordering is pushed into the read, because the read has a row
        ceiling: sorting afterwards alone would order the newest rows rather
        than the cheapest ones to move into. See `ListingSearchOptions.order`. */
@@ -284,6 +287,10 @@ export default async function SearchPage({
     codeRead.state === "code" ? repo.byReference(codeRead.value) : null,
     readIntentTuning(),
     readAnchors(),
+    /* Best matches (an unfiltered shelf only): the account's saved searches,
+       in this same batch, so the section costs no round trip of its own.
+       With a query the control above reads the same rows for its own answer. */
+    canonical.key.length === 0 ? listSavedSearches() : null,
   ]);
 
   /*
@@ -487,6 +494,41 @@ export default async function SearchPage({
       : sx.next[next.key]
     : null;
 
+  /*
+   * BEST MATCHES AND NEW LISTINGS (search-map track, the founder's reference).
+   * Only on the shelf as it opens: no words, no filter, no market, the
+   * published order, the first page of the list. Everything they draw was
+   * already read for this page (the shelf, the shortlist, the stated
+   * interests, the saved searches in the first batch, the ownership marks of
+   * the cards drawn), so neither section adds a read.
+   */
+  const forYou =
+    query.view === "list" &&
+    !codeHit &&
+    !query.q &&
+    !narrowed &&
+    !areaNarrowed &&
+    query.sort === "recommended" &&
+    shelfSteps === 1 &&
+    listings.length > 0;
+  /* "New" is the last thirty days, by the day each went live. */
+  const NEW_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
+  const newest = forYou
+    ? listings
+        .filter((l) => !l.isDemo && l.publishedAt && landlordNow - Date.parse(l.publishedAt) <= NEW_WINDOW_MS)
+        .sort((a, b) => Date.parse(b.publishedAt!) - Date.parse(a.publishedAt!))
+        .slice(0, 8)
+    : [];
+  const kindNames = Object.fromEntries(
+    Object.entries(t.experienceLabels.kinds).map(([kind, noun]) => [kind, noun.one]),
+  ) as Record<ListingKind, string>;
+  const cardCopy = forListingCard(t);
+  const mapPins = Object.entries(CITY_COORDS).flatMap(([city, at]) => {
+    const floor = cityFloor.get(city);
+    if (!floor) return [];
+    return [{ city, ...at, count: floor.count, price: formatMoney(floor.minMinor, locale, floor.currency) }];
+  });
+
   return (
     <>
       {/* A6: the funnel's "first search", once a search has something in it. */}
@@ -609,21 +651,16 @@ export default async function SearchPage({
             Skip to the map
           </a>
           <div className="nf-panel nf-panel--card relative overflow-hidden p-0">
+            {/* THE MAP SHOWS THESE RESULTS (search-map track). It used to read
+                the catalogue again by the words alone, so a filtered search
+                put homes on the map that the count above it had filtered out,
+                and a shortlet or a hotel matching the words landed on the
+                Property side's map. It now draws exactly the list. */}
             <RealMap
               listHref={toShelfViewHref(query, "list")}
               active={query.q?.trim()}
-              pins={Object.entries(CITY_COORDS).flatMap(([city, at]) => {
-                const floor = cityFloor.get(city);
-                if (!floor) return [];
-                return [
-                  {
-                    city,
-                    ...at,
-                    count: floor.count,
-                    price: formatMoney(floor.minMinor, locale, floor.currency),
-                  },
-                ];
-              })}
+              listings={listings}
+              pins={mapPins}
             />
           </div>
         </Reveal>
@@ -711,6 +748,43 @@ export default async function SearchPage({
             <LastVisitProvider>
             {/* V-73: the first twenty cards drawn were seen. */}
             <RecordViews seen={listings.slice(0, 20).map((l) => l.id)} />
+            {forYou && (
+              <SearchForYou
+                candidates={drawn}
+                newest={newest}
+                savedSearches={
+                  savedList?.state === "signed-in" ? savedList.searches.map((saved) => savedSearchSignal(saved.params)) : []
+                }
+                savedHomes={savedEntries.map((entry) => ({
+                  id: entry.listing.id,
+                  area: entry.listing.area,
+                  city: entry.listing.city,
+                }))}
+                interests={tuning.interests}
+                savedIds={[...savedIds]}
+                kindNames={kindNames}
+                ownershipSeen={Object.fromEntries(ownershipSeen)}
+                ownershipLabel={ownershipLabel}
+                locale={locale}
+                t={cardCopy}
+                copy={{
+                  bestMatches: t.searchV2.sections.bestMatches,
+                  bestMatchesHint: t.searchV2.sections.bestMatchesHint,
+                  newListings: t.searchV2.sections.newListings,
+                  reasons: t.searchV2.reasons,
+                }}
+              />
+            )}
+            {/* The list beside a sticky map from a desktop's width; on a
+                phone the map is one tap away (the Map pill) and is not
+                mounted here at all (`WideOnly`). */}
+            <div className="nf-search-split">
+            <div className="min-w-0">
+            {forYou && (
+              <h2 className="nf-sx-section__title nf-sx-allhead" data-testid="all-homes">
+                {t.searchV2.sections.allHomes}
+              </h2>
+            )}
             {/* Track M: while a filter, sort or view change is on its way
                 the current cards dim to 60 per cent; the new grid arrives
                 with the card entrance (ResultsFade.tsx). The `key` still
@@ -723,18 +797,21 @@ export default async function SearchPage({
               className={
                 query.view === "rows"
                   ? "nf-results--rows grid grid-cols-1 gap-sm sm:gap-md lg:grid-cols-2"
-                  : "grid grid-cols-2 gap-sm sm:gap-md lg:grid-cols-4"
+                  : "nf-results--one"
               }
             >
               {drawn.map((l, i) => (
                 <li key={l.id}>
+                  {/* One card per row at a phone's width (the founder's
+                      reference): the row card. The rows view keeps its
+                      sideways tile. */}
                   <ListingCard
                     listing={l}
                     locale={locale}
-                    t={forListingCard(t)}
+                    t={cardCopy}
                     index={i}
                     eager={i === 0}
-                    dense={query.view !== "rows"}
+                    layout={query.view === "rows" ? "tile" : "row"}
                     brief={query.view !== "rows"}
                     saved={savedIds.has(l.id)}
                     intent={tuning.signedIn ? tuning.interests : undefined}
@@ -766,6 +843,13 @@ export default async function SearchPage({
                 </ButtonLink>
               </div>
             )}
+            </div>
+            <aside className="nf-search-aside nf-panel nf-panel--card p-0" aria-label={t.searchV2.map.aside}>
+              <WideOnly>
+                <RealMap listHref={toShelfViewHref(query, "list")} active={query.q?.trim()} listings={listings} pins={mapPins} fill />
+              </WideOnly>
+            </aside>
+            </div>
             </LastVisitProvider>
           )}
         </div>

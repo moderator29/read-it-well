@@ -3731,6 +3731,62 @@ export const ha: Dictionary = withFallback({
       failed: "Bai yi nasara ba. Da fatan a sake gwadawa.",
     },
   },
+  searchV2: {
+    placeholder: "Bincika ko bayyana gidanka",
+    quick: {
+      forYou: "Domin kai",
+      nearMe: "Kusa da ni",
+      newListed: "Sababbi",
+    },
+    sections: {
+      bestMatches: "Mafi dacewa",
+      newListings: "Sababbin gidaje",
+      allHomes: "Duk gidaje",
+    },
+    filters: {
+      forRent: "Na haya",
+      forSale: "Na sayarwa",
+    },
+  },
+  /* PAY ON VALLO (13 October 2026). Written for this stint; needs a native reader like the rest of the file. */
+  payChoice: {
+    title: "Ta yaya kake so ka biya?",
+    label: "Zaɓi yadda za ka biya",
+    escrow: "Ajiyar kuɗi",
+    card: "Biya da kati",
+    recommended: "Muna ba da shawara",
+    continue: "Ci gaba",
+    saving: "Ana adana zaɓinka",
+    escrowOnlyTitle: "Ana biya cikin ajiyar kuɗi",
+    cardOnlyTitle: "Ana biya da kati",
+    lockedNote: "Biyanka ya fara, don haka hanyar biyan za ta tsaya yadda take.",
+    notPayerNote: "Mai haya ko baƙo ne ke zaɓar yadda za a biya.",
+    refused: {
+      not_found: "Ba mu sami wannan yarjejeniya a asusunka ba.",
+      not_payer: "Mai biya kaɗai ne zai iya zaɓar yadda za a biya.",
+      bad_choice: "Zaɓi Ajiyar kuɗi ko Biya da kati.",
+      closed: "An rufe wannan yarjejeniya, don haka babu abin da za a biya a kanta.",
+      already_paid: "An riga an biya wannan.",
+      payment_started: "Akwai biya da ke gudana, don haka ba za a iya canza hanyar biyan yanzu ba.",
+      sale_escrow_only: "Ana biyan sayayya cikin ajiyar kuɗi kaɗai.",
+      card_only: "Ana biyan wannan da kati kaɗai.",
+      escrow_only: "Ana biyan wannan cikin ajiyar kuɗi kaɗai.",
+      no_rail: "Biya bai buɗe ga wannan ba tukuna. Ba a cire kuɗi ba.",
+      card_needs_review: "Biya da kati bai buɗe a wannan yarjejeniya yanzu ba, domin zai buƙaci wani a Vallo ya fara duba ta. Ajiyar kuɗi a buɗe take.",
+      unavailable: "Ba a iya adana wannan yanzu ba. Ba a cire kuɗi ba; sake gwadawa nan ba da jimawa ba.",
+    },
+    accept: {
+      title: "Kafin ka aika wannan",
+      termsLead: "Na karanta kuma na amince da",
+      termsLink: "Sharuɗɗan Sabis",
+      and: "da",
+      privacyLink: "Manufar Sirri",
+      newTab: "yana buɗewa a sabon shafi",
+      payInside: "Duk biyan kuɗi don yarjejeniyar da na yi a Vallo yana faruwa a cikin Vallo.",
+      required: "Yi alama a akwatunan biyu don aika wannan.",
+      done: "Ka amince da Sharuɗɗan Sabis da Manufar Sirri, kuma cewa duk biyan kuɗi don yarjejeniya yana faruwa a cikin Vallo.",
+    },
+  },
 
   /* Gudanar da otal da gidan abinci. A machine-quality draft: a native speaker should read it. */
   hostDash: {

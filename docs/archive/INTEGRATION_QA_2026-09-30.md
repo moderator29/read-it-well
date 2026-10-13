@@ -1,3 +1,5 @@
+> Archived 13 October 2026: a dated status report from the end of September, superseded by `docs/SESSION-1-RESPONSE.md` and `docs/DECISIONS_2026-10-13.md`. Kept as history; it does not describe the platform today.
+
 # Integration QA, 30 September 2026
 
 A platform re-audit after nine engineers landed the clean unified redesign in

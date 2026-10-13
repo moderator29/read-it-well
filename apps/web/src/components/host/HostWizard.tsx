@@ -60,7 +60,8 @@ import { RoomTypesStep } from "./stays/RoomTypesStep";
 import { StaysHead } from "./stays/StaysParts";
 import { TablesStep } from "./stays/TablesStep";
 import { Icon3D } from "@/components/ui/Icon3D";
-import { HOST_AGREEMENT_VERSION } from "@/lib/legal/versions";
+import { HOST_AGREEMENT_VERSION, PAY_ON_VALLO_VERSION } from "@/lib/legal/versions";
+import { WorkspaceAcceptance } from "@/components/legal/WorkspaceAcceptance";
 
 /**
  * THE HOST WIZARD, ON `lib/host`.
@@ -206,8 +207,14 @@ export function HostWizard({
   door = null,
   initialStep = null,
   arrivalCopy,
+  acceptCopy,
 }: {
   initial: HostDraft;
+  /**
+   * Ruling 6: the words of the pay-on-Vallo tick (`payChoice.accept`), handed
+   * down by the page. Absent (the dev previews), the English line is drawn.
+   */
+  acceptCopy?: Pick<Dictionary["payChoice"], "accept">;
   /**
    * The words of the Extra charges step (`afterTheGate.arrival`), handed down
    * by the page so the client does not load the dictionary for them.
@@ -295,6 +302,10 @@ export function HostWizard({
    */
   const [agreeNow, setAgreeNow] = useState(false);
   const agreed = draft.hostAgreementVersion === HOST_AGREEMENT_VERSION;
+  /* Ruling 6 (13 October 2026): every payment for a deal happens inside Vallo,
+     ticked beside the Host Agreement and recorded the same way. */
+  const [payNow, setPayNow] = useState(false);
+  const payAgreed = draft.payOnValloVersion === PAY_ON_VALLO_VERSION;
   if (seenInitial !== initial) {
     setSeenInitial(initial);
     setDraft((current) => mergeServerDraft(current, initial));
@@ -431,6 +442,7 @@ export function HostWizard({
       const done = await runAsync(async () => {
         const result = await saveHostDraft({
           ...(agreeNow && !agreed ? { agreeToHostTerms: true } : {}),
+          ...(payNow && !payAgreed ? { agreeToPayOnVallo: true } : {}),
           ...(draft.hostType ? { hostType: draft.hostType } : {}),
           ...(draft.kind ? { kind: draft.kind } : {}),
           name: draft.name,
@@ -462,7 +474,7 @@ export function HostWizard({
       }
       return done;
     },
-    [draft, runAsync, agreeNow, agreed],
+    [draft, runAsync, agreeNow, agreed, payNow, payAgreed],
   );
 
   const saveText = useCallback(
@@ -626,7 +638,7 @@ export function HostWizard({
       case "host-type":
         return draft.hostType !== null && draft.kind !== null;
       case "business":
-        return (agreed || agreeNow) && BUSINESS_SECTIONS.every((section) =>
+        return (agreed || agreeNow) && (payAgreed || payNow) && BUSINESS_SECTIONS.every((section) =>
           section.fields.every(
             (field) => field.optional || (draft[field.name as TextKeys] ?? "").trim().length > 0,
           ),
@@ -802,6 +814,10 @@ export function HostWizard({
           agreed={agreed}
           agreeNow={agreeNow}
           onAgree={setAgreeNow}
+          payAgreed={payAgreed}
+          payNow={payNow}
+          onPay={setPayNow}
+          acceptCopy={acceptCopy}
           goTo={(id) => {
             const index = steps.findIndex((s) => s.id === id);
             if (index >= 0) jumpTo(index);
@@ -877,6 +893,11 @@ type StepProps = {
   agreed: boolean;
   agreeNow: boolean;
   onAgree: (next: boolean) => void;
+  /** Ruling 6: the pay-on-Vallo statement, on record or ticked on this visit. */
+  payAgreed: boolean;
+  payNow: boolean;
+  onPay: (next: boolean) => void;
+  acceptCopy?: Pick<Dictionary["payChoice"], "accept">;
   /** The hotel's stated total, held by the wizard. See its declaration. */
   expectedRooms: number;
   onExpectedRooms(next: number): void;
@@ -910,6 +931,17 @@ function StepBody(props: StepProps) {
         <>
           <BusinessStep {...props} />
           <HostAgreementTick agreed={props.agreed} agreeNow={props.agreeNow} onAgree={props.onAgree} />
+          {props.payAgreed ? null : (
+            <WorkspaceAcceptance
+              className="nf-host-group"
+              copy={props.acceptCopy ?? PAY_ON_VALLO_FALLBACK}
+              showTerms={false}
+              terms
+              pay={props.payNow}
+              onTerms={() => undefined}
+              onPay={props.onPay}
+            />
+          )}
         </>
       );
     case "registration":
@@ -1019,6 +1051,21 @@ function HostTypeStep({ draft, set }: StepProps) {
     </>
   );
 }
+
+/** The pay-on-Vallo tick's English, for a caller that hands no dictionary (the dev previews). */
+const PAY_ON_VALLO_FALLBACK: Pick<Dictionary["payChoice"], "accept"> = {
+  accept: {
+    title: "Before you send this",
+    termsLead: "I have read and accept the",
+    termsLink: "Terms of Service",
+    and: "and the",
+    privacyLink: "Privacy Policy",
+    newTab: "opens in a new tab",
+    payInside: "Every payment for a deal I make on Vallo happens inside Vallo.",
+    required: "Tick both boxes to send this.",
+    done: "You accepted the Terms of Service and the Privacy Policy, and that every payment for a deal happens inside Vallo.",
+  },
+};
 
 /**
  * THE TERMS, THE PRIVACY POLICY AND THE HOST AGREEMENT, agreed before the

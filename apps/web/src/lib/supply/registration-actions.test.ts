@@ -71,6 +71,7 @@ vi.mock("../supabase/admin", () => ({
 }));
 
 const { submitSupplyRegistration } = await import("./registration-actions");
+const { PAY_ON_VALLO_VERSION, PRIVACY_VERSION, TERMS_VERSION } = await import("../legal/versions");
 
 const OWNER = {
   role: "owner",
@@ -81,6 +82,8 @@ const OWNER = {
   lgaCode: "la_ikeja",
   area: "",
   ownershipDocument: "none",
+  acceptTerms: true,
+  acceptPayOnVallo: true,
 };
 
 const AGENT = {
@@ -93,6 +96,8 @@ const AGENT = {
   legalFeeBps: null,
   idPath: `${USER}/batch/identity-1.jpg`,
   selfiePath: "",
+  acceptTerms: true,
+  acceptPayOnVallo: true,
 };
 
 const writes = () => seam.calls.filter((c) => c.op !== "select");
@@ -148,5 +153,31 @@ describe("submitSupplyRegistration", () => {
     expect(documents?.payload).toEqual([
       { application_id: "app-1", uploader_id: USER, kind: "identity", storage_path: `${USER}/batch/identity-1.jpg` },
     ]);
+  });
+
+  /* Ruling 6 (13 October 2026): enforced on the server, not only in the form. */
+  it("refuses a registration without both ticks, and writes nothing", async () => {
+    for (const missing of [{ acceptTerms: undefined }, { acceptPayOnVallo: undefined }, { acceptPayOnVallo: false }]) {
+      seam.calls = [];
+      const result = await submitSupplyRegistration({ ...OWNER, ...missing });
+      expect(result.ok).toBe(false);
+      expect(writes()).toEqual([]);
+    }
+    const result = await submitSupplyRegistration({ ...AGENT, acceptPayOnVallo: undefined });
+    expect(result.ok ? null : result.fieldErrors?.acceptPayOnVallo).toMatch(/inside Vallo/);
+  });
+
+  it("records the acceptance on the application with each version and the moment", async () => {
+    const result = await submitSupplyRegistration(OWNER);
+    expect(result.ok).toBe(true);
+    const insert = writes().find((c) => c.table === "agent_applications");
+    const agreements = (insert?.payload as { consents?: { agreements?: { document: string; version: string; at: string }[] } })
+      .consents?.agreements;
+    expect(agreements?.map((a) => [a.document, a.version])).toEqual([
+      ["terms", TERMS_VERSION],
+      ["privacy", PRIVACY_VERSION],
+      ["pay_on_vallo", PAY_ON_VALLO_VERSION],
+    ]);
+    expect(agreements?.every((a) => !Number.isNaN(Date.parse(a.at)))).toBe(true);
   });
 });

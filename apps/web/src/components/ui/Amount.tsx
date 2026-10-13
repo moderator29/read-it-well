@@ -200,7 +200,10 @@ function AmountStatic({
       <span className={["nf-numeric", className ?? ""].filter(Boolean).join(" ")}>
         <span aria-hidden="true">
           {head}
-          {fraction ? <span className={muted}>{fraction}</span> : null}
+          {/* A compact figure's fraction is part of the number, not kobo:
+              "₦2.4m" with a faint ".4" read as ₦2m on the map card. So in
+              short form it keeps the figure's weight; only kobo is muted. */}
+          {fraction ? short ? fraction : <span className={muted}>{fraction}</span> : null}
           {tail}
           {suffix ? <span className={muted}> {suffix}</span> : null}
         </span>

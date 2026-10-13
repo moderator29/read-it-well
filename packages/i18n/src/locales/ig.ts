@@ -3760,6 +3760,62 @@ export const ig: Dictionary = withFallback({
       failed: "O megheghị. Biko nwaa ọzọ.",
     },
   },
+  searchV2: {
+    placeholder: "Chọọ ma ọ bụ kọwaa ụlọ gị",
+    quick: {
+      forYou: "Maka gị",
+      nearMe: "Nso m",
+      newListed: "Ọhụrụ",
+    },
+    sections: {
+      bestMatches: "Ndị kacha dabara",
+      newListings: "Ụlọ ọhụrụ",
+      allHomes: "Ụlọ niile",
+    },
+    filters: {
+      forRent: "Maka mgbazinye",
+      forSale: "Maka ire",
+    },
+  },
+  /* PAY ON VALLO (13 October 2026). Written for this stint; needs a native reader like the rest of the file. */
+  payChoice: {
+    title: "Kedu ka ị chọrọ isi kwụọ ụgwọ?",
+    label: "Họrọ otu ị ga-esi kwụọ ụgwọ",
+    escrow: "Nchekwa ego",
+    card: "Kwụọ site na kaadị",
+    recommended: "Anyị na-atụ aro ya",
+    continue: "Gaa n'ihu",
+    saving: "Anyị na-echekwa nhọrọ gị",
+    escrowOnlyTitle: "A na-akwụ n'ime nchekwa ego",
+    cardOnlyTitle: "A na-akwụ site na kaadị",
+    lockedNote: "Ịkwụ ụgwọ gị amalitela, ya mere ụzọ ị na-esi akwụ ụgwọ ga-anọgide otu a.",
+    notPayerNote: "Onye na-akwụ ụlọ ma ọ bụ ọbịa na-ahọrọ otu a ga-esi kwụọ ụgwọ.",
+    refused: {
+      not_found: "Anyị ahụghị nkwekọrịta ahụ na akaụntụ gị.",
+      not_payer: "Naanị onye na-akwụ ụgwọ nwere ike ịhọrọ otu a ga-esi kwụọ.",
+      bad_choice: "Họrọ Nchekwa ego ma ọ bụ Kwụọ site na kaadị.",
+      closed: "Nkwekọrịta a emechiela, ya mere ọ nweghị ihe a ga-akwụ na ya.",
+      already_paid: "A kwụọla nke a.",
+      payment_started: "Ịkwụ ụgwọ amalitelarị, ya mere ụzọ ịkwụ ụgwọ enweghị ike ịgbanwe ugbu a.",
+      sale_escrow_only: "A na-akwụ ụgwọ ịzụ ụlọ naanị n'ime nchekwa ego.",
+      card_only: "A na-akwụ nke a naanị site na kaadị.",
+      escrow_only: "A na-akwụ nke a naanị n'ime nchekwa ego.",
+      no_rail: "Ịkwụ ụgwọ emepebeghị maka nke a. Ọ dịghị ego e wepụrụ.",
+      card_needs_review: "Ịkwụ site na kaadị emeghị na nkwekọrịta a ugbu a, n'ihi na ọ ga-achọ ka onye na Vallo buru ụzọ lelee ya. Nchekwa ego meghere.",
+      unavailable: "Anyị enweghị ike ichekwa ya ugbu a. Ọ dịghị ego e wepụrụ; nwaa ọzọ n'oge na-adịghị anya.",
+    },
+    accept: {
+      title: "Tupu ị zipu nke a",
+      termsLead: "Agụọla m ma kweta na",
+      termsLink: "Usoro Ọrụ",
+      and: "na",
+      privacyLink: "Iwu Nzuzo",
+      newTab: "ọ na-emepe na taabụ ọhụrụ",
+      payInside: "Ịkwụ ụgwọ ọ bụla maka nkwekọrịta m mere na Vallo na-eme n'ime Vallo.",
+      required: "Kaa akara n'igbe abụọ ahụ iji zipu nke a.",
+      done: "Ị kwetara na Usoro Ọrụ na Iwu Nzuzo, na na ịkwụ ụgwọ ọ bụla maka nkwekọrịta na-eme n'ime Vallo.",
+    },
+  },
 
   /* Njikwa ụlọ nkwari akụ na ụlọ nri. A machine-quality draft: a native speaker should read it. */
   hostDash: {

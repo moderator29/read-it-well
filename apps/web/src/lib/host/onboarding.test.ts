@@ -12,7 +12,7 @@ import {
   stepsFor,
   type HostDraft,
 } from "./onboarding";
-import { HOST_AGREEMENT_VERSION } from "../legal/versions";
+import { HOST_AGREEMENT_VERSION, PAY_ON_VALLO_VERSION } from "../legal/versions";
 
 /**
  * The host wizard's model, pinned.
@@ -73,6 +73,7 @@ function complete(over: Partial<HostDraft> = {}): HostDraft {
       processing: "2026-09-18T08:00:00Z",
     },
     hostAgreementVersion: HOST_AGREEMENT_VERSION,
+    payOnValloVersion: PAY_ON_VALLO_VERSION,
     arrivalCharges: {
       caution: { minor: 5_000_000, per: "stay" },
       power: { none: true },
@@ -179,6 +180,15 @@ describe("missingFrom", () => {
 
   it("is empty for a complete individual host", () => {
     expect(missingFrom(complete())).toEqual([]);
+  });
+
+  /* Ruling 6 (13 October 2026): a host setup is not sent without the
+     pay-on-Vallo statement, an older draft included. */
+  it("asks for the pay-on-Vallo statement until it is on record at its version", () => {
+    const want = "Your statement that every payment for a deal you make on Vallo happens inside Vallo";
+    expect(missingFrom(complete({ payOnValloVersion: null }))).toEqual([want]);
+    expect(missingFrom(complete({ payOnValloVersion: undefined }))).toEqual([want]);
+    expect(missingFrom(complete({ payOnValloVersion: "2026-01-01" }))).toEqual([want]);
   });
 
   it("names the pin and the photos separately", () => {

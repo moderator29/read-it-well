@@ -24,6 +24,7 @@
  */
 
 import { revalidatePath } from "next/cache";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { stayTitle } from "./stay-title";
 import { readInstantOutcome } from "./instant-pay";
 import { STAYS_INSTANT_PAY_FLAG, flagIsOn } from "../flags/read";
@@ -455,6 +456,29 @@ export async function cancel(
     return fail(
       "This stay has already been paid for, so it cannot be cancelled here. Contact support and we will sort out your money with you.",
     );
+  }
+  /* Ruling 2 (13 October 2026): a shortlet stay may be paid into escrow. Money
+     the partner holds is not unwound by a plain cancel (the database refuses
+     it, `bookings_00_escrow_keeps_the_stay`), so the guest is told what to do
+     instead of reading a failed save. Read under the guest's own RLS. */
+  const { data: heldAgreements } = await session.supabase
+    .from("deal_agreements")
+    .select("id")
+    .eq("booking_id", booking.id)
+    .limit(1);
+  const heldAgreementId = (heldAgreements as { id: string }[] | null)?.[0]?.id ?? null;
+  if (heldAgreementId) {
+    const { data: held } = await (session.supabase as unknown as SupabaseClient)
+      .from("provider_arrangements")
+      .select("id")
+      .eq("agreement_id", heldAgreementId)
+      .in("status", ["payment_processing", "protected", "release_requested", "released", "disputed", "split"])
+      .limit(1);
+    if ((held?.length ?? 0) > 0) {
+      return fail(
+        "This stay is paid into escrow, so it cannot be cancelled here. Open the agreement to see where your money is held, or contact support and we will sort it out with you.",
+      );
+    }
   }
 
   // The transition itself is service-role work: guests hold no UPDATE grant.

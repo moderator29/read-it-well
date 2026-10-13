@@ -48,7 +48,7 @@ export const SUPPORT_FAQ: FaqEntry[] = [
     id: "booking",
     keywords: ["book", "reserv", "stay", "check in", "check-in", "checkin", "trip", "night"],
     answer:
-      "To book a place, open it from Search, pick your dates and guests, then confirm on the booking screen. The stay is held as pending until the host accepts and Vallo approves it; then you pay by card or bank transfer, and every booking appears under Bookings with its status, its dates and its total.",
+      "To book a place, open it from Stays, pick your dates and guests, and check the full price, including any charge at the door. A hotel room is paid by card when you book. A shortlet is held for you while the host answers, then you pay inside Vallo. Every booking appears in Plans with its status, its dates and its total.",
   },
   {
     id: "rent-inspection",
@@ -108,13 +108,13 @@ export const SUPPORT_FAQ: FaqEntry[] = [
     id: "agents",
     keywords: ["agent", "list my", "list a propert", "become", "host", "shortlet", "rent out", "landlady"],
     answer:
-      "To list property, open your profile and switch profile at the top of the screen, then pick Listing or selling if the property is your own, or Agent or estate manager if you do this for other people. Whichever you pick explains what it is and starts the setup: your details, business area and a valid ID. Applications and verification documents are answered within 3 days. Once approved you can publish listings, manage availability and receive bookings.",
+      "To list property, open Add a workspace from your profile and pick the one that fits: I own the property, I am an agent, or We are a registered firm. Hotels, shortlets and restaurants use host setup. Each asks for your details and a valid ID, and a person at Vallo reviews it. One account holds one side: owner or agent, never both. Once approved you can publish listings, manage availability and receive bookings.",
   },
   {
     id: "languages",
     keywords: ["language", "yoruba", "hausa", "igbo", "pidgin", "translate"],
     answer:
-      "Vallo speaks English, Pidgin, Hausa, Igbo and Yoruba. Switch language any time from Settings and the whole app follows immediately on this device.",
+      "Vallo speaks English, Yoruba, Hausa and Igbo. Switch language any time from Settings and the whole app follows immediately on this device.",
   },
   {
     id: "cancellations",

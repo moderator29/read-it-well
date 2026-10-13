@@ -30,7 +30,12 @@ set lock_timeout = '5s';
 --   4. notify_inspection_change(): every notice already existed (request to the lister, renter
 --      cancel or withdraw to the lister, confirm, new time and decline to the renter, accepted
 --      time to the lister, done to both). They now say the visit mode, and the renter's link is
---      the visit page instead of /inspections. search_path is now '' (every name is qualified).
+--      the visit page instead of /inspections. The function was replaced live earlier on 13 October
+--      2026 (20261013095601_visit_mode_inspection_notices: "Video visit booked/requested" titles and
+--      the video hints on the INSERT notices); this version is MERGED from that live definition,
+--      so those titles and hints are kept. search_path is now '' because every table, function and
+--      type in the body is schema-qualified (public.listings, public.profiles, private.notify,
+--      public.notification_kind, auth.uid); the rest are pg_catalog built-ins.
 --
 -- Grants: every function is owned by postgres with EXECUTE for postgres only (the two live ones
 -- keep their ACL under CREATE OR REPLACE; the new helper is revoked from public, anon and
@@ -198,6 +203,7 @@ declare
   how         text;
   renter_href text;
   actor       uuid := auth.uid();
+  video       boolean := new.visit_mode = 'video';
 begin
   select l.title into property from public.listings l where l.id = new.listing_id;
   property := coalesce(property, 'the property');
@@ -216,15 +222,17 @@ begin
       perform private.notify(
         new.requester_id,
         'listing'::public.notification_kind,
-        'Viewing booked',
-        property || ', ' || how || ', on ' || slot_at || '. The lister is expecting you.',
+        case when video then 'Video visit booked' else 'Viewing booked' end,
+        property || ', ' || how || ', on ' || slot_at || '. The lister is expecting you.' ||
+          case when video then ' Join the video call from your visit.' else '' end,
         renter_href
       );
       perform private.notify(
         new.lister_id,
         'listing'::public.notification_kind,
-        'Viewing booked',
-        asker || ' booked ' || slot_at || ' to see ' || property || ' ' || how || '.',
+        case when video then 'Video visit booked' else 'Viewing booked' end,
+        asker || ' booked ' || slot_at || ' to see ' || property || ' ' || how || '.' ||
+          case when video then ' It is a video visit: call them in the conversation at that time.' else '' end,
         '/agent/inspections'
       );
       return new;
@@ -232,8 +240,10 @@ begin
     perform private.notify(
       new.lister_id,
       'listing'::public.notification_kind,
-      'Inspection requested',
-      asker || ' wants to see ' || property || ' ' || how || ' on ' || asked_at || '. Confirm, offer another time, or decline.',
+      case when video then 'Video visit requested' else 'Inspection requested' end,
+      asker || case when video then ' wants a video visit of ' else ' wants to see ' end ||
+        property || case when video then ' (by video call in Vallo)' else ' in person' end ||
+        ' on ' || asked_at || '. Confirm, offer another time, or decline.',
       '/agent/inspections'
     );
     return new;

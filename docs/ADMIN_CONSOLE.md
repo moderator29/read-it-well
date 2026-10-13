@@ -1075,8 +1075,9 @@ a fall is emerald. The line is alerts raised per day.
 | vallo_safety_share_sweep | pg_cron `*/10 * * * *` | every 10 min | | reminds a renter once when half an hour has passed since they expected to be back from an inspection they shared and they have not tapped I'm done (V-62) |
 | vallo_release_stale_holds | pg_cron `*/15 * * * *` | every 15 min | | database side of the hold release |
 | vallo_remind_hosts_to_decide | pg_cron `4,19,34,49 * * * *` | every 15 min | | reminds a host once, in the app and by push, when a room or table request has used three quarters of its window (C3, `private.remind_hosts_to_decide`) |
+| vallo_send_reservation_reminders | pg_cron `1,16,31,46 * * * *` | every 15 min | | reminds a diner once the evening before (from 7pm Lagos) and once two hours before a confirmed restaurant table, recorded in `reservation_reminders` so none is sent twice (RESTAURANT-02, `private.send_reservation_reminders`) |
 | vallo_ask_diners_unmarked_tables | pg_cron `17 * * * *` | hourly at :17 | | asks a diner "Did you dine at X?" about a confirmed restaurant table the restaurant never marked after 24 hours (`private.ask_diners_about_unmarked_tables`) |
-| vallo_send_member_reminders | pg_cron `7,22,37,52 * * * *` | every 15 min | | sends each viewing reminder (7pm the evening before, two hours before; a third, 8am on the day, and the visit mode in every message are in the pending draft `visit_reminders_both_sides.sql`) to the renter and the lister, recorded in `viewing_reminders` (Bookings > Visits shows them), and each rent-due reminder (180, 90, 30 and 7 days) once, through the booking notifications (B5, B10, `private.send_member_reminders`) |
+| vallo_send_member_reminders | pg_cron `7,22,37,52 * * * *` | every 15 min | | sends each viewing reminder (7pm the evening before, two hours before; a third, 8am on the day; every message says the visit mode) to the renter and the lister, recorded in `viewing_reminders` (Bookings > Visits shows them), and each rent-due reminder (180, 90, 30 and 7 days) once, through the booking notifications (B5, B10, `private.send_member_reminders`) |
 | vallo_purge_rate_limits | pg_cron `30 * * * *` | hourly at :30 | | clears old rate limit rows |
 | vallo_purge_view_marks | pg_cron `41 * * * *` | hourly at :41 | | forgets the day's listing view marks and salt once the day ends (V-73) |
 | vallo_alert_overdue_refunds | pg_cron `12 * * * *` | hourly at :12 | | alerts on refunds past their due-by date (V-24) |
@@ -1110,7 +1111,7 @@ a fall is emerald. The line is alerts raised per day.
 | vallo_sweep_rent_splits | pg_cron `25 7 * * *` | daily 08:25 | | refunds the paid shares of a flatmate split still short on move-in day, or cancelled (V-86) |
 | vallo_threshold_reminders | pg_cron `5 * * * *` | hourly at :05 | | tells staff three days and one day before a threshold report to the NFIU is due (SCUML item 7) |
 
-20 Vercel Cron jobs and 38 pg_cron jobs in all. The numbers are derived,
+20 Vercel Cron jobs and 39 pg_cron jobs in all. The numbers are derived,
 not remembered: the Vercel list is `VERCEL_JOBS` in
 `lib/admin/reads/jobs.ts`, held equal to `vercel.json` by a test, and the
 database list is `PG_CRON_JOBS` in the same file, held equal by

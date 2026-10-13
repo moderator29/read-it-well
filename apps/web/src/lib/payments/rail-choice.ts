@@ -1,0 +1,128 @@
+/**
+ * THE PAYER'S CHOICE OF RAIL (founder ruling 2, 13 October 2026).
+ *
+ * Every payment for a deal happens inside Vallo, and Vallo never holds the
+ * money: a licensed partner holds an escrow payment, a card payment is split
+ * by the processor straight to the lister's account.
+ *
+ *   rent, shortlet   the payer picks: Escrow (preselected, recommended) or
+ *                    Pay by card
+ *   sale             escrow only
+ *   hotel room       card only, at the price shown
+ *   restaurant       card only (and bill payment stays off)
+ *
+ * The database decides what may be picked and applies the choice
+ * (`public.payment_rail_options`, `public.payment_rail_choose`, pending
+ * migration pov04); this module only reads its answer, fail closed, and says
+ * what the payment step draws. Pure and client-safe.
+ */
+
+export type PayRail = "escrow" | "card";
+
+export const PAY_RAILS: readonly PayRail[] = ["escrow", "card"];
+
+/** What the database says about one agreement's rail, as read. */
+export type PayChoice = {
+  /** What may be picked, in the order the card draws them. */
+  options: PayRail[];
+  /** What the step preselects when nothing is chosen yet. */
+  defaultRail: PayRail | null;
+  /** What the payer stored, or null. */
+  chosen: PayRail | null;
+  /** The rail payment opens on now (the choice, or the default). */
+  rail: PayRail | null;
+  /** Whether the reader is the one who pays. */
+  payer: boolean;
+  /** Why the choice can no longer move, or null while it can. */
+  locked: string | null;
+};
+
+function isRail(v: unknown): v is PayRail {
+  return v === "escrow" || v === "card";
+}
+
+/**
+ * `payment_rail_options`' answer, or null when it is not one (a refusal, a
+ * shape we do not know). Null draws no choice card: the page falls back to
+ * the payment it already offered.
+ */
+export function readPayChoice(data: unknown): PayChoice | null {
+  const row = (data ?? null) as Record<string, unknown> | null;
+  if (!row || row.status !== "ok" || !Array.isArray(row.options)) return null;
+  /* Escrow first, always: it is the recommended option and the default. */
+  const options = PAY_RAILS.filter((rail) => (row.options as unknown[]).includes(rail));
+  return {
+    options,
+    defaultRail: isRail(row.default) && options.includes(row.default) ? row.default : (options[0] ?? null),
+    chosen: isRail(row.chosen) ? row.chosen : null,
+    rail: isRail(row.rail) ? row.rail : null,
+    payer: row.payer === true,
+    locked: typeof row.locked === "string" && row.locked.length > 0 ? row.locked : null,
+  };
+}
+
+export type PayChoiceMode =
+  /** Two options, Escrow preselected unless card was chosen. */
+  | "choose"
+  /** A sale (or an escrow row with no choice): escrow, said, not asked. */
+  | "escrow_only"
+  /** A hotel room or a restaurant: card, said, not asked. */
+  | "card_only"
+  /** Nothing resolves: no card at all. */
+  | "none";
+
+export type PayChoiceView = {
+  mode: PayChoiceMode;
+  /** The option drawn as selected. */
+  selected: PayRail | null;
+  /** True when the payer can still change it here. */
+  canChoose: boolean;
+};
+
+/** What the step draws for a choice. */
+export function payChoiceView(choice: PayChoice | null): PayChoiceView {
+  if (!choice || choice.options.length === 0) return { mode: "none", selected: null, canChoose: false };
+  if (choice.options.length === 1) {
+    const only = choice.options[0]!;
+    return { mode: only === "escrow" ? "escrow_only" : "card_only", selected: only, canChoose: false };
+  }
+  const selected = choice.chosen ?? choice.rail ?? choice.defaultRail ?? "escrow";
+  return { mode: "choose", selected, canChoose: choice.payer && choice.locked === null };
+}
+
+/** The refusals `payment_rail_choose` gives, each with its sentence in `payChoice.refused`. */
+export const CHOICE_REFUSALS = [
+  "not_found",
+  "not_payer",
+  "bad_choice",
+  "closed",
+  "already_paid",
+  "payment_started",
+  "sale_escrow_only",
+  "card_only",
+  "escrow_only",
+  "no_rail",
+  "card_needs_review",
+  "unavailable",
+] as const;
+
+export type ChoiceRefusal = (typeof CHOICE_REFUSALS)[number];
+
+export function readChoiceRefusal(status: unknown): ChoiceRefusal {
+  return (CHOICE_REFUSALS as readonly string[]).includes(String(status)) ? (status as ChoiceRefusal) : "unavailable";
+}
+
+/**
+ * Where the payer goes once a rail is chosen: the escrow step for escrow; the
+ * card checkout for card (a stay's booking checkout, or the rent payment
+ * screen when the rent charge is opened from the inspection).
+ */
+export function payNextHref(
+  rail: PayRail,
+  agreement: { id: string; kind: string; bookingId: string | null; inspectionId: string | null },
+): string | null {
+  if (rail === "escrow") return `/agreements/${agreement.id}/fund`;
+  if (agreement.kind === "rent" && agreement.inspectionId) return `/rent/pay/${agreement.inspectionId}`;
+  if (agreement.bookingId) return `/checkout/${agreement.bookingId}`;
+  return null;
+}

@@ -31,7 +31,7 @@ Nothing about listing stays (apartments, shortlets) changes, whether the switch 
 7. **The guest pays by card.** Once approved, the guest's checkout at `/checkout/<booking>` opens payment. `payment_split_for_booking` returns the split and Paystack divides the one charge:
    - the host's share goes to the host's own Paystack subaccount;
    - the Vallo Guarantee contribution (1.5% today) goes to the reserve subaccount;
-   - Vallo's commission (zero today) goes to Vallo.
+   - Vallo's commission goes to Vallo. Founder ruling of 13 October 2026 (draft `pending/pov06_hotel_room_commission.sql`, not yet applied): on a hotel room it is 10 percent (1,000 basis points) of the charge, taken from the host's share and never added to the guest's price, read from `public.scoped_commission_rates` at the moment the agreement was drawn up. A hotel room is paid by card only; the escrow choice is for rents and shortlets.
 8. **Settlement.** Paystack's webhook runs `settle_booking_charge`, which records the transaction and ledger entry, the Guarantee contribution and marks the agreement paid. The host sees the payment under **Host > Earnings**, named after the hotel.
 9. **After the stay.** The nightly completion sweep marks the stay completed after check-out, exactly as for listings.
 
