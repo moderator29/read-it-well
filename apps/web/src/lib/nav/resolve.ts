@@ -295,6 +295,9 @@ const FLOWS: readonly string[] = [
   "/rent/pay/[inspectionId]",
   "/rent/review/[paymentId]",
   "/rent/move-in/[listingId]",
+  /* Schedule a visit, step 1: it ends by replacing itself with the status
+     screen, and Back from there never reopens the form. */
+  "/listing/[id]/visit",
   "/profile/setup/[role]",
   "/profile/setup/agent",
   "/profile/setup/firm",

@@ -258,6 +258,8 @@ route is opened cold or the screen behind is refused. It is generated from
 | `/search` | `/home-or-landing` |  |
 | `/listing/[id]` | `/search` |  |
 | `/listing/[id]/trust` | `/listing/[id]` |  |
+| `/listing/[id]/visit` | `/listing/[id]` | yes, a flow (form or payment) |
+| `/listing/[id]/visit/[inspectionId]` | `/listing/[id]` |  |
 | `/saved` | `/home` |  |
 | `/saved/searches` | `/saved` |  |
 | `/inspections/gate/[id]` | `/bookings` |  |

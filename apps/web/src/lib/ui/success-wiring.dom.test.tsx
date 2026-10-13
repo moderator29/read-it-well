@@ -323,6 +323,19 @@ run("stay paid in the checkout panel (saved card)", () => {
 
 /* --------------------------------------------------- viewings and more */
 
+/*
+ * MOMENTS 8 AND 9 MOVED INTO SCHEDULE A VISIT (13 October 2026).
+ *
+ * The request sheet and the slot panel each filed a viewing and opened their
+ * own success sheet. Both now hand off to the two-step flow at
+ * `/listing/[id]/visit`, which files through the same actions, and its status
+ * screen IS the moment: "Request sent" for a request (never "booked" or
+ * "confirmed"), "Visit confirmed" for an open time booked. That is driven for
+ * real in `components/app/inspections/visit/visit-flow.dom.test.tsx`. What is
+ * held here is the hand-off: neither old surface files anything or opens a
+ * sheet any more, so a viewing cannot be filed two ways.
+ */
+
 const REQUEST = `
   import { mount } from "@/lib/testing/browser-root";
   import { AuthGateProvider } from "@/components/auth/AuthGate";
@@ -330,36 +343,37 @@ const REQUEST = `
   mount(<AuthGateProvider signedIn><RequestInspection listingId="l-1" existing={null} locale="en" /></AuthGateProvider>);
 `;
 
-async function requestAnInspection(page: Page) {
-  await page.getByTestId("request-inspection").click();
-  await page.getByTestId("inspection-when").fill("2030-01-15T10:00");
-  await page.getByRole("button", { name: "Send the request" }).click();
-}
+const REQUESTED = `
+  import { mount } from "@/lib/testing/browser-root";
+  import { AuthGateProvider } from "@/components/auth/AuthGate";
+  import { RequestInspection } from "@/components/app/inspections/RequestInspection";
+  mount(<AuthGateProvider signedIn><RequestInspection listingId="l-1" locale="en" existing={{ id: "ix-1", listingId: "l-1",
+    listingTitle: null, state: "REQUESTED", requestedAt: "2030-01-15T09:00:00.000Z", slotAt: null, note: null, listerNote: null,
+    createdAt: "2030-01-10T09:00:00.000Z", respondedAt: null, conversationId: null, counterpartName: null }} /></AuthGateProvider>);
+`;
 
 run("inspection requested", () => {
-  it("opens as a request (submitted), never as booked", async () => {
+  it("is the door into Schedule a visit and files nothing itself", async () => {
     const { page, close } = await mountInBrowser({
       entry: REQUEST,
       actions: { requestInspection: `async () => ({ ok: true, data: { id: "ix-1" } })` },
     });
     try {
-      await requestAnInspection(page);
-      await sheetOpens(page, "Inspection requested");
-      expect(await page.locator('.nf-success[data-variant="submitted"]').count()).toBe(1);
+      const door = page.getByTestId("request-inspection");
+      expect(await door.getAttribute("href")).toBe("/listing/l-1/visit");
+      await door.click();
+      await noSheet(page);
+      expect(await page.evaluate(() => ((window as unknown as { __calls?: unknown[][] }).__calls ?? []).length)).toBe(0);
     } finally {
       await close();
     }
   });
 
-  it("does not open when the request is refused", async () => {
-    const { page, close } = await mountInBrowser({
-      entry: REQUEST,
-      actions: { requestInspection: `async () => ({ ok: false, error: "That time has passed." })` },
-    });
+  it("sends a renter who already asked to that visit's own status screen", async () => {
+    const { page, close } = await mountInBrowser({ entry: REQUESTED });
     try {
-      await requestAnInspection(page);
-      await page.getByText("That time has passed.").waitFor();
-      await noSheet(page);
+      expect(await page.getByTestId("inspection-existing-link").getAttribute("href")).toBe("/listing/l-1/visit/ix-1");
+      expect(await page.getByTestId("request-inspection").count()).toBe(0);
     } finally {
       await close();
     }
@@ -375,24 +389,15 @@ const SLOTS = `
 `;
 
 run("inspection (viewing) booked", () => {
-  it("opens with the time once the slot is booked", async () => {
+  it("hands the chosen time to Schedule a visit and books nothing itself", async () => {
     const { page, close } = await mountInBrowser({ entry: SLOTS, actions: { bookViewingSlot: `async () => ({ ok: true, data: { id: "ix-9" } })` } });
     try {
       await page.getByTestId("viewing-slot").first().click();
-      await page.getByRole("button", { name: /^Book / }).click();
-      await sheetOpens(page, "Inspection booked");
-    } finally {
-      await close();
-    }
-  });
-
-  it("does not open when the slot was taken", async () => {
-    const { page, close } = await mountInBrowser({ entry: SLOTS, actions: { bookViewingSlot: `async () => ({ ok: false, error: "That time was just taken." })` } });
-    try {
-      await page.getByTestId("viewing-slot").first().click();
-      await page.getByRole("button", { name: /^Book / }).click();
-      await page.getByText("That time was just taken.").waitFor();
+      const next = page.getByTestId("viewing-slot-continue");
+      expect(await next.getAttribute("href")).toBe(`/listing/l-1/visit?slot=${encodeURIComponent("2030-01-15T09:00:00.000Z")}`);
+      await next.click();
       await noSheet(page);
+      expect(await page.evaluate(() => ((window as unknown as { __calls?: unknown[][] }).__calls ?? []).length)).toBe(0);
     } finally {
       await close();
     }

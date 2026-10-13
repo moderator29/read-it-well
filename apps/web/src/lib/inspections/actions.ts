@@ -10,6 +10,10 @@ import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { startConversation } from "../messages/actions";
 import { INSPECTION_OUTCOMES, isClosed, type InspectionState } from "./types";
 import { phoneGateFor } from "../phone-otp/gate";
+import { getDictionary } from "@vallo/i18n";
+import { getLocale } from "../locale";
+import { videoCallsOn } from "../calls/flags";
+import { VISIT_MODES, type VisitMode } from "./visit";
 
 /**
  * MOVING AN INSPECTION.
@@ -85,7 +89,23 @@ const requestSchema = z.object({
   listingId: z.string().uuid("That property could not be found."),
   when: whenSchema,
   note: z.string().trim().max(MAX_NOTE, `Keep this under ${MAX_NOTE} characters.`).optional(),
+  /* `inspection_requests.visit_mode`. Absent is the column's own default,
+     in person, so every caller written before the visit flow still files
+     exactly what it filed. */
+  mode: z.enum(VISIT_MODES).optional(),
 });
+
+/**
+ * A video visit rides on the calls feature, so it is refused while
+ * `video_calls` is off, whatever a screen drew: the visit would promise a
+ * call the database refuses to place. Null when the mode may be filed. Not
+ * exported: in a "use server" module an export is a public endpoint.
+ */
+async function visitModeRefusal(mode: VisitMode | undefined): Promise<string | null> {
+  if (mode !== "video") return null;
+  if (await videoCallsOn()) return null;
+  return getDictionary(await getLocale()).visit.problems.videoOff;
+}
 
 /**
  * Ask to inspect a property.
@@ -118,6 +138,9 @@ async function requestInspectionWork(
      phone_confirmation flag is on. Null, and nothing read, when it is off. */
   const phoneGate = await phoneGateFor(session.supabase, session.user.id, "inspection");
   if (phoneGate) return fail(phoneGate);
+
+  const modeRefusal = await visitModeRefusal(parsed.data.mode);
+  if (modeRefusal) return fail(modeRefusal, { mode: modeRefusal });
 
   /* Before the write, so the person reads the truth rather than a constraint
      violation. The trigger refuses again underneath: this is the courtesy and
@@ -164,6 +187,7 @@ async function requestInspectionWork(
       lister_id: session.user.id,
       requested_at: new Date(parsed.data.when).toISOString(),
       ...(parsed.data.note ? { note: parsed.data.note } : {}),
+      ...(parsed.data.mode ? { visit_mode: parsed.data.mode } : {}),
     })
     .select("id")
     .single();

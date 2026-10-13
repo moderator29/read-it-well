@@ -19,6 +19,7 @@ import { mailYo } from "./mail";
 import { compliancePepYo } from "./compliancePep";
 import { complianceRiskYo } from "./complianceRisk";
 import { complianceBeneficialOwnershipYo } from "./complianceBeneficialOwnership";
+import { visitYo } from "./visit";
 
 /**
  * Every machine-drafted namespace for this locale, laid under the locale
@@ -47,4 +48,5 @@ export const yoDrafts = {
   compliancePep: compliancePepYo,
   complianceRisk: complianceRiskYo,
   complianceBeneficialOwnership: complianceBeneficialOwnershipYo,
+  visit: visitYo,
 } satisfies Translation;

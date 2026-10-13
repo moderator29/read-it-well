@@ -210,6 +210,9 @@ export const unitsEn = {
   },
   usDollars: { one: "US dollar", other: "US dollars" },
   pounds: { one: "pound", other: "pounds" },
+  /* Schedule a visit: the note's counter and a day's open times. */
+  charactersLeft: { one: "1 character left", other: "{count} characters left" },
+  openTimes: { one: "1 open time", other: "{count} open times" },
 } satisfies Record<string, PluralForms>;
 
 export type UnitNoun = keyof typeof unitsEn;

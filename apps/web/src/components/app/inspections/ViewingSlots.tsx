@@ -1,20 +1,22 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useState } from "react";
 import { formatDate, type Dictionary, type Locale } from "@vallo/i18n/core";
-import { Button, ButtonLink } from "@/components/ui/Button";
+import { ButtonLink } from "@/components/ui/Button";
 import { Chip, ChipRow } from "@/components/ui/Chip";
-import { bookViewingSlot } from "@/lib/viewings/actions";
 import { slotsByDay, type Slot } from "@/lib/viewings/route";
-import { SuccessSheet } from "@/components/ui/SuccessSheet";
-import { successCopy, type SuccessWords } from "@/lib/ui/success-moments";
+import type { SuccessWords } from "@/lib/ui/success-moments";
 
 /**
- * V-94: PICK A VIEWING TIME. The lister's free slots, by day; one tap chooses
- * a time and one more books it, CONFIRMED, with no back and forth. Every
- * state is drawn: choosing, booking, booked (with the way to Plans), and each
- * refusal in its own words (taken, already booked, failed). The page draws
- * this only when the listing has free slots.
+ * V-94: THE LISTER'S OPEN VIEWING TIMES, AS A PREVIEW ON THE LISTING.
+ *
+ * The free slots by day; a tap chooses a time, and the button opens Schedule
+ * a visit (`/listing/[id]/visit?slot=`) with that time already picked. The
+ * booking itself happens there, in one place, through the same action this
+ * panel used to call (`bookViewingSlot`, which writes it CONFIRMED), after
+ * the renter has chosen how to visit and seen what they are booking. Its
+ * status screen is the confirmation, so this panel no longer opens a sheet of
+ * its own. The page draws this only when the listing has free slots.
  */
 
 type Copy = Dictionary["frontDoor"]["viewings"];
@@ -41,58 +43,21 @@ export function ViewingSlots({
   slots,
   copy,
   locale,
-  success,
 }: {
   listingId: string;
   slots: Slot[];
   copy: Copy;
   locale: Locale;
-  /** The page's `t.success`, for "Inspection booked". Absent, no sheet. */
+  /**
+   * The page's `t.success`. Accepted and no longer drawn here: the booking
+   * moved into Schedule a visit, whose status screen is the moment.
+   */
   success?: SuccessWords;
 }) {
   const days = slotsByDay(slots);
   const [day, setDay] = useState(days[0]?.day ?? "");
   const [chosen, setChosen] = useState<string | null>(null);
-  const [note, setNote] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [booked, setBooked] = useState<{ at: string; id: string } | null>(null);
-  const [pending, start] = useTransition();
-  const inFlight = useRef(false);
-  /* Booked is CONFIRMED on the server (V-94), so it is a success, not a request. */
-  const [celebrate, setCelebrate] = useState(false);
   const current = days.find((d) => d.day === day) ?? days[0];
-
-  if (booked) {
-    const words = success ? successCopy(success, "inspectionBooked", { when: when(booked.at, locale, true) }) : null;
-    const plans = `/bookings?kind=inspection&from=property&changed=${booked.id}#ix-${booked.id}`;
-    return (
-      <section className="nf-panel nf-panel--card p-card-sm" data-testid="viewing-booked" aria-live="polite">
-        {success && words ? (
-        <SuccessSheet
-          open={celebrate}
-          onOpenChange={setCelebrate}
-          variant={words.variant}
-          object={words.object}
-          title={words.title}
-          body={words.body}
-          details={[{ label: success.detail.when, value: when(booked.at, locale, true) }]}
-          primary={{ label: success.continue }}
-          secondary={{ label: copy.openPlans, href: plans }}
-        />
-        ) : null}
-        <p className="nf-body-sm text-[var(--nf-content-primary)]">{copy.booked.replace("{when}", when(booked.at, locale, true))}</p>
-        {/* Straight to the booked viewing's own card, not the top of Plans. */}
-        <ButtonLink
-          href={`/bookings?kind=inspection&from=property&changed=${booked.id}#ix-${booked.id}`}
-          variant="secondary"
-          full
-          className="mt-row"
-        >
-          {copy.openPlans}
-        </ButtonLink>
-      </section>
-    );
-  }
 
   return (
     <section className="nf-panel nf-panel--card p-card-sm" data-testid="viewing-slots" aria-live="polite">
@@ -126,48 +91,15 @@ export function ViewingSlots({
         ))}
       </div>
       {chosen && (
-        <div className="mt-row flex flex-col gap-row">
-          <input
-            className="nf-field"
-            value={note}
-            maxLength={400}
-            onChange={(e) => setNote(e.target.value)}
-            placeholder={copy.notePlaceholder}
-            aria-label={copy.notePlaceholder}
-          />
-          <Button
-            variant="primary"
-            full
-            loading={pending}
-            onClick={() => {
-              /* A second tap inside one frame booked twice and came back
-                 "you already have a viewing" under a booking that worked. */
-              if (inFlight.current) return;
-              inFlight.current = true;
-              setError(null);
-              start(async () => {
-                try {
-                  const result = await bookViewingSlot({ listingId, slotAt: chosen, note });
-                  if (!result.ok) {
-                    setError(result.error);
-                    return;
-                  }
-                  setBooked({ at: chosen, id: result.data.id });
-                  setCelebrate(true);
-                } finally {
-                  inFlight.current = false;
-                }
-              });
-            }}
-          >
-            {pending ? copy.booking : copy.book.replace("{time}", when(chosen, locale, true))}
-          </Button>
-        </div>
-      )}
-      {error && (
-        <p className="mt-inline nf-body-sm font-semibold text-[var(--nf-state-error)]" role="alert">
-          {error}
-        </p>
+        <ButtonLink
+          href={`/listing/${listingId}/visit?slot=${encodeURIComponent(chosen)}`}
+          variant="primary"
+          full
+          className="mt-row"
+          data-testid="viewing-slot-continue"
+        >
+          {copy.book.replace("{time}", when(chosen, locale, true))}
+        </ButtonLink>
       )}
     </section>
   );

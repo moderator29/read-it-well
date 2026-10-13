@@ -30,7 +30,10 @@ describe("viewing day kit (B5)", () => {
   });
 
   it("escapes calendar text", () => {
-    expect(icsEscape("a,b;c\\d\ne")).toBe("a\\,b\;c\\\\d\\ne");
+    /* RFC 5545 3.3.11: a semicolon is escaped as well. The old expectation
+       wrote "\;" in a JS string, which is a bare ";", so the missing escape
+       passed. */
+    expect(icsEscape("a,b;c\\d\ne")).toBe("a\\,b\\;c\\\\d\\ne");
   });
 
   it("shows the Day of strip on the Lagos day until three hours after", () => {
