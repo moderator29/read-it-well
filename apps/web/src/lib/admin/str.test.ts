@@ -110,7 +110,7 @@ describe("SCUML item 6: reading the STR desk", () => {
 
 /*
  * The LIVE migration for SCUML item 6 (20260924173000 to 173200 were never
- * applied; see supabase/migrations/superseded/README.md). readFileSync throws
+ * applied; see docs/db/SUPERSEDED_MIGRATIONS.md). readFileSync throws
  * when it is missing, so a renamed or moved file fails the suite.
  */
 const LIVE_6 = join(__dirname, "../../../../../supabase/migrations/20260929002643_scuml_6_str_desk_and_hold_claims_on_live_tables.sql");

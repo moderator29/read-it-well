@@ -18,6 +18,8 @@ there, nothing recorded in `schema_migrations`). Both still wait for the SQL edi
 runs, `select count(*) from cron.job` should read 41. If item 2 is run as a migration, record it
 like any other (`node scripts/check-migrations.mjs --record ...`).
 
+All three below, plus the retired objects (rt01), are in ONE file to paste: `docs/sql-editor/01-cleanup-now.sql` (items 1 and 2 and rt01). Item 3 waits for the deploy (`supabase/migrations/pending/rt02_remove_v100_renter_passport.sql`).
+
 1. Purge of old reminder rows (the ledgers are tiny, so this can wait a year):
 
 ```sql

@@ -292,7 +292,7 @@ select has_function_privilege('authenticated', 'public.partner_hold_unwind_cance
        has_function_privilege('service_role', 'public.partner_hold_unwind_cancel(uuid, text)', 'execute');
 -- expect false, true
 select jobname, command from cron.job where command ilike '%release_stale_booking_holds%';
--- expect the hourly hold sweep, unchanged
+-- expect the hold sweep vallo_release_stale_holds every 15 minutes, unchanged
 ```
 
 Undo: `rollback/rb05_partner_hold_and_sweep.sql` (disables the two new

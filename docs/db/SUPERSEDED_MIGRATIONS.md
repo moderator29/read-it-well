@@ -1,3 +1,7 @@
+# Retired migrations (removed from the repo on 13 October 2026)
+
+These drafts were never applied. Their SQL files were deleted so the platform cannot drift back to a wallet or custody design; this table keeps the record of what replaced each one.
+
 
 ## MONEY agent, 29 September 2026: the after-the-gate backlog, rebuilt for split settlement
 

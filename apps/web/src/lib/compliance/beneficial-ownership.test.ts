@@ -31,7 +31,7 @@ const form = {
 
 /*
  * The LIVE migration for SCUML item 17 (20260924171000 to 171200 were never
- * applied; see supabase/migrations/superseded/README.md). readFileSync throws
+ * applied; see docs/db/SUPERSEDED_MIGRATIONS.md). readFileSync throws
  * when the file is missing, so a renamed or moved file fails the suite.
  */
 const LIVE_17 = join(__dirname, "../../../../../supabase/migrations/20260929001007_scuml_17_beneficial_ownership_on_live_tables.sql");
