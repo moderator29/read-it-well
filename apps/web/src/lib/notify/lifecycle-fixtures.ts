@@ -95,6 +95,12 @@ export const LIFECYCLE_PAYLOADS: Record<string, Payload> = {
     amount_minor: 450_000_000,
     share: false,
   },
+  "booking.request_closed": {
+    booking_id: "9d9d9d9d-9d9d-4d9d-8d9d-9d9d9d9d9d9d",
+    place: "2 bedroom flat, Yaba",
+    check_in: "2026-11-14",
+    check_out: "2026-11-17",
+  },
   "stay.review_request": {
     booking_id: "9b9b9b9b-9b9b-4b9b-8b9b-9b9b9b9b9b9b",
     place: "2 bedroom flat, Yaba",

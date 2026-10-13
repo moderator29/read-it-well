@@ -458,6 +458,16 @@ export const EVERY_MESSAGE: NamedMessage[] = [
     }),
   },
   {
+    name: "bookingRequestClosed",
+    message: lifecycle.bookingRequestClosed({
+      name: "Ada",
+      place: LISTING,
+      checkIn: "2026-11-14",
+      checkOut: "2026-11-17",
+      bookingId: "7d7d7d7d-7d7d-4d7d-8d7d-7d7d7d7d7d7d",
+    }),
+  },
+  {
     name: "paymentHostReceived",
     message: lifecycle.paymentHostReceived({
       name: "Chidi Okafor",
@@ -471,7 +481,7 @@ export const EVERY_MESSAGE: NamedMessage[] = [
     }),
   },
   {
-    name: "paymentHostReceived:protected",
+    name: "paymentHostReceived:partner-held",
     message: lifecycle.paymentHostReceived({
       name: null,
       place: "Transcorp Hilton, Deluxe double",

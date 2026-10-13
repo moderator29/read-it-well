@@ -142,6 +142,7 @@ export type EmailKind =
   | "bookingCancelled"
   | "bookingRefunded"
   | "refundRequested"
+  | "bookingRequestClosed"
   | "paymentHostReceived"
   | "paymentRentReceipt"
   | "stayReviewRequest"
@@ -264,6 +265,7 @@ export const EMAIL_PLAN: Readonly<Record<EmailKind, Plan>> = {
   bookingRefunded: p("payment", "earnings"),
   refundRequested: p("payment", "earnings"),
   /* Money reaching a host: the open hand with the naira coin. */
+  bookingRequestClosed: p("stay", "calendar-pending"),
   paymentHostReceived: p("payment", "earnings"),
   paymentRentReceipt: p("payment", "pay"),
   stayReviewRequest: p("stay", "calendar-booked"),

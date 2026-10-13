@@ -27,7 +27,7 @@
 -- here is "Ownership seen", the mark the help centre already defines, and the
 -- phone line says "confirmed", which the one-time code backs.
 --
--- Additive: new functions and five new triggers. No DROP, no DELETE.
+-- Additive only, nothing is removed: new functions and five new triggers.
 -- Probe: supabase/tests/probes-pending/nt04-account-agreement-and-listing-notices.sql
 set lock_timeout = '5s';
 

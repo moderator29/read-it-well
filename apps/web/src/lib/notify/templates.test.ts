@@ -104,6 +104,7 @@ const TEMPLATES_THE_TRIGGERS_WRITE = [
   "payment.rent_receipt",
   "stay.review_request",
   "message.unread",
+  "booking.request_closed",
 ] as const;
 
 
@@ -164,6 +165,7 @@ const PAYLOADS: Record<(typeof TEMPLATES_THE_TRIGGERS_WRITE)[number], Payload> =
   "payment.rent_receipt": LIFECYCLE_PAYLOADS["payment.rent_receipt"]!,
   "stay.review_request": LIFECYCLE_PAYLOADS["stay.review_request"]!,
   "message.unread": LIFECYCLE_PAYLOADS["message.unread"]!,
+  "booking.request_closed": LIFECYCLE_PAYLOADS["booking.request_closed"]!,
 };
 
 describe("the lifecycle templates (29 September)", () => {
@@ -229,6 +231,7 @@ describe("the payment and stay templates (13 October)", () => {
     expect(templateFor("payment.host_received")?.channel).toBeUndefined();
     expect(templateFor("payment.rent_receipt")?.channel).toBeUndefined();
     expect(templateFor("stay.review_request")?.channel).toBe("bookings");
+    expect(templateFor("booking.request_closed")?.channel).toBe("bookings");
     expect(templateFor("message.unread")?.channel).toBe("messages");
   });
 
@@ -249,6 +252,13 @@ describe("the payment and stay templates (13 October)", () => {
     expect(build("payment.rent_receipt", { share: true })?.subject).toContain("Share paid");
   });
 
+  it("tells a guest their request was closed, with nothing charged, and opens the booking", () => {
+    const closed = build("booking.request_closed");
+    expect(closed?.subject).toContain("Request not accepted");
+    expect(closed?.text).toContain("Nothing was charged");
+    expect(closed?.html).toContain("/bookings/9d9d9d9d-9d9d-4d9d-8d9d-9d9d9d9d9d9d");
+  });
+
   it("asks for a review at the review page, and sends the unread run to the right inbox", () => {
     expect(build("stay.review_request")?.html).toContain("/bookings/9b9b9b9b-9b9b-4b9b-8b9b-9b9b9b9b9b9b/review");
     expect(build("message.unread")?.html).toContain("/messages/88888888-8888-4888-8888-888888888888");
@@ -262,6 +272,7 @@ describe("the payment and stay templates (13 October)", () => {
     expect(templateFor("payment.rent_receipt")?.build({ place: "Flat", amount_minor: 5 }, ctx)).toBeNull();
     expect(templateFor("stay.review_request")?.build({ booking_id: "x" }, ctx)).toBeNull();
     expect(templateFor("message.unread")?.build({}, ctx)).toBeNull();
+    expect(templateFor("booking.request_closed")?.build({ place: "Flat" }, ctx)).toBeNull();
   });
 });
 

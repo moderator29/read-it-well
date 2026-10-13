@@ -17,7 +17,7 @@
 -- A muted person still consumes the key: the event was handled, and turning a
 -- switch back on must not replay the past.
 --
--- Additive: one table, one function. No DROP, no DELETE.
+-- Additive only, nothing is removed: one table, one function.
 -- Probe: supabase/tests/probes-pending/nt01-notice-helpers.sql
 set lock_timeout = '5s';
 

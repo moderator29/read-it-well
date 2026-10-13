@@ -19,7 +19,7 @@
 --      had an email. A person whose message sat unread for two hours now gets
 --      one email per unread run (not per message, not per day), never for the
 --      first message of a conversation (that has its own email), never for a
---      call marker or a deleted message, and it answers to the Messages switch.
+--      call marker or a withdrawn message, and it answers to the Messages switch.
 --
 -- ONE SWEEP, ALREADY SCHEDULED. private.send_member_reminders() is what the
 -- pg_cron job vallo_send_member_reminders (every 15 minutes) already runs for
@@ -33,7 +33,7 @@
 -- (nt01), so a sweep that runs every 15 minutes tells each event once.
 --
 -- Additive: new functions, one CREATE OR REPLACE of the existing sweep (the
--- previous body is kept as its first two lines). No DROP, no DELETE.
+-- previous body is kept as its first two lines). Additive only: nothing is removed.
 -- Probe: supabase/tests/probes-pending/nt05-stay-reminders-and-unread-message-email.sql
 set lock_timeout = '5s';
 

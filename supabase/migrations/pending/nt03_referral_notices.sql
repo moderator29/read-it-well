@@ -22,7 +22,7 @@
 -- once. Both triggers swallow their own errors: a notice may never be the
 -- reason a reward or a payout write fails.
 --
--- Additive: new functions and two new triggers. No DROP, no DELETE.
+-- Additive only, nothing is removed: new functions and two new triggers.
 -- Probe: supabase/tests/probes-pending/nt03-referral-notices.sql
 set lock_timeout = '5s';
 

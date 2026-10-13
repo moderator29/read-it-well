@@ -482,6 +482,41 @@ export function paymentRentReceipt(data: PaymentRentReceiptData): EmailMessage {
   );
 }
 
+export type BookingRequestClosedData = {
+  name: string | null;
+  place: string;
+  /** "YYYY-MM-DD". */
+  checkIn: string | null;
+  checkOut: string | null;
+  bookingId: string;
+};
+
+/**
+ * A stay request that did not go ahead because the host (or Vallo) closed it.
+ * To the guest. It carries no reason: the host's own words are in the app, and
+ * the button opens them. Nothing was charged, and it says so.
+ */
+export function bookingRequestClosed(data: BookingRequestClosedData): EmailMessage {
+  return message(
+    "bookingRequestClosed",
+    fitSubject("Request not accepted", data.place),
+    "Nothing was charged. Open your booking to see why.",
+    [
+      heading("Your request was not accepted"),
+      paragraph(
+        `${hello(data.name)} The host could not take your request for ${data.place}. Nothing was charged, and your dates are free again.`,
+      ),
+      rows([
+        { label: "Stay", value: data.place },
+        ...(data.checkIn && data.checkOut ? [{ label: "Dates", value: dateRange(data.checkIn, data.checkOut) }] : []),
+      ]),
+      button("See why and find another stay", appUrl(`/bookings/${data.bookingId}`)),
+    ],
+    "You are receiving this because you asked to book a stay on Vallo.",
+    BOOKINGS_SWITCH,
+  );
+}
+
 export type StayReviewRequestData = {
   name: string | null;
   place: string;

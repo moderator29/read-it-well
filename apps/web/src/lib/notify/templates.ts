@@ -21,6 +21,7 @@ import {
 import {
   agreementCancelled,
   agreementSubmitted,
+  bookingRequestClosed,
   guaranteeClaimOpened,
   inspectionCompleted,
   inspectionDeclined,
@@ -689,6 +690,26 @@ export const OUTBOX_TEMPLATES: Readonly<Record<string, OutboxTemplate>> = {
         amountMinor: amount,
         share: payload.share === true,
         rentPaymentId,
+      });
+    },
+  },
+
+  /* Written by migration nt06 (`private.tell_booking_request_closed`) when a
+     stay request is closed by somebody other than the guest. The Bookings
+     switch governs it, like every other stay mail. */
+  "booking.request_closed": {
+    channel: "bookings",
+    needs: () => ({}),
+    build: (payload, context) => {
+      const place = str(payload, "place");
+      const bookingId = str(payload, "booking_id");
+      if (!place || !bookingId) return null;
+      return bookingRequestClosed({
+        name: context.recipient.name,
+        place,
+        checkIn: str(payload, "check_in"),
+        checkOut: str(payload, "check_out"),
+        bookingId,
       });
     },
   },

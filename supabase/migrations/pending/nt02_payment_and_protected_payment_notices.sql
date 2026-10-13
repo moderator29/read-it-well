@@ -1,7 +1,7 @@
 -- DRAFT, not applied. NOTIFICATIONS 2 of 5. Needs nt01. Apply BEFORE the app
 -- of track/notifications is deployed: the two new email templates
 -- (payment.host_received, payment.rent_receipt) are written here and built
--- there; a row the running code does not know is DROPPED by the drain for good.
+-- there; a row the running code does not know is discarded by the drain for good.
 --
 -- GAP: when a stay is paid, nobody who matters was told in the app. The booking
 -- notifier fires on a STATUS change, and a stay the host had already accepted
@@ -32,7 +32,7 @@
 -- never be the reason it fails. Words follow lib/money/copy.ts: "protected
 -- payment" for members, nothing says Vallo holds money, no provider is named.
 --
--- Additive: new functions and two new triggers. No DROP, no DELETE.
+-- Additive only, nothing is removed: new functions and two new triggers.
 -- Probe: supabase/tests/probes-pending/nt02-payment-and-protected-payment-notices.sql
 set lock_timeout = '5s';
 
