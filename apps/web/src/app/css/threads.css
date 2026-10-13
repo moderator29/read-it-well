@@ -1655,38 +1655,32 @@
     object-fit: cover;
     -webkit-user-drag: none;
   }
-  /* The dots sit on the photos' lower middle, on the media plate. Each is a
-     24px target around a 6px dot. */
+  /* The dots sit on the photos' lower middle, on the media plate: a 6px dot
+     per three photos, the current one in full ink. An indicator, not a
+     control, so it takes no pointer; the strip itself takes a finger, a
+     trackpad and, focused, the arrow keys. */
   .nf-photo-group__dots {
     position: absolute;
     left: 50%;
     bottom: var(--nf-space-2xs);
     display: flex;
+    gap: var(--nf-space-2xs);
+    padding: var(--nf-space-2xs) var(--nf-space-xs);
     transform: translateX(-50%);
     border-radius: var(--nf-radius-xs);
     background: var(--nf-overlay-media-strong);
+    pointer-events: none;
   }
   .nf-photo-group__dot {
-    display: grid;
-    place-items: center;
-    width: 1.5rem;
-    height: 1.5rem;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    cursor: pointer;
-  }
-  .nf-photo-group__dot::before {
-    content: "";
     width: 0.375rem;
     height: 0.375rem;
     border-radius: var(--nf-radius-circle);
     background: var(--nf-content-on-media-muted);
   }
-  .nf-photo-group__dot[aria-current="true"]::before {
+  .nf-photo-group__dot[data-on] {
     background: var(--nf-content-on-media);
   }
-  .nf-photo-group__dot:focus-visible {
+  .nf-photo-group__strip:focus-visible {
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
     outline-offset: -2px;
   }

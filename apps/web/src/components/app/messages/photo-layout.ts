@@ -14,7 +14,7 @@
  *
  *   MORE THAN THREE: the first three make that row, and the rest continue to
  *   the right at the same height, reached by swiping the group. A dot per
- *   three photos says where the reader is, and a tap on a dot goes there.
+ *   three photos says where the reader is.
  *
  * A photo whose size is not known yet (an old row, or one still uploading)
  * is laid out square until it loads and is measured.

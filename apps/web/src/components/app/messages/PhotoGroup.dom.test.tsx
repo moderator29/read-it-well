@@ -103,7 +103,7 @@ const measure = (page: Page, testId: string) =>
       cells: Array.from(row.querySelectorAll(".nf-photo-group__cell"), box),
       natural: Array.from(row.querySelectorAll("img"), (img) => img.naturalWidth / img.naturalHeight),
       dots: row.querySelectorAll(".nf-photo-group__dot").length,
-      current: Array.from(row.querySelectorAll(".nf-photo-group__dot"), (d) => d.getAttribute("aria-current")),
+      current: Array.from(row.querySelectorAll(".nf-photo-group__dot"), (d) => d.getAttribute("data-on")),
     };
   });
 
@@ -164,15 +164,28 @@ describe.skipIf(!hasBrowser && !process.env.CI)("photos in a bubble", () => {
         s.dispatchEvent(new Event("scroll"));
       });
       await page.waitForFunction(() =>
-        document.querySelectorAll('[data-testid="nine"] .nf-photo-group__dot')[2]?.getAttribute("aria-current") === "true",
+        document.querySelectorAll('[data-testid="nine"] .nf-photo-group__dot')[2]?.hasAttribute("data-on") === true,
       );
-      /* A tap on the first dot goes back to the start. */
-      await page.getByTestId("nine").getByRole("button", { name: "Photo 1 of 9" }).click();
-      await page.waitForFunction(() => {
-        const s = document.querySelector<HTMLElement>('[data-testid="nine"] .nf-photo-group__strip')!;
-        return s.scrollLeft === 0;
+      /* The keyboard moves it too: focused, the left arrow scrolls it back. */
+      const strip = page.getByTestId("nine").locator(".nf-photo-group__strip");
+      const atEnd = await strip.evaluate((s) => s.scrollLeft);
+      await strip.focus();
+      await page.keyboard.press("ArrowLeft");
+      await page.waitForFunction(
+        (from) => document.querySelector<HTMLElement>('[data-testid="nine"] .nf-photo-group__strip')!.scrollLeft < from,
+        atEnd,
+      );
+      /* And back at the start, the first dot is lit again. */
+      await strip.evaluate((s) => {
+        s.scrollTo({ left: 0, behavior: "auto" });
+        s.dispatchEvent(new Event("scroll"));
       });
+      await page.waitForFunction(() =>
+        document.querySelectorAll('[data-testid="nine"] .nf-photo-group__dot')[0]?.hasAttribute("data-on") === true,
+      );
       expect((await measure(page, "nine")).current).toEqual(["true", null, null]);
+      /* The dots are an indicator: nothing to tab to, nothing a screen reader reads. */
+      expect(await page.getByTestId("nine").locator("button").count()).toBe(0);
     } finally {
       await close();
     }

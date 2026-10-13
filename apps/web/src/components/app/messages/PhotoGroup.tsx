@@ -15,7 +15,7 @@ import { PHOTOS_PER_ROW, pageAt, photoLayout, ratioOf, type PhotoSize } from "./
  * it was recorded; otherwise it is measured the moment the picture loads.
  * The strip is the group's own horizontal scroller, so a swipe that starts on
  * it scrolls the photos and never sets a reply (`data-swipe-own`, read by
- * `BubbleGestures`). The dots are buttons as well, for a mouse and a keyboard.
+ * `BubbleGestures`). The strip is focusable, so the arrow keys move it too.
  */
 
 export type GroupPhoto = { id: string; url: string; size?: PhotoSize | null };
@@ -64,15 +64,6 @@ export function PhotoGroup({
     setPage((current) => (current === next ? current : next));
   };
 
-  const goTo = (target: number) => {
-    const strip = stripRef.current;
-    const left = pageStarts()[target];
-    if (!strip || left === undefined) return;
-    const quiet = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
-    strip.scrollTo({ left, behavior: quiet ? "auto" : "smooth" });
-    setPage(target);
-  };
-
   return (
     <div
       className="nf-photo-group"
@@ -115,22 +106,14 @@ export function PhotoGroup({
         })}
       </div>
       {paged ? (
-        <div className="nf-photo-group__dots">
-          {Array.from({ length: layout.pages }, (_, i) => {
-            /* Each dot goes to the first photo of its three, and says which. */
-            const first = i * PHOTOS_PER_ROW + 1;
-            return (
-              <button
-                key={i}
-                type="button"
-                className="nf-photo-group__dot"
-                aria-label={`Photo ${first} of ${photos.length}`}
-                aria-current={page === i || undefined}
-                onClick={() => goTo(i)}
-                data-testid="photo-dot"
-              />
-            );
-          })}
+        /* Where the reader is: a dot per three photos, the current one lit.
+           A quiet indicator, not a control (a 6px dot is no tap target); the
+           strip itself takes a finger, a trackpad and, focused, the arrow
+           keys. */
+        <div className="nf-photo-group__dots" aria-hidden="true">
+          {Array.from({ length: layout.pages }, (_, i) => (
+            <span key={i} className="nf-photo-group__dot" data-on={page === i || undefined} data-testid="photo-dot" />
+          ))}
         </div>
       ) : null}
     </div>
