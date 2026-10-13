@@ -206,11 +206,7 @@
        3.7:1 on the white capsule and 3.4:1 on the warm canvas (graphics
        need 3:1), so the chosen tab, full brand on its tint pill with its
        word, still leads. */
-    /* October 2026, superseding F-h for the dock: the brand blue is for
-       actions and the chosen state only, so the glyphs at rest are the
-       secondary ink (7:1 on the white capsule) and only the chosen tab,
-       on its tint pill, and the "+" are blue. */
-    --nf-dock-glyph: var(--nf-content-secondary);
+    --nf-dock-glyph: color-mix(in oklab, var(--nf-brand-primary) 80%, var(--nf-surface-primary));
     --nf-dock-pill: color-mix(in oklab, var(--nf-brand-primary) 11%, var(--nf-surface-primary));
     --nf-dock-glyph-glow: none;
     --nf-dock-dot-glow: none;
