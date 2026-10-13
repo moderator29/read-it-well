@@ -10,6 +10,7 @@ import {
   deadlineOf,
   entryFromAudit,
   entryFromEvent,
+  heldSubjectsFrom,
   isMissingFunction,
   moveArgs,
   movesFor,
@@ -178,5 +179,22 @@ describe("the lister's hold", () => {
     expect(holdFromSummary("garbage")).toEqual({ state: "none" });
     expect(holdFromPredicate(true)).toMatchObject({ state: "held", owedMinor: null });
     expect(holdFromPredicate(false)).toEqual({ state: "none" });
+  });
+});
+
+describe("what the payout rule holds (migration cbh01)", () => {
+  it("shapes escrow payments and Rewards payouts, marks the overridden ones, and drops malformed rows", () => {
+    const held = heldSubjectsFrom(
+      [{ id: "a1", reference: "vallo-arr-1", amount_minor: "45000000", status: "protected" }, { id: 7 }],
+      [
+        { id: "p1", reference: "vallo-rw-1", amount_minor: 150000, status: "under_review" },
+        { id: "p2", reference: "x", amount_minor: "n/a", status: "processing" },
+      ],
+      new Set(["p1"]),
+    );
+    expect(held).toEqual([
+      { kind: "arrangement", id: "a1", reference: "vallo-arr-1", amountMinor: 45_000_000, status: "protected", overridden: false },
+      { kind: "rewards_payout", id: "p1", reference: "vallo-rw-1", amountMinor: 150_000, status: "under_review", overridden: true },
+    ]);
   });
 });

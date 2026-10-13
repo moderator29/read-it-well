@@ -349,13 +349,13 @@ export type ReleaseGate = "clear" | "held" | "paused" | "not_found" | "error";
 
 /**
  * THE PAYOUT RULE at the moment Vallo would instruct a release to the lister
- * (`public.chargeback_release_gate`, draft cbh01). `held`: the lister has a
+ * (`public.chargeback_release_gate`, migration cbh01). `held`: the lister has a
  * lost chargeback still owed and finance has not overridden it for this
  * payment; the database has audited the refusal and paused the release
  * where the agreements desk shows it. `paused`: a person at Vallo paused it.
- * Fails closed on any other error. Until the draft is applied the function
- * is missing and the gate reads `clear`: the hold was never enforced before
- * it, and the existing pause trigger still refuses a paused release.
+ * Fails closed on any other error. Live since 13 October 2026; should the
+ * function ever be missing (a database behind the app) the gate reads
+ * `clear`, and the pause trigger and the hold check in it still refuse.
  */
 export async function releaseGate(db: Db, arrangementId: string): Promise<ReleaseGate> {
   try {

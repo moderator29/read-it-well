@@ -17,7 +17,7 @@ import {
 import type { ChargebackDetail } from "@/lib/admin/reads/chargebacks";
 import { Panel } from "../money/_desk/Desk";
 import { CHARGEBACKS_BASE, RECOVERY_TONE, STATE_TONE } from "./ChargebacksDesk";
-import { ChargebackNoteForm, MoveButtons } from "./ChargebackActions";
+import { ChargebackNoteForm, HeldPayments, MoveButtons } from "./ChargebackActions";
 
 /**
  * ONE CHARGEBACK (`/admin/chargebacks/<id>`): the record first, the
@@ -34,6 +34,7 @@ import { ChargebackNoteForm, MoveButtons } from "./ChargebackActions";
  */
 
 type Copy = Dictionary["chargebacks"]["desk"];
+type OverrideCopy = Dictionary["chargebacks"]["override"];
 
 function Fact({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -51,7 +52,19 @@ function dotClass(entry: TimelineEntry): string {
   return "nf-cb-timeline__dot";
 }
 
-export function ChargebackCase({ detail, now, copy, locale }: { detail: ChargebackDetail; now: number; copy: Copy; locale: Locale }) {
+export function ChargebackCase({
+  detail,
+  now,
+  copy,
+  overrideCopy,
+  locale,
+}: {
+  detail: ChargebackDetail;
+  now: number;
+  copy: Copy;
+  overrideCopy: OverrideCopy;
+  locale: Locale;
+}) {
   const d = copy.detail;
   const f = d.fields;
   const { row, timeline } = detail;
@@ -222,6 +235,11 @@ export function ChargebackCase({ detail, now, copy, locale }: { detail: Chargeba
               locale={locale}
             />
           </Panel>
+          {holdsPayouts(row) && row.listerId && !row.listerUnattributed ? (
+            <Panel title={overrideCopy.title} hint={overrideCopy.hint}>
+              <HeldPayments held={detail.held} copy={overrideCopy} deskCopy={copy} locale={locale} currency={row.currency} />
+            </Panel>
+          ) : null}
           <Panel title={d.sections.notes}>
             {detail.notesOpen ? (
               <>

@@ -46,5 +46,5 @@ export default async function AdminChargebackPage({ params }: { params: Promise<
     );
   }
 
-  return <ChargebackCase detail={read.data} now={Date.now()} copy={copy} locale={locale} />;
+  return <ChargebackCase detail={read.data} now={Date.now()} copy={copy} overrideCopy={t.chargebacks.override} locale={locale} />;
 }

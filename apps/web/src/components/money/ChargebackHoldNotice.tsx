@@ -12,7 +12,7 @@ import type { ChargebackHold } from "@/lib/money/chargeback-hold-model";
  *
  * Calm, not an alarm: what happened, what it means, what happens next, and
  * the way to ask. It draws only when `public.lister_chargeback_hold` (or its
- * own-session draft `my_chargeback_hold`) says the payout rule applies, or,
+ * own-session read `my_chargeback_hold`) says the payout rule applies, or,
  * in the lighter info tone, when a dispute is open on one of their payments
  * and holds nothing. No hold, no notice: the screen is exactly as it was.
  *

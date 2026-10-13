@@ -13,8 +13,8 @@ type Rpc = { rpc: (fn: string, args?: Record<string, unknown>) => PromiseLike<{ 
 /**
  * Does the payout rule hold the signed-in person, and for how much?
  *
- * The draft `my_chargeback_hold()` answers for the caller's own session and
- * nobody else. Until it is applied, the live predicate
+ * `my_chargeback_hold()` (cb01, live) answers for the caller's own session and
+ * nobody else. Should it ever be missing, the predicate
  * `lister_chargeback_hold(uuid)` is asked on the service client, which is
  * the only role that may call it, and ONLY ever with the session's own user
  * id, so it answers exactly the question the person could ask about

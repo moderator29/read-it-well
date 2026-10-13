@@ -107,6 +107,45 @@ export function outstandingMinor(row: Pick<ChargebackBase, "state" | "recoverySt
   return Math.max(0, row.amountMinor - row.recoveredMinor);
 }
 
+/**
+ * A payment the payout rule is holding for this lister (migration cbh01): a
+ * Payluk escrow payment Vallo would release to them, or a Rewards Balance
+ * payout Vallo would send them. Finance overrides one at a time.
+ */
+export type HeldSubject = {
+  kind: "arrangement" | "rewards_payout";
+  id: string;
+  reference: string;
+  amountMinor: number;
+  status: string;
+  /** A finance override is already on the audit log for this one. */
+  overridden: boolean;
+};
+
+/** Escrow statuses with money still held for the lister, and payout statuses not yet sent. */
+export const HELD_ARRANGEMENT_STATUSES = ["protected", "release_requested", "disputed"] as const;
+export const HELD_PAYOUT_STATUSES = ["under_review", "processing"] as const;
+
+/** Rows read on the service client, shaped; anything malformed is dropped. */
+export function heldSubjectsFrom(
+  arrangements: unknown[],
+  payouts: unknown[],
+  overriddenIds: ReadonlySet<string>,
+): HeldSubject[] {
+  const shape = (kind: HeldSubject["kind"], raw: unknown): HeldSubject | null => {
+    if (!raw || typeof raw !== "object") return null;
+    const r = raw as Record<string, unknown>;
+    if (typeof r.id !== "string" || typeof r.reference !== "string" || typeof r.status !== "string") return null;
+    const amount = Number(r.amount_minor);
+    if (!Number.isFinite(amount)) return null;
+    return { kind, id: r.id, reference: r.reference, amountMinor: amount, status: r.status, overridden: overriddenIds.has(r.id) };
+  };
+  return [
+    ...arrangements.map((r) => shape("arrangement", r)),
+    ...payouts.map((r) => shape("rewards_payout", r)),
+  ].filter((x): x is HeldSubject => x !== null);
+}
+
 /** The payout rule, as `public.lister_chargeback_hold` reads it: lost and still owed. */
 export function holdsPayouts(row: Pick<ChargebackBase, "state" | "recoveryState">): boolean {
   return row.state === "lost" && row.recoveryState === "owed";

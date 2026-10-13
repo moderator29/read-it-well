@@ -98,6 +98,11 @@ export const LOST_DETAIL: ChargebackDetail = {
   row: LOST,
   timelineSource: "events",
   notesOpen: true,
+  held: [
+    { kind: "arrangement", id: "aa000000-0000-4000-8000-000000000001", reference: "vallo-arr-4f1c09d2e8b74a51a0c3f6e2b9d81c47", amountMinor: 45_000_000, status: "protected", overridden: false },
+    { kind: "arrangement", id: "aa000000-0000-4000-8000-000000000002", reference: "vallo-arr-9b2e71c4a05d4e3f8c6a1d0b7e5f2a93", amountMinor: 12_000_000, status: "release_requested", overridden: true },
+    { kind: "rewards_payout", id: "aa000000-0000-4000-8000-000000000003", reference: "vallo-rw-0c8d3a6f1e2b4c7d9a5e8f1b3c6d2e4a", amountMinor: 1_500_000, status: "under_review", overridden: false },
+  ],
   timeline: [
     entry(1, { kind: "opened", to: "opened", recovery: "none", hasRaw: true, note: "Paystack dispute webhook: fraudulent transaction claimed by the card holder." }),
     entry(2, {
@@ -120,5 +125,6 @@ export const OPEN_DETAIL: ChargebackDetail = {
   row: ROWS[1]!,
   timelineSource: "audit",
   notesOpen: false,
+  held: [],
   timeline: [entry(11, { kind: "opened", to: "opened", recovery: "none", actorId: person(90), actorName: "Tolu, Finance", at: "2026-10-11T08:20:00Z" })],
 };

@@ -51,7 +51,7 @@ describe("the desk", () => {
 
 describe("one case", () => {
   it("shows the amount, the parties, the timeline with notes and the moves a lost, owed case allows", () => {
-    const html = renderToStaticMarkup(<ChargebackCase detail={LOST_DETAIL} now={NOW} copy={copy} locale="en" />);
+    const html = renderToStaticMarkup(<ChargebackCase detail={LOST_DETAIL} now={NOW} copy={copy} overrideCopy={t.chargebacks.override} locale="en" />);
     const words = text(html);
     expect(html).toContain('data-testid="chargeback-amount"');
     expect(words).toContain("Ada Okafor");
@@ -65,10 +65,32 @@ describe("one case", () => {
   });
 
   it("says when the timeline is the audit log's and notes are not open yet", () => {
-    const html = renderToStaticMarkup(<ChargebackCase detail={OPEN_DETAIL} now={NOW} copy={copy} locale="en" />);
+    const html = renderToStaticMarkup(<ChargebackCase detail={OPEN_DETAIL} now={NOW} copy={copy} overrideCopy={t.chargebacks.override} locale="en" />);
     expect(text(html)).toContain(copy.detail.timelineFallback);
     expect(html).toContain('data-testid="chargeback-notes-pending"');
     expect(html).toContain('data-move="request_evidence"');
+    expect(html).not.toContain('data-testid="chargeback-held"');
+  });
+
+  it("lists what the payout rule holds for a lost, owed case, an Override on each one not yet overridden", () => {
+    const o = t.chargebacks.override;
+    const html = renderToStaticMarkup(<ChargebackCase detail={LOST_DETAIL} now={NOW} copy={copy} overrideCopy={o} locale="en" />);
+    const words = text(html);
+    expect(html).toContain('data-testid="chargeback-held"');
+    expect(words).toContain(o.kinds.arrangement);
+    expect(words).toContain(o.kinds.rewards_payout);
+    expect(html).toContain('data-override="aa000000-0000-4000-8000-000000000001"');
+    expect(html).toContain('data-override="aa000000-0000-4000-8000-000000000003"');
+    expect(html).not.toContain('data-override="aa000000-0000-4000-8000-000000000002"');
+    expect(words).toContain(o.overridden);
+  });
+
+  it("says so when nothing is held, and when the held list could not be read", () => {
+    const o = t.chargebacks.override;
+    const empty = renderToStaticMarkup(<ChargebackCase detail={{ ...LOST_DETAIL, held: [] }} now={NOW} copy={copy} overrideCopy={o} locale="en" />);
+    expect(text(empty)).toContain(o.empty);
+    const unread = renderToStaticMarkup(<ChargebackCase detail={{ ...LOST_DETAIL, held: null }} now={NOW} copy={copy} overrideCopy={o} locale="en" />);
+    expect(text(unread)).toContain(o.unreadable);
   });
 });
 

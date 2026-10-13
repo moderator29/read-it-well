@@ -330,8 +330,33 @@ export const chargebacksEn = {
     },
   },
 
-  /** The finance override of the payout rule, for one payment or one payout (draft cbh01). */
+  /** The finance override of the payout rule, for one payment or one payout (migration cbh01). */
   override: {
+    title: "Held by the payout rule",
+    hint: "Payments Vallo would send this lister",
+    lede: "While this stays owed, Vallo does not release the lister's escrow payments or send their Rewards Balance payouts. Finance can let one go, with a reason the audit log keeps.",
+    empty: "Nothing is waiting for this lister right now. Anything new is held as it arrives.",
+    unreadable: "What is held for this lister could not be read just now. Refresh to try again.",
+    kinds: {
+      arrangement: "Escrow payment",
+      rewards_payout: "Rewards payout",
+    },
+    statuses: {
+      protected: "Held with Payluk",
+      release_requested: "Release asked",
+      disputed: "Disputed",
+      under_review: "Under review",
+      processing: "Waiting to send",
+    },
+    overridden: "Overridden",
+    button: "Override",
+    sheetTitle: "Let this one go",
+    sheetBody: "The payout rule stops holding {kind} {reference} for {amount}. Nothing moves now: the release or the payout is then asked for through its own road. Everything else this lister is owed stays held.",
+    reasonLabel: "Why finance is letting it go",
+    reasonHint: "At least 12 characters. Kept on the audit log with your name.",
+    confirm: "Override the hold",
+    doneTitle: "Overridden",
+    doneBody: "The audit log has it. The release or payout can now be asked for again.",
     results: {
       forbidden: "Only finance staff on a proved session can override the payout rule.",
       bad_kind: "Choose a held escrow payment or a Rewards Balance payout.",

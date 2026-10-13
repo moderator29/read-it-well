@@ -1,6 +1,6 @@
--- DRAFT, not applied. CHARGEBACK HOLD 1 of 1 (track/chargeback-hold). Needs
+-- Applied 13 October 2026. CHARGEBACK HOLD 1 of 1 (track/chargeback-hold). Needs
 -- 20261006093655_chargebacks_record_state_recovery_and_payout_hold (live).
--- Probe: supabase/tests/probes-pending/cbh01-chargeback-hold-enforced.sql
+-- Probe: supabase/tests/probes/cbh01-chargeback-hold-enforced.sql
 --
 -- THE PAYOUT RULE, ENFORCED where Vallo itself instructs money to a lister.
 -- `public.lister_chargeback_hold(uuid)` (a LOST chargeback whose recovery is

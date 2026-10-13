@@ -214,6 +214,45 @@
     color: var(--nf-content-primary);
   }
 
+  /* What the payout rule holds for the lister: one row each, Override at the end. */
+  .nf-cb-held {
+    display: grid;
+    gap: var(--nf-space-xs);
+    margin: var(--nf-space-sm) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .nf-cb-held__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-sm);
+    border-radius: var(--nf-radius-md);
+    background: var(--nf-surface-inset);
+  }
+  .nf-cb-held__head {
+    margin: 0;
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-cb-held__meta {
+    margin: var(--nf-space-3xs) 0 0;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+    overflow-wrap: anywhere;
+  }
+  .nf-cb-held__done {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: var(--nf-space-3xs);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+  }
+
   /* The next moves, one full-width button each. */
   .nf-cb-moves {
     display: grid;
