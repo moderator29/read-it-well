@@ -11,6 +11,7 @@ import {
 } from "@/lib/agent/listings-queries";
 import { RealDashboard } from "./RealDashboard";
 import { readRequestSeries } from "./request-series";
+import { loadAgentDash, loadOwnerDash } from "./dashboard-data";
 import { DeskFigure } from "@/components/workspace/DeskFigure";
 import { StillAvailableCard } from "@/components/agent/StillAvailableCard";
 import { readLiveFreshness } from "@/lib/agent/freshness-read";
@@ -76,7 +77,9 @@ export default async function AgentDashboardPage({
        On the connections this product is built for that is the difference
        between a dashboard and a wait. */
     const figureNow = new Date(requestTime());
-    const [numbers, inspections, standing, freshness, requestRows] = await Promise.all([
+    /* One account holds one side (`agents.role`): the cards differ, the page does not. */
+    const ownerSide = context.agent.role === "owner";
+    const [numbers, inspections, standing, freshness, requestRows, ownerDash] = await Promise.all([
       readAgentNumbers(context.supabase, context.agent.id, context.user.id),
       readInspectionsForLister(),
       /*
@@ -91,10 +94,24 @@ export default async function AgentDashboardPage({
       /* C5: the live listings due a "still available?". Null until the column exists. */
       readLiveFreshness(context.supabase, context.agent.id),
       /* The figure card (reference 5): viewing requests over the last thirty days. */
-      readRequestSeries(context.supabase, context.user.id, figureNow),
+      ownerSide ? Promise.resolve(null) : readRequestSeries(context.supabase, context.user.id, figureNow),
+      /* The owner's units, rent paid through Vallo, leases and agreements. */
+      ownerSide ? loadOwnerDash(context, figureNow) : Promise.resolve(null),
     ]);
     const now = requestTime();
     const due = freshness ? dueForConfirmation(freshness, now) : [];
+    const workspace =
+      ownerSide && ownerDash
+        ? ({ role: "owner", view: ownerDash.view, places: ownerDash.places } as const)
+        : ({
+            role: "agent",
+            dash: await loadAgentDash(context, {
+              now: figureNow,
+              liveListings: numbers.liveListings,
+              freshness,
+              dueCount: freshness ? due.length : null,
+            }),
+          } as const);
     return (
       <AgentShell
         t={t}
@@ -117,6 +134,8 @@ export default async function AgentDashboardPage({
           numbers={numbers}
           inspections={inspections}
           figure={<DeskFigure rows={requestRows} kind="viewings" t={t} locale={locale} now={figureNow} />}
+          workspace={workspace}
+          now={figureNow}
         />
       </AgentShell>
     );

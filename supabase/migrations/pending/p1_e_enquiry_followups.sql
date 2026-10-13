@@ -1,4 +1,18 @@
 -- DRAFT, not applied. Batch 1, AGENT-01.
+-- Reviewed 13 October 2026 against the LIVE definitions of public.set_enquiry_stage,
+-- public.enquiry_stage_facts, private.notify and the enums (Supabase read only).
+-- Changes from the first draft, each for a reason found in that review:
+--   1. The policy is created only if absent (create policy has no IF NOT EXISTS,
+--      and re-running a migration must not fail); no DROP is used.
+--   2. A note without a date is meaningless, so clearing the date clears the note.
+--   3. The reminder fires only ON the due date (= today in Lagos), never for a
+--      date that has already passed: "Follow up today" must not be said on
+--      Wednesday about a Monday date the job missed.
+--   4. A thread that is Let by PROOF (a successful rent payment from this renter
+--      for this listing, the same rule as public.enquiry_stage_facts) is never
+--      reminded, not only one a lister marked Let by hand.
+--   5. Lost is read the way the live desk reads it: a thread marked Lost by hand
+--      is not reminded.
 -- A lister sets "follow up on <date>" on an enquiry thread, beside the stage
 -- they already set (public.set_enquiry_stage, V-72). On that morning, from
 -- 08:00 Lagos, they get one notification that opens the thread. Clearing sets
@@ -20,13 +34,23 @@ revoke all on public.enquiry_followups from public, anon, authenticated;
 grant select on public.enquiry_followups to authenticated;
 grant all on public.enquiry_followups to service_role;
 
-create policy enquiry_followups_lister_reads on public.enquiry_followups
-  for select to authenticated
-  using (exists (
-    select 1 from public.conversations c
-     where c.id = enquiry_followups.conversation_id
-       and c.agent_id = (select auth.uid())
-  ));
+do $pol$
+begin
+  if not exists (
+    select 1 from pg_policies
+     where schemaname = 'public' and tablename = 'enquiry_followups'
+       and policyname = 'enquiry_followups_lister_reads'
+  ) then
+    create policy enquiry_followups_lister_reads on public.enquiry_followups
+      for select to authenticated
+      using (exists (
+        select 1 from public.conversations c
+         where c.id = enquiry_followups.conversation_id
+           and c.agent_id = (select auth.uid())
+      ));
+  end if;
+end;
+$pol$;
 
 create or replace function public.set_enquiry_followup(p_conversation uuid, p_due date, p_note text default null)
  returns void
@@ -55,7 +79,7 @@ begin
   end if;
 
   insert into public.enquiry_followups (conversation_id, due_on, note, set_by, set_at, reminded_on)
-  values (p_conversation, p_due, nullif(btrim(p_note), ''), caller, now(), null)
+  values (p_conversation, p_due, case when p_due is null then null else nullif(btrim(p_note), '') end, caller, now(), null)
   on conflict (conversation_id) do update
     set due_on = excluded.due_on,
         note = excluded.note,
@@ -90,9 +114,15 @@ begin
       left join public.listings l on l.id = c.listing_id
       left join public.enquiry_stages s on s.conversation_id = f.conversation_id
      where f.due_on is not null
-       and f.due_on <= lagos::date
+       and f.due_on = lagos::date
        and f.reminded_on is distinct from f.due_on
        and coalesce(s.stage, 'new') not in ('let', 'lost')
+       and not exists (
+         select 1 from public.rent_payments rp
+           join public.transactions tx on tx.booking_id = rp.booking_id
+          where rp.listing_id = c.listing_id and rp.tenant_id = c.guest_id
+            and tx.status = 'SUCCESSFUL'::public.transaction_status
+       )
      limit 1000
   loop
     update public.enquiry_followups

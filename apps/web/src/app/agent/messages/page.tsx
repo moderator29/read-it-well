@@ -10,6 +10,8 @@ import { AgentInbox, type InboxFilter } from "./AgentInbox";
 import { readOpenQuestionsForLister } from "@/lib/availability/queries";
 import { readDeskStages } from "@/lib/enquiry/queries";
 import { stageFilter } from "@/lib/enquiry/stage";
+import { readFollowups } from "@/lib/enquiry/followup-queries";
+import { dueNowIds, groupFollowups } from "@/lib/enquiry/followup";
 import { readBriefsForMe } from "@/lib/briefs/queries";
 import { readMyListings } from "@/lib/agent/listings-queries";
 import { BriefsDesk } from "@/components/agent/BriefsDesk";
@@ -43,7 +45,7 @@ export default async function Page({
   const locale = await getLocale();
   const t = getDictionary(locale);
   const { filter: filterParam, stage: stageParam } = await searchParams;
-  const filter: InboxFilter = filterParam === "all" ? "all" : "waiting";
+  const filter: InboxFilter = filterParam === "all" ? "all" : filterParam === "due" ? "due" : "waiting";
 
   const context = await getAgentContext();
 
@@ -98,7 +100,16 @@ export default async function Page({
     );
   }
 
-  const [read, asked, stages] = await Promise.all([getAgentInbox(), readOpenQuestionsForLister(), readDeskStages()]);
+  const [read, asked, stages, followups] = await Promise.all([
+    getAgentInbox(),
+    readOpenQuestionsForLister(),
+    readDeskStages(),
+    /* AGENT-01: the follow-up dates, for the "Due today" filter. */
+    readFollowups(context.supabase),
+  ]);
+  /* Due today, or earlier and still open; Let and Lost enquiries are left out.
+     Null (not an empty set) when the dates could not be read: no chip. */
+  const dueIds = followups ? dueNowIds(groupFollowups(followups, stages, new Date())) : null;
 
   return (
     <AgentShell t={t} locale={locale} active="/agent/messages" profile={profile}>
@@ -121,6 +132,8 @@ export default async function Page({
           stage={stageFilter(stageParam)}
           deskCopy={t.frontDoor.desk}
           briefsLabel={t.frontDoor.briefs.deskFilter}
+          dueIds={dueIds}
+          dueCopy={{ chip: t.workspaceDash.followup.dueChip, empty: t.workspaceDash.followup.dueEmpty, emptyBody: t.workspaceDash.followup.dueEmptyBody }}
           missedWords={{ VIDEO: t.calls.history.inboxMissedVideo, AUDIO: t.calls.history.inboxMissedVoice }}
         />
       ) : (
