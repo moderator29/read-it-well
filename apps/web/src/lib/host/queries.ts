@@ -36,6 +36,8 @@ import { accommodationPhotoUrl } from "../stays/photos";
 import { businessPhotoUrl } from "../stays/business-photos";
 import { MAX_BUSINESS_PHOTOS } from "./photos";
 import { bedsTotal } from "./stays-setup";
+import { readArrivalCharges } from "../stays/arrival-charges";
+import { readHostAgreementVersion } from "./agreement";
 import {
   BUSINESS_TIER_NAME,
   asBusinessTier,
@@ -143,6 +145,30 @@ function readConsents(value: BusinessRow["consents"]): Partial<Record<ConsentId,
 }
 
 /**
+ * The consents withdrawn, from `consents.withdrawals` (`[{id, at}]`), which
+ * `saveHostDraft` appends to when a host unticks a consent they had given.
+ * Anything malformed is skipped rather than thrown on.
+ */
+export function readConsentWithdrawals(value: unknown): { id: ConsentId; at: string }[] {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) return [];
+  const list = (value as Record<string, unknown>).withdrawals;
+  if (!Array.isArray(list)) return [];
+  return list.flatMap((entry) => {
+    if (typeof entry !== "object" || entry === null) return [];
+    const { id, at } = entry as Record<string, unknown>;
+    return (id === "accuracy" || id === "terms" || id === "processing") && typeof at === "string"
+      ? [{ id, at }]
+      : [];
+  });
+}
+
+/** A whole number from a column the generated types may not carry yet. */
+function smallNumber(row: unknown, key: string): number | null {
+  const value = (row as Record<string, unknown> | null)?.[key];
+  return typeof value === "number" && Number.isInteger(value) ? value : null;
+}
+
+/**
  * The application the caller is still working on, with everything
  * `missingFrom` needs to say what is absent.
  *
@@ -184,7 +210,9 @@ async function loadMyHostDraft(): Promise<HostDraft> {
       .from("businesses")
       .select(BUSINESS_COLUMNS)
       .eq("owner_id", session.user.id)
-      .in("status", ["DRAFT", "MORE_INFO_REQUIRED", "SUBMITTED"])
+      /* REJECTED too: a refused host edits the same application and sends it
+         again, as on Airbnb and Booking.com, rather than starting over. */
+      .in("status", ["DRAFT", "MORE_INFO_REQUIRED", "SUBMITTED", "REJECTED"])
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -204,7 +232,9 @@ async function loadMyHostDraft(): Promise<HostDraft> {
         .limit(1),
       session.supabase
         .from("restaurant_profiles")
-        .select("price_band, cuisines")
+        /* `*` so the sitting, hold and notice columns come back once
+           `20261013090200_...` has run, and nothing breaks before it has. */
+        .select("*")
         .eq("business_id", business.id)
         .maybeSingle(),
       session.supabase
@@ -231,6 +261,22 @@ async function loadMyHostDraft(): Promise<HostDraft> {
     ]);
 
     const accommodation = accommodations.data?.[0] ?? null;
+
+    /* The charges at the door, newest declaration, read through the owner's
+       own policy (`arrival_charge_declarations_owner_read`). Only a complete
+       set counts, which is what the publish gate checks. */
+    let arrivalCharges: HostDraft["arrivalCharges"] = null;
+    if (accommodation) {
+      const { data: declared } = await session.supabase
+        .from("arrival_charge_declarations")
+        .select("charges")
+        .eq("accommodation_id", accommodation.id)
+        .order("declared_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      arrivalCharges = declared ? readArrivalCharges(declared.charges) : null;
+    }
+
     let roomTypeCount = 0;
     let ratePlanCount = 0;
     let roomTypes: HostDraft["roomTypes"] = [];
@@ -336,6 +382,9 @@ async function loadMyHostDraft(): Promise<HostDraft> {
             priceBand: restaurant.data.price_band,
             cuisineCount: restaurant.data.cuisines.length,
             cuisines: restaurant.data.cuisines,
+            sittingMinutes: smallNumber(restaurant.data, "sitting_minutes"),
+            holdMinutes: smallNumber(restaurant.data, "hold_minutes"),
+            cancelNoticeHours: smallNumber(restaurant.data, "cancel_notice_hours"),
           }
         : null,
       serviceWindowCount: windows.data?.length ?? 0,
@@ -357,6 +406,9 @@ async function loadMyHostDraft(): Promise<HostDraft> {
       hasBankAccount: (bankAccounts.data?.length ?? 0) > 0,
       consents: readConsents(business.consents as Parameters<typeof readConsents>[0]),
       reviewNotes: business.review_notes ?? null,
+      arrivalCharges,
+      consentWithdrawals: readConsentWithdrawals(business.consents),
+      hostAgreementVersion: readHostAgreementVersion(business.consents),
     };
   } catch (error) {
     if (error instanceof PrivateFieldsUnavailable) throw error;

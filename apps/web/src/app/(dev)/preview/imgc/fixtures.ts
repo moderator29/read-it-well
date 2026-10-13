@@ -162,6 +162,9 @@ export function restaurantDraft(over: Partial<HostDraft> = {}): HostDraft {
       priceBand: 2,
       cuisineCount: 2,
       cuisines: ["Nigerian", "Continental"],
+      sittingMinutes: 90,
+      holdMinutes: 15,
+      cancelNoticeHours: 2,
     },
     serviceWindowCount: 7,
     serviceWindows: [

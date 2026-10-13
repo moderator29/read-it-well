@@ -131,6 +131,9 @@ export function BusinessCard({
       <div className="flex flex-wrap items-center gap-inline">
         <ui.StatusChip status={row.status} />
         <ui.StatusChip label={ui.columnLabel("businessKind", row.kind)} tone="neutral" />
+        {/* Edited and sent again after a refusal or a change request. The
+            decision it answers is under "Decisions so far". */}
+        {row.resubmission && <ui.StatusChip label="Resubmission" tone="warning" />}
         {blocked > 0 && isRestaurant && (
           <ui.StatusChip
             label={countOf(blocked, "thingsStopLive")}
@@ -297,9 +300,46 @@ export function BusinessCard({
             )
           }
         />
+        {row.consentWithdrawals.length > 0 && (
+          <ui.DetailRow
+            label="Withdrawn"
+            value={
+              <ul>
+                {row.consentWithdrawals.map((entry) => (
+                  <li key={`${entry.id}-${entry.at}`} className="nf-caption">
+                    {CONSENT_WORDS[entry.id] ?? entry.id}: withdrawn {ui.when(entry.at)}
+                  </li>
+                ))}
+              </ul>
+            }
+          />
+        )}
         {row.reviewNotes && <ui.DetailRow label="Last note sent" value={row.reviewNotes} />}
         {row.reviewedAt && <ui.DetailRow label="Last decided" value={ui.when(row.reviewedAt)} />}
       </ui.DetailSection>
+
+      {row.history.length > 0 && (
+        <ui.DetailSection title="Decisions so far">
+          <ul className="mt-inline grid gap-inline">
+            {row.history.map((entry) => (
+              <li key={`${entry.at}-${entry.decision}`} className="nf-caption">
+                <span className="font-semibold">
+                  {entry.decision === "approve"
+                    ? "Approved"
+                    : entry.decision === "reject"
+                      ? "Refused"
+                      : entry.decision === "more_info"
+                        ? "Sent back for a change"
+                        : entry.decision}
+                </span>{" "}
+                {ui.when(entry.at)}
+                {entry.reviewerName ? ` by ${entry.reviewerName}` : ""}
+                {entry.note ? ` · ${entry.note}` : ""}
+              </li>
+            ))}
+          </ul>
+        </ui.DetailSection>
+      )}
 
       <ui.DetailSection title="Papers">
         {row.documents.length === 0 ? (

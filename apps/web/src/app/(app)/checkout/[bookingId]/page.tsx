@@ -27,6 +27,7 @@ import { CHECKOUT_CONDITION_APPROVED, CHECKOUT_CONDITION_CANCEL } from "@/lib/mo
 import { LIVE_RAIL } from "@/lib/money/rails";
 import type { MoneyReference } from "@/lib/money/references";
 import { withNext } from "@/lib/auth/next-link";
+import { readBookedPolicyTerms } from "@/lib/stays/booked-policy";
 
 export const metadata: Metadata = { title: "Checkout" };
 
@@ -145,11 +146,14 @@ export default async function CheckoutPage({
   /* PERF-SWEEP 2: the saved cards, the crypto offer and the charge kind are
      three independent reads; they run together rather than in series, and
      the charge kind is read once rather than once per use below. */
-  const [cardsRead, cryptoOffer, chargeKind] = await Promise.all([
+  const [cardsRead, cryptoOffer, chargeKind, bookedTerms] = await Promise.all([
     listPaymentMethods(),
     /* Crypto, decided here on the server: null while it is off for the platform. */
     cryptoOfferForViewer(),
     bookingChargeKind(view.bookingId),
+    /* The cancellation policy on the rate being booked (Flexible to Strict),
+       drawn against these dates; null draws the platform schedule. */
+    readBookedPolicyTerms(view.bookingId),
   ]);
   const savedCards: PaymentMethod[] = cardsRead.ok ? cardsRead.data : [];
   const savedCardKey = crypto.randomUUID();
@@ -349,6 +353,7 @@ export default async function CheckoutPage({
             totalMinor={view.totalMinor}
             locale={view.locale}
             headingLevel="h2"
+            terms={chargeKind === "stay" ? bookedTerms : null}
           />
         </Reveal>
       )}

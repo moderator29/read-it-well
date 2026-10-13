@@ -1,8 +1,13 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState, useTransition } from "react";
 import Link from "next/link";
-import { respondToReservation } from "@/lib/reservations/actions";
+import { useRouter } from "next/navigation";
+import { markReservationOutcome, respondToReservation } from "@/lib/reservations/actions";
+import { confirmTableBill, enterTableBill, seatByCode } from "@/lib/reservations/seating-actions";
+import { billOpen, seatingWord } from "@/lib/reservations/seating";
+import { NairaField } from "@/components/ui/NairaField";
+import { formatMoney } from "@vallo/i18n";
 import type { ActionResult } from "@/lib/actions/envelope";
 import type { HostReservationView } from "@/lib/reservations/queries";
 import type { HostTableBoard } from "./board";
@@ -164,23 +169,218 @@ export function Decision({ table }: { table: HostReservationView }) {
   );
 }
 
+/**
+ * SEATED OR NOBODY CAME, recorded by the venue once a confirmed table's time
+ * has passed. Nothing is charged here: a table is free to ask for and the bill
+ * is paid at the restaurant. The mark is what Vallo bills a restaurant on, so
+ * it is one deliberate tap each, and it cannot be changed afterwards.
+ */
+function Outcome({ table }: { table: HostReservationView }) {
+  const [pending, start] = useTransition();
+  const [done, setDone] = useState<"COMPLETED" | "NO_SHOW" | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+  const mark = (outcome: "COMPLETED" | "NO_SHOW") =>
+    start(async () => {
+      setError(null);
+      const result = await markReservationOutcome({ reservationId: table.id, outcome });
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      setDone(outcome);
+      router.refresh();
+    });
+
+  if (done) {
+    return (
+      <p className={`mt-row ${TYPE.rowMeta}`} role="status">
+        {done === "COMPLETED" ? "Marked as seated." : "Marked as a no-show. The guest is told."}
+      </p>
+    );
+  }
+  return (
+    <div className="mt-row" data-testid="table-outcome">
+      <p className={TYPE.rowMeta}>How did this table go? Mark it once the time has passed.</p>
+      <div className="mt-inline flex flex-wrap gap-inline">
+        <Button variant="primary" size="sm" disabled={pending} loading={pending} onClick={() => mark("COMPLETED")}>
+          Seated
+        </Button>
+        <Button variant="secondary" size="sm" disabled={pending} onClick={() => mark("NO_SHOW")}>
+          No-show
+        </Button>
+      </div>
+      {error && (
+        <p role="alert" className={`mt-row ${TYPE.rowMeta} text-[var(--nf-state-error)]`}>
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
+const CODE_LABEL = "Guest's check-in code";
+const CODE_HINT = "The six digits the guest shows you. It marks the table as seated.";
+const BILL_LABEL = "The total on the bill";
+const BILL_HINT = "The guest pays it here through Vallo, straight to your bank account.";
+
+/**
+ * THE GUEST ARRIVED (founder decision D). The guest shows a six-digit code;
+ * typing it here marks their table as seated, which is what Vallo bills on
+ * (1,000 naira per seated guest, at the end of the month). Booking stays free
+ * for the guest.
+ */
+function SeatByCode() {
+  const [code, setCode] = useState("");
+  const [pending, start] = useTransition();
+  const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
+  const router = useRouter();
+  return (
+    <section className="nf-panel nf-panel--card block p-card" data-testid="seat-by-code">
+      <h2 className="nf-h4">A guest has arrived</h2>
+      <form
+        className="mt-row flex flex-wrap items-end gap-inline"
+        onSubmit={(event) => {
+          event.preventDefault();
+          start(async () => {
+            setMessage(null);
+            const result = await seatByCode(code);
+            if (!result.ok) {
+              setMessage({ ok: false, text: result.error });
+              return;
+            }
+            setCode("");
+            setMessage({ ok: true, text: "Seated. Enjoy the service." });
+            router.refresh();
+          });
+        }}
+      >
+        <label className="grid min-w-0 flex-1 gap-inline-tight">
+          <span className={TYPE.rowMeta}>{CODE_LABEL}</span>
+          <input
+            className="nf-field nf-numeric w-full"
+            inputMode="numeric"
+            autoComplete="off"
+            maxLength={7}
+            value={code}
+            onChange={(event) => setCode(event.target.value)}
+            data-testid="seat-code-input"
+          />
+        </label>
+        <Button type="submit" variant="primary" size="sm" disabled={pending || code.trim().length < 6} loading={pending}>
+          Seat the table
+        </Button>
+      </form>
+      <p className={`mt-inline ${TYPE.caption}`}>{CODE_HINT}</p>
+      {message && (
+        <p
+          role={message.ok ? "status" : "alert"}
+          className={`mt-row ${TYPE.rowMeta} ${message.ok ? "" : "text-[var(--nf-state-error)]"}`}
+        >
+          {message.text}
+        </p>
+      )}
+    </section>
+  );
+}
+
+/**
+ * THE BILL, entered by the restaurant or confirmed when the guest entered it.
+ * The guest then pays it through Vallo; a paid bill marks the table seated.
+ */
+function HostBill({ table }: { table: HostReservationView }) {
+  const [amount, setAmount] = useState("");
+  const [pending, start] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+  const [now, setNow] = useState<Date | null>(null);
+  const router = useRouter();
+  useEffect(() => setNow(new Date()), []);
+  if (!table.seating || !now) return null;
+  const bill = table.bill ?? null;
+  const money = (minor: number) => formatMoney(minor, "en", "NGN");
+  const act = (job: () => Promise<{ ok: boolean; error?: string }>) =>
+    start(async () => {
+      setError(null);
+      const result = await job();
+      if (!result.ok) {
+        setError(result.error ?? "That did not go through. Please try again.");
+        return;
+      }
+      setAmount("");
+      router.refresh();
+    });
+
+  if (bill?.status === "paid") {
+    return <p className={`mt-row ${TYPE.rowMeta}`}>Bill of {money(bill.amountMinor)} paid through Vallo.</p>;
+  }
+  if (bill?.status === "pending") {
+    return <p className={`mt-row ${TYPE.rowMeta}`}>The guest is paying the bill of {money(bill.amountMinor)}.</p>;
+  }
+  if (!billOpen(table, now)) return null;
+  return (
+    <div className="mt-row grid gap-inline" data-testid="host-bill">
+      {bill?.status === "awaiting_restaurant" && (
+        <div className="grid gap-inline">
+          <p className={TYPE.rowMeta}>The guest entered a bill of {money(bill.amountMinor)}. Is that right?</p>
+          <span>
+            <Button variant="primary" size="sm" disabled={pending} onClick={() => act(() => confirmTableBill(bill.id))}>
+              Confirm the bill
+            </Button>
+          </span>
+        </div>
+      )}
+      {bill?.status === "awaiting_payment" && (
+        <p className={TYPE.rowMeta}>Bill of {money(bill.amountMinor)} sent. The guest can pay it now.</p>
+      )}
+      <NairaField label={BILL_LABEL} hint={BILL_HINT} value={amount} onValueChange={setAmount} allowKobo />
+      <span>
+        <Button
+          variant="secondary"
+          size="sm"
+          disabled={pending || amount.length === 0}
+          onClick={() => act(() => enterTableBill(table.id, amount))}
+        >
+          {bill ? "Send this amount instead" : "Send the bill"}
+        </Button>
+      </span>
+      {error && (
+        <p role="alert" className={`${TYPE.rowMeta} text-[var(--nf-state-error)]`}>
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
 function TableCard({
   table,
   decidable,
+  markable = false,
 }: {
   table: HostReservationView;
   decidable: boolean;
+  /** True on the past group: a confirmed table there has had its time. */
+  markable?: boolean;
 }) {
   const locale = useClientLocale();
   const w = useHostPageCopy().tables;
   const tone =
-    table.status === "CONFIRMED" ? "success" : table.status === "CANCELLED" ? "danger" : "warning";
+    table.status === "CONFIRMED" || table.status === "COMPLETED"
+      ? "success"
+      : table.status === "CANCELLED" || table.status === "NO_SHOW"
+        ? "danger"
+        : "warning";
   const word =
-    table.status === "PENDING"
+    seatingWord(table.seating ?? null) ??
+    (table.status === "PENDING"
       ? w.statusWaiting
       : table.status === "CONFIRMED"
         ? w.statusAccepted
-        : w.statusClosed;
+        : table.status === "COMPLETED"
+          ? "Seated"
+          : table.status === "NO_SHOW"
+            ? "No-show"
+            : w.statusClosed);
 
   return (
     <li className="nf-panel nf-panel--card block p-card">
@@ -223,6 +423,12 @@ function TableCard({
       )}
 
       {decidable && <Decision table={table} />}
+      {/* A table the guest answered for (the restaurant never marked it) can
+          still be marked; a different answer goes to Vallo as a dispute. */}
+      {markable &&
+        (table.status === "CONFIRMED" ||
+          (table.seating?.outcomeBy === "diner" && !table.seating.restaurantAnswer)) && <Outcome table={table} />}
+      {(table.status === "CONFIRMED" || table.status === "COMPLETED") && <HostBill table={table} />}
     </li>
   );
 }
@@ -232,11 +438,13 @@ function Group({
   empty,
   tables,
   decidable,
+  markable = false,
 }: {
   title: string;
   empty: string;
   tables: HostReservationView[];
   decidable: boolean;
+  markable?: boolean;
 }) {
   return (
     <section className="mt-block">
@@ -251,7 +459,7 @@ function Group({
       ) : (
         <ul className="mt-row flex flex-col gap-row">
           {tables.map((table) => (
-            <TableCard key={table.id} table={table} decidable={decidable} />
+            <TableCard key={table.id} table={table} decidable={decidable} markable={markable} />
           ))}
         </ul>
       )}
@@ -261,8 +469,14 @@ function Group({
 
 export function HostReservationsBoard({ board }: { board: HostTableBoard }) {
   const w = useHostPageCopy().tables;
+  /* The code box is offered once seating is switched on (the reads carry a
+     seating row) and a confirmed table exists to seat. */
+  const seatable = [...board.upcoming, ...board.past].some(
+    (table) => table.status === "CONFIRMED" && Boolean(table.seating),
+  );
   return (
     <>
+      {seatable && <SeatByCode />}
       <Group
         title={w.groupWaiting}
         empty={w.groupWaitingEmpty}
@@ -275,7 +489,7 @@ export function HostReservationsBoard({ board }: { board: HostTableBoard }) {
         tables={board.upcoming}
         decidable={false}
       />
-      <Group title={w.groupPast} empty={w.groupPastEmpty} tables={board.past} decidable={false} />
+      <Group title={w.groupPast} empty={w.groupPastEmpty} tables={board.past} decidable={false} markable />
     </>
   );
 }

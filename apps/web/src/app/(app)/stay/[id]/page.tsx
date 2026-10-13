@@ -1,5 +1,9 @@
 import { STAYS_INSTANT_PAY_FLAG, flagIsOn } from "@/lib/flags/read";
 import type { Metadata } from "next";
+import { ArrivalChargesLine } from "@/components/stays/ArrivalChargesLine";
+import { readDeclaration } from "@/lib/stays/arrival-queries";
+import { declaredCharges } from "@/lib/stays/arrival-charges";
+import type { DoorCharge } from "@/lib/stays/door-total";
 import { redirect } from "next/navigation";
 import { listingById } from "@/lib/listings/listing-by-id";
 import { isPropertyMarket, marketOf } from "@/lib/listings/market";
@@ -213,6 +217,18 @@ export default async function StayDetailPage({
   ]);
   const t = getDictionary(locale);
   const { checkIn, checkOut, nights, guests } = readStayDates(query);
+  /* Every charge the host declared for the door, so the cost a guest reads
+     before booking is the whole cost (founder decision A). */
+  const declared = await readDeclaration({ accommodationId: detail.id });
+  const doorCharges: DoorCharge[] = declared
+    ? declaredCharges(declared).map((charge) => ({
+        key: charge.key,
+        label: t.afterTheGate.arrival.keys[charge.key],
+        minor: charge.minor,
+        per: charge.per,
+        perLabel: t.afterTheGate.arrival.units[charge.per],
+      }))
+    : [];
   const saved = isSaved(
     savedKeySet(savedPlaces.ok ? savedPlaces.data : []),
     "accommodation",
@@ -235,6 +251,8 @@ export default async function StayDetailPage({
       saved={saved}
       signedIn={session.state === "signed-in"}
       instant={instant}
+      arrival={<ArrivalChargesLine listingId={null} accommodationId={detail.id} locale={locale} />}
+      door={doorCharges}
     />
   );
 }

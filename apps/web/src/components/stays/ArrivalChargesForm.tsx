@@ -10,8 +10,9 @@ import { koboToNairaInput } from "@/lib/agent/listings-model";
 
 type Copy = Dictionary["afterTheGate"]["arrival"];
 type Row = { mode: "none" | "amount" | null; naira: string; per: ArrivalUnit };
+export type ArrivalRows = Record<ArrivalKey, Row>;
 
-function initialRows(existing: ArrivalCharges | null): Record<ArrivalKey, Row> {
+export function initialRows(existing: ArrivalCharges | null): ArrivalRows {
   return Object.fromEntries(
     ARRIVAL_KEYS.map((key) => {
       const answer = existing?.[key];
@@ -41,8 +42,7 @@ export function ArrivalChargesForm({
   const [pending, start] = useTransition();
   const [note, setNote] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const open = ARRIVAL_KEYS.filter((key) => rows[key].mode === null || (rows[key].mode === "amount" && !rows[key].naira.trim()));
-  const set = (key: ArrivalKey, patch: Partial<Row>) => setRows((now) => ({ ...now, [key]: { ...now[key], ...patch } }));
+  const open = openKeys(rows);
 
   return (
     <form
@@ -52,9 +52,7 @@ export function ArrivalChargesForm({
         event.preventDefault();
         setError(null);
         setNote(null);
-        const answers = Object.fromEntries(
-          ARRIVAL_KEYS.map((key) => [key, rows[key].mode === "none" ? { none: true } : { naira: rows[key].naira, per: rows[key].per }]),
-        );
+        const answers = answersFrom(rows);
         start(async () => {
           const result = await declareArrivalCharges({
             listingId: target.listingId ?? null,
@@ -70,6 +68,54 @@ export function ArrivalChargesForm({
         });
       }}
     >
+      <ArrivalChargesFields rows={rows} onRows={setRows} copy={copy} />
+      {error && (
+        <p className="nf-caption text-[var(--nf-state-error)]" role="alert">
+          {error}
+        </p>
+      )}
+      {note && (
+        <p className="nf-caption text-[var(--nf-state-success)]" role="status">
+          {note}
+        </p>
+      )}
+      <Button type="submit" variant="primary" full loading={pending} disabled={pending || open.length > 0}>
+        {copy.save}
+      </Button>
+    </form>
+  );
+}
+
+/** The keys still unanswered: no choice made, or an amount chosen and left blank. */
+export function openKeys(rows: ArrivalRows): ArrivalKey[] {
+  return ARRIVAL_KEYS.filter((key) => rows[key].mode === null || (rows[key].mode === "amount" && !rows[key].naira.trim()));
+}
+
+/** The rows as `declareArrivalCharges` takes them. */
+export function answersFrom(rows: ArrivalRows): Record<string, unknown> {
+  return Object.fromEntries(
+    ARRIVAL_KEYS.map((key) => [key, rows[key].mode === "none" ? { none: true } : { naira: rows[key].naira, per: rows[key].per }]),
+  );
+}
+
+/**
+ * The five questions, controlled. Shared by the standalone form on
+ * `/host/arrival` and the wizard's Extra charges step, which holds the rows in
+ * the wizard so Back does not lose them.
+ */
+export function ArrivalChargesFields({
+  rows,
+  onRows,
+  copy,
+}: {
+  rows: ArrivalRows;
+  onRows: (update: (now: ArrivalRows) => ArrivalRows) => void;
+  copy: Copy;
+}) {
+  const set = (key: ArrivalKey, patch: Partial<Row>) => onRows((now) => ({ ...now, [key]: { ...now[key], ...patch } }));
+  const open = openKeys(rows);
+  return (
+    <>
       {ARRIVAL_KEYS.map((key) => (
         <fieldset key={key} className="nf-panel nf-panel--card grid gap-sm p-md">
           {/* Floated, so the legend is an ordinary row inside the card. A rendered
@@ -109,19 +155,6 @@ export function ArrivalChargesForm({
       {open.length > 0 && (
         <p className="nf-caption">{copy.stillOpen.replace("{keys}", open.map((key) => copy.keys[key].toLowerCase()).join(", "))}</p>
       )}
-      {error && (
-        <p className="nf-caption text-[var(--nf-state-error)]" role="alert">
-          {error}
-        </p>
-      )}
-      {note && (
-        <p className="nf-caption text-[var(--nf-state-success)]" role="status">
-          {note}
-        </p>
-      )}
-      <Button type="submit" variant="primary" full loading={pending} disabled={pending || open.length > 0}>
-        {copy.save}
-      </Button>
-    </form>
+    </>
   );
 }

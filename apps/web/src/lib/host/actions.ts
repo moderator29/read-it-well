@@ -63,6 +63,7 @@ import {
   shortletPlaceDraftSchema,
 } from "./schema";
 import { SHORTLET_RATE_NAME, bedsArray, placeTypeUnavailable } from "./stays-setup";
+import { HOST_AGREEMENT_VERSION, PRIVACY_VERSION, TERMS_VERSION } from "../legal/versions";
 import { countOf } from "@vallo/i18n/core";
 import { fill, hostRefusals } from "./refusals";
 
@@ -80,7 +81,15 @@ const schemaWords = async () => (await hostRefusals()).schema;
 const EDITABLE: readonly Database["public"]["Enums"]["listing_status"][] = [
   "DRAFT",
   "MORE_INFO_REQUIRED",
+  /* A refused application is edited and sent again, as on Airbnb and
+     Booking.com, on the same business row. `private.guard_owner_write` has
+     always let an owner edit a REJECTED row and move it to SUBMITTED; the app
+     now does too. */
+  "REJECTED",
 ];
+
+/** The statuses whose row is the caller's application, newest first. */
+const APPLICATION_STATUSES = ["DRAFT", "MORE_INFO_REQUIRED", "SUBMITTED", "REJECTED"] as const;
 
 function refreshHostSurfaces(): void {
   revalidatePath("/host");
@@ -161,7 +170,7 @@ export async function saveHostDraft(input: unknown): Promise<ActionResult<HostDr
     .from("businesses")
     .select("id, status, name, kind, host_type")
     .eq("owner_id", session.user.id)
-    .in("status", ["DRAFT", "MORE_INFO_REQUIRED", "SUBMITTED"])
+    .in("status", [...APPLICATION_STATUSES])
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -189,10 +198,40 @@ export async function saveHostDraft(input: unknown): Promise<ActionResult<HostDr
     (data.kind as BusinessKind | undefined);
 
   const now = new Date().toISOString();
-  const consents: Record<string, string> = {
-    ...((existing?.consents as Record<string, string> | null) ?? {}),
+  const consents: Record<string, unknown> = {
+    ...((existing?.consents as Record<string, unknown> | null) ?? {}),
   };
   for (const id of data.consents ?? []) consents[id] = now;
+  /*
+   * A CONSENT UNTICKED IS A CONSENT WITHDRAWN. Its timestamp goes, so
+   * `missingFrom` (here and at submission) asks for it again, and the
+   * withdrawal is appended to `consents.withdrawals` with its moment, so the
+   * record shows it was given and then taken back rather than never given.
+   * Only a consent that was actually on record is withdrawn.
+   */
+  const withdrawn = (data.withdrawConsents ?? []).filter((id) => typeof consents[id] === "string");
+  if (withdrawn.length > 0) {
+    const history = Array.isArray(consents.withdrawals) ? consents.withdrawals : [];
+    for (const id of withdrawn) delete consents[id];
+    consents.withdrawals = [...history, ...withdrawn.map((id) => ({ id, at: now }))];
+  }
+  /*
+   * THE HOST'S AGREEMENT (founder decision B): the Terms, the Privacy policy
+   * and the Host Agreement, each with its version and the moment, appended to
+   * `consents.agreements`. Agreeing to the Terms and Privacy policy here is
+   * also the wizard's "terms" consent, so it is stamped too.
+   */
+  if (data.agreeToHostTerms) {
+    const record = Array.isArray(consents.agreements) ? consents.agreements : [];
+    consents.agreements = [
+      ...record,
+      { document: "terms", version: TERMS_VERSION, at: now },
+      { document: "privacy", version: PRIVACY_VERSION, at: now },
+      { document: "host_agreement", version: HOST_AGREEMENT_VERSION, at: now },
+    ];
+    consents.terms = now;
+  }
+  const consentsChanged = Boolean(data.consents) || withdrawn.length > 0 || Boolean(data.agreeToHostTerms);
 
   const fields = {
     ...(data.hostType ? { host_type: data.hostType } : {}),
@@ -216,7 +255,7 @@ export async function saveHostDraft(input: unknown): Promise<ActionResult<HostDr
     ...(data.representativePhone !== undefined
       ? { representative_phone: data.representativePhone || null }
       : {}),
-    ...(data.consents ? { consents } : {}),
+    ...(consentsChanged ? { consents: consents as Database["public"]["Tables"]["businesses"]["Update"]["consents"] } : {}),
     /* An attestation is a dated fact somebody stated, so unticking it removes
        the date rather than leaving a claim nobody is making any more. */
     ...(data.hygieneAttested !== undefined
@@ -240,8 +279,16 @@ export async function saveHostDraft(input: unknown): Promise<ActionResult<HostDr
     return ok({ businessId: existing.id, status: existing.status });
   }
 
-  // First save. A row needs a name and a kind, which are step one and step
-  // two's answers; without them there is nothing honest to create yet.
+  // First save. Nothing is created for a host who has not agreed to the
+  // Terms, the Privacy policy and the Host Agreement (founder decision B).
+  if (!data.agreeToHostTerms) {
+    return fail("Agree to the Terms of service, the Privacy policy and the Host Agreement first, then continue.", {
+      agreeToHostTerms: "Tick this to continue.",
+    });
+  }
+
+  // A row needs a name and a kind, which are step one and step two's
+  // answers; without them there is nothing honest to create yet.
   const name = (data.name ?? "").trim();
   if (name.length < 2) {
     const w = await words();
@@ -400,7 +447,7 @@ async function editableBusiness(): Promise<
     .from("businesses")
     .select("id, status")
     .eq("owner_id", session.user.id)
-    .in("status", ["DRAFT", "MORE_INFO_REQUIRED", "SUBMITTED"])
+    .in("status", [...APPLICATION_STATUSES])
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -615,7 +662,9 @@ export async function addServiceWindowDraft(
  * The restaurant's own facts: cuisines, a price band, and the Nigerian
  * columns that matter. A BAND, never a made-up average price.
  */
-export async function setRestaurantProfileDraft(input: unknown): Promise<ActionResult<null>> {
+export async function setRestaurantProfileDraft(
+  input: unknown,
+): Promise<ActionResult<{ rulesKept: boolean }>> {
   const guarded = await editableBusiness();
   if (!guarded.ok) return guarded.result;
 
@@ -643,8 +692,34 @@ export async function setRestaurantProfileDraft(input: unknown): Promise<ActionR
     return fail((await words()).serviceDown);
   }
 
+  /*
+   * THE TABLE RULES, IN THEIR OWN WRITE. The three columns arrive with
+   * `20261013090200_...`; on an estate where it has not run, PostgREST
+   * answers an unknown column with PGRST204 (or Postgres with 42703). That
+   * one refusal is not allowed to undo the profile saved above, so it is
+   * reported back as "not kept" and the screen says so. Any other refusal
+   * is a real fault.
+   */
+  const rules = {
+    ...(data.sittingMinutes !== undefined ? { sitting_minutes: data.sittingMinutes } : {}),
+    ...(data.holdMinutes !== undefined ? { hold_minutes: data.holdMinutes } : {}),
+    ...(data.cancelNoticeHours !== undefined ? { cancel_notice_hours: data.cancelNoticeHours } : {}),
+  };
+  let rulesKept = true;
+  if (Object.keys(rules).length > 0) {
+    const { error: rulesError } = await session.supabase
+      .from("restaurant_profiles")
+      .update(rules as Database["public"]["Tables"]["restaurant_profiles"]["Update"])
+      .eq("business_id", guarded.businessId);
+    if (rulesError) {
+      if (rulesError.code === "PGRST204" || rulesError.code === "42703") rulesKept = false;
+      else if (rulesError.code === "42501") return fail((await words()).notYours);
+      else return fail((await words()).serviceDown);
+    }
+  }
+
   refreshHostSurfaces();
-  return ok(null);
+  return ok({ rulesKept });
 }
 
 /* --------------------------------------------------------- photographs */

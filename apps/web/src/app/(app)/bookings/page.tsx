@@ -5,6 +5,7 @@ import { getLocale } from "@/lib/locale";
 import { getSide } from "@/lib/side";
 import { getMyBookings } from "@/lib/bookings/queries";
 import { getMyReservations } from "@/lib/reservations/queries";
+import { BillReturnCheck } from "@/components/app/reservations/TableSeatingPanel";
 import { resolveSession } from "@/lib/actions/session";
 import {
   readInspectionsForLister,
@@ -77,6 +78,9 @@ export default async function PlansPage({
   const copy = t.shape.plans;
   const { filter, inspectionsOnly } = planFilterFrom(params, shellSide);
   const justBooked = typeof params.justBooked === "string" ? params.justBooked : undefined;
+  /* Founder decision D: back from paying a restaurant bill on Paystack. */
+  const billReturn =
+    typeof params.bill === "string" && /^rm-bill-[0-9a-f-]{36}$/i.test(params.bill) ? params.bill : undefined;
   const changedRaw = Array.isArray(params.changed) ? params.changed[0] : params.changed;
   const changed = changedRaw && UUID_RE.test(changedRaw) ? changedRaw : null;
 
@@ -171,6 +175,7 @@ export default async function PlansPage({
       </div>
 
       <FilterLinks filter={inspectionsOnly ? "property" : filter} copy={copy} />
+      {billReturn && <BillReturnCheck reference={billReturn} />}
 
       {nothing ? (
         <EmptyState

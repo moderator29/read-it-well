@@ -15,6 +15,7 @@ import { restaurantPlate } from "@/components/app/stays/restaurant-plates";
 import { buildTripSpine, type TripEntry } from "./trip-spine";
 import { depositLine } from "@/lib/reservations/deposits";
 import { PayDepositButton } from "@/components/app/reservations/PayDepositButton";
+import { TableSeatingPanel } from "@/components/app/reservations/TableSeatingPanel";
 
 /**
  * TRIPS, ON A DATE SPINE.
@@ -53,6 +54,9 @@ type TripItem = TripEntry & {
   booking: BookingView | null;
   /* D75: a table's deposit, in words, and whether it can be paid now. */
   deposit?: { line: string; payable: boolean } | null;
+  /* Founder decision D: the table itself, for its check-in code, the
+     "Did you dine?" question, the bill and the review. */
+  table?: ReservationView | null;
 };
 
 /** The Lagos date and a short time, from a reservation's instant. */
@@ -137,6 +141,7 @@ export function TripSpine({
     status: reservation.status,
     justBooked: reservation.id === justBookedId,
     booking: null,
+    table: reservation,
     deposit: reservation.deposit
       ? {
           line:
@@ -322,6 +327,11 @@ function SpineRow({
         <div className="mt-inline grid gap-inline pl-[calc(var(--nf-plate-size-lg)+var(--spacing-md))]" data-testid="trip-deposit">
           <span className={`block ${TYPE.rowMeta}`}>{item.deposit.line}</span>
           {item.deposit.payable && <PayDepositButton reservationId={item.id} label="Pay deposit" />}
+        </div>
+      )}
+      {item.table && (
+        <div className="pl-[calc(var(--nf-plate-size-lg)+var(--spacing-md))]">
+          <TableSeatingPanel table={item.table} />
         </div>
       )}
       {item.booking && !muted && (

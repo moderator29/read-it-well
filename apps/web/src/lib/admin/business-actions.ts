@@ -45,6 +45,8 @@ import { BUSINESS_RUNGS } from "./business-queries";
 import { SELF_REVIEW_REFUSAL, decisionRefusal, isOwnBusiness } from "./business-decision";
 import { adminRefusal, requireAdmin } from "./guard";
 import { nightsToOpen } from "../stays/inventory";
+import { HOST_AGREEMENT_VERSION } from "../legal/versions";
+import { readHostAgreementVersion } from "../host/agreement";
 
 type ListingStatus = Database["public"]["Enums"]["listing_status"];
 
@@ -122,6 +124,26 @@ async function announce(
     // The decision has committed. The follow-on work is best effort.
   }
 }
+
+/**
+ * Whether the business's host agreed to the current Terms, Privacy policy and
+ * Host Agreement (founder decision B). Nothing is published for a host who has
+ * not. Read through the definer that serves staff the private columns.
+ */
+async function hostAgreed(
+  supabase: Parameters<typeof withBusinessPrivate>[0],
+  businessId: string,
+): Promise<boolean | null> {
+  try {
+    const [row] = await withBusinessPrivate(supabase, [{ id: businessId }], ["consents"] as const);
+    return readHostAgreementVersion(row?.consents ?? null) === HOST_AGREEMENT_VERSION;
+  } catch {
+    return null;
+  }
+}
+
+const NOT_AGREED =
+  "This host has not agreed to the current Terms, Privacy policy and Host Agreement, so nothing of theirs can be published. They agree on the business screen of their application.";
 
 /* ---------------------------------------------------------------- decisions */
 
@@ -289,6 +311,9 @@ export async function publishAccommodation(input: {
   if (property.status === "PUBLISHED") {
     return fail("This property is already live. Refresh the queue to see the current state.");
   }
+  const agreedHost = await hostAgreed(access.supabase, business.id);
+  if (agreedHost === null) return fail(SERVICE_DOWN);
+  if (!agreedHost) return fail(NOT_AGREED);
   if (property.latitude === null || property.longitude === null) {
     return fail(
       "This property has no pin on the map, so it cannot be published. Ask the host to place it.",
@@ -563,6 +588,9 @@ export async function publishRestaurant(input: {
       "This venue has no phone number, so a guest who needs the restaurant itself has no way to reach it. Add one and try again.",
     );
   }
+  const agreedHost = await hostAgreed(access.supabase, business.id);
+  if (agreedHost === null) return fail(SERVICE_DOWN);
+  if (!agreedHost) return fail(NOT_AGREED);
   const seats = business.service_windows.filter((window) => window.covers > 0).length;
   if (seats === 0) {
     return fail(

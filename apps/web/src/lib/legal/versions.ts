@@ -40,6 +40,14 @@ export const TERMS_VERSION = "2026-09-25";
    describes split settlement, agreements and Guarantee claims. */
 export const PRIVACY_VERSION = "2026-09-25";
 
+/**
+ * The Host Agreement (`lib/legal/host-agreement.tsx`, page /host-agreement),
+ * agreed with the Terms and the Privacy policy before a host's business is
+ * created, and recorded with this version on the business
+ * (`consents.agreements`).
+ */
+export const HOST_AGREEMENT_VERSION = "2026-10-13";
+
 /** The two documents a person accepts when they open an account. */
 export const ACCEPTED_AT_SIGNUP = [
   { document: "terms" as const, version: TERMS_VERSION },

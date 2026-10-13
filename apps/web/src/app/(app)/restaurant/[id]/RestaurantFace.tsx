@@ -63,6 +63,13 @@ export type RestaurantFaceProps = {
   isExample?: boolean;
   /** The venue's point rounded to about a kilometre on the server, for the Map tab. */
   areaPoint?: { lat: number; lng: number } | null;
+  /**
+   * The venue's own table rules, in plain sentences (`tableRuleLines`): a
+   * table is free to ask for and never paid in advance, the bill is paid at
+   * the restaurant, and the notice, hold and sitting the venue set. Shown
+   * before the guest asks for a table, so nothing about it is a surprise.
+   */
+  tableRules?: string[];
 };
 
 /**
@@ -100,6 +107,7 @@ export function RestaurantFace({
   report,
   isExample = false,
   areaPoint,
+  tableRules = [],
 }: RestaurantFaceProps) {
   const copy = t.restaurantPage;
   const placeCopy = t.catalogue.stays.place;
@@ -199,6 +207,15 @@ export function RestaurantFace({
                       windowCopy={t.experienceDetail.window}
                       success={t.success}
                     />
+                    {tableRules.length > 0 && (
+                      <ul className="mt-row grid gap-inline-tight" data-testid="table-rules">
+                        {tableRules.map((line) => (
+                          <li key={line} className={TYPE.rowMeta}>
+                            {line}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </Section>
                 )}
 

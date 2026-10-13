@@ -1,7 +1,7 @@
 "use client";
 
 import { useHostCopy } from "@/components/host/host-copy";
-import { useState } from "react";
+import { useGuard, useHeld } from "../wizard-memory";
 import { countOf, formatMoney } from "@vallo/i18n/core";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
@@ -44,56 +44,77 @@ export function RoomTypesStep({
   locale,
   pending,
   fieldErrors,
-  run,
+  runAsync,
   setNotice,
-  advance,
+  proceed,
   expectedRooms,
 }: StaysStepProps & { expectedRooms: number }) {
   const hw = useHostCopy();
   const cover = draft.accommodation?.photos[0]?.url ?? null;
-  const [adding, setAdding] = useState(draft.roomTypes.length === 0);
-  const [name, setName] = useState("");
-  const [kind, setKind] = useState<(typeof ROOM_KINDS)[number]["value"]>("double");
-  const [sleeps, setSleeps] = useState(2);
-  /* The total the hotelier stated on the previous screen is where the first
-     room type starts, because it is the only number they have given us. */
-  const [units, setUnits] = useState(expectedRooms);
-  const [naira, setNaira] = useState("");
+  /*
+   * THE FORM LIVES IN THE WIZARD (`useHeld`), so Back, a jump along the path
+   * or a slip of the thumb onto another step does not throw away a half-typed
+   * room type; the wizard asks before leaving one unsaved.
+   */
+  type Kind = (typeof ROOM_KINDS)[number]["value"];
+  const blank = {
+    adding: draft.roomTypes.length === 0,
+    name: "",
+    kind: "double" as Kind,
+    sleeps: 2,
+    /* The total the hotelier stated on the previous screen is where the first
+       room type starts, because it is the only number they have given us. */
+    units: expectedRooms,
+    naira: "",
+  };
+  const [form, setForm] = useHeld("form", blank);
+  const { adding, name, kind, sleeps, units, naira } = form;
+  const patch = (next: Partial<typeof blank>) => setForm((current) => ({ ...current, ...next }));
+  const setAdding = (value: boolean) => patch({ adding: value });
+  const setName = (value: string) => patch({ name: value });
+  const setKind = (value: Kind) => patch({ kind: value });
+  const setSleeps = (value: number) => patch({ sleeps: value });
+  const setUnits = (value: number) => patch({ units: value });
+  const setNaira = (value: string) => patch({ naira: value });
 
   const typed = Number.parseFloat(naira.replace(/[^0-9.]/g, ""));
   const kobo = Number.isFinite(typed) && typed > 0 ? Math.round(typed * 100) : 0;
+  const complete = name.trim().length >= 2 && kobo > 0;
 
-  const save = () =>
-    run(
-      async () => {
-        /* A room hangs on a property. Creating it here means a hotelier who
-           came straight to this screen is not sent back for a name. A
-           property already on record is used as it is: this used to save it
-           again under `draft.accommodation?.name ?? draft.name`, and while the
-           wizard's copy of the draft was stale that wrote the BUSINESS name
-           over the hotel name typed one screen earlier. */
-        let accommodationId = draft.accommodation?.id ?? null;
-        if (!accommodationId) {
-          const property = await addAccommodationDraft({ name: draft.name });
-          if (!property.ok) return property;
-          accommodationId = property.data.accommodationId;
-        }
-        return addRoomTypeDraft({
-          accommodationId,
-          name,
-          category: kind,
-          sleeps,
-          unitsTotal: units,
-          baseRateMinor: kobo,
-        });
-      },
-      () => {
-        setNotice({ tone: "ok", text: `${name} is saved. Price it on the next screen.` });
-        setName("");
-        setNaira("");
-        setAdding(false);
-      },
-    );
+  const save = async () => {
+    if (!complete) {
+      setNotice({ tone: "error", text: "Give the room type a name and a nightly price to save it." });
+      return false;
+    }
+    const saved = await runAsync(async () => {
+      /* A room hangs on a property. Creating it here means a hotelier who
+         came straight to this screen is not sent back for a name. A property
+         already on record is used as it is: this used to save it again under
+         `draft.accommodation?.name ?? draft.name`, and while the wizard's copy
+         of the draft was stale that wrote the BUSINESS name over the hotel
+         name typed one screen earlier. */
+      let accommodationId = draft.accommodation?.id ?? null;
+      if (!accommodationId) {
+        const property = await addAccommodationDraft({ name: draft.name });
+        if (!property.ok) return property;
+        accommodationId = property.data.accommodationId;
+      }
+      return addRoomTypeDraft({
+        accommodationId,
+        name,
+        category: kind,
+        sleeps,
+        unitsTotal: units,
+        baseRateMinor: kobo,
+      });
+    });
+    if (saved) {
+      setNotice({ tone: "ok", text: `${name} is saved. Price it on the next screen.` });
+      setForm({ ...blank, adding: false });
+    }
+    return saved;
+  };
+  useGuard("form", adding && (name.trim().length > 0 || naira.trim().length > 0), save);
 
   return (
     <>
@@ -233,7 +254,7 @@ export function RoomTypesStep({
               <Button
                 variant="secondary"
                 size="lg"
-                onClick={() => setAdding(false)}
+                onClick={() => setForm({ ...blank, adding: false })}
                 disabled={pending}
               >
                 Cancel
@@ -243,7 +264,7 @@ export function RoomTypesStep({
               variant="primary"
               size="lg"
               full
-              onClick={save}
+              onClick={() => void save()}
               loading={pending}
               disabled={pending || name.trim().length < 2 || kobo <= 0}
             >
@@ -259,7 +280,7 @@ export function RoomTypesStep({
           size="lg"
           full
           trailingIcon="chevron-right"
-          onClick={advance}
+          onClick={proceed}
           disabled={pending}
         >
           Continue

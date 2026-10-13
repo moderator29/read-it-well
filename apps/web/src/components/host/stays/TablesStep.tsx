@@ -2,9 +2,10 @@
 
 import { useHostCopy } from "@/components/host/host-copy";
 import { useState } from "react";
+import { differs, useGuard, useHeld } from "../wizard-memory";
 import { Button } from "@/components/ui/Button";
 import { Switch } from "@/components/ui/Switch";
-import { setOpeningHoursDraft } from "@/lib/host/actions";
+import { setOpeningHoursDraft, setRestaurantProfileDraft } from "@/lib/host/actions";
 import {
   SITTING_DURATIONS,
   TABLE_SIZES,
@@ -41,18 +42,15 @@ import { countOf } from "@vallo/i18n/core";
  * is printed under them in words, so that nobody has to trust an arithmetic
  * they cannot see and nobody is told a breakdown is kept that is not.
  *
- * THE SITTING DURATION IS DRAWN AND IS NOT SAVED, and the panel says exactly
- * that rather than saving it somewhere it would never be read from. There is
- * no column for it, nothing in the reservation path reads one, and a control
- * that silently discards its value is the defect this build has spent the week
- * removing. It is drawn because the render draws it and because the question
- * is the right one to ask next; it is inert because the honest alternative to
- * an inert control is a lying one.
+ * THE SITTING DURATION IS SAVED on the restaurant's profile
+ * (`restaurant_profiles.sitting_minutes`, `20261013090200_...`) and read back
+ * here and on the restaurant's page, where a guest sees it before asking for a
+ * table. Until that migration has run it cannot be kept, and the save says so.
  */
 /** One row of the week, as the screen holds it while it is being edited. */
 type DayRow = { weekday: number; label: string; on: boolean; opens: string; closes: string };
 
-export function TablesStep({ draft, pending, run, setNotice, advance, locale }: StaysStepProps) {
+export function TablesStep({ draft, pending, runAsync, setNotice, advance, locale }: StaysStepProps) {
   const hw = useHostCopy();
   /*
    * THE WEEK IS AN ARRAY IN THE DRAWN ORDER AND NOT A MAP KEYED BY WEEKDAY.
@@ -60,7 +58,7 @@ export function TablesStep({ draft, pending, run, setNotice, advance, locale }: 
    * number the column stores, so carrying both on each row means no lookup can
    * miss and no index can come back undefined.
    */
-  const [days, setDays] = useState<DayRow[]>(() => {
+  const savedWeek: DayRow[] = (() => {
     const saved = new Map(draft.serviceWindows.map((window) => [window.weekday, window]));
     return WEEK_FROM_MONDAY.map((day) => {
       const row = saved.get(day.weekday);
@@ -68,9 +66,13 @@ export function TablesStep({ draft, pending, run, setNotice, advance, locale }: 
         ? { ...day, on: true, opens: row.opens, closes: row.closes }
         : { ...day, on: false, opens: "08:00", closes: "23:00" };
     });
-  });
-  const [tables, setTables] = useState<TableInventory>({});
-  const [minutes, setMinutes] = useState(SITTING_DURATIONS[0]?.minutes ?? 60);
+  })();
+  const savedMinutes = draft.restaurant?.sittingMinutes ?? SITTING_DURATIONS[1]?.minutes ?? 90;
+  /* Held in the wizard so Back keeps the week, the table count and the
+     sitting length, and measured against what is on record. */
+  const [days, setDays] = useHeld<DayRow[]>("days", savedWeek);
+  const [tables, setTables] = useHeld<TableInventory>("tables", {});
+  const [minutes, setMinutes] = useHeld("minutes", savedMinutes);
   const [editing, setEditing] = useState<number | null>(null);
 
   const edit = (weekday: number, patch: Partial<DayRow>) =>
@@ -91,25 +93,42 @@ export function TablesStep({ draft, pending, run, setNotice, advance, locale }: 
      named here, before anything is sent. */
   const backwards = daysClosingBeforeOpening(days);
 
-  const save = () =>
-    run(
-      () =>
-        setOpeningHoursDraft({
-          days: openDays.map((day) => ({
-            weekday: day.weekday,
-            opens: day.opens,
-            closes: day.closes,
-          })),
-          covers: sending,
-        }),
-      () => {
-        setNotice({
-          tone: "ok",
-          text: `${countOf(openDays.length, "days", locale)} saved, seating ${sending}.`,
-        });
-        advance();
-      },
+  /* The week and the covers, then the sitting length on the restaurant's
+     profile, where `20261013090200_...` gives it a column. */
+  let sittingKept = true;
+  const save = async () => {
+    if (openDays.length === 0 || sending <= 0 || backwards.length > 0) {
+      setNotice({ tone: "error", text: "Open at least one day, count the tables, and close each day after it opens, to save the week." });
+      return false;
+    }
+    const week = await runAsync(() =>
+      setOpeningHoursDraft({
+        days: openDays.map((day) => ({ weekday: day.weekday, opens: day.opens, closes: day.closes })),
+        covers: sending,
+      }),
     );
+    if (!week) return false;
+    return runAsync(async () => {
+      const result = await setRestaurantProfileDraft({ sittingMinutes: minutes as 60 | 90 | 120 | 180 });
+      if (result.ok) sittingKept = result.data.rulesKept;
+      return result;
+    });
+  };
+  useGuard(
+    "week",
+    differs(days, savedWeek) || coversFrom(tables) > 0 || minutes !== savedMinutes,
+    save,
+  );
+  const saveAndGo = async () => {
+    if (!(await save())) return;
+    setNotice({
+      tone: "ok",
+      text:
+        `${countOf(openDays.length, "days", locale)} saved, seating ${sending}.` +
+        (sittingKept ? "" : " The sitting length is not kept yet; it will be once this estate is updated."),
+    });
+    advance();
+  };
 
   return (
     <>
@@ -247,9 +266,8 @@ export function TablesStep({ draft, pending, run, setNotice, advance, locale }: 
           <span className="nf-stays-row__value whitespace-nowrap">Sitting duration</span>
         </StaysRow>
         <p className="nf-stays-plate__note">
-          Nothing reads this yet. There is no column for it and no part of the reservation path asks
-          for one, so it is asked here and not stored, rather than saved somewhere it would never be
-          read back from.
+          How long a table is the party&rsquo;s. Guests see it before they ask for a table, and it is
+          saved with your week.
         </p>
       </section>
 
@@ -258,7 +276,7 @@ export function TablesStep({ draft, pending, run, setNotice, advance, locale }: 
         size="lg"
         full
         trailingIcon="chevron-right"
-        onClick={save}
+        onClick={() => void saveAndGo()}
         loading={pending}
         disabled={pending || openDays.length === 0 || sending <= 0 || backwards.length > 0}
       >

@@ -148,6 +148,15 @@ export type BusinessQueueRow = {
   rungs: BusinessRungView[];
   properties: BusinessPropertyView[];
   restaurant: { priceBand: number | null; cuisineCount: number; windowCount: number } | null;
+  /**
+   * True when a refused or sent-back application has been edited and sent
+   * again: it is SUBMITTED and already carries a decision.
+   */
+  resubmission: boolean;
+  /** Every review decision on this business, newest first, from the audit log. */
+  history: { at: string; decision: string; afterStatus: string | null; note: string | null; reviewerName: string | null }[];
+  /** Consents the host gave and then withdrew, from `consents.withdrawals`. */
+  consentWithdrawals: { id: string; at: string }[];
 };
 
 export type BusinessQueue = {
@@ -249,7 +258,7 @@ export async function getBusinessQueue(
       .map((row) => row.owner_id)
       .filter((id): id is string => Boolean(id));
 
-    const [documents, rungs, accommodations, restaurants, windows, photos, payouts, names] =
+    const [documents, rungs, accommodations, restaurants, windows, photos, payouts, names, audits] =
       await Promise.all([
         admin
           .from("business_documents")
@@ -281,7 +290,17 @@ export async function getBusinessQueue(
         displayNames(admin, [
           ...ownerIds,
           ...(await reviewerIds(admin, ids)),
+          ...(await decisionActorIds(admin, ids)),
         ]),
+        /* The decision history: every review decision, newest first. */
+        admin
+          .from("audit_log")
+          .select("entity_id, actor_id, metadata, created_at")
+          .eq("entity_type", "business")
+          .eq("action", "business.review")
+          .in("entity_id", ids)
+          .order("created_at", { ascending: false })
+          .limit(200),
       ]);
 
     const payoutByUser = new Map<string, { name: string; bank: string }>();
@@ -394,6 +413,20 @@ export async function getBusinessQueue(
               windowCount: windowCount.get(business.id) ?? 0,
             }
           : null,
+        resubmission: business.status === "SUBMITTED" && business.reviewed_at !== null,
+        history: (audits.data ?? [])
+          .filter((row) => row.entity_id === business.id)
+          .map((row) => {
+            const meta = (row.metadata ?? {}) as Record<string, unknown>;
+            return {
+              at: row.created_at,
+              decision: typeof meta.decision === "string" ? meta.decision : "decision",
+              afterStatus: typeof meta.after_status === "string" ? meta.after_status : null,
+              note: typeof meta.note === "string" ? meta.note : null,
+              reviewerName: row.actor_id ? (names.get(row.actor_id) ?? null) : null,
+            };
+          }),
+        consentWithdrawals: readWithdrawals(business.consents),
       };
     });
 
@@ -439,6 +472,28 @@ function readConsents(value: Database["public"]["Tables"]["businesses"]["Row"]["
     if (typeof at === "string" && at.length > 0) out[key] = at;
   }
   return out;
+}
+
+/** `consents.withdrawals`: consents a host gave and then took back. */
+function readWithdrawals(value: unknown): { id: string; at: string }[] {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) return [];
+  const list = (value as Record<string, unknown>).withdrawals;
+  if (!Array.isArray(list)) return [];
+  return list.flatMap((entry) => {
+    const row = (entry ?? {}) as Record<string, unknown>;
+    return typeof row.id === "string" && typeof row.at === "string" ? [{ id: row.id, at: row.at }] : [];
+  });
+}
+
+async function decisionActorIds(admin: Db, businessIds: string[]): Promise<string[]> {
+  const { data } = await admin
+    .from("audit_log")
+    .select("actor_id")
+    .eq("entity_type", "business")
+    .eq("action", "business.review")
+    .in("entity_id", businessIds)
+    .limit(200);
+  return (data ?? []).map((row) => row.actor_id).filter((id): id is string => Boolean(id));
 }
 
 async function reviewerIds(admin: Db, businessIds: string[]): Promise<string[]> {

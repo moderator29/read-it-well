@@ -339,6 +339,12 @@ export const TERMS_SECTIONS: { title: string; body: React.ReactNode }[] = [
           booked under one rate completes under that rate.
         </li>
         <li>
+          <strong>If you host a stay or a restaurant</strong>, you also agree to the Host
+          Agreement (at /host-agreement) before your business is set up. In short: you must
+          not charge a guest anything that is not listed on {COMPANY_TRADING_NAME}, every
+          charge you list must say what it is for, and anything not listed cannot be charged.
+        </li>
+        <li>
           You are responsible for the accuracy of what you list. Listings must be
           lawful, must be yours to offer, and must carry photographs of the actual
           property. Every listing is reviewed by a person before it is published.
