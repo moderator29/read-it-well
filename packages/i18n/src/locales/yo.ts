@@ -650,6 +650,32 @@ export const yo: Dictionary = withFallback({
     rulesLink: "Òfin Àwùjọ",
   },
 
+  /* The sign-in screen's notices. Machine draft, 13 October 2026: needs a
+     native Yoruba speaker's review. */
+  authFlow: {
+    notices: {
+      "link-expired": "Ìjápọ̀ yẹn ti parí tàbí wọ́n ti lò ó tẹ́lẹ̀. Wọlé nísàlẹ̀, tàbí béèrè fún ìjápọ̀ tuntun.",
+      "link-invalid": "Ìjápọ̀ yẹn kò pé. Wọlé nísàlẹ̀, yóò sì ṣiṣẹ́ bí ó ti máa ń ṣe.",
+      unconfigured: "A kò lè dé ọ̀dọ̀ àwọn àkọọ́lẹ̀ báyìí. Kò sí ohun tí o tẹ̀ tí ó sọnù.",
+      "signed-out": "O ti jáde. Wọlé nígbàkígbà tí o bá ṣetán.",
+      "sign-in-required": "Wọlé láti ṣí i. Kò ní pẹ́, àkọọ́lẹ̀ tuntun sì jẹ́ ọ̀fẹ́.",
+      "catalogue-paced":
+        "O ti ṣí ọ̀pọ̀lọpọ̀ ojú ewé láàárín ìṣẹ́jú díẹ̀. Wọlé láti máa wò ó lọ, tàbí padà wá lẹ́yìn ìṣẹ́jú díẹ̀.",
+      "passcode-reset": "Wọlé pẹ̀lú ọ̀rọ̀ ìpamọ́ rẹ, lẹ́yìn náà yan nọ́mbà àṣírí tuntun.",
+      "passcode-locked":
+        "A tẹ nọ́mbà àṣírí rẹ ní àṣìṣe ní ọ̀pọ̀ ìgbà, nítorí náà a mú ọ jáde. Wọlé, lẹ́yìn náà yan nọ́mbà àṣírí tuntun.",
+    },
+  },
+
+  /* The public agent check's warning. Machine draft, 13 October 2026. */
+  publicDoors: {
+    warning: {
+      share: "Pín ìkìlọ̀ yìí",
+      text: "Nọ́mbà yìí kì í ṣe ti aṣojú Vallo tí a forúkọ sílẹ̀. Ṣàyẹ̀wò aṣojú èyíkéyìí ní {url}",
+      note: "Ọ̀rọ̀ náà kò ní nọ́mbà tí o ṣàyẹ̀wò nínú.",
+    },
+  },
+
   auth: {
     welcomeBack: "Káàbọ̀ padà",
     signInToContinue: "Wọlé láti tẹ̀síwájú",
@@ -833,6 +859,15 @@ export const yo: Dictionary = withFallback({
 },
 
   settings: {
+    /* SEC-15's notice of a move to another email address. Machine draft, 13 October 2026. */
+    addressMove: {
+      title: "Ìbéèrè láti gbé àkọọ́lẹ̀ rẹ lọ sí àdírẹ́sì ímeèlì mìíràn",
+      body: "Ẹgbẹ́ ìrànlọ́wọ́ wa ṣí ìbéèrè láti gbé àkọọ́lẹ̀ yìí lọ sí {address}. Kò ní parí ṣáájú {when}.",
+      afterNotice: "wákàtí 72 lẹ́yìn tí a bá fi ímeèlì ránṣẹ́ sí àdírẹ́sì yìí nípa rẹ̀",
+      ifYou: "Bí ìwọ ni o béèrè fún èyí, kò sí ohun tí o ní láti ṣe.",
+      cancel: "Kì í ṣe èmi, fagilé e",
+      cancelled: "A ti fagilé e. Àkọọ́lẹ̀ rẹ wà ní àdírẹ́sì yìí síbẹ̀.",
+    },
     /** The settings home to `7F96BE6C`: the headline, the profile row, the hub rows. */
     hub: {
       lede: "Ṣàkóso àkọọ́lẹ̀ rẹ, àwọn ààyò àti àwọn ọ̀nà ìsanwó.",

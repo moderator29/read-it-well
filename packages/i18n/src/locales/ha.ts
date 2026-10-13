@@ -626,6 +626,32 @@ export const ha: Dictionary = withFallback({
     rulesLink: "Ƙa'idodin Al'umma",
   },
 
+  /* The sign-in screen's notices. Machine draft, 13 October 2026: needs a
+     native Hausa speaker's review. */
+  authFlow: {
+    notices: {
+      "link-expired": "Wannan mahaɗin ya ƙare ko an riga an yi amfani da shi. Shiga a ƙasa, ko ka nemi sabon mahaɗi.",
+      "link-invalid": "Wannan mahaɗin bai cika ba. Shiga a ƙasa kuma zai yi aiki kamar yadda ya saba.",
+      unconfigured: "Ba za mu iya isa ga asusu yanzu ba. Babu abin da ka rubuta da ya ɓace.",
+      "signed-out": "Ka fita. Shiga duk lokacin da ka shirya.",
+      "sign-in-required": "Shiga don buɗe wannan. Ba ya ɗaukar lokaci, kuma sabon asusu kyauta ne.",
+      "catalogue-paced":
+        "Ka buɗe shafuka da yawa cikin ƴan mintuna. Shiga don ci gaba da dubawa, ko ka dawo bayan ƴan mintuna.",
+      "passcode-reset": "Shiga da kalmar sirrinka, sannan ka zaɓi sabuwar lambar sirri.",
+      "passcode-locked":
+        "An shigar da lambar sirrinka ba daidai ba sau da yawa, don haka an fitar da kai. Shiga, sannan ka zaɓi sabuwar lambar sirri.",
+    },
+  },
+
+  /* The public agent check's warning. Machine draft, 13 October 2026. */
+  publicDoors: {
+    warning: {
+      share: "Raba wannan gargaɗin",
+      text: "Wannan lambar ba ta wakilin Vallo mai rajista ba ce. Duba kowane wakili a {url}",
+      note: "Saƙon bai ƙunshi lambar da ka duba ba.",
+    },
+  },
+
   auth: {
     welcomeBack: "Barka da dawowa",
     signInToContinue: "Shiga don ci gaba",
@@ -809,6 +835,15 @@ export const ha: Dictionary = withFallback({
 },
 
   settings: {
+    /* SEC-15's notice of a move to another email address. Machine draft, 13 October 2026. */
+    addressMove: {
+      title: "Buƙatar mayar da asusunka zuwa wani adireshin imel",
+      body: "Ƙungiyar tallafinmu ta buɗe buƙatar mayar da wannan asusun zuwa {address}. Ba zai kammala ba kafin {when}.",
+      afterNotice: "awanni 72 bayan mun aika imel zuwa wannan adireshin game da shi",
+      ifYou: "Idan kai ne ka nemi wannan, babu abin da za ka yi.",
+      cancel: "Ba ni ba ne, soke shi",
+      cancelled: "An soke shi. Asusunka yana nan a wannan adireshin.",
+    },
     /** The settings home to `7F96BE6C`: the headline, the profile row, the hub rows. */
     hub: {
       lede: "Sarrafa asusunka, zaɓinka da hanyoyin biyan kuɗi.",

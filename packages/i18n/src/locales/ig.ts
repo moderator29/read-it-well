@@ -648,6 +648,32 @@ export const ig: Dictionary = withFallback({
     rulesLink: "Iwu Obodo",
   },
 
+  /* The sign-in screen's notices. Machine draft, 13 October 2026: needs a
+     native Igbo speaker's review. */
+  authFlow: {
+    notices: {
+      "link-expired": "Njikọ ahụ agwụla oge ma ọ bụ e jirila ya mee ihe. Banye n'okpuru, ma ọ bụ rịọ maka njikọ ọhụrụ.",
+      "link-invalid": "Njikọ ahụ ezughị ezu. Banye n'okpuru, ọ ga-arụ ọrụ dịka ọ na-adị.",
+      unconfigured: "Anyị enweghị ike iru akaụntụ ugbu a. Ọ dịghị ihe ị pịnyere furu efu.",
+      "signed-out": "Ị pụọla. Banye mgbe ọ bụla ị dị njikere.",
+      "sign-in-required": "Banye ka i meghee nke ahụ. Ọ na-ewe obere oge, akaụntụ ọhụrụ bụkwa n'efu.",
+      "catalogue-paced":
+        "Ị meghela ọtụtụ ibe n'ime nkeji ole na ole. Banye ka ị gaa n'ihu na-elele, ma ọ bụ laghachi mgbe nkeji ole na ole gachara.",
+      "passcode-reset": "Jiri okwuntughe gị banye, wee họrọ nọmba nzuzo ọhụrụ.",
+      "passcode-locked":
+        "E tinyere nọmba nzuzo gị n'ụzọ na-ezighị ezi ọtụtụ ugboro, ya mere e wepụrụ gị. Banye, wee họrọ nọmba nzuzo ọhụrụ.",
+    },
+  },
+
+  /* The public agent check's warning. Machine draft, 13 October 2026. */
+  publicDoors: {
+    warning: {
+      share: "Kesaa ịdọ aka ná ntị a",
+      text: "Nọmba a abụghị nke onye nnọchiteanya Vallo edebanyere aha. Lelee onye nnọchiteanya ọ bụla na {url}",
+      note: "Ozi ahụ enweghị nọmba ị lere.",
+    },
+  },
+
   auth: {
     welcomeBack: "Nnọọ ọzọ",
     signInToContinue: "Banye ka ị gaa n'ihu",
@@ -831,6 +857,15 @@ export const ig: Dictionary = withFallback({
 },
 
   settings: {
+    /* SEC-15's notice of a move to another email address. Machine draft, 13 October 2026. */
+    addressMove: {
+      title: "Arịrịọ ịkwaga akaụntụ gị gaa n'adreesị email ọzọ",
+      body: "Ndị otu nkwado anyị meghere arịrịọ ịkwaga akaụntụ a gaa na {address}. Ọ gaghị agwụ tupu {when}.",
+      afterNotice: "awa 72 mgbe anyị zitere email n'adreesị a gbasara ya",
+      ifYou: "Ọ bụrụ na ọ bụ gị rịọrọ nke a, ọ dịghị ihe ị ga-eme.",
+      cancel: "Ọ bụghị m, kagbuo ya",
+      cancelled: "Akagbuola ya. Akaụntụ gị ka nọ n'adreesị a.",
+    },
     /** The settings home to `7F96BE6C`: the headline, the profile row, the hub rows. */
     hub: {
       lede: "Jikwaa akaụntụ gị, mmasị gị na ụzọ ịkwụ ụgwọ.",
