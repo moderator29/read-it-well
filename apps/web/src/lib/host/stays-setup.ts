@@ -303,6 +303,38 @@ export function mealPlanLabel(id: string): string {
   return MEAL_PLANS.find((plan) => plan.id === id)?.label ?? id;
 }
 
+/**
+ * THE NAME OF A SHORTLET'S ONE RATE.
+ *
+ * `GOVERNING-11` asks a shortlet host for one nightly price, on the place
+ * screen, and one cancellation policy, on the house rules screen, and never
+ * draws a rates screen. A booking is made against a `rate_plans` row (its
+ * price and its policy), and `missingFrom` and the publish gate both refuse a
+ * property with none, so `syncPropertyRatesDraft` writes that one row from
+ * the two answers. Room only, because nothing on those screens offers a meal;
+ * named for what it is to a guest letting a whole flat, since "Room only"
+ * reads as a hotel room.
+ */
+export const SHORTLET_RATE_NAME = "Nightly rate";
+
+/**
+ * Two typed coordinates as a pin, or null when they are not one.
+ *
+ * The pin is typed by hand when the device will not give a location, and the
+ * save used to send `Number(text)` whatever was typed: a stray letter became
+ * NaN and the refusal came back in the validator's own words. Both halves
+ * must be finite and inside the globe, and neither may be blank, because
+ * `Number("")` is 0 and 0, 0 is a real place in the Gulf of Guinea.
+ */
+export function pinFrom(lat: string, lng: string): { latitude: number; longitude: number } | null {
+  if (lat.trim() === "" || lng.trim() === "") return null;
+  const latitude = Number(lat.trim());
+  const longitude = Number(lng.trim());
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+  if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) return null;
+  return { latitude, longitude };
+}
+
 /* -------------------------------------------------------- the restaurant's */
 
 /**
@@ -434,6 +466,19 @@ export function noticeLabel(hours: number): string {
 /** "8:00 AM to 11:00 PM", the render's row, with a word rather than a dash. */
 export function windowLabel(opens: string, closes: string): string {
   return `${clockLabel(opens)} to ${clockLabel(closes)}`;
+}
+
+/**
+ * The open days whose closing time is not after their opening time.
+ *
+ * `service_windows_order_chk` refuses `opens >= closes`, and the screen used
+ * to send the week and let the server refuse it with one sentence that named
+ * no day. The times are `HH:MM` strings, which order as times.
+ */
+export function daysClosingBeforeOpening<T extends { on: boolean; opens: string; closes: string }>(
+  days: readonly T[],
+): T[] {
+  return days.filter((day) => day.on && day.closes <= day.opens);
 }
 
 /**

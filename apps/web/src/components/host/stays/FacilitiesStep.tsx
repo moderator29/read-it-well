@@ -5,6 +5,7 @@ import { useState } from "react";
 import { formatNumber } from "@vallo/i18n/core";
 import { Button } from "@/components/ui/Button";
 import { addAccommodationDraft } from "@/lib/host/actions";
+import { branchFor, pinFrom } from "@/lib/host/stays-setup";
 import { AccommodationPhotoManager } from "../AccommodationPhotoManager";
 import { FacilitiesPicker } from "../FacilitiesPicker";
 import { StaysNote, StaysPlate } from "./StaysParts";
@@ -33,7 +34,7 @@ const coordinateText = (value: number) =>
  * over a Nigerian mobile connection, which is the most expensive possible
  * moment to fail.
  */
-export function FacilitiesStep({ draft, userId, pending, run, setNotice, advance }: StaysStepProps & {
+export function FacilitiesStep({ draft, userId, pending, run, setNotice, advance, goTo }: StaysStepProps & {
   userId: string;
 }) {
   const hw = useHostCopy();
@@ -54,22 +55,40 @@ export function FacilitiesStep({ draft, userId, pending, run, setNotice, advance
     );
   };
 
-  const savePin = () =>
+  /* Null until both boxes hold a real coordinate, so a typo is caught here
+     in words instead of reaching the server as NaN. */
+  const pin = pinFrom(lat, lng);
+  const typedBadPin = lat.trim() !== "" && lng.trim() !== "" && pin === null;
+
+  const savePin = () => {
+    if (!pin) return;
     run(
       () =>
         addAccommodationDraft({
           name: draft.accommodation?.name ?? draft.name,
-          latitude: Number(lat),
-          longitude: Number(lng),
+          latitude: pin.latitude,
+          longitude: pin.longitude,
         }),
       () => setNotice({ tone: "ok", text: "The pin is saved." }),
     );
+  };
 
   if (!draft.accommodation) {
+    /* A way out rather than an instruction: the property's own screen is a
+       hotel's first or a shortlet's first, and this opens whichever it is. */
     return (
-      <StaysNote>
-        Save the property first and the facilities and photographs hang on it. Go back one screen.
-      </StaysNote>
+      <>
+        <StaysNote>Save the property first and the facilities and photographs hang on it.</StaysNote>
+        <Button
+          variant="primary"
+          size="lg"
+          full
+          leadingIcon="arrow-left"
+          onClick={() => goTo(branchFor(draft.kind) === "shortlet" ? "place" : "hotel")}
+        >
+          Open the property
+        </Button>
+      </>
     );
   }
 
@@ -141,12 +160,18 @@ export function FacilitiesStep({ draft, userId, pending, run, setNotice, advance
           <Button
             variant="secondary"
             onClick={savePin}
-            disabled={pending || lat.trim() === "" || lng.trim() === ""}
+            disabled={pending || pin === null}
             loading={pending}
           >
             Save the pin
           </Button>
         </div>
+        {typedBadPin ? (
+          <p className="nf-stays-plate__note" role="alert">
+            Those are not two coordinates. Latitude is a number from -90 to 90 and longitude from
+            -180 to 180, like 6.4281 and 3.4219 for Victoria Island.
+          </p>
+        ) : null}
       </StaysPlate>
 
       <Button

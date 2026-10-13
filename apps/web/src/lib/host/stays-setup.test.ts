@@ -14,16 +14,48 @@ import {
   clockLabel,
   closingTimes,
   coversFrom,
+  daysClosingBeforeOpening,
   halfHours,
   houseRulesOn,
   houseRulesText,
   mergeHouseRules,
   mealPlanLabel,
   noticeLabel,
+  pinFrom,
   placeTypeFrom,
   placeTypeUnavailable,
   windowLabel,
 } from "./stays-setup";
+
+describe("pinFrom", () => {
+  it("reads two typed coordinates, the way the location button writes them", () => {
+    expect(pinFrom("6.428100", "3.421900")).toEqual({ latitude: 6.4281, longitude: 3.4219 });
+    expect(pinFrom(" -1.5 ", "179.9")).toEqual({ latitude: -1.5, longitude: 179.9 });
+  });
+
+  it("refuses a typo, a blank half and a place off the globe instead of sending NaN or 0, 0", () => {
+    expect(pinFrom("6.4o", "3.42")).toBeNull();
+    expect(pinFrom("", "3.42")).toBeNull();
+    expect(pinFrom("6.42", "   ")).toBeNull();
+    expect(pinFrom("91", "3.42")).toBeNull();
+    expect(pinFrom("6.42", "-181")).toBeNull();
+  });
+});
+
+describe("daysClosingBeforeOpening", () => {
+  const day = (label: string, on: boolean, opens: string, closes: string) => ({ label, on, opens, closes });
+
+  it("names the open days the database would refuse, and only those", () => {
+    const week = [
+      day("Monday", true, "08:00", "23:00"),
+      day("Tuesday", true, "22:00", "21:30"),
+      day("Wednesday", true, "12:00", "12:00"),
+      day("Thursday", false, "23:00", "08:00"),
+      day("Friday", true, "18:00", "23:59"),
+    ];
+    expect(daysClosingBeforeOpening(week).map((d) => d.label)).toEqual(["Tuesday", "Wednesday"]);
+  });
+});
 
 describe("branchFor", () => {
   it("sends a shortlet operator to GOVERNING-11 and a hotel to GOVERNING-10", () => {

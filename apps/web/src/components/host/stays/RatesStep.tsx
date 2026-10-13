@@ -6,7 +6,7 @@ import { countOf, formatMoney } from "@vallo/i18n/core";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
 import { Switch } from "@/components/ui/Switch";
-import { addAccommodationDraft, addRatePlanDraft } from "@/lib/host/actions";
+import { addAccommodationDraft, addRatePlanDraft, syncPropertyRatesDraft } from "@/lib/host/actions";
 import { MEAL_PLANS, mealPlanLabel, noticeLabel } from "@/lib/host/stays-setup";
 import { StaysNote, StaysPlate, StaysRow, StaysTile, StaysTiles } from "./StaysParts";
 import type { StaysStepProps } from "./types";
@@ -54,6 +54,7 @@ export function RatesStep({
   run,
   setNotice,
   advance,
+  goTo,
 }: StaysStepProps) {
   const hw = useHostCopy();
   const cover = draft.accommodation?.photos[0]?.url ?? null;
@@ -65,20 +66,31 @@ export function RatesStep({
 
   const setPolicy = (id: string, said: string) =>
     run(
-      () =>
-        addAccommodationDraft({
-          name: draft.accommodation?.name ?? "",
+      async () => {
+        const saved = await addAccommodationDraft({
+          name: draft.accommodation?.name ?? draft.name,
           cancellationPolicyId: id,
-        }),
+        });
+        if (!saved.ok) return saved;
+        /* The note at the foot says the policy applies to every room. A
+           booking reads the policy on the RATE, so every rate is moved onto
+           the one just chosen, including any added before it was. */
+        return syncPropertyRatesDraft();
+      },
       () => setNotice({ tone: "ok", text: said }),
     );
 
   if (draft.roomTypes.length === 0) {
     return (
-      <StaysNote>
-        There is nothing to price yet. Add a room type on the previous screen and its rates appear
-        here.
-      </StaysNote>
+      <>
+        <StaysNote>
+          There is nothing to price yet. Add a room type on the previous screen and its rates appear
+          here.
+        </StaysNote>
+        <Button variant="primary" size="lg" full leadingIcon="arrow-left" onClick={() => goTo("room-types")}>
+          Add a room type
+        </Button>
+      </>
     );
   }
 

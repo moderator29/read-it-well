@@ -106,21 +106,27 @@ export function HotelStep({
         />
       </StaysPlate>
 
-      <StaysPlate label={hw.steps.rcNumber} htmlFor="stays-hotel-rc">
-        <input
-          id="stays-hotel-rc"
-          className="nf-field nf-field--glass nf-stays-input"
-          value={draft.cacNumber}
-          inputMode="text"
-          aria-invalid={fieldErrors.cacNumber ? true : undefined}
-          onChange={(event) => set("cacNumber", event.target.value)}
-        />
-        {fieldErrors.cacNumber ? (
-          <p className="nf-stays-plate__note" role="alert">
-            {fieldErrors.cacNumber}
-          </p>
-        ) : null}
-      </StaysPlate>
+      {/* ONLY A REGISTERED BUSINESS IS ASKED FOR ITS RC NUMBER. A guest house
+          or serviced apartments let in somebody's own name take these screens
+          too, have no registration step, and were being asked for a number
+          they do not have under a label that did not say it was optional. */}
+      {draft.hostType === "business" && (
+        <StaysPlate label={hw.steps.rcNumber} htmlFor="stays-hotel-rc">
+          <input
+            id="stays-hotel-rc"
+            className="nf-field nf-field--glass nf-stays-input"
+            value={draft.cacNumber}
+            inputMode="text"
+            aria-invalid={fieldErrors.cacNumber ? true : undefined}
+            onChange={(event) => set("cacNumber", event.target.value)}
+          />
+          {fieldErrors.cacNumber ? (
+            <p className="nf-stays-plate__note" role="alert">
+              {fieldErrors.cacNumber}
+            </p>
+          ) : null}
+        </StaysPlate>
+      )}
 
       <StaysPlate label={hw.steps.address}>
         <button
