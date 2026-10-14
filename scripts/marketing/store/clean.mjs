@@ -28,6 +28,7 @@ export const CLEAN = {
   /* the 14 October home, scrolled to a row: the labels under the translucent
      header are taken from the unscrolled home of the same pass */
   "n-home-premium": "n-home",
+  "n-home-new": "n-home",
 };
 
 const CACHE = join(MARKETING, "node_modules", ".cache", "store-displays");

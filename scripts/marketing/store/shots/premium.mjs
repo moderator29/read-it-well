@@ -1,6 +1,8 @@
 /**
  * The 35 store images, by DESIGN.md section 6a and the round-2 review
- * (30 September 2026), in the manner of X's App Store set:
+ * (30 September 2026), redrawn on 14 October 2026 against that afternoon's
+ * recapture of the live app (the n-, f- and sc- captures the October films
+ * use), in the manner of X's App Store set:
  *
  *   - one night ground for every image, a vertical gradient from #050B3D
  *     (the top row) to #010118 (the last), drawn by compose.mjs;
@@ -11,18 +13,18 @@
  *     the capture laid on flat (the app's dark theme).
  *
  * Nothing else is drawn, except on two images, each with one card that has
- * just arrived: "Room booked" (5) and "Payment settled" (18). Both follow one
+ * just arrived: "Room booked" (4) and "Payment settled" (13). Both follow one
  * rule: the card overhangs one edge of the phone by 70 to 90 px, never sits
  * on a button or words (it covers the app's header whole, as a notification
  * does), carries the Example chip, and sets any amount in white.
  *
- * Two pairs share one big tilted phone across their seam, as X's "Be the
- * first to know" does: 4 and 5 (stays) and 10 and 11 (restaurants).
+ * One pair shares one big tilted phone across its seam, as X's "Be the
+ * first to know" does: 4 and 5, the stays home.
  *
  * Order: the first three, then a pair in the first swipe; never more than
  * two screens without a photograph or artwork in a row; screens that look
- * alike at store size (the two onboarding slides, the two filter sheets, the
- * two searches, the two move-in pages) far apart.
+ * alike at store size (the three home rows, the two searches, the two stay
+ * pages, the two cost pages) far apart.
  */
 import { headline, popup } from "../components.mjs";
 import { brandUrl } from "../lib.mjs";
@@ -112,8 +114,10 @@ const HEADER = { top: 186, bottom: 365, bell: { x: 1204, y: 275, r: 66 }, menu: 
    the studio's white display), the header's menu glyph, and host-start's title. */
 const CAMERA = { island: [472, 34, 848, 145], android: [632, 20, 688, 75] };
 const MENU = [77, 256, 126, 295];
-/* host-start, scrolled to the page's foot: its title "Add a workspace" starts at display y 412 */
-const TITLE = [48, 412, 830, 600];
+/* f-host-start (14 October), from the top: the back button and the step bar sit at display
+   y 490 to 660, and the title "Add a workspace" runs from 727 to 976 */
+const BACK = [30, 490, 400, 660];
+const TITLE = [48, 727, 830, 976];
 /** A display box mapped onto the page through a placed phone's `at()`, less `dx`. */
 function pageBox(at, [x0, y0, x1, y1], label, dx = 0) {
   const pts = [[x0, y0], [x1, y0], [x1, y1], [x0, y1]].map(([x, y]) => at(x, y));
@@ -165,7 +169,7 @@ export const SHOTS = [
   std(1, "find-your-next-home-in-nigeria", "n-home", ["Find your next home", "in Nigeria"]),
   /* 2: the listing itself, whose move-in total sits under the photograph. */
   std(2, "the-move-in-total-before-you-call", "n-listing", ["The move-in total,", "before you call"]),
-  std(3, "featured-listings-see-them-all", "n-home-featured", ["Featured listings,", "see them all"]),
+  std(3, "every-fee-added-up", "sc-listing-cost", ["Every fee,", "added up"]),
 
   /* 4 and 5, the one connected pair: the stays home across the seam, leaning
      right, slid so the seam passes clear of every word. The booking arrives
@@ -230,7 +234,7 @@ export const SHOTS = [
   std(8, "ask-the-ai-assistant-any-time-of-day", "sc-assistant-start", ["Ask the AI assistant", "any time of day"]),
   std(9, "save-favourites-compare-later", "sc-saved", ["Save favourites,", "compare later"]),
   std(10, "find-a-restaurant-you-love", "sc-restaurant", ["Find a restaurant", "you love"]),
-  std(11, "every-fee-added-up", "sc-listing-cost", ["Every fee,", "added up"]),
+  std(11, "featured-homes-see-them-all", "n-home-featured", ["Featured homes,", "see them all"]),
   std(12, "each-verified-mark-checked-by-a-person", "sc-verification", ["Each verified mark,", "checked by a person"]),
 
   /* 13: the host's side. The payout arrives over the app's header, covering
@@ -244,14 +248,14 @@ export const SHOTS = [
       const cam = pageBox(p.at, CAMERA[ctx.model], "the camera");
       const clock = pageBox(p.at, [40, 60, 300, 130], "the clock");
       const icons = pageBox(p.at, [1000, 60, 1290, 130], "the status icons");
+      const back = pageBox(p.at, BACK, "the back button");
       const title = pageBox(p.at, TITLE, "the page title");
-      ctx.cardCheck = { avoid: [cam, clock, icons, title, pageBox(p.at, [1138, 209, 1270, 341], "the bell")] };
-      /* The page is scrolled to its foot, so its title sits right under the header: the
-         card takes the band between the camera (or the clock) and the title, 22 px clear
-         of each, at the set's card size or smaller if the band is shorter (a two-line card
-         is 152.5 px tall per unit of scale). */
+      ctx.cardCheck = { avoid: [cam, clock, icons, back, title, pageBox(p.at, [1138, 209, 1270, 341], "the bell")] };
+      /* The card takes the band between the camera (or the clock) and the back button,
+         22 px clear of each, at the set's card size or smaller if the band is shorter (a
+         two-line card is 152.5 px tall per unit of scale). */
       const top = Math.max(cam.b + 22, clock.b + 24);
-      const scale = Math.min(m.card, (title.y - 22 - top) / 152.5);
+      const scale = Math.min(m.card, (back.y - 22 - top) / 152.5);
       ctx.cardScale = scale;
       if (process.env.STORE_DEBUG) console.log(`  13 card: top ${top.toFixed(0)}, scale ${scale.toFixed(3)} (set size ${m.card.toFixed(3)})`);
       return popup({ x: left, fit: true, y: top, lucide: "landmark", title: "Payment settled", line: "Straight to your bank", meta: null, example: true, scale });
@@ -273,7 +277,7 @@ export const SHOTS = [
   std(24, "rooms-amenities-all-laid-out", "n-stay", ["Rooms, amenities,", "all laid out"]),
   std(25, "the-guest-pays-the-price-you-set", "f-host-bookings", ["The guest pays", "the price you set"]),
   std(26, "earn-the-verified-mark", "f-agent-dashboard", ["Earn the", "verified mark"]),
-  std(27, "rentals-houses-and-villas", "n-home-space", ["Rentals, houses", "and villas"]),
+  std(27, "new-listings-as-they-arrive", "n-home-new", ["New listings,", "as they arrive"]),
   std(28, "your-calendar-night-by-night", "f-host-calendar", ["Your calendar,", "night by night"]),
   std(29, "restaurants-all-in-one-place", "sc-restaurants", ["Restaurants,", "all in one place"]),
   std(30, "paste-the-message-you-already-send", "f-agent-listing-edit", ["Paste the message", "you already send"]),
