@@ -466,6 +466,72 @@ export function lift(ctx, H, { id, crop, t0, t1, to, exit = "fade", fly = 0.7, z
   return card;
 }
 
+/**
+ * A part held up off the DESKTOP page, the way `lift` holds one off the
+ * phone. The crop is in the capture's own CSS pixels (the desktop pages are
+ * 1440 x 900, captured at 2x), and it leaves from the point on the window
+ * where that thing sits, so it reads as the page's own content coming
+ * forward. Mounted in the same frame, for the same reason.
+ */
+export function windowLift(ctx, W, { id, crop, t0, t1, to, exit = "fade", fly = 0.7, z = 720, radius = 18, seed = 1, sound = "pop", label = null, framed = true, fade = true, scrolled = 0 }) {
+  const root = ctx.scene(`wlift-${id}-${t0.toFixed(2)}`, t0 - 0.01, t1 + 0.8, { z });
+  const S = to.s;
+  const w = crop.w * S, h = crop.h * S;
+  const pad = framed ? Math.max(13, w * 0.032) : 0;
+  const card = ctx.el("div", {
+    class: "abs",
+    attrs: { "data-furn": "1" },
+    style: {
+      left: "0px", top: "0px", width: `${w + pad * 2}px`, padding: `${pad}px`, boxSizing: "border-box",
+      borderRadius: `${radius * S + pad}px`,
+      background: framed ? "linear-gradient(170deg, rgb(17 27 78 / 0.97), rgb(7 13 46 / 0.97))" : "#0b0f2a",
+      border: framed ? "1.5px solid rgb(120 170 255 / 0.30)" : "none",
+      boxShadow: "0 44px 86px -26px rgb(0 0 20 / 0.84), 0 12px 28px -12px rgb(0 0 40 / 0.55), inset 0 1px 0 rgb(255 255 255 / 0.06)",
+    },
+  }, root);
+  if (label) {
+    ctx.el("div", {
+      text: label,
+      style: { margin: `${pad * 0.12}px 0 ${pad * 0.72}px ${pad * 0.5}px`, font: `600 ${Math.max(15, w * 0.034).toFixed(0)}px/1 Inter, sans-serif`, letterSpacing: "0.01em", color: "rgb(173 203 255 / 0.9)", whiteSpace: "nowrap" },
+    }, card);
+  }
+  const clip = ctx.el("div", { style: { position: "relative", width: `${w}px`, height: `${h}px`, borderRadius: `${radius * S}px`, overflow: "hidden", background: "#060b24", boxShadow: "inset 0 0 0 1px rgb(143 211 255 / 0.14)" } }, card);
+  ctx.img(ctx.src.capture(id), { style: { position: "absolute", left: `${-crop.x * S}px`, top: `${-crop.y * S}px`, width: `${1440 * S}px`, height: "auto", maxWidth: "none" } }, clip);
+  if (framed && fade && h > 150) {
+    const band = Math.min(34, h * 0.11);
+    ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${w}px`, height: `${band}px`, background: "linear-gradient(180deg, rgb(10 17 58 / 0.92), transparent)", pointerEvents: "none" } }, clip);
+    ctx.el("div", { class: "abs", style: { left: "0px", top: `${h - band}px`, width: `${w}px`, height: `${band}px`, background: "linear-gradient(0deg, rgb(10 17 58 / 0.92), transparent)", pointerEvents: "none" } }, clip);
+  }
+  const sheen = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${w * 0.6}px`, height: `${h * 3}px`, transform: "rotate(20deg)", background: "linear-gradient(90deg, transparent, rgb(255 255 255 / 0.22) 50%, transparent)", pointerEvents: "none" } }, clip);
+  const from = W.toStage(t0, crop.x + crop.w / 2, crop.y + crop.h / 2 - scrolled);
+  const back = exit === "back" ? W.toStage(t1, crop.x + crop.w / 2, crop.y + crop.h / 2 - scrolled) : null;
+  const phase = ctx.random(seed)() * Math.PI * 2;
+  const fromS = W.at(t0).s;
+  card.style.visibility = "hidden";
+  (ctx.__holds ??= []).push([t0 + 0.3, t1]);
+  ctx.onFrame((t) => {
+    if (t < t0 || t >= t1 + 0.8) { card.style.visibility = "hidden"; return; }
+    const u = ramp(ctx, t, t0, t0 + fly, "glide");
+    const v = ramp(ctx, t, t1, t1 + 0.6, exit === "back" ? "glide" : "power2.in");
+    const float = Math.sin((t - t0) * 2.1 + phase) * 7 * u;
+    let x = mix(from.x, to.x, u), y = mix(from.y, to.y, u) + float, s = mix(fromS / S, 1, u) * (1 + 0.035 * Math.sin(Math.PI * u));
+    let r = mix(0, to.r ?? 0, u) + Math.sin((t - t0) * 1.4 + phase) * 0.8 * u, o = 1;
+    if (v > 0) {
+      if (back) { x = mix(x, back.x, v); y = mix(y, back.y, v); s = mix(s, W.at(t1).s / S, v); r = mix(r, 0, v); o = v > 0.96 ? 0 : 1; }
+      else if (exit === "up") { y -= v * 420; o = 1 - v; }
+      else if (exit === "left") { x -= v * 700; o = 1 - v; }
+      else if (exit === "right") { x += v * 700; o = 1 - v; }
+      else { s *= 1 - 0.12 * v; o = 1 - v; }
+    }
+    place(card, { x, y, s, r, o });
+    const sp = ramp(ctx, t, t0 + fly * 0.6, t0 + fly + 0.6, "power2.inOut");
+    sheen.style.transform = `translate(${(-w * 0.7 + sp * w * 1.9).toFixed(1)}px, ${(-h).toFixed(1)}px) rotate(20deg)`;
+    sheen.style.opacity = opa(Math.sin(Math.PI * sp));
+  });
+  if (sound) ctx.sfx(sound, t0 + 0.05, { offset: -2 });
+  return card;
+}
+
 /* ------------------------------------------------------------------ words */
 
 /**
@@ -1302,7 +1368,7 @@ export function flowRail(ctx, parent, { steps, x, y, t0, t1, gap = 250, size = 4
  * copy repeated underneath competed with it. Install once, after the film is
  * built, so every part registered its window first.
  */
-export function installFocus(ctx, { strength = 0.44 } = {}) {
+export function installFocus(ctx, { strength = ctx.isMobile ? 0.44 : 0.28 } = {}) {
   const holds = ctx.__holds ?? [];
   if (!holds.length) return null;
   const root = ctx.scene("focus", 0, ctx.duration + 1, { z: 600 });
