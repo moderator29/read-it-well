@@ -85,8 +85,13 @@ export async function build(ctx) {
   /* the frame a chat shows before anyone presses play: composed at t = 0 */
   poster(ctx, open, { t1: s(1) - 0.15 });
   const big = M ? 104 : 112;
-  headline(ctx, open, { lines: [[["Finding a place", false]], [["in ", false], ["Nigeria", true]]], x: M ? 60 : 160, y: M ? 560 : 260, size: big, t0: s(1) - 0.05, t1: s(2) - 0.55, stagger: 0.03 });
-  headline(ctx, open, { lines: [[["shouldn't feel like", false]], [["a gamble.", true]]], x: M ? 60 : 160, y: M ? 560 + big * 2.25 : 260 + big * 2.25, size: big, t0: w(1, "shouldn't") - 0.05, t1: s(2) - 0.5, stagger: 0.03 });
+  /* EVERY LINE RISES AS ONE. A word whose rise has not begun is drawn where
+     it will land, so a staggered line was caught with its last word already
+     set while the first was still half out of its mask: "shouldn't feel li"
+     over a finished "gamble." The lines still arrive one after another, on
+     their own words; the words inside a line no longer do. */
+  headline(ctx, open, { lines: [[["Finding a place", false]], [["in ", false], ["Nigeria", true]]], x: M ? 60 : 160, y: M ? 560 : 260, size: big, t0: s(1) - 0.05, t1: s(2) - 0.55, stagger: 0 });
+  headline(ctx, open, { lines: [[["shouldn't feel like", false]], [["a gamble.", true]]], x: M ? 60 : 160, y: M ? 560 + big * 2.25 : 260 + big * 2.25, size: big, t0: w(1, "shouldn't") - 0.05, t1: s(2) - 0.5, stagger: 0 });
   await nigeriaMap3d(ctx, open, { x: M ? 150 : 1090, y: M ? 1120 : 250, w: M ? 790 : 700, t0: s(1) - 0.05, t1: s(2) - 0.4, tTrails: s(1) + 0.55, gap: 0.26, labels: true, cities: 6 });
   const die = ctx.sticker("1f3b2", M ? 210 : 190, open, { class: "abs", style: { left: "0px", top: "0px" } });
   during(ctx, 0, s(2) + 0.1, (t) => {
@@ -150,12 +155,15 @@ export async function build(ctx) {
   /* the pills used to sit at y 1600, on the caption and on the phone's own
      bottom bar. They ride the film's label band instead, clear of both. */
   kicker(ctx, one, { text: "Premium listings", icon: "gem", x: R.cx, y: M ? 1440 : 170, t0: w(3, "Homes") + 0.2, t1: w(3, "one") - 0.25, size: M ? 32 : 28, anchor: "center" });
-  chipRow(ctx, one, { items: [["One app", "smartphone"], ["One account", "user-round-check"]], x: R.cx, y: M ? 1440 : 170, t0: w(3, "one"), t1: s(4) - 0.2, size: M ? 34 : 30, anchor: "center" });
+  /* a row with no width of its own is laid out from its left edge to the
+     frame's, so these two pills wrapped and the second sat under the caption:
+     every row on the phone cut is given its width. */
+  chipRow(ctx, one, { items: [["One app", "smartphone"], ["One account", "user-round-check"]], x: R.cx, y: M ? 1440 : 170, t0: w(3, "one"), t1: s(4) - 0.2, size: M ? 34 : 30, wrapW: M ? 1000 : null, anchor: "center" });
 
   /* ===================== 4. How it works: search, filter, save, compare ===================== */
   listingWall(ctx, layer("wall1", s(4) - 0.5, w(6, "Filter") + 1.2, 3), { t0: s(4) - 0.4, t1: w(6, "Filter") + 0.3, rows: M ? 5 : 3, opacity: 0.52, seed: 11, y: M ? 260 : 60, stays: STAY_CARDS(ctx), stayRows: [1, 3] });
   const how = layer("how", s(4) - 0.1, s(5) + 0.5);
-  headline(ctx, how, { lines: [[["Here's how it ", false], ["works.", true]]], x: M ? R.cx : 1000, y: M ? R.top : 420, size: M ? 88 : 92, t0: s(4), t1: s(5) - 0.15, align: M ? "center" : "left", stagger: 0.03 });
+  headline(ctx, how, { lines: [[["Here's how it ", false], ["works.", true]]], x: M ? R.cx : 1000, y: M ? R.top : 420, size: M ? 88 : 92, t0: s(4), t1: s(5) - 0.15, align: M ? "center" : "left", stagger: 0 });
   ground(ctx, s(4) + 0.55, s(7) + 0.2, { tone: "navy", y: 15, seed: 13 });
   H.show("n-search2", s(5) - 0.3, w(6, "Filter") + 0.2, { enter: "slide", full: "n-search2-full", scroll: [[w(5, "Nigeria") - 0.3, 0], [w(6, "Filter") - 0.7, 2350, "power2.inOut"], [w(6, "Filter") - 0.2, 0, "power3.inOut"]] });
   H.show("sc-filters", w(6, "Filter") + 0.2, w(6, "save") - 0.1, { enter: "rise" });
@@ -181,7 +189,10 @@ export async function build(ctx) {
   H.tap(w(6, "love") - 0.1, 1150, 1250);
   ringBurst(ctx, layer("love", w(6, "love") - 0.2, w(6, "love") + 1.6, 870), { ...(() => { const p = H.toStage(w(6, "love"), 1150, 1250); return { cx: p.x, cy: p.y }; })(), r: 70, t: w(6, "love") - 0.05, dots: 12, seed: 9, dur: 0.5 });
   H.tap(w(6, "compare") + 0.2, 230, 975);
-  kicker(ctx, layer("fomo1", w(6, "save") - 0.2, w(6, "side")), { text: "Save it before it's gone", icon: "heart", x: R.cx, y: M ? 1440 : 860, t0: w(6, "save") - 0.1, t1: w(6, "side") - 0.3, size: M ? 34 : 30, anchor: "center" });
+  /* the pill waits for the filter parts to clear the label band: it used to
+     open while the lowest of them was still on its way out, half a pill deep
+     into it. It lands on "the ones you love" instead. */
+  kicker(ctx, layer("fomo1", w(6, "save") - 0.2, w(6, "side")), { text: "Save it before it's gone", icon: "heart", x: R.cx, y: M ? 1440 : 860, t0: w(6, "save") + (M ? 0.45 : -0.1), t1: w(6, "side") - 0.3, size: M ? 34 : 30, anchor: "center" });
   /* THE TWO SAVED PLACES, EACH OVER ITS OWN ROW. Side by side, the two parts
      ran 20px off the left and right edges and their corners crossed, and each
      one hung above an identical row still readable on the phone. Stacked at
@@ -249,10 +260,10 @@ export async function build(ctx) {
   H.tap(w(12, "message") - 0.2, 500, 2775);
   lift(ctx, H, { id: "sc-thread", crop: { x: 110, y: 2225, w: 1110, h: 130 }, t0: w(12, "message") + 0.1, t1: w(12, "call") - 0.4, to: { x: R.cx, y: M ? 540 : 330, s: M ? 0.78 : 0.62, r: -2 }, seed: 31 });
   H.tap(w(12, "call") + 0.15, 1055, 275);
-  chipRow(ctx, talk, { items: [["Voice call", "phone"], ["Video call", "video"]], x: R.cx, y: M ? 1430 : 840, t0: w(12, "voice"), gap: 0.35, t1: w(12, "viewing") - 0.3, size: M ? 34 : 30, anchor: "center" });
+  chipRow(ctx, talk, { items: [["Voice call", "phone"], ["Video call", "video"]], x: R.cx, y: M ? 1430 : 840, t0: w(12, "voice"), gap: 0.35, t1: w(12, "viewing") - 0.3, size: M ? 34 : 30, wrapW: M ? 1000 : null, anchor: "center" });
   H.tap(w(12, "viewing") + 0.1, 330, 850);
   momentCard(ctx, talk, { cap: "Saturday", big: "11:00 AM", check: "Inspection set", x: M ? 330 : 1310, y: M ? 620 : 430, w: M ? 540 : 470, t0: w(12, "viewing") + 0.25, t1: s(13) + 0.6, rot: -3, size: M ? 42 : 36, from: "left", seed: 32 });
-  chipRow(ctx, talk, { items: [["In person", "footprints"], ["By video", "video"]], x: R.cx, y: M ? 1430 : 840, t0: w(12, "person"), gap: 0.5, t1: s(13) + 0.2, size: M ? 34 : 30, anchor: "center" });
+  chipRow(ctx, talk, { items: [["In person", "footprints"], ["By video", "video"]], x: R.cx, y: M ? 1430 : 840, t0: w(12, "person"), gap: 0.5, t1: s(13) + 0.2, size: M ? 34 : 30, wrapW: M ? 1000 : null, anchor: "center" });
   const free = layer("free", s(13) - 0.1, s(14) + 0.1);
   /* the phone is at HOME for this one, so the top slot is its status bar and
      island: the chip sat squarely on the clock. It takes the label band, and
@@ -281,7 +292,7 @@ export async function build(ctx) {
   H.show("sc-listing-cost", s(15) - 0.2, s(18) + 0.3, { enter: "fade", dur: 0.3 });
   H.tap(w(16, "Pay") - 0.05, 200, 2720);
   const prot = layer("prot", s(15) - 0.1, s(18) + 0.1);
-  headline(ctx, prot, { lines: [[["Ready to ", false], ["move in?", true]]], x: M ? R.cx : HX, y: M ? R.top : 200, size: M ? 84 : 80, t0: s(15), t1: s(16) + 0.4, align: M ? "center" : "left", stagger: 0.03 });
+  headline(ctx, prot, { lines: [[["Ready to ", false], ["move in?", true]]], x: M ? R.cx : HX, y: M ? R.top : 200, size: M ? 84 : 80, t0: s(15), t1: s(16) + 0.4, align: M ? "center" : "left", stagger: 0 });
   featureCard(ctx, prot, { icon: "shield-check", title: "Protected payment", line: "Held in escrow by our licensed provider. Released when the deal is done.", x: M ? 540 : 1000, y: M ? 1300 : 420, w: M ? 900 : 760, t0: w(16, "Protected") - 0.1, t1: s(18) - 0.25, size: M ? 38 : 34, anchor: M ? "center" : "left" });
   /* the card below already says who holds the money and when it is released,
      and the caption says it a third time. The pill carries the other half of
@@ -331,7 +342,7 @@ export async function build(ctx) {
   /* the phone is at HOME here, so a line at y 410 lay across its status bar
      and island: the headline takes the band above the phone and the chapter
      pill waits until it has gone. */
-  headline(ctx, table, { lines: [[["Going out ", false], ["tonight?", true]]], x: M ? R.cx : HX, y: M ? 185 : 220, size: M ? 84 : 80, t0: s(20), t1: s(21) + 0.8, align: M ? "center" : "left", stagger: 0.03 });
+  headline(ctx, table, { lines: [[["Going out ", false], ["tonight?", true]]], x: M ? R.cx : HX, y: M ? 185 : 220, size: M ? 84 : 80, t0: s(20), t1: s(21) + 0.8, align: M ? "center" : "left", stagger: 0 });
   if (M) ctx.hidePill(s(20) - 0.15, s(21) + 1.3);
   /* the reservation row, held over the row it was lifted from: at y 600 it
      floated directly above its own twin, still readable on the screen. */
@@ -346,7 +357,7 @@ export async function build(ctx) {
   /* the line used to run across the phone's clock and island, and the pill
      over it said "Your wallet" at the same moment. The line takes the band
      above the phone and the pill waits its turn. */
-  headline(ctx, wal, { lines: [[["Your Vallo ", false], ["wallet", true]]], x: M ? R.cx : HX, y: M ? 185 : 210, size: M ? 84 : 80, t0: w(22, "wallet") - 0.3, t1: s(23) - 0.2, align: M ? "center" : "left", stagger: 0.03 });
+  headline(ctx, wal, { lines: [[["Your Vallo ", false], ["wallet", true]]], x: M ? R.cx : HX, y: M ? 185 : 210, size: M ? 84 : 80, t0: w(22, "wallet") - 0.3, t1: s(23) - 0.2, align: M ? "center" : "left", stagger: 0 });
   if (M) ctx.hidePill(w(22, "wallet") - 0.45, s(23) + 0.25);
   H.tap(w(23, "Add") - 0.3, 1188, 2508);
   lift(ctx, H, { id: "n-wallet", crop: { x: 45, y: 2410, w: 1230, h: 300 }, t0: w(23, "Add") - 0.05, t1: s(24) - 0.25, to: { x: R.cx, y: M ? 720 : 330, s: RS, r: -2 }, seed: 50 });
@@ -368,7 +379,7 @@ export async function build(ctx) {
       { lines: [[["in escrow,", false]]], t0: w(24, "escrow") - 0.45 },
       { lines: [[["in every payment,", false]]], t0: w(24, "payment") - 0.9 },
     ];
-    EVERY.forEach(({ lines, t0 }, i) => headline(ctx, naira, { lines, x: 60, y: [500, 730, 960, 1190][i], size, t0, t1: w(24, "held") - 0.8, stagger: 0.03 }));
+    EVERY.forEach(({ lines, t0 }, i) => headline(ctx, naira, { lines, x: 60, y: [500, 730, 960, 1190][i], size, t0, t1: w(24, "held") - 0.8, stagger: 0 }));
   } else {
     headline(ctx, naira, { lines: [[["Every ", false], ["naira,", true]], [["in your wallet,", false]], [["in escrow,", false]], [["in every payment,", false]]], x: 200, y: 150, size, t0: s(24), t1: w(24, "held") - 0.3, stagger: 0.045 });
   }
@@ -382,10 +393,10 @@ export async function build(ctx) {
   ground(ctx, DAY0, DAY1, { tone: "day", y: 40, seed: 34, sparkle: 0, z: 2 });
   ctx.hidePill(DAY0 - 0.1, DAY1 + 0.1);
   const INKC = "#0b1230";
-  headline(ctx, naira, { lines: [[["held by our", false]], [["licensed provider.", true]]], x: M ? 70 : ctx.W / 2, y: M ? 300 : 150, size: size * (M ? 0.95 : 0.9), t0: w(24, "held") - 0.1, t1: s(25) - 0.2, stagger: 0.035, color: INKC, key: "#0069fe", sheen: false, align: M ? "left" : "center" });
+  headline(ctx, naira, { lines: [[["held by our", false]], [["licensed provider.", true]]], x: M ? 70 : ctx.W / 2, y: M ? 300 : 150, size: size * (M ? 0.95 : 0.9), t0: w(24, "held") - 0.1, t1: s(25) - 0.2, stagger: 0, color: INKC, key: "#0069fe", sheen: false, align: M ? "left" : "center" });
   /* the ink type and the rail are off the frame before the white goes: left a
      moment longer they turned dark blue on dark navy as the day faded. */
-  headline(ctx, naira, { lines: [[["Never by ", false], ["Vallo.", true]]], x: ctx.W / 2, y: M ? 560 : 320, size: size * (M ? 1.2 : 1.05), t0: s(25) - 0.05, t1: s(26) - 0.55, align: "center", stagger: 0.035, color: INKC, key: "#0069fe", sheen: false });
+  headline(ctx, naira, { lines: [[["Never by ", false], ["Vallo.", true]]], x: ctx.W / 2, y: M ? 560 : 320, size: size * (M ? 1.2 : 1.05), t0: s(25) - 0.05, t1: s(26) - 0.55, align: "center", stagger: 0, color: INKC, key: "#0069fe", sheen: false });
   flowRail(ctx, naira, {
     steps: ["Your card", "Our licensed provider", "The owner's bank"],
     x: M ? 170 : 660, y: M ? 880 : 470, gap: M ? 255 : 192, size: M ? 46 : 38,
