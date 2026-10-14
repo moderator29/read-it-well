@@ -177,14 +177,18 @@ export async function build(ctx) {
   listingWall(ctx, layer("hostwall", s(9) - 0.4, w(10, "wizard") + 0.6, 3), { t0: s(9) - 0.3, t1: w(10, "wizard"), rows: M ? 5 : 3, opacity: 0.5, seed: 22, y: M ? 260 : 60, stays: STAY_CARDS(ctx), stayRows: [0, 1, 2, 3, 4] });
   headline(ctx, desk, { lines: [[["Hosts get a ", false], ["full desk.", true]]], x: M ? R.cx : HX, y: M ? R.top : 200, size: M ? 84 : 80, t0: s(9), t1: s(10) - 0.2, align: M ? "center" : "left" });
   H.show("f-host-home", s(9) - 0.2, w(10, "wizard") - 0.2, { enter: "slide" });
-  H.show("f-host-rooms", w(10, "wizard") - 0.2, w(10, "calendar") - 0.3, { enter: "slide" });
-  H.show("f-host-calendar", w(10, "calendar") - 0.3, w(10, "bookings") - 0.2, { enter: "slide" });
+  /* the rooms screen is gone before the calendar slides on: the two used to
+     overlap, and the phone carried two status bars at once */
+  H.show("f-host-rooms", w(10, "wizard") - 0.2, w(10, "calendar") - 0.75, { enter: "slide" });
+  H.show("f-host-calendar", w(10, "calendar") - 0.05, w(10, "bookings") - 0.2, { enter: "slide", dur: 0.35 });
   H.show("f-host-bookings", w(10, "bookings") - 0.2, w(10, "earnings") - 0.2, { enter: "slide" });
   H.show("f-host-settings", w(10, "earnings") - 0.2, s(11) - 0.1, { enter: "slide" });
   H.tap(w(10, "wizard") - 0.35, 1033, 430);
   lift(ctx, H, { id: "f-host-rooms", crop: { x: 40, y: 1610, w: 1240, h: 400 }, t0: w(10, "rooms") - 0.05, t1: w(10, "calendar") - 0.2, to: { x: R.cx, y: M ? 700 : 430, s: RS, r: -2 }, seed: 8 });
   H.tap(w(10, "calendar") - 0.4, 1270, 430);
-  lift(ctx, H, { id: "f-host-calendar", crop: { x: 40, y: 1350, w: 1240, h: 200 }, t0: w(10, "night") - 0.3, t1: w(10, "bookings") - 0.2, to: { ...ROW(0), s: RS, r: -2 }, seed: 9 });
+  /* labelled, and off the row it came from: on desktop it sat straight over the
+     same rate row in the window beneath it */
+  lift(ctx, H, { id: "f-host-calendar", crop: { x: 40, y: 1350, w: 1240, h: 200 }, label: "Rates", t0: w(10, "night") - 0.3, t1: w(10, "bookings") - 0.2, to: M ? { ...ROW(0), s: RS, r: -2 } : { x: 1480, y: 175, s: RS * 0.8, r: -2 }, seed: 9 });
   lift(ctx, H, { id: "f-host-bookings", crop: { x: 40, y: 1425, w: 1240, h: 840 }, t0: w(10, "bookings") + 0.1, t1: w(10, "earnings") - 0.2, to: { x: R.cx, y: M ? 780 : 480, s: RS * 0.7, r: 2 }, seed: 10 });
   chipRow(ctx, desk, { items: [["Bookings", "calendar-check"], ["Reservations", "utensils"], ["Earnings", "wallet"]], x: R.cx, y: CHIPS_Y, t0: w(10, "bookings"), gap: (w(10, "earnings") - w(10, "bookings")) / 2, t1: w(10, "cancellation") - 0.3, size: M ? 32 : 28, anchor: "center" });
   lift(ctx, H, { id: "f-host-settings", crop: { x: 40, y: 1100, w: 1240, h: 680 }, t0: w(10, "place") - 0.3, t1: s(11) - 0.2, to: { ...ROW(0), y: M ? 560 : 330, s: RS * 0.85, r: -2 }, seed: 11 });
@@ -254,7 +258,17 @@ export async function build(ctx) {
   ground(ctx, s(16) - 0.05, s(17) + 0.3, { tone: "electric", y: 25, seed: 40 });
   H.show("f-passport", s(16) - 0.2, s(17) + 0.2, { enter: "rise" });
   const pass = layer("passport", s(16) - 0.1, s(17));
-  lift(ctx, H, { id: "f-passport", crop: { x: 40, y: 1240, w: 1240, h: 1080 }, t0: w(16, "verified") - 0.1, t1: s(17) - 0.2, to: { x: R.cx, y: M ? 760 : 470, s: M ? 0.58 : 0.5, r: -3 }, seed: 15 });
+  /* the passport, said in words: the lifted crop was the same card the phone
+     already shows, dead centre over it, and its last row came out half cut */
+  listCard(ctx, pass, {
+    title: "What your passport carries",
+    items: [
+      ["Your verified details", "Your name, your role and when you joined, in one card."],
+      ["You choose who sees it", "You decide who you show it to, and when."],
+      ["Faster every time", "Applying for your next place does not start from nothing."],
+    ],
+    x: M ? 630 : 1330, y: M ? 1040 : 470, w: M ? 820 : 720, t0: w(16, "verified") - 0.1, t1: s(17) - 0.2, rot: -2, size: M ? 34 : 30, seed: 15, stagger: 0.22,
+  });
   chipRow(ctx, pass, { items: [["Applying is faster", "zap"], ["You choose who sees it", "eye"]], x: R.cx, y: CHIPS_Y, t0: w(16, "faster") - 0.2, gap: w(16, "choose") - w(16, "faster"), t1: s(17) - 0.2, size: M ? 30 : 28, anchor: "center", wrapW: M ? 980 : 860 });
 
   /* ===================== 11. Tenancy file, agreements, rent ===================== */
@@ -366,11 +380,20 @@ export async function build(ctx) {
   H.show("f-rewards-withdraw", w(36, "withdraw") - 0.3, s(38) + 0.3, { enter: "slide" });
   kicker(ctx, rw, { text: "Share your invite link", icon: "link", x: R.cx, y: M ? 290 : 190, t0: w(33, "invite") - 0.3, t1: w(34, "earn") - 0.4, size: M ? 34 : 30, anchor: "center" });
   ctx.sfx("bubble_send", w(33, "link"), { offset: -3 });
-  lift(ctx, H, { id: "f-rewards-how", crop: { x: 150, y: 1090, w: 1020, h: 410 }, t0: w(34, "verified") - 0.1, t1: s(35) + 0.8, to: { x: R.cx, y: M ? 700 : 430, s: M ? 0.78 : 0.62, r: -3 }, seed: 25 });
+  lift(ctx, H, { id: "f-rewards-how", crop: { x: 150, y: 1090, w: 1020, h: 410 }, label: "What a referral pays", t0: w(34, "verified") - 0.1, t1: s(35) + 0.8, to: { x: R.cx, y: M ? 700 : 430, s: M ? 0.78 : 0.62, r: -3 }, seed: 25 });
   numberCard(ctx, rw, { value: 80, label: "for each friend who joins and gets verified", x: R.cx, y: CHIPS_Y - (M ? 180 : 140), t0: w(34, "earn") - 0.05, t1: w(34, "earn") + 0.6, tOut: s(35) + 1.0, size: M ? 110 : 96 });
   kicker(ctx, rw, { text: "Ready after 7 days", icon: "clock", x: R.cx, y: M ? 290 : 190, t0: w(35, "seven") - 0.1, t1: s(36) - 0.1, size: M ? 34 : 30, anchor: "center" });
   numberCard(ctx, rw, { value: 1000, label: "withdraw it straight to your bank", x: R.cx, y: M ? R.top - 30 : 170, t0: w(36, "thousand") - 0.1, t1: w(36, "thousand") + 0.6, tOut: s(37) - 0.2, size: M ? 96 : 88 });
-  lift(ctx, H, { id: "f-rewards-withdraw", crop: { x: 40, y: 1240, w: 1240, h: 520 }, t0: w(36, "bank") - 0.2, t1: s(37) - 0.2, to: { x: R.cx, y: M ? 1150 : 650, s: RS * 0.85, r: 2 }, seed: 26 });
+  /* the withdrawal rule in words: the lift of this screen was a hard-edged
+     slice of the very message the phone was already showing */
+  listCard(ctx, rw, {
+    title: "Withdrawing your rewards",
+    items: [
+      ["₦1,000 to withdraw", "You can withdraw once your rewards balance reaches ₦1,000."],
+      ["Straight to your bank", "From your rewards balance to your own bank account."],
+    ],
+    x: R.cx, y: M ? 1120 : 640, w: M ? 860 : 720, t0: w(36, "withdraw") - 0.3, t1: s(37) - 0.15, rot: 2, size: M ? 34 : 30, seed: 26, stagger: 0.16,
+  });
   chipRow(ctx, rw, { items: [["Invite", "send"], ["They join", "user-plus"], ["You earn", "coins"]], x: R.cx, y: CHIPS_Y, t0: s(37), gap: 0.35, t1: s(38) - 0.3, size: M ? 34 : 30, anchor: "center" });
   ringBurst(ctx, rw, { cx: R.cx, cy: M ? 900 : 540, r: M ? 360 : 300, t: w(37, "earn", 1) + 0.1, seed: 48 });
 
@@ -389,7 +412,8 @@ export async function build(ctx) {
   const photos = [
     { id: "sc-listing", crop: { x: 60, y: 300, w: 1180, h: 770 }, word: "home", x: M ? 300 : 520, y: M ? 600 : 420, r: -6 },
     { id: "f-stay-checkout", crop: { x: 0, y: 200, w: 1320, h: 860 }, word: "room", x: M ? 780 : 960, y: M ? 820 : 470, r: 4 },
-    { id: "sc-restaurant", crop: { x: 0, y: 200, w: 1320, h: 860 }, word: "table", x: M ? 360 : 1400, y: M ? 1080 : 420, r: -3 },
+    /* lower on this screen: the old crop carried the empty photo state over the picture */
+    { id: "sc-restaurant", crop: { x: 0, y: 730, w: 1320, h: 890 }, word: "table", x: M ? 360 : 1400, y: M ? 1080 : 420, r: -3 },
   ];
   photos.forEach((p, i) => {
     const t0 = w(40, p.word) - 0.1;
