@@ -391,6 +391,41 @@
     "theme": "light",
     "signedIn": true
   },
+  "d-n-home": {
+    "url": "/home",
+    "at": "2026-10-14T12:56:46.780Z",
+    "kind": "desktop",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "d-n-home-featured": {
+    "url": "/home",
+    "at": "2026-10-14T13:06:54.796Z",
+    "kind": "desktop",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "d-n-home-premium": {
+    "url": "/home",
+    "at": "2026-10-14T13:04:27.525Z",
+    "kind": "desktop",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "d-n-search": {
+    "url": "/search?market=rent&lat=6.5205&lng=5.4404&z=7",
+    "at": "2026-10-14T12:59:04.970Z",
+    "kind": "desktop",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "d-n-stays-dates": {
+    "url": "/stays/search?in=2026-10-16&out=2026-10-19&guests=2",
+    "at": "2026-10-14T12:58:48.221Z",
+    "kind": "desktop",
+    "theme": "dark",
+    "signedIn": true
+  },
   "d-notifications": {
     "url": "/notifications",
     "at": "2026-09-30T15:26:28.361Z",
@@ -1164,6 +1199,107 @@
     "kind": "mobile",
     "theme": "light",
     "signedIn": true
+  },
+  "n-home": {
+    "url": "/home",
+    "at": "2026-10-14T12:56:00.230Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "n-home-best": {
+    "url": "/home",
+    "at": "2026-10-14T13:03:04.298Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "n-home-featured": {
+    "url": "/home",
+    "at": "2026-10-14T13:06:18.121Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "n-home-new": {
+    "url": "/home",
+    "at": "2026-10-14T13:03:24.578Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "n-home-premium": {
+    "url": "/home",
+    "at": "2026-10-14T13:02:15.323Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "n-home-space": {
+    "url": "/home",
+    "at": "2026-10-14T13:03:46.714Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "n-search": {
+    "url": "/search?market=rent",
+    "at": "2026-10-14T12:59:40.734Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "n-stays": {
+    "url": "/stays",
+    "at": "2026-10-14T12:58:34.241Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "n-stays-dates": {
+    "url": "/stays/search?in=2026-10-16&out=2026-10-19&guests=2",
+    "at": "2026-10-14T12:58:23.821Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "n-wallet": {
+    "url": "/wallet",
+    "at": "2026-10-14T12:59:51.025Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "n-welcome-en": {
+    "url": "/welcome",
+    "at": "2026-10-14T13:00:21.623Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": false
+  },
+  "n-welcome-ha": {
+    "url": "/welcome",
+    "at": "2026-10-14T13:00:51.237Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": false,
+    "locale": "ha"
+  },
+  "n-welcome-ig": {
+    "url": "/welcome",
+    "at": "2026-10-14T13:01:02.765Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": false,
+    "locale": "ig"
+  },
+  "n-welcome-yo": {
+    "url": "/welcome",
+    "at": "2026-10-14T13:00:40.514Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": false,
+    "locale": "yo"
   },
   "notifications": {
     "url": "/notifications",
