@@ -104,6 +104,21 @@ export function ground(ctx, t0, t1, { tone = "navy", x = 50, y = 18, seed = 3, s
     const dy = (y - 50) / 100 * ctx.H + Math.cos((t + ph) * 0.19) * ctx.H * 0.03;
     glowEl.style.transform = `translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px)`;
   });
+  /* drifting soft lights (radial gradients, no blur filter) */
+  const lights = [];
+  for (let i = 0; i < 7; i += 1) {
+    const size = (ctx.isMobile ? 160 : 140) + rand() * 260;
+    const hue = rand() < 0.6 ? "143 211 255" : rand() < 0.5 ? "0 105 254" : "255 178 122";
+    const el = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${size}px`, height: `${size}px`, borderRadius: "50%", background: `radial-gradient(closest-side, rgb(${hue} / ${(0.10 + rand() * 0.12).toFixed(3)}), transparent)` } }, root);
+    lights.push({ el, x: rand() * ctx.W, y: rand() * ctx.H, vx: (rand() - 0.5) * 26, vy: -8 - rand() * 18, size, ph: rand() * 6 });
+  }
+  during(ctx, t0, t1, (t) => {
+    for (const l of lights) {
+      const x = ((l.x + l.vx * t) % (ctx.W + l.size) + ctx.W + l.size) % (ctx.W + l.size) - l.size / 2;
+      const y = ((l.y + l.vy * t) % (ctx.H + l.size) + ctx.H + l.size) % (ctx.H + l.size) - l.size / 2;
+      l.el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) scale(${(0.9 + 0.1 * Math.sin(t * 0.7 + l.ph)).toFixed(4)})`;
+    }
+  });
   if (sparkle) sparkles(ctx, root, { area: { x: 30, y: ctx.isMobile ? 380 : 110, w: ctx.W - 60, h: ctx.isMobile ? 1100 : 780 }, count: sparkle, seed, t0, t1, min: 14, max: 30 });
   void base; void low;
   return root;
@@ -136,9 +151,24 @@ export async function hero(ctx, { model = "island", env = "dark", edge = "#040a2
   const keys = [];
   let poseAt = () => ({ cx: ctx.W / 2, cy: ctx.H / 2, height: 1400, rx: 0, ry: 0, rz: 0, fov: 24, opacity: 0 });
   const holder = { p: null };
+  const swings = [];
+  const swung = (t, q) => {
+    for (let i = 0; i < swings.length; i += 1) {
+      const ts = swings[i];
+      if (t > ts - 0.45 && t < ts + 0.55) {
+        const u = (t - ts + 0.45) / 1.0;
+        const k = Math.sin(Math.PI * u) ** 2;
+        const dir = i % 2 ? 1 : -1;
+        q.ry = (q.ry ?? 0) + dir * 22 * k;
+        q.rz = (q.rz ?? 0) - dir * 2.5 * k;
+        q.height = q.height * (1 - 0.06 * k);
+      }
+    }
+    return q;
+  };
   ctx.onFrame((t) => {
     if (!holder.p) return;
-    Object.assign(holder.p.pose, { fov: 24, rx: 0, ry: 0, rz: 0 }, poseAt(t));
+    Object.assign(holder.p.pose, { fov: 24, rx: 0, ry: 0, rz: 0 }, swung(t, { ...poseAt(t) }));
   });
   await Promise.all(ctx.pending ?? []);
   const p = phone(ctx, { model, parent: root, env, edge });
@@ -157,7 +187,9 @@ export async function hero(ctx, { model = "island", env = "dark", edge = "#040a2
       poseAt = keyed(ctx, keys);
       return H;
     },
-    at: (t) => ({ rx: 0, ry: 0, rz: 0, opacity: 1, ...poseAt(t) }),
+    at: (t) => swung(t, { rx: 0, ry: 0, rz: 0, opacity: 1, ...poseAt(t) }),
+    /** A 3D swing at each time (a chapter change): the phone turns away and back while its screen changes. */
+    swing(...times) { swings.push(...times); return H; },
     scaleAt: (t) => (fit.h * H.at(t).height) / DH,
     toStage(t, dx, dy) {
       const q = H.at(t);

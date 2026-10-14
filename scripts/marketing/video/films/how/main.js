@@ -7,7 +7,7 @@
  * keeps the phone on the left, with the web app's window, the lifted parts
  * and the words on the right. Claims and figures: FACTS-OCT.md.
  */
-import { flagCard, anchors, ground, flash, hero, lift, headline, kicker, liveChip, numberCard, notify, chipRow, featureCard, ending, ringBurst, windowRig, ramp, opa, during, place } from "../kit.js";
+import { flagCard, nigeriaMap, anchors, ground, flash, hero, lift, headline, kicker, liveChip, numberCard, notify, chipRow, featureCard, ending, ringBurst, windowRig, ramp, opa, during, place } from "../kit.js";
 
 export async function build(ctx) {
   const M = ctx.isMobile;
@@ -70,6 +70,7 @@ export async function build(ctx) {
     [ctx.duration, { ...off(HOME), opacity: 0 }, "none"],
   ];
   H.path(path);
+  H.swing(s(5) - 0.6, s(7) - 0.2, s(9) - 0.1, s(11) - 0.2, s(18) - 0.2, s(20) - 0.2, s(22) - 0.2, s(27) - 0.2, s(28) - 0.2, s(31) - 0.2);
 
   const layer = (id, t0, t1, z = 760) => ctx.scene(id, t0, t1, { z });
 
@@ -79,11 +80,12 @@ export async function build(ctx) {
   const big = M ? 104 : 112;
   headline(ctx, open, { lines: [[["Finding a place", false]], [["in ", false], ["Nigeria", true]]], x: M ? 60 : 160, y: M ? 560 : 260, size: big, t0: s(1) - 0.05, t1: s(2) - 0.55, stagger: 0.09 });
   headline(ctx, open, { lines: [[["shouldn't feel like", false]], [["a gamble.", true]]], x: M ? 60 : 160, y: M ? 560 + big * 2.25 : 260 + big * 2.25, size: big, t0: w(1, "shouldn't") - 0.05, t1: s(2) - 0.5, stagger: 0.09 });
+  await nigeriaMap(ctx, open, { x: M ? 200 : 1120, y: M ? 1090 : 230, w: M ? 680 : 620, t0: 0.4, t1: s(2) - 0.4, tCities: s(1) + 0.5, gap: 0.38, labels: true, cities: 5 });
   const die = ctx.sticker("1f3b2", M ? 210 : 190, open, { class: "abs", style: { left: "0px", top: "0px" } });
   during(ctx, 0, s(2) + 0.1, (t) => {
     const u = ramp(ctx, t, w(1, "gamble") - 0.2, w(1, "gamble") + 0.5, "back.out(1.7)");
     const out = ramp(ctx, t, s(2) - 0.55, s(2) - 0.15, "power2.in");
-    place(die, { x: M ? 840 : 1480, y: (M ? 1180 : 560) - out * 200, s: 0.4 + 0.6 * u, r: (1 - u) * 160 + t * 18, o: Math.min(u, 1 - out) });
+    place(die, { x: M ? 880 : 1720, y: (M ? 430 : 860) - out * 200, s: 0.4 + 0.6 * u, r: (1 - u) * 160 + t * 18, o: Math.min(u, 1 - out) });
   });
   ctx.sfx("pop", w(1, "gamble"), { offset: -2 });
   ctx.hideCaptions(s(1) - 0.2, s(2) + 0.1);
@@ -173,6 +175,8 @@ export async function build(ctx) {
   const price = layer("price", s(9), s(11));
   lift(ctx, H, { id: "sc-price", crop: { x: 40, y: 560, w: 1240, h: 520 }, t0: w(10, "price") - 0.05, t1: s(11) - 0.3, to: { x: R.cx, y: M ? 600 : 360, s: RS, r: -2 }, seed: 30 });
   H.tap(w(10, "nearby") - 0.1, 1080, 1470);
+  lift(ctx, H, { id: "sc-price", crop: { x: 120, y: 1510, w: 1160, h: 140 }, t0: w(10, "nearby") + 0.15, t1: s(11) - 0.25, to: { x: R.cx - (M ? 20 : 0), y: M ? 900 : 560, s: RS, r: -2 }, seed: 31 });
+  lift(ctx, H, { id: "sc-price", crop: { x: 120, y: 2100, w: 1160, h: 140 }, t0: w(10, "asking") - 0.35, t1: s(11) - 0.2, to: { x: R.cx + (M ? 20 : 0), y: M ? 1080 : 700, s: RS, r: 2 }, seed: 32 });
   kicker(ctx, price, { text: "What homes nearby are asking", icon: "map-pin", x: R.cx, y: M ? 1440 : 860, t0: w(10, "asking") - 0.6, t1: s(11) - 0.2, size: M ? 32 : 28, anchor: "center" });
 
   /* ===================== 7. Talk straight to the lister (42.69 - 57.95) ===================== */
@@ -219,8 +223,9 @@ export async function build(ctx) {
   H.show("sc-stays", s(18) - 0.2, w(19, "dates") - 0.2, { enter: "slide" });
   H.show("stays-dates", w(19, "dates") - 0.2, w(19, "room") - 0.3, { enter: "slide" });
   H.show("f-stay-checkout", w(19, "room") - 0.3, s(20) + 0.1, { enter: "slide" });
-  H.tap(s(18) + 0.15, 340, 1920);
+  H.tap(s(18) + 0.7, 340, 1920);
   H.tap(w(19, "dates") + 0.15, 520, 1110);
+  lift(ctx, H, { id: "stays-dates", crop: { x: 40, y: 990, w: 1250, h: 240 }, t0: w(19, "dates") + 0.4, t1: w(19, "room") - 0.4, to: { x: R.cx, y: M ? 540 : 330, s: RS, r: -2 }, seed: 39 });
   H.tap(w(19, "dates") + 0.75, 1120, 1110);
   H.tap(w(19, "room") - 0.45, 660, 1530);
   const trip = layer("trip", s(18), s(20));
@@ -296,6 +301,7 @@ export async function build(ctx) {
   H.show("sc-assistant-start", s(28) - 0.2, s(31) + 0.3, { enter: "slide" });
   H.tap(s(29) + 0.3, 600, 2480);
   lift(ctx, H, { id: "sc-assistant", crop: { x: 100, y: 590, w: 1140, h: 290 }, t0: w(29, "time") - 0.3, t1: s(31) - 0.25, to: { x: R.cx, y: M ? 560 : 340, s: RS, r: -3 }, seed: 70 });
+  lift(ctx, H, { id: "sc-assistant-start", crop: { x: 40, y: 2380, w: 1280, h: 200 }, t0: s(28) + 0.45, t1: w(29, "time") - 0.4, to: { x: R.cx, y: M ? 1250 : 760, s: M ? 0.66 : 0.55, r: 2 }, seed: 71 });
   const ai = layer("ai", s(28), s(31));
   kicker(ctx, ai, { text: "Always says it is an AI", icon: "sparkles", x: R.cx, y: M ? 1440 : 860, t0: w(30, "AI") - 0.5, t1: s(31) - 0.2, size: M ? 32 : 28, anchor: "center" });
 
@@ -305,6 +311,11 @@ export async function build(ctx) {
   H.show("welcome-ha", w(32, "Hausa") - 0.1, w(32, "Yorùbá") - 0.1, { enter: "slide" });
   H.show("welcome-yo", w(32, "Yorùbá") - 0.1, w(32, "Igbo") - 0.1, { enter: "slide" });
   H.show("welcome-ig", w(32, "Igbo") - 0.1, s(33) + 0.5, { enter: "slide" });
+  [["welcome-1", "English", -3], ["welcome-ha", "Hausa", 3], ["welcome-yo", "Yorùbá", -2], ["welcome-ig", "Igbo", 2]].forEach(([id, word, r], i) => {
+    const t0 = w(32, word) + 0.25;
+    const t1 = i < 3 ? w(32, ["Hausa", "Yorùbá", "Igbo"][i]) + 0.1 : s(33) - 0.3;
+    lift(ctx, H, { id, crop: { x: 40, y: 2140, w: 1240, h: 330 }, t0, t1, to: { x: R.cx, y: M ? 560 : 340, s: RS, r }, exit: "up", seed: 80 + i, fly: 0.5 });
+  });
   const lang = layer("lang", s(31), s(33));
   chipRow(ctx, lang, { items: [["English"], ["Hausa"], ["Yorùbá"], ["Igbo"]], x: R.cx, y: M ? 1420 : 860, t0: w(32, "English") - 0.05, gap: 0.62, t1: s(33) - 0.5, size: M ? 36 : 32, anchor: "center" });
 

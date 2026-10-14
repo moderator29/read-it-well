@@ -68,6 +68,8 @@ export async function build(ctx) {
     [ctx.duration, { ...off(HOME), opacity: 0 }, "none"],
   ]);
 
+  H.swing(s(6) + 0.2, s(9) - 0.2, s(11) - 0.1, s(12) - 0.1, s(14) - 0.2, s(16) - 0.2, s(17) - 0.2, s(19) - 0.2, s(28) - 0.2, s(31) - 0.2);
+
   /* ===================== 1. A place to live, to stay, to meet ===================== */
   ground(ctx, 0, s(3) + 0.1, { tone: "navy", y: 40, seed: 31 });
   const open = layer("open", 0, s(2) + 0.2);
@@ -178,7 +180,7 @@ export async function build(ctx) {
 
   /* ===================== 7. Table deposits ===================== */
   H.show("f-host-reservations", s(11) - 0.1, s(12) + 0.3, { enter: "slide" });
-  H.tap(s(11) + 0.2, 1100, 355);
+  H.tap(s(11) + 0.8, 1100, 355);
   const dep = layer("deposits", s(11), s(12));
   lift(ctx, H, { id: "f-host-reservations", crop: { x: 40, y: 2220, w: 1240, h: 420 }, t0: w(11, "deposits") - 0.1, t1: s(12) - 0.2, to: { x: R.cx, y: M ? 600 : 360, s: RS, r: -2 }, seed: 12 });
   liveChip(ctx, dep, { text: "Every reservation counts", x: R.cx, y: CHIPS_Y, t0: w(11, "counts") - 0.4, t1: s(12) - 0.2, size: M ? 34 : 30, anchor: "center" });
