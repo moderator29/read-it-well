@@ -592,7 +592,9 @@ export function odometer(ctx, parent, { value, t0, t1, prefix = "₦", fontSize 
     k += 1;
     const col = ctx.el("span", { style: { display: "inline-block", height: "1em", overflow: "hidden", position: "relative" } }, box);
     const strip = ctx.el("span", { style: { display: "flex", flexDirection: "column" } }, col);
-    const spins = 2 + (digits - idx);
+    /* enough turn to read as a roll, few enough that a frame caught mid-roll
+       still looks like a number */
+    const spins = 1 + Math.min(3, digits - idx);
     const final = Number(ch);
     const seq = [];
     for (let s = 0; s < spins * 10 + final + 1; s += 1) seq.push(s % 10);

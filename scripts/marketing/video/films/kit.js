@@ -1293,8 +1293,12 @@ export function listCard(ctx, parent, { title, items, x, y, w, t0, t1, rot = 0, 
     if (note) ctx.el("div", { text: note, style: { marginTop: `${size * 0.14}px`, font: `500 ${size * 0.74}px/1.3 Inter, sans-serif`, color: INK_SOFT } }, body);
     return row;
   });
+  /* The rows follow the voice, but never so slowly that the card stands as an
+     empty white box waiting for them: on the price-check beat the two words
+     were a second and a half apart and the still showed a blank card. */
+  const step = Math.min(stagger, 0.5);
   rows.forEach((row, i) => {
-    const ti = t0 + 0.35 + i * stagger;
+    const ti = t0 + 0.22 + i * step;
     ctx.onFrame((t) => {
       const a = ramp(ctx, t, ti, ti + 0.4, "land");
       row.style.opacity = opa(a);

@@ -52,8 +52,10 @@ export async function build(ctx) {
     [w(5, "restaurants") - 0.1, { ...SIDE }, "power3.inOut"],
     [s(6) - 0.5, { ...SIDE }],
     [s(6) - 0.1, { ...GONE }, "power3.in"],
-    [s(7) - 0.6, { ...GONE }],
-    [s(7) - 0.2, { ...SIDE }, "power3.out"],
+    /* back while the line is still on "one simple choice": the page the
+       owner chooses from is the choice, and the frame never sits bare */
+    [s(7) - 1.25, { ...GONE }],
+    [s(7) - 0.85, { ...SIDE }, "power3.out"],
     [s(9) - 0.6, { ...SIDE }],
     [s(9) - 0.2, { ...RIGHT }, "power3.inOut"],
     [s(10) - 0.3, { ...RIGHT }],
@@ -140,7 +142,9 @@ export async function build(ctx) {
   W.click(w(4, "home") + 0.2, 760, 726);
   const one = layer("one", s(4) - 0.1, s(6));
   headline(ctx, one, { lines: [[["Today, Vallo is", false]], [["one home for", false]], [["real estate.", true]]], x: HX, y: 250, size: 78, t0: s(4), t1: w(5, "Homes") - 0.95, stagger: 0.05 });
-  kicker(ctx, one, { text: "One home for real estate in Nigeria", icon: "house", x: HX, y: 640, t0: w(4, "home") - 0.1, t1: w(5, "Homes") - 0.75, size: 30, anchor: "left" });
+  /* the label names what the page is showing: the headline already carries
+     the sentence, and two of it in one frame reads as a doubled line */
+  kicker(ctx, one, { text: "Featured listings", icon: "star", x: HX, y: 640, t0: w(4, "home") - 0.1, t1: w(5, "Homes") - 0.75, size: 30, anchor: "left" });
 
   /* ===================== 5. Homes, hotels, shortlets, restaurants (23.2 - 30.0) ===================== */
   /* the home page takes the whole frame and scrolls through what is listed */
@@ -157,8 +161,8 @@ export async function build(ctx) {
   /* ===================== 6. Owners: list it yourself (30.0 - 46.2) ===================== */
   ground(ctx, s(6) - 0.05, s(9) + 0.3, { tone: "navy", y: 15, seed: 35 });
   const own = layer("owners", s(6) - 0.1, s(9));
-  headline(ctx, own, { lines: [[["For owners and", false]], [["landlords", true]]], x: ctx.W / 2, y: 360, size: 92, t0: s(6), t1: s(7) - 0.9, align: "center", stagger: 0.05 });
-  W.show("d-host-start", s(7) - 0.4, w(8, "listing") - 0.2, { enter: "rise", dur: 0.6 });
+  headline(ctx, own, { lines: [[["For owners and", false]], [["landlords", true]]], x: ctx.W / 2, y: 360, size: 92, t0: s(6), t1: s(7) - 1.5, align: "center", stagger: 0.05 });
+  W.show("d-host-start", s(7) - 1.05, w(8, "listing") - 0.2, { enter: "rise", dur: 0.6 });
   W.click(w(7, "List") + 0.15, 850, 715);
   windowLift(ctx, W, { id: "d-host-start", crop: { x: 510, y: 668, w: 690, h: 92 }, t0: w(7, "yourself") + 0.1, t1: s(8) - 0.25, to: { x: COL, y: 320, s: 0.72, r: -2 }, seed: 2, label: "The owner's own listing" });
   /* it holds through "add your photos, set your price": the fee is the whole
@@ -183,7 +187,7 @@ export async function build(ctx) {
   ground(ctx, s(9) - 0.05, s(12) + 0.3, { tone: "dusk", y: 85, seed: 37 });
   const desk = layer("desk", s(9) - 0.1, s(12));
   W.show("d-f-host-home", s(9) - 0.4, w(10, "calendar") - 0.2, { enter: "slide" });
-  headline(ctx, desk, { lines: [[["Hosts get a", false]], [["full desk.", true]]], x: HX, y: 320, size: 84, t0: s(9), t1: s(10) - 0.5, stagger: 0.05 });
+  headline(ctx, desk, { lines: [[["Hosts get a", false]], [["full desk.", true]]], x: HX, y: 320, size: 84, t0: s(9), t1: s(10) - 0.95, stagger: 0.05 });
   kicker(ctx, desk, { text: "A setup wizard for your rooms", icon: "bed-double", x: COL, y: 220, t0: w(10, "wizard") - 0.1, t1: w(10, "calendar") - 0.3, size: 28, anchor: "center" });
   /* the cursor goes to the desk's own nav, so the page change is the site's */
   W.click(w(10, "calendar") - 0.45, 110, 306);
@@ -212,11 +216,11 @@ export async function build(ctx) {
   ground(ctx, s(12) - 0.05, s(14) + 0.3, { tone: "violet", y: 20, seed: 38 });
   const ag = layer("agents", s(12) - 0.1, s(14));
   W.show("d-f-agent-dashboard", s(12) - 0.45, w(13, "portfolio") - 0.3, { enter: "slide" });
-  headline(ctx, ag, { lines: [[["Agents and firms", false]], [["get their own", false]], [["tools.", true]]], x: HX, y: 280, size: 66, t0: s(12), t1: s(13) - 0.5, stagger: 0.05 });
+  headline(ctx, ag, { lines: [[["Agents and firms", false]], [["get their own", false]], [["tools.", true]]], x: HX, y: 280, size: 66, t0: s(12), t1: s(13) - 1.0, stagger: 0.05 });
   W.show("d-f-agent-portfolio", w(13, "portfolio") - 0.3, w(13, "analytics") - 0.3, { enter: "slide" });
   W.click(w(13, "analytics") - 0.5, 81, 520);
   W.show("d-f-agent-analytics", w(13, "analytics") - 0.3, w(13, "Pro") - 0.45, { enter: "slide" });
-  windowLift(ctx, W, { id: "d-f-agent-analytics", crop: { x: 285, y: 280, w: 1135, h: 400 }, t0: w(13, "working") - 0.25, t1: w(13, "Pro") - 0.5, to: { x: COL, y: 400, s: 0.5, r: -2 }, seed: 4, label: "Counted from your own records" });
+  windowLift(ctx, W, { id: "d-f-agent-analytics", crop: { x: 290, y: 388, w: 1130, h: 200 }, t0: w(13, "working") - 0.25, t1: w(13, "Pro") - 0.5, to: { x: COL, y: 400, s: 0.5, r: -2 }, seed: 4, label: "Counted from your own records" });
   chipRow(ctx, ag, { items: [["Portfolio", "folder-kanban"], ["Analytics", "chart-column"], ["Firm desk", "building-2"]], x: COL, y: 680, t0: w(13, "portfolio"), gap: (w(13, "firm") - w(13, "portfolio")) / 2, t1: w(13, "Pro") - 0.5, size: 28, anchor: "center", wrapW: 620 });
   W.show("d-f-pro", w(13, "Pro") - 0.45, s(14) - 0.35, { enter: "slide" });
   chipRow(ctx, ag, { items: [["Vallo Pro", "sparkles"], ["Vallo Business", "briefcase"]], x: COL, y: 200, t0: w(13, "Pro"), gap: w(13, "Business") - w(13, "Pro"), t1: s(14) - 0.4, size: 30, anchor: "center", wrapW: 620 });
@@ -231,7 +235,7 @@ export async function build(ctx) {
   kicker(ctx, fair, { text: "Booked a viewing, didn't show", icon: "calendar-x", x: COL, y: 200, t0: w(14, "viewing") - 0.1, t1: w(14, "report") - 0.3, size: 28, anchor: "center" });
   /* the thread the report comes off, so the column is not bare while the
      sentence takes its time getting to "you can report it" */
-  windowLift(ctx, W, { id: "d-messages", crop: { x: 400, y: 310, w: 900, h: 100 }, t0: w(14, "viewing") + 0.3, t1: w(14, "report") - 0.3, to: { x: COL, y: 420, s: 0.6, r: -2 }, seed: 11, label: "The enquiry it came from" });
+  windowLift(ctx, W, { id: "d-messages", crop: { x: 406, y: 310, w: 814, h: 100 }, t0: w(14, "viewing") + 0.3, t1: w(14, "report") - 0.3, to: { x: COL, y: 420, s: 0.68, r: -2 }, seed: 11, label: "The enquiry it came from" });
   featureCard(ctx, fair, { icon: "flag", title: "Report a no-show", line: "A person reads every report.", x: COL, y: 300, w: 620, t0: w(14, "report") - 0.05, t1: w(14, "forty-eight") - 0.35, size: 32, from: "right", anchor: "center" });
   numberCard(ctx, fair, { value: 48, prefix: "", label: "hours for them to respond", x: COL, y: 520, t0: w(14, "forty-eight") - 0.1, t1: w(14, "forty-eight") + 0.7, tOut: s(15) - 0.35, size: 96 });
   liveChip(ctx, fair, { text: "Fair for everyone", x: COL, y: 200, t0: s(15) - 0.05, t1: s(16) - 0.35, size: 32, anchor: "center" });
@@ -240,7 +244,7 @@ export async function build(ctx) {
   ground(ctx, s(16) - 0.05, s(17) + 0.3, { tone: "electric", y: 25, seed: 40 });
   W.show("d-verification", s(16) - 0.35, s(17) - 0.35, { enter: "rise", dur: 0.6 });
   const pass = layer("passport", s(16) - 0.1, s(17));
-  windowLift(ctx, W, { id: "d-verification", crop: { x: 555, y: 262, w: 600, h: 350 }, t0: w(16, "passport") - 0.1, t1: w(16, "faster") - 0.3, to: { x: COL, y: 230, s: 0.62, r: -2 }, seed: 5, label: "Your verified details" });
+  windowLift(ctx, W, { id: "d-verification", crop: { x: 548, y: 352, w: 606, h: 270 }, t0: w(16, "passport") - 0.1, t1: w(16, "faster") - 0.3, to: { x: COL, y: 215, s: 0.62, r: -2 }, seed: 5, label: "One government issued document" });
   /* the passport, said in words: there is one card, and the film says what is on it */
   listCard(ctx, pass, {
     title: "What your passport carries",
@@ -327,7 +331,7 @@ export async function build(ctx) {
   kicker(ctx, flag, { text: "Account number in the chat", icon: "shield-alert", x: ctx.W / 2, y: 170, t0: w(26, "flagged") - 0.15, t1: s(27) - 0.35, size: 30, anchor: "center" });
   W.show("d-listing-cost", w(27, "full") - 0.3, s(28) - 0.35, { enter: "slide" });
   numberCard(ctx, tr, { value: 26100000, label: "The full cost, before anyone pays", x: COL, y: 260, t0: w(27, "full") - 0.05, t1: w(27, "full") + 1.2, tOut: s(28) - 0.3, size: 72 });
-  windowLift(ctx, W, { id: "d-listing-cost", crop: { x: 330, y: 95, w: 675, h: 610 }, t0: w(27, "cost") + 0.15, t1: s(28) - 0.4, to: { x: COL, y: 700, s: 0.6, r: -2 }, seed: 8, label: "What you will actually pay" });
+  windowLift(ctx, W, { id: "d-listing-cost", crop: { x: 330, y: 190, w: 675, h: 515 }, t0: w(27, "cost") + 0.15, t1: s(28) - 0.4, to: { x: COL, y: 700, s: 0.6, r: -2 }, seed: 8, label: "What you will actually pay" });
   ctx.hidePill(w(27, "full") - 0.3, s(28) - 0.1);
 
   /* ===================== 16. Community: Local talk (143.1 - 156.9) ===================== */
