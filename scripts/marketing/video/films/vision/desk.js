@@ -79,8 +79,8 @@ export async function build(ctx) {
     [s(29) - 0.1, { ...SIDE }, "power3.out"],
     [s(31) - 0.5, { ...SIDE }],
     [s(31) - 0.1, { ...OFF }, "power3.in"],
-    [s(33) - 0.7, { ...OFF }],
-    [s(33) - 0.3, { ...SIDE }, "power3.out"],
+    [s(32) + 0.25, { ...OFF }],
+    [s(32) + 0.75, { ...SIDE }, "power3.out"],
     [s(38) - 0.5, { ...SIDE }],
     [s(38) - 0.1, { ...GONE }, "power3.in"],
     [s(40) - 0.5, { ...GONE }],
@@ -316,8 +316,8 @@ export async function build(ctx) {
   W.show("d-notifications", s(24) + 0.1, w(26, "flagged") - 0.3, { enter: "slide" });
   const tr = layer("trust", s(24) - 0.1, s(28));
   kicker(ctx, tr, { text: "Trust, built into every step", icon: "shield", x: COL, y: 200, t0: s(24) + 0.3, t1: s(25) - 0.25, size: 28, anchor: "center" });
-  windowLift(ctx, W, { id: "d-notifications", crop: { x: 510, y: 438, w: 680, h: 80 }, t0: s(25) + 0.05, t1: w(26, "flagged") - 0.5, to: { x: COL, y: 330, s: 0.72, r: -2 }, seed: 7, label: "A person reads every one" });
-  proofCard(ctx, tr, { lines: ["Checked by a real", "person at Vallo."], x: COL, y: 640, w: 560, t0: w(25, "person") - 0.3, t1: w(26, "flagged") - 0.45, rot: -2, size: 34, seed: 64, from: "right" });
+  windowLift(ctx, W, { id: "d-notifications", crop: { x: 510, y: 438, w: 680, h: 80 }, t0: s(25) + 0.05, t1: w(26, "flagged") - 1.15, to: { x: COL, y: 330, s: 0.72, r: -2 }, seed: 7, label: "A person reads every one" });
+  proofCard(ctx, tr, { lines: ["Checked by a real", "person at Vallo."], x: COL, y: 640, w: 560, t0: w(25, "person") - 0.55, t1: w(26, "flagged") - 1.05, rot: -2, size: 34, seed: 64, from: "right" });
   /* the flag sits on the thread it belongs to, so the window is full behind it */
   W.show("d-thread", w(26, "flagged") - 0.3, w(27, "full") - 0.3, { enter: "slide" });
   const flag = layer("flag", w(26, "flagged") - 0.5, s(27) + 0.2, 790);
@@ -348,12 +348,12 @@ export async function build(ctx) {
   flash(ctx, s(31), { color: "rgb(255 196 61 / 0.5)" });
   ground(ctx, s(31) - 0.05, s(38) + 0.3, { tone: "gold", y: 25, seed: 48 });
   const rw = layer("rewards", s(31) - 0.1, s(38));
-  headline(ctx, rw, { lines: [[["Referral rewards", false]], [["are ", false], ["live.", true]]], x: ctx.W / 2, y: 360, size: 86, t0: w(31, "referral") - 0.15, t1: s(32) + 0.5, align: "center", stagger: 0.05 });
-  liveChip(ctx, rw, { text: "Live now", x: ctx.W / 2, y: 620, t0: w(31, "live") - 0.1, t1: s(32) + 0.55, size: 32, anchor: "center" });
-  W.show("d-f-rewards", s(33) - 0.4, s(38) - 0.35, { enter: "rise", dur: 0.6 });
+  headline(ctx, rw, { lines: [[["Referral rewards", false]], [["are ", false], ["live.", true]]], x: ctx.W / 2, y: 360, size: 86, t0: s(31) + 0.12, t1: s(32) - 0.35, align: "center", stagger: 0.05 });
+  liveChip(ctx, rw, { text: "Live now", x: ctx.W / 2, y: 620, t0: w(31, "live") - 0.1, t1: s(32) - 0.3, size: 32, anchor: "center" });
+  W.show("d-f-rewards", s(32) + 0.2, s(38) - 0.35, { enter: "rise", dur: 0.6 });
   kicker(ctx, rw, { text: "Share your invite link", icon: "link", x: COL, y: 200, t0: w(33, "invite") - 0.3, t1: w(34, "earn") - 0.45, size: 30, anchor: "center" });
   ctx.sfx("bubble_send", w(33, "link"), { offset: -3 });
-  windowLift(ctx, W, { id: "d-f-rewards", crop: { x: 300, y: 752, w: 1110, h: 140 }, t0: w(34, "friend") - 0.2, t1: w(36, "once") - 0.3, to: { x: COL, y: 620, s: 0.5, r: -3 }, seed: 10, label: "What a referral pays" });
+  windowLift(ctx, W, { id: "d-f-rewards", crop: { x: 495, y: 760, w: 712, h: 95 }, t0: w(34, "friend") - 0.2, t1: w(36, "once") - 0.3, to: { x: COL, y: 620, s: 0.62, r: -3 }, seed: 10, label: "What a referral pays" });
   numberCard(ctx, rw, { value: 80, label: "for each friend who joins and gets verified", x: COL, y: 330, t0: w(34, "earn") - 0.05, t1: w(34, "earn") + 0.6, tOut: s(35) + 0.9, size: 72 });
   kicker(ctx, rw, { text: "Ready after 7 days", icon: "clock", x: COL, y: 200, t0: w(35, "seven") - 0.1, t1: s(36) - 0.2, size: 30, anchor: "center" });
   W.click(w(36, "withdraw") - 0.15, 855, 332);
@@ -367,10 +367,10 @@ export async function build(ctx) {
     ],
     x: COL, y: 660, w: 620, t0: w(36, "withdraw") - 0.25, t1: s(37) - 0.2, rot: 2, size: 28, seed: 26, stagger: 0.16,
   });
-  chipRow(ctx, rw, { items: [["Invite", "send"], ["They join", "user-plus"], ["You earn", "coins"]], x: COL, y: 820, t0: s(37), gap: 0.35, t1: s(38) - 0.4, size: 30, anchor: "center", wrapW: 620 });
-  /* pulled in off the column's centre: a burst thrown from COL runs out of
-     the frame on the right as it opens */
-  ringBurst(ctx, rw, { cx: COL - 130, cy: 620, r: 250, t: w(37, "earn") + 0.1, seed: 49 });
+  chipRow(ctx, rw, { items: [["Invite", "send"], ["They join", "user-plus"], ["You earn", "coins"]], x: COL, y: 560, t0: s(37), gap: 0.35, t1: s(38) - 0.4, size: 30, anchor: "center", wrapW: 620 });
+  /* around the three steps, and inside the column: a wider burst thrown from
+     COL runs out of the frame on the right as it opens */
+  ringBurst(ctx, rw, { cx: COL, cy: 620, r: 230, t: w(37, "earn") + 0.1, seed: 49 });
 
   /* ===================== 18. The beginning (180.0 - 205.4) ===================== */
   ground(ctx, s(38) - 0.05, s(42) + 0.2, { tone: "navy", y: 40, seed: 50, sparkle: 10 });
@@ -390,7 +390,7 @@ export async function build(ctx) {
   kicker(ctx, vis, { text: "Every home, every room, every table", icon: "layers", x: HX, y: 320, t0: w(40, "home") - 0.1, t1: s(41) - 0.5, size: 30, anchor: "left" });
   chipRow(ctx, vis, { items: [["Real people", "users"], ["Real prices", "tag"], ["Real trust", "shield-check"]], x: HX, y: 620, t0: w(40, "people") - 0.15, gap: (w(40, "trust") - w(40, "people")) / 2, t1: s(41) - 0.35, size: 30, anchor: "left", wrapW: 620 });
   const map2 = layer("map2", s(41) - 0.35, s(42), 790);
-  await nigeriaMap3d(ctx, map2, { x: 600, y: 170, w: 720, t0: s(41) - 0.3, t1: s(42) - 0.35, tTrails: w(41, "city") - 0.4, gap: 0.24, labels: true });
+  await nigeriaMap3d(ctx, map2, { x: 600, y: 170, w: 720, t0: s(41) - 0.3, t1: s(42) - 0.35, tTrails: w(41, "Nigeria") + 0.15, gap: 0.24, labels: true });
   headline(ctx, map2, { lines: [[["Vallo is ", false], ["growing.", true]]], x: ctx.W / 2, y: 800, size: 72, t0: w(41, "growing") - 0.25, t1: s(42) - 0.35, align: "center" });
   ctx.hideCaptions(s(38) - 0.1, s(39) + 0.4);
 
