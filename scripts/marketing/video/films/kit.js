@@ -605,7 +605,18 @@ function listingCard(ctx, parent, [title, place, price, moveIn, beds, baths, m2,
  * A wall of live listing cards in tilted rows drifting at parallax speeds,
  * a light sweeping across them: the films' "look how much is here" shot.
  */
-export function listingWall(ctx, parent, { t0, t1, rows = 3, y = null, cardW = null, gap = null, tilt = -9, speed = 60, opacity = 1, seed = 5, label = true }) {
+/* Five stay cards from today's stays results (n-staysd-full, 880 px wide): name, price per night and the 3-night total. */
+export const STAY_CARDS = (ctx) => [1530, 2495, 3455, 4419, 5376].map((y, i) => ({ src: ctx.src.capture("n-staysd-full"), crop: { x: 30, y, w: 811, h: [919, 910, 907, 899, 899][i] }, iw: 880 }));
+
+/** A real card cropped from a capture (crop in the capture's own px, `iw` its width), drawn at width w. */
+function cropCard(ctx, parent, { src, crop, iw = 1320 }, w) {
+  const s = w / crop.w;
+  const card = ctx.el("div", { style: { position: "relative", flex: "none", width: `${w}px`, height: `${crop.h * s}px`, overflow: "hidden", borderRadius: `${w * 0.065}px`, boxShadow: "0 30px 60px -26px rgb(0 0 20 / 0.85)" } }, parent);
+  ctx.img(src, { style: { position: "absolute", left: `${-crop.x * s}px`, top: `${-crop.y * s}px`, width: `${iw * s}px`, height: "auto", maxWidth: "none" } }, card);
+  return card;
+}
+
+export function listingWall(ctx, parent, { t0, t1, rows = 3, y = null, cardW = null, gap = null, tilt = -9, speed = 60, opacity = 1, seed = 5, label = true, stays = null, stayRows = [] }) {
   const M = ctx.isMobile;
   const cw = cardW ?? (M ? 330 : 300);
   const g = gap ?? cw * 0.09;
@@ -618,7 +629,9 @@ export function listingWall(ctx, parent, { t0, t1, rows = 3, y = null, cardW = n
     const strip = ctx.el("div", { style: { position: "absolute", left: "0px", top: `${r * (ch + g)}px`, display: "flex", gap: `${g}px` } }, tiltBox);
     const n = Math.ceil((ctx.W * 1.6) / (cw + g)) + 4;
     const off = Math.floor(rand() * LISTINGS.length);
-    for (let i = 0; i < n; i += 1) listingCard(ctx, strip, LISTINGS[(off + i * (r + 2)) % LISTINGS.length], cw);
+    /* a stays row carries real stay cards from the stays results; the others the home's listing cards */
+    if (stays && stayRows.includes(r)) for (let i = 0; i < n; i += 1) cropCard(ctx, strip, stays[(off + i) % stays.length], cw);
+    else for (let i = 0; i < n; i += 1) listingCard(ctx, strip, LISTINGS[(off + i * (r + 2)) % LISTINGS.length], cw);
     strips.push({ strip, dir: r % 2 ? 1 : -1, v: speed * (0.75 + 0.5 * rand()), span: 4 * (cw + g) });
   }
   const sweep = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${ctx.W * 0.5}px`, height: `${ctx.H}px`, background: "linear-gradient(100deg, transparent 0%, rgb(143 211 255 / 0.10) 45%, rgb(255 255 255 / 0.16) 50%, rgb(143 211 255 / 0.10) 55%, transparent 100%)" } }, wall);

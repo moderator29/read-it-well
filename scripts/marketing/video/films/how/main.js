@@ -7,7 +7,7 @@
  * keeps the phone on the left, with the web app's window, the lifted parts
  * and the words on the right. Claims and figures: FACTS-OCT.md.
  */
-import { listingWall, flagCard, nigeriaMap, anchors, ground, flash, hero, lift, headline, kicker, liveChip, numberCard, notify, chipRow, featureCard, ending, ringBurst, windowRig, ramp, opa, during, place } from "../kit.js";
+import { STAY_CARDS, listingWall, flagCard, nigeriaMap, anchors, ground, flash, hero, lift, headline, kicker, liveChip, numberCard, notify, chipRow, featureCard, ending, ringBurst, windowRig, ramp, opa, during, place } from "../kit.js";
 
 export async function build(ctx) {
   const M = ctx.isMobile;
@@ -109,10 +109,10 @@ export async function build(ctx) {
   ctx.hideCaptions(s(2) - 0.1, s(2) + 1.1);
 
   /* ===================== 3. One app: homes, hotels, shortlets, restaurants ===================== */
-  H.show("n-home-premium", 7.9, s(3) + 1.0, { enter: "cut" });
+  H.show("n-home2", 7.9, s(3) + 1.0, { enter: "cut", full: "n-home2-full", scroll: [[7.9, 1500], [w(3, "Homes") + 0.05, 3000, "power3.out"]] });
   H.show("n-stays", s(3) + 1.0, s(4) + 0.6, { enter: "slide" });
   H.tap(s(3) + 0.85, 660, 1600);
-  lift(ctx, H, { id: "n-home-premium", crop: { x: 125, y: 1255, w: 1080, h: 1000 }, t0: w(3, "Homes") + 0.05, t1: w(3, "one") - 0.2, to: { x: M ? 280 : 1170, y: M ? 820 : 520, s: M ? 0.4 : 0.32, r: -5 }, seed: 1, radius: 60 });
+  lift(ctx, H, { id: "n-home2", src: ctx.src.capture("n-home2-full"), scrolled: 3000, crop: { x: 100, y: 3690, w: 1110, h: 1030 }, t0: w(3, "Homes") + 0.05, t1: w(3, "one") - 0.2, to: { x: M ? 280 : 1170, y: M ? 820 : 520, s: M ? 0.4 : 0.32, r: -5 }, seed: 1, radius: 60 });
   lift(ctx, H, { id: "n-stays", crop: { x: 45, y: 1600, w: 590, h: 420 }, t0: w(3, "hotels"), t1: w(3, "one") - 0.15, to: { ...R.r1, s: TS, r: 5 }, seed: 2 });
   lift(ctx, H, { id: "n-stays", crop: { x: 645, y: 1600, w: 630, h: 420 }, t0: w(3, "shortlets"), t1: w(3, "one") - 0.1, to: { ...R.l2, s: TS, r: -6 }, seed: 3 });
   lift(ctx, H, { id: "n-stays", crop: { x: 45, y: 2045, w: 590, h: 420 }, t0: w(3, "restaurants"), t1: w(3, "one") - 0.05, to: { ...R.r2, s: TS, r: 4 }, seed: 4 });
@@ -121,11 +121,11 @@ export async function build(ctx) {
   chipRow(ctx, one, { items: [["One app", "smartphone"], ["One account", "user-round-check"]], x: R.cx, y: M ? 1440 : 860, t0: w(3, "one"), t1: s(4) - 0.2, size: M ? 34 : 30, anchor: "center" });
 
   /* ===================== 4. How it works: search, filter, save, compare ===================== */
-  listingWall(ctx, layer("wall1", s(4) - 0.5, w(6, "Filter") + 1.2, 3), { t0: s(4) - 0.4, t1: w(6, "Filter") + 0.3, rows: M ? 5 : 3, opacity: 0.52, seed: 11, y: M ? 260 : 60 });
+  listingWall(ctx, layer("wall1", s(4) - 0.5, w(6, "Filter") + 1.2, 3), { t0: s(4) - 0.4, t1: w(6, "Filter") + 0.3, rows: M ? 5 : 3, opacity: 0.52, seed: 11, y: M ? 260 : 60, stays: STAY_CARDS(ctx), stayRows: [1, 3] });
   const how = layer("how", s(4) - 0.1, s(5) + 0.5);
   headline(ctx, how, { lines: [[["Here's how it ", false], ["works.", true]]], x: M ? R.cx : 1000, y: M ? R.top : 420, size: M ? 88 : 92, t0: s(4), t1: s(5) - 0.15, align: M ? "center" : "left" });
   ground(ctx, s(4) + 0.55, s(7) + 0.2, { tone: "navy", y: 15, seed: 13 });
-  H.show("n-search-all", s(5) - 0.3, w(6, "Filter") + 0.2, { enter: "slide" });
+  H.show("n-search2", s(5) - 0.3, w(6, "Filter") + 0.2, { enter: "slide", full: "n-search2-full", scroll: [[w(5, "Nigeria") - 0.3, 0], [w(6, "Filter") - 0.7, 2350, "power2.inOut"], [w(6, "Filter") - 0.2, 0, "power3.inOut"]] });
   H.show("sc-filters", w(6, "Filter") + 0.2, w(6, "save") - 0.1, { enter: "rise" });
   H.show("n-search-all", w(6, "save") - 0.1, w(6, "compare") - 0.3, { enter: "fade", dur: 0.3 });
   H.show("sc-saved", w(6, "compare") - 0.3, s(7) + 0.3, { enter: "slide" });
@@ -224,15 +224,16 @@ export async function build(ctx) {
   /* ===================== 10. Book a room (75.58 - 82.65) ===================== */
   ground(ctx, s(18) - 0.05, s(20) + 0.2, { tone: "dusk", y: 85, seed: 18 });
   H.show("n-stays", s(18) - 0.2, w(19, "dates") - 0.2, { enter: "slide" });
-  H.show("n-stays-dates", w(19, "dates") - 0.2, w(19, "room") - 0.3, { enter: "slide" });
-  H.show("f-stay-checkout", w(19, "room") - 0.3, s(20) + 0.1, { enter: "slide" });
+  H.show("n-staysd", w(19, "dates") - 0.2, s(20) + 0.1, { enter: "slide", full: "n-staysd-full", scroll: [[w(19, "room") - 0.1, 0], [w(19, "room") + 0.7, 1990, "power3.inOut"], [w(19, "shortlet") - 0.2, 1990], [w(19, "shortlet") + 0.5, 3440, "power3.inOut"]] });
   H.tap(s(18) + 0.7, 340, 1920);
-  H.tap(w(19, "dates") + 0.15, 520, 1110);
+  H.tap(w(19, "dates") + 0.15, 520, 1060);
   lift(ctx, H, { id: "n-stays-dates", crop: { x: 40, y: 990, w: 1250, h: 240 }, t0: w(19, "dates") + 0.4, t1: w(19, "room") - 0.4, to: { x: R.cx, y: M ? 540 : 330, s: RS, r: -2 }, seed: 39 });
-  H.tap(w(19, "room") - 0.45, 660, 1530);
+  H.tap(w(19, "room") - 0.4, 660, 1560);
   const trip = layer("trip", s(18), s(20));
-  lift(ctx, H, { id: "f-stay-checkout", crop: { x: 45, y: 1520, w: 640, h: 110 }, t0: w(19, "shortlet") - 0.2, t1: s(20) - 0.2, to: { x: R.cx, y: M ? 560 : 330, s: M ? 0.95 : 0.8, r: 3 }, seed: 40 });
-  kicker(ctx, trip, { text: "Full cost before you pay", icon: "badge-check", x: R.cx, y: M ? 1440 : 860, t0: w(19, "full") - 0.2, t1: s(20) - 0.2, size: M ? 32 : 28, anchor: "center" });
+  lift(ctx, H, { id: "n-staysd", src: ctx.src.capture("n-staysd-full"), scrolled: 3440, crop: { x: 45, y: 3742, w: 1217, h: 1366 }, t0: w(19, "full") + 0.05, t1: s(20) - 0.15, to: { x: R.cx, y: M ? 820 : 520, s: M ? 0.5 : 0.4, r: -2 }, seed: 40, radius: 50 });
+  numberCard(ctx, trip, { value: 396000, label: "Total for 3 nights, Eko Pearl Apartments", x: R.cx, y: M ? R.top - 20 : 160, t0: w(19, "full") + 0.1, t1: w(19, "full") + 0.9, tOut: s(20) - 0.15, size: M ? 84 : 76 });
+  kicker(ctx, trip, { text: "The full cost before you pay", icon: "badge-check", x: R.cx, y: M ? 1440 : 860, t0: w(19, "full") - 0.2, t1: s(20) - 0.2, size: M ? 32 : 28, anchor: "center" });
+  listingWall(ctx, layer("staywall", s(18) - 0.5, w(19, "dates") + 0.5, 3), { t0: s(18) - 0.4, t1: w(19, "dates"), rows: M ? 5 : 3, opacity: 0.55, seed: 21, y: M ? 260 : 60, stays: STAY_CARDS(ctx), stayRows: [0, 1, 2, 3, 4] });
   if (!M) {
     const W2 = windowRig(ctx);
     W2.path([

@@ -8,7 +8,7 @@
  * referral rewards; then the vision, Nigeria city by city, and the stores.
  * Claims and figures: FACTS-OCT.md and the founder's rulings of 14 October.
  */
-import { listingWall, flagCard, anchors, ground, flash, hero, lift, headline, kicker, liveChip, numberCard, notify, chipRow, featureCard, ending, ringBurst, windowRig, nigeriaMap, ramp, during, place } from "../kit.js";
+import { STAY_CARDS, listingWall, flagCard, anchors, ground, flash, hero, lift, headline, kicker, liveChip, numberCard, notify, chipRow, featureCard, ending, ringBurst, windowRig, nigeriaMap, ramp, during, place } from "../kit.js";
 
 export async function build(ctx) {
   const M = ctx.isMobile;
@@ -115,10 +115,10 @@ export async function build(ctx) {
   ctx.hideCaptions(s(3) - 0.1, s(4) - 0.3);
 
   /* ===================== 4. One home for real estate ===================== */
-  H.show("n-home-featured", s(4) - 1.0, w(5, "Homes") - 0.3, { enter: "cut" });
+  H.show("n-home2", s(4) - 1.0, w(5, "Homes") - 0.3, { enter: "cut", full: "n-home2-full", scroll: [[s(4) - 0.3, 0], [w(4, "home") - 0.2, 4570, "power3.inOut"]] });
   H.show("n-home-space", w(5, "Homes") - 0.3, w(5, "hotels") - 0.3, { enter: "rise", dur: 0.4 });
-  listingWall(ctx, layer("wall1", s(4) - 0.7, s(6), 3), { t0: s(4) - 0.6, t1: s(6) - 0.3, rows: M ? 5 : 3, opacity: 0.6, seed: 12, y: M ? 260 : 60 });
-  lift(ctx, H, { id: "n-home-featured", crop: { x: 40, y: 1290, w: 1250, h: 1130 }, t0: w(4, "home") - 0.05, t1: w(5, "Homes") - 0.15, to: { x: M ? 290 : 1170, y: M ? 820 : 520, s: M ? 0.38 : 0.3, r: -5 }, seed: 9, radius: 60 });
+  listingWall(ctx, layer("wall1", s(4) - 0.7, s(6), 3), { t0: s(4) - 0.6, t1: s(6) - 0.3, rows: M ? 5 : 3, opacity: 0.6, seed: 12, y: M ? 260 : 60, stays: STAY_CARDS(ctx), stayRows: [1, 3] });
+  lift(ctx, H, { id: "n-home2", src: ctx.src.capture("n-home2-full"), scrolled: 4570, crop: { x: 40, y: 5180, w: 1240, h: 1150 }, t0: w(4, "home") - 0.05, t1: w(5, "Homes") - 0.15, to: { x: M ? 290 : 1170, y: M ? 820 : 520, s: M ? 0.38 : 0.3, r: -5 }, seed: 9, radius: 60 });
   H.show("n-stays", w(5, "hotels") - 0.3, s(6) + 0.3, { enter: "slide" });
   lift(ctx, H, { id: "n-home-space", crop: { x: 0, y: 1300, w: 1320, h: 390 }, t0: w(5, "Homes") + 0.1, t1: w(5, "one") - 0.2, to: { ...ROW(0), s: RS, r: -3 }, seed: 1 });
   lift(ctx, H, { id: "n-stays", crop: { x: 45, y: 1600, w: 590, h: 420 }, t0: w(5, "hotels"), t1: w(5, "one") - 0.15, to: { ...R.r1, s: TS, r: 5 }, seed: 2 });
@@ -157,6 +157,7 @@ export async function build(ctx) {
   /* ===================== 6. The host desk ===================== */
   ground(ctx, s(9) - 0.05, s(12) + 0.3, { tone: "dusk", y: 85, seed: 37 });
   const desk = layer("desk", s(9) - 0.1, s(12));
+  listingWall(ctx, layer("hostwall", s(9) - 0.4, w(10, "wizard") + 0.6, 3), { t0: s(9) - 0.3, t1: w(10, "wizard"), rows: M ? 5 : 3, opacity: 0.5, seed: 22, y: M ? 260 : 60, stays: STAY_CARDS(ctx), stayRows: [0, 1, 2, 3, 4] });
   headline(ctx, desk, { lines: [[["Hosts get a ", false], ["full desk.", true]]], x: M ? R.cx : HX, y: M ? R.top : 200, size: M ? 84 : 80, t0: s(9), t1: s(10) - 0.2, align: M ? "center" : "left" });
   H.show("f-host-home", s(9) - 0.2, w(10, "wizard") - 0.2, { enter: "slide" });
   H.show("f-host-rooms", w(10, "wizard") - 0.2, w(10, "calendar") - 0.3, { enter: "slide" });
@@ -362,7 +363,7 @@ export async function build(ctx) {
     ctx.sfx("card_slide", t0, { offset: -4 });
   });
   chipRow(ctx, vis, { items: [["Real people", "users"], ["Real prices", "tag"], ["Real trust", "shield-check"]], x: R.cx, y: CHIPS_Y - (M ? 120 : 140), t0: w(40, "people") - 0.1, gap: (w(40, "trust") - w(40, "people")) / 2, t1: s(41) - 0.2, size: M ? 34 : 30, anchor: "center" });
-  listingWall(ctx, layer("wall2", s(40) - 0.6, s(41) + 0.2, 795), { t0: s(40) - 0.5, t1: s(41) - 0.4, rows: M ? 6 : 4, opacity: 0.55, seed: 13, tilt: -11, speed: 70, y: M ? 120 : 20 });
+  listingWall(ctx, layer("wall2", s(40) - 0.6, s(41) + 0.2, 795), { t0: s(40) - 0.5, t1: s(41) - 0.4, rows: M ? 6 : 4, opacity: 0.55, seed: 13, tilt: -11, speed: 70, y: M ? 120 : 20, stays: STAY_CARDS(ctx), stayRows: [1, 4] });
   const map2 = layer("map2", s(41) - 0.3, s(42), 790);
   await nigeriaMap(ctx, map2, { x: M ? 110 : 640, y: M ? 560 : 150, w: M ? 860 : 640, t0: s(41) - 0.3, t1: s(42) - 0.3, tCities: w(41, "city") - 0.2, gap: 0.3, labels: true });
   headline(ctx, map2, { lines: [[["Vallo is ", false], ["growing.", true]]], x: ctx.W / 2, y: M ? 1300 : 780, size: M ? 76 : 72, t0: w(41, "growing") - 0.2, t1: s(42) - 0.3, align: "center" });
