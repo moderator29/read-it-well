@@ -7,7 +7,7 @@
  * keeps the phone on the left, with the web app's window, the lifted parts
  * and the words on the right. Claims and figures: FACTS-OCT.md.
  */
-import { flagCard, nigeriaMap, anchors, ground, flash, hero, lift, headline, kicker, liveChip, numberCard, notify, chipRow, featureCard, ending, ringBurst, windowRig, ramp, opa, during, place } from "../kit.js";
+import { listingWall, flagCard, nigeriaMap, anchors, ground, flash, hero, lift, headline, kicker, liveChip, numberCard, notify, chipRow, featureCard, ending, ringBurst, windowRig, ramp, opa, during, place } from "../kit.js";
 
 export async function build(ctx) {
   const M = ctx.isMobile;
@@ -109,17 +109,19 @@ export async function build(ctx) {
   ctx.hideCaptions(s(2) - 0.1, s(2) + 1.1);
 
   /* ===================== 3. One app: homes, hotels, shortlets, restaurants ===================== */
-  H.show("sc-home", 7.9, s(3) + 1.0, { enter: "cut" });
+  H.show("home-featured", 7.9, s(3) + 1.0, { enter: "cut" });
   H.show("sc-stays", s(3) + 1.0, s(4) + 0.6, { enter: "slide" });
   H.tap(s(3) + 0.85, 1180, 1610);
-  lift(ctx, H, { id: "sc-home", crop: { x: 100, y: 2120, w: 1120, h: 310 }, t0: w(3, "Homes") + 0.05, t1: w(3, "one") - 0.2, to: { ...ROW(0), s: RS * 0.85, r: -3 }, seed: 1 });
+  lift(ctx, H, { id: "home-featured", crop: { x: 105, y: 835, w: 1100, h: 1520 }, t0: w(3, "Homes") + 0.05, t1: w(3, "one") - 0.2, to: { x: M ? 270 : 1170, y: M ? 820 : 520, s: M ? 0.34 : 0.27, r: -5 }, seed: 1, radius: 60 });
   lift(ctx, H, { id: "sc-stays", crop: { x: 45, y: 1715, w: 590, h: 410 }, t0: w(3, "hotels"), t1: w(3, "one") - 0.15, to: { ...R.r1, s: TS, r: 5 }, seed: 2 });
   lift(ctx, H, { id: "sc-stays", crop: { x: 645, y: 1715, w: 630, h: 410 }, t0: w(3, "shortlets"), t1: w(3, "one") - 0.1, to: { ...R.l2, s: TS, r: -6 }, seed: 3 });
   lift(ctx, H, { id: "sc-stays", crop: { x: 45, y: 2165, w: 590, h: 420 }, t0: w(3, "restaurants"), t1: w(3, "one") - 0.05, to: { ...R.r2, s: TS, r: 4 }, seed: 4 });
   const one = layer("one", s(3), s(4) + 0.4);
+  kicker(ctx, one, { text: "Featured properties", icon: "star", x: R.cx, y: M ? 1440 : 860, t0: w(3, "Homes") + 0.2, t1: w(3, "one") - 0.25, size: M ? 32 : 28, anchor: "center" });
   chipRow(ctx, one, { items: [["One app", "smartphone"], ["One account", "user-round-check"]], x: R.cx, y: M ? 1440 : 860, t0: w(3, "one"), t1: s(4) - 0.2, size: M ? 34 : 30, anchor: "center" });
 
   /* ===================== 4. How it works: search, filter, save, compare ===================== */
+  listingWall(ctx, layer("wall1", s(4) - 0.5, w(6, "Filter") + 1.2, 3), { t0: s(4) - 0.4, t1: w(6, "Filter") + 0.3, rows: M ? 5 : 3, opacity: 0.52, seed: 11, y: M ? 260 : 60 });
   const how = layer("how", s(4) - 0.1, s(5) + 0.5);
   headline(ctx, how, { lines: [[["Here's how it ", false], ["works.", true]]], x: M ? R.cx : 1000, y: M ? R.top : 420, size: M ? 88 : 92, t0: s(4), t1: s(5) - 0.15, align: M ? "center" : "left" });
   ground(ctx, s(4) + 0.55, s(7) + 0.2, { tone: "navy", y: 15, seed: 13 });
@@ -137,6 +139,7 @@ export async function build(ctx) {
   H.tap(w(6, "love") - 0.1, 1080, 1390);
   ringBurst(ctx, layer("love", w(6, "love") - 0.2, w(6, "love") + 1.6, 870), { ...(() => { const p = H.toStage(w(6, "love"), 1080, 1390); return { cx: p.x, cy: p.y }; })(), r: 70, t: w(6, "love") - 0.05, dots: 12, seed: 9, dur: 0.5 });
   H.tap(w(6, "compare") + 0.2, 180, 1060);
+  kicker(ctx, layer("fomo1", w(6, "save") - 0.2, w(6, "side")), { text: "Save it before it's gone", icon: "heart", x: R.cx, y: M ? 1440 : 860, t0: w(6, "save") - 0.1, t1: w(6, "side") - 0.3, size: M ? 34 : 30, anchor: "center" });
   lift(ctx, H, { id: "sc-saved", crop: { x: 40, y: 1220, w: 1250, h: 240 }, t0: w(6, "side") - 0.1, t1: s(7) - 0.05, to: { x: M ? 300 : 1180, y: M ? 560 : 420, s: M ? 0.42 : 0.33, r: -4 }, seed: 10 });
   lift(ctx, H, { id: "sc-saved", crop: { x: 40, y: 1565, w: 1250, h: 240 }, t0: w(6, "side", 2) - 0.1, t1: s(7) - 0.05, to: { x: M ? 780 : 1600, y: M ? 640 : 470, s: M ? 0.42 : 0.33, r: 4 }, seed: 11 });
   if (!M) {

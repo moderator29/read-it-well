@@ -35,7 +35,9 @@ try {
     ctx.groundAt = groundAt;
     if (q.get("pill") !== "0") installChapterPill(ctx, CHAPTERS, { theme: groundAt });
   }
-  if (q.get("grain") === "1") installGrain(ctx);
+  if (q.get("grain") === "1" || (proj && q.get("grain") !== "0")) installGrain(ctx, { opacity: proj ? 0.028 : 0.045 });
+  /* the October films' lens: a soft vignette over everything but the captions */
+  if (proj) ctx.el("div", { class: "fill", style: { zIndex: 875, pointerEvents: "none", background: "radial-gradient(120% 90% at 50% 45%, transparent 62%, rgb(0 0 12 / 0.38) 100%)" } }, stage);
   await Promise.all(ctx.pending ?? []);
   await ctx.finish();
   ctx.seek(Number(q.get("t") ?? 0));

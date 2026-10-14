@@ -8,7 +8,7 @@
  * referral rewards; then the vision, Nigeria city by city, and the stores.
  * Claims and figures: FACTS-OCT.md and the founder's rulings of 14 October.
  */
-import { flagCard, anchors, ground, flash, hero, lift, headline, kicker, liveChip, numberCard, notify, chipRow, featureCard, ending, ringBurst, windowRig, nigeriaMap, ramp, during, place } from "../kit.js";
+import { listingWall, flagCard, anchors, ground, flash, hero, lift, headline, kicker, liveChip, numberCard, notify, chipRow, featureCard, ending, ringBurst, windowRig, nigeriaMap, ramp, during, place } from "../kit.js";
 
 export async function build(ctx) {
   const M = ctx.isMobile;
@@ -115,15 +115,19 @@ export async function build(ctx) {
   ctx.hideCaptions(s(3) - 0.1, s(4) - 0.3);
 
   /* ===================== 4. One home for real estate ===================== */
-  H.show("sc-home", s(4) - 1.0, w(5, "hotels") - 0.3, { enter: "cut" });
+  H.show("home-featured", s(4) - 1.0, w(5, "hotels") - 0.3, { enter: "cut" });
+  listingWall(ctx, layer("wall1", s(4) - 0.7, s(6), 3), { t0: s(4) - 0.6, t1: s(6) - 0.3, rows: M ? 5 : 3, opacity: 0.6, seed: 12, y: M ? 260 : 60 });
+  lift(ctx, H, { id: "home-featured", crop: { x: 105, y: 835, w: 1100, h: 1520 }, t0: w(4, "home") - 0.05, t1: w(5, "Homes") - 0.15, to: { x: M ? 270 : 1170, y: M ? 820 : 520, s: M ? 0.34 : 0.27, r: -5 }, seed: 9, radius: 60 });
   H.show("sc-stays", w(5, "hotels") - 0.3, s(6) + 0.3, { enter: "slide" });
-  lift(ctx, H, { id: "sc-home", crop: { x: 100, y: 2120, w: 1120, h: 310 }, t0: w(5, "Homes"), t1: w(5, "one") - 0.2, to: { ...ROW(0), s: RS * 0.85, r: -3 }, seed: 1 });
+  lift(ctx, H, { id: "home-featured", crop: { x: 0, y: 320, w: 1320, h: 150 }, t0: w(5, "Homes"), t1: w(5, "one") - 0.2, to: { ...ROW(0), s: RS, r: -3 }, seed: 1 });
   lift(ctx, H, { id: "sc-stays", crop: { x: 45, y: 1715, w: 590, h: 410 }, t0: w(5, "hotels"), t1: w(5, "one") - 0.15, to: { ...R.r1, s: TS, r: 5 }, seed: 2 });
   lift(ctx, H, { id: "sc-stays", crop: { x: 645, y: 1715, w: 630, h: 410 }, t0: w(5, "shortlets"), t1: w(5, "one") - 0.1, to: { ...R.l2, s: TS, r: -6 }, seed: 3 });
   lift(ctx, H, { id: "sc-stays", crop: { x: 45, y: 2165, w: 590, h: 420 }, t0: w(5, "restaurants"), t1: w(5, "one") - 0.05, to: { ...R.r2, s: TS, r: 4 }, seed: 4 });
   const one = layer("one", s(4), s(6));
   kicker(ctx, one, { text: "One home for real estate in Nigeria", icon: "house", x: R.cx, y: CHIPS_Y, t0: w(4, "home") - 0.1, t1: w(5, "Homes") - 0.1, size: M ? 30 : 28, anchor: "center" });
   chipRow(ctx, one, { items: [["One app", "smartphone"], ["One account", "user-round-check"]], x: R.cx, y: CHIPS_Y, t0: w(5, "one"), gap: 0.5, t1: s(6) - 0.2, size: M ? 34 : 30, anchor: "center" });
+  kicker(ctx, one, { text: "Featured properties", icon: "star", x: R.cx, y: M ? 296 : 200, t0: w(4, "home") + 0.1, t1: w(5, "Homes") - 0.2, size: M ? 32 : 28, anchor: "center" });
+  kicker(ctx, one, { text: "The good ones don't wait", icon: "flame", x: R.cx, y: M ? 296 : 200, t0: w(5, "one") - 0.1, t1: s(6) - 0.2, size: M ? 34 : 30, anchor: "center" });
 
   /* ===================== 5. Owners: list it yourself ===================== */
   ground(ctx, s(6) - 0.05, s(9) + 0.3, { tone: "navy", y: 15, seed: 35 });
@@ -356,6 +360,7 @@ export async function build(ctx) {
     ctx.sfx("card_slide", t0, { offset: -4 });
   });
   chipRow(ctx, vis, { items: [["Real people", "users"], ["Real prices", "tag"], ["Real trust", "shield-check"]], x: R.cx, y: CHIPS_Y - (M ? 120 : 140), t0: w(40, "people") - 0.1, gap: (w(40, "trust") - w(40, "people")) / 2, t1: s(41) - 0.2, size: M ? 34 : 30, anchor: "center" });
+  listingWall(ctx, layer("wall2", s(40) - 0.6, s(41) + 0.2, 795), { t0: s(40) - 0.5, t1: s(41) - 0.4, rows: M ? 6 : 4, opacity: 0.55, seed: 13, tilt: -11, speed: 70, y: M ? 120 : 20 });
   const map2 = layer("map2", s(41) - 0.3, s(42), 790);
   await nigeriaMap(ctx, map2, { x: M ? 110 : 640, y: M ? 560 : 150, w: M ? 860 : 640, t0: s(41) - 0.3, t1: s(42) - 0.3, tCities: w(41, "city") - 0.2, gap: 0.3, labels: true });
   headline(ctx, map2, { lines: [[["Vallo is ", false], ["growing.", true]]], x: ctx.W / 2, y: M ? 1300 : 780, size: M ? 76 : 72, t0: w(41, "growing") - 0.2, t1: s(42) - 0.3, align: "center" });

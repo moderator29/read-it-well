@@ -189,7 +189,7 @@ export async function hero(ctx, { model = "island", env = "dark", edge = "#040a2
     },
     at: (t) => swung(t, { rx: 0, ry: 0, rz: 0, opacity: 1, ...poseAt(t) }),
     /** A 3D swing at each time (a chapter change): the phone turns away and back while its screen changes. */
-    swing(...times) { swings.push(...times); return H; },
+    swing(...times) { swings.push(...times); times.forEach((ts, i) => leak(ctx, ts, { warm: i % 2 === 0 })); return H; },
     scaleAt: (t) => (fit.h * H.at(t).height) / DH,
     toStage(t, dx, dy) {
       const q = H.at(t);
@@ -391,6 +391,7 @@ export function lift(ctx, H, { id, crop, t0, t1, to, exit = "fade", fly = 0.7, z
   /* src: a tall capture (crop in its own px, 1320 wide); scrolled: how far the screen is scrolled, so the part rises from where it is seen */
   if (src) ctx.img(src, { style: { position: "absolute", left: `${-crop.x * S}px`, top: `${-crop.y * S}px`, width: `${DW * S}px`, height: "auto", maxWidth: "none" } }, card);
   else ctx.img(ctx.src.display(id, H.platform), { style: { position: "absolute", left: `${-crop.x * S}px`, top: `${-crop.y * S}px`, width: `${DW * S}px`, height: `${DH * S}px`, maxWidth: "none" } }, card);
+  const sheen = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${w * 0.6}px`, height: `${h * 3}px`, transform: "rotate(20deg)", background: "linear-gradient(90deg, transparent, rgb(255 255 255 / 0.22) 50%, transparent)", pointerEvents: "none" } }, card);
   const from = H.toStage(t0, crop.x + crop.w / 2, crop.y + crop.h / 2 - scrolled + (src ? BAR_PX : 0));
   const phase = ctx.random(seed)() * Math.PI * 2;
   const back = exit === "back" ? H.toStage(t1, crop.x + crop.w / 2, crop.y + crop.h / 2 - scrolled + (src ? BAR_PX : 0)) : null;
@@ -410,6 +411,9 @@ export function lift(ctx, H, { id, crop, t0, t1, to, exit = "fade", fly = 0.7, z
       else { s *= 1 - 0.12 * v; o = 1 - v; }
     }
     place(card, { x, y, s, r, o });
+    const sp = ramp(ctx, t, t0 + fly * 0.6, t0 + fly + 0.6, "power2.inOut");
+    sheen.style.transform = `translate(${(-w * 0.7 + sp * w * 1.9).toFixed(1)}px, ${(-h).toFixed(1)}px) rotate(20deg)`;
+    sheen.style.opacity = opa(Math.sin(Math.PI * sp));
   });
   if (sound) ctx.sfx(sound, t0 + 0.05, { offset: -2 });
   return card;
@@ -425,12 +429,14 @@ export function lift(ctx, H, { id, crop, t0, t1, to, exit = "fade", fly = 0.7, z
 export function headline(ctx, parent, { lines, x, y, size = 110, t0, t1, align = "left", weight = 700, color = "#ffffff", key = "#8FD3FF", stagger = 0.055, lineGap = 1.04, sound = null }) {
   const box = ctx.el("div", { class: "abs", style: { left: `${x}px`, top: `${y}px`, width: align === "center" ? "0px" : "auto" } }, parent);
   const all = [];
+  const shimmer = [];
   lines.forEach((parts, li) => {
     const row = ctx.el("div", { class: "abs display", style: { left: align === "center" ? "50%" : "0px", top: `${li * size * lineGap}px`, whiteSpace: "nowrap", fontSize: `${size}px`, fontWeight: String(weight), color, transform: align === "center" ? "translateX(-50%)" : "none" } }, box);
     for (const [text, isKey] of parts) {
       const w = words(ctx, text, { parent: row, cls: "display", style: { position: "relative", display: "inline", fontSize: "inherit", fontWeight: "inherit", color: isKey ? key : "inherit" } });
       w.el.className = "display";
       w.words.forEach((n) => all.push(n));
+      if (isKey) w.words.forEach((n) => { Object.assign(n.style, { backgroundImage: `linear-gradient(100deg, ${key} 0%, ${key} 38%, #ffffff 50%, ${key} 62%, ${key} 100%)`, backgroundSize: "300% 100%", WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }); shimmer.push(n); });
     }
   });
   all.forEach((n, i) => {
@@ -439,6 +445,8 @@ export function headline(ctx, parent, { lines, x, y, size = 110, t0, t1, align =
   });
   ctx.onFrame((t) => {
     for (const n of all) n.style.visibility = t >= t0 - 0.01 && (t1 == null || t < t1 + 0.9) ? "inherit" : "hidden";
+    const p = ramp(ctx, t, t0 + 0.5, t0 + 1.6, "power1.inOut");
+    for (const n of shimmer) n.style.backgroundPosition = `${(100 - p * 100).toFixed(1)}% 0%`;
   });
   if (sound) ctx.sfx(sound, t0, { offset: -3 });
   return box;
@@ -550,6 +558,95 @@ export function featureCard(ctx, parent, { icon, title, line, x, y, w, t0, t1, s
   return card;
 }
 
+/* ------------------------------------------------------------ the wall */
+
+/* Live listings on Vallo (the platform's example stock, as the app labels it), read from the database on 14 October. */
+export const LISTINGS = [
+  ["Five bedroom villa on Banana Island", "Banana Island, Lagos", "₦25m /yr", "For rent", "villa-pool-skyline-01"],
+  ["Four bedroom villa in Maitama", "Maitama, Abuja", "₦18m /yr", "For rent", "living-room-dusk"],
+  ["Three bedroom terrace for sale in Karsana", "Karsana, Abuja", "₦95m", "For sale", "bedroom-02"],
+  ["Two bedroom shortlet in Lekki Phase 1", "Lekki Phase 1, Lagos", "By the night", "Shortlet", "bedroom-01"],
+  ["Four bedroom detached house on Chevron Drive", "Chevron Drive, Lagos", "₦180m", "For sale", "living-room-day"],
+  ["Hotel room in Ikeja", "Ikeja, Lagos", "Book a room", "Hotel", "resort-pool-deck"],
+  ["Two bedroom shortlet in GRA Phase 2", "GRA Phase 2, Port Harcourt", "By the night", "Shortlet", "terrace-lounge-night"],
+  ["Four bedroom duplex in New GRA", "New GRA, Port Harcourt", "₦5m /yr", "For rent", "villa-exterior-gate"],
+  ["Restaurant in Jabi", "Jabi, Abuja", "Book a table", "Restaurant", "restaurant-01"],
+  ["Studio shortlet in Ikoyi", "Ikoyi, Lagos", "By the night", "Shortlet", "villa-pool-portrait"],
+  ["Five bedroom detached house in Asokoro", "Asokoro, Abuja", "₦12m /yr", "For rent", "bedroom-02"],
+  ["Restaurant in Bodija", "Bodija, Ibadan", "Book a table", "Restaurant", "restaurant-02-lounge"],
+  ["Three bedroom flat in Wuse 2", "Wuse 2, Abuja", "₦4.5m /yr", "For rent", "skyline-waterfront-dusk"],
+  ["Two bedroom flat in Ikeja GRA", "Ikeja GRA, Lagos", "₦2.8m /yr", "For rent", "terrace-lounge-night"],
+  ["Four bedroom house for sale in Old GRA", "Old GRA, Port Harcourt", "₦145m", "For sale", "tower-entrance-dusk"],
+  ["Three bedroom bungalow in Magodo", "Magodo, Lagos", "₦3.2m /yr", "For rent", "living-room-dusk"],
+  ["One bedroom shortlet on Victoria Island", "Victoria Island, Lagos", "By the night", "Shortlet", "skyline-bridge-dusk"],
+  ["Three bedroom house in Jericho", "Jericho, Ibadan", "₦2.2m /yr", "For rent", "villa-pool-skyline-01"],
+];
+
+function listingCard(ctx, parent, [title, place, price, kind, photo], w) {
+  const k = w / 400;
+  const card = ctx.el("div", { style: { position: "relative", flex: "none", width: `${w}px`, borderRadius: `${26 * k}px`, overflow: "hidden", background: "linear-gradient(180deg, #0f1640, #090e30)", boxShadow: "0 30px 60px -26px rgb(0 0 20 / 0.85), 0 0 0 1.5px rgb(120 170 255 / 0.18)" } }, parent);
+  const ph = ctx.el("div", { style: { position: "relative", width: "100%", height: `${w * 0.62}px`, overflow: "hidden" } }, card);
+  ctx.img(ctx.src.photo(`${photo}-640.jpg`), { style: { width: "100%", height: "100%", objectFit: "cover" } }, ph);
+  ctx.el("div", { style: { position: "absolute", inset: "0", background: "linear-gradient(180deg, transparent 55%, rgb(5 8 30 / 0.55))" } }, ph);
+  ctx.el("div", { text: kind, style: { position: "absolute", left: `${14 * k}px`, top: `${14 * k}px`, padding: `${6 * k}px ${12 * k}px`, borderRadius: "999px", background: "rgb(255 255 255 / 0.94)", color: "#0b1230", font: `600 ${15 * k}px/1 Inter, sans-serif` } }, ph);
+  const heart = ctx.el("div", { style: { position: "absolute", right: `${14 * k}px`, top: `${12 * k}px`, width: `${38 * k}px`, height: `${38 * k}px`, borderRadius: "50%", background: "rgb(255 255 255 / 0.94)", display: "grid", placeItems: "center" } }, ph);
+  const hi = ctx.icon("heart", { size: Math.round(20 * k), stroke: 2.4 }, heart); hi.style.color = "#0069fe";
+  const body = ctx.el("div", { style: { padding: `${14 * k}px ${16 * k}px ${16 * k}px` } }, card);
+  ctx.el("div", { text: title, style: { font: `600 ${19 * k}px/1.2 Poppins, Inter, sans-serif`, color: "#fff", letterSpacing: "-0.01em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" } }, body);
+  ctx.el("div", { text: place, style: { marginTop: `${6 * k}px`, font: `500 ${15 * k}px/1.2 Inter, sans-serif`, color: "rgb(255 255 255 / 0.62)" } }, body);
+  ctx.el("div", { text: price, style: { marginTop: `${10 * k}px`, font: `700 ${21 * k}px/1 Poppins, Inter, sans-serif`, color: "#8FD3FF" } }, body);
+  return card;
+}
+
+/**
+ * A wall of live listing cards in tilted rows drifting at parallax speeds,
+ * a light sweeping across them: the films' "look how much is here" shot.
+ */
+export function listingWall(ctx, parent, { t0, t1, rows = 3, y = null, cardW = null, gap = null, tilt = -9, speed = 60, opacity = 1, seed = 5, label = true }) {
+  const M = ctx.isMobile;
+  const cw = cardW ?? (M ? 330 : 300);
+  const g = gap ?? cw * 0.09;
+  const ch = cw * 0.62 + cw * 0.3;
+  const wall = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${ctx.W}px`, height: `${ctx.H}px`, overflow: "hidden", WebkitMaskImage: "linear-gradient(90deg, transparent 0%, #000 12%, #000 88%, transparent 100%)", maskImage: "linear-gradient(90deg, transparent 0%, #000 12%, #000 88%, transparent 100%)" } }, parent);
+  const tiltBox = ctx.el("div", { class: "abs", style: { left: `${-ctx.W * 0.3}px`, top: `${(y ?? (ctx.H - rows * (ch + g)) / 2)}px`, width: `${ctx.W * 1.6}px`, transform: `rotate(${tilt}deg)`, transformOrigin: "50% 50%" } }, wall);
+  const rand = ctx.random(seed);
+  const strips = [];
+  for (let r = 0; r < rows; r += 1) {
+    const strip = ctx.el("div", { style: { position: "absolute", left: "0px", top: `${r * (ch + g)}px`, display: "flex", gap: `${g}px` } }, tiltBox);
+    const n = Math.ceil((ctx.W * 1.6) / (cw + g)) + 4;
+    const off = Math.floor(rand() * LISTINGS.length);
+    for (let i = 0; i < n; i += 1) listingCard(ctx, strip, LISTINGS[(off + i * (r + 2)) % LISTINGS.length], cw);
+    strips.push({ strip, dir: r % 2 ? 1 : -1, v: speed * (0.75 + 0.5 * rand()), span: 4 * (cw + g) });
+  }
+  const sweep = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${ctx.W * 0.5}px`, height: `${ctx.H}px`, background: "linear-gradient(100deg, transparent 0%, rgb(143 211 255 / 0.10) 45%, rgb(255 255 255 / 0.16) 50%, rgb(143 211 255 / 0.10) 55%, transparent 100%)" } }, wall);
+  if (label) ctx.el("div", { text: "Example listings on Vallo", class: "abs", style: { right: `${M ? 40 : 60}px`, bottom: `${M ? 300 : 30}px`, font: "500 20px/1 Inter, sans-serif", color: "rgb(255 255 255 / 0.45)" } }, wall);
+  wall.style.visibility = "hidden";
+  ctx.onFrame((t) => {
+    if (t < t0 - 0.01 || t >= t1 + 0.7) { wall.style.visibility = "hidden"; return; }
+    const o = ramp(ctx, t, t0, t0 + 0.7) * (1 - ramp(ctx, t, t1, t1 + 0.6));
+    wall.style.visibility = o > 0.001 ? "inherit" : "hidden";
+    wall.style.opacity = opa(o * opacity);
+    for (const st of strips) {
+      const x = ((st.dir * st.v * (t - t0)) % st.span + st.span) % st.span - st.span;
+      st.strip.style.transform = `translateX(${x.toFixed(1)}px)`;
+    }
+    const sx = -ctx.W * 0.6 + ((t - t0) / 2.6 % 1) * ctx.W * 2;
+    sweep.style.transform = `translateX(${sx.toFixed(1)}px)`;
+  });
+  return wall;
+}
+
+/** A light leak: a warm band of light sweeping diagonally across the frame (film transitions). */
+export function leak(ctx, t, { warm = true, dur = 0.9 } = {}) {
+  const root = ctx.scene(`leak-${t.toFixed(2)}`, t - dur / 2, t + dur / 2, { z: 865 });
+  const band = ctx.el("div", { class: "abs", style: { left: "0px", top: `${-ctx.H * 0.25}px`, width: `${ctx.W * 0.7}px`, height: `${ctx.H * 1.5}px`, transform: "rotate(18deg)", background: warm ? "linear-gradient(90deg, transparent, rgb(255 178 122 / 0.20) 35%, rgb(255 236 210 / 0.30) 50%, rgb(143 211 255 / 0.18) 65%, transparent)" : "linear-gradient(90deg, transparent, rgb(143 211 255 / 0.25) 50%, transparent)" } }, root);
+  during(ctx, t - dur / 2, t + dur / 2, (u) => {
+    const p = ramp(ctx, u, t - dur / 2, t + dur / 2, "power1.inOut");
+    band.style.transform = `translateX(${(-ctx.W * 0.8 + p * ctx.W * 1.9).toFixed(1)}px) rotate(18deg)`;
+    band.style.opacity = opa(Math.sin(Math.PI * p));
+  });
+}
+
 /* ------------------------------------------------------------------ map */
 
 const CITIES = [
@@ -621,6 +718,8 @@ export function ending(ctx, { t0, tLine, tBadges, tUrl, t1 }) {
   const root = ctx.scene("ending", t0 - 0.4, t1 + 1, { z: 900 });
   const bg = ctx.el("div", { class: "fill", style: { background: "radial-gradient(70% 45% at 50% 42%, rgb(0 105 254 / 0.55) 0%, rgb(0 63 152 / 0.25) 40%, transparent 72%), linear-gradient(180deg, #02063f 0%, #010118 75%)" } }, root);
   ctx.onFrame((t) => { bg.style.opacity = opa(ramp(ctx, t, t0 - 0.4, t0 + 0.1)); });
+  listingWall(ctx, root, { t0: t0 - 0.2, t1: t1 + 1, rows: M ? 5 : 3, tilt: -10, speed: 40, opacity: 0.26, seed: 91, label: false, y: M ? 120 : 40 });
+  ctx.el("div", { class: "fill", style: { background: "radial-gradient(60% 45% at 50% 45%, rgb(2 6 63 / 0.85), rgb(1 1 24 / 0.55) 70%, transparent)" } }, root);
   const cx = ctx.W / 2;
   const cy = M ? 760 : 380;
   const markSize = M ? 260 : 190;
