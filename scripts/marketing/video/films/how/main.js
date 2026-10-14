@@ -7,7 +7,7 @@
  * keeps the phone on the left, with the web app's window, the lifted parts
  * and the words on the right. Claims and figures: FACTS-OCT.md.
  */
-import { nigeriaMap3d, poster, installFocus, momentCard, calendarCard, noticeCard, priceCard, proofCard, listCard, flowRail, STAY_CARDS, listingWall, flagCard, nigeriaMap, anchors, ground, flash, hero, lift, headline, kicker, liveChip, numberCard, notify, chipRow, featureCard, ending, ringBurst, windowRig, ramp, opa, during, place } from "../kit.js";
+import { nigeriaMap3d, poster, sceneBack, installFocus, momentCard, calendarCard, noticeCard, priceCard, proofCard, listCard, flowRail, STAY_CARDS, listingWall, flagCard, nigeriaMap, anchors, ground, flash, hero, lift, headline, kicker, liveChip, numberCard, notify, chipRow, featureCard, ending, ringBurst, windowRig, ramp, opa, during, place } from "../kit.js";
 
 export async function build(ctx) {
   const M = ctx.isMobile;
@@ -80,8 +80,8 @@ export async function build(ctx) {
   /* the frame a chat shows before anyone presses play: composed at t = 0 */
   poster(ctx, open, { t1: s(1) - 0.15 });
   const big = M ? 104 : 112;
-  headline(ctx, open, { lines: [[["Finding a place", false]], [["in ", false], ["Nigeria", true]]], x: M ? 60 : 160, y: M ? 560 : 260, size: big, t0: s(1) - 0.05, t1: s(2) - 0.55, stagger: 0.09 });
-  headline(ctx, open, { lines: [[["shouldn't feel like", false]], [["a gamble.", true]]], x: M ? 60 : 160, y: M ? 560 + big * 2.25 : 260 + big * 2.25, size: big, t0: w(1, "shouldn't") - 0.05, t1: s(2) - 0.5, stagger: 0.09 });
+  headline(ctx, open, { lines: [[["Finding a place", false]], [["in ", false], ["Nigeria", true]]], x: M ? 60 : 160, y: M ? 560 : 260, size: big, t0: s(1) - 0.05, t1: s(2) - 0.55, stagger: 0.05 });
+  headline(ctx, open, { lines: [[["shouldn't feel like", false]], [["a gamble.", true]]], x: M ? 60 : 160, y: M ? 560 + big * 2.25 : 260 + big * 2.25, size: big, t0: w(1, "shouldn't") - 0.05, t1: s(2) - 0.5, stagger: 0.05 });
   await nigeriaMap3d(ctx, open, { x: M ? 150 : 1090, y: M ? 1120 : 250, w: M ? 790 : 700, t0: s(1) - 0.05, t1: s(2) - 0.4, tTrails: s(1) + 0.55, gap: 0.26, labels: true, cities: 6 });
   const die = ctx.sticker("1f3b2", M ? 210 : 190, open, { class: "abs", style: { left: "0px", top: "0px" } });
   during(ctx, 0, s(2) + 0.1, (t) => {
@@ -227,6 +227,7 @@ export async function build(ctx) {
 
   /* ===================== 8. Account numbers flagged (58.85 - 64.16) ===================== */
   ground(ctx, s(14) - 0.05, s(15) + 0.2, { tone: "gold", y: 30, seed: 16 });
+  sceneBack(ctx, ctx.scene("flag-back", s(14) - 0.2, s(15) + 0.4, { z: 3 }), { scene: "step-3-dark", t0: s(14), t1: s(15) - 0.1, opacity: 0.38 });
   const flag = layer("flag", s(14), s(15) + 0.1, 790);
   const card = flagCard(ctx, flag, M);
   during(ctx, s(14), s(15) + 0.1, (t) => {
@@ -325,6 +326,7 @@ export async function build(ctx) {
 
   /* ===================== 14. Checked by a person (110.77 - 119.45) ===================== */
   ground(ctx, s(27) - 0.05, s(28) + 0.3, { tone: "electric", y: 25, seed: 21 });
+  sceneBack(ctx, ctx.scene("ver-back", s(27) - 0.3, s(28) + 0.5, { z: 3 }), { scene: "step-2-dark", t0: s(27) - 0.2, t1: s(28) - 0.1, opacity: 0.42 });
   H.show("sc-verification", s(27) - 0.2, s(28) + 0.3, { enter: "slide" });
   const ver = layer("ver", s(27), s(28) + 0.1);
   listCard(ctx, ver, {

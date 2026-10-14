@@ -8,7 +8,7 @@
  * referral rewards; then the vision, Nigeria city by city, and the stores.
  * Claims and figures: FACTS-OCT.md and the founder's rulings of 14 October.
  */
-import { nigeriaMap3d, poster, installFocus, sheet, noticeCard, flowRail, momentCard, listCard, proofCard, STAY_CARDS, listingWall, flagCard, anchors, ground, flash, hero, lift, headline, kicker, liveChip, numberCard, notify, chipRow, featureCard, ending, ringBurst, windowRig, nigeriaMap, ramp, during, place } from "../kit.js";
+import { nigeriaMap3d, poster, sceneBack, installFocus, sheet, noticeCard, flowRail, momentCard, listCard, proofCard, STAY_CARDS, listingWall, flagCard, anchors, ground, flash, hero, lift, headline, kicker, liveChip, numberCard, notify, chipRow, featureCard, ending, ringBurst, windowRig, nigeriaMap, ramp, during, place } from "../kit.js";
 
 export async function build(ctx) {
   const M = ctx.isMobile;
@@ -76,7 +76,7 @@ export async function build(ctx) {
   /* the frame a chat shows before anyone presses play: composed at t = 0 */
   poster(ctx, open, { t1: s(1) - 0.15 });
   await nigeriaMap3d(ctx, open, { x: M ? 130 : 1050, y: M ? 880 : 250, w: M ? 820 : 740, t0: s(1) - 0.05, t1: s(2) - 0.3, tTrails: s(1) + 0.6, gap: 0.28, labels: true, cities: 6 });
-  headline(ctx, open, { lines: [[["Every day, people", false]], [["across ", false], ["Nigeria", true]]], x: M ? 60 : 140, y: M ? 420 : 240, size: M ? 88 : 96, t0: s(1), t1: s(2) - 0.35, stagger: 0.08 });
+  headline(ctx, open, { lines: [[["Every day, people", false]], [["across ", false], ["Nigeria", true]]], x: M ? 60 : 140, y: M ? 420 : 240, size: M ? 88 : 96, t0: s(1), t1: s(2) - 0.35, stagger: 0.05 });
   chipRow(ctx, open, { items: [["A place to live", "house"], ["to stay", "bed-double"], ["to meet", "utensils-crossed"]], x: M ? 540 : 140, y: M ? 1440 : 560, t0: w(1, "live") - 0.1, gap: w(1, "stay") - w(1, "live"), t1: s(2) - 0.35, size: M ? 34 : 34, anchor: M ? "center" : "left", wrapW: M ? 960 : 820 });
   ctx.hideCaptions(s(1) - 0.2, s(1) + 2.4);
 
@@ -312,6 +312,7 @@ export async function build(ctx) {
 
   /* ===================== 14. Trust at every step ===================== */
   ground(ctx, s(24) - 0.05, s(28) + 0.3, { tone: "electric", y: 25, seed: 45 });
+  sceneBack(ctx, ctx.scene("trust-back", s(24) - 0.3, s(26) + 0.5, { z: 3 }), { scene: "step-2-dark", t0: s(24), t1: s(26) - 0.1, opacity: 0.40 });
   H.show("sc-verification", s(24) - 0.6, w(26, "flagged") - 0.4, { enter: "cut" });
   H.show("sc-listing-cost", w(27, "full") - 0.4, s(28) + 0.3, { enter: "slide" });
   H.show("sc-thread", w(26, "flagged") - 0.4, w(27, "full") - 0.4, { enter: "slide" });

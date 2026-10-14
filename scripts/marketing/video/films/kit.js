@@ -928,9 +928,23 @@ export function object3d(ctx, parent, { name, size, x, y, t0 = 0, t1 = null, dri
 }
 
 /** A tilted question on glass: the card the opening is built from. */
-export function questionCard(ctx, parent, { text, x, y, rot = 0, t0 = 0, t1 = null, size = 38, seed = 1, delay = 0 }) {
-  const card = panel(ctx, parent, { pad: size * 0.88, radius: size * 1.0, style: { background: "linear-gradient(165deg, rgb(24 41 108 / 0.93), rgb(8 16 54 / 0.93))", whiteSpace: "nowrap" } });
-  ctx.el("div", { text, style: { font: `600 ${size}px/1.2 Poppins, Inter, sans-serif`, letterSpacing: "-0.02em", color: "rgb(238 244 255 / 0.97)", whiteSpace: "nowrap" } }, card);
+export function questionCard(ctx, parent, { text, x, y, rot = 0, t0 = 0, t1 = null, size = 38, seed = 1, delay = 0, w = null, wrap = false }) {
+  const card = panel(ctx, parent, {
+    ...(w ? { w } : {}), pad: size * (wrap ? 0.72 : 0.88), radius: size * (wrap ? 0.62 : 1.0),
+    style: {
+      background: "linear-gradient(165deg, rgb(26 44 112 / 0.90), rgb(10 19 60 / 0.92))",
+      backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)",
+      border: "1.5px solid rgb(140 185 255 / 0.26)",
+      ...(wrap ? {} : { whiteSpace: "nowrap" }),
+    },
+  });
+  ctx.el("div", {
+    text,
+    style: {
+      font: `600 ${size}px/1.22 Poppins, Inter, sans-serif`, letterSpacing: "-0.02em", color: "rgb(240 246 255 / 0.98)",
+      ...(wrap ? { textAlign: "center", textWrap: "balance" } : { whiteSpace: "nowrap" }),
+    },
+  }, card);
   const ph = ctx.random(seed)() * Math.PI * 2;
   ctx.onFrame((t) => {
     const a = ramp(ctx, t, t0 + delay - 0.6, t0 + delay, "land");
@@ -943,52 +957,103 @@ export function questionCard(ctx, parent, { text, x, y, rot = 0, t0 = 0, t1 = nu
 }
 
 /**
+ * One of the product's own night scenes, set behind a beat as its backdrop:
+ * the shield and the card behind the checks, the chat and the lock behind
+ * the warning, the archway behind the move-in. Low and soft, so the phone
+ * and the cards stay the subject and the frame stops being empty navy.
+ */
+export function sceneBack(ctx, parent, { scene, t0, t1, opacity = 0.5, anchorY = 0.62, width = null }) {
+  const M = ctx.isMobile;
+  const aw = width ?? (M ? ctx.W * 1.04 : 1150);
+  const ah = aw * (1440 / 1080);
+  const left = M ? (ctx.W - aw) / 2 : ctx.W / 2 - aw / 2 + 210;
+  const top = ctx.H * anchorY - ah * 0.38;
+  const fadeTop = "linear-gradient(180deg, transparent 0%, #000 18%, #000 100%)";
+  const fadeSide = "linear-gradient(90deg, transparent 0%, #000 16%, #000 84%, transparent 100%)";
+  const art = ctx.img(ctx.src.brand(`onboarding/${scene}.webp`), {
+    class: "abs",
+    style: {
+      left: `${left.toFixed(1)}px`, top: `${top.toFixed(1)}px`, width: `${aw.toFixed(1)}px`, height: `${ah.toFixed(1)}px`, objectFit: "cover",
+      WebkitMaskImage: `${fadeTop}, ${fadeSide}`, maskImage: `${fadeTop}, ${fadeSide}`,
+      WebkitMaskComposite: "source-in", maskComposite: "intersect",
+    },
+  }, parent);
+  ctx.onFrame((t) => {
+    const a = ramp(ctx, t, t0, t0 + 0.9, "power2.out");
+    const b = t1 == null ? 0 : ramp(ctx, t, t1, t1 + 0.6, "power2.in");
+    const o = a * (1 - b);
+    art.style.opacity = opa(o * opacity);
+    art.style.visibility = o > 0.002 ? "inherit" : "hidden";
+    art.style.transform = `scale(${(1.0 + 0.03 * a + 0.004 * Math.sin(t * 0.5)).toFixed(4)})`;
+  });
+  return art;
+}
+
+/**
  * THE OPENING, AND THE FRAME A CHAT SHOWS BEFORE ANYONE PRESSES PLAY.
  *
- * Both films used to begin on an empty navy field: the thumbnail WhatsApp
- * picked was a blank screen, and the founder's reviewer said so in those
- * words. So the first frame is now composed and still: the spaces the
- * platform covers, in the founder's own 3D objects, and the three questions
- * the film answers. Nothing fades up from nothing; it is already there at
- * t = 0, breathing, and it clears for the first line.
+ * This is the frame the founder's reviewer liked in the first cut, rebuilt:
+ * the platform's own night scene, a house and a hotel standing on blue
+ * hills with a path between them, and above it the three questions anyone
+ * looking for a place in Nigeria is already asking. The artwork is the
+ * product's own onboarding illustration, so the thumbnail is the brand.
+ *
+ * It is COMPOSED AND STILL AT t = 0. Nothing fades up out of nothing,
+ * because the still a chat shows before anyone presses play is the first
+ * frame, and an empty blue field was what the reviewer saw the first time.
+ * It breathes where it stands, then clears for the opening line.
  */
-export function poster(ctx, parent, { t1, questions = QUESTIONS, mark = true }) {
+export function poster(ctx, parent, { t1, questions = QUESTIONS, scene = "step-1-dark" }) {
   const M = ctx.isMobile;
-  const root = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${ctx.W}px`, height: `${ctx.H}px` } }, parent);
-  /* the stage: a key light above, a floor glow, a cool rim from the left */
-  const glow = ctx.el("div", {
+  const root = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${ctx.W}px`, height: `${ctx.H}px`, overflow: "hidden" } }, parent);
+
+  /* the night behind the hills */
+  const sky = ctx.el("div", {
     class: "abs",
     style: {
       left: "0px", top: "0px", width: `${ctx.W}px`, height: `${ctx.H}px`,
-      background: M
-        ? "radial-gradient(62% 30% at 50% 44%, rgb(0 105 254 / 0.50), transparent 72%), radial-gradient(45% 20% at 18% 78%, rgb(143 211 255 / 0.16), transparent 70%)"
-        : "radial-gradient(44% 52% at 62% 50%, rgb(0 105 254 / 0.50), transparent 72%), radial-gradient(34% 40% at 14% 74%, rgb(143 211 255 / 0.16), transparent 70%)",
+      background: "radial-gradient(70% 40% at 50% 26%, rgb(0 105 254 / 0.42), transparent 72%), linear-gradient(180deg, #020733 0%, #010a2e 55%, #01103f 100%)",
     },
   }, root);
-  ctx.onFrame((t) => { glow.style.opacity = opa(1 - ramp(ctx, t, t1 - 0.5, t1 + 0.3)); });
 
-  /* the spaces: a home, a hotel, a table */
-  const OBJ = M
-    ? [["home-verified", 440, 540, 1090, 1], ["hotel", 250, 215, 1330, 2], ["restaurant", 245, 875, 1330, 3]]
-    : [["home-verified", 380, 1340, 520, 1], ["hotel", 240, 1050, 730, 2], ["restaurant", 235, 1630, 726, 3]];
-  OBJ.forEach(([name, size, x, y, seed], i) => object3d(ctx, root, { name, size, x, y, t0: 0, t1: t1 - 0.35, seed, delay: 0, drift: 1 - i * 0.18 }));
+  /* The scene, placed so the house and the hotel stand in the lower third and
+     the hills run off the bottom. The art is a tall 3:4, so the wide frame
+     takes it narrower and melts its sides into the night rather than showing
+     the edge of a picture. */
+  const aw = M ? ctx.W : 1180;
+  const ah = aw * (1440 / 1080);
+  const left = M ? 0 : ctx.W / 2 - aw / 2 + 170;
+  const top = (M ? ctx.H * 0.60 : ctx.H * 0.60) - ah * 0.38;
+  const fadeTop = "linear-gradient(180deg, transparent 0%, #000 13%, #000 100%)";
+  const fadeSide = "linear-gradient(90deg, transparent 0%, #000 15%, #000 85%, transparent 100%)";
+  const art = ctx.img(ctx.src.brand(`onboarding/${scene}.webp`), {
+    class: "abs",
+    style: {
+      left: `${left.toFixed(1)}px`, top: `${top.toFixed(1)}px`, width: `${aw}px`, height: `${ah.toFixed(1)}px`, objectFit: "cover",
+      WebkitMaskImage: M ? fadeTop : `${fadeTop}, ${fadeSide}`,
+      maskImage: M ? fadeTop : `${fadeTop}, ${fadeSide}`,
+      WebkitMaskComposite: M ? "source-over" : "source-in",
+      maskComposite: M ? "add" : "intersect",
+    },
+  }, root);
 
-  /* the questions the film goes on to answer, on their own diagonal */
+  /* the questions, staggered down the frame the way the approved cut had them */
   const Q = M
-    ? [[360, 500, -5], [722, 724, 4], [432, 1588, -3]]
-    : [[520, 376, -4], [474, 548, 3], [548, 722, -2]];
+    ? [[404, 404, -4, 672], [628, 622, 3, 560], [430, 836, -3, 700]]
+    : [[398, 318, -4, 520], [566, 494, 3, 430], [416, 700, -3, 556]];
+  const cards = [];
   questions.forEach((text, i) => {
-    const [x, y, rot] = Q[i] ?? Q[0];
-    questionCard(ctx, root, { text, x, y, rot, t0: 0, t1: t1 - 0.5, size: M ? 38 : 34, seed: 10 + i });
+    const [x, y, rot, w] = Q[i] ?? Q[0];
+    cards.push(questionCard(ctx, root, { text, x, y, rot, w, t0: 0, t1: t1 - 0.45 - i * 0.06, size: M ? 54 : 42, seed: 10 + i, wrap: true }));
   });
 
-  if (mark) {
-    const word = ctx.img(ctx.src.asset("logo-wordmark.png"), { class: "abs", style: { left: "0px", top: "0px", width: `${M ? 360 : 300}px`, height: "auto" } }, root);
-    ctx.onFrame((t) => {
-      const b = ramp(ctx, t, t1 - 0.55, t1 - 0.1, "power2.in");
-      place(word, { x: M ? ctx.W / 2 : 250, y: M ? 240 : 150, s: 1, o: (1 - b) * 0.92 });
-    });
-  }
+  ctx.onFrame((t) => {
+    const out = ramp(ctx, t, t1 - 0.55, t1 + 0.25, "power2.inOut");
+    const breath = Math.sin(t * 0.55) * 0.004;
+    art.style.transform = `scale(${(1.02 + breath + out * 0.06).toFixed(4)}) translateY(${(out * ctx.H * 0.06).toFixed(1)}px)`;
+    art.style.opacity = opa(1 - out);
+    sky.style.opacity = opa(1 - ramp(ctx, t, t1 - 0.3, t1 + 0.3));
+  });
   return root;
 }
 
