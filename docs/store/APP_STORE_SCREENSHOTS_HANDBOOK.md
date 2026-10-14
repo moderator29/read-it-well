@@ -73,14 +73,14 @@ Every screen is the live product at <https://www.vallospaces.com>, in its dark t
 | 24 | Rooms, amenities, / all laid out | `n-stay` | Grand Vista Hotel: sleeps, room types, star, the amenity chips and "About this stay" |
 | 25 | The guest pays / the price you set | `f-host-bookings` | the page's own words: "The guest pays the price you set, with nothing added" |
 | 26 | Earn the / verified mark | `f-agent-dashboard` | "Verification in review ... the tick appears on all of them at once when the check clears" |
-| 27 | New listings, / as they arrive | `n-home-new` | the home scrolled to its New listings row; header cleaned (section 6) |
+| 27 | New homes, / as they arrive | `n-home-new` | the home scrolled to its New listings row; header cleaned (section 6) |
 | 28 | Your calendar, / night by night | `f-host-calendar` | October 2026, a rate on every night |
 | 29 | Restaurants, / all in one place | `sc-restaurants` | "Book a table on Vallo. The restaurant confirms" |
 | 30 | Paste the message / you already send | `f-agent-listing-edit` | "Start from your WhatsApp message ... Nothing is sent to anybody." |
-| 31 | Your numbers, / from your records | `f-agent-analytics` | "What your properties have actually done, counted from your own records" |
+| 31 | Pro adds tools / to your workspace | `f-pro` | the page's own sentence: "Pro adds tools to the workspace you already run" |
 | 32 | One account, / every business | `f-host-settings` | three businesses, all live, on one account |
 | 33 | The agent's fees, / spelled out | `f-rent-movein` | "Agency fee: the agent's own fee, 10.0% of a year's rent", under the total move-in cost |
-| 34 | Every home, / list or map | `n-search-all` | 52 properties found, All homes, with the Map button |
+| 34 | All homes, / list or map | `n-search-all` | the screen's own heading; 52 properties found, with the Map button |
 | 35 | Vallo. Real estate, / done right. | `n-welcome-en` | public; subline "Homes, hotels, shortlets and restaurants." |
 
 **Screens the 14 October pass did not take.** The lock and passcode screens, the help centre, Appearance, sign-up, a listing for sale, the listing and stay amenity sections, and the signed-out stay dates were not recaptured, and the welcome carousel was captured on its last slide only. The images that used them (old 03, 15, 17, 19, 20, 21, 23, 25, 27, 28, 30, 31, 32, 34) were pointed at other 14 October screens and their headlines rewritten to what those screens say. Recapturing those routes would let the old lines come back.
@@ -185,7 +185,7 @@ One to ten screenshots per display size and language, in .png, .jpg or .jpeg, wi
 - **Every listing, stay and restaurant on screen is example stock**, because that is all the platform holds today. Their own pages show the Example notice and cards show the Example tag; no image crops either out. The two cards (04, 13) carry the Example chip; their names and nights are illustrative, from DESIGN.md section 4, and neither shows an amount.
 - **The QA account's home area is "Ibeju-Lekki, Lagos State"** (the founder's choice). It shows on 01, 04 and the feature graphic, and in a pill on the home and stays hero photographs.
 - **The QA account's first name, "omojuni", is on screen** on the home greetings (01, 04) and on 20 ("Hi omojuni") and 15 ("Welcome back, omojuni"). No email address or phone number appears in any image.
-- **Four headers were cleaned (06, 23, 25 and 27), and one capture patched (24):** the outline of the card above, under the status bar, is blended out column by column between the clean rows above and below it. `clean.mjs` holds the patch.
+- **Two headers are cleaned (19 and 27):** both captures are the home scrolled to a row, and the labels that scroll under the translucent header are rebuilt from the unscrolled home of the same pass (`n-home`). `clean.mjs` holds the map. No capture needs the column patch now.
   - These captures were taken scrolled, and the app's translucent header let what scrolled under it show through as faint ghost text.
   - `scripts/marketing/store/clean.mjs` finds the header's own parts (the status bar, the menu, the logo and the bell) on an unscrolled capture of the same header. It keeps them as captured and sets the rest of the band to the band's own colour. Nothing below the header's hairline is touched.
 - **Product text that is shown but never lifted:**

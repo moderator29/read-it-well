@@ -162,7 +162,7 @@ export async function build(ctx) {
   ground(ctx, s(6) - 0.05, s(9) + 0.3, { tone: "navy", y: 15, seed: 35 });
   const own = layer("owners", s(6) - 0.1, s(9));
   headline(ctx, own, { lines: [[["For owners and", false]], [["landlords", true]]], x: ctx.W / 2, y: 360, size: 92, t0: s(6), t1: s(7) - 1.5, align: "center", stagger: 0.05 });
-  W.show("d-host-start", s(7) - 1.05, w(8, "listing") - 0.2, { enter: "rise", dur: 0.6 });
+  W.show("d-host-start", s(7) - 1.45, w(8, "listing") - 0.2, { enter: "rise", dur: 0.6 });
   W.click(w(7, "List") + 0.15, 850, 715);
   windowLift(ctx, W, { id: "d-host-start", crop: { x: 510, y: 668, w: 690, h: 92 }, t0: w(7, "yourself") + 0.1, t1: s(8) - 0.25, to: { x: COL, y: 320, s: 0.72, r: -2 }, seed: 2, label: "The owner's own listing" });
   /* it holds through "add your photos, set your price": the fee is the whole
@@ -235,7 +235,7 @@ export async function build(ctx) {
   kicker(ctx, fair, { text: "Booked a viewing, didn't show", icon: "calendar-x", x: COL, y: 200, t0: w(14, "viewing") - 0.1, t1: w(14, "report") - 0.3, size: 28, anchor: "center" });
   /* the thread the report comes off, so the column is not bare while the
      sentence takes its time getting to "you can report it" */
-  windowLift(ctx, W, { id: "d-messages", crop: { x: 406, y: 310, w: 814, h: 100 }, t0: w(14, "viewing") + 0.3, t1: w(14, "report") - 0.3, to: { x: COL, y: 420, s: 0.68, r: -2 }, seed: 11, label: "The enquiry it came from" });
+  windowLift(ctx, W, { id: "d-messages", crop: { x: 406, y: 310, w: 770, h: 100 }, t0: w(14, "viewing") + 0.3, t1: w(14, "report") - 0.3, to: { x: COL, y: 580, s: 0.68, r: -2 }, seed: 11, label: "The enquiry it came from" });
   featureCard(ctx, fair, { icon: "flag", title: "Report a no-show", line: "A person reads every report.", x: COL, y: 300, w: 620, t0: w(14, "report") - 0.05, t1: w(14, "forty-eight") - 0.35, size: 32, from: "right", anchor: "center" });
   numberCard(ctx, fair, { value: 48, prefix: "", label: "hours for them to respond", x: COL, y: 520, t0: w(14, "forty-eight") - 0.1, t1: w(14, "forty-eight") + 0.7, tOut: s(15) - 0.35, size: 96 });
   liveChip(ctx, fair, { text: "Fair for everyone", x: COL, y: 200, t0: s(15) - 0.05, t1: s(16) - 0.35, size: 32, anchor: "center" });
@@ -253,7 +253,7 @@ export async function build(ctx) {
       ["You choose who sees it", "You decide who you show it to, and when."],
       ["Faster every time", "Applying for your next place does not start from nothing."],
     ],
-    x: COL, y: 580, w: 620, t0: w(16, "verified") - 0.1, t1: s(17) - 0.4, rot: -2, size: 28, seed: 15, stagger: 0.22,
+    x: COL, y: 580, w: 620, t0: w(16, "verified") - 0.1, t1: s(17) - 0.4, rot: -1, size: 28, seed: 15, stagger: 0.22,
   });
   chipRow(ctx, pass, { items: [["Applying is faster", "zap"], ["You choose who sees it", "eye"]], x: COL, y: 830, t0: w(16, "faster") - 0.2, gap: w(16, "choose") - w(16, "faster"), t1: s(17) - 0.4, size: 28, anchor: "center", wrapW: 620 });
 
@@ -292,14 +292,14 @@ export async function build(ctx) {
   const pr = layer("promise", s(21) - 0.05, s(24) + 0.1, 800);
   const size = 84;
   headline(ctx, pr, { lines: [[["Here's the ", false], ["promise.", true]]], x: ctx.W / 2, y: 400, size: size * 1.2, t0: s(21), t1: s(22) - 0.5, align: "center" });
-  /* daylight, and one line at a time in one slot: stacked headlines print over
-     each other as they change */
+  /* daylight, and one line at a time in one slot: each line is clear of the
+     slot before the next one rises, so no frame carries two of them */
   const DAY0 = s(22) - 0.35;
   const DAY1 = s(24) - 0.25;
   ground(ctx, DAY0, DAY1, { tone: "day", y: 40, seed: 44, sparkle: 0, z: 2 });
   const SLOT = { x: ctx.W / 2, y: 150, align: "center", color: "#0b1230", key: "#0069fe", sheen: false };
-  headline(ctx, pr, { ...SLOT, lines: [[["All funds,", true]], [["in your wallet,", false]], [["in escrow,", false]], [["in every payment,", false]]], size, t0: s(22), t1: w(22, "held") - 0.4, stagger: 0.045 });
-  headline(ctx, pr, { ...SLOT, lines: [[["held by our", false]], [["licensed provider.", true]]], size, t0: w(22, "held") - 0.05, t1: s(23) - 0.35, stagger: 0.07 });
+  headline(ctx, pr, { ...SLOT, lines: [[["All funds,", true]], [["in your wallet,", false]], [["in escrow,", false]], [["in every payment,", false]]], size, t0: s(22), t1: w(22, "held") - 0.75, stagger: 0.045 });
+  headline(ctx, pr, { ...SLOT, lines: [[["held by our", false]], [["licensed provider.", true]]], size, t0: w(22, "held") - 0.05, t1: s(23) - 0.7, stagger: 0.07 });
   headline(ctx, pr, { ...SLOT, lines: [[["Vallo never holds", false]], [["your ", false], ["money.", true]]], size, t0: s(23), t1: s(24) - 0.55, stagger: 0.07 });
   flowRail(ctx, pr, {
     steps: ["Your card", "Our licensed provider", "The owner's bank"],
@@ -337,7 +337,7 @@ export async function build(ctx) {
   /* ===================== 16. Community: Local talk (143.1 - 156.9) ===================== */
   ground(ctx, s(28) - 0.05, s(31) + 0.3, { tone: "violet", y: 25, seed: 47 });
   const com = layer("community", s(28) - 0.1, s(31));
-  headline(ctx, com, { lines: [[["Vallo is also a", false]], [["community.", true]]], x: ctx.W / 2, y: 380, size: 84, t0: s(28), t1: s(29) - 0.8, align: "center", stagger: 0.05 });
+  headline(ctx, com, { lines: [[["Vallo is also a", false]], [["community.", true]]], x: ctx.W / 2, y: 380, size: 84, t0: s(28), t1: s(29) - 1.1, align: "center", stagger: 0.05 });
   W.show("d-f-around", s(29) - 0.4, w(30, "stories") - 0.2, { enter: "slide" });
   windowLift(ctx, W, { id: "d-f-around", crop: { x: 375, y: 296, w: 600, h: 350 }, t0: w(29, "neighbourhood") - 0.2, t1: w(30, "stories") - 0.25, to: { x: COL, y: 400, s: 0.78, r: -2 }, seed: 9, label: "Local talk" });
   W.show("d-around", w(30, "stories") - 0.2, s(31) - 0.35, { enter: "slide" });
@@ -353,7 +353,7 @@ export async function build(ctx) {
   W.show("d-f-rewards", s(32) + 0.2, s(38) - 0.35, { enter: "rise", dur: 0.6 });
   kicker(ctx, rw, { text: "Share your invite link", icon: "link", x: COL, y: 200, t0: w(33, "invite") - 0.3, t1: w(34, "earn") - 0.45, size: 30, anchor: "center" });
   ctx.sfx("bubble_send", w(33, "link"), { offset: -3 });
-  windowLift(ctx, W, { id: "d-f-rewards", crop: { x: 495, y: 760, w: 712, h: 95 }, t0: w(34, "friend") - 0.2, t1: w(36, "once") - 0.3, to: { x: COL, y: 620, s: 0.62, r: -3 }, seed: 10, label: "What a referral pays" });
+  windowLift(ctx, W, { id: "d-f-rewards", crop: { x: 505, y: 760, w: 580, h: 95 }, t0: w(34, "friend") - 0.2, t1: w(36, "once") - 0.3, to: { x: COL, y: 620, s: 0.62, r: -3 }, seed: 10, label: "What a referral pays" });
   numberCard(ctx, rw, { value: 80, label: "for each friend who joins and gets verified", x: COL, y: 330, t0: w(34, "earn") - 0.05, t1: w(34, "earn") + 0.6, tOut: s(35) + 0.9, size: 72 });
   kicker(ctx, rw, { text: "Ready after 7 days", icon: "clock", x: COL, y: 200, t0: w(35, "seven") - 0.1, t1: s(36) - 0.2, size: 30, anchor: "center" });
   W.click(w(36, "withdraw") - 0.15, 855, 332);
@@ -365,7 +365,7 @@ export async function build(ctx) {
       ["₦1,000 to withdraw", "You can withdraw once your rewards balance reaches ₦1,000."],
       ["Straight to your bank", "From your rewards balance to your own bank account."],
     ],
-    x: COL, y: 660, w: 620, t0: w(36, "withdraw") - 0.25, t1: s(37) - 0.2, rot: 2, size: 28, seed: 26, stagger: 0.16,
+    x: COL, y: 660, w: 620, t0: w(36, "withdraw") - 0.25, t1: s(37) - 0.65, rot: 2, size: 28, seed: 26, stagger: 0.16,
   });
   chipRow(ctx, rw, { items: [["Invite", "send"], ["They join", "user-plus"], ["You earn", "coins"]], x: COL, y: 560, t0: s(37), gap: 0.35, t1: s(38) - 0.4, size: 30, anchor: "center", wrapW: 620 });
   /* around the three steps, and inside the column: a wider burst thrown from

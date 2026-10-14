@@ -85,8 +85,8 @@ export async function build(ctx) {
   /* the frame a chat shows before anyone presses play: composed at t = 0 */
   poster(ctx, open, { t1: s(1) - 0.15 });
   const big = M ? 104 : 112;
-  headline(ctx, open, { lines: [[["Finding a place", false]], [["in ", false], ["Nigeria", true]]], x: M ? 60 : 160, y: M ? 560 : 260, size: big, t0: s(1) - 0.05, t1: s(2) - 0.55, stagger: 0.05 });
-  headline(ctx, open, { lines: [[["shouldn't feel like", false]], [["a gamble.", true]]], x: M ? 60 : 160, y: M ? 560 + big * 2.25 : 260 + big * 2.25, size: big, t0: w(1, "shouldn't") - 0.05, t1: s(2) - 0.5, stagger: 0.05 });
+  headline(ctx, open, { lines: [[["Finding a place", false]], [["in ", false], ["Nigeria", true]]], x: M ? 60 : 160, y: M ? 560 : 260, size: big, t0: s(1) - 0.05, t1: s(2) - 0.55, stagger: 0.03 });
+  headline(ctx, open, { lines: [[["shouldn't feel like", false]], [["a gamble.", true]]], x: M ? 60 : 160, y: M ? 560 + big * 2.25 : 260 + big * 2.25, size: big, t0: w(1, "shouldn't") - 0.05, t1: s(2) - 0.5, stagger: 0.03 });
   await nigeriaMap3d(ctx, open, { x: M ? 150 : 1090, y: M ? 1120 : 250, w: M ? 790 : 700, t0: s(1) - 0.05, t1: s(2) - 0.4, tTrails: s(1) + 0.55, gap: 0.26, labels: true, cities: 6 });
   const die = ctx.sticker("1f3b2", M ? 210 : 190, open, { class: "abs", style: { left: "0px", top: "0px" } });
   during(ctx, 0, s(2) + 0.1, (t) => {
@@ -120,15 +120,15 @@ export async function build(ctx) {
   H.show("n-stays", s(3) + 1.0, s(4) + 0.6, { enter: "slide" });
   H.tap(s(3) + 0.85, 660, 1600);
   if (M) {
-    /* THE PHONE'S TOP THIRD STAYS ITS OWN. The four parts used to land over
-       the greeting, the hero image and the search bar, so the screen they
-       were lifted from could not be read. They now sit in two columns that
-       keep clear of the phone above y 850 and leave a readable strip of
-       screen between them. */
-    lift(ctx, H, { id: "n-home2", src: ctx.src.capture("n-home2-full"), scrolled: 3000, crop: { x: 100, y: 3690, w: 1110, h: 1030 }, t0: w(3, "Homes") + 0.05, t1: w(3, "one") - 0.2, to: { x: 210, y: 1040, s: 0.3, r: -5 }, seed: 1, radius: 60, label: "Premium listings" });
-    lift(ctx, H, { id: "n-stays", crop: { x: 45, y: 1600, w: 590, h: 420 }, t0: w(3, "hotels"), t1: w(3, "one") - 0.15, to: { x: 890, y: 980, s: 0.5, r: 5 }, seed: 2 });
-    lift(ctx, H, { id: "n-stays", crop: { x: 645, y: 1600, w: 630, h: 420 }, t0: w(3, "shortlets"), t1: w(3, "one") - 0.1, to: { x: 885, y: 1245, s: 0.5, r: -6 }, seed: 3 });
-    lift(ctx, H, { id: "n-stays", crop: { x: 45, y: 2045, w: 590, h: 420 }, t0: w(3, "restaurants"), t1: w(3, "one") - 0.05, to: { x: 225, y: 1360, s: 0.5, r: 4 }, seed: 4 });
+    /* ONE PART, NOT FOUR. The four parts crowded the phone: each lifted stays
+       tile sat a finger's width from its own twin on the screen beneath it,
+       the right-hand pair came within 20px of the frame's edge, the left pair
+       touched, and together they covered the screen they were lifted from.
+       The phone says hotels, shortlets and restaurants itself, in its own
+       tiles, as the voice names them. The one part held up is the premium
+       listing the screen has just scrolled past: the only thing in this
+       chapter the phone cannot show whole. */
+    lift(ctx, H, { id: "n-home2", src: ctx.src.capture("n-home2-full"), scrolled: 3000, crop: { x: 100, y: 3690, w: 1110, h: 1030 }, t0: w(3, "Homes") + 0.05, t1: w(3, "one") - 0.2, to: { x: 540, y: 1040, s: 0.3, r: -3 }, seed: 1, radius: 60 });
   } else {
     /* THE DESKTOP CUT SHOWS THE DESKTOP. Four parts lifted off a phone, in a
        16:9 frame, was the phone film in a wider box: the founder said so.
@@ -147,31 +147,48 @@ export async function build(ctx) {
     WH.show("d-n-home-featured", w(3, "restaurants") - 0.2, w(3, "one") + 0.25, { enter: "rise", dur: 0.6 });
   }
   const one = layer("one", s(3), s(4) + 0.4);
-  kicker(ctx, one, { text: "Premium listings", icon: "gem", x: R.cx, y: M ? 1600 : 170, t0: w(3, "Homes") + 0.2, t1: w(3, "one") - 0.25, size: M ? 32 : 28, anchor: "center" });
-  chipRow(ctx, one, { items: [["One app", "smartphone"], ["One account", "user-round-check"]], x: R.cx, y: M ? 1600 : 170, t0: w(3, "one"), t1: s(4) - 0.2, size: M ? 34 : 30, anchor: "center" });
+  /* the pills used to sit at y 1600, on the caption and on the phone's own
+     bottom bar. They ride the film's label band instead, clear of both. */
+  kicker(ctx, one, { text: "Premium listings", icon: "gem", x: R.cx, y: M ? 1440 : 170, t0: w(3, "Homes") + 0.2, t1: w(3, "one") - 0.25, size: M ? 32 : 28, anchor: "center" });
+  chipRow(ctx, one, { items: [["One app", "smartphone"], ["One account", "user-round-check"]], x: R.cx, y: M ? 1440 : 170, t0: w(3, "one"), t1: s(4) - 0.2, size: M ? 34 : 30, anchor: "center" });
 
   /* ===================== 4. How it works: search, filter, save, compare ===================== */
   listingWall(ctx, layer("wall1", s(4) - 0.5, w(6, "Filter") + 1.2, 3), { t0: s(4) - 0.4, t1: w(6, "Filter") + 0.3, rows: M ? 5 : 3, opacity: 0.52, seed: 11, y: M ? 260 : 60, stays: STAY_CARDS(ctx), stayRows: [1, 3] });
   const how = layer("how", s(4) - 0.1, s(5) + 0.5);
-  headline(ctx, how, { lines: [[["Here's how it ", false], ["works.", true]]], x: M ? R.cx : 1000, y: M ? R.top : 420, size: M ? 88 : 92, t0: s(4), t1: s(5) - 0.15, align: M ? "center" : "left" });
+  headline(ctx, how, { lines: [[["Here's how it ", false], ["works.", true]]], x: M ? R.cx : 1000, y: M ? R.top : 420, size: M ? 88 : 92, t0: s(4), t1: s(5) - 0.15, align: M ? "center" : "left", stagger: 0.03 });
   ground(ctx, s(4) + 0.55, s(7) + 0.2, { tone: "navy", y: 15, seed: 13 });
   H.show("n-search2", s(5) - 0.3, w(6, "Filter") + 0.2, { enter: "slide", full: "n-search2-full", scroll: [[w(5, "Nigeria") - 0.3, 0], [w(6, "Filter") - 0.7, 2350, "power2.inOut"], [w(6, "Filter") - 0.2, 0, "power3.inOut"]] });
   H.show("sc-filters", w(6, "Filter") + 0.2, w(6, "save") - 0.1, { enter: "rise" });
   H.show("n-search-all", w(6, "save") - 0.1, w(6, "compare") - 0.3, { enter: "fade", dur: 0.3 });
   H.show("sc-saved", w(6, "compare") - 0.3, s(7) + 0.3, { enter: "slide" });
   H.tap(w(5, "Search") + 0.05, 600, 480);
-  lift(ctx, H, { id: "n-search-all", crop: { x: 30, y: 595, w: 1290, h: 130 }, t0: w(5, "Nigeria") - 0.1, t1: w(6, "Filter") + 0.1, to: { ...ROW(0), s: RS, r: -3 }, exit: "back", seed: 5 });
+  /* the row of search chips, held over the row it came from. The crop used to
+     run the full width of the display, so it took a slice of the chip that
+     the screen itself cuts off ("⌂ A"), and at y 500 the part lay across the
+     phone's status bar and island. It now ends after the last whole chip and
+     rises in place, over its own row. */
+  lift(ctx, H, { id: "n-search-all", crop: { x: 30, y: 595, w: 1140, h: 130 }, t0: w(5, "Nigeria") - 0.1, t1: w(6, "Filter") + 0.1, to: { x: R.cx, y: 700, s: RS, r: -3 }, exit: "back", seed: 5 });
   H.tap(w(6, "Filter") - 0.05, 1056, 478);
-  lift(ctx, H, { id: "sc-filters", crop: { x: 40, y: 430, w: 1240, h: 180 }, t0: w(6, "area"), t1: w(6, "save") - 0.3, to: { x: R.cx, y: M ? 470 : 230, s: RS, r: -2 }, seed: 6 });
-  lift(ctx, H, { id: "sc-filters", crop: { x: 40, y: 700, w: 1240, h: 790 }, t0: w(6, "budget"), t1: w(6, "save") - 0.25, to: { x: R.cx + (M ? 20 : 0), y: M ? 830 : 480, s: RS * 0.85, r: 2 }, seed: 7 });
-  lift(ctx, H, { id: "sc-filters", crop: { x: 45, y: 1700, w: 1230, h: 430 }, t0: w(6, "bedrooms"), t1: w(6, "save") - 0.2, to: { x: R.cx - (M ? 20 : 0), y: M ? 1250 : 800, s: RS, r: -2 }, seed: 8 });
+  /* TWO PARTS HERE, NOT THREE. The rent/sale/shortlet tabs were lifted onto
+     the phone's status bar and island, directly over the identical row on the
+     screen below, and they named nothing the voice was saying. Budget and
+     bedrooms are left, each over the filter it belongs to, and the lower one
+     has dropped 60px: at y 1250 its top corner met the price card's bottom. */
+  if (!M) lift(ctx, H, { id: "sc-filters", crop: { x: 40, y: 430, w: 1240, h: 180 }, t0: w(6, "area"), t1: w(6, "save") - 0.3, to: { x: R.cx, y: 230, s: RS, r: -2 }, seed: 6 });
+  lift(ctx, H, { id: "sc-filters", crop: { x: 40, y: 700, w: 1240, h: 790 }, t0: w(6, "budget"), t1: w(6, "save") - 0.25, to: { x: R.cx + (M ? 20 : 0), y: M ? 860 : 480, s: RS * 0.85, r: 2 }, seed: 7 });
+  lift(ctx, H, { id: "sc-filters", crop: { x: 45, y: 1700, w: 1230, h: 430 }, t0: w(6, "bedrooms"), t1: w(6, "save") - 0.2, to: { x: R.cx - (M ? 20 : 0), y: M ? 1310 : 800, s: RS, r: -2 }, seed: 8 });
   H.tap(w(6, "bedrooms") + 0.5, 660, 2725);
   H.tap(w(6, "love") - 0.1, 1150, 1250);
   ringBurst(ctx, layer("love", w(6, "love") - 0.2, w(6, "love") + 1.6, 870), { ...(() => { const p = H.toStage(w(6, "love"), 1150, 1250); return { cx: p.x, cy: p.y }; })(), r: 70, t: w(6, "love") - 0.05, dots: 12, seed: 9, dur: 0.5 });
   H.tap(w(6, "compare") + 0.2, 230, 975);
   kicker(ctx, layer("fomo1", w(6, "save") - 0.2, w(6, "side")), { text: "Save it before it's gone", icon: "heart", x: R.cx, y: M ? 1440 : 860, t0: w(6, "save") - 0.1, t1: w(6, "side") - 0.3, size: M ? 34 : 30, anchor: "center" });
-  lift(ctx, H, { id: "sc-saved", crop: { x: 40, y: 1115, w: 1250, h: 300 }, t0: w(6, "side") - 0.1, t1: s(7) - 0.05, to: { x: M ? 300 : 1180, y: M ? 560 : 420, s: M ? 0.42 : 0.33, r: -4 }, seed: 10 });
-  lift(ctx, H, { id: "sc-saved", crop: { x: 40, y: 1460, w: 1250, h: 300 }, t0: w(6, "side", 2) - 0.1, t1: s(7) - 0.05, to: { x: M ? 780 : 1600, y: M ? 640 : 470, s: M ? 0.42 : 0.33, r: 4 }, seed: 11 });
+  /* THE TWO SAVED PLACES, EACH OVER ITS OWN ROW. Side by side, the two parts
+     ran 20px off the left and right edges and their corners crossed, and each
+     one hung above an identical row still readable on the phone. Stacked at
+     the width of the rows they came from, they cover those rows and keep a
+     clear band between them. */
+  lift(ctx, H, { id: "sc-saved", crop: { x: 40, y: 1115, w: 1250, h: 300 }, t0: w(6, "side") - 0.1, t1: s(7) - 0.05, to: { x: M ? 540 : 1180, y: M ? 985 : 420, s: M ? 0.4 : 0.33, r: -1 }, seed: 10 });
+  lift(ctx, H, { id: "sc-saved", crop: { x: 40, y: 1460, w: 1250, h: 300 }, t0: w(6, "side", 2) - 0.1, t1: s(7) - 0.05, to: { x: M ? 540 : 1600, y: M ? 1180 : 470, s: M ? 0.4 : 0.33, r: 1 }, seed: 11 });
   if (!M) {
     const W = windowRig(ctx);
     W.path([
@@ -216,7 +233,9 @@ export async function build(ctx) {
     x: M ? 540 : 1330, y: M ? 760 : 470, w: M ? 880 : 740, t0: w(10, "price") - 0.05, t1: s(11) - 0.3, rot: -1, size: M ? 36 : 31, seed: 30,
     stagger: Math.max(0.35, w(10, "asking") - w(10, "nearby")),
   });
-  kicker(ctx, price, { text: "What homes nearby are asking", icon: "map-pin", x: R.cx, y: M ? 1440 : 860, t0: w(10, "asking") - 0.6, t1: s(11) - 0.2, size: M ? 32 : 28, anchor: "center" });
+  /* the card's first line already reads "What homes nearby ask" and the
+     caption says it a third time, so the phone cut drops the pill. */
+  if (!M) kicker(ctx, price, { text: "What homes nearby are asking", icon: "map-pin", x: R.cx, y: 860, t0: w(10, "asking") - 0.6, t1: s(11) - 0.2, size: 28, anchor: "center" });
 
   /* ===================== 7. Talk straight to the lister (42.69 - 57.95) ===================== */
   ground(ctx, s(11) - 0.05, s(14) + 0.3, { tone: "violet", y: 22, seed: 15 });
@@ -235,8 +254,11 @@ export async function build(ctx) {
   momentCard(ctx, talk, { cap: "Saturday", big: "11:00 AM", check: "Inspection set", x: M ? 330 : 1310, y: M ? 620 : 430, w: M ? 540 : 470, t0: w(12, "viewing") + 0.25, t1: s(13) + 0.6, rot: -3, size: M ? 42 : 36, from: "left", seed: 32 });
   chipRow(ctx, talk, { items: [["In person", "footprints"], ["By video", "video"]], x: R.cx, y: M ? 1430 : 840, t0: w(12, "person"), gap: 0.5, t1: s(13) + 0.2, size: M ? 34 : 30, anchor: "center" });
   const free = layer("free", s(13) - 0.1, s(14) + 0.1);
-  liveChip(ctx, free, { text: "Viewings are always free", x: R.cx, y: M ? R.top + 10 : 230, t0: w(13, "free") - 0.3, t1: s(14) - 0.2, size: M ? 34 : 30, anchor: "center" });
-  notify(ctx, free, { title: "Viewing tomorrow, 10:00", line: "Mini flat in Yaba", icon: "bell-ring", x: M ? 90 : 1010, y: M ? 1380 : 560, t: w(13, "reminders") - 0.1, tOut: s(14) - 0.25, size: M ? 36 : 32, example: true });
+  /* the phone is at HOME for this one, so the top slot is its status bar and
+     island: the chip sat squarely on the clock. It takes the label band, and
+     the reminder moves up to leave that band clear. */
+  liveChip(ctx, free, { text: "Viewings are always free", x: R.cx, y: M ? 1430 : 230, t0: w(13, "free") - 0.3, t1: s(14) - 0.2, size: M ? 34 : 30, anchor: "center" });
+  notify(ctx, free, { title: "Viewing tomorrow, 10:00", line: "Mini flat in Yaba", icon: "bell-ring", x: M ? 90 : 1010, y: M ? 1120 : 560, t: w(13, "reminders") - 0.1, tOut: s(14) - 0.25, size: M ? 36 : 32, example: true });
 
   /* ===================== 8. Account numbers flagged (58.85 - 64.16) ===================== */
   ground(ctx, s(14) - 0.05, s(15) + 0.2, { tone: "gold", y: 30, seed: 16 });
@@ -249,14 +271,17 @@ export async function build(ctx) {
     place(card, { x: M ? 540 : 1380, y: (M ? 760 : 520) + (1 - a) * 60 - b * 60, s: 0.94 + 0.06 * a, o: Math.min(ramp(ctx, t, w(14, "flags") - 0.35, w(14, "flags") - 0.1), 1 - b) });
   });
   ctx.sfx("stamp", w(14, "flags"), { offset: -3 });
-  kicker(ctx, flag, { text: "Account number in the chat", icon: "triangle-alert", x: R.cx, y: M ? R.top : 220, t0: w(14, "account") - 0.2, t1: w(14, "flags") - 0.3, size: M ? 32 : 28, anchor: "center" });
+  /* the chapter pill above it already reads "Safe in chat" and the caption
+     below reads "number in the chat", so the phone cut leaves the pill out
+     and lets the card itself make the point. */
+  if (!M) kicker(ctx, flag, { text: "Account number in the chat", icon: "triangle-alert", x: R.cx, y: 220, t0: w(14, "account") - 0.2, t1: w(14, "flags") - 0.3, size: 28, anchor: "center" });
 
   /* ===================== 9. Protected payment (66.92 - 75.14) ===================== */
   ground(ctx, s(15) - 0.05, s(18) + 0.3, { tone: "emerald", y: 20, seed: 17 });
   H.show("sc-listing-cost", s(15) - 0.2, s(18) + 0.3, { enter: "fade", dur: 0.3 });
   H.tap(w(16, "Pay") - 0.05, 200, 2720);
   const prot = layer("prot", s(15) - 0.1, s(18) + 0.1);
-  headline(ctx, prot, { lines: [[["Ready to ", false], ["move in?", true]]], x: M ? R.cx : HX, y: M ? R.top : 200, size: M ? 84 : 80, t0: s(15), t1: s(16) + 0.4, align: M ? "center" : "left" });
+  headline(ctx, prot, { lines: [[["Ready to ", false], ["move in?", true]]], x: M ? R.cx : HX, y: M ? R.top : 200, size: M ? 84 : 80, t0: s(15), t1: s(16) + 0.4, align: M ? "center" : "left", stagger: 0.03 });
   featureCard(ctx, prot, { icon: "shield-check", title: "Protected payment", line: "Held in escrow by our licensed provider. Released when the deal is done.", x: M ? 540 : 1000, y: M ? 1300 : 420, w: M ? 900 : 760, t0: w(16, "Protected") - 0.1, t1: s(18) - 0.25, size: M ? 38 : 34, anchor: M ? "center" : "left" });
   /* the card below already says who holds the money and when it is released,
      and the caption says it a third time. The pill carries the other half of
@@ -275,7 +300,11 @@ export async function build(ctx) {
   H.tap(w(19, "room") - 0.4, 660, 1560);
   const trip = layer("trip", s(18), s(20));
   lift(ctx, H, { id: "n-staysd", src: ctx.src.capture("n-staysd-full"), scrolled: 3440, crop: { x: 45, y: 3742, w: 1217, h: 1366 }, t0: w(19, "full") + 0.05, t1: s(20) - 0.15, to: { x: R.cx, y: M ? 950 : 600, s: M ? 0.46 : 0.36, r: -2 }, seed: 40, radius: 50 });
-  numberCard(ctx, trip, { value: 396000, label: "Total for 3 nights, Eko Pearl Apartments", x: R.cx, y: M ? 300 : 120, t0: w(19, "full") + 0.1, t1: w(19, "full") + 0.9, tOut: s(20) - 0.15, size: M ? 84 : 76 });
+  /* the total sat at y 300, where the chapter pill cut straight through the
+     label and the figure. The pill steps aside, as it does for the move-in
+     total, and the card takes the clear band above the phone. */
+  numberCard(ctx, trip, { value: 396000, label: "Total for 3 nights, Eko Pearl Apartments", x: R.cx, y: M ? 130 : 120, t0: w(19, "full") + 0.1, t1: w(19, "full") + 0.9, tOut: s(20) - 0.15, size: M ? 84 : 76 });
+  if (M) ctx.hidePill(w(19, "full") - 0.35, s(20) - 0.05);
   priceCard(ctx, trip, { name: "Eko Pearl Apartments", figure: "₦132,000", unit: "per night", x: M ? 660 : 1500, y: M ? 1330 : 790, w: M ? 600 : 520, t0: w(19, "room") + 0.5, t1: w(19, "full") - 0.55, rot: 2, size: M ? 38 : 34, seed: 41, from: "right" });
   noticeCard(ctx, trip, { object: "calendar-booked", title: "Room booked", line: "Eko Pearl Apartments · 3 nights", x: M ? 540 : 1330, y: M ? 560 : 300, w: M ? 820 : 700, t0: w(19, "hotel") + 0.45, t1: w(19, "full") - 0.55, rot: 0, size: M ? 38 : 34, seed: 42, from: "above" });
   kicker(ctx, trip, { text: "The full cost before you pay", icon: "badge-check", x: R.cx, y: M ? 1440 : 860, t0: w(19, "full") - 0.2, t1: s(20) - 0.2, size: M ? 32 : 28, anchor: "center" });
@@ -299,8 +328,14 @@ export async function build(ctx) {
   H.tap(w(21, "restaurant") + 0.1, 660, 1280);
   H.tap(w(21, "deposit") - 0.1, 390, 2745);
   const table = layer("table", s(20), s(22));
-  headline(ctx, table, { lines: [[["Going out ", false], ["tonight?", true]]], x: M ? R.cx : HX, y: M ? R.top : 220, size: M ? 84 : 80, t0: s(20), t1: s(21) + 0.8, align: M ? "center" : "left" });
-  lift(ctx, H, { id: "f-restaurant-reserve", crop: { x: 80, y: 1130, w: 1170, h: 300 }, t0: w(21, "table") - 0.1, t1: s(22) - 0.25, to: { x: R.cx, y: M ? 600 : 380, s: RS, r: -3 }, seed: 41 });
+  /* the phone is at HOME here, so a line at y 410 lay across its status bar
+     and island: the headline takes the band above the phone and the chapter
+     pill waits until it has gone. */
+  headline(ctx, table, { lines: [[["Going out ", false], ["tonight?", true]]], x: M ? R.cx : HX, y: M ? 185 : 220, size: M ? 84 : 80, t0: s(20), t1: s(21) + 0.8, align: M ? "center" : "left", stagger: 0.03 });
+  if (M) ctx.hidePill(s(20) - 0.15, s(21) + 1.3);
+  /* the reservation row, held over the row it was lifted from: at y 600 it
+     floated directly above its own twin, still readable on the screen. */
+  lift(ctx, H, { id: "f-restaurant-reserve", crop: { x: 80, y: 1130, w: 1170, h: 300 }, t0: w(21, "table") - 0.1, t1: s(22) - 0.25, to: { x: R.cx, y: M ? 1002 : 380, s: RS, r: -3 }, seed: 41 });
   chipRow(ctx, table, { items: [["Table deposit", "utensils-crossed"], ["Confirmed by the restaurant", "check"]], x: R.cx, y: M ? 1440 : 860, t0: w(21, "deposit"), gap: 0.5, t1: s(22) - 0.25, size: M ? 30 : 28, wrapW: M ? 960 : 820, anchor: "center" });
 
   /* ===================== 12. The wallet (90.0 - 96.96) ===================== */
@@ -308,16 +343,35 @@ export async function build(ctx) {
   const WALLET_PATCH = [{ x: 274, y: 2128, w: 870, h: 66, bg: "rgb(5 11 32)", size: 46, weight: 600, lh: 1.3, color: "rgb(222 227 255)", lines: ["Open your account with our partner"] }];
   H.show("n-wallet", s(22) - 0.2, s(24) + 0.3, { enter: "slide", patch: WALLET_PATCH });
   const wal = layer("wallet", s(22), s(24));
-  headline(ctx, wal, { lines: [[["Your Vallo ", false], ["wallet", true]]], x: M ? R.cx : HX, y: M ? R.top : 210, size: M ? 84 : 80, t0: w(22, "wallet") - 0.3, t1: s(23) - 0.2, align: M ? "center" : "left" });
+  /* the line used to run across the phone's clock and island, and the pill
+     over it said "Your wallet" at the same moment. The line takes the band
+     above the phone and the pill waits its turn. */
+  headline(ctx, wal, { lines: [[["Your Vallo ", false], ["wallet", true]]], x: M ? R.cx : HX, y: M ? 185 : 210, size: M ? 84 : 80, t0: w(22, "wallet") - 0.3, t1: s(23) - 0.2, align: M ? "center" : "left", stagger: 0.03 });
+  if (M) ctx.hidePill(w(22, "wallet") - 0.45, s(23) + 0.25);
   H.tap(w(23, "Add") - 0.3, 1188, 2508);
-  lift(ctx, H, { id: "n-wallet", crop: { x: 45, y: 2410, w: 1230, h: 300 }, t0: w(23, "Add") - 0.05, t1: s(24) - 0.25, to: { x: R.cx, y: M ? 540 : 330, s: RS, r: -2 }, seed: 50 });
+  lift(ctx, H, { id: "n-wallet", crop: { x: 45, y: 2410, w: 1230, h: 300 }, t0: w(23, "Add") - 0.05, t1: s(24) - 0.25, to: { x: R.cx, y: M ? 720 : 330, s: RS, r: -2 }, seed: 50 });
   chipRow(ctx, wal, { items: [["Add money", "plus"], ["Pay", "credit-card"], ["Send", "send"], ["Withdraw", "arrow-down-to-line"]], x: R.cx, y: M ? 1440 : 860, t0: w(23, "Add"), gap: (w(23, "withdraw") - w(23, "Add")) / 3, t1: s(24) - 0.2, size: M ? 32 : 28, anchor: "center", wrapW: M ? 980 : 860 });
 
   /* ===================== 13. Every naira (97.5 - 109.78) ===================== */
   ground(ctx, s(24) - 0.05, s(27) + 0.3, { tone: "navy", y: 45, seed: 20, sparkle: 8 });
   const naira = layer("naira", s(24) - 0.05, s(26) + 0.2, 800);
   const size = M ? 92 : 96;
-  headline(ctx, naira, { lines: [[["Every ", false], ["naira,", true]], [["in your wallet,", false]], [["in escrow,", false]], [["in every payment,", false]]], x: M ? 60 : 200, y: M ? 470 : 150, size, t0: s(24), t1: w(24, "held") - 0.3, stagger: 0.045 });
+  /* THE LIST ARRIVES AS IT IS SPOKEN. All four lines used to land inside half
+     a second and then sit still in the top third, with the phone gone and
+     nothing at all below them for three and a half seconds. Each line now
+     lands on its own words, down its own row of the frame, so the picture
+     fills as the voice fills it. */
+  if (M) {
+    const EVERY = [
+      { lines: [[["Every ", false], ["naira,", true]]], t0: s(24) },
+      { lines: [[["in your wallet,", false]]], t0: w(24, "wallet") - 0.45 },
+      { lines: [[["in escrow,", false]]], t0: w(24, "escrow") - 0.45 },
+      { lines: [[["in every payment,", false]]], t0: w(24, "payment") - 0.6 },
+    ];
+    EVERY.forEach(({ lines, t0 }, i) => headline(ctx, naira, { lines, x: 60, y: [500, 730, 960, 1190][i], size, t0, t1: w(24, "held") - 0.3, stagger: 0.03 }));
+  } else {
+    headline(ctx, naira, { lines: [[["Every ", false], ["naira,", true]], [["in your wallet,", false]], [["in escrow,", false]], [["in every payment,", false]]], x: 200, y: 150, size, t0: s(24), t1: w(24, "held") - 0.3, stagger: 0.045 });
+  }
   /* daylight for the promise: white paper, dark type, and the money's route
      drawn down a rail, the way the founder's favourite cut said it */
   const DAY0 = w(24, "held") - 0.5;
@@ -325,20 +379,26 @@ export async function build(ctx) {
   ground(ctx, DAY0, DAY1, { tone: "day", y: 40, seed: 34, sparkle: 0, z: 2 });
   ctx.hidePill(DAY0 - 0.1, DAY1 + 0.1);
   const INKC = "#0b1230";
-  headline(ctx, naira, { lines: [[["held by our", false]], [["licensed provider.", true]]], x: M ? 70 : ctx.W / 2, y: M ? 300 : 150, size: size * (M ? 0.95 : 0.9), t0: w(24, "held") - 0.1, t1: s(25) - 0.2, stagger: 0.07, color: INKC, key: "#0069fe", sheen: false, align: M ? "left" : "center" });
-  headline(ctx, naira, { lines: [[["Never by ", false], ["Vallo.", true]]], x: ctx.W / 2, y: M ? 560 : 320, size: size * (M ? 1.2 : 1.05), t0: s(25) - 0.05, t1: s(26) - 0.2, align: "center", stagger: 0.08, color: INKC, key: "#0069fe", sheen: false });
+  headline(ctx, naira, { lines: [[["held by our", false]], [["licensed provider.", true]]], x: M ? 70 : ctx.W / 2, y: M ? 300 : 150, size: size * (M ? 0.95 : 0.9), t0: w(24, "held") - 0.1, t1: s(25) - 0.2, stagger: 0.035, color: INKC, key: "#0069fe", sheen: false, align: M ? "left" : "center" });
+  /* the ink type and the rail are off the frame before the white goes: left a
+     moment longer they turned dark blue on dark navy as the day faded. */
+  headline(ctx, naira, { lines: [[["Never by ", false], ["Vallo.", true]]], x: ctx.W / 2, y: M ? 560 : 320, size: size * (M ? 1.2 : 1.05), t0: s(25) - 0.05, t1: s(26) - 0.5, align: "center", stagger: 0.035, color: INKC, key: "#0069fe", sheen: false });
   flowRail(ctx, naira, {
     steps: ["Your card", "Our licensed provider", "The owner's bank"],
     x: M ? 170 : 660, y: M ? 880 : 470, gap: M ? 255 : 192, size: M ? 46 : 38,
-    t0: w(24, "held") + 0.15, t1: s(26) - 0.3, seed: 35,
+    t0: w(24, "held") + 0.15, t1: s(26) - 0.5, seed: 35,
   });
   ctx.sfx("stamp", s(25) + 0.05, { offset: 0 });
   ctx.hideCaptions(s(24) - 0.1, s(26) - 0.1);
   ctx.hidePill(s(24) - 0.2, s(27) - 0.1);
   H.show("sc-payments", s(26) - 0.8, s(27) + 0.2, { enter: "cut" });
   const rec = layer("receipts", s(26) - 0.1, s(27));
-  lift(ctx, H, { id: "sc-payments", crop: { x: 45, y: 670, w: 1230, h: 450 }, t0: w(26, "receipt") - 0.1, t1: s(27) - 0.25, to: { x: R.cx, y: M ? 600 : 360, s: RS, r: -2 }, seed: 54 });
-  chipRow(ctx, rec, { items: [["A receipt for every payment", "receipt"], ["Vallo earns only when a deal is done", "handshake"]], x: R.cx, y: M ? 1440 : 860, t0: w(26, "receipt") + 0.2, gap: 1.3, t1: s(27) - 0.25, size: M ? 28 : 26, wrapW: M ? 980 : 840, anchor: "center" });
+  /* the record, held over the record: at y 600 the part lay on the phone's
+     status bar with its own twin still legible underneath it. */
+  lift(ctx, H, { id: "sc-payments", crop: { x: 45, y: 670, w: 1230, h: 450 }, t0: w(26, "receipt") - 0.1, t1: s(27) - 0.25, to: { x: R.cx, y: M ? 820 : 360, s: RS, r: -2 }, seed: 54 });
+  /* two pills this wide wrap onto two rows on the phone, and the second row
+     landed on the caption: the row sits a line higher. */
+  chipRow(ctx, rec, { items: [["A receipt for every payment", "receipt"], ["Vallo earns only when a deal is done", "handshake"]], x: R.cx, y: M ? 1330 : 860, t0: w(26, "receipt") + 0.2, gap: 1.3, t1: s(27) - 0.25, size: M ? 28 : 26, wrapW: M ? 980 : 840, anchor: "center" });
 
   /* ===================== 14. Checked by a person (110.77 - 119.45) ===================== */
   ground(ctx, s(27) - 0.05, s(28) + 0.3, { tone: "electric", y: 25, seed: 21 });
@@ -354,9 +414,14 @@ export async function build(ctx) {
       ["A real person", "Someone at Vallo reads it, every time."],
     ],
     x: M ? 540 : 1330, y: M ? 760 : 470, w: M ? 880 : 740,
-    t0: w(27, "owner") - 0.1, t1: s(28) - 0.3, rot: -1, size: M ? 36 : 31, seed: 60, stagger: Math.max(0.3, (w(27, "person") - w(27, "owner")) / 3),
+    /* a step a second left the card standing three quarters empty for three
+       seconds at a stretch: the four lines now fill it in a beat and a half */
+    t0: w(27, "owner") - 0.1, t1: s(28) - 0.3, rot: -1, size: M ? 36 : 31, seed: 60, stagger: M ? 0.35 : Math.max(0.3, (w(27, "person") - w(27, "owner")) / 3),
   });
-  proofCard(ctx, ver, { lines: ["Checked by a real", "person at Vallo."], x: M ? 420 : 560, y: M ? 1430 : 820, w: M ? 640 : 560, t0: w(27, "person") + 0.1, t1: s(28) - 0.25, rot: -2, size: M ? 42 : 36, seed: 64, from: "left" });
+  /* the pill above says "Checked by a person", the card's last line says a
+     real person reads it and the caption says it again, so on the phone the
+     stamp carries the screen's own heading instead. */
+  proofCard(ctx, ver, { lines: M ? ["Four steps, in order."] : ["Checked by a real", "person at Vallo."], x: M ? 420 : 560, y: M ? 1430 : 820, w: M ? 640 : 560, t0: w(27, "person") + 0.1, t1: s(28) - 0.25, rot: -2, size: M ? 42 : 36, seed: 64, from: "left" });
 
   /* ===================== 15. Ask anything (120.0 - 125.9) ===================== */
   ground(ctx, s(28) - 0.05, s(31) + 0.3, { tone: "violet", y: 30, seed: 22 });
@@ -365,7 +430,7 @@ export async function build(ctx) {
   /* both crops cut a neighbour mid-shape: the bubble's took half the sender's
      avatar, and the chip row's ended inside the second suggestion, on "What
      will it cost me t". Each now holds one whole element with a margin. */
-  lift(ctx, H, { id: "sc-assistant", crop: { x: 86, y: 556, w: 1216, h: 352 }, t0: w(29, "time") - 0.3, t1: s(31) - 0.25, to: { x: R.cx, y: M ? 580 : 340, s: RS, r: -3 }, seed: 70, label: "Your question, in the chat" });
+  lift(ctx, H, { id: "sc-assistant", crop: { x: 86, y: 556, w: 1216, h: 352 }, t0: w(29, "time") - 0.3, t1: s(31) - 0.25, to: { x: R.cx, y: M ? 700 : 340, s: RS, r: -3 }, seed: 70, label: "Your question, in the chat" });
   lift(ctx, H, { id: "sc-assistant-start", crop: { x: 20, y: 2395, w: 776, h: 220 }, t0: s(28) + 0.45, t1: w(29, "time") - 0.4, to: { x: R.cx, y: M ? 1250 : 760, s: M ? 0.78 : 0.62, r: 2 }, seed: 71, label: "A question to start with" });
   const ai = layer("ai", s(28), s(31));
   kicker(ctx, ai, { text: "Always says it is an AI", icon: "sparkles", x: R.cx, y: M ? 1440 : 860, t0: w(30, "AI") - 0.5, t1: s(31) - 0.2, size: M ? 32 : 28, anchor: "center" });
@@ -373,22 +438,27 @@ export async function build(ctx) {
   /* ===================== 16. Your language (126.35 - 131.44) ===================== */
   ground(ctx, s(31) - 0.05, s(33) - 0.2, { tone: "dusk", y: 80, seed: 23 });
   H.show("n-welcome-en", s(31) - 0.2, w(32, "Hausa") - 0.1, { enter: "slide" });
-  H.show("n-welcome-ha", w(32, "Hausa") - 0.1, w(32, "Yorùbá") - 0.1, { enter: "slide" });
-  H.show("n-welcome-yo", w(32, "Yorùbá") - 0.1, w(32, "Igbo") - 0.1, { enter: "slide" });
-  H.show("n-welcome-ig", w(32, "Igbo") - 0.1, s(33) + 0.5, { enter: "slide" });
-  /* THE WELCOME BUTTON, WHOLE, AND NOTHING UNDER IT.
-     The crop used to start 8px above the button, so the frame's fade ate its
-     top edge and each language read as a half-height slice; the part also sat
-     on the screen's own status bar and wordmark, and the pills below sat on
-     the tagline the screen was already saying. The crop now takes the button
-     and the sign-in link with a margin all round, the part floats over the
-     welcome artwork (the one band of the screen with no type on it), and the
-     pills sit under it in a single row, clear of the card above and the
-     tagline below. Each language leaves before the next arrives. */
-  [["n-welcome-en", "English", -3], ["n-welcome-ha", "Hausa", 3], ["n-welcome-yo", "Yorùbá", -2], ["n-welcome-ig", "Igbo", 2]].forEach(([id, word, r], i) => {
+  /* EACH LANGUAGE WHOLE, ON ITS OWN WORD. The four welcome screens used to
+     slide in over one another, and the words are six tenths of a second
+     apart, so a frame caught two of them at once: half a phone of Hausa
+     beside half a phone of Yorùbá. They cut on the word now, and the swipe
+     the slide used to carry is kept. */
+  [["n-welcome-ha", "Hausa", "Yorùbá"], ["n-welcome-yo", "Yorùbá", "Igbo"], ["n-welcome-ig", "Igbo", null]].forEach(([id, word, next]) => {
+    const t0 = w(32, word) - 0.1;
+    H.show(id, t0, next ? w(32, next) - 0.1 : s(33) + 0.5, { enter: "cut" });
+    ctx.sfx("swipe", t0, { offset: -4 });
+  });
+  /* NO PART HERE ON THE PHONE. Four parts in two and a half seconds cannot
+     be done in this frame: each one needed four tenths of a second to fly in
+     and six to leave, so every language was still on its way out when the
+     next arrived, two labels deep in the same spot (the checker reads a
+     third of each on top of the other), and each part carried a button the
+     screen below it was already showing whole. The phone says the language
+     itself, and the pills name the four. */
+  if (!M) [["n-welcome-en", "English", -3], ["n-welcome-ha", "Hausa", 3], ["n-welcome-yo", "Yorùbá", -2], ["n-welcome-ig", "Igbo", 2]].forEach(([id, word, r], i) => {
     const t0 = w(32, word) + 0.25;
     const t1 = i < 3 ? w(32, ["Hausa", "Yorùbá", "Igbo"][i]) + 0.1 : s(33) - 1.25;
-    lift(ctx, H, { id, crop: { x: 18, y: 2390, w: 1284, h: 430 }, t0, t1, to: { x: R.cx, y: M ? 780 : 340, s: M ? 0.55 : RS, r }, exit: "up", seed: 80 + i, fly: 0.4, label: `Welcome screen, ${word}` });
+    lift(ctx, H, { id, crop: { x: 18, y: 2390, w: 1284, h: 430 }, t0, t1, to: { x: R.cx, y: 340, s: RS, r }, exit: "up", seed: 80 + i, fly: 0.4, label: `Welcome screen, ${word}` });
   });
   const lang = layer("lang", s(31), s(33));
   chipRow(ctx, lang, { items: [["English"], ["Hausa"], ["Yorùbá"], ["Igbo"]], x: R.cx, y: M ? 1000 : 700, t0: w(32, "English") - 0.05, gap: 0.62, t1: s(33) - 1.3, size: 32, wrapW: M ? 1000 : 900, anchor: "center" });
@@ -397,7 +467,7 @@ export async function build(ctx) {
   ending(ctx, { t0: s(33), tLine: s(34) - 0.05, tBadges: s(35) - 0.1, tUrl: s(36) + 0.4, t1: ctx.duration });
 
   /* last, so every part has registered the moment it is held up */
-  installFocus(ctx);
+  installFocus(ctx, { strength: M ? 0.56 : 0.28 });
 }
 
 void opa;

@@ -237,9 +237,9 @@ export const SHOTS = [
   std(11, "featured-homes-see-them-all", "n-home-featured", ["Featured homes,", "see them all"]),
   std(12, "each-verified-mark-checked-by-a-person", "sc-verification", ["Each verified mark,", "checked by a person"]),
 
-  /* 13: the host's side. The payout arrives over the app's header, covering
-     the menu and the logo whole, clear of the back button below, and
-     overhangs the phone's left edge. No amount. */
+  /* 13: the host's side. The payout arrives over the app's header, clear of
+     the back button and the step bar below, and overhangs the phone's left
+     edge. No amount. */
   std(13, "have-a-property-put-it-on-vallo", "f-host-start", ["Have a property?", "Put it on Vallo"], {
     async extra(ctx, m, p) {
       const [edge] = p.at(-m.frame, HEADER.top);
@@ -262,7 +262,7 @@ export const SHOTS = [
     },
   }),
 
-  /* 14: the villas search, whose Map button sits over photographs, not over
+  /* 14: the rent search, whose Map button sits over photographs, not over
      an Example chip. */
   std(14, "search-homes-across-nigeria", "n-search", ["Search homes", "across Nigeria"]),
   std(15, "ask-to-view-schedule-a-visit", "sc-thread", ["Ask to view,", "schedule a visit"]),
@@ -277,14 +277,14 @@ export const SHOTS = [
   std(24, "rooms-amenities-all-laid-out", "n-stay", ["Rooms, amenities,", "all laid out"]),
   std(25, "the-guest-pays-the-price-you-set", "f-host-bookings", ["The guest pays", "the price you set"]),
   std(26, "earn-the-verified-mark", "f-agent-dashboard", ["Earn the", "verified mark"]),
-  std(27, "new-listings-as-they-arrive", "n-home-new", ["New listings,", "as they arrive"]),
+  std(27, "new-homes-as-they-arrive", "n-home-new", ["New homes,", "as they arrive"]),
   std(28, "your-calendar-night-by-night", "f-host-calendar", ["Your calendar,", "night by night"]),
   std(29, "restaurants-all-in-one-place", "sc-restaurants", ["Restaurants,", "all in one place"]),
   std(30, "paste-the-message-you-already-send", "f-agent-listing-edit", ["Paste the message", "you already send"]),
-  std(31, "your-numbers-from-your-records", "f-agent-analytics", ["Your numbers,", "from your records"]),
+  std(31, "pro-adds-tools-to-your-workspace", "f-pro", ["Pro adds tools", "to your workspace"]),
   std(32, "one-account-every-business", "f-host-settings", ["One account,", "every business"]),
   std(33, "the-agents-fees-spelled-out", "f-rent-movein", ["The agent’s fees,", "spelled out"]),
-  std(34, "every-home-list-or-map", "n-search-all", ["Every home,", "list or map"]),
+  std(34, "all-homes-list-or-map", "n-search-all", ["All homes,", "list or map"]),
   std(35, "vallo-real-estate-done-right", "n-welcome-en", ["Vallo. Real estate,", "done right."], { sub: "Homes, hotels, shortlets and restaurants." }),
 ];
 
