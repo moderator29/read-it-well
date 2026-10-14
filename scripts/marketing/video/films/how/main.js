@@ -111,11 +111,11 @@ export async function build(ctx) {
   /* ===================== 3. One app: homes, hotels, shortlets, restaurants ===================== */
   H.show("n-home-premium", 7.9, s(3) + 1.0, { enter: "cut" });
   H.show("n-stays", s(3) + 1.0, s(4) + 0.6, { enter: "slide" });
-  H.tap(s(3) + 0.85, 1180, 1610);
-  lift(ctx, H, { id: "n-home-premium", crop: { x: 105, y: 1300, w: 1110, h: 1070 }, t0: w(3, "Homes") + 0.05, t1: w(3, "one") - 0.2, to: { x: M ? 280 : 1170, y: M ? 820 : 520, s: M ? 0.4 : 0.32, r: -5 }, seed: 1, radius: 60 });
-  lift(ctx, H, { id: "n-stays", crop: { x: 45, y: 1715, w: 590, h: 410 }, t0: w(3, "hotels"), t1: w(3, "one") - 0.15, to: { ...R.r1, s: TS, r: 5 }, seed: 2 });
-  lift(ctx, H, { id: "n-stays", crop: { x: 645, y: 1715, w: 630, h: 410 }, t0: w(3, "shortlets"), t1: w(3, "one") - 0.1, to: { ...R.l2, s: TS, r: -6 }, seed: 3 });
-  lift(ctx, H, { id: "n-stays", crop: { x: 45, y: 2165, w: 590, h: 420 }, t0: w(3, "restaurants"), t1: w(3, "one") - 0.05, to: { ...R.r2, s: TS, r: 4 }, seed: 4 });
+  H.tap(s(3) + 0.85, 660, 1600);
+  lift(ctx, H, { id: "n-home-premium", crop: { x: 125, y: 1255, w: 1080, h: 1000 }, t0: w(3, "Homes") + 0.05, t1: w(3, "one") - 0.2, to: { x: M ? 280 : 1170, y: M ? 820 : 520, s: M ? 0.4 : 0.32, r: -5 }, seed: 1, radius: 60 });
+  lift(ctx, H, { id: "n-stays", crop: { x: 45, y: 1600, w: 590, h: 420 }, t0: w(3, "hotels"), t1: w(3, "one") - 0.15, to: { ...R.r1, s: TS, r: 5 }, seed: 2 });
+  lift(ctx, H, { id: "n-stays", crop: { x: 645, y: 1600, w: 630, h: 420 }, t0: w(3, "shortlets"), t1: w(3, "one") - 0.1, to: { ...R.l2, s: TS, r: -6 }, seed: 3 });
+  lift(ctx, H, { id: "n-stays", crop: { x: 45, y: 2045, w: 590, h: 420 }, t0: w(3, "restaurants"), t1: w(3, "one") - 0.05, to: { ...R.r2, s: TS, r: 4 }, seed: 4 });
   const one = layer("one", s(3), s(4) + 0.4);
   kicker(ctx, one, { text: "Premium listings", icon: "gem", x: R.cx, y: M ? 1440 : 860, t0: w(3, "Homes") + 0.2, t1: w(3, "one") - 0.25, size: M ? 32 : 28, anchor: "center" });
   chipRow(ctx, one, { items: [["One app", "smartphone"], ["One account", "user-round-check"]], x: R.cx, y: M ? 1440 : 860, t0: w(3, "one"), t1: s(4) - 0.2, size: M ? 34 : 30, anchor: "center" });
@@ -125,23 +125,23 @@ export async function build(ctx) {
   const how = layer("how", s(4) - 0.1, s(5) + 0.5);
   headline(ctx, how, { lines: [[["Here's how it ", false], ["works.", true]]], x: M ? R.cx : 1000, y: M ? R.top : 420, size: M ? 88 : 92, t0: s(4), t1: s(5) - 0.15, align: M ? "center" : "left" });
   ground(ctx, s(4) + 0.55, s(7) + 0.2, { tone: "navy", y: 15, seed: 13 });
-  H.show("sc-search", s(5) - 0.3, w(6, "Filter") + 0.2, { enter: "slide" });
+  H.show("n-search-all", s(5) - 0.3, w(6, "Filter") + 0.2, { enter: "slide" });
   H.show("sc-filters", w(6, "Filter") + 0.2, w(6, "save") - 0.1, { enter: "rise" });
-  H.show("sc-search", w(6, "save") - 0.1, w(6, "compare") - 0.3, { enter: "fade", dur: 0.3 });
+  H.show("n-search-all", w(6, "save") - 0.1, w(6, "compare") - 0.3, { enter: "fade", dur: 0.3 });
   H.show("sc-saved", w(6, "compare") - 0.3, s(7) + 0.3, { enter: "slide" });
-  H.tap(w(5, "Search") + 0.05, 660, 560);
-  lift(ctx, H, { id: "sc-search", crop: { x: 440, y: 690, w: 860, h: 150 }, t0: w(5, "Nigeria") - 0.1, t1: w(6, "Filter") + 0.1, to: { ...ROW(0), s: RS, r: -3 }, exit: "back", seed: 5 });
-  H.tap(w(6, "Filter") - 0.05, 770, 580);
-  lift(ctx, H, { id: "sc-filters", crop: { x: 45, y: 520, w: 1230, h: 200 }, t0: w(6, "area"), t1: w(6, "save") - 0.3, to: { x: R.cx, y: M ? 470 : 230, s: RS, r: -2 }, seed: 6 });
-  lift(ctx, H, { id: "sc-filters", crop: { x: 45, y: 760, w: 1230, h: 780 }, t0: w(6, "budget"), t1: w(6, "save") - 0.25, to: { x: R.cx + (M ? 20 : 0), y: M ? 830 : 480, s: RS * 0.85, r: 2 }, seed: 7 });
+  H.tap(w(5, "Search") + 0.05, 600, 480);
+  lift(ctx, H, { id: "n-search-all", crop: { x: 30, y: 595, w: 1290, h: 130 }, t0: w(5, "Nigeria") - 0.1, t1: w(6, "Filter") + 0.1, to: { ...ROW(0), s: RS, r: -3 }, exit: "back", seed: 5 });
+  H.tap(w(6, "Filter") - 0.05, 1056, 478);
+  lift(ctx, H, { id: "sc-filters", crop: { x: 40, y: 430, w: 1240, h: 180 }, t0: w(6, "area"), t1: w(6, "save") - 0.3, to: { x: R.cx, y: M ? 470 : 230, s: RS, r: -2 }, seed: 6 });
+  lift(ctx, H, { id: "sc-filters", crop: { x: 40, y: 700, w: 1240, h: 790 }, t0: w(6, "budget"), t1: w(6, "save") - 0.25, to: { x: R.cx + (M ? 20 : 0), y: M ? 830 : 480, s: RS * 0.85, r: 2 }, seed: 7 });
   lift(ctx, H, { id: "sc-filters", crop: { x: 45, y: 1700, w: 1230, h: 430 }, t0: w(6, "bedrooms"), t1: w(6, "save") - 0.2, to: { x: R.cx - (M ? 20 : 0), y: M ? 1250 : 800, s: RS, r: -2 }, seed: 8 });
-  H.tap(w(6, "bedrooms") + 0.5, 660, 2810);
-  H.tap(w(6, "love") - 0.1, 1080, 1390);
-  ringBurst(ctx, layer("love", w(6, "love") - 0.2, w(6, "love") + 1.6, 870), { ...(() => { const p = H.toStage(w(6, "love"), 1080, 1390); return { cx: p.x, cy: p.y }; })(), r: 70, t: w(6, "love") - 0.05, dots: 12, seed: 9, dur: 0.5 });
-  H.tap(w(6, "compare") + 0.2, 180, 1060);
+  H.tap(w(6, "bedrooms") + 0.5, 660, 2725);
+  H.tap(w(6, "love") - 0.1, 1150, 1250);
+  ringBurst(ctx, layer("love", w(6, "love") - 0.2, w(6, "love") + 1.6, 870), { ...(() => { const p = H.toStage(w(6, "love"), 1150, 1250); return { cx: p.x, cy: p.y }; })(), r: 70, t: w(6, "love") - 0.05, dots: 12, seed: 9, dur: 0.5 });
+  H.tap(w(6, "compare") + 0.2, 230, 975);
   kicker(ctx, layer("fomo1", w(6, "save") - 0.2, w(6, "side")), { text: "Save it before it's gone", icon: "heart", x: R.cx, y: M ? 1440 : 860, t0: w(6, "save") - 0.1, t1: w(6, "side") - 0.3, size: M ? 34 : 30, anchor: "center" });
-  lift(ctx, H, { id: "sc-saved", crop: { x: 40, y: 1220, w: 1250, h: 240 }, t0: w(6, "side") - 0.1, t1: s(7) - 0.05, to: { x: M ? 300 : 1180, y: M ? 560 : 420, s: M ? 0.42 : 0.33, r: -4 }, seed: 10 });
-  lift(ctx, H, { id: "sc-saved", crop: { x: 40, y: 1565, w: 1250, h: 240 }, t0: w(6, "side", 2) - 0.1, t1: s(7) - 0.05, to: { x: M ? 780 : 1600, y: M ? 640 : 470, s: M ? 0.42 : 0.33, r: 4 }, seed: 11 });
+  lift(ctx, H, { id: "sc-saved", crop: { x: 40, y: 1115, w: 1250, h: 300 }, t0: w(6, "side") - 0.1, t1: s(7) - 0.05, to: { x: M ? 300 : 1180, y: M ? 560 : 420, s: M ? 0.42 : 0.33, r: -4 }, seed: 10 });
+  lift(ctx, H, { id: "sc-saved", crop: { x: 40, y: 1460, w: 1250, h: 300 }, t0: w(6, "side", 2) - 0.1, t1: s(7) - 0.05, to: { x: M ? 780 : 1600, y: M ? 640 : 470, s: M ? 0.42 : 0.33, r: 4 }, seed: 11 });
   if (!M) {
     const W = windowRig(ctx);
     W.path([
@@ -152,15 +152,15 @@ export async function build(ctx) {
       [w(6, "area") + 0.4, { x: 1960, y: 330, s: 0.58, opacity: 0 }, "none"],
       [ctx.duration, { x: 1960, y: 330, s: 0.58, opacity: 0 }, "none"],
     ]);
-    W.show("d-n-search", s(5) - 0.2, w(6, "area") + 0.4, { enter: "cut" });
-    W.click(w(5, "Nigeria") + 0.3, 700, 210);
+    W.show("d-n-search-all", s(5) - 0.2, w(6, "area") + 0.4, { enter: "cut" });
+    W.click(w(5, "Nigeria") + 0.3, 700, 38);
   }
 
   /* ===================== 5. The whole cost (25.96 - 36.45) ===================== */
   ground(ctx, s(7) - 0.05, s(9) + 0.3, { tone: "electric", y: 25, seed: 14 });
   H.show("sc-listing", s(7) - 0.2, w(7, "move-in") + 0.3, { enter: "slide" });
   H.show("sc-listing-cost", w(7, "move-in") + 0.3, s(9) + 0.2, { enter: "rise" });
-  H.tap(w(7, "move-in") + 0.05, 220, 2780);
+  H.tap(w(7, "move-in") + 0.05, 200, 2720);
   const cost = layer("cost", s(7), s(9) + 0.3);
   kicker(ctx, cost, { text: "What you will actually pay", icon: "receipt", x: R.cx, y: M ? 1430 : 880, t0: w(7, "whole"), t1: w(7, "move-in") + 0.3, size: M ? 32 : 28, anchor: "center" });
   const lines = [
@@ -179,7 +179,7 @@ export async function build(ctx) {
   lift(ctx, H, { id: "sc-price", crop: { x: 40, y: 560, w: 1240, h: 520 }, t0: w(10, "price") - 0.05, t1: s(11) - 0.3, to: { x: R.cx, y: M ? 600 : 360, s: RS, r: -2 }, seed: 30 });
   H.tap(w(10, "nearby") - 0.1, 1080, 1470);
   lift(ctx, H, { id: "sc-price", crop: { x: 120, y: 1510, w: 1160, h: 140 }, t0: w(10, "nearby") + 0.15, t1: s(11) - 0.25, to: { x: R.cx - (M ? 20 : 0), y: M ? 900 : 560, s: RS, r: -2 }, seed: 31 });
-  lift(ctx, H, { id: "sc-price", crop: { x: 120, y: 2100, w: 1160, h: 140 }, t0: w(10, "asking") - 0.35, t1: s(11) - 0.2, to: { x: R.cx + (M ? 20 : 0), y: M ? 1080 : 700, s: RS, r: 2 }, seed: 32 });
+  lift(ctx, H, { id: "sc-price", crop: { x: 120, y: 1975, w: 1160, h: 140 }, t0: w(10, "asking") - 0.35, t1: s(11) - 0.2, to: { x: R.cx + (M ? 20 : 0), y: M ? 1080 : 700, s: RS, r: 2 }, seed: 32 });
   kicker(ctx, price, { text: "What homes nearby are asking", icon: "map-pin", x: R.cx, y: M ? 1440 : 860, t0: w(10, "asking") - 0.6, t1: s(11) - 0.2, size: M ? 32 : 28, anchor: "center" });
 
   /* ===================== 7. Talk straight to the lister (42.69 - 57.95) ===================== */
@@ -188,9 +188,9 @@ export async function build(ctx) {
   H.show("sc-thread", w(11, "inside") - 0.2, s(15) + 0.2, { enter: "slide" });
   const talk = layer("talk", s(11), s(14));
   chipRow(ctx, talk, { items: [["Owner", "key-round"], ["Landlord", "house"], ["Agent", "badge-check"]], x: R.cx, y: M ? R.top + 20 : 220, t0: w(11, "owner"), gap: 0.42, t1: w(11, "inside") + 0.6, size: M ? 34 : 30, anchor: "center" });
-  H.tap(w(12, "message") - 0.2, 700, 2840);
-  lift(ctx, H, { id: "sc-thread", crop: { x: 110, y: 2200, w: 1110, h: 140 }, t0: w(12, "message") + 0.1, t1: w(12, "call") - 0.4, to: { x: R.cx, y: M ? 540 : 330, s: M ? 0.78 : 0.62, r: -2 }, seed: 31 });
-  H.tap(w(12, "call") + 0.15, 1060, 330);
+  H.tap(w(12, "message") - 0.2, 500, 2775);
+  lift(ctx, H, { id: "sc-thread", crop: { x: 110, y: 2225, w: 1110, h: 130 }, t0: w(12, "message") + 0.1, t1: w(12, "call") - 0.4, to: { x: R.cx, y: M ? 540 : 330, s: M ? 0.78 : 0.62, r: -2 }, seed: 31 });
+  H.tap(w(12, "call") + 0.15, 1055, 275);
   chipRow(ctx, talk, { items: [["Voice call", "phone"], ["Video call", "video"]], x: R.cx, y: M ? 1430 : 840, t0: w(12, "voice"), gap: 0.35, t1: w(12, "viewing") - 0.3, size: M ? 34 : 30, anchor: "center" });
   H.tap(w(12, "viewing") + 0.1, 330, 850);
   lift(ctx, H, { id: "sc-thread", crop: { x: 40, y: 790, w: 640, h: 120 }, t0: w(12, "viewing") + 0.25, t1: s(13) + 0.6, to: { x: R.cx, y: M ? 560 : 360, s: M ? 0.95 : 0.8, r: -3 }, seed: 32 });
@@ -214,7 +214,7 @@ export async function build(ctx) {
   /* ===================== 9. Protected payment (66.92 - 75.14) ===================== */
   ground(ctx, s(15) - 0.05, s(18) + 0.3, { tone: "emerald", y: 20, seed: 17 });
   H.show("sc-listing-cost", s(15) - 0.2, s(18) + 0.3, { enter: "fade", dur: 0.3 });
-  H.tap(w(16, "Pay") - 0.05, 860, 2780);
+  H.tap(w(16, "Pay") - 0.05, 200, 2720);
   const prot = layer("prot", s(15) - 0.1, s(18) + 0.1);
   headline(ctx, prot, { lines: [[["Ready to ", false], ["move in?", true]]], x: M ? R.cx : HX, y: M ? R.top : 200, size: M ? 84 : 80, t0: s(15), t1: s(16) + 0.4, align: M ? "center" : "left" });
   featureCard(ctx, prot, { icon: "shield-check", title: "Protected payment", line: "Held in escrow by our licensed provider. Released when the deal is done.", x: M ? 540 : 1000, y: M ? 1300 : 420, w: M ? 900 : 760, t0: w(16, "Protected") - 0.1, t1: s(18) - 0.25, size: M ? 38 : 34, anchor: M ? "center" : "left" });
@@ -229,10 +229,9 @@ export async function build(ctx) {
   H.tap(s(18) + 0.7, 340, 1920);
   H.tap(w(19, "dates") + 0.15, 520, 1110);
   lift(ctx, H, { id: "n-stays-dates", crop: { x: 40, y: 990, w: 1250, h: 240 }, t0: w(19, "dates") + 0.4, t1: w(19, "room") - 0.4, to: { x: R.cx, y: M ? 540 : 330, s: RS, r: -2 }, seed: 39 });
-  H.tap(w(19, "dates") + 0.75, 1120, 1110);
   H.tap(w(19, "room") - 0.45, 660, 1530);
   const trip = layer("trip", s(18), s(20));
-  lift(ctx, H, { id: "f-stay-checkout", crop: { x: 45, y: 1600, w: 640, h: 170 }, t0: w(19, "shortlet") - 0.2, t1: s(20) - 0.2, to: { x: R.cx, y: M ? 560 : 330, s: M ? 0.95 : 0.8, r: 3 }, seed: 40 });
+  lift(ctx, H, { id: "f-stay-checkout", crop: { x: 45, y: 1520, w: 640, h: 110 }, t0: w(19, "shortlet") - 0.2, t1: s(20) - 0.2, to: { x: R.cx, y: M ? 560 : 330, s: M ? 0.95 : 0.8, r: 3 }, seed: 40 });
   kicker(ctx, trip, { text: "Full cost before you pay", icon: "badge-check", x: R.cx, y: M ? 1440 : 860, t0: w(19, "full") - 0.2, t1: s(20) - 0.2, size: M ? 32 : 28, anchor: "center" });
   if (!M) {
     const W2 = windowRig(ctx);
@@ -244,17 +243,17 @@ export async function build(ctx) {
       [w(19, "room") + 0.3, { x: 1960, y: 300, s: 0.6, opacity: 0 }, "none"],
     ]);
     W2.show("d-n-stays-dates", s(18) - 0.2, w(19, "room") + 0.3, { enter: "cut" });
-    W2.click(w(19, "dates") + 0.2, 420, 300);
+    W2.click(w(19, "dates") + 0.2, 1240, 352);
   }
 
   /* ===================== 11. Reserve a table (83.65 - 89.10) ===================== */
   H.show("sc-restaurants", s(20) - 0.2, w(21, "secure") - 0.3, { enter: "slide" });
   H.show("f-restaurant-reserve", w(21, "secure") - 0.3, s(22) + 0.2, { enter: "slide" });
   H.tap(w(21, "restaurant") + 0.1, 660, 1280);
-  H.tap(w(21, "deposit") - 0.1, 600, 2860);
+  H.tap(w(21, "deposit") - 0.1, 390, 2745);
   const table = layer("table", s(20), s(22));
   headline(ctx, table, { lines: [[["Going out ", false], ["tonight?", true]]], x: M ? R.cx : HX, y: M ? R.top : 220, size: M ? 84 : 80, t0: s(20), t1: s(21) + 0.8, align: M ? "center" : "left" });
-  lift(ctx, H, { id: "f-restaurant-reserve", crop: { x: 80, y: 1170, w: 1170, h: 330 }, t0: w(21, "table") - 0.1, t1: s(22) - 0.25, to: { x: R.cx, y: M ? 600 : 380, s: RS, r: -3 }, seed: 41 });
+  lift(ctx, H, { id: "f-restaurant-reserve", crop: { x: 80, y: 1130, w: 1170, h: 300 }, t0: w(21, "table") - 0.1, t1: s(22) - 0.25, to: { x: R.cx, y: M ? 600 : 380, s: RS, r: -3 }, seed: 41 });
   chipRow(ctx, table, { items: [["Table deposit", "utensils-crossed"], ["Confirmed by the restaurant", "check"]], x: R.cx, y: M ? 1440 : 860, t0: w(21, "deposit"), gap: 0.5, t1: s(22) - 0.25, size: M ? 30 : 28, wrapW: M ? 960 : 820, anchor: "center" });
 
   /* ===================== 12. The wallet (90.0 - 96.96) ===================== */

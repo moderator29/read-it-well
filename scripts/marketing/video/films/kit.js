@@ -200,8 +200,8 @@ export async function hero(ctx, { model = "island", env = "dark", edge = "#040a2
       const s = (fit.h * height) / DH;
       return { cx: X - (dx - DW / 2) * s, cy: Y - (dy - DH / 2) * s, height };
     },
-    show(id, t0, t1, opts = {}) { return screenShow(ctx, H, id, t0, t1, opts); },
-    tap(t, dx, dy, opts = {}) { taps.push({ t, dx, dy, ...opts }); tap(ctx, p.screen, { x: dx, y: dy, t, size: 260, sound: opts.sound ?? "tap", offset: opts.offset ?? 0 }); return H; },
+    show(id, t0, t1, opts = {}) { (window.__dbg ??= { shows: [], taps: [], lifts: [] }).shows.push({ id, t0, t1, full: opts.full ?? null, scroll: opts.scroll ?? null }); return screenShow(ctx, H, id, t0, t1, opts); },
+    tap(t, dx, dy, opts = {}) { (window.__dbg ??= { shows: [], taps: [], lifts: [] }).taps.push({ t, dx, dy }); taps.push({ t, dx, dy, ...opts }); tap(ctx, p.screen, { x: dx, y: dy, t, size: 260, sound: opts.sound ?? "tap", offset: opts.offset ?? 0 }); return H; },
     ring(t0, t1, { x, y, w, h, r = 48 }) {
       const el = ctx.el("div", { class: "abs", style: { left: `${x}px`, top: `${y}px`, width: `${w}px`, height: `${h}px`, borderRadius: `${r}px`, border: "6px solid #2f7cff", boxShadow: "0 0 46px 4px rgb(0 105 254 / 0.5), inset 0 0 34px rgb(0 105 254 / 0.22)", zIndex: 60, visibility: "hidden" } }, p.screen);
       ctx.onFrame((t) => {
@@ -384,6 +384,7 @@ export function windowRig(ctx, { url = "vallospaces.com" } = {}) {
  * (exit: "back" returns to the screen, "fade", "up", "left", "right").
  */
 export function lift(ctx, H, { id, crop, t0, t1, to, exit = "fade", fly = 0.7, z = 720, radius = 40, seed = 1, sound = "pop", src = null, scrolled = 0 }) {
+  (window.__dbg ??= { shows: [], taps: [], lifts: [] }).lifts.push({ id, crop, t0, src: !!src });
   const root = ctx.scene(`lift-${id}-${t0.toFixed(2)}`, t0 - 0.01, t1 + 0.8, { z });
   const S = to.s;
   const w = crop.w * S, h = crop.h * S;

@@ -121,9 +121,9 @@ export async function build(ctx) {
   lift(ctx, H, { id: "n-home-featured", crop: { x: 40, y: 1290, w: 1250, h: 1130 }, t0: w(4, "home") - 0.05, t1: w(5, "Homes") - 0.15, to: { x: M ? 290 : 1170, y: M ? 820 : 520, s: M ? 0.38 : 0.3, r: -5 }, seed: 9, radius: 60 });
   H.show("n-stays", w(5, "hotels") - 0.3, s(6) + 0.3, { enter: "slide" });
   lift(ctx, H, { id: "n-home-space", crop: { x: 0, y: 1300, w: 1320, h: 390 }, t0: w(5, "Homes") + 0.1, t1: w(5, "one") - 0.2, to: { ...ROW(0), s: RS, r: -3 }, seed: 1 });
-  lift(ctx, H, { id: "n-stays", crop: { x: 45, y: 1715, w: 590, h: 410 }, t0: w(5, "hotels"), t1: w(5, "one") - 0.15, to: { ...R.r1, s: TS, r: 5 }, seed: 2 });
-  lift(ctx, H, { id: "n-stays", crop: { x: 645, y: 1715, w: 630, h: 410 }, t0: w(5, "shortlets"), t1: w(5, "one") - 0.1, to: { ...R.l2, s: TS, r: -6 }, seed: 3 });
-  lift(ctx, H, { id: "n-stays", crop: { x: 45, y: 2165, w: 590, h: 420 }, t0: w(5, "restaurants"), t1: w(5, "one") - 0.05, to: { ...R.r2, s: TS, r: 4 }, seed: 4 });
+  lift(ctx, H, { id: "n-stays", crop: { x: 45, y: 1600, w: 590, h: 420 }, t0: w(5, "hotels"), t1: w(5, "one") - 0.15, to: { ...R.r1, s: TS, r: 5 }, seed: 2 });
+  lift(ctx, H, { id: "n-stays", crop: { x: 645, y: 1600, w: 630, h: 420 }, t0: w(5, "shortlets"), t1: w(5, "one") - 0.1, to: { ...R.l2, s: TS, r: -6 }, seed: 3 });
+  lift(ctx, H, { id: "n-stays", crop: { x: 45, y: 2045, w: 590, h: 420 }, t0: w(5, "restaurants"), t1: w(5, "one") - 0.05, to: { ...R.r2, s: TS, r: 4 }, seed: 4 });
   const one = layer("one", s(4), s(6));
   kicker(ctx, one, { text: "One home for real estate in Nigeria", icon: "house", x: R.cx, y: CHIPS_Y, t0: w(4, "home") - 0.1, t1: w(5, "Homes") - 0.1, size: M ? 30 : 28, anchor: "center" });
   chipRow(ctx, one, { items: [["One app", "smartphone"], ["One account", "user-round-check"]], x: R.cx, y: CHIPS_Y, t0: w(5, "one"), gap: 0.5, t1: s(6) - 0.2, size: M ? 34 : 30, anchor: "center" });
@@ -135,8 +135,8 @@ export async function build(ctx) {
   const own = layer("owners", s(6) - 0.1, s(9));
   headline(ctx, own, { lines: [[["For owners and ", false], ["landlords", true]]], x: M ? R.cx : HX, y: M ? R.top : 200, size: M ? 74 : 76, t0: s(6), t1: s(7) - 0.3, align: M ? "center" : "left" });
   H.show("f-host-start", s(6) + 0.2, w(8, "photos") - 0.3, { enter: "slide" });
-  H.tap(w(7, "List") - 0.15, 660, 2450);
-  lift(ctx, H, { id: "f-host-start", crop: { x: 40, y: 2335, w: 1240, h: 240 }, t0: w(7, "List") + 0.1, t1: s(8) - 0.2, to: { ...ROW(0), s: RS * 1.05, r: -2 }, seed: 5 });
+  H.tap(w(7, "List") - 0.15, 660, 2360);
+  lift(ctx, H, { id: "f-host-start", crop: { x: 40, y: 2235, w: 1240, h: 260 }, t0: w(7, "List") + 0.1, t1: s(8) - 0.2, to: { ...ROW(0), s: RS * 1.05, r: -2 }, seed: 5 });
   liveChip(ctx, own, { text: "No agency fee", x: R.cx, y: CHIPS_Y, t0: w(7, "agency") - 0.1, t1: s(8) - 0.2, size: M ? 36 : 32, anchor: "center" });
   H.show("sc-listing", w(8, "photos") - 0.3, s(9) + 0.3, { enter: "slide" });
   chipRow(ctx, own, { items: [["Add your photos", "camera"], ["Set your price", "tag"], ["Ownership checked", "file-check-2"]], x: R.cx, y: M ? R.top : 200, t0: w(8, "photos"), gap: (w(8, "checked") - w(8, "photos")) / 2, t1: s(9) - 0.3, size: M ? 30 : 28, wrapW: M ? 980 : 860, anchor: "center" });
@@ -163,13 +163,13 @@ export async function build(ctx) {
   H.show("f-host-calendar", w(10, "calendar") - 0.3, w(10, "bookings") - 0.2, { enter: "slide" });
   H.show("f-host-bookings", w(10, "bookings") - 0.2, w(10, "earnings") - 0.2, { enter: "slide" });
   H.show("f-host-settings", w(10, "earnings") - 0.2, s(11) - 0.1, { enter: "slide" });
-  H.tap(w(10, "wizard") - 0.35, 760, 355);
+  H.tap(w(10, "wizard") - 0.35, 1033, 430);
   lift(ctx, H, { id: "f-host-rooms", crop: { x: 40, y: 1610, w: 1240, h: 400 }, t0: w(10, "rooms") - 0.05, t1: w(10, "calendar") - 0.2, to: { ...ROW(0), s: RS, r: -2 }, seed: 8 });
-  H.tap(w(10, "calendar") - 0.4, 1080, 355);
-  lift(ctx, H, { id: "f-host-calendar", crop: { x: 40, y: 1170, w: 1240, h: 200 }, t0: w(10, "night") - 0.3, t1: w(10, "bookings") - 0.2, to: { ...ROW(0), s: RS, r: -2 }, seed: 9 });
+  H.tap(w(10, "calendar") - 0.4, 1270, 430);
+  lift(ctx, H, { id: "f-host-calendar", crop: { x: 40, y: 1350, w: 1240, h: 200 }, t0: w(10, "night") - 0.3, t1: w(10, "bookings") - 0.2, to: { ...ROW(0), s: RS, r: -2 }, seed: 9 });
   lift(ctx, H, { id: "f-host-bookings", crop: { x: 40, y: 1425, w: 1240, h: 840 }, t0: w(10, "bookings") + 0.1, t1: w(10, "earnings") - 0.2, to: { x: R.cx, y: M ? 640 : 420, s: RS * 0.7, r: 2 }, seed: 10 });
   chipRow(ctx, desk, { items: [["Bookings", "calendar-check"], ["Reservations", "utensils"], ["Earnings", "wallet"]], x: R.cx, y: CHIPS_Y, t0: w(10, "bookings"), gap: (w(10, "earnings") - w(10, "bookings")) / 2, t1: w(10, "cancellation") - 0.3, size: M ? 32 : 28, anchor: "center" });
-  lift(ctx, H, { id: "f-host-settings", crop: { x: 40, y: 1250, w: 1240, h: 560 }, t0: w(10, "place") - 0.3, t1: s(11) - 0.2, to: { ...ROW(0), y: M ? 560 : 330, s: RS * 0.85, r: -2 }, seed: 11 });
+  lift(ctx, H, { id: "f-host-settings", crop: { x: 40, y: 1100, w: 1240, h: 680 }, t0: w(10, "place") - 0.3, t1: s(11) - 0.2, to: { ...ROW(0), y: M ? 560 : 330, s: RS * 0.85, r: -2 }, seed: 11 });
   kicker(ctx, desk, { text: "Cancellation rules you choose", icon: "calendar-x-2", x: R.cx, y: CHIPS_Y, t0: w(10, "cancellation") - 0.1, t1: s(11) - 0.2, size: M ? 32 : 28, anchor: "center" });
   if (!M) {
     const W = windowRig(ctx);
@@ -185,7 +185,7 @@ export async function build(ctx) {
 
   /* ===================== 7. Table deposits ===================== */
   H.show("f-host-reservations", s(11) - 0.1, s(12) + 0.3, { enter: "slide" });
-  H.tap(s(11) + 0.8, 1100, 355);
+  H.tap(s(11) + 0.8, 1029, 430);
   const dep = layer("deposits", s(11), s(12));
   lift(ctx, H, { id: "f-host-reservations", crop: { x: 40, y: 2220, w: 1240, h: 420 }, t0: w(11, "deposits") - 0.1, t1: s(12) - 0.2, to: { x: R.cx, y: M ? 600 : 360, s: RS, r: -2 }, seed: 12 });
   liveChip(ctx, dep, { text: "Every reservation counts", x: R.cx, y: CHIPS_Y, t0: w(11, "counts") - 0.4, t1: s(12) - 0.2, size: M ? 34 : 30, anchor: "center" });
@@ -297,8 +297,8 @@ export async function build(ctx) {
   const com = layer("community", s(28) - 0.1, s(31));
   headline(ctx, com, { lines: [[["Vallo is also a ", false], ["community.", true]]], x: M ? R.cx : HX, y: M ? R.top : 200, size: M ? 68 : 72, t0: s(28), t1: s(29) - 0.1, align: M ? "center" : "left" });
   lift(ctx, H, { id: "f-around", crop: { x: 40, y: 1260, w: 1240, h: 1060 }, t0: w(29, "neighbourhood") - 0.2, t1: w(30, "stories") - 0.1, to: { x: R.cx, y: M ? 700 : 450, s: M ? 0.56 : 0.48, r: -2 }, seed: 23 });
-  H.tap(w(30, "stories") - 0.1, 990, 870);
-  lift(ctx, H, { id: "f-around", crop: { x: 30, y: 760, w: 560, h: 260 }, t0: w(30, "stories") + 0.1, t1: s(31) - 0.2, to: { ...R.l1, s: M ? 0.85 : 0.7, r: -4 }, seed: 24 });
+  H.tap(w(30, "stories") - 0.1, 390, 780);
+  lift(ctx, H, { id: "f-around", crop: { x: 30, y: 660, w: 560, h: 320 }, t0: w(30, "stories") + 0.1, t1: s(31) - 0.2, to: { ...R.l1, s: M ? 0.85 : 0.7, r: -4 }, seed: 24 });
   chipRow(ctx, com, { items: [["Local talk", "messages-square"], ["Stories", "circle-play"], ["Follow", "user-plus"], ["What's new around you", "map-pin"]], x: R.cx, y: CHIPS_Y - (M ? 60 : 0), t0: w(29, "Local"), gap: (w(30, "new") - w(29, "Local")) / 3, t1: s(31) - 0.2, size: M ? 28 : 26, wrapW: M ? 980 : 860, anchor: "center" });
   if (!M) {
     const W = windowRig(ctx);
@@ -318,11 +318,12 @@ export async function build(ctx) {
   const rw = layer("rewards", s(31) - 0.1, s(38));
   headline(ctx, rw, { lines: [[["Referral rewards", false]], [["are ", false], ["live.", true]]], x: M ? R.cx : HX, y: M ? 390 : 200, size: M ? 78 : 80, t0: w(31, "referral") - 0.1, t1: s(32) + 0.6, align: M ? "center" : "left", lineGap: 1.1 });
   liveChip(ctx, rw, { text: "Live now", x: R.cx, y: CHIPS_Y, t0: w(31, "live") - 0.1, t1: s(33) - 0.2, size: M ? 36 : 32, anchor: "center" });
-  H.show("f-rewards", s(31) - 0.2, w(36, "withdraw") - 0.3, { enter: "rise" });
+  H.show("f-rewards", s(31) - 0.2, w(34, "friend") - 0.3, { enter: "rise" });
+  H.show("f-rewards-how", w(34, "friend") - 0.3, w(36, "withdraw") - 0.3, { enter: "rise" });
   H.show("f-rewards-withdraw", w(36, "withdraw") - 0.3, s(38) + 0.3, { enter: "slide" });
   kicker(ctx, rw, { text: "Share your invite link", icon: "link", x: R.cx, y: M ? R.top : 200, t0: w(33, "invite") - 0.3, t1: w(34, "earn") - 0.4, size: M ? 34 : 30, anchor: "center" });
   ctx.sfx("bubble_send", w(33, "link"), { offset: -3 });
-  lift(ctx, H, { id: "f-rewards", crop: { x: 125, y: 1100, w: 1070, h: 400 }, t0: w(34, "verified") - 0.1, t1: s(35) + 0.8, to: { x: R.cx, y: M ? 560 : 340, s: M ? 0.78 : 0.62, r: -3 }, seed: 25 });
+  lift(ctx, H, { id: "f-rewards-how", crop: { x: 150, y: 1090, w: 1020, h: 410 }, t0: w(34, "verified") - 0.1, t1: s(35) + 0.8, to: { x: R.cx, y: M ? 560 : 340, s: M ? 0.78 : 0.62, r: -3 }, seed: 25 });
   numberCard(ctx, rw, { value: 80, label: "for each friend who joins and gets verified", x: R.cx, y: CHIPS_Y - (M ? 180 : 140), t0: w(34, "earn") - 0.05, t1: w(34, "earn") + 0.6, tOut: s(35) + 1.0, size: M ? 110 : 96 });
   kicker(ctx, rw, { text: "Ready after 7 days", icon: "clock", x: R.cx, y: M ? R.top : 200, t0: w(35, "seven") - 0.1, t1: s(36) - 0.1, size: M ? 34 : 30, anchor: "center" });
   numberCard(ctx, rw, { value: 1000, label: "withdraw it straight to your bank", x: R.cx, y: M ? R.top - 30 : 170, t0: w(36, "thousand") - 0.1, t1: w(36, "thousand") + 0.6, tOut: s(37) - 0.2, size: M ? 96 : 88 });

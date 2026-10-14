@@ -381,6 +381,10 @@ export const NOW = [
   { id: "d-n-search", kind: "desktop", steps: go("/search?market=rent") },
   { id: "n-search", full: true, fullMax: 7000, steps: go("/search?market=rent") },
   { id: "n-wallet", steps: go("/wallet") },
+  { id: "f-stay-checkout", steps: go(HOTEL) },
+  { id: "n-search-all", steps: go("/search") },
+  { id: "d-n-search-all", kind: "desktop", steps: go("/search") },
+  { id: "f-restaurant-reserve", steps: go(RESTAURANT) },
   /* the home's sections, each scrolled into view (they load as they come on screen) */
   ...[["premium", "Premium listings"], ["featured", "Featured listings"], ["best", "Best matches"], ["new", "New listings"], ["space", "Browse by space"]].map(([k, title]) => ({ id: `n-home-${k}`, steps: [...HOME, { reveal: `text="${title}"`, offset: 300 }, { wait: 2200 }] })),
   ...[["premium", "Premium listings"], ["featured", "Featured listings"]].map(([k, title]) => ({ id: `d-n-home-${k}`, kind: "desktop", steps: [...HOME, { reveal: `text="${title}"`, offset: 140 }, { wait: 2200 }] })),
