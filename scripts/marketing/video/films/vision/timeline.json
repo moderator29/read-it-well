@@ -497,7 +497,7 @@
    "i": 34,
    "start": 164.4231,
    "end": 168.0311,
-   "text": "When a friend joins and gets verified, you earn seventy naira."
+   "text": "When a friend joins and gets verified, you earn eighty naira."
   },
   {
    "i": 35,
@@ -2764,68 +2764,68 @@
    "sentence": 33
   },
   {
-   "start": 164.4231,
-   "end": 164.5511,
+   "start": 164.4081,
+   "end": 164.5391,
    "word": "When",
    "sentence": 34
   },
   {
-   "start": 164.5511,
-   "end": 164.5911,
+   "start": 164.5391,
+   "end": 164.5781,
    "word": "a",
    "sentence": 34
   },
   {
-   "start": 164.5911,
-   "end": 164.9511,
+   "start": 164.5781,
+   "end": 164.9491,
    "word": "friend",
    "sentence": 34
   },
   {
-   "start": 164.9511,
-   "end": 165.3311,
+   "start": 164.9491,
+   "end": 165.3481,
    "word": "joins",
    "sentence": 34
   },
   {
-   "start": 165.3311,
-   "end": 165.4611,
+   "start": 165.3481,
+   "end": 165.4491,
    "word": "and",
    "sentence": 34
   },
   {
-   "start": 165.4611,
-   "end": 165.6711,
+   "start": 165.4491,
+   "end": 165.6991,
    "word": "gets",
    "sentence": 34
   },
   {
-   "start": 165.6711,
-   "end": 166.3641,
+   "start": 165.6991,
+   "end": 166.3781,
    "word": "verified,",
    "sentence": 34
   },
   {
-   "start": 166.5181,
-   "end": 166.8011,
+   "start": 166.5681,
+   "end": 166.8181,
    "word": "you",
    "sentence": 34
   },
   {
-   "start": 166.8011,
-   "end": 167.0311,
+   "start": 166.8181,
+   "end": 167.0681,
    "word": "earn",
    "sentence": 34
   },
   {
-   "start": 167.0311,
-   "end": 167.5811,
-   "word": "seventy",
+   "start": 167.0681,
+   "end": 167.5281,
+   "word": "eighty",
    "sentence": 34
   },
   {
-   "start": 167.5811,
-   "end": 168.0311,
+   "start": 167.5281,
+   "end": 168.0181,
    "word": "naira.",
    "sentence": 34
   },
