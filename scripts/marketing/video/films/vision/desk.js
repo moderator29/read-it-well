@@ -295,12 +295,14 @@ export async function build(ctx) {
   /* daylight, and one line at a time in one slot: each line is clear of the
      slot before the next one rises, so no frame carries two of them */
   const DAY0 = s(22) - 0.35;
-  const DAY1 = s(24) - 0.25;
+  const DAY1 = s(24) - 0.12;
   ground(ctx, DAY0, DAY1, { tone: "day", y: 40, seed: 44, sparkle: 0, z: 2 });
   const SLOT = { x: ctx.W / 2, y: 150, align: "center", color: "#0b1230", key: "#0069fe", sheen: false };
   headline(ctx, pr, { ...SLOT, lines: [[["All funds,", true]], [["in your wallet,", false]], [["in escrow,", false]], [["in every payment,", false]]], size, t0: s(22), t1: w(22, "held") - 0.75, stagger: 0.045 });
   headline(ctx, pr, { ...SLOT, lines: [[["held by our", false]], [["licensed provider.", true]]], size, t0: w(22, "held") - 0.05, t1: s(23) - 0.7, stagger: 0.07 });
-  headline(ctx, pr, { ...SLOT, lines: [[["Vallo never holds", false]], [["your ", false], ["money.", true]]], size, t0: s(23), t1: s(24) - 0.55, stagger: 0.07 });
+  /* the ink has to be gone before the paper is: left a moment longer it
+     was dark blue on dark navy */
+  headline(ctx, pr, { ...SLOT, lines: [[["Vallo never holds", false]], [["your ", false], ["money.", true]]], size, t0: s(23), t1: s(24) - 1.05, stagger: 0.05 });
   flowRail(ctx, pr, {
     steps: ["Your card", "Our licensed provider", "The owner's bank"],
     x: 660, y: 540, gap: 168, size: 36,
