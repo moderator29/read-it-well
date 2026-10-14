@@ -162,7 +162,7 @@
   },
   "d-f-agent-analytics": {
     "url": "/agent/analytics",
-    "at": "2026-10-14T09:14:26.769Z",
+    "at": "2026-10-14T13:16:30.315Z",
     "kind": "desktop",
     "theme": "dark",
     "signedIn": true
@@ -183,7 +183,7 @@
   },
   "d-f-around": {
     "url": "/around",
-    "at": "2026-10-14T09:15:42.756Z",
+    "at": "2026-10-14T13:16:43.896Z",
     "kind": "desktop",
     "theme": "dark",
     "signedIn": true
@@ -197,7 +197,7 @@
   },
   "d-f-host-home": {
     "url": "/host",
-    "at": "2026-10-14T09:13:27.591Z",
+    "at": "2026-10-14T13:16:17.498Z",
     "kind": "desktop",
     "theme": "dark",
     "signedIn": true
@@ -414,14 +414,21 @@
   },
   "d-n-search": {
     "url": "/search?market=rent&lat=6.5205&lng=5.4404&z=7",
-    "at": "2026-10-14T12:59:04.970Z",
+    "at": "2026-10-14T13:22:03.849Z",
+    "kind": "desktop",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "d-n-search-all": {
+    "url": "/search?lat=6.5234&lng=5.4404&z=7",
+    "at": "2026-10-14T13:27:05.613Z",
     "kind": "desktop",
     "theme": "dark",
     "signedIn": true
   },
   "d-n-stays-dates": {
     "url": "/stays/search?in=2026-10-16&out=2026-10-19&guests=2",
-    "at": "2026-10-14T12:58:48.221Z",
+    "at": "2026-10-14T13:21:47.078Z",
     "kind": "desktop",
     "theme": "dark",
     "signedIn": true
@@ -771,14 +778,14 @@
   },
   "f-agent-analytics": {
     "url": "/agent/analytics",
-    "at": "2026-10-14T09:07:25.834Z",
+    "at": "2026-10-14T13:14:40.458Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
   },
   "f-agent-dashboard": {
     "url": "/agent/dashboard",
-    "at": "2026-10-14T09:44:05.863Z",
+    "at": "2026-10-14T13:13:58.704Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
@@ -831,14 +838,14 @@
   },
   "f-agreements": {
     "url": "/agreements",
-    "at": "2026-10-14T09:11:00.419Z",
+    "at": "2026-10-14T13:15:44.317Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
   },
   "f-around": {
     "url": "/around",
-    "at": "2026-10-14T09:11:38.744Z",
+    "at": "2026-10-14T13:15:54.320Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
@@ -852,14 +859,14 @@
   },
   "f-host-bookings": {
     "url": "/host/bookings",
-    "at": "2026-10-14T09:04:42.417Z",
+    "at": "2026-10-14T13:13:01.807Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
   },
   "f-host-calendar": {
     "url": "/host/calendar?business=eb000000-0000-4000-8000-000000000001&month=2026-10",
-    "at": "2026-10-14T09:43:32.870Z",
+    "at": "2026-10-14T13:12:52.045Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
@@ -873,7 +880,7 @@
   },
   "f-host-home": {
     "url": "/host",
-    "at": "2026-10-14T09:43:03.155Z",
+    "at": "2026-10-14T13:12:25.293Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
@@ -887,35 +894,35 @@
   },
   "f-host-reservations": {
     "url": "/host/reservations",
-    "at": "2026-10-14T09:04:51.950Z",
+    "at": "2026-10-14T13:13:11.322Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
   },
   "f-host-rooms": {
     "url": "/host/rooms?business=eb000000-0000-4000-8000-000000000001",
-    "at": "2026-10-14T09:32:29.172Z",
+    "at": "2026-10-14T13:12:36.476Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
   },
   "f-host-settings": {
     "url": "/host/settings",
-    "at": "2026-10-14T09:05:25.661Z",
+    "at": "2026-10-14T13:13:22.063Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
   },
   "f-host-start": {
     "url": "/profile/setup?side=stays",
-    "at": "2026-10-14T09:05:38.176Z",
+    "at": "2026-10-14T13:13:35.061Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
   },
   "f-passport": {
     "url": "/settings/passport",
-    "at": "2026-10-14T09:10:13.500Z",
+    "at": "2026-10-14T13:15:25.219Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
@@ -929,7 +936,7 @@
   },
   "f-pro": {
     "url": "/pro",
-    "at": "2026-10-14T09:10:49.643Z",
+    "at": "2026-10-14T13:15:34.972Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
@@ -948,9 +955,16 @@
     "theme": "dark",
     "signedIn": true
   },
+  "f-restaurant-reserve": {
+    "url": "/restaurant/eb000000-0000-4000-8000-000000000006",
+    "at": "2026-10-14T13:22:46.800Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
   "f-rewards": {
     "url": "/rewards",
-    "at": "2026-10-14T09:44:30.882Z",
+    "at": "2026-10-14T13:14:59.416Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
@@ -964,7 +978,7 @@
   },
   "f-rewards-how": {
     "url": "/rewards",
-    "at": "2026-10-14T09:40:57.564Z",
+    "at": "2026-10-14T13:30:51.125Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
@@ -978,7 +992,14 @@
   },
   "f-rewards-withdraw": {
     "url": "/rewards/withdraw",
-    "at": "2026-10-14T09:09:48.494Z",
+    "at": "2026-10-14T13:15:14.197Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "f-stay-checkout": {
+    "url": "/stay/ea000000-0000-4000-8000-000000000001",
+    "at": "2026-10-14T13:22:29.595Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
@@ -1216,7 +1237,7 @@
   },
   "n-home-featured": {
     "url": "/home",
-    "at": "2026-10-14T13:06:18.121Z",
+    "at": "2026-10-14T13:23:40.784Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
@@ -1230,14 +1251,14 @@
   },
   "n-home-premium": {
     "url": "/home",
-    "at": "2026-10-14T13:02:15.323Z",
+    "at": "2026-10-14T13:23:12.831Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
   },
   "n-home-space": {
     "url": "/home",
-    "at": "2026-10-14T13:03:46.714Z",
+    "at": "2026-10-14T13:24:02.697Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
@@ -1249,37 +1270,44 @@
     "theme": "dark",
     "signedIn": true
   },
+  "n-search-all": {
+    "url": "/search",
+    "at": "2026-10-14T13:26:34.786Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
   "n-stays": {
     "url": "/stays",
-    "at": "2026-10-14T12:58:34.241Z",
+    "at": "2026-10-14T13:21:32.444Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
   },
   "n-stays-dates": {
     "url": "/stays/search?in=2026-10-16&out=2026-10-19&guests=2",
-    "at": "2026-10-14T12:58:23.821Z",
+    "at": "2026-10-14T13:21:21.592Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
   },
   "n-wallet": {
     "url": "/wallet",
-    "at": "2026-10-14T12:59:51.025Z",
+    "at": "2026-10-14T13:22:19.461Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
   },
   "n-welcome-en": {
     "url": "/welcome",
-    "at": "2026-10-14T13:00:21.623Z",
+    "at": "2026-10-14T13:20:36.524Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": false
   },
   "n-welcome-ha": {
     "url": "/welcome",
-    "at": "2026-10-14T13:00:51.237Z",
+    "at": "2026-10-14T13:20:58.428Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": false,
@@ -1287,7 +1315,7 @@
   },
   "n-welcome-ig": {
     "url": "/welcome",
-    "at": "2026-10-14T13:01:02.765Z",
+    "at": "2026-10-14T13:21:09.509Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": false,
@@ -1295,7 +1323,7 @@
   },
   "n-welcome-yo": {
     "url": "/welcome",
-    "at": "2026-10-14T13:00:40.514Z",
+    "at": "2026-10-14T13:20:47.336Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": false,
@@ -1471,7 +1499,7 @@
   },
   "sc-assistant": {
     "url": "/assistant",
-    "at": "2026-10-13T22:36:10.554Z",
+    "at": "2026-10-14T13:19:41.419Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
@@ -1485,7 +1513,7 @@
   },
   "sc-assistant-start": {
     "url": "/assistant",
-    "at": "2026-10-13T22:49:33.838Z",
+    "at": "2026-10-14T13:19:58.364Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
@@ -1510,7 +1538,7 @@
   },
   "sc-filters": {
     "url": "/search?filters=open",
-    "at": "2026-10-13T22:32:53.404Z",
+    "at": "2026-10-14T13:17:12.552Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
@@ -1622,14 +1650,14 @@
   },
   "sc-listing": {
     "url": "/listing/ed000000-0000-4000-8000-00000000003e",
-    "at": "2026-10-13T22:33:02.367Z",
+    "at": "2026-10-14T13:17:26.665Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
   },
   "sc-listing-cost": {
     "url": "/listing/ed000000-0000-4000-8000-00000000003e",
-    "at": "2026-10-13T22:33:15.138Z",
+    "at": "2026-10-14T13:17:37.820Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
@@ -1650,7 +1678,7 @@
   },
   "sc-messages": {
     "url": "/messages",
-    "at": "2026-10-13T22:34:32.728Z",
+    "at": "2026-10-14T13:18:41.452Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
@@ -1664,7 +1692,7 @@
   },
   "sc-payments": {
     "url": "/payments",
-    "at": "2026-10-13T22:36:22.157Z",
+    "at": "2026-10-14T13:20:13.187Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
@@ -1678,7 +1706,7 @@
   },
   "sc-price": {
     "url": "/price?state=LA&area=Lekki&lat=6.44&lng=3.47&type=apartment&intent=rent&period=year&beds=2",
-    "at": "2026-10-13T22:33:27.659Z",
+    "at": "2026-10-14T13:17:56.869Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
@@ -1720,7 +1748,7 @@
   },
   "sc-restaurant": {
     "url": "/restaurant/eb000000-0000-4000-8000-000000000006",
-    "at": "2026-10-13T22:34:03.897Z",
+    "at": "2026-10-14T13:18:21.041Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
@@ -1734,7 +1762,7 @@
   },
   "sc-restaurants": {
     "url": "/restaurants",
-    "at": "2026-10-13T22:33:54.505Z",
+    "at": "2026-10-14T13:18:09.923Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
@@ -1762,7 +1790,7 @@
   },
   "sc-saved": {
     "url": "/saved",
-    "at": "2026-10-13T22:34:23.411Z",
+    "at": "2026-10-14T13:18:31.386Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
@@ -1776,7 +1804,7 @@
   },
   "sc-search": {
     "url": "/search?market=rent",
-    "at": "2026-10-13T22:32:44.119Z",
+    "at": "2026-10-14T13:16:57.668Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
@@ -1818,7 +1846,7 @@
   },
   "sc-thread": {
     "url": "/messages/d140e186-9fa3-41f4-8234-32ef75a1060e",
-    "at": "2026-10-13T22:34:53.736Z",
+    "at": "2026-10-14T13:19:00.210Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
@@ -1832,7 +1860,7 @@
   },
   "sc-verification": {
     "url": "/verification",
-    "at": "2026-10-13T22:37:50.956Z",
+    "at": "2026-10-14T13:20:25.355Z",
     "kind": "mobile",
     "theme": "dark",
     "signedIn": true
