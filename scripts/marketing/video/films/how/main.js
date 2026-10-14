@@ -19,6 +19,11 @@ export async function build(ctx) {
   const LOW = M ? { cx: 540, cy: 1255, height: 1180 } : { cx: 560, cy: 585, height: 900 };
   const LEFT = M ? { cx: 700, cy: 1100, height: 1300 } : { cx: 470, cy: 575, height: 880 };
   const off = (p, dy = M ? 1750 : 1200) => ({ ...p, cy: p.cy + dy });
+  /* the push onto the thread's header. On the phone cut a straight aim at the
+     call button threw the phone's left edge 146px off the frame, so the screen
+     read ":41" instead of "9:41": the phone cut keeps the body centred and
+     stops the zoom where the whole phone still clears every edge by 50px. */
+  const CALL = M ? { cx: 540, cy: 960, height: 1800 } : H.aim(1000, 360, 1500, 700, 420);
   /* slots for lifted parts and words */
   const R = M
     ? { l1: { x: 255, y: 560 }, r1: { x: 825, y: 610 }, l2: { x: 250, y: 1010 }, r2: { x: 830, y: 1060 }, top: 410, cx: 540, size: 86 }
@@ -48,8 +53,8 @@ export async function build(ctx) {
     [s(9) + 0.5, { ...HOME }],
     /* the call: a push onto the thread's header */
     [w(12, "call") - 0.6, { ...HOME }],
-    [w(12, "call") + 0.1, H.aim(1000, 360, M ? 2300 : 1500, M ? 640 : 700, M ? 760 : 420)],
-    [w(12, "viewing") - 0.5, H.aim(1000, 360, M ? 2300 : 1500, M ? 640 : 700, M ? 760 : 420)],
+    [w(12, "call") + 0.1, CALL],
+    [w(12, "viewing") - 0.5, CALL],
     [w(12, "viewing") + 0.2, { ...HOME }],
     /* the flag: the phone steps back for the card */
     [s(14) - 0.2, { ...HOME }],
@@ -65,8 +70,8 @@ export async function build(ctx) {
     [s(26) + 0.2, { ...LOW, ry: 0 }, "power3.out"],
     [s(27) - 0.2, { ...LOW }],
     [s(27) + 0.5, { ...HOME }],
-    [s(33) - 0.9, { ...HOME }],
-    [s(33) - 0.05, { ...off(HOME), rz: -8, ry: 20 }, "power3.in"],
+    [s(33) - 0.6, { ...HOME }],
+    [s(33) + 0.02, { ...off(HOME), rz: -5, ry: 16 }, "power3.in"],
     [ctx.duration, { ...off(HOME), opacity: 0 }, "none"],
   ];
   H.path(path);
@@ -115,10 +120,15 @@ export async function build(ctx) {
   H.show("n-stays", s(3) + 1.0, s(4) + 0.6, { enter: "slide" });
   H.tap(s(3) + 0.85, 660, 1600);
   if (M) {
-    lift(ctx, H, { id: "n-home2", src: ctx.src.capture("n-home2-full"), scrolled: 3000, crop: { x: 100, y: 3690, w: 1110, h: 1030 }, t0: w(3, "Homes") + 0.05, t1: w(3, "one") - 0.2, to: { x: 300, y: 720, s: 0.4, r: -5 }, seed: 1, radius: 60, label: "Premium listings" });
-    lift(ctx, H, { id: "n-stays", crop: { x: 45, y: 1600, w: 590, h: 420 }, t0: w(3, "hotels"), t1: w(3, "one") - 0.15, to: { x: 805, y: 520, s: TS, r: 5 }, seed: 2 });
-    lift(ctx, H, { id: "n-stays", crop: { x: 645, y: 1600, w: 630, h: 420 }, t0: w(3, "shortlets"), t1: w(3, "one") - 0.1, to: { x: 795, y: 900, s: TS, r: -6 }, seed: 3 });
-    lift(ctx, H, { id: "n-stays", crop: { x: 45, y: 2045, w: 590, h: 420 }, t0: w(3, "restaurants"), t1: w(3, "one") - 0.05, to: { x: 300, y: 1240, s: TS, r: 4 }, seed: 4 });
+    /* THE PHONE'S TOP THIRD STAYS ITS OWN. The four parts used to land over
+       the greeting, the hero image and the search bar, so the screen they
+       were lifted from could not be read. They now sit in two columns that
+       keep clear of the phone above y 850 and leave a readable strip of
+       screen between them. */
+    lift(ctx, H, { id: "n-home2", src: ctx.src.capture("n-home2-full"), scrolled: 3000, crop: { x: 100, y: 3690, w: 1110, h: 1030 }, t0: w(3, "Homes") + 0.05, t1: w(3, "one") - 0.2, to: { x: 210, y: 1040, s: 0.3, r: -5 }, seed: 1, radius: 60, label: "Premium listings" });
+    lift(ctx, H, { id: "n-stays", crop: { x: 45, y: 1600, w: 590, h: 420 }, t0: w(3, "hotels"), t1: w(3, "one") - 0.15, to: { x: 890, y: 980, s: 0.5, r: 5 }, seed: 2 });
+    lift(ctx, H, { id: "n-stays", crop: { x: 645, y: 1600, w: 630, h: 420 }, t0: w(3, "shortlets"), t1: w(3, "one") - 0.1, to: { x: 885, y: 1245, s: 0.5, r: -6 }, seed: 3 });
+    lift(ctx, H, { id: "n-stays", crop: { x: 45, y: 2045, w: 590, h: 420 }, t0: w(3, "restaurants"), t1: w(3, "one") - 0.05, to: { x: 225, y: 1360, s: 0.5, r: 4 }, seed: 4 });
   } else {
     /* THE DESKTOP CUT SHOWS THE DESKTOP. Four parts lifted off a phone, in a
        16:9 frame, was the phone film in a wider box: the founder said so.
@@ -213,7 +223,10 @@ export async function build(ctx) {
   H.show("sc-messages", s(11) - 0.2, w(11, "inside") - 0.2, { enter: "slide" });
   H.show("sc-thread", w(11, "inside") - 0.2, s(15) + 0.2, { enter: "slide" });
   const talk = layer("talk", s(11), s(14));
-  chipRow(ctx, talk, { items: [["Owner", "key-round"], ["Landlord", "house"], ["Agent", "badge-check"]], x: R.cx, y: M ? R.top + 20 : 220, t0: w(11, "owner"), gap: 0.42, t1: w(11, "inside") + 0.6, size: M ? 34 : 30, anchor: "center" });
+  /* the pills sat on the phone's status bar and dynamic island: on the phone
+     cut they now ride the clear band under the inbox tabs (the thread's photo
+     once the screen turns over), well below the top of the screen */
+  chipRow(ctx, talk, { items: [["Owner", "key-round"], ["Landlord", "house"], ["Agent", "badge-check"]], x: R.cx, y: M ? 1000 : 220, t0: w(11, "owner"), gap: 0.42, t1: w(11, "inside") + 0.6, size: M ? 34 : 30, wrapW: M ? 1000 : null, anchor: "center" });
   H.tap(w(12, "message") - 0.2, 500, 2775);
   lift(ctx, H, { id: "sc-thread", crop: { x: 110, y: 2225, w: 1110, h: 130 }, t0: w(12, "message") + 0.1, t1: w(12, "call") - 0.4, to: { x: R.cx, y: M ? 540 : 330, s: M ? 0.78 : 0.62, r: -2 }, seed: 31 });
   H.tap(w(12, "call") + 0.15, 1055, 275);
@@ -245,7 +258,10 @@ export async function build(ctx) {
   const prot = layer("prot", s(15) - 0.1, s(18) + 0.1);
   headline(ctx, prot, { lines: [[["Ready to ", false], ["move in?", true]]], x: M ? R.cx : HX, y: M ? R.top : 200, size: M ? 84 : 80, t0: s(15), t1: s(16) + 0.4, align: M ? "center" : "left" });
   featureCard(ctx, prot, { icon: "shield-check", title: "Protected payment", line: "Held in escrow by our licensed provider. Released when the deal is done.", x: M ? 540 : 1000, y: M ? 1300 : 420, w: M ? 900 : 760, t0: w(16, "Protected") - 0.1, t1: s(18) - 0.25, size: M ? 38 : 34, anchor: M ? "center" : "left" });
-  chipRow(ctx, prot, { items: [["Held in escrow", "lock"], ["Released when the deal is done", "check-check"]], x: M ? R.cx : 1000, y: M ? R.top + 30 : 240, t0: w(17, "escrow") - 0.1, gap: 0.9, t1: s(18) - 0.25, size: M ? 30 : 28, wrapW: M ? 940 : 820, anchor: M ? "center" : "left" });
+  /* the card below already says who holds the money and when it is released,
+     and the caption says it a third time. The pill carries the other half of
+     the promise instead, in the platform's own words. */
+  chipRow(ctx, prot, { items: [["Vallo never holds your money", "building-2"]], x: M ? R.cx : 1000, y: M ? R.top + 30 : 240, t0: w(17, "escrow") - 0.1, gap: 0.9, t1: s(18) - 0.25, size: M ? 30 : 28, wrapW: M ? 940 : 820, anchor: M ? "center" : "left" });
   ctx.sfx("lock_click", w(17, "escrow"), { offset: -2 });
 
   /* ===================== 10. Book a room (75.58 - 82.65) ===================== */
@@ -346,8 +362,11 @@ export async function build(ctx) {
   ground(ctx, s(28) - 0.05, s(31) + 0.3, { tone: "violet", y: 30, seed: 22 });
   H.show("sc-assistant-start", s(28) - 0.2, s(31) + 0.3, { enter: "slide" });
   H.tap(s(29) + 0.3, 600, 2480);
-  lift(ctx, H, { id: "sc-assistant", crop: { x: 100, y: 590, w: 1140, h: 290 }, t0: w(29, "time") - 0.3, t1: s(31) - 0.25, to: { x: R.cx, y: M ? 560 : 340, s: RS, r: -3 }, seed: 70 });
-  lift(ctx, H, { id: "sc-assistant-start", crop: { x: 40, y: 2380, w: 1280, h: 200 }, t0: s(28) + 0.45, t1: w(29, "time") - 0.4, to: { x: R.cx, y: M ? 1250 : 760, s: M ? 0.66 : 0.55, r: 2 }, seed: 71 });
+  /* both crops cut a neighbour mid-shape: the bubble's took half the sender's
+     avatar, and the chip row's ended inside the second suggestion, on "What
+     will it cost me t". Each now holds one whole element with a margin. */
+  lift(ctx, H, { id: "sc-assistant", crop: { x: 86, y: 556, w: 1216, h: 352 }, t0: w(29, "time") - 0.3, t1: s(31) - 0.25, to: { x: R.cx, y: M ? 580 : 340, s: RS, r: -3 }, seed: 70, label: "Your question, in the chat" });
+  lift(ctx, H, { id: "sc-assistant-start", crop: { x: 20, y: 2395, w: 776, h: 220 }, t0: s(28) + 0.45, t1: w(29, "time") - 0.4, to: { x: R.cx, y: M ? 1250 : 760, s: M ? 0.78 : 0.62, r: 2 }, seed: 71, label: "A question to start with" });
   const ai = layer("ai", s(28), s(31));
   kicker(ctx, ai, { text: "Always says it is an AI", icon: "sparkles", x: R.cx, y: M ? 1440 : 860, t0: w(30, "AI") - 0.5, t1: s(31) - 0.2, size: M ? 32 : 28, anchor: "center" });
 
@@ -357,13 +376,22 @@ export async function build(ctx) {
   H.show("n-welcome-ha", w(32, "Hausa") - 0.1, w(32, "Yorùbá") - 0.1, { enter: "slide" });
   H.show("n-welcome-yo", w(32, "Yorùbá") - 0.1, w(32, "Igbo") - 0.1, { enter: "slide" });
   H.show("n-welcome-ig", w(32, "Igbo") - 0.1, s(33) + 0.5, { enter: "slide" });
+  /* THE WELCOME BUTTON, WHOLE, AND NOTHING UNDER IT.
+     The crop used to start 8px above the button, so the frame's fade ate its
+     top edge and each language read as a half-height slice; the part also sat
+     on the screen's own status bar and wordmark, and the pills below sat on
+     the tagline the screen was already saying. The crop now takes the button
+     and the sign-in link with a margin all round, the part floats over the
+     welcome artwork (the one band of the screen with no type on it), and the
+     pills sit under it in a single row, clear of the card above and the
+     tagline below. Each language leaves before the next arrives. */
   [["n-welcome-en", "English", -3], ["n-welcome-ha", "Hausa", 3], ["n-welcome-yo", "Yorùbá", -2], ["n-welcome-ig", "Igbo", 2]].forEach(([id, word, r], i) => {
     const t0 = w(32, word) + 0.25;
-    const t1 = i < 3 ? w(32, ["Hausa", "Yorùbá", "Igbo"][i]) + 0.1 : s(33) - 0.3;
-    lift(ctx, H, { id, crop: { x: 40, y: 2440, w: 1240, h: 340 }, t0, t1, to: { x: R.cx, y: M ? 560 : 340, s: RS, r }, exit: "up", seed: 80 + i, fly: 0.5 });
+    const t1 = i < 3 ? w(32, ["Hausa", "Yorùbá", "Igbo"][i]) + 0.1 : s(33) - 1.25;
+    lift(ctx, H, { id, crop: { x: 18, y: 2390, w: 1284, h: 430 }, t0, t1, to: { x: R.cx, y: M ? 780 : 340, s: M ? 0.55 : RS, r }, exit: "up", seed: 80 + i, fly: 0.4, label: `Welcome screen, ${word}` });
   });
   const lang = layer("lang", s(31), s(33));
-  chipRow(ctx, lang, { items: [["English"], ["Hausa"], ["Yorùbá"], ["Igbo"]], x: R.cx, y: M ? 1420 : 860, t0: w(32, "English") - 0.05, gap: 0.62, t1: s(33) - 0.5, size: M ? 36 : 32, anchor: "center" });
+  chipRow(ctx, lang, { items: [["English"], ["Hausa"], ["Yorùbá"], ["Igbo"]], x: R.cx, y: M ? 1000 : 700, t0: w(32, "English") - 0.05, gap: 0.62, t1: s(33) - 1.3, size: 32, wrapW: M ? 1000 : 900, anchor: "center" });
 
   /* ===================== 17. The end card ===================== */
   ending(ctx, { t0: s(33), tLine: s(34) - 0.05, tBadges: s(35) - 0.1, tUrl: s(36) + 0.4, t1: ctx.duration });
