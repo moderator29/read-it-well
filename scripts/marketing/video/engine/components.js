@@ -244,17 +244,18 @@ export function installCaptions(ctx) {
 
   /* Mobile: centred on y 1580, below the phone's readable content and above
      the Reels and TikTok bottom overlays.
-     Desktop: the phone stands on the left and its body never passes x ~890,
-     so the caption lives in the right-hand column (x 920–1860, centred on
-     1390, the column the films already put their words and lifted parts in)
-     and sits low, on y 972. Centred on the whole frame it sat straight on the
-     phone's own bottom bar and floating button in most shots. Two lines of it
-     still clear the frame's bottom edge by more than 40px. */
+     Desktop: low (y 985) and in the right-hand column, x 920–1860, centred
+     it sits in the band BELOW the browser window rather than on it. Centred
+     at y 1012 it clears the window in its side pose (which ends at 953) and
+     the right-hand column's lowest row (which ends at 912), and it keeps
+     well over 40px to every edge. Centred on the frame it used to sit on the
+     subject itself: on the phone's own bottom bar and floating button in
+     most shots, and now on the page the window is showing. */
   const box = ctx.el("div", {
     class: "captions",
     style: mobile
       ? { top: "1580px", transform: "translateY(-50%)" }
-      : { left: "920px", right: "60px", top: "972px", transform: "translateY(-50%)" },
+      : { left: "240px", right: "240px", top: "1012px", transform: "translateY(-50%)" },
   }, ctx.stage);
   /* Mobile captions stay inside x 140–940: clear of the right-hand buttons of
      TikTok and Reels. Desktop is a little smaller, so a line usually still
