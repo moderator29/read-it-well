@@ -383,16 +383,53 @@ export function windowRig(ctx, { url = "vallospaces.com" } = {}) {
  * `to` {x, y, s (stage px per display px), r}, floats, and at t1 leaves
  * (exit: "back" returns to the screen, "fade", "up", "left", "right").
  */
-export function lift(ctx, H, { id, crop, t0, t1, to, exit = "fade", fly = 0.7, z = 720, radius = 40, seed = 1, sound = "pop", src = null, scrolled = 0 }) {
+export function lift(ctx, H, { id, crop, t0, t1, to, exit = "fade", fly = 0.7, z = 720, radius = 40, seed = 1, sound = "pop", src = null, scrolled = 0, label = null, framed = true, fade = true }) {
   (window.__dbg ??= { shows: [], taps: [], lifts: [] }).lifts.push({ id, crop, t0, src: !!src });
+  (ctx.__holds ??= []).push([t0 + 0.3, t1]);
   const root = ctx.scene(`lift-${id}-${t0.toFixed(2)}`, t0 - 0.01, t1 + 0.8, { z });
   const S = to.s;
   const w = crop.w * S, h = crop.h * S;
-  const card = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${w}px`, height: `${h}px`, borderRadius: `${radius * S * 1.4}px`, overflow: "hidden", boxShadow: "0 40px 80px -26px rgb(0 0 20 / 0.8), 0 12px 28px -12px rgb(0 0 40 / 0.55), 0 0 0 1.5px rgb(143 211 255 / 0.22)", background: "#0b0f2a" } }, root);
+  /*
+   * THE FRAME, AND WHY THERE IS ONE.
+   *
+   * A part used to be the bare rectangle: the crop's own edges were the
+   * card's edges, so wherever the rectangle happened to fall it sliced the
+   * row above or a line of type, and what floated looked torn out rather
+   * than chosen. It is now mounted: a dark frame with a margin holds the
+   * crop, the way a detail is mounted on a board, and the crop's top and
+   * bottom edges fade into that frame instead of ending on a hard line.
+   * Nothing about the screen itself changes; it is the live product either
+   * way. Only the presentation is finished.
+   */
+  const pad = framed ? Math.max(13, w * 0.032) : 0;
+  const card = ctx.el("div", {
+    class: "abs",
+    attrs: { "data-furn": "1" },
+    style: {
+      left: "0px", top: "0px", width: `${w + pad * 2}px`, padding: `${pad}px`, boxSizing: "border-box",
+      borderRadius: `${radius * S * 1.4 + pad}px`,
+      background: framed ? "linear-gradient(170deg, rgb(17 27 78 / 0.97), rgb(7 13 46 / 0.97))" : "#0b0f2a",
+      border: framed ? "1.5px solid rgb(120 170 255 / 0.30)" : "none",
+      boxShadow: "0 44px 86px -26px rgb(0 0 20 / 0.84), 0 12px 28px -12px rgb(0 0 40 / 0.55), inset 0 1px 0 rgb(255 255 255 / 0.06)",
+    },
+  }, root);
+  if (label) {
+    ctx.el("div", {
+      text: label,
+      style: { margin: `${pad * 0.12}px 0 ${pad * 0.72}px ${pad * 0.5}px`, font: `600 ${Math.max(15, w * 0.034).toFixed(0)}px/1 Inter, sans-serif`, letterSpacing: "0.01em", color: "rgb(173 203 255 / 0.9)", whiteSpace: "nowrap" },
+    }, card);
+  }
+  const clip = ctx.el("div", { style: { position: "relative", width: `${w}px`, height: `${h}px`, borderRadius: `${radius * S * 1.4}px`, overflow: "hidden", background: "#060b24", boxShadow: "inset 0 0 0 1px rgb(143 211 255 / 0.14)" } }, card);
   /* src: a tall capture (crop in its own px, 1320 wide); scrolled: how far the screen is scrolled, so the part rises from where it is seen */
-  if (src) ctx.img(src, { style: { position: "absolute", left: `${-crop.x * S}px`, top: `${-crop.y * S}px`, width: `${DW * S}px`, height: "auto", maxWidth: "none" } }, card);
-  else ctx.img(ctx.src.display(id, H.platform), { style: { position: "absolute", left: `${-crop.x * S}px`, top: `${-crop.y * S}px`, width: `${DW * S}px`, height: `${DH * S}px`, maxWidth: "none" } }, card);
-  const sheen = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${w * 0.6}px`, height: `${h * 3}px`, transform: "rotate(20deg)", background: "linear-gradient(90deg, transparent, rgb(255 255 255 / 0.22) 50%, transparent)", pointerEvents: "none" } }, card);
+  if (src) ctx.img(src, { style: { position: "absolute", left: `${-crop.x * S}px`, top: `${-crop.y * S}px`, width: `${DW * S}px`, height: "auto", maxWidth: "none" } }, clip);
+  else ctx.img(ctx.src.display(id, H.platform), { style: { position: "absolute", left: `${-crop.x * S}px`, top: `${-crop.y * S}px`, width: `${DW * S}px`, height: `${DH * S}px`, maxWidth: "none" } }, clip);
+  /* the cut edges breathe out rather than stopping dead */
+  if (framed && fade && h > 150) {
+    const band = Math.min(34, h * 0.11);
+    ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${w}px`, height: `${band}px`, background: "linear-gradient(180deg, rgb(10 17 58 / 0.92), transparent)", pointerEvents: "none" } }, clip);
+    ctx.el("div", { class: "abs", style: { left: "0px", top: `${h - band}px`, width: `${w}px`, height: `${band}px`, background: "linear-gradient(0deg, rgb(10 17 58 / 0.92), transparent)", pointerEvents: "none" } }, clip);
+  }
+  const sheen = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${w * 0.6}px`, height: `${h * 3}px`, transform: "rotate(20deg)", background: "linear-gradient(90deg, transparent, rgb(255 255 255 / 0.22) 50%, transparent)", pointerEvents: "none" } }, clip);
   const from = H.toStage(t0, crop.x + crop.w / 2, crop.y + crop.h / 2 - scrolled + (src ? BAR_PX : 0));
   const phase = ctx.random(seed)() * Math.PI * 2;
   const back = exit === "back" ? H.toStage(t1, crop.x + crop.w / 2, crop.y + crop.h / 2 - scrolled + (src ? BAR_PX : 0)) : null;
@@ -508,8 +545,9 @@ export function numberCard(ctx, parent, { value, prefix = "₦", label, x, y, t0
 }
 
 /** A notification pop-up (glass), in at t, out at tOut. */
-export function notify(ctx, parent, { title, line, icon = "bell", x, y, t, tOut, size = 36, example = false, from = "above" }) {
-  const card = popup(ctx, { theme: "dark", icon, title, line, now: "now", example, fontSize: size, parent, style: { position: "absolute", left: `${x}px`, top: `${y}px` } });
+export function notify(ctx, parent, { title, line, icon = "bell", x, y, t, tOut, size = 36, example = false, from = "above", wrap = false }) {
+  const card = popup(ctx, { theme: "dark", icon, title, line, now: "now", example, fontSize: size, wrap, parent, style: { position: "absolute", left: `${x}px`, top: `${y}px` } });
+  card.setAttribute("data-furn", "1");
   popIn(ctx, card, t, { from, tOut, offset: -2 });
   ctx.onFrame((u) => { card.style.visibility = u >= t - 0.01 && (tOut == null || u < tOut + 0.35) ? "inherit" : "hidden"; });
   return card;
@@ -575,8 +613,16 @@ export const LISTINGS = [
   ["Four bedroom house for sale in Old GRA", "Old GRA, Port Harcourt", "₦145m", false, 4, 4, 300, "bedroom-02"],
 ];
 
-/** The app's SpaceCard (home Premium, Featured, Best matches, New listings), drawn at width w. */
-function listingCard(ctx, parent, [title, place, price, moveIn, beds, baths, m2, photo], w) {
+/**
+ * The app's SpaceCard (home Premium, Featured, Best matches, New listings),
+ * drawn at width w.
+ *
+ * `full` lets the title wrap onto a second line instead of ending in an
+ * ellipsis. The app cuts a long title because its card is 400 px wide in a
+ * scrolling row; a card the film holds up at three times that size has the
+ * room, and a cut title there reads as a fault, not as the product.
+ */
+function listingCard(ctx, parent, [title, place, price, moveIn, beds, baths, m2, photo], w, { full = false } = {}) {
   const k = w / 400;
   const card = ctx.el("div", { style: { position: "relative", flex: "none", width: `${w}px`, padding: `${8 * k}px`, borderRadius: `${26 * k}px`, background: "linear-gradient(180deg, #0d1640, #0a1033)", border: `${1.5 * k}px solid rgb(90 130 230 / 0.28)`, boxShadow: "0 30px 60px -26px rgb(0 0 20 / 0.85)" } }, parent);
   const ph = ctx.el("div", { style: { position: "relative", width: "100%", height: `${w * 0.56}px`, overflow: "hidden", borderRadius: `${20 * k}px` } }, card);
@@ -588,7 +634,12 @@ function listingCard(ctx, parent, [title, place, price, moveIn, beds, baths, m2,
   [18, 7, 7, 7].forEach((d, i) => ctx.el("span", { style: { width: `${d * k}px`, height: `${7 * k}px`, borderRadius: "99px", background: i ? "rgb(255 255 255 / 0.6)" : "#fff" } }, dots));
   const info = ctx.el("div", { style: { marginTop: `${8 * k}px`, padding: `${14 * k}px ${14 * k}px ${14 * k}px`, borderRadius: `${18 * k}px`, background: "#040a22" } }, card);
   const row = ctx.el("div", { style: { display: "flex", justifyContent: "space-between", gap: `${10 * k}px`, alignItems: "flex-start" } }, info);
-  ctx.el("div", { text: title, style: { flex: "1", minWidth: "0", font: `600 ${17 * k}px/1.25 Inter, sans-serif`, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" } }, row);
+  ctx.el("div", {
+    text: title,
+    style: full
+      ? { flex: "1", minWidth: "0", font: `600 ${17 * k}px/1.25 Inter, sans-serif`, color: "#fff" }
+      : { flex: "1", minWidth: "0", font: `600 ${17 * k}px/1.25 Inter, sans-serif`, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" },
+  }, row);
   const pr = ctx.el("div", { style: { textAlign: "right", flex: "none" } }, row);
   ctx.el("div", { text: price, style: { font: `700 ${18 * k}px/1.1 Inter, sans-serif`, color: "#fff" } }, pr);
   if (moveIn) ctx.el("div", { text: "to move in", style: { font: `500 ${13 * k}px/1.3 Inter, sans-serif`, color: "rgb(214 221 249 / 0.62)" } }, pr);
@@ -621,7 +672,7 @@ export function listingWall(ctx, parent, { t0, t1, rows = 3, y = null, cardW = n
   const cw = cardW ?? (M ? 330 : 300);
   const g = gap ?? cw * 0.09;
   const ch = cw * 0.56 + cw * 0.36;
-  const wall = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${ctx.W}px`, height: `${ctx.H}px`, overflow: "hidden", WebkitMaskImage: "linear-gradient(90deg, transparent 0%, #000 12%, #000 88%, transparent 100%)", maskImage: "linear-gradient(90deg, transparent 0%, #000 12%, #000 88%, transparent 100%)" } }, parent);
+  const wall = ctx.el("div", { class: "abs", attrs: { "data-wall": "1" }, style: { left: "0px", top: "0px", width: `${ctx.W}px`, height: `${ctx.H}px`, overflow: "hidden", WebkitMaskImage: "linear-gradient(90deg, transparent 0%, #000 12%, #000 88%, transparent 100%)", maskImage: "linear-gradient(90deg, transparent 0%, #000 12%, #000 88%, transparent 100%)" } }, parent);
   const tiltBox = ctx.el("div", { class: "abs", style: { left: `${-ctx.W * 0.3}px`, top: `${(y ?? (ctx.H - rows * (ch + g)) / 2)}px`, width: `${ctx.W * 1.6}px`, transform: `rotate(${tilt}deg)`, transformOrigin: "50% 50%" } }, wall);
   const rand = ctx.random(seed);
   const strips = [];
@@ -721,6 +772,238 @@ export async function nigeriaMap(ctx, parent, { x, y, w, t0, t1, tCities = null,
     ctx.sfx("pop", ti, { offset: -9 });
   });
   return { box, h };
+}
+
+/* ------------------------------------------------------- designed parts */
+
+/*
+ * THE FILMS DRAW THEIR OWN FURNITURE.
+ *
+ * A part lifted off the phone used to be a rectangle cut out of the capture
+ * (`lift`). Blown up it showed its seams: a title the app had already cut
+ * with an ellipsis, a slice through the row above, a sentence the crop ended
+ * halfway through. The founder saw every one of them (14 October).
+ *
+ * So anything the film holds up close is BUILT here, from the same type,
+ * radii and colours the product uses, with the whole sentence in it. `lift`
+ * stays for what is honestly a picture of a screen: a badge, a button, a
+ * whole self-contained block.
+ */
+
+/** The one box: a dark glass container with a hairline edge and a soft drop. */
+export function panel(ctx, parent, { w = null, pad = 34, radius = 40, style = {} } = {}) {
+  return ctx.el("div", {
+    class: "abs",
+    attrs: { "data-furn": "1" },
+    style: {
+      left: "0px", top: "0px", ...(w ? { width: `${w}px` } : {}), padding: `${pad}px`, borderRadius: `${radius}px`,
+      background: "linear-gradient(170deg, rgb(16 26 76 / 0.96), rgb(6 12 44 / 0.96))",
+      border: "1.5px solid rgb(120 170 255 / 0.30)",
+      boxShadow: "0 50px 100px -32px rgb(0 0 20 / 0.85), 0 14px 32px -16px rgb(0 0 40 / 0.6), inset 0 1px 0 rgb(255 255 255 / 0.07)",
+      ...style,
+    },
+  }, parent);
+}
+
+/**
+ * A designed explainer: a title and body copy that WRAPS, so no sentence is
+ * ever cut. This replaces lifting the app's own explanation sheets, whose
+ * crops ended mid-line.
+ */
+export function sheet(ctx, parent, { icon = null, title, body = [], note = null, x, y, w, t0, t1, size = 34, anchor = "left", from = "below" }) {
+  const card = panel(ctx, parent, { w, pad: size * 0.95, radius: size * 1.15 });
+  const head = ctx.el("div", { style: { display: "flex", alignItems: "center", gap: `${size * 0.5}px` } }, card);
+  if (icon) {
+    const plate = ctx.el("div", { style: { flex: "none", width: `${size * 1.9}px`, height: `${size * 1.9}px`, borderRadius: `${size * 0.58}px`, display: "grid", placeItems: "center", background: "linear-gradient(150deg, #2f7cff, #003f98)", boxShadow: "inset 0 1px 0 rgb(255 255 255 / 0.25)" } }, head);
+    const ic = ctx.icon(icon, { size: Math.round(size * 1.05), stroke: 2.2 }, plate);
+    ic.style.color = "#fff";
+  }
+  ctx.el("div", { text: title, style: { font: `700 ${size}px/1.15 Poppins, Inter, sans-serif`, letterSpacing: "-0.02em", color: "#fff" } }, head);
+  for (const line of body) {
+    ctx.el("div", {
+      text: line,
+      style: { marginTop: `${size * 0.46}px`, font: `500 ${Math.round(size * 0.78)}px/1.42 Inter, sans-serif`, color: "rgb(222 232 255 / 0.80)" },
+    }, card);
+  }
+  if (note) {
+    const n = ctx.el("div", { style: { marginTop: `${size * 0.6}px`, paddingTop: `${size * 0.52}px`, borderTop: "1.5px solid rgb(120 170 255 / 0.22)", display: "flex", alignItems: "center", gap: `${size * 0.35}px` } }, card);
+    ctx.el("span", { style: { width: `${size * 0.36}px`, height: `${size * 0.36}px`, borderRadius: "50%", background: "#22c55e", boxShadow: "0 0 0 5px rgb(34 197 94 / 0.22)" } }, n);
+    ctx.el("span", { text: note, style: { font: `600 ${Math.round(size * 0.76)}px/1.25 Inter, sans-serif`, color: "#fff" } }, n);
+  }
+  (ctx.__holds ??= []).push([t0 + 0.3, t1]);
+  ctx.onFrame((t) => {
+    const a = ramp(ctx, t, t0, t0 + 0.58, "land");
+    const b = t1 == null ? 0 : ramp(ctx, t, t1, t1 + 0.38, "power2.in");
+    const o = Math.min(ramp(ctx, t, t0, t0 + 0.22), 1 - b);
+    const off = from === "below" ? [0, 70] : from === "left" ? [-90, 0] : from === "above" ? [0, -70] : [90, 0];
+    const dx = anchor === "center" ? -50 : anchor === "right" ? -100 : 0;
+    card.style.transform = `translate(${x}px, ${y}px) translateX(${dx}%) translate(${((1 - a) * off[0]).toFixed(1)}px, ${((1 - a) * off[1] - b * 34).toFixed(1)}px) scale(${(0.96 + 0.04 * a).toFixed(4)})`;
+    card.style.opacity = opa(o);
+    card.style.visibility = o > 0.001 ? "inherit" : "hidden";
+  });
+  ctx.sfx("card_slide", t0, { offset: -6 });
+  return card;
+}
+
+/**
+ * Flies a part the film BUILT out of the phone's screen, with the motion
+ * `lift` uses: it leaves from the point on the glass where that thing is, so
+ * it reads as the screen's own content coming forward.
+ *   at: { x, y } in the screen's 1320x2868 pixels (where it lifts from)
+ */
+export function fly(ctx, H, { node, at, t0, t1, to, exit = "fade", fly: flyDur = 0.72, z = 720, seed = 3, sound = "pop", scrolled = 0 }) {
+  const root = node.parentElement;
+  if (root && root.style) root.style.zIndex = String(z);
+  const from = H.toStage(t0, at.x, at.y - scrolled);
+  const back = exit === "back" ? H.toStage(t1, at.x, at.y - scrolled) : null;
+  const phase = ctx.random(seed)() * Math.PI * 2;
+  const S = to.s ?? 1;
+  Object.assign(node.style, { position: "absolute", left: "0px", top: "0px", transformOrigin: "50% 50%" });
+  node.style.visibility = "hidden";
+  ctx.onFrame((t) => {
+    if (t < t0 || t >= t1 + 0.8) { node.style.visibility = "hidden"; return; }
+    const u = ramp(ctx, t, t0, t0 + flyDur, "glide");
+    const v = ramp(ctx, t, t1, t1 + 0.6, exit === "back" ? "glide" : "power2.in");
+    const float = Math.sin((t - t0) * 2.1 + phase) * 7 * u;
+    let x = mix(from.x, to.x, u), y = mix(from.y, to.y, u) + float;
+    let s = mix(from.s * 0.75, S, u) * (1 + 0.03 * Math.sin(Math.PI * u));
+    let r = mix(0, to.r ?? 0, u) + Math.sin((t - t0) * 1.4 + phase) * 0.7 * u;
+    let o = 1;
+    if (v > 0) {
+      if (back) { x = mix(x, back.x, v); y = mix(y, back.y, v); s = mix(s, from.s * 0.75, v); r = mix(r, 0, v); o = v > 0.96 ? 0 : 1; }
+      else if (exit === "up") { y -= v * 420; o = 1 - v; }
+      else if (exit === "left") { x -= v * 700; o = 1 - v; }
+      else if (exit === "right") { x += v * 700; o = 1 - v; }
+      else { s *= 1 - 0.12 * v; o = 1 - v; }
+    }
+    place(node, { x, y, s, r, o });
+    node.style.visibility = "inherit";
+  });
+  if (sound) ctx.sfx(sound, t0 + 0.05, { offset: -2 });
+  return node;
+}
+
+/** One SpaceCard the film draws itself, at width w, with the whole title. */
+export function spaceCard(ctx, parent, index, w, { full = true } = {}) {
+  const card = listingCard(ctx, parent, LISTINGS[index % LISTINGS.length], w, { full });
+  card.setAttribute("data-furn", "1");
+  Object.assign(card.style, { boxShadow: "0 50px 100px -30px rgb(0 0 20 / 0.9), 0 0 0 1.5px rgb(143 211 255 / 0.20)" });
+  return card;
+}
+
+/** One of the founder's 3D objects, standing on its own light, breathing. */
+export function object3d(ctx, parent, { name, size, x, y, t0 = 0, t1 = null, drift = 1, seed = 1, delay = 0 }) {
+  const box = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${size}px`, height: `${size}px` } }, parent);
+  ctx.el("div", {
+    class: "abs",
+    style: { left: `${-size * 0.18}px`, top: `${size * 0.56}px`, width: `${size * 1.36}px`, height: `${size * 0.5}px`, borderRadius: "50%", background: "radial-gradient(50% 50% at 50% 50%, rgb(0 105 254 / 0.45), transparent 70%)", filter: "blur(10px)" },
+  }, box);
+  ctx.img(ctx.src.object(name), { style: { position: "absolute", left: "0px", top: "0px", width: `${size}px`, height: `${size}px`, objectFit: "contain", filter: "drop-shadow(0 26px 40px rgb(0 0 25 / 0.75))" } }, box);
+  const ph = ctx.random(seed)() * Math.PI * 2;
+  ctx.onFrame((t) => {
+    const a = ramp(ctx, t, t0 + delay - 0.7, t0 + delay, "back.out(1.5)");
+    const b = t1 == null ? 0 : ramp(ctx, t, t1, t1 + 0.45, "power2.in");
+    const bob = Math.sin((t - t0) * 0.9 + ph) * 11 * drift;
+    const sway = Math.cos((t - t0) * 0.62 + ph) * 7 * drift;
+    place(box, { x: x + sway, y: y + bob - b * 90, s: (0.9 + 0.1 * a) * (1 - 0.08 * b), r: Math.sin((t - t0) * 0.5 + ph) * 1.4 * drift, o: Math.min(a, 1 - b) });
+  });
+  return box;
+}
+
+/** A tilted question on glass: the card the opening is built from. */
+export function questionCard(ctx, parent, { text, x, y, rot = 0, t0 = 0, t1 = null, size = 38, seed = 1, delay = 0 }) {
+  const card = panel(ctx, parent, { pad: size * 0.88, radius: size * 1.0, style: { background: "linear-gradient(165deg, rgb(24 41 108 / 0.93), rgb(8 16 54 / 0.93))", whiteSpace: "nowrap" } });
+  ctx.el("div", { text, style: { font: `600 ${size}px/1.2 Poppins, Inter, sans-serif`, letterSpacing: "-0.02em", color: "rgb(238 244 255 / 0.97)", whiteSpace: "nowrap" } }, card);
+  const ph = ctx.random(seed)() * Math.PI * 2;
+  ctx.onFrame((t) => {
+    const a = ramp(ctx, t, t0 + delay - 0.6, t0 + delay, "land");
+    const b = t1 == null ? 0 : ramp(ctx, t, t1, t1 + 0.5, "power2.in");
+    const bob = Math.sin((t - t0) * 0.8 + ph) * 9;
+    const sway = Math.cos((t - t0) * 0.55 + ph) * 6;
+    place(card, { x: x + sway - b * 40, y: y + bob - b * 70, s: 0.98 + 0.02 * a, r: rot + Math.sin((t - t0) * 0.45 + ph) * 0.8, o: Math.min(a, 1 - b) });
+  });
+  return card;
+}
+
+/**
+ * THE OPENING, AND THE FRAME A CHAT SHOWS BEFORE ANYONE PRESSES PLAY.
+ *
+ * Both films used to begin on an empty navy field: the thumbnail WhatsApp
+ * picked was a blank screen, and the founder's reviewer said so in those
+ * words. So the first frame is now composed and still: the spaces the
+ * platform covers, in the founder's own 3D objects, and the three questions
+ * the film answers. Nothing fades up from nothing; it is already there at
+ * t = 0, breathing, and it clears for the first line.
+ */
+export function poster(ctx, parent, { t1, questions = QUESTIONS, mark = true }) {
+  const M = ctx.isMobile;
+  const root = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${ctx.W}px`, height: `${ctx.H}px` } }, parent);
+  /* the stage: a key light above, a floor glow, a cool rim from the left */
+  const glow = ctx.el("div", {
+    class: "abs",
+    style: {
+      left: "0px", top: "0px", width: `${ctx.W}px`, height: `${ctx.H}px`,
+      background: M
+        ? "radial-gradient(62% 30% at 50% 44%, rgb(0 105 254 / 0.50), transparent 72%), radial-gradient(45% 20% at 18% 78%, rgb(143 211 255 / 0.16), transparent 70%)"
+        : "radial-gradient(44% 52% at 62% 50%, rgb(0 105 254 / 0.50), transparent 72%), radial-gradient(34% 40% at 14% 74%, rgb(143 211 255 / 0.16), transparent 70%)",
+    },
+  }, root);
+  ctx.onFrame((t) => { glow.style.opacity = opa(1 - ramp(ctx, t, t1 - 0.5, t1 + 0.3)); });
+
+  /* the spaces: a home, a hotel, a table */
+  const OBJ = M
+    ? [["home-verified", 440, 540, 1090, 1], ["hotel", 250, 215, 1330, 2], ["restaurant", 245, 875, 1330, 3]]
+    : [["home-verified", 380, 1340, 520, 1], ["hotel", 240, 1050, 730, 2], ["restaurant", 235, 1630, 726, 3]];
+  OBJ.forEach(([name, size, x, y, seed], i) => object3d(ctx, root, { name, size, x, y, t0: 0, t1: t1 - 0.35, seed, delay: 0, drift: 1 - i * 0.18 }));
+
+  /* the questions the film goes on to answer, on their own diagonal */
+  const Q = M
+    ? [[360, 500, -5], [722, 724, 4], [432, 1588, -3]]
+    : [[520, 376, -4], [474, 548, 3], [548, 722, -2]];
+  questions.forEach((text, i) => {
+    const [x, y, rot] = Q[i] ?? Q[0];
+    questionCard(ctx, root, { text, x, y, rot, t0: 0, t1: t1 - 0.5, size: M ? 38 : 34, seed: 10 + i });
+  });
+
+  if (mark) {
+    const word = ctx.img(ctx.src.asset("logo-wordmark.png"), { class: "abs", style: { left: "0px", top: "0px", width: `${M ? 360 : 300}px`, height: "auto" } }, root);
+    ctx.onFrame((t) => {
+      const b = ramp(ctx, t, t1 - 0.55, t1 - 0.1, "power2.in");
+      place(word, { x: M ? ctx.W / 2 : 250, y: M ? 240 : 150, s: 1, o: (1 - b) * 0.92 });
+    });
+  }
+  return root;
+}
+
+/** The three questions the old cut opened on, and the reviewer liked. */
+export const QUESTIONS = ["What will it really cost?", "Who am I talking to?", "Where does my money go?"];
+
+/**
+ * FOCUS.
+ *
+ * While the film holds a part up, the stage behind it steps back: the phone,
+ * the wall and the ground sink by a stop so the thing being shown is plainly
+ * the subject. Before this, a card and the screen it came from were lit the
+ * same, so the card read as a screenshot pasted over a screenshot, and the
+ * copy repeated underneath competed with it. Install once, after the film is
+ * built, so every part registered its window first.
+ */
+export function installFocus(ctx, { strength = 0.44 } = {}) {
+  const holds = ctx.__holds ?? [];
+  if (!holds.length) return null;
+  const root = ctx.scene("focus", 0, ctx.duration + 1, { z: 600 });
+  const scrim = ctx.el("div", { class: "fill", style: { background: "radial-gradient(78% 58% at 50% 48%, rgb(2 5 28 / 0.72), rgb(1 2 16 / 0.93) 78%)" } }, root);
+  ctx.onFrame((t) => {
+    let a = 0;
+    for (const [h0, h1] of holds) {
+      if (t < h0 - 0.45 || t > h1 + 0.5) continue;
+      const u = ramp(ctx, t, h0 - 0.45, h0 + 0.1) * (1 - ramp(ctx, t, h1 - 0.1, h1 + 0.5));
+      if (u > a) a = u;
+    }
+    scrim.style.opacity = opa(a * strength);
+    scrim.style.visibility = a > 0.004 ? "inherit" : "hidden";
+  });
+  return root;
 }
 
 /* ---------------------------------------------------------------- ending */

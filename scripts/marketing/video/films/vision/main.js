@@ -8,7 +8,7 @@
  * referral rewards; then the vision, Nigeria city by city, and the stores.
  * Claims and figures: FACTS-OCT.md and the founder's rulings of 14 October.
  */
-import { STAY_CARDS, listingWall, flagCard, anchors, ground, flash, hero, lift, headline, kicker, liveChip, numberCard, notify, chipRow, featureCard, ending, ringBurst, windowRig, nigeriaMap, ramp, during, place } from "../kit.js";
+import { poster, installFocus, sheet, STAY_CARDS, listingWall, flagCard, anchors, ground, flash, hero, lift, headline, kicker, liveChip, numberCard, notify, chipRow, featureCard, ending, ringBurst, windowRig, nigeriaMap, ramp, during, place } from "../kit.js";
 
 export async function build(ctx) {
   const M = ctx.isMobile;
@@ -73,7 +73,9 @@ export async function build(ctx) {
   /* ===================== 1. A place to live, to stay, to meet ===================== */
   ground(ctx, 0, s(3) + 0.1, { tone: "navy", y: 40, seed: 31 });
   const open = layer("open", 0, s(2) + 0.2);
-  await nigeriaMap(ctx, open, { x: M ? 150 : 1080, y: M ? 820 : 230, w: M ? 780 : 680, t0: 0.6, t1: s(2) - 0.3, tCities: s(1) + 0.6, gap: 0.42, labels: true, cities: 5 });
+  /* the frame a chat shows before anyone presses play: composed at t = 0 */
+  poster(ctx, open, { t1: s(1) - 0.15 });
+  await nigeriaMap(ctx, open, { x: M ? 150 : 1080, y: M ? 820 : 230, w: M ? 780 : 680, t0: s(1) - 0.05, t1: s(2) - 0.3, tCities: s(1) + 0.6, gap: 0.42, labels: true, cities: 5 });
   headline(ctx, open, { lines: [[["Every day, people", false]], [["across ", false], ["Nigeria", true]]], x: M ? 60 : 140, y: M ? 420 : 240, size: M ? 88 : 96, t0: s(1), t1: s(2) - 0.35, stagger: 0.08 });
   chipRow(ctx, open, { items: [["A place to live", "house"], ["to stay", "bed-double"], ["to meet", "utensils-crossed"]], x: M ? 540 : 140, y: M ? 1440 : 560, t0: w(1, "live") - 0.1, gap: w(1, "stay") - w(1, "live"), t1: s(2) - 0.35, size: M ? 34 : 34, anchor: M ? "center" : "left", wrapW: M ? 960 : 820 });
   ctx.hideCaptions(s(1) - 0.2, s(1) + 2.4);
@@ -188,7 +190,14 @@ export async function build(ctx) {
   H.show("f-host-reservations", s(11) - 0.1, s(12) + 0.3, { enter: "slide" });
   H.tap(s(11) + 0.8, 1029, 430);
   const dep = layer("deposits", s(11), s(12));
-  lift(ctx, H, { id: "f-host-reservations", crop: { x: 40, y: 2220, w: 1240, h: 420 }, t0: w(11, "deposits") - 0.1, t1: s(12) - 0.2, to: { x: R.cx, y: M ? 600 : 360, s: RS, r: -2 }, seed: 12 });
+  /* the deposit rule, drawn: the crop of this sheet ended mid-sentence */
+  sheet(ctx, dep, {
+    icon: "credit-card",
+    title: "Table deposits",
+    body: ["Ask for a card deposit on the tables that matter most.", "It comes off the guest's bill, and it is yours if they do not come."],
+    note: "You choose which tables ask for one.",
+    x: R.cx, y: M ? 640 : 380, w: M ? 880 : 760, t0: w(11, "deposits") - 0.1, t1: s(12) - 0.2, size: M ? 38 : 32, anchor: "center",
+  });
   liveChip(ctx, dep, { text: "Every reservation counts", x: R.cx, y: CHIPS_Y, t0: w(11, "counts") - 0.4, t1: s(12) - 0.2, size: M ? 34 : 30, anchor: "center" });
 
   /* ===================== 8. Agents and firms ===================== */
@@ -371,5 +380,8 @@ export async function build(ctx) {
 
   /* ===================== 18. The end card ===================== */
   ending(ctx, { t0: s(42), tLine: s(43) - 0.05, tBadges: s(44) - 0.1, tUrl: s(45) + 0.4, t1: ctx.duration });
+
+  /* last, so every part has registered the moment it is held up */
+  installFocus(ctx);
   void e;
 }

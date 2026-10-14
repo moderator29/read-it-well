@@ -84,8 +84,8 @@ export function words(ctx, text, { cls = "display", style = {}, parent = null, t
  * allowed phrasings, and `example: true` whenever it is illustrative.
  * { theme: "dark"|"light", sticker: codepoint | icon: lucide name, title, line, now, example, fontSize }
  */
-export function popup(ctx, { theme = "dark", sticker, icon, title, line, now = "now", example = true, fontSize = 40, parent = null, style = {} }) {
-  const card = ctx.el("div", { class: `popup glass-${theme}`, style: { fontSize: `${fontSize}px`, ...style } }, parent);
+export function popup(ctx, { theme = "dark", sticker, icon, title, line, now = "now", example = true, fontSize = 40, wrap = false, parent = null, style = {} }) {
+  const card = ctx.el("div", { class: `popup glass-${theme}${wrap ? " wrap" : ""}`, style: { fontSize: `${fontSize}px`, ...style } }, parent);
   const chip = ctx.el("div", { class: "chip" }, card);
   if (sticker) ctx.sticker(sticker, Math.round(fontSize * 1.5), chip);
   else if (icon) {
@@ -583,7 +583,11 @@ export function odometer(ctx, parent, { value, t0, t1, prefix = "₦", fontSize 
     const final = Number(ch);
     const seq = [];
     for (let s = 0; s < spins * 10 + final + 1; s += 1) seq.push(s % 10);
-    seq.forEach((d) => ctx.el("span", { text: String(d), style: { height: "1em", display: "block" } }, strip));
+    /* A column is as wide as the widest digit, so a narrow digit has to be
+       centred in it. Left-aligned, a "1" left a hole beside it and
+       ₦26,100,000 read as "₦26,1 00,000". The display font has no tabular
+       figures to do this for us. */
+    seq.forEach((d) => ctx.el("span", { text: String(d), style: { height: "1em", display: "block", textAlign: "center" } }, strip));
     const land = t0 + ((t1 - t0) * (idx + 1)) / digits;
     const e = ctx.ease("power3.out");
     ctx.onFrame((t) => {

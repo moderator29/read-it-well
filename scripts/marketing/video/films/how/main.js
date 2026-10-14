@@ -7,7 +7,7 @@
  * keeps the phone on the left, with the web app's window, the lifted parts
  * and the words on the right. Claims and figures: FACTS-OCT.md.
  */
-import { STAY_CARDS, listingWall, flagCard, nigeriaMap, anchors, ground, flash, hero, lift, headline, kicker, liveChip, numberCard, notify, chipRow, featureCard, ending, ringBurst, windowRig, ramp, opa, during, place } from "../kit.js";
+import { poster, installFocus, STAY_CARDS, listingWall, flagCard, nigeriaMap, anchors, ground, flash, hero, lift, headline, kicker, liveChip, numberCard, notify, chipRow, featureCard, ending, ringBurst, windowRig, ramp, opa, during, place } from "../kit.js";
 
 export async function build(ctx) {
   const M = ctx.isMobile;
@@ -77,10 +77,12 @@ export async function build(ctx) {
   /* ===================== 1. Opening: the gamble (0 - 6.9) ===================== */
   ground(ctx, 0, s(2) + 0.1, { tone: "navy", y: 30, seed: 11 });
   const open = layer("open", 0, s(2) + 0.1);
+  /* the frame a chat shows before anyone presses play: composed at t = 0 */
+  poster(ctx, open, { t1: s(1) - 0.15 });
   const big = M ? 104 : 112;
   headline(ctx, open, { lines: [[["Finding a place", false]], [["in ", false], ["Nigeria", true]]], x: M ? 60 : 160, y: M ? 560 : 260, size: big, t0: s(1) - 0.05, t1: s(2) - 0.55, stagger: 0.09 });
   headline(ctx, open, { lines: [[["shouldn't feel like", false]], [["a gamble.", true]]], x: M ? 60 : 160, y: M ? 560 + big * 2.25 : 260 + big * 2.25, size: big, t0: w(1, "shouldn't") - 0.05, t1: s(2) - 0.5, stagger: 0.09 });
-  await nigeriaMap(ctx, open, { x: M ? 200 : 1120, y: M ? 1090 : 230, w: M ? 680 : 620, t0: 0.4, t1: s(2) - 0.4, tCities: s(1) + 0.5, gap: 0.38, labels: true, cities: 5 });
+  await nigeriaMap(ctx, open, { x: M ? 200 : 1120, y: M ? 1090 : 230, w: M ? 680 : 620, t0: s(1) - 0.05, t1: s(2) - 0.4, tCities: s(1) + 0.5, gap: 0.38, labels: true, cities: 5 });
   const die = ctx.sticker("1f3b2", M ? 210 : 190, open, { class: "abs", style: { left: "0px", top: "0px" } });
   during(ctx, 0, s(2) + 0.1, (t) => {
     const u = ramp(ctx, t, w(1, "gamble") - 0.2, w(1, "gamble") + 0.5, "back.out(1.7)");
@@ -321,6 +323,9 @@ export async function build(ctx) {
 
   /* ===================== 17. The end card ===================== */
   ending(ctx, { t0: s(33), tLine: s(34) - 0.05, tBadges: s(35) - 0.1, tUrl: s(36) + 0.4, t1: ctx.duration });
+
+  /* last, so every part has registered the moment it is held up */
+  installFocus(ctx);
 }
 
 void opa;
