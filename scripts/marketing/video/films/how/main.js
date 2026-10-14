@@ -366,15 +366,18 @@ export async function build(ctx) {
       { lines: [[["Every ", false], ["naira,", true]]], t0: s(24) },
       { lines: [[["in your wallet,", false]]], t0: w(24, "wallet") - 0.45 },
       { lines: [[["in escrow,", false]]], t0: w(24, "escrow") - 0.45 },
-      { lines: [[["in every payment,", false]]], t0: w(24, "payment") - 0.6 },
+      { lines: [[["in every payment,", false]]], t0: w(24, "payment") - 0.9 },
     ];
-    EVERY.forEach(({ lines, t0 }, i) => headline(ctx, naira, { lines, x: 60, y: [500, 730, 960, 1190][i], size, t0, t1: w(24, "held") - 0.3, stagger: 0.03 }));
+    EVERY.forEach(({ lines, t0 }, i) => headline(ctx, naira, { lines, x: 60, y: [500, 730, 960, 1190][i], size, t0, t1: w(24, "held") - 0.8, stagger: 0.03 }));
   } else {
     headline(ctx, naira, { lines: [[["Every ", false], ["naira,", true]], [["in your wallet,", false]], [["in escrow,", false]], [["in every payment,", false]]], x: 200, y: 150, size, t0: s(24), t1: w(24, "held") - 0.3, stagger: 0.045 });
   }
   /* daylight for the promise: white paper, dark type, and the money's route
      drawn down a rail, the way the founder's favourite cut said it */
-  const DAY0 = w(24, "held") - 0.5;
+  /* the white comes up a quarter of a second later than it did: the list
+     leaves on navy, where white type can be seen leaving, instead of ghosting
+     out over the white paper */
+  const DAY0 = w(24, "held") - 0.25;
   const DAY1 = s(26) - 0.1;
   ground(ctx, DAY0, DAY1, { tone: "day", y: 40, seed: 34, sparkle: 0, z: 2 });
   ctx.hidePill(DAY0 - 0.1, DAY1 + 0.1);
@@ -382,11 +385,11 @@ export async function build(ctx) {
   headline(ctx, naira, { lines: [[["held by our", false]], [["licensed provider.", true]]], x: M ? 70 : ctx.W / 2, y: M ? 300 : 150, size: size * (M ? 0.95 : 0.9), t0: w(24, "held") - 0.1, t1: s(25) - 0.2, stagger: 0.035, color: INKC, key: "#0069fe", sheen: false, align: M ? "left" : "center" });
   /* the ink type and the rail are off the frame before the white goes: left a
      moment longer they turned dark blue on dark navy as the day faded. */
-  headline(ctx, naira, { lines: [[["Never by ", false], ["Vallo.", true]]], x: ctx.W / 2, y: M ? 560 : 320, size: size * (M ? 1.2 : 1.05), t0: s(25) - 0.05, t1: s(26) - 0.5, align: "center", stagger: 0.035, color: INKC, key: "#0069fe", sheen: false });
+  headline(ctx, naira, { lines: [[["Never by ", false], ["Vallo.", true]]], x: ctx.W / 2, y: M ? 560 : 320, size: size * (M ? 1.2 : 1.05), t0: s(25) - 0.05, t1: s(26) - 0.55, align: "center", stagger: 0.035, color: INKC, key: "#0069fe", sheen: false });
   flowRail(ctx, naira, {
     steps: ["Your card", "Our licensed provider", "The owner's bank"],
     x: M ? 170 : 660, y: M ? 880 : 470, gap: M ? 255 : 192, size: M ? 46 : 38,
-    t0: w(24, "held") + 0.15, t1: s(26) - 0.5, seed: 35,
+    t0: w(24, "held") + 0.15, t1: s(26) - 0.75, seed: 35,
   });
   ctx.sfx("stamp", s(25) + 0.05, { offset: 0 });
   ctx.hideCaptions(s(24) - 0.1, s(26) - 0.1);
@@ -395,7 +398,7 @@ export async function build(ctx) {
   const rec = layer("receipts", s(26) - 0.1, s(27));
   /* the record, held over the record: at y 600 the part lay on the phone's
      status bar with its own twin still legible underneath it. */
-  lift(ctx, H, { id: "sc-payments", crop: { x: 45, y: 670, w: 1230, h: 450 }, t0: w(26, "receipt") - 0.1, t1: s(27) - 0.25, to: { x: R.cx, y: M ? 820 : 360, s: RS, r: -2 }, seed: 54 });
+  lift(ctx, H, { id: "sc-payments", crop: { x: 45, y: 670, w: 1230, h: 450 }, t0: w(26, "receipt") - 0.1, t1: s(27) - 0.25, to: { x: R.cx, y: M ? 1040 : 360, s: RS, r: -2 }, seed: 54 });
   /* two pills this wide wrap onto two rows on the phone, and the second row
      landed on the caption: the row sits a line higher. */
   chipRow(ctx, rec, { items: [["A receipt for every payment", "receipt"], ["Vallo earns only when a deal is done", "handshake"]], x: R.cx, y: M ? 1330 : 860, t0: w(26, "receipt") + 0.2, gap: 1.3, t1: s(27) - 0.25, size: M ? 28 : 26, wrapW: M ? 980 : 840, anchor: "center" });
