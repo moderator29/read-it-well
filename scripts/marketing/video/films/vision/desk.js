@@ -46,14 +46,14 @@ export async function build(ctx) {
     [0, { ...GONE }],
     [s(4) - 0.7, { ...GONE }],
     [s(4) - 0.2, { ...RIGHT }, "power3.out"],
-    [w(5, "Homes") - 0.5, { ...RIGHT }],
-    [w(5, "Homes") - 0.1, { ...FULL }, "power3.inOut"],
+    [w(5, "Homes") - 0.35, { ...RIGHT }],
+    [w(5, "Homes") + 0.05, { ...FULL }, "power3.inOut"],
     [w(5, "restaurants") - 0.5, { ...FULL }],
     [w(5, "restaurants") - 0.1, { ...SIDE }, "power3.inOut"],
     [s(6) - 0.5, { ...SIDE }],
     [s(6) - 0.1, { ...GONE }, "power3.in"],
-    [s(7) - 0.7, { ...GONE }],
-    [s(7) - 0.3, { ...SIDE }, "power3.out"],
+    [s(7) - 0.6, { ...GONE }],
+    [s(7) - 0.2, { ...SIDE }, "power3.out"],
     [s(9) - 0.6, { ...SIDE }],
     [s(9) - 0.2, { ...RIGHT }, "power3.inOut"],
     [s(10) - 0.3, { ...RIGHT }],
@@ -73,8 +73,8 @@ export async function build(ctx) {
     [w(27, "full") - 0.2, { ...SIDE }, "power3.inOut"],
     [s(28) - 0.5, { ...SIDE }],
     [s(28) - 0.1, { ...OFF }, "power3.in"],
-    [s(29) - 0.7, { ...OFF }],
-    [s(29) - 0.3, { ...SIDE }, "power3.out"],
+    [s(29) - 0.5, { ...OFF }],
+    [s(29) - 0.1, { ...SIDE }, "power3.out"],
     [s(31) - 0.5, { ...SIDE }],
     [s(31) - 0.1, { ...OFF }, "power3.in"],
     [s(33) - 0.7, { ...OFF }],
@@ -136,17 +136,17 @@ export async function build(ctx) {
 
   /* ===================== 4. One home for real estate (19.0 - 23.2) ===================== */
   /* the site arrives on the right and the sentence stands to its left */
-  W.show("d-n-home", s(4) - 0.3, w(5, "Homes") - 0.1, { enter: "fade", dur: 0.5 });
+  W.show("d-n-home", s(4) - 0.3, w(5, "Homes") + 0.05, { enter: "fade", dur: 0.5 });
   W.click(w(4, "home") + 0.2, 760, 726);
   const one = layer("one", s(4) - 0.1, s(6));
-  headline(ctx, one, { lines: [[["Today, Vallo is", false]], [["one home for", false]], [["real estate.", true]]], x: HX, y: 250, size: 78, t0: s(4), t1: w(5, "Homes") - 0.35, stagger: 0.05 });
-  kicker(ctx, one, { text: "One home for real estate in Nigeria", icon: "house", x: HX, y: 640, t0: w(4, "home") - 0.1, t1: w(5, "Homes") - 0.3, size: 30, anchor: "left" });
+  headline(ctx, one, { lines: [[["Today, Vallo is", false]], [["one home for", false]], [["real estate.", true]]], x: HX, y: 250, size: 78, t0: s(4), t1: w(5, "Homes") - 0.95, stagger: 0.05 });
+  kicker(ctx, one, { text: "One home for real estate in Nigeria", icon: "house", x: HX, y: 640, t0: w(4, "home") - 0.1, t1: w(5, "Homes") - 0.75, size: 30, anchor: "left" });
 
   /* ===================== 5. Homes, hotels, shortlets, restaurants (23.2 - 30.0) ===================== */
   /* the home page takes the whole frame and scrolls through what is listed */
-  W.show("d-n-home-full", w(5, "Homes") - 0.1, w(5, "hotels") - 0.15, {
+  W.show("d-n-home-full", w(5, "Homes") + 0.05, w(5, "hotels") - 0.15, {
     enter: "cut", full: true,
-    scroll: [[w(5, "Homes") - 0.1, 0], [w(5, "hotels") - 0.3, 1500, "power3.inOut"]],
+    scroll: [[w(5, "Homes") + 0.05, 0], [w(5, "hotels") - 0.3, 1500, "power3.inOut"]],
   });
   W.show("d-n-stays-dates", w(5, "hotels") - 0.15, w(5, "shortlets") - 0.1, { enter: "slide" });
   W.show("d-n-stay", w(5, "shortlets") - 0.1, w(5, "restaurants") - 0.1, { enter: "slide" });
@@ -157,7 +157,7 @@ export async function build(ctx) {
   /* ===================== 6. Owners: list it yourself (30.0 - 46.2) ===================== */
   ground(ctx, s(6) - 0.05, s(9) + 0.3, { tone: "navy", y: 15, seed: 35 });
   const own = layer("owners", s(6) - 0.1, s(9));
-  headline(ctx, own, { lines: [[["For owners and", false]], [["landlords", true]]], x: ctx.W / 2, y: 360, size: 92, t0: s(6), t1: s(7) - 0.5, align: "center", stagger: 0.05 });
+  headline(ctx, own, { lines: [[["For owners and", false]], [["landlords", true]]], x: ctx.W / 2, y: 360, size: 92, t0: s(6), t1: s(7) - 0.9, align: "center", stagger: 0.05 });
   W.show("d-host-start", s(7) - 0.4, w(8, "listing") - 0.2, { enter: "rise", dur: 0.6 });
   W.click(w(7, "List") + 0.15, 850, 715);
   windowLift(ctx, W, { id: "d-host-start", crop: { x: 510, y: 668, w: 690, h: 92 }, t0: w(7, "yourself") + 0.1, t1: s(8) - 0.25, to: { x: COL, y: 320, s: 0.72, r: -2 }, seed: 2, label: "The owner's own listing" });
@@ -183,7 +183,7 @@ export async function build(ctx) {
   ground(ctx, s(9) - 0.05, s(12) + 0.3, { tone: "dusk", y: 85, seed: 37 });
   const desk = layer("desk", s(9) - 0.1, s(12));
   W.show("d-f-host-home", s(9) - 0.4, w(10, "calendar") - 0.2, { enter: "slide" });
-  headline(ctx, desk, { lines: [[["Hosts get a", false]], [["full desk.", true]]], x: HX, y: 320, size: 84, t0: s(9), t1: s(10) - 0.15, stagger: 0.05 });
+  headline(ctx, desk, { lines: [[["Hosts get a", false]], [["full desk.", true]]], x: HX, y: 320, size: 84, t0: s(9), t1: s(10) - 0.5, stagger: 0.05 });
   kicker(ctx, desk, { text: "A setup wizard for your rooms", icon: "bed-double", x: COL, y: 220, t0: w(10, "wizard") - 0.1, t1: w(10, "calendar") - 0.3, size: 28, anchor: "center" });
   /* the cursor goes to the desk's own nav, so the page change is the site's */
   W.click(w(10, "calendar") - 0.45, 110, 306);
@@ -212,7 +212,7 @@ export async function build(ctx) {
   ground(ctx, s(12) - 0.05, s(14) + 0.3, { tone: "violet", y: 20, seed: 38 });
   const ag = layer("agents", s(12) - 0.1, s(14));
   W.show("d-f-agent-dashboard", s(12) - 0.45, w(13, "portfolio") - 0.3, { enter: "slide" });
-  headline(ctx, ag, { lines: [[["Agents and firms", false]], [["get their own", false]], [["tools.", true]]], x: HX, y: 280, size: 66, t0: s(12), t1: s(13) - 0.25, stagger: 0.05 });
+  headline(ctx, ag, { lines: [[["Agents and firms", false]], [["get their own", false]], [["tools.", true]]], x: HX, y: 280, size: 66, t0: s(12), t1: s(13) - 0.5, stagger: 0.05 });
   W.show("d-f-agent-portfolio", w(13, "portfolio") - 0.3, w(13, "analytics") - 0.3, { enter: "slide" });
   W.click(w(13, "analytics") - 0.5, 81, 520);
   W.show("d-f-agent-analytics", w(13, "analytics") - 0.3, w(13, "Pro") - 0.45, { enter: "slide" });
@@ -265,7 +265,9 @@ export async function build(ctx) {
       ["The inspection report is in", "And you have both confirmed the agreement."],
       ["Escrow opens straight away", "A direct payment waits only when the deal needs a second look."],
     ],
-    x: COL, y: 520, w: 620, t0: s(18) - 0.05, t1: w(18, "reminds") - 0.5, rot: -1, size: 28, seed: 16,
+    /* in on "Once your agreement is approved": its rows stagger, so it starts
+       early enough to be a card rather than a title over white */
+    x: COL, y: 520, w: 620, t0: s(18) - 0.35, t1: w(18, "reminds") - 0.5, rot: -1, size: 28, seed: 16,
   });
   kicker(ctx, ten, { text: "Pay your rent in the app", icon: "house", x: COL, y: 200, t0: w(18, "rent") - 0.15, t1: w(18, "reminds") - 0.15, size: 28, anchor: "center" });
   noticeCard(ctx, ten, { object: "bell", title: "Rent due in 7 days", line: "Your tenancy, and Vallo reminds you first.", x: COL, y: 560, w: 620, t0: w(18, "reminds") + 0.05, t1: s(19) - 0.4, size: 30, seed: 17, from: "below" });
@@ -331,7 +333,7 @@ export async function build(ctx) {
   /* ===================== 16. Community: Local talk (143.1 - 156.9) ===================== */
   ground(ctx, s(28) - 0.05, s(31) + 0.3, { tone: "violet", y: 25, seed: 47 });
   const com = layer("community", s(28) - 0.1, s(31));
-  headline(ctx, com, { lines: [[["Vallo is also a", false]], [["community.", true]]], x: ctx.W / 2, y: 380, size: 84, t0: s(28), t1: s(29) - 0.4, align: "center", stagger: 0.05 });
+  headline(ctx, com, { lines: [[["Vallo is also a", false]], [["community.", true]]], x: ctx.W / 2, y: 380, size: 84, t0: s(28), t1: s(29) - 0.8, align: "center", stagger: 0.05 });
   W.show("d-f-around", s(29) - 0.4, w(30, "stories") - 0.2, { enter: "slide" });
   windowLift(ctx, W, { id: "d-f-around", crop: { x: 375, y: 296, w: 600, h: 350 }, t0: w(29, "neighbourhood") - 0.2, t1: w(30, "stories") - 0.25, to: { x: COL, y: 400, s: 0.78, r: -2 }, seed: 9, label: "Local talk" });
   W.show("d-around", w(30, "stories") - 0.2, s(31) - 0.35, { enter: "slide" });
@@ -362,7 +364,9 @@ export async function build(ctx) {
     x: COL, y: 660, w: 620, t0: w(36, "withdraw") - 0.25, t1: s(37) - 0.2, rot: 2, size: 28, seed: 26, stagger: 0.16,
   });
   chipRow(ctx, rw, { items: [["Invite", "send"], ["They join", "user-plus"], ["You earn", "coins"]], x: COL, y: 820, t0: s(37), gap: 0.35, t1: s(38) - 0.4, size: 30, anchor: "center", wrapW: 620 });
-  ringBurst(ctx, rw, { cx: COL, cy: 620, r: 300, t: w(37, "earn") + 0.1, seed: 49 });
+  /* pulled in off the column's centre: a burst thrown from COL runs out of
+     the frame on the right as it opens */
+  ringBurst(ctx, rw, { cx: COL - 130, cy: 620, r: 250, t: w(37, "earn") + 0.1, seed: 49 });
 
   /* ===================== 18. The beginning (180.0 - 205.4) ===================== */
   ground(ctx, s(38) - 0.05, s(42) + 0.2, { tone: "navy", y: 40, seed: 50, sparkle: 10 });
