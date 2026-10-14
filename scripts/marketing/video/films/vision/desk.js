@@ -204,7 +204,7 @@ export async function build(ctx) {
     title: "Table deposits",
     body: ["Ask for a card deposit on the tables that matter most.", "It comes off the guest's bill, and it is yours if they do not come."],
     note: "You choose which tables ask for one.",
-    x: COL, y: 230, w: 620, t0: w(11, "deposits") + 0.1, t1: s(12) - 0.35, size: 29, anchor: "center", from: "right",
+    x: COL, y: 230, w: 620, t0: w(11, "table") - 0.1, t1: s(12) - 0.35, size: 29, anchor: "center", from: "right",
   });
   liveChip(ctx, dep, { text: "Every reservation counts", x: COL, y: 700, t0: w(11, "counts") - 0.4, t1: s(12) - 0.35, size: 30, anchor: "center" });
 
@@ -229,6 +229,9 @@ export async function build(ctx) {
   W.show("d-thread", w(14, "report") - 0.25, s(16) - 0.35, { enter: "slide" });
   const fair = layer("fair", s(14) - 0.1, s(16));
   kicker(ctx, fair, { text: "Booked a viewing, didn't show", icon: "calendar-x", x: COL, y: 200, t0: w(14, "viewing") - 0.1, t1: w(14, "report") - 0.3, size: 28, anchor: "center" });
+  /* the thread the report comes off, so the column is not bare while the
+     sentence takes its time getting to "you can report it" */
+  windowLift(ctx, W, { id: "d-messages", crop: { x: 400, y: 310, w: 900, h: 100 }, t0: w(14, "viewing") + 0.3, t1: w(14, "report") - 0.3, to: { x: COL, y: 420, s: 0.6, r: -2 }, seed: 11, label: "The enquiry it came from" });
   featureCard(ctx, fair, { icon: "flag", title: "Report a no-show", line: "A person reads every report.", x: COL, y: 300, w: 620, t0: w(14, "report") - 0.05, t1: w(14, "forty-eight") - 0.35, size: 32, from: "right", anchor: "center" });
   numberCard(ctx, fair, { value: 48, prefix: "", label: "hours for them to respond", x: COL, y: 520, t0: w(14, "forty-eight") - 0.1, t1: w(14, "forty-eight") + 0.7, tOut: s(15) - 0.35, size: 96 });
   liveChip(ctx, fair, { text: "Fair for everyone", x: COL, y: 200, t0: s(15) - 0.05, t1: s(16) - 0.35, size: 32, anchor: "center" });
@@ -262,7 +265,7 @@ export async function build(ctx) {
       ["The inspection report is in", "And you have both confirmed the agreement."],
       ["Escrow opens straight away", "A direct payment waits only when the deal needs a second look."],
     ],
-    x: COL, y: 520, w: 620, t0: w(18, "approved") - 0.2, t1: w(18, "reminds") - 0.5, rot: -1, size: 28, seed: 16,
+    x: COL, y: 520, w: 620, t0: s(18) - 0.05, t1: w(18, "reminds") - 0.5, rot: -1, size: 28, seed: 16,
   });
   kicker(ctx, ten, { text: "Pay your rent in the app", icon: "house", x: COL, y: 200, t0: w(18, "rent") - 0.15, t1: w(18, "reminds") - 0.15, size: 28, anchor: "center" });
   noticeCard(ctx, ten, { object: "bell", title: "Rent due in 7 days", line: "Your tenancy, and Vallo reminds you first.", x: COL, y: 560, w: 620, t0: w(18, "reminds") + 0.05, t1: s(19) - 0.4, size: 30, seed: 17, from: "below" });
@@ -344,7 +347,7 @@ export async function build(ctx) {
   W.show("d-f-rewards", s(33) - 0.4, s(38) - 0.35, { enter: "rise", dur: 0.6 });
   kicker(ctx, rw, { text: "Share your invite link", icon: "link", x: COL, y: 200, t0: w(33, "invite") - 0.3, t1: w(34, "earn") - 0.45, size: 30, anchor: "center" });
   ctx.sfx("bubble_send", w(33, "link"), { offset: -3 });
-  windowLift(ctx, W, { id: "d-f-rewards", crop: { x: 300, y: 752, w: 1110, h: 140 }, t0: w(34, "verified") - 0.1, t1: w(36, "once") - 0.3, to: { x: COL, y: 620, s: 0.5, r: -3 }, seed: 10, label: "What a referral pays" });
+  windowLift(ctx, W, { id: "d-f-rewards", crop: { x: 300, y: 752, w: 1110, h: 140 }, t0: w(34, "friend") - 0.2, t1: w(36, "once") - 0.3, to: { x: COL, y: 620, s: 0.5, r: -3 }, seed: 10, label: "What a referral pays" });
   numberCard(ctx, rw, { value: 80, label: "for each friend who joins and gets verified", x: COL, y: 330, t0: w(34, "earn") - 0.05, t1: w(34, "earn") + 0.6, tOut: s(35) + 0.9, size: 72 });
   kicker(ctx, rw, { text: "Ready after 7 days", icon: "clock", x: COL, y: 200, t0: w(35, "seven") - 0.1, t1: s(36) - 0.2, size: 30, anchor: "center" });
   W.click(w(36, "withdraw") - 0.15, 855, 332);
@@ -376,7 +379,7 @@ export async function build(ctx) {
   W.show("d-n-listing", s(40) - 0.25, w(40, "room") - 0.15, { enter: "rise", dur: 0.5 });
   W.show("d-n-stay", w(40, "room") - 0.15, w(40, "table") - 0.15, { enter: "slide" });
   W.show("d-restaurant", w(40, "table") - 0.15, s(41) - 0.3, { enter: "slide" });
-  kicker(ctx, vis, { text: "Every home, every room, every table", icon: "layers", x: HX, y: 320, t0: w(40, "home") - 0.1, t1: w(40, "people") - 0.3, size: 30, anchor: "left" });
+  kicker(ctx, vis, { text: "Every home, every room, every table", icon: "layers", x: HX, y: 320, t0: w(40, "home") - 0.1, t1: s(41) - 0.5, size: 30, anchor: "left" });
   chipRow(ctx, vis, { items: [["Real people", "users"], ["Real prices", "tag"], ["Real trust", "shield-check"]], x: HX, y: 620, t0: w(40, "people") - 0.15, gap: (w(40, "trust") - w(40, "people")) / 2, t1: s(41) - 0.35, size: 30, anchor: "left", wrapW: 620 });
   const map2 = layer("map2", s(41) - 0.35, s(42), 790);
   await nigeriaMap3d(ctx, map2, { x: 600, y: 170, w: 720, t0: s(41) - 0.3, t1: s(42) - 0.35, tTrails: w(41, "city") - 0.4, gap: 0.24, labels: true });
