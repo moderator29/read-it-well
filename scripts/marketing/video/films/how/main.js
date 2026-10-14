@@ -109,15 +109,15 @@ export async function build(ctx) {
   ctx.hideCaptions(s(2) - 0.1, s(2) + 1.1);
 
   /* ===================== 3. One app: homes, hotels, shortlets, restaurants ===================== */
-  H.show("home-featured", 7.9, s(3) + 1.0, { enter: "cut" });
-  H.show("sc-stays", s(3) + 1.0, s(4) + 0.6, { enter: "slide" });
+  H.show("n-home-premium", 7.9, s(3) + 1.0, { enter: "cut" });
+  H.show("n-stays", s(3) + 1.0, s(4) + 0.6, { enter: "slide" });
   H.tap(s(3) + 0.85, 1180, 1610);
-  lift(ctx, H, { id: "home-featured", crop: { x: 105, y: 835, w: 1100, h: 1520 }, t0: w(3, "Homes") + 0.05, t1: w(3, "one") - 0.2, to: { x: M ? 270 : 1170, y: M ? 820 : 520, s: M ? 0.34 : 0.27, r: -5 }, seed: 1, radius: 60 });
-  lift(ctx, H, { id: "sc-stays", crop: { x: 45, y: 1715, w: 590, h: 410 }, t0: w(3, "hotels"), t1: w(3, "one") - 0.15, to: { ...R.r1, s: TS, r: 5 }, seed: 2 });
-  lift(ctx, H, { id: "sc-stays", crop: { x: 645, y: 1715, w: 630, h: 410 }, t0: w(3, "shortlets"), t1: w(3, "one") - 0.1, to: { ...R.l2, s: TS, r: -6 }, seed: 3 });
-  lift(ctx, H, { id: "sc-stays", crop: { x: 45, y: 2165, w: 590, h: 420 }, t0: w(3, "restaurants"), t1: w(3, "one") - 0.05, to: { ...R.r2, s: TS, r: 4 }, seed: 4 });
+  lift(ctx, H, { id: "n-home-premium", crop: { x: 105, y: 1300, w: 1110, h: 1070 }, t0: w(3, "Homes") + 0.05, t1: w(3, "one") - 0.2, to: { x: M ? 280 : 1170, y: M ? 820 : 520, s: M ? 0.4 : 0.32, r: -5 }, seed: 1, radius: 60 });
+  lift(ctx, H, { id: "n-stays", crop: { x: 45, y: 1715, w: 590, h: 410 }, t0: w(3, "hotels"), t1: w(3, "one") - 0.15, to: { ...R.r1, s: TS, r: 5 }, seed: 2 });
+  lift(ctx, H, { id: "n-stays", crop: { x: 645, y: 1715, w: 630, h: 410 }, t0: w(3, "shortlets"), t1: w(3, "one") - 0.1, to: { ...R.l2, s: TS, r: -6 }, seed: 3 });
+  lift(ctx, H, { id: "n-stays", crop: { x: 45, y: 2165, w: 590, h: 420 }, t0: w(3, "restaurants"), t1: w(3, "one") - 0.05, to: { ...R.r2, s: TS, r: 4 }, seed: 4 });
   const one = layer("one", s(3), s(4) + 0.4);
-  kicker(ctx, one, { text: "Featured properties", icon: "star", x: R.cx, y: M ? 1440 : 860, t0: w(3, "Homes") + 0.2, t1: w(3, "one") - 0.25, size: M ? 32 : 28, anchor: "center" });
+  kicker(ctx, one, { text: "Premium listings", icon: "gem", x: R.cx, y: M ? 1440 : 860, t0: w(3, "Homes") + 0.2, t1: w(3, "one") - 0.25, size: M ? 32 : 28, anchor: "center" });
   chipRow(ctx, one, { items: [["One app", "smartphone"], ["One account", "user-round-check"]], x: R.cx, y: M ? 1440 : 860, t0: w(3, "one"), t1: s(4) - 0.2, size: M ? 34 : 30, anchor: "center" });
 
   /* ===================== 4. How it works: search, filter, save, compare ===================== */
@@ -152,7 +152,7 @@ export async function build(ctx) {
       [w(6, "area") + 0.4, { x: 1960, y: 330, s: 0.58, opacity: 0 }, "none"],
       [ctx.duration, { x: 1960, y: 330, s: 0.58, opacity: 0 }, "none"],
     ]);
-    W.show("d-search", s(5) - 0.2, w(6, "area") + 0.4, { enter: "cut" });
+    W.show("d-n-search", s(5) - 0.2, w(6, "area") + 0.4, { enter: "cut" });
     W.click(w(5, "Nigeria") + 0.3, 700, 210);
   }
 
@@ -223,12 +223,12 @@ export async function build(ctx) {
 
   /* ===================== 10. Book a room (75.58 - 82.65) ===================== */
   ground(ctx, s(18) - 0.05, s(20) + 0.2, { tone: "dusk", y: 85, seed: 18 });
-  H.show("sc-stays", s(18) - 0.2, w(19, "dates") - 0.2, { enter: "slide" });
-  H.show("stays-dates", w(19, "dates") - 0.2, w(19, "room") - 0.3, { enter: "slide" });
+  H.show("n-stays", s(18) - 0.2, w(19, "dates") - 0.2, { enter: "slide" });
+  H.show("n-stays-dates", w(19, "dates") - 0.2, w(19, "room") - 0.3, { enter: "slide" });
   H.show("f-stay-checkout", w(19, "room") - 0.3, s(20) + 0.1, { enter: "slide" });
   H.tap(s(18) + 0.7, 340, 1920);
   H.tap(w(19, "dates") + 0.15, 520, 1110);
-  lift(ctx, H, { id: "stays-dates", crop: { x: 40, y: 990, w: 1250, h: 240 }, t0: w(19, "dates") + 0.4, t1: w(19, "room") - 0.4, to: { x: R.cx, y: M ? 540 : 330, s: RS, r: -2 }, seed: 39 });
+  lift(ctx, H, { id: "n-stays-dates", crop: { x: 40, y: 990, w: 1250, h: 240 }, t0: w(19, "dates") + 0.4, t1: w(19, "room") - 0.4, to: { x: R.cx, y: M ? 540 : 330, s: RS, r: -2 }, seed: 39 });
   H.tap(w(19, "dates") + 0.75, 1120, 1110);
   H.tap(w(19, "room") - 0.45, 660, 1530);
   const trip = layer("trip", s(18), s(20));
@@ -243,7 +243,7 @@ export async function build(ctx) {
       [w(19, "room") + 0.2, { x: 1960, y: 300, s: 0.6, opacity: 1 }, "power3.in"],
       [w(19, "room") + 0.3, { x: 1960, y: 300, s: 0.6, opacity: 0 }, "none"],
     ]);
-    W2.show("d-stays-dates", s(18) - 0.2, w(19, "room") + 0.3, { enter: "cut" });
+    W2.show("d-n-stays-dates", s(18) - 0.2, w(19, "room") + 0.3, { enter: "cut" });
     W2.click(w(19, "dates") + 0.2, 420, 300);
   }
 
@@ -259,16 +259,13 @@ export async function build(ctx) {
 
   /* ===================== 12. The wallet (90.0 - 96.96) ===================== */
   ground(ctx, s(22) - 0.05, s(24) + 0.2, { tone: "electric", y: 18, seed: 19 });
-  const WALLET_PATCH = [{ x: 262, y: 1790, w: 860, h: 115, bg: "rgb(5 11 34)", size: 38, lh: 1.42, color: "rgb(214 221 249)", lines: ["Your money is held by our licensed", "payments partner, not by Vallo."] }];
-  H.show("wallet-user", s(22) - 0.2, s(24) + 0.3, { enter: "slide", patch: WALLET_PATCH });
+  const WALLET_PATCH = [{ x: 274, y: 2128, w: 870, h: 66, bg: "rgb(5 11 32)", size: 46, weight: 600, lh: 1.3, color: "rgb(222 227 255)", lines: ["Open your account with our partner"] }];
+  H.show("n-wallet", s(22) - 0.2, s(24) + 0.3, { enter: "slide", patch: WALLET_PATCH });
   const wal = layer("wallet", s(22), s(24));
   headline(ctx, wal, { lines: [[["Your Vallo ", false], ["wallet", true]]], x: M ? R.cx : HX, y: M ? R.top : 210, size: M ? 84 : 80, t0: w(22, "wallet") - 0.3, t1: s(23) - 0.2, align: M ? "center" : "left" });
-  H.tap(w(23, "Add") - 0.05, 960, 890);
-  lift(ctx, H, { id: "wallet-user", crop: { x: 680, y: 825, w: 570, h: 130 }, t0: w(23, "Add") + 0.05, t1: s(24) - 0.25, to: { ...R.l1, x: R.l1.x + (M ? 20 : 0), s: M ? 0.85 : 0.7, r: -4 }, seed: 50, radius: 60 });
-  lift(ctx, H, { id: "wallet-user", crop: { x: 45, y: 1450, w: 1230, h: 215 }, t0: w(23, "pay"), t1: s(24) - 0.2, to: { x: R.cx, y: M ? 820 : 520, s: RS, r: 2 }, seed: 51 });
-  lift(ctx, H, { id: "wallet-user", crop: { x: 645, y: 2730, w: 630, h: 180 }, t0: w(23, "send"), t1: s(24) - 0.15, to: { ...R.l2, y: R.l2.y + (M ? 120 : 80), s: M ? 0.75 : 0.62, r: -3 }, seed: 52, radius: 80 });
-  lift(ctx, H, { id: "wallet-user", crop: { x: 45, y: 2730, w: 580, h: 180 }, t0: w(23, "withdraw"), t1: s(24) - 0.1, to: { ...R.r2, y: R.r2.y + (M ? 120 : 80), s: M ? 0.75 : 0.62, r: 3 }, seed: 53, radius: 80 });
-  H.tap(w(23, "taps") - 0.1, 950, 2840);
+  H.tap(w(23, "Add") - 0.3, 1188, 2508);
+  lift(ctx, H, { id: "n-wallet", crop: { x: 45, y: 2410, w: 1230, h: 300 }, t0: w(23, "Add") - 0.05, t1: s(24) - 0.25, to: { x: R.cx, y: M ? 540 : 330, s: RS, r: -2 }, seed: 50 });
+  chipRow(ctx, wal, { items: [["Add money", "plus"], ["Pay", "credit-card"], ["Send", "send"], ["Withdraw", "arrow-down-to-line"]], x: R.cx, y: M ? 1440 : 860, t0: w(23, "Add"), gap: (w(23, "withdraw") - w(23, "Add")) / 3, t1: s(24) - 0.2, size: M ? 32 : 28, anchor: "center", wrapW: M ? 980 : 860 });
 
   /* ===================== 13. Every naira (97.5 - 109.78) ===================== */
   ground(ctx, s(24) - 0.05, s(27) + 0.3, { tone: "navy", y: 45, seed: 20, sparkle: 8 });
@@ -310,14 +307,14 @@ export async function build(ctx) {
 
   /* ===================== 16. Your language (126.35 - 131.44) ===================== */
   ground(ctx, s(31) - 0.05, s(33) - 0.2, { tone: "dusk", y: 80, seed: 23 });
-  H.show("welcome-1", s(31) - 0.2, w(32, "Hausa") - 0.1, { enter: "slide" });
-  H.show("welcome-ha", w(32, "Hausa") - 0.1, w(32, "Yorùbá") - 0.1, { enter: "slide" });
-  H.show("welcome-yo", w(32, "Yorùbá") - 0.1, w(32, "Igbo") - 0.1, { enter: "slide" });
-  H.show("welcome-ig", w(32, "Igbo") - 0.1, s(33) + 0.5, { enter: "slide" });
-  [["welcome-1", "English", -3], ["welcome-ha", "Hausa", 3], ["welcome-yo", "Yorùbá", -2], ["welcome-ig", "Igbo", 2]].forEach(([id, word, r], i) => {
+  H.show("n-welcome-en", s(31) - 0.2, w(32, "Hausa") - 0.1, { enter: "slide" });
+  H.show("n-welcome-ha", w(32, "Hausa") - 0.1, w(32, "Yorùbá") - 0.1, { enter: "slide" });
+  H.show("n-welcome-yo", w(32, "Yorùbá") - 0.1, w(32, "Igbo") - 0.1, { enter: "slide" });
+  H.show("n-welcome-ig", w(32, "Igbo") - 0.1, s(33) + 0.5, { enter: "slide" });
+  [["n-welcome-en", "English", -3], ["n-welcome-ha", "Hausa", 3], ["n-welcome-yo", "Yorùbá", -2], ["n-welcome-ig", "Igbo", 2]].forEach(([id, word, r], i) => {
     const t0 = w(32, word) + 0.25;
     const t1 = i < 3 ? w(32, ["Hausa", "Yorùbá", "Igbo"][i]) + 0.1 : s(33) - 0.3;
-    lift(ctx, H, { id, crop: { x: 40, y: 2140, w: 1240, h: 330 }, t0, t1, to: { x: R.cx, y: M ? 560 : 340, s: RS, r }, exit: "up", seed: 80 + i, fly: 0.5 });
+    lift(ctx, H, { id, crop: { x: 40, y: 2440, w: 1240, h: 340 }, t0, t1, to: { x: R.cx, y: M ? 560 : 340, s: RS, r }, exit: "up", seed: 80 + i, fly: 0.5 });
   });
   const lang = layer("lang", s(31), s(33));
   chipRow(ctx, lang, { items: [["English"], ["Hausa"], ["Yorùbá"], ["Igbo"]], x: R.cx, y: M ? 1420 : 860, t0: w(32, "English") - 0.05, gap: 0.62, t1: s(33) - 0.5, size: M ? 36 : 32, anchor: "center" });

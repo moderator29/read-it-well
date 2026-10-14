@@ -562,39 +562,41 @@ export function featureCard(ctx, parent, { icon, title, line, x, y, w, t0, t1, s
 
 /* Live listings on Vallo (the platform's example stock, as the app labels it), read from the database on 14 October. */
 export const LISTINGS = [
-  ["Five bedroom villa on Banana Island", "Banana Island, Lagos", "₦25m /yr", "For rent", "villa-pool-skyline-01"],
-  ["Four bedroom villa in Maitama", "Maitama, Abuja", "₦18m /yr", "For rent", "living-room-dusk"],
-  ["Three bedroom terrace for sale in Karsana", "Karsana, Abuja", "₦95m", "For sale", "bedroom-02"],
-  ["Two bedroom shortlet in Lekki Phase 1", "Lekki Phase 1, Lagos", "By the night", "Shortlet", "bedroom-01"],
-  ["Four bedroom detached house on Chevron Drive", "Chevron Drive, Lagos", "₦180m", "For sale", "living-room-day"],
-  ["Hotel room in Ikeja", "Ikeja, Lagos", "Book a room", "Hotel", "resort-pool-deck"],
-  ["Two bedroom shortlet in GRA Phase 2", "GRA Phase 2, Port Harcourt", "By the night", "Shortlet", "terrace-lounge-night"],
-  ["Four bedroom duplex in New GRA", "New GRA, Port Harcourt", "₦5m /yr", "For rent", "villa-exterior-gate"],
-  ["Restaurant in Jabi", "Jabi, Abuja", "Book a table", "Restaurant", "restaurant-01"],
-  ["Studio shortlet in Ikoyi", "Ikoyi, Lagos", "By the night", "Shortlet", "villa-pool-portrait"],
-  ["Five bedroom detached house in Asokoro", "Asokoro, Abuja", "₦12m /yr", "For rent", "bedroom-02"],
-  ["Restaurant in Bodija", "Bodija, Ibadan", "Book a table", "Restaurant", "restaurant-02-lounge"],
-  ["Three bedroom flat in Wuse 2", "Wuse 2, Abuja", "₦4.5m /yr", "For rent", "skyline-waterfront-dusk"],
-  ["Two bedroom flat in Ikeja GRA", "Ikeja GRA, Lagos", "₦2.8m /yr", "For rent", "terrace-lounge-night"],
-  ["Four bedroom house for sale in Old GRA", "Old GRA, Port Harcourt", "₦145m", "For sale", "tower-entrance-dusk"],
-  ["Three bedroom bungalow in Magodo", "Magodo, Lagos", "₦3.2m /yr", "For rent", "living-room-dusk"],
-  ["One bedroom shortlet on Victoria Island", "Victoria Island, Lagos", "By the night", "Shortlet", "skyline-bridge-dusk"],
-  ["Three bedroom house in Jericho", "Jericho, Ibadan", "₦2.2m /yr", "For rent", "villa-pool-skyline-01"],
+  /* title, place, price, "to move in" or null, beds, baths, m², photo: as the home's SpaceCard shows them (captured 14 October) */
+  ["Five bedroom villa on Banana Island", "Banana Island, Lagos", "₦36.2m", true, 5, 5, 520, "villa-pool-skyline-01"],
+  ["Four bedroom villa in Maitama", "Maitama, Abuja", "₦26.1m", true, 4, 4, 380, "living-room-dusk"],
+  ["Three bedroom terrace for sale in Karsana", "Karsana, Abuja", "₦95m", false, 3, 3, 195, "bedroom-02"],
+  ["Mini flat in Yaba", "Yaba, Lagos", "₦1.8m", true, 1, 1, 42, "villa-exterior-gate"],
+  ["Five bedroom detached house in Asokoro", "Asokoro, Abuja", "₦18m", true, 5, 5, 420, "bedroom-02"],
+  ["Four bedroom detached house for sale on Chevron Drive", "Chevron Drive, Lagos", "₦180m", false, 4, 4, 310, "living-room-dusk"],
+  ["Four bedroom terrace in Lekki Phase 1", "Lekki Phase 1, Lagos", "₦9.7m", true, 4, 4, 210, "bedroom-02"],
+  ["Two bedroom flat in Independence Layout", "Independence Layout, Enugu", "₦1.6m", true, 2, 2, 84, "living-room-dusk"],
+  ["Four bedroom house for sale in Old GRA", "Old GRA, Port Harcourt", "₦145m", false, 4, 4, 300, "bedroom-02"],
 ];
 
-function listingCard(ctx, parent, [title, place, price, kind, photo], w) {
+/** The app's SpaceCard (home Premium, Featured, Best matches, New listings), drawn at width w. */
+function listingCard(ctx, parent, [title, place, price, moveIn, beds, baths, m2, photo], w) {
   const k = w / 400;
-  const card = ctx.el("div", { style: { position: "relative", flex: "none", width: `${w}px`, borderRadius: `${26 * k}px`, overflow: "hidden", background: "linear-gradient(180deg, #0f1640, #090e30)", boxShadow: "0 30px 60px -26px rgb(0 0 20 / 0.85), 0 0 0 1.5px rgb(120 170 255 / 0.18)" } }, parent);
-  const ph = ctx.el("div", { style: { position: "relative", width: "100%", height: `${w * 0.62}px`, overflow: "hidden" } }, card);
+  const card = ctx.el("div", { style: { position: "relative", flex: "none", width: `${w}px`, padding: `${8 * k}px`, borderRadius: `${26 * k}px`, background: "linear-gradient(180deg, #0d1640, #0a1033)", border: `${1.5 * k}px solid rgb(90 130 230 / 0.28)`, boxShadow: "0 30px 60px -26px rgb(0 0 20 / 0.85)" } }, parent);
+  const ph = ctx.el("div", { style: { position: "relative", width: "100%", height: `${w * 0.56}px`, overflow: "hidden", borderRadius: `${20 * k}px` } }, card);
   ctx.img(ctx.src.photo(`${photo}-640.jpg`), { style: { width: "100%", height: "100%", objectFit: "cover" } }, ph);
-  ctx.el("div", { style: { position: "absolute", inset: "0", background: "linear-gradient(180deg, transparent 55%, rgb(5 8 30 / 0.55))" } }, ph);
-  ctx.el("div", { text: kind, style: { position: "absolute", left: `${14 * k}px`, top: `${14 * k}px`, padding: `${6 * k}px ${12 * k}px`, borderRadius: "999px", background: "rgb(255 255 255 / 0.94)", color: "#0b1230", font: `600 ${15 * k}px/1 Inter, sans-serif` } }, ph);
-  const heart = ctx.el("div", { style: { position: "absolute", right: `${14 * k}px`, top: `${12 * k}px`, width: `${38 * k}px`, height: `${38 * k}px`, borderRadius: "50%", background: "rgb(255 255 255 / 0.94)", display: "grid", placeItems: "center" } }, ph);
-  const hi = ctx.icon("heart", { size: Math.round(20 * k), stroke: 2.4 }, heart); hi.style.color = "#0069fe";
-  const body = ctx.el("div", { style: { padding: `${14 * k}px ${16 * k}px ${16 * k}px` } }, card);
-  ctx.el("div", { text: title, style: { font: `600 ${19 * k}px/1.2 Poppins, Inter, sans-serif`, color: "#fff", letterSpacing: "-0.01em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" } }, body);
-  ctx.el("div", { text: place, style: { marginTop: `${6 * k}px`, font: `500 ${15 * k}px/1.2 Inter, sans-serif`, color: "rgb(255 255 255 / 0.62)" } }, body);
-  ctx.el("div", { text: price, style: { marginTop: `${10 * k}px`, font: `700 ${21 * k}px/1 Poppins, Inter, sans-serif`, color: "#8FD3FF" } }, body);
+  ctx.el("div", { text: "Example", style: { position: "absolute", left: `${12 * k}px`, top: `${12 * k}px`, padding: `${6 * k}px ${12 * k}px`, borderRadius: "999px", background: "#fff", color: "#0b1230", font: `600 ${14 * k}px/1 Inter, sans-serif` } }, ph);
+  const heart = ctx.el("div", { style: { position: "absolute", right: `${12 * k}px`, top: `${10 * k}px`, width: `${40 * k}px`, height: `${40 * k}px`, borderRadius: "50%", background: "#fff", display: "grid", placeItems: "center" } }, ph);
+  const hi = ctx.icon("heart", { size: Math.round(20 * k), stroke: 2.2 }, heart); hi.style.color = "#0b1230";
+  const dots = ctx.el("div", { style: { position: "absolute", left: "50%", bottom: `${10 * k}px`, transform: "translateX(-50%)", display: "flex", gap: `${4 * k}px` } }, ph);
+  [18, 7, 7, 7].forEach((d, i) => ctx.el("span", { style: { width: `${d * k}px`, height: `${7 * k}px`, borderRadius: "99px", background: i ? "rgb(255 255 255 / 0.6)" : "#fff" } }, dots));
+  const info = ctx.el("div", { style: { marginTop: `${8 * k}px`, padding: `${14 * k}px ${14 * k}px ${14 * k}px`, borderRadius: `${18 * k}px`, background: "#040a22" } }, card);
+  const row = ctx.el("div", { style: { display: "flex", justifyContent: "space-between", gap: `${10 * k}px`, alignItems: "flex-start" } }, info);
+  ctx.el("div", { text: title, style: { flex: "1", minWidth: "0", font: `600 ${17 * k}px/1.25 Inter, sans-serif`, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" } }, row);
+  const pr = ctx.el("div", { style: { textAlign: "right", flex: "none" } }, row);
+  ctx.el("div", { text: price, style: { font: `700 ${18 * k}px/1.1 Inter, sans-serif`, color: "#fff" } }, pr);
+  if (moveIn) ctx.el("div", { text: "to move in", style: { font: `500 ${13 * k}px/1.3 Inter, sans-serif`, color: "rgb(214 221 249 / 0.62)" } }, pr);
+  const loc = ctx.el("div", { style: { marginTop: `${8 * k}px`, display: "flex", alignItems: "center", gap: `${5 * k}px`, font: `500 ${14 * k}px/1.2 Inter, sans-serif`, color: "rgb(214 221 249 / 0.7)" } }, info);
+  ctx.icon("map-pin", { size: Math.round(14 * k), stroke: 2 }, loc);
+  ctx.el("span", { text: place }, loc);
+  const facts = ctx.el("div", { style: { marginTop: `${7 * k}px`, display: "flex", alignItems: "center", gap: `${7 * k}px`, font: `500 ${14 * k}px/1.2 Inter, sans-serif`, color: "rgb(214 221 249 / 0.7)" } }, info);
+  ctx.icon("building-2", { size: Math.round(14 * k), stroke: 2 }, facts);
+  ctx.el("span", { text: `${beds} ${beds === 1 ? "bed" : "beds"} · ${baths} ${baths === 1 ? "bath" : "baths"} · ${m2} m²` }, facts);
   return card;
 }
 
@@ -606,7 +608,7 @@ export function listingWall(ctx, parent, { t0, t1, rows = 3, y = null, cardW = n
   const M = ctx.isMobile;
   const cw = cardW ?? (M ? 330 : 300);
   const g = gap ?? cw * 0.09;
-  const ch = cw * 0.62 + cw * 0.3;
+  const ch = cw * 0.56 + cw * 0.36;
   const wall = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${ctx.W}px`, height: `${ctx.H}px`, overflow: "hidden", WebkitMaskImage: "linear-gradient(90deg, transparent 0%, #000 12%, #000 88%, transparent 100%)", maskImage: "linear-gradient(90deg, transparent 0%, #000 12%, #000 88%, transparent 100%)" } }, parent);
   const tiltBox = ctx.el("div", { class: "abs", style: { left: `${-ctx.W * 0.3}px`, top: `${(y ?? (ctx.H - rows * (ch + g)) / 2)}px`, width: `${ctx.W * 1.6}px`, transform: `rotate(${tilt}deg)`, transformOrigin: "50% 50%" } }, wall);
   const rand = ctx.random(seed);

@@ -366,3 +366,23 @@ export const CAPTURES = [
     return { ...cap, id: `${id}-lt`, theme: "light", full: FULL_TWINS.includes(id) ? cap.full : false };
   }),
 ];
+
+/* The films' second pass (14 October, afternoon): every screen the films had
+   from before main's 13 October home, icons and dock, captured again from the
+   live app. */
+export const NOW = [
+  { id: "n-home", full: true, fullMax: 9000, steps: HOME },
+  { id: "d-n-home", kind: "desktop", full: true, fullMax: 6000, steps: HOME },
+  { id: "n-welcome-en", auth: false, steps: [{ goto: "/welcome" }, { wait: 2600 }] },
+  ...["yo", "ha", "ig"].map((loc) => ({ id: `n-welcome-${loc}`, auth: false, locale: loc, steps: [{ goto: "/welcome" }, { wait: 2600 }] })),
+  { id: "n-stays-dates", steps: go(STAYS_DATES) },
+  { id: "n-stays", steps: go("/stays") },
+  { id: "d-n-stays-dates", kind: "desktop", steps: go(STAYS_DATES) },
+  { id: "d-n-search", kind: "desktop", steps: go("/search?market=rent") },
+  { id: "n-search", full: true, fullMax: 7000, steps: go("/search?market=rent") },
+  { id: "n-wallet", steps: go("/wallet") },
+  /* the home's sections, each scrolled into view (they load as they come on screen) */
+  ...[["premium", "Premium listings"], ["featured", "Featured listings"], ["best", "Best matches"], ["new", "New listings"], ["space", "Browse by space"]].map(([k, title]) => ({ id: `n-home-${k}`, steps: [...HOME, { reveal: `text="${title}"`, offset: 300 }, { wait: 2200 }] })),
+  ...[["premium", "Premium listings"], ["featured", "Featured listings"]].map(([k, title]) => ({ id: `d-n-home-${k}`, kind: "desktop", steps: [...HOME, { reveal: `text="${title}"`, offset: 140 }, { wait: 2200 }] })),
+];
+CAPTURES.push(...NOW);

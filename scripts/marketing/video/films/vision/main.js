@@ -115,18 +115,19 @@ export async function build(ctx) {
   ctx.hideCaptions(s(3) - 0.1, s(4) - 0.3);
 
   /* ===================== 4. One home for real estate ===================== */
-  H.show("home-featured", s(4) - 1.0, w(5, "hotels") - 0.3, { enter: "cut" });
+  H.show("n-home-featured", s(4) - 1.0, w(5, "Homes") - 0.3, { enter: "cut" });
+  H.show("n-home-space", w(5, "Homes") - 0.3, w(5, "hotels") - 0.3, { enter: "rise", dur: 0.4 });
   listingWall(ctx, layer("wall1", s(4) - 0.7, s(6), 3), { t0: s(4) - 0.6, t1: s(6) - 0.3, rows: M ? 5 : 3, opacity: 0.6, seed: 12, y: M ? 260 : 60 });
-  lift(ctx, H, { id: "home-featured", crop: { x: 105, y: 835, w: 1100, h: 1520 }, t0: w(4, "home") - 0.05, t1: w(5, "Homes") - 0.15, to: { x: M ? 270 : 1170, y: M ? 820 : 520, s: M ? 0.34 : 0.27, r: -5 }, seed: 9, radius: 60 });
-  H.show("sc-stays", w(5, "hotels") - 0.3, s(6) + 0.3, { enter: "slide" });
-  lift(ctx, H, { id: "home-featured", crop: { x: 0, y: 320, w: 1320, h: 150 }, t0: w(5, "Homes"), t1: w(5, "one") - 0.2, to: { ...ROW(0), s: RS, r: -3 }, seed: 1 });
-  lift(ctx, H, { id: "sc-stays", crop: { x: 45, y: 1715, w: 590, h: 410 }, t0: w(5, "hotels"), t1: w(5, "one") - 0.15, to: { ...R.r1, s: TS, r: 5 }, seed: 2 });
-  lift(ctx, H, { id: "sc-stays", crop: { x: 645, y: 1715, w: 630, h: 410 }, t0: w(5, "shortlets"), t1: w(5, "one") - 0.1, to: { ...R.l2, s: TS, r: -6 }, seed: 3 });
-  lift(ctx, H, { id: "sc-stays", crop: { x: 45, y: 2165, w: 590, h: 420 }, t0: w(5, "restaurants"), t1: w(5, "one") - 0.05, to: { ...R.r2, s: TS, r: 4 }, seed: 4 });
+  lift(ctx, H, { id: "n-home-featured", crop: { x: 40, y: 1290, w: 1250, h: 1130 }, t0: w(4, "home") - 0.05, t1: w(5, "Homes") - 0.15, to: { x: M ? 290 : 1170, y: M ? 820 : 520, s: M ? 0.38 : 0.3, r: -5 }, seed: 9, radius: 60 });
+  H.show("n-stays", w(5, "hotels") - 0.3, s(6) + 0.3, { enter: "slide" });
+  lift(ctx, H, { id: "n-home-space", crop: { x: 0, y: 1300, w: 1320, h: 390 }, t0: w(5, "Homes") + 0.1, t1: w(5, "one") - 0.2, to: { ...ROW(0), s: RS, r: -3 }, seed: 1 });
+  lift(ctx, H, { id: "n-stays", crop: { x: 45, y: 1715, w: 590, h: 410 }, t0: w(5, "hotels"), t1: w(5, "one") - 0.15, to: { ...R.r1, s: TS, r: 5 }, seed: 2 });
+  lift(ctx, H, { id: "n-stays", crop: { x: 645, y: 1715, w: 630, h: 410 }, t0: w(5, "shortlets"), t1: w(5, "one") - 0.1, to: { ...R.l2, s: TS, r: -6 }, seed: 3 });
+  lift(ctx, H, { id: "n-stays", crop: { x: 45, y: 2165, w: 590, h: 420 }, t0: w(5, "restaurants"), t1: w(5, "one") - 0.05, to: { ...R.r2, s: TS, r: 4 }, seed: 4 });
   const one = layer("one", s(4), s(6));
   kicker(ctx, one, { text: "One home for real estate in Nigeria", icon: "house", x: R.cx, y: CHIPS_Y, t0: w(4, "home") - 0.1, t1: w(5, "Homes") - 0.1, size: M ? 30 : 28, anchor: "center" });
   chipRow(ctx, one, { items: [["One app", "smartphone"], ["One account", "user-round-check"]], x: R.cx, y: CHIPS_Y, t0: w(5, "one"), gap: 0.5, t1: s(6) - 0.2, size: M ? 34 : 30, anchor: "center" });
-  kicker(ctx, one, { text: "Featured properties", icon: "star", x: R.cx, y: M ? 296 : 200, t0: w(4, "home") + 0.1, t1: w(5, "Homes") - 0.2, size: M ? 32 : 28, anchor: "center" });
+  kicker(ctx, one, { text: "Featured listings", icon: "star", x: R.cx, y: M ? 296 : 200, t0: w(4, "home") + 0.1, t1: w(5, "Homes") - 0.2, size: M ? 32 : 28, anchor: "center" });
   kicker(ctx, one, { text: "The good ones don't wait", icon: "flame", x: R.cx, y: M ? 296 : 200, t0: w(5, "one") - 0.1, t1: s(6) - 0.2, size: M ? 34 : 30, anchor: "center" });
 
   /* ===================== 5. Owners: list it yourself ===================== */
@@ -242,15 +243,15 @@ export async function build(ctx) {
 
   /* ===================== 12. Wallet and escrow ===================== */
   ground(ctx, s(19) - 0.05, s(21) + 0.2, { tone: "electric", y: 18, seed: 42 });
-  const WALLET_PATCH = [{ x: 262, y: 1790, w: 860, h: 115, bg: "rgb(5 11 34)", size: 38, lh: 1.42, color: "rgb(214 221 249)", lines: ["Your money is held by our licensed", "payments partner, not by Vallo."] }];
-  H.show("wallet-user", s(19) - 0.2, s(20) + 0.2, { enter: "slide", patch: WALLET_PATCH });
+  const WALLET_PATCH = [{ x: 274, y: 2128, w: 870, h: 66, bg: "rgb(5 11 32)", size: 46, weight: 600, lh: 1.3, color: "rgb(222 227 255)", lines: ["Open your account with our partner"] }];
+  H.show("n-wallet", s(19) - 0.2, s(20) + 0.2, { enter: "slide", patch: WALLET_PATCH });
   H.show("f-agreements", s(20) + 0.2, s(21) + 0.3, { enter: "fade", dur: 0.3 });
   const wal = layer("wallet", s(19) - 0.1, s(21));
-  H.tap(w(19, "add") - 0.05, 960, 890);
-  lift(ctx, H, { id: "wallet-user", crop: { x: 680, y: 825, w: 570, h: 130 }, t0: w(19, "add") + 0.05, t1: s(20) - 0.2, to: { ...R.l1, x: R.l1.x + (M ? 20 : 0), s: M ? 0.85 : 0.7, r: -4 }, seed: 17, radius: 60 });
-  lift(ctx, H, { id: "wallet-user", crop: { x: 45, y: 740, w: 1230, h: 700 }, t0: w(19, "pay"), t1: s(20) - 0.15, to: { x: R.cx, y: M ? 860 : 520, s: M ? 0.5 : 0.42, r: 2 }, seed: 18 });
-  lift(ctx, H, { id: "wallet-user", crop: { x: 645, y: 2730, w: 630, h: 180 }, t0: w(19, "send"), t1: s(20) - 0.1, to: { ...R.l2, y: R.l2.y + (M ? 140 : 80), s: M ? 0.75 : 0.62, r: -3 }, seed: 19, radius: 80 });
-  lift(ctx, H, { id: "wallet-user", crop: { x: 45, y: 2730, w: 580, h: 180 }, t0: w(19, "withdraw"), t1: s(20) - 0.05, to: { ...R.r2, y: R.r2.y + (M ? 140 : 80), s: M ? 0.75 : 0.62, r: 3 }, seed: 20, radius: 80 });
+  H.tap(w(19, "add") - 0.3, 1188, 2508);
+  lift(ctx, H, { id: "n-wallet", crop: { x: 45, y: 2410, w: 1230, h: 300 }, t0: w(19, "add") - 0.05, t1: s(20) - 0.2, to: { x: R.cx, y: M ? 540 : 330, s: RS, r: -2 }, seed: 17 });
+  chipRow(ctx, wal, { items: [["Add money", "plus"], ["Pay", "credit-card"], ["Send", "send"], ["Withdraw", "arrow-down-to-line"]], x: R.cx, y: M ? R.top + 260 : 520, t0: w(19, "add"), gap: (w(19, "withdraw") - w(19, "add")) / 3, t1: s(20) - 0.2, size: M ? 32 : 28, anchor: "center", wrapW: M ? 980 : 860 });
+
+
   featureCard(ctx, wal, { icon: "shield-check", title: "Protected payment", line: "Your money waits in escrow until the deal is done.", x: R.cx, y: M ? 1250 : 380, w: M ? 900 : 760, t0: w(20, "Protected") - 0.1, t1: s(21) - 0.2, size: M ? 38 : 34, anchor: "center" });
   ctx.sfx("lock_click", w(20, "escrow"), { offset: -2 });
 
