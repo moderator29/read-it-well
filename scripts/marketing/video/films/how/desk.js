@@ -199,7 +199,7 @@ export async function build(ctx) {
     const b = ramp(ctx, t, s(15) - 0.55, s(15) - 0.15, "power2.in");
     place(card, { x: ctx.W / 2, y: 540 + (1 - a) * 50, s: 0.94 + 0.06 * a, r: -1.5 * a, o: Math.min(a, 1 - b) });
   });
-  ctx.sfx("alert_soft", w(14, "flags"), { offset: -2 });
+  ctx.sfx("stamp", w(14, "flags"), { offset: -3 });
   kicker(ctx, flag, { text: "Account number in the chat", icon: "shield-alert", x: ctx.W / 2, y: 190, t0: w(14, "account") - 0.2, t1: s(15) - 0.2, size: 30, anchor: "center" });
 
   /* ===================== 10. Protected payment (66.9 - 75.1) ===================== */
