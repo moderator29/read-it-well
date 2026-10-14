@@ -322,7 +322,7 @@ export async function build(ctx) {
   kicker(ctx, rw, { text: "Ready after 7 days", icon: "clock", x: R.cx, y: M ? R.top : 200, t0: w(35, "seven") - 0.1, t1: s(36) - 0.1, size: M ? 34 : 30, anchor: "center" });
   numberCard(ctx, rw, { value: 1000, label: "withdraw it straight to your bank", x: R.cx, y: M ? R.top - 30 : 170, t0: w(36, "thousand") - 0.1, t1: w(36, "thousand") + 0.6, tOut: s(37) - 0.2, size: M ? 96 : 88 });
   lift(ctx, H, { id: "f-rewards-withdraw", crop: { x: 40, y: 1240, w: 1240, h: 520 }, t0: w(36, "bank") - 0.2, t1: s(37) - 0.2, to: { x: R.cx, y: M ? 1150 : 650, s: RS * 0.85, r: 2 }, seed: 26 });
-  chipRow(ctx, rw, { items: [["Invite", "send"], ["They join", "user-plus"], ["You earn", "coins"]], x: R.cx, y: M ? R.top + 20 : 220, t0: s(37), gap: 0.35, t1: s(38) - 0.3, size: M ? 34 : 30, anchor: "center" });
+  chipRow(ctx, rw, { items: [["Invite", "send"], ["They join", "user-plus"], ["You earn", "coins"]], x: R.cx, y: CHIPS_Y, t0: s(37), gap: 0.35, t1: s(38) - 0.3, size: M ? 34 : 30, anchor: "center" });
   ringBurst(ctx, rw, { cx: R.cx, cy: M ? 900 : 540, r: M ? 360 : 300, t: w(37, "earn", 1) + 0.1, seed: 48 });
 
   /* ===================== 17. The beginning ===================== */
@@ -347,7 +347,8 @@ export async function build(ctx) {
     const body = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${p.crop.w * (M ? 0.42 : 0.33)}px`, height: `${p.crop.h * (M ? 0.42 : 0.33)}px`, borderRadius: "34px", overflow: "hidden", boxShadow: "0 40px 80px -26px rgb(0 0 20 / 0.85), 0 0 0 1.5px rgb(143 211 255 / 0.25)" } }, vis);
     const S = M ? 0.42 : 0.33;
     ctx.img(ctx.src.display(p.id), { style: { position: "absolute", left: `${-p.crop.x * S}px`, top: `${-p.crop.y * S}px`, width: `${1320 * S}px`, height: `${2868 * S}px`, maxWidth: "none" } }, body);
-    during(ctx, s(39), s(42), (t) => {
+    body.style.visibility = "hidden";
+    during(ctx, s(38) - 0.1, s(42), (t) => {
       const a = ramp(ctx, t, t0, t0 + 0.6, "back.out(1.5)");
       const b = ramp(ctx, t, s(41) - 0.5 + i * 0.05, s(41) - 0.1 + i * 0.05, "power2.in");
       place(body, { x: p.x, y: p.y + (1 - a) * 80 + Math.sin(t * 1.8 + i) * 6, s: 0.8 + 0.2 * a, r: p.r * a, o: Math.min(ramp(ctx, t, t0, t0 + 0.15), 1 - b) });
