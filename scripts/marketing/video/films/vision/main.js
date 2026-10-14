@@ -184,7 +184,7 @@ export async function build(ctx) {
   H.show("f-host-bookings", w(10, "bookings") - 0.2, w(10, "earnings") - 0.2, { enter: "slide" });
   H.show("f-host-settings", w(10, "earnings") - 0.2, s(11) - 0.1, { enter: "slide" });
   H.tap(w(10, "wizard") - 0.35, 1033, 430);
-  lift(ctx, H, { id: "f-host-rooms", crop: { x: 40, y: 1610, w: 1240, h: 400 }, t0: w(10, "rooms") - 0.05, t1: w(10, "calendar") - 0.2, to: { x: R.cx, y: M ? 700 : 430, s: RS, r: -2 }, seed: 8 });
+  lift(ctx, H, { id: "f-host-rooms", crop: { x: 40, y: 1610, w: 1240, h: 400 }, label: "Rooms on sale", exit: "left", t0: w(10, "rooms") - 0.05, t1: w(10, "calendar") - 0.25, to: { x: R.cx, y: M ? 700 : 430, s: RS, r: -2 }, seed: 8 });
   H.tap(w(10, "calendar") - 0.4, 1270, 430);
   /* labelled, and off the row it came from: on desktop it sat straight over the
      same rate row in the window beneath it */
@@ -264,10 +264,10 @@ export async function build(ctx) {
     title: "What your passport carries",
     items: [
       ["Your verified details", "Your name, your role and when you joined, in one card."],
-      ["You choose who sees it", "You decide who you show it to, and when."],
+      ["Shared when you choose", "You decide who you show it to, and when."],
       ["Faster every time", "Applying for your next place does not start from nothing."],
     ],
-    x: M ? 630 : 1330, y: M ? 1040 : 470, w: M ? 820 : 720, t0: w(16, "verified") - 0.1, t1: s(17) - 0.2, rot: -2, size: M ? 34 : 30, seed: 15, stagger: 0.22,
+    x: M ? 590 : 1330, y: M ? 1040 : 470, w: M ? 820 : 720, t0: w(16, "verified") - 0.1, t1: s(17) - 0.2, rot: -2, size: M ? 34 : 30, seed: 15, stagger: 0.22,
   });
   chipRow(ctx, pass, { items: [["Applying is faster", "zap"], ["You choose who sees it", "eye"]], x: R.cx, y: CHIPS_Y, t0: w(16, "faster") - 0.2, gap: w(16, "choose") - w(16, "faster"), t1: s(17) - 0.2, size: M ? 30 : 28, anchor: "center", wrapW: M ? 980 : 860 });
 
@@ -389,10 +389,10 @@ export async function build(ctx) {
   listCard(ctx, rw, {
     title: "Withdrawing your rewards",
     items: [
-      ["₦1,000 to withdraw", "You can withdraw once your rewards balance reaches ₦1,000."],
-      ["Straight to your bank", "From your rewards balance to your own bank account."],
+      ["Withdraw at ₦1,000", "Your rewards balance has to reach ₦1,000 first."],
+      ["Straight to your bank", "Your rewards go out to your own bank account."],
     ],
-    x: R.cx, y: M ? 1120 : 640, w: M ? 860 : 720, t0: w(36, "withdraw") - 0.3, t1: s(37) - 0.15, rot: 2, size: M ? 34 : 30, seed: 26, stagger: 0.16,
+    x: R.cx, y: M ? 1075 : 640, w: M ? 860 : 720, t0: w(36, "withdraw") - 0.3, t1: s(37) - 0.15, rot: 2, size: M ? 34 : 30, seed: 26, stagger: 0.16,
   });
   chipRow(ctx, rw, { items: [["Invite", "send"], ["They join", "user-plus"], ["You earn", "coins"]], x: R.cx, y: CHIPS_Y, t0: s(37), gap: 0.35, t1: s(38) - 0.3, size: M ? 34 : 30, anchor: "center" });
   ringBurst(ctx, rw, { cx: R.cx, cy: M ? 900 : 540, r: M ? 360 : 300, t: w(37, "earn", 1) + 0.1, seed: 48 });
