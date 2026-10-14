@@ -8,7 +8,7 @@
  * referral rewards; then the vision, Nigeria city by city, and the stores.
  * Claims and figures: FACTS-OCT.md and the founder's rulings of 14 October.
  */
-import { poster, installFocus, sheet, noticeCard, flowRail, momentCard, listCard, proofCard, STAY_CARDS, listingWall, flagCard, anchors, ground, flash, hero, lift, headline, kicker, liveChip, numberCard, notify, chipRow, featureCard, ending, ringBurst, windowRig, nigeriaMap, ramp, during, place } from "../kit.js";
+import { nigeriaMap3d, poster, installFocus, sheet, noticeCard, flowRail, momentCard, listCard, proofCard, STAY_CARDS, listingWall, flagCard, anchors, ground, flash, hero, lift, headline, kicker, liveChip, numberCard, notify, chipRow, featureCard, ending, ringBurst, windowRig, nigeriaMap, ramp, during, place } from "../kit.js";
 
 export async function build(ctx) {
   const M = ctx.isMobile;
@@ -75,7 +75,7 @@ export async function build(ctx) {
   const open = layer("open", 0, s(2) + 0.2);
   /* the frame a chat shows before anyone presses play: composed at t = 0 */
   poster(ctx, open, { t1: s(1) - 0.15 });
-  await nigeriaMap(ctx, open, { x: M ? 150 : 1080, y: M ? 820 : 230, w: M ? 780 : 680, t0: s(1) - 0.05, t1: s(2) - 0.3, tCities: s(1) + 0.6, gap: 0.42, labels: true, cities: 5 });
+  await nigeriaMap3d(ctx, open, { x: M ? 130 : 1050, y: M ? 880 : 250, w: M ? 820 : 740, t0: s(1) - 0.05, t1: s(2) - 0.3, tTrails: s(1) + 0.6, gap: 0.28, labels: true, cities: 6 });
   headline(ctx, open, { lines: [[["Every day, people", false]], [["across ", false], ["Nigeria", true]]], x: M ? 60 : 140, y: M ? 420 : 240, size: M ? 88 : 96, t0: s(1), t1: s(2) - 0.35, stagger: 0.08 });
   chipRow(ctx, open, { items: [["A place to live", "house"], ["to stay", "bed-double"], ["to meet", "utensils-crossed"]], x: M ? 540 : 140, y: M ? 1440 : 560, t0: w(1, "live") - 0.1, gap: w(1, "stay") - w(1, "live"), t1: s(2) - 0.35, size: M ? 34 : 34, anchor: M ? "center" : "left", wrapW: M ? 960 : 820 });
   ctx.hideCaptions(s(1) - 0.2, s(1) + 2.4);
@@ -406,7 +406,7 @@ export async function build(ctx) {
   chipRow(ctx, vis, { items: [["Real people", "users"], ["Real prices", "tag"], ["Real trust", "shield-check"]], x: R.cx, y: CHIPS_Y - (M ? 120 : 140), t0: w(40, "people") - 0.1, gap: (w(40, "trust") - w(40, "people")) / 2, t1: s(41) - 0.2, size: M ? 34 : 30, anchor: "center" });
   listingWall(ctx, layer("wall2", s(40) - 0.6, s(41) + 0.2, 795), { t0: s(40) - 0.5, t1: s(41) - 0.4, rows: M ? 6 : 4, opacity: 0.55, seed: 13, tilt: -11, speed: 70, y: M ? 120 : 20, stays: STAY_CARDS(ctx), stayRows: [1, 4] });
   const map2 = layer("map2", s(41) - 0.3, s(42), 790);
-  await nigeriaMap(ctx, map2, { x: M ? 110 : 640, y: M ? 560 : 150, w: M ? 860 : 640, t0: s(41) - 0.3, t1: s(42) - 0.3, tCities: w(41, "city") - 0.2, gap: 0.3, labels: true });
+  await nigeriaMap3d(ctx, map2, { x: M ? 90 : 600, y: M ? 600 : 170, w: M ? 900 : 720, t0: s(41) - 0.3, t1: s(42) - 0.3, tTrails: w(41, "city") - 0.4, gap: 0.24, labels: true });
   headline(ctx, map2, { lines: [[["Vallo is ", false], ["growing.", true]]], x: ctx.W / 2, y: M ? 1300 : 780, size: M ? 76 : 72, t0: w(41, "growing") - 0.2, t1: s(42) - 0.3, align: "center" });
   ctx.hideCaptions(s(38) - 0.1, s(39) + 0.4);
 

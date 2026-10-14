@@ -732,14 +732,16 @@ export function leak(ctx, t, { warm = true, dur = 0.9 } = {}) {
 /* ------------------------------------------------------------------ map */
 
 const CITIES = [
+  /* Lagos first: the trails leave from it. Then the ones far enough apart
+     that no two names touch, and Ibadan last, since it sits on Lagos. */
   { name: "Lagos", lon: 3.38, lat: 6.52 },
-  { name: "Ibadan", lon: 3.9, lat: 7.38 },
   { name: "Abuja", lon: 7.49, lat: 9.06 },
-  { name: "Port Harcourt", lon: 7.03, lat: 4.82 },
   { name: "Kano", lon: 8.52, lat: 12.0 },
+  { name: "Port Harcourt", lon: 7.03, lat: 4.82 },
   { name: "Enugu", lon: 7.5, lat: 6.45 },
   { name: "Kaduna", lon: 7.44, lat: 10.52 },
   { name: "Benin City", lon: 5.62, lat: 6.34, below: true },
+  { name: "Ibadan", lon: 3.9, lat: 7.38 },
 ];
 
 /**
@@ -1253,6 +1255,159 @@ export function installFocus(ctx, { strength = 0.44 } = {}) {
     scrim.style.visibility = a > 0.004 ? "inherit" : "hidden";
   });
   return root;
+}
+
+/**
+ * NIGERIA, RAISED, WITH THE TRAILS LEAVING IT.
+ *
+ * The flat outline with dots said "a map". The founder's reference says
+ * something better: the country is a lit slab standing on its own glow, a
+ * home sits on Lagos, and light arcs off the surface to every other city.
+ * That is the picture of a platform reaching across a country, and it is
+ * the shot both films open on and Video Two closes on.
+ *
+ * The slab is the same real outline (world-atlas 50m), squashed and turned a
+ * few degrees so it reads as lying down, with its own side drawn under it for
+ * thickness. The trails are drawn ABOVE that plane, so they lift off it.
+ */
+export async function nigeriaMap3d(ctx, parent, { x, y, w, t0, t1, tTrails = null, gap = 0.3, cities = CITIES.length, home = "Lagos", tilt = 0.66, turn = -5, labels = true }) {
+  const { feature } = await import("/node_modules/topojson-client/src/index.js");
+  const world = await fetch("/node_modules/world-atlas/countries-50m.json").then((r) => r.json());
+  const geo = feature(world, world.objects.countries.geometries.find((g) => String(g.id) === "566"));
+  const polys = geo.geometry.type === "Polygon" ? [geo.geometry.coordinates] : geo.geometry.coordinates;
+  const ring = polys.map((p) => p[0]).sort((a, b) => b.length - a.length)[0];
+  const lons = ring.map((p) => p[0]), lats = ring.map((p) => p[1]);
+  const lon0 = Math.min(...lons), lon1 = Math.max(...lons), lat0 = Math.min(...lats), lat1 = Math.max(...lats);
+  const k = Math.cos((((lat0 + lat1) / 2) * Math.PI) / 180);
+  const sx = w / ((lon1 - lon0) * k);
+  const h = (lat1 - lat0) * sx;
+  const proj = (lon, lat) => ({ x: (lon - lon0) * k * sx, y: (lat1 - lat) * sx });
+  const d = ring.map(([lon, lat], i) => { const p = proj(lon, lat); return `${i ? "L" : "M"}${p.x.toFixed(1)} ${p.y.toFixed(1)}`; }).join("") + "Z";
+
+  /* where a point on the lying-down slab lands on screen */
+  const a = (turn * Math.PI) / 180;
+  const cx = w / 2, cy = h / 2;
+  const lay = (px, py) => {
+    const X = px, Y = cy + (py - cy) * tilt;
+    const dx = X - cx, dy = Y - cy;
+    return { x: cx + dx * Math.cos(a) - dy * Math.sin(a), y: cy + dx * Math.sin(a) + dy * Math.cos(a) };
+  };
+
+  const THICK = Math.max(20, w * 0.045);
+  const box = ctx.el("div", { class: "abs", style: { left: `${x}px`, top: `${y}px`, width: `${w}px`, height: `${h}px` } }, parent);
+
+  /* the glow it stands on */
+  const plate = ctx.el("div", {
+    class: "abs",
+    style: {
+      left: `${-w * 0.3}px`, top: `${h * 0.06}px`, width: `${w * 1.6}px`, height: `${h * 1.15}px`, borderRadius: "50%",
+      background: "radial-gradient(50% 50% at 50% 50%, rgb(32 140 255 / 0.95) 0%, rgb(0 105 254 / 0.62) 34%, rgb(0 70 190 / 0.30) 56%, rgb(0 40 120 / 0.12) 72%, transparent 84%)",
+    },
+  }, box);
+
+  /* the slab: its side, then its lit face */
+  const slab = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${w}px`, height: `${h}px`, transform: `rotate(${turn}deg) scaleY(${tilt})`, transformOrigin: "50% 50%" } }, box);
+  slab.innerHTML = `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" fill="none" style="overflow:visible">
+    <defs>
+      <linearGradient id="ngf" x1="0" y1="0" x2="0.6" y2="1">
+        <stop offset="0" stop-color="#1f6bff" stop-opacity="0.95"/>
+        <stop offset="0.55" stop-color="#0a49d8" stop-opacity="0.92"/>
+        <stop offset="1" stop-color="#062a86" stop-opacity="0.9"/>
+      </linearGradient>
+    </defs>
+    <g class="side">${Array.from({ length: 9 }, (_, i) => `<path d="${d}" fill="#05226e" opacity="${(0.95 - i * 0.05).toFixed(2)}" transform="translate(0 ${((i + 1) * THICK) / 9})"/>`).join("")}</g>
+    <path class="face" d="${d}" fill="url(#ngf)"/>
+    <path class="rim" d="${d}" fill="none" stroke="#8FD3FF" stroke-width="${Math.max(2, w * 0.005)}" stroke-linejoin="round" opacity="0.85"/>
+  </svg>`;
+
+  /* the trails, drawn above the plane so they lift off it */
+  const over = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${w}px`, height: `${h}px`, overflow: "visible" } }, box);
+  const ns = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(ns, "svg");
+  svg.setAttribute("width", String(w)); svg.setAttribute("height", String(h));
+  svg.setAttribute("viewBox", `0 0 ${w} ${h}`); svg.style.overflow = "visible";
+  over.appendChild(svg);
+
+  const list = CITIES.slice(0, cities);
+  const base = list.find((c) => c.name === home) ?? list[0];
+  const bp = lay(proj(base.lon, base.lat).x, proj(base.lon, base.lat).y);
+  const tT = tTrails ?? t0 + 1.1;
+  const trails = [];
+  list.filter((c) => c !== base).forEach((c, i) => {
+    const p = lay(proj(c.lon, c.lat).x, proj(c.lon, c.lat).y);
+    const mx = (bp.x + p.x) / 2, my = (bp.y + p.y) / 2;
+    const dist = Math.hypot(p.x - bp.x, p.y - bp.y);
+    const ctrl = { x: mx, y: my - dist * 0.55 - h * 0.08 };
+    const path = document.createElementNS(ns, "path");
+    path.setAttribute("d", `M${bp.x.toFixed(1)} ${bp.y.toFixed(1)} Q${ctrl.x.toFixed(1)} ${ctrl.y.toFixed(1)} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`);
+    path.setAttribute("fill", "none");
+    path.setAttribute("stroke", "#cfe9ff");
+    path.setAttribute("stroke-width", String(Math.max(2.5, w * 0.0055)));
+    path.setAttribute("stroke-linecap", "round");
+    path.style.filter = `drop-shadow(0 0 ${Math.max(6, w * 0.016)}px rgb(143 211 255 / 0.95))`;
+    svg.appendChild(path);
+    const len = path.getTotalLength();
+    path.style.strokeDasharray = String(len);
+    const head = document.createElementNS(ns, "circle");
+    head.setAttribute("r", String(Math.max(4, w * 0.009)));
+    head.setAttribute("fill", "#ffffff");
+    head.style.filter = `drop-shadow(0 0 ${Math.max(8, w * 0.02)}px rgb(207 233 255 / 1))`;
+    svg.appendChild(head);
+    const dot = ctx.el("div", {
+      class: "abs",
+      style: { left: `${p.x - w * 0.012}px`, top: `${p.y - w * 0.012}px`, width: `${w * 0.024}px`, height: `${w * 0.024}px`, borderRadius: "50%", background: "radial-gradient(circle at 35% 30%, #fff, #8FD3FF 40%, #0069fe 80%)", boxShadow: `0 0 ${w * 0.03}px ${w * 0.008}px rgb(0 105 254 / 0.8)` },
+    }, over);
+    const lab = labels ? ctx.el("div", {
+      text: c.name,
+      style: { position: "absolute", left: `${p.x + w * 0.022}px`, top: `${p.y - w * 0.026}px`, font: `600 ${Math.round(w * 0.042)}px/1 Poppins, Inter, sans-serif`, color: "#fff", whiteSpace: "nowrap", textShadow: "0 2px 12px rgb(0 0 25 / 0.95)" },
+    }, over) : null;
+    trails.push({ path, head, dot, lab, len, ti: tT + i * gap, p, bp, ctrl });
+  });
+
+  /* home: the house on Lagos, and its name on a white pill */
+  const hp = bp;
+  const house = ctx.img(ctx.src.object("home-small"), { class: "abs", style: { left: `${hp.x - w * 0.055}px`, top: `${hp.y - w * 0.105}px`, width: `${w * 0.11}px`, height: `${w * 0.11}px`, objectFit: "contain", filter: "drop-shadow(0 10px 18px rgb(0 0 30 / 0.7))" } }, over);
+  const pill = labels ? ctx.el("div", {
+    text: base.name,
+    style: { position: "absolute", left: `${hp.x - w * 0.085}px`, top: `${hp.y + w * 0.022}px`, padding: `${w * 0.012}px ${w * 0.03}px`, borderRadius: "999px", background: "#ffffff", color: "#0b1230", font: `700 ${Math.round(w * 0.04)}px/1 Poppins, Inter, sans-serif`, boxShadow: "0 12px 26px -10px rgb(0 0 40 / 0.6)", whiteSpace: "nowrap" },
+  }, over) : null;
+
+  const qpt = (b, c, p, u) => ({
+    x: (1 - u) * (1 - u) * b.x + 2 * (1 - u) * u * c.x + u * u * p.x,
+    y: (1 - u) * (1 - u) * b.y + 2 * (1 - u) * u * c.y + u * u * p.y,
+  });
+
+  ctx.onFrame((t) => {
+    const up = ramp(ctx, t, t0, t0 + 1.0, "power3.out");
+    const out = t1 == null ? 0 : ramp(ctx, t, t1, t1 + 0.45, "power2.in");
+    const o = up * (1 - out);
+    box.style.visibility = o > 0.002 ? "inherit" : "hidden";
+    box.style.opacity = opa(o);
+    const lift = (1 - up) * h * 0.12;
+    box.style.transform = `translateY(${lift.toFixed(1)}px) scale(${(0.94 + 0.06 * up).toFixed(4)})`;
+    const pulse = 0.82 + 0.12 * Math.sin(t * 0.7);
+    plate.style.opacity = opa(pulse * up);
+    plate.style.transform = `scale(${(0.9 + 0.1 * up + 0.015 * Math.sin(t * 0.7)).toFixed(4)})`;
+    const hs = ramp(ctx, t, t0 + 0.5, t0 + 1.0, "back.out(1.8)");
+    house.style.transform = `scale(${hs.toFixed(3)}) translateY(${((1 - hs) * -14).toFixed(1)}px)`;
+    house.style.opacity = opa(hs);
+    if (pill) { pill.style.opacity = opa(ramp(ctx, t, t0 + 0.8, t0 + 1.15)); pill.style.transform = `translateY(${((1 - ramp(ctx, t, t0 + 0.8, t0 + 1.15)) * 10).toFixed(1)}px)`; }
+    for (const tr of trails) {
+      const u = ramp(ctx, t, tr.ti, tr.ti + 0.85, "power2.inOut");
+      tr.path.style.strokeDashoffset = String((tr.len * (1 - u)).toFixed(1));
+      tr.path.style.opacity = opa(u > 0 ? 0.95 : 0);
+      const q = qpt(tr.bp, tr.ctrl, tr.p, u);
+      tr.head.setAttribute("cx", q.x.toFixed(1));
+      tr.head.setAttribute("cy", q.y.toFixed(1));
+      tr.head.style.opacity = opa(u > 0.02 && u < 0.995 ? 1 : 0);
+      const land = ramp(ctx, t, tr.ti + 0.78, tr.ti + 1.1, "back.out(2)");
+      tr.dot.style.transform = `scale(${land.toFixed(3)})`;
+      tr.dot.style.opacity = opa(land);
+      if (tr.lab) { tr.lab.style.opacity = opa(ramp(ctx, t, tr.ti + 0.9, tr.ti + 1.2)); }
+    }
+  });
+  for (const tr of trails) ctx.sfx("whoosh_short", tr.ti, { offset: -10 });
+  return { box, h };
 }
 
 /* ---------------------------------------------------------------- ending */
