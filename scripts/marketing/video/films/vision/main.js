@@ -173,7 +173,7 @@ export async function build(ctx) {
       [w(10, "bookings") + 0.2, { x: 1960, y: 300, s: 0.6, opacity: 1 }, "power3.in"],
       [w(10, "bookings") + 0.3, { x: 1960, y: 300, s: 0.6, opacity: 0 }, "none"],
     ]);
-    W.show("d-f-host-calendar", w(10, "calendar") - 0.3, w(10, "bookings") + 0.3, { enter: "cut" });
+    W.show("d-f-host-home", w(10, "calendar") - 0.3, w(10, "bookings") + 0.3, { enter: "cut" });
   }
 
   /* ===================== 7. Table deposits ===================== */
@@ -190,7 +190,8 @@ export async function build(ctx) {
   H.show("f-agent-dashboard", s(12) - 0.1, w(13, "portfolio") - 0.2, { enter: "slide", full: "f-agent-dashboard-full", scroll: [[s(12) + 0.5, 0], [s(12) + 1.4, 1000]] });
   H.show("f-agent-dashboard", w(13, "portfolio") - 0.2, w(13, "analytics") - 0.2, { enter: "cut", full: "f-agent-dashboard-full", scroll: [[w(13, "portfolio") - 0.2, 1000], [w(13, "analytics") - 0.4, 1700]] });
   lift(ctx, H, { id: "f-agent-dashboard", src: src("f-agent-dashboard-full"), crop: { x: 30, y: 1980, w: 1260, h: 420 }, scrolled: 1000, t0: w(13, "portfolio"), t1: w(13, "analytics") - 0.2, to: { x: R.cx, y: M ? 560 : 340, s: RS * 0.9, r: -2 }, seed: 13 });
-  H.show("f-agent-analytics", w(13, "analytics") - 0.2, w(13, "Pro") - 0.3, { enter: "slide", full: "f-agent-analytics-full", scroll: [[w(13, "analytics") + 0.3, 0], [w(13, "analytics") + 1.2, 1050]] });
+  H.show("f-agent-analytics", w(13, "analytics") - 0.2, w(13, "Pro") - 0.3, { enter: "slide" });
+  lift(ctx, H, { id: "f-agent-analytics", crop: { x: 30, y: 1500, w: 1260, h: 680 }, t0: w(13, "working") - 0.3, t1: w(13, "Pro") - 0.3, to: { x: R.cx, y: M ? 620 : 380, s: M ? 0.6 : 0.5, r: 2 }, seed: 27 });
   chipRow(ctx, ag, { items: [["Portfolio", "folder-kanban"], ["Analytics", "chart-column"], ["Firm desk", "building-2"]], x: R.cx, y: CHIPS_Y, t0: w(13, "portfolio"), gap: (w(13, "firm") - w(13, "portfolio")) / 2, t1: w(13, "Pro") - 0.3, size: M ? 32 : 28, anchor: "center" });
   H.show("f-pro", w(13, "Pro") - 0.3, s(14) + 0.3, { enter: "slide" });
   lift(ctx, H, { id: "f-pro", crop: { x: 200, y: 1170, w: 920, h: 540 }, t0: w(13, "Pro") + 0.1, t1: s(14) - 0.2, to: { x: R.cx, y: M ? 600 : 360, s: M ? 0.7 : 0.55, r: -3 }, seed: 14 });
