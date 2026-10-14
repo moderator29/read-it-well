@@ -311,7 +311,6 @@ const SHOWCASE = [
 const HOTEL = "/stay/ea000000-0000-4000-8000-000000000001"; // Grand Vista Hotel
 const HOTEL_BIZ = "eb000000-0000-4000-8000-000000000001";
 const HARBOUR = "eb000000-0000-4000-8000-000000000006"; // Harbour Lights Kitchen
-const AGENT_LISTING = "ed000000-0000-4000-8000-000000000036";
 const FILM_BASE = [
   { id: "f-host-home", full: true, fullMax: 8000, steps: go("/host") },
   { id: "f-host-rooms", steps: go(`/host/rooms?business=${HOTEL_BIZ}`) },
@@ -322,17 +321,16 @@ const FILM_BASE = [
   { id: "f-host-start", steps: go("/host/start") },
   { id: "f-agent-dashboard", full: true, fullMax: 8000, steps: go("/agent/dashboard") },
   { id: "f-agent-listings", steps: go("/agent/listings") },
-  { id: "f-agent-listing-edit", steps: go(`/agent/list?id=${AGENT_LISTING}`) },
+  { id: "f-agent-listing-edit", steps: go("/agent/list") },
   { id: "f-agent-portfolio", steps: go("/agent/portfolio") },
   { id: "f-agent-analytics", full: true, fullMax: 8000, steps: go("/agent/analytics") },
   { id: "f-agent-inspections", steps: go("/agent/inspections") },
   { id: "f-agent-earnings", steps: go("/agent/earnings") },
   { id: "f-agent-promotion", steps: go("/agent/promotion") },
-  { id: "f-rewards", full: true, fullMax: 8000, steps: [{ goto: "/rewards" }, { clickIf: "button[aria-label*='lose' i]" }, { wait: 800 }] },
+  { id: "f-rewards", full: true, fullMax: 8000, steps: [{ goto: "/rewards" }, { clickIf: "[data-testid=rewards-explainer] button[aria-label=Skip]" }, { wait: 800 }] },
   /* The invite's first run, opened as "how it works" (a sheet; nothing is saved). */
-  { id: "f-rewards-how", steps: go("/rewards") },
+  { id: "f-rewards-how", steps: [{ goto: "/rewards" }, { clear: ["nf-explainer-rewards-v1"] }, { goto: "/rewards" }] },
   { id: "f-host-deposits", steps: [{ goto: "/host/reservations" }, { reveal: "text=Table deposits", offset: 90 }] },
-  { id: "f-host-cancellation", steps: [{ goto: "/host/settings" }, { reveal: "text=/cancellation/i", offset: 90 }] },
   { id: "f-rent-movein", steps: go(`/rent/move-in/${LISTING_RENT.split("/").pop()}`) },
   { id: "f-rewards-withdraw", steps: go("/rewards/withdraw") },
   { id: "f-rewards-history", steps: go("/rewards/history") },
@@ -349,7 +347,7 @@ const FILM_BASE = [
   { id: "d-f-agent-dashboard", kind: "desktop", steps: go("/agent/dashboard") },
   { id: "d-f-agent-analytics", kind: "desktop", steps: go("/agent/analytics") },
   { id: "d-f-agent-portfolio", kind: "desktop", steps: go("/agent/portfolio") },
-  { id: "d-f-rewards", kind: "desktop", steps: [{ goto: "/rewards" }, { clickIf: "button[aria-label*='lose' i]" }, { wait: 800 }] },
+  { id: "d-f-rewards", kind: "desktop", steps: [{ goto: "/rewards" }, { clickIf: "[data-testid=rewards-explainer] button[aria-label=Skip]" }, { wait: 800 }] },
   { id: "d-f-pro", kind: "desktop", steps: go("/pro") },
   { id: "d-f-around", kind: "desktop", steps: go("/around") },
 ].map((c) => ({ seen: true, ...c }));

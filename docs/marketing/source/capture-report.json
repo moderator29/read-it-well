@@ -160,6 +160,69 @@
     "theme": "light",
     "signedIn": true
   },
+  "d-f-agent-analytics": {
+    "url": "/agent/analytics",
+    "at": "2026-10-14T09:14:26.769Z",
+    "kind": "desktop",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "d-f-agent-dashboard": {
+    "url": "/agent/dashboard",
+    "at": "2026-10-14T09:14:11.593Z",
+    "kind": "desktop",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "d-f-agent-portfolio": {
+    "url": "/agent/portfolio",
+    "at": "2026-10-14T09:14:35.437Z",
+    "kind": "desktop",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "d-f-around": {
+    "url": "/around",
+    "at": "2026-10-14T09:15:42.756Z",
+    "kind": "desktop",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "d-f-host-calendar": {
+    "url": "/host/calendar?business=eb000000-0000-4000-8000-000000000001&month=2026-10",
+    "at": "2026-10-14T09:13:38.902Z",
+    "kind": "desktop",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "d-f-host-home": {
+    "url": "/host",
+    "at": "2026-10-14T09:13:27.591Z",
+    "kind": "desktop",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "d-f-host-reservations": {
+    "url": "/host/reservations",
+    "at": "2026-10-14T09:13:50.096Z",
+    "kind": "desktop",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "d-f-pro": {
+    "url": "/pro",
+    "at": "2026-10-14T09:15:25.147Z",
+    "kind": "desktop",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "d-f-rewards": {
+    "url": "/rewards",
+    "at": "2026-10-14T09:41:20.420Z",
+    "kind": "desktop",
+    "theme": "dark",
+    "signedIn": true
+  },
   "d-filters": {
     "url": "/search?filters=open",
     "at": "2026-09-30T15:24:05.872Z",
@@ -669,6 +732,227 @@
     "at": "2026-09-30T15:34:39.131Z",
     "kind": "mobile",
     "theme": "light",
+    "signedIn": true
+  },
+  "f-agent-analytics": {
+    "url": "/agent/analytics",
+    "at": "2026-10-14T09:07:25.834Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "f-agent-dashboard": {
+    "url": "/agent/dashboard",
+    "at": "2026-10-14T09:44:05.863Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "f-agent-dashboard-lt": {
+    "url": "/agent/dashboard",
+    "at": "2026-10-14T09:16:02.017Z",
+    "kind": "mobile",
+    "theme": "light",
+    "signedIn": true
+  },
+  "f-agent-earnings": {
+    "url": "/agent/earnings",
+    "at": "2026-10-14T09:07:51.965Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "f-agent-inspections": {
+    "url": "/agent/inspections",
+    "at": "2026-10-14T09:07:41.304Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "f-agent-listing-edit": {
+    "url": "/agent/list",
+    "at": "2026-10-14T09:45:24.894Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "f-agent-listings": {
+    "failed": "broken image: https://www.vallospaces.com/_next/image?url=https%3A%2F%2Fuccixoonmbhrnyczyigt.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Flisting-photos%2F%2Fbrand%2Fphotos%2Fvilla-pool-skyline-01.jpg&w=256&q=75",
+    "at": "2026-10-14T09:32:40.001Z"
+  },
+  "f-agent-portfolio": {
+    "url": "/agent/portfolio",
+    "at": "2026-10-14T09:06:43.068Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "f-agent-promotion": {
+    "url": "/agent/promotion",
+    "at": "2026-10-14T09:08:15.627Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "f-agreements": {
+    "url": "/agreements",
+    "at": "2026-10-14T09:11:00.419Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "f-around": {
+    "url": "/around",
+    "at": "2026-10-14T09:11:38.744Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "f-bookings": {
+    "url": "/bookings",
+    "at": "2026-10-14T09:11:14.871Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "f-host-bookings": {
+    "url": "/host/bookings",
+    "at": "2026-10-14T09:04:42.417Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "f-host-calendar": {
+    "url": "/host/calendar?business=eb000000-0000-4000-8000-000000000001&month=2026-10",
+    "at": "2026-10-14T09:43:32.870Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "f-host-deposits": {
+    "url": "/host/reservations",
+    "at": "2026-10-14T09:33:28.365Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "f-host-home": {
+    "url": "/host",
+    "at": "2026-10-14T09:43:03.155Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "f-host-home-lt": {
+    "url": "/host",
+    "at": "2026-10-14T09:15:52.018Z",
+    "kind": "mobile",
+    "theme": "light",
+    "signedIn": true
+  },
+  "f-host-reservations": {
+    "url": "/host/reservations",
+    "at": "2026-10-14T09:04:51.950Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "f-host-rooms": {
+    "url": "/host/rooms?business=eb000000-0000-4000-8000-000000000001",
+    "at": "2026-10-14T09:32:29.172Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "f-host-settings": {
+    "url": "/host/settings",
+    "at": "2026-10-14T09:05:25.661Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "f-host-start": {
+    "url": "/profile/setup?side=stays",
+    "at": "2026-10-14T09:05:38.176Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "f-passport": {
+    "url": "/settings/passport",
+    "at": "2026-10-14T09:10:13.500Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "f-passport-lt": {
+    "url": "/settings/passport",
+    "at": "2026-10-14T09:16:31.193Z",
+    "kind": "mobile",
+    "theme": "light",
+    "signedIn": true
+  },
+  "f-pro": {
+    "url": "/pro",
+    "at": "2026-10-14T09:10:49.643Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "f-receipts": {
+    "url": "/receipts",
+    "at": "2026-10-14T09:34:02.583Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "f-rent-movein": {
+    "url": "/rent/move-in/ed000000-0000-4000-8000-00000000003e",
+    "at": "2026-10-14T09:33:51.436Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "f-rewards": {
+    "url": "/rewards",
+    "at": "2026-10-14T09:44:30.882Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "f-rewards-history": {
+    "url": "/rewards/history",
+    "at": "2026-10-14T09:09:57.800Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "f-rewards-how": {
+    "url": "/rewards",
+    "at": "2026-10-14T09:40:57.564Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "f-rewards-lt": {
+    "url": "/rewards",
+    "at": "2026-10-14T09:41:29.185Z",
+    "kind": "mobile",
+    "theme": "light",
+    "signedIn": true
+  },
+  "f-rewards-withdraw": {
+    "url": "/rewards/withdraw",
+    "at": "2026-10-14T09:09:48.494Z",
+    "kind": "mobile",
+    "theme": "dark",
+    "signedIn": true
+  },
+  "f-verification": {
+    "url": "/verification",
+    "at": "2026-10-14T09:12:13.313Z",
+    "kind": "mobile",
+    "theme": "dark",
     "signedIn": true
   },
   "filters": {

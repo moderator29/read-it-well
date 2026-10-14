@@ -202,6 +202,16 @@ for (const cap of CAPTURES) {
       await loadWholePage(page);
       /* Shot at the device scale, then brought to 2x (880 px wide) for the
          video, which never shows a phone screen wider than that. */
+      /* A whole-page shot draws the floating dock and its action button once,
+         mid-page, where the first screen had them: a capped (tall) capture
+         leaves them out, the video's scroll adds its own. */
+      if (cap.fullMax) await page.evaluate(() => {
+        for (const el of document.querySelectorAll("body *")) {
+          const s = getComputedStyle(el);
+          const r = el.getBoundingClientRect();
+          if (s.position === "fixed" && r.top > innerHeight * 0.55 && r.height < 200) el.style.visibility = "hidden";
+        }
+      });
       const whole = await page.screenshot({ type: "png", fullPage: true });
       let tall = sharp(whole, { limitInputPixels: false }).resize({ width: kind === "desktop" ? 2880 : 880 });
       if (cap.fullMax) {
