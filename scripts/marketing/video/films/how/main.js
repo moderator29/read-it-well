@@ -114,10 +114,28 @@ export async function build(ctx) {
   H.show("n-home2", 7.9, s(3) + 1.0, { enter: "cut", full: "n-home2-full", scroll: [[7.9, 1500], [w(3, "Homes") + 0.05, 3000, "power3.out"]] });
   H.show("n-stays", s(3) + 1.0, s(4) + 0.6, { enter: "slide" });
   H.tap(s(3) + 0.85, 660, 1600);
-  lift(ctx, H, { id: "n-home2", src: ctx.src.capture("n-home2-full"), scrolled: 3000, crop: { x: 100, y: 3690, w: 1110, h: 1030 }, t0: w(3, "Homes") + 0.05, t1: w(3, "one") - 0.2, to: { x: M ? 300 : 1150, y: M ? 720 : 450, s: M ? 0.4 : 0.32, r: -5 }, seed: 1, radius: 60, label: "Premium listings" });
-  lift(ctx, H, { id: "n-stays", crop: { x: 45, y: 1600, w: 590, h: 420 }, t0: w(3, "hotels"), t1: w(3, "one") - 0.15, to: { x: M ? 805 : 1585, y: M ? 520 : 300, s: TS, r: 5 }, seed: 2 });
-  lift(ctx, H, { id: "n-stays", crop: { x: 645, y: 1600, w: 630, h: 420 }, t0: w(3, "shortlets"), t1: w(3, "one") - 0.1, to: { x: M ? 795 : 1585, y: M ? 900 : 690, s: TS, r: -6 }, seed: 3 });
-  lift(ctx, H, { id: "n-stays", crop: { x: 45, y: 2045, w: 590, h: 420 }, t0: w(3, "restaurants"), t1: w(3, "one") - 0.05, to: { x: M ? 300 : 1150, y: M ? 1240 : 820, s: TS, r: 4 }, seed: 4 });
+  if (M) {
+    lift(ctx, H, { id: "n-home2", src: ctx.src.capture("n-home2-full"), scrolled: 3000, crop: { x: 100, y: 3690, w: 1110, h: 1030 }, t0: w(3, "Homes") + 0.05, t1: w(3, "one") - 0.2, to: { x: 300, y: 720, s: 0.4, r: -5 }, seed: 1, radius: 60, label: "Premium listings" });
+    lift(ctx, H, { id: "n-stays", crop: { x: 45, y: 1600, w: 590, h: 420 }, t0: w(3, "hotels"), t1: w(3, "one") - 0.15, to: { x: 805, y: 520, s: TS, r: 5 }, seed: 2 });
+    lift(ctx, H, { id: "n-stays", crop: { x: 645, y: 1600, w: 630, h: 420 }, t0: w(3, "shortlets"), t1: w(3, "one") - 0.1, to: { x: 795, y: 900, s: TS, r: -6 }, seed: 3 });
+    lift(ctx, H, { id: "n-stays", crop: { x: 45, y: 2045, w: 590, h: 420 }, t0: w(3, "restaurants"), t1: w(3, "one") - 0.05, to: { x: 300, y: 1240, s: TS, r: 4 }, seed: 4 });
+  } else {
+    /* THE DESKTOP CUT SHOWS THE DESKTOP. Four parts lifted off a phone, in a
+       16:9 frame, was the phone film in a wider box: the founder said so.
+       Here the same ground is covered by the site itself, in a window
+       beside the phone, scrolling from Premium to Featured. */
+    const WH = windowRig(ctx);
+    WH.path([
+      [w(3, "Homes") - 0.5, { x: 2000, y: 170, s: 0.62, opacity: 1 }],
+      [w(3, "Homes") + 0.35, { x: 960, y: 170, s: 0.62, opacity: 1 }, "power3.out"],
+      [w(3, "one") - 0.45, { x: 960, y: 170, s: 0.62, opacity: 1 }],
+      [w(3, "one") + 0.15, { x: 2000, y: 170, s: 0.62, opacity: 1 }, "power3.in"],
+      [w(3, "one") + 0.25, { x: 2000, y: 170, s: 0.62, opacity: 0 }, "none"],
+      [ctx.duration, { x: 2000, y: 170, s: 0.62, opacity: 0 }, "none"],
+    ]);
+    WH.show("d-n-home-premium", w(3, "Homes") - 0.5, w(3, "one") + 0.25, { enter: "cut" });
+    WH.show("d-n-home-featured", w(3, "restaurants") - 0.2, w(3, "one") + 0.25, { enter: "rise", dur: 0.6 });
+  }
   const one = layer("one", s(3), s(4) + 0.4);
   kicker(ctx, one, { text: "Premium listings", icon: "gem", x: R.cx, y: M ? 1600 : 170, t0: w(3, "Homes") + 0.2, t1: w(3, "one") - 0.25, size: M ? 32 : 28, anchor: "center" });
   chipRow(ctx, one, { items: [["One app", "smartphone"], ["One account", "user-round-check"]], x: R.cx, y: M ? 1600 : 170, t0: w(3, "one"), t1: s(4) - 0.2, size: M ? 34 : 30, anchor: "center" });
@@ -239,10 +257,10 @@ export async function build(ctx) {
   calendarCard(ctx, dates, { place: "Eko Pearl Apartments · Victoria Island, Lagos", month: "October 2026", days: 31, start: 4, pick: 16, x: M ? 540 : 1330, y: M ? 700 : 470, w: M ? 860 : 700, t0: w(19, "dates") + 0.1, t1: w(19, "hotel") + 0.1, tPick: w(19, "dates") + 0.75, rot: -1, seed: 39, from: "above" });
   H.tap(w(19, "room") - 0.4, 660, 1560);
   const trip = layer("trip", s(18), s(20));
-  lift(ctx, H, { id: "n-staysd", src: ctx.src.capture("n-staysd-full"), scrolled: 3440, crop: { x: 45, y: 3742, w: 1217, h: 1366 }, t0: w(19, "full") + 0.05, t1: s(20) - 0.15, to: { x: R.cx, y: M ? 820 : 520, s: M ? 0.5 : 0.4, r: -2 }, seed: 40, radius: 50 });
-  numberCard(ctx, trip, { value: 396000, label: "Total for 3 nights, Eko Pearl Apartments", x: R.cx, y: M ? R.top - 20 : 160, t0: w(19, "full") + 0.1, t1: w(19, "full") + 0.9, tOut: s(20) - 0.15, size: M ? 84 : 76 });
+  lift(ctx, H, { id: "n-staysd", src: ctx.src.capture("n-staysd-full"), scrolled: 3440, crop: { x: 45, y: 3742, w: 1217, h: 1366 }, t0: w(19, "full") + 0.05, t1: s(20) - 0.15, to: { x: R.cx, y: M ? 950 : 600, s: M ? 0.46 : 0.36, r: -2 }, seed: 40, radius: 50 });
+  numberCard(ctx, trip, { value: 396000, label: "Total for 3 nights, Eko Pearl Apartments", x: R.cx, y: M ? 300 : 120, t0: w(19, "full") + 0.1, t1: w(19, "full") + 0.9, tOut: s(20) - 0.15, size: M ? 84 : 76 });
   priceCard(ctx, trip, { name: "Eko Pearl Apartments", figure: "₦132,000", unit: "per night", x: M ? 660 : 1500, y: M ? 1330 : 790, w: M ? 600 : 520, t0: w(19, "room") + 0.5, t1: w(19, "full") - 0.55, rot: 2, size: M ? 38 : 34, seed: 41, from: "right" });
-  noticeCard(ctx, trip, { object: "calendar-booked", title: "Room booked", line: "Eko Pearl Apartments · 3 nights", x: M ? 540 : 1330, y: M ? 560 : 300, w: M ? 820 : 700, t0: w(19, "hotel") + 0.5, t1: w(19, "full") - 0.1, rot: 0, size: M ? 38 : 34, seed: 42, from: "above" });
+  noticeCard(ctx, trip, { object: "calendar-booked", title: "Room booked", line: "Eko Pearl Apartments · 3 nights", x: M ? 540 : 1330, y: M ? 560 : 300, w: M ? 820 : 700, t0: w(19, "hotel") + 0.45, t1: w(19, "full") - 0.55, rot: 0, size: M ? 38 : 34, seed: 42, from: "above" });
   kicker(ctx, trip, { text: "The full cost before you pay", icon: "badge-check", x: R.cx, y: M ? 1440 : 860, t0: w(19, "full") - 0.2, t1: s(20) - 0.2, size: M ? 32 : 28, anchor: "center" });
   listingWall(ctx, layer("staywall", s(18) - 0.5, w(19, "dates") + 0.5, 3), { t0: s(18) - 0.4, t1: w(19, "dates"), rows: M ? 5 : 3, opacity: 0.55, seed: 21, y: M ? 260 : 60, stays: STAY_CARDS(ctx), stayRows: [0, 1, 2, 3, 4] });
   if (!M) {

@@ -595,7 +595,7 @@ export function odometer(ctx, parent, { value, t0, t1, prefix = "₦", fontSize 
       const pos = p * (seq.length - 1);
       strip.style.transform = `translateY(${-pos}em)`;
       const speed = p < 1 ? (1 - p) * 6 : 0;
-      col.style.filter = speed > 0.3 ? `blur(${Math.min(3, speed * 0.6).toFixed(2)}px)` : "none";
+      col.style.filter = speed > 0.5 ? `blur(${Math.min(1.5, speed * 0.3).toFixed(2)}px)` : "none";
     });
   });
   return box;
