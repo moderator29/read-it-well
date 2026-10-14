@@ -95,10 +95,13 @@ async function run(page, steps, signed) {
 /* Walk the page so lazily loaded images arrive before a full-page shot. */
 async function loadWholePage(page) {
   const height = await page.evaluate(() => document.documentElement.scrollHeight);
-  for (let y = 0; y < height; y += 600) {
+  /* slowly, so cards that load as they come into view have loaded (and their photos decoded) */
+  for (let y = 0; y < height; y += 420) {
     await page.evaluate((to) => window.scrollTo(0, to), y);
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(850);
   }
+  await page.waitForLoadState("networkidle").catch(() => {});
+  await page.evaluate(() => Promise.all([...document.images].map((img) => (img.complete ? null : img.decode().catch(() => null)))));
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.waitForTimeout(900);
 }
