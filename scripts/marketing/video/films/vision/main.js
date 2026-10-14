@@ -1,0 +1,363 @@
+/**
+ * VIDEO TWO, "The Vallo vision" (films/vision/timeline.json, 3:37), both formats.
+ *
+ * The same grammar as Video One: one phone carries the film through the live
+ * product, now the tools behind it: the owner's "list it yourself", the host
+ * desk (rooms, calendar, bookings, deposits), the agent workspace and Pro,
+ * the passport, agreements and rent, the wallet and escrow, Local talk and
+ * referral rewards; then the vision, Nigeria city by city, and the stores.
+ * Claims and figures: FACTS-OCT.md and the founder's rulings of 14 October.
+ */
+import { flagCard, anchors, ground, flash, hero, lift, headline, kicker, liveChip, numberCard, notify, chipRow, featureCard, ending, ringBurst, windowRig, nigeriaMap, ramp, during, place } from "../kit.js";
+
+export async function build(ctx) {
+  const M = ctx.isMobile;
+  const { s, e, w } = anchors(ctx);
+  const H = await hero(ctx, { model: "island", env: "dark", edge: "#040a2e" });
+
+  const HOME = M ? { cx: 540, cy: 1075, height: 1380 } : { cx: 590, cy: 575, height: 940 };
+  const LOW = M ? { cx: 540, cy: 1255, height: 1180 } : { cx: 560, cy: 585, height: 900 };
+  const off = (p, dy = M ? 1750 : 1200) => ({ ...p, cy: p.cy + dy });
+  const R = M
+    ? { l1: { x: 255, y: 560 }, r1: { x: 825, y: 610 }, l2: { x: 250, y: 1010 }, r2: { x: 830, y: 1060 }, top: 410, cx: 540 }
+    : { l1: { x: 1170, y: 330 }, r1: { x: 1580, y: 360 }, l2: { x: 1170, y: 700 }, r2: { x: 1580, y: 730 }, top: 210, cx: 1390 };
+  const HX = M ? 60 : 1000;
+  const TS = M ? 0.6 : 0.58;
+  const RS = M ? 0.66 : 0.6;
+  const ROW = (i) => ({ x: R.cx, y: (M ? [500, 730, 960, 1190] : [250, 450, 650, 850])[i] });
+  const CHIPS_Y = M ? 1440 : 860;
+  const layer = (id, t0, t1, z = 760) => ctx.scene(id, t0, t1, { z });
+  const src = (id) => ctx.src.capture(id);
+
+  H.path([
+    [0, { ...off(HOME), opacity: 0, rx: 0, ry: 0, rz: 0 }],
+    [s(4) - 0.9, { ...off(HOME), opacity: 1 }, "none"],
+    [s(4) - 0.1, { ...HOME }, "power3.out"],
+    [s(6) - 0.2, { ...HOME }],
+    [s(6) + 0.5, { ...LOW }],
+    [s(7) - 0.1, { ...LOW }],
+    [s(7) + 0.5, { ...HOME }],
+    [s(9) - 0.2, { ...HOME }],
+    [s(9) + 0.5, { ...LOW }],
+    [s(10) - 0.1, { ...LOW }],
+    [s(10) + 0.5, { ...HOME }],
+    /* the calendar: a push onto its nights */
+    [w(10, "calendar") - 0.4, { ...HOME }],
+    [w(10, "calendar") + 0.4, (M ? H.aim(660, 2150, 2000, 540, 900) : { ...HOME })],
+    [w(10, "bookings") - 0.4, (M ? H.aim(660, 2150, 2000, 540, 900) : { ...HOME })],
+    [w(10, "bookings") + 0.3, { ...HOME }],
+    [s(14) - 0.2, { ...HOME }],
+    [s(14) + 0.5, { ...LOW }],
+    [s(16) - 0.3, { ...LOW }],
+    [s(16) + 0.4, { ...HOME }],
+    /* the promise: the phone leaves, the words carry it */
+    [s(21) - 0.3, { ...HOME }],
+    [s(21) + 0.4, { ...off(HOME), ry: -18 }, "power3.in"],
+    [s(24) - 0.6, { ...off(HOME), ry: 16 }, "none"],
+    [s(24) + 0.2, { ...HOME, ry: 0 }, "power3.out"],
+    [w(27, "full") - 0.5, { ...HOME }],
+    [w(27, "full") + 0.2, { ...LOW }],
+    [s(28) - 0.1, { ...LOW }],
+    [s(28) + 0.5, { ...HOME }],
+    [s(31) - 0.2, { ...HOME }],
+    [s(31) + 0.5, { ...LOW }],
+    [s(33) - 0.2, { ...LOW }],
+    [s(33) + 0.4, { ...HOME }],
+    [s(38) - 0.6, { ...HOME }],
+    [s(38) + 0.2, { ...off(HOME), rz: -8, ry: 20 }, "power3.in"],
+    [ctx.duration, { ...off(HOME), opacity: 0 }, "none"],
+  ]);
+
+  /* ===================== 1. A place to live, to stay, to meet ===================== */
+  ground(ctx, 0, s(3) + 0.1, { tone: "navy", y: 40, seed: 31 });
+  const open = layer("open", 0, s(2) + 0.2);
+  await nigeriaMap(ctx, open, { x: M ? 150 : 1080, y: M ? 820 : 230, w: M ? 780 : 680, t0: 0.6, t1: s(2) - 0.3, tCities: s(1) + 0.6, gap: 0.42, labels: true, cities: 5 });
+  headline(ctx, open, { lines: [[["Every day, people", false]], [["across ", false], ["Nigeria", true]]], x: M ? 60 : 140, y: M ? 420 : 240, size: M ? 88 : 96, t0: s(1), t1: s(2) - 0.35, stagger: 0.08 });
+  chipRow(ctx, open, { items: [["A place to live", "house"], ["to stay", "bed-double"], ["to meet", "utensils-crossed"]], x: M ? 540 : 140, y: M ? 1440 : 560, t0: w(1, "live") - 0.1, gap: w(1, "stay") - w(1, "live"), t1: s(2) - 0.35, size: M ? 34 : 34, anchor: M ? "center" : "left", wrapW: M ? 960 : 820 });
+  ctx.hideCaptions(s(1) - 0.2, s(1) + 2.4);
+
+  /* ===================== 2. Fake listings, hidden fees, strangers ===================== */
+  ground(ctx, s(2) - 0.1, s(3) + 0.1, { tone: "gold", y: 50, seed: 32 });
+  const prob = layer("problem", s(2) - 0.1, s(3) + 0.1);
+  const probs = [
+    { t: w(2, "fake"), icon: "image-off", title: "Fake listings", x: M ? 540 : 560, y: M ? 560 : 300, r: -4 },
+    { t: w(2, "hidden"), icon: "eye-off", title: "Hidden fees", x: M ? 540 : 1000, y: M ? 860 : 520, r: 3 },
+    { t: w(2, "money"), icon: "banknote", title: "Money sent to strangers", x: M ? 540 : 1440, y: M ? 1160 : 740, r: -2 },
+  ];
+  probs.forEach((p, i) => {
+    const card = ctx.el("div", { class: "abs glass-dark", style: { left: "0px", top: "0px", display: "flex", alignItems: "center", gap: "26px", padding: M ? "34px 44px" : "28px 38px", borderRadius: "36px", border: "1.5px solid rgb(255 120 90 / 0.45)", font: `700 ${M ? 54 : 46}px/1 Poppins, Inter, sans-serif`, color: "#fff", letterSpacing: "-0.02em", whiteSpace: "nowrap" } }, prob);
+    const ic = ctx.icon(p.icon, { size: M ? 60 : 50, stroke: 2.2 }, card); ic.style.color = "#ff8a6b";
+    ctx.el("span", { text: p.title }, card);
+    during(ctx, s(2) - 0.1, s(3) + 0.1, (t) => {
+      const a = ramp(ctx, t, p.t - 0.05, p.t + 0.45, "back.out(1.6)");
+      const strike = ramp(ctx, t, s(3) - 0.15 + i * 0.06, s(3) + 0.05 + i * 0.06, "power3.in");
+      const jit = t > p.t && t < p.t + 0.25 ? Math.sin(t * 90) * 6 : 0;
+      place(card, { x: p.x + jit, y: p.y + (1 - a) * 50 - strike * 80, s: (0.85 + 0.15 * a) * (1 - 0.2 * strike), r: p.r * a, o: Math.min(ramp(ctx, t, p.t - 0.05, p.t + 0.1), 1 - strike) });
+    });
+    ctx.sfx("pop_low", p.t, { offset: -2 });
+  });
+
+  /* ===================== 3. We built Vallo to change that ===================== */
+  flash(ctx, s(3), { color: "rgb(0 105 254 / 0.7)" });
+  ground(ctx, s(3) - 0.05, s(6) + 0.6, { tone: "electric", y: 20, seed: 33 });
+  const meet = layer("meet", s(3) - 0.05, s(4) + 0.3, 780);
+  const mark = ctx.img(ctx.src.asset("logo-mark.png"), { class: "abs", style: { left: "0px", top: "0px", width: "280px", height: "280px", objectFit: "contain" } }, meet);
+  during(ctx, s(3) - 0.05, s(4) + 0.3, (t) => {
+    const a = ramp(ctx, t, s(3), s(3) + 0.55, "back.out(1.8)");
+    const up = ramp(ctx, t, s(4) - 0.9, s(4) - 0.2, "power3.inOut");
+    place(mark, { x: ctx.W / 2, y: (M ? 760 : 380) - up * 300, s: (0.3 + 0.7 * a) * (1 - 0.6 * up), r: (1 - a) * -40, o: ramp(ctx, t, s(3), s(3) + 0.15) * (1 - up) });
+  });
+  ringBurst(ctx, meet, { cx: ctx.W / 2, cy: M ? 760 : 380, r: 200, t: s(3) + 0.05, seed: 34 });
+  headline(ctx, meet, { lines: [[["We built Vallo to ", false], ["change that.", true]]], x: ctx.W / 2, y: M ? 1010 : 600, size: M ? 70 : 76, t0: s(3) + 0.1, t1: s(4) - 0.9, align: "center" });
+  ctx.sfx("impact_soft", s(3), { offset: 0 });
+  ctx.hideCaptions(s(3) - 0.1, s(4) - 0.3);
+
+  /* ===================== 4. One home for real estate ===================== */
+  H.show("sc-home", s(4) - 1.0, w(5, "hotels") - 0.3, { enter: "cut" });
+  H.show("sc-stays", w(5, "hotels") - 0.3, s(6) + 0.3, { enter: "slide" });
+  lift(ctx, H, { id: "sc-home", crop: { x: 100, y: 2120, w: 1120, h: 310 }, t0: w(5, "Homes"), t1: w(5, "one") - 0.2, to: { ...ROW(0), s: RS * 0.85, r: -3 }, seed: 1 });
+  lift(ctx, H, { id: "sc-stays", crop: { x: 45, y: 1715, w: 590, h: 410 }, t0: w(5, "hotels"), t1: w(5, "one") - 0.15, to: { ...R.r1, s: TS, r: 5 }, seed: 2 });
+  lift(ctx, H, { id: "sc-stays", crop: { x: 645, y: 1715, w: 630, h: 410 }, t0: w(5, "shortlets"), t1: w(5, "one") - 0.1, to: { ...R.l2, s: TS, r: -6 }, seed: 3 });
+  lift(ctx, H, { id: "sc-stays", crop: { x: 45, y: 2165, w: 590, h: 420 }, t0: w(5, "restaurants"), t1: w(5, "one") - 0.05, to: { ...R.r2, s: TS, r: 4 }, seed: 4 });
+  const one = layer("one", s(4), s(6));
+  kicker(ctx, one, { text: "One home for real estate in Nigeria", icon: "house", x: R.cx, y: CHIPS_Y, t0: w(4, "home") - 0.1, t1: w(5, "Homes") - 0.1, size: M ? 30 : 28, anchor: "center" });
+  chipRow(ctx, one, { items: [["One app", "smartphone"], ["One account", "user-round-check"]], x: R.cx, y: CHIPS_Y, t0: w(5, "one"), gap: 0.5, t1: s(6) - 0.2, size: M ? 34 : 30, anchor: "center" });
+
+  /* ===================== 5. Owners: list it yourself ===================== */
+  ground(ctx, s(6) - 0.05, s(9) + 0.3, { tone: "navy", y: 15, seed: 35 });
+  const own = layer("owners", s(6) - 0.1, s(9));
+  headline(ctx, own, { lines: [[["For owners and ", false], ["landlords", true]]], x: M ? R.cx : HX, y: M ? R.top : 200, size: M ? 74 : 76, t0: s(6), t1: s(7) - 0.3, align: M ? "center" : "left" });
+  H.show("f-host-start", s(6) + 0.2, w(8, "photos") - 0.3, { enter: "slide" });
+  H.tap(w(7, "List") - 0.15, 660, 2450);
+  lift(ctx, H, { id: "f-host-start", crop: { x: 40, y: 2335, w: 1240, h: 240 }, t0: w(7, "List") + 0.1, t1: s(8) - 0.2, to: { ...ROW(0), s: RS * 1.05, r: -2 }, seed: 5 });
+  liveChip(ctx, own, { text: "No agency fee", x: R.cx, y: CHIPS_Y, t0: w(7, "agency") - 0.1, t1: s(8) - 0.2, size: M ? 36 : 32, anchor: "center" });
+  H.show("sc-listing", w(8, "photos") - 0.3, s(9) + 0.3, { enter: "slide" });
+  chipRow(ctx, own, { items: [["Add your photos", "camera"], ["Set your price", "tag"], ["Ownership checked", "file-check-2"]], x: R.cx, y: M ? R.top : 200, t0: w(8, "photos"), gap: (w(8, "checked") - w(8, "photos")) / 2, t1: s(9) - 0.3, size: M ? 30 : 28, wrapW: M ? 980 : 860, anchor: "center" });
+  lift(ctx, H, { id: "sc-listing", crop: { x: 60, y: 300, w: 1180, h: 770 }, t0: w(8, "photos") + 0.05, t1: w(8, "listing") - 0.2, to: { x: M ? 300 : 1160, y: M ? 820 : 560, s: M ? 0.36 : 0.3, r: -5 }, seed: 6 });
+  lift(ctx, H, { id: "sc-listing", crop: { x: 30, y: 1170, w: 1260, h: 330 }, t0: w(8, "price") - 0.05, t1: w(8, "listing") - 0.15, to: { x: M ? 780 : 1600, y: M ? 1080 : 640, s: M ? 0.42 : 0.33, r: 4 }, seed: 7 });
+  const seen = layer("seen", w(8, "Ownership", 2) - 0.3, s(9));
+  const badge = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", display: "flex", alignItems: "center", gap: "22px", padding: M ? "30px 44px" : "26px 38px", borderRadius: "999px", background: "linear-gradient(150deg, #2f7cff, #003f98)", boxShadow: "0 30px 70px -20px rgb(0 60 200 / 0.8), inset 0 1px 0 rgb(255 255 255 / 0.3)", font: `700 ${M ? 50 : 44}px/1 Poppins, Inter, sans-serif`, color: "#fff", whiteSpace: "nowrap" } }, seen);
+  const bi = ctx.icon("badge-check", { size: M ? 60 : 52, stroke: 2.2 }, badge); bi.style.color = "#fff";
+  ctx.el("span", { text: "Ownership seen" }, badge);
+  during(ctx, w(8, "Ownership", 2) - 0.3, s(9), (t) => {
+    const a = ramp(ctx, t, w(8, "Ownership", 2) - 0.2, w(8, "Ownership", 2) + 0.4, "back.out(1.9)");
+    const b = ramp(ctx, t, s(9) - 0.4, s(9) - 0.1, "power2.in");
+    place(badge, { x: M ? 540 : 1390, y: M ? 820 : 520, s: 0.5 + 0.5 * a, r: (1 - a) * 12, o: Math.min(ramp(ctx, t, w(8, "Ownership", 2) - 0.2, w(8, "Ownership", 2)), 1 - b) });
+  });
+  ringBurst(ctx, seen, { cx: M ? 540 : 1390, cy: M ? 820 : 520, r: M ? 300 : 260, t: w(8, "Ownership", 2) + 0.05, seed: 36 });
+  ctx.sfx("stamp", w(8, "Ownership", 2) + 0.05, { offset: -2 });
+
+  /* ===================== 6. The host desk ===================== */
+  ground(ctx, s(9) - 0.05, s(12) + 0.3, { tone: "dusk", y: 85, seed: 37 });
+  const desk = layer("desk", s(9) - 0.1, s(12));
+  headline(ctx, desk, { lines: [[["Hosts get a ", false], ["full desk.", true]]], x: M ? R.cx : HX, y: M ? R.top : 200, size: M ? 84 : 80, t0: s(9), t1: s(10) - 0.2, align: M ? "center" : "left" });
+  H.show("f-host-home", s(9) - 0.2, w(10, "wizard") - 0.2, { enter: "slide" });
+  H.show("f-host-rooms", w(10, "wizard") - 0.2, w(10, "calendar") - 0.3, { enter: "slide" });
+  H.show("f-host-calendar", w(10, "calendar") - 0.3, w(10, "bookings") - 0.2, { enter: "slide" });
+  H.show("f-host-bookings", w(10, "bookings") - 0.2, w(10, "earnings") - 0.2, { enter: "slide" });
+  H.show("f-host-settings", w(10, "earnings") - 0.2, s(11) - 0.1, { enter: "slide" });
+  H.tap(w(10, "wizard") - 0.35, 760, 355);
+  lift(ctx, H, { id: "f-host-rooms", crop: { x: 40, y: 1610, w: 1240, h: 400 }, t0: w(10, "rooms") - 0.05, t1: w(10, "calendar") - 0.2, to: { ...ROW(0), s: RS, r: -2 }, seed: 8 });
+  H.tap(w(10, "calendar") - 0.4, 1080, 355);
+  lift(ctx, H, { id: "f-host-calendar", crop: { x: 40, y: 1170, w: 1240, h: 200 }, t0: w(10, "night") - 0.3, t1: w(10, "bookings") - 0.2, to: { ...ROW(0), s: RS, r: -2 }, seed: 9 });
+  lift(ctx, H, { id: "f-host-bookings", crop: { x: 40, y: 1425, w: 1240, h: 840 }, t0: w(10, "bookings") + 0.1, t1: w(10, "earnings") - 0.2, to: { x: R.cx, y: M ? 640 : 420, s: RS * 0.7, r: 2 }, seed: 10 });
+  chipRow(ctx, desk, { items: [["Bookings", "calendar-check"], ["Reservations", "utensils"], ["Earnings", "wallet"]], x: R.cx, y: CHIPS_Y, t0: w(10, "bookings"), gap: (w(10, "earnings") - w(10, "bookings")) / 2, t1: w(10, "cancellation") - 0.3, size: M ? 32 : 28, anchor: "center" });
+  lift(ctx, H, { id: "f-host-settings", crop: { x: 40, y: 1250, w: 1240, h: 560 }, t0: w(10, "place") - 0.3, t1: s(11) - 0.2, to: { ...ROW(0), y: M ? 560 : 330, s: RS * 0.85, r: -2 }, seed: 11 });
+  kicker(ctx, desk, { text: "Cancellation rules you choose", icon: "calendar-x-2", x: R.cx, y: CHIPS_Y, t0: w(10, "cancellation") - 0.1, t1: s(11) - 0.2, size: M ? 32 : 28, anchor: "center" });
+  if (!M) {
+    const W = windowRig(ctx);
+    W.path([
+      [w(10, "calendar") - 0.3, { x: 1960, y: 300, s: 0.6, opacity: 1 }],
+      [w(10, "calendar") + 0.4, { x: 1010, y: 300, s: 0.6, opacity: 1 }, "power3.out"],
+      [w(10, "bookings") - 0.4, { x: 1010, y: 300, s: 0.6, opacity: 1 }],
+      [w(10, "bookings") + 0.2, { x: 1960, y: 300, s: 0.6, opacity: 1 }, "power3.in"],
+      [w(10, "bookings") + 0.3, { x: 1960, y: 300, s: 0.6, opacity: 0 }, "none"],
+    ]);
+    W.show("d-f-host-calendar", w(10, "calendar") - 0.3, w(10, "bookings") + 0.3, { enter: "cut" });
+  }
+
+  /* ===================== 7. Table deposits ===================== */
+  H.show("f-host-reservations", s(11) - 0.1, s(12) + 0.3, { enter: "slide" });
+  H.tap(s(11) + 0.2, 1100, 355);
+  const dep = layer("deposits", s(11), s(12));
+  lift(ctx, H, { id: "f-host-reservations", crop: { x: 40, y: 2220, w: 1240, h: 420 }, t0: w(11, "deposits") - 0.1, t1: s(12) - 0.2, to: { x: R.cx, y: M ? 600 : 360, s: RS, r: -2 }, seed: 12 });
+  liveChip(ctx, dep, { text: "Every reservation counts", x: R.cx, y: CHIPS_Y, t0: w(11, "counts") - 0.4, t1: s(12) - 0.2, size: M ? 34 : 30, anchor: "center" });
+
+  /* ===================== 8. Agents and firms ===================== */
+  ground(ctx, s(12) - 0.05, s(14) + 0.3, { tone: "violet", y: 20, seed: 38 });
+  const ag = layer("agents", s(12) - 0.1, s(14));
+  headline(ctx, ag, { lines: [[["Agents and firms", false]], [["get their own ", false], ["tools.", true]]], x: M ? R.cx : HX, y: M ? 390 : 200, size: M ? 70 : 76, t0: s(12), t1: s(13) - 0.1, align: M ? "center" : "left", lineGap: 1.1 });
+  H.show("f-agent-dashboard", s(12) - 0.1, w(13, "portfolio") - 0.2, { enter: "slide", full: "f-agent-dashboard-full", scroll: [[s(12) + 0.5, 0], [s(12) + 1.4, 1000]] });
+  H.show("f-agent-dashboard", w(13, "portfolio") - 0.2, w(13, "analytics") - 0.2, { enter: "cut", full: "f-agent-dashboard-full", scroll: [[w(13, "portfolio") - 0.2, 1000], [w(13, "analytics") - 0.4, 1700]] });
+  lift(ctx, H, { id: "f-agent-dashboard", src: src("f-agent-dashboard-full"), crop: { x: 30, y: 1980, w: 1260, h: 420 }, scrolled: 1000, t0: w(13, "portfolio"), t1: w(13, "analytics") - 0.2, to: { x: R.cx, y: M ? 560 : 340, s: RS * 0.9, r: -2 }, seed: 13 });
+  H.show("f-agent-analytics", w(13, "analytics") - 0.2, w(13, "Pro") - 0.3, { enter: "slide", full: "f-agent-analytics-full", scroll: [[w(13, "analytics") + 0.3, 0], [w(13, "analytics") + 1.2, 1050]] });
+  chipRow(ctx, ag, { items: [["Portfolio", "folder-kanban"], ["Analytics", "chart-column"], ["Firm desk", "building-2"]], x: R.cx, y: CHIPS_Y, t0: w(13, "portfolio"), gap: (w(13, "firm") - w(13, "portfolio")) / 2, t1: w(13, "Pro") - 0.3, size: M ? 32 : 28, anchor: "center" });
+  H.show("f-pro", w(13, "Pro") - 0.3, s(14) + 0.3, { enter: "slide" });
+  lift(ctx, H, { id: "f-pro", crop: { x: 200, y: 1170, w: 920, h: 540 }, t0: w(13, "Pro") + 0.1, t1: s(14) - 0.2, to: { x: R.cx, y: M ? 600 : 360, s: M ? 0.7 : 0.55, r: -3 }, seed: 14 });
+  chipRow(ctx, ag, { items: [["Vallo Pro", "sparkles"], ["Vallo Business", "briefcase"]], x: R.cx, y: M ? R.top - 20 : 160, t0: w(13, "Pro"), gap: w(13, "Business") - w(13, "Pro"), t1: s(14) - 0.2, size: M ? 34 : 30, anchor: "center" });
+  liveChip(ctx, ag, { text: "Free trial to start", x: R.cx, y: CHIPS_Y, t0: w(13, "free") - 0.1, t1: s(14) - 0.2, size: M ? 34 : 30, anchor: "center" });
+  if (!M) {
+    const W = windowRig(ctx);
+    W.path([
+      [w(13, "analytics") - 0.3, { x: 1960, y: 300, s: 0.6, opacity: 1 }],
+      [w(13, "analytics") + 0.4, { x: 1010, y: 300, s: 0.6, opacity: 1 }, "power3.out"],
+      [w(13, "Pro") - 0.5, { x: 1010, y: 300, s: 0.6, opacity: 1 }],
+      [w(13, "Pro") + 0.1, { x: 1960, y: 300, s: 0.6, opacity: 1 }, "power3.in"],
+      [w(13, "Pro") + 0.2, { x: 1960, y: 300, s: 0.6, opacity: 0 }, "none"],
+    ]);
+    W.show("d-f-agent-analytics", w(13, "analytics") - 0.3, w(13, "Pro") + 0.2, { enter: "cut" });
+  }
+
+  /* ===================== 9. A no-show, fairly ===================== */
+  ground(ctx, s(14) - 0.05, s(16) + 0.3, { tone: "navy", y: 30, seed: 39 });
+  H.show("sc-thread", s(14) - 0.2, s(16) + 0.3, { enter: "slide" });
+  const fair = layer("fair", s(14) - 0.1, s(16));
+  kicker(ctx, fair, { text: "Booked a viewing, didn't show", icon: "calendar-x", x: R.cx, y: M ? R.top : 200, t0: w(14, "viewing") - 0.1, t1: w(14, "report") - 0.2, size: M ? 30 : 28, anchor: "center" });
+  featureCard(ctx, fair, { icon: "flag", title: "Report a no-show", line: "A person reads every report.", x: R.cx, y: M ? R.top - 30 : 170, w: M ? 860 : 700, t0: w(14, "report") - 0.1, t1: s(15) - 0.2, size: M ? 38 : 34, anchor: "center" });
+  numberCard(ctx, fair, { value: 48, prefix: "", label: "hours for them to respond", x: R.cx, y: M ? 1280 : 560, t0: w(14, "forty-eight") - 0.1, t1: w(14, "forty-eight") + 0.7, tOut: s(16) - 0.25, size: M ? 120 : 110 });
+  liveChip(ctx, fair, { text: "Fair for everyone", x: R.cx, y: M ? R.top : 200, t0: s(15) - 0.05, t1: s(16) - 0.2, size: M ? 36 : 32, anchor: "center" });
+
+  /* ===================== 10. The Vallo passport ===================== */
+  ground(ctx, s(16) - 0.05, s(17) + 0.3, { tone: "electric", y: 25, seed: 40 });
+  H.show("f-passport", s(16) - 0.2, s(17) + 0.2, { enter: "rise" });
+  const pass = layer("passport", s(16) - 0.1, s(17));
+  lift(ctx, H, { id: "f-passport", crop: { x: 40, y: 1240, w: 1240, h: 1080 }, t0: w(16, "verified") - 0.1, t1: s(17) - 0.2, to: { x: R.cx, y: M ? 760 : 470, s: M ? 0.58 : 0.5, r: -3 }, seed: 15 });
+  chipRow(ctx, pass, { items: [["Applying is faster", "zap"], ["You choose who sees it", "eye"]], x: R.cx, y: CHIPS_Y, t0: w(16, "faster") - 0.2, gap: w(16, "choose") - w(16, "faster"), t1: s(17) - 0.2, size: M ? 30 : 28, anchor: "center", wrapW: M ? 980 : 860 });
+
+  /* ===================== 11. Tenancy file, agreements, rent ===================== */
+  ground(ctx, s(17) - 0.05, s(19) + 0.3, { tone: "emerald", y: 20, seed: 41 });
+  H.show("f-agreements", s(17) - 0.2, s(19) + 0.3, { enter: "slide" });
+  const ten = layer("tenancy", s(17) - 0.1, s(19));
+  chipRow(ctx, ten, { items: [["Tenancy file", "folder-open"], ["Agreement", "file-signature"], ["Records", "archive"]], x: R.cx, y: M ? R.top : 200, t0: w(17, "tenancy") - 0.1, gap: (w(17, "records") - w(17, "tenancy")) / 2, t1: s(18) + 1.0, size: M ? 30 : 28, anchor: "center" });
+  lift(ctx, H, { id: "f-agreements", crop: { x: 30, y: 590, w: 1260, h: 540 }, t0: w(18, "approved") - 0.2, t1: s(19) - 0.2, to: { x: R.cx, y: M ? 640 : 380, s: RS * 0.92, r: -2 }, seed: 16 });
+  kicker(ctx, ten, { text: "Pay your rent in the app", icon: "house", x: R.cx, y: CHIPS_Y, t0: w(18, "rent") - 0.15, t1: w(18, "reminds") - 0.1, size: M ? 32 : 28, anchor: "center" });
+  notify(ctx, ten, { title: "Rent due in 7 days", line: "Your tenancy · Vallo reminds you", icon: "bell-ring", x: M ? 90 : 1010, y: M ? 1360 : 700, t: w(18, "reminds") - 0.05, tOut: s(19) - 0.25, size: M ? 34 : 30, example: true });
+
+  /* ===================== 12. Wallet and escrow ===================== */
+  ground(ctx, s(19) - 0.05, s(21) + 0.2, { tone: "electric", y: 18, seed: 42 });
+  const WALLET_PATCH = [{ x: 262, y: 1790, w: 860, h: 115, bg: "rgb(5 11 34)", size: 38, lh: 1.42, color: "rgb(214 221 249)", lines: ["Your money is held by our licensed", "payments partner, not by Vallo."] }];
+  H.show("wallet-user", s(19) - 0.2, s(20) + 0.2, { enter: "slide", patch: WALLET_PATCH });
+  H.show("f-agreements", s(20) + 0.2, s(21) + 0.3, { enter: "fade", dur: 0.3 });
+  const wal = layer("wallet", s(19) - 0.1, s(21));
+  H.tap(w(19, "add") - 0.05, 960, 890);
+  lift(ctx, H, { id: "wallet-user", crop: { x: 680, y: 825, w: 570, h: 130 }, t0: w(19, "add") + 0.05, t1: s(20) - 0.2, to: { ...R.l1, x: R.l1.x + (M ? 20 : 0), s: M ? 0.85 : 0.7, r: -4 }, seed: 17, radius: 60 });
+  lift(ctx, H, { id: "wallet-user", crop: { x: 45, y: 740, w: 1230, h: 700 }, t0: w(19, "pay"), t1: s(20) - 0.15, to: { x: R.cx, y: M ? 860 : 520, s: M ? 0.5 : 0.42, r: 2 }, seed: 18 });
+  lift(ctx, H, { id: "wallet-user", crop: { x: 645, y: 2730, w: 630, h: 180 }, t0: w(19, "send"), t1: s(20) - 0.1, to: { ...R.l2, y: R.l2.y + (M ? 140 : 80), s: M ? 0.75 : 0.62, r: -3 }, seed: 19, radius: 80 });
+  lift(ctx, H, { id: "wallet-user", crop: { x: 45, y: 2730, w: 580, h: 180 }, t0: w(19, "withdraw"), t1: s(20) - 0.05, to: { ...R.r2, y: R.r2.y + (M ? 140 : 80), s: M ? 0.75 : 0.62, r: 3 }, seed: 20, radius: 80 });
+  featureCard(ctx, wal, { icon: "shield-check", title: "Protected payment", line: "Your money waits in escrow until the deal is done.", x: R.cx, y: M ? 1250 : 380, w: M ? 900 : 760, t0: w(20, "Protected") - 0.1, t1: s(21) - 0.2, size: M ? 38 : 34, anchor: "center" });
+  ctx.sfx("lock_click", w(20, "escrow"), { offset: -2 });
+
+  /* ===================== 13. The promise ===================== */
+  ground(ctx, s(21) - 0.05, s(24) + 0.3, { tone: "navy", y: 45, seed: 43, sparkle: 8 });
+  const pr = layer("promise", s(21) - 0.05, s(24) + 0.1, 800);
+  const size = M ? 90 : 96;
+  headline(ctx, pr, { lines: [[["Here's the ", false], ["promise.", true]]], x: ctx.W / 2, y: M ? 720 : 400, size: size * 1.1, t0: s(21), t1: s(22) - 0.2, align: "center" });
+  headline(ctx, pr, { lines: [[["All funds,", true]], [["in your wallet,", false]], [["in escrow,", false]], [["in every payment,", false]]], x: M ? 60 : 200, y: M ? 470 : 150, size, t0: s(22), t1: w(22, "held") - 0.3, stagger: 0.12 });
+  headline(ctx, pr, { lines: [[["held by our", false]], [["licensed provider.", true]]], x: M ? 60 : 200, y: M ? 640 : 300, size: size * 1.05, t0: w(22, "held") - 0.1, t1: s(23) - 0.2, stagger: 0.07 });
+  headline(ctx, pr, { lines: [[["Vallo never holds", false]], [["your ", false], ["money.", true]]], x: ctx.W / 2, y: M ? 700 : 340, size: size * 1.1, t0: s(23) - 0.05, t1: s(24) - 0.5, align: "center", stagger: 0.07 });
+  ringBurst(ctx, pr, { cx: ctx.W / 2, cy: (M ? 700 : 340) + size * 1.1, r: M ? 380 : 330, t: w(23, "never") + 0.1, seed: 44 });
+  ctx.sfx("stamp", w(23, "never") + 0.05, { offset: 0 });
+  ctx.hideCaptions(s(21) - 0.1, s(24) - 0.3);
+  ctx.hidePill(s(21) - 0.2, s(24) - 0.1);
+
+  /* ===================== 14. Trust at every step ===================== */
+  ground(ctx, s(24) - 0.05, s(28) + 0.3, { tone: "electric", y: 25, seed: 45 });
+  H.show("sc-verification", s(24) - 0.6, w(26, "flagged") - 0.4, { enter: "cut" });
+  H.show("sc-listing-cost", w(27, "full") - 0.4, s(28) + 0.3, { enter: "slide" });
+  H.show("sc-thread", w(26, "flagged") - 0.4, w(27, "full") - 0.4, { enter: "slide" });
+  const tr = layer("trust", s(24) - 0.1, s(28));
+  kicker(ctx, tr, { text: "Trust, built into every step", icon: "shield", x: R.cx, y: M ? R.top : 200, t0: s(24), t1: s(25) - 0.1, size: M ? 32 : 28, anchor: "center" });
+  const steps = [
+    { crop: { x: 160, y: 950, w: 1120, h: 330 }, y: M ? 520 : 260 },
+    { crop: { x: 160, y: 1325, w: 1120, h: 360 }, y: M ? 760 : 470 },
+  ];
+  steps.forEach((st, i) => lift(ctx, H, { id: "sc-verification", crop: st.crop, t0: s(25) + i * 0.5, t1: w(26, "flagged") - 0.5, to: { x: R.cx + (i ? 16 : -16), y: st.y, s: RS, r: i ? 1.5 : -1.5 }, seed: 21 + i }));
+  liveChip(ctx, tr, { text: "Checked by a real person", x: R.cx, y: CHIPS_Y, t0: w(25, "person") - 0.2, t1: w(26, "flagged") - 0.4, size: M ? 32 : 28, anchor: "center" });
+  const fc = flagCard(ctx, tr, M);
+  during(ctx, s(24) - 0.1, s(28), (t) => {
+    const a = ramp(ctx, t, w(26, "flagged") - 0.35, w(26, "flagged") + 0.25, "back.out(1.5)");
+    const b = ramp(ctx, t, s(27) - 0.3, s(27), "power2.in");
+    place(fc, { x: R.cx, y: (M ? 760 : 520) + (1 - a) * 60, s: 0.94 + 0.06 * a, o: Math.min(ramp(ctx, t, w(26, "flagged") - 0.35, w(26, "flagged") - 0.1), 1 - b) });
+  });
+  ctx.sfx("stamp", w(26, "flagged"), { offset: -3 });
+  numberCard(ctx, tr, { value: 26100000, label: "The full cost, before anyone pays", x: R.cx, y: M ? R.top : 300, t0: w(27, "full") - 0.1, t1: w(27, "full") + 1.2, tOut: s(28) - 0.2, size: M ? 92 : 84 });
+  ctx.hidePill(w(27, "full") - 0.3, s(28) - 0.1);
+
+  /* ===================== 15. Community: Local talk ===================== */
+  ground(ctx, s(28) - 0.05, s(31) + 0.3, { tone: "violet", y: 25, seed: 46 });
+  H.show("f-around", s(28) - 0.2, s(31) + 0.3, { enter: "slide" });
+  const com = layer("community", s(28) - 0.1, s(31));
+  headline(ctx, com, { lines: [[["Vallo is also a ", false], ["community.", true]]], x: M ? R.cx : HX, y: M ? R.top : 200, size: M ? 68 : 72, t0: s(28), t1: s(29) - 0.1, align: M ? "center" : "left" });
+  lift(ctx, H, { id: "f-around", crop: { x: 40, y: 1260, w: 1240, h: 1060 }, t0: w(29, "neighbourhood") - 0.2, t1: w(30, "stories") - 0.1, to: { x: R.cx, y: M ? 700 : 450, s: M ? 0.56 : 0.48, r: -2 }, seed: 23 });
+  H.tap(w(30, "stories") - 0.1, 990, 870);
+  lift(ctx, H, { id: "f-around", crop: { x: 30, y: 760, w: 560, h: 260 }, t0: w(30, "stories") + 0.1, t1: s(31) - 0.2, to: { ...R.l1, s: M ? 0.85 : 0.7, r: -4 }, seed: 24 });
+  chipRow(ctx, com, { items: [["Local talk", "messages-square"], ["Stories", "circle-play"], ["Follow", "user-plus"], ["What's new around you", "map-pin"]], x: R.cx, y: CHIPS_Y - (M ? 60 : 0), t0: w(29, "Local"), gap: (w(30, "new") - w(29, "Local")) / 3, t1: s(31) - 0.2, size: M ? 28 : 26, wrapW: M ? 980 : 860, anchor: "center" });
+  if (!M) {
+    const W = windowRig(ctx);
+    W.path([
+      [w(30, "follow") - 0.4, { x: 1960, y: 300, s: 0.6, opacity: 1 }],
+      [w(30, "follow") + 0.3, { x: 1010, y: 300, s: 0.6, opacity: 1 }, "power3.out"],
+      [s(31) - 0.5, { x: 1010, y: 300, s: 0.6, opacity: 1 }],
+      [s(31) + 0.1, { x: 1960, y: 300, s: 0.6, opacity: 1 }, "power3.in"],
+      [s(31) + 0.2, { x: 1960, y: 300, s: 0.6, opacity: 0 }, "none"],
+    ]);
+    W.show("d-f-around", w(30, "follow") - 0.4, s(31) + 0.2, { enter: "cut" });
+  }
+
+  /* ===================== 16. Referral rewards ===================== */
+  flash(ctx, s(31), { color: "rgb(255 196 61 / 0.5)" });
+  ground(ctx, s(31) - 0.05, s(38) + 0.3, { tone: "gold", y: 25, seed: 47 });
+  const rw = layer("rewards", s(31) - 0.1, s(38));
+  headline(ctx, rw, { lines: [[["Referral rewards", false]], [["are ", false], ["live.", true]]], x: M ? R.cx : HX, y: M ? 390 : 200, size: M ? 78 : 80, t0: w(31, "referral") - 0.1, t1: s(32) + 0.6, align: M ? "center" : "left", lineGap: 1.1 });
+  liveChip(ctx, rw, { text: "Live now", x: R.cx, y: CHIPS_Y, t0: w(31, "live") - 0.1, t1: s(33) - 0.2, size: M ? 36 : 32, anchor: "center" });
+  H.show("f-rewards", s(31) - 0.2, w(36, "withdraw") - 0.3, { enter: "rise" });
+  H.show("f-rewards-withdraw", w(36, "withdraw") - 0.3, s(38) + 0.3, { enter: "slide" });
+  kicker(ctx, rw, { text: "Share your invite link", icon: "link", x: R.cx, y: M ? R.top : 200, t0: w(33, "invite") - 0.3, t1: w(34, "earn") - 0.4, size: M ? 34 : 30, anchor: "center" });
+  ctx.sfx("bubble_send", w(33, "link"), { offset: -3 });
+  lift(ctx, H, { id: "f-rewards", crop: { x: 125, y: 1100, w: 1070, h: 400 }, t0: w(34, "verified") - 0.1, t1: s(35) + 0.8, to: { x: R.cx, y: M ? 560 : 340, s: M ? 0.78 : 0.62, r: -3 }, seed: 25 });
+  numberCard(ctx, rw, { value: 80, label: "for each friend who joins and gets verified", x: R.cx, y: CHIPS_Y - (M ? 180 : 140), t0: w(34, "earn") - 0.05, t1: w(34, "earn") + 0.6, tOut: s(35) + 1.0, size: M ? 110 : 96 });
+  kicker(ctx, rw, { text: "Ready after 7 days", icon: "clock", x: R.cx, y: M ? R.top : 200, t0: w(35, "seven") - 0.1, t1: s(36) - 0.1, size: M ? 34 : 30, anchor: "center" });
+  numberCard(ctx, rw, { value: 1000, label: "withdraw it straight to your bank", x: R.cx, y: M ? R.top - 30 : 170, t0: w(36, "thousand") - 0.1, t1: w(36, "thousand") + 0.6, tOut: s(37) - 0.2, size: M ? 96 : 88 });
+  lift(ctx, H, { id: "f-rewards-withdraw", crop: { x: 40, y: 1240, w: 1240, h: 520 }, t0: w(36, "bank") - 0.2, t1: s(37) - 0.2, to: { x: R.cx, y: M ? 1150 : 650, s: RS * 0.85, r: 2 }, seed: 26 });
+  chipRow(ctx, rw, { items: [["Invite", "send"], ["They join", "user-plus"], ["You earn", "coins"]], x: R.cx, y: M ? R.top + 20 : 220, t0: s(37), gap: 0.35, t1: s(38) - 0.3, size: M ? 34 : 30, anchor: "center" });
+  ringBurst(ctx, rw, { cx: R.cx, cy: M ? 900 : 540, r: M ? 360 : 300, t: w(37, "earn", 1) + 0.1, seed: 48 });
+
+  /* ===================== 17. The beginning ===================== */
+  ground(ctx, s(38) - 0.05, s(42) + 0.2, { tone: "navy", y: 40, seed: 49, sparkle: 10 });
+  const vis = layer("vision", s(38) - 0.1, s(42), 800);
+  headline(ctx, vis, { lines: [[["This is just the ", false], ["beginning.", true]]], x: ctx.W / 2, y: M ? 820 : 440, size: M ? 78 : 92, t0: s(38), t1: s(39) - 0.1, align: "center" });
+  headline(ctx, vis, { lines: [[["The infrastructure", false]], [["for how Nigeria", false]]], x: M ? 60 : 160, y: M ? 430 : 180, size: M ? 80 : 88, t0: w(39, "infrastructure") - 0.1, t1: s(40) - 0.3, stagger: 0.07 });
+  const verbs = [["finds", "search"], ["understands", "lightbulb"], ["pays for", "credit-card"], ["runs", "settings-2"]];
+  verbs.forEach(([v, ic], i) => {
+    const t = w(39, v.split(" ")[0]);
+    featureCard(ctx, vis, { icon: ic, title: `${v[0].toUpperCase()}${v.slice(1)}`, line: null, x: M ? 60 + (i % 2) * 500 : 160 + i * 400, y: M ? 720 + Math.floor(i / 2) * 210 : 470, w: M ? 460 : 360, t0: t - 0.1, t1: s(40) - 0.3 + i * 0.04, size: M ? 44 : 40 });
+  });
+  ctx.el("div", {}, vis);
+  /* every home, every room, every table: three real photographs from the screens */
+  const photos = [
+    { id: "sc-listing", crop: { x: 60, y: 300, w: 1180, h: 770 }, word: "home", x: M ? 300 : 520, y: M ? 600 : 420, r: -6 },
+    { id: "f-stay-checkout", crop: { x: 0, y: 200, w: 1320, h: 860 }, word: "room", x: M ? 780 : 960, y: M ? 820 : 470, r: 4 },
+    { id: "sc-restaurant", crop: { x: 0, y: 200, w: 1320, h: 860 }, word: "table", x: M ? 360 : 1400, y: M ? 1080 : 420, r: -3 },
+  ];
+  photos.forEach((p, i) => {
+    const t0 = w(40, p.word) - 0.1;
+    const body = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${p.crop.w * (M ? 0.42 : 0.33)}px`, height: `${p.crop.h * (M ? 0.42 : 0.33)}px`, borderRadius: "34px", overflow: "hidden", boxShadow: "0 40px 80px -26px rgb(0 0 20 / 0.85), 0 0 0 1.5px rgb(143 211 255 / 0.25)" } }, vis);
+    const S = M ? 0.42 : 0.33;
+    ctx.img(ctx.src.display(p.id), { style: { position: "absolute", left: `${-p.crop.x * S}px`, top: `${-p.crop.y * S}px`, width: `${1320 * S}px`, height: `${2868 * S}px`, maxWidth: "none" } }, body);
+    during(ctx, s(39), s(42), (t) => {
+      const a = ramp(ctx, t, t0, t0 + 0.6, "back.out(1.5)");
+      const b = ramp(ctx, t, s(41) - 0.5 + i * 0.05, s(41) - 0.1 + i * 0.05, "power2.in");
+      place(body, { x: p.x, y: p.y + (1 - a) * 80 + Math.sin(t * 1.8 + i) * 6, s: 0.8 + 0.2 * a, r: p.r * a, o: Math.min(ramp(ctx, t, t0, t0 + 0.15), 1 - b) });
+    });
+    ctx.sfx("card_slide", t0, { offset: -4 });
+  });
+  chipRow(ctx, vis, { items: [["Real people", "users"], ["Real prices", "tag"], ["Real trust", "shield-check"]], x: R.cx, y: CHIPS_Y - (M ? 120 : 140), t0: w(40, "people") - 0.1, gap: (w(40, "trust") - w(40, "people")) / 2, t1: s(41) - 0.2, size: M ? 34 : 30, anchor: "center" });
+  const map2 = layer("map2", s(41) - 0.3, s(42), 790);
+  await nigeriaMap(ctx, map2, { x: M ? 110 : 640, y: M ? 560 : 150, w: M ? 860 : 640, t0: s(41) - 0.3, t1: s(42) - 0.3, tCities: w(41, "city") - 0.2, gap: 0.3, labels: true });
+  headline(ctx, map2, { lines: [[["Vallo is ", false], ["growing.", true]]], x: ctx.W / 2, y: M ? 1300 : 780, size: M ? 76 : 72, t0: w(41, "growing") - 0.2, t1: s(42) - 0.3, align: "center" });
+  ctx.hideCaptions(s(38) - 0.1, s(39) + 0.4);
+
+  /* ===================== 18. The end card ===================== */
+  ending(ctx, { t0: s(42), tLine: s(43) - 0.05, tBadges: s(44) - 0.1, tUrl: s(45) + 0.4, t1: ctx.duration });
+  void e;
+}

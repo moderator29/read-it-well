@@ -133,6 +133,9 @@ async function captureOnce(cap, ctx) {
   await ctx.addCookies([{ name: "nf_theme", value: theme, url: BASE }]);
   await ctx.clearCookies({ name: "nf_locale" });
   if (cap.locale) await ctx.addCookies([{ name: "nf_locale", value: cap.locale, url: BASE }]);
+  /* The feature first runs, marked shown the way the app marks them. */
+  await ctx.clearCookies({ name: "vallo_feature_runs" });
+  if (cap.seen) await ctx.addCookies([{ name: "vallo_feature_runs", value: "agent.agreements.analytics.host.invite.passport.portfolio.promotion.tenancy.verification", url: BASE }]);
   const page = await ctx.newPage();
   await page.addInitScript((t) => { try { localStorage.setItem("nf_theme", t); } catch {} }, theme);
   const signed = cap.auth !== false;
@@ -200,7 +203,14 @@ for (const cap of CAPTURES) {
       /* Shot at the device scale, then brought to 2x (880 px wide) for the
          video, which never shows a phone screen wider than that. */
       const whole = await page.screenshot({ type: "png", fullPage: true });
-      await sharp(whole, { limitInputPixels: false }).resize({ width: kind === "desktop" ? 2880 : 880 }).webp({ quality: 92, effort: 6 }).toFile(join(OUT, `${cap.id}-full.webp`));
+      let tall = sharp(whole, { limitInputPixels: false }).resize({ width: kind === "desktop" ? 2880 : 880 });
+      if (cap.fullMax) {
+        const resized = await tall.png().toBuffer();
+        const { height } = await sharp(resized, { limitInputPixels: false }).metadata();
+        tall = sharp(resized, { limitInputPixels: false });
+        if (height > cap.fullMax) tall = tall.extract({ left: 0, top: 0, width: kind === "desktop" ? 2880 : 880, height: cap.fullMax });
+      }
+      await tall.webp({ quality: 92, effort: 6 }).toFile(join(OUT, `${cap.id}-full.webp`));
     }
     record(cap.id, { url: page.url().replace(BASE, ""), at: new Date().toISOString(), kind, theme: cap.theme ?? "dark", signedIn: needsAuth, ...(cap.locale ? { locale: cap.locale } : {}) });
     console.log(`ok    ${cap.id.padEnd(22)} ${page.url().replace(BASE, "")}`);
