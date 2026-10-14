@@ -162,10 +162,10 @@ export function pair(a, b, { id, rotation, fov, dx = 0, h = 1, clear, through, e
 /* ------------------------------------------------------------- the 35 */
 
 export const SHOTS = [
-  std(1, "find-your-next-home-in-nigeria", "home", ["Find your next home", "in Nigeria"]),
+  std(1, "find-your-next-home-in-nigeria", "n-home", ["Find your next home", "in Nigeria"]),
   /* 2: the listing itself, whose move-in total sits under the photograph. */
-  std(2, "the-move-in-total-before-you-call", "listing", ["The move-in total,", "before you call"]),
-  std(3, "homes-and-stays-one-account", "welcome-1", ["Homes and stays,", "one account"]),
+  std(2, "the-move-in-total-before-you-call", "n-listing", ["The move-in total,", "before you call"]),
+  std(3, "featured-listings-see-them-all", "n-home-featured", ["Featured listings,", "see them all"]),
 
   /* 4 and 5, the one connected pair: the stays home across the seam, leaning
      right, slid so the seam passes clear of every word. The booking arrives
@@ -173,10 +173,10 @@ export const SHOTS = [
      where the ground is open; on 5 the phone's right side has no room for a
      card of this size within the overhang rule. */
   ...pair(
-    { n: 4, slug: "hotels-shortlets-and-resorts", lines: ["Hotels, shortlets", "and resorts"] },
+    { n: 4, slug: "hotels-shortlets-and-restaurants", lines: ["Hotels, shortlets", "and restaurants"] },
     { n: 5, slug: "book-a-room-in-a-few-taps", lines: ["Book a room", "in a few taps"] },
     {
-      id: "stays", rotation: { x: -16, y: -16, z: -17 }, fov: 26, h: 1, through: [893, 1272],
+      id: "n-stays", rotation: { x: -16, y: -16, z: -17 }, fov: 26, h: 1, through: [893, 1272],
       async extraA(ctx, m) {
         const { W, ios } = ctx;
         const sp = ctx.shared.phone;
@@ -225,18 +225,18 @@ export const SHOTS = [
     },
   ),
 
-  std(6, "vallo-never-holds-your-money", "support-money", ["Vallo never holds", "your money"]),
-  std(7, "see-the-stay-before-you-book", "stay", ["See the stay", "before you book"]),
-  std(8, "ask-the-ai-assistant-any-time-of-day", "assistant-caution-2", ["Ask the AI assistant", "any time of day"]),
-  std(9, "save-favourites-compare-later", "saved", ["Save favourites,", "compare later"]),
-  std(10, "find-a-restaurant-you-love", "restaurant", ["Find a restaurant", "you love"]),
-  std(11, "every-fee-added-up", "listing-cost", ["Every fee,", "added up"]),
-  std(12, "each-verified-mark-checked-by-a-person", "welcome-2", ["Each verified mark,", "checked by a person"]),
+  std(6, "vallo-never-holds-your-money", "sc-payments", ["Vallo never holds", "your money"]),
+  std(7, "see-the-stay-before-you-book", "n-resort", ["See the stay", "before you book"]),
+  std(8, "ask-the-ai-assistant-any-time-of-day", "sc-assistant-start", ["Ask the AI assistant", "any time of day"]),
+  std(9, "save-favourites-compare-later", "sc-saved", ["Save favourites,", "compare later"]),
+  std(10, "find-a-restaurant-you-love", "sc-restaurant", ["Find a restaurant", "you love"]),
+  std(11, "every-fee-added-up", "sc-listing-cost", ["Every fee,", "added up"]),
+  std(12, "each-verified-mark-checked-by-a-person", "sc-verification", ["Each verified mark,", "checked by a person"]),
 
   /* 13: the host's side. The payout arrives over the app's header, covering
      the menu and the logo whole, clear of the back button below, and
      overhangs the phone's left edge. No amount. */
-  std(13, "have-a-property-put-it-on-vallo", "host-start", ["Have a property?", "Put it on Vallo"], {
+  std(13, "have-a-property-put-it-on-vallo", "f-host-start", ["Have a property?", "Put it on Vallo"], {
     async extra(ctx, m, p) {
       const [edge] = p.at(-m.frame, HEADER.top);
       const left = edge - m.overhang;
@@ -260,33 +260,33 @@ export const SHOTS = [
 
   /* 14: the villas search, whose Map button sits over photographs, not over
      an Example chip. */
-  std(14, "search-homes-across-nigeria", "search-villas", ["Search homes", "across Nigeria"]),
-  std(15, "six-digits-and-youre-back-in", "lock", ["Six digits,", "and you’re back in"]),
-  std(16, "vallo-speaks-your-language", "welcome-yo", ["Vallo speaks", "your language"], { sub: "English, Hausa, Yorùbá and Igbo." }),
-  std(17, "power-water-and-the-gate", "listing-amenities", ["Power, water", "and the gate"]),
-  std(18, "pick-your-dates-see-the-price", "stays-dates", ["Pick your dates,", "see the price"]),
-  std(19, "homes-to-buy-not-just-to-rent", "listing-sale", ["Homes to buy,", "not just to rent"]),
-  std(20, "real-help-from-real-people", "support", ["Real help,", "from real people"]),
-  std(21, "inspect-first-then-pay-on-vallo", "welcome-3", ["Inspect first,", "then pay on Vallo"]),
-  std(22, "filter-down-to-what-you-need", "filters-villas", ["Filter down", "to what you need"]),
-  std(23, "light-or-dark-your-call", "appearance", ["Light or dark,", "your call"]),
-  std(24, "rooms-amenities-all-laid-out", "stay-amenities", ["Rooms, amenities,", "all laid out"]),
-  std(25, "vallo-charges-no-inspection-fee", "support-inspection", ["Vallo charges no", "inspection fee"]),
-  std(26, "earn-the-verified-mark", "verification", ["Earn the", "verified mark"]),
-  std(27, "back-where-you-left-off", "home-recent", ["Back where", "you left off"]),
-  std(28, "ask-about-prices-areas-or-renting", "assistant", ["Ask about prices,", "areas or renting"]),
-  std(29, "restaurants-all-in-one-place", "restaurants", ["Restaurants,", "all in one place"]),
-  std(30, "lock-vallo-with-a-passcode", "passcode", ["Lock Vallo", "with a passcode"]),
-  std(31, "need-a-bq-filter-for-it", "filters-detached-bq", ["Need a BQ?", "Filter for it"]),
-  std(32, "one-account-for-all-of-vallo", "sign-up", ["One account", "for all of Vallo"]),
-  std(33, "the-agents-fees-spelled-out", "listing-cost-total", ["The agent’s fees,", "spelled out"]),
-  std(34, "browse-stays-before-you-sign-up", "stays-dates-gb", ["Browse stays", "before you sign up"]),
-  std(35, "vallo-real-estate-done-right", "welcome-4", ["Vallo. Real estate,", "done right."], { sub: "Homes, hotels, shortlets and restaurants." }),
+  std(14, "search-homes-across-nigeria", "n-search", ["Search homes", "across Nigeria"]),
+  std(15, "ask-to-view-schedule-a-visit", "sc-thread", ["Ask to view,", "schedule a visit"]),
+  std(16, "vallo-speaks-your-language", "n-welcome-yo", ["Vallo speaks", "your language"], { sub: "English, Hausa, Yorùbá and Igbo." }),
+  std(17, "price-check-area-by-area", "sc-price", ["Price check,", "area by area"]),
+  std(18, "pick-your-dates-see-the-price", "n-stays-dates", ["Pick your dates,", "see the price"]),
+  std(19, "homes-to-buy-not-just-to-rent", "n-home-premium", ["Homes to buy,", "not just to rent"]),
+  std(20, "rooms-and-nights-set-by-you", "f-host-rooms", ["Rooms and nights,", "set by you"]),
+  std(21, "inspect-first-then-pay-on-vallo", "f-agreements", ["Inspect first,", "then pay on Vallo"]),
+  std(22, "filter-down-to-what-you-need", "sc-filters", ["Filter down", "to what you need"]),
+  std(23, "light-or-dark-your-call", "f-host-home-lt", ["Light or dark,", "your call"]),
+  std(24, "rooms-amenities-all-laid-out", "n-stay", ["Rooms, amenities,", "all laid out"]),
+  std(25, "the-guest-pays-the-price-you-set", "f-host-bookings", ["The guest pays", "the price you set"]),
+  std(26, "earn-the-verified-mark", "f-agent-dashboard", ["Earn the", "verified mark"]),
+  std(27, "rentals-houses-and-villas", "n-home-space", ["Rentals, houses", "and villas"]),
+  std(28, "your-calendar-night-by-night", "f-host-calendar", ["Your calendar,", "night by night"]),
+  std(29, "restaurants-all-in-one-place", "sc-restaurants", ["Restaurants,", "all in one place"]),
+  std(30, "paste-the-message-you-already-send", "f-agent-listing-edit", ["Paste the message", "you already send"]),
+  std(31, "your-numbers-from-your-records", "f-agent-analytics", ["Your numbers,", "from your records"]),
+  std(32, "one-account-every-business", "f-host-settings", ["One account,", "every business"]),
+  std(33, "the-agents-fees-spelled-out", "f-rent-movein", ["The agent’s fees,", "spelled out"]),
+  std(34, "every-home-list-or-map", "n-search-all", ["Every home,", "list or map"]),
+  std(35, "vallo-real-estate-done-right", "n-welcome-en", ["Vallo. Real estate,", "done right."], { sub: "Homes, hotels, shortlets and restaurants." }),
 ];
 
 /** Play's feature graphic, 1024 x 500, on the same night ground: the wordmark, one line, one phone. */
 export async function FEATURE(ctx) {
-  const p = await ctx.phone({ id: "home", cx: 766, cy: 258, h: 440, rotation: { x: -6, y: -16, z: 4 }, fov: 24, margin: 30, color: PHONE_COLOR });
+  const p = await ctx.phone({ id: "n-home", cx: 766, cy: 258, h: 440, rotation: { x: -6, y: -16, z: 4 }, fov: 24, margin: 30, color: PHONE_COLOR });
   return [
     `<img class="abs" src="${brandUrl("vallo-wordmark.png")}" style="left:146px;top:146px;width:176px;z-index:30">`,
     `<div class="abs" style="left:144px;top:206px;width:460px;z-index:30;font:600 64px/1.04 Poppins;letter-spacing:-0.03em;color:#fff">Real estate,<br>done right.</div>`,
