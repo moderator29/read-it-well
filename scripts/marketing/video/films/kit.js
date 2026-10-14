@@ -85,13 +85,21 @@ const TONES = {
   emerald: ["rgb(16 185 129 / 0.38)", "rgb(0 105 254 / 0.18)", "#02163a", "#010118"],
   violet: ["rgb(124 92 255 / 0.45)", "rgb(0 105 254 / 0.20)", "#0a0640", "#05021c"],
   gold: ["rgb(255 196 61 / 0.36)", "rgb(255 107 26 / 0.14)", "#0d0a2c", "#07041a"],
+  /* Daylight: the stage the founder's favourite cut used for its clean
+     bodies. White paper, a wash of brand blue, and dark type on top. */
+  day: ["rgb(0 105 254 / 0.14)", "rgb(143 211 255 / 0.16)", "#ffffff", "#e6edf9"],
+  dayblue: ["rgb(0 105 254 / 0.20)", "rgb(143 211 255 / 0.22)", "#f4f8ff", "#dbe6fa"],
 };
+
+/** The tones whose stage is white, so everything drawn on them runs dark. */
+export const isDay = (tone) => tone === "day" || tone === "dayblue";
 
 /**
  * A ground: a full-stage night gradient in a tone, its glow drifting slowly,
  * with a few sparkles. Returns the scene root (z 1).
  */
 export function ground(ctx, t0, t1, { tone = "navy", x = 50, y = 18, seed = 3, sparkle = 5, z = 1 } = {}) {
+  if (isDay(tone)) (ctx.__day ??= []).push([t0, t1]);
   const root = ctx.scene(`ground-${t0.toFixed(2)}`, t0, t1, { z });
   const [g1, g2, top, bottom] = TONES[tone];
   const base = ctx.el("div", { class: "fill", style: { background: `linear-gradient(180deg, ${top} 0%, ${bottom} 72%)` } }, root);
@@ -108,8 +116,9 @@ export function ground(ctx, t0, t1, { tone = "navy", x = 50, y = 18, seed = 3, s
   const lights = [];
   for (let i = 0; i < 7; i += 1) {
     const size = (ctx.isMobile ? 160 : 140) + rand() * 260;
-    const hue = rand() < 0.6 ? "143 211 255" : rand() < 0.5 ? "0 105 254" : "255 178 122";
-    const el = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${size}px`, height: `${size}px`, borderRadius: "50%", background: `radial-gradient(closest-side, rgb(${hue} / ${(0.10 + rand() * 0.12).toFixed(3)}), transparent)` } }, root);
+    /* on white paper a pale light is invisible, so day grounds drift blue */
+    const hue = isDay(tone) ? "0 105 254" : rand() < 0.6 ? "143 211 255" : rand() < 0.5 ? "0 105 254" : "255 178 122";
+    const el = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${size}px`, height: `${size}px`, borderRadius: "50%", background: `radial-gradient(closest-side, rgb(${hue} / ${((isDay(tone) ? 0.05 : 0.10) + rand() * (isDay(tone) ? 0.05 : 0.12)).toFixed(3)}), transparent)` } }, root);
     lights.push({ el, x: rand() * ctx.W, y: rand() * ctx.H, vx: (rand() - 0.5) * 26, vy: -8 - rand() * 18, size, ph: rand() * 6 });
   }
   during(ctx, t0, t1, (t) => {
@@ -464,7 +473,7 @@ export function lift(ctx, H, { id, crop, t0, t1, to, exit = "fade", fly = 0.7, z
  * one after another from t0, key words in sky; at t1 they rise away.
  * box: { x, y } is the top-left (align left) or top-centre (align center).
  */
-export function headline(ctx, parent, { lines, x, y, size = 110, t0, t1, align = "left", weight = 700, color = "#ffffff", key = "#8FD3FF", stagger = 0.055, lineGap = 1.04, sound = null }) {
+export function headline(ctx, parent, { lines, x, y, size = 110, t0, t1, align = "left", weight = 700, color = "#ffffff", key = "#8FD3FF", stagger = 0.055, lineGap = 1.04, sound = null, sheen = true }) {
   const box = ctx.el("div", { class: "abs", style: { left: `${x}px`, top: `${y}px`, width: align === "center" ? "0px" : "auto" } }, parent);
   const all = [];
   const shimmer = [];
@@ -474,7 +483,7 @@ export function headline(ctx, parent, { lines, x, y, size = 110, t0, t1, align =
       const w = words(ctx, text, { parent: row, cls: "display", style: { position: "relative", display: "inline", fontSize: "inherit", fontWeight: "inherit", color: isKey ? key : "inherit" } });
       w.el.className = "display";
       w.words.forEach((n) => all.push(n));
-      if (isKey) w.words.forEach((n) => { Object.assign(n.style, { backgroundImage: `linear-gradient(100deg, ${key} 0%, ${key} 38%, #ffffff 50%, ${key} 62%, ${key} 100%)`, backgroundSize: "300% 100%", WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }); shimmer.push(n); });
+      if (isKey && sheen) w.words.forEach((n) => { Object.assign(n.style, { backgroundImage: `linear-gradient(100deg, ${key} 0%, ${key} 38%, #ffffff 50%, ${key} 62%, ${key} 100%)`, backgroundSize: "300% 100%", WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }); shimmer.push(n); });
     }
   });
   all.forEach((n, i) => {
@@ -482,7 +491,13 @@ export function headline(ctx, parent, { lines, x, y, size = 110, t0, t1, align =
     if (t1 != null) ctx.tl.fromTo(n, { yPercent: 0, rotate: 0 }, { yPercent: -118, rotate: -3, duration: 0.42, ease: "power3.in", immediateRender: false }, t1 + i * stagger * 0.4);
   });
   ctx.onFrame((t) => {
-    for (const n of all) n.style.visibility = t >= t0 - 0.01 && (t1 == null || t < t1 + 0.9) ? "inherit" : "hidden";
+    /* a word is on screen until ITS OWN exit has finished: a single window for
+       the whole line left the last word's mask showing a sliver of a glyph
+       after the line had gone */
+    for (let i = 0; i < all.length; i += 1) {
+      const gone = t1 == null ? Infinity : t1 + i * stagger * 0.4 + 0.46;
+      all[i].style.visibility = t >= t0 - 0.01 && t < gone ? "inherit" : "hidden";
+    }
     const p = ramp(ctx, t, t0 + 0.5, t0 + 1.6, "power1.inOut");
     for (const n of shimmer) n.style.backgroundPosition = `${(100 - p * 100).toFixed(1)}% 0%`;
   });
@@ -978,6 +993,238 @@ export function poster(ctx, parent, { t1, questions = QUESTIONS, mark = true }) 
 /** The three questions the old cut opened on, and the reviewer liked. */
 export const QUESTIONS = ["What will it really cost?", "Who am I talking to?", "Where does my money go?"];
 
+/* ------------------------------------------------------- the clean bodies */
+
+/*
+ * THE BODIES THE FOUNDER ASKED FOR, 14 OCTOBER.
+ *
+ * He sent five frames of the cut his reviewer liked and said: look how neat
+ * they are, how they move, how they come off the app as clean bodies. Every
+ * one of them is DRAWN, not cropped: a white card with a blue cap carrying a
+ * day and a time, a month laid out in full, a booking notice, a solid blue
+ * line of proof, and the money's route down a rail. White paper, dark type,
+ * one idea per card, and room around it.
+ *
+ * So these are the parts the films hold up from now on. They carry the
+ * product's own words and figures; the live screen stays on the phone
+ * behind them, which is where a screenshot belongs.
+ */
+
+const INK = "#0b1230";
+const INK_SOFT = "rgb(11 18 48 / 0.60)";
+const BLUE = "#0069fe";
+
+/** The white card every clean body is built on. */
+function paper(ctx, parent, { w, radius = 40, pad = 0, style = {} }) {
+  return ctx.el("div", {
+    class: "abs",
+    attrs: { "data-furn": "1" },
+    style: {
+      left: "0px", top: "0px", width: `${w}px`, padding: pad ? `${pad}px` : "0px", borderRadius: `${radius}px`, overflow: "hidden",
+      background: "#ffffff", color: INK,
+      boxShadow: "0 46px 90px -34px rgb(8 22 70 / 0.55), 0 14px 32px -16px rgb(8 22 70 / 0.30)",
+      ...style,
+    },
+  }, parent);
+}
+
+/** Brings a drawn body in at t0 and takes it away at t1, with a little float. */
+function liveCard(ctx, card, { x, y, t0, t1, rot = 0, from = "below", seed = 1, anchor = "center", sound = "card_slide" }) {
+  const ph = ctx.random(seed)() * Math.PI * 2;
+  (ctx.__holds ??= []).push([t0 + 0.3, t1 ?? t0 + 2]);
+  ctx.onFrame((t) => {
+    const a = ramp(ctx, t, t0, t0 + 0.6, "land");
+    const b = t1 == null ? 0 : ramp(ctx, t, t1, t1 + 0.42, "power2.in");
+    const o = Math.min(ramp(ctx, t, t0, t0 + 0.2), 1 - b);
+    const off = from === "below" ? [0, 90] : from === "left" ? [-110, 0] : from === "above" ? [0, -90] : [110, 0];
+    const bob = Math.sin((t - t0) * 1.5 + ph) * 6 * a;
+    const px = x + (1 - a) * off[0];
+    const py = y + (1 - a) * off[1] + bob - b * 40;
+    const dx = anchor === "left" ? 0 : anchor === "right" ? -100 : -50;
+    card.style.transform = `translate(${px.toFixed(1)}px, ${py.toFixed(1)}px) translateX(${dx}%) translateY(-50%) rotate(${(rot * a + Math.sin((t - t0) * 0.9 + ph) * 0.5).toFixed(3)}deg) scale(${(0.93 + 0.07 * a).toFixed(4)})`;
+    card.style.opacity = opa(o);
+    card.style.visibility = o > 0.001 ? "inherit" : "hidden";
+  });
+  if (sound) ctx.sfx(sound, t0, { offset: -5 });
+  return card;
+}
+
+/** The small blue "Example" tag the product puts on its sample content. */
+function exampleTag(ctx, parent, size) {
+  return ctx.el("div", {
+    text: "Example",
+    style: { display: "inline-block", padding: `${size * 0.22}px ${size * 0.5}px`, borderRadius: "999px", background: "rgb(0 105 254 / 0.10)", color: BLUE, font: `600 ${Math.round(size * 0.62)}px/1 Inter, sans-serif` },
+  }, parent);
+}
+
+/**
+ * A moment: a blue cap with the day, then the time in full, then what it
+ * settled. ("Saturday / 11:00 AM / Inspection set")
+ */
+export function momentCard(ctx, parent, { cap, big, check, x, y, w, t0, t1, rot = -3, size = 40, seed = 1, from = "left", example = true, anchor = "center" }) {
+  const card = paper(ctx, parent, { w, radius: size * 1.1 });
+  const head = ctx.el("div", { style: { padding: `${size * 0.62}px ${size * 0.8}px`, background: `linear-gradient(140deg, #2f7cff, ${BLUE})` } }, card);
+  ctx.el("div", { text: cap, style: { font: `700 ${size * 1.05}px/1 Poppins, Inter, sans-serif`, letterSpacing: "-0.02em", color: "#fff" } }, head);
+  const body = ctx.el("div", { style: { padding: `${size * 0.72}px ${size * 0.8}px ${size * 0.8}px` } }, card);
+  ctx.el("div", { text: big, style: { font: `700 ${size * 1.7}px/1 Poppins, Inter, sans-serif`, letterSpacing: "-0.03em", color: INK } }, body);
+  if (check) {
+    const row = ctx.el("div", { style: { marginTop: `${size * 0.62}px`, display: "flex", alignItems: "center", gap: `${size * 0.4}px` } }, body);
+    const tick = ctx.el("div", { style: { flex: "none", width: `${size * 0.92}px`, height: `${size * 0.92}px`, borderRadius: `${size * 0.3}px`, background: "rgb(0 105 254 / 0.10)", display: "grid", placeItems: "center" } }, row);
+    const ic = ctx.icon("check", { size: Math.round(size * 0.62), stroke: 3 }, tick); ic.style.color = BLUE;
+    ctx.el("div", { text: check, style: { font: `600 ${size * 0.88}px/1.2 Poppins, Inter, sans-serif`, color: INK } }, row);
+  }
+  if (example) {
+    const foot = ctx.el("div", { style: { marginTop: `${size * 0.5}px`, display: "flex", justifyContent: "center" } }, body);
+    exampleTag(ctx, foot, size);
+  }
+  return liveCard(ctx, card, { x, y, t0, t1, rot, from, seed, anchor });
+}
+
+/** A month, laid out in full, with one day taken. */
+export function calendarCard(ctx, parent, { place, month, days = 31, start = 4, pick, x, y, w, t0, t1, tPick = null, rot = 0, seed = 2, from = "above", anchor = "center" }) {
+  const k = w / 760;
+  const card = paper(ctx, parent, { w, radius: 44 * k, pad: 40 * k });
+  ctx.el("div", { text: place, style: { font: `600 ${24 * k}px/1.2 Inter, sans-serif`, color: INK_SOFT } }, card);
+  const head = ctx.el("div", { style: { marginTop: `${10 * k}px`, display: "flex", alignItems: "center", justifyContent: "space-between" } }, card);
+  ctx.el("div", { text: month, style: { font: `700 ${44 * k}px/1.1 Poppins, Inter, sans-serif`, letterSpacing: "-0.03em", color: INK } }, head);
+  const navs = ctx.el("div", { style: { display: "flex", gap: `${10 * k}px` } }, head);
+  for (const d of ["chevron-left", "chevron-right"]) {
+    const b = ctx.el("div", { style: { width: `${52 * k}px`, height: `${52 * k}px`, borderRadius: "50%", background: "rgb(0 105 254 / 0.08)", display: "grid", placeItems: "center" } }, navs);
+    const i = ctx.icon(d, { size: Math.round(24 * k), stroke: 2.4 }, b); i.style.color = BLUE;
+  }
+  const grid = ctx.el("div", { style: { marginTop: `${22 * k}px`, display: "grid", gridTemplateColumns: "repeat(7, 1fr)", rowGap: `${12 * k}px`, textAlign: "center" } }, card);
+  for (const d of ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"]) ctx.el("div", { text: d, style: { font: `600 ${22 * k}px/1.4 Inter, sans-serif`, color: INK_SOFT } }, grid);
+  for (let i = 0; i < start; i += 1) ctx.el("div", { text: "" }, grid);
+  const picked = [];
+  for (let d = 1; d <= days; d += 1) {
+    const cell = ctx.el("div", { style: { display: "grid", placeItems: "center" } }, grid);
+    const dot = ctx.el("div", {
+      text: String(d),
+      style: { width: `${56 * k}px`, height: `${56 * k}px`, borderRadius: "50%", display: "grid", placeItems: "center", font: `${d === pick ? 700 : 500} ${26 * k}px/1 Inter, sans-serif`, color: INK },
+    }, cell);
+    if (d === pick) picked.push(dot);
+  }
+  if (picked.length) {
+    const tp = tPick ?? t0 + 0.9;
+    ctx.onFrame((t) => {
+      const a = ramp(ctx, t, tp, tp + 0.4, "back.out(2)");
+      const dot = picked[0];
+      dot.style.background = a > 0.01 ? BLUE : "transparent";
+      dot.style.color = a > 0.5 ? "#fff" : INK;
+      dot.style.transform = `scale(${(0.6 + 0.4 * a).toFixed(3)})`;
+      dot.style.boxShadow = a > 0.01 ? `0 ${8 * k * a}px ${20 * k * a}px rgb(0 105 254 / ${(0.4 * a).toFixed(2)})` : "none";
+    });
+    ctx.sfx("tap", tPick ?? t0 + 0.9, { offset: -2 });
+  }
+  return liveCard(ctx, card, { x, y, t0, t1, rot, from, seed, anchor });
+}
+
+/** A notice the product would send: an object, a title, a line, and when. */
+export function noticeCard(ctx, parent, { object = null, icon = "bell", title, line, x, y, w, t0, t1, rot = 0, size = 34, seed = 3, from = "above", example = true, anchor = "center" }) {
+  const card = paper(ctx, parent, { w, radius: size * 1.2, pad: size * 0.7, style: { display: "flex", alignItems: "center", gap: `${size * 0.6}px` } });
+  const tile = ctx.el("div", { style: { flex: "none", width: `${size * 2.1}px`, height: `${size * 2.1}px`, borderRadius: `${size * 0.66}px`, background: "rgb(0 105 254 / 0.09)", display: "grid", placeItems: "center" } }, card);
+  if (object) ctx.img(ctx.src.object(object), { style: { width: `${size * 1.5}px`, height: `${size * 1.5}px`, objectFit: "contain" } }, tile);
+  else { const i = ctx.icon(icon, { size: Math.round(size * 1.05), stroke: 2.3 }, tile); i.style.color = BLUE; }
+  const body = ctx.el("div", { style: { flex: "1", minWidth: "0" } }, card);
+  ctx.el("div", { text: title, style: { font: `700 ${size}px/1.15 Poppins, Inter, sans-serif`, letterSpacing: "-0.02em", color: INK } }, body);
+  if (line) ctx.el("div", { text: line, style: { marginTop: `${size * 0.18}px`, font: `500 ${size * 0.78}px/1.3 Inter, sans-serif`, color: INK_SOFT } }, body);
+  const meta = ctx.el("div", { style: { flex: "none", display: "flex", flexDirection: "column", alignItems: "flex-end", gap: `${size * 0.26}px` } }, card);
+  if (example) exampleTag(ctx, meta, size);
+  ctx.el("div", { text: "now", style: { font: `500 ${size * 0.6}px/1 Inter, sans-serif`, color: INK_SOFT } }, meta);
+  return liveCard(ctx, card, { x, y, t0, t1, rot, from, seed, anchor });
+}
+
+/** A name and a figure: what a place costs, said once and plainly. */
+export function priceCard(ctx, parent, { name, figure, unit, x, y, w, t0, t1, rot = 0, size = 36, seed = 4, from = "right", example = true, anchor = "center" }) {
+  const card = paper(ctx, parent, { w, radius: size * 1.1, pad: size * 0.72 });
+  const head = ctx.el("div", { style: { display: "flex", alignItems: "center", gap: `${size * 0.4}px` } }, card);
+  ctx.el("div", { text: name, style: { font: `700 ${size * 0.92}px/1.15 Poppins, Inter, sans-serif`, letterSpacing: "-0.02em", color: INK } }, head);
+  if (example) exampleTag(ctx, head, size);
+  const row = ctx.el("div", { style: { marginTop: `${size * 0.4}px`, display: "flex", alignItems: "baseline", gap: `${size * 0.35}px` } }, card);
+  ctx.el("div", { text: figure, style: { font: `700 ${size * 1.5}px/1 Poppins, Inter, sans-serif`, letterSpacing: "-0.03em", color: INK } }, row);
+  if (unit) ctx.el("div", { text: unit, style: { font: `500 ${size * 0.78}px/1 Inter, sans-serif`, color: INK_SOFT } }, row);
+  return liveCard(ctx, card, { x, y, t0, t1, rot, from, seed, anchor });
+}
+
+/** A short list of what was checked, each line with its own tick. */
+export function listCard(ctx, parent, { title, items, x, y, w, t0, t1, rot = 0, size = 34, seed = 7, from = "below", anchor = "center", stagger = 0.18 }) {
+  const card = paper(ctx, parent, { w, radius: size * 1.2, pad: size * 0.85 });
+  if (title) ctx.el("div", { text: title, style: { font: `700 ${size * 1.05}px/1.15 Poppins, Inter, sans-serif`, letterSpacing: "-0.02em", color: INK, marginBottom: `${size * 0.6}px` } }, card);
+  const rows = items.map((it, i) => {
+    const [head, note] = Array.isArray(it) ? it : [it, null];
+    const row = ctx.el("div", { style: { display: "flex", alignItems: "flex-start", gap: `${size * 0.52}px`, marginTop: i ? `${size * 0.56}px` : "0px" } }, card);
+    const tick = ctx.el("div", { style: { flex: "none", width: `${size * 1.05}px`, height: `${size * 1.05}px`, borderRadius: "50%", background: "rgb(0 105 254 / 0.10)", display: "grid", placeItems: "center" } }, row);
+    const ic = ctx.icon("check", { size: Math.round(size * 0.66), stroke: 3 }, tick); ic.style.color = BLUE;
+    const body = ctx.el("div", {}, row);
+    ctx.el("div", { text: head, style: { font: `700 ${size * 0.92}px/1.2 Poppins, Inter, sans-serif`, color: INK } }, body);
+    if (note) ctx.el("div", { text: note, style: { marginTop: `${size * 0.14}px`, font: `500 ${size * 0.74}px/1.3 Inter, sans-serif`, color: INK_SOFT } }, body);
+    return row;
+  });
+  rows.forEach((row, i) => {
+    const ti = t0 + 0.35 + i * stagger;
+    ctx.onFrame((t) => {
+      const a = ramp(ctx, t, ti, ti + 0.4, "land");
+      row.style.opacity = opa(a);
+      row.style.transform = `translateX(${((1 - a) * -18).toFixed(1)}px)`;
+    });
+    ctx.sfx("pop", ti, { offset: -8 });
+  });
+  return liveCard(ctx, card, { x, y, t0, t1, rot, from, seed, anchor });
+}
+
+/** One plain promise on brand blue, with a tick. */
+export function proofCard(ctx, parent, { lines, x, y, w, t0, t1, rot = -2, size = 40, seed = 5, from = "left", anchor = "center" }) {
+  const card = paper(ctx, parent, {
+    w, radius: size * 1.1, pad: size * 0.86,
+    style: { background: `linear-gradient(145deg, #2f7cff, ${BLUE})`, display: "flex", alignItems: "center", gap: `${size * 0.6}px`, boxShadow: "0 46px 90px -30px rgb(0 60 180 / 0.65)" },
+  });
+  const tick = ctx.el("div", { style: { flex: "none", width: `${size * 1.3}px`, height: `${size * 1.3}px`, borderRadius: "50%", background: "rgb(255 255 255 / 0.22)", display: "grid", placeItems: "center" } }, card);
+  const ic = ctx.icon("check", { size: Math.round(size * 0.86), stroke: 3 }, tick); ic.style.color = "#fff";
+  const body = ctx.el("div", {}, card);
+  for (const l of [].concat(lines)) ctx.el("div", { text: l, style: { font: `700 ${size}px/1.25 Poppins, Inter, sans-serif`, letterSpacing: "-0.02em", color: "#fff" } }, body);
+  return liveCard(ctx, card, { x, y, t0, t1, rot, from, seed, anchor });
+}
+
+/**
+ * Where the money goes, down a rail: each stop lights in turn, so the route
+ * is read rather than claimed. (The provider is named the way the founder
+ * rules it is named: ours, licensed, never Vallo.)
+ */
+export function flowRail(ctx, parent, { steps, x, y, t0, t1, gap = 250, size = 44, seed = 6, lit = null }) {
+  const root = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px" } }, parent);
+  const r = size * 1.5;
+  const nodes = [];
+  steps.forEach((label, i) => {
+    const row = ctx.el("div", { class: "abs", style: { left: "0px", top: `${i * gap}px`, display: "flex", alignItems: "center", gap: `${size * 0.9}px` } }, root);
+    const ring = ctx.el("div", { style: { flex: "none", width: `${r * 2}px`, height: `${r * 2}px`, borderRadius: "50%", background: "#fff", border: `${size * 0.1}px solid rgb(0 105 254 / 0.18)`, display: "grid", placeItems: "center", boxShadow: "0 18px 40px -18px rgb(8 22 70 / 0.4)" } }, row);
+    const core = ctx.el("div", { style: { width: `${r * 1.1}px`, height: `${r * 1.1}px`, borderRadius: "50%", background: "#eef3ff", display: "grid", placeItems: "center", font: `700 ${size * 0.8}px/1 Poppins, Inter, sans-serif`, color: BLUE } }, ring);
+    if (i === 0) ctx.el("span", { text: "₦" }, core);
+    ctx.el("div", { text: label, style: { font: `700 ${size}px/1.2 Poppins, Inter, sans-serif`, letterSpacing: "-0.02em", color: INK, whiteSpace: "nowrap" } }, row);
+    nodes.push({ ring, core });
+    if (i < steps.length - 1) {
+      const line = ctx.el("div", { class: "abs", style: { left: `${r - size * 0.05}px`, top: `${i * gap + r * 2}px`, width: `${size * 0.1}px`, height: `${gap - r * 2}px`, background: "rgb(0 105 254 / 0.22)", transformOrigin: "50% 0%" } }, root);
+      nodes[i].line = line;
+    }
+  });
+  const tLit = lit ?? steps.map((_, i) => t0 + 0.5 + i * 0.75);
+  ctx.onFrame((t) => {
+    const a = ramp(ctx, t, t0, t0 + 0.55, "land");
+    const b = t1 == null ? 0 : ramp(ctx, t, t1, t1 + 0.4, "power2.in");
+    const o = Math.min(ramp(ctx, t, t0, t0 + 0.2), 1 - b);
+    place(root, { x, y, s: 0.95 + 0.05 * a, o });
+    nodes.forEach((n, i) => {
+      const u = ramp(ctx, t, tLit[i], tLit[i] + 0.4, "back.out(1.8)");
+      n.core.style.background = u > 0.5 ? BLUE : "#eef3ff";
+      n.core.style.color = u > 0.5 ? "#fff" : BLUE;
+      n.ring.style.boxShadow = `0 18px 40px -18px rgb(8 22 70 / 0.4), 0 0 0 ${(u * size * 0.22).toFixed(1)}px rgb(0 105 254 / 0.16)`;
+      if (n.line) n.line.style.transform = `scaleY(${ramp(ctx, t, tLit[i] + 0.2, tLit[i] + 0.75).toFixed(3)})`;
+    });
+  });
+  tLit.forEach((tt) => ctx.sfx("pop", tt, { offset: -6 }));
+  (ctx.__holds ??= []).push([t0 + 0.3, t1 ?? t0 + 3]);
+  return root;
+}
+
 /**
  * FOCUS.
  *
@@ -995,6 +1242,8 @@ export function installFocus(ctx, { strength = 0.44 } = {}) {
   const scrim = ctx.el("div", { class: "fill", style: { background: "radial-gradient(78% 58% at 50% 48%, rgb(2 5 28 / 0.72), rgb(1 2 16 / 0.93) 78%)" } }, root);
   ctx.onFrame((t) => {
     let a = 0;
+    /* a white stage is already clean: dimming it would only grey the paper */
+    for (const [d0, d1] of ctx.__day ?? []) if (t >= d0 - 0.3 && t <= d1 + 0.3) { scrim.style.opacity = "0"; scrim.style.visibility = "hidden"; return; }
     for (const [h0, h1] of holds) {
       if (t < h0 - 0.45 || t > h1 + 0.5) continue;
       const u = ramp(ctx, t, h0 - 0.45, h0 + 0.1) * (1 - ramp(ctx, t, h1 - 0.1, h1 + 0.5));

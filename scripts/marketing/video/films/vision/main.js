@@ -8,7 +8,7 @@
  * referral rewards; then the vision, Nigeria city by city, and the stores.
  * Claims and figures: FACTS-OCT.md and the founder's rulings of 14 October.
  */
-import { poster, installFocus, sheet, STAY_CARDS, listingWall, flagCard, anchors, ground, flash, hero, lift, headline, kicker, liveChip, numberCard, notify, chipRow, featureCard, ending, ringBurst, windowRig, nigeriaMap, ramp, during, place } from "../kit.js";
+import { poster, installFocus, sheet, noticeCard, flowRail, momentCard, listCard, proofCard, STAY_CARDS, listingWall, flagCard, anchors, ground, flash, hero, lift, headline, kicker, liveChip, numberCard, notify, chipRow, featureCard, ending, ringBurst, windowRig, nigeriaMap, ramp, during, place } from "../kit.js";
 
 export async function build(ctx) {
   const M = ctx.isMobile;
@@ -135,7 +135,7 @@ export async function build(ctx) {
   /* ===================== 5. Owners: list it yourself ===================== */
   ground(ctx, s(6) - 0.05, s(9) + 0.3, { tone: "navy", y: 15, seed: 35 });
   const own = layer("owners", s(6) - 0.1, s(9));
-  headline(ctx, own, { lines: [[["For owners and ", false], ["landlords", true]]], x: M ? R.cx : HX, y: M ? R.top : 200, size: M ? 74 : 76, t0: s(6), t1: s(7) - 0.3, align: M ? "center" : "left" });
+  headline(ctx, own, { lines: [[["For owners and", false]], [["landlords", true]]], x: M ? R.cx : HX, y: M ? R.top : 180, size: M ? 74 : 76, t0: s(6), t1: s(7) - 0.3, align: M ? "center" : "left" });
   H.show("f-host-start", s(6) + 0.2, w(8, "photos") - 0.3, { enter: "slide" });
   H.tap(w(7, "List") - 0.15, 660, 2360);
   lift(ctx, H, { id: "f-host-start", crop: { x: 40, y: 2235, w: 1240, h: 260 }, t0: w(7, "List") + 0.1, t1: s(8) - 0.2, to: { ...ROW(0), s: RS * 1.05, r: -2 }, seed: 5 });
@@ -212,7 +212,7 @@ export async function build(ctx) {
   chipRow(ctx, ag, { items: [["Portfolio", "folder-kanban"], ["Analytics", "chart-column"], ["Firm desk", "building-2"]], x: R.cx, y: CHIPS_Y, t0: w(13, "portfolio"), gap: (w(13, "firm") - w(13, "portfolio")) / 2, t1: w(13, "Pro") - 0.3, size: M ? 32 : 28, anchor: "center" });
   H.show("f-pro", w(13, "Pro") - 0.3, s(14) + 0.3, { enter: "slide" });
   lift(ctx, H, { id: "f-pro", crop: { x: 200, y: 1170, w: 920, h: 540 }, t0: w(13, "Pro") + 0.1, t1: s(14) - 0.2, to: { x: R.cx, y: M ? 600 : 360, s: M ? 0.7 : 0.55, r: -3 }, seed: 14 });
-  chipRow(ctx, ag, { items: [["Vallo Pro", "sparkles"], ["Vallo Business", "briefcase"]], x: R.cx, y: M ? R.top - 20 : 160, t0: w(13, "Pro"), gap: w(13, "Business") - w(13, "Pro"), t1: s(14) - 0.2, size: M ? 34 : 30, anchor: "center" });
+  chipRow(ctx, ag, { items: [["Vallo Pro", "sparkles"], ["Vallo Business", "briefcase"]], x: R.cx, y: M ? 300 : 120, t0: w(13, "Pro"), gap: w(13, "Business") - w(13, "Pro"), t1: s(14) - 0.2, size: M ? 34 : 30, anchor: "center" });
   liveChip(ctx, ag, { text: "Free trial to start", x: R.cx, y: CHIPS_Y, t0: w(13, "free") - 0.1, t1: s(14) - 0.2, size: M ? 34 : 30, anchor: "center" });
   if (!M) {
     const W = windowRig(ctx);
@@ -247,9 +247,16 @@ export async function build(ctx) {
   H.show("f-agreements", s(17) - 0.2, s(19) + 0.3, { enter: "slide" });
   const ten = layer("tenancy", s(17) - 0.1, s(19));
   chipRow(ctx, ten, { items: [["Tenancy file", "folder-open"], ["Agreement", "file-signature"], ["Records", "archive"]], x: R.cx, y: M ? R.top : 200, t0: w(17, "tenancy") - 0.1, gap: (w(17, "records") - w(17, "tenancy")) / 2, t1: s(18) + 1.0, size: M ? 30 : 28, anchor: "center" });
-  lift(ctx, H, { id: "f-agreements", crop: { x: 30, y: 590, w: 1260, h: 540 }, t0: w(18, "approved") - 0.2, t1: s(19) - 0.2, to: { x: R.cx, y: M ? 640 : 380, s: RS * 0.92, r: -2 }, seed: 16 });
+  listCard(ctx, ten, {
+    title: "When your rent payment opens",
+    items: [
+      ["The inspection report is in", "And you have both confirmed the agreement."],
+      ["Escrow opens straight away", "A direct payment waits only when the deal needs a second look."],
+    ],
+    x: M ? 540 : 1330, y: M ? 620 : 380, w: M ? 880 : 740, t0: w(18, "approved") - 0.2, t1: w(18, "reminds") - 0.25, rot: -1, size: M ? 35 : 30, seed: 16,
+  });
   kicker(ctx, ten, { text: "Pay your rent in the app", icon: "house", x: R.cx, y: CHIPS_Y, t0: w(18, "rent") - 0.15, t1: w(18, "reminds") - 0.1, size: M ? 32 : 28, anchor: "center" });
-  notify(ctx, ten, { title: "Rent due in 7 days", line: "Your tenancy · Vallo reminds you", icon: "bell-ring", x: M ? 90 : 1010, y: M ? 1360 : 700, t: w(18, "reminds") - 0.05, tOut: s(19) - 0.25, size: M ? 34 : 30, example: true });
+  noticeCard(ctx, ten, { object: "bell", title: "Rent due in 7 days", line: "Your tenancy, and Vallo reminds you first.", x: M ? 540 : 1330, y: M ? 1150 : 660, w: M ? 860 : 720, t0: w(18, "reminds") - 0.05, t1: s(19) - 0.25, size: M ? 36 : 32, seed: 17, from: "below" });
 
   /* ===================== 12. Wallet and escrow ===================== */
   ground(ctx, s(19) - 0.05, s(21) + 0.2, { tone: "electric", y: 18, seed: 42 });
@@ -266,14 +273,24 @@ export async function build(ctx) {
   ctx.sfx("lock_click", w(20, "escrow"), { offset: -2 });
 
   /* ===================== 13. The promise ===================== */
-  ground(ctx, s(21) - 0.05, s(24) + 0.3, { tone: "navy", y: 45, seed: 43, sparkle: 8 });
+  ground(ctx, s(21) - 0.05, s(22) - 0.25, { tone: "navy", y: 45, seed: 43, sparkle: 8 });
   const pr = layer("promise", s(21) - 0.05, s(24) + 0.1, 800);
-  const size = M ? 90 : 96;
-  headline(ctx, pr, { lines: [[["Here's the ", false], ["promise.", true]]], x: ctx.W / 2, y: M ? 720 : 400, size: size * 1.1, t0: s(21), t1: s(22) - 0.2, align: "center" });
-  headline(ctx, pr, { lines: [[["All funds,", true]], [["in your wallet,", false]], [["in escrow,", false]], [["in every payment,", false]]], x: M ? 60 : 200, y: M ? 470 : 150, size, t0: s(22), t1: w(22, "held") - 0.3, stagger: 0.12 });
-  headline(ctx, pr, { lines: [[["held by our", false]], [["licensed provider.", true]]], x: M ? 60 : 200, y: M ? 640 : 300, size: size * 1.05, t0: w(22, "held") - 0.1, t1: s(23) - 0.2, stagger: 0.07 });
-  headline(ctx, pr, { lines: [[["Vallo never holds", false]], [["your ", false], ["money.", true]]], x: ctx.W / 2, y: M ? 700 : 340, size: size * 1.1, t0: s(23) - 0.05, t1: s(24) - 0.5, align: "center", stagger: 0.07 });
-  ringBurst(ctx, pr, { cx: ctx.W / 2, cy: (M ? 700 : 340) + size * 1.1, r: M ? 380 : 330, t: w(23, "never") + 0.1, seed: 44 });
+  const size = M ? 84 : 84;
+  headline(ctx, pr, { lines: [[["Here's the ", false], ["promise.", true]]], x: ctx.W / 2, y: M ? 720 : 400, size: size * 1.2, t0: s(21), t1: s(22) - 0.45, align: "center" });
+  /* daylight, and one line at a time in one slot: the four stacked headlines
+     used to print over each other as they changed */
+  const DAY0 = s(22) - 0.35;
+  const DAY1 = s(24) - 0.25;
+  ground(ctx, DAY0, DAY1, { tone: "day", y: 40, seed: 44, sparkle: 0, z: 2 });
+  const SLOT = { x: M ? 70 : ctx.W / 2, y: M ? 300 : 150, align: M ? "left" : "center", color: "#0b1230", key: "#0069fe", sheen: false };
+  headline(ctx, pr, { ...SLOT, lines: [[["All funds,", true]], [["in your wallet,", false]], [["in escrow,", false]], [["in every payment,", false]]], size, t0: s(22), t1: w(22, "held") - 0.4, stagger: 0.045 });
+  headline(ctx, pr, { ...SLOT, lines: [[["held by our", false]], [["licensed provider.", true]]], size, t0: w(22, "held") - 0.05, t1: s(23) - 0.35, stagger: 0.07 });
+  headline(ctx, pr, { ...SLOT, lines: [[["Vallo never holds", false]], [["your ", false], ["money.", true]]], size, t0: s(23), t1: s(24) - 0.55, stagger: 0.07 });
+  flowRail(ctx, pr, {
+    steps: ["Your card", "Our licensed provider", "The owner's bank"],
+    x: M ? 170 : 660, y: M ? 880 : 540, gap: M ? 250 : 168, size: M ? 44 : 36,
+    t0: w(22, "held") + 0.1, t1: s(24) - 0.45, seed: 45,
+  });
   ctx.sfx("stamp", w(23, "never") + 0.05, { offset: 0 });
   ctx.hideCaptions(s(21) - 0.1, s(24) - 0.3);
   ctx.hidePill(s(21) - 0.2, s(24) - 0.1);

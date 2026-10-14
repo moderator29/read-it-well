@@ -7,7 +7,7 @@
  * keeps the phone on the left, with the web app's window, the lifted parts
  * and the words on the right. Claims and figures: FACTS-OCT.md.
  */
-import { poster, installFocus, STAY_CARDS, listingWall, flagCard, nigeriaMap, anchors, ground, flash, hero, lift, headline, kicker, liveChip, numberCard, notify, chipRow, featureCard, ending, ringBurst, windowRig, ramp, opa, during, place } from "../kit.js";
+import { poster, installFocus, momentCard, calendarCard, noticeCard, priceCard, proofCard, listCard, flowRail, STAY_CARDS, listingWall, flagCard, nigeriaMap, anchors, ground, flash, hero, lift, headline, kicker, liveChip, numberCard, notify, chipRow, featureCard, ending, ringBurst, windowRig, ramp, opa, during, place } from "../kit.js";
 
 export async function build(ctx) {
   const M = ctx.isMobile;
@@ -114,13 +114,13 @@ export async function build(ctx) {
   H.show("n-home2", 7.9, s(3) + 1.0, { enter: "cut", full: "n-home2-full", scroll: [[7.9, 1500], [w(3, "Homes") + 0.05, 3000, "power3.out"]] });
   H.show("n-stays", s(3) + 1.0, s(4) + 0.6, { enter: "slide" });
   H.tap(s(3) + 0.85, 660, 1600);
-  lift(ctx, H, { id: "n-home2", src: ctx.src.capture("n-home2-full"), scrolled: 3000, crop: { x: 100, y: 3690, w: 1110, h: 1030 }, t0: w(3, "Homes") + 0.05, t1: w(3, "one") - 0.2, to: { x: M ? 280 : 1170, y: M ? 820 : 520, s: M ? 0.4 : 0.32, r: -5 }, seed: 1, radius: 60 });
-  lift(ctx, H, { id: "n-stays", crop: { x: 45, y: 1600, w: 590, h: 420 }, t0: w(3, "hotels"), t1: w(3, "one") - 0.15, to: { ...R.r1, s: TS, r: 5 }, seed: 2 });
-  lift(ctx, H, { id: "n-stays", crop: { x: 645, y: 1600, w: 630, h: 420 }, t0: w(3, "shortlets"), t1: w(3, "one") - 0.1, to: { ...R.l2, s: TS, r: -6 }, seed: 3 });
-  lift(ctx, H, { id: "n-stays", crop: { x: 45, y: 2045, w: 590, h: 420 }, t0: w(3, "restaurants"), t1: w(3, "one") - 0.05, to: { ...R.r2, s: TS, r: 4 }, seed: 4 });
+  lift(ctx, H, { id: "n-home2", src: ctx.src.capture("n-home2-full"), scrolled: 3000, crop: { x: 100, y: 3690, w: 1110, h: 1030 }, t0: w(3, "Homes") + 0.05, t1: w(3, "one") - 0.2, to: { x: M ? 300 : 1150, y: M ? 720 : 450, s: M ? 0.4 : 0.32, r: -5 }, seed: 1, radius: 60, label: "Premium listings" });
+  lift(ctx, H, { id: "n-stays", crop: { x: 45, y: 1600, w: 590, h: 420 }, t0: w(3, "hotels"), t1: w(3, "one") - 0.15, to: { x: M ? 805 : 1585, y: M ? 520 : 300, s: TS, r: 5 }, seed: 2 });
+  lift(ctx, H, { id: "n-stays", crop: { x: 645, y: 1600, w: 630, h: 420 }, t0: w(3, "shortlets"), t1: w(3, "one") - 0.1, to: { x: M ? 795 : 1585, y: M ? 900 : 690, s: TS, r: -6 }, seed: 3 });
+  lift(ctx, H, { id: "n-stays", crop: { x: 45, y: 2045, w: 590, h: 420 }, t0: w(3, "restaurants"), t1: w(3, "one") - 0.05, to: { x: M ? 300 : 1150, y: M ? 1240 : 820, s: TS, r: 4 }, seed: 4 });
   const one = layer("one", s(3), s(4) + 0.4);
-  kicker(ctx, one, { text: "Premium listings", icon: "gem", x: R.cx, y: M ? 1440 : 860, t0: w(3, "Homes") + 0.2, t1: w(3, "one") - 0.25, size: M ? 32 : 28, anchor: "center" });
-  chipRow(ctx, one, { items: [["One app", "smartphone"], ["One account", "user-round-check"]], x: R.cx, y: M ? 1440 : 860, t0: w(3, "one"), t1: s(4) - 0.2, size: M ? 34 : 30, anchor: "center" });
+  kicker(ctx, one, { text: "Premium listings", icon: "gem", x: R.cx, y: M ? 1600 : 170, t0: w(3, "Homes") + 0.2, t1: w(3, "one") - 0.25, size: M ? 32 : 28, anchor: "center" });
+  chipRow(ctx, one, { items: [["One app", "smartphone"], ["One account", "user-round-check"]], x: R.cx, y: M ? 1600 : 170, t0: w(3, "one"), t1: s(4) - 0.2, size: M ? 34 : 30, anchor: "center" });
 
   /* ===================== 4. How it works: search, filter, save, compare ===================== */
   listingWall(ctx, layer("wall1", s(4) - 0.5, w(6, "Filter") + 1.2, 3), { t0: s(4) - 0.4, t1: w(6, "Filter") + 0.3, rows: M ? 5 : 3, opacity: 0.52, seed: 11, y: M ? 260 : 60, stays: STAY_CARDS(ctx), stayRows: [1, 3] });
@@ -166,22 +166,28 @@ export async function build(ctx) {
   const cost = layer("cost", s(7), s(9) + 0.3);
   kicker(ctx, cost, { text: "What you will actually pay", icon: "receipt", x: R.cx, y: M ? 1430 : 880, t0: w(7, "whole"), t1: w(7, "move-in") + 0.3, size: M ? 32 : 28, anchor: "center" });
   const lines = [
-    { word: "Rent", crop: { x: 45, y: 1055, w: 1230, h: 310 }, y: M ? 520 : 250 },
-    { word: "agency", crop: { x: 45, y: 1385, w: 1230, h: 260 }, y: M ? 745 : 440 },
-    { word: "legal", crop: { x: 45, y: 1655, w: 1230, h: 250 }, y: M ? 950 : 615 },
-    { word: "caution", crop: { x: 45, y: 2195, w: 1230, h: 370 }, y: M ? 1190 : 820 },
+    { word: "Rent", crop: { x: 45, y: 1055, w: 1230, h: 310 }, y: M ? 508 : 218 },
+    { word: "agency", crop: { x: 45, y: 1385, w: 1230, h: 260 }, y: M ? 779 : 412 },
+    { word: "legal", crop: { x: 45, y: 1655, w: 1230, h: 250 }, y: M ? 1030 : 594 },
+    { word: "caution", crop: { x: 45, y: 2195, w: 1230, h: 370 }, y: M ? 1316 : 790 },
   ];
-  lines.forEach((l, i) => lift(ctx, H, { id: "sc-listing-cost", crop: l.crop, t0: w(8, l.word) - 0.05, t1: w(8, "added") - 0.25 + i * 0.05, to: { x: R.cx + (i % 2 ? 14 : -14), y: l.y, s: RS, r: i % 2 ? 1.5 : -1.5 }, seed: 20 + i }));
-  numberCard(ctx, cost, { value: 26100000, label: "Move-in total, every line added", x: R.cx, y: M ? R.top : 330, t0: w(8, "added") - 0.1, t1: w(8, "added") + 1.3, tOut: s(9) - 0.2, size: M ? 96 : 84 });
+  lines.forEach((l, i) => lift(ctx, H, { id: "sc-listing-cost", crop: l.crop, t0: w(8, l.word) - 0.05, t1: w(8, "added") - 0.6 + i * 0.05, to: { x: R.cx + (i % 2 ? 14 : -14), y: l.y, s: RS * (M ? 1 : 0.82), r: i % 2 ? 1.5 : -1.5 }, seed: 20 + i }));
+  numberCard(ctx, cost, { value: 26100000, label: "Move-in total, every line added", x: R.cx, y: M ? R.top : 330, t0: w(8, "added") - 0.02, t1: w(8, "added") + 1.3, tOut: s(9) - 0.2, size: M ? 96 : 84 });
   ctx.hidePill(w(8, "added") - 0.3, s(9) - 0.1);
 
   /* ===================== 6. Price check (36.92 - 41.72) ===================== */
   H.show("sc-price", s(9) - 0.1, s(11) + 0.3, { enter: "slide" });
   const price = layer("price", s(9), s(11));
-  lift(ctx, H, { id: "sc-price", crop: { x: 40, y: 560, w: 1240, h: 520 }, t0: w(10, "price") - 0.05, t1: s(11) - 0.3, to: { x: R.cx, y: M ? 600 : 360, s: RS, r: -2 }, seed: 30 });
   H.tap(w(10, "nearby") - 0.1, 1080, 1470);
-  lift(ctx, H, { id: "sc-price", crop: { x: 120, y: 1510, w: 1160, h: 140 }, t0: w(10, "nearby") + 0.15, t1: s(11) - 0.25, to: { x: R.cx - (M ? 20 : 0), y: M ? 900 : 560, s: RS, r: -2 }, seed: 31 });
-  lift(ctx, H, { id: "sc-price", crop: { x: 120, y: 1975, w: 1160, h: 140 }, t0: w(10, "asking") - 0.35, t1: s(11) - 0.2, to: { x: R.cx + (M ? 20 : 0), y: M ? 1080 : 700, s: RS, r: 2 }, seed: 32 });
+  listCard(ctx, price, {
+    title: "Price check",
+    items: [
+      ["What homes nearby ask", "Tell Vallo where and what, and it shows what similar places near there are advertised for."],
+      ["Never a guess", "If there is not enough nearby to be sure, Vallo says so instead."],
+    ],
+    x: M ? 540 : 1330, y: M ? 760 : 470, w: M ? 880 : 740, t0: w(10, "price") - 0.05, t1: s(11) - 0.3, rot: -1, size: M ? 36 : 31, seed: 30,
+    stagger: Math.max(0.35, w(10, "asking") - w(10, "nearby")),
+  });
   kicker(ctx, price, { text: "What homes nearby are asking", icon: "map-pin", x: R.cx, y: M ? 1440 : 860, t0: w(10, "asking") - 0.6, t1: s(11) - 0.2, size: M ? 32 : 28, anchor: "center" });
 
   /* ===================== 7. Talk straight to the lister (42.69 - 57.95) ===================== */
@@ -195,7 +201,7 @@ export async function build(ctx) {
   H.tap(w(12, "call") + 0.15, 1055, 275);
   chipRow(ctx, talk, { items: [["Voice call", "phone"], ["Video call", "video"]], x: R.cx, y: M ? 1430 : 840, t0: w(12, "voice"), gap: 0.35, t1: w(12, "viewing") - 0.3, size: M ? 34 : 30, anchor: "center" });
   H.tap(w(12, "viewing") + 0.1, 330, 850);
-  lift(ctx, H, { id: "sc-thread", crop: { x: 40, y: 790, w: 640, h: 120 }, t0: w(12, "viewing") + 0.25, t1: s(13) + 0.6, to: { x: R.cx, y: M ? 560 : 360, s: M ? 0.95 : 0.8, r: -3 }, seed: 32 });
+  momentCard(ctx, talk, { cap: "Saturday", big: "11:00 AM", check: "Inspection set", x: M ? 330 : 1310, y: M ? 620 : 430, w: M ? 540 : 470, t0: w(12, "viewing") + 0.25, t1: s(13) + 0.6, rot: -3, size: M ? 42 : 36, from: "left", seed: 32 });
   chipRow(ctx, talk, { items: [["In person", "footprints"], ["By video", "video"]], x: R.cx, y: M ? 1430 : 840, t0: w(12, "person"), gap: 0.5, t1: s(13) + 0.2, size: M ? 34 : 30, anchor: "center" });
   const free = layer("free", s(13) - 0.1, s(14) + 0.1);
   liveChip(ctx, free, { text: "Viewings are always free", x: R.cx, y: M ? R.top + 10 : 230, t0: w(13, "free") - 0.3, t1: s(14) - 0.2, size: M ? 34 : 30, anchor: "center" });
@@ -229,11 +235,14 @@ export async function build(ctx) {
   H.show("n-staysd", w(19, "dates") - 0.2, s(20) + 0.1, { enter: "slide", full: "n-staysd-full", scroll: [[w(19, "room") - 0.1, 0], [w(19, "room") + 0.7, 1990, "power3.inOut"], [w(19, "shortlet") - 0.2, 1990], [w(19, "shortlet") + 0.5, 3440, "power3.inOut"]] });
   H.tap(s(18) + 0.7, 340, 1920);
   H.tap(w(19, "dates") + 0.15, 520, 1060);
-  lift(ctx, H, { id: "n-stays-dates", crop: { x: 40, y: 990, w: 1250, h: 240 }, t0: w(19, "dates") + 0.4, t1: w(19, "room") - 0.4, to: { x: R.cx, y: M ? 540 : 330, s: RS, r: -2 }, seed: 39 });
+  const dates = layer("dates", w(19, "dates"), w(19, "hotel") + 0.8, 770);
+  calendarCard(ctx, dates, { place: "Eko Pearl Apartments · Victoria Island, Lagos", month: "October 2026", days: 31, start: 4, pick: 16, x: M ? 540 : 1330, y: M ? 700 : 470, w: M ? 860 : 700, t0: w(19, "dates") + 0.1, t1: w(19, "hotel") + 0.1, tPick: w(19, "dates") + 0.75, rot: -1, seed: 39, from: "above" });
   H.tap(w(19, "room") - 0.4, 660, 1560);
   const trip = layer("trip", s(18), s(20));
   lift(ctx, H, { id: "n-staysd", src: ctx.src.capture("n-staysd-full"), scrolled: 3440, crop: { x: 45, y: 3742, w: 1217, h: 1366 }, t0: w(19, "full") + 0.05, t1: s(20) - 0.15, to: { x: R.cx, y: M ? 820 : 520, s: M ? 0.5 : 0.4, r: -2 }, seed: 40, radius: 50 });
   numberCard(ctx, trip, { value: 396000, label: "Total for 3 nights, Eko Pearl Apartments", x: R.cx, y: M ? R.top - 20 : 160, t0: w(19, "full") + 0.1, t1: w(19, "full") + 0.9, tOut: s(20) - 0.15, size: M ? 84 : 76 });
+  priceCard(ctx, trip, { name: "Eko Pearl Apartments", figure: "₦132,000", unit: "per night", x: M ? 660 : 1500, y: M ? 1330 : 790, w: M ? 600 : 520, t0: w(19, "room") + 0.5, t1: w(19, "full") - 0.55, rot: 2, size: M ? 38 : 34, seed: 41, from: "right" });
+  noticeCard(ctx, trip, { object: "calendar-booked", title: "Room booked", line: "Eko Pearl Apartments · 3 nights", x: M ? 540 : 1330, y: M ? 560 : 300, w: M ? 820 : 700, t0: w(19, "hotel") + 0.5, t1: w(19, "full") - 0.1, rot: 0, size: M ? 38 : 34, seed: 42, from: "above" });
   kicker(ctx, trip, { text: "The full cost before you pay", icon: "badge-check", x: R.cx, y: M ? 1440 : 860, t0: w(19, "full") - 0.2, t1: s(20) - 0.2, size: M ? 32 : 28, anchor: "center" });
   listingWall(ctx, layer("staywall", s(18) - 0.5, w(19, "dates") + 0.5, 3), { t0: s(18) - 0.4, t1: w(19, "dates"), rows: M ? 5 : 3, opacity: 0.55, seed: 21, y: M ? 260 : 60, stays: STAY_CARDS(ctx), stayRows: [0, 1, 2, 3, 4] });
   if (!M) {
@@ -273,10 +282,21 @@ export async function build(ctx) {
   ground(ctx, s(24) - 0.05, s(27) + 0.3, { tone: "navy", y: 45, seed: 20, sparkle: 8 });
   const naira = layer("naira", s(24) - 0.05, s(26) + 0.2, 800);
   const size = M ? 92 : 96;
-  headline(ctx, naira, { lines: [[["Every ", false], ["naira,", true]], [["in your wallet,", false]], [["in escrow,", false]], [["in every payment,", false]]], x: M ? 60 : 200, y: M ? 470 : 150, size, t0: s(24), t1: w(24, "held") - 0.3, stagger: 0.12 });
-  headline(ctx, naira, { lines: [[["held by our", false]], [["licensed provider.", true]]], x: M ? 60 : 200, y: M ? 640 : 300, size: size * 1.05, t0: w(24, "held") - 0.1, t1: s(25) - 0.2, stagger: 0.07 });
-  headline(ctx, naira, { lines: [[["Never by ", false], ["Vallo.", true]]], x: ctx.W / 2, y: M ? 760 : 410, size: size * 1.25, t0: s(25) - 0.05, t1: s(26) - 0.2, align: "center", stagger: 0.08 });
-  ringBurst(ctx, naira, { cx: ctx.W / 2, cy: (M ? 760 : 410) + size * 0.62, r: M ? 330 : 300, t: s(25) + 0.1, seed: 33 });
+  headline(ctx, naira, { lines: [[["Every ", false], ["naira,", true]], [["in your wallet,", false]], [["in escrow,", false]], [["in every payment,", false]]], x: M ? 60 : 200, y: M ? 470 : 150, size, t0: s(24), t1: w(24, "held") - 0.3, stagger: 0.045 });
+  /* daylight for the promise: white paper, dark type, and the money's route
+     drawn down a rail, the way the founder's favourite cut said it */
+  const DAY0 = w(24, "held") - 0.5;
+  const DAY1 = s(26) - 0.1;
+  ground(ctx, DAY0, DAY1, { tone: "day", y: 40, seed: 34, sparkle: 0, z: 2 });
+  ctx.hidePill(DAY0 - 0.1, DAY1 + 0.1);
+  const INKC = "#0b1230";
+  headline(ctx, naira, { lines: [[["held by our", false]], [["licensed provider.", true]]], x: M ? 70 : ctx.W / 2, y: M ? 300 : 150, size: size * (M ? 0.95 : 0.9), t0: w(24, "held") - 0.1, t1: s(25) - 0.2, stagger: 0.07, color: INKC, key: "#0069fe", sheen: false, align: M ? "left" : "center" });
+  headline(ctx, naira, { lines: [[["Never by ", false], ["Vallo.", true]]], x: ctx.W / 2, y: M ? 560 : 320, size: size * (M ? 1.2 : 1.05), t0: s(25) - 0.05, t1: s(26) - 0.2, align: "center", stagger: 0.08, color: INKC, key: "#0069fe", sheen: false });
+  flowRail(ctx, naira, {
+    steps: ["Your card", "Our licensed provider", "The owner's bank"],
+    x: M ? 170 : 660, y: M ? 880 : 470, gap: M ? 255 : 192, size: M ? 46 : 38,
+    t0: w(24, "held") + 0.15, t1: s(26) - 0.3, seed: 35,
+  });
   ctx.sfx("stamp", s(25) + 0.05, { offset: 0 });
   ctx.hideCaptions(s(24) - 0.1, s(26) - 0.1);
   ctx.hidePill(s(24) - 0.2, s(27) - 0.1);
@@ -288,15 +308,19 @@ export async function build(ctx) {
   /* ===================== 14. Checked by a person (110.77 - 119.45) ===================== */
   ground(ctx, s(27) - 0.05, s(28) + 0.3, { tone: "electric", y: 25, seed: 21 });
   H.show("sc-verification", s(27) - 0.2, s(28) + 0.3, { enter: "slide" });
-  const steps = [
-    { crop: { x: 160, y: 950, w: 1120, h: 330 }, to: R.l1, word: "owner" },
-    { crop: { x: 160, y: 1325, w: 1120, h: 360 }, to: R.r1, word: "host" },
-    { crop: { x: 160, y: 1770, w: 1120, h: 380 }, to: R.l2, word: "business" },
-    { crop: { x: 160, y: 2215, w: 1120, h: 350 }, to: R.r2, word: "person" },
-  ];
-  steps.forEach((st, i) => lift(ctx, H, { id: "sc-verification", crop: st.crop, t0: w(27, st.word) - 0.05, t1: s(28) - 0.35 + i * 0.04, to: { x: R.cx + (i % 2 ? 16 : -16), y: (M ? [500, 745, 1000, 1250] : [240, 445, 655, 860])[i], s: RS * 0.98, r: i % 2 ? 1.5 : -1.5 }, seed: 60 + i }));
   const ver = layer("ver", s(27), s(28) + 0.1);
-  chipRow(ctx, ver, { items: [["Four steps", "list-checks"], ["A real person at Vallo", "user-check"]], x: R.cx, y: M ? 1440 : 860, t0: w(27, "steps") - 0.1, gap: 0.6, t1: s(28) - 0.2, size: M ? 30 : 28, anchor: "center" });
+  listCard(ctx, ver, {
+    title: "What is checked",
+    items: [
+      ["Your ID", "One government issued document showing your face and name."],
+      ["Your address", "Confirmed against the document you gave."],
+      ["A bank account", "In your own name, matching your ID."],
+      ["A real person", "Someone at Vallo reads it, every time."],
+    ],
+    x: M ? 540 : 1330, y: M ? 760 : 470, w: M ? 880 : 740,
+    t0: w(27, "owner") - 0.1, t1: s(28) - 0.3, rot: -1, size: M ? 36 : 31, seed: 60, stagger: Math.max(0.3, (w(27, "person") - w(27, "owner")) / 3),
+  });
+  proofCard(ctx, ver, { lines: ["Checked by a real", "person at Vallo."], x: M ? 420 : 560, y: M ? 1430 : 820, w: M ? 640 : 560, t0: w(27, "person") + 0.1, t1: s(28) - 0.25, rot: -2, size: M ? 42 : 36, seed: 64, from: "left" });
 
   /* ===================== 15. Ask anything (120.0 - 125.9) ===================== */
   ground(ctx, s(28) - 0.05, s(31) + 0.3, { tone: "violet", y: 30, seed: 22 });
