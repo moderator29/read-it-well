@@ -673,7 +673,7 @@ const CITIES = [
   { name: "Kano", lon: 8.52, lat: 12.0 },
   { name: "Enugu", lon: 7.5, lat: 6.45 },
   { name: "Kaduna", lon: 7.44, lat: 10.52 },
-  { name: "Benin City", lon: 5.62, lat: 6.34 },
+  { name: "Benin City", lon: 5.62, lat: 6.34, below: true },
 ];
 
 /**
@@ -709,13 +709,14 @@ export async function nigeriaMap(ctx, parent, { x, y, w, t0, t1, tCities = null,
   CITIES.slice(0, cities).forEach((c, i) => {
     const p = proj(c.lon, c.lat);
     const dot = ctx.el("div", { class: "abs", style: { left: `${p.x - 13}px`, top: `${p.y - 13}px`, width: "26px", height: "26px", borderRadius: "50%", background: "radial-gradient(circle at 35% 30%, #fff, #8FD3FF 35%, #0069fe 75%)", boxShadow: "0 0 0 8px rgb(0 105 254 / 0.25), 0 0 30px 6px rgb(0 105 254 / 0.6)" } }, box);
-    const lab = labels ? ctx.el("div", { class: "abs", text: c.name, style: { left: `${p.x + 22}px`, top: `${p.y - 18}px`, font: `600 ${Math.round(w * 0.036)}px/1 Poppins, Inter, sans-serif`, color: "#fff", whiteSpace: "nowrap", textShadow: "0 2px 10px rgb(0 0 20 / 0.8)" } }, box) : null;
+    // Benin City sits just west of Enugu: its name goes under the dot, clear of Enugu's.
+    const lab = labels ? ctx.el("div", { class: "abs", text: c.name, style: { left: `${c.below ? p.x : p.x + 22}px`, top: `${c.below ? p.y + 24 : p.y - 18}px`, font: `600 ${Math.round(w * 0.036)}px/1 Poppins, Inter, sans-serif`, color: "#fff", whiteSpace: "nowrap", textShadow: "0 2px 10px rgb(0 0 20 / 0.8)" } }, box) : null;
     const ti = tc + i * gap;
     ctx.onFrame((t) => {
       const a = ramp(ctx, t, ti, ti + 0.45, "back.out(2.2)");
       dot.style.transform = `scale(${a.toFixed(4)})`;
       dot.style.opacity = opa(ramp(ctx, t, ti, ti + 0.1));
-      if (lab) { lab.style.opacity = opa(ramp(ctx, t, ti + 0.1, ti + 0.4)); lab.style.transform = `translateX(${((1 - a) * -10).toFixed(1)}px)`; }
+      if (lab) { lab.style.opacity = opa(ramp(ctx, t, ti + 0.1, ti + 0.4)); lab.style.transform = c.below ? `translate(-50%, ${((1 - a) * -8).toFixed(1)}px)` : `translateX(${((1 - a) * -10).toFixed(1)}px)`; }
     });
     ctx.sfx("pop", ti, { offset: -9 });
   });
