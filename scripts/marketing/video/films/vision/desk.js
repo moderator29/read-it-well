@@ -67,8 +67,10 @@ export async function build(ctx) {
     /* the promise: the window leaves, the words carry it */
     [s(21) - 0.5, { ...SIDE }],
     [s(21) - 0.1, { ...GONE }, "power3.in"],
-    [s(24) - 0.3, { ...GONE }],
-    [s(24) + 0.2, { ...SIDE }, "power3.out"],
+    /* the window waits for the white to go: sliding in over the paper put a
+       grey rectangle on the promise */
+    [s(24) + 0.08, { ...GONE }],
+    [s(24) + 0.6, { ...SIDE }, "power3.out"],
     [w(26, "flagged") - 0.6, { ...SIDE }],
     [w(26, "flagged") - 0.2, { ...FULL }, "power3.inOut"],
     [w(27, "full") - 0.6, { ...FULL }],
