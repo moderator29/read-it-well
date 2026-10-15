@@ -96,7 +96,16 @@ export async function build(ctx) {
   ground(ctx, 0, s(3) + 0.1, { tone: "navy", y: 40, seed: 31 });
   const open = layer("open", 0, s(2) + 0.2);
   /* the frame a chat shows before anyone presses play: composed at t = 0 */
-  poster(ctx, open, { t1: s(1) - 0.15 });
+  poster(ctx, open, {
+    t1: s(1) - 0.15,
+    scene: "step-4-dark",
+    questions: ["A place to live", "A place to stay", "A place to meet"],
+    size: ctx.isMobile ? 56 : 44,
+    layout: {
+      mobile: [[330, 404, -4, 520], [700, 604, 3, 520], [360, 800, -3, 520]],
+      desktop: [[392, 330, -4, 420], [560, 500, 3, 420], [404, 670, -3, 420]],
+    },
+  });
   await nigeriaMap3d(ctx, open, { x: 1050, y: 250, w: 740, t0: s(1) - 0.05, t1: s(2) - 0.3, tTrails: s(1) + 0.6, gap: 0.28, labels: true, cities: 6 });
   headline(ctx, open, { lines: [[["Every day, people", false]], [["across ", false], ["Nigeria", true]]], x: HX, y: 240, size: 96, t0: s(1), t1: s(2) - 0.35, stagger: 0.05 });
   chipRow(ctx, open, { items: [["A place to live", "house"], ["to stay", "bed-double"], ["to meet", "utensils-crossed"]], x: HX, y: 620, t0: w(1, "live") - 0.1, gap: w(1, "stay") - w(1, "live"), t1: s(2) - 0.35, size: 34, anchor: "left", wrapW: 760 });

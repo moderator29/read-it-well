@@ -1069,7 +1069,7 @@ export function sceneBack(ctx, parent, { scene, t0, t1, opacity = 0.5, anchorY =
  * frame, and an empty blue field was what the reviewer saw the first time.
  * It breathes where it stands, then clears for the opening line.
  */
-export function poster(ctx, parent, { t1, questions = QUESTIONS, scene = "step-1-dark" }) {
+export function poster(ctx, parent, { t1, questions = QUESTIONS, scene = "step-1-dark", layout = null, size = null }) {
   const M = ctx.isMobile;
   const root = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${ctx.W}px`, height: `${ctx.H}px`, overflow: "hidden" } }, parent);
 
@@ -1104,13 +1104,17 @@ export function poster(ctx, parent, { t1, questions = QUESTIONS, scene = "step-1
   }, root);
 
   /* the questions, staggered down the frame the way the approved cut had them */
-  const Q = M
+  /* Each film needs its own frame, or a chat shows four identical stills and
+     nobody can tell the 2:28 from the 3:37 before pressing play. A film
+     passes its own artwork, its own three lines and, when they are short, a
+     layout of its own. */
+  const Q = layout ? (M ? layout.mobile : layout.desktop) : (M
     ? [[404, 404, -4, 672], [628, 622, 3, 560], [430, 836, -3, 700]]
-    : [[398, 318, -4, 520], [566, 494, 3, 430], [416, 700, -3, 556]];
+    : [[398, 318, -4, 520], [566, 494, 3, 430], [416, 700, -3, 556]]);
   const cards = [];
   questions.forEach((text, i) => {
     const [x, y, rot, w] = Q[i] ?? Q[0];
-    cards.push(questionCard(ctx, root, { text, x, y, rot, w, t0: 0, t1: t1 - 0.45 - i * 0.06, size: M ? 54 : 42, seed: 10 + i, wrap: true }));
+    cards.push(questionCard(ctx, root, { text, x, y, rot, w, t0: 0, t1: t1 - 0.45 - i * 0.06, size: size ?? (M ? 54 : 42), seed: 10 + i, wrap: true }));
   });
 
   ctx.onFrame((t) => {
