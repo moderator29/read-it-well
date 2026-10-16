@@ -35,4 +35,88 @@ export const F = {
     ],
     props: [{ name: "coin", x: 0.05, y: 0.79, size: 210, rot: -8 }],
   },
+
+  /* 4: the pair's left half. The phone leans in from the right and the hand
+     placed "Room booked" card already stands on its rim, so this half takes
+     props only, in the open ground down the left. */
+  4: {
+    props: [{ name: "hotel", x: 0.045, y: 0.70, size: 225, rot: -8 }],
+  },
+
+  /* 5: the pair's right half. The phone holds the left of the image, so the
+     prop stands in the open right margin, clear of the seam. */
+  5: {
+    props: [{ name: "restaurant", rx: 0.05, y: 0.70, size: 225, rot: 9 }],
+  },
+
+  /* 6: payments. What the page is, over the rim; what comes back, under it. */
+  6: {
+    pops: [
+      { side: "left", at: 0.01, center: true, kind: "line", tab: "Payments", lucide: "wallet", title: "Paid through Vallo", line: "A record of what has moved", meta: null },
+      { side: "right", y: 0.962, anchor: "bottom", kind: "line", tab: "Refunds", lucide: "undo-2", title: "Refunds come back", line: "To your card or bank account", meta: null },
+    ],
+    props: [{ name: "pay", x: 0.045, y: 0.775, size: 215, rot: -8 }],
+  },
+
+  /* 7: the resort. Its nightly price over the rim, what the stay holds under it. */
+  7: {
+    pops: [
+      { side: "right", at: 0.01, center: true, kind: "stat", tab: "The stay", label: "Lagoon Crest Resort", figure: "₦150,000", unit: "a night", lucide: "bed-double" },
+      { side: "left", y: 0.962, anchor: "bottom", kind: "cells", tab: "The rooms", lucide: "building-2", title: "Garden rooms and villas",
+        cells: [["Sleeps", "4"], ["Room types", "2"]], foot: "Breakfast by the lagoon, a spa in the house." },
+    ],
+    props: [{ name: "hotel", rx: 0.05, y: 0.78, size: 215, rot: 8 }],
+  },
+
+  /* 8: the assistant. One of its own starter questions over the rim, the
+     ground it covers under the phone. */
+  8: {
+    pops: [
+      { side: "left", at: 0.01, center: true, kind: "line", tab: "You ask", lucide: "message-circle", title: "Two bedroom in Lekki", line: "under 5m a year", meta: null },
+      { side: "right", y: 0.962, anchor: "bottom", kind: "line", tab: "Assistant", lucide: "sparkles", title: "What it can answer", line: "Rent, buy, stay or a table", line2: "What moving in really costs", meta: null },
+    ],
+    props: [{ name: "clock", x: 0.045, y: 0.775, size: 210, rot: -7 }],
+  },
+
+  /* 9: the shortlist. Why it opens without signal, over the rim; two of its
+     own prices side by side, under it. */
+  9: {
+    pops: [
+      { side: "left", at: 0.01, center: true, kind: "line", tab: "Offline", lucide: "wifi-off", title: "Kept on this phone", line: "Opens without signal", meta: null },
+      { side: "right", y: 0.962, anchor: "bottom", kind: "cells", tab: "Compare", lucide: "scale", title: "Prices side by side",
+        cells: [["For sale", "₦180m"], ["To move in", "₦26.1m"]], foot: "Four places saved, ready to compare." },
+    ],
+    props: [{ name: "saved-heart", x: 0.045, y: 0.775, size: 215, rot: 7 }],
+  },
+
+  /* 10: the restaurant. The room's size over the rim, the table's terms under it. */
+  10: {
+    pops: [
+      { side: "right", at: 0.01, center: true, kind: "stat", tab: "The table", label: "Harbour Lights Kitchen", figure: "80", unit: "seats", lucide: "utensils-crossed" },
+      { side: "left", y: 0.962, anchor: "bottom", kind: "line", tab: "The kitchen", lucide: "clock", title: "Open until 16:00", line: "Seafood, smart casual", line2: "Parking and backup power", meta: null },
+    ],
+    props: [{ name: "restaurant", rx: 0.05, y: 0.78, size: 215, rot: 8 }],
+  },
+
+  /* 11: the featured row. One featured home's rooms over the rim, the one
+     above it, with its price, under the phone. */
+  11: {
+    pops: [
+      { side: "left", at: 0.01, center: true, kind: "cells", tab: "Featured", lucide: "house", title: "Five bedroom, Asokoro",
+        cells: [["Beds", "5"], ["Baths", "5"], ["Size", "420 m²"]], foot: "Size, beds and baths on every card." },
+      { side: "right", y: 0.962, anchor: "bottom", kind: "line", tab: "For sale", lucide: "key-round", title: "Terrace in Karsana", line: "3 beds · 3 baths · 195 m²", amount: "₦95m", meta: null },
+    ],
+    props: [{ name: "apartment", x: 0.045, y: 0.775, size: 210, rot: -7 }],
+  },
+
+  /* 12: verification. How many steps there are, over the rim; the first and
+     the last of them, under it. */
+  12: {
+    pops: [
+      { side: "right", at: 0.01, center: true, kind: "stat", tab: "Verification", label: "What a person checks", figure: "4", unit: "steps", lucide: "user-check" },
+      { side: "left", y: 0.962, anchor: "bottom", kind: "cells", tab: "The steps", lucide: "badge-check", title: "What gets checked",
+        cells: [["Step 1", "Identity"], ["Step 4", "In person"]], foot: "A visit or a live video call, recorded." },
+    ],
+    props: [{ name: "id-check", rx: 0.05, y: 0.78, size: 215, rot: 9 }],
+  },
 };
