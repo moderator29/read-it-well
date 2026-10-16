@@ -41,10 +41,10 @@ export const POSTS = [
     ig: "The move-in total, before you call.\n\nThe example villa asks ₦18m a year. Moving in costs ₦26.1m, added up on the listing.\n\nVallo charges no inspection fee.\n\nvallospaces.com (link in bio)\n\n#Vallo #RentInNigeria #Abuja",
     tg: "The move-in total, before you call.\n\nThe example villa asks ₦18m a year and ₦26.1m to move in, added up on the listing.\n\nVallo charges no inspection fee.\n\nvallospaces.com" },
 
-  { n: 4, day: 4, slug: "every-fee", topic: "Every fee, added up", capture: "sc-listing-cost", box: [42, 1662, 1278, 2055],
+  { n: 4, day: 4, slug: "every-fee", topic: "Every fee, added up", capture: "sc-listing-cost", box: [26, 832, 1292, 1024],
     lines: ["Every *fee*,", "added up"], support: "Rent, agency, legal, agreement and the refundable caution deposit.", cta: "See the cost page",
     prop: "receipt", badges: [{ name: "percent", kind: "glyph" }, { name: "contract" }],
-    pop: { kind: "cells", tab: "The whole cost", lucide: "receipt-text", cells: [["Rent", "₦18m"], ["Fees", "₦4.5m"], ["Refundable", "₦3.6m"]], foot: "Vallo charges no inspection fee." },
+    pop: { kind: "line", tab: "Line by line", lucide: "percent", title: "Agency fee", line: "10.0% of a year’s rent", amount: "₦1,800,000" },
     x: "Every fee, added up: rent, agency, legal, agreement and the refundable caution deposit, each on its own line with who keeps it. vallospaces.com",
     ig: "Every fee, added up.\n\nRent, agency, legal, agreement and the refundable caution deposit, each on its own line with who keeps it.\n\nvallospaces.com (link in bio)\n\n#Vallo #Nigeria #RentInNigeria",
     tg: "Every fee, added up.\n\nRent, agency, legal, agreement and the refundable caution deposit, each on its own line with who keeps it.\n\nvallospaces.com" },
