@@ -13,7 +13,12 @@ export const F = {
       { side: "left", at: 0.01, center: true, kind: "line", tab: "Homes", lucide: "search", title: "Rent, buy or sell", line: "Property across Nigeria", meta: null },
       { side: "right", y: 0.962, anchor: "bottom", kind: "stat", tab: "Saved", label: "On your shortlist", figure: "4", unit: "spaces saved", lucide: "heart" },
     ],
-    props: [{ name: "villa", x: 0.04, y: 0.745, size: 215, rot: 7 }],
+    props: [{ name: "villa", x: 0.055, y: 0.745, size: 210, rot: 7 }],
+    badges: [
+      { name: "search", kind: "glyph", rx: 0.055, y: 0.205, size: 140, rot: -6 },
+      { name: "hotel", x: 0.05, y: 0.355, size: 150, rot: 5 },
+      { name: "map", kind: "glyph", rx: 0.062, y: 0.62, size: 128, rot: 8, tone: "paper" },
+    ],
   },
 
   /* 2: the listing. What it asks, over the rim; what it costs to move in, under it. */

@@ -27,7 +27,7 @@
  * pages, the two cost pages) far apart.
  */
 import { headline, popup } from "../components.mjs";
-import { furnish } from "../furniture.mjs";
+import { furnish, panelFor } from "../furniture.mjs";
 import { FURNITURE } from "./furniture/index.mjs";
 import { brandUrl } from "../lib.mjs";
 
@@ -75,9 +75,9 @@ export function M(ctx) {
   };
 }
 
-function head(ctx, m, lines, { align = "center", sub } = {}) {
+function head(ctx, m, lines, { align = "center", sub, keyStyle } = {}) {
   return headline({
-    lines, cx: ctx.W / 2, x: m.side, y: m.hlTop, max: m.max, size: m.size, align, weight: 600, lineHeight: m.lh,
+    lines, cx: ctx.W / 2, x: m.side, y: m.hlTop, max: m.max, size: m.size, align, weight: 600, lineHeight: m.lh, keyStyle,
     sub, subSize: m.subSize, subGap: m.subSize * (ctx.ios ? 0.5 : 0.42), subColor: "rgb(255 255 255 / 0.6)",
   });
 }
@@ -114,9 +114,9 @@ export function std(n, slug, id, lines, { sub, extra, ...rest } = {}) {
     async layout(ctx) {
       const m = M(ctx);
       const p = await stdPhone(ctx, m, id);
-      const { pops, props, figures } = spec;
-      const furniture = pops || props || figures ? furnish(ctx, m, p, { pops, props, figures }) : "";
-      return [head(ctx, m, lines, { sub }), p.html, furniture, extra ? await extra(ctx, m, p) : ""].join("\n");
+      const { pops, props, figures, badges, panel = true } = spec;
+      const furniture = furnish(ctx, m, p, { pops, props, figures, badges });
+      return [panel ? panelFor(ctx, m) : "", head(ctx, m, lines, { sub, keyStyle: spec.keyStyle }), p.html, furniture, extra ? await extra(ctx, m, p) : ""].join("\n");
     },
   };
 }
@@ -181,7 +181,7 @@ export function pair(a, b, { id, rotation, fov, dx = 0, h = 1, clear, through, e
 /* ------------------------------------------------------------- the 35 */
 
 export const SHOTS = [
-  std(1, "find-your-next-home-in-nigeria", "n-home", ["Find your next home", "in Nigeria"]),
+  std(1, "find-your-next-home-in-nigeria", "n-home", ["Find your next *home*", "in Nigeria"], { keyStyle: "chip" }),
   /* 2: the listing itself, whose move-in total sits under the photograph.
      Both figures are the ones the screen under them prints: ₦18m a year on
      the listing, ₦26.1m in the bar at the foot. */

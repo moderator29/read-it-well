@@ -78,3 +78,27 @@ node store/compose.mjs --store google-play --only 7,8,9 --res 2 --proof /tmp/...
 
 Zero problems reported, and the JPEG has to be worth sending to the founder:
 nothing sliced, nothing repeated, nothing crowded, the screen still the hero.
+
+## The second round (16 October, later the same day)
+
+The founder sent the pump.fun App Store set itself and asked for more of it.
+Three more parts exist now, and every shot may use them.
+
+- **The stage panel.** A soft rounded field inset 52 px, drawn under
+  everything, with two blurred blobs in it. It is ON by default for every
+  shot; `panel: false` in a shot's entry turns it off. It is what the props
+  and badges overhang.
+- **The round badges.** `badges: [{ name, kind: "object"|"glyph"|"mark",
+  x | rx, y, size, rot, tone }]`, the blueprint's scattered coins. Two to
+  four per shot, 120 to 170 px, near the edges (x or rx between 0.045 and
+  0.09 keeps them off the 40 px line), one `tone: "paper"` at most. `object`
+  carries one of the brand's 3D objects, `glyph` a Lucide icon, `mark` the
+  Vallo mark.
+- **The key word in a chip.** Mark one word of the headline `*like this*` and
+  set `keyStyle: "chip"` on the shot. The word goes in a rounded box in the
+  brand blue instead of in the sky colour. Use it on the shots whose headline
+  has one word worth marking; not on every shot, and never on a word the
+  sentence does not turn on.
+
+Shot 1 in `a.mjs` and its entry in `premium.mjs` are the worked example of
+all three.

@@ -170,6 +170,42 @@ export function prop({ name, x, right, y, size = 200, rotate = 0, z = 34, glow =
     ${plate}<img src="${brandUrl(`3d/${name}@2x.webp`)}" style="width:${px(d)};height:${px(d)}"></div>`;
 }
 
+/* ------------------------------------------------------------- the badges */
+
+/**
+ * A round badge floating free, the way the blueprint scatters its coins
+ * around the handset: a disc with a hairline and a drop, carrying one of the
+ * brand's 3D objects, a line glyph or the Vallo mark.
+ *
+ *   kind   "object" (a 3D object), "glyph" (a Lucide icon) or "mark"
+ *   tone   "navy" (the set's usual) or "paper" (one white badge per image at
+ *          most, for the loudest one)
+ */
+export function badge({ x, right, y, size = 150, kind = "object", name, tone = "navy", rot = 0, z = 33, scale = 1 }) {
+  const d = size * scale;
+  const place = right !== undefined ? `right:${px(right)}` : `left:${px(x)}`;
+  const paper = tone === "paper";
+  const inner = kind === "object"
+    ? `<img src="${brandUrl(`3d/${name}@2x.webp`)}" style="width:${px(d * 0.70)};height:${px(d * 0.70)}">`
+    : kind === "mark"
+      ? `<img src="${brandUrl("vallo-mark.png")}" style="width:${px(d * 0.52)};height:${px(d * 0.52)}">`
+      : icon(name, { size: Math.round(d * 0.42), color: paper ? C.electric : C.sky, stroke: 2.2 });
+  return `<div class="bdg ${paper ? "pp" : "nv"} abs" style="${place};top:${px(y)};width:${px(d)};height:${px(d)};transform:rotate(${rot}deg);z-index:${z}">${inner}</div>`;
+}
+
+/* ------------------------------------------------------------- the stage */
+
+/**
+ * The soft panel the handset stands on: a rounded field a shade lighter than
+ * the ground, inset from the image's edge, with the blueprint's two soft
+ * blobs in it. It is drawn under everything (z 2) and gives the furniture
+ * something to overhang.
+ */
+export function stagePanel({ W, H, inset = 56, radius = 96, top = 0, z = 2 }) {
+  return `<div class="stagep abs" style="left:${px(inset)};top:${px(top + inset)};width:${px(W - inset * 2)};height:${px(H - top - inset * 2)};border-radius:${px(radius)};z-index:${z}">
+    <i class="blob a"></i><i class="blob b"></i></div>`;
+}
+
 /* ------------------------------------------------------------- the styles */
 
 /** The shared styles for everything above; page.mjs folds this into BASE. */
@@ -247,6 +283,21 @@ export const CALLOUT_CSS = `
   .cofigure span { font-family: "Poppins", sans-serif; font-weight: 700; letter-spacing: -0.035em; line-height: 0.92; white-space: nowrap; display: block; }
   .cofigure .ghost { opacity: 0.17; }
   .cofigure .edge { position: absolute; left: 0; top: 0; color: transparent; }
+
+  /* ---- the round badges ---- */
+  .bdg { position: absolute; display: grid; place-items: center; border-radius: 50%; }
+  .bdg.nv { background: linear-gradient(165deg, rgb(34 48 126) 0%, rgb(9 15 56) 100%);
+    box-shadow: inset 0 0 0 2px rgb(143 211 255 / 0.52), inset 0 2px 0 rgb(255 255 255 / 0.16), 0 0 44px -6px rgb(0 105 254 / 0.45), 0 26px 44px -18px rgb(0 0 14 / 0.85); }
+  .bdg.pp { background: linear-gradient(165deg, #FFFFFF 0%, #E4EEFF 100%);
+    box-shadow: inset 0 0 0 1.8px rgb(255 255 255 / 0.9), 0 26px 44px -18px rgb(0 10 50 / 0.7); }
+  .bdg img { display: block; filter: drop-shadow(0 10px 16px rgb(0 0 25 / 0.5)); }
+
+  /* ---- the stage panel ---- */
+  .stagep { overflow: hidden; background: linear-gradient(176deg, rgb(16 30 108 / 0.70) 0%, rgb(5 11 56 / 0.40) 55%, rgb(2 4 28 / 0.05) 100%);
+    box-shadow: inset 0 0 0 1.6px rgb(143 211 255 / 0.14); }
+  .stagep .blob { position: absolute; border-radius: 50%; filter: blur(60px); }
+  .stagep .blob.a { left: -8%; top: 4%; width: 62%; height: 34%; background: rgb(0 105 254 / 0.30); }
+  .stagep .blob.b { right: -12%; bottom: -6%; width: 70%; height: 38%; background: rgb(94 60 200 / 0.20); }
 
   /* ---- the 3D props ---- */
   .prop { position: absolute; }

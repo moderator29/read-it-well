@@ -282,3 +282,51 @@ export function figureOut(ctx, parent, { text, x, y, size = 150, rot = -3, t0, t
   });
   return box;
 }
+
+/**
+ * A ROUND BADGE, floating free.
+ *
+ * The blueprint scatters small discs around its handset, each carrying a
+ * mark. Ours carry the brand's own 3D objects, a line glyph or the Vallo
+ * mark, on the product's navy with a sky rim, and they drift.
+ *
+ *   kind   "object" | "glyph" | "mark"
+ *   tone   "navy" (the usual) or "paper" (one white badge in a shot at most)
+ */
+export function badgeDisc(ctx, parent, { name, kind = "object", x, y, size = 130, t0, t1 = null, rot = 0, drift = 1, seed = 1, delay = 0, tone = "navy" }) {
+  const paper = tone === "paper";
+  const box = ctx.el("div", {
+    class: "abs",
+    attrs: { "data-furn": "1" },
+    style: {
+      left: "0px", top: "0px", width: `${size}px`, height: `${size}px`, borderRadius: "50%",
+      display: "grid", placeItems: "center", transformOrigin: "50% 50%",
+      background: paper ? "linear-gradient(165deg, #ffffff 0%, #e4eeff 100%)" : "linear-gradient(165deg, rgb(34 48 126) 0%, rgb(9 15 56) 100%)",
+      boxShadow: paper
+        ? "inset 0 0 0 2px rgb(255 255 255 / 0.9), 0 26px 44px -18px rgb(0 10 50 / 0.7)"
+        : `inset 0 0 0 ${(size * 0.015).toFixed(2)}px rgb(143 211 255 / 0.52), inset 0 2px 0 rgb(255 255 255 / 0.16), 0 0 ${(size * 0.3).toFixed(0)}px -4px rgb(0 105 254 / 0.45), 0 26px 44px -18px rgb(0 0 14 / 0.85)`,
+    },
+  }, parent);
+  if (kind === "object") {
+    ctx.img(ctx.src.object(name), { style: { width: `${size * 0.7}px`, height: `${size * 0.7}px`, objectFit: "contain", filter: "drop-shadow(0 10px 16px rgb(0 0 25 / 0.5))" } }, box);
+  } else if (kind === "mark") {
+    ctx.img(ctx.src.brand("vallo-mark.png"), { style: { width: `${size * 0.52}px`, height: `${size * 0.52}px`, objectFit: "contain" } }, box);
+  } else {
+    const ic = ctx.icon(name, { size: Math.round(size * 0.42), stroke: 2.2 }, box);
+    ic.style.color = paper ? "#0069fe" : "#8FD3FF";
+  }
+  const rand = ctx.random(seed);
+  const ph = rand() * Math.PI * 2;
+  ctx.onFrame((t) => {
+    const a = ramp(ctx, t, t0 + delay - 0.5, t0 + delay, "back.out(1.8)");
+    const b = t1 == null ? 0 : ramp(ctx, t, t1, t1 + 0.4, "power2.in");
+    place(box, {
+      x: x + Math.cos((t - t0) * 0.55 + ph) * 9 * drift,
+      y: y + Math.sin((t - t0) * 0.82 + ph) * 12 * drift - b * 70,
+      s: (0.88 + 0.12 * a) * (1 - 0.1 * b),
+      r: rot + Math.sin((t - t0) * 0.42 + ph) * 2.2 * drift,
+      o: Math.min(a, 1 - b),
+    });
+  });
+  return box;
+}

@@ -47,7 +47,7 @@ export const F = {
     pops: [
       { side: "right", y: 0.962, anchor: "bottom", kind: "line", tab: "Yorùbá", lucide: "languages", title: "Ṣẹ̀dá àkọ́ọ̀lẹ̀", line: "Create an account", line2: "Wọlé · Sign in", meta: null },
     ],
-    props: [{ name: "local-talks", x: 0.05, y: 0.80, size: 200, rot: -7 }],
+    props: [{ name: "explore", x: 0.05, y: 0.80, size: 200, rot: -7 }],
   },
 
   /* 17: the price check. Where it is asking, over the rim; what it answers
@@ -55,7 +55,7 @@ export const F = {
   17: {
     pops: [
       { side: "left", at: 0.01, center: true, kind: "cells", tab: "The area", lucide: "map-pin",
-        cells: [["State", "Lagos"], ["Area", "Lekki"]], foot: "Only the names agents have typed on listings." },
+        cells: [["State", "Lagos"], ["Area", "Lekki"]], foot: "State, local government, then the area." },
       { side: "right", y: 0.962, anchor: "bottom", kind: "line", tab: "Price check", lucide: "chart-no-axes-column", title: "What they ask nearby", line: "Advertised prices, not guesses", meta: null },
     ],
     props: [{ name: "map", x: 0.045, y: 0.78, size: 210, rot: -6 }],
@@ -67,7 +67,7 @@ export const F = {
     pops: [
       { side: "right", at: 0.01, center: true, kind: "stat", tab: "Stays", label: "Across Nigeria", figure: "69", unit: "to explore", lucide: "bed-double" },
       { side: "left", y: 0.962, anchor: "bottom", kind: "cells", tab: "Your dates", lucide: "calendar-days",
-        cells: [["Check in", "16/10/2026"], ["Check out", "19/10/2026"], ["Guests", "2"]], foot: "Show prices for these dates." },
+        cells: [["Check in", "16/10/2026"], ["Check out", "19/10/2026"], ["Guests", "2"]], foot: "Prices follow the dates you pick." },
     ],
     props: [{ name: "calendar-booked", rx: 0.05, y: 0.775, size: 215, rot: 8 }],
   },
@@ -80,7 +80,7 @@ export const F = {
       { side: "right", y: 0.962, anchor: "bottom", kind: "cells", tab: "The listing", lucide: "building-2",
         cells: [["Beds", "3"], ["Baths", "3"], ["Size", "195 m²"]], foot: "Karsana, Abuja." },
     ],
-    props: [{ name: "buy", x: 0.045, y: 0.775, size: 215, rot: -7 }],
+    props: [{ name: "buy", x: 0.035, y: 0.825, size: 215, rot: -7 }],
   },
 
   /* 20: the host's rooms. What is on sale tonight over the rim, the room
@@ -110,7 +110,7 @@ export const F = {
     pops: [
       { side: "right", at: 0.01, center: true, kind: "stat", tab: "Matches", label: "With these filters", figure: "52", unit: "homes", lucide: "sliders-horizontal" },
       { side: "left", y: 0.962, anchor: "bottom", kind: "cells", tab: "Your budget", lucide: "wallet",
-        cells: [["From", "₦0"], ["To", "₦30,000,000+"]], foot: "Or leave it open: no upper limit." },
+        cells: [["From", "₦0"], ["To", "₦30,000,000+"]] },
     ],
     props: [{ name: "checklist", rx: 0.05, y: 0.775, size: 205, rot: 8 }],
   },
@@ -121,7 +121,7 @@ export const F = {
     pops: [
       { side: "left", at: 0.01, center: true, kind: "stat", tab: "Today", label: "Needs you today", figure: "0", unit: "jobs", lucide: "sun-medium" },
       { side: "right", y: 0.962, anchor: "bottom", kind: "cells", tab: "14 October", lucide: "layout-grid",
-        cells: [["Arriving", "0"], ["Staying", "0"], ["Unread", "0"]], foot: "3 businesses on this account." },
+        cells: [["Arriving", "0"], ["Staying", "0"], ["Unread", "0"]], foot: "Three businesses on one account." },
     ],
     props: [{ name: "team", x: 0.045, y: 0.78, size: 205, rot: -6 }],
   },
@@ -134,6 +134,6 @@ export const F = {
       { side: "right", y: 0.962, anchor: "bottom", kind: "cells", tab: "The stay", lucide: "building-2",
         cells: [["Sleeps", "3"], ["Room types", "3"]], foot: "Air conditioning, elevator, backup power." },
     ],
-    props: [{ name: "city", x: 0.045, y: 0.775, size: 215, rot: -7 }],
+    props: [{ name: "city", x: 0.035, y: 0.795, size: 215, rot: -7 }],
   },
 };

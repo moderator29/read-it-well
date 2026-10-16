@@ -113,3 +113,47 @@ you added, before and after.
 
 DO NOT run a full render: it takes over an hour and the session renders the
 four cuts itself at the end.
+
+## 4. The second round (16 October, later the same day)
+
+The founder sent the pump.fun App Store set itself and asked for more of it:
+"I want stuffs in that area to be in my films and my screenshots, pick all
+things you can, also think outside the box more to upgrade the motions film
+more next gen". What is in those images, and what we take:
+
+| In the blueprint | In Vallo |
+|---|---|
+| a key word set in a rounded box in the headline | `headline(..., { keyStyle: "chip" })` — the box opens behind the word as the word lands |
+| small round coins scattered around the handset | `badgeDisc(ctx, parent, { name, kind: "object"\|"glyph"\|"mark", x, y, size, t0, t1, drift, tone })` |
+| 3D props half cut by the panel's edge | place an `object3d` so it runs off the frame; the film has no edge check |
+| a counter row inside the floating card | `popOut(..., { kind: "counters", items: [[glyph, text], ...] })` |
+| the card overlapping the device, not beside it | a `popOut` may sit over the phone's status bar, its header or its bottom bar, never across a sentence on the glass |
+
+Use them:
+
+- ONE headline per cut takes the chip, and it is the cut's own promise, not a
+  passing line. Two at most.
+- Badges: three or four at a time, small (110 to 160 px on the phone cut),
+  near the frame's edges, drifting, never over the captions or the pill. One
+  `tone: "paper"` among them at most. Bring them in on a beat and take them
+  out with the chapter.
+- A counters row is for facts the screen under it prints (4 beds, 4 baths,
+  380 m²), never for a tally we do not have.
+
+### Next-gen motion, beyond the parts
+
+These are the things that separate a motion film from a slideshow. Add what
+your cut has room for:
+
+1. **Hand-off.** A container does not merely leave: it flies to where the next
+   thing arrives and the next thing grows out of it (`fly` from kit.js).
+2. **Parallax.** When the camera pushes, move the furniture at a different
+   rate from the phone, and the ground at a different rate again.
+3. **Anticipation.** Nothing starts from rest: a card pulls back a few pixels
+   before it flies, a number dips before it rolls.
+4. **One thing leads.** Inside a beat, let one element arrive first and the
+   rest follow it, rather than four things landing on the same frame.
+5. **Overlap.** The outgoing beat should still be leaving as the incoming one
+   starts. Dead frames between beats are what make a film feel cheap.
+6. **The figure rolls.** Every number that matters arrives on an `odometer`,
+   not as a cut.

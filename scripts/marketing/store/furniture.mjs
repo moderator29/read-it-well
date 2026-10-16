@@ -15,6 +15,10 @@
  *            `rx` for the right edge's distance from the right of the image.
  *   figures: [{ text: "₦26,100,000", x|rx, y, size, rot }]
  *            the oversized outlined number.
+ *   badges:  [{ name: "keys", kind: "object"|"glyph"|"mark", x|rx, y, size, rot, tone }]
+ *            the round discs the blueprint scatters around the handset. Two
+ *            to four, small (120 to 170), at the edges, one of them `tone:
+ *            "paper"` at most.
  *
  * Every part is checked by compose.mjs: 40 px from the image's edge, and a
  * card set against the phone must not land on the camera or on a control it
@@ -24,7 +28,7 @@
  * no testimonials, no promise words, "verified" only about people. Every
  * figure a callout prints must be one the screen under it prints too.
  */
-import { statCallout, lineCallout, cellsCallout, countersCallout, figureOutline, prop } from "./callouts.mjs";
+import { statCallout, lineCallout, cellsCallout, countersCallout, figureOutline, prop, badge, stagePanel } from "./callouts.mjs";
 
 const KIND = { stat: statCallout, line: lineCallout, cells: cellsCallout, counters: countersCallout };
 
@@ -36,7 +40,7 @@ const MAX_PROP = 260;
  *   m   the grid (premium.mjs M)
  *   p   the placed phone
  */
-export function furnish(ctx, m, p, { pops = [], props = [], figures = [] } = {}) {
+export function furnish(ctx, m, p, { pops = [], props = [], figures = [], badges = [] } = {}) {
   const u = ctx.W / 1320;
   const s = m.card;
   const out = [];
@@ -65,5 +69,17 @@ export function furnish(ctx, m, p, { pops = [], props = [], figures = [] } = {})
     out.push(figureOutline({ text, ...box, y: y * ctx.H, size, scale: u, rotate: rot, z, color, stroke, align }));
   }
 
+  for (const q of badges) {
+    const { name, kind = "object", x, rx, y, size = 150, rot = 0, z = 33, tone = "navy" } = q;
+    const box = rx !== undefined ? { right: rx * ctx.W } : { x: x * ctx.W };
+    out.push(badge({ name, kind, ...box, y: y * ctx.H, size, rot, z, tone, scale: u }));
+  }
+
   return out.join("\n");
+}
+
+/** The soft panel the handset stands on (callouts.mjs `stagePanel`). */
+export function panelFor(ctx, m) {
+  const u = ctx.W / 1320;
+  return stagePanel({ W: ctx.W, H: ctx.H, inset: Math.round(52 * u), radius: Math.round(96 * u), top: Math.round(m.hlTop * 0.0) });
 }

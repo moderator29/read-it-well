@@ -14,7 +14,7 @@ import { phone } from "../engine/phone.js";
 
 /* The 16 October pop-out containers and deep transitions live in their own
    modules; the films reach them through the kit like everything else. */
-export { popOut, figureOut } from "./popout.js";
+export { popOut, figureOut, badgeDisc } from "./popout.js";
 export { slabWipe, shutter, irisTicks, tileFall, whipPan } from "./transitions.js";
 
 export const DW = 1320;
@@ -544,17 +544,31 @@ export function windowLift(ctx, W, { id, crop, t0, t1, to, exit = "fade", fly = 
  * one after another from t0, key words in sky; at t1 they rise away.
  * box: { x, y } is the top-left (align left) or top-centre (align center).
  */
-export function headline(ctx, parent, { lines, x, y, size = 110, t0, t1, align = "left", weight = 700, color = "#ffffff", key = "#8FD3FF", stagger = 0.055, lineGap = 1.04, sound = null, sheen = true }) {
+export function headline(ctx, parent, { lines, x, y, size = 110, t0, t1, align = "left", weight = 700, color = "#ffffff", key = "#8FD3FF", stagger = 0.055, lineGap = 1.04, sound = null, sheen = true, keyStyle = "colour" }) {
   const box = ctx.el("div", { class: "abs", style: { left: `${x}px`, top: `${y}px`, width: align === "center" ? "0px" : "auto" } }, parent);
   const all = [];
   const shimmer = [];
+  /* `keyStyle: "chip"` sets the key word in a rounded box, the blueprint's own
+     way of marking the word that matters (the founder, 16 October). The box
+     opens behind the word as the word lands. */
+  const chips = [];
   lines.forEach((parts, li) => {
     const row = ctx.el("div", { class: "abs display", style: { left: align === "center" ? "50%" : "0px", top: `${li * size * lineGap}px`, whiteSpace: "nowrap", fontSize: `${size}px`, fontWeight: String(weight), color, transform: align === "center" ? "translateX(-50%)" : "none" } }, box);
     for (const [text, isKey] of parts) {
-      const w = words(ctx, text, { parent: row, cls: "display", style: { position: "relative", display: "inline", fontSize: "inherit", fontWeight: "inherit", color: isKey ? key : "inherit" } });
+      const chip = isKey && keyStyle === "chip";
+      const w = words(ctx, text, { parent: row, cls: "display", style: { position: "relative", display: "inline", fontSize: "inherit", fontWeight: "inherit", color: chip ? "#ffffff" : isKey ? key : "inherit" } });
       w.el.className = "display";
+      if (chip) {
+        Object.assign(w.el.style, {
+          display: "inline-block", padding: `${(size * 0.02).toFixed(1)}px ${(size * 0.2).toFixed(1)}px ${(size * 0.08).toFixed(1)}px`,
+          margin: `0 ${(size * 0.02).toFixed(1)}px`, borderRadius: `${(size * 0.3).toFixed(1)}px`,
+          background: "rgb(0 105 254 / 0.30)", boxShadow: `inset 0 0 0 ${(size * 0.03).toFixed(1)}px rgb(143 211 255 / 0.62)`,
+          transformOrigin: "50% 60%",
+        });
+        chips.push({ el: w.el, i: all.length });
+      }
       w.words.forEach((n) => all.push(n));
-      if (isKey && sheen) w.words.forEach((n) => { Object.assign(n.style, { backgroundImage: `linear-gradient(100deg, ${key} 0%, ${key} 38%, #ffffff 50%, ${key} 62%, ${key} 100%)`, backgroundSize: "300% 100%", WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }); shimmer.push(n); });
+      if (isKey && !chip && sheen) w.words.forEach((n) => { Object.assign(n.style, { backgroundImage: `linear-gradient(100deg, ${key} 0%, ${key} 38%, #ffffff 50%, ${key} 62%, ${key} 100%)`, backgroundSize: "300% 100%", WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }); shimmer.push(n); });
     }
   });
   all.forEach((n, i) => {
@@ -571,6 +585,12 @@ export function headline(ctx, parent, { lines, x, y, size = 110, t0, t1, align =
     }
     const p = ramp(ctx, t, t0 + 0.5, t0 + 1.6, "power1.inOut");
     for (const n of shimmer) n.style.backgroundPosition = `${(100 - p * 100).toFixed(1)}% 0%`;
+    for (const c of chips) {
+      const u = ramp(ctx, t, t0 + c.i * stagger + 0.1, t0 + c.i * stagger + 0.46, "back.out(1.5)");
+      const gone = t1 == null ? Infinity : t1 + c.i * stagger * 0.4 + 0.3;
+      c.el.style.transform = `scaleX(${(0.3 + 0.7 * u).toFixed(4)})`;
+      c.el.style.opacity = opa(t < gone ? u : 0);
+    }
   });
   if (sound) ctx.sfx(sound, t0, { offset: -3 });
   return box;
