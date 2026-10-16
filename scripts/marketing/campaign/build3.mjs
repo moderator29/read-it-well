@@ -197,10 +197,12 @@ async function compose(F, p) {
          widest line fits its measure. A launch post is the same sentence in
          four shapes, so no one size can be right in all of them. */
       document.fonts.ready.then(() => {
+        /* a nowrap block fills its container, so its own box tells you
+           nothing: scrollWidth is the width of the words in it */
         const fit = (box, lines, max) => {
           if (!box || !lines.length) return;
           let size = parseFloat(getComputedStyle(box).fontSize);
-          const widest = () => Math.max(...lines.map((l) => l.getBoundingClientRect().width));
+          const widest = () => Math.max(...lines.map((l) => l.scrollWidth));
           let guard = 400;
           while (widest() > max && size > 14 && guard-- > 0) { size -= 1; box.style.fontSize = size + "px"; }
         };
@@ -213,7 +215,7 @@ async function compose(F, p) {
           const max = ${W} - fig.getBoundingClientRect().left - ${pad};
           let size = parseFloat(getComputedStyle(edge).fontSize);
           let guard = 600;
-          while (edge.getBoundingClientRect().width > max && size > 20 && guard-- > 0) {
+          while (edge.scrollWidth > max && size > 20 && guard-- > 0) {
             size -= 1; edge.style.fontSize = size + "px"; ghost.style.fontSize = size + "px";
             edge.style.webkitTextStroke = (size * 0.028).toFixed(2) + "px #8FD3FF";
           }
@@ -225,7 +227,7 @@ async function compose(F, p) {
           const max = stack.getBoundingClientRect().width - (num ? num.getBoundingClientRect().width : 0) - ${26 * 2};
           let size = parseFloat(getComputedStyle(txts[0]).fontSize);
           let guard = 400;
-          while (Math.max(...txts.map((t) => t.getBoundingClientRect().width)) > max && size > 16 && guard-- > 0) {
+          while (Math.max(...txts.map((t) => t.scrollWidth)) > max && size > 16 && guard-- > 0) {
             size -= 1; for (const t of txts) t.style.fontSize = size + "px";
           }
         }
