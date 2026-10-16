@@ -102,3 +102,28 @@ Three more parts exist now, and every shot may use them.
 
 Shot 1 in `a.mjs` and its entry in `premium.mjs` are the worked example of
 all three.
+
+## The correction (16 October, same evening)
+
+The founder, with his image beside pump.fun's: *"Look at the difference,
+pumpfun own green back, ours need to be black, thick edges, you get it?! And
+also make the things clean clear!!! Redo them all, not just those line on the
+edges."*
+
+What changed, in the parts, not in your recipes:
+
+- **The container is solid ink with one THICK bright edge** all the way
+  round. The hairline and the four corner brackets are gone. Nothing
+  translucent, nothing fuzzy, no soft inner glows.
+- **The stage panel is solid black**, as pump.fun's is solid green.
+- **The badges** are solid with the same thick edge.
+- **The label** (`tab`) is no longer a tab astride the rule: it is the card's
+  first row, a lit dot and the word. Your `tab:` values all still work.
+
+Nothing in a shot's recipe has to change for this. But two things are worth
+a second look now that the label sits inside the card:
+
+1. a `tab` and a stat's `label` now read as two stacked rows, so they must
+   not say the same thing. Drop the `label` where the `tab` already says it.
+2. the cards are louder than they were. If a shot now looks crowded, cut one
+   of its badges rather than its container.

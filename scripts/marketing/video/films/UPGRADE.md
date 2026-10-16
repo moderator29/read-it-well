@@ -157,3 +157,19 @@ your cut has room for:
    starts. Dead frames between beats are what make a film feel cheap.
 6. **The figure rolls.** Every number that matters arrives on an `odometer`,
    not as a cut.
+
+## 5. The correction (16 October, same evening)
+
+The founder, with a frame of ours beside pump.fun's: *"ours need to be black,
+thick edges... make the things clean clear!!! Redo them all, not just those
+line on the edges."*
+
+`popOut`, `badgeDisc`, `figureOut` and the headline's chip are all redrawn:
+solid ink, one thick bright edge, no corner brackets, no fuzzy glows, and the
+`tab` label is now the card's first row rather than a tab astride the rule.
+Nothing in your cut has to change for it, but:
+
+- a `tab` and a stat's `label` now stack as two rows: they must not say the
+  same thing;
+- the containers are louder than they were, so if a beat now looks crowded,
+  take away a badge, not the container.

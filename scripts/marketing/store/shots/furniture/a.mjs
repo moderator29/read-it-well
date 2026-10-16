@@ -11,7 +11,7 @@ export const F = {
   1: {
     pops: [
       { side: "left", at: 0.01, center: true, kind: "line", tab: "Homes", lucide: "search", title: "Rent, buy or sell", line: "Property across Nigeria", meta: null },
-      { side: "right", y: 0.962, anchor: "bottom", kind: "stat", tab: "Saved", label: "On your shortlist", figure: "4", unit: "spaces saved", lucide: "heart" },
+      { side: "right", y: 0.962, anchor: "bottom", kind: "stat", tab: "On your shortlist", figure: "4", unit: "spaces saved", lucide: "heart" },
     ],
     props: [{ name: "villa", x: 0.055, y: 0.745, size: 210, rot: 7 }],
     badges: [
@@ -35,32 +35,44 @@ export const F = {
   3: {
     pops: [
       { side: "left", at: 0.01, center: true, kind: "cells", tab: "The whole cost", lucide: "receipt-text",
-        cells: [["Rent", "₦18m"], ["Fees", "₦4.5m"], ["Refundable", "₦3.6m"]], foot: "Every cost the lister declared, and every one they have not." },
+        cells: [["Rent", "₦18m"], ["Fees", "₦4.5m"], ["Refundable", "₦3.6m"]], foot: "Vallo charges no inspection fee." },
       { side: "right", y: 0.962, anchor: "bottom", kind: "line", tab: "Line by line", lucide: "percent", title: "Agency fee", line: "10.0% of a year’s rent", amount: "₦1,800,000", meta: null },
     ],
-    props: [{ name: "coin", x: 0.05, y: 0.79, size: 210, rot: -8 }],
+    props: [{ name: "coin", x: 0.05, y: 0.745, size: 200, rot: -8 }],
   },
 
-  /* 4: the pair's left half. The phone leans in from the right and the hand
-     placed "Room booked" card already stands on its rim, so this half takes
-     props only, in the open ground down the left. */
+  /* 4 and 5 are the connected pair, and premium.mjs's `pair()` draws its two
+     halves itself: it never calls `furnish()`, so nothing below reaches the
+     image. The props are written out so the pair can be furnished the day
+     `pair()` grows a furniture call, and they are placed in the open ground
+     each half actually has: on 4 the left margin, well under the hand-placed
+     "Room booked" card; on 5 the wide empty right, clear of the seam. */
+
+  /* 4: the pair's left half. The phone leans in from the right, so the ground
+     down the left is open under the booking card. */
   4: {
-    props: [{ name: "hotel", x: 0.045, y: 0.70, size: 225, rot: -8 }],
+    props: [{ name: "explore", x: 0.045, y: 0.70, size: 225, rot: -8 }],
   },
 
-  /* 5: the pair's right half. The phone holds the left of the image, so the
-     prop stands in the open right margin, clear of the seam. */
+  /* 5: the pair's right half. The phone holds the left of the image and the
+     right two thirds are empty ground. */
   5: {
-    props: [{ name: "restaurant", rx: 0.05, y: 0.70, size: 225, rot: 9 }],
+    props: [{ name: "calendar-booked", rx: 0.05, y: 0.70, size: 235, rot: 9 }],
   },
 
-  /* 6: payments. What the page is, over the rim; what comes back, under it. */
+  /* 6: payments. One sentence of the page's own empty state, split: what
+     arrives here over the rim, what comes back under the phone. */
   6: {
     pops: [
-      { side: "left", at: 0.01, center: true, kind: "line", tab: "Payments", lucide: "wallet", title: "Paid through Vallo", line: "A record of what has moved", meta: null },
+      { side: "left", at: 0.01, center: true, kind: "line", tab: "Payments", lucide: "wallet", title: "Rentals and stays", line: "Every payment appears here", meta: null },
       { side: "right", y: 0.962, anchor: "bottom", kind: "line", tab: "Refunds", lucide: "undo-2", title: "Refunds come back", line: "To your card or bank account", meta: null },
     ],
-    props: [{ name: "pay", x: 0.045, y: 0.775, size: 215, rot: -8 }],
+    props: [{ name: "bank", x: 0.045, y: 0.875, size: 210, rot: -8 }],
+    badges: [
+      { name: "banknote", kind: "glyph", rx: 0.055, y: 0.225, size: 140, rot: -6 },
+      { name: "coin", kind: "object", x: 0.05, y: 0.425, size: 150, rot: 6 },
+      { name: "landmark", kind: "glyph", rx: 0.062, y: 0.63, size: 128, rot: 8, tone: "paper" },
+    ],
   },
 
   /* 7: the resort. Its nightly price over the rim, what the stay holds under it. */
@@ -68,60 +80,91 @@ export const F = {
     pops: [
       { side: "right", at: 0.01, center: true, kind: "stat", tab: "The stay", label: "Lagoon Crest Resort", figure: "₦150,000", unit: "a night", lucide: "bed-double" },
       { side: "left", y: 0.962, anchor: "bottom", kind: "cells", tab: "The rooms", lucide: "building-2", title: "Garden rooms and villas",
-        cells: [["Sleeps", "4"], ["Room types", "2"]], foot: "Breakfast by the lagoon, a spa in the house." },
+        cells: [["Sleeps", "4"], ["Room types", "2"]], foot: "Air conditioning, balcony and garden." },
     ],
     props: [{ name: "hotel", rx: 0.05, y: 0.78, size: 215, rot: 8 }],
+    badges: [
+      { name: "bed-double", kind: "glyph", x: 0.05, y: 0.225, size: 138, rot: -5 },
+      { name: "map-pinned", kind: "glyph", rx: 0.055, y: 0.44, size: 145, rot: 7 },
+      { name: "camera", kind: "object", x: 0.058, y: 0.635, size: 132, rot: 9, tone: "paper" },
+    ],
   },
 
-  /* 8: the assistant. One of its own starter questions over the rim, the
-     ground it covers under the phone. */
+  /* 8: the assistant. The ground it covers, over the rim; the one thing it is
+     asked most, under the phone. Neither card quotes the two starter chips at
+     the foot of the screen, which print their own words already. */
   8: {
     pops: [
-      { side: "left", at: 0.01, center: true, kind: "line", tab: "You ask", lucide: "message-circle", title: "Two bedroom in Lekki", line: "under 5m a year", meta: null },
-      { side: "right", y: 0.962, anchor: "bottom", kind: "line", tab: "Assistant", lucide: "sparkles", title: "What it can answer", line: "Rent, buy, stay or a table", line2: "What moving in really costs", meta: null },
+      { side: "left", at: 0.01, center: true, kind: "line", tab: "Assistant", lucide: "sparkles", title: "Ask about anywhere", line: "Rent, buy, stay or a table", meta: null },
+      { side: "right", y: 0.962, anchor: "bottom", kind: "line", tab: "Costs", lucide: "receipt-text", title: "What moving in costs", line: "Ask the assistant first", meta: null },
     ],
-    props: [{ name: "clock", x: 0.045, y: 0.775, size: 210, rot: -7 }],
+    props: [{ name: "clock", x: 0.045, y: 0.875, size: 210, rot: -8 }],
+    badges: [
+      { name: "sparkles", kind: "glyph", rx: 0.055, y: 0.23, size: 140, rot: -6 },
+      { kind: "mark", x: 0.05, y: 0.43, size: 140, rot: 5 },
+      { name: "message-circle", kind: "glyph", rx: 0.06, y: 0.63, size: 130, rot: 8, tone: "paper" },
+    ],
   },
 
-  /* 9: the shortlist. Why it opens without signal, over the rim; two of its
-     own prices side by side, under it. */
+  /* 9: the shortlist. The one place on it that is for sale, over the rim; two
+     of the three that are to move in, side by side, under the phone. */
   9: {
     pops: [
-      { side: "left", at: 0.01, center: true, kind: "line", tab: "Offline", lucide: "wifi-off", title: "Kept on this phone", line: "Opens without signal", meta: null },
-      { side: "right", y: 0.962, anchor: "bottom", kind: "cells", tab: "Compare", lucide: "scale", title: "Prices side by side",
-        cells: [["For sale", "₦180m"], ["To move in", "₦26.1m"]], foot: "Four places saved, ready to compare." },
+      { side: "left", at: 0.01, center: true, kind: "stat", tab: "For sale", label: "Four bedroom detached", figure: "₦180m", unit: null, lucide: "key-round" },
+      { side: "right", y: 0.962, anchor: "bottom", kind: "cells", tab: "Compare", lucide: "scale", title: "To move in, compared",
+        cells: [["Maitama", "₦26.1m"], ["Jericho", "₦3.3m"]], foot: "Your shortlist opens without signal." },
     ],
     props: [{ name: "saved-heart", x: 0.045, y: 0.775, size: 215, rot: 7 }],
+    badges: [
+      { name: "heart", kind: "glyph", rx: 0.055, y: 0.225, size: 138, rot: -6 },
+      { name: "price-tag", kind: "object", x: 0.05, y: 0.44, size: 150, rot: 6 },
+      { name: "scale", kind: "glyph", rx: 0.062, y: 0.635, size: 128, rot: 8, tone: "paper" },
+    ],
   },
 
-  /* 10: the restaurant. The room's size over the rim, the table's terms under it. */
+  /* 10: the restaurant. How big the room is, over the rim; when it is open and
+     what it is like, under the phone. */
   10: {
     pops: [
       { side: "right", at: 0.01, center: true, kind: "stat", tab: "The table", label: "Harbour Lights Kitchen", figure: "80", unit: "seats", lucide: "utensils-crossed" },
       { side: "left", y: 0.962, anchor: "bottom", kind: "line", tab: "The kitchen", lucide: "clock", title: "Open until 16:00", line: "Seafood, smart casual", line2: "Parking and backup power", meta: null },
     ],
     props: [{ name: "restaurant", rx: 0.05, y: 0.78, size: 215, rot: 8 }],
+    badges: [
+      { name: "utensils", kind: "glyph", x: 0.05, y: 0.225, size: 138, rot: -5 },
+      { name: "map-pinned", kind: "glyph", rx: 0.055, y: 0.44, size: 145, rot: 7 },
+      { kind: "mark", x: 0.058, y: 0.635, size: 130, rot: 8, tone: "paper" },
+    ],
   },
 
-  /* 11: the featured row. One featured home's rooms over the rim, the one
-     above it, with its price, under the phone. */
+  /* 11: the featured row. The featured home's own price over the rim, the one
+     above it in the carousel, line by line, under the phone. */
   11: {
     pops: [
-      { side: "left", at: 0.01, center: true, kind: "cells", tab: "Featured", lucide: "house", title: "Five bedroom, Asokoro",
-        cells: [["Beds", "5"], ["Baths", "5"], ["Size", "420 m²"]], foot: "Size, beds and baths on every card." },
+      { side: "left", at: 0.01, center: true, kind: "stat", tab: "Featured", label: "House in Asokoro", figure: "₦18m", unit: "to move in", lucide: "house" },
       { side: "right", y: 0.962, anchor: "bottom", kind: "line", tab: "For sale", lucide: "key-round", title: "Terrace in Karsana", line: "3 beds · 3 baths · 195 m²", amount: "₦95m", meta: null },
     ],
-    props: [{ name: "apartment", x: 0.045, y: 0.775, size: 210, rot: -7 }],
+    props: [{ name: "apartment", x: 0.045, y: 0.79, size: 210, rot: -7 }],
+    badges: [
+      { name: "building-2", kind: "glyph", rx: 0.055, y: 0.225, size: 138, rot: -6 },
+      { name: "city", kind: "object", x: 0.05, y: 0.44, size: 150, rot: 6 },
+      { name: "heart", kind: "glyph", rx: 0.062, y: 0.635, size: 128, rot: 8, tone: "paper" },
+    ],
   },
 
-  /* 12: verification. How many steps there are, over the rim; the first and
-     the last of them, under it. */
+  /* 12: verification. How many steps a lister passes, over the rim; the first
+     of them, in full, under the phone. The card below the phone stays clear
+     of the panel at the foot of the page, which runs the width of the screen. */
   12: {
     pops: [
-      { side: "right", at: 0.01, center: true, kind: "stat", tab: "Verification", label: "What a person checks", figure: "4", unit: "steps", lucide: "user-check" },
-      { side: "left", y: 0.962, anchor: "bottom", kind: "cells", tab: "The steps", lucide: "badge-check", title: "What gets checked",
-        cells: [["Step 1", "Identity"], ["Step 4", "In person"]], foot: "A visit or a live video call, recorded." },
+      { side: "right", at: 0.01, center: true, kind: "stat", tab: "The checks", label: "Before a lister is verified", figure: "4", unit: "steps", lucide: "user-check" },
+      { side: "left", y: 0.962, anchor: "bottom", kind: "line", tab: "Step 1", lucide: "id-card", title: "Identity seen", line: "NIN or government ID", meta: null },
     ],
     props: [{ name: "id-check", rx: 0.05, y: 0.78, size: 215, rot: 9 }],
+    badges: [
+      { name: "badge-check", kind: "glyph", x: 0.05, y: 0.225, size: 138, rot: -5 },
+      { name: "checklist", kind: "object", rx: 0.055, y: 0.44, size: 148, rot: 7 },
+      { kind: "mark", x: 0.058, y: 0.635, size: 130, rot: 8, tone: "paper" },
+    ],
   },
 };

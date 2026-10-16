@@ -18,6 +18,11 @@ export const F = {
       { name: "keys", x: 0.045, y: 0.755, size: 215, rot: -8 },
       { name: "toolbox", rx: 0.05, y: 0.785, size: 200, rot: 8 },
     ],
+    badges: [
+      { name: "home-small", rx: 0.055, y: 0.225, size: 150, rot: 6 },
+      { name: "building-2", kind: "glyph", x: 0.05, y: 0.405, size: 136, rot: -7 },
+      { kind: "mark", rx: 0.062, y: 0.605, size: 126, rot: 8, tone: "paper" },
+    ],
   },
 
   /* 14: the rent search. Its own count, held up at size over the rim; under
@@ -29,6 +34,11 @@ export const F = {
       { side: "right", y: 0.962, anchor: "bottom", kind: "line", tab: "How it works", lucide: "list-ordered", title: "Nobody pays to rank", line: "The order is not for sale", meta: null },
     ],
     props: [{ name: "search", x: 0.045, y: 0.775, size: 205, rot: -7 }],
+    badges: [
+      { name: "city", rx: 0.055, y: 0.215, size: 150, rot: 6 },
+      { name: "map-pin", kind: "glyph", x: 0.05, y: 0.40, size: 134, rot: -7 },
+      { name: "heart", kind: "glyph", rx: 0.062, y: 0.60, size: 126, rot: 8, tone: "paper" },
+    ],
   },
 
   /* 15: the thread. No figure on this one: the card over the rim is the
@@ -39,6 +49,11 @@ export const F = {
       { side: "left", y: 0.962, anchor: "bottom", kind: "line", tab: "Next step", lucide: "calendar-check", title: "Ask for a viewing", line: "Agree the date in the chat", meta: null },
     ],
     props: [{ name: "local-talks", rx: 0.05, y: 0.775, size: 205, rot: 7 }],
+    badges: [
+      { name: "calendar-check", kind: "glyph", x: 0.05, y: 0.215, size: 144, rot: -6 },
+      { name: "support", rx: 0.055, y: 0.40, size: 142, rot: 7 },
+      { kind: "mark", x: 0.062, y: 0.605, size: 126, rot: -8, tone: "paper" },
+    ],
   },
 
   /* 16: a welcome screen, so one container only, standing clear under the
@@ -48,6 +63,11 @@ export const F = {
       { side: "right", y: 0.962, anchor: "bottom", kind: "line", tab: "Yorùbá", lucide: "languages", title: "Ṣẹ̀dá àkọ́ọ̀lẹ̀", line: "Create an account", line2: "Wọlé · Sign in", meta: null },
     ],
     props: [{ name: "explore", x: 0.05, y: 0.80, size: 200, rot: -7 }],
+    badges: [
+      { name: "celebrate", x: 0.05, y: 0.22, size: 148, rot: -6 },
+      { name: "languages", kind: "glyph", rx: 0.055, y: 0.40, size: 134, rot: 7 },
+      { kind: "mark", rx: 0.062, y: 0.615, size: 126, rot: 8, tone: "paper" },
+    ],
   },
 
   /* 17: the price check. Where it is asking, over the rim; what it answers
@@ -59,6 +79,11 @@ export const F = {
       { side: "right", y: 0.962, anchor: "bottom", kind: "line", tab: "Price check", lucide: "chart-no-axes-column", title: "What they ask nearby", line: "Advertised prices, not guesses", meta: null },
     ],
     props: [{ name: "map", x: 0.045, y: 0.78, size: 210, rot: -6 }],
+    badges: [
+      { name: "analytics", rx: 0.055, y: 0.215, size: 150, rot: 6 },
+      { name: "map-pin", kind: "glyph", x: 0.05, y: 0.40, size: 134, rot: -7 },
+      { kind: "mark", rx: 0.062, y: 0.61, size: 126, rot: 8, tone: "paper" },
+    ],
   },
 
   /* 18: the stays home. The directory's count over the rim, the dates and
@@ -70,6 +95,11 @@ export const F = {
         cells: [["Check in", "16/10/2026"], ["Check out", "19/10/2026"], ["Guests", "2"]], foot: "Prices follow the dates you pick." },
     ],
     props: [{ name: "calendar-booked", rx: 0.05, y: 0.775, size: 215, rot: 8 }],
+    badges: [
+      { name: "calendar-days", kind: "glyph", x: 0.05, y: 0.215, size: 142, rot: -6 },
+      { name: "shortlet", rx: 0.055, y: 0.40, size: 146, rot: 7 },
+      { name: "bed-double", kind: "glyph", x: 0.062, y: 0.605, size: 126, rot: -8, tone: "paper" },
+    ],
   },
 
   /* 19: the homes for sale. The premium terrace's asking price over the rim,
@@ -80,7 +110,12 @@ export const F = {
       { side: "right", y: 0.962, anchor: "bottom", kind: "cells", tab: "The listing", lucide: "building-2",
         cells: [["Beds", "3"], ["Baths", "3"], ["Size", "195 m²"]], foot: "Karsana, Abuja." },
     ],
-    props: [{ name: "buy", x: 0.035, y: 0.825, size: 215, rot: -7 }],
+    props: [{ name: "buy", x: 0.05, y: 0.825, size: 210, rot: -7 }],
+    badges: [
+      { name: "apartment", rx: 0.055, y: 0.215, size: 150, rot: 6 },
+      { name: "key-round", kind: "glyph", x: 0.05, y: 0.40, size: 134, rot: -7 },
+      { kind: "mark", rx: 0.062, y: 0.605, size: 126, rot: 8, tone: "paper" },
+    ],
   },
 
   /* 20: the host's rooms. What is on sale tonight over the rim, the room
@@ -92,6 +127,11 @@ export const F = {
         cells: [["Room types", "3"], ["On sale", "3"], ["Sleeps", "2"]], foot: "Bookable on 64 nights from today." },
     ],
     props: [{ name: "hotel", rx: 0.05, y: 0.775, size: 210, rot: 7 }],
+    badges: [
+      { name: "calendar-booked", x: 0.05, y: 0.215, size: 148, rot: -6 },
+      { name: "clock", kind: "glyph", rx: 0.055, y: 0.40, size: 134, rot: 7 },
+      { name: "bed-double", kind: "glyph", x: 0.062, y: 0.605, size: 126, rot: -8, tone: "paper" },
+    ],
   },
 
   /* 21: agreements. No numbers on this screen: the order of things over the
@@ -102,6 +142,11 @@ export const F = {
       { side: "right", y: 0.962, anchor: "bottom", kind: "line", tab: "Your money", lucide: "landmark", title: "Straight to the bank", line: "Owner or agent, same payment", meta: null },
     ],
     props: [{ name: "pay", x: 0.045, y: 0.78, size: 210, rot: -7 }],
+    badges: [
+      { name: "shield", rx: 0.055, y: 0.215, size: 148, rot: 6 },
+      { name: "landmark", kind: "glyph", x: 0.05, y: 0.40, size: 134, rot: -7 },
+      { kind: "mark", rx: 0.062, y: 0.605, size: 126, rot: 8, tone: "paper" },
+    ],
   },
 
   /* 22: the filter sheet. What the filters come to over the rim, the budget
@@ -113,6 +158,11 @@ export const F = {
         cells: [["From", "₦0"], ["To", "₦30,000,000+"]] },
     ],
     props: [{ name: "checklist", rx: 0.05, y: 0.775, size: 205, rot: 8 }],
+    badges: [
+      { name: "price-tag", x: 0.05, y: 0.215, size: 148, rot: -6 },
+      { name: "bed-double", kind: "glyph", rx: 0.055, y: 0.40, size: 134, rot: 7 },
+      { name: "search", kind: "glyph", x: 0.062, y: 0.605, size: 126, rot: -8, tone: "paper" },
+    ],
   },
 
   /* 23: the host's overview in the light theme. Its own nothing-to-do 0 over
@@ -124,6 +174,11 @@ export const F = {
         cells: [["Arriving", "0"], ["Staying", "0"], ["Unread", "0"]], foot: "Three businesses on one account." },
     ],
     props: [{ name: "team", x: 0.045, y: 0.78, size: 205, rot: -6 }],
+    badges: [
+      { name: "bell", rx: 0.055, y: 0.215, size: 146, rot: 6 },
+      { name: "calendar-days", kind: "glyph", x: 0.05, y: 0.40, size: 134, rot: -7 },
+      { kind: "mark", rx: 0.062, y: 0.605, size: 126, rot: 8, tone: "paper" },
+    ],
   },
 
   /* 24: the stay. What a night costs over the rim, what the room comes with
@@ -134,6 +189,11 @@ export const F = {
       { side: "right", y: 0.962, anchor: "bottom", kind: "cells", tab: "The stay", lucide: "building-2",
         cells: [["Sleeps", "3"], ["Room types", "3"]], foot: "Air conditioning, elevator, backup power." },
     ],
-    props: [{ name: "city", x: 0.035, y: 0.795, size: 215, rot: -7 }],
+    props: [{ name: "city", x: 0.05, y: 0.795, size: 210, rot: -7 }],
+    badges: [
+      { name: "hotel", rx: 0.055, y: 0.215, size: 150, rot: 6 },
+      { name: "bed-double", kind: "glyph", x: 0.05, y: 0.40, size: 134, rot: -7 },
+      { name: "map-pin", kind: "glyph", rx: 0.062, y: 0.605, size: 126, rot: 8, tone: "paper" },
+    ],
   },
 };

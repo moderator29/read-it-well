@@ -8,13 +8,14 @@
  *
  * What that set does, and what this module does in Vallo's language:
  *
- *   1. A FLOATING CONTAINER, not a notification. It is a dark slab with a
- *      bright hairline edge, and the edge is interrupted: a small label tab
- *      sits astride the top rule, and four short brackets ("ticks") stand
- *      just outside the corners, like crop marks. That is the single detail
- *      that makes the container read as a HUD part rather than a toast.
+ *   1. A FLOATING CONTAINER, not a notification. It is a SOLID BLACK slab
+ *      with a THICK bright edge all the way round. The founder, 16 October,
+ *      correcting a first pass that drew a hairline and four corner marks:
+ *      "ours need to be black, thick edges... and also make the things clean
+ *      clear!!! Redo them all, not just those line on the edges." So: one
+ *      heavy rule, no corner brackets, nothing translucent, nothing fuzzy.
  *      pump.fun's is mint on black; ours is Vallo sky (#8FD3FF) on the
- *      product's own navy, at the product's radii, in the product's type.
+ *      product's own ink, at the product's radii, in the product's type.
  *   2. AN EMBEDDED SUB-CARD of label/value columns inside the container
  *      (their Position / Net PnL), one shade lighter than the slab.
  *   3. AN OVERSIZED OUTLINED FIGURE standing on its own, stroked not filled,
@@ -55,19 +56,20 @@ const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replac
  */
 export function shell({
   x, right, y, w, fit = false, rotate = 0, scale = 1, z = 30, tab = null, ticks = true,
-  tone = "dark", inner = "", pad = [24, 30], gap = 0, radius = 38, origin = "center", lift = 1, cls = "", center = false, anchor = null,
+  tone = "dark", inner = "", pad = [26, 30], gap = 0, radius = 40, origin = "center", lift = 1, cls = "", center = false, anchor = null,
 }) {
   const s = scale;
   const place = right !== undefined ? `right:${px(right)}` : `left:${px(x)}`;
   const width = fit ? "width:max-content" : `width:${px(w)}`;
-  const brackets = ticks
-    ? ["tl", "tr", "bl", "br"].map((k) => `<i class="tk ${k}" style="--o:${px(-11 * s)};--d:${px(32 * s)};--tw:${px(3.4 * s)};--tr:${px((Math.min(radius, 46) + 11) * s)}"></i>`).join("")
-    : "";
+  /* The label used to sit astride the top rule. A thick edge has no room for
+     that, so it is the card's first row now: a lit dot and the word. */
   const label = tab
-    ? `<span class="cotab" style="left:${px(36 * s)};font-size:${px(20 * s)};padding:${px(7 * s)} ${px(16 * s)};border-radius:999px;border-width:${px(1.6 * s)}">${esc(tab)}</span>`
+    ? `<div class="cotag" style="font-size:${px(21 * s)};gap:${px(10 * s)};margin-bottom:${px(14 * s)}"><i style="width:${px(11 * s)};height:${px(11 * s)}"></i><span>${esc(tab)}</span></div>`
     : "";
-  return `<div class="co ${tone} ${cls} abs" style="${place};top:${px(y)};${width};transform:${anchor === "bottom" ? "translateY(-100%) " : (center || anchor === "center") ? "translateY(-50%) " : ""}rotate(${rotate}deg);transform-origin:${origin};z-index:${z};padding:${px(pad[0] * s)} ${px(pad[1] * s)};border-radius:${px(radius * s)};${gap ? `gap:${px(gap * s)};` : ""}--lift:${lift}">
-    ${brackets}${label}<div class="cobody">${inner}</div></div>`;
+  const shift = anchor === "bottom" ? "translateY(-100%) " : (center || anchor === "center") ? "translateY(-50%) " : "";
+  void ticks;
+  return `<div class="co ${tone} ${cls} abs" style="${place};top:${px(y)};${width};transform:${shift}rotate(${rotate}deg);transform-origin:${origin};z-index:${z};padding:${px(pad[0] * s)} ${px(pad[1] * s)};border-radius:${px(radius * s)};border-width:${px(8 * s)};${gap ? `gap:${px(gap * s)};` : ""}--lift:${lift}">
+    ${label}<div class="cobody">${inner}</div></div>`;
 }
 
 /* ------------------------------------------------------------- contents */
@@ -145,7 +147,7 @@ export function countersCallout({ items, ...rest }) {
  * through it. The blueprint's "+$5,024.53". A faint filled twin sits behind
  * it so it has weight on a dark ground.
  */
-export function figureOutline({ x, right, y, text, size = 150, rotate = -3, scale = 1, z = 26, color = C.sky, stroke = 3.4, align = "left" }) {
+export function figureOutline({ x, right, y, text, size = 150, rotate = -3, scale = 1, z = 26, color = C.sky, stroke = 5.2, align = "left" }) {
   const s = scale;
   const place = right !== undefined ? `right:${px(right)}` : `left:${px(x)}`;
   return `<div class="cofigure abs" style="${place};top:${px(y)};transform:rotate(${rotate}deg);z-index:${z};text-align:${align}">
@@ -190,7 +192,7 @@ export function badge({ x, right, y, size = 150, kind = "object", name, tone = "
     : kind === "mark"
       ? `<img src="${brandUrl("vallo-mark.png")}" style="width:${px(d * 0.52)};height:${px(d * 0.52)}">`
       : icon(name, { size: Math.round(d * 0.42), color: paper ? C.electric : C.sky, stroke: 2.2 });
-  return `<div class="bdg ${paper ? "pp" : "nv"} abs" style="${place};top:${px(y)};width:${px(d)};height:${px(d)};transform:rotate(${rot}deg);z-index:${z}">${inner}</div>`;
+  return `<div class="bdg ${paper ? "pp" : "nv"} abs" style="${place};top:${px(y)};width:${px(d)};height:${px(d)};border-width:${px(d * 0.055)};transform:rotate(${rot}deg);z-index:${z}">${inner}</div>`;
 }
 
 /* ------------------------------------------------------------- the stage */
@@ -210,72 +212,53 @@ export function stagePanel({ W, H, inset = 56, radius = 96, top = 0, z = 2 }) {
 
 /** The shared styles for everything above; page.mjs folds this into BASE. */
 export const CALLOUT_CSS = `
-  /* ---- the pop-out container (callouts.mjs) ---- */
-  .co { position: absolute; font-family: "Inter", sans-serif; color: #FFFFFF; }
-  .co.dark {
-    background: linear-gradient(176deg, rgb(24 34 100) 0%, rgb(11 17 62) 58%, rgb(7 12 48) 100%);
-    box-shadow:
-      inset 0 0 0 1.7px rgb(143 211 255 / 0.52),
-      inset 0 2px 0 rgb(255 255 255 / 0.13),
-      inset 0 -40px 60px -40px rgb(0 105 254 / 0.30),
-      0 calc(30px * var(--lift, 1)) calc(54px * var(--lift, 1)) calc(-22px * var(--lift, 1)) rgb(0 0 12 / 0.88),
-      0 calc(10px * var(--lift, 1)) calc(24px * var(--lift, 1)) calc(-12px * var(--lift, 1)) rgb(0 0 20 / 0.62);
-  }
-  .co.sky {
-    background: linear-gradient(176deg, #1E7BFF 0%, #0069FE 52%, #0049B4 100%);
-    box-shadow:
-      inset 0 0 0 1.6px rgb(214 236 255 / 0.60),
-      inset 0 1.6px 0 rgb(255 255 255 / 0.30),
-      0 calc(30px * var(--lift, 1)) calc(54px * var(--lift, 1)) calc(-22px * var(--lift, 1)) rgb(0 12 60 / 0.78);
-  }
+  /* ---- the pop-out container (callouts.mjs) ----
+     Solid ink, one thick bright rule, nothing translucent: the founder's
+     correction of 16 October. */
+  .co { position: absolute; font-family: "Inter", sans-serif; color: #FFFFFF; border-style: solid; }
+  .co.dark { background: #04071C; border-color: #8FD3FF;
+    box-shadow: 0 calc(34px * var(--lift, 1)) calc(60px * var(--lift, 1)) calc(-24px * var(--lift, 1)) rgb(0 0 10 / 0.92); }
+  .co.sky { background: #0069FE; border-color: #CFE6FF;
+    box-shadow: 0 calc(34px * var(--lift, 1)) calc(60px * var(--lift, 1)) calc(-24px * var(--lift, 1)) rgb(0 12 60 / 0.85); }
   .cobody { position: relative; }
   .corow { display: flex; align-items: center; }
   .cotxt { flex: 1; min-width: 0; }
   .cotop { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
 
-  /* the ticks: four brackets standing just outside the corners, each turning
-     the corner on the container's own radius, so they read as one interrupted
-     edge rather than four stickers */
-  .co .tk { position: absolute; width: var(--d); height: var(--d); border: var(--tw) none rgb(143 211 255 / 0.95); }
-  .co.sky .tk { border-color: rgb(255 255 255 / 0.94); }
-  .co .tk.tl { left: var(--o); top: var(--o); border-left-style: solid; border-top-style: solid; border-top-left-radius: var(--tr); }
-  .co .tk.tr { right: var(--o); top: var(--o); border-right-style: solid; border-top-style: solid; border-top-right-radius: var(--tr); }
-  .co .tk.bl { left: var(--o); bottom: var(--o); border-left-style: solid; border-bottom-style: solid; border-bottom-left-radius: var(--tr); }
-  .co .tk.br { right: var(--o); bottom: var(--o); border-right-style: solid; border-bottom-style: solid; border-bottom-right-radius: var(--tr); }
-
-  /* the label astride the top rule */
-  .cotab { position: absolute; top: 0; transform: translateY(-50%); display: inline-flex; align-items: center;
-    font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase; line-height: 1; white-space: nowrap;
-    color: #BFE2FF; background: linear-gradient(180deg, rgb(28 40 112), rgb(14 22 74)); border: 0 solid rgb(143 211 255 / 0.55); border-style: solid; }
-  .co.sky .cotab { color: #0A1240; background: linear-gradient(180deg, #FFFFFF, #DCEBFF); border-color: rgb(255 255 255 / 0.9); }
+  /* the card's own label, its first row */
+  .cotag { display: flex; align-items: center; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+    line-height: 1; white-space: nowrap; color: #8FD3FF; }
+  .cotag i { display: block; border-radius: 50%; background: #8FD3FF; flex: none; }
+  .co.sky .cotag { color: #FFFFFF; }
+  .co.sky .cotag i { background: #FFFFFF; }
 
   .codisc { flex: none; display: grid; place-items: center;
-    background: linear-gradient(160deg, #4A95FF 0%, #0069FE 55%, #0050C8 100%);
-    box-shadow: inset 0 2px 0 rgb(255 255 255 / 0.3), 0 10px 20px -8px rgb(0 20 80 / 0.7); }
-  .co.sky .codisc { background: linear-gradient(160deg, #FFFFFF, #CFE4FF); }
+    background: linear-gradient(160deg, #4A95FF 0%, #0069FE 55%, #0050C8 100%); }
+  .co.sky .codisc { background: #FFFFFF; }
   .co.sky .codisc svg { stroke: #0056D0; }
 
-  .coeye { font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgb(143 211 255 / 0.92); white-space: nowrap; }
-  .co.sky .coeye { color: rgb(255 255 255 / 0.82); }
+  .coeye { font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #8FD3FF; white-space: nowrap; }
+  .co.sky .coeye { color: rgb(255 255 255 / 0.86); }
   .cofig { font-family: "Poppins", sans-serif; font-weight: 700; letter-spacing: -0.03em; line-height: 1; white-space: nowrap; }
-  .counit { font-family: "Inter", sans-serif; font-weight: 600; letter-spacing: -0.01em; color: rgb(190 214 255 / 0.78); }
-  .co.sky .counit { color: rgb(255 255 255 / 0.8); }
+  .counit { font-family: "Inter", sans-serif; font-weight: 600; letter-spacing: -0.01em; color: rgb(206 224 255 / 0.82); }
+  .co.sky .counit { color: rgb(255 255 255 / 0.86); }
   .cotitle { font-weight: 700; letter-spacing: -0.012em; white-space: nowrap; }
-  .coline { font-weight: 500; white-space: nowrap; letter-spacing: -0.004em; color: rgb(208 222 255 / 0.86); }
-  .co.sky .coline { color: rgb(255 255 255 / 0.86); }
-  .coline.dim { color: rgb(190 206 245 / 0.66); }
+  .coline { font-weight: 500; white-space: nowrap; letter-spacing: -0.004em; color: rgb(214 228 255 / 0.88); }
+  .co.sky .coline { color: rgb(255 255 255 / 0.9); }
+  .coline.dim { color: rgb(196 212 250 / 0.70); }
   .coamt { font-family: "Poppins", sans-serif; font-weight: 700; letter-spacing: -0.02em; color: #FFFFFF; }
-  .cometa { font-weight: 500; white-space: nowrap; flex: none; color: rgb(200 214 250 / 0.78); }
-  .conote { font-weight: 500; letter-spacing: -0.003em; color: rgb(198 214 252 / 0.72); white-space: nowrap; }
-  .co.sky .conote { color: rgb(255 255 255 / 0.78); }
+  .cometa { font-weight: 500; white-space: nowrap; flex: none; color: rgb(206 220 252 / 0.8); }
+  .conote { font-weight: 500; letter-spacing: -0.003em; color: rgb(202 218 253 / 0.74); white-space: nowrap; }
+  .co.sky .conote { color: rgb(255 255 255 / 0.82); }
 
-  .coplate { display: flex; align-items: stretch; background: rgb(3 8 40 / 0.72); border: 0 solid rgb(143 211 255 / 0.22); border-style: solid; }
-  .co.sky .coplate { background: rgb(2 10 56 / 0.30); border-color: rgb(255 255 255 / 0.28); }
-  .cocell { border-left: 0 solid rgb(143 211 255 / 0.20); border-left-style: solid; min-width: 0; }
+  /* the embedded plate: black inside black, held apart by its own rule */
+  .coplate { display: flex; align-items: stretch; background: #000208; border: 0 solid rgb(143 211 255 / 0.45); border-style: solid; }
+  .co.sky .coplate { background: rgb(0 20 70 / 0.42); border-color: rgb(255 255 255 / 0.5); }
+  .cocell { border-left: 0 solid rgb(143 211 255 / 0.40); border-left-style: solid; min-width: 0; }
   .coval { font-family: "Poppins", sans-serif; font-weight: 700; letter-spacing: -0.025em; line-height: 1; white-space: nowrap; color: #FFFFFF; }
 
-  .cocount { display: inline-flex; align-items: center; font-weight: 600; white-space: nowrap; color: #E6F1FF;
-    background: rgb(4 9 44 / 0.66); border: 0 solid rgb(143 211 255 / 0.26); border-style: solid; }
+  .cocount { display: inline-flex; align-items: center; font-weight: 600; white-space: nowrap; color: #EAF3FF;
+    background: #000208; border: 0 solid rgb(143 211 255 / 0.45); border-style: solid; }
   .cocount svg { flex: none; }
 
   /* ---- the outlined figure ---- */
@@ -284,20 +267,17 @@ export const CALLOUT_CSS = `
   .cofigure .ghost { opacity: 0.17; }
   .cofigure .edge { position: absolute; left: 0; top: 0; color: transparent; }
 
-  /* ---- the round badges ---- */
-  .bdg { position: absolute; display: grid; place-items: center; border-radius: 50%; }
-  .bdg.nv { background: linear-gradient(165deg, rgb(34 48 126) 0%, rgb(9 15 56) 100%);
-    box-shadow: inset 0 0 0 2px rgb(143 211 255 / 0.52), inset 0 2px 0 rgb(255 255 255 / 0.16), 0 0 44px -6px rgb(0 105 254 / 0.45), 0 26px 44px -18px rgb(0 0 14 / 0.85); }
-  .bdg.pp { background: linear-gradient(165deg, #FFFFFF 0%, #E4EEFF 100%);
-    box-shadow: inset 0 0 0 1.8px rgb(255 255 255 / 0.9), 0 26px 44px -18px rgb(0 10 50 / 0.7); }
-  .bdg img { display: block; filter: drop-shadow(0 10px 16px rgb(0 0 25 / 0.5)); }
+  /* ---- the round badges: solid, thick edged ---- */
+  .bdg { position: absolute; display: grid; place-items: center; border-radius: 50%; border-style: solid; }
+  .bdg.nv { background: #04071C; border-color: #8FD3FF; box-shadow: 0 26px 44px -18px rgb(0 0 10 / 0.9); }
+  .bdg.pp { background: #FFFFFF; border-color: #FFFFFF; box-shadow: 0 26px 44px -18px rgb(0 10 50 / 0.75); }
+  .bdg img { display: block; }
 
-  /* ---- the stage panel ---- */
-  .stagep { overflow: hidden; background: linear-gradient(176deg, rgb(16 30 108 / 0.70) 0%, rgb(5 11 56 / 0.40) 55%, rgb(2 4 28 / 0.05) 100%);
-    box-shadow: inset 0 0 0 1.6px rgb(143 211 255 / 0.14); }
-  .stagep .blob { position: absolute; border-radius: 50%; filter: blur(60px); }
-  .stagep .blob.a { left: -8%; top: 4%; width: 62%; height: 34%; background: rgb(0 105 254 / 0.30); }
-  .stagep .blob.b { right: -12%; bottom: -6%; width: 70%; height: 38%; background: rgb(94 60 200 / 0.20); }
+  /* ---- the stage panel: solid black, the way the blueprint's is solid green ---- */
+  .stagep { overflow: hidden; background: #01020C; box-shadow: inset 0 0 0 2px rgb(143 211 255 / 0.16); }
+  .stagep .blob { position: absolute; border-radius: 50%; filter: blur(70px); }
+  .stagep .blob.a { left: -8%; top: 2%; width: 64%; height: 32%; background: rgb(0 105 254 / 0.22); }
+  .stagep .blob.b { right: -12%; bottom: -6%; width: 70%; height: 36%; background: rgb(70 48 170 / 0.16); }
 
   /* ---- the 3D props ---- */
   .prop { position: absolute; }

@@ -8,9 +8,11 @@
  * twin, in the same navy, the same sky hairline, the same radii and type.
  *
  * What makes it the blueprint's container rather than a toast:
- *   - the edge is interrupted: a small label tab sits astride the top rule;
- *   - four short brackets, the TICKS, stand just outside the corners and turn
- *     the corner on the container's own radius, like crop marks;
+ *   - it is SOLID and it has a THICK bright edge all the way round. The
+ *     founder, 16 October, correcting a first pass drawn with a hairline and
+ *     four corner marks: "ours need to be black, thick edges... make the
+ *     things clean clear!!! Redo them all, not just those line on the edges";
+ *   - its label is its first row, a lit dot and one word in the sky colour;
  *   - an embedded plate of label/value columns, one shade darker than the
  *     slab, for the figures;
  *   - it never sits still: it breathes, and its parts arrive one after
@@ -51,13 +53,12 @@ export function popOut(ctx, parent, {
 }) {
   const day = tone === "day";
   const loud = accent === "electric";
-  const edge = day ? "rgb(0 105 254 / 0.40)" : loud ? "rgb(214 236 255 / 0.62)" : "rgb(143 211 255 / 0.52)";
-  const tick = day ? "rgb(0 105 254 / 0.85)" : loud ? "rgb(255 255 255 / 0.95)" : SKY;
+  const edge = day ? "#0069fe" : loud ? "#CFE6FF" : "#8FD3FF";
   const ink = day ? INK : "#ffffff";
-  const soft = day ? "rgb(11 18 48 / 0.62)" : loud ? "rgb(255 255 255 / 0.86)" : "rgb(208 222 255 / 0.86)";
-  const eye = day ? "rgb(0 105 254 / 0.90)" : loud ? "rgb(255 255 255 / 0.84)" : "rgb(143 211 255 / 0.92)";
-  const radius = size * 1.08;
-  const pad = size * 0.82;
+  const soft = day ? "rgb(11 18 48 / 0.68)" : loud ? "rgb(255 255 255 / 0.9)" : "rgb(214 228 255 / 0.88)";
+  const eye = day ? "#0069fe" : loud ? "#ffffff" : SKY;
+  const radius = size * 1.16;
+  const pad = size * 0.86;
 
   const box = ctx.el("div", {
     class: "abs",
@@ -69,57 +70,33 @@ export function popOut(ctx, parent, {
     style: {
       position: "relative",
       ...(w ? { width: `${w}px` } : {}),
-      padding: `${pad}px ${pad * 1.12}px`,
+      padding: `${pad}px ${pad * 1.08}px`,
       borderRadius: `${radius}px`,
-      border: `${(size * 0.05).toFixed(2)}px solid ${edge}`,
-      background: day
-        ? "linear-gradient(176deg, #ffffff 0%, #f2f6ff 100%)"
-        : loud
-          ? "linear-gradient(176deg, #1E7BFF 0%, #0069FE 52%, #0049B4 100%)"
-          : "linear-gradient(176deg, rgb(24 34 100 / 0.985) 0%, rgb(11 17 62 / 0.985) 58%, rgb(7 12 48 / 0.985) 100%)",
+      border: `${(size * 0.23).toFixed(2)}px solid ${edge}`,
+      background: day ? "#ffffff" : loud ? "#0069FE" : "#04071C",
       boxShadow: day
-        ? "0 40px 80px -30px rgb(10 30 90 / 0.30), inset 0 2px 0 rgb(255 255 255 / 0.9)"
-        : "0 54px 100px -34px rgb(0 0 12 / 0.88), 0 16px 34px -16px rgb(0 0 20 / 0.6), inset 0 2px 0 rgb(255 255 255 / 0.13)",
+        ? "0 40px 80px -30px rgb(10 30 90 / 0.30)"
+        : "0 54px 96px -34px rgb(0 0 10 / 0.92)",
       color: ink,
       font: `500 ${size}px/1.2 Inter, sans-serif`,
     },
   }, box);
 
-  /* ---- the ticks: four brackets, each turning the corner on the radius ---- */
   const tks = [];
-  if (ticks) {
-    const d = size * 0.92;
-    const o = -size * 0.33;
-    const bw = (size * 0.10).toFixed(2);
-    const tr = `${(radius + size * 0.33).toFixed(1)}px`;
-    const corners = [
-      { left: `${o}px`, top: `${o}px`, borderLeft: `${bw}px solid ${tick}`, borderTop: `${bw}px solid ${tick}`, borderTopLeftRadius: tr, dx: -1, dy: -1 },
-      { right: `${o}px`, top: `${o}px`, borderRight: `${bw}px solid ${tick}`, borderTop: `${bw}px solid ${tick}`, borderTopRightRadius: tr, dx: 1, dy: -1 },
-      { left: `${o}px`, bottom: `${o}px`, borderLeft: `${bw}px solid ${tick}`, borderBottom: `${bw}px solid ${tick}`, borderBottomLeftRadius: tr, dx: -1, dy: 1 },
-      { right: `${o}px`, bottom: `${o}px`, borderRight: `${bw}px solid ${tick}`, borderBottom: `${bw}px solid ${tick}`, borderBottomRightRadius: tr, dx: 1, dy: 1 },
-    ];
-    corners.forEach((c, i) => {
-      const { dx, dy, ...style } = c;
-      const el = ctx.el("div", { style: { position: "absolute", width: `${d}px`, height: `${d}px`, ...style } }, slab);
-      tks.push({ el, dx, dy, i });
-    });
-  }
+  void ticks;
 
-  /* ---- the label astride the top rule ---- */
+  /* ---- the label: the card's first row ---- */
   let tabEl = null;
   if (tab) {
     tabEl = ctx.el("div", {
-      text: tab,
       style: {
-        position: "absolute", left: `${pad * 0.9}px`, top: "0px", transform: "translateY(-50%)",
-        padding: `${size * 0.2}px ${size * 0.46}px`, borderRadius: "999px",
-        border: `${(size * 0.046).toFixed(2)}px solid ${day ? "rgb(0 105 254 / 0.45)" : "rgb(143 211 255 / 0.55)"}`,
-        background: day ? "#ffffff" : loud ? "#ffffff" : "linear-gradient(180deg, rgb(28 40 112), rgb(14 22 74))",
-        font: `700 ${Math.round(size * 0.56)}px/1 Inter, sans-serif`,
-        letterSpacing: "0.13em", textTransform: "uppercase", whiteSpace: "nowrap",
-        color: day || loud ? "#0a1240" : "#BFE2FF",
+        display: "flex", alignItems: "center", gap: `${size * 0.3}px`, marginBottom: `${size * 0.42}px`,
+        font: `700 ${Math.round(size * 0.6)}px/1 Inter, sans-serif`, letterSpacing: "0.14em",
+        textTransform: "uppercase", whiteSpace: "nowrap", color: eye,
       },
     }, slab);
+    ctx.el("span", { style: { width: `${size * 0.3}px`, height: `${size * 0.3}px`, borderRadius: "50%", background: eye, flex: "none" } }, tabEl);
+    ctx.el("span", { text: tab }, tabEl);
   }
 
   /* ---- the contents ---- */
@@ -129,8 +106,7 @@ export function popOut(ctx, parent, {
     const plate = ctx.el("div", {
       style: {
         flex: "none", width: `${d}px`, height: `${d}px`, borderRadius: `${d * 0.33}px`, display: "grid", placeItems: "center",
-        background: loud ? "linear-gradient(160deg, #ffffff, #cfe4ff)" : "linear-gradient(160deg, #4A95FF 0%, #0069FE 55%, #0050C8 100%)",
-        boxShadow: "inset 0 2px 0 rgb(255 255 255 / 0.3), 0 12px 24px -10px rgb(0 20 80 / 0.7)",
+        background: loud ? "#ffffff" : "linear-gradient(160deg, #4A95FF 0%, #0069FE 55%, #0050C8 100%)",
       },
     });
     const ic = ctx.icon(name, { size: Math.round(d * 0.48), stroke: 2.1 }, plate);
@@ -176,12 +152,12 @@ export function popOut(ctx, parent, {
       style: {
         display: "flex", alignItems: "stretch", gap: `${size * 0.7}px`,
         padding: `${size * 0.56}px ${size * 0.68}px`, borderRadius: `${radius * 0.62}px`,
-        background: day ? "rgb(0 105 254 / 0.06)" : "rgb(3 8 40 / 0.72)",
-        border: `1.5px solid ${day ? "rgb(0 105 254 / 0.18)" : "rgb(143 211 255 / 0.22)"}`,
+        background: day ? "#eef4ff" : "#000208",
+        border: `${(size * 0.07).toFixed(2)}px solid ${day ? "rgb(0 105 254 / 0.35)" : "rgb(143 211 255 / 0.45)"}`,
       },
     }, slab);
     cells.forEach(([k, v], i) => {
-      const cell = add(ctx.el("div", { style: { minWidth: "0", ...(i ? { borderLeft: `1.5px solid ${day ? "rgb(0 105 254 / 0.16)" : "rgb(143 211 255 / 0.20)"}`, paddingLeft: `${size * 0.7}px` } : {}) } }, plate));
+      const cell = add(ctx.el("div", { style: { minWidth: "0", ...(i ? { borderLeft: `${(size * 0.055).toFixed(2)}px solid ${day ? "rgb(0 105 254 / 0.30)" : "rgb(143 211 255 / 0.40)"}`, paddingLeft: `${size * 0.7}px` } : {}) } }, plate));
       eyebrow(k, cell);
       ctx.el("div", { text: v, style: { marginTop: `${size * 0.2}px`, font: `700 ${Math.round(size * 1.1)}px/1 Poppins, Inter, sans-serif`, letterSpacing: "-0.025em", color: ink, whiteSpace: "nowrap" } }, cell);
     });
@@ -193,8 +169,8 @@ export function popOut(ctx, parent, {
         style: {
           display: "inline-flex", alignItems: "center", gap: `${size * 0.28}px`,
           padding: `${size * 0.28}px ${size * 0.52}px`, borderRadius: "999px",
-          background: day ? "rgb(0 105 254 / 0.07)" : "rgb(4 9 44 / 0.66)",
-          border: `1.5px solid ${day ? "rgb(0 105 254 / 0.20)" : "rgb(143 211 255 / 0.26)"}`,
+          background: day ? "#eef4ff" : "#000208",
+          border: `${(size * 0.07).toFixed(2)}px solid ${day ? "rgb(0 105 254 / 0.32)" : "rgb(143 211 255 / 0.45)"}`,
           font: `600 ${Math.round(size * 0.74)}px/1 Inter, sans-serif`, color: ink, whiteSpace: "nowrap",
         },
       }, row));
@@ -234,8 +210,8 @@ export function popOut(ctx, parent, {
       el.style.opacity = opa(Math.min(u, 1 - b));
     });
     if (tabEl) {
-      const u = ramp(ctx, t, t0 + 0.2, t0 + 0.52, "back.out(1.6)");
-      tabEl.style.transform = `translateY(-50%) translateY(${((1 - u) * size * 0.5).toFixed(2)}px) scale(${(0.84 + 0.16 * u).toFixed(4)})`;
+      const u = ramp(ctx, t, t0 + 0.12, t0 + 0.46, "land");
+      tabEl.style.transform = `translateY(${((1 - u) * size * 0.3).toFixed(2)}px)`;
       tabEl.style.opacity = opa(Math.min(u, 1 - b));
     }
     rows.forEach((node, i) => {
@@ -261,7 +237,7 @@ export function figureOut(ctx, parent, { text, x, y, size = 150, rot = -3, t0, t
   const wrap = ctx.el("div", { style: { position: "relative", whiteSpace: "nowrap" } }, box);
   const common = { font: `700 ${size}px/0.95 Poppins, Inter, sans-serif`, letterSpacing: "-0.035em", display: "block" };
   const ghost = ctx.el("div", { text, style: { ...common, color, opacity: "0.17" } }, wrap);
-  const edge = ctx.el("div", { text, style: { ...common, position: "absolute", left: "0px", top: "0px", color: "transparent", WebkitTextStroke: `${(size * 0.018).toFixed(2)}px ${color}` } }, wrap);
+  const edge = ctx.el("div", { text, style: { ...common, position: "absolute", left: "0px", top: "0px", color: "transparent", WebkitTextStroke: `${(size * 0.032).toFixed(2)}px ${color}` } }, wrap);
   const rand = ctx.random(seed);
   const ph = rand() * Math.PI * 2;
   ctx.onFrame((t) => {
@@ -301,10 +277,9 @@ export function badgeDisc(ctx, parent, { name, kind = "object", x, y, size = 130
     style: {
       left: "0px", top: "0px", width: `${size}px`, height: `${size}px`, borderRadius: "50%",
       display: "grid", placeItems: "center", transformOrigin: "50% 50%",
-      background: paper ? "linear-gradient(165deg, #ffffff 0%, #e4eeff 100%)" : "linear-gradient(165deg, rgb(34 48 126) 0%, rgb(9 15 56) 100%)",
-      boxShadow: paper
-        ? "inset 0 0 0 2px rgb(255 255 255 / 0.9), 0 26px 44px -18px rgb(0 10 50 / 0.7)"
-        : `inset 0 0 0 ${(size * 0.015).toFixed(2)}px rgb(143 211 255 / 0.52), inset 0 2px 0 rgb(255 255 255 / 0.16), 0 0 ${(size * 0.3).toFixed(0)}px -4px rgb(0 105 254 / 0.45), 0 26px 44px -18px rgb(0 0 14 / 0.85)`,
+      background: paper ? "#ffffff" : "#04071C",
+      border: `${(size * 0.055).toFixed(2)}px solid ${paper ? "#ffffff" : "#8FD3FF"}`,
+      boxShadow: "0 26px 44px -18px rgb(0 0 10 / 0.9)",
     },
   }, parent);
   if (kind === "object") {

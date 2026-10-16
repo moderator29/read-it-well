@@ -25,8 +25,8 @@ const BASE = `
   .hl .sub { font-family: "Inter", sans-serif; font-weight: 500; line-height: 1.3; letter-spacing: -0.005em; white-space: nowrap; }
   .hl .sub span { position: relative; }
   /* the marked word in a rounded box (the blueprint's way, 16 October) */
-  .hl .kw.chip { display: inline-block; padding: 0.02em 0.20em 0.08em; margin: 0 0.02em; border-radius: 0.30em;
-    background: rgb(0 105 254 / 0.30); box-shadow: inset 0 0 0 0.030em rgb(143 211 255 / 0.62); color: #FFFFFF; }
+  .hl .kw.chip { display: inline-block; padding: 0.02em 0.20em 0.08em; margin: 0 0.03em; border-radius: 0.28em;
+    background: #04071C; box-shadow: inset 0 0 0 0.062em #8FD3FF; color: #FFFFFF; }
 
   /* pop-up card (DESIGN.md section 4): opaque navy, so nothing on the screen shows through it */
   .pop { display: flex; align-items: center; font-family: "Inter", sans-serif; }

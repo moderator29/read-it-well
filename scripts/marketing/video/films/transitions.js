@@ -24,7 +24,7 @@
 import { ramp, opa } from "./kit.js";
 
 const SKY = "rgb(143 211 255";
-const NAVY = "linear-gradient(176deg, rgb(16 26 76) 0%, rgb(5 10 42) 100%)";
+const NAVY = "#02040F";
 
 /** The overlay every transition is drawn in. */
 function layer(ctx, id, t0, t1, z = 880) {
@@ -127,8 +127,8 @@ export function irisTicks(ctx, t, { dur = 0.46, size = null, sound = "stamp", z 
         left: `${(cx + (sx * W) / 2 - (sx < 0 ? 0 : d)).toFixed(1)}px`,
         top: `${(cy + (sy * H) / 2 - (sy < 0 ? 0 : d)).toFixed(1)}px`,
         width: `${d}px`, height: `${d}px`,
-        [sx < 0 ? "borderLeft" : "borderRight"]: `6px solid ${SKY} / 0.95)`,
-        [sy < 0 ? "borderTop" : "borderBottom"]: `6px solid ${SKY} / 0.95)`,
+        [sx < 0 ? "borderLeft" : "borderRight"]: `12px solid ${SKY} / 0.98)`,
+        [sy < 0 ? "borderTop" : "borderBottom"]: `12px solid ${SKY} / 0.98)`,
         [`border${sy < 0 ? "Top" : "Bottom"}${sx < 0 ? "Left" : "Right"}Radius`]: "26px",
       },
     }, root);

@@ -562,7 +562,7 @@ export function headline(ctx, parent, { lines, x, y, size = 110, t0, t1, align =
         Object.assign(w.el.style, {
           display: "inline-block", padding: `${(size * 0.02).toFixed(1)}px ${(size * 0.2).toFixed(1)}px ${(size * 0.08).toFixed(1)}px`,
           margin: `0 ${(size * 0.02).toFixed(1)}px`, borderRadius: `${(size * 0.3).toFixed(1)}px`,
-          background: "rgb(0 105 254 / 0.30)", boxShadow: `inset 0 0 0 ${(size * 0.03).toFixed(1)}px rgb(143 211 255 / 0.62)`,
+          background: "#04071C", boxShadow: `inset 0 0 0 ${(size * 0.062).toFixed(1)}px #8FD3FF`,
           transformOrigin: "50% 60%",
         });
         chips.push({ el: w.el, i: all.length });
