@@ -391,7 +391,7 @@ export async function build(ctx) {
     badgeDisc(ctx, pr, { name: "card-secure", kind: "object", x: 960, y: 900, size: 140, t0: s(22) + 0.6, t1: s(24) - 0.6, seed: 56 });
     badgeDisc(ctx, pr, { name: "bank", kind: "object", x: 900, y: 1250, size: 130, t0: w(22, "escrow") - 0.1, t1: s(24) - 0.6, seed: 57 });
     badgeDisc(ctx, pr, { name: "shield", kind: "object", x: 130, y: 1700, size: 130, t0: w(22, "payment") - 0.1, t1: s(24) - 0.6, seed: 58 });
-    object3d(ctx, pr, { name: "coin", size: 240, x: 1010, y: 1580, t0: w(22, "escrow") - 0.3, t1: s(24) - 0.6, drift: 1.2, seed: 59 });
+    object3d(ctx, pr, { name: "pay", size: 240, x: 1010, y: 1580, t0: w(22, "escrow") - 0.3, t1: s(24) - 0.6, drift: 1.2, seed: 59 });
   }
   ctx.sfx("stamp", w(23, "never") + 0.05, { offset: 0 });
   ctx.hideCaptions(s(21) - 0.1, s(24) - 0.3);
@@ -434,8 +434,8 @@ export async function build(ctx) {
   lift(ctx, H, { id: "f-around", crop: { x: 40, y: 1260, w: 1240, h: 1060 }, t0: w(29, "neighbourhood") - 0.2, t1: w(30, "stories") - 0.3, to: { x: R.cx, y: M ? 700 : 450, s: M ? 0.56 : 0.48, r: -2 }, seed: 23 });
   H.tap(w(30, "stories") - 0.1, 390, 780);
   /* in from the left edge: at x 255 the card hung off the frame */
-  lift(ctx, H, { id: "f-around", crop: { x: 30, y: 660, w: 560, h: 320 }, t0: w(30, "stories") + 0.25, t1: s(31) - 0.2, to: { ...R.l1, x: M ? 320 : R.l1.x, s: M ? 0.85 : 0.7, r: -4 }, seed: 24 });
-  chipRow(ctx, com, { items: [["Local talk", "messages-square"], ["Stories", "circle-play"], ["Follow", "user-plus"], ["What's new around you", "map-pin"]], x: R.cx, y: CHIPS_Y - (M ? 60 : 0), t0: w(29, "Local"), gap: (w(30, "new") - w(29, "Local")) / 3, t1: s(31) - 0.2, size: M ? 28 : 26, wrapW: M ? 980 : 860, anchor: "center" });
+  lift(ctx, H, { id: "f-around", crop: { x: 30, y: 660, w: 560, h: 320 }, t0: w(30, "stories") + 0.25, t1: s(31) - 0.85, to: { ...R.l1, x: M ? 320 : R.l1.x, s: M ? 0.85 : 0.7, r: -4 }, seed: 24 });
+  chipRow(ctx, com, { items: [["Local talk", "messages-square"], ["Stories", "circle-play"], ["Follow", "user-plus"], ["What's new around you", "map-pin"]], x: R.cx, y: CHIPS_Y - (M ? 60 : 0), t0: w(29, "Local"), gap: (w(30, "new") - w(29, "Local")) / 3, t1: s(31) - 0.55, size: M ? 28 : 26, wrapW: M ? 980 : 860, anchor: "center" });
   if (!M) {
     const W = windowRig(ctx);
     W.path([
@@ -501,8 +501,8 @@ export async function build(ctx) {
     /* the verbs stand on empty navy for six seconds: coins at the edges and one
        object running off the frame give the stage something to do */
     badgeDisc(ctx, vis, { name: "search", kind: "object", x: 140, y: 270, size: 130, tone: "paper", t0: w(39, "infrastructure") - 0.1, t1: s(40) - 0.4, seed: 61 });
-    badgeDisc(ctx, vis, { name: "keys", kind: "object", x: 150, y: 1330, size: 150, t0: w(39, "pays") - 0.1, t1: s(40) - 0.4, seed: 62 });
-    badgeDisc(ctx, vis, { name: "analytics", kind: "object", x: 930, y: 1300, size: 140, t0: w(39, "runs") - 0.1, t1: s(40) - 0.4, seed: 63 });
+    badgeDisc(ctx, vis, { name: "keys", kind: "object", x: 150, y: 1330, size: 150, t0: w(39, "how") - 0.1, t1: s(40) - 0.4, seed: 62 });
+    badgeDisc(ctx, vis, { name: "analytics", kind: "object", x: 930, y: 1300, size: 140, t0: w(39, "Nigeria") - 0.1, t1: s(40) - 0.4, seed: 63 });
     object3d(ctx, vis, { name: "city", size: 250, x: 1055, y: 330, t0: w(39, "infrastructure") - 0.2, t1: s(40) - 0.4, drift: 1.15, seed: 64 });
   }
   ctx.el("div", {}, vis);

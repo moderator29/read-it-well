@@ -207,12 +207,16 @@ export async function build(ctx) {
   });
 
   /* ===================== 6. Owners: list it yourself (30.0 - 46.2) ===================== */
+  /* CUT 3 */
+  slabWipe(ctx, s(6) - 0.05, { dir: "up", dur: 0.42 });
   ground(ctx, s(6) - 0.05, s(9) + 0.3, { tone: "navy", y: 15, seed: 35 });
   const own = layer("owners", s(6) - 0.1, s(9));
   headline(ctx, own, { lines: [[["For owners and", false]], [["landlords", true]]], x: ctx.W / 2, y: 360, size: 92, t0: s(6), t1: s(7) - 1.5, align: "center", stagger: 0.05 });
   W.show("d-host-start", s(7) - 1.45, w(8, "listing") - 0.2, { enter: "rise", dur: 0.6 });
   W.click(w(7, "List") + 0.15, 850, 715);
-  windowLift(ctx, W, { id: "d-host-start", crop: { x: 510, y: 668, w: 690, h: 92 }, t0: w(7, "yourself") + 0.1, t1: s(8) - 0.25, to: { x: COL, y: 320, s: 0.72, r: -2 }, seed: 2, label: "The owner's own listing" });
+  /* the crop sits on the row's own rounded edges (section 6), a few pixels of
+     air all round, so "List it yourself. No agency fee." comes whole */
+  windowLift(ctx, W, { id: "d-host-start", crop: { x: 506, y: 664, w: 692, h: 104 }, t0: w(7, "yourself") + 0.1, t1: s(8) - 0.25, to: { x: COL, y: 320, s: 0.72, r: -2 }, seed: 2, label: "The owner's own listing" });
   /* it holds through "add your photos, set your price": the fee is the whole
      offer to an owner, and the column is otherwise bare until the badge */
   liveChip(ctx, own, { text: "No agency fee", x: COL, y: 480, t0: w(7, "agency") - 0.1, t1: w(8, "Ownership", 2) - 0.4, size: 32, anchor: "center" });
@@ -223,10 +227,22 @@ export async function build(ctx) {
   const badge = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", display: "flex", alignItems: "center", gap: "22px", padding: "26px 38px", borderRadius: "999px", background: "linear-gradient(150deg, #2f7cff, #003f98)", boxShadow: "0 30px 70px -20px rgb(0 60 200 / 0.8), inset 0 1px 0 rgb(255 255 255 / 0.3)", font: "700 44px/1 Poppins, Inter, sans-serif", color: "#fff", whiteSpace: "nowrap" } }, seen);
   const bi = ctx.icon("badge-check", { size: 52, stroke: 2.2 }, badge); bi.style.color = "#fff";
   ctx.el("span", { text: "Ownership seen" }, badge);
-  during(ctx, w(8, "Ownership", 2) - 0.3, s(9), (t) => {
+  /* HAND-OFF and ANTICIPATION (section 4, rules 1 and 3). The badge does not
+     simply appear in the column: it grows out of the slot the "No agency fee"
+     chip is leaving (y 480) and travels down to its own place (y 620), and it
+     pulls back a few pixels before it goes. The chip is still leaving as it
+     starts, so no frame between the two is dead (rule 5). */
+  during(ctx, w(8, "Ownership", 2) - 0.6, s(9), (t) => {
     const a = ramp(ctx, t, w(8, "Ownership", 2) - 0.2, w(8, "Ownership", 2) + 0.4, "back.out(1.9)");
+    const anti = ramp(ctx, t, w(8, "Ownership", 2) - 0.5, w(8, "Ownership", 2) - 0.2, "power2.out") * (1 - a);
     const b = ramp(ctx, t, s(9) - 0.6, s(9) - 0.35, "power2.in");
-    place(badge, { x: COL, y: 620, s: 0.5 + 0.5 * a, r: (1 - a) * 12, o: Math.min(ramp(ctx, t, w(8, "Ownership", 2) - 0.2, w(8, "Ownership", 2)), 1 - b) });
+    place(badge, {
+      x: COL,
+      y: mix(480, 620, a) - anti * 18,
+      s: (0.5 + 0.5 * a) * (1 - 0.06 * anti),
+      r: (1 - a) * 12,
+      o: Math.min(ramp(ctx, t, w(8, "Ownership", 2) - 0.2, w(8, "Ownership", 2)), 1 - b),
+    });
   });
   ringBurst(ctx, seen, { cx: COL, cy: 620, r: 260, t: w(8, "Ownership", 2) + 0.05, seed: 36 });
   ctx.sfx("stamp", w(8, "Ownership", 2) + 0.05, { offset: -2 });
