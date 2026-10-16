@@ -27,6 +27,8 @@
  * pages, the two cost pages) far apart.
  */
 import { headline, popup } from "../components.mjs";
+import { furnish } from "../furniture.mjs";
+import { FURNITURE } from "./furniture/index.mjs";
 import { brandUrl } from "../lib.mjs";
 
 /* ------------------------------------------------------------- the system */
@@ -46,8 +48,14 @@ export function M(ctx) {
   const { W, H, ios } = ctx;
   const size = ios ? 112 : 100;
   const hlTop = ios ? 140 : 130;
-  const phoneTop = ios ? 490 : 470;
-  const phoneBottom = ios ? 100 : 90;
+  /* 16 October. The handset came down about a tenth so the pop-outs have a
+     margin to stand in, and the band under it is deep enough that a card
+     there covers the bottom bar and nothing else. That is how the blueprint's
+     layering works, and how a card stops having to sit on the screen's own
+     sentences.
+     The headline's measure is unchanged, so the set reads at the same size. */
+  const phoneTop = ios ? 560 : 520;
+  const phoneBottom = ios ? 300 : 280;
   return {
     W, H, size, hlTop, lh: 1.08,
     side: ios ? 80 : 88,
@@ -94,14 +102,21 @@ async function stdPhone(ctx, m, id) {
   return ctx.phone({ ...opts, cx: ctx.W / 2 + dx, cy: cy + dy });
 }
 
-/** The template every plain image follows. */
-export function std(n, slug, id, lines, { sub, extra } = {}) {
+/**
+ * The template every plain image follows. `pops`, `props` and `figures` are
+ * the 16 October pop-out furniture (furniture.mjs): the containers with the
+ * tick edges, the brand's 3D objects and the oversized outlined numbers.
+ */
+export function std(n, slug, id, lines, { sub, extra, ...rest } = {}) {
+  const spec = { ...(FURNITURE[n] || {}), ...rest };
   return {
     n, slug, captures: [id],
     async layout(ctx) {
       const m = M(ctx);
       const p = await stdPhone(ctx, m, id);
-      return [head(ctx, m, lines, { sub }), p.html, extra ? await extra(ctx, m, p) : ""].join("\n");
+      const { pops, props, figures } = spec;
+      const furniture = pops || props || figures ? furnish(ctx, m, p, { pops, props, figures }) : "";
+      return [head(ctx, m, lines, { sub }), p.html, furniture, extra ? await extra(ctx, m, p) : ""].join("\n");
     },
   };
 }
@@ -167,8 +182,11 @@ export function pair(a, b, { id, rotation, fov, dx = 0, h = 1, clear, through, e
 
 export const SHOTS = [
   std(1, "find-your-next-home-in-nigeria", "n-home", ["Find your next home", "in Nigeria"]),
-  /* 2: the listing itself, whose move-in total sits under the photograph. */
+  /* 2: the listing itself, whose move-in total sits under the photograph.
+     Both figures are the ones the screen under them prints: ₦18m a year on
+     the listing, ₦26.1m in the bar at the foot. */
   std(2, "the-move-in-total-before-you-call", "n-listing", ["The move-in total,", "before you call"]),
+  /* 3: the cost page, whose own summary row this card repeats at size. */
   std(3, "every-fee-added-up", "sc-listing-cost", ["Every fee,", "added up"]),
 
   /* 4 and 5, the one connected pair: the stays home across the seam, leaning
