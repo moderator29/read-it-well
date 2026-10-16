@@ -165,7 +165,7 @@ async function compose(F, p) {
     .mark img.m{width:${px(50 * S)}}.mark img.w{width:${px(140 * S)}}
     .copy{position:absolute;left:${px(pad)};top:${px(top * H)};width:${px(w * W)};z-index:40}
     .h{font:700 ${px(size * S)}/1.05 Poppins,sans-serif;letter-spacing:-0.035em;color:#fff;text-align:${align}}
-    .ln{white-space:nowrap}
+    .ln{white-space:nowrap;width:max-content;max-width:none}
     .kw{display:inline-block;padding:0.02em 0.20em 0.08em;margin:0 0.03em;border-radius:0.26em;background:#04071C;box-shadow:inset 0 0 0 0.06em #8FD3FF;color:#fff}
     .s{margin-top:${px(26 * S)};font:500 ${px(32 * S)}/1.42 Inter,sans-serif;color:rgb(216 231 255 / .84);letter-spacing:-0.004em;max-width:${px(0.78 * w * W)}}
     .stack .row{display:flex;align-items:baseline;gap:${px(26 * S)};padding:${px(26 * S)} 0;border-bottom:${px(2 * S)} solid rgb(143 211 255 / .22)}
@@ -173,8 +173,8 @@ async function compose(F, p) {
     .stack .num{font:700 ${px(28 * S)}/1 Inter,sans-serif;letter-spacing:.14em;color:#8FD3FF;flex:none;width:${px(70 * S)}}
     .stack .txt{font:700 ${px(size * S)}/1.08 Poppins,sans-serif;letter-spacing:-0.03em;color:#fff;white-space:nowrap}
     .fig{position:absolute;left:${px(pad)};top:${px(top * H)};z-index:40}
-    .fig .edge{font:700 ${px(size * S)}/0.94 Poppins,sans-serif;letter-spacing:-0.04em;color:transparent;-webkit-text-stroke:${px(size * S * 0.028)} #8FD3FF;white-space:nowrap;display:block}
-    .fig .ghost{position:absolute;left:0;top:0;font:700 ${px(size * S)}/0.94 Poppins,sans-serif;letter-spacing:-0.04em;color:#8FD3FF;opacity:.16;white-space:nowrap;display:block}
+    .fig .edge{font:700 ${px(size * S)}/0.94 Poppins,sans-serif;letter-spacing:-0.04em;color:transparent;-webkit-text-stroke:${px(size * S * 0.028)} #8FD3FF;white-space:nowrap;display:block;width:max-content}
+    .fig .ghost{position:absolute;left:0;top:0;font:700 ${px(size * S)}/0.94 Poppins,sans-serif;letter-spacing:-0.04em;color:#8FD3FF;opacity:.16;white-space:nowrap;display:block;width:max-content}
     .obj{position:absolute;z-index:30;filter:drop-shadow(0 ${px(30 * S)} ${px(40 * S)} rgb(0 0 25 / .7))}
     .objrow{position:absolute;display:flex;justify-content:space-between;gap:${px(24 * S)};z-index:30}
     .objrow .cell{flex:1 1 0;display:flex;flex-direction:column;align-items:center;gap:${px(18 * S)}}
@@ -197,25 +197,28 @@ async function compose(F, p) {
          widest line fits its measure. A launch post is the same sentence in
          four shapes, so no one size can be right in all of them. */
       document.fonts.ready.then(() => {
-        /* a nowrap block fills its container, so its own box tells you
-           nothing: scrollWidth is the width of the words in it */
+        /* every line and the figure are laid out at max-content width, so
+           each one's box IS the width of its words; a plain block would report
+           its container's width instead, and scrollWidth never falls below
+           that, which is how five headlines ran off the edge and then every
+           headline shrank to nothing */
         const fit = (box, lines, max) => {
           if (!box || !lines.length) return;
           let size = parseFloat(getComputedStyle(box).fontSize);
-          const widest = () => Math.max(...lines.map((l) => l.scrollWidth));
+          const widest = () => Math.max(...lines.map((l) => l.getBoundingClientRect().width));
           let guard = 400;
           while (widest() > max && size > 14 && guard-- > 0) { size -= 1; box.style.fontSize = size + "px"; }
         };
         const copy = document.querySelector(".copy");
         const h = document.querySelector(".copy .h");
-        if (h) fit(h, [...h.querySelectorAll(".ln")], copy.getBoundingClientRect().width);
+        if (h) fit(h, [...h.querySelectorAll(".ln")], copy.getBoundingClientRect().width * 0.985);
         const fig = document.querySelector(".fig");
         if (fig) {
           const edge = fig.querySelector(".edge"), ghost = fig.querySelector(".ghost");
-          const max = ${W} - fig.getBoundingClientRect().left - ${pad};
+          const max = (${W} - fig.getBoundingClientRect().left - ${pad}) * 0.97;
           let size = parseFloat(getComputedStyle(edge).fontSize);
           let guard = 600;
-          while (edge.scrollWidth > max && size > 20 && guard-- > 0) {
+          while (edge.getBoundingClientRect().width > max && size > 20 && guard-- > 0) {
             size -= 1; edge.style.fontSize = size + "px"; ghost.style.fontSize = size + "px";
             edge.style.webkitTextStroke = (size * 0.028).toFixed(2) + "px #8FD3FF";
           }
@@ -227,7 +230,7 @@ async function compose(F, p) {
           const max = stack.getBoundingClientRect().width - (num ? num.getBoundingClientRect().width : 0) - ${26 * 2};
           let size = parseFloat(getComputedStyle(txts[0]).fontSize);
           let guard = 400;
-          while (Math.max(...txts.map((t) => t.scrollWidth)) > max && size > 16 && guard-- > 0) {
+          while (Math.max(...txts.map((t) => t.getBoundingClientRect().width)) > max && size > 16 && guard-- > 0) {
             size -= 1; for (const t of txts) t.style.fontSize = size + "px";
           }
         }
