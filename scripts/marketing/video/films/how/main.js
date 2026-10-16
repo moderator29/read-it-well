@@ -167,7 +167,11 @@ export async function build(ctx) {
   /* "One app, one account" is the one claim here that no screen prints in one
      place, so it is the container's job (16 October). The phone's own tiles
      still say homes, hotels, shortlets and restaurants. */
-  if (M) popOut(ctx, one, { kind: "counters", items: [["smartphone", "One app"], ["user-round-check", "One account"]], x: R.cx, y: 1440, t0: w(3, "one"), t1: s(4) - 0.2, size: 32, from: "below", seed: 12 });
+  /* it stood at y 1440, the film's label band, and on the phone cut that band
+     is the category tiles: the container sat across "Restaurants" and "Local
+     talk". It rides the free band above the handset instead, under the pill
+     and clear of every word on the glass. */
+  if (M) popOut(ctx, one, { kind: "counters", items: [["smartphone", "One app"], ["user-round-check", "One account"]], x: R.cx, y: 300, t0: w(3, "one"), t1: s(4) - 0.2, size: 32, from: "above", seed: 12 });
   else chipRow(ctx, one, { items: [["One app", "smartphone"], ["One account", "user-round-check"]], x: R.cx, y: 170, t0: w(3, "one"), t1: s(4) - 0.2, size: 30, wrapW: null, anchor: "center" });
   /* THE BLUEPRINT'S COINS, one on each word the voice names. They ride the
      margins beside the handset, well clear of the captions and the pill, and

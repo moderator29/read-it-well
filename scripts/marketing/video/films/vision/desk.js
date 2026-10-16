@@ -194,7 +194,7 @@ export async function build(ctx) {
     one.style.transform = `translateX(${push(t, -0.055).toFixed(2)}px)`;
     far.style.transform = `translateX(${push(t, -0.016).toFixed(2)}px)`;
   });
-  object3d(ctx, far, { name: "city", size: 236, x: 432, y: 742, t0: s(4) + 0.25, t1: w(5, "Homes") - 0.7, drift: 1.1, seed: 19 });
+  object3d(ctx, far, { name: "city", size: 196, x: 432, y: 752, t0: s(4) + 0.25, t1: w(5, "Homes") - 0.7, drift: 1.1, seed: 19 });
   headline(ctx, one, { lines: [[["Today, Vallo is", false]], [["one home for", false]], [["real estate.", true]]], x: HX, y: 250, size: 78, t0: s(4), t1: w(5, "Homes") - 0.95, stagger: 0.05 });
   /* the label names what the page is showing: the headline already carries
      the sentence, and two of it in one frame reads as a doubled line */
