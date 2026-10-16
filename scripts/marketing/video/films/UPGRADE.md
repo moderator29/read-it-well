@@ -173,3 +173,22 @@ Nothing in your cut has to change for it, but:
   same thing;
 - the containers are louder than they were, so if a beat now looks crowded,
   take away a badge, not the container.
+
+## 6. What the blueprint actually is (the founder circling it twice)
+
+pump.fun's floating card is not a card they designed. It is ONE ROW OF THEIR
+OWN APP, lifted off the glass, blown up about 15 per cent, given a thick
+bright edge, and dropped back over the place it came from, so it overlaps the
+rows above and below.
+
+The films already have that move: `lift` (phone) and `windowLift` (desktop).
+Both now carry the heavy sky rule and their own glow, and the mounting board
+and the vignette bands are gone. So:
+
+- **Prefer `lift` over `popOut` wherever the thing being held up is on the
+  screen.** The product at size, inside one rule, beats anything we draw.
+- **Choose the crop on the component's own edges** (its rounded card, its
+  row, its bar) with a few pixels of air. Chosen that way nothing is cut,
+  which was the whole of the founder's complaint.
+- `popOut` is for what the screen does not show in one place: a total, a
+  breakdown, a rule, a promise.

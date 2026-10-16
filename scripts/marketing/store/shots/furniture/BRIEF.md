@@ -127,3 +127,36 @@ a second look now that the label sits inside the card:
    not say the same thing. Drop the `label` where the `tab` already says it.
 2. the cards are louder than they were. If a shot now looks crowded, cut one
    of its badges rather than its container.
+
+## What the blueprint actually is (16 October, the founder circling it twice)
+
+He circled pump.fun's floating card, and then circled ours, and said: *"make
+our own be like the pumpfun... you just putting small curve line on all
+edges."*
+
+The point he was making: **their card is not a card they designed.** It is
+ONE ROW OF THEIR OWN APP, lifted off the glass, blown up about 15 per cent,
+given a thick bright edge, and dropped back over the exact place it came
+from, so it overlaps the rows above and below it. The content is the product,
+at size. The design is only the rule round it.
+
+So every shot's FIRST container is now a `mags` entry, not a `pops` entry:
+
+```js
+mags: [{ box: [54, 1816, 1266, 2545], scale: 1.16, dx: 0, dy: 26 }],
+```
+
+- `box` is in the capture's display pixels (1320 x 2868) and **must sit on the
+  component's own edges** (its rounded card, its row, its bar), with a few
+  pixels of air. Open the capture, find the component, read the box off it.
+  Chosen that way, nothing can be cut, because the component is whole.
+- `scale` 1.12 to 1.3. The blueprint's is about 1.15.
+- `dx`/`dy` nudge it off its own place in page pixels, so it overlaps its
+  neighbours rather than sitting exactly on them.
+- Pick the component the HEADLINE is about. On shot 1, "Find your next home in
+  Nigeria", it is the hero search card, which says exactly that.
+
+A designed card (`pops`) is now the SECOND container at most, for something
+the screen does not show in one place: a total, a breakdown, a rule. One
+`mags` and one `pops` per shot is the shape. Shot 1 in `a.mjs` is the worked
+example.
