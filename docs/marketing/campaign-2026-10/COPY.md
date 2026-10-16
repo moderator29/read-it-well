@@ -1,29 +1,39 @@
-# Vallo launch campaign, first month (October 2026)
+# Vallo campaign, rebuilt 16 October 2026
 
 Destination link for every post: https://www.vallospaces.com
 
-Rules: the listings and stays on screen are the platform's own example listings; no testimonials, counts or totals are claimed; the iPhone and Android apps are in store review, so no post says "download". Post 16 (rewards) goes out only once Rewards is switched on for everyone.
+Thirty posts in four sizes. Every image is built in the same language as the
+store set and the films: the screen's own component lifted and blown up inside
+one heavy rule, a drawn container only where no screen says the thing in one
+place, a 3D object, two badges, and the key word in a box.
 
-Folders: `x/` 1600 x 900 (also fine for LinkedIn), `telegram/` 1280 x 720, `instagram-feed/` 1080 x 1350, `instagram-story/` 1080 x 1920. Each file is `NN-slug.jpg` (high-quality JPEG).
+Rules (scripts/marketing/DESIGN.md section 2): no invented numbers, no
+testimonials or counts, no promise words, "verified" only about people and
+businesses, no em dashes. Every figure shown is printed on the screen under it.
+The listings and stays on screen are the platform's own example listings.
 
-## 01  Main launch announcement  (day 1)
+Folders: `x/` 1600 x 900 (also fine for LinkedIn), `telegram/` 1280 x 720,
+`instagram-feed/` 1080 x 1350, `instagram-story/` 1080 x 1920.
+
+## 01  Launch  (day 1)
 
 **Headline:** Vallo is here.
-**Supporting text:** Homes, stays and restaurants. One app. One account.
+**Supporting text:** Homes, stays and restaurants. One app, one account.
 **Call to action:** Explore Vallo
+**Screen:** n-home
 **Link:** https://www.vallospaces.com
 
 **X**
 
-Vallo is here. Homes, stays and restaurants across Nigeria, in one app with one account. Explore it at vallospaces.com. The iPhone and Android apps are coming soon.
+Vallo is here. Homes, stays and restaurants across Nigeria, in one app with one account. vallospaces.com. The iPhone and Android apps are coming soon.
 
 **Instagram caption**
 
 Vallo is here.
 
-Homes, stays and restaurants across Nigeria. One app. One account.
+Homes, stays and restaurants across Nigeria. One app, one account.
 
-Explore it at vallospaces.com (link in bio). The iPhone and Android apps are coming soon.
+vallospaces.com (link in bio). The iPhone and Android apps are coming soon.
 
 #Vallo #Nigeria #RealEstate #Lagos #Abuja
 
@@ -33,25 +43,26 @@ Vallo is here.
 
 Homes, stays and restaurants across Nigeria, in one app with one account.
 
-Explore it: vallospaces.com
+vallospaces.com
 The iPhone and Android apps are coming soon.
 
-## 02  Introducing Vallo  (day 2)
+## 02  One app for four things  (day 2)
 
-**Headline:** Meet Vallo.
-**Supporting text:** A better way to find, understand and use physical spaces.
+**Headline:** Hotels, shortlets and restaurants
+**Supporting text:** The same account that finds you a home books you a room and a table.
 **Call to action:** See what is inside
+**Screen:** n-stays
 **Link:** https://www.vallospaces.com
 
 **X**
 
-Meet Vallo: a better way to find, understand and use physical spaces. Rent or buy a home, book a stay, reserve a table. vallospaces.com
+One app, one account: rent or buy a home, book a stay, reserve a table. vallospaces.com
 
 **Instagram caption**
 
-Meet Vallo.
+Hotels, shortlets and restaurants.
 
-A better way to find, understand and use physical spaces. Rent or buy a home, book a stay, reserve a table.
+The same account that finds you a home books you a room and a table.
 
 vallospaces.com (link in bio)
 
@@ -59,61 +70,93 @@ vallospaces.com (link in bio)
 
 **Telegram**
 
-Meet Vallo.
+Hotels, shortlets and restaurants.
 
-A better way to find, understand and use physical spaces: rent or buy a home, book a stay, reserve a table.
+The same account that finds you a home books you a room and a table.
 
 vallospaces.com
 
-## 03  How Vallo works  (day 3)
+## 03  The move-in total  (day 3)
 
-**Headline:** Discover. Understand. Connect.
-**Supporting text:** Search, see the whole cost, then talk to the owner or agent.
-**Call to action:** Try it
+**Headline:** The move-in total, before you call
+**Supporting text:** What the home asks, and what it actually costs to move in.
+**Call to action:** See an example listing
+**Screen:** n-listing
 **Link:** https://www.vallospaces.com
 
 **X**
 
-How Vallo works: 1. Discover a space. 2. Understand the whole cost. 3. Connect with the owner or agent in the app. vallospaces.com
+The move-in total, before you call. The example villa asks ₦18m a year and ₦26.1m to move in, added up on the listing. vallospaces.com
 
 **Instagram caption**
 
-How Vallo works.
+The move-in total, before you call.
 
-1. Discover a space.
-2. Understand the whole cost.
-3. Connect with the owner or agent in the app.
+The example villa asks ₦18m a year. Moving in costs ₦26.1m, added up on the listing.
+
+Vallo charges no inspection fee.
 
 vallospaces.com (link in bio)
 
-#Vallo #HowItWorks #Nigeria
+#Vallo #RentInNigeria #Abuja
 
 **Telegram**
 
-How Vallo works:
+The move-in total, before you call.
 
-1. Discover a space
-2. Understand the whole cost
-3. Connect with the owner or agent in the app
+The example villa asks ₦18m a year and ₦26.1m to move in, added up on the listing.
+
+Vallo charges no inspection fee.
 
 vallospaces.com
 
-## 04  Discovering spaces  (day 4)
+## 04  Every fee, added up  (day 4)
 
-**Headline:** Search across Nigeria.
-**Supporting text:** Rent or buy. Filter by exactly what you need.
-**Call to action:** Start searching
+**Headline:** Every fee, added up
+**Supporting text:** Rent, agency, legal, agreement and the refundable caution deposit.
+**Call to action:** See the cost page
+**Screen:** sc-listing-cost
 **Link:** https://www.vallospaces.com
 
 **X**
 
-Search across Nigeria. Rent or buy, and filter by exactly what you need. vallospaces.com
+Every fee, added up: rent, agency, legal, agreement and the refundable caution deposit, each on its own line with who keeps it. vallospaces.com
 
 **Instagram caption**
 
-Search across Nigeria.
+Every fee, added up.
 
-Rent or buy, and filter by exactly what you need.
+Rent, agency, legal, agreement and the refundable caution deposit, each on its own line with who keeps it.
+
+vallospaces.com (link in bio)
+
+#Vallo #Nigeria #RentInNigeria
+
+**Telegram**
+
+Every fee, added up.
+
+Rent, agency, legal, agreement and the refundable caution deposit, each on its own line with who keeps it.
+
+vallospaces.com
+
+## 05  Search  (day 5)
+
+**Headline:** Search homes across Nigeria
+**Supporting text:** Nobody can pay to be higher in the results.
+**Call to action:** Start searching
+**Screen:** n-search
+**Link:** https://www.vallospaces.com
+
+**X**
+
+Search homes across Nigeria. Nobody can pay to be higher in the results. vallospaces.com
+
+**Instagram caption**
+
+Search homes across Nigeria.
+
+Nobody can pay to be higher in the results.
 
 vallospaces.com (link in bio)
 
@@ -121,223 +164,399 @@ vallospaces.com (link in bio)
 
 **Telegram**
 
-Search across Nigeria. Rent or buy, and filter by exactly what you need.
+Search homes across Nigeria.
+
+Nobody can pay to be higher in the results.
 
 vallospaces.com
 
-## 05  The whole cost, before you call  (day 5)
+## 06  Filters  (day 6)
 
-**Headline:** See the whole cost before you call.
-**Supporting text:** Rent, fees and the refundable deposit, added up on the listing.
-**Call to action:** See an example
+**Headline:** Filter down to what you need
+**Supporting text:** Price, bedrooms, bathrooms, and the rest.
+**Call to action:** Filter your search
+**Screen:** sc-filters
 **Link:** https://www.vallospaces.com
 
 **X**
 
-See the whole cost before you call. Rent, agency and legal fees, agreement fee and the refundable caution deposit, added up on the listing. (Example listing shown.) vallospaces.com
+Filter down to what you need: price, bedrooms, bathrooms and the rest. vallospaces.com
 
 **Instagram caption**
 
-See the whole cost before you call.
+Filter down to what you need.
 
-Rent, agency and legal fees, agreement fee and the refundable caution deposit, added up on the listing.
-
-Example listing shown.
+Price, bedrooms, bathrooms, and the rest.
 
 vallospaces.com (link in bio)
 
-#Vallo #RentInNigeria #Lagos
+#Vallo #Nigeria #Lagos
 
 **Telegram**
 
-See the whole cost before you call.
-
-Rent, fees and the refundable caution deposit, added up on the listing. (Example listing shown.)
+Filter down to what you need: price, bedrooms, bathrooms and the rest.
 
 vallospaces.com
 
-## 06  Short feature spotlight: Price check  (day 6)
+## 07  Save and compare  (day 7)
 
-**Headline:** What does an area usually ask?
-**Supporting text:** Pick a place and see what similar properties are asking.
+**Headline:** Save favourites, compare later
+**Supporting text:** Your shortlist opens without signal.
+**Call to action:** Start a shortlist
+**Screen:** sc-saved
+**Link:** https://www.vallospaces.com
+
+**X**
+
+Save favourites and compare them later. Your shortlist is kept on the phone too, so it opens without signal. vallospaces.com
+
+**Instagram caption**
+
+Save favourites, compare later.
+
+Your shortlist is kept on the phone too, so it opens without signal.
+
+vallospaces.com (link in bio)
+
+#Vallo #Nigeria #HouseHunting
+
+**Telegram**
+
+Save favourites, compare later.
+
+Your shortlist is kept on the phone too, so it opens without signal.
+
+vallospaces.com
+
+## 08  Price check  (day 8)
+
+**Headline:** Price check, area by area
+**Supporting text:** What similar places nearby are advertised for. Never a guess.
 **Call to action:** Try the price check
+**Screen:** sc-price
 **Link:** https://www.vallospaces.com
 
 **X**
 
-Feature spotlight: Price check. Pick a place and see what similar properties nearby are asking. If there is not enough to be sure, it says so. vallospaces.com
+Price check, area by area. Tell Vallo where and what, and it shows what similar places near there are advertised for. If there is not enough nearby to be sure, it says so. vallospaces.com
 
 **Instagram caption**
 
-Feature spotlight: Price check.
+Price check, area by area.
 
-Pick a place and see what similar properties nearby are asking. If there is not enough to be sure, it says so rather than guessing.
+Tell Vallo where and what, and it shows what similar places near there are advertised for. If there is not enough nearby to be sure, it says so instead.
 
 vallospaces.com (link in bio)
 
-#Vallo #PriceCheck
+#Vallo #Nigeria #PropertyPrices
 
 **Telegram**
 
-Feature spotlight: Price check.
+Price check, area by area.
 
-Pick a place and see what similar properties nearby are asking. If there is not enough to be sure, it says so.
+What similar places near there are advertised for. If there is not enough nearby to be sure, Vallo says so instead.
 
 vallospaces.com
 
-## 07  Landlord and owner tools  (day 8)
+## 09  List or map  (day 9)
 
-**Headline:** List it yourself.
-**Supporting text:** Own the property? List it free. No agency fee.
-**Call to action:** Add a workspace
+**Headline:** All homes, list or map
+**Supporting text:** The same results, the way you prefer to read them.
+**Call to action:** Open the map
+**Screen:** n-search-all
 **Link:** https://www.vallospaces.com
 
 **X**
 
-Own the property? List it yourself on Vallo. Listing is free, with no agency fee. Add a workspace at vallospaces.com
+All homes, list or map. The same results, the way you prefer to read them. vallospaces.com
 
 **Instagram caption**
 
-Own the property? List it yourself on Vallo.
+All homes, list or map.
 
-Listing is free, with no agency fee.
+The same results, the way you prefer to read them.
 
 vallospaces.com (link in bio)
 
-#Landlords #PropertyOwners #Vallo
+#Vallo #Nigeria #Lagos #Abuja
 
 **Telegram**
 
-Own the property? List it yourself on Vallo. Listing is free, with no agency fee.
+All homes, list or map. The same results, the way you prefer to read them.
 
 vallospaces.com
 
-## 08  Agent and realtor tools  (day 9)
+## 10  Homes to buy  (day 10)
 
-**Headline:** Built for agents who do it right.
-**Supporting text:** Apply once. A person at Vallo reads every application.
-**Call to action:** Apply to list
+**Headline:** Homes to buy, not just to rent
+**Supporting text:** Terraces, villas and land, on the same search.
+**Call to action:** Browse homes to buy
+**Screen:** n-home-premium
 **Link:** https://www.vallospaces.com
 
 **X**
 
-Agents and realtors: apply once, and a person at Vallo reads every application. Then list, answer enquiries and plan viewings in one place. vallospaces.com
+Homes to buy, not just to rent. Terraces, villas and land, on the same search. vallospaces.com
 
 **Instagram caption**
 
-Agents and realtors.
+Homes to buy, not just to rent.
 
-Apply once. A person at Vallo reads every application. Then list, answer enquiries and plan viewings in one place.
+Terraces, villas and land, on the same search.
 
 vallospaces.com (link in bio)
 
-#Realtors #EstateAgents #Vallo
+#Vallo #PropertyForSale #Nigeria
 
 **Telegram**
 
-Agents and realtors: apply once, and a person at Vallo reads every application. Then list, answer enquiries and plan viewings in one place.
+Homes to buy, not just to rent. Terraces, villas and land, on the same search.
 
 vallospaces.com
 
-## 09  Restaurant workspace  (day 10)
+## 11  Featured homes  (day 11)
 
-**Headline:** Reservations, made simple.
-**Supporting text:** Guests find a table. You confirm it. The conversation stays in the booking.
-**Call to action:** Add your restaurant
+**Headline:** Featured homes, see them all
+**Supporting text:** A row that changes as new homes are published.
+**Call to action:** See the featured row
+**Screen:** n-home-featured
 **Link:** https://www.vallospaces.com
 
 **X**
 
-Restaurants on Vallo: guests find a table, you confirm it, and the conversation stays inside the reservation. Add your restaurant at vallospaces.com
+Featured homes, see them all. A row that changes as new homes are published. vallospaces.com
 
 **Instagram caption**
 
-Restaurants on Vallo.
+Featured homes, see them all.
 
-Guests find a table. You confirm it. The conversation stays inside the reservation.
+A row that changes as new homes are published.
 
 vallospaces.com (link in bio)
 
-#Restaurants #Lagos #Abuja #Vallo
+#Vallo #Nigeria #RealEstate
 
 **Telegram**
 
-Restaurants on Vallo: guests find a table, you confirm it, and the conversation stays inside the reservation.
+Featured homes, see them all. A row that changes as new homes are published.
 
 vallospaces.com
 
-## 10  Hotel and short-let workspace  (day 11)
+## 12  New homes  (day 12)
 
-**Headline:** Rooms, nights and guests.
-**Supporting text:** Add rooms, set prices and manage requests from one workspace.
-**Call to action:** Add your property
+**Headline:** New homes, as they arrive
+**Supporting text:** The row updates as new listings are published.
+**Call to action:** See what is new
+**Screen:** n-home-new
 **Link:** https://www.vallospaces.com
 
 **X**
 
-Hotels and shortlets on Vallo: add rooms, set nights and prices, and manage requests and bookings from one workspace. vallospaces.com
+New homes, as they arrive. The row updates as new listings are published. vallospaces.com
 
 **Instagram caption**
 
-Hotels and shortlets on Vallo.
+New homes, as they arrive.
 
-Add rooms, set nights and prices, and manage requests and bookings from one workspace.
+The row updates as new listings are published.
 
 vallospaces.com (link in bio)
 
-#Hotels #Shortlets #Vallo
+#Vallo #Nigeria #NewListings
 
 **Telegram**
 
-Hotels and shortlets on Vallo: add rooms, set nights and prices, and manage requests and bookings from one workspace.
+New homes, as they arrive. The row updates as new listings are published.
 
 vallospaces.com
 
-## 11  Book a stay  (day 12)
+## 13  Stays: dates and price  (day 13)
 
-**Headline:** Book a stay.
-**Supporting text:** Pick your dates, choose a room and see the price per night.
+**Headline:** Pick your dates, see the price
+**Supporting text:** Hotels and shortlets, priced for the nights you choose.
 **Call to action:** Find a stay
+**Screen:** n-stays-dates
 **Link:** https://www.vallospaces.com
 
 **X**
 
-Book a stay on Vallo. Pick your dates, choose a room and see the price per night. (Example stay shown.) vallospaces.com
+Pick your dates, see the price. Hotels and shortlets, priced for the nights you choose. vallospaces.com
 
 **Instagram caption**
 
-Book a stay on Vallo.
+Pick your dates, see the price.
 
-Pick your dates, choose a room and see the price per night.
-
-Example stay shown.
+Hotels and shortlets, priced for the nights you choose.
 
 vallospaces.com (link in bio)
 
-#Stays #Lagos #Travel #Vallo
+#Vallo #Shortlets #Nigeria
 
 **Telegram**
 
-Book a stay on Vallo. Pick your dates, choose a room and see the price per night. (Example stay shown.)
+Pick your dates, see the price. Hotels and shortlets, priced for the nights you choose.
 
 vallospaces.com
 
-## 12  AI assistant  (day 13)
+## 14  The stay page  (day 14)
 
-**Headline:** Ask anything. Any time.
-**Supporting text:** Prices, areas, how renting works. It tells you it is an AI first.
-**Call to action:** Ask the assistant
+**Headline:** Rooms, amenities, all laid out
+**Supporting text:** Room types, what is included, and the price a night.
+**Call to action:** Open a stay
+**Screen:** n-stay
 **Link:** https://www.vallospaces.com
 
 **X**
 
-Ask the Vallo assistant about prices, areas and how renting works, any time of day. It tells you it is an AI service and asks your agreement first, and a person at Vallo is always available. vallospaces.com
+Rooms, amenities, all laid out. Room types, what is included, and the price a night. vallospaces.com
 
 **Instagram caption**
 
-Ask anything. Any time.
+Rooms, amenities, all laid out.
 
-The Vallo assistant answers questions about prices, areas and how renting works. It tells you it is an AI service and asks your agreement first. A person at Vallo is always available.
+Room types, what is included, and the price a night.
+
+vallospaces.com (link in bio)
+
+#Vallo #Hotels #Nigeria
+
+**Telegram**
+
+Rooms, amenities, all laid out. Room types, what is included, and the price a night.
+
+vallospaces.com
+
+## 15  See the stay before you book  (day 15)
+
+**Headline:** See the stay before you book
+**Supporting text:** The rooms, the grounds and the price a night.
+**Call to action:** Look around a stay
+**Screen:** n-resort
+**Link:** https://www.vallospaces.com
+
+**X**
+
+See the stay before you book: the rooms, the grounds and the price a night. (Example stay shown.) vallospaces.com
+
+**Instagram caption**
+
+See the stay before you book.
+
+The rooms, the grounds and the price a night. Example stay shown.
+
+vallospaces.com (link in bio)
+
+#Vallo #Stays #Nigeria
+
+**Telegram**
+
+See the stay before you book: the rooms, the grounds and the price a night. (Example stay shown.)
+
+vallospaces.com
+
+## 16  Restaurants  (day 16)
+
+**Headline:** Find a restaurant you love
+**Supporting text:** What they serve, how to dress, and how many they seat.
+**Call to action:** Book a table
+**Screen:** sc-restaurant
+**Link:** https://www.vallospaces.com
+
+**X**
+
+Find a restaurant you love: what they serve, how to dress, and how many they seat. vallospaces.com
+
+**Instagram caption**
+
+Find a restaurant you love.
+
+What they serve, how to dress, and how many they seat.
+
+vallospaces.com (link in bio)
+
+#Vallo #Restaurants #Lagos
+
+**Telegram**
+
+Find a restaurant you love: what they serve, how to dress, and how many they seat.
+
+vallospaces.com
+
+## 17  Restaurants list  (day 17)
+
+**Headline:** Restaurants, all in one place
+**Supporting text:** The restaurant confirms the table itself.
+**Call to action:** Browse restaurants
+**Screen:** sc-restaurants
+**Link:** https://www.vallospaces.com
+
+**X**
+
+Restaurants, all in one place. The restaurant confirms the table itself. vallospaces.com
+
+**Instagram caption**
+
+Restaurants, all in one place.
+
+The restaurant confirms the table itself.
+
+vallospaces.com (link in bio)
+
+#Vallo #Restaurants #Nigeria
+
+**Telegram**
+
+Restaurants, all in one place. The restaurant confirms the table itself.
+
+vallospaces.com
+
+## 18  Ask to view  (day 18)
+
+**Headline:** Ask to view, schedule a visit
+**Supporting text:** Talk to the owner or the agent in the app, then book the viewing.
+**Call to action:** See how it works
+**Screen:** sc-thread
+**Link:** https://www.vallospaces.com
+
+**X**
+
+Ask to view, schedule a visit. Talk to the owner or the agent in the app, then book the viewing. Viewings are always free. vallospaces.com
+
+**Instagram caption**
+
+Ask to view, schedule a visit.
+
+Talk to the owner or the agent in the app, then book the viewing. Viewings are always free.
+
+vallospaces.com (link in bio)
+
+#Vallo #Nigeria #HouseHunting
+
+**Telegram**
+
+Ask to view, schedule a visit.
+
+Talk to the owner or the agent in the app, then book the viewing. Viewings are always free.
+
+vallospaces.com
+
+## 19  AI assistant  (day 19)
+
+**Headline:** Ask the AI assistant any time of day
+**Supporting text:** Where to look, what to ask, and what moving in really costs.
+**Call to action:** Ask the assistant
+**Screen:** sc-assistant-start
+**Link:** https://www.vallospaces.com
+
+**X**
+
+Ask the AI assistant any time of day: where to look, what to ask, and what moving in really costs. vallospaces.com
+
+**Instagram caption**
+
+Ask the AI assistant any time of day.
+
+Where to look, what to ask, and what moving in really costs.
 
 vallospaces.com (link in bio)
 
@@ -345,222 +564,327 @@ vallospaces.com (link in bio)
 
 **Telegram**
 
-Ask the Vallo assistant about prices, areas and how renting works, any time of day. It tells you it is an AI service and asks your agreement first. A person at Vallo is always available.
+Ask the AI assistant any time of day: where to look, what to ask, and what moving in really costs.
 
 vallospaces.com
 
-## 13  Inspection scheduling  (day 15)
+## 20  The verified mark  (day 20)
 
-**Headline:** Talk first. Then view.
-**Supporting text:** Message the owner or agent, ask to view, and plan the visit.
-**Call to action:** See how
+**Headline:** Each verified mark, checked by a person
+**Supporting text:** Four steps, in order. A real person at Vallo looks at every one.
+**Call to action:** See what is checked
+**Screen:** sc-verification
 **Link:** https://www.vallospaces.com
 
 **X**
 
-Talk first, then view. Message the owner or agent in the app, ask to view the home and plan the visit. Viewings never take money. vallospaces.com
+Each verified mark is checked by a real person at Vallo: identity, address, a bank account in their own name, and a person on the other end. Four steps, in order. vallospaces.com
 
 **Instagram caption**
 
-Talk first. Then view.
+Each verified mark, checked by a person.
 
-Message the owner or agent in the app, ask to view the home and plan the visit. Viewings never take money.
+Identity, address, a bank account in their own name, and a real person on the other end. Four steps, in order.
 
 vallospaces.com (link in bio)
 
-#Vallo #Inspection #HouseHunting
+#Vallo #Nigeria #RealEstate
 
 **Telegram**
 
-Talk first, then view. Message the owner or agent in the app, ask to view the home and plan the visit. Viewings never take money.
+Each verified mark, checked by a person.
+
+Identity, address, a bank account in their own name, and a real person on the other end. Four steps, in order.
 
 vallospaces.com
 
-## 14  Know who you are dealing with  (day 16)
+## 21  Payments  (day 21)
 
-**Headline:** Know who you're dealing with.
-**Supporting text:** Four steps, each naming what a person at Vallo checks.
-**Call to action:** Learn more
+**Headline:** Vallo never holds your money
+**Supporting text:** It moves through a licensed payments provider, straight to the owner, the host or the business.
+**Call to action:** See how payments work
+**Screen:** sc-payments
 **Link:** https://www.vallospaces.com
 
 **X**
 
-Know who you are dealing with. Vallo's verification has four steps, and each one names what a person at Vallo actually checks. vallospaces.com
+Vallo never holds your money. It moves through a licensed payments provider, straight to the owner, the host or the business. vallospaces.com
 
 **Instagram caption**
 
-Know who you're dealing with.
+Vallo never holds your money.
 
-Vallo's verification has four steps, and each one names what a person at Vallo actually checks.
+It moves through a licensed payments provider, straight to the owner, the host or the business. Any refund comes back to your card or bank account.
 
 vallospaces.com (link in bio)
 
-#Vallo #Trust #Nigeria
+#Vallo #Nigeria #Payments
 
 **Telegram**
 
-Know who you are dealing with. Vallo's verification has four steps, and each one names what a person at Vallo actually checks.
+Vallo never holds your money.
+
+It moves through a licensed payments provider, straight to the owner, the host or the business.
 
 vallospaces.com
 
-## 15  Payments and transaction transparency  (day 17)
+## 22  Agreements  (day 22)
 
-**Headline:** Clear money. Never ours.
-**Supporting text:** Vallo never holds your money. Every payment gets a receipt.
-**Call to action:** See how it works
+**Headline:** Inspect first, then pay on Vallo
+**Supporting text:** The agreement is drawn up after an inspection report is submitted.
+**Call to action:** See an agreement
+**Screen:** f-agreements
 **Link:** https://www.vallospaces.com
 
 **X**
 
-Clear money. Vallo never holds your money: licensed partners do, and every payment gets a receipt. vallospaces.com
+Inspect first, then pay on Vallo. The agreement is drawn up after an inspection report is submitted, and the owner's or agent's share goes straight to their bank account. vallospaces.com
 
 **Instagram caption**
 
-Clear money. Never ours.
+Inspect first, then pay on Vallo.
 
-Vallo never holds your money. Licensed partners do, and every payment gets a receipt.
+The agreement is drawn up after an inspection report is submitted, and the owner's or agent's share goes straight to their bank account in the same payment.
 
 vallospaces.com (link in bio)
 
-#Vallo #Payments #Nigeria
+#Vallo #Nigeria #RentInNigeria
 
 **Telegram**
 
-Clear money. Vallo never holds your money: licensed partners do, and every payment gets a receipt.
+Inspect first, then pay on Vallo.
+
+The agreement is drawn up after an inspection report is submitted, and the owner's or agent's share goes straight to their bank account.
 
 vallospaces.com
 
-## 16  Referrals and rewards (publish only once Rewards is switched on)  (day 19)
+## 23  The agent's fees  (day 23)
 
-**Headline:** Bring friends. Earn rewards.
-**Supporting text:** A friend counts once they finish setting up their account.
-**Call to action:** Share your link
+**Headline:** The agent's fees, spelled out
+**Supporting text:** Agency, legal and agreement, each a share of a year's rent.
+**Call to action:** See the breakdown
+**Screen:** f-rent-movein
 **Link:** https://www.vallospaces.com
 
 **X**
 
-Bring friends, earn rewards. Share your Vallo link: a friend counts once they finish setting up their account. See your rewards at vallospaces.com
+The agent's fees, spelled out: agency 10.0%, legal 10.0% and agreement 5.0%, each a share of a year's rent. vallospaces.com
 
 **Instagram caption**
 
-Bring friends. Earn rewards.
+The agent's fees, spelled out.
 
-Share your Vallo link. A friend counts once they finish setting up their account.
+Agency 10.0%, legal 10.0% and agreement 5.0%, each a share of a year's rent.
 
 vallospaces.com (link in bio)
 
-#Vallo #Rewards #Referral
+#Vallo #Nigeria #RentInNigeria
 
 **Telegram**
 
-Bring friends, earn rewards. Share your Vallo link: a friend counts once they finish setting up their account.
+The agent's fees, spelled out: agency 10.0%, legal 10.0% and agreement 5.0%, each a share of a year's rent.
 
 vallospaces.com
 
-## 17  Platform improvement: dark and light  (day 20)
+## 24  For owners  (day 24)
 
-**Headline:** Dark or light. Your call.
-**Supporting text:** Vallo looks right in the theme you prefer.
+**Headline:** Have a property? Put it on Vallo
+**Supporting text:** List it yourself, with no agency fee.
+**Call to action:** Add a workspace
+**Screen:** f-host-start
+**Link:** https://www.vallospaces.com
+
+**X**
+
+Have a property? Put it on Vallo. List it yourself, with no agency fee. vallospaces.com
+
+**Instagram caption**
+
+Have a property? Put it on Vallo.
+
+List it yourself, with no agency fee.
+
+vallospaces.com (link in bio)
+
+#Vallo #Landlords #Nigeria
+
+**Telegram**
+
+Have a property? Put it on Vallo. List it yourself, with no agency fee.
+
+vallospaces.com
+
+## 25  For hotels and shortlets  (day 25)
+
+**Headline:** Rooms and nights, set by you
+**Supporting text:** Room types, how many are on sale, and the nights they are bookable.
+**Call to action:** Add your property
+**Screen:** f-host-rooms
+**Link:** https://www.vallospaces.com
+
+**X**
+
+Rooms and nights, set by you: room types, how many are on sale, and the nights they are bookable. vallospaces.com
+
+**Instagram caption**
+
+Rooms and nights, set by you.
+
+Room types, how many are on sale, and the nights they are bookable.
+
+vallospaces.com (link in bio)
+
+#Vallo #Hotels #Shortlets #Nigeria
+
+**Telegram**
+
+Rooms and nights, set by you: room types, how many are on sale, and the nights they are bookable.
+
+vallospaces.com
+
+## 26  The host calendar  (day 26)
+
+**Headline:** Your calendar, night by night
+**Supporting text:** A rate for every night, and you change any one of them.
+**Call to action:** See the calendar
+**Screen:** f-host-calendar
+**Link:** https://www.vallospaces.com
+
+**X**
+
+Your calendar, night by night. A rate for every night, and you change any one of them. vallospaces.com
+
+**Instagram caption**
+
+Your calendar, night by night.
+
+A rate for every night, and you change any one of them.
+
+vallospaces.com (link in bio)
+
+#Vallo #Hotels #Nigeria
+
+**Telegram**
+
+Your calendar, night by night. A rate for every night, and you change any one of them.
+
+vallospaces.com
+
+## 27  What a host keeps  (day 27)
+
+**Headline:** The guest pays the price you set
+**Supporting text:** Vallo's fee is 10% of the charge, taken from your share. No fee on a booking that is not paid.
+**Call to action:** See the terms
+**Screen:** f-host-bookings
+**Link:** https://www.vallospaces.com
+
+**X**
+
+The guest pays the price you set. Vallo's fee is 10% of the charge, taken from your share, and there is no fee on a booking that is not paid. vallospaces.com
+
+**Instagram caption**
+
+The guest pays the price you set.
+
+Vallo's fee is 10% of the charge, taken from your share. No fee on a booking that is not paid.
+
+vallospaces.com (link in bio)
+
+#Vallo #Hosts #Nigeria
+
+**Telegram**
+
+The guest pays the price you set.
+
+Vallo's fee is 10% of the charge, taken from your share. No fee on a booking that is not paid.
+
+vallospaces.com
+
+## 28  For agents  (day 28)
+
+**Headline:** Earn the verified mark
+**Supporting text:** Send your documents once. The mark appears on all your listings at the same time.
+**Call to action:** Apply to list
+**Screen:** f-agent-dashboard
+**Link:** https://www.vallospaces.com
+
+**X**
+
+Earn the verified mark. Send your documents once, and the mark appears on all your listings at the same time. vallospaces.com
+
+**Instagram caption**
+
+Earn the verified mark.
+
+Send your documents once. The mark appears on all your listings at the same time.
+
+vallospaces.com (link in bio)
+
+#Vallo #Agents #Nigeria
+
+**Telegram**
+
+Earn the verified mark.
+
+Send your documents once. The mark appears on all your listings at the same time.
+
+vallospaces.com
+
+## 29  Languages  (day 29)
+
+**Headline:** Vallo speaks your language
+**Supporting text:** English, Hausa, Yorùbá and Igbo.
 **Call to action:** Open Vallo
+**Screen:** n-welcome-yo
 **Link:** https://www.vallospaces.com
 
 **X**
 
-Dark or light, your call. Vallo looks right in the theme you prefer. vallospaces.com
+Vallo speaks your language: English, Hausa, Yorùbá and Igbo. vallospaces.com
 
 **Instagram caption**
 
-Dark or light. Your call.
+Vallo speaks your language.
 
-Vallo looks right in the theme you prefer.
+English, Hausa, Yorùbá and Igbo.
 
 vallospaces.com (link in bio)
 
-#Vallo #DarkMode
+#Vallo #Nigeria #Yoruba #Hausa #Igbo
 
 **Telegram**
 
-Dark or light, your call. Vallo looks right in the theme you prefer.
+Vallo speaks your language: English, Hausa, Yorùbá and Igbo.
 
 vallospaces.com
 
-## 18  Educational: save and compare  (day 22)
+## 30  The close  (day 30)
 
-**Headline:** Save it. Compare it.
-**Supporting text:** Keep a shortlist, even on a weak connection, and compare two side by side.
-**Call to action:** Start a shortlist
+**Headline:** Vallo. Real estate, done right.
+**Supporting text:** Homes, hotels, shortlets and restaurants.
+**Call to action:** Explore Vallo
+**Screen:** n-welcome-en
 **Link:** https://www.vallospaces.com
 
 **X**
 
-Save the places you like and compare two side by side. Your shortlist is kept on your phone too, so it opens without signal. vallospaces.com
+Vallo. Real estate, done right. Homes, hotels, shortlets and restaurants, in one app with one account. vallospaces.com. The iPhone and Android apps are coming soon.
 
 **Instagram caption**
 
-Save it. Compare it.
+Vallo. Real estate, done right.
 
-Save the places you like and compare two side by side. Your shortlist is kept on your phone too, so it opens without signal.
+Homes, hotels, shortlets and restaurants, in one app with one account.
 
-vallospaces.com (link in bio)
+vallospaces.com (link in bio). The iPhone and Android apps are coming soon.
 
-#Vallo #HouseHunting
+#Vallo #Nigeria #RealEstate #Lagos #Abuja
 
 **Telegram**
 
-Save the places you like and compare two side by side. Your shortlist is kept on your phone too, so it opens without signal.
+Vallo. Real estate, done right.
+
+Homes, hotels, shortlets and restaurants, in one app with one account.
 
 vallospaces.com
-
-## 19  Short feature spotlight: Filters  (day 24)
-
-**Headline:** Exactly what you need.
-**Supporting text:** Price, bedrooms, bathrooms and more. The button counts the homes.
-**Call to action:** Filter your search
-**Link:** https://www.vallospaces.com
-
-**X**
-
-Feature spotlight: Filters. Price, bedrooms, bathrooms and more, and the button tells you how many homes match. vallospaces.com
-
-**Instagram caption**
-
-Exactly what you need.
-
-Price, bedrooms, bathrooms and more, and the button tells you how many homes match.
-
-vallospaces.com (link in bio)
-
-#Vallo #Filters
-
-**Telegram**
-
-Feature spotlight: Filters. Price, bedrooms, bathrooms and more, and the button tells you how many homes match.
-
-vallospaces.com
-
-## 20  Follow-up engagement and call to action  (day 26)
-
-**Headline:** What should Vallo help with?
-**Supporting text:** Tell us what would make finding a space easier for you.
-**Call to action:** Tell us and explore
-**Link:** https://www.vallospaces.com
-
-**X**
-
-What should Vallo help you with next? Tell us what would make finding or running a space easier, and explore Vallo at vallospaces.com
-
-**Instagram caption**
-
-What should Vallo help you with next?
-
-Tell us in the comments what would make finding or running a space easier for you.
-
-Explore Vallo at vallospaces.com (link in bio)
-
-#Vallo #Nigeria
-
-**Telegram**
-
-What should Vallo help you with next? Tell us what would make finding or running a space easier.
-
-Explore: vallospaces.com
+The iPhone and Android apps are coming soon.
