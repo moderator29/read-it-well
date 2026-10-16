@@ -17,6 +17,18 @@
  *   FULL   the window taking the frame
  *   RIGHT  the window right, the words to its left
  *   OFF    away to the right, for the typographic beats
+ *
+ * The 16 October upgrade (films/UPGRADE.md), in this cut
+ *   CUTS       fourteen, one on every ground handover, marked CUT 1..14 below.
+ *              slabWipe six (left, up, right, down, left, right), irisTicks
+ *              four, shutter two and tileFall two; the two loud kinds sit in
+ *              the four longest silences, and no two cuts in a row are alike.
+ *              The opening second is the founder's frame and carries nothing.
+ *   LIFTS      twelve windowLifts, each cropped on the component's own edges
+ *              (section 6). Chapter 8's Table deposits rule is the frame the
+ *              founder sent back, and it now comes up as the page's own panel.
+ *   CONTAINERS three popOuts, only where the page never shows the thing in one
+ *              place, and eight badgeDiscs in two sets of four.
  */
 import {
   poster, installFocus, sceneBack, nigeriaMap3d, windowLift, listCard, noticeCard,
@@ -177,9 +189,11 @@ export async function build(ctx) {
      fraction of that again, so the three planes separate as the camera moves.
      Still a pure function of t: the rate is read off the window's own pose. */
   const push = (t, k) => Math.max(-44, Math.min(44, (W.at(t).x - FULL.x) * k));
-  during(ctx, s(4) - 0.1, s(6), (t) => { one.style.transform = `translateX(${push(t, -0.055).toFixed(2)}px)`; });
   const far = layer("one-far", s(4) - 0.1, s(6), 2);
-  during(ctx, s(4) - 0.1, s(6), (t) => { far.style.transform = `translateX(${push(t, -0.016).toFixed(2)}px)`; });
+  ctx.onFrame((t) => {
+    one.style.transform = `translateX(${push(t, -0.055).toFixed(2)}px)`;
+    far.style.transform = `translateX(${push(t, -0.016).toFixed(2)}px)`;
+  });
   object3d(ctx, far, { name: "city", size: 236, x: 432, y: 742, t0: s(4) + 0.25, t1: w(5, "Homes") - 0.7, drift: 1.1, seed: 19 });
   headline(ctx, one, { lines: [[["Today, Vallo is", false]], [["one home for", false]], [["real estate.", true]]], x: HX, y: 250, size: 78, t0: s(4), t1: w(5, "Homes") - 0.95, stagger: 0.05 });
   /* the label names what the page is showing: the headline already carries
@@ -196,7 +210,7 @@ export async function build(ctx) {
   W.show("d-n-stay", w(5, "shortlets") - 0.1, w(5, "restaurants") - 0.1, { enter: "slide" });
   W.show("d-restaurants", w(5, "restaurants") - 0.1, s(6) - 0.2, { enter: "slide" });
   windowLift(ctx, W, { id: "d-restaurants", crop: { x: 330, y: 128, w: 345, h: 360 }, t0: w(5, "restaurants") + 0.3, t1: s(6) - 0.45, to: { x: COL, y: 380, s: 0.9, r: -3 }, seed: 1, label: "A table, booked on Vallo" });
-  /* CONTAINER 1 of 4. The four things one account carries are named one after
+  /* CONTAINER 1 of 3. The four things one account carries are named one after
      another by the voice and shown one page at a time by the window, so the
      screen never has them in one place: that is the container's job (section 6).
      A counters row, the blueprint's own part (section 4). */
@@ -227,19 +241,17 @@ export async function build(ctx) {
   const badge = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", display: "flex", alignItems: "center", gap: "22px", padding: "26px 38px", borderRadius: "999px", background: "linear-gradient(150deg, #2f7cff, #003f98)", boxShadow: "0 30px 70px -20px rgb(0 60 200 / 0.8), inset 0 1px 0 rgb(255 255 255 / 0.3)", font: "700 44px/1 Poppins, Inter, sans-serif", color: "#fff", whiteSpace: "nowrap" } }, seen);
   const bi = ctx.icon("badge-check", { size: 52, stroke: 2.2 }, badge); bi.style.color = "#fff";
   ctx.el("span", { text: "Ownership seen" }, badge);
-  /* HAND-OFF and ANTICIPATION (section 4, rules 1 and 3). The badge does not
-     simply appear in the column: it grows out of the slot the "No agency fee"
-     chip is leaving (y 480) and travels down to its own place (y 620), and it
-     pulls back a few pixels before it goes. The chip is still leaving as it
-     starts, so no frame between the two is dead (rule 5). */
-  during(ctx, w(8, "Ownership", 2) - 0.6, s(9), (t) => {
+  /* HAND-OFF (section 4, rule 1). The badge does not simply appear in the
+     column: it grows out of the slot the "No agency fee" chip is leaving
+     (y 480) and carries down to its own place (y 620). The chip is still on
+     its way out as the badge starts, so no frame between them is dead (rule 5). */
+  during(ctx, w(8, "Ownership", 2) - 0.3, s(9), (t) => {
     const a = ramp(ctx, t, w(8, "Ownership", 2) - 0.2, w(8, "Ownership", 2) + 0.4, "back.out(1.9)");
-    const anti = ramp(ctx, t, w(8, "Ownership", 2) - 0.5, w(8, "Ownership", 2) - 0.2, "power2.out") * (1 - a);
     const b = ramp(ctx, t, s(9) - 0.6, s(9) - 0.35, "power2.in");
     place(badge, {
       x: COL,
-      y: mix(480, 620, a) - anti * 18,
-      s: (0.5 + 0.5 * a) * (1 - 0.06 * anti),
+      y: mix(480, 620, a),
+      s: 0.5 + 0.5 * a,
       r: (1 - a) * 12,
       o: Math.min(ramp(ctx, t, w(8, "Ownership", 2) - 0.2, w(8, "Ownership", 2)), 1 - b),
     });
@@ -248,6 +260,9 @@ export async function build(ctx) {
   ctx.sfx("stamp", w(8, "Ownership", 2) + 0.05, { offset: -2 });
 
   /* ===================== 7. The host desk (46.2 - 58.9) ===================== */
+  /* CUT 4, one of the two loud ones: it lands in the longest silence of the
+     first half (43.9 to 46.2), so no sentence is under it */
+  tileFall(ctx, s(9) - 0.05, { cols: 6, rows: 10, dur: 0.5 });
   ground(ctx, s(9) - 0.05, s(12) + 0.3, { tone: "dusk", y: 85, seed: 37 });
   const desk = layer("desk", s(9) - 0.1, s(12));
   W.show("d-f-host-home", s(9) - 0.4, w(10, "calendar") - 0.2, { enter: "slide" });
@@ -256,7 +271,9 @@ export async function build(ctx) {
   /* the cursor goes to the desk's own nav, so the page change is the site's */
   W.click(w(10, "calendar") - 0.45, 110, 306);
   W.show("d-f-host-calendar", w(10, "calendar") - 0.2, w(10, "bookings") - 0.2, { enter: "slide" });
-  windowLift(ctx, W, { id: "d-f-host-calendar", crop: { x: 285, y: 330, w: 760, h: 125 }, t0: w(10, "night") - 0.25, t1: w(10, "earnings") - 0.4, to: { x: COL, y: 430, s: 0.74, r: -2 }, seed: 3, label: "Rates, night by night" });
+  /* the crop was ending on the rate pills: it now clears them with air below,
+     so the room's whole rate block comes up with nothing cut (section 6) */
+  windowLift(ctx, W, { id: "d-f-host-calendar", crop: { x: 286, y: 332, w: 752, h: 140 }, t0: w(10, "night") - 0.25, t1: w(10, "earnings") - 0.4, to: { x: COL, y: 430, s: 0.74, r: -2 }, seed: 3, label: "Rates, night by night" });
   W.show("d-host-bookings", w(10, "bookings") - 0.2, w(10, "place") - 0.3, { enter: "slide" });
   chipRow(ctx, desk, { items: [["Bookings", "calendar-check"], ["Reservations", "utensils"], ["Earnings", "wallet"]], x: COL, y: 560, t0: w(10, "bookings"), gap: (w(10, "earnings") - w(10, "bookings")) / 2, t1: w(10, "cancellation") - 0.35, size: 28, anchor: "center", wrapW: 620 });
   W.show("d-f-host-home", w(10, "place") - 0.3, s(11) - 0.25, { enter: "slide" });
@@ -266,17 +283,33 @@ export async function build(ctx) {
   W.show("d-f-host-reservations", s(11) - 0.25, s(12) - 0.45, { enter: "slide" });
   W.click(w(11, "deposits") - 0.15, 700, 800);
   const dep = layer("deposits", s(11), s(12));
-  /* the deposit rule, drawn: the page's own panel ends mid-sentence in a crop */
-  sheet(ctx, dep, {
-    icon: "credit-card",
-    title: "Table deposits",
-    body: ["Ask for a card deposit on the tables that matter most.", "It comes off the guest's bill, and it is yours if they do not come."],
-    note: "You choose which tables ask for one.",
-    x: COL, y: 230, w: 620, t0: w(11, "table") - 0.1, t1: s(12) - 0.35, size: 29, anchor: "center", from: "right",
+  /*
+   * THE FRAME THE FOUNDER SENT BACK, REDONE THE BLUEPRINT'S WAY (section 6).
+   *
+   * This rule used to be drawn from scratch because an earlier crop of the
+   * page's own panel ended mid-sentence. The answer is not to draw it: it is
+   * to take the crop off the PANEL'S OWN EDGES. x 292 clears the panel's left
+   * rounded edge by seven pixels, x+w 1414 clears its right by eight, y 718
+   * sits above its top edge, and the crop stops at 812, in the clear band
+   * under the rule and above the row below it. So the whole sentence - "Ask
+   * for a card deposit on the tables that matter most. It comes off the
+   * guest's bill, and it is yours if they do not come." - comes up with the
+   * panel, on one line, inside one heavy sky rule, at 0.95 of the window's own
+   * scale so it reads. It lifts straight up off the place it sits, and it
+   * overlaps the page above and below it, which is the whole move.
+   */
+  windowLift(ctx, W, {
+    id: "d-f-host-reservations",
+    crop: { x: 292, y: 718, w: 1122, h: 94 },
+    t0: w(11, "table") - 0.1, t1: w(11, "counts") + 0.25,
+    to: { x: 760, y: 470, s: 0.95, r: -1.5 },
+    exit: "up", seed: 12, label: "On your reservations page",
   });
   liveChip(ctx, dep, { text: "Every reservation counts", x: COL, y: 700, t0: w(11, "counts") - 0.4, t1: s(12) - 0.35, size: 30, anchor: "center" });
 
   /* ===================== 9. Agents and firms (64.6 - 78.5) ===================== */
+  /* CUT 5 */
+  slabWipe(ctx, s(12) - 0.05, { dir: "right", dur: 0.42 });
   ground(ctx, s(12) - 0.05, s(14) + 0.3, { tone: "violet", y: 20, seed: 38 });
   const ag = layer("agents", s(12) - 0.1, s(14));
   W.show("d-f-agent-dashboard", s(12) - 0.45, w(13, "portfolio") - 0.3, { enter: "slide" });
@@ -284,13 +317,17 @@ export async function build(ctx) {
   W.show("d-f-agent-portfolio", w(13, "portfolio") - 0.3, w(13, "analytics") - 0.3, { enter: "slide" });
   W.click(w(13, "analytics") - 0.5, 81, 520);
   W.show("d-f-agent-analytics", w(13, "analytics") - 0.3, w(13, "Pro") - 0.45, { enter: "slide" });
-  windowLift(ctx, W, { id: "d-f-agent-analytics", crop: { x: 290, y: 388, w: 1130, h: 200 }, t0: w(13, "working") - 0.25, t1: w(13, "Pro") - 0.5, to: { x: COL, y: 400, s: 0.5, r: -2 }, seed: 4, label: "Counted from your own records" });
+  /* the crop now runs from the analytics card's own top edge to the clear band
+     under "No booking requests in these days.", so the card is held up whole */
+  windowLift(ctx, W, { id: "d-f-agent-analytics", crop: { x: 288, y: 386, w: 1128, h: 406 }, t0: w(13, "working") - 0.25, t1: w(13, "Pro") - 0.5, to: { x: COL, y: 400, s: 0.47, r: -2 }, seed: 4, label: "Counted from your own records" });
   chipRow(ctx, ag, { items: [["Portfolio", "folder-kanban"], ["Analytics", "chart-column"], ["Firm desk", "building-2"]], x: COL, y: 680, t0: w(13, "portfolio"), gap: (w(13, "firm") - w(13, "portfolio")) / 2, t1: w(13, "Pro") - 0.5, size: 28, anchor: "center", wrapW: 620 });
   W.show("d-f-pro", w(13, "Pro") - 0.45, s(14) - 0.35, { enter: "slide" });
   chipRow(ctx, ag, { items: [["Vallo Pro", "sparkles"], ["Vallo Business", "briefcase"]], x: COL, y: 200, t0: w(13, "Pro"), gap: w(13, "Business") - w(13, "Pro"), t1: s(14) - 0.4, size: 30, anchor: "center", wrapW: 620 });
   liveChip(ctx, ag, { text: "Free trial to start", x: COL, y: 700, t0: w(13, "free") - 0.1, t1: s(14) - 0.4, size: 30, anchor: "center" });
 
   /* ===================== 10. A no-show, fairly (78.5 - 87.7) ===================== */
+  /* CUT 6 */
+  irisTicks(ctx, s(14) - 0.05, { dur: 0.46 });
   ground(ctx, s(14) - 0.05, s(16) + 0.3, { tone: "navy", y: 30, seed: 39 });
   W.show("d-messages", s(14) - 0.35, w(14, "report") - 0.25, { enter: "slide" });
   W.click(w(14, "report") - 0.5, 800, 360);
@@ -299,12 +336,22 @@ export async function build(ctx) {
   kicker(ctx, fair, { text: "Booked a viewing, didn't show", icon: "calendar-x", x: COL, y: 200, t0: w(14, "viewing") - 0.1, t1: w(14, "report") - 0.3, size: 28, anchor: "center" });
   /* the thread the report comes off, so the column is not bare while the
      sentence takes its time getting to "you can report it" */
-  windowLift(ctx, W, { id: "d-messages", crop: { x: 406, y: 310, w: 770, h: 100 }, t0: w(14, "viewing") + 0.3, t1: w(14, "report") - 0.3, to: { x: COL, y: 580, s: 0.68, r: -2 }, seed: 11, label: "The enquiry it came from" });
-  featureCard(ctx, fair, { icon: "flag", title: "Report a no-show", line: "A person reads every report.", x: COL, y: 300, w: 620, t0: w(14, "report") - 0.05, t1: w(14, "forty-eight") - 0.35, size: 32, from: "right", anchor: "center" });
+  /* the crop now takes the whole conversation row, its own rounded edges and
+     the archive button included, so nothing of it is sheared off */
+  windowLift(ctx, W, { id: "d-messages", crop: { x: 400, y: 306, w: 908, h: 110 }, t0: w(14, "viewing") + 0.3, t1: w(14, "report") - 0.3, to: { x: COL, y: 580, s: 0.62, r: -2 }, seed: 11, label: "The enquiry it came from" });
+  /* CONTAINER 2 of 3: the rule for a no-show. The page does not state it in
+     one place, so this is the container's work rather than a lift (section 6). */
+  popOut(ctx, fair, {
+    kind: "line", x: COL, y: 300, t0: w(14, "report") - 0.05, t1: w(14, "forty-eight") - 0.35,
+    size: 28, from: "right", seed: 22, lucide: "flag",
+    tab: "After a missed viewing", title: "Report a no-show", line: "A person reads every report.",
+  });
   numberCard(ctx, fair, { value: 48, prefix: "", label: "hours for them to respond", x: COL, y: 520, t0: w(14, "forty-eight") - 0.1, t1: w(14, "forty-eight") + 0.7, tOut: s(15) - 0.35, size: 96 });
   liveChip(ctx, fair, { text: "Fair for everyone", x: COL, y: 200, t0: s(15) - 0.05, t1: s(16) - 0.35, size: 32, anchor: "center" });
 
   /* ===================== 11. The Vallo passport (87.7 - 95.8) ===================== */
+  /* CUT 7 */
+  slabWipe(ctx, s(16) - 0.05, { dir: "down", dur: 0.42 });
   ground(ctx, s(16) - 0.05, s(17) + 0.3, { tone: "electric", y: 25, seed: 40 });
   W.show("d-verification", s(16) - 0.35, s(17) - 0.35, { enter: "rise", dur: 0.6 });
   const pass = layer("passport", s(16) - 0.1, s(17));
@@ -322,6 +369,8 @@ export async function build(ctx) {
   chipRow(ctx, pass, { items: [["Applying is faster", "zap"], ["You choose who sees it", "eye"]], x: COL, y: 830, t0: w(16, "faster") - 0.2, gap: w(16, "choose") - w(16, "faster"), t1: s(17) - 0.4, size: 28, anchor: "center", wrapW: 620 });
 
   /* ===================== 12. Tenancy file, agreements, rent (95.8 - 106.2) ===================== */
+  /* CUT 8 */
+  irisTicks(ctx, s(17) - 0.05, { dur: 0.46 });
   ground(ctx, s(17) - 0.05, s(19) + 0.3, { tone: "emerald", y: 20, seed: 41 });
   W.show("d-payments", s(17) - 0.35, s(19) - 0.4, { enter: "slide" });
   W.click(w(17, "agreement") + 0.1, 855, 718);
@@ -341,17 +390,27 @@ export async function build(ctx) {
   noticeCard(ctx, ten, { object: "bell", title: "Rent due in 7 days", line: "Your tenancy, and Vallo reminds you first.", x: COL, y: 560, w: 620, t0: w(18, "reminds") + 0.05, t1: s(19) - 0.4, size: 30, seed: 17, from: "below" });
 
   /* ===================== 13. Wallet and escrow (106.2 - 117.7) ===================== */
+  /* CUT 9 */
+  slabWipe(ctx, s(19) - 0.05, { dir: "left", dur: 0.42 });
   ground(ctx, s(19) - 0.05, s(21) + 0.2, { tone: "electric", y: 18, seed: 42 });
   /* the money page again, entering fresh: this is the wallet's own chapter */
   W.show("d-payments", s(19) - 0.4, s(21) - 0.3, { enter: "rise", dur: 0.6 });
   const wal = layer("wallet", s(19) - 0.1, s(21));
   headline(ctx, wal, { lines: [[["Your Vallo ", false], ["wallet", true]]], x: COL, y: 190, size: 64, t0: w(19, "wallet") - 0.3, t1: s(20) - 0.35, align: "center" });
   chipRow(ctx, wal, { items: [["Add money", "plus"], ["Pay", "credit-card"], ["Send", "send"], ["Withdraw", "arrow-down-to-line"]], x: COL, y: 560, t0: w(19, "add"), gap: (w(19, "withdraw") - w(19, "add")) / 3, t1: s(20) - 0.3, size: 28, anchor: "center", wrapW: 620 });
-  featureCard(ctx, wal, { icon: "shield-check", title: "Protected payment", line: "Your money waits in escrow until the deal is done.", x: COL, y: 300, w: 620, t0: w(20, "Protected") - 0.1, t1: s(21) - 0.35, size: 32, from: "right", anchor: "center" });
+  /* CONTAINER 3 of 3: the promise the wallet page never prints in one place */
+  popOut(ctx, wal, {
+    kind: "line", x: COL, y: 300, t0: w(20, "Protected") - 0.1, t1: s(21) - 0.35,
+    size: 24, from: "right", seed: 23, lucide: "shield-check",
+    tab: "While the deal runs", title: "Protected payment", line: "Your money waits in escrow until the deal is done.",
+  });
   windowLift(ctx, W, { id: "d-payments", crop: { x: 285, y: 95, w: 1135, h: 215 }, t0: w(20, "escrow") - 0.2, t1: s(21) - 0.4, to: { x: COL, y: 700, s: 0.5, r: -1.5 }, seed: 6, label: "Paid through Vallo" });
   ctx.sfx("lock_click", w(20, "escrow"), { offset: -2 });
 
   /* ===================== 14. The promise, on daylight (117.7 - 129.2) ===================== */
+  /* CUT 10, the second loud one: the bars close in the two seconds of silence
+     after "until the deal is done" and open on "Here's the promise" */
+  shutter(ctx, s(21) - 0.05, { bars: 7, dur: 0.4 });
   ground(ctx, s(21) - 0.05, s(22) - 0.25, { tone: "navy", y: 45, seed: 43, sparkle: 8 });
   const pr = layer("promise", s(21) - 0.05, s(24) + 0.1, 800);
   const size = 84;
@@ -377,12 +436,17 @@ export async function build(ctx) {
   ctx.hidePill(s(21) - 0.2, s(24) - 0.1);
 
   /* ===================== 15. Trust at every step (129.2 - 143.1) ===================== */
+  /* CUT 11: the slab also carries the white paper away, which a plain cut did
+     badly (daylight to electric in one frame) */
+  slabWipe(ctx, s(24) - 0.05, { dir: "right", dur: 0.44 });
   ground(ctx, s(24) - 0.05, s(28) + 0.3, { tone: "electric", y: 25, seed: 46 });
   sceneBack(ctx, ctx.scene("trust-back", s(24) - 0.3, s(26) + 0.5, { z: 3 }), { scene: "step-2-dark", t0: s(24), t1: s(26) - 0.1, opacity: 0.40 });
   W.show("d-notifications", s(24) + 0.1, w(26, "flagged") - 0.3, { enter: "slide" });
   const tr = layer("trust", s(24) - 0.1, s(28));
   kicker(ctx, tr, { text: "Trust, built into every step", icon: "shield", x: COL, y: 200, t0: s(24) + 0.3, t1: s(25) - 0.25, size: 28, anchor: "center" });
-  windowLift(ctx, W, { id: "d-notifications", crop: { x: 510, y: 438, w: 680, h: 80 }, t0: s(25) + 0.05, t1: w(26, "flagged") - 1.15, to: { x: COL, y: 330, s: 0.72, r: -2 }, seed: 7, label: "A person reads every one" });
+  /* the notice's second line ("comes back.") sat on the old crop's bottom edge:
+     the crop now takes the row's own rounded box with air under it */
+  windowLift(ctx, W, { id: "d-notifications", crop: { x: 508, y: 430, w: 688, h: 104 }, t0: s(25) + 0.05, t1: w(26, "flagged") - 1.15, to: { x: COL, y: 330, s: 0.72, r: -2 }, seed: 7, label: "A person reads every one" });
   proofCard(ctx, tr, { lines: ["Checked by a real", "person at Vallo."], x: COL, y: 640, w: 560, t0: w(25, "person") - 0.55, t1: w(26, "flagged") - 1.05, rot: -2, size: 34, seed: 64, from: "right" });
   /* the flag sits on the thread it belongs to, so the window is full behind it */
   W.show("d-thread", w(26, "flagged") - 0.3, w(27, "full") - 0.3, { enter: "slide" });
@@ -396,30 +460,57 @@ export async function build(ctx) {
   ctx.sfx("stamp", w(26, "flagged"), { offset: -3 });
   kicker(ctx, flag, { text: "Account number in the chat", icon: "shield-alert", x: ctx.W / 2, y: 170, t0: w(26, "flagged") - 0.15, t1: s(27) - 0.35, size: 30, anchor: "center" });
   W.show("d-listing-cost", w(27, "full") - 0.3, s(28) - 0.35, { enter: "slide" });
-  numberCard(ctx, tr, { value: 26100000, label: "The full cost, before anyone pays", x: COL, y: 260, t0: w(27, "full") - 0.05, t1: w(27, "full") + 1.2, tOut: s(28) - 0.3, size: 72 });
+  /* ANTICIPATION on the cut's loudest figure (section 4, rule 3): the card
+     dips a few pixels and settles back before the odometer starts to roll, so
+     the roll is thrown rather than switched on. The dip is on a wrapper, so
+     the number card's own motion is untouched and the roll stays on its word. */
+  const dip = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px" } }, tr);
+  numberCard(ctx, dip, { value: 26100000, label: "The full cost, before anyone pays", x: COL, y: 260, t0: w(27, "full") - 0.05, t1: w(27, "full") + 1.2, tOut: s(28) - 0.3, size: 72 });
+  ctx.onFrame((t) => {
+    const a = ramp(ctx, t, w(27, "full") - 0.32, w(27, "full") - 0.05, "power2.out");
+    const b = ramp(ctx, t, w(27, "full") - 0.05, w(27, "full") + 0.22, "power3.out");
+    dip.style.transform = `translateY(${((a - b) * 16).toFixed(2)}px)`;
+  });
   windowLift(ctx, W, { id: "d-listing-cost", crop: { x: 330, y: 190, w: 675, h: 515 }, t0: w(27, "cost") + 0.15, t1: s(28) - 0.4, to: { x: COL, y: 700, s: 0.6, r: -2 }, seed: 8, label: "What you will actually pay" });
   ctx.hidePill(w(27, "full") - 0.3, s(28) - 0.1);
 
   /* ===================== 16. Community: Local talk (143.1 - 156.9) ===================== */
+  /* CUT 12, the second shutter: it sits in the longest silence of the film
+     (140.2 to 143.1), so nothing is spoken under the closed bars */
+  shutter(ctx, s(28) - 0.05, { bars: 9, dur: 0.42 });
   ground(ctx, s(28) - 0.05, s(31) + 0.3, { tone: "violet", y: 25, seed: 47 });
   const com = layer("community", s(28) - 0.1, s(31));
   headline(ctx, com, { lines: [[["Vallo is also a", false]], [["community.", true]]], x: ctx.W / 2, y: 380, size: 84, t0: s(28), t1: s(29) - 1.1, align: "center", stagger: 0.05 });
   W.show("d-f-around", s(29) - 0.4, w(30, "stories") - 0.2, { enter: "slide" });
-  windowLift(ctx, W, { id: "d-f-around", crop: { x: 375, y: 296, w: 600, h: 350 }, t0: w(29, "neighbourhood") - 0.2, t1: w(30, "stories") - 0.25, to: { x: COL, y: 400, s: 0.78, r: -2 }, seed: 9, label: "Local talk" });
+  /* the crop sat inside the post, shearing its top and its action row: it now
+     takes the post's own rounded card, so the whole message comes with it */
+  windowLift(ctx, W, { id: "d-f-around", crop: { x: 371, y: 275, w: 612, h: 394 }, t0: w(29, "neighbourhood") - 0.2, t1: w(30, "stories") - 0.25, to: { x: COL, y: 400, s: 0.72, r: -2 }, seed: 9, label: "Local talk" });
   W.show("d-around", w(30, "stories") - 0.2, s(31) - 0.35, { enter: "slide" });
   W.click(w(30, "follow") + 0.15, 1030, 220);
   chipRow(ctx, com, { items: [["Local talk", "messages-square"], ["Stories", "circle-play"], ["Follow", "user-plus"], ["What's new around you", "map-pin"]], x: COL, y: 700, t0: w(29, "Local"), gap: (w(30, "new") - w(29, "Local")) / 3, t1: s(31) - 0.4, size: 26, anchor: "center", wrapW: 620 });
 
   /* ===================== 17. Referral rewards (156.9 - 180.0) ===================== */
-  flash(ctx, s(31), { color: "rgb(255 196 61 / 0.5)" });
+  /* CUT 13, the second tile fall: the flash that stood here was standing in
+     for the cut, and the gap before "And now..." is two and a half seconds */
+  tileFall(ctx, s(31) - 0.05, { cols: 8, rows: 10, dur: 0.52 });
   ground(ctx, s(31) - 0.05, s(38) + 0.3, { tone: "gold", y: 25, seed: 48 });
   const rw = layer("rewards", s(31) - 0.1, s(38));
   headline(ctx, rw, { lines: [[["Referral rewards", false]], [["are ", false], ["live.", true]]], x: ctx.W / 2, y: 360, size: 86, t0: s(31) + 0.12, t1: s(32) - 0.35, align: "center", stagger: 0.05 });
   liveChip(ctx, rw, { text: "Live now", x: ctx.W / 2, y: 620, t0: w(31, "live") - 0.1, t1: s(32) - 0.3, size: 32, anchor: "center" });
+  /* the second set of badges, at the frame's edges, in on the beat and out
+     with the opening of the chapter */
+  badgeDisc(ctx, rw, { name: "gift", x: 212, y: 302, size: 134, t0: s(31) + 0.45, t1: s(32) - 0.25, seed: 55 });
+  badgeDisc(ctx, rw, { name: "earnings", x: 1718, y: 272, size: 124, t0: s(31) + 0.45, t1: s(32) - 0.25, seed: 56, delay: 0.12 });
+  badgeDisc(ctx, rw, { name: "celebrate", x: 254, y: 728, size: 118, t0: s(31) + 0.45, t1: s(32) - 0.25, seed: 57, delay: 0.24 });
+  badgeDisc(ctx, rw, { name: "send", kind: "glyph", tone: "paper", x: 1740, y: 716, size: 112, t0: s(31) + 0.45, t1: s(32) - 0.25, seed: 58, delay: 0.36 });
   W.show("d-f-rewards", s(32) + 0.2, s(38) - 0.35, { enter: "rise", dur: 0.6 });
   kicker(ctx, rw, { text: "Share your invite link", icon: "link", x: COL, y: 200, t0: w(33, "invite") - 0.3, t1: w(34, "earn") - 0.45, size: 30, anchor: "center" });
   ctx.sfx("bubble_send", w(33, "link"), { offset: -3 });
-  windowLift(ctx, W, { id: "d-f-rewards", crop: { x: 505, y: 760, w: 580, h: 95 }, t0: w(34, "friend") - 0.2, t1: w(36, "once") - 0.3, to: { x: COL, y: 620, s: 0.62, r: -3 }, seed: 10, label: "What a referral pays" });
+  /* the crop ran through the middle of the "How you earn" card: it now takes
+     the card's own left and right edges and stops in the band under the line.
+     HAND-OFF (section 4, rule 1): it leaves upward, into the slot where the
+     one thousand naira card arrives, and the figure grows out of it. */
+  windowLift(ctx, W, { id: "d-f-rewards", crop: { x: 510, y: 750, w: 686, h: 102 }, t0: w(34, "friend") - 0.2, t1: w(36, "thousand") - 0.95, to: { x: COL, y: 620, s: 0.62, r: -3 }, exit: "up", seed: 10, label: "What a referral pays" });
   numberCard(ctx, rw, { value: 80, label: "for each friend who joins and gets verified", x: COL, y: 330, t0: w(34, "earn") - 0.05, t1: w(34, "earn") + 0.6, tOut: s(35) + 0.9, size: 72 });
   kicker(ctx, rw, { text: "Ready after 7 days", icon: "clock", x: COL, y: 200, t0: w(35, "seven") - 0.1, t1: s(36) - 0.2, size: 30, anchor: "center" });
   W.click(w(36, "withdraw") - 0.15, 855, 332);
@@ -439,6 +530,8 @@ export async function build(ctx) {
   ringBurst(ctx, rw, { cx: COL, cy: 620, r: 230, t: w(37, "earn") + 0.1, seed: 49 });
 
   /* ===================== 18. The beginning (180.0 - 205.4) ===================== */
+  /* CUT 14: the brackets close on the gold and bloom open on the navy */
+  irisTicks(ctx, s(38) - 0.05, { dur: 0.5 });
   ground(ctx, s(38) - 0.05, s(42) + 0.2, { tone: "navy", y: 40, seed: 50, sparkle: 10 });
   const vis = layer("vision", s(38) - 0.1, s(42), 800);
   headline(ctx, vis, { lines: [[["This is just the ", false], ["beginning.", true]]], x: ctx.W / 2, y: 420, size: 92, t0: s(38), t1: s(39) - 0.15, align: "center" });

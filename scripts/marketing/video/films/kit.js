@@ -793,7 +793,11 @@ export function listingWall(ctx, parent, { t0, t1, rows = 3, y = null, cardW = n
     const off = Math.floor(rand() * LISTINGS.length);
     /* a stays row carries real stay cards from the stays results; the others the home's listing cards */
     if (stays && stayRows.includes(r)) for (let i = 0; i < n; i += 1) cropCard(ctx, strip, stays[(off + i) % stays.length], cw);
-    else for (let i = 0; i < n; i += 1) listingCard(ctx, strip, LISTINGS[(off + i * (r + 2)) % LISTINGS.length], cw);
+    /* `full`: the wall's cards wrap their titles rather than ending in an
+       ellipsis. A cut title is the product's own doing in a 400 px row, but
+       on a wall the film holds up it reads as our fault (the founder, 16
+       October), and the layout check counts every one. */
+    else for (let i = 0; i < n; i += 1) listingCard(ctx, strip, LISTINGS[(off + i * (r + 2)) % LISTINGS.length], cw, { full: true });
     strips.push({ strip, dir: r % 2 ? 1 : -1, v: speed * (0.75 + 0.5 * rand()), span: 4 * (cw + g) });
   }
   const sweep = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${ctx.W * 0.5}px`, height: `${ctx.H}px`, background: "linear-gradient(100deg, transparent 0%, rgb(143 211 255 / 0.10) 45%, rgb(255 255 255 / 0.16) 50%, rgb(143 211 255 / 0.10) 55%, transparent 100%)" } }, wall);

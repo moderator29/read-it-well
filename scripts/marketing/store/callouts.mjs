@@ -56,7 +56,7 @@ const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replac
  */
 export function shell({
   x, right, y, w, fit = false, rotate = 0, scale = 1, z = 30, tab = null, ticks = true,
-  tone = "dark", inner = "", pad = [26, 30], gap = 0, radius = 40, origin = "center", lift = 1, cls = "", center = false, anchor = null,
+  tone = "dark", inner = "", pad = [26, 30], gap = 0, radius = 40, origin = "center", lift = 1, cls = "", center = false, anchor = null, card = false,
 }) {
   const s = scale;
   const place = right !== undefined ? `right:${px(right)}` : `left:${px(x)}`;
@@ -68,7 +68,7 @@ export function shell({
     : "";
   const shift = anchor === "bottom" ? "translateY(-100%) " : (center || anchor === "center") ? "translateY(-50%) " : "";
   void ticks;
-  return `<div class="co ${tone} ${cls} abs" style="${place};top:${px(y)};${width};transform:${shift}rotate(${rotate}deg);transform-origin:${origin};z-index:${z};padding:${px(pad[0] * s)} ${px(pad[1] * s)};border-radius:${px(radius * s)};border-width:${px(8 * s)};${gap ? `gap:${px(gap * s)};` : ""}--lift:${lift}">
+  return `<div class="co ${tone} ${cls} abs"${card ? ' data-card="1"' : ""} style="${place};top:${px(y)};${width};transform:${shift}rotate(${rotate}deg);transform-origin:${origin};z-index:${z};padding:${px(pad[0] * s)} ${px(pad[1] * s)};border-radius:${px(radius * s)};border-width:${px(8 * s)};${gap ? `gap:${px(gap * s)};` : ""}--lift:${lift}">
     ${label}<div class="cobody">${inner}</div></div>`;
 }
 
@@ -100,12 +100,17 @@ export function statCallout({ label, figure, unit, note, lucide, figureSize = 72
  * The line callout: a disc, a title, a line, and an optional amount. The
  * old popup's content in the new container.
  */
-export function lineCallout({ lucide, title, line, line2, amount, meta, ...rest }) {
+export function lineCallout({ lucide, title, line, line2, amount, meta, example = false, ...rest }) {
   const s = rest.scale ?? 1;
-  const right = meta ? `<span class="cometa" style="font-size:${px(24 * s)}">${esc(meta)}</span>` : "";
+  /* the product's own Example label, as DESIGN.md section 2 requires on any
+     card showing a booking, a table, a payment or an inspection */
+  const chip = example
+    ? `<span class="coex" style="font-size:${px(21 * s)};padding:${px(6 * s)} ${px(13 * s)} ${px(6 * s)} ${px(10 * s)};gap:${px(6 * s)};border-width:${px(2 * s)}">${icon("info", { size: Math.round(22 * s), color: "#DCE7FF", stroke: 2.2 })}<span>Example</span></span>`
+    : "";
+  const right = [chip, meta ? `<span class="cometa" style="font-size:${px(24 * s)}">${esc(meta)}</span>` : ""].filter(Boolean).join("");
   const inner = `<div class="corow" style="gap:${px(26 * s)}">${disc(lucide, s)}
     <div class="cotxt">
-      <div class="cotop"><span class="cotitle" style="font-size:${px(35 * s)}">${esc(title)}</span>${right}</div>
+      <div class="cotop"><span class="cotitle" style="font-size:${px(35 * s)}">${esc(title)}</span><span class="coright" style="gap:${px(12 * s)}">${right}</span></div>
       <div class="coline" style="font-size:${px(27 * s)};margin-top:${px(8 * s)}">${esc(line)}</div>
       ${line2 ? `<div class="coline dim" style="font-size:${px(23 * s)};margin-top:${px(6 * s)}">${esc(line2)}</div>` : ""}
       ${amount ? `<div class="coamt" style="font-size:${px(40 * s)};margin-top:${px(10 * s)}">${esc(amount)}</div>` : ""}
@@ -285,6 +290,9 @@ export const CALLOUT_CSS = `
   .coline.dim { color: rgb(196 212 250 / 0.70); }
   .coamt { font-family: "Poppins", sans-serif; font-weight: 700; letter-spacing: -0.02em; color: #FFFFFF; }
   .cometa { font-weight: 500; white-space: nowrap; flex: none; color: rgb(206 220 252 / 0.8); }
+  .coright { display: inline-flex; align-items: center; flex: none; }
+  .coex { display: inline-flex; align-items: center; border-radius: 999px; font-weight: 600; line-height: 1; white-space: nowrap;
+    letter-spacing: 0.005em; color: #E8EFFF; background: #000208; border: 0 solid rgb(143 211 255 / 0.55); border-style: solid; }
   .conote { font-weight: 500; letter-spacing: -0.003em; color: rgb(202 218 253 / 0.74); white-space: nowrap; }
   .co.sky .conote { color: rgb(255 255 255 / 0.82); }
 

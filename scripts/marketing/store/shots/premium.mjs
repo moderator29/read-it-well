@@ -26,8 +26,9 @@
  * alike at store size (the three home rows, the two searches, the two stay
  * pages, the two cost pages) far apart.
  */
-import { headline, popup } from "../components.mjs";
+import { headline } from "../components.mjs";
 import { furnish, panelFor } from "../furniture.mjs";
+import { lineCallout } from "../callouts.mjs";
 import { FURNITURE } from "./furniture/index.mjs";
 import { brandUrl } from "../lib.mjs";
 
@@ -175,9 +176,15 @@ export function pair(a, b, { id, rotation, fov, dx = 0, h = 1, clear, through, e
     }
     return { html: p.html, phone: p };
   };
+  /* A pair's halves draw their own panel, furniture and headline: `pair`
+     builds them itself rather than through `std`, so without this nothing in
+     shots/furniture/ could ever reach them. `mags` cannot: the shared phone
+     is tilted, not flat, so there is no display layer to magnify. */
   const words = (S, extra) => async (ctx) => {
     const m = M(ctx);
-    return [head(ctx, m, S.lines, { align: "left" }), extra ? await extra(ctx, m) : ""].join("\n");
+    const spec = FURNITURE[S.n] || {};
+    const furniture = furnish(ctx, m, null, { props: spec.props, badges: spec.badges, figures: spec.figures });
+    return [panelFor(ctx, m), head(ctx, m, S.lines, { align: "left", keyStyle: spec.keyStyle }), furniture, extra ? await extra(ctx, m) : ""].join("\n");
   };
   return [
     { n: a.n, slug: a.slug, captures: [id], pairWith: b.n, shared, layout: words(a, extraA) },
@@ -219,37 +226,54 @@ export const SHOTS = [
           }
           return rim[0][0];
         };
-        const cardH = (ios ? 198 : 174) * (m.card / (ios ? 1.3 : 1.3 * 0.876));
         const [, midY] = sp.at(0, 275);
-        /* level with the header; lower (where the rim lies further left) only as far as
-           it takes for the card to reach 20 px over the rim and keep 24 px from the menu */
+        /* The card sits level with the header's middle, and is lowered (where the rim
+           lies further left) only as far as it takes to reach 20 px over the rim while
+           keeping clear of the menu above and the greeting below. Its right edge goes
+           past the rim by the rule's overhang plus 52 px (App Store) or 42 (Play), so
+           the rounded top corner sits over the frame too. */
         const menu = pageBox(sp.at, MENU, "the menu button");
-        let top = midY - cardH / 2;
-        /* level with the header's middle. The right edge goes past the rim by the rule's
-           overhang plus 52 px (App Store) or 42 (Play), so the rounded top corner sits over
-           the frame too, but never closer than 24 px to the menu; the greeting below must
-           stay 20 px clear (the check below), and the corner must overlap the rim by 8 px
-           or more. */
-        const radius = 38 * m.card;
         const greeting = pageBox(sp.at, [45, 478, 470, 640], "the greeting");
-        let menuGap = 24;
-        const fit = (t) => {
-          const r = Math.min(menu.x - menuGap, Math.max(Math.min(rimX(t), rimX(t + cardH)) + m.overhang + (ios ? 52 : 42), rimX(t) + 20, rimX(t + cardH) + 20));
-          /* the overlap where the corner's curve meets the rim: the corner at 45 degrees */
-          return { right: r, overlap: r - radius * (1 - Math.SQRT1_2) - rimX(t + radius * (1 - Math.SQRT1_2)) };
-        };
-        /* lower only while the corner overlaps the rim by less than 8 px and the greeting
-           stays more than 20 px below */
-        const clear = (t) => Math.hypot(Math.max(greeting.x - fit(t).right, 0), Math.max(greeting.y - (t + cardH), 0));
-        while (fit(top).overlap < 8 && clear(top + 1) >= 22) top += 1;
-        /* and if the corner still overlaps by less than 8 px, let the card come as close
-           as the 20 px rule to the menu */
-        while (fit(top).overlap < 8 && menuGap > 20) menuGap -= 1;
-        const { right, overlap } = fit(top);
-        ctx.cornerOverlap = overlap;
+        /*
+         * The band between the menu above and the greeting below is narrower
+         * than it was: the handset came down a tenth on 16 October and the
+         * container that replaced the old pop-up is taller (the heavy rule
+         * adds to every edge). So the card is fitted rather than assumed: the
+         * largest size, from the set's own down to four fifths of it, that
+         * keeps 8 px of corner over the rim, 20 px off the menu and 20 px off
+         * the greeting. A card is 172 px tall per unit of scale (the disc at
+         * 104, its padding 26 each way, the rule 8 each way).
+         */
+        let best = null;
+        for (let k = 1; k >= 0.70 && !best; k -= 0.02) {
+          const scale = m.card * k;
+          const cardH = 172 * scale;
+          const radius = 40 * scale;
+          let menuGap = 24;
+          const fit = (t) => {
+            const r = Math.min(menu.x - menuGap, Math.max(Math.min(rimX(t), rimX(t + cardH)) + m.overhang + (ios ? 52 : 42), rimX(t) + 20, rimX(t + cardH) + 20));
+            /* the overlap where the corner's curve meets the rim: the corner at 45 degrees */
+            return { right: r, overlap: r - radius * (1 - Math.SQRT1_2) - rimX(t + radius * (1 - Math.SQRT1_2)) };
+          };
+          const clear = (t) => Math.hypot(Math.max(greeting.x - fit(t).right, 0), Math.max(greeting.y - (t + cardH), 0));
+          let t = midY - cardH / 2;
+          while (fit(t).overlap < 8 && clear(t + 1) >= 22) t += 1;
+          while (fit(t).overlap < 8 && menuGap > 22) menuGap -= 1;
+          const { right, overlap } = fit(t);
+          if (overlap >= 8 && menu.x - right >= 20.5 && clear(t) >= 20.5) best = { scale, cardH, top: t, right, overlap };
+        }
+        /* nothing fitted: take the smallest and let the check report it */
+        if (!best) {
+          const scale = m.card * 0.70;
+          const cardH = 172 * scale;
+          const t = midY - cardH / 2;
+          const r = Math.min(menu.x - 22, Math.max(rimX(t) + m.overhang + (ios ? 52 : 42), rimX(t) + 20));
+          best = { scale, cardH, top: t, right: r, overlap: r - 40 * scale * (1 - Math.SQRT1_2) - rimX(t + 40 * scale * (1 - Math.SQRT1_2)) };
+        }
+        ctx.cornerOverlap = best.overlap;
         ctx.cardCheck = { avoid: [menu, greeting, pageBox(sp.at, CAMERA[ctx.model], "the camera")], minCornerOverlap: 8 };
-        if (process.env.STORE_DEBUG) console.log(`  04 card: top ${top.toFixed(0)}, bottom ${(top + cardH).toFixed(0)}, right ${right.toFixed(0)}, menu gap ${(menu.x - right).toFixed(1)}, greeting top ${greeting.y.toFixed(0)}, corner overlap ${ctx.cornerOverlap.toFixed(1)} px`);
-        return popup({ right: W - right, fit: true, y: top, lucide: "bed-double", title: "Room booked", line: "Lagoon Crest Resort · 3 nights", meta: null, example: true, scale: m.card });
+        if (process.env.STORE_DEBUG) console.log(`  04 card: scale ${best.scale.toFixed(3)} of ${m.card.toFixed(3)}, top ${best.top.toFixed(0)}, right ${best.right.toFixed(0)}, menu gap ${(menu.x - best.right).toFixed(1)}, corner overlap ${best.overlap.toFixed(1)} px`);
+        return lineCallout({ card: true, right: W - best.right, fit: true, y: best.top, lucide: "bed-double", title: "Room booked", line: "Lagoon Crest Resort · 3 nights", meta: null, example: true, scale: best.scale });
       },
     },
   ),
@@ -280,10 +304,10 @@ export const SHOTS = [
          22 px clear of each, at the set's card size or smaller if the band is shorter (a
          two-line card is 152.5 px tall per unit of scale). */
       const top = Math.max(cam.b + 22, clock.b + 24);
-      const scale = Math.min(m.card, (back.y - 22 - top) / 152.5);
+      const scale = Math.min(m.card, (back.y - 22 - top) / 172);
       ctx.cardScale = scale;
       if (process.env.STORE_DEBUG) console.log(`  13 card: top ${top.toFixed(0)}, scale ${scale.toFixed(3)} (set size ${m.card.toFixed(3)})`);
-      return popup({ x: left, fit: true, y: top, lucide: "landmark", title: "Payment settled", line: "Straight to your bank", meta: null, example: true, scale });
+      return lineCallout({ card: true, x: left, fit: true, y: top, lucide: "landmark", title: "Payment settled", line: "Straight to your bank", meta: null, example: true, scale });
     },
   }),
 

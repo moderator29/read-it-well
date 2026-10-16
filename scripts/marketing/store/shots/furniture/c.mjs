@@ -21,7 +21,7 @@ export const F = {
   /* 25: room bookings. The paragraph that states the fee, at size over itself;
      where the rest of the money goes, under the phone. */
   25: {
-    mags: [{ box: [28, 996, 1296, 1330], scale: 1.16, dy: 22 }],
+    mags: [{ box: [28, 996, 1296, 1330], scale: 1.16, dy: 14 }],
     pops: [
       { side: "left", y: 0.962, anchor: "bottom", kind: "line", tab: "Payout", lucide: "landmark", title: "Your share, your bank", line: "Paid by card, after approval", meta: null },
     ],
@@ -36,7 +36,7 @@ export const F = {
   /* 26: the agent's dashboard. The verification card carries the whole point,
      so it stands alone: no tier, no count, none of the screen's zeros. */
   26: {
-    mags: [{ box: [44, 1162, 1276, 1694], scale: 1.16, dy: 24 }],
+    mags: [{ box: [44, 1166, 1276, 1722], scale: 1.16, dy: -20 }],
     props: [{ name: "verified", x: 0.05, y: 0.83, size: 210, rot: -7 }],
     badges: [
       { name: "check", kind: "glyph", rx: 0.055, y: 0.195, size: 138, rot: 6 },
@@ -69,7 +69,7 @@ export const F = {
     ],
     /* the calendar prints a rate in every cell, so the object stands in the band
        under the handset rather than on the grid */
-    props: [{ name: "calendar-booked", rx: 0.055, y: 0.878, size: 200, rot: 8 }],
+    props: [{ name: "calendar-booked", rx: 0.055, y: 0.864, size: 196, rot: 8 }],
     badges: [
       { name: "moon", kind: "glyph", x: 0.055, y: 0.195, size: 138, rot: -6 },
       { name: "hotel", rx: 0.055, y: 0.44, size: 150, rot: 6 },
@@ -140,7 +140,7 @@ export const F = {
   /* 33: the move-in sheet. The agent's own fee row at size, and over the rim the
      three fees the sheet never sets side by side. */
   33: {
-    mags: [{ box: [60, 2136, 1260, 2402], scale: 1.18, dy: 16 }],
+    mags: [{ box: [60, 2136, 1260, 2402], scale: 1.18, dy: 0 }],
     pops: [
       { side: "left", at: 0.01, center: true, kind: "cells", tab: "Fee by fee", lucide: "percent",
         cells: [["Agency fee", "10.0%"], ["Legal fee", "10.0%"], ["Agreement", "5.0%"]], foot: "Every one a share of a year’s rent." },

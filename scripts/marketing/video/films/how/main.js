@@ -419,7 +419,7 @@ export async function build(ctx) {
   if (M) lift(ctx, H, { id: "f-restaurant-reserve", crop: { x: 133, y: 1432, w: 1050, h: 198 }, t0: w(21, "secure") - 0.05, t1: s(22) - 0.45, to: { x: R.cx, y: 560, s: 0.60, r: 2 }, seed: 44 });
   /* the header card, from its own top edge down: the open chip, the name and
      the place, with air under them. It used to start inside the card. */
-  lift(ctx, H, { id: "f-restaurant-reserve", crop: { x: 84, y: 1070, w: 1176, h: 348 }, t0: w(21, "table") - 0.1, t1: s(22) - 0.25, to: { x: R.cx, y: M ? 1002 : 380, s: RS, r: -3 }, seed: 41 });
+  lift(ctx, H, { id: "f-restaurant-reserve", crop: { x: 84, y: 1070, w: 1176, h: 348 }, t0: w(21, "table") - 0.1, t1: s(22) - 0.25, to: { x: R.cx, y: M ? 1030 : 380, s: RS, r: -3 }, seed: 41 });
   chipRow(ctx, table, { items: [["Table deposit", "utensils-crossed"], ["Confirmed by the restaurant", "check"]], x: R.cx, y: M ? 1440 : 860, t0: w(21, "deposit"), gap: 0.5, t1: s(22) - 0.25, size: M ? 30 : 28, wrapW: M ? 960 : 820, anchor: "center" });
 
   /* ===================== 12. The wallet (90.0 - 96.96) ===================== */
@@ -534,9 +534,10 @@ export async function build(ctx) {
   lift(ctx, H, { id: "sc-assistant-start", crop: { x: 26, y: 2399, w: 754, h: 192 }, t0: s(28) + 0.45, t1: w(29, "time") - 0.4, to: { x: R.cx, y: M ? 1250 : 760, s: M ? 0.78 : 0.62, r: 2 }, seed: 71, label: "A question to start with" });
   const ai = layer("ai", s(28), s(31));
   kicker(ctx, ai, { text: "Always says it is an AI", icon: "sparkles", x: R.cx, y: M ? 1440 : 860, t0: w(30, "AI") - 0.5, t1: s(31) - 0.2, size: M ? 32 : 28, anchor: "center" });
-  /* the band under the lifted question is empty for three seconds: the
-     assistant's own object drifts through it. */
-  if (M) object3d(ctx, ai, { name: "assistant", size: 210, x: 880, y: 1180, t0: w(29, "time") + 0.1, t1: s(31) - 0.4, drift: 1, seed: 22 });
+  /* the band under the lifted question is empty for three seconds: one brand
+     object drifts through it, on "any time of day". Not the assistant's own
+     object: the screen under it is already drawing that face. */
+  if (M) object3d(ctx, ai, { name: "clock", size: 200, x: 890, y: 1180, t0: w(29, "time") + 0.1, t1: s(31) - 0.4, drift: 1, seed: 22 });
 
   /* ===================== 16. Your language (126.35 - 131.44) ===================== */
   /* CUT 15 -> 16. The frame breaks into tiles a second time, into the dusk. */
