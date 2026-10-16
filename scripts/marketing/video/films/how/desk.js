@@ -340,11 +340,14 @@ export async function build(ctx) {
   /* ===================== 14. The promise, on white (97.5 - 109.7) ===================== */
   /* CUT 9 of 13 */
   irisTicks(ctx, s(24) - 0.05, { dur: 0.46 });
-  ground(ctx, s(24) - 0.05, w(24, "held") - 0.5, { tone: "navy", y: 45, seed: 20, sparkle: 8 });
+  ground(ctx, s(24) - 0.05, w(24, "held"), { tone: "navy", y: 45, seed: 20, sparkle: 8 });
   const naira = layer("naira", s(24) - 0.05, s(26) + 0.2, 800);
   const size = 96;
-  headline(ctx, naira, { lines: [[["Every ", false], ["naira,", true]], [["in your wallet,", false]], [["in escrow,", false]], [["in every payment,", false]]], x: HX, y: 150, size, t0: s(24), t1: w(24, "held") - 0.3, stagger: 0.045 });
-  const DAY0 = w(24, "held") - 0.5;
+  headline(ctx, naira, { lines: [[["Every ", false], ["naira,", true]], [["in your wallet,", false]], [["in escrow,", false]], [["in every payment,", false]]], x: HX, y: 150, size, t0: s(24), t1: w(24, "held") - 0.64, stagger: 0.045 });
+  /* THE INK LEAVES BEFORE THE PAPER DOES. White type exiting over white paper
+     ghosts out invisibly, so the list is gone (its last word's exit runs 0.62 s
+     past t1) before the daylight ground arrives. */
+  const DAY0 = w(24, "held");
   const DAY1 = s(26) - 0.1;
   /* the only light touch of the thirteen: the navy stage whips over to the
      white one inside the sentence, so no deep cut lands on the voice */
@@ -352,7 +355,7 @@ export async function build(ctx) {
   ground(ctx, DAY0, DAY1, { tone: "day", y: 40, seed: 34, sparkle: 0, z: 2 });
   ctx.hidePill(DAY0 - 0.1, DAY1 + 0.1);
   const INKC = "#0b1230";
-  headline(ctx, naira, { lines: [[["held by our", false]], [["licensed provider.", true]]], x: ctx.W / 2, y: 150, size: size * 0.9, t0: w(24, "held") - 0.1, t1: s(25) - 0.2, stagger: 0.05, color: INKC, key: "#0069fe", sheen: false, align: "center" });
+  headline(ctx, naira, { lines: [[["held by our", false]], [["licensed provider.", true]]], x: ctx.W / 2, y: 150, size: size * 0.9, t0: w(24, "held") + 0.06, t1: s(25) - 0.2, stagger: 0.05, color: INKC, key: "#0069fe", sheen: false, align: "center" });
   headline(ctx, naira, { lines: [[["Never by ", false], ["Vallo.", true]]], x: ctx.W / 2, y: 320, size: size * 1.05, t0: s(25) - 0.05, t1: s(26) - 0.2, align: "center", stagger: 0.05, color: INKC, key: "#0069fe", sheen: false });
   flowRail(ctx, naira, { steps: ["Your card", "Our licensed provider", "The owner's bank"], x: 660, y: 470, gap: 192, size: 38, t0: w(24, "held") + 0.15, t1: s(26) - 0.3, seed: 35 });
   ctx.sfx("stamp", s(25) + 0.05, { offset: 0 });
