@@ -12,6 +12,11 @@
 import { orb, press, tap, words, ringBurst, sparkles, odometer, popup, popIn, browserWindow, bob } from "../engine/components.js";
 import { phone } from "../engine/phone.js";
 
+/* The 16 October pop-out containers and deep transitions live in their own
+   modules; the films reach them through the kit like everything else. */
+export { popOut, figureOut } from "./popout.js";
+export { slabWipe, shutter, irisTicks, tileFall, whipPan } from "./transitions.js";
+
 export const DW = 1320;
 export const DH = 2868;
 const BAR_PX = 186;
