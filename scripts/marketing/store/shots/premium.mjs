@@ -96,10 +96,17 @@ async function stdPhone(ctx, m, id) {
   const tl = first.quad[0];
   dx += Math.round(tl[0] + dx) - (tl[0] + dx);
   const dy = Math.round(tl[1]) - tl[1];
-  if (Math.abs(dx) < 0.01 && Math.abs(dy) < 0.01) return first;
+  if (Math.abs(dx) < 0.01 && Math.abs(dy) < 0.01) return withDisplay(ctx, first);
   ctx.placed.pop();
   ctx.flats.pop();
-  return ctx.phone({ ...opts, cx: ctx.W / 2 + dx, cy: cy + dy });
+  return withDisplay(ctx, await ctx.phone({ ...opts, cx: ctx.W / 2 + dx, cy: cy + dy }));
+}
+
+/** The display file the handset is showing, so `magnify` can draw from it. */
+function withDisplay(ctx, p) {
+  const flat = ctx.flats[ctx.flats.length - 1];
+  if (flat) p.displayUrl = `file://${flat.file}`;
+  return p;
 }
 
 /**
@@ -114,8 +121,8 @@ export function std(n, slug, id, lines, { sub, extra, ...rest } = {}) {
     async layout(ctx) {
       const m = M(ctx);
       const p = await stdPhone(ctx, m, id);
-      const { pops, props, figures, badges, panel = true } = spec;
-      const furniture = furnish(ctx, m, p, { pops, props, figures, badges });
+      const { pops, props, figures, badges, mags, panel = true } = spec;
+      const furniture = furnish(ctx, m, p, { pops, props, figures, badges, mags });
       return [panel ? panelFor(ctx, m) : "", head(ctx, m, lines, { sub, keyStyle: spec.keyStyle }), p.html, furniture, extra ? await extra(ctx, m, p) : ""].join("\n");
     },
   };
@@ -293,16 +300,16 @@ export const SHOTS = [
   std(22, "filter-down-to-what-you-need", "sc-filters", ["Filter down", "to what you need"]),
   std(23, "light-or-dark-your-call", "f-host-home-lt", ["Light or dark,", "your call"]),
   std(24, "rooms-amenities-all-laid-out", "n-stay", ["Rooms, amenities,", "all laid out"]),
-  std(25, "the-guest-pays-the-price-you-set", "f-host-bookings", ["The guest pays", "the price *you* set"], { keyStyle: "chip" }),
+  std(25, "the-guest-pays-the-price-you-set", "f-host-bookings", ["The guest pays", "the price you set"]),
   std(26, "earn-the-verified-mark", "f-agent-dashboard", ["Earn the", "*verified* mark"], { keyStyle: "chip" }),
-  std(27, "new-homes-as-they-arrive", "n-home-new", ["New homes,", "as they arrive"]),
+  std(27, "new-homes-as-they-arrive", "n-home-new", ["*New* homes,", "as they arrive"], { keyStyle: "chip" }),
   std(28, "your-calendar-night-by-night", "f-host-calendar", ["Your calendar,", "night by night"]),
   std(29, "restaurants-all-in-one-place", "sc-restaurants", ["Restaurants,", "all in one place"]),
   std(30, "paste-the-message-you-already-send", "f-agent-listing-edit", ["Paste the message", "you already send"]),
   std(31, "pro-adds-tools-to-your-workspace", "f-pro", ["*Pro* adds tools", "to your workspace"], { keyStyle: "chip" }),
   std(32, "one-account-every-business", "f-host-settings", ["One account,", "every business"]),
   std(33, "the-agents-fees-spelled-out", "f-rent-movein", ["The agent’s fees,", "spelled out"]),
-  std(34, "all-homes-list-or-map", "n-search-all", ["All homes,", "list or *map*"], { keyStyle: "chip" }),
+  std(34, "all-homes-list-or-map", "n-search-all", ["All homes,", "list or map"]),
   std(35, "vallo-real-estate-done-right", "n-welcome-en", ["Vallo. Real estate,", "done right."], { sub: "Homes, hotels, shortlets and restaurants." }),
 ];
 

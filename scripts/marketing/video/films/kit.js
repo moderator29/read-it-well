@@ -406,25 +406,27 @@ export function lift(ctx, H, { id, crop, t0, t1, to, exit = "fade", fly = 0.7, z
   /*
    * THE FRAME, AND WHY THERE IS ONE.
    *
-   * A part used to be the bare rectangle: the crop's own edges were the
-   * card's edges, so wherever the rectangle happened to fall it sliced the
-   * row above or a line of type, and what floated looked torn out rather
-   * than chosen. It is now mounted: a dark frame with a margin holds the
-   * crop, the way a detail is mounted on a board, and the crop's top and
-   * bottom edges fade into that frame instead of ending on a hard line.
-   * Nothing about the screen itself changes; it is the live product either
-   * way. Only the presentation is finished.
+   * THE BLUEPRINT'S OWN MOVE (the founder, 16 October, circling pump.fun's
+   * floating card twice): their card is not a card they designed. It is one
+   * row of their own app, lifted off the glass, blown up, given a THICK
+   * bright edge and dropped back over the place it came from. So this is a
+   * component of the live product at size, inside one heavy sky rule, lit by
+   * its own glow. The crop's box must sit on the component's own edges, so
+   * nothing is ever cut: that, and not a vignette, is what stops a part
+   * looking torn out.
    */
-  const pad = framed ? Math.max(13, w * 0.032) : 0;
+  /* the heavy rule, the same one the containers carry (16 October) */
+  const BW = Math.max(5, w * 0.013);
+  const pad = framed && label ? Math.max(13, w * 0.028) : 0;
   const card = ctx.el("div", {
     class: "abs",
     attrs: { "data-furn": "1" },
     style: {
       left: "0px", top: "0px", width: `${w + pad * 2}px`, padding: `${pad}px`, boxSizing: "border-box",
       borderRadius: `${radius * S * 1.4 + pad}px`,
-      background: framed ? "linear-gradient(170deg, rgb(17 27 78 / 0.97), rgb(7 13 46 / 0.97))" : "#0b0f2a",
-      border: framed ? "1.5px solid rgb(120 170 255 / 0.30)" : "none",
-      boxShadow: "0 44px 86px -26px rgb(0 0 20 / 0.84), 0 12px 28px -12px rgb(0 0 40 / 0.55), inset 0 1px 0 rgb(255 255 255 / 0.06)",
+      background: pad ? "#000208" : "transparent",
+      border: pad ? `${BW}px solid #8FD3FF` : "none",
+      boxShadow: pad ? "0 0 48px -6px rgb(143 211 255 / 0.45), 0 44px 82px -26px rgb(0 0 10 / 0.92)" : "none",
     },
   }, root);
   if (label) {
@@ -433,17 +435,18 @@ export function lift(ctx, H, { id, crop, t0, t1, to, exit = "fade", fly = 0.7, z
       style: { margin: `${pad * 0.12}px 0 ${pad * 0.72}px ${pad * 0.5}px`, font: `600 ${Math.max(15, w * 0.034).toFixed(0)}px/1 Inter, sans-serif`, letterSpacing: "0.01em", color: "rgb(173 203 255 / 0.9)", whiteSpace: "nowrap" },
     }, card);
   }
-  const clip = ctx.el("div", { style: { position: "relative", width: `${w}px`, height: `${h}px`, borderRadius: `${radius * S * 1.4}px`, overflow: "hidden", background: "#060b24", boxShadow: "inset 0 0 0 1px rgb(143 211 255 / 0.14)" } }, card);
+  const clip = ctx.el("div", {
+    style: {
+      position: "relative", width: `${w}px`, height: `${h}px`, borderRadius: `${radius * S * 1.4}px`, overflow: "hidden", background: "#000208",
+      ...(pad ? {} : { border: `${BW}px solid #8FD3FF`, boxSizing: "content-box", boxShadow: "0 0 48px -6px rgb(143 211 255 / 0.45), 0 44px 82px -26px rgb(0 0 10 / 0.92)" }),
+    },
+  }, card);
   /* src: a tall capture (crop in its own px, 1320 wide); scrolled: how far the screen is scrolled, so the part rises from where it is seen */
   if (src) ctx.img(src, { style: { position: "absolute", left: `${-crop.x * S}px`, top: `${-crop.y * S}px`, width: `${DW * S}px`, height: "auto", maxWidth: "none" } }, clip);
   else ctx.img(ctx.src.display(id, H.platform), { style: { position: "absolute", left: `${-crop.x * S}px`, top: `${-crop.y * S}px`, width: `${DW * S}px`, height: `${DH * S}px`, maxWidth: "none" } }, clip);
   /* the cut edges breathe out rather than stopping dead */
-  if (framed && fade && h > 150) {
-    const band = Math.min(34, h * 0.11);
-    ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${w}px`, height: `${band}px`, background: "linear-gradient(180deg, rgb(10 17 58 / 0.92), transparent)", pointerEvents: "none" } }, clip);
-    ctx.el("div", { class: "abs", style: { left: "0px", top: `${h - band}px`, width: `${w}px`, height: `${band}px`, background: "linear-gradient(0deg, rgb(10 17 58 / 0.92), transparent)", pointerEvents: "none" } }, clip);
-  }
-  const sheen = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${w * 0.6}px`, height: `${h * 3}px`, transform: "rotate(20deg)", background: "linear-gradient(90deg, transparent, rgb(255 255 255 / 0.22) 50%, transparent)", pointerEvents: "none" } }, clip);
+  void fade;
+  const sheen = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${w * 0.6}px`, height: `${h * 3}px`, transform: "rotate(20deg)", background: "linear-gradient(90deg, transparent, rgb(255 255 255 / 0.26) 50%, transparent)", pointerEvents: "none" } }, clip);
   const from = H.toStage(t0, crop.x + crop.w / 2, crop.y + crop.h / 2 - scrolled + (src ? BAR_PX : 0));
   const phase = ctx.random(seed)() * Math.PI * 2;
   const back = exit === "back" ? H.toStage(t1, crop.x + crop.w / 2, crop.y + crop.h / 2 - scrolled + (src ? BAR_PX : 0)) : null;
@@ -482,16 +485,17 @@ export function windowLift(ctx, W, { id, crop, t0, t1, to, exit = "fade", fly = 
   const root = ctx.scene(`wlift-${id}-${t0.toFixed(2)}`, t0 - 0.01, t1 + 0.8, { z });
   const S = to.s;
   const w = crop.w * S, h = crop.h * S;
-  const pad = framed ? Math.max(13, w * 0.032) : 0;
+  const BW = Math.max(5, w * 0.012);
+  const pad = framed && label ? Math.max(12, w * 0.026) : 0;
   const card = ctx.el("div", {
     class: "abs",
     attrs: { "data-furn": "1" },
     style: {
       left: "0px", top: "0px", width: `${w + pad * 2}px`, padding: `${pad}px`, boxSizing: "border-box",
       borderRadius: `${radius * S + pad}px`,
-      background: framed ? "linear-gradient(170deg, rgb(17 27 78 / 0.97), rgb(7 13 46 / 0.97))" : "#0b0f2a",
-      border: framed ? "1.5px solid rgb(120 170 255 / 0.30)" : "none",
-      boxShadow: "0 44px 86px -26px rgb(0 0 20 / 0.84), 0 12px 28px -12px rgb(0 0 40 / 0.55), inset 0 1px 0 rgb(255 255 255 / 0.06)",
+      background: pad ? "#000208" : "transparent",
+      border: pad ? `${BW}px solid #8FD3FF` : "none",
+      boxShadow: pad ? "0 0 48px -6px rgb(143 211 255 / 0.45), 0 44px 82px -26px rgb(0 0 10 / 0.92)" : "none",
     },
   }, root);
   if (label) {
@@ -500,14 +504,15 @@ export function windowLift(ctx, W, { id, crop, t0, t1, to, exit = "fade", fly = 
       style: { margin: `${pad * 0.12}px 0 ${pad * 0.72}px ${pad * 0.5}px`, font: `600 ${Math.max(15, w * 0.034).toFixed(0)}px/1 Inter, sans-serif`, letterSpacing: "0.01em", color: "rgb(173 203 255 / 0.9)", whiteSpace: "nowrap" },
     }, card);
   }
-  const clip = ctx.el("div", { style: { position: "relative", width: `${w}px`, height: `${h}px`, borderRadius: `${radius * S}px`, overflow: "hidden", background: "#060b24", boxShadow: "inset 0 0 0 1px rgb(143 211 255 / 0.14)" } }, card);
+  const clip = ctx.el("div", {
+    style: {
+      position: "relative", width: `${w}px`, height: `${h}px`, borderRadius: `${radius * S}px`, overflow: "hidden", background: "#000208",
+      ...(pad ? {} : { border: `${BW}px solid #8FD3FF`, boxSizing: "content-box", boxShadow: "0 0 48px -6px rgb(143 211 255 / 0.45), 0 44px 82px -26px rgb(0 0 10 / 0.92)" }),
+    },
+  }, card);
   ctx.img(ctx.src.capture(id), { style: { position: "absolute", left: `${-crop.x * S}px`, top: `${-crop.y * S}px`, width: `${1440 * S}px`, height: "auto", maxWidth: "none" } }, clip);
-  if (framed && fade && h > 150) {
-    const band = Math.min(34, h * 0.11);
-    ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${w}px`, height: `${band}px`, background: "linear-gradient(180deg, rgb(10 17 58 / 0.92), transparent)", pointerEvents: "none" } }, clip);
-    ctx.el("div", { class: "abs", style: { left: "0px", top: `${h - band}px`, width: `${w}px`, height: `${band}px`, background: "linear-gradient(0deg, rgb(10 17 58 / 0.92), transparent)", pointerEvents: "none" } }, clip);
-  }
-  const sheen = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${w * 0.6}px`, height: `${h * 3}px`, transform: "rotate(20deg)", background: "linear-gradient(90deg, transparent, rgb(255 255 255 / 0.22) 50%, transparent)", pointerEvents: "none" } }, clip);
+  void fade;
+  const sheen = ctx.el("div", { class: "abs", style: { left: "0px", top: "0px", width: `${w * 0.6}px`, height: `${h * 3}px`, transform: "rotate(20deg)", background: "linear-gradient(90deg, transparent, rgb(255 255 255 / 0.26) 50%, transparent)", pointerEvents: "none" } }, clip);
   const from = W.toStage(t0, crop.x + crop.w / 2, crop.y + crop.h / 2 - scrolled);
   const back = exit === "back" ? W.toStage(t1, crop.x + crop.w / 2, crop.y + crop.h / 2 - scrolled) : null;
   const phase = ctx.random(seed)() * Math.PI * 2;

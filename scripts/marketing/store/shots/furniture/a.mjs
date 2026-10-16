@@ -9,8 +9,10 @@
 export const F = {
   /* 1: the home. The hero's own promise above the rim, the shortlist below it. */
   1: {
+    /* the hero search card, lifted off the glass and blown up over its own
+       place: the blueprint's move. Its box is the card's own rounded edges. */
+    mags: [{ box: [54, 1816, 1266, 2545], scale: 1.16, dx: 0, dy: 26 }],
     pops: [
-      { side: "left", at: 0.01, center: true, kind: "line", tab: "Homes", lucide: "search", title: "Rent, buy or sell", line: "Property across Nigeria", meta: null },
       { side: "right", y: 0.962, anchor: "bottom", kind: "stat", tab: "On your shortlist", figure: "4", unit: "spaces saved", lucide: "heart" },
     ],
     props: [{ name: "villa", x: 0.055, y: 0.745, size: 210, rot: 7 }],
@@ -70,7 +72,7 @@ export const F = {
     props: [{ name: "bank", x: 0.045, y: 0.875, size: 210, rot: -8 }],
     badges: [
       { name: "banknote", kind: "glyph", rx: 0.055, y: 0.225, size: 140, rot: -6 },
-      { name: "coin", kind: "object", x: 0.05, y: 0.425, size: 150, rot: 6 },
+      { name: "receipt-text", kind: "glyph", x: 0.05, y: 0.425, size: 142, rot: 6 },
       { name: "landmark", kind: "glyph", rx: 0.062, y: 0.63, size: 128, rot: 8, tone: "paper" },
     ],
   },
@@ -101,7 +103,7 @@ export const F = {
     props: [{ name: "clock", x: 0.045, y: 0.875, size: 210, rot: -8 }],
     badges: [
       { name: "sparkles", kind: "glyph", rx: 0.055, y: 0.23, size: 140, rot: -6 },
-      { kind: "mark", x: 0.05, y: 0.43, size: 140, rot: 5 },
+      { name: "house", kind: "glyph", x: 0.05, y: 0.43, size: 140, rot: 5 },
       { name: "message-circle", kind: "glyph", rx: 0.06, y: 0.63, size: 130, rot: 8, tone: "paper" },
     ],
   },
@@ -118,7 +120,7 @@ export const F = {
     badges: [
       { name: "heart", kind: "glyph", rx: 0.055, y: 0.225, size: 138, rot: -6 },
       { name: "price-tag", kind: "object", x: 0.05, y: 0.44, size: 150, rot: 6 },
-      { name: "scale", kind: "glyph", rx: 0.062, y: 0.635, size: 128, rot: 8, tone: "paper" },
+      { name: "wifi-off", kind: "glyph", rx: 0.062, y: 0.635, size: 128, rot: 8, tone: "paper" },
     ],
   },
 
@@ -147,8 +149,8 @@ export const F = {
     props: [{ name: "apartment", x: 0.045, y: 0.79, size: 210, rot: -7 }],
     badges: [
       { name: "building-2", kind: "glyph", rx: 0.055, y: 0.225, size: 138, rot: -6 },
-      { name: "city", kind: "object", x: 0.05, y: 0.44, size: 150, rot: 6 },
-      { name: "heart", kind: "glyph", rx: 0.062, y: 0.635, size: 128, rot: 8, tone: "paper" },
+      { name: "buy", kind: "object", x: 0.05, y: 0.44, size: 150, rot: 6 },
+      { name: "map-pinned", kind: "glyph", rx: 0.062, y: 0.635, size: 128, rot: 8, tone: "paper" },
     ],
   },
 
@@ -157,8 +159,8 @@ export const F = {
      of the panel at the foot of the page, which runs the width of the screen. */
   12: {
     pops: [
-      { side: "right", at: 0.01, center: true, kind: "stat", tab: "The checks", label: "Before a lister is verified", figure: "4", unit: "steps", lucide: "user-check" },
-      { side: "left", y: 0.962, anchor: "bottom", kind: "line", tab: "Step 1", lucide: "id-card", title: "Identity seen", line: "NIN or government ID", meta: null },
+      { side: "right", at: 0.01, center: true, kind: "stat", tab: "The checks", label: "What a lister passes", figure: "4", unit: "steps", lucide: "user-check" },
+      { side: "left", y: 0.978, anchor: "bottom", kind: "line", tab: "Step 1", lucide: "id-card", title: "Identity seen", line: "NIN or government ID", meta: null },
     ],
     props: [{ name: "id-check", rx: 0.05, y: 0.78, size: 215, rot: 9 }],
     badges: [

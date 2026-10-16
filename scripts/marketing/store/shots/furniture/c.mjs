@@ -147,7 +147,7 @@ export const F = {
   /* 34: every home. What the search found above, how the order is made below. */
   34: {
     pops: [
-      { side: "right", at: 0.01, center: true, kind: "stat", tab: "Found", label: "In this search", figure: "52", unit: "properties", lucide: "house" },
+      { side: "right", at: 0.01, center: true, kind: "stat", tab: "This search", label: "Properties found", figure: "52", lucide: "house" },
       { side: "left", y: 0.962, anchor: "bottom", kind: "line", tab: "The order", lucide: "list", title: "How the order works", line: "Nobody can pay to be higher.", meta: null },
     ],
     props: [{ name: "map", rx: 0.05, y: 0.775, size: 215, rot: 8 }],

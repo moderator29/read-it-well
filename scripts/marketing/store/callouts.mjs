@@ -90,7 +90,7 @@ function eyebrow(text, s) {
  */
 export function statCallout({ label, figure, unit, note, lucide, figureSize = 72, ...rest }) {
   const s = rest.scale ?? 1;
-  const head = `<div class="corow" style="gap:${px(22 * s)}">${lucide ? disc(lucide, s, { size: 76, r: 38 }) : ""}<div>${eyebrow(label, s)}
+  const head = `<div class="corow" style="gap:${px(22 * s)}">${lucide ? disc(lucide, s, { size: 76, r: 38 }) : ""}<div>${label ? eyebrow(label, s) : ""}
       <div class="cofig" style="font-size:${px(figureSize * s)};margin-top:${px(6 * s)}">${esc(figure)}${unit ? `<span class="counit" style="font-size:${px(figureSize * 0.4 * s)};margin-left:${px(8 * s)}">${esc(unit)}</span>` : ""}</div></div></div>`;
   const tail = note ? `<div class="conote" style="font-size:${px(25 * s)};margin-top:${px(14 * s)}">${esc(note)}</div>` : "";
   return shell({ ...rest, pad: rest.pad ?? [26, 32], inner: head + tail });
@@ -170,6 +170,43 @@ export function prop({ name, x, right, y, size = 200, rotate = 0, z = 34, glow =
     : "";
   return `<div class="prop abs" style="${place};top:${px(y)};width:${px(d)};height:${px(d)};transform:rotate(${rotate}deg)${flip ? " scaleX(-1)" : ""};z-index:${z}">
     ${plate}<img src="${brandUrl(`3d/${name}@2x.webp`)}" style="width:${px(d)};height:${px(d)}"></div>`;
+}
+
+/* ------------------------------------------------------------- magnify */
+
+/**
+ * THE MOVE THE BLUEPRINT IS BUILT ON.
+ *
+ * pump.fun's floating card is not a card they designed. It is one ROW OF
+ * THEIR OWN APP, lifted off the screen, blown up, given a thick bright edge
+ * and dropped back over the exact place it came from, so it overlaps the rows
+ * above and below it. The founder circled it twice.
+ *
+ * So: `magnify` takes a box of the capture in display pixels, draws that part
+ * of the capture at `scale` times the size it is on the glass, puts the set's
+ * heavy rule round it, and stands it over its own place, nudged by (dx, dy).
+ * Nothing is redrawn and nothing is paraphrased, so nothing can be cut: the
+ * box is chosen on the component's own edges.
+ *
+ *   display  the display file (file:// url), the same one the handset shows
+ *   at       the placed phone's at(u, v): display px to page px
+ *   box      [x0, y0, x1, y1] in display px, on the component's own edges
+ *   scale    how much bigger than life (1.12 to 1.3; the blueprint's is 1.15)
+ */
+export function magnify({ display, at, box, scale = 1.18, dx = 0, dy = 0, radius = 34, width = 9, edge = C.sky, z = 31, rotate = 0, glow = true }) {
+  const [x0, y0, x1, y1] = box;
+  const [px0, py0] = at(x0, y0);
+  const [px1, py1] = at(x1, y1);
+  /* the straight-on handset maps the display affinely, so one factor does it */
+  const k = (px1 - px0) / (x1 - x0);
+  const w = (x1 - x0) * k * scale;
+  const h = (y1 - y0) * k * scale;
+  const cx = (px0 + px1) / 2 + dx;
+  const cy = (py0 + py1) / 2 + dy;
+  const imgW = 1320 * k * scale;
+  return `<div class="mag abs" style="left:${px(cx - w / 2)};top:${px(cy - h / 2)};width:${px(w)};height:${px(h)};border-radius:${px(radius)};border-width:${px(width)};border-color:${edge};z-index:${z};transform:rotate(${rotate}deg)${glow ? "" : ";box-shadow:0 30px 56px -22px rgb(0 0 10 / 0.9)"}">
+    <img src="${display}" style="position:absolute;left:${px(-x0 * k * scale)};top:${px(-y0 * k * scale)};width:${px(imgW)};height:auto;max-width:none">
+  </div>`;
 }
 
 /* ------------------------------------------------------------- the badges */
@@ -266,6 +303,11 @@ export const CALLOUT_CSS = `
   .cofigure span { font-family: "Poppins", sans-serif; font-weight: 700; letter-spacing: -0.035em; line-height: 0.92; white-space: nowrap; display: block; }
   .cofigure .ghost { opacity: 0.17; }
   .cofigure .edge { position: absolute; left: 0; top: 0; color: transparent; }
+
+  /* ---- the magnified component ---- */
+  .mag { position: absolute; overflow: hidden; border-style: solid; background: #000208;
+    box-shadow: 0 0 44px -6px rgb(143 211 255 / 0.45), 0 34px 64px -24px rgb(0 0 10 / 0.92); }
+  .mag img { display: block; filter: brightness(1.07) saturate(1.05); }
 
   /* ---- the round badges: solid, thick edged ---- */
   .bdg { position: absolute; display: grid; place-items: center; border-radius: 50%; border-style: solid; }

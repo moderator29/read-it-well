@@ -15,6 +15,14 @@
  *            `rx` for the right edge's distance from the right of the image.
  *   figures: [{ text: "₦26,100,000", x|rx, y, size, rot }]
  *            the oversized outlined number.
+ *   mags:    [{ box: [x0, y0, x1, y1], scale, dx, dy, rotate }]
+ *            THE BLUEPRINT'S OWN MOVE: one component of the app, lifted off
+ *            the glass, blown up, given the heavy rule and dropped back over
+ *            the place it came from. `box` is in the capture's display pixels
+ *            (1320 x 2868) and must sit on the component's own edges, so
+ *            nothing is ever cut. `dx`/`dy` nudge it off its own place, in
+ *            page pixels, so it overlaps its neighbours as the blueprint's
+ *            does.
  *   badges:  [{ name: "keys", kind: "object"|"glyph"|"mark", x|rx, y, size, rot, tone }]
  *            the round discs the blueprint scatters around the handset. Two
  *            to four, small (120 to 170), at the edges, one of them `tone:
@@ -28,7 +36,7 @@
  * no testimonials, no promise words, "verified" only about people. Every
  * figure a callout prints must be one the screen under it prints too.
  */
-import { statCallout, lineCallout, cellsCallout, countersCallout, figureOutline, prop, badge, stagePanel } from "./callouts.mjs";
+import { statCallout, lineCallout, cellsCallout, countersCallout, figureOutline, prop, badge, stagePanel, magnify } from "./callouts.mjs";
 
 const KIND = { stat: statCallout, line: lineCallout, cells: cellsCallout, counters: countersCallout };
 
@@ -40,10 +48,20 @@ const MAX_PROP = 260;
  *   m   the grid (premium.mjs M)
  *   p   the placed phone
  */
-export function furnish(ctx, m, p, { pops = [], props = [], figures = [], badges = [] } = {}) {
+export function furnish(ctx, m, p, { pops = [], props = [], figures = [], badges = [], mags = [] } = {}) {
   const u = ctx.W / 1320;
   const s = m.card;
   const out = [];
+
+  /* the magnified components go under the designed cards */
+  for (const q of mags) {
+    const { box, scale = 1.18, dx = 0, dy = 0, rotate = 0, z = 31, width, radius } = q;
+    if (!p.displayUrl) throw new Error("magnify needs a flat handset");
+    out.push(magnify({
+      display: p.displayUrl, at: p.at, box, scale, dx: dx * u, dy: dy * u, rotate, z,
+      width: (width ?? 9) * u, radius: (radius ?? 34) * u,
+    }));
+  }
 
   for (const q of pops) {
     const { side = "left", at = 0.3, y: yf, kind = "line", w, fit = true, z = 30, scale, inset = 18, ...rest } = q;

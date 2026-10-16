@@ -46,7 +46,7 @@ export const F = {
   15: {
     pops: [
       { side: "right", at: 0.01, center: true, kind: "line", tab: "Messages", lucide: "message-square", title: "Talk to the agent", line: "In the app, on the listing", meta: null },
-      { side: "left", y: 0.962, anchor: "bottom", kind: "line", tab: "Next step", lucide: "calendar-check", title: "Ask for a viewing", line: "Agree the date in the chat", meta: null },
+      { side: "left", y: 0.972, anchor: "bottom", kind: "line", tab: "Next step", lucide: "calendar-check", title: "Ask for a viewing", line: "Agree the date in the chat", meta: null },
     ],
     props: [{ name: "local-talks", rx: 0.05, y: 0.775, size: 205, rot: 7 }],
     badges: [
@@ -169,7 +169,7 @@ export const F = {
      the rim, the day's other counters under the phone. */
   23: {
     pops: [
-      { side: "left", at: 0.01, center: true, kind: "stat", tab: "Today", label: "Needs you today", figure: "0", unit: "jobs", lucide: "sun-medium" },
+      { side: "left", at: 0.01, center: true, kind: "stat", tab: "Overview", label: "Needs you today", figure: "0", unit: "jobs", lucide: "sun-medium" },
       { side: "right", y: 0.962, anchor: "bottom", kind: "cells", tab: "14 October", lucide: "layout-grid",
         cells: [["Arriving", "0"], ["Staying", "0"], ["Unread", "0"]], foot: "Three businesses on one account." },
     ],
