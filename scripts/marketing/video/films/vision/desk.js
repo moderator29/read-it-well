@@ -19,10 +19,11 @@
  *   OFF    away to the right, for the typographic beats
  */
 import {
-  poster, installFocus, sceneBack, nigeriaMap3d, windowLift, listCard, noticeCard, sheet,
-  proofCard, flowRail, listingWall, STAY_CARDS, flagCard, anchors, ground, flash, headline,
+  poster, installFocus, sceneBack, nigeriaMap3d, windowLift, listCard, noticeCard,
+  proofCard, flowRail, listingWall, STAY_CARDS, flagCard, anchors, ground, headline,
   kicker, liveChip, numberCard, chipRow, featureCard, ending, ringBurst, windowRig,
-  ramp, during, place,
+  popOut, badgeDisc, object3d, slabWipe, shutter, irisTicks, tileFall,
+  ramp, during, place, mix,
 } from "../kit.js";
 
 export async function build(ctx) {
@@ -112,6 +113,10 @@ export async function build(ctx) {
   ctx.hideCaptions(s(1) - 0.2, s(1) + 2.4);
 
   /* ===================== 2. Fake listings, hidden fees, strangers (9.4 - 16.2) ===================== */
+  /* CUT 1 of 14 (UPGRADE.md section 1). The opening frame is the founder's and
+     carries nothing over it; every ground handover after it carries one deep
+     transition, and no two in a row are the same. */
+  slabWipe(ctx, s(2) - 0.1, { dir: "left", dur: 0.42 });
   ground(ctx, s(2) - 0.1, s(3) + 0.1, { tone: "gold", y: 50, seed: 32 });
   const prob = layer("problem", s(2) - 0.1, s(3) + 0.1);
   const probs = [
@@ -127,13 +132,18 @@ export async function build(ctx) {
       const a = ramp(ctx, t, p.t - 0.05, p.t + 0.45, "back.out(1.6)");
       const strike = ramp(ctx, t, s(3) - 0.15 + i * 0.06, s(3) + 0.05 + i * 0.06, "power3.in");
       const jit = t > p.t && t < p.t + 0.25 ? Math.sin(t * 90) * 6 : 0;
-      place(card, { x: p.x + jit, y: p.y + (1 - a) * 50 - strike * 80, s: (0.85 + 0.15 * a) * (1 - 0.2 * strike), r: p.r * a, o: Math.min(ramp(ctx, t, p.t - 0.05, p.t + 0.1), 1 - strike) });
+      /* ANTICIPATION (section 4, rule 3): each card sinks back a few pixels and
+         loses a little size before it is struck up and away, one after another */
+      const pull = ramp(ctx, t, s(3) - 0.46 + i * 0.06, s(3) - 0.15 + i * 0.06, "power2.out") * (1 - strike);
+      place(card, { x: p.x + jit, y: p.y + (1 - a) * 50 + pull * 15 - strike * 80, s: (0.85 + 0.15 * a) * (1 - 0.035 * pull) * (1 - 0.2 * strike), r: p.r * a, o: Math.min(ramp(ctx, t, p.t - 0.05, p.t + 0.1), 1 - strike) });
     });
     ctx.sfx("pop_low", p.t, { offset: -2 });
   });
 
   /* ===================== 3. We built Vallo to change that (16.2 - 19.0) ===================== */
-  flash(ctx, s(3), { color: "rgb(0 105 254 / 0.7)" });
+  /* CUT 2. The flash that stood here was standing in for the cut, so the deep
+     transition takes its place: the tick brackets close on the frame and bloom. */
+  irisTicks(ctx, s(3) - 0.05, { dur: 0.46 });
   ground(ctx, s(3) - 0.05, s(6) + 0.6, { tone: "electric", y: 20, seed: 33 });
   const meet = layer("meet", s(3) - 0.05, s(4) + 0.3, 780);
   const mark = ctx.img(ctx.src.asset("logo-mark.png"), { class: "abs", style: { left: "0px", top: "0px", width: "280px", height: "280px", objectFit: "contain" } }, meet);
@@ -143,7 +153,16 @@ export async function build(ctx) {
     place(mark, { x: ctx.W / 2, y: 380 - up * 300, s: (0.3 + 0.7 * a) * (1 - 0.6 * up), r: (1 - a) * -40, o: ramp(ctx, t, s(3), s(3) + 0.15) * (1 - up) });
   });
   ringBurst(ctx, meet, { cx: ctx.W / 2, cy: 380, r: 200, t: s(3) + 0.05, seed: 34 });
-  headline(ctx, meet, { lines: [[["We built Vallo to ", false], ["change that.", true]]], x: ctx.W / 2, y: 600, size: 76, t0: s(3) + 0.1, t1: s(4) - 0.9, align: "center" });
+  /* THE CUT'S ONE CHIP HEADLINE (section 4): this is the film's own promise,
+     so the key words take the blueprint's rounded box, which opens behind them
+     as they land. No other headline in this cut takes it. */
+  headline(ctx, meet, { lines: [[["We built Vallo to ", false], ["change that.", true]]], x: ctx.W / 2, y: 600, size: 76, t0: s(3) + 0.1, t1: s(4) - 0.9, align: "center", keyStyle: "chip" });
+  /* four round badges at the frame's edges, in on the beat, out with the
+     chapter; one of them paper, none near the pill or the captions */
+  badgeDisc(ctx, meet, { name: "home-verified", x: 206, y: 300, size: 132, t0: s(3) + 0.3, t1: s(4) - 0.75, seed: 51 });
+  badgeDisc(ctx, meet, { name: "keys", x: 1724, y: 262, size: 120, t0: s(3) + 0.3, t1: s(4) - 0.75, seed: 52, delay: 0.12 });
+  badgeDisc(ctx, meet, { name: "search", kind: "glyph", tone: "paper", x: 236, y: 756, size: 112, t0: s(3) + 0.3, t1: s(4) - 0.75, seed: 53, delay: 0.24 });
+  badgeDisc(ctx, meet, { name: "shield", x: 1748, y: 736, size: 126, t0: s(3) + 0.3, t1: s(4) - 0.75, seed: 54, delay: 0.36 });
   ctx.sfx("impact_soft", s(3), { offset: 0 });
   ctx.hideCaptions(s(3) - 0.1, s(4) - 0.3);
 
@@ -152,6 +171,16 @@ export async function build(ctx) {
   W.show("d-n-home", s(4) - 0.3, w(5, "Homes") + 0.05, { enter: "fade", dur: 0.5 });
   W.click(w(4, "home") + 0.2, 760, 726);
   const one = layer("one", s(4) - 0.1, s(6));
+  /* PARALLAX (section 4, rule 2). The window pushes RIGHT -> FULL -> SIDE across
+     this chapter and the next. The column of parts rides that push at a small
+     fraction of its rate, and the object on the far plane rides it at a
+     fraction of that again, so the three planes separate as the camera moves.
+     Still a pure function of t: the rate is read off the window's own pose. */
+  const push = (t, k) => Math.max(-44, Math.min(44, (W.at(t).x - FULL.x) * k));
+  during(ctx, s(4) - 0.1, s(6), (t) => { one.style.transform = `translateX(${push(t, -0.055).toFixed(2)}px)`; });
+  const far = layer("one-far", s(4) - 0.1, s(6), 2);
+  during(ctx, s(4) - 0.1, s(6), (t) => { far.style.transform = `translateX(${push(t, -0.016).toFixed(2)}px)`; });
+  object3d(ctx, far, { name: "city", size: 236, x: 432, y: 742, t0: s(4) + 0.25, t1: w(5, "Homes") - 0.7, drift: 1.1, seed: 19 });
   headline(ctx, one, { lines: [[["Today, Vallo is", false]], [["one home for", false]], [["real estate.", true]]], x: HX, y: 250, size: 78, t0: s(4), t1: w(5, "Homes") - 0.95, stagger: 0.05 });
   /* the label names what the page is showing: the headline already carries
      the sentence, and two of it in one frame reads as a doubled line */
@@ -167,7 +196,15 @@ export async function build(ctx) {
   W.show("d-n-stay", w(5, "shortlets") - 0.1, w(5, "restaurants") - 0.1, { enter: "slide" });
   W.show("d-restaurants", w(5, "restaurants") - 0.1, s(6) - 0.2, { enter: "slide" });
   windowLift(ctx, W, { id: "d-restaurants", crop: { x: 330, y: 128, w: 345, h: 360 }, t0: w(5, "restaurants") + 0.3, t1: s(6) - 0.45, to: { x: COL, y: 380, s: 0.9, r: -3 }, seed: 1, label: "A table, booked on Vallo" });
-  chipRow(ctx, one, { items: [["One app", "smartphone"], ["One account", "user-round-check"]], x: COL, y: 740, t0: w(5, "one"), gap: 0.5, t1: s(6) - 0.4, size: 30, anchor: "center", wrapW: 620 });
+  /* CONTAINER 1 of 4. The four things one account carries are named one after
+     another by the voice and shown one page at a time by the window, so the
+     screen never has them in one place: that is the container's job (section 6).
+     A counters row, the blueprint's own part (section 4). */
+  popOut(ctx, one, {
+    kind: "counters", x: COL, y: 700, t0: w(5, "one"), t1: s(6) - 0.4, size: 22, from: "right", seed: 21,
+    tab: "One account",
+    items: [["house", "Homes"], ["building-2", "Hotels"], ["bed-double", "Shortlets"], ["utensils-crossed", "Restaurants"]],
+  });
 
   /* ===================== 6. Owners: list it yourself (30.0 - 46.2) ===================== */
   ground(ctx, s(6) - 0.05, s(9) + 0.3, { tone: "navy", y: 15, seed: 35 });
