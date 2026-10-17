@@ -1611,11 +1611,25 @@ export function ending(ctx, { t0, tLine, tBadges, tUrl, t1 }) {
   ringBurst(ctx, root, { cx, cy, r: markSize * 0.78, t: t0 + 0.1, dots: 22, seed: 41 });
   ctx.sfx("impact_soft", t0, { offset: 0 });
   headline(ctx, root, { lines: [[["Real estate, ", false], ["done right.", true]]], x: cx, y: cy + markSize * 0.75, size: M ? 78 : 64, t0: tLine, t1: null, align: "center" });
-  const live = liveChip(ctx, root, { text: "Live now on iPhone and Android", x: cx, y: M ? 1180 : 610, t0: tBadges - 0.3, t1: null, size: M ? 34 : 28, anchor: "center" });
-  void live;
+  /*
+   * SOON OR LIVE, and it was neither: this end card drew "Live now on iPhone
+   * and Android" and both official store badges on every render, whatever
+   * --ending said. The flag reached ctx.ending and only the old engine's
+   * closing scene (scenes/c-close.js) ever read it. While the apps are in
+   * store review that is a false line over two badges neither store lets you
+   * show for an app nobody can download yet, and FACTS-OCT.md had already
+   * ruled: the films end "iPhone and Android apps coming soon", never
+   * "download". So the flag now does what its name says.
+   */
+  const isLive = ctx.ending === "live";
+  const chipY = M ? 1180 : 610;
+  liveChip(ctx, root, {
+    text: isLive ? "Live now on iPhone and Android" : "iPhone and Android apps coming soon",
+    x: cx, y: chipY, t0: tBadges - 0.3, t1: null, size: M ? 34 : 28, anchor: "center",
+  });
   const row = ctx.el("div", { class: "abs", style: { left: "0px", top: `${M ? 1290 : 690}px`, width: `${ctx.W}px`, display: "flex", justifyContent: "center", gap: `${M ? 34 : 30}px` } }, root);
   const bh = M ? 112 : 86;
-  ["app-store-black.svg", "google-play-black.svg"].forEach((f, i) => {
+  (isLive ? ["app-store-black.svg", "google-play-black.svg"] : []).forEach((f, i) => {
     const b = ctx.img(ctx.src.asset(`badges/${f}`), { style: { height: `${bh}px`, width: "auto" } }, row);
     ctx.onFrame((t) => {
       const a = ramp(ctx, t, tBadges + i * 0.12, tBadges + i * 0.12 + 0.5, "back.out(1.6)");
@@ -1624,7 +1638,9 @@ export function ending(ctx, { t0, tLine, tBadges, tUrl, t1 }) {
     });
     ctx.sfx("pop", tBadges + i * 0.12, { offset: -3 });
   });
-  const url = ctx.el("div", { class: "abs", text: "vallospaces.com", style: { left: "0px", top: `${M ? 1460 : 820}px`, width: `${ctx.W}px`, textAlign: "center", font: `600 ${M ? 40 : 32}px/1 Poppins, Inter, sans-serif`, color: "rgb(255 255 255 / 0.82)", letterSpacing: "-0.01em" } }, root);
+  /* With no badge row the address closes the gap rather than leaving a hole. */
+  const urlY = isLive ? (M ? 1460 : 820) : (M ? 1316 : 700);
+  const url = ctx.el("div", { class: "abs", text: "vallospaces.com", style: { left: "0px", top: `${urlY}px`, width: `${ctx.W}px`, textAlign: "center", font: `600 ${M ? 40 : 32}px/1 Poppins, Inter, sans-serif`, color: "rgb(255 255 255 / 0.82)", letterSpacing: "-0.01em" } }, root);
   ctx.onFrame((t) => { url.style.opacity = opa(ramp(ctx, t, tUrl, tUrl + 0.4)); url.style.transform = `translateY(${((1 - ramp(ctx, t, tUrl, tUrl + 0.5, "land")) * 20).toFixed(1)}px)`; });
   sparkles(ctx, root, { area: { x: 60, y: M ? 420 : 120, w: ctx.W - 120, h: M ? 1200 : 760 }, count: 9, seed: 77, t0, t1 });
   ctx.hideCaptions(t0 - 0.2, t1 + 1);
