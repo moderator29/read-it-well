@@ -21,6 +21,7 @@
  */
 
 import type { Database } from "../supabase/database.types";
+import { pathInOwnFolder } from "@/lib/security/own-folder";
 import type { ArrivalCharges } from "../stays/arrival-charges";
 import { HOST_AGREEMENT_VERSION, PAY_ON_VALLO_VERSION } from "../legal/versions";
 
@@ -805,10 +806,7 @@ export function missingFrom(draft: HostDraft): string[] {
  * business being recorded against their application.
  */
 export function documentPathBelongsTo(userId: string, storagePath: string): boolean {
-  if (storagePath.length === 0 || storagePath.length > 400 || !storagePath.startsWith(`${userId}/`)) return false;
-  /* A prefix is only a folder if nothing after it walks out of it: no `..`
-     or `.` segment, no empty segment, no backslash and no control character,
-     so `<uid>/../<someone else>/id.pdf` is never recorded as this person's. */
-  if (/[\\\u0000-\u001f\u007f]/.test(storagePath)) return false;
-  return storagePath.split("/").every((segment) => segment.length > 0 && segment !== "." && segment !== "..");
+  /* A prefix is only a folder if nothing after it walks out of it, so
+     `<uid>/../<someone else>/id.pdf` is never recorded as this person's. */
+  return pathInOwnFolder(userId, storagePath);
 }
