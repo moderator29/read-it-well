@@ -71,9 +71,9 @@ export function CreateDock({
   socialOn?: boolean;
 }) {
   const [open, setOpen] = useState(false);
-  /* `data-dock-create` on <html>: the feed's floating bloom steps aside for
+  /* `data-create-dock` on <html>: the feed's floating bloom steps aside for
      the dock's own plus (social-feed.css, lib/ui/root-flag.ts). */
-  useRootFlag("dock-create");
+  useRootFlag("create-dock");
   const copy = t.nav.create;
   const stays = side === "stays";
 
