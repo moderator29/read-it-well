@@ -576,6 +576,12 @@ async function postRegistration(
       return { ok: false, reason: refused, step: "register", detail: String(response.status) };
     }
     if (refused) return failedAndForgotten(refused, String(response.status));
+    /* PACED IS NOT REFUSED. The route counts calls per account (30 an hour);
+       a 429 says "not now", and the row the server already holds is still
+       live, so the record of it is kept for the next try. */
+    if (response.status === 429) {
+      return { ok: false, reason: "not_saved", step: "register", detail: "429" };
+    }
     if (!response.ok) return failedAndForgotten("not_saved", String(response.status));
     const result = (await response.json()) as { ok?: boolean; deviceRef?: string };
     if (!result.ok || typeof result.deviceRef !== "string" || result.deviceRef.length === 0) {

@@ -91,6 +91,12 @@ describe("the shell's launch push read (F-14, F-15)", () => {
     expect(state.cleared).toBe(0);
   });
 
+  it("keeps the record when the register route is pacing calls (429): the server row is still live", async () => {
+    state.status = 429;
+    expect(await refreshNativeRegistration()).toBe("failed");
+    expect(state.cleared).toBe(0);
+  });
+
   it("still forgets the record when the server refuses it for another reason", async () => {
     state.status = 500;
     expect(await refreshNativeRegistration()).toBe("failed");
