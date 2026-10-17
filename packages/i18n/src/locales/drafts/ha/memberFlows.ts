@@ -104,6 +104,6 @@ export const memberFlowsHa = {
     rentFor: "Haya na {term}",
     rentOnly: "Haya kawai, kafin kuɗin ajiyar tsaro, na wakili da na lauya. Wakilin ne zai amince da sharuɗɗan ƙarshe tare da kai.",
     keepInside:
-      "Ka ajiye kowace hira da kowane biya a cikin Vallo. Vallo ba ta ɗaukar alhakin biyan da aka yi a wajen Vallo. Ka biya sai bayan ka duba gidan.",
+      "Don lafiyarka, ka ajiye kowace hira da kowane biya a cikin Vallo. Ba mu kare yarjejeniyar da aka yi a wajen dandalin ba. Ka biya sai bayan ka duba gidan.",
   },
 } satisfies NonNullable<Translation["memberFlows"]>;

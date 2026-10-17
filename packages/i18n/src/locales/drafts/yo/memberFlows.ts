@@ -104,6 +104,6 @@ export const memberFlowsYo = {
     rentFor: "Owó ilé fún {term}",
     rentOnly: "Owó ilé nìkan, ṣáájú owó ìdúró, owó aṣojú àti owó agbẹjọ́rò. Aṣojú náà yóò fohùn ṣọ̀kan pẹ̀lú rẹ lórí àwọn òfin ìkẹyìn.",
     keepInside:
-      "Jẹ́ kí gbogbo ìjíròrò àti ìsanwó wà nínú Vallo. Vallo kò ní ojúṣe fún ìsanwó tí a ṣe lóde Vallo. Sanwó nìkan lẹ́yìn tí o bá ti yẹ ilé náà wò.",
+      "Fún ààbò rẹ, jẹ́ kí gbogbo ìjíròrò àti ìsanwó wà nínú Vallo. A kò dáàbò bo àdéhùn tí a ṣe lóde pèpéle yìí. Sanwó nìkan lẹ́yìn tí o bá ti yẹ ilé náà wò.",
   },
 } satisfies NonNullable<Translation["memberFlows"]>;

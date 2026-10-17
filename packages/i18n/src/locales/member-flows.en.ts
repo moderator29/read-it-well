@@ -137,10 +137,8 @@ export const memberFlowsEn = {
     /** `{term}` is a counted phrase ("2 years"). */
     rentFor: "Rent for {term}",
     rentOnly: "Rent only, before caution, agency and legal fees. The agent agrees the final terms with you.",
-    /* "Deals made outside the platform are not protected by us" implied that a
-       deal inside is protected, which a card payment is not; the founder's
-       rule is that a payment made outside Vallo is not covered. */
+    /** The owner's canonical safety rule, verbatim (`SAFETY_EDUCATION_COPY`, docs/PRODUCT.md section 6). */
     keepInside:
-      "Keep every chat and payment inside Vallo. Payments made outside Vallo are not covered. Pay only after you have inspected the property.",
+      "For your safety, keep every chat and payment inside Vallo. Deals made outside the platform are not protected by us. Pay only after you have inspected the property.",
   },
 };

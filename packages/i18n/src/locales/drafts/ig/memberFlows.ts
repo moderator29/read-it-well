@@ -104,6 +104,6 @@ export const memberFlowsIg = {
     rentFor: "Ụgwọ ụlọ maka {term}",
     rentOnly: "Ụgwọ ụlọ naanị, tupu ego nchekwa, ego onye nnọchite na ego ọkàiwu. Onye nnọchite ahụ ga-ekwekọrịta usoro ikpeazụ na gị.",
     keepInside:
-      "Debe mkparịta ụka na ịkwụ ụgwọ niile n'ime Vallo. Vallo anaghị aza maka ịkwụ ụgwọ e mere na mpụga Vallo. Kwụọ ụgwọ naanị mgbe ị lechara ụlọ ahụ.",
+      "Maka nchekwa gị, debe mkparịta ụka na ịkwụ ụgwọ niile n'ime Vallo. Anyị anaghị echekwa nkwekọrịta e mere na mpụga ikpo okwu a. Kwụọ ụgwọ naanị mgbe ị lechara ụlọ ahụ.",
   },
 } satisfies NonNullable<Translation["memberFlows"]>;
