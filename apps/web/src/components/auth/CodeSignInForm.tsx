@@ -36,6 +36,8 @@ type Mode = "email" | "phone";
 export function CodeSignInForm({ mode, t, next }: { mode: Mode; t: Dictionary; next?: string }) {
   const copy = mode === "email" ? t.publicDoors.emailCode : t.publicDoors.phone;
   const codeLength = mode === "email" ? CONFIRMATION_CODE_LENGTH : PHONE_CODE_LENGTH;
+  /* The code's length as a word ("six"), so every line follows the code rather than saying 6 by hand. */
+  const lengthWord = codeLengthWord(codeLength);
   const [sent, send, sending] = useActionState<CodeSignInState, FormData>(
     mode === "email" ? sendEmailSignInCode : sendPhoneSignInCode,
     CODE_START,
@@ -97,7 +99,7 @@ export function CodeSignInForm({ mode, t, next }: { mode: Mode; t: Dictionary; n
         {onCode ? (
           <SentTo template={copy.sentTo} slot={mode === "email" ? "{email}" : "{phone}"} shown={sent.shown ?? ""} />
         ) : (
-          copy.lede
+          copy.lede.replace("{count}", lengthWord)
         )}
       </p>
 
@@ -145,14 +147,14 @@ export function CodeSignInForm({ mode, t, next }: { mode: Mode; t: Dictionary; n
           <CodeInput
             id="code-digits"
             name="code"
-            label={copy.codeLabel}
+            label={copy.codeLabel.replace("{count}", lengthWord)}
             length={codeLength}
             value={code}
             onChange={onDigits}
-            error={state.error === "badCode" ? copy.badCode : state.error === "wrongCode" ? copy.wrongCode : undefined}
+            error={state.error === "badCode" ? copy.badCode.replace("{count}", lengthWord) : state.error === "wrongCode" ? copy.wrongCode : undefined}
             wrongCount={wrongCount}
             placeholder="123456"
-            cellsLabel={t.authFlow.codeCells.replace("{count}", codeLengthWord(codeLength))}
+            cellsLabel={t.authFlow.codeCells.replace("{count}", lengthWord)}
           />
           {state.error && state.error !== "badCode" && state.error !== "wrongCode" && message && (
             <p role="alert" className="nf-auth__notice">
