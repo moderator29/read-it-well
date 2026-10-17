@@ -48,6 +48,7 @@ import { RATE_AGREEMENT_NEEDED_MESSAGE, isRateAgreementRefusal } from "../pricin
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import type { Database } from "../supabase/database.types";
 import { SCRUB_REFUSED_MESSAGE, scrubPublicPhoto } from "../images/scrub";
+import { inspectStoredVideo } from "./video-inspect";
 import {
   PHOTO_BUCKET,
   VIDEO_BUCKET,
@@ -63,6 +64,7 @@ import {
   MAX_UPLOAD_BYTES,
   MAX_UPLOAD_LABEL,
   MAX_VIDEOS,
+  MAX_VIDEO_SECONDS,
   PHOTO_MIME_TYPES,
   VIDEO_MIME_TYPES,
   addPhotoSchema,
@@ -598,6 +600,18 @@ function formatKobo(minor: number): string {
 }
 
 /**
+ * True when a storage path sits in the caller's own folder FOR THIS LISTING,
+ * `<auth uid>/<listing id>/<file>`, which is the only shape the wizard
+ * writes. The uid prefix alone let a path from another of the caller's
+ * listings be attached here, and the refusal clean-up (which only touches
+ * this listing's folder) could then never remove it.
+ */
+function inListingFolder(path: string, userId: string, listingId: string): boolean {
+  const parts = path.split("/");
+  return parts.length === 3 && parts[0] === userId && parts[1] === listingId && parts[2]!.length > 0;
+}
+
+/**
  * Remove an uploaded photo object that no photo row points at. Best effort:
  * the refusal the caller is returning is the answer either way.
  *
@@ -632,8 +646,8 @@ async function discardUnattached(
  *
  * The browser uploads to listing-photos under `<auth uid>/<listing id>/...`,
  * which storage RLS already restricts to that user's own folder; this checks
- * the same prefix so a path pointing at somebody else's folder can never be
- * recorded. Position 0 is the cover, and the requested slot is honoured only
+ * the same folder, for this listing, so a path pointing at somebody else's
+ * folder (or at another of the caller's listings) can never be recorded. Position 0 is the cover, and the requested slot is honoured only
  * when it is free, so the unique (listing_id, position) index is never raced.
  */
 export async function addPhoto(input: {
@@ -648,7 +662,7 @@ export async function addPhoto(input: {
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   const { listingId, storagePath, position } = parsed.data;
 
-  if (!storagePath.startsWith(`${gate.user.id}/`)) {
+  if (!inListingFolder(storagePath, gate.user.id, listingId)) {
     return fail(
       "That photo was not uploaded to your own folder, so we did not attach it. Choose the photo again.",
     );
@@ -1141,13 +1155,13 @@ export async function addVideo(input: {
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   const { listingId, storagePath, posterPath, durationSeconds } = parsed.data;
 
-  if (!storagePath.startsWith(`${gate.user.id}/`)) {
+  if (!inListingFolder(storagePath, gate.user.id, listingId)) {
     return fail(
       "That video was not uploaded to your own folder, so we did not attach it. Choose the file again.",
     );
   }
 
-  if (posterPath !== undefined && !posterPath.startsWith(`${gate.user.id}/`)) {
+  if (posterPath !== undefined && !inListingFolder(posterPath, gate.user.id, listingId)) {
     return fail(
       "That video's still was not uploaded to your own folder, so we did not attach it. Choose the file again.",
     );
@@ -1199,6 +1213,45 @@ export async function addVideo(input: {
     return refuse("That file is not a video we can play. Use MP4, MOV or WebM.");
   }
 
+  /*
+   * THE BYTES, NOT THE LABEL. The type above is the one the uploader declared,
+   * and storage records whatever it was told. `inspectStoredVideo` reads a few
+   * small ranges of the object back: that it really is an MP4, MOV or WebM
+   * file, that it no longer says where it was filmed (the wizard takes the
+   * location out before upload; a file posted around the wizard has not had
+   * that done), and how long it really is. The measured length is what is
+   * stored, not the one the browser sent.
+   */
+  const inspected = await inspectStoredVideo(VIDEO_BUCKET, storagePath, size, MAX_UPLOAD_BYTES);
+  if (!inspected.ok) {
+    if (inspected.reason === "location") {
+      return refuse(
+        "That video still carries the place it was filmed, so we did not attach it. Add it through the listing form, which takes the location out, and try again.",
+      );
+    }
+    if (inspected.reason === "not-a-video") {
+      return refuse("That file is not a video we can play. Use MP4, MOV or WebM.");
+    }
+    return refuse(VIDEO_FAILED_MESSAGE);
+  }
+  if ((inspected.container === "webm") !== (mime === "video/webm")) {
+    return refuse("That file is not a video we can play. Use MP4, MOV or WebM.");
+  }
+  const measuredSeconds =
+    inspected.durationSeconds === null ? null : Math.max(1, Math.round(inspected.durationSeconds));
+  if (measuredSeconds !== null && measuredSeconds > MAX_VIDEO_SECONDS) {
+    return refuse(`A video can be up to ${MAX_VIDEO_SECONDS} seconds long. Trim it and try again.`);
+  }
+
+  /* The still lives in the PUBLIC photo bucket, so it gets the photograph's
+     treatment: its format read from the bytes and any metadata stripped,
+     before the row makes it reachable. The wizard draws it on a canvas, which
+     carries none; a still posted around the wizard may. */
+  if (posterPath !== undefined) {
+    const still = await scrubPublicPhoto(PHOTO_BUCKET, posterPath);
+    if (!still.ok) return refuse(SCRUB_REFUSED_MESSAGE);
+  }
+
   const { data: existing, error: countError } = await gate.supabase
     .from("listing_videos")
     .select("id, position")
@@ -1230,7 +1283,7 @@ export async function addVideo(input: {
       listing_id: listingId,
       storage_path: storagePath,
       poster_path: posterPath ?? null,
-      duration_seconds: durationSeconds ?? null,
+      duration_seconds: measuredSeconds ?? durationSeconds ?? null,
       position,
     })
     .select("id, position")
