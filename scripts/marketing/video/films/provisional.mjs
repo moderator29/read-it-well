@@ -27,9 +27,17 @@ if (!proj || !scriptPath) {
   process.exit(1);
 }
 
-const RATE = 2.3;          /* words a second, as the long films were spoken */
-const GAP = 0.8;           /* the breath between two sentences */
-const LEAD = 0.6;          /* the quiet before the first word */
+/*
+ * Measured, 17 October, from the sign-up recording as it was actually read
+ * (95 words, nine lines, 39.2 s on the film's clock once installed): the
+ * long films' 2.3 words a second was half a minute too slow over a one-minute
+ * script. A provisional clock laid out at these numbers lands within a few
+ * hundred milliseconds of the real one, so a film built on it needs no
+ * respacing when the recording arrives.
+ */
+const RATE = 2.95;         /* words a second, as the short films were spoken */
+const GAP = 0.32;          /* the breath between two sentences */
+const LEAD = 2.308;        /* the quiet before the first word: one bar at 104 */
 const TAIL = 2.4;          /* the room the ending needs after the last word */
 const BPM = 104;
 
