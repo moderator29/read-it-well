@@ -66,7 +66,7 @@ Probe `track-a-custody-retired` says the live database lets the `wallet` switch 
 which every migration refuses. The fix is the draft
 `supabase/migrations/pending/20261017150000_custody_switch_guard_restored.sql` (no DELETE, no
 DROP; the connector can apply it). Read its header first: it does not turn any switch off, and
-saving a card in the app still reads the `wallet` key.
+saving a card now has its own switch, `saved_cards` (off until set). After the guard is restored and `wallet` is off, set `saved_cards` on if cards should be saved: `insert into public.feature_flags (key, enabled) values ('saved_cards', true) on conflict (key) do update set enabled = true;`
 
 ## What is left, and it is optional
 

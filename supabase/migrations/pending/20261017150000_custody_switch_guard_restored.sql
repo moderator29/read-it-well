@@ -25,10 +25,11 @@
 --   select key, enabled from public.feature_flags
 --    where key in ('wallet', 'wallet_pots', 'held_payments', 'held_payments_payouts');
 -- If `wallet` is on, the likely reason is the app: startCardSetup
--- (apps/web/src/lib/payments/methods-actions.ts) still reads the `wallet` key
--- as the switch for saving a card, so with Track A's `wallet = false` saving a
--- card always answers "switched off". Give card saving its own switch in the
--- app before turning `wallet` off again.
+-- (apps/web/src/lib/payments/methods-actions.ts) read the `wallet` key as the
+-- switch for saving a card. Since 17 October it reads its own fail-closed
+-- switch, `saved_cards`, and the `wallet` row only until this guard is back.
+-- So: apply this, set `saved_cards` on if cards should be saved, then turn
+-- `wallet` off (an update to false passes the guard).
 --
 -- Probe: supabase/tests/probes/track-a-custody-retired.sql (already in CI;
 -- it raises PROBE_OK once this is applied).
