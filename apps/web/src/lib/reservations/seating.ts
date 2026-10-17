@@ -210,6 +210,9 @@ export const SEATING_REFUSALS: Record<string, string> = {
   awaiting_restaurant: "The restaurant has to confirm the bill first.",
   already_paid: "That bill is paid already.",
   not_staff: "Only Vallo staff can decide this.",
+  /* Pending migration 20261017120000_nobody_decides_their_own_case. */
+  no_dispute: "There is no open disagreement on this table, so there is nothing to decide.",
+  own_case: "You ate at or host this table, so somebody else has to decide it. Nothing was changed.",
   signed_out: "Sign in first.",
 };
 

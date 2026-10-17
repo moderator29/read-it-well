@@ -38,6 +38,7 @@ const REFUSALS: Record<string, string> = {
   no_show_dispute_closed: "The 48 hours to dispute this have passed.",
   no_show_no_dispute: "There is no open dispute on this viewing.",
   no_show_already_resolved: "This dispute has already been decided.",
+  no_show_own_case: "You were part of this viewing, so somebody else has to decide it. Nothing was changed.",
 };
 
 function refusal(error: { hint?: string; message?: string } | null): string {
@@ -86,6 +87,17 @@ export async function resolveNoShow(input: unknown): Promise<ActionResult<null>>
   if (access.state !== "admin") return fail(adminRefusal(access));
   const parsed = validate(z.object({ id, upheld: z.boolean() }), input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+  /* Nobody decides a viewing they were part of. Asked here because a staff
+     member's service client carries no caller for the function to see. */
+  const { data: viewing, error: viewingError } = await access.supabase
+    .from("inspection_requests")
+    .select("requester_id, lister_id")
+    .eq("id", parsed.data.id)
+    .maybeSingle();
+  if (viewingError) return fail("That did not go through. Nothing was changed. Please try again.");
+  if (viewing && (viewing.requester_id === access.user.id || viewing.lister_id === access.user.id)) {
+    return fail(REFUSALS.no_show_own_case as string);
+  }
   const rpc = access.supabase.rpc.bind(access.supabase) as unknown as Rpc;
   const { error } = await rpc("resolve_inspection_no_show", {
     p_inspection: parsed.data.id,
