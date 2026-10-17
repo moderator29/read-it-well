@@ -305,7 +305,7 @@
  */
 @layer components {
   .nf-odo {
-    --nf-odo-stagger: 20ms;
+    --nf-odo-stagger: var(--nf-stagger-tight);
     display: inline-block;
     font-variant-numeric: tabular-nums;
   }
