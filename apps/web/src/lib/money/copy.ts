@@ -876,13 +876,13 @@ export const CANCEL_TABLE =
 export const SAFETY_NO_ACCOUNT_NUMBER =
   "We add nothing to the price you are shown, and every payment happens inside the platform. So there is no honest reason for anyone to send you an account number, and if somebody does, they are not doing platform business. Report them and stop replying.";
 
-/** /safety, how paying works: after NO_CUSTODY_SENTENCE, the processor and both sides. */
+/** /safety, how paying works: after NO_CUSTODY_SENTENCE, the processor, escrow and both sides. */
 export const SAFETY_PAY_THROUGH_VALLO =
-  "Every payment on Vallo goes through the checkout screen with a licensed Nigerian payment processor, using a card or a bank transfer raised by the processor. That is true on both sides: a hotel room for Friday and a flat for the year are paid the same way, and there is no step on either where somebody sends you an account number.";
+  "Every payment on Vallo goes through the checkout screen with a licensed Nigerian payment partner, using a card or a bank transfer raised by the partner. For rent and shortlets you can choose Escrow instead, where a licensed partner holds the payment until the deal is confirmed, and a sale is always paid through escrow. On both sides there is no step where somebody sends you an account number.";
 
 /** /safety, how paying works: the price is whole, and whose fees are whose. */
 export const SAFETY_PRICE_IS_WHOLE =
-  "The total you see before you commit is the lister's own number for that market, whole: the move-in total on a yearly tenancy, the nights and any cleaning charge on a shortlet, the asking price on a sale or a lease. Where an agent charges a fee of their own it is theirs, it belongs on the listing and not at the door, and it is named as theirs. Nothing of ours is added at the end. If your bank or card network takes something of their own, that is theirs and it is named as theirs too.";
+  "The total you see before you commit is the lister's own number for that market, whole: the move-in total on a yearly tenancy, the nights, any cleaning charge and every charge listed for the door on a stay, the asking price on a sale or a lease. Where an agent charges a fee of their own it is theirs, it belongs on the listing, and it is named as theirs. A host may ask at the door only for a charge listed before you booked. Nothing of ours is added at the end. If your bank or card network takes something of their own, that is theirs and it is named as theirs too.";
 
 /** /safety, how paying works: the reference every payment leaves. */
 export const SAFETY_PAYMENT_RECORD =
