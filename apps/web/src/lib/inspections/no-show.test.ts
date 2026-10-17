@@ -12,7 +12,24 @@ const audit = vi.hoisted(() => ({ writeAudit: vi.fn(async () => true) }));
 vi.mock("../actions/session", () => session);
 vi.mock("../admin/guard", () => guard);
 vi.mock("../admin/audit", () => audit);
-vi.mock("../supabase/admin", () => ({ createAdminClient: () => ({}) }));
+const parties = vi.hoisted(() => ({
+  noShow: { reported_by: "renter", absent_id: "lister" } as Record<string, string> | null,
+  viewing: { requester_id: "renter", lister_id: "lister" } as Record<string, string> | null,
+}));
+vi.mock("../supabase/admin", () => ({
+  createAdminClient: () => ({
+    from: (table: string) => ({
+      select: () => ({
+        eq: () => ({
+          maybeSingle: async () => ({
+            data: table === "inspection_no_shows" ? parties.noShow : table === "inspection_requests" ? parties.viewing : null,
+            error: null,
+          }),
+        }),
+      }),
+    }),
+  }),
+}));
 vi.mock("next/cache", () => ({ revalidatePath: () => undefined }));
 vi.mock("server-only", () => ({}));
 
@@ -23,22 +40,11 @@ const { statusFor } = await import("@/components/app/inspections/status");
 
 const ID = "44444444-4444-4444-8444-444444444444";
 
-function client(
-  answer: { data?: unknown; error?: { hint?: string } | null },
-  viewing: { requester_id: string; lister_id: string } = { requester_id: "renter", lister_id: "lister" },
-) {
+function client(answer: { data?: unknown; error?: { hint?: string } | null }) {
   const calls: { fn: string; args: Record<string, unknown> }[] = [];
   return {
     calls,
     supabase: {
-      /* The viewing the staff member is about to decide, for the own-case check. */
-      from: () => {
-        const chain: Record<string, unknown> = {};
-        chain.select = () => chain;
-        chain.eq = () => chain;
-        chain.maybeSingle = async () => ({ data: viewing, error: null });
-        return chain;
-      },
       rpc: (fn: string, args: Record<string, unknown>) => {
         calls.push({ fn, args });
         return Promise.resolve({ data: answer.data ?? null, error: answer.error ?? null });
@@ -98,14 +104,15 @@ describe("staff deciding a dispute", () => {
     expect(audit.writeAudit).toHaveBeenCalledOnce();
   });
 
-  it("refuses a staff member who was part of the viewing, and calls nothing", async () => {
-    const c = client({ data: "overturned" }, { requester_id: "staff", lister_id: "lister" });
-    guard.requireAdmin.mockResolvedValue({ state: "admin", supabase: c.supabase, user: { id: "staff" } });
-    const result = await resolveNoShow({ id: ID, upheld: false });
-    expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error).toContain("somebody else has to decide it");
-    expect(c.calls).toEqual([]);
-    expect(audit.writeAudit).not.toHaveBeenCalled();
+  it("refuses a member of staff who is part of the viewing, and calls nothing", async () => {
+    for (const who of ["renter", "lister"]) {
+      const c = client({ data: "upheld" });
+      guard.requireAdmin.mockResolvedValue({ state: "admin", supabase: c.supabase, user: { id: who } });
+      const result = await resolveNoShow({ id: ID, upheld: true });
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.error).toMatch(/another member of staff/);
+      expect(c.calls).toEqual([]);
+    }
   });
 });
 

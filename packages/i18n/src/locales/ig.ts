@@ -1580,6 +1580,8 @@ export const ig: Dictionary = withFallback({
       videoCeiling: "Ndepụta otu na-anagide vidiyo {max} naanị.",
       videoFailed: "Vidiyo ahụ ebugoghị zuru oke. Biko gbalịa ya ọzọ.",
       videoUploading: "Na-ebugo {name}, {percent}%",
+      videoCancel: "Kwụsị ibugo",
+      videoCancelled: "Akwụsịla ibugo. Ọ dịghị ihe etinyere.",
       retry: "Gbalịa ọzọ",
       notPrepared:
         "Anyị enweghị ike ịkwadebe foto ahụ n'enweghị nsogbu, ya mere anyị ebugoghị ya. Nwaa foto ọzọ.",

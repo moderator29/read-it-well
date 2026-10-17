@@ -43,9 +43,6 @@ begin
   reset role;
 
   -- 3. The desks that need a whole case to reach carry their refusal.
-  if position('no_show_own_case' in pg_get_functiondef('public.resolve_inspection_no_show(uuid, boolean)'::regprocedure)) = 0 then
-    raise exception 'PROBE_FAIL self-review-desks 3: the no-show desk has no own-case refusal';
-  end if;
   if position('own_booking' in pg_get_functiondef('public.decide_refund_request(uuid, text, text)'::regprocedure)) = 0 then
     raise exception 'PROBE_FAIL self-review-desks 3: the refund desk has no own-booking refusal';
   end if;

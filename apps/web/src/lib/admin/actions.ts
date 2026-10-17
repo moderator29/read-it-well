@@ -964,6 +964,13 @@ export async function reviewListing(input: {
       });
     }
 
+  } catch {
+    // The transition has committed. Telling the lister is best effort.
+  }
+
+  /* The audit row is written on its own, so a notification or email that
+     throws can never cost the decision its record. */
+  try {
     const detail: AuditDetail = {
       before_status: listing.status,
       after_status: nextStatus,
@@ -974,7 +981,7 @@ export async function reviewListing(input: {
       /* C8: countable on the analytics desk ("why listings were sent back"). */
       reasons: reasons.join(","),
     };
-    await writeAudit(admin, {
+    await writeAudit(createAdminClient(), {
       actorId: access.user.id,
       action: "listing.review",
       entityType: "listing",
@@ -982,7 +989,7 @@ export async function reviewListing(input: {
       detail,
     });
   } catch {
-    // The transition has committed. The follow-on work is best effort.
+    // Best effort, as every other admin decision's audit row.
   }
 
   revalidatePath("/admin/listings");

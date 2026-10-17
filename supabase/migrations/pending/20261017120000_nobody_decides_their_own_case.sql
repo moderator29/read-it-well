@@ -9,8 +9,8 @@
 --   2. reservation_resolve_seating: drafted separately, see 20261017141000
 --      (own_table, not_disputed); removed from this file so the two drafts
 --      never replace the same function.
---   3. resolve_inspection_no_show: staff could decide a no-show on a viewing
---      they were part of. Now 42501 with hint 'no_show_own_case'.
+--   3. resolve_inspection_no_show: drafted separately with the fuller rule,
+--      see 20261017143000 (hint no_show_party).
 --   4. decide_refund_request: an admin could decide a refund on a stay they
 --      booked or host. Now 'own_booking'.
 --   5. admin_referral_decide: staff could approve a referral they made or
@@ -112,73 +112,9 @@ $fn$;
 --    pending/20261017141000_seating_dispute_guards.sql (codes 'own_table' and
 --    'not_disputed', which the app already maps); apply that one.
 
--- 3. from 20261013063125_viewing_no_show_c_functions.sql
-create or replace function public.resolve_inspection_no_show(p_inspection uuid, p_upheld boolean)
-returns text
-language plpgsql
-security definer
-set search_path to ''
-as $fn$
-declare
-  caller   uuid := (select auth.uid());
-  s        record;
-  property text;
-  word     text;
-begin
-  if caller is not null
-     and not private.has_role(caller, 'admin'::public.app_role)
-     and not private.has_role(caller, 'super_admin'::public.app_role) then
-    raise exception 'staff only' using errcode = '42501';
-  end if;
-  if p_upheld is null then
-    raise exception 'say upheld or overturned' using errcode = '22023';
-  end if;
-
-  select n.inspection_id, n.reported_by, n.absent_id, n.disputed_at, n.resolved_at, i.listing_id, i.lister_id
-    into s
-    from public.inspection_no_shows n
-    join public.inspection_requests i on i.id = n.inspection_id
-   where n.inspection_id = p_inspection
-   for update of n;
-  if not found or s.disputed_at is null then
-    raise exception 'no open dispute' using errcode = 'P0001', hint = 'no_show_no_dispute';
-  end if;
-  if s.resolved_at is not null then
-    raise exception 'already resolved' using errcode = 'P0001', hint = 'no_show_already_resolved';
-  end if;
-  -- Nobody decides a viewing they were part of. A staff member's service
-  -- client carries no caller; the app refuses that case before calling.
-  if caller is not null
-     and (caller in (s.reported_by, s.absent_id, s.lister_id)
-          or exists (select 1 from public.inspection_requests i
-                      where i.id = p_inspection and i.requester_id = caller)) then
-    raise exception 'own viewing' using errcode = '42501', hint = 'no_show_own_case';
-  end if;
-
-  word := case when p_upheld then 'upheld' else 'overturned' end;
-  update public.inspection_no_shows
-     set resolved_at = now(), resolution = word, resolved_by = caller
-   where inspection_id = p_inspection;
-
-  update public.risk_alerts
-     set status = 'resolved', resolved_at = now(), resolved_by = caller
-   where entity_type = 'inspection_no_show'
-     and entity_id = p_inspection::text
-     and status = 'open';
-
-  select l.title into property from public.listings l where l.id = s.listing_id;
-  perform private.notify(
-    who,
-    'listing'::public.notification_kind,
-    case when p_upheld then 'No-show stands' else 'No-show removed' end,
-    'Vallo looked at the no-show on the viewing of ' || coalesce(property, 'the property') || ': '
-      || case when p_upheld then 'it stands.' else 'it has been taken off the record.' end,
-    case when who = s.lister_id then '/agent/inspections' else '/inspections' end
-  )
-  from unnest(array[s.reported_by, s.absent_id]) as who;
-  return word;
-end;
-$fn$;
+-- 3. resolve_inspection_no_show: NOT HERE. Drafted with the fuller rule
+--    (reporter, absent party, lister and requester; hint no_show_party) in
+--    pending/20261017143000_no_show_dispute_never_decided_by_a_party.sql.
 
 -- 4. from 20260929001248_money_v24_refund_clock_to_paystack_initiation_and_success.sql
 create or replace function public.decide_refund_request(p_request uuid, p_decision text, p_note text default null)
