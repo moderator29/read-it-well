@@ -13,7 +13,7 @@ import { VisitListerCard } from "@/components/app/inspections/visit/VisitListerC
 import { VisitPlanner } from "@/components/app/inspections/visit/VisitPlanner";
 import { roleWordsOf, visitPropertyOf } from "@/components/app/inspections/visit/property";
 import "@/app/css/visit.css";
-import { requestNow } from "@/lib/landlord/facts";
+import { requestNow } from "@/lib/format/when";
 
 /**
  * SCHEDULE A VISIT, STEP 1 (`/listing/[id]/visit`).

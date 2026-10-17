@@ -13,7 +13,7 @@ import { roleWordsOf } from "@/components/app/inspections/visit/property";
 import { addDays, lagosDayOf, lagosInstant, visitModeOf, type OpenSlot, type VisitLister, type VisitRow } from "@/lib/inspections/visit";
 import type { InspectionState } from "@/lib/inspections/types";
 import "@/app/css/visit.css";
-import { requestNow } from "@/lib/landlord/facts";
+import { requestNow } from "@/lib/format/when";
 
 export const dynamic = "force-dynamic";
 

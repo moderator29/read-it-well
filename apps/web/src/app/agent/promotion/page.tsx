@@ -14,7 +14,7 @@ import { firstRunPath } from "@/components/app/feature-onboarding/first-runs";
 import { readMyPromotionPurchases } from "@/lib/promotion/my-purchases-read";
 import { purchasePhase } from "@/lib/promotion/my-purchases";
 import { ListingPitch } from "../list/ListingPitch";
-import { requestNow } from "@/lib/landlord/facts";
+import { requestNow } from "@/lib/format/when";
 
 export const dynamic = "force-dynamic";
 

@@ -6,7 +6,7 @@ import { requireAdmin } from "@/lib/admin/guard";
 import { getVisitCalendar, getVisitDetail, readVisitQuery } from "@/lib/admin/reads/visits";
 import { lagosDay } from "@/lib/visit-calendar/model";
 import { VisitsDesk } from "./VisitsDesk";
-import { requestNow } from "@/lib/landlord/facts";
+import { requestNow } from "@/lib/format/when";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
