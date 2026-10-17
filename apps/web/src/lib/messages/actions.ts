@@ -523,14 +523,19 @@ export async function sendMessage(input: {
     "outbox.message",
     session.user.id,
     tapKey(input.tapKey),
-    () => sendMessageWork(session, { conversationId: input.conversationId, body: input.body }),
+    () =>
+      sendMessageWork(session, {
+        conversationId: input.conversationId,
+        body: input.body,
+        replyToId: input.replyToId ?? null,
+      }),
     (sent): ReplayedMessage => ({ id: sent.id, conversationId: sent.conversationId, createdAt: sent.createdAt }),
   );
 }
 
 async function sendMessageWork(
   session: Extract<Awaited<ReturnType<typeof resolveSession>>, { state: "signed-in" }>,
-  input: { conversationId: string; body: string },
+  input: { conversationId: string; body: string; replyToId: string | null },
 ): Promise<ActionResult<SentMessage>> {
 
   if (!(await isFeatureEnabled("messaging"))) return fail(PAUSED_MESSAGE);
