@@ -4149,6 +4149,13 @@ export const ha: Dictionary = withFallback({
       describePlain: "{name} ya wallafa",
       describeLandlord: "{name}, mai gida, ya wallafa",
       describeAgent: "{name}, wakili, ya wallafa",
+      likedUndo: "Ka so, {count}. Janye",
+      like: "Masu so {count}, so wannan",
+      repostedUndo: "Ka sake wallafa, {count}. Janye",
+      repost: "Sake wallafawa {count}, sake wallafa wannan",
+      share: "Raba wannan rubutu",
+      savedRemove: "An ajiye. Cire daga abubuwan da aka ajiye",
+      save: "Ajiye wannan rubutu",
     },
     composer: {
       cancel: "Soke",

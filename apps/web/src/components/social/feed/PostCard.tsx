@@ -317,7 +317,7 @@ function ActionRows({
             pressed={post.liked}
             payoff
             count={post.likeCount > 0 ? likes : undefined}
-            label={post.liked ? `Liked, ${likes}. Undo` : `Likes ${likes}, like this`}
+            label={(post.liked ? words.likedUndo : words.like).replace("{count}", likes)}
             onClick={onLike}
           />
         </AuthGate>
@@ -332,7 +332,7 @@ function ActionRows({
             pressed={post.reposted}
             payoff
             count={post.repostCount > 0 ? reposts : undefined}
-            label={post.reposted ? `Reposted, ${reposts}. Undo` : `Reposts ${reposts}, repost this`}
+            label={(post.reposted ? words.repostedUndo : words.repost).replace("{count}", reposts)}
             onClick={onRepost}
           />
         </AuthGate>
@@ -342,7 +342,7 @@ function ActionRows({
           tone="share"
           round
           className="nf-post__act--share"
-          label="Share this post"
+          label={words.share}
           onClick={onShare}
         />
 
@@ -354,7 +354,7 @@ function ActionRows({
               round
               className="nf-post__act--save"
               pressed={post.saved}
-              label={post.saved ? "Saved. Remove from saved" : "Save this post"}
+              label={post.saved ? words.savedRemove : words.save}
               onClick={onSave}
             />
           </AuthGate>
@@ -685,7 +685,7 @@ export function PostCard({
 
       {post.sourceNote ? <p className="nf-pc__note">{post.sourceNote}</p> : null}
 
-      {post.listing ? <ListingAttachment listing={post.listing} /> : null}
+      {post.listing ? <ListingAttachment listing={post.listing} verifiedLabel={copy.common.verified} /> : null}
 
       {detail ? (
         /* On the post's own page: when it was written and how many have
@@ -754,7 +754,7 @@ export function PostCard({
  * tabular on the right, and a chevron. The whole row is the link, so the way
  * in is the attachment itself, as on every product people already know.
  */
-function ListingAttachment({ listing }: { listing: PostListing }) {
+function ListingAttachment({ listing, verifiedLabel }: { listing: PostListing; verifiedLabel: string }) {
   return (
     <Link href={`/listing/${listing.id}`} className="nf-post__attach">
       <span className="nf-post__attach-thumb" aria-hidden="true">
@@ -768,7 +768,7 @@ function ListingAttachment({ listing }: { listing: PostListing }) {
         <span className="nf-post__attach-title">{listing.title}</span>
         <span className="nf-post__attach-place">
           {listing.area}, {listing.city}
-          {listing.verified ? <span className="nf-post__attach-verified"> &middot; Verified</span> : null}
+          {listing.verified ? <span className="nf-post__attach-verified"> &middot; {verifiedLabel}</span> : null}
         </span>
       </span>
       <span className="nf-post__attach-price nf-numeric">

@@ -4199,6 +4199,13 @@ export const yo: Dictionary = withFallback({
       describePlain: "{name} ló tẹ̀ ẹ́ jáde",
       describeLandlord: "{name}, onílé, ló tẹ̀ ẹ́ jáde",
       describeAgent: "{name}, aṣojú, ló tẹ̀ ẹ́ jáde",
+      likedUndo: "O fẹ́ràn rẹ̀, {count}. Yí i padà",
+      like: "Ìfẹ́ràn {count}, fẹ́ràn èyí",
+      repostedUndo: "O tún un pín, {count}. Yí i padà",
+      repost: "Àtúnpín {count}, tún èyí pín",
+      share: "Pín àtẹ̀jáde yìí",
+      savedRemove: "A ti fi pamọ́. Yọ ọ́ kúrò nínú àwọn tí a fi pamọ́",
+      save: "Fi àtẹ̀jáde yìí pamọ́",
     },
     composer: {
       cancel: "Fagilé",

@@ -4182,6 +4182,13 @@ export const ig: Dictionary = withFallback({
       describePlain: "{name} bipụtara ya",
       describeLandlord: "{name}, onye nwe ụlọ, bipụtara ya",
       describeAgent: "{name}, onye nnọchiteanya, bipụtara ya",
+      likedUndo: "Ị masịrị ya, {count}. Wepụ ya",
+      like: "Ndị ọ masịrị {count}, masị nke a",
+      repostedUndo: "I kesaala ya ọzọ, {count}. Wepụ ya",
+      repost: "Nkesa ọzọ {count}, kesaa nke a ọzọ",
+      share: "Kesaa ederede a",
+      savedRemove: "Edebela ya. Wepụ ya n'ihe ndị echekwara",
+      save: "Chekwaa ederede a",
     },
     composer: {
       cancel: "Kagbuo",

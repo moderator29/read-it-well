@@ -6760,6 +6760,14 @@ export const en = {
       describePlain: "Posted by {name}",
       describeLandlord: "Posted by {name}, a landlord",
       describeAgent: "Posted by {name}, an agent",
+      /** The action pills' accessible names. `{count}` is the compact count ("1.2K"). */
+      likedUndo: "Liked, {count}. Undo",
+      like: "Likes {count}, like this",
+      repostedUndo: "Reposted, {count}. Undo",
+      repost: "Reposts {count}, repost this",
+      share: "Share this post",
+      savedRemove: "Saved. Remove from saved",
+      save: "Save this post",
     },
     composer: {
       cancel: "Cancel",
