@@ -26,7 +26,7 @@
  *   follower_count, following_count or post_count.
  */
 
-import { storagePathBelongsTo } from "./storage-path";
+import { pathInOwnFolder } from "@/lib/security/own-folder";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { fail, formDataToObject, ok, validate, type ActionResult } from "../actions/envelope";
@@ -228,7 +228,7 @@ export async function setSocialCover(input: {
     if (!parsed.success) {
       return fail(parsed.error.issues[0]?.message ?? "That photo could not be filed.");
     }
-    if (!storagePathBelongsTo(user.id, parsed.data)) {
+    if (!pathInOwnFolder(user.id, parsed.data)) {
       return fail("That photo does not belong to this account. Choose one you uploaded yourself.");
     }
     coverPath = parsed.data;
