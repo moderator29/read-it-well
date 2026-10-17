@@ -151,6 +151,14 @@ jobs:
         if: ${{ !cancelled() }}
         run: npm run lint
 
+      # Unused files, exports and dependencies (knip.jsonc). Report only: the
+      # first reports are lists to read, not a gate. Pinned, run through npx,
+      # so it is not a dependency of the app.
+      - name: Dead code (knip, report only)
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        run: npx --yes knip@6.41.0 --reporter compact --no-exit-code
+
       # DOC-P2-04: failures are recorded by name, and kept.
       - name: Test
         if: ${{ !cancelled() }}
