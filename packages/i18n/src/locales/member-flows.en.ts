@@ -57,6 +57,9 @@ export const memberFlowsEn = {
     messages: "Loading your messages",
     conversation: "Loading this conversation",
     newMessage: "Loading a new message",
+    booking: "Loading your booking",
+    plans: "Loading your plans",
+    stay: "Loading this stay",
   },
 
   /** Reserving a shortlet (`ReservePanel`). */
@@ -117,6 +120,98 @@ export const memberFlowsEn = {
     /** `{amount}` is drawn as the money figure. */
     pay: "Pay {amount} for this stay",
     payLater: "Pay later, view your bookings",
+  },
+
+  /** A stay's booking page (`/bookings/[bookingId]`): the tracker cells and the getting-there panel. */
+  booking: {
+    nextStep: "Next step",
+    yourPart: "Your part",
+    noAction: "No action needed from you",
+  },
+  stayDetails: {
+    title: "Getting there",
+    unpaid: "The address, check-in details and a way to reach your host appear here once the stay is paid.",
+    address: "Address",
+    checkInFrom: "Check-in from",
+    checkOutBy: "Check-out by",
+    estate: "Estate",
+    atGate: "At the gate",
+    security: "Security",
+    accessCode: "Access code",
+    houseRules: "House rules",
+    noDetails: "Your host has not added arrival details yet. Message them for directions.",
+    /** `{name}` is the host's name. */
+    messageNamed: "Message {name}",
+    messageHotel: "Message the hotel",
+    messageHost: "Message your host",
+  },
+  /** Cancelling a stay (`CancelBookingSheet`). */
+  cancelBooking: {
+    open: "Cancel",
+    title: "Cancel this booking?",
+    done: "Done",
+    cancelledTitle: "Booking cancelled",
+    /** `{title}` the stay, `{dates}` its date range. */
+    cancelledBody: "{title} for {dates} is cancelled. The dates are free again.",
+    context: "This releases your dates and cannot be undone.",
+    stay: "Stay",
+    dates: "Dates",
+    total: "Total",
+    released: "Your dates are released at once.",
+    keep: "Keep my booking",
+    confirm: "Yes, cancel the booking",
+  },
+  /** Reviewing a stay (`/bookings/[bookingId]/review`). */
+  review: {
+    title: "Review your stay",
+    unreachableTitle: "We cannot reach reviews right now",
+    unreachableBody: "This is on our side, not yours. Nothing has been lost. Try again in a few minutes.",
+    missingTitle: "We could not find that stay",
+    missingBody: "It may belong to another account. Your stays are all in one place.",
+    failedTitle: "Reviews did not load",
+    failedBody: "Your stay is unchanged and nothing was lost. Try again in a few minutes.",
+    notEligible: {
+      cancelledTitle: "This stay was cancelled",
+      cancelledBody: "There is nothing to review, because the stay did not go ahead. The dates are open again if you still want them.",
+      unconfirmedTitle: "The agent has not accepted yet",
+      unconfirmedBody: "Reviews are for stays that actually happened, so this one opens up once the agent accepts and the dates pass.",
+      unpaidTitle: "This stay was not paid for",
+      unpaidBody: "Reviews are for stays that were paid for through Vallo and actually happened.",
+      notFinishedTitle: "Your stay is not finished yet",
+      /** `{date}` is the check-out date. */
+      notFinishedBody: "You can share a review from {date}, once you have checked out. Enjoy the rest of it.",
+      noShowTitle: "This stay was recorded as not attended",
+      noShowBody: "Reviews are for stays that happened. If you did arrive, contact support from your bookings and we will look into it.",
+      tenancyTitle: "A tenancy is not reviewed as a stay",
+      tenancyBody: "Your move-in and rent are on the tenancy page. Support can help with anything about the home.",
+    },
+    viewStay: "View the stay",
+    thanksTitle: "Thank you for the review",
+    /** `{title}` is the stay. */
+    thanksBody: "Your review of {title} is live. Other guests can see it now, and the agent has been told.",
+    seeOnListing: "See it on the listing",
+    seeStays: "See your stays",
+    howWasIt: "How was the stay?",
+    /** `{value}` and `{max}` are numbers, `{label}` is the rating's word. */
+    starLabel: "{value} out of {max}, {label}",
+    ratings: {
+      1: "Poor",
+      2: "Disappointing",
+      3: "Fine",
+      4: "Good",
+      5: "Excellent",
+    },
+    bodyLabel: "Anything you would tell the next guest?",
+    bodyPlaceholder: "Was there steady light and water? How was the agent? Would you go back?",
+    bodyHint: "Optional. Your first name and last initial appear with it.",
+    sharing: "Sharing your review...",
+    share: "Share review",
+    publicNote:
+      "Reviews are public and cannot be edited once shared, so please write what you would want to read. Never put a bank account number in a review.",
+    /** `{date}` is the check-out date. */
+    checkedOut: "You checked out on {date}.",
+    alreadyTitle: "You have already reviewed this stay",
+    alreadyBody: "This is what other guests see on {title}.",
   },
 
   /** One viewing's card (`InspectionSheet`), on /plans and the agent's inspections. */

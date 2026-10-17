@@ -41,6 +41,9 @@ const SURFACES = [
   /* The language audit (17 October 2026): the listing page's booking panels
      (a table, a stay, a rental), its tenancy stepper and its waits. */
   "app/(app)/listing/[id]",
+  /* A stay's booking page, its review, cancelling it and the getting-there panel. */
+  "app/(app)/bookings",
+  "components/app/bookings",
 ];
 
 /** Props whose string value is read or announced. */
