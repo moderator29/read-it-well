@@ -23,11 +23,22 @@ const { statusFor } = await import("@/components/app/inspections/status");
 
 const ID = "44444444-4444-4444-8444-444444444444";
 
-function client(answer: { data?: unknown; error?: { hint?: string } | null }) {
+function client(
+  answer: { data?: unknown; error?: { hint?: string } | null },
+  viewing: { requester_id: string; lister_id: string } = { requester_id: "renter", lister_id: "lister" },
+) {
   const calls: { fn: string; args: Record<string, unknown> }[] = [];
   return {
     calls,
     supabase: {
+      /* The viewing the staff member is about to decide, for the own-case check. */
+      from: () => {
+        const chain: Record<string, unknown> = {};
+        chain.select = () => chain;
+        chain.eq = () => chain;
+        chain.maybeSingle = async () => ({ data: viewing, error: null });
+        return chain;
+      },
       rpc: (fn: string, args: Record<string, unknown>) => {
         calls.push({ fn, args });
         return Promise.resolve({ data: answer.data ?? null, error: answer.error ?? null });
@@ -85,6 +96,16 @@ describe("staff deciding a dispute", () => {
     expect(result.ok).toBe(true);
     expect(c.calls).toEqual([{ fn: "resolve_inspection_no_show", args: { p_inspection: ID, p_upheld: false } }]);
     expect(audit.writeAudit).toHaveBeenCalledOnce();
+  });
+
+  it("refuses a staff member who was part of the viewing, and calls nothing", async () => {
+    const c = client({ data: "overturned" }, { requester_id: "staff", lister_id: "lister" });
+    guard.requireAdmin.mockResolvedValue({ state: "admin", supabase: c.supabase, user: { id: "staff" } });
+    const result = await resolveNoShow({ id: ID, upheld: false });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toContain("somebody else has to decide it");
+    expect(c.calls).toEqual([]);
+    expect(audit.writeAudit).not.toHaveBeenCalled();
   });
 });
 

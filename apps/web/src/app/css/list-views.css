@@ -204,7 +204,7 @@
   .nf-pcard.nf-card-in,
   .nf-sc--live.nf-card-in {
     animation-name: nf-list-in;
-    animation-delay: calc(var(--nf-splash-hold, 0s) + min(var(--card-i, 0), 5) * 40ms);
+    animation-delay: calc(var(--nf-splash-hold, 0s) + min(var(--card-i, 0), var(--nf-stagger-cap)) * var(--nf-stagger));
   }
   @keyframes nf-list-in {
     from {
@@ -277,7 +277,7 @@
      It was 1.2 over 240ms. The impact is `SaveControl`'s haptic, fired when
      the save settles, so the hand feels what the eye sees. */
   .nf-heart-pop[aria-pressed="true"] svg {
-    animation: nf-heart-pop 180ms var(--nf-ease-press) both;
+    animation: nf-heart-pop var(--nf-duration-pop) var(--nf-ease-press) both;
   }
   @keyframes nf-heart-pop {
     0% {

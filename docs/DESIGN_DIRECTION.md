@@ -91,9 +91,9 @@ lists the off-brand details that must be translated rather than copied.
    THE DRAWN RADIUS AS A FRACTION OF THE DRAWN SHORT SIDE: at or above 0.5
    the element is a capsule however it was spelled, and anything above about
    0.35 is looked at on the running page rather than in the file.
-   `scripts/design/compare-surface.mjs --shape-sweep` walks every control on
-   a route in a real browser and reports that ratio, which is the only check
-   that can see this. A source grep proves what was written; it never proves
+   A real-browser sweep (`apps/web/scripts/design/session-b-shots/sweep-orphans.mjs`
+   measures it on every route and state) reports that ratio, which is the
+   only check that can see this. A source grep proves what was written; it never proves
    what the browser drew. The same lesson, in the same week, as the unlayered
    `*` border reset that read perfectly in the file and resolved to white 8%
    in the browser.
