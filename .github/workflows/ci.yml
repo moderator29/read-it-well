@@ -343,6 +343,19 @@ jobs:
         working-directory: apps/web
         run: node scripts/check-weight.mjs
 
+      # The headers and the CSP nonce on the front door, read off the same
+      # production server: a header dropped from next.config.ts or a script
+      # the proxy did not stamp fails here rather than in a browser console.
+      - name: Security headers (public routes)
+        if: ${{ !cancelled() }}
+        working-directory: apps/web
+        run: node scripts/check-security-headers.mjs http://localhost:3210
+
+      - name: Script nonces (public routes)
+        if: ${{ !cancelled() }}
+        working-directory: apps/web
+        run: node scripts/check-script-nonces.mjs http://localhost:3210
+
       - name: Landing height ratchet
         if: ${{ !cancelled() }}
         working-directory: apps/web
