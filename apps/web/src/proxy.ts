@@ -589,7 +589,8 @@ export async function proxy(request: NextRequest) {
    */
   const finish = (response: NextResponse): NextResponse => {
     if (request.method === "GET" && isLocalizablePath(pathname)) {
-      response.headers.set("link", hreflangLinkHeader(request.nextUrl.origin, pathname));
+      const link = hreflangLinkHeader(request.nextUrl.origin, pathname);
+      if (link) response.headers.set("link", link);
     }
     if (urlLocale && !request.cookies.get(LOCALE_COOKIE)) {
       response.cookies.set(LOCALE_COOKIE, urlLocale, {
