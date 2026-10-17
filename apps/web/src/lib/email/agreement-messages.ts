@@ -1,4 +1,4 @@
-import { NO_CUSTODY_SENTENCE, OFF_PLATFORM_SENTENCE } from "../money/copy";
+import { NO_CUSTODY_SENTENCE, OFF_PLATFORM_SENTENCE, OWNER_PAID_WHEN } from "../money/copy";
 import { appUrl, button, compose, fitSubject, heading, hello, money, note, paragraph, quoteLine, rows, type Block, type ReceiptRow } from "./render";
 import type { EmailKind } from "./icons";
 import type { EmailMessage } from "./messages";
@@ -55,7 +55,7 @@ export function agreementApproved(data: AgreementEmailData): EmailMessage {
       paragraph(
         renter
           ? "Payment is open now, in the app. Pay through Vallo only."
-          : "The renter can pay now. Your share settles straight to the bank account on your payout details.",
+          : `The renter can pay now. ${OWNER_PAID_WHEN}`,
       ),
       paragraph(NO_CUSTODY_SENTENCE),
       button(renter ? "Pay in the app" : "Open the agreement", appUrl(`/agreements/${data.agreementId}`)),
