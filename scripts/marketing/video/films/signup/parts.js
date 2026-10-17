@@ -92,11 +92,12 @@ export function strikeList(ctx, parent, { x, y, w, t0, t1, size = 36, tab, items
     tabEl.style.transform = `translateY(${((1 - tu) * size * 0.3).toFixed(2)}px)`;
     tabEl.style.opacity = opa(Math.min(tu, 1 - b));
     for (const r of rows) {
-      /* the line arrives on its own word, and is struck on the noun */
+      /* a line waits as a ghost so the slab is never three quarters empty,
+         lands on its own word, and is struck on the noun */
       const u = ramp(ctx, t, r.tIn, r.tIn + 0.4, "land");
       const k = ramp(ctx, t, r.tStrike, r.tStrike + 0.34, "power3.out");
-      r.row.style.transform = `translate(${((1 - u) * size * 0.9).toFixed(2)}px, ${(k * size * 0.07).toFixed(2)}px)`;
-      r.row.style.opacity = opa(Math.min(u, 1 - b));
+      r.row.style.transform = `translate(${((1 - u) * size * 0.5).toFixed(2)}px, ${(k * size * 0.07).toFixed(2)}px)`;
+      r.row.style.opacity = opa(Math.min(Math.max(u, 0.17 * a), 1 - b));
       r.label.style.color = k > 0 ? `rgb(214 228 255 / ${(0.95 - 0.45 * k).toFixed(3)})` : "#ffffff";
       r.plate.style.opacity = opa(1 - 0.42 * k);
       r.rule.style.transform = `scaleX(${k.toFixed(4)})`;
