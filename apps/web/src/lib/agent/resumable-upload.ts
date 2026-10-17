@@ -1,12 +1,12 @@
 /**
- * A resumable upload, because fifty megabytes on a Nigerian mobile connection
+ * A resumable upload, because a hundred megabytes on a Nigerian mobile connection
  * will not survive a single POST.
  *
  * ---------------------------------------------------------------------------
  * THE PROBLEM THIS EXISTS FOR, WITH THE ARITHMETIC.
  *
- * A walkthrough is capped at 50MB. On a typical Nigerian mobile uplink of
- * roughly one megabit that is about seven minutes of uninterrupted upload. Seven
+ * A walkthrough is capped at 100MB. On a typical Nigerian mobile uplink of
+ * roughly two megabits that is about seven minutes of uninterrupted upload. Seven
  * minutes is longer than a lift, longer than a handover between masts, and
  * longer than most people will hold a phone still. `supabase.storage.upload` is
  * ONE request with no chunking, no resume and no retry: the connection drops at
