@@ -17,6 +17,8 @@ import {
   watchSpotSchema,
 } from "./schema";
 import type { AreaSuggestion } from "./types";
+import { headers } from "next/headers";
+import { consume, ipFromHeaders, subjectForIp, subjectForUser } from "../security/rate-limit";
 
 /**
  * THE FOUR THINGS A PRICE CHECK WRITES, AND WHAT EACH ONE IS ALLOWED TO KEEP.
@@ -78,6 +80,12 @@ const SHARE_FAILED =
  *
  * A state-wide card carries no area at all and is unaffected.
  */
+const SHARE_TOO_MANY = "That is a lot of cards at once. Try again {when}.";
+
+/** Cards one person (or one address, signed out) may mint per window. */
+const SHARE_LIMIT = 20;
+const SHARE_WINDOW_SECONDS = 3600;
+
 const SHARE_AREA_UNKNOWN =
   "We can only make a card for an area we hold listings in. Run the check again and pick the area from the list.";
 
@@ -229,6 +237,17 @@ export async function shareAreaPrices(input: unknown): Promise<ActionResult<{ id
 
   const session = await resolveSession();
   const createdBy = session.state === "signed-in" ? session.user.id : null;
+
+  /* Minting writes a public row through the service role and is open to a
+     signed-out reader, so it is bounded per person, or per address when
+     there is no account. */
+  const verdict = await consume({
+    bucket: "price_share_mint",
+    subject: createdBy ? subjectForUser(createdBy) : subjectForIp(ipFromHeaders(await headers())),
+    limit: SHARE_LIMIT,
+    windowSeconds: SHARE_WINDOW_SECONDS,
+  });
+  if (!verdict.allowed) return fail(SHARE_TOO_MANY.replace("{when}", verdict.retryIn));
 
   try {
     const { data, error } = await priceCheckRpc(
