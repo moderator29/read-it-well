@@ -39,7 +39,6 @@ const BEAT = 60 / BPM;
 const BAR = BEAT * 4;
 const LEAD_BARS = Number(opt("lead-bars", 1));
 const DRY = args.includes("--dry");
-const TAIL_BARS = 2;            /* the room the end card needs after the last word */
 const MIN_GAP = BEAT / 2;       /* never run two sentences closer than half a beat */
 const EDGE = 0.06;              /* a breath of room taken either side of a segment */
 
@@ -109,7 +108,17 @@ const sentences = lines.map((text, k) => {
 const last = sentences[sentences.length - 1];
 const logo = bar(last.start);                        /* "Vallo." */
 const resolve = logo + BAR;                          /* "Real estate, done right." */
-const duration = barUp(Math.max(last.end, resolve) + TAIL_BARS * BAR);
+const badges = resolve + BAR;
+/*
+ * NO `url` ACCENT, and the film ends a bar after the badges. Every marker
+ * has to sit on its own bar line (music.py refuses otherwise), so logo,
+ * resolve, badges and url would need four bars after the last word and the
+ * film would carry nearly seven seconds of end card on a forty-second film.
+ * music.py takes the accents that are present, so the address gets the
+ * badges' bar and no hit of its own. On the long films, where there was a
+ * whole minute of room, it had one.
+ */
+const duration = barUp(Math.max(last.end, badges) + BAR);
 const body = sentences.slice(1, -1);
 const lifts = [0.3, 0.55, 0.78]
   .map((u) => bar(body[0].start + (body[body.length - 1].end - body[0].start) * u))
@@ -121,12 +130,12 @@ const music = {
   lifts,
   logo_hit: logo,
   resolve,
-  badges: resolve + BAR,
-  url: resolve + 2 * BAR,
+  badges,
+  url: null,
   duration,
 };
 for (const [k, v] of Object.entries(music)) {
-  if (["bpm", "beat", "bar", "lifts"].includes(k)) continue;
+  if (["bpm", "beat", "bar", "lifts"].includes(k) || v == null) continue;
   if (Math.abs(v / BAR - Math.round(v / BAR)) > 1e-6) throw new Error(`music marker ${k} (${v}) is not on a bar line`);
 }
 if (music.drop <= music.intro_end) music.drop = music.intro_end + BAR;
