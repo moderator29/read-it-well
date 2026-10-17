@@ -64,7 +64,7 @@ export const TRUST_LINKS: { href: string; icon: BrandIconName; title: string; bo
     href: "/cancellations",
     icon: "calendar-clock",
     title: "Cancellations",
-    body: "The standard refund schedule for stays, with the windows written out.",
+    body: "The standard refund schedule for stays, and the four policies a host business can pick.",
   },
 ];
 
