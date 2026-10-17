@@ -1576,6 +1576,8 @@ export const yo: Dictionary = withFallback({
       videoCeiling: "Àtòjọ kan gba fídíò {max} péré.",
       videoFailed: "Fídíò náà kò parí ìgbésókè. Jọ̀wọ́ gbìyànjú lẹ́ẹ̀kan sí i.",
       videoUploading: "Ń gbé {name} sókè, {percent}%",
+      videoCancel: "Dá ìgbésókè dúró",
+      videoCancelled: "A ti dá ìgbésókè dúró. Kò sí ohun tí a so mọ́ ọ.",
       retry: "Gbìyànjú lẹ́ẹ̀kan sí i",
       notPrepared:
         "A kò lè múra àwòrán náà láìséwu, nítorí náà a kò gbé e sókè. Gbìyànjú àwòrán mìíràn.",

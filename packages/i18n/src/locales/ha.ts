@@ -1550,6 +1550,8 @@ export const ha: Dictionary = withFallback({
       videoCeiling: "Jeri ɗaya yana ɗaukar bidiyo {max} kacal.",
       videoFailed: "Wannan bidiyon bai gama lodawa ba. Da fatan za a sake gwadawa.",
       videoUploading: "Ana loda {name}, {percent}%",
+      videoCancel: "Dakatar da lodawa",
+      videoCancelled: "An dakatar da lodawa. Ba a haɗa komai ba.",
       retry: "Sake gwadawa",
       notPrepared:
         "Ba mu iya shirya wannan hoton lafiya ba, don haka ba a loda shi ba. Ka gwada wani hoto.",

@@ -2766,6 +2766,8 @@ export const en = {
       videoCeiling: "A listing holds up to {max} videos.",
       videoFailed: "That video did not finish uploading. Please try it again.",
       videoUploading: "Uploading {name}, {percent}%",
+      videoCancel: "Stop upload",
+      videoCancelled: "Upload stopped. Nothing was attached.",
       notPrepared:
         "We could not prepare that photo safely, so it was not uploaded. Try a different photo.",
       uploadFailed: "That photo did not finish uploading. Please try it again.",
