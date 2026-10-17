@@ -846,7 +846,7 @@ export const HELD_MONEY_NOT_US =
 
 /** /cancellations, the lede: the terms are fixed when the stay is paid. */
 export const CANCEL_LEDE =
-  "A stay listed by an owner or agent follows the three steps below; a hotel room shows its own rate's terms before you choose it. Either way the terms are fixed on your booking when you pay, so they cannot change afterwards.";
+  "A stay listed by an owner or agent follows the three steps below. A hotel, shortlet or serviced apartment run as a business picks one of four policies and shows its terms before you book. Either way the terms are fixed on your booking when you pay, so they cannot change afterwards.";
 
 /** /cancellations: a hold nobody has paid for. */
 export const CANCEL_BEFORE_PAID =
@@ -854,7 +854,7 @@ export const CANCEL_BEFORE_PAID =
 
 /** /cancellations: a paid stay is cancelled by a person, and where the refund goes. */
 export const CANCEL_AFTER_PAID =
-  "Once money has moved, a cancellation is handled by a person rather than by a button, because a refund is somebody's money and it deserves a name against the decision. Write to support with your booking reference. We apply the schedule above exactly as it is written, the refund goes back to the card or account you paid with, and you get the amount and the reason in writing.";
+  "Once money has moved, a cancellation is handled by a person rather than by a button, because a refund is somebody's money and it deserves a name against the decision. Ask from the booking in Plans, or write to support with your booking reference. We apply the terms fixed on your booking exactly as they are written, the refund goes back to the card or account you paid with, and you get the amount and the reason in writing.";
 
 /** /cancellations: the agent cancels. `{hours}` is FULL_REFUND_HOURS, set as a figure by the page. */
 export const CANCEL_BY_AGENT =

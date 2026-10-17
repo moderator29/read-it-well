@@ -16,6 +16,9 @@ import {
   REWARDS_BALANCE_SEPARATE,
 } from "@/lib/money/copy";
 import { REPORT_CATEGORY_COPY, REPORT_CATEGORY_ORDER } from "@/lib/reports/schema";
+import { RESPONSE_COMMITMENTS } from "@/lib/trust/standards";
+import { DELETE_CONFIRM_PHRASE, GRACE_WINDOW_DAYS } from "@/lib/account-deletion/constants";
+import { COMPANY_FORMAL_NAME, COMPANY_REGISTERED_OFFICE } from "@/lib/legal/company";
 import { AI_ASSISTANT, AROUND, GETTING_AROUND, LISTING_ON_VALLO, MESSAGES, PRICE_CHECK } from "./chapters-more";
 import {
   BADGES_AND_VERIFICATION,
@@ -276,6 +279,11 @@ const WHAT_VALLO_IS: DocChapter = {
             </li>
           </ul>
           <p>Vallo works in English, Yorùbá, Hausa and Igbo. Change the language in Settings.</p>
+          <p>
+            Use Vallo in any web browser, or as the app for Android phones and iPhones, published
+            through Google Play and the App Store. The app opens the same Vallo, with the same account.
+            You must be 18 or over to make an account.
+          </p>
         </>
       ),
     },
@@ -577,6 +585,10 @@ const REFUNDS: DocChapter = {
             </Link>{" "}
             page.
           </p>
+          <p>
+            Every deadline is counted in Lagos time from the stay&rsquo;s check-in time. A caution
+            deposit is always returned under the rules listed with it, whatever the policy.
+          </p>
         </>
       ),
     },
@@ -735,26 +747,49 @@ const TRUST_AND_SAFETY: DocChapter = {
       ),
     },
     {
+      id: "appeal",
+      heading: "Appeal a decision",
+      body: (
+        <>
+          <p>
+            If a post or a listing was taken down, an application refused or your account stopped, you
+            can appeal. Reply to the notice, or write through{" "}
+            <a href={SUPPORT_HREF} className={A}>
+              {SUPPORT_LABEL}
+            </a>
+            , with what happened and why you think the decision was wrong.
+          </p>
+          <p>
+            A person who did not make the first decision reads it. Appeals are answered{" "}
+            {RESPONSE_COMMITMENTS.routine.label.toLowerCase()}. See{" "}
+            <Link href="/standards#appeals" className={A}>
+              Trust and safety standards
+            </Link>
+            .
+          </p>
+        </>
+      ),
+    },
+    {
       id: "support",
       heading: "Contact support",
       body: (
         <>
           <p>
             Use{" "}
-            <Link href="/contact" className={A}>
-              the contact form
-            </Link>{" "}
-            or{" "}
             <a href={SUPPORT_HREF} className={A}>
               {SUPPORT_LABEL}
             </a>
-            . It opens a ticket on your account, a person reads it, and the reply reaches you as a
-            notification.
+            , or the support chat in the app. A message to a person opens a ticket on your account, a
+            person reads it, and the reply reaches you as a notification.
           </p>
           <p>
             A person replies within one business day. Reports about payment outside the platform are
-            answered within four hours. Write in English, Yorùbá, Hausa or Igbo, and the reply comes in
-            the same language.
+            answered {RESPONSE_COMMITMENTS.urgent.label.toLowerCase()}. Write in English, Yorùbá, Hausa
+            or Igbo, and the reply comes in the same language.
+          </p>
+          <p>
+            Vallo is run by {COMPANY_FORMAL_NAME}, whose registered office is {COMPANY_REGISTERED_OFFICE}.
           </p>
         </>
       ),
@@ -799,6 +834,10 @@ const YOUR_DATA: DocChapter = {
             </li>
           </ul>
           <p>
+            {COMPANY_FORMAL_NAME}, the company that runs Vallo, is responsible for this data under the
+            Nigeria Data Protection Act 2023. Its registered office is {COMPANY_REGISTERED_OFFICE}.
+          </p>
+          <p>
             The full document is the{" "}
             <Link href="/privacy" className={A}>
               Privacy Policy
@@ -841,7 +880,8 @@ const YOUR_DATA: DocChapter = {
             <li>withdraw consent where processing rests on it.</li>
           </ul>
           <p>
-            Write through{" "}
+            Download a copy of your data yourself from Settings, under Privacy. For anything else, write
+            through{" "}
             <a href={SUPPORT_HREF} className={A}>
               {SUPPORT_LABEL}
             </a>{" "}
@@ -877,15 +917,30 @@ const YOUR_DATA: DocChapter = {
           <ol role="list">
             <li>Go to Settings, then Account, then Delete account.</li>
             <li>
-              Type <code>DELETE MY ACCOUNT</code> exactly, in capitals.
+              Finish or cancel anything still open, such as a booking or a published listing. The screen
+              names it and links to it.
             </li>
-            <li>You are signed out everywhere, and your profile, posts and places go with it.</li>
+            <li>
+              Confirm it is you, then type <code>{DELETE_CONFIRM_PHRASE}</code> exactly, in capitals.
+            </li>
+            <li>
+              You are signed out everywhere at once and nobody can reach your profile. Nothing is destroyed
+              for {GRACE_WINDOW_DAYS} days, and the code we email you stops the deletion.
+            </li>
+            <li>
+              After {GRACE_WINDOW_DAYS} days your profile, posts, saved places and uploaded files are
+              destroyed, and we email you when it is done.
+            </li>
           </ol>
           <p>
-            Two exceptions. Records of money that moved are kept as long as Nigerian financial and tax
-            rules require. A post somebody replied to may stay as a marker that it was removed. Neither
-            carries your identity. If deletion cannot finish, you are told, and given a way to have it
-            done by hand.
+            What is kept: records of money that moved, for at least five years, because Nigerian
+            anti-money-laundering law requires it, with your name, email address and phone number removed.
+            Messages you sent stay in the other person&rsquo;s conversation, shown as from a deleted account.
+            The full list is on{" "}
+            <Link href="/delete-account" className={A}>
+              Delete your account
+            </Link>
+            .
           </p>
         </>
       ),
