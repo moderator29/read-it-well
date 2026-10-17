@@ -70,7 +70,6 @@ type OpenSheet =
   | "outcome"
   | "noShow";
 
-const NO_SHOW_SETTLED = "Marked as a no-show. They can dispute it within 48 hours.";
 
 export function RentalFace({
   inspection,
@@ -123,7 +122,7 @@ export function RentalFace({
       try {
         const result = await work();
         if (!result.ok) {
-          setError(result.error ?? "That did not go through.");
+          setError(result.error ?? copy.failed);
           return;
         }
         then();
@@ -197,7 +196,7 @@ export function RentalFace({
   const noShow = async (note: string) =>
     fromSheet(await reportNoShow({ id: inspection.id, ...(note ? { note } : {}) }), () => {
       setState("NO_SHOW");
-      setSettled(NO_SHOW_SETTLED);
+      setSettled(copy.noShowSettled);
     });
 
   const complete = async (outcome: InspectionOutcome) =>
@@ -458,12 +457,12 @@ function OutcomeSheet({
     try {
       const result = await onSubmit(chosen);
       if (!result.ok) {
-        setError(result.error ?? "That did not go through.");
+        setError(result.error ?? copy.failed);
         return;
       }
       onOpenChange(false);
     } catch {
-      setError("That did not go through.");
+      setError(copy.failed);
     } finally {
       inFlight.current = false;
       setBusy(false);

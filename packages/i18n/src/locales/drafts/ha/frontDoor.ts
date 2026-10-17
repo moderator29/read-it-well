@@ -400,6 +400,11 @@ export const frontDoorHa = {
     copyFallback: "Kwafi wannan mahaɗin",
     elsewhereBody: "Kati mai unguwa da jimlar kuɗin shiga. Ba adireshi ba.",
     elsewhereBodyStay: "Kati mai suna da unguwa. Ba adireshi ba.",
+    sheetTitle: "Raba",
+    inChat: "Aika a cikin hirar Vallo",
+    inChatBody: "Zaɓi ɗaya daga cikin hirarrakinka. Za su same shi a matsayin kati da za su iya buɗewa.",
+    elsewhere: "Raba a wani wuri",
+    elsewhereLink: "Mahaɗin, don ko'ina a wajen Vallo.",
   },
   desk: {
     stages: {

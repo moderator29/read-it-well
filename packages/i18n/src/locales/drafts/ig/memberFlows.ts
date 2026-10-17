@@ -34,6 +34,9 @@ export const memberFlowsIg = {
   loading: {
     listing: "Na-ebubata ebe a",
     listingTrust: "Na-ebubata nyocha e mere maka ebe a",
+    messages: "Na-ebubata ozi gị",
+    conversation: "Na-ebubata mkparịta ụka a",
+    newMessage: "Na-ebubata ozi ọhụrụ",
   },
   stayReserve: {
     perNight: "/ abalị",

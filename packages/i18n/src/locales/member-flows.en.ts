@@ -54,6 +54,9 @@ export const memberFlowsEn = {
   loading: {
     listing: "Loading this place",
     listingTrust: "Loading the checks on this space",
+    messages: "Loading your messages",
+    conversation: "Loading this conversation",
+    newMessage: "Loading a new message",
   },
 
   /** Reserving a shortlet (`ReservePanel`). */

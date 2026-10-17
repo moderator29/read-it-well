@@ -444,6 +444,13 @@ export const frontDoorEn = {
     copyFallback: "Copy this link",
     elsewhereBody: "A card with the area and the move-in total. Never the address.",
     elsewhereBodyStay: "A card with the name and the area. Never the address.",
+    /* The share sheet itself (`ShareSheet`), moved out of the component in the language audit. */
+    sheetTitle: "Share",
+    inChat: "Send in a Vallo chat",
+    /* One line for every kind: this sheet's words ride in every page's client copy (12 KB budget). */
+    inChatBody: "Pick one of your conversations. They get it as a card they can open.",
+    elsewhere: "Share elsewhere",
+    elsewhereLink: "The link, for anywhere off Vallo.",
   },
   /** V-72: the enquiry desk. */
   desk: {

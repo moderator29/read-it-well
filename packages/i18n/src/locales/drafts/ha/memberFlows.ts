@@ -34,6 +34,9 @@ export const memberFlowsHa = {
   loading: {
     listing: "Ana ɗora wannan wurin",
     listingTrust: "Ana ɗora binciken da aka yi kan wannan wurin",
+    messages: "Ana ɗora saƙonninka",
+    conversation: "Ana ɗora wannan hirar",
+    newMessage: "Ana ɗora sabon saƙo",
   },
   stayReserve: {
     perNight: "/ dare",

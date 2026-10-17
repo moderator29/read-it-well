@@ -398,6 +398,11 @@ export const frontDoorIg = {
     copyFallback: "Detuo njikọ a",
     elsewhereBody: "Kaadị nwere mpaghara na mkpokọta ego ịbanye. Ọ dịghị mgbe adreesị.",
     elsewhereBodyStay: "Kaadị nwere aha na mpaghara. Ọ dịghị mgbe adreesị.",
+    sheetTitle: "Kesaa",
+    inChat: "Ziga na mkparịta ụka Vallo",
+    inChatBody: "Họrọ otu n'ime mkparịta ụka gị. Ha ga-enweta ya dị ka kaadị ha nwere ike imeghe.",
+    elsewhere: "Kesaa n'ebe ọzọ",
+    elsewhereLink: "Njikọ ahụ, maka ebe ọ bụla na mpụga Vallo.",
   },
   desk: {
     stages: {

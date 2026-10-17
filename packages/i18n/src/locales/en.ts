@@ -4718,6 +4718,8 @@ export const en = {
       viewTrips: "View your plans",
       viewProperty: "View the property",
       viewRestaurant: "View the restaurant",
+      /** A renter in a listing thread with no viewing yet: the way to ask for one. */
+      askViewing: "Ask to view this home",
     },
     rental: {
       waitingOnYou: "They asked to inspect this place. Your answer goes to them and to their inspections list.",
@@ -4751,6 +4753,8 @@ export const en = {
       outcomeDealDone: "Inspected, and we have a deal",
       outcomeNoDeal: "Inspected, no deal",
       outcomeSave: "Save",
+      noShowSettled: "Marked as a no-show. They can dispute it within 48 hours.",
+      failed: "That did not go through.",
     },
     reservation: {
       tableFor: "table for {count}",

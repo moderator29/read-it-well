@@ -34,6 +34,9 @@ export const memberFlowsYo = {
   loading: {
     listing: "Ń gbé ibi yìí wọlé",
     listingTrust: "Ń gbé àwọn àyẹ̀wò lórí ibi yìí wọlé",
+    messages: "Ń gbé àwọn ọ̀rọ̀ rẹ wọlé",
+    conversation: "Ń gbé ìjíròrò yìí wọlé",
+    newMessage: "Ń gbé ọ̀rọ̀ tuntun wọlé",
   },
   stayReserve: {
     perNight: "/ òru",
