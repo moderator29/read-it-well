@@ -596,6 +596,7 @@ export const frontDoorHa = {
   viewings: {
     pickTitle: "Yi ajiyar lokacin duba gida",
     pickNote: "Lokutan da mai sanarwa ya keɓe don duba gida. Zaɓi ɗaya kuma an yi ajiya; babu kai da komowa.",
+    lagosNote: "Lokutan na Legas ne.",
     book: "Yi ajiyar {time}",
     booking: "Ana yin ajiya",
     booked: "An yi ajiya don {when}. Yana cikin Shirye-shiryenka, kuma an sanar da mai sanarwa.",

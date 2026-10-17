@@ -309,7 +309,7 @@ function View({ v, s }: { v: string; s?: string }) {
     case "inspection-rows":
       return (
         <Frame title={t.nav.bookings}>
-          <InspectionRows inspections={[INSPECTION, { ...INSPECTION, id: `${INSPECTION.id.slice(0, -1)}2`, state: "REQUESTED" }]} side="requester" locale={locale} />
+          <InspectionRows inspections={[INSPECTION, { ...INSPECTION, id: `${INSPECTION.id.slice(0, -1)}2`, state: "REQUESTED" }]} side="requester" locale={locale} viewingCopy={getDictionary(locale).threads.rental} flowCopy={getDictionary(locale).memberFlows.inspection} />
         </Frame>
       );
     default:

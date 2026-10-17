@@ -594,6 +594,7 @@ export const frontDoorIg = {
   viewings: {
     pickTitle: "Dobe oge ileta ụlọ",
     pickNote: "Oge onye ndepụta debere maka ileta ụlọ. Họrọ otu, a ga-edobe ya; enweghị ịga na ịbịa.",
+    lagosNote: "Oge ndị a bụ oge Legọs.",
     book: "Dobe {time}",
     booking: "Na-edobe",
     booked: "Edobere ya maka {when}. Ọ dị na Atụmatụ gị, a gwakwala onye ndepụta.",

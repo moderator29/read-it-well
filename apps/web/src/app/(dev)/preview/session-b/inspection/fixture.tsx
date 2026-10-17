@@ -1,3 +1,4 @@
+import { getDictionary } from "@vallo/i18n";
 import { formatMoney } from "@vallo/i18n/core";
 import { getLocale } from "@/lib/locale";
 import { InspectionHero, InspectionSheet } from "@/components/app/inspections/InspectionSheet";
@@ -61,6 +62,8 @@ export async function InspectionFixture({
       <InspectionHero sub="Check the property, confirm details, submit your report." />
       <div className="nf-ix-list">
         <InspectionSheet
+          viewingCopy={getDictionary("en").threads.rental}
+          flowCopy={getDictionary("en").memberFlows.inspection}
           inspection={{
             ...INSPECTION,
             state,

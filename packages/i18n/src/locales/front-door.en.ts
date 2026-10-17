@@ -650,6 +650,7 @@ export const frontDoorEn = {
   viewings: {
     pickTitle: "Book a viewing time",
     pickNote: "Times the lister has set aside for viewings. Pick one and it is booked; no back and forth.",
+    lagosNote: "Times are Lagos time.",
     book: "Book {time}",
     booking: "Booking",
     booked: "Booked for {when}. It is in your Plans, and the lister has been told.",

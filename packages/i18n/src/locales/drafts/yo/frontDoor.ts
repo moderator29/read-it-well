@@ -596,6 +596,7 @@ export const frontDoorYo = {
   viewings: {
     pickTitle: "Ṣètò àkókò wíwo ilé",
     pickNote: "Àkókò tí olùkéde ti yà sọ́tọ̀ fún wíwo ilé. Yan ọ̀kan, a ó sì ṣètò rẹ̀; kò sí lọ-bọ̀.",
+    lagosNote: "Àkókò Èkó ni àwọn àkókò yìí.",
     book: "Ṣètò {time}",
     booking: "À ń ṣètò",
     booked: "A ti ṣètò rẹ̀ fún {when}. Ó wà nínú Àwọn Ètò rẹ, a sì ti sọ fún olùkéde.",

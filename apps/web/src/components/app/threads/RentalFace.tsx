@@ -23,16 +23,7 @@ import {
   type StepSheetWords,
   type TimeSheetWords,
 } from "@/components/app/inspections/ViewingSheets";
-import {
-  LISTER_CANCEL_WORDS,
-  REASON_LABEL,
-  RENTER_CANCEL_WORDS,
-  RESCHEDULE_WORDS,
-  VIEWING_WORDS,
-  WITHDRAW_WORDS,
-  NO_SHOW_WORDS,
-  noShowWords,
-} from "@/components/app/inspections/viewing-words";
+import { viewingWords } from "@/components/app/inspections/viewing-words";
 import { reportNoShow } from "@/lib/inspections/no-show-actions";
 
 /**
@@ -102,6 +93,16 @@ export function RentalFace({
   /** The render's clock, so a preview can pin "before" and "after" the viewing. */
   now?: number;
 }) {
+  const {
+    VIEWING_WORDS,
+    RESCHEDULE_WORDS,
+    LISTER_CANCEL_WORDS,
+    WITHDRAW_WORDS,
+    noShowWords,
+    NO_SHOW_WORDS,
+    RENTER_CANCEL_WORDS,
+    REASON_LABEL,
+  } = viewingWords(copy);
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [state, setState] = useState<InspectionState>(inspection.state);

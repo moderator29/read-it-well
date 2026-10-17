@@ -150,7 +150,7 @@ export async function RentalPanel({
       </ButtonLink>
 
       <div className="mt-xs">
-        <RequestInspection listingId={listingId} existing={existing} locale={locale} />
+        <RequestInspection listingId={listingId} existing={existing} locale={locale} copy={t.visit.entry} zone={t.visit.tiles.lagos} />
       </div>
 
       {/* The trust block: the plated shield, the same line glyph on the same

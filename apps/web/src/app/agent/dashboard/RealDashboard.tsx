@@ -261,7 +261,7 @@ export function RealDashboard({
                     {t.common.viewAll}
                   </Link>
                 </div>
-                <InspectionRows inspections={listedInspections.slice(0, 4)} side="lister" locale={locale} />
+                <InspectionRows inspections={listedInspections.slice(0, 4)} side="lister" locale={locale} viewingCopy={t.threads.rental} flowCopy={t.memberFlows.inspection} />
               </section>
             ) : null}
             {workspace?.role === "owner" ? null : numbers.totalListings > 0 ? (
