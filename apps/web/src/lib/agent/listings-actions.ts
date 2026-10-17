@@ -1622,10 +1622,10 @@ export async function deleteListing(input: {
     return fail("Only a draft can be deleted. Take the listing back to a draft first.");
   }
 
-  const { data: photos } = await gate.supabase
-    .from("listing_photos")
-    .select("storage_path")
-    .eq("listing_id", listing.id);
+  const [{ data: photos }, { data: videos }] = await Promise.all([
+    gate.supabase.from("listing_photos").select("storage_path").eq("listing_id", listing.id),
+    gate.supabase.from("listing_videos").select("storage_path, poster_path").eq("listing_id", listing.id),
+  ]);
 
   const { error } = await gate.supabase
     .from("listings")
@@ -1643,9 +1643,19 @@ export async function deleteListing(input: {
     return fail("We could not delete this draft just now. Please try again.");
   }
 
-  const paths = (photos ?? []).map((p) => p.storage_path);
+  /* The objects go with the rows: the photos and the videos' stills from the
+     public bucket (a still left behind stayed downloadable for ever), and
+     the walkthroughs from the private one. Best effort: the draft is gone. */
+  const paths = [
+    ...(photos ?? []).map((p) => p.storage_path),
+    ...(videos ?? []).flatMap((v) => (v.poster_path ? [v.poster_path] : [])),
+  ];
   if (paths.length > 0) {
     await gate.supabase.storage.from(PHOTO_BUCKET).remove(paths);
+  }
+  const walkthroughs = (videos ?? []).map((v) => v.storage_path);
+  if (walkthroughs.length > 0) {
+    await gate.supabase.storage.from(VIDEO_BUCKET).remove(walkthroughs);
   }
 
   refreshAgentSurfaces();
