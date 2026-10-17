@@ -8,7 +8,7 @@ The only source for words, claims and status badges in `reels/v1` and `reels/v2`
 - Listings, stays and restaurants on screen are the platform's own example stock; the screens label them as examples. No customer names, counts, totals or testimonials.
 - Never name the payments provider. "Licensed partners" only. "Vallo never holds your money" is the platform's own statement.
 - No dates. No promise of escrow, financing, guarantees or provider integrations.
-- Apps: iOS 1.0.0 and Android are in store review, so the films end "iPhone and Android apps coming soon" and never "download".
+- Apps: **LIVE on both stores** (the founder, 17 October 2026). Every film renders with `--ending live`: "Live now on iPhone and Android" over the official, unmodified store badges. Until 17 October they were in review and the ending had to read "coming soon"; `--ending soon` still draws that, and `films/kit.js` honours the flag now (it did not before 17 October, which is why every October film shipped with badges while the apps were still in review).
 - Status badges (Video Two): Live now / Rolling out / In development / Direction.
 
 ## Claims and where they come from
