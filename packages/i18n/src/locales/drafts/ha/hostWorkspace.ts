@@ -126,6 +126,27 @@ export const hostWorkspaceHa = {
     tableInventory: "Adadin tebura",
     sittingDuration: "Tsawon zama",
   },
+  /* Machine draft (language audit, 17 October 2026), needs native review like the rest of this file. */
+  cancellation: {
+    firstTier: "Soke aƙalla {notice} kafin shiga: {outcome}.",
+    anyTime: "Soke a kowane lokaci kafin shiga: {outcome}.",
+    between: "Soke tsakanin {shorter} da {longer} kafin shiga: {outcome}.",
+    lessThan: "Soke ƙasa da {notice} kafin shiga: {outcome}.",
+    fullRefund: "za a mayar maka da duka kuɗin",
+    noRefund: "ba a mayar da kuɗi",
+    partRefund: "a mayar da {percent}%",
+    footAtTime: "Ana ƙirga wa'adin da agogon Legas daga lokacin shiga, ƙarfe {time}.",
+    footNoTime: "Ana ƙirga wa'adin da agogon Legas daga lokacin shiga na wurin.",
+    footRefund: "Ana mayar da kuɗi a naira zuwa katin ko asusun da ka biya da shi.",
+    footCaution: "Ana mayar da kuɗin ajiyar tsaro koyaushe bisa ƙa'idojin da aka lissafa tare da shi, ko wace irin manufa ce.",
+    noPolicies:
+      "Wannan wurin bai wallafa wata manufar sokewa ba tukuna, don haka babu abin da za a zaɓa. Ba za a iya sayar da farashi ba sai da ɗaya.",
+    pickOne: "Zaɓi ɗaya. Baƙi suna ganin ƙa'idojin mayar da kuɗinta a shafinka da kuma kafin su biya, kuma ba za a iya sayar da farashi ba sai da ɗaya.",
+    tableFree: "Neman tebur kyauta ne. Gidan cin abincin zai tabbatar idan akwai tebur, kuma kana biyan kuɗin abinci a gidan cin abincin.",
+    tableCancelNotice: "Don Allah ka soke aƙalla {notice} kafin lokacin idan ba za ka iya zuwa ba.",
+    tableHeld: "Ana riƙe tebur na {minutes} bayan lokacin da aka yi ajiya.",
+    tableSitting: "Tebur naka ne na kusan {duration}.",
+  },
   /* Machine draft (D-10), needs native review like the rest of this file. */
   loadingScreens: {
     calendar: "Ana lodawa kalandarka",

@@ -151,6 +151,41 @@ export const hostWorkspaceEn = {
     saveFirstTitle: "Save the property first",
     emptyBody: "A calendar hangs on a property and its rooms. Start or finish your application, and the calendar opens here.",
   },
+  /**
+   * A cancellation policy in plain words (`lib/host/cancellation-presets.ts`),
+   * the same lines the host reads in the wizard and the guest reads on the
+   * stay page. `{notice}`, `{shorter}` and `{longer}` are counted phrases
+   * ("24 hours", "5 days"); `{outcome}` is one of the three refund phrases.
+   */
+  cancellation: {
+    firstTier: "Cancel at least {notice} before check-in: {outcome}.",
+    anyTime: "Cancel any time before check-in: {outcome}.",
+    between: "Cancel between {shorter} and {longer} before check-in: {outcome}.",
+    lessThan: "Cancel less than {notice} before check-in: {outcome}.",
+    fullRefund: "a full refund",
+    noRefund: "no refund",
+    /** `{percent}` is a number ("50"). */
+    partRefund: "{percent}% back",
+    /** `{time}` is the property's check-in time, as the locale writes it ("14:00"). */
+    footAtTime: "Deadlines are counted in Lagos time from check-in at {time}.",
+    footNoTime: "Deadlines are counted in Lagos time from the property's check-in time.",
+    /* "through our payment provider" came off: a payment held in escrow is
+       refunded by the partner holding it, so the line names neither. */
+    footRefund: "Refunds are paid in naira to the card or account you paid with.",
+    footCaution: "A caution deposit is always returned under the rules listed with it, whatever the policy.",
+    noPolicies:
+      "This estate publishes no cancellation policies yet, so there is nothing to choose from. A rate cannot be sold without one.",
+    pickOne: "Pick one. Guests see its refund rules on your page and before they pay, and a rate cannot be sold without one.",
+    /** A restaurant's table rules, as the guest reads them. */
+    tableFree: "Asking for a table is free. The restaurant confirms it when a table is free, and you pay the bill at the restaurant.",
+    tableCancelNotice: "Please cancel at least {notice} ahead if you cannot come.",
+    /** `{minutes}` is a counted phrase ("15 minutes"). */
+    tableHeld: "A table is held for {minutes} after the booked time.",
+    /** `{duration}` is "2 hours" or "1 hour 30 minutes". */
+    tableSitting: "A table is yours for about {duration}.",
+    /** Two counted phrases joined, for a sitting that is not whole hours. */
+    hoursAndMinutes: "{hours} {minutes}",
+  },
   /** What each host screen's loading state says to a screen reader while it waits (D-10). */
   loadingScreens: {
     calendar: "Loading your calendar",

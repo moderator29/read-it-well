@@ -126,6 +126,27 @@ export const hostWorkspaceIg = {
     tableInventory: "Ọnụọgụ tebụl",
     sittingDuration: "Ogologo oge ịnọdụ ala",
   },
+  /* Machine draft (language audit, 17 October 2026), needs native review like the rest of this file. */
+  cancellation: {
+    firstTier: "Kagbuo opekata mpe {notice} tupu mbata: {outcome}.",
+    anyTime: "Kagbuo n'oge ọ bụla tupu mbata: {outcome}.",
+    between: "Kagbuo n'etiti {shorter} na {longer} tupu mbata: {outcome}.",
+    lessThan: "Kagbuo n'ihe na-erughị {notice} tupu mbata: {outcome}.",
+    fullRefund: "a ga-akwụghachi gị ego niile",
+    noRefund: "a gaghị akwụghachi ego",
+    partRefund: "a ga-akwụghachi {percent}%",
+    footAtTime: "A na-agụ oge njedebe n'oge Legọs site na mbata n'elekere {time}.",
+    footNoTime: "A na-agụ oge njedebe n'oge Legọs site n'oge mbata nke ebe ahụ.",
+    footRefund: "A na-akwụghachi ego na naira na kaadị ma ọ bụ akaụntụ i ji kwụọ ụgwọ.",
+    footCaution: "A na-eweghachi ego nchekwa mgbe niile dị ka iwu e depụtara ya si dị, n'agbanyeghị usoro ọ bụla.",
+    noPolicies:
+      "Ebe a ebipụtabeghị usoro nkagbu ọ bụla, ya mere ọ dịghị ihe a ga-ahọrọ. A pụghị ire ọnụ ahịa na-enweghị otu.",
+    pickOne: "Họrọ otu. Ndị ọbịa na-ahụ iwu nkwụghachi ya na peeji gị na tupu ha akwụọ ụgwọ, a pụghịkwa ire ọnụ ahịa na-enweghị otu.",
+    tableFree: "Ịrịọ tebụl bụ n'efu. Ụlọ oriri ahụ na-akwado ya mgbe tebụl dị, ị na-akwụkwa ụgwọ nri n'ụlọ oriri ahụ.",
+    tableCancelNotice: "Biko kagbuo opekata mpe {notice} tupu oge ahụ ma ọ bụrụ na ị gaghị abịa.",
+    tableHeld: "A na-ejide tebụl maka {minutes} mgbe oge e debere gachara.",
+    tableSitting: "Tebụl ahụ bụ nke gị maka ihe dị ka {duration}.",
+  },
   /* Machine draft (D-10), needs native review like the rest of this file. */
   loadingScreens: {
     calendar: "Na-ebugo kalenda gị",

@@ -126,6 +126,27 @@ export const hostWorkspaceYo = {
     tableInventory: "Iye tábìlì",
     sittingDuration: "Gígùn ìjókòó",
   },
+  /* Machine draft (language audit, 17 October 2026), needs native review like the rest of this file. */
+  cancellation: {
+    firstTier: "Fagilé ó kéré tán {notice} ṣáájú ìwọlé: {outcome}.",
+    anyTime: "Fagilé nígbàkigbà ṣáájú ìwọlé: {outcome}.",
+    between: "Fagilé láàárín {shorter} sí {longer} ṣáájú ìwọlé: {outcome}.",
+    lessThan: "Fagilé ní ohun tí kò tó {notice} ṣáájú ìwọlé: {outcome}.",
+    fullRefund: "gbogbo owó rẹ yóò padà",
+    noRefund: "kò sí owó tí yóò padà",
+    partRefund: "{percent}% yóò padà",
+    footAtTime: "A ń ka àwọn àkókò ìparí ní àkókò Èkó láti ìwọlé ní agogo {time}.",
+    footNoTime: "A ń ka àwọn àkókò ìparí ní àkókò Èkó láti àkókò ìwọlé ibẹ̀.",
+    footRefund: "A ń dá owó padà ní náírà sí káàdì tàbí àkáǹtì tí o fi sanwó.",
+    footCaution: "A máa ń dá owó ìdúró padà nígbà gbogbo gẹ́gẹ́ bí òfin tí a kọ pẹ̀lú rẹ̀, láìka ìlànà sí.",
+    noPolicies:
+      "Ilé yìí kò tíì gbé ìlànà ìfagilé kankan jáde, nítorí náà kò sí ohun tí a lè yàn. A kò lè ta owó kankan láìsí ọ̀kan.",
+    pickOne: "Yan ọ̀kan. Àwọn àlejò ń rí òfin ìdápadà owó rẹ̀ lórí ojú-ìwé rẹ àti kí wọ́n tó sanwó, a kò sì lè ta owó kankan láìsí ọ̀kan.",
+    tableFree: "Bíbéèrè fún tábìlì jẹ́ ọ̀fẹ́. Ilé oúnjẹ náà yóò fìdí rẹ̀ múlẹ̀ nígbà tí tábìlì bá wà, ìwọ yóò sì san owó oúnjẹ ní ilé oúnjẹ náà.",
+    tableCancelNotice: "Jọ̀wọ́ fagilé ó kéré tán {notice} ṣáájú tí o kò bá lè wá.",
+    tableHeld: "A máa ń di tábìlì mú fún {minutes} lẹ́yìn àkókò tí a fi pamọ́.",
+    tableSitting: "Tábìlì náà jẹ́ tìrẹ fún bíi {duration}.",
+  },
   /* Machine draft (D-10), needs native review like the rest of this file. */
   loadingScreens: {
     calendar: "À ń gbé kàlẹ́ńdà rẹ wọlé",
