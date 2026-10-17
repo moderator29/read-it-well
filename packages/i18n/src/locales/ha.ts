@@ -430,40 +430,6 @@ export const ha: Dictionary = withFallback({
         cities: "Birane",
         states: "Jihohi",
       },
-      /* THE FEATURE BAND IS ABSENT HERE ON PURPOSE, AND FALLS BACK TO
-         ENGLISH. The content truth sweep of 19 September rewrote all six
-         cells: they now name buy and rent, the assistant, the wallet,
-         bookings and trips, Vallo Stays and messages, where they used to
-         name verified listings, AI, the wallet, "one platform", Stays and
-         property management. Leaving the old Hausa in place would have
-         printed a DIFFERENT claim from the English under the same keys,
-         which is worse than printing English. A native speaker writes the
-         six cells and they come back here. */
-      community: {
-        overline: "Mutane na gaske. Wurare na gaske.",
-        /* `title` and `body` are absent on purpose and fall back to English:
-           the clean pass (29 September) rewrote both, and the old Hausa
-           described a "growing community" and figures the band may not
-           print. A native speaker writes them and they come back here. */
-        thirdParty: "Na ɓangare na uku",
-        thirdPartyTitle: "Kayan abokan hulɗa, koyaushe da alama",
-        thirdPartyBody:
-          "Masaukin da abokin hulɗa ke cikawa yana ɗauke da wannan alama kuma yana faɗin wanda ke tabbatar da shi. Ba a taɓa nuna shi kamar namu ba.",
-      },
-      categories: {
-        overline: "Bincika ta rukuni",
-        /* `title` and `body` fall back to English (the clean pass): the old
-           body claimed Vallo carries "the whole market". */
-        apartments: "Gidajen haya",
-        houses: "Gidaje",
-        shortlets: "Gajeren haya",
-        hotels: "Otal-otal",
-        resorts: "Wuraren hutu",
-        guestHouses: "Gidajen baƙi",
-        commercial: "Kasuwanci",
-        land: "Filaye",
-        count: "{count} aka lissafa",
-      },
       app: {
         title: "Ɗauki Vallo tare da kai.",
         body: "Cikakken tsarin gidaje a aljihunka. Vallo yana shiga daga burauzarka a iPhone da Android.",

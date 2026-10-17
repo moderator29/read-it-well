@@ -431,36 +431,6 @@ export const ig: Dictionary = withFallback({
         cities: "Obodo",
         states: "Steeti",
       },
-      /* THE FEATURE BAND IS ABSENT HERE ON PURPOSE, AND FALLS BACK TO
-         ENGLISH. The content truth sweep of 19 September rewrote all six
-         cells and the Igbo that stood here would have printed a different
-         claim under the same keys. A native speaker writes the six and they
-         come back. */
-      community: {
-        overline: "Ndị mmadụ n'ezie. Ebe n'ezie.",
-        /* `title` and `body` are absent on purpose and fall back to English:
-           the clean pass (29 September) rewrote both, and the old Igbo
-           described a "growing community" and figures the band may not
-           print. A native speaker writes them and they come back here. */
-        thirdParty: "Ndị ọzọ",
-        thirdPartyTitle: "Ngwa ndị mmekọ, a na-akpọ ya aha mgbe niile",
-        thirdPartyBody:
-          "Ebe obibi onye mmekọ na-emezu na-ebu akara a ma kwuo onye na-akwado ya. A naghị eme ka ọ dị ka nke anyị.",
-      },
-      categories: {
-        overline: "Chọgharịa site n'ụdị",
-        /* `title` and `body` fall back to English (the clean pass): the old
-           body claimed Vallo carries "the whole market". */
-        apartments: "Ụlọ obibi",
-        houses: "Ụlọ",
-        shortlets: "Mgbazinye mkpirikpi",
-        hotels: "Ụlọ oriri",
-        resorts: "Ebe izumike",
-        guestHouses: "Ụlọ ọbịa",
-        commercial: "Azụmahịa",
-        land: "Ala",
-        count: "{count} edepụtara",
-      },
       app: {
         title: "Were Vallo soro gị.",
         body: "Usoro ụlọ zuru oke n'akpa gị. Vallo na-etinye site na ihe nchọgharị gị na iPhone na Android.",

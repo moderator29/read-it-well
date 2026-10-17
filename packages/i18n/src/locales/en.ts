@@ -966,56 +966,6 @@ export const en = {
         cities: "Cities",
         states: "States",
       },
-      community: {
-        overline: "Real people. Real places.",
-        /*
-         * The render sets two phrases of this headline in the brand ramp.
-         * Double brackets mark them, so a translator marks the phrases that
-         * carry the emphasis in their own language and a locale that has not
-         * been through this pass simply renders the whole line in white
-         * rather than losing its translation to the English fallback.
-         */
-        /* "A growing community" was the line here and growth is a claim: this
-           platform has had no transaction yet, so nothing in the database can
-           answer for the word. One account for both sides is a fact about the
-           product and says the same thing without asking the reader to take
-           anything on trust. */
-        /* The clean pass (29 September): "One account" headlined four rooms
-           of this page, so each room now has a line of its own. This one is
-           about who the platform is for; brackets are no longer used, so
-           the heading takes the one section-title style. */
-        title: "Built for both sides of the deal.",
-        /* THE FIGURES BESIDE THIS LINE CAN BE NONE, AND THE LINE HAS TO READ
-           CORRECTLY WHEN THEY ARE. `statTiles` drops any count of zero and
-           returns nothing at all when the platform cannot answer, so the band
-           prints no figures rather than a nought dressed as a fact. The line
-           said "every count on this page" and pointed at an empty space. */
-        body: "Renters, buyers and guests on one side. Agents and hosts on the other.",
-        thirdParty: "Third party",
-        thirdPartyTitle: "Partner inventory, always labelled",
-        thirdPartyBody:
-          "A stay fulfilled by a partner carries this tag and says who confirms it. It is never dressed as first party.",
-      },
-      categories: {
-        overline: "Explore by category",
-        title: "Browse by kind of place.",
-        body: "Every tile opens a real search across Nigeria, on the Property side or on Vallo Stays.",
-        apartments: "Apartments",
-        houses: "Houses",
-        shortlets: "Shortlets",
-        hotels: "Hotels",
-        /* The founder's render names these three and the Stays side really
-           serves all three, so they are doors into markets that exist:
-           `resort` and `guest_house` are stay types in lib/stays/types.ts,
-           and Commercial is the office market the catalogue holds. Villas and
-           yearly rentals stood in these slots while the three were thought
-           unavailable; both remain reachable from the search filters. */
-        resorts: "Resorts",
-        guestHouses: "Guest houses",
-        commercial: "Commercial",
-        land: "Land",
-        count: "{count} listed",
-      },
       app: {
         title: "Take Vallo with you.",
         body: "Both sides in your pocket: property to rent or buy, and stays and tables to book.",

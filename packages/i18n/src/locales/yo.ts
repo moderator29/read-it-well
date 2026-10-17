@@ -433,36 +433,6 @@ export const yo: Dictionary = withFallback({
         cities: "Ìlú",
         states: "Ìpínlẹ̀",
       },
-      /* THE FEATURE BAND IS ABSENT HERE ON PURPOSE, AND FALLS BACK TO
-         ENGLISH. The content truth sweep of 19 September rewrote all six
-         cells and the Yoruba that stood here would have printed a different
-         claim under the same keys. A native speaker writes the six and they
-         come back. */
-      community: {
-        overline: "Àwọn ènìyàn gidi. Àwọn ibi gidi.",
-        /* `title` and `body` are absent on purpose and fall back to English:
-           the clean pass (29 September) rewrote both, and the old Yoruba
-           described a "growing community" and figures the band may not
-           print. A native speaker writes them and they come back here. */
-        thirdParty: "Ẹnìkẹta",
-        thirdPartyTitle: "Ohun ìní alábàáṣiṣẹ́, a máa ń fi àmì sí i nígbà gbogbo",
-        thirdPartyBody:
-          "Ibùgbé tí alábàáṣiṣẹ́ ń pèsè ní àmì yìí ó sì sọ ẹni tó ń jẹ́rìí sí i. A kò fi ṣe bí tiwa láé.",
-      },
-      categories: {
-        overline: "Ṣàwárí nípa ẹ̀ka",
-        /* `title` and `body` fall back to English (the clean pass): the old
-           body claimed Vallo carries "the whole market". */
-        apartments: "Ilé gbígbé",
-        houses: "Ilé",
-        shortlets: "Ìyálé kúkúrú",
-        hotels: "Hótẹ́lì",
-        resorts: "Ibi ìsinmi",
-        guestHouses: "Ilé àlejò",
-        commercial: "Ìṣòwò",
-        land: "Ilẹ̀",
-        count: "{count} ni a kọ sílẹ̀",
-      },
       app: {
         title: "Mú Vallo lọ pẹ̀lú rẹ.",
         body: "Gbogbo ètò ohun ìní nínú àpò rẹ. Vallo ń fi sori ẹrọ láti inú aṣàwákiri rẹ lórí iPhone àti Android.",
