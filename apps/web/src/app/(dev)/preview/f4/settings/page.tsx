@@ -15,7 +15,7 @@ export default function SettingsPreview() {
   const t = getDictionary("en");
   const hub = t.settings.hub;
   return (
-    <main className="nf-shell pt-xl">
+    <main id="main" className="nf-shell pt-xl">
       <div className="mx-auto max-w-2xl">
         <PageHeader variant="large" title={t.nav.settings} subtitle={hub.ledeShort} fallback="/preview/f4" />
         <div className="space-y-block">

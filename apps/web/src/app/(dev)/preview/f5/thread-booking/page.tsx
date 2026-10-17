@@ -14,7 +14,7 @@ export default async function PreviewThreadBooking() {
   const locale: Locale = await getLocale();
   const t = getDictionary(locale);
   return (
-    <main className="flex h-dvh flex-col">
+    <main id="main" className="flex h-dvh flex-col">
       <ThreadView
         sheetCopy={{ unsafe: t.trustVisible.unsafe }}
         live={false}
