@@ -51,7 +51,7 @@ export const PARTNERS_SHORT = "Payments are processed through Vallo's financial 
  * payment a licensed partner holds in escrow.
  */
 export const NO_CUSTODY_SENTENCE =
-  "Vallo never holds your money. If you pay by card, the owner's or agent's share goes straight to their bank account in the same payment. If you pay into escrow, a licensed partner holds it until the deal is confirmed.";
+  "Vallo never holds your money. If you pay by card, the owner's or agent's share goes straight to their bank account in the same payment. If you choose to have a licensed partner hold it, it stays with the partner until the deal is confirmed.";
 
 /** How money moves on the card (direct) rail alone, for a surface that knows it is on that rail. */
 export const CARD_RAIL_MOVES =

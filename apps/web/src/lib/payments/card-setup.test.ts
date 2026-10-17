@@ -29,7 +29,10 @@ vi.mock("../actions/session", () => ({
 vi.mock("next/cache", () => ({ revalidatePath: () => undefined }));
 vi.mock("next/headers", () => ({ headers: async () => new Headers() }));
 vi.mock("../flags", () => ({ isFeatureEnabled: async () => state.walletRow }));
-vi.mock("../flags/read", () => ({ flagIsOn: async (key: string) => key === "saved_cards" && state.savedCards }));
+vi.mock("../flags/read", () => ({
+  SAVED_CARDS_FLAG: "saved_cards",
+  flagIsOn: async (key: string) => key === "saved_cards" && state.savedCards,
+}));
 vi.mock("../security/money-limits", () => ({
   guardMoney: async () => (state.allowed ? { allowed: true } : { allowed: false, message: "limit reached" }),
 }));
