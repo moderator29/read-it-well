@@ -25,7 +25,7 @@ import { strikeOut, bigRoll } from "./parts.js";
 
 export async function build(ctx) {
   const M = ctx.isMobile;
-  const { s, e, w } = anchors(ctx);
+  const { s, e, w, wq } = anchors(ctx);
   const H = await hero(ctx, { model: "island", env: "dark", edge: "#040a2e" });
 
   /* ---------- poses ---------- */
@@ -78,8 +78,8 @@ export async function build(ctx) {
     /* THE PHONE LEAVES FOR THE NUMBER. "you earn eighty naira" is the line
        the whole film turns on, so the handset slides out of the bottom of the
        frame and what it uncovers is ₦80, standing behind it. */
-    [w(3, "link") + 0.1, { ...LOW }],
-    [w(3, "link") + 0.45, { ...off(LOW), rz: -5, ry: 16 }, "power3.in"],
+    [wq(3, "link", "it") + 0.1, { ...LOW }],
+    [wq(3, "link", "it") + 0.45, { ...off(LOW), rz: -5, ry: 16 }, "power3.in"],
     [s(5) - 0.75, { ...off(LOW), ry: 12 }, "none"],
     [s(5) - 0.05, { ...LOW, rx: 0, ry: 0, rz: 0 }, "power3.out"],
     /* a lean onto the balance card, and back out as the balance climbs */
@@ -93,8 +93,8 @@ export async function build(ctx) {
     [s(7) + 0.2, { ...LOW }],
     /* the push onto the terms: the line says they sit on the screen, so the
        screen is what fills the frame */
-    [w(7, "terms") - 0.05, { ...LOW }],
-    [w(7, "screen") - 0.15, { ...TERMS }],
+    [wq(7, "terms", "catch") - 0.05, { ...LOW }],
+    [wq(7, "screen", "small") - 0.15, { ...TERMS }],
     [w(7, "print") - 0.1, { ...TERMS }],
     [s(8) - 0.25, { ...HOME }],
     [s(9) - 0.95, { ...HOME }],
@@ -139,12 +139,12 @@ export async function build(ctx) {
      reaches "eighty". */
   shutter(ctx, cut(3), { bars: 7, dur: 0.26 });
   ground(ctx, cut(3), cut(4), { tone: "electric", y: 20, seed: 32 });
-  H.show("f-rewards-how", cut(3) + 0.04, w(3, "link") + 0.5, { enter: "rise", dur: 0.5 });
+  H.show("f-rewards-how", cut(3) + 0.04, wq(3, "link", "it") + 0.5, { enter: "rise", dur: 0.5 });
   /* the sheet's own headline, held over the line it came from, half again as
      big: the product saying the rule in its own type */
   lift(ctx, H, {
     id: "f-rewards-how", crop: CROP.earn80,
-    t0: w(3, "friend") - 0.15, t1: w(3, "link") - 0.15,
+    t0: w(3, "friend") - 0.15, t1: wq(3, "link", "it") - 0.15,
     to: { x: 540, y: 1356, s: 0.72, r: -2 }, exit: "up", fly: 0.5, seed: 3,
   });
   /* the figure stands BEHIND the phone (z 300), so the handset leaving is
@@ -230,7 +230,7 @@ export async function build(ctx) {
   }
   /* the brand's coin object is a plain disc at this size and reads as a dot,
      so the small discs carry line glyphs instead */
-  badgeDisc(ctx, climb, { name: "coins", kind: "glyph", x: 960, y: 1150, size: 134, t0: w(5, "you", 2) + 0.1, t1: s(6) - 0.3, seed: 5 });
+  badgeDisc(ctx, climb, { name: "coins", kind: "glyph", x: 960, y: 1150, size: 134, t0: wq(5, ["you", 2], "you") + 0.1, t1: s(6) - 0.3, seed: 5 });
 
   /* ===================== 5. Withdraw at ₦1,000 (s6) =====================
      The rule is printed on the balance card itself, so it is lifted off it
@@ -270,18 +270,18 @@ export async function build(ctx) {
   H.show("f-rewards", cut(7) + 0.04, s(8) - 0.3, {
     enter: "slide",
     full: "f-rewards-full",
-    scroll: [[cut(7) + 0.04, LINK], [w(7, "hundred") + 0.1, COUNTED, "power2.inOut"]],
+    scroll: [[cut(7) + 0.04, LINK], [wq(7, "hundred", "many") + 0.1, COUNTED, "power2.inOut"]],
   });
   lift(ctx, H, {
     id: "f-rewards", src: FULL, scrolled: COUNTED, crop: CROP.row1500,
-    t0: w(7, "friends") - 0.15, t1: w(7, "terms") - 0.25,
-    to: { x: 540, y: 1418, s: 0.64, r: -2 }, exit: "up", fly: 0.55, seed: 10, radius: 30,
+    t0: w(7, "friends") - 0.15, t1: wq(7, "terms", "catch") - 0.25,
+    to: { x: 540, y: 1180, s: 0.64, r: -2 }, exit: "up", fly: 0.55, seed: 10, radius: 30,
   });
-  const terms = layer("terms", w(7, "terms") - 0.5, cut(8) + 0.1);
-  badgeDisc(ctx, terms, { name: "file-text", kind: "glyph", x: 96, y: 620, size: 134, t0: w(7, "terms") + 0.15, t1: s(8) - 0.5, seed: 14 });
-  badgeDisc(ctx, terms, { name: "contract", kind: "object", x: 984, y: 1368, size: 140, t0: w(7, "terms") + 0.5, t1: s(8) - 0.46, seed: 15 });
+  const terms = layer("terms", wq(7, "terms", "catch") - 0.5, cut(8) + 0.1);
+  badgeDisc(ctx, terms, { name: "file-text", kind: "glyph", x: 96, y: 620, size: 134, t0: wq(7, "terms", "catch") + 0.15, t1: s(8) - 0.5, seed: 14 });
+  badgeDisc(ctx, terms, { name: "contract", kind: "object", x: 984, y: 1368, size: 140, t0: wq(7, "terms", "catch") + 0.5, t1: s(8) - 0.46, seed: 15 });
   /* pushed this far in, the screen's own rows run up under the pill */
-  ctx.hidePill(w(7, "screen") - 0.4, s(8) - 0.4);
+  ctx.hidePill(wq(7, "screen", "small") - 0.4, s(8) - 0.4);
 
   /* ===================== 7. Share. Earn. (s8) =====================
      The link comes back, and the coins with it. */
@@ -295,7 +295,7 @@ export async function build(ctx) {
   lift(ctx, H, {
     id: "f-rewards", src: FULL, scrolled: LINK, crop: CROP.link,
     t0: w(8, "link") - 0.15, t1: w(8, "join") - 0.05,
-    to: { x: 540, y: 1080, s: 0.66, r: 2 }, exit: "up", fly: 0.45, seed: 16, radius: 44,
+    to: { x: 540, y: 614, s: 0.62, r: 2 }, exit: "up", fly: 0.45, seed: 16, radius: 44,
   });
   H.tap(w(8, "link") + 0.25, SHARE[0], SHARE[1]);
   const join = layer("join", s(8) - 0.1, s(9) - 0.5);

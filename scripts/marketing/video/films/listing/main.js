@@ -28,7 +28,7 @@ import { placeBack, strikeThrough } from "./parts.js";
 
 export async function build(ctx) {
   const M = ctx.isMobile;
-  const { s, w } = anchors(ctx);
+  const { s, w, wq } = anchors(ctx);
   const H = await hero(ctx, { model: "island", env: "dark", edge: "#040a2e" });
 
   /* The cut into sentence i. The gaps this voice leaves between lines are
@@ -200,10 +200,10 @@ export async function build(ctx) {
   popOut(ctx, flow, {
     kind: "line", lucide: "send-horizontal", tab: "The last step", title: "Check and send",
     line: "Nothing is sent until you press it.",
-    x: CX, y: 430, t0: w(3, "send") - 0.50, t1: cut(4) - 0.40, size: 30, from: "below", accent: "electric", seed: 8,
+    x: CX, y: 430, t0: wq(3, "send", ["it", 2]) - 0.50, t1: cut(4) - 0.40, size: 30, from: "below", accent: "electric", seed: 8,
   });
-  ctx.hidePill(w(3, "send") - 0.5, cut(4) - 0.05);
-  object3d(ctx, flow, { name: "checklist", size: 210, x: 905, y: 980, t0: w(3, "checks") - 0.25, t1: cut(4) - 0.35, drift: 1, seed: 14 });
+  ctx.hidePill(wq(3, "send", ["it", 2]) - 0.5, cut(4) - 0.05);
+  object3d(ctx, flow, { name: "checklist", size: 210, x: 905, y: 980, t0: wq(3, "checks", "live") - 0.25, t1: cut(4) - 0.35, drift: 1, seed: 14 });
 
   /* ===================== 4. The whole cost, on the listing ================= */
   /* CUT 3 -> 4. Four tick brackets close on the centre and bloom. */

@@ -33,11 +33,34 @@ export const opa = (o) => (o >= 0.9999 ? "0.9999" : Math.max(0, o).toFixed(4));
 
 /** Anchors from the film's voice plan: s(i) start, e(i) end, w(i, word, nth) start. */
 export function anchors(ctx) {
+  const w = (i, word, nth = 1) => ctx.word(i, word, nth).start;
   return {
     s: (i) => ctx.sentence(i).start,
     e: (i) => ctx.sentence(i).end,
-    w: (i, word, nth = 1) => ctx.word(i, word, nth).start,
+    w,
     we: (i, word, nth = 1) => ctx.word(i, word, nth).end,
+    /**
+     * THE SAME BEAT, WHICHEVER TAKE IS UNDER THE FILM. A beat hangs on a
+     * word, and a line that gets rewritten takes its words with it: the
+     * referral film's "fifteen hundred friends a month" was "no limit on how
+     * many friends you bring" in the take that was actually recorded, so
+     * w(7, "hundred") threw and the whole film failed to build.
+     *
+     * wq names the word in each wording it might be spoken in, nearest
+     * equivalent first, and takes the first one the recording actually has.
+     * A film written this way plays on either take and needs no edit when
+     * the other one arrives.
+     *
+     *   wq(7, "hundred", "many")   the figure, or the word that stands where
+     *                              the figure stands in the older line
+     */
+    wq: (i, ...words) => {
+      for (const word of words) {
+        const [name, nth] = Array.isArray(word) ? word : [word, 1];
+        try { return w(i, name, nth); } catch { /* the next wording */ }
+      }
+      throw new Error(`sentence ${i} has none of: ${words.map((x) => (Array.isArray(x) ? x[0] : x)).join(", ")}`);
+    },
   };
 }
 

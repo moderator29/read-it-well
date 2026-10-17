@@ -1,17 +1,107 @@
 {
  "fps": 60,
- "duration": 48.462,
- "provisional": true,
+ "duration": 48.46153846153846,
  "voice": {
-  "plan": [],
-  "end": 43.173
+  "plan": [
+   {
+    "i": 1,
+    "src_start": 0.04,
+    "src_end": 2.85,
+    "dst_start": 2.308
+   },
+   {
+    "i": 2,
+    "src_start": 3.068,
+    "src_end": 4.435,
+    "dst_start": 5.286
+   },
+   {
+    "i": 3,
+    "src_start": 4.425,
+    "src_end": 7.757,
+    "dst_start": 6.923
+   },
+   {
+    "i": 4,
+    "src_start": 8.13,
+    "src_end": 15.126,
+    "dst_start": 10.424
+   },
+   {
+    "i": 5,
+    "src_start": 15.486,
+    "src_end": 21.362,
+    "dst_start": 17.885
+   },
+   {
+    "i": 6,
+    "src_start": 21.777,
+    "src_end": 23.063,
+    "dst_start": 24.231
+   },
+   {
+    "i": 7,
+    "src_start": 23.277,
+    "src_end": 24.16,
+    "dst_start": 25.962
+   },
+   {
+    "i": 8,
+    "src_start": 24.416,
+    "src_end": 26.365,
+    "dst_start": 27.115
+   },
+   {
+    "i": 9,
+    "src_start": 26.699,
+    "src_end": 32.307,
+    "dst_start": 29.423
+   },
+   {
+    "i": 10,
+    "src_start": 32.562,
+    "src_end": 34.482,
+    "dst_start": 35.2
+   },
+   {
+    "i": 11,
+    "src_start": 34.816,
+    "src_end": 35.795,
+    "dst_start": 37.5
+   },
+   {
+    "i": 12,
+    "src_start": 35.838,
+    "src_end": 36.821,
+    "dst_start": 38.654
+   },
+   {
+    "i": 13,
+    "src_start": 36.881,
+    "src_end": 37.829,
+    "dst_start": 39.808
+   },
+   {
+    "i": 14,
+    "src_start": 38.149,
+    "src_end": 38.787,
+    "dst_start": 40.962
+   },
+   {
+    "i": 15,
+    "src_start": 39.051,
+    "src_end": 40.802,
+    "dst_start": 42.115
+   }
+  ],
+  "end": 43.746
  },
  "music": {
   "bpm": 104,
-  "beat": 0.576923,
-  "bar": 2.307692,
+  "beat": 0.5769230769230769,
+  "bar": 2.3076923076923075,
   "intro_end": 2.3076923076923075,
-  "drop": 6.9230769230769225,
+  "drop": 4.615384615384615,
   "lifts": [
    16.153846153846153,
    25.384615384615383,
@@ -21,61 +111,61 @@
   "resolve": 43.84615384615384,
   "badges": 46.153846153846146,
   "url": null,
-  "duration": 48.462
+  "duration": 48.46153846153846
  },
  "sentences": [
   {
    "i": 1,
    "start": 2.308,
-   "end": 5.698,
+   "end": 4.998,
    "text": "If you own a place, you can list it yourself."
   },
   {
    "i": 2,
-   "start": 6.018,
-   "end": 10.764,
+   "start": 5.286,
+   "end": 10.135,
    "text": "No agency fee. No middle man taking a cut you did not agree to."
   },
   {
    "i": 3,
-   "start": 11.084,
-   "end": 18.541,
-   "text": "Add a workspace, tell Vallo what the place is, set your price and what it includes, and send it for its checks."
+   "start": 10.424,
+   "end": 17.3,
+   "text": "Add a workspace, tell Vallo what the place is, set your price and what it includes, and it is live."
   },
   {
    "i": 4,
-   "start": 18.861,
-   "end": 25.641,
+   "start": 17.885,
+   "end": 23.641,
    "text": "Renters see the whole cost on the listing, so the people who call you have already seen the real number."
   },
   {
    "i": 5,
-   "start": 25.961,
-   "end": 30.368,
+   "start": 24.231,
+   "end": 28.944,
    "text": "Ask for an inspection. Read the report. Then the agreement is drawn up."
   },
   {
    "i": 6,
-   "start": 30.688,
-   "end": 36.789,
+   "start": 29.423,
+   "end": 34.911,
    "text": "When it is paid, your share goes straight to your own bank account, through our licensed payments provider."
   },
   {
    "i": 7,
-   "start": 37.109,
-   "end": 38.804,
+   "start": 35.2,
+   "end": 37,
    "text": "Vallo never holds your money."
   },
   {
    "i": 8,
-   "start": 39.124,
-   "end": 41.158,
+   "start": 37.5,
+   "end": 40.636,
    "text": "Your place. Your price. Your account."
   },
   {
    "i": 9,
-   "start": 41.478,
-   "end": 43.173,
+   "start": 40.962,
+   "end": 43.746,
    "text": "Vallo. Real estate, done right."
   }
  ],
@@ -84,679 +174,667 @@
    "sentence": 1,
    "word": "If",
    "start": 2.308,
-   "end": 2.486
+   "end": 2.418
   },
   {
    "sentence": 1,
    "word": "you",
-   "start": 2.502,
-   "end": 2.769
+   "start": 2.418,
+   "end": 2.678
   },
   {
    "sentence": 1,
    "word": "own",
-   "start": 2.792,
-   "end": 3.06
+   "start": 2.678,
+   "end": 2.888
   },
   {
    "sentence": 1,
    "word": "a",
-   "start": 3.083,
-   "end": 3.261
+   "start": 2.888,
+   "end": 2.948
   },
   {
    "sentence": 1,
    "word": "place,",
-   "start": 3.277,
-   "end": 3.722
+   "start": 2.948,
+   "end": 3.518
   },
   {
    "sentence": 1,
    "word": "you",
-   "start": 3.761,
-   "end": 4.028
+   "start": 3.67,
+   "end": 3.818
   },
   {
    "sentence": 1,
    "word": "can",
-   "start": 4.051,
-   "end": 4.319
+   "start": 3.818,
+   "end": 3.998
   },
   {
    "sentence": 1,
    "word": "list",
-   "start": 4.342,
-   "end": 4.698
+   "start": 3.998,
+   "end": 4.218
   },
   {
    "sentence": 1,
    "word": "it",
-   "start": 4.729,
-   "end": 4.908
+   "start": 4.218,
+   "end": 4.298
   },
   {
    "sentence": 1,
    "word": "yourself.",
-   "start": 4.923,
-   "end": 5.636
+   "start": 4.298,
+   "end": 4.998
   },
   {
    "sentence": 2,
    "word": "No",
-   "start": 6.018,
-   "end": 6.196
+   "start": 5.286,
+   "end": 5.57
   },
   {
    "sentence": 2,
    "word": "agency",
-   "start": 6.212,
-   "end": 6.746
+   "start": 5.57,
+   "end": 6.07
   },
   {
    "sentence": 2,
    "word": "fee.",
-   "start": 6.793,
-   "end": 7.06
+   "start": 6.07,
+   "end": 6.533
   },
   {
    "sentence": 2,
    "word": "No",
-   "start": 7.083,
-   "end": 7.261
+   "start": 6.923,
+   "end": 7.275
   },
   {
    "sentence": 2,
    "word": "middle",
-   "start": 7.277,
-   "end": 7.812
+   "start": 7.275,
+   "end": 7.555
   },
   {
    "sentence": 2,
    "word": "man",
-   "start": 7.858,
-   "end": 8.125
+   "start": 7.555,
+   "end": 7.845
   },
   {
    "sentence": 2,
    "word": "taking",
-   "start": 8.149,
-   "end": 8.683
+   "start": 7.845,
+   "end": 8.215
   },
   {
    "sentence": 2,
    "word": "a",
-   "start": 8.73,
-   "end": 8.908
+   "start": 8.215,
+   "end": 8.265
   },
   {
    "sentence": 2,
    "word": "cut",
-   "start": 8.923,
-   "end": 9.191
+   "start": 8.265,
+   "end": 8.625
   },
   {
    "sentence": 2,
    "word": "you",
-   "start": 9.214,
-   "end": 9.481
+   "start": 8.625,
+   "end": 8.785
   },
   {
    "sentence": 2,
    "word": "did",
-   "start": 9.505,
-   "end": 9.772
+   "start": 8.785,
+   "end": 9.005
   },
   {
    "sentence": 2,
    "word": "not",
-   "start": 9.795,
-   "end": 10.062
+   "start": 9.005,
+   "end": 9.465
   },
   {
    "sentence": 2,
    "word": "agree",
-   "start": 10.086,
-   "end": 10.531
+   "start": 9.465,
+   "end": 9.785
   },
   {
    "sentence": 2,
    "word": "to.",
-   "start": 10.57,
-   "end": 10.748
+   "start": 9.785,
+   "end": 10.135
   },
   {
    "sentence": 3,
    "word": "Add",
-   "start": 11.084,
-   "end": 11.32
+   "start": 10.424,
+   "end": 10.584
   },
   {
    "sentence": 3,
    "word": "a",
-   "start": 11.341,
-   "end": 11.498
+   "start": 10.584,
+   "end": 10.634
   },
   {
    "sentence": 3,
    "word": "workspace,",
-   "start": 11.512,
-   "end": 12.222
+   "start": 10.634,
+   "end": 11.453
   },
   {
    "sentence": 3,
    "word": "tell",
-   "start": 12.284,
-   "end": 12.599
+   "start": 11.633,
+   "end": 11.874
   },
   {
    "sentence": 3,
    "word": "Vallo",
-   "start": 12.627,
-   "end": 13.021
+   "start": 11.874,
+   "end": 12.234
   },
   {
    "sentence": 3,
    "word": "what",
-   "start": 13.055,
-   "end": 13.371
+   "start": 12.234,
+   "end": 12.421
   },
   {
    "sentence": 3,
    "word": "the",
-   "start": 13.398,
-   "end": 13.635
+   "start": 12.441,
+   "end": 12.514
   },
   {
    "sentence": 3,
    "word": "place",
-   "start": 13.655,
-   "end": 14.05
+   "start": 12.514,
+   "end": 12.834
   },
   {
    "sentence": 3,
    "word": "is,",
-   "start": 14.084,
-   "end": 14.242
+   "start": 12.834,
+   "end": 13.324
   },
   {
    "sentence": 3,
    "word": "set",
-   "start": 14.255,
-   "end": 14.492
+   "start": 13.528,
+   "end": 13.754
   },
   {
    "sentence": 3,
    "word": "your",
-   "start": 14.512,
-   "end": 14.828
+   "start": 13.754,
+   "end": 13.904
   },
   {
    "sentence": 3,
    "word": "price",
-   "start": 14.855,
-   "end": 15.25
+   "start": 13.904,
+   "end": 14.444
   },
   {
    "sentence": 3,
    "word": "and",
-   "start": 15.284,
-   "end": 15.52
+   "start": 14.444,
+   "end": 14.634
   },
   {
    "sentence": 3,
    "word": "what",
-   "start": 15.541,
-   "end": 15.856
+   "start": 14.634,
+   "end": 14.814
   },
   {
    "sentence": 3,
    "word": "it",
-   "start": 15.884,
-   "end": 16.042
+   "start": 14.814,
+   "end": 14.924
   },
   {
    "sentence": 3,
    "word": "includes,",
-   "start": 16.055,
-   "end": 16.686
+   "start": 14.924,
+   "end": 15.599
   },
   {
    "sentence": 3,
    "word": "and",
-   "start": 16.741,
-   "end": 16.978
-  },
-  {
-   "sentence": 3,
-   "word": "send",
-   "start": 16.998,
-   "end": 17.314
+   "start": 15.919,
+   "end": 16.279
   },
   {
    "sentence": 3,
    "word": "it",
-   "start": 17.341,
-   "end": 17.499
+   "start": 16.279,
+   "end": 16.347
   },
   {
    "sentence": 3,
-   "word": "for",
-   "start": 17.513,
-   "end": 17.749
+   "word": "is",
+   "start": 16.482,
+   "end": 16.739
   },
   {
    "sentence": 3,
-   "word": "its",
-   "start": 17.77,
-   "end": 18.006
-  },
-  {
-   "sentence": 3,
-   "word": "checks.",
-   "start": 18.027,
-   "end": 18.5
+   "word": "live.",
+   "start": 16.739,
+   "end": 17.3
   },
   {
    "sentence": 4,
    "word": "Renters",
-   "start": 18.861,
-   "end": 19.387
+   "start": 17.885,
+   "end": 18.315
   },
   {
    "sentence": 4,
    "word": "see",
-   "start": 19.433,
-   "end": 19.658
+   "start": 18.315,
+   "end": 18.515
   },
   {
    "sentence": 4,
    "word": "the",
-   "start": 19.678,
-   "end": 19.903
+   "start": 18.515,
+   "end": 18.605
   },
   {
    "sentence": 4,
    "word": "whole",
-   "start": 19.923,
-   "end": 20.299
+   "start": 18.605,
+   "end": 19.035
   },
   {
    "sentence": 4,
    "word": "cost",
-   "start": 20.332,
-   "end": 20.632
+   "start": 19.035,
+   "end": 19.465
   },
   {
    "sentence": 4,
    "word": "on",
-   "start": 20.658,
-   "end": 20.809
+   "start": 19.465,
+   "end": 19.565
   },
   {
    "sentence": 4,
    "word": "the",
-   "start": 20.822,
-   "end": 21.047
+   "start": 19.565,
+   "end": 19.635
   },
   {
    "sentence": 4,
    "word": "listing,",
-   "start": 21.067,
-   "end": 21.593
+   "start": 19.635,
+   "end": 20.203
   },
   {
    "sentence": 4,
    "word": "so",
-   "start": 21.638,
-   "end": 21.789
+   "start": 20.338,
+   "end": 20.655
   },
   {
    "sentence": 4,
    "word": "the",
-   "start": 21.802,
-   "end": 22.027
+   "start": 20.655,
+   "end": 20.745
   },
   {
    "sentence": 4,
    "word": "people",
-   "start": 22.047,
-   "end": 22.498
+   "start": 20.745,
+   "end": 21.055
   },
   {
    "sentence": 4,
    "word": "who",
-   "start": 22.537,
-   "end": 22.762
+   "start": 21.055,
+   "end": 21.195
   },
   {
    "sentence": 4,
    "word": "call",
-   "start": 22.782,
-   "end": 23.083
+   "start": 21.195,
+   "end": 21.485
   },
   {
    "sentence": 4,
    "word": "you",
-   "start": 23.109,
-   "end": 23.334
+   "start": 21.485,
+   "end": 21.825
   },
   {
    "sentence": 4,
    "word": "have",
-   "start": 23.354,
-   "end": 23.654
+   "start": 21.825,
+   "end": 22.025
   },
   {
    "sentence": 4,
    "word": "already",
-   "start": 23.68,
-   "end": 24.207
+   "start": 22.025,
+   "end": 22.565
   },
   {
    "sentence": 4,
    "word": "seen",
-   "start": 24.252,
-   "end": 24.553
+   "start": 22.565,
+   "end": 22.865
   },
   {
    "sentence": 4,
    "word": "the",
-   "start": 24.579,
-   "end": 24.804
+   "start": 22.865,
+   "end": 22.945
   },
   {
    "sentence": 4,
    "word": "real",
-   "start": 24.824,
-   "end": 25.125
+   "start": 22.945,
+   "end": 23.215
   },
   {
    "sentence": 4,
    "word": "number.",
-   "start": 25.151,
-   "end": 25.602
+   "start": 23.215,
+   "end": 23.641
   },
   {
    "sentence": 5,
    "word": "Ask",
-   "start": 25.961,
-   "end": 26.178
+   "start": 24.231,
+   "end": 24.491
   },
   {
    "sentence": 5,
    "word": "for",
-   "start": 26.197,
-   "end": 26.414
+   "start": 24.491,
+   "end": 24.661
   },
   {
    "sentence": 5,
    "word": "an",
-   "start": 26.433,
-   "end": 26.578
+   "start": 24.661,
+   "end": 24.741
   },
   {
    "sentence": 5,
    "word": "inspection.",
-   "start": 26.59,
-   "end": 27.314
+   "start": 24.741,
+   "end": 25.397
   },
   {
    "sentence": 5,
    "word": "Read",
-   "start": 27.377,
-   "end": 27.667
+   "start": 25.962,
+   "end": 26.194
   },
   {
    "sentence": 5,
    "word": "the",
-   "start": 27.692,
-   "end": 27.909
+   "start": 26.194,
+   "end": 26.254
   },
   {
    "sentence": 5,
    "word": "report.",
-   "start": 27.928,
-   "end": 28.363
+   "start": 26.254,
+   "end": 26.725
   },
   {
    "sentence": 5,
    "word": "Then",
-   "start": 28.4,
-   "end": 28.69
+   "start": 27.115,
+   "end": 27.513
   },
   {
    "sentence": 5,
    "word": "the",
-   "start": 28.715,
-   "end": 28.932
+   "start": 27.607,
+   "end": 27.745
   },
   {
    "sentence": 5,
    "word": "agreement",
-   "start": 28.951,
-   "end": 29.603
+   "start": 27.745,
+   "end": 28.225
   },
   {
    "sentence": 5,
    "word": "is",
-   "start": 29.659,
-   "end": 29.804
+   "start": 28.225,
+   "end": 28.365
   },
   {
    "sentence": 5,
    "word": "drawn",
-   "start": 29.817,
-   "end": 30.179
+   "start": 28.365,
+   "end": 28.635
   },
   {
    "sentence": 5,
    "word": "up.",
-   "start": 30.21,
-   "end": 30.355
+   "start": 28.635,
+   "end": 28.944
   },
   {
    "sentence": 6,
    "word": "When",
-   "start": 30.688,
-   "end": 30.946
+   "start": 29.423,
+   "end": 29.571
   },
   {
    "sentence": 6,
    "word": "it",
-   "start": 30.968,
-   "end": 31.097
+   "start": 29.571,
+   "end": 29.671
   },
   {
    "sentence": 6,
    "word": "is",
-   "start": 31.108,
-   "end": 31.238
+   "start": 29.671,
+   "end": 29.831
   },
   {
    "sentence": 6,
    "word": "paid,",
-   "start": 31.249,
-   "end": 31.507
+   "start": 29.831,
+   "end": 30.341
   },
   {
    "sentence": 6,
    "word": "your",
-   "start": 31.529,
-   "end": 31.787
+   "start": 30.426,
+   "end": 30.701
   },
   {
    "sentence": 6,
    "word": "share",
-   "start": 31.81,
-   "end": 32.132
+   "start": 30.701,
+   "end": 31.021
   },
   {
    "sentence": 6,
    "word": "goes",
-   "start": 32.16,
-   "end": 32.419
+   "start": 31.021,
+   "end": 31.251
   },
   {
    "sentence": 6,
    "word": "straight",
-   "start": 32.441,
-   "end": 32.957
+   "start": 31.251,
+   "end": 31.711
   },
   {
    "sentence": 6,
    "word": "to",
-   "start": 33.002,
-   "end": 33.131
+   "start": 31.711,
+   "end": 31.831
   },
   {
    "sentence": 6,
    "word": "your",
-   "start": 33.142,
-   "end": 33.4
+   "start": 31.831,
+   "end": 32.022
   },
   {
    "sentence": 6,
    "word": "own",
-   "start": 33.423,
-   "end": 33.616
+   "start": 32.082,
+   "end": 32.331
   },
   {
    "sentence": 6,
    "word": "bank",
-   "start": 33.633,
-   "end": 33.891
+   "start": 32.331,
+   "end": 32.611
   },
   {
    "sentence": 6,
    "word": "account,",
-   "start": 33.914,
-   "end": 34.366
+   "start": 32.611,
+   "end": 33.055
   },
   {
    "sentence": 6,
    "word": "through",
-   "start": 34.405,
-   "end": 34.856
+   "start": 33.18,
+   "end": 33.331
   },
   {
    "sentence": 6,
    "word": "our",
-   "start": 34.896,
-   "end": 35.089
+   "start": 33.331,
+   "end": 33.441
   },
   {
    "sentence": 6,
    "word": "licensed",
-   "start": 35.106,
-   "end": 35.622
+   "start": 33.441,
+   "end": 33.981
   },
   {
    "sentence": 6,
    "word": "payments",
-   "start": 35.667,
-   "end": 36.183
+   "start": 33.981,
+   "end": 34.351
   },
   {
    "sentence": 6,
    "word": "provider.",
-   "start": 36.228,
-   "end": 36.744
+   "start": 34.351,
+   "end": 34.911
   },
   {
    "sentence": 7,
    "word": "Vallo",
-   "start": 37.109,
-   "end": 37.434
+   "start": 35.2,
+   "end": 35.65
   },
   {
    "sentence": 7,
    "word": "never",
-   "start": 37.462,
-   "end": 37.787
+   "start": 35.65,
+   "end": 36.22
   },
   {
    "sentence": 7,
    "word": "holds",
-   "start": 37.816,
-   "end": 38.14
+   "start": 36.22,
+   "end": 36.52
   },
   {
    "sentence": 7,
    "word": "your",
-   "start": 38.169,
-   "end": 38.429
+   "start": 36.52,
+   "end": 36.61
   },
   {
    "sentence": 7,
    "word": "money.",
-   "start": 38.451,
-   "end": 38.776
+   "start": 36.61,
+   "end": 37
   },
   {
    "sentence": 8,
    "word": "Your",
-   "start": 39.124,
-   "end": 39.382
+   "start": 37.5,
+   "end": 37.779
   },
   {
    "sentence": 8,
    "word": "place.",
-   "start": 39.405,
-   "end": 39.727
+   "start": 37.779,
+   "end": 38.359
   },
   {
    "sentence": 8,
    "word": "Your",
-   "start": 39.755,
-   "end": 40.014
+   "start": 38.654,
+   "end": 38.941
   },
   {
    "sentence": 8,
    "word": "price.",
-   "start": 40.036,
-   "end": 40.359
+   "start": 38.941,
+   "end": 39.517
   },
   {
    "sentence": 8,
    "word": "Your",
-   "start": 40.387,
-   "end": 40.645
+   "start": 39.808,
+   "end": 40.122
   },
   {
    "sentence": 8,
    "word": "account.",
-   "start": 40.667,
-   "end": 41.119
+   "start": 40.122,
+   "end": 40.636
   },
   {
    "sentence": 9,
    "word": "Vallo.",
-   "start": 41.478,
-   "end": 41.803
+   "start": 40.962,
+   "end": 41.48
   },
   {
    "sentence": 9,
    "word": "Real",
-   "start": 41.831,
-   "end": 42.091
+   "start": 42.115,
+   "end": 42.353
   },
   {
    "sentence": 9,
    "word": "estate,",
-   "start": 42.114,
-   "end": 42.504
+   "start": 42.353,
+   "end": 42.769
   },
   {
    "sentence": 9,
    "word": "done",
-   "start": 42.537,
-   "end": 42.797
+   "start": 43.058,
+   "end": 43.283
   },
   {
    "sentence": 9,
    "word": "right.",
-   "start": 42.82,
-   "end": 43.145
+   "start": 43.283,
+   "end": 43.746
   }
  ]
 }
