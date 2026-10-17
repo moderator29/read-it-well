@@ -8,7 +8,7 @@ import { redirect } from "next/navigation";
 import {
   FIRST_INTEREST_COOKIE,
   FIRST_RUN_COOKIE,
-  isFirstRunSeen,
+  isFirstRunLeft,
   firstRunNext,
   isSignUpForm,
 } from "@/components/app/welcome/first-run-seen";
@@ -72,7 +72,9 @@ export default async function WelcomePage({
   const jar = await cookies();
   const carriedRaw = jar.get(FIRST_INTEREST_COOKIE)?.value ?? "";
   const carried = isPropertyType(carriedRaw) ? carriedRaw : null;
-  const seen = isFirstRunSeen(jar.get(FIRST_RUN_COOKIE)?.value);
+  /* Only `seen` (the click that left the slides) skips them; the proxy's
+     `shown` opens the doors but still shows the slides here. */
+  const seen = isFirstRunLeft(jar.get(FIRST_RUN_COOKIE)?.value);
 
   const tour = (Array.isArray(params.tour) ? params.tour[0] : params.tour) === "1";
   const plan = planFirstRun({ session, next, carried, seen, tour });

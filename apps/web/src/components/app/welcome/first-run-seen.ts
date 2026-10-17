@@ -17,6 +17,14 @@ import { safeReturnPath } from "@/lib/security/return-path";
  */
 export const FIRST_RUN_COOKIE = "vallo_first_run";
 export const FIRST_RUN_SEEN = "seen";
+/* Written by the proxy as `/welcome` serves the slides (16 October 2026). It
+   opens the doors straight for the rest of the sitting, like `seen`, but
+   `/welcome` itself still shows the slides on it: only the client's `seen`,
+   written on the click that left them, means "been through". The split
+   exists because Next hands a cookie set in the proxy to the very request
+   that set it, so a value the welcome page read as "been through" would have
+   skipped the slides on the first visit. */
+export const FIRST_RUN_SHOWN = "shown";
 
 /* THE FOUNDER, 8 October 2026: "once I click sign up or sign in it should
    show me this get started" -- every visit, not once a device. So "seen"
@@ -33,7 +41,13 @@ export const FIRST_RUN_MAX_AGE = 60 * 30;
  */
 export const FIRST_RUN_PASSED_PARAM = "welcomed";
 
+/** The doors and `/open`: this sitting has met the slides, served or finished. */
 export function isFirstRunSeen(value: string | null | undefined): boolean {
+  return value === FIRST_RUN_SEEN || value === FIRST_RUN_SHOWN;
+}
+
+/** `/welcome` itself: the person went THROUGH the slides (or skipped them) this sitting. */
+export function isFirstRunLeft(value: string | null | undefined): boolean {
   return value === FIRST_RUN_SEEN;
 }
 

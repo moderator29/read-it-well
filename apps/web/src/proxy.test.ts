@@ -98,20 +98,24 @@ describe("first run is remembered from the server", () => {
      script write on the click that left the slides set it, which a WKWebView
      navigation can outrun. Serving the slides now sets it, so no door can
      bounce the slides' own exit. */
-  it("sets the seen cookie for one sitting as /welcome is served", async () => {
+  it("marks the device as shown for one sitting as /welcome is served", async () => {
     const response = await proxy(new NextRequest("http://localhost/welcome?next=%2Fsign-in"));
     const cookie = response.cookies.get("vallo_first_run");
-    expect(cookie?.value).toBe("seen");
+    /* `shown`, never `seen`: the welcome page reads this very request's cookie
+       back, and `seen` there would skip the slides on the first visit. */
+    expect(cookie?.value).toBe("shown");
     expect(cookie?.maxAge).toBe(60 * 30);
     expect(cookie?.path).toBe("/");
     expect(cookie?.sameSite).toBe("lax");
   });
 
-  it("does not set it again when the request already carries it", async () => {
-    const response = await proxy(
-      new NextRequest("http://localhost/welcome", { headers: { cookie: "vallo_first_run=seen" } }),
-    );
-    expect(response.cookies.get("vallo_first_run")).toBeUndefined();
+  it("does not set it again when the request already carries seen or shown", async () => {
+    for (const value of ["seen", "shown"]) {
+      const response = await proxy(
+        new NextRequest("http://localhost/welcome", { headers: { cookie: `vallo_first_run=${value}` } }),
+      );
+      expect(response.cookies.get("vallo_first_run"), value).toBeUndefined();
+    }
   });
 
   it("sets it nowhere else: the doors and the landing page leave the cookie alone", async () => {

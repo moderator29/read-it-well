@@ -35,7 +35,7 @@ import {
   URL_PATH_HEADER,
 } from "@/lib/i18n/public-locale";
 import { LOCALE_COOKIE } from "@/lib/locale.constants";
-import { FIRST_RUN_COOKIE, FIRST_RUN_MAX_AGE, FIRST_RUN_SEEN } from "@/components/app/welcome/first-run-seen";
+import { FIRST_RUN_COOKIE, FIRST_RUN_MAX_AGE, FIRST_RUN_SHOWN, isFirstRunSeen } from "@/components/app/welcome/first-run-seen";
 import { ANON_VIEWER, VIEWER_HEADER, VIEWER_PATH_HEADER, viewerStamp, wantsViewerStamp } from "@/lib/offline/viewer-stamp";
 import {
   finishSetupGateApplies,
@@ -607,13 +607,18 @@ export async function proxy(request: NextRequest) {
        door without it and was sent back here. So the cookie is set as the
        slides are served: every request after this one carries it, whatever
        the browser does with script-set cookies. The client write stays, for
-       the storage-blocked `welcomed=1` fallback (`first-run-seen.ts`). */
+       the storage-blocked `welcomed=1` fallback (`first-run-seen.ts`).
+
+       THE VALUE IS `shown`, NOT `seen`. Next hands a cookie set here to the
+       very request that set it, so `/welcome` would read `seen` and skip the
+       slides on the first visit. `shown` opens the doors and leaves the
+       slides to the welcome page's own `seen` (`isFirstRunLeft`). */
     if (
       request.method === "GET" &&
       (pathname.replace(/\/+$/, "") || "/") === "/welcome" &&
-      request.cookies.get(FIRST_RUN_COOKIE)?.value !== FIRST_RUN_SEEN
+      !isFirstRunSeen(request.cookies.get(FIRST_RUN_COOKIE)?.value)
     ) {
-      response.cookies.set(FIRST_RUN_COOKIE, FIRST_RUN_SEEN, {
+      response.cookies.set(FIRST_RUN_COOKIE, FIRST_RUN_SHOWN, {
         path: "/",
         maxAge: FIRST_RUN_MAX_AGE,
         sameSite: "lax",

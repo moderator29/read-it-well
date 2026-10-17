@@ -40,6 +40,11 @@ describe("sign-in meets first run once (request W2)", () => {
     expect(firstRunNext(inner)).toBe(inner);
   });
 
+  it("goes straight through on the proxy's shown value too: the slides were served this sitting", () => {
+    expect(signInFirstRunRedirect({ cookie: "shown", params: {} })).toBeNull();
+    expect(doorFirstRunRedirect({ door: "/sign-up", cookie: "shown", params: {} })).toBeNull();
+  });
+
   it("goes straight through once the device has seen it", () => {
     expect(signInFirstRunRedirect({ cookie: "seen", params: { next: "/home" } })).toBeNull();
   });
