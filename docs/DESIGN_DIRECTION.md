@@ -8,7 +8,7 @@
 > file disagrees with it, this file is history. It is kept because code comments
 > cite it. Do not take icon, container, glow or motion direction from here.
 
-> **Track A, 25 September 2026.** Vallo no longer holds customer money: the wallet, escrow and held payments are retired. Where this document describes them it describes the past; the current truth is [`docs/MONEY_ARCHITECTURE.md`](/docs/MONEY_ARCHITECTURE.md).
+> **Money, as of 17 October 2026.** Vallo never holds customer money. A wallet, escrow or held payment kept by Vallo itself was retired on 25 September 2026 (Track A), and where this document describes one it describes the past. Since ADR 0003 a licensed partner may hold a payment in escrow, offered only while `protectedRailLive()` reads it as working. The current truth is [`docs/MONEY_ARCHITECTURE.md`](/docs/MONEY_ARCHITECTURE.md).
 
 Written 18 September 2026 on the founder's ruling. This file governs the
 entire frontend visual sweep. **The reference images in
