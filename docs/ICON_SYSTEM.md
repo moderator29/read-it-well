@@ -256,7 +256,7 @@ stay bold. So:
 - **Lean** (`UI_ICON_LEAN_BY_EDGE`: 1.25 at 12, 1.4 at 16, 1.6 at 20, 1.7 at
   24, up to 2.25 at 40) is everything else, and the default.
 - Every stroked glyph (`UiIcon`, `SettingsGlyph`, `LineGlyph`,
-  `FeatureGlyph`, `AdminGlyph`) spreads `uiIconStrokeProps(size)`: the lean
+  `AdminGlyph`) spreads `uiIconStrokeProps(size)`: the lean
   width as the attribute, both widths as `--nf-sw-lean` / `--nf-sw-bold`.
   `app/css/symbols.css` switches the chrome to bold with zero-specificity
   rules, so a rule that already sizes one glyph's line still wins.
@@ -299,7 +299,7 @@ solid twin for the active state such as their filled gear). What changed:
   28, 2.5 at 32, 2.75 at 40. One fixed pixel weight clogged the 12 step (2px
   is a third of a counter there) and starved the 40 step; the quarter-pixel
   steps land on the device grid at 2x. `LineGlyph`, `SettingsGlyph`,
-  `FeatureGlyph` and the console's `AdminGlyph` call the same helper, so they
+  The console's `AdminGlyph` calls the same helper, so they
   went bold with the set.
 - **Raised to 2.25 the same day (the ICONS3 audit).** Beside 600-weight
   labels the 20 and 24 steps at 2 still read a shade under pump.fun's, and
