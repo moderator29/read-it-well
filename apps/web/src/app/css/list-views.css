@@ -402,6 +402,20 @@
     outline-offset: 2px;
   }
 
+  /*
+   * THE KEYBOARD RING ON A LISTING CARD. The card's link fills the card and
+   * the card clips its overflow (the photograph's corners), so the global
+   * ring, drawn 2px outside the link, was clipped away whole: a keyboard
+   * user tabbing through results saw no card take focus. The ring moves to
+   * the card and sits just inside its edge, where no clip or scroller can
+   * cut it, and an outline paints above the photograph. (The link's own
+   * ring stays as the global rule draws it; the clip simply hides it.)
+   */
+  .nf-pcard:has(> .nf-pcard__link:focus-visible) {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: calc(-1 * var(--nf-focus-ring-width));
+  }
+
   /* --------------------------------------------- the rows view */
 
   /* The card's link, as a class rather than utilities so the rows view can
