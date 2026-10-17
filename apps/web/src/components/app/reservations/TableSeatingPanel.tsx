@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { NairaField } from "@/components/ui/NairaField";
 import { TYPE } from "@/components/app/Screen";
-import { formatMoney } from "@vallo/i18n";
+import { formatMoney } from "@vallo/i18n/core";
 import type { ReservationView } from "@/lib/reservations/queries";
 import {
   asksDiner,
@@ -66,7 +66,11 @@ export function TableSeatingPanel({ table }: { table: ReservationView }) {
   const bill = table.bill ?? null;
   const line = seatingLine(seating);
   const billWords = billLine(bill, money);
-  const mayBill = billOpen(table, now) && (!bill || bill.status === "awaiting_restaurant");
+  /* Paying through Vallo is offered only while `restaurant_bill_pay` is on;
+     until then the diner pays the restaurant directly and nothing here says
+     otherwise. A bill already moving or paid is still shown. */
+  const billPay = table.billPay === true;
+  const mayBill = billPay && billOpen(table, now) && (!bill || bill.status === "awaiting_restaurant");
 
   return (
     <div className="mt-inline grid gap-inline" data-testid="table-seating">
@@ -109,7 +113,7 @@ export function TableSeatingPanel({ table }: { table: ReservationView }) {
       )}
 
       {billWords && <span className={`block ${TYPE.rowMeta}`}>{billWords}</span>}
-      {bill?.status === "awaiting_payment" && (
+      {billPay && bill?.status === "awaiting_payment" && (
         <span>
           <Button
             variant="primary"
