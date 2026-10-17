@@ -67,14 +67,43 @@ lines.forEach((text, k) => {
   t += GAP;
 });
 
-const duration = +(t - GAP + TAIL).toFixed(3);
 const beat = 60 / BPM;
+const bar = beat * 4;
+/*
+ * THE MUSIC'S MARKERS, on bar lines, the same way install-voice.mjs derives
+ * them from a real recording. Without them audio/music.py falls back to the
+ * defaults it carries for a 101 s film and lays a 19-bar arrangement over
+ * the wrong places, and it refuses any marker that is not on a bar line. A
+ * provisional clock that cannot render its own bed is only half a clock: a
+ * film on one could be looked at but not heard.
+ */
+const barAt = (x) => Math.round(x / bar) * bar;
+const barUp = (x) => Math.ceil(x / bar - 1e-9) * bar;
+const last = sentences[sentences.length - 1];
+const logo = barAt(last.start);
+const resolve = logo + bar;
+const badges = resolve + bar;
+const duration = +barUp(Math.max(last.end, badges) + bar).toFixed(3);
+const body = sentences.slice(1, -1);
+const lifts = [0.3, 0.55, 0.78]
+  .map((u) => barAt(body[0].start + (body[body.length - 1].end - body[0].start) * u))
+  .filter((x, i, a) => x > barAt(sentences[1].start) && x < logo - bar && a.indexOf(x) === i);
 const out = {
   fps: 60,
   duration,
   provisional: true,
   voice: { plan: [], end: +(t - GAP).toFixed(3) },
-  music: { bpm: BPM, beat: +beat.toFixed(6), bar: +(beat * 4).toFixed(6) },
+  music: {
+    bpm: BPM, beat: +beat.toFixed(6), bar: +bar.toFixed(6),
+    intro_end: bar,
+    drop: Math.max(barAt(sentences[1].start), 2 * bar),
+    lifts,
+    logo_hit: logo,
+    resolve,
+    badges,
+    url: null,
+    duration,
+  },
   sentences,
   words,
 };
