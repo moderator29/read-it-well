@@ -37,14 +37,10 @@
    * every ground, and nothing in this file may select `.nf-logo` or
    * `.nf-logo-art` (`design-system/brand/logo-sweep.test.ts`).
    *
-   * The lap's keyframes stay: the edge lights of the dock and the landing
-   * capsule still turn on them (shell-m.css, site.css).
+   * The lap's keyframes and its registered angle (`--nf-logo-lap`) went on
+   * 17 October 2026: the edge lights of the dock and the capsules now turn
+   * on the compositor (`nf-edge-turn`; shell-m.css, site.css).
    * ---------------------------------------------------------------- */
-  @keyframes nf-logo-lap {
-    to {
-      --nf-logo-lap: 360deg;
-    }
-  }
 
   /* ------------------------------------------------------------------
    * THE TOP BAR ON PAPER (the clean unified sweep, 29 September 2026; spec
@@ -399,15 +395,6 @@
     background: none;
     box-shadow: none;
   }
-}
-
-/* The angle the edge lights turn on (shell-m.css, site.css). Registered so
-   it can be animated; outside any layer because `@property` is
-   document-global. */
-@property --nf-logo-lap {
-  syntax: "<angle>";
-  inherits: false;
-  initial-value: 0deg;
 }
 
 /* ------------------------------------------------------------------

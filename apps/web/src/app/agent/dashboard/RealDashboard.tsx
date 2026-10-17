@@ -163,7 +163,7 @@ export function RealDashboard({
           be read, and no tile carries a delta because none of these counts
           has a measured previous period. */}
       <HeroBand
-        className="nf-edge-lap"
+        lap
         label={dateLine}
         title={t.desk.today.title}
         titleAs="h1"
