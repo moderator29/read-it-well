@@ -502,11 +502,14 @@ export async function refreshNativeRegistration(): Promise<"refreshed" | "skippe
     const answer = await nativeToken(plugin);
     if (answer.token === null) return "failed";
     const platform = Capacitor.getPlatform() === "ios" ? "ios" : "android";
-    const outcome = await postRegistration({
-      platform,
-      token: answer.token,
-      deviceLabel: platform === "ios" ? "iPhone" : "Android",
-    });
+    /* A launch with no session (it expired, or the member signed out) keeps
+       the record: forgetting it here meant the next sign-in had nothing to
+       re-register, the OS permission was already granted so the Vallo screen
+       never asked again, and the phone went quiet with no word anywhere. */
+    const outcome = await postRegistration(
+      { platform, token: answer.token, deviceLabel: platform === "ios" ? "iPhone" : "Android" },
+      { keepWhenSignedOut: true },
+    );
     return outcome.ok ? "refreshed" : "failed";
   } catch {
     return "failed";
@@ -546,13 +549,16 @@ async function retireLegacyPushWorker(): Promise<void> {
   }
 }
 
-async function postRegistration(body: {
-  platform: "web" | "ios" | "android";
-  token: string;
-  p256dh?: string;
-  auth?: string;
-  deviceLabel?: string;
-}): Promise<EnrolOutcome> {
+async function postRegistration(
+  body: {
+    platform: "web" | "ios" | "android";
+    token: string;
+    p256dh?: string;
+    auth?: string;
+    deviceLabel?: string;
+  },
+  options: { keepWhenSignedOut?: boolean } = {},
+): Promise<EnrolOutcome> {
   try {
     const response = await fetch("/api/push/register", {
       method: "POST",
@@ -566,6 +572,9 @@ async function postRegistration(body: {
        "not_saved": the fix is to sign in inside the app, and saying "try
        again in a moment" would send the person round the same loop. */
     const refused = replyFailure(response.status);
+    if (refused === "signed_out" && options.keepWhenSignedOut) {
+      return { ok: false, reason: refused, step: "register", detail: String(response.status) };
+    }
     if (refused) return failedAndForgotten(refused, String(response.status));
     if (!response.ok) return failedAndForgotten("not_saved", String(response.status));
     const result = (await response.json()) as { ok?: boolean; deviceRef?: string };
