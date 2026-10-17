@@ -231,7 +231,7 @@ Vallo part of the problem it was built to solve.
 > when the lister accepts.** Acceptance happens before publishing; the rail is chosen per
 > booking, later, by how the buyer pays. So the screen shows a **range anchored on the worst
 > case**, with the second two percent named as escrow protection rather than a Vallo fee.
-> `docs/sessions/SESSION-3-DEEP-2026-10-06.md` section 1 has the layout.
+> (The session report that held the layout was retired on 17 October 2026; the screen is `lib/money/lister-fee.ts` and its component.)
 >
 > **And the comparison needs dating.** "Instead of 90" asserts what other people charge. Ten
 > percent is a fair description of the typical Nigerian agency fee, so it is defensible, but

@@ -283,11 +283,11 @@ Then build and sign in Xcode or Android Studio. [`docs/MOBILE.md`](docs/MOBILE.m
 | [`docs/ENVIRONMENT.md`](docs/ENVIRONMENT.md) | Every environment variable and third-party account |
 | [`docs/DEPLOY.md`](docs/DEPLOY.md) | Deploying and operating production |
 | [`docs/ARCHITECTURE_DECISIONS.md`](docs/ARCHITECTURE_DECISIONS.md), [`docs/adr/`](docs/adr/) | Architecture decision records |
-| [`docs/RECOMMENDATIONS.md`](docs/RECOMMENDATIONS.md) | The register of open findings. Code comments cite its IDs (for example `W-1`) |
-| [`docs/THE_AUDIT.md`](docs/THE_AUDIT.md) | The pre-launch platform audit, finding by finding |
-| [`docs/DESIGN_DIRECTION.md`](docs/DESIGN_DIRECTION.md) | The visual design system and the reference renders in `docs/design/references/` |
+| [`docs/RULINGS.md`](docs/RULINGS.md) | The founder rulings still in force (D51 to D85); code comments cite them by number |
+| [`docs/DECISIONS_2026-10-13.md`](docs/DECISIONS_2026-10-13.md) | The founder decisions of 13 October 2026 and their status in the code |
+| [`docs/design/PREMIUM-STANDARD.md`](docs/design/PREMIUM-STANDARD.md) | The visual bar every screen is built to, and the reference renders in `docs/design/references/` |
 
-[`docs/archive/`](docs/archive/) holds retired documents and dated build records. They are kept for history and govern nothing.
+Retired documents, dated build records, old session handoffs and finding registers (the `W-`, `V-` and `UX-` IDs some code comments still cite) were deleted from `docs/` on 17 October 2026. They live in git history only and govern nothing: a comment that cites one of those IDs is explained by its own words.
 
 ---
 

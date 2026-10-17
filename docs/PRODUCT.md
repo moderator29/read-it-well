@@ -8,32 +8,36 @@ Three things are the source of truth, in this order: the **code**, the
 **database**, and **this document**. Where a fourth document disagrees with any
 of them, the fourth document is wrong. Where this document describes something
 the code does not do yet, it is marked NOT BUILT and the work is in
-`RECOMMENDATIONS.md`.
+the code, never in a register (the old RECOMMENDATIONS register was retired on 17 October 2026).
 
 Last verified against the code and the live Supabase project
 `uccixoonmbhrnyczyigt` on 2026-08-09; sections 4, 7 and 8 corrected on
 2026-09-23. The checked, finding-by-finding state of the platform is
-`docs/THE_AUDIT.md`.
+read from the code; the dated audits were retired on 17 October 2026.
 
 ---
 
 ## 1. What Vallo is
 
-**A Nigeria first property marketplace for renting, buying and selling, with a
-social layer, an agreement gate before every payment, the Vallo Guarantee and a
-verification ladder. Vallo never holds customer money.**
+**A Nigeria first property, stays and restaurants marketplace, with a social
+layer, an agreement gate before every negotiated payment and a verification
+ladder. Vallo never holds customer money.**
 
-**There is no wallet and no escrow (Track A, 25 September 2026).** Every charge
-is split by the processor at the moment of payment: the lister's share to their
-bank, 1 to 2 percent to the Guarantee reserve, Vallo's commission (zero today)
-to Vallo. `docs/MONEY_ARCHITECTURE.md` is the mechanism.
+**Money (current, 13 October 2026).** A licensed partner holds escrow for rent
+and sales (ADR 0003); a fixed-price booking (hotel room, shortlet, restaurant)
+is paid by card and split by the processor at the moment of payment, the
+host's share to their bank and Vallo's commission to Vallo, read from policy
+rows (`fee_rates`, `scoped_commission_rates`), never from a constant. The Vallo
+Guarantee is retired (`guarantee_bps` is 0; the machinery stays built, nothing
+flows through it). `docs/MONEY_ARCHITECTURE.md` is the mechanism and
+`docs/RULINGS.md` the rulings.
 
 Everything on the platform was listed on the platform by a real person who
 applied, was verified and was approved. There is no third-party inventory, no
 Google Places feed, no hotel rate aggregator and no scraped stock. That is not a
 gap, it is the whole argument: it is the only reason the verified badge and an
-inspection can mean anything, and the ground on which an approved agreement
-and a Guarantee claim can mean anything.
+inspection can mean anything, and the ground on which an agreed deal can mean
+anything.
 
 **This is now true of the database as well as the code.** `places_cache` and its
 243 rows of cached Google payloads are dropped, `partner_stay_intents` is
@@ -56,7 +60,7 @@ like any other. What does not survive is anybody else's inventory.
 | **Stay** | Nightly lodging: hotel, apartment, shortlet, villa, home. Reserve, hold, pay | `rate_minor` per `rate_period` |
 | **Eat** | A restaurant lists itself. A guest requests a table, the venue accepts or declines | Free to request. A fixed fee per seated table is billed to the restaurant (decided and built 13 October 2026; the amount is 1,000 naira per table). Card deposits (D75) exist behind a flag that is off |
 | **Around** | The social layer. Places, posts, stories, people, the assistant answering in comments | Free |
-| **Agreements and the Guarantee** | Both sides confirm the agreement, Vallo approves it, then payment opens. The Guarantee reserve stands behind rentals and stays | Split at payment; the reserve is an append-only ledger. No wallet |
+| **Agreements** | Both sides confirm the same terms, then payment opens. No staff approval stands in between by default (`agreement_staff_review` is off, D83); the direct rail reviews only on a risk signal (D77) | Rent and sales: escrow held by a licensed partner, or card where the rules allow. Fixed-price bookings: card, split at payment. Vallo holds nothing |
 
 ## 3. The fee position
 
@@ -98,7 +102,7 @@ implementation detail:
 - Never charge a member to look, save, message or enquire. Fees attach to
   transactions and to supply-side services.
 
-Full design in `RECOMMENDATIONS.md` section 8.
+The fee engine itself is `lib/money/lister-fee.ts` and the `fee_rates` table.
 
 ## 4. Role architecture and the access rule
 
@@ -186,7 +190,7 @@ are expressed as `rent` with a `rate_period` of `night`, and a restaurant table
 as `rent` with a `rate_period` of `guest`. **This is a known rough edge**: the
 column that exists to answer "what is this listing for" cannot distinguish four
 markets with two values, and the answer is currently re-derived from
-`property_type` and `rate_period` in several places. See RECOMMENDATIONS P-7.
+`property_type` and `rate_period` in several places. (The finding register that tracked this was retired on 17 October 2026.)
 
 ### What kind of property it is
 
@@ -201,7 +205,7 @@ markets with two values, and the answer is currently re-derived from
 
 `ListingKind` in `apps/web/src/lib/listings/types.ts` carries one extra value,
 `experience`, which the database does not have. **The TypeScript union is
-wrong.** See RECOMMENDATIONS P-4.
+wrong.** (The finding register that tracked this was retired on 17 October 2026.)
 
 ### What it costs
 
@@ -252,7 +256,7 @@ deliberately not `SECURITY DEFINER`, so RLS decides visibility.
 **Nothing in the application calls it yet.** The map reads the whole catalogue
 and places pins on area centroids. A listing with no pin has no geography and is
 invisible to every viewport query, so the pin must become mandatory before the
-catalogue fills. See RECOMMENDATIONS M-3 and M-4.
+catalogue fills. (The finding register that tracked this was retired on 17 October 2026.)
 
 ### Its state and its media
 
@@ -260,12 +264,11 @@ catalogue fills. See RECOMMENDATIONS M-3 and M-4.
 `MORE_INFO_REQUIRED`, `APPROVED`, `PUBLISHED`, `REJECTED`, `SUSPENDED`. Search
 reads `PUBLISHED` only. Admin approval is mandatory and is the quality gate.
 
-`listing_photos` is live. `public.listing_videos` exists, holds zero rows, and
-**nothing in the application writes to it**: no bucket, no upload control, no
-player. When it is built, video is capped at **50 MB per upload and enforced
-server side**, on the bucket, because a limit enforced only in the browser is not
-a limit. No storage bucket currently carries any size limit at all. See
-RECOMMENDATIONS section 12.
+Photos and videos share one uploader (`lib/agent/listings-model.ts`): at
+least 3 items (`MIN_MEDIA`), 5 recommended, the cover must be a photo, up to 3
+videos (`MAX_VIDEOS`) of 60 seconds and 100 MB each, in MP4, MOV or WebM.
+The video bucket limit is set on the live database as well as in the app.
+`DECISIONS_2026-10-13.md` row 9 is the ruling.
 
 ## 6. Trust
 
@@ -368,7 +371,7 @@ where. A slogan does none of that.
 attempt at it was. The three words are an i18n key, `landing.hero.line1/2/3`, the
 auth shell and the footer reach it through that key, it is translated into
 Yorùbá, Hausa and Igbo, and **it is reused as the titles of the three
-how-it-works steps**. `docs/archive/FRONTEND_REVAMP.md` section 3 has the full inventory
+how-it-works steps**. The retired revamp record had the full inventory
 and the three separate jobs it breaks into.
 
 ## 8. Language and theme
@@ -380,7 +383,7 @@ is negotiated, plurals go through `Intl.PluralRules`.
 **Dark by default, light by choice (Track E, 25 September 2026).** Light mode
 was removed on 23 September (`docs/design/LIGHT_MODE_REMOVED.md`, now history)
 and reintroduced properly after the five root causes in
-`docs/research/LIGHT_MODE_SURVEY.md` were answered: a complete light palette in
+the retired light mode survey were answered: a complete light palette in
 `tokens.css` with `apps/web/src/app/css/light.css`, a dark ground behind the logo
 and the role-switch coin, glass objects standing alone on white with a soft blue
 shadow, and anything over a photograph kept dark on purpose. The choice (Light, Dark, System) sits at the
@@ -429,20 +432,20 @@ That is correct rather than broken, and the honest answers to it are real
 listings from real agents, an empty state that says why and captures the demand,
 and the place layer, which is already populated with 774 local governments and 7
 live areas. It is **not** a reason to reinvent the fabricated catalogue. See
-RECOMMENDATIONS section 11.
+(The finding register that tracked this was retired on 17 October 2026.)
 
 ## 10. Known divergences between this document and the code
 
-Kept here so the list is short and visible rather than scattered.
+Kept here so the list is short and visible rather than scattered. The finding
+register these rows once pointed at was retired on 17 October 2026; each row is
+to be re-read against the code before anybody acts on it.
 
-| What | Where |
+| What | Status |
 |---|---|
-| Google and Apple OAuth still in the codebase after the decision to remove them | RECOMMENDATIONS N-4 |
-| `ListingKind` declares `experience`; `property_type` does not | RECOMMENDATIONS P-4 |
-| `listing_intent` has two values for four markets | RECOMMENDATIONS P-7 |
-| Buy and sell exist in the schema and nowhere in the interface | RECOMMENDATIONS N-6, P-8 |
-| PostGIS and `listings_in_bounds` exist and nothing calls them | RECOMMENDATIONS M-4 |
-| `listing_videos` exists and nothing writes to it | RECOMMENDATIONS P-11 |
-| No storage bucket has a size or type limit | RECOMMENDATIONS MED-1 |
-| The money write path still logs nothing and still answers 200 on a misconfiguration | RECOMMENDATIONS CASE-1 |
-| The npm scope, the workspace and the live domain still say Vallo, or worse, vallo | RECOMMENDATIONS section 20 |
+| `ListingKind` declares `experience`; `property_type` does not | Unverified since the register was retired |
+| `listing_intent` has two values for four markets | Unverified since the register was retired |
+| Buy and sell exist in the schema and nowhere in the interface | Unverified since the register was retired |
+| PostGIS and `listings_in_bounds` exist and nothing calls them | Unverified since the register was retired |
+| No storage bucket has a size or type limit | Unverified since the register was retired |
+| The money write path still logs nothing and still answers 200 on a misconfiguration | Unverified since the register was retired |
+| The npm scope, the workspace and the live domain still say Vallo, or worse, vallo | Unverified since the register was retired |

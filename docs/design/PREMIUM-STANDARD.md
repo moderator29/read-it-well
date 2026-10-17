@@ -5,7 +5,7 @@ the whole platform, every page, to a standard somebody would pay two million dol
 for. Clean, consistent, next generation, with motion that makes people stop. Android,
 iOS and web. This file is the bar every agent builds to. It sits on top of
 `ONE-PRODUCT-DECISIONS.md` (how each thing is done, once) and the existing doctrine
-(`CRAFT_DOCTRINE.md`, `MOTION_SYSTEM.md`, `GLOW_IDENTITY.md`, `VISUAL_NORTH_STAR_2026-10-05.md`).
+(`CRAFT_DOCTRINE.md`, `MOTION_SYSTEM.md`, `GLOW_IDENTITY.md`).
 
 Two rulings stay above everything: **dark is the default**, and **the container system
 is refined, not replaced.**

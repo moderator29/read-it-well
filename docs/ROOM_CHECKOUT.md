@@ -27,15 +27,15 @@ Nothing about listing stays (apartments, shortlets) changes, whether the switch 
 3. **The nights are held.** A trigger on bookings (`bookings_hold_and_release_rooms`) reserves the rooms on each night in `room_inventory` as soon as the request is written, so two guests cannot both get the last room. If the booking is cancelled or declined, the nights are given back.
 4. **The host answers.** The business owner sees the request on **Host > Room bookings** (`/host/bookings`), grouped as waiting, upcoming and past, and gets a notification. They **Accept** or **Decline** (with an optional reason). Only the owner of the hotel's business can answer, and only while the booking is still PENDING.
 5. **Accepting draws up the stay agreement.** The same trigger that serves every stay creates a `deal_agreements` row of kind `stay`, naming the accommodation instead of a listing, with the business owner as the owner, the database's total as the amount and the platform cancellation schedule frozen into its terms.
-6. **Both confirm, a person at Vallo approves.** The agreement goes through the normal gate: both sides confirm the same version, then an admin (or staff with the `agreements` scope) approves or rejects it on **Money > Agreements**. The queue links a room stay to the hotel's page.
+6. **Both confirm.** The agreement goes through the normal gate: both sides confirm the same version. Since D83 (8 October 2026) the second confirmation approves it; a person at Vallo steps in only while the `agreement_staff_review` switch is on (it is off) or a direct-rail risk signal fires (D77), and then approves or rejects it on **Money > Agreements**. The queue links a room stay to the hotel's page.
 7. **The guest pays by card.** Once approved, the guest's checkout at `/checkout/<booking>` opens payment. `payment_split_for_booking` returns the split and Paystack divides the one charge:
    - the host's share goes to the host's own Paystack subaccount;
-   - the Vallo Guarantee contribution (1.5% today) goes to the reserve subaccount;
+   - the Guarantee leg carries nothing: `money_policy.guarantee_bps` is 0 live (the Guarantee is retired, D51), though the reserve subaccount must still be configured because the split code reads it;
    - Vallo's commission goes to Vallo. Founder ruling of 13 October 2026 (draft `pending/pov06_hotel_room_commission.sql`, not yet applied): on a hotel room it is 10 percent (1,000 basis points) of the charge, taken from the host's share and never added to the guest's price, read from `public.scoped_commission_rates` at the moment the agreement was drawn up. A hotel room is paid by card only; the escrow choice is for rents and shortlets.
 8. **Settlement.** Paystack's webhook runs `settle_booking_charge`, which records the transaction and ledger entry, the Guarantee contribution and marks the agreement paid. The host sees the payment under **Host > Earnings**, named after the hotel.
 9. **After the stay.** The nightly completion sweep marks the stay completed after check-out, exactly as for listings.
 
-A worked example from the live probe: one room, three nights at ₦50,000, ₦60,000 and ₦50,000 is ₦160,000. The host receives ₦157,600 and ₦2,400 goes to the Guarantee reserve.
+A worked example: one room, three nights at ₦50,000, ₦60,000 and ₦50,000 is ₦160,000. With the Guarantee at 0 and the hotel commission at 10 percent (`DECISIONS_2026-10-13.md` row 22, live with the payments track), the host receives ₦144,000 and ₦16,000 goes to Vallo; until that rate is live the host receives the full ₦160,000 less the processor's fee.
 
 ## How the host gets paid
 
@@ -78,7 +78,7 @@ Before switching on in Production, make sure:
 
 ## Instant booking at the published price (D73, switch `stays_instant_pay`)
 
-The founder's ruling of 7 October 2026 (D73 in `docs/sessions/DIRECTIVES-2026-10-05.md`): a booking at a price the business fixed is booked and paid in one flow, the way a hotel booking API such as LiteAPI works. No host acceptance and no Vallo review stand between a guest and paying a published price. Rentals and anything negotiated keep the agreement and review, and go to escrow (Part B).
+The founder's ruling of 7 October 2026 (D73 in `docs/RULINGS.md`): a booking at a price the business fixed is booked and paid in one flow, the way a hotel booking API such as LiteAPI works. No host acceptance and no Vallo review stand between a guest and paying a published price. Rentals and anything negotiated keep the agreement and review, and go to escrow (Part B).
 
 **Status: live and ON since 8 October 2026** (the founder switched it on; the 15-minute sweep that releases an unpaid instant booking is applied as `20261008164113_d73a_stays_instant_pay_sweep.sql`). A missing row reads as off.
 

@@ -44,7 +44,7 @@ Written 13 October 2026. This is the only handoff in the repository. Read it fir
 - **Database:** Supabase project `uccixoonmbhrnyczyigt`.
 - **Apps:** package `com.vallospaces.app`. iOS 1.0.0 (built 9 October, includes App-Bound Domains so the service worker runs) is in Apple review. Android is in Play production review. Versions come from `npm run sync:versions`. Firebase project `vallo-6f946` (Android push), APNs team `X74KD52994` (iPhone push).
 - **Founder admin account:** Phantomfcalls@gmail.com (`super_admin`). QA accounts use `+qaadmi` and `+qamember` plus-addresses; their passwords were pasted in chat and must be rotated.
-- **Design tokens:** `packages/design-tokens/src/tokens.css`. Back-button rules: `docs/BACK_NAVIGATION.md`. Money design: `docs/MONEY_ARCHITECTURE.md`. Decisions record: `docs/DECISIONS_2026-10-13.md`. Founder rulings D51 to D85: `docs/sessions/DIRECTIVES-2026-10-05.md`. Database statements the connector cannot run: `docs/DB_NOTES.md`.
+- **Design tokens:** `packages/design-tokens/src/tokens.css`. Back-button rules: `docs/BACK_NAVIGATION.md`. Money design: `docs/MONEY_ARCHITECTURE.md`. Decisions record: `docs/DECISIONS_2026-10-13.md`. Founder rulings D51 to D85: `docs/RULINGS.md`. Database statements the connector cannot run: `docs/DB_NOTES.md`.
 
 ## 5. How work is done
 

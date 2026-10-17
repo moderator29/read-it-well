@@ -4,7 +4,7 @@ Handoff section A.16 asks for each of these to be decided once, written down, an
 handed to every agent. This file is that answer. It sharpens
 `CLEAN_UNIFIED_DIRECTION.md` and does not replace it: where that file already ruled,
 the ruling is cited rather than restated. Later entries in
-`docs/sessions/DIRECTIVES-2026-10-05.md` beat this file.
+`docs/RULINGS.md` beat this file.
 
 Two founder rulings sit above every row: **dark stays the default**, and **the
 container system is refined, not replaced.**
