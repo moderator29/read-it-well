@@ -6784,7 +6784,6 @@ export const en = {
   feedV2: {
     card: {
       commentPill: "Drop a comment",
-      commentAria: "reply to this",
       readMore: "Read more",
       readLess: "Show less",
       roleLandlord: "Landlord",

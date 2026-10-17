@@ -4159,7 +4159,6 @@ export const ha: Dictionary = withFallback({
   feedV2: {
     card: {
       commentPill: "Bar sharhi",
-      commentAria: "amsa wannan",
       readMore: "Karanta ƙari",
       readLess: "Nuna ƙasa",
       roleLandlord: "Mai gida",

@@ -295,12 +295,15 @@ function ActionRows({
           <button
             type="button"
             className="nf-pc__comment nf-post__act--reply"
-            aria-label={`${countOf(post.replyCount, "replies", locale)}, ${words.commentAria}`}
+            aria-label={`${words.commentPill}, ${countOf(post.replyCount, "replies", locale)}`}
             onClick={onReply}
             data-testid="post-comment-pill"
           >
             <UiIcon name="chat-bubble" size={18} />
             <span className="nf-pc__comment-text">{words.commentPill}</span>
+            {/* A word break the flex row does not draw, so the visible words
+                read "Drop a comment 56" and sit inside the name. */}
+            {" "}
             {post.replyCount > 0 ? (
               <span className="nf-pc__comment-count nf-numeric" aria-hidden="true">
                 {compact(post.replyCount, locale)}
@@ -483,9 +486,14 @@ export function PostCard({
   const textFrame = !hasMedia && (hasWords || Boolean(editor));
 
   /* The time is the post's own link: the keyboard's and the screen reader's
-     way into the thread, as on every feed people know. */
+     way into the thread, as on every feed people know. Its name starts with
+     the time the eye reads (WCAG 2.5.3, label in name). */
   const when = (
-    <Link href={`/post/${post.id}`} className="nf-pc__when" aria-label={words.openPost}>
+    <Link
+      href={`/post/${post.id}`}
+      className="nf-pc__when"
+      aria-label={`${post.createdLabel}${post.edited ? ` · ${words.edited}` : ""}. ${words.openPost}`}
+    >
       {post.createdLabel}
       {post.edited ? ` · ${words.edited}` : ""}
     </Link>
