@@ -227,7 +227,7 @@ function Outcome({ table }: { table: HostReservationView }) {
   const { words } = useDesk();
   const w = words.outcome;
   const [pending, start] = useTransition();
-  const [done, setDone] = useState<"COMPLETED" | "NO_SHOW" | null>(null);
+  const [done, setDone] = useState<"COMPLETED" | "NO_SHOW" | "DISPUTED" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const mark = (outcome: "COMPLETED" | "NO_SHOW") =>
@@ -238,14 +238,14 @@ function Outcome({ table }: { table: HostReservationView }) {
         setError(result.error);
         return;
       }
-      setDone(outcome);
+      setDone(result.data.disputed ? "DISPUTED" : outcome);
       router.refresh();
     });
 
   if (done) {
     return (
       <p className={`mt-row ${TYPE.rowMeta}`} role="status">
-        {done === "COMPLETED" ? w.markedSeated : w.markedNoShow}
+        {done === "DISPUTED" ? w.markedDisputed : done === "COMPLETED" ? w.markedSeated : w.markedNoShow}
       </p>
     );
   }
