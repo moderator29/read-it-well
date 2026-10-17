@@ -20,6 +20,54 @@ too). Then run the probes `booking-is-paid-never-null`, `d75b-stay-trip-details`
 and `p1_f_stay_events`. Record the file with the version the database gives it
 (`node scripts/check-migrations.mjs --record ...`) and delete it from `pending/`.
 
+## One open alert keeps probe db-p2-02 red (17 October 2026)
+
+The CI run on main says one open alert matches what the pass-one audit probes
+used to raise (an unsigned Paystack webhook, the unconfigured Yellow Card
+webhook, the account purge called without its secret). Look at it first, because
+an invalid signature can also be a real webhook from a stranger:
+
+```sql
+select id, created_at, severity, title, description from public.risk_alerts
+ where status = 'open'
+   and (title ilike 'Cron: account purge, unauthorised%' or title ilike '%signature%invalid%' or title ilike '%yellow%card%unconfigured%');
+```
+
+If it is leftover test noise, close it (an UPDATE, nothing is deleted; the connector can run it too):
+
+```sql
+update public.risk_alerts set status = 'resolved', resolved_at = now() where status = 'open' and (title ilike 'Cron: account purge, unauthorised%' or title ilike '%signature%invalid%' or title ilike '%yellow%card%unconfigured%');
+```
+
+## The example collection belongs to the QA member on live (17 October 2026, inferred, check first)
+
+Read from the CI probe failures, not from the database (this session had no access): the
+example collection's agents row `e0000000-0000-4000-8000-000000000002` no longer belongs to the
+example lister `e0000000-0000-4000-8000-000000000001` but to the QA member
+`957b3bd2-cce3-425d-bba9-5cd876ca3d62`. If so, a viewing request or a message on an example
+listing reaches the QA member's inbox. Check:
+
+```sql
+select id, user_id, display_name, type, is_demo from public.agents
+ where id = 'e0000000-0000-4000-8000-000000000002' or user_id = '957b3bd2-cce3-425d-bba9-5cd876ca3d62';
+```
+
+If the row shows the QA member's user id and nobody moved it on purpose, give it back:
+
+```sql
+update public.agents set user_id = 'e0000000-0000-4000-8000-000000000001' where id = 'e0000000-0000-4000-8000-000000000002' and user_id = '957b3bd2-cce3-425d-bba9-5cd876ca3d62';
+```
+
+The probes no longer depend on it: each one gives the row back inside its own rolled-back transaction.
+
+## The custody switch guard is missing on live (17 October 2026)
+
+Probe `track-a-custody-retired` says the live database lets the `wallet` switch be turned on,
+which every migration refuses. The fix is the draft
+`supabase/migrations/pending/20261017150000_custody_switch_guard_restored.sql` (no DELETE, no
+DROP; the connector can apply it). Read its header first: it does not turn any switch off, and
+saving a card in the app still reads the `wallet` key.
+
 ## What is left, and it is optional
 
 Two housekeeping statements cannot be run through the connector (it freezes on `DELETE` and on
