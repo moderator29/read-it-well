@@ -778,18 +778,24 @@ function bookedTermsAnswer(
 ): ToolOutcome {
   const now = refundUnderTerms(paidMinor, booking.checkIn, terms);
   const lastTier = terms.tiers[terms.tiers.length - 1];
-  const steps = terms.tiers.map((tier) => ({
-    step: shareWords(tier.refundBps),
-    when:
+  const paid = Math.max(0, Math.trunc(paidMinor));
+  const steps = terms.tiers.map((tier, index) => {
+    const earlier = terms.tiers[index - 1];
+    const when =
       tier.closesHoursBefore > 0
         ? `More than ${tier.closesHoursBefore} hours before check-in`
-        : "Any time before check-in",
-    worth: naira(Math.round((Math.max(0, Math.trunc(paidMinor)) * tier.refundBps) / 10_000), currency),
-  }));
-  if (!lastTier || lastTier.closesHoursBefore > 0) {
+        : earlier
+          ? `Less than ${earlier.closesHoursBefore} hours before check-in`
+          : "Any time before check-in";
+    return { step: shareWords(tier.refundBps), when, worth: naira(Math.round((paid * tier.refundBps) / 10_000), currency) };
+  });
+  if (!lastTier || lastTier.closesHoursBefore > 0 || lastTier.refundBps > 0) {
     steps.push({
       step: "Nothing back",
-      when: lastTier ? `Less than ${lastTier.closesHoursBefore} hours before check-in` : "Any time",
+      when:
+        lastTier && lastTier.closesHoursBefore > 0
+          ? `Less than ${lastTier.closesHoursBefore} hours before check-in`
+          : "From check-in time onwards",
       worth: naira(0, currency),
     });
   }
