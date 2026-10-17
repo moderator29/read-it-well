@@ -16,6 +16,9 @@ import { phone } from "../engine/phone.js";
    modules; the films reach them through the kit like everything else. */
 export { popOut, figureOut, badgeDisc } from "./popout.js";
 export { slabWipe, shutter, irisTicks, tileFall, whipPan } from "./transitions.js";
+/* The three short films' opening frames (17 October: none of them may reuse
+   the onboarding artwork Videos One and Two open on). */
+export { openerClock, openerReward, openerOwner } from "./openers.js";
 
 export const DW = 1320;
 export const DH = 2868;

@@ -72,23 +72,32 @@ Vallo. Real estate, done right.
 **Direction:** brighter than film one, but still honest. The figures are the
 spine: give them room. Do not sell the money; state it.
 
+> **Corrected 17 October, before recording.** The first draft said a friend
+> "finishes verifying who they are", that there is "no limit on how many
+> friends you bring" and that there is "no small print". The live programme
+> (migration `d85_referral_signup_80_invite_and_earn`, applied 8 October, and
+> the Rewards screen itself) pays ₦80 when the friend **signs up fully**, and
+> counts **up to 1,500 qualified referrals a month**. A film that says "no
+> limit" while showing the screen that says 1,500 contradicts itself, so the
+> lines now say what the product says. **Record this version, not the first
+> one.**
+
 ```
 [bright]  Vallo pays you to bring people who are serious.
 
 Share your invite link.
 
-When a friend signs up with it and finishes verifying who they are,
-you earn eighty naira.
+When a friend signs up fully with your link, you earn eighty naira.
 
 [calm]  Not for a click. Not for a download.
 For a real person, fully signed up.
 
-Your rewards balance sits in your account and you watch it climb.
+Your Rewards Balance is what Vallo owes you, and you watch it climb.
 
-At one thousand naira, you can withdraw it.
+At one thousand naira, you can withdraw it to your bank.
 
-[settled]  No limit on how many friends you bring,
-and no catch in the small print, because there is no small print.
+[settled]  Up to fifteen hundred friends a month, and the terms
+sit on the screen, not in small print.
 
 [warm]  Share the link. Earn as they join.
 
@@ -102,6 +111,12 @@ Vallo. Real estate, done right.
 **Direction:** the steadiest of the three. This one is spoken to owners and
 agents, so it is matter of fact, not excited. Let "no agency fee" sit.
 
+> **Corrected 17 October, before recording.** The first draft ended that line
+> "and it is live". Every workspace on Vallo is an application — the flow's
+> own last step is "Check and send", and the Add a workspace screen says each
+> workspace "gets its own tools and its own checks" — so a place is not live
+> the moment it is described. **Record this version, not the first one.**
+
 ```
 [calm]  If you own a place, you can list it yourself.
 
@@ -109,7 +124,7 @@ No agency fee. No middle man taking a cut you did not agree to.
 
 Add a workspace, tell Vallo what the place is,
 set your price and what it includes...
-and it is live.
+and send it for its checks.
 
 [settled]  Renters see the whole cost on the listing,
 so the people who call you have already seen the real number.

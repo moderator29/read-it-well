@@ -1,0 +1,642 @@
+{
+ "fps": 60,
+ "duration": 50.704,
+ "provisional": true,
+ "voice": {
+  "plan": [],
+  "end": 48.304
+ },
+ "music": {
+  "bpm": 104,
+  "beat": 0.576923,
+  "bar": 2.307692
+ },
+ "sentences": [
+  {
+   "i": 1,
+   "start": 0.6,
+   "end": 4.513,
+   "text": "Vallo pays you to bring people who are serious."
+  },
+  {
+   "i": 2,
+   "start": 5.313,
+   "end": 7.052,
+   "text": "Share your invite link."
+  },
+  {
+   "i": 3,
+   "start": 7.852,
+   "end": 13.504,
+   "text": "When a friend signs up fully with your link, you earn eighty naira."
+  },
+  {
+   "i": 4,
+   "start": 14.304,
+   "end": 20.826,
+   "text": "Not for a click. Not for a download. For a real person, fully signed up."
+  },
+  {
+   "i": 5,
+   "start": 21.626,
+   "end": 27.278,
+   "text": "Your Rewards Balance is what Vallo owes you, and you watch it climb."
+  },
+  {
+   "i": 6,
+   "start": 28.078,
+   "end": 32.861,
+   "text": "At one thousand naira, you can withdraw it to your bank."
+  },
+  {
+   "i": 7,
+   "start": 33.661,
+   "end": 41.487,
+   "text": "Up to fifteen hundred friends a month, and the terms sit on the screen, not in small print."
+  },
+  {
+   "i": 8,
+   "start": 42.287,
+   "end": 45.33,
+   "text": "Share the link. Earn as they join."
+  },
+  {
+   "i": 9,
+   "start": 46.13,
+   "end": 48.304,
+   "text": "Vallo. Real estate, done right."
+  }
+ ],
+ "words": [
+  {
+   "sentence": 1,
+   "word": "Vallo",
+   "start": 0.6,
+   "end": 1.074
+  },
+  {
+   "sentence": 1,
+   "word": "pays",
+   "start": 1.115,
+   "end": 1.494
+  },
+  {
+   "sentence": 1,
+   "word": "you",
+   "start": 1.527,
+   "end": 1.811
+  },
+  {
+   "sentence": 1,
+   "word": "to",
+   "start": 1.836,
+   "end": 2.025
+  },
+  {
+   "sentence": 1,
+   "word": "bring",
+   "start": 2.042,
+   "end": 2.515
+  },
+  {
+   "sentence": 1,
+   "word": "people",
+   "start": 2.557,
+   "end": 3.125
+  },
+  {
+   "sentence": 1,
+   "word": "who",
+   "start": 3.174,
+   "end": 3.459
+  },
+  {
+   "sentence": 1,
+   "word": "are",
+   "start": 3.483,
+   "end": 3.768
+  },
+  {
+   "sentence": 1,
+   "word": "serious.",
+   "start": 3.792,
+   "end": 4.455
+  },
+  {
+   "sentence": 2,
+   "word": "Share",
+   "start": 5.313,
+   "end": 5.734
+  },
+  {
+   "sentence": 2,
+   "word": "your",
+   "start": 5.771,
+   "end": 6.108
+  },
+  {
+   "sentence": 2,
+   "word": "invite",
+   "start": 6.137,
+   "end": 6.642
+  },
+  {
+   "sentence": 2,
+   "word": "link.",
+   "start": 6.686,
+   "end": 7.023
+  },
+  {
+   "sentence": 3,
+   "word": "When",
+   "start": 7.852,
+   "end": 8.237
+  },
+  {
+   "sentence": 3,
+   "word": "a",
+   "start": 8.271,
+   "end": 8.463
+  },
+  {
+   "sentence": 3,
+   "word": "friend",
+   "start": 8.48,
+   "end": 9.058
+  },
+  {
+   "sentence": 3,
+   "word": "signs",
+   "start": 9.108,
+   "end": 9.59
+  },
+  {
+   "sentence": 3,
+   "word": "up",
+   "start": 9.632,
+   "end": 9.824
+  },
+  {
+   "sentence": 3,
+   "word": "fully",
+   "start": 9.841,
+   "end": 10.322
+  },
+  {
+   "sentence": 3,
+   "word": "with",
+   "start": 10.364,
+   "end": 10.749
+  },
+  {
+   "sentence": 3,
+   "word": "your",
+   "start": 10.783,
+   "end": 11.168
+  },
+  {
+   "sentence": 3,
+   "word": "link,",
+   "start": 11.202,
+   "end": 11.587
+  },
+  {
+   "sentence": 3,
+   "word": "you",
+   "start": 11.62,
+   "end": 11.909
+  },
+  {
+   "sentence": 3,
+   "word": "earn",
+   "start": 11.934,
+   "end": 12.319
+  },
+  {
+   "sentence": 3,
+   "word": "eighty",
+   "start": 12.353,
+   "end": 12.931
+  },
+  {
+   "sentence": 3,
+   "word": "naira.",
+   "start": 12.981,
+   "end": 13.462
+  },
+  {
+   "sentence": 4,
+   "word": "Not",
+   "start": 14.304,
+   "end": 14.62
+  },
+  {
+   "sentence": 4,
+   "word": "for",
+   "start": 14.648,
+   "end": 14.963
+  },
+  {
+   "sentence": 4,
+   "word": "a",
+   "start": 14.991,
+   "end": 15.201
+  },
+  {
+   "sentence": 4,
+   "word": "click.",
+   "start": 15.22,
+   "end": 15.746
+  },
+  {
+   "sentence": 4,
+   "word": "Not",
+   "start": 15.792,
+   "end": 16.108
+  },
+  {
+   "sentence": 4,
+   "word": "for",
+   "start": 16.135,
+   "end": 16.451
+  },
+  {
+   "sentence": 4,
+   "word": "a",
+   "start": 16.478,
+   "end": 16.689
+  },
+  {
+   "sentence": 4,
+   "word": "download.",
+   "start": 16.707,
+   "end": 17.549
+  },
+  {
+   "sentence": 4,
+   "word": "For",
+   "start": 17.622,
+   "end": 17.938
+  },
+  {
+   "sentence": 4,
+   "word": "a",
+   "start": 17.966,
+   "end": 18.176
+  },
+  {
+   "sentence": 4,
+   "word": "real",
+   "start": 18.195,
+   "end": 18.616
+  },
+  {
+   "sentence": 4,
+   "word": "person,",
+   "start": 18.652,
+   "end": 19.284
+  },
+  {
+   "sentence": 4,
+   "word": "fully",
+   "start": 19.339,
+   "end": 19.865
+  },
+  {
+   "sentence": 4,
+   "word": "signed",
+   "start": 19.911,
+   "end": 20.542
+  },
+  {
+   "sentence": 4,
+   "word": "up.",
+   "start": 20.597,
+   "end": 20.808
+  },
+  {
+   "sentence": 5,
+   "word": "Your",
+   "start": 21.626,
+   "end": 22.011
+  },
+  {
+   "sentence": 5,
+   "word": "Rewards",
+   "start": 22.045,
+   "end": 22.719
+  },
+  {
+   "sentence": 5,
+   "word": "Balance",
+   "start": 22.777,
+   "end": 23.452
+  },
+  {
+   "sentence": 5,
+   "word": "is",
+   "start": 23.51,
+   "end": 23.703
+  },
+  {
+   "sentence": 5,
+   "word": "what",
+   "start": 23.719,
+   "end": 24.105
+  },
+  {
+   "sentence": 5,
+   "word": "Vallo",
+   "start": 24.138,
+   "end": 24.62
+  },
+  {
+   "sentence": 5,
+   "word": "owes",
+   "start": 24.662,
+   "end": 25.047
+  },
+  {
+   "sentence": 5,
+   "word": "you,",
+   "start": 25.08,
+   "end": 25.369
+  },
+  {
+   "sentence": 5,
+   "word": "and",
+   "start": 25.394,
+   "end": 25.683
+  },
+  {
+   "sentence": 5,
+   "word": "you",
+   "start": 25.708,
+   "end": 25.997
+  },
+  {
+   "sentence": 5,
+   "word": "watch",
+   "start": 26.022,
+   "end": 26.504
+  },
+  {
+   "sentence": 5,
+   "word": "it",
+   "start": 26.546,
+   "end": 26.738
+  },
+  {
+   "sentence": 5,
+   "word": "climb.",
+   "start": 26.755,
+   "end": 27.236
+  },
+  {
+   "sentence": 6,
+   "word": "At",
+   "start": 28.078,
+   "end": 28.278
+  },
+  {
+   "sentence": 6,
+   "word": "one",
+   "start": 28.296,
+   "end": 28.596
+  },
+  {
+   "sentence": 6,
+   "word": "thousand",
+   "start": 28.622,
+   "end": 29.422
+  },
+  {
+   "sentence": 6,
+   "word": "naira,",
+   "start": 29.491,
+   "end": 29.991
+  },
+  {
+   "sentence": 6,
+   "word": "you",
+   "start": 30.035,
+   "end": 30.335
+  },
+  {
+   "sentence": 6,
+   "word": "can",
+   "start": 30.361,
+   "end": 30.661
+  },
+  {
+   "sentence": 6,
+   "word": "withdraw",
+   "start": 30.687,
+   "end": 31.487
+  },
+  {
+   "sentence": 6,
+   "word": "it",
+   "start": 31.557,
+   "end": 31.757
+  },
+  {
+   "sentence": 6,
+   "word": "to",
+   "start": 31.774,
+   "end": 31.974
+  },
+  {
+   "sentence": 6,
+   "word": "your",
+   "start": 31.991,
+   "end": 32.391
+  },
+  {
+   "sentence": 6,
+   "word": "bank.",
+   "start": 32.426,
+   "end": 32.826
+  },
+  {
+   "sentence": 7,
+   "word": "Up",
+   "start": 33.661,
+   "end": 33.861
+  },
+  {
+   "sentence": 7,
+   "word": "to",
+   "start": 33.878,
+   "end": 34.078
+  },
+  {
+   "sentence": 7,
+   "word": "fifteen",
+   "start": 34.096,
+   "end": 34.796
+  },
+  {
+   "sentence": 7,
+   "word": "hundred",
+   "start": 34.857,
+   "end": 35.557
+  },
+  {
+   "sentence": 7,
+   "word": "friends",
+   "start": 35.617,
+   "end": 36.317
+  },
+  {
+   "sentence": 7,
+   "word": "a",
+   "start": 36.378,
+   "end": 36.578
+  },
+  {
+   "sentence": 7,
+   "word": "month,",
+   "start": 36.596,
+   "end": 37.096
+  },
+  {
+   "sentence": 7,
+   "word": "and",
+   "start": 37.139,
+   "end": 37.439
+  },
+  {
+   "sentence": 7,
+   "word": "the",
+   "start": 37.465,
+   "end": 37.765
+  },
+  {
+   "sentence": 7,
+   "word": "terms",
+   "start": 37.791,
+   "end": 38.291
+  },
+  {
+   "sentence": 7,
+   "word": "sit",
+   "start": 38.335,
+   "end": 38.635
+  },
+  {
+   "sentence": 7,
+   "word": "on",
+   "start": 38.661,
+   "end": 38.861
+  },
+  {
+   "sentence": 7,
+   "word": "the",
+   "start": 38.878,
+   "end": 39.178
+  },
+  {
+   "sentence": 7,
+   "word": "screen,",
+   "start": 39.204,
+   "end": 39.804
+  },
+  {
+   "sentence": 7,
+   "word": "not",
+   "start": 39.857,
+   "end": 40.157
+  },
+  {
+   "sentence": 7,
+   "word": "in",
+   "start": 40.183,
+   "end": 40.383
+  },
+  {
+   "sentence": 7,
+   "word": "small",
+   "start": 40.4,
+   "end": 40.9
+  },
+  {
+   "sentence": 7,
+   "word": "print.",
+   "start": 40.943,
+   "end": 41.443
+  },
+  {
+   "sentence": 8,
+   "word": "Share",
+   "start": 42.287,
+   "end": 42.825
+  },
+  {
+   "sentence": 8,
+   "word": "the",
+   "start": 42.872,
+   "end": 43.195
+  },
+  {
+   "sentence": 8,
+   "word": "link.",
+   "start": 43.223,
+   "end": 43.654
+  },
+  {
+   "sentence": 8,
+   "word": "Earn",
+   "start": 43.692,
+   "end": 44.122
+  },
+  {
+   "sentence": 8,
+   "word": "as",
+   "start": 44.16,
+   "end": 44.375
+  },
+  {
+   "sentence": 8,
+   "word": "they",
+   "start": 44.394,
+   "end": 44.825
+  },
+  {
+   "sentence": 8,
+   "word": "join.",
+   "start": 44.862,
+   "end": 45.293
+  },
+  {
+   "sentence": 9,
+   "word": "Vallo.",
+   "start": 46.13,
+   "end": 46.547
+  },
+  {
+   "sentence": 9,
+   "word": "Real",
+   "start": 46.583,
+   "end": 46.917
+  },
+  {
+   "sentence": 9,
+   "word": "estate,",
+   "start": 46.946,
+   "end": 47.446
+  },
+  {
+   "sentence": 9,
+   "word": "done",
+   "start": 47.489,
+   "end": 47.822
+  },
+  {
+   "sentence": 9,
+   "word": "right.",
+   "start": 47.851,
+   "end": 48.268
+  }
+ ]
+}
