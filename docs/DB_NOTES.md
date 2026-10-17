@@ -5,6 +5,21 @@ The Supabase connector used by agents waits for a confirmation on any statement 
 seconds. Run them in the Supabase dashboard SQL editor instead. Everything else is applied through
 the connector and recorded in `supabase/migrations/APPLIED.txt`.
 
+## URGENT: run before anything else (17 October 2026)
+
+The Supabase connector in the 17 October session had no access to project
+`uccixoonmbhrnyczyigt`, so this fix is written but not applied. It closes a
+live privacy hole: since pov05 (13 October), a guest whose stay is confirmed but
+unpaid is shown the address, check-in times, host name and, for a listing stay,
+the gate access code, and an unpaid stay can be checked in. The CI probes
+`d75b-stay-trip-details` and `p1_f_stay_events` have failed on every run since.
+
+Paste `supabase/migrations/pending/pd01_booking_is_paid_never_null.sql` (one
+`create or replace function`, no DELETE or DROP, so the connector can apply it
+too). Then run the probes `booking-is-paid-never-null`, `d75b-stay-trip-details`
+and `p1_f_stay_events`. Record the file with the version the database gives it
+(`node scripts/check-migrations.mjs --record ...`) and delete it from `pending/`.
+
 ## What is left, and it is optional
 
 Two housekeeping statements cannot be run through the connector (it freezes on `DELETE` and on
