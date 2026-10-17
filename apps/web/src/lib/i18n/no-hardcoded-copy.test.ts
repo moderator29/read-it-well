@@ -44,6 +44,8 @@ const SURFACES = [
   /* A stay's booking page, its review, cancelling it and the getting-there panel. */
   "app/(app)/bookings",
   "components/app/bookings",
+  /* The host wizard's drawn stays screens. */
+  "components/host/stays",
 ];
 
 /** Props whose string value is read or announced. */
