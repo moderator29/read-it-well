@@ -143,6 +143,49 @@ export async function confirmTableBill(billId: string): Promise<ActionResult<{ c
   return ok({ confirmed: true });
 }
 
+/**
+ * NOBODY DECIDES THEIR OWN TABLE, AND ONLY AN OPEN DISAGREEMENT IS DECIDED.
+ *
+ * `reservation_resolve_seating` checks only that the caller is staff, so a
+ * staff member who booked the table, or owns or lists the restaurant, could
+ * settle it in their own favour (the fee per seated table and the right to
+ * review both follow the outcome), and any table could be overruled whether
+ * or not anybody disputed it. Read with the service client, because staff
+ * RLS does not reach every row this needs. The pending migration
+ * `20261017141000_seating_dispute_guards` makes the database refuse the same.
+ */
+async function seatingDisputeRefusal(reservationId: string): Promise<string | null> {
+  const session = await resolveSession();
+  if (session.state !== "signed-in") return null;
+  const admin = getAdminClient();
+  if (!admin) return "not_found";
+  const db = admin as unknown as SupabaseClient;
+  const [reservation, seating] = await Promise.all([
+    db.from("reservations").select("guest_id, business_id, listing_id").eq("id", reservationId).maybeSingle(),
+    db.from("reservation_seatings").select("disputed_at, dispute_resolved_at").eq("reservation_id", reservationId).maybeSingle(),
+  ]);
+  if (reservation.error || seating.error) return "not_found";
+  const row = reservation.data as { guest_id: string | null; business_id: string | null; listing_id: string | null } | null;
+  if (!row) return "not_found";
+  const me = session.user.id;
+  if (row.guest_id === me) return "own_table";
+  if (row.business_id) {
+    const owner = await db.from("businesses").select("owner_id").eq("id", row.business_id).maybeSingle();
+    if (owner.error) return "not_found";
+    if ((owner.data as { owner_id: string | null } | null)?.owner_id === me) return "own_table";
+  }
+  if (row.listing_id) {
+    const lister = await db.from("listings").select("agents!listings_agent_id_fkey(user_id)").eq("id", row.listing_id).maybeSingle();
+    if (lister.error) return "not_found";
+    const agent = (lister.data as { agents: { user_id: string | null } | { user_id: string | null }[] | null } | null)?.agents;
+    const userIds = (Array.isArray(agent) ? agent : agent ? [agent] : []).map((a) => a.user_id);
+    if (userIds.includes(me)) return "own_table";
+  }
+  const seat = seating.data as { disputed_at: string | null; dispute_resolved_at: string | null } | null;
+  if (!seat?.disputed_at || seat.dispute_resolved_at) return "not_disputed";
+  return null;
+}
+
 /** Staff decide a disagreement between a restaurant and a diner. */
 export async function resolveSeatingDispute(
   reservationId: string,
@@ -151,6 +194,8 @@ export async function resolveSeatingDispute(
   if (!UUID.test(reservationId ?? "") || (outcome !== "SEATED" && outcome !== "NO_SHOW")) {
     return fail(seatingRefusal("bad_outcome"));
   }
+  const refusal = await seatingDisputeRefusal(reservationId);
+  if (refusal) return fail(seatingRefusal(refusal));
   const result = await callAsMe("reservation_resolve_seating", { p_reservation: reservationId, p_outcome: outcome });
   if (!result.ok) return result;
   if (result.data.status !== "resolved") return fail(seatingRefusal(result.data.status));
