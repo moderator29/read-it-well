@@ -9,15 +9,16 @@ import { CODE_START, type CodeSignInState } from "@/lib/auth/code-sign-in-state"
 import { sendEmailSignInCode, verifyEmailSignInCode } from "@/lib/auth/email-code";
 import { sendPhoneSignInCode, verifyPhoneSignInCode } from "@/lib/auth/phone-sign-in";
 import { RESEND_WAIT_SECONDS, resendLabel } from "@/lib/auth/mail-app";
-import { codeLengthWord } from "@/lib/auth/confirmation-code";
+import { CONFIRMATION_CODE_LENGTH, codeLengthWord } from "@/lib/auth/confirmation-code";
 import { Button } from "@/components/ui/Button";
 import { CodeInput } from "./CodeInput";
 import { Field } from "./fields";
 import { AuthPillButton } from "./slate";
 
-/* A sign-in code is six digits (`isSixDigits`), whatever length the sign-up
-   confirmation uses. */
-const SIGN_IN_CODE_LENGTH = 6;
+/* An email code comes from the same GoTrue setting as the sign-up
+   confirmation code, so it has the same length (`confirmation-code.ts`); a
+   phone code is six digits (`isSixDigits`). */
+const PHONE_CODE_LENGTH = 6;
 
 type Mode = "email" | "phone";
 
@@ -34,6 +35,7 @@ type Mode = "email" | "phone";
  */
 export function CodeSignInForm({ mode, t, next }: { mode: Mode; t: Dictionary; next?: string }) {
   const copy = mode === "email" ? t.publicDoors.emailCode : t.publicDoors.phone;
+  const codeLength = mode === "email" ? CONFIRMATION_CODE_LENGTH : PHONE_CODE_LENGTH;
   const [sent, send, sending] = useActionState<CodeSignInState, FormData>(
     mode === "email" ? sendEmailSignInCode : sendPhoneSignInCode,
     CODE_START,
@@ -85,7 +87,7 @@ export function CodeSignInForm({ mode, t, next }: { mode: Mode; t: Dictionary; n
   const onDigits = (value: string) => {
     const digits = value.replace(/\D/g, "");
     setCode(digits);
-    if (digits.length === SIGN_IN_CODE_LENGTH && !verifying) verifyForm.current?.requestSubmit();
+    if (digits.length === codeLength && !verifying) verifyForm.current?.requestSubmit();
   };
 
   return (
@@ -144,13 +146,13 @@ export function CodeSignInForm({ mode, t, next }: { mode: Mode; t: Dictionary; n
             id="code-digits"
             name="code"
             label={copy.codeLabel}
-            length={SIGN_IN_CODE_LENGTH}
+            length={codeLength}
             value={code}
             onChange={onDigits}
             error={state.error === "badCode" ? copy.badCode : state.error === "wrongCode" ? copy.wrongCode : undefined}
             wrongCount={wrongCount}
             placeholder="123456"
-            cellsLabel={t.authFlow.codeCells.replace("{count}", codeLengthWord(SIGN_IN_CODE_LENGTH))}
+            cellsLabel={t.authFlow.codeCells.replace("{count}", codeLengthWord(codeLength))}
           />
           {state.error && state.error !== "badCode" && state.error !== "wrongCode" && message && (
             <p role="alert" className="nf-auth__notice">
