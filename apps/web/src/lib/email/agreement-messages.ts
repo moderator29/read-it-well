@@ -49,7 +49,8 @@ export function agreementApproved(data: AgreementEmailData): EmailMessage {
     [
       heading("Agreement approved"),
       paragraph(
-        `${hello(data.name)} Vallo reviewed the agreement for ${place(data)} that both of you confirmed, and approved it.`,
+        /* Approval is usually the system's, on the second confirmation (D83); only a flagged card deal is approved by a person. */
+        `${hello(data.name)} The agreement for ${place(data)} that both of you confirmed is approved.`,
       ),
       rows(facts(data)),
       paragraph(
