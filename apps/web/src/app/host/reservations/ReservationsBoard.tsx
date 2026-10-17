@@ -1,5 +1,6 @@
 "use client";
 
+import { dateTimeLabel, dayLabel as naturalDay } from "@/lib/format/when";
 import { createContext, useActionState, useContext, useEffect, useId, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -87,16 +88,14 @@ function timeLabel(iso: string): string {
   return at.toLocaleTimeString(DIGITS, { timeZone: LAGOS, hour: "2-digit", minute: "2-digit", hour12: false });
 }
 
+/** "Today", "Tomorrow", "Yesterday", then "Sat 25 Oct", on Lagos time (`lib/format/when`). */
 function dayLabel(iso: string): string {
-  const at = new Date(iso);
-  if (Number.isNaN(at.getTime())) return "";
-  return at.toLocaleDateString(DIGITS, { timeZone: LAGOS, weekday: "short", day: "numeric", month: "short" });
+  return naturalDay(iso);
 }
 
+/** "Today, 19:30", "Tomorrow, 13:00", then "Sat 25 Oct, 19:30". */
 function whenLabel(iso: string): string {
-  const day = dayLabel(iso);
-  const time = timeLabel(iso);
-  return day && time ? `${day}, ${time}` : "";
+  return dateTimeLabel(iso);
 }
 
 function partyLabel(size: number, locale: Locale): string {
