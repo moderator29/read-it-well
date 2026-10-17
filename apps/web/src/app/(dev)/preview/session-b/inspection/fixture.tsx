@@ -4,6 +4,7 @@ import { InspectionHero, InspectionSheet } from "@/components/app/inspections/In
 import type { InspectionState } from "@/lib/inspections/types";
 import { ROOM_ITEMS } from "@/lib/inspections/report";
 import { INSPECTION, INSPECTION_FACTS } from "../../f5/fixtures";
+import { requestNow } from "@/lib/landlord/facts";
 
 /** Three days from the request, on the hour: a viewing still ahead. */
 function aheadOfNow(): string {
@@ -85,7 +86,7 @@ export async function InspectionFixture({
               ? {
                   reportedByMe: noShowParam === "mine",
                   absentRole: side === "lister" ? "lister" : "requester",
-                  reportedAt: new Date(Date.now() - 3 * 3_600_000).toISOString(),
+                  reportedAt: new Date(requestNow() - 3 * 3_600_000).toISOString(),
                   disputedAt: noShowParam === "disputed" ? new Date().toISOString() : null,
                   resolution: null,
                 }

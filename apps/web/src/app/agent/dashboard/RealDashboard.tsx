@@ -248,7 +248,7 @@ export function RealDashboard({
         {workspace?.role === "owner" ? (
           <OwnerBody view={workspace.view} places={workspace.places} t={t} locale={locale} />
         ) : workspace?.role === "agent" ? (
-          <AgentBody dash={workspace.dash} now={now ?? new Date()} today={lagosDay(now ?? new Date())} t={t} locale={locale} />
+          <AgentBody dash={workspace.dash} today={lagosDay(now ?? new Date())} t={t} locale={locale} />
         ) : null}
         {workspace?.role === "owner" ? null : figure}
         {listedInspections.length > 0 || (workspace?.role !== "owner" && numbers.totalListings > 0) ? (
