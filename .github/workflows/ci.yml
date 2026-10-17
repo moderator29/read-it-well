@@ -360,6 +360,9 @@ jobs:
   # and the passcode stop a headless browser at the real desks, which is why
   # the harness is the door. Serious or critical axe findings, a confirm panel
   # that loses focus, or a sidebar the keyboard cannot walk fail the job.
+  # The same spec scans the signed-in member screens through the harness
+  # (`MEMBER_ROUTES`: home, search, listing, stays, checkout, saved,
+  # messages, notifications, profile, settings, feed, wallet).
   # `host.spec.mjs` then walks every host route signed out (and signed in when
   # the QA secrets exist).
   desks-a11y:
