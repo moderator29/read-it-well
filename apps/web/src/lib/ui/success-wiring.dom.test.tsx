@@ -563,7 +563,7 @@ const TABLE = `
   import { mount } from "@/lib/testing/browser-root";
   import { getDictionary } from "@vallo/i18n";
   import { ReserveTable } from "@/app/(app)/listing/[id]/ReserveTable";
-  mount(<ReserveTable listingId="l-1" success={getDictionary("en").success} />);
+  mount(<ReserveTable listingId="l-1" success={getDictionary("en").success} copy={getDictionary("en").memberFlows} locale="en" />);
 `;
 
 /* Today's seatings can all have passed (the form never offers a past time,

@@ -700,7 +700,7 @@ export default async function ListingDetailPage({
     </div>
   ) : isRestaurant ? (
     <div className="flex flex-col gap-md">
-      <ReserveTable listingId={listing.id} messageHref={messageHref} success={t.success} />
+      <ReserveTable listingId={listing.id} messageHref={messageHref} success={t.success} copy={t.memberFlows} locale={locale} />
       <RestaurantPanel listing={listing} locale={locale} messageHref={messageHref} t={t} />
     </div>
   ) : isRental || isSale ? (
@@ -751,6 +751,7 @@ export default async function ListingDetailPage({
       success={t.success}
       door={toDoorCharges(doorDeclared, t.afterTheGate.arrival)}
       doorCopy={t.afterTheGate.arrival}
+      copy={t.memberFlows}
     />
   );
 

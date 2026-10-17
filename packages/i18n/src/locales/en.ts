@@ -16,6 +16,7 @@ import { cryptoPayEn } from "./crypto-pay.en";
 import { trustVisibleEn } from "./trust-visible.en";
 import { memberKitEn } from "./member-kit.en";
 import { visitEn } from "./visit.en";
+import { memberFlowsEn } from "./member-flows.en";
 import { landlordEn } from "./landlord.en";
 import { trustDoorsEn } from "./trust-doors.en";
 import { publicDoorsEn } from "./public-doors.en";
@@ -5912,6 +5913,7 @@ export const en = {
   memberKit: memberKitEn,
   /* Schedule a visit: the two-step flow at /listing/[id]/visit. */
   visit: visitEn,
+  memberFlows: memberFlowsEn,
   /* The small things: one toast, copy, connection, pull to refresh. */
   details: detailsEn,
 
