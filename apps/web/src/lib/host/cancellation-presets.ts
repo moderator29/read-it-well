@@ -2,7 +2,7 @@
  * THE CANCELLATION POLICIES A HOST PICKS FROM, AND HOW EVERY ONE IS SAID.
  *
  * Four presets, the shape Airbnb and Booking.com use: Flexible, Moderate, Firm
- * and Strict (`20261013090000_four_preset_cancellation_policies.sql`). The
+ * and Strict (`20261013062641_four_preset_cancellation_policies.sql`). The
  * refund tiers live in `cancellation_policies.rules` as
  * `[{hours_before, refund_bps}]`, and `refundLines` turns those tiers into the
  * sentences the host reads in the wizard and the guest reads on the stay page
