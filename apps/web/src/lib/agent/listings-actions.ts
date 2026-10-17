@@ -49,6 +49,7 @@ import type { SupabaseClient, User } from "@supabase/supabase-js";
 import type { Database } from "../supabase/database.types";
 import { SCRUB_REFUSED_MESSAGE, scrubPublicPhoto } from "../images/scrub";
 import { inspectStoredVideo } from "./video-inspect";
+import { inListingFolder } from "./media-path";
 import {
   PHOTO_BUCKET,
   VIDEO_BUCKET,
@@ -597,18 +598,6 @@ function formatKobo(minor: number): string {
   const naira = (minor - kobo) / 100;
   const grouped = naira.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   return kobo === 0 ? `${grouped} naira` : `${grouped}.${String(kobo).padStart(2, "0")} naira`;
-}
-
-/**
- * True when a storage path sits in the caller's own folder FOR THIS LISTING,
- * `<auth uid>/<listing id>/<file>`, which is the only shape the wizard
- * writes. The uid prefix alone let a path from another of the caller's
- * listings be attached here, and the refusal clean-up (which only touches
- * this listing's folder) could then never remove it.
- */
-function inListingFolder(path: string, userId: string, listingId: string): boolean {
-  const parts = path.split("/");
-  return parts.length === 3 && parts[0] === userId && parts[1] === listingId && parts[2]!.length > 0;
 }
 
 /**
