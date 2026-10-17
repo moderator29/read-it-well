@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { dateTimeLabel } from "@/lib/format/when";
 import Image from "next/image";
-import { formatMoney, getDictionary, plural, type Locale } from "@vallo/i18n";
+import { formatMoney, getDictionary, plural, type Dictionary, type Locale } from "@vallo/i18n";
 import { Disclosure } from "@/components/app/Disclosure";
 import { ICON, TYPE } from "@/components/app/Screen";
 import { StatusPill } from "@/components/ui/StatusPill";
@@ -189,6 +189,7 @@ export function TripSpine({
               statusWord={words[item.status]}
               payLabel={bookingCopy.payNow}
               reviewLabel={bookingCopy.leaveReview}
+              cancelWords={t.memberFlows.cancelBooking}
             />
           ))}
         </ol>
@@ -214,6 +215,7 @@ export function TripSpine({
                   statusWord={words[item.status]}
                   payLabel={bookingCopy.payNow}
                   reviewLabel={bookingCopy.leaveReview}
+                  cancelWords={t.memberFlows.cancelBooking}
                   muted
                 />
               ))}
@@ -233,7 +235,10 @@ function SpineRow({
   muted = false,
   payLabel,
   reviewLabel,
+  cancelWords,
 }: {
+  /** The cancel control's words (`memberFlows.cancelBooking`). */
+  cancelWords: Dictionary["memberFlows"]["cancelBooking"];
   item: TripItem;
   today: boolean;
   todayLabel: string;
@@ -365,7 +370,7 @@ function SpineRow({
               {reviewLabel}
             </Link>
           )}
-          {item.booking.cancellable && <CancelBookingControl booking={item.booking} />}
+          {item.booking.cancellable && <CancelBookingControl booking={item.booking} words={cancelWords} />}
         </div>
       )}
       </div>

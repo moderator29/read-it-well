@@ -16,6 +16,7 @@ import { cryptoPayEn } from "./crypto-pay.en";
 import { trustVisibleEn } from "./trust-visible.en";
 import { memberKitEn } from "./member-kit.en";
 import { visitEn } from "./visit.en";
+import { memberFlowsEn } from "./member-flows.en";
 import { landlordEn } from "./landlord.en";
 import { trustDoorsEn } from "./trust-doors.en";
 import { publicDoorsEn } from "./public-doors.en";
@@ -4728,6 +4729,8 @@ export const en = {
       viewTrips: "View your plans",
       viewProperty: "View the property",
       viewRestaurant: "View the restaurant",
+      /** A renter in a listing thread with no viewing yet: the way to ask for one. */
+      askViewing: "Ask to view this home",
     },
     rental: {
       waitingOnYou: "They asked to inspect this place. Your answer goes to them and to their inspections list.",
@@ -4761,6 +4764,43 @@ export const en = {
       outcomeDealDone: "Inspected, and we have a deal",
       outcomeNoDeal: "Inspected, no deal",
       outcomeSave: "Save",
+      /* The moves the thread face, the inspection card and the dashboard rows
+         share (`viewing-words.ts`), moved into the dictionary in the language
+         audit (17 October 2026) so they read in the reader's language. */
+      confirm: "Confirm",
+      cancelViewing: "Cancel viewing",
+      cancelledNote: "Cancelled.",
+      openChat: "Open the chat",
+      lagosTime: "Lagos time",
+      reasonLabel: "Tell them why (optional)",
+      offerBody: "They will see the time you offer and can take it in one tap. The time they asked for stays on the record.",
+      offerPlaceholder: "The gate closes at 6, so earlier is better",
+      rescheduleBody:
+        "The viewing stops being confirmed until they take the new time. They are told straight away, and the time they asked for stays on the record.",
+      listerCancelTitle: "Cancel this viewing?",
+      listerCancelBody: "They will be told the viewing is off. If another day suits you, offer another time instead.",
+      cancelConfirm: "Yes, cancel it",
+      withdrawTitle: "Withdraw this request?",
+      withdrawBody: "The lister will see that you withdrew. You can ask again from the listing.",
+      withdrawConfirm: "Yes, withdraw",
+      renterCancelBody: "The lister will be told you are not coming. You can ask for another time from the listing.",
+      noShowRenterTitle: "The renter did not come?",
+      noShowListerTitle: "Nobody came to show it?",
+      noShowRenterBody:
+        "They will be told you marked them as a no-show, and they can dispute it within 48 hours. Vallo looks at every dispute.",
+      noShowListerBody:
+        "The lister will be told you marked them as a no-show, and they can dispute it within 48 hours. Vallo looks at every dispute.",
+      whatHappened: "What happened (optional)",
+      noShowConfirm: "Yes, mark as a no-show",
+      disputeTitle: "Dispute this no-show?",
+      disputeBody: "Tell Vallo you were there. Someone on the team will look at both sides and tell you both what they decide.",
+      disputeSend: "Send the dispute",
+      markRenterNoShow: "The renter did not come",
+      markListerNoShow: "Nobody came to show it",
+      noShowBadge: "No-show",
+      disputeThis: "Dispute this",
+      noShowSettled: "Marked as a no-show. They can dispute it within 48 hours.",
+      failed: "That did not go through.",
     },
     reservation: {
       tableFor: "table for {count}",
@@ -5923,6 +5963,7 @@ export const en = {
   memberKit: memberKitEn,
   /* Schedule a visit: the two-step flow at /listing/[id]/visit. */
   visit: visitEn,
+  memberFlows: memberFlowsEn,
   /* The small things: one toast, copy, connection, pull to refresh. */
   details: detailsEn,
 
@@ -6769,6 +6810,14 @@ export const en = {
       describePlain: "Posted by {name}",
       describeLandlord: "Posted by {name}, a landlord",
       describeAgent: "Posted by {name}, an agent",
+      /** The action pills' accessible names. `{count}` is the compact count ("1.2K"). */
+      likedUndo: "Liked, {count}. Undo",
+      like: "Likes {count}, like this",
+      repostedUndo: "Reposted, {count}. Undo",
+      repost: "Reposts {count}, repost this",
+      share: "Share this post",
+      savedRemove: "Saved. Remove from saved",
+      save: "Save this post",
     },
     composer: {
       cancel: "Cancel",
