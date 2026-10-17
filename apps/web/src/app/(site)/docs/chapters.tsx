@@ -52,6 +52,12 @@ import {
   VIEWINGS_AND_LISTING_FREE,
 } from "./facts";
 import { DocsFlow } from "./DocsFlow";
+import { DOC_GROUPS, chaptersByGroup, type DocChapterIndexEntry, type DocGroupId } from "./docs-groups";
+
+/* The navigation lives in `docs-groups.ts` so the client rail can import it
+   without this file's text; re-exported here for the server callers. */
+export { DOC_GROUPS, chaptersByGroup };
+export type { DocChapterIndexEntry, DocGroupId };
 
 /**
  * The documentation, as data.
@@ -86,19 +92,6 @@ export type DocSection = {
   heading: string;
   body: ReactNode;
 };
-
-/** The groups the chapters sit in, in reading order. */
-export const DOC_GROUPS = [
-  { id: "start", label: "Start here" },
-  { id: "renting", label: "Renting and buying" },
-  { id: "stays", label: "Stays and restaurants" },
-  { id: "money", label: "Money" },
-  { id: "listing", label: "Listing and hosting" },
-  { id: "tools", label: "Messages and tools" },
-  { id: "trust", label: "Trust and privacy" },
-] as const;
-
-export type DocGroupId = (typeof DOC_GROUPS)[number]["id"];
 
 export type DocChapter = {
   slug: string;
@@ -1140,22 +1133,6 @@ export const CHAPTERS: DocChapter[] = ORDER.flatMap(({ group, chapters }) =>
 
 /* ------------------------------------------------------------------ index */
 
-/**
- * The navigation shape: plain data, no React elements.
- *
- * This is what crosses into the client sidebar, as props. Importing `CHAPTERS`
- * itself from a client component would pull every paragraph of the whole
- * document into the browser bundle.
- */
-export type DocChapterIndexEntry = {
-  slug: string;
-  number: number;
-  title: string;
-  summary: string;
-  icon: BrandIconName;
-  group: DocGroupId;
-};
-
 export const CHAPTER_INDEX: DocChapterIndexEntry[] = CHAPTERS.map((chapter) => ({
   slug: chapter.slug,
   number: chapter.number,
@@ -1164,17 +1141,6 @@ export const CHAPTER_INDEX: DocChapterIndexEntry[] = CHAPTERS.map((chapter) => (
   icon: chapter.icon,
   group: chapter.group ?? "start",
 }));
-
-/** The groups with their chapters, in reading order, for the index and the sidebar. */
-export function chaptersByGroup<T extends { group: DocGroupId }>(
-  items: readonly T[],
-): { id: DocGroupId; label: string; items: T[] }[] {
-  return DOC_GROUPS.map((group) => ({
-    id: group.id,
-    label: group.label,
-    items: items.filter((item) => item.group === group.id),
-  })).filter((group) => group.items.length > 0);
-}
 
 /** One chapter by its slug, or undefined so the route can answer with notFound. */
 export function chapterBySlug(slug: string): DocChapter | undefined {
