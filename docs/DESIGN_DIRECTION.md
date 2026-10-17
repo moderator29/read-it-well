@@ -208,9 +208,9 @@ everywhere.
      still centred, no overflow at 320.
    - **The centre "+" is 50px** (inside the 56px tab, so the capsule does
      not grow), the brand-blue button with a white plus and a glow, and the
-     logo pill's running "snake" rim light, in both themes. It reuses the
-     logo's `--nf-logo-lap` angle and `nf-logo-lap` keyframes from
-     `light.css` rather than a copy; under reduced motion, data saving and
+     logo pill's running "snake" rim light, in both themes. The ring is
+     drawn once and turned on the compositor (`nf-edge-turn`, the round dock
+     button's turn in `edge-m.css`); under reduced motion, data saving and
      the Calm or Off motion setting the rim is a steady glow.
 
    **The theme default is DARK for everybody who has not chosen (the
