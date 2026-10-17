@@ -104,6 +104,7 @@ import { SUPABASE_URL } from "@/lib/supabase/env";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Quantity } from "@/components/ui/Quantity";
 import { ListingSentForReview } from "./ListingSentForReview";
+import { PushPrompt } from "@/components/app/push/PushPrompt";
 import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
 import { successCopy, type SuccessWords } from "@/lib/ui/success-moments";
 import { TextField, TextArea } from "@/components/ui/Field";
@@ -4363,14 +4364,19 @@ export function ListingWizard({
               {memberCard}
             </div>
             {sent ? (
-              <ListingSentForReview
-                copy={copy}
-                reference={reference}
-                lister={listerCopy}
-                status={sent.status}
-                submittedAt={sent.at}
-                locale={locale}
-              />
+              <>
+                <ListingSentForReview
+                  copy={copy}
+                  reference={reference}
+                  lister={listerCopy}
+                  status={sent.status}
+                  submittedAt={sent.at}
+                  locale={locale}
+                />
+                {/* Sent: the lister now wants to know when somebody asks.
+                    PushPrompt decides whether to ask at all (moments.ts). */}
+                <PushPrompt moment="listing_published" />
+              </>
             ) : (
               <div className="nf-lw-publish__send mt-heading">
                 <h2 className="nf-h3" data-testid="send-title">

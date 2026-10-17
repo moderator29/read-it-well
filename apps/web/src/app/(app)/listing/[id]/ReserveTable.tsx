@@ -1,6 +1,7 @@
 "use client";
 
 import { PhoneGateLink } from "@/components/app/PhoneGateLink";
+import { PushPrompt } from "@/components/app/push/PushPrompt";
 import { isPhoneGate } from "@/lib/actions/envelope";
 import { useActionState, useId, useMemo, useState } from "react";
 import Link from "next/link";
@@ -232,6 +233,10 @@ export function ReserveTable({
         >
           See your bookings
         </Link>
+        {/* The moment the value of a notification is plain: the restaurant's
+            answer is coming. After the success sheet, never over it;
+            PushPrompt decides whether to ask at all (moments.ts). */}
+        {successClosed || !success ? <PushPrompt moment="booking_requested" /> : null}
       </div>
     );
   }
