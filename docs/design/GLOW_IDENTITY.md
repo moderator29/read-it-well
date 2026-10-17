@@ -1,6 +1,6 @@
 # The glow identity, measured
 
-> **SUPERSEDED on 5 October 2026 by [`docs/design/VISUAL_NORTH_STAR_2026-10-05.md`](/docs/design/VISUAL_NORTH_STAR_2026-10-05.md).**
+> **SUPERSEDED on 5 October 2026.** The live bar is `docs/design/PREMIUM-STANDARD.md` and the rulings D78, D81 and D82 in `docs/RULINGS.md`. Kept because code comments cite this file; it governs nothing.
 > That document carries the founder's four locked decisions for the
 > platform-wide next-generation upgrade: theme leading by surface, matte clay 3D
 > for content with line glyphs for chrome (glossy 3D banned), full redesign

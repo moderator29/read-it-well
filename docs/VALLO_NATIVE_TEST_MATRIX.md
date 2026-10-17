@@ -15,7 +15,7 @@ release Android build. Nobody has installed either on a handset.
 
 The ninety-minute pass for the founder, covering the P0 rows with step-by-step
 instructions, is `FOUNDER_DEVICE_TEST_BRIEF.md`. Directive D43
-(`sessions/DIRECTIVES-2026-10-05.md`) ranks it as the next action.
+(`RULINGS.md`) ranks it as the next action.
 
 Devices to use, at minimum: one current iPhone with a notch or Dynamic Island,
 one smaller iPhone on the oldest iOS you support (15 is the floor), one Pixel

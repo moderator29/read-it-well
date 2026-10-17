@@ -41,7 +41,7 @@ In order. Nothing here is done until it is ticked by the person named.
 - [ ] Billing: set a usage alert.
 - [ ] Do not enable Egress (recording) or any agent feature.
 
-## 4. Vercel environment (the founder; names only, `docs/sessions/VERCEL-KEYS.md`)
+## 4. Vercel environment (the founder; names only, values never in the repo)
 
 - [ ] `LIVEKIT_URL` = `wss://<project>.livekit.cloud`
 - [ ] `LIVEKIT_API_KEY`

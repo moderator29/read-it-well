@@ -24,4 +24,4 @@ labels: enhancement
 
 ## Related
 
-<!-- Links to docs/RECOMMENDATIONS.md entries, ADRs or earlier issues. -->
+<!-- Links to ADRs, docs/RULINGS.md or earlier issues. -->

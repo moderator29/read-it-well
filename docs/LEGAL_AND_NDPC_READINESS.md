@@ -2,7 +2,7 @@
 
 **This is a readiness assessment, not legal advice.** It records what the repository shows, with citations, and says UNKNOWN where the repository cannot answer; a Nigerian solicitor and the Data Protection Officer must confirm every conclusion before anyone relies on it.
 
-Written 6 October 2026 on branch `claude/vallo-qa-release`. Method: directive D41 in `docs/sessions/DIRECTIVES-2026-10-05.md` ("Measure, never quote"), so every statement below was read from the tree or fetched, not copied from an older status document. NDPC means the Nigeria Data Protection Commission; NDPA means the Nigeria Data Protection Act 2023.
+Written 6 October 2026 on branch `claude/vallo-qa-release`. Method: directive D41 in `docs/RULINGS.md` ("Measure, never quote"), so every statement below was read from the tree or fetched, not copied from an older status document. NDPC means the Nigeria Data Protection Commission; NDPA means the Nigeria Data Protection Act 2023.
 
 ## 1. Which legal routes exist and return a page
 
@@ -86,7 +86,7 @@ Three content problems that a reviewer or regulator could reach from those URLs:
 
 ## 4. D50 and D48: the provider abstraction never governs the legal surface
 
-**Binding, from `docs/sessions/DIRECTIVES-2026-10-05.md` D50:** "The abstraction governs the product surface, never the legal surface." Where a provider name is required by a card-network rule, a banking rule, a provider agreement, a receipt, a KYC flow, the Terms or a transaction disclosure, it is shown. The Terms, receipts and KYC flows must name the actual provider holding or moving the money. A provider is never hidden to make the product look as if Vallo performs the function.
+**Binding, from `docs/RULINGS.md` D50:** "The abstraction governs the product surface, never the legal surface." Where a provider name is required by a card-network rule, a banking rule, a provider agreement, a receipt, a KYC flow, the Terms or a transaction disclosure, it is shown. The Terms, receipts and KYC flows must name the actual provider holding or moving the money. A provider is never hidden to make the product look as if Vallo performs the function.
 
 What the legal text says today (read 6 Oct):
 

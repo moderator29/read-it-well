@@ -54,7 +54,7 @@ Migrations live in `supabase/migrations/`. The README's [Database and migrations
 
 ## Comments
 
-Comments describe the code and why it is the way it is: the constraint, the incident that justified it, the thing that will break if someone changes it. Do not describe how the code came to be written. That means no session names, worker or ticket narration, or "as requested in handoff X". That history belongs in commit messages and the pull request. If a comment cites a document, point at a live one in `docs/`, not at `docs/archive/`.
+Comments describe the code and why it is the way it is: the constraint, the incident that justified it, the thing that will break if someone changes it. Do not describe how the code came to be written. That means no session names, worker or ticket narration, or "as requested in handoff X". That history belongs in commit messages and the pull request. If a comment cites a document, point at a live one in `docs/`.
 
 ## Secrets and personal data
 
@@ -66,4 +66,4 @@ Comments describe the code and why it is the way it is: the constraint, the inci
 ## Documentation
 
 - Live documentation is listed in [`docs/README.md`](docs/README.md). When your change makes one of those documents wrong, update it in the same pull request.
-- Retired material and dated build records go to `docs/archive/`. Do not add plans, ledgers or status reports to the top of `docs/`.
+- Do not add plans, ledgers, dated reports or status files to `docs/`. That record belongs in commit messages; `docs/` holds only guidance that is in force.

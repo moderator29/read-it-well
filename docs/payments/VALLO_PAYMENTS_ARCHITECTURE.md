@@ -1,7 +1,7 @@
 # Vallo payments architecture: Paystack, Payluk, Yellow Card
 
 **Written by Session 1, 5 October 2026.** Architecture and decisions only. No
-implementation. Companion to `docs/sessions/SESSION-1-RESPONSE.md` section 4.
+implementation. Its companion session report was retired on 17 October 2026.
 
 ---
 
