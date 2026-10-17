@@ -35,6 +35,7 @@ import {
   URL_PATH_HEADER,
 } from "@/lib/i18n/public-locale";
 import { LOCALE_COOKIE } from "@/lib/locale.constants";
+import { FIRST_RUN_COOKIE, FIRST_RUN_MAX_AGE, FIRST_RUN_SEEN } from "@/components/app/welcome/first-run-seen";
 import { ANON_VIEWER, VIEWER_HEADER, VIEWER_PATH_HEADER, viewerStamp, wantsViewerStamp } from "@/lib/offline/viewer-stamp";
 import {
   finishSetupGateApplies,
@@ -595,6 +596,28 @@ export async function proxy(request: NextRequest) {
         path: "/",
         maxAge: 60 * 60 * 24 * 365,
         sameSite: "lax",
+      });
+    }
+    /* THE SLIDES MARK THE SITTING FROM THE SERVER (the founder, 16 October
+       2026: the last slide's Sign in sent him back to slide one, again and
+       again). The doors read `vallo_first_run` off the request, and only the
+       click that left the slides wrote it, from script. A navigation that
+       fired before that write reached the request layer (WKWebView hands
+       script-set cookies to its request store a moment late) arrived at the
+       door without it and was sent back here. So the cookie is set as the
+       slides are served: every request after this one carries it, whatever
+       the browser does with script-set cookies. The client write stays, for
+       the storage-blocked `welcomed=1` fallback (`first-run-seen.ts`). */
+    if (
+      request.method === "GET" &&
+      (pathname.replace(/\/+$/, "") || "/") === "/welcome" &&
+      request.cookies.get(FIRST_RUN_COOKIE)?.value !== FIRST_RUN_SEEN
+    ) {
+      response.cookies.set(FIRST_RUN_COOKIE, FIRST_RUN_SEEN, {
+        path: "/",
+        maxAge: FIRST_RUN_MAX_AGE,
+        sameSite: "lax",
+        secure: serverCookiesSecure(request.nextUrl.protocol),
       });
     }
     if (viewer && !response.headers.get("set-cookie")) response.headers.set(VIEWER_HEADER, viewer);

@@ -92,6 +92,36 @@ const ROUTES = [
   "/listing/abc.png",
 ];
 
+describe("first run is remembered from the server", () => {
+  /* The founder, 16 October 2026: the last slide's Sign in sent him back to
+     slide one. The doors read `vallo_first_run` off the request, and only a
+     script write on the click that left the slides set it, which a WKWebView
+     navigation can outrun. Serving the slides now sets it, so no door can
+     bounce the slides' own exit. */
+  it("sets the seen cookie for one sitting as /welcome is served", async () => {
+    const response = await proxy(new NextRequest("http://localhost/welcome?next=%2Fsign-in"));
+    const cookie = response.cookies.get("vallo_first_run");
+    expect(cookie?.value).toBe("seen");
+    expect(cookie?.maxAge).toBe(60 * 30);
+    expect(cookie?.path).toBe("/");
+    expect(cookie?.sameSite).toBe("lax");
+  });
+
+  it("does not set it again when the request already carries it", async () => {
+    const response = await proxy(
+      new NextRequest("http://localhost/welcome", { headers: { cookie: "vallo_first_run=seen" } }),
+    );
+    expect(response.cookies.get("vallo_first_run")).toBeUndefined();
+  });
+
+  it("sets it nowhere else: the doors and the landing page leave the cookie alone", async () => {
+    for (const route of ["/", "/sign-in", "/sign-up", "/help"]) {
+      const response = await proxy(new NextRequest(`http://localhost${route}`));
+      expect(response.cookies.get("vallo_first_run"), route).toBeUndefined();
+    }
+  });
+});
+
 describe("the proxy's Content Security Policy", () => {
   it("stamps a policy on every route, boundaries included", async () => {
     for (const route of ROUTES) {

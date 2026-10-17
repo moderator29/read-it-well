@@ -24,7 +24,9 @@ import {
  * the hand-off instead, so the two screens can never bounce somebody.
  *
  * Ways straight through, each there to stop a loop or a wrong screen:
- *   - the cookie: this device has seen it;
+ *   - the cookie: this device has seen it. The proxy sets it as `/welcome`
+ *     serves the slides (16 October 2026), so a door reached from the last
+ *     slide never depends on a script-set cookie arriving in time;
  *   - `welcomed=1`: the storage-blocked hand-off above;
  *   - NOT a bare session cookie any more (the founder, 8 October 2026): an
  *     old, expired cookie read as "signed in" and sent him straight to
