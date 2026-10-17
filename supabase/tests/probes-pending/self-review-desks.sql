@@ -1,7 +1,7 @@
 -- SELF-REVIEW-DESKS (pending migration 20261017120000_nobody_decides_their_own_case):
 --  1. a moderator releases another member's held bio (control) but not their own
 --  2. staff cannot settle a table with no dispute open
---  3. the no-show, refund, referral and payout desks carry their own-case refusal
+--  3. the no-show, refund, referral, payout and credential desks carry their own-case refusal
 --  4. a manual badge cannot name its own holder as the grantor
 -- Everything is rolled back by the final raise.
 do $$
@@ -57,6 +57,10 @@ begin
   end if;
   if position('own_payout' in pg_get_functiondef('public.admin_rewards_payout_decide(uuid, text, text)'::regprocedure)) = 0 then
     raise exception 'PROBE_FAIL self-review-desks 3: the payout desk has no own-payout refusal';
+  end if;
+
+  if position('own_record' in pg_get_functiondef('public.record_credential(uuid, text, text, text, text, text)'::regprocedure)) = 0 then
+    raise exception 'PROBE_FAIL self-review-desks 3: the credential desk has no own-record refusal';
   end if;
 
   -- 4. A badge granted by its own holder.

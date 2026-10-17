@@ -3,7 +3,7 @@
 -- Agent D audit, 17 October 2026. The admin desks refuse self-review for
 -- listings, applications, businesses, documents, verification rungs,
 -- agreements, Guarantee claims, caution rulings, chargeback holds and review
--- contests. These six decisions did not:
+-- contests. These decisions did not:
 --   1. moderation_decide: a moderator could release their own held post,
 --      story, comment or bio. Now 'own_content'.
 --   2. reservation_resolve_seating: staff could decide a table they ate at or
@@ -20,6 +20,8 @@
 --   7. user_badges: an admin could grant themselves a manual badge. A check
 --      constraint, NOT VALID so existing rows are not re-read (validate after
 --      checking none breaks it).
+--   8. record_credential: an admin could record a LASRERA or ESVARBON
+--      register check on their own account. Now 'own_record'.
 --
 -- Each function below is the newest definition in supabase/migrations/ with
 -- only the self-review lines added (file named above each). BEFORE APPLYING:
@@ -337,6 +339,50 @@ begin
   end if;
   return 'refused';
 end $fn$;
+
+-- 8. from 20260928224407_v87_lasrera_esvarbon_and_cac_as_dated_credentials.sql
+create or replace function public.record_credential(
+  p_subject uuid, p_kind text, p_number text, p_company text, p_source text, p_register_name text
+)
+returns text
+language plpgsql
+security definer
+set search_path = ''
+as $fn$
+declare
+  actor uuid := auth.uid();
+begin
+  if actor is null or not (private.has_role(actor, 'admin'::public.app_role)
+                           or private.has_role(actor, 'super_admin'::public.app_role)) then
+    return 'forbidden';
+  end if;
+  -- Nobody records a register check on themselves.
+  if p_subject = actor then return 'own_record'; end if;
+  if p_kind not in ('lasrera', 'esvarbon', 'cac_director') then return 'invalid'; end if;
+  if p_number is null or length(btrim(p_number)) < 2 then return 'invalid'; end if;
+  if (p_kind = 'cac_director') <> (p_company is not null and length(btrim(p_company)) >= 2) then return 'invalid'; end if;
+  /* This is the desk's door, and the desk reads registers by hand. The
+     aggregator will write through its own service-role path, so a member of
+     staff cannot claim an aggregator check here, and a CAC directorship,
+     which only the aggregator can see, is refused. */
+  if coalesce(p_source, 'register_by_hand') <> 'register_by_hand' then return 'invalid'; end if;
+  if p_kind = 'cac_director' then return 'needs_aggregator'; end if;
+  if p_register_name is null or length(btrim(p_register_name)) < 2 then return 'no_name'; end if;
+
+  insert into public.credentials (subject_id, kind, number, company_name, register_name, source, checked_at, checked_by)
+  values (p_subject, p_kind, btrim(p_number), nullif(btrim(coalesce(p_company, '')), ''),
+          nullif(btrim(coalesce(p_register_name, '')), ''),
+          'register_by_hand', now(), actor)
+  on conflict (subject_id, kind) do update
+    set number = excluded.number, company_name = excluded.company_name, register_name = excluded.register_name,
+        source = excluded.source, checked_at = now(), checked_by = actor;
+
+  insert into public.audit_log (actor_id, action, entity_type, entity_id, metadata)
+  values (actor, 'credential.checked', 'user', p_subject::text,
+          jsonb_build_object('kind', p_kind, 'source', 'register_by_hand'));
+  return 'recorded';
+end;
+$fn$;
 
 -- 7. A manual badge names somebody other than the holder.
 alter table public.user_badges
