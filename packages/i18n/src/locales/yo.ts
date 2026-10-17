@@ -1072,6 +1072,14 @@ export const yo: Dictionary = withFallback({
       typeToConfirm: "Tẹ {phrase} láti fẹsẹ̀múlẹ̀",
       capitals: "Lẹ́tà ńlá gẹ́gẹ́ bí a ti fi hàn. Ohunkóhun mìíràn kò ní ṣí bọ́tìnì náà.",
       confirm: "Pa á rẹ́ pátápátá",
+      // NATIVE REVIEW: the deletion blockers for partner-held money and rewards (17 October 2026).
+      blockerPartnerHeld: "Alábàáṣiṣẹ́pọ̀ ìsanwó tó ní ìwé àṣẹ ń di {amount} mú tàbí ń gbé e fún àdéhùn kan tìrẹ. Wọ́n gbọ́dọ̀ tú u sílẹ̀ tàbí dá a padà ná.",
+      blockerPartnerHeldCta: "Ṣí àwọn àdéhùn mi",
+      blockerRewardsBalance: "O ní {amount} nínú èrè tí o lè gbà jáde. Gbà á jáde ná kí ó má baà sọnù.",
+      blockerRewardsBalanceCta: "Gba èrè jáde",
+      blockerRewardsPayouts: "O ní ìgbàjáde èrè {count} tí ó ṣì ń bọ̀ sí báńkì rẹ.",
+      blockerRewardsPayoutsPlural: "O ní ìgbàjáde èrè {count} tí wọ́n ṣì ń bọ̀ sí báńkì rẹ.",
+      blockerRewardsPayoutsCta: "Wo èrè mi",
     },
 
     about: {
@@ -3734,6 +3742,7 @@ export const yo: Dictionary = withFallback({
       noShow: "Kò wá",
       markedSeated: "A ti sàmì sí i pé wọ́n jókòó.",
       markedNoShow: "A ti sàmì sí i pé kò wá. A ti sọ fún àlejò náà.",
+      markedDisputed: "A ti fi pamọ́. Àlejò náà sọ ohun mìíràn fún wa, nítorí náà ẹnìkan ní Vallo yóò yẹ tábìlì yìí wò.",
     },
     bill: {
       label: "Àpapọ̀ owó lórí ìwé owó",

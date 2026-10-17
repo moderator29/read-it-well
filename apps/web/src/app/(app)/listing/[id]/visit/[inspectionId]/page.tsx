@@ -12,7 +12,7 @@ import { VisitListerCard, type ListerCall } from "@/components/app/inspections/v
 import { VisitStatus } from "@/components/app/inspections/visit/VisitStatus";
 import { roleWordsOf, visitPlaceOf, visitPropertyOf } from "@/components/app/inspections/visit/property";
 import "@/app/css/visit.css";
-import { requestNow } from "@/lib/landlord/facts";
+import { requestNow } from "@/lib/format/when";
 
 /**
  * SCHEDULE A VISIT, STEP 2 (`/listing/[id]/visit/[inspectionId]`): where the

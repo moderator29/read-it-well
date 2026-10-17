@@ -1043,6 +1043,14 @@ export const ha: Dictionary = withFallback({
       typeToConfirm: "Rubuta {phrase} don tabbatarwa",
       capitals: "Manyan baƙaƙe daidai kamar yadda aka nuna. Wani abu daban ba zai buɗe maɓallin ba.",
       confirm: "Share gaba ɗaya",
+      // NATIVE REVIEW: the deletion blockers for partner-held money and rewards (17 October 2026).
+      blockerPartnerHeld: "Wani abokin biyan kuɗi mai lasisi yana riƙe ko yana motsa {amount} don wata yarjejeniyarka. Dole a sake shi ko a mayar da shi tukuna.",
+      blockerPartnerHeldCta: "Buɗe yarjejeniyoyina",
+      blockerRewardsBalance: "Kana da {amount} na lada da za ka cire. Cire shi tukuna don kada ya ɓace.",
+      blockerRewardsBalanceCta: "Cire lada",
+      blockerRewardsPayouts: "Kana da cire lada {count} da ke kan hanyarsa zuwa bankinka.",
+      blockerRewardsPayoutsPlural: "Kana da cire lada {count} da ke kan hanyarsu zuwa bankinka.",
+      blockerRewardsPayoutsCta: "Duba ladana",
     },
 
     about: {
@@ -3687,6 +3695,7 @@ export const ha: Dictionary = withFallback({
       noShow: "Bai zo ba",
       markedSeated: "An yi alama cewa an zaunar.",
       markedNoShow: "An yi alama cewa bai zo ba. An sanar da baƙon.",
+      markedDisputed: "An adana. Baƙon ya faɗa mana wani abu daban, don haka wani a Vallo zai duba wannan teburin.",
     },
     bill: {
       label: "Jimillar kuɗin lissafi",

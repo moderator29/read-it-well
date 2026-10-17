@@ -2080,6 +2080,17 @@ export const en = {
         "Clear these and the delete button unlocks. Nothing here stops you leaving, it just has to be settled first.",
       /* STORE-12 / MON-09: money in a pot, and rent refunds either way. The
          deletion is also re-checked for these on the day it runs. */
+      /* Money a licensed partner holds or is moving for a deal of theirs, and
+         rewards Vallo owes them. Each has a way out: the agreement, or the
+         rewards screen where Withdraw lives. */
+      blockerPartnerHeld:
+        "A licensed payment partner is holding or moving {amount} for a deal of yours. It has to be released or refunded first.",
+      blockerPartnerHeldCta: "Open my agreements",
+      blockerRewardsBalance: "You have {amount} in rewards to withdraw. Withdraw it first so it is not lost.",
+      blockerRewardsBalanceCta: "Withdraw rewards",
+      blockerRewardsPayouts: "You have {count} rewards withdrawal still on its way to your bank.",
+      blockerRewardsPayoutsPlural: "You have {count} rewards withdrawals still on their way to your bank.",
+      blockerRewardsPayoutsCta: "See my rewards",
       blockerRentRefundsCta: "Talk to support",
       blockerRentRefundsOwed: "You owe {amount} in rent refunds to people who paid you.",
       blockerRentRefundsDue: "{amount} in rent refunds is owed to you.",
@@ -6242,6 +6253,7 @@ export const en = {
       noShow: "No-show",
       markedSeated: "Marked as seated.",
       markedNoShow: "Marked as a no-show. The guest is told.",
+      markedDisputed: "Saved. The guest told us something different, so a person at Vallo will check this table.",
     },
     bill: {
       label: "The total on the bill",

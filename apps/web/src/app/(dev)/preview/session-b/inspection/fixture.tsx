@@ -4,7 +4,7 @@ import { InspectionHero, InspectionSheet } from "@/components/app/inspections/In
 import type { InspectionState } from "@/lib/inspections/types";
 import { ROOM_ITEMS } from "@/lib/inspections/report";
 import { INSPECTION, INSPECTION_FACTS } from "../../f5/fixtures";
-import { requestNow } from "@/lib/landlord/facts";
+import { requestNow } from "@/lib/format/when";
 
 /** Three days from the request, on the hour: a viewing still ahead. */
 function aheadOfNow(): string {

@@ -15,7 +15,7 @@ import { truthOpenNow } from "@/lib/inspections/truth";
 import { SafetyShareControl } from "@/components/app/doors/SafetyShareControl";
 import { safetyControlRows } from "@/lib/doors/safety";
 import { readMyLiveSafetyShares } from "@/lib/doors/queries";
-import { requestNow } from "@/lib/landlord/facts";
+import { requestNow } from "@/lib/format/when";
 
 /**
  * The inspections on Plans: the Property side's diary, in the anatomy of

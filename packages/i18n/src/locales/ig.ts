@@ -1076,6 +1076,14 @@ export const ig: Dictionary = withFallback({
       typeToConfirm: "Pịnye {phrase} iji kwado",
       capitals: "Mkpụrụedemede ukwu kpọmkwem ka e gosiri. Ihe ọzọ agaghị emeghe bọtịnụ ahụ.",
       confirm: "Hichapụ kpamkpam",
+      // NATIVE REVIEW: the deletion blockers for partner-held money and rewards (17 October 2026).
+      blockerPartnerHeld: "Onye mmekọ ịkwụ ụgwọ nwere ikikere na-ejide ma ọ bụ na-ebugharị {amount} maka otu nkwekọrịta gị. A ga-ebu ụzọ hapụ ya ma ọ bụ weghachi ya.",
+      blockerPartnerHeldCta: "Mepee nkwekọrịta m",
+      blockerRewardsBalance: "I nwere {amount} n'ụgwọ ọrụ ị ga-ewepụ. Buru ụzọ wepụ ya ka ọ ghara ifu.",
+      blockerRewardsBalanceCta: "Wepụ ụgwọ ọrụ",
+      blockerRewardsPayouts: "I nwere iwepụ ụgwọ ọrụ {count} ka na-aga n'ụlọ akụ gị.",
+      blockerRewardsPayoutsPlural: "I nwere iwepụ ụgwọ ọrụ {count} ka na-aga n'ụlọ akụ gị.",
+      blockerRewardsPayoutsCta: "Lee ụgwọ ọrụ m",
     },
 
     about: {
@@ -3720,6 +3728,7 @@ export const ig: Dictionary = withFallback({
       noShow: "Abịaghị",
       markedSeated: "Akaala ya akara dị ka anọdụla ala.",
       markedNoShow: "Akaala ya akara dị ka abịaghị. A gwala ọbịa ahụ.",
+      markedDisputed: "Echekwala ya. Ọbịa ahụ gwara anyị ihe dị iche, ya mere onye na Vallo ga-elele tebụl a.",
     },
     bill: {
       label: "Ngụkọta ego na akwụkwọ ụgwọ",
