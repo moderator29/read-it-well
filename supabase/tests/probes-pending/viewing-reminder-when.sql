@@ -1,4 +1,4 @@
--- VIEWING-REMINDER-WHEN (pending migration 20261017150000_viewing_reminder_day_from_dates):
+-- VIEWING-REMINDER-WHEN (pending migration 20261017152000_viewing_reminder_day_from_dates):
 --  1. a 'soon' reminder at 22:30 Lagos for a 00:30 visit says tomorrow, not today
 --  2. a reminder on the visit's own Lagos day says today
 --  3. the 'eve' case (19:00 the evening before) still says tomorrow with the date
