@@ -28,6 +28,7 @@ import {
   saveInspectionReport,
 } from "@/lib/inspections/actions";
 import { loadBrowserClient } from "@/lib/supabase/load-client";
+import { reencodeToJpeg } from "@/components/social/profile/reencode";
 import {
   EMPTY_REPORT,
   ROOM_COPY,
@@ -361,11 +362,32 @@ export function InspectionSheet({
    * private bucket, then `addReportPhoto` records the row.
    * The count moves only when that row came back.
    */
-  async function addPhoto(file: File) {
-    const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
+  async function addPhoto(picked: File) {
     setError(null);
     setUploading(true);
     try {
+      /*
+       * The original photo never leaves the phone: a camera photo carries
+       * EXIF, usually with GPS, so it is re-encoded through a canvas first
+       * (pixels only, the rule the thread, support and listing photos follow).
+       * The server scrubs again before recording it. A PDF is a document and
+       * goes as it is. A photo this browser cannot decode (HEIC outside
+       * Safari) is refused in words, never sent as the original.
+       */
+      const isPdf = picked.type === "application/pdf" || picked.name.toLowerCase().endsWith(".pdf");
+      let file: Blob = picked;
+      let extension = "pdf";
+      let contentType = "application/pdf";
+      if (!isPdf) {
+        const clean = await reencodeToJpeg(picked, { maxEdge: 2560, quality: 0.9 });
+        if (!clean) {
+          setError("That photo could not be read on this device. Try a JPEG or a screenshot.");
+          return;
+        }
+        file = clean;
+        extension = "jpg";
+        contentType = "image/jpeg";
+      }
       const target = await createInspectionPhotoUpload({ inspectionId: inspection.id, extension });
       if (!target.ok) {
         setError(target.error);
@@ -378,7 +400,7 @@ export function InspectionSheet({
       }
       const upload = await client
         .storage.from("inspection-photos")
-        .uploadToSignedUrl(target.data.path, target.data.token, file, { contentType: file.type });
+        .uploadToSignedUrl(target.data.path, target.data.token, file, { contentType });
       if (upload.error) {
         setError("That photo did not upload. Try again in a moment.");
         return;
