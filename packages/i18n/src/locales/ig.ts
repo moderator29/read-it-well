@@ -4160,7 +4160,6 @@ export const ig: Dictionary = withFallback({
   feedV2: {
     card: {
       commentPill: "Tinye ihe ị chere",
-      commentAria: "zaa nke a",
       readMore: "Gụkwuo",
       readLess: "Gosi obere",
       roleLandlord: "Onye nwe ụlọ",

@@ -4177,7 +4177,6 @@ export const yo: Dictionary = withFallback({
   feedV2: {
     card: {
       commentPill: "Fi èsì sílẹ̀",
-      commentAria: "fèsì sí èyí",
       readMore: "Ka síwájú",
       readLess: "Fi díẹ̀ hàn",
       roleLandlord: "Onílé",
