@@ -8,7 +8,7 @@ import { confirmTableBill, enterTableBill, seatByCode } from "@/lib/reservations
 import { billOpen } from "@/lib/reservations/seating";
 import { guestRecordLine } from "@/lib/reservations/guest-record";
 import { NairaField } from "@/components/ui/NairaField";
-import { formatMoney } from "@vallo/i18n";
+import { formatMoney } from "@vallo/i18n/core";
 import type { ActionResult } from "@/lib/actions/envelope";
 import type { HostReservationView } from "@/lib/reservations/queries";
 import type { HostTableBoard } from "./board";
